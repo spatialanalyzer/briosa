@@ -10,4 +10,4 @@ app.MapGet("/", () => Results.Text(
 
 app.Run();
 
-public partial class Program;
+internal partial class Program;

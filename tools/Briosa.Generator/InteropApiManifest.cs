@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Briosa.Generator;
 
-public static class InteropApiManifest
+internal static class InteropApiManifest
 {
     public static string Create(string assemblyPath)
     {

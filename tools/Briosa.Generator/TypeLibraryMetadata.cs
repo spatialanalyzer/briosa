@@ -4,7 +4,7 @@ using System.Runtime.Versioning;
 
 namespace Briosa.Generator;
 
-public sealed record TypeLibraryMetadata(
+internal sealed record TypeLibraryMetadata(
     string Name,
     Guid TypeLibraryId,
     int Lcid,
@@ -56,6 +56,7 @@ public sealed record TypeLibraryMetadata(
         }
     }
 
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
     [DllImport("oleaut32.dll", CharSet = CharSet.Unicode, PreserveSig = true)]
     private static extern int LoadTypeLibEx(
         string typeLibraryFile,

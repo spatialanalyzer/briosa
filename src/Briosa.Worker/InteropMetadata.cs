@@ -6,7 +6,7 @@ namespace Briosa.Worker;
 /// <summary>
 /// Exposes non-executing metadata about the generated SDK interop boundary.
 /// </summary>
-public static class InteropMetadata
+internal static class InteropMetadata
 {
     public static AssemblyName AssemblyName => typeof(ISpatialAnalyzerSDK).Assembly.GetName();
 }

@@ -13,6 +13,9 @@ public sealed class InteropApiManifestTests
         var second = InteropApiManifest.Create(assemblyPath);
 
         Assert.Equal(first, second);
-        Assert.Contains("# Volatile PE headers and the module MVID are intentionally excluded.", first);
+        Assert.Contains(
+            "# Volatile PE headers and the module MVID are intentionally excluded.",
+            first,
+            StringComparison.Ordinal);
     }
 }
