@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <PlatformTarget>x64</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+    <Description>Disposable SpatialAnalyzer SDK worker process.</Description>
+    <SpatialAnalyzerInteropPath>$(MSBuildThisFileDirectory)..\..\interop\SpatialAnalyzer\2026.1.0529.7\Briosa.SpatialAnalyzer.Interop.dll</SpatialAnalyzerInteropPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Briosa.SpatialAnalyzer.Interop">
+      <HintPath>$(SpatialAnalyzerInteropPath)</HintPath>
+      <Private>true</Private>
+      <EmbedInteropTypes>false</EmbedInteropTypes>
+    </Reference>
+  </ItemGroup>
+
+  <Target Name="ValidateSpatialAnalyzerInterop" BeforeTargets="ResolveReferences">
+    <Error
+      Condition="!Exists('$(SpatialAnalyzerInteropPath)')"
+      Text="The committed SpatialAnalyzer interop assembly was not found at '$(SpatialAnalyzerInteropPath)'. Run eng/Generate-SpatialAnalyzerInterop.ps1 from Visual Studio Developer PowerShell." />
+  </Target>
+</Project>

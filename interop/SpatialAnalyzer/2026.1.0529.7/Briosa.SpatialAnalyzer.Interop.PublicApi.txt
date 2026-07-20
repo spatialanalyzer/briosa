@@ -1,0 +1,1860 @@
+# Briosa SpatialAnalyzer interop public API
+# Volatile PE headers and the module MVID are intentionally excluded.
+assembly Briosa.SpatialAnalyzer.Interop version=2026.1.529.7 culture=neutral flags=0x00000000 public-key=
+  attribute [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor signature=2001010E value=01002438363046373438432D433830422D343231362D393338362D3138373335374635323046370000
+  attribute [mscorlib]System.Runtime.InteropServices.ImportedFromTypeLibAttribute::.ctor signature=2001010E value=0100125370617469616C416E616C797A657253444B0000
+  attribute [mscorlib]System.Runtime.InteropServices.TypeLibVersionAttribute::.ctor signature=2002010808 value=010001000000000000000000
+reference mscorlib version=4.0.0.0 culture=neutral flags=0x00000000 key=B77A5C561934E089 hash=
+type Briosa.SpatialAnalyzer.Interop.ISpatialAnalyzerSDK attributes=0x000010A1 base=<nil>
+  attribute [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor signature=2001010E value=01002442323937364533352D453839422D343836322D413031372D4442463239453139393843440000
+  attribute [mscorlib]System.Runtime.InteropServices.InterfaceTypeAttribute::.ctor signature=200101111D value=0100020000000000
+  attribute [mscorlib]System.Runtime.InteropServices.TypeLibTypeAttribute::.ctor signature=2001011115 value=0100001000000000
+  method Connect attributes=0x000005C6 impl=0x1083 signature=2001020E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100020000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=ipAddress attributes=0x2000
+  method ConnectEx attributes=0x000005C6 impl=0x1083 signature=2002020E1008
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01005B0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=ipAddress attributes=0x2000
+    parameter sequence=2 name=statusCode attributes=0x0000
+  method ExecuteStep attributes=0x000005C6 impl=0x1083 signature=200002
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100040000000000
+    parameter sequence=0 name= attributes=0x0000
+  method GetAutoFilterProximitySettingsArg attributes=0x000005C6 impl=0x1083 signature=200C020E100D100D100D100D100D100D10081008100810021002
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100980000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=sip attributes=0x0000
+    parameter sequence=3 name=eep attributes=0x0000
+    parameter sequence=4 name=pip attributes=0x0000
+    parameter sequence=5 name=pep attributes=0x0000
+    parameter sequence=6 name=rip attributes=0x0000
+    parameter sequence=7 name=gt attributes=0x0000
+    parameter sequence=8 name=spm attributes=0x0000
+    parameter sequence=9 name=ppm attributes=0x0000
+    parameter sequence=10 name=rpm attributes=0x0000
+    parameter sequence=11 name=pp attributes=0x0000
+    parameter sequence=12 name=apb attributes=0x0000
+  method GetBSPlineFitOptionsArg attributes=0x000005C6 impl=0x1083 signature=200F020E10021002100810081008100D100D10081002100D100D1002100D100D
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01008A0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=bFit attributes=0x0000
+    parameter sequence=3 name=bOpen attributes=0x0000
+    parameter sequence=4 name=sortMethod attributes=0x0000
+    parameter sequence=5 name=terminateMethod attributes=0x0000
+    parameter sequence=6 name=degree attributes=0x0000
+    parameter sequence=7 name=terminateLength attributes=0x0000
+    parameter sequence=8 name=terminateAvgMultiplier attributes=0x0000
+    parameter sequence=9 name=numFitCPs attributes=0x0000
+    parameter sequence=10 name=uniqueCheck attributes=0x0000
+    parameter sequence=11 name=uniqueThreshold attributes=0x0000
+    parameter sequence=12 name=extension attributes=0x0000
+    parameter sequence=13 name=useGlobalTessellationOptions attributes=0x0000
+    parameter sequence=14 name=maxChordalDeviation attributes=0x0000
+    parameter sequence=15 name=maxTrimEdgeAngle attributes=0x0000
+  method GetBoolArg attributes=0x000005C6 impl=0x1083 signature=2002020E1002
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01000C0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=value attributes=0x0000
+  method GetChartNameArg attributes=0x000005C6 impl=0x1083 signature=2002020E100E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01002C0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=chartName attributes=0x2000
+  method GetCloudNameArg attributes=0x000005C6 impl=0x1083 signature=2002020E100E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100280000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=cloudName attributes=0x2000
+  method GetColInstIdArg attributes=0x000005C6 impl=0x1083 signature=2003020E100E1008
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01001C0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=collectionName attributes=0x2000
+    parameter sequence=3 name=instId attributes=0x0000
+  method GetColInstIdRefListArg attributes=0x000005C6 impl=0x1083 signature=2002020E101C
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01004C0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=colInstIdList attributes=0x2000
+  method GetColMachineIdArg attributes=0x000005C6 impl=0x1083 signature=2003020E100E1008
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100670000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=collectionName attributes=0x2000
+    parameter sequence=3 name=machineId attributes=0x0000
+  method GetColVectorGroupNameArg attributes=0x000005C6 impl=0x1083 signature=2003020E100E100E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01004A0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=collectionName attributes=0x2000
+    parameter sequence=3 name=vectorGroupName attributes=0x2000
+  method GetCollectionGroupNameRefListArg attributes=0x000005C6 impl=0x1083 signature=2002020E101C
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100400000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=colGroupNameList attributes=0x2000
+  method GetCollectionNameArg attributes=0x000005C6 impl=0x1083 signature=2002020E100E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100240000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=collectionName attributes=0x2000
+  method GetCollectionObjectNameArg attributes=0x000005C6 impl=0x1083 signature=2003020E100E100E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100120000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=collectionName attributes=0x2000
+    parameter sequence=3 name=objectName attributes=0x2000
+  method GetCollectionObjectNameRefListArg attributes=0x000005C6 impl=0x1083 signature=2002020E101C
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100200000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=objectNameList attributes=0x2000
+  method GetCollectionVectorGroupNameRefListArg attributes=0x000005C6 impl=0x1083 signature=2002020E101C
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100320000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=colVectorGrpNameList attributes=0x2000
+  method GetDoubleArg attributes=0x000005C6 impl=0x1083 signature=2002020E100D
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100090000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=value attributes=0x0000
+  method GetDoubleArrayArg attributes=0x000005C6 impl=0x1083 signature=2003020E1008101C
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100700000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=arraySize attributes=0x0000
+    parameter sequence=3 name=arrayIn attributes=0x2000
+  method GetEditTextArg attributes=0x000005C6 impl=0x1083 signature=2002020E101C
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01007D0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=stringList attributes=0x2000
+  method GetFilePathArg attributes=0x000005C6 impl=0x1083 signature=2003020E100E1002
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01001E0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=path attributes=0x2000
+    parameter sequence=3 name=embeddedFile attributes=0x0000
+  method GetFitConstraintScalarOptionsArg attributes=0x000005C6 impl=0x1083 signature=2005020E1002100D1002100D
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100960000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=bUseHigh attributes=0x0000
+    parameter sequence=3 name=highTol attributes=0x0000
+    parameter sequence=4 name=bUseLow attributes=0x0000
+    parameter sequence=5 name=lowTol attributes=0x0000
+  method GetFrameNameArg attributes=0x000005C6 impl=0x1083 signature=2002020E100E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100220000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=frameName attributes=0x2000
+  method GetInstIdArg attributes=0x000005C6 impl=0x1083 signature=2002020E1008
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01001A0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=instId attributes=0x0000
+  method GetIntegerArg attributes=0x000005C6 impl=0x1083 signature=2002020E1008
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01000B0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=value attributes=0x0000
+  method GetMPStepMessages attributes=0x000005C6 impl=0x1083 signature=200102101C
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100140000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=vArray attributes=0x2000
+  method GetMPStepResult attributes=0x000005C6 impl=0x1083 signature=2001021008
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100130000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=resultCode attributes=0x0000
+  method GetObjectNameArg attributes=0x000005C6 impl=0x1083 signature=2002020E100E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100160000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=objectName attributes=0x2000
+  method GetPerimeterNameArg attributes=0x000005C6 impl=0x1083 signature=2002020E100E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01002A0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=perimeterName attributes=0x2000
+  method GetPointNameArg attributes=0x000005C6 impl=0x1083 signature=2004020E100E100E100E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100100000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=collectionName attributes=0x2000
+    parameter sequence=3 name=groupName attributes=0x2000
+    parameter sequence=4 name=targetName attributes=0x2000
+  method GetPointNameRefListArg attributes=0x000005C6 impl=0x1083 signature=2002020E101C
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01002E0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=pointNameList attributes=0x2000
+  method GetReportOutputOptionsArg attributes=0x000005C6 impl=0x1083 signature=2003020E100E100E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01004F0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=outputType attributes=0x2000
+    parameter sequence=3 name=pathOrEmbeddedName attributes=0x2000
+  method GetReportViewOptionsArg attributes=0x000005C6 impl=0x1083 signature=2004020E100E100E100E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100540000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=viewType attributes=0x2000
+    parameter sequence=3 name=collectionName attributes=0x2000
+    parameter sequence=4 name=calloutName attributes=0x2000
+  method GetResultArg attributes=0x000005C6 impl=0x1083 signature=2002020E100E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01005E0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=objectName attributes=0x2000
+  method GetStringArg attributes=0x000005C6 impl=0x1083 signature=2002020E100E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01000F0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=value attributes=0x2000
+  method GetStringRefListArg attributes=0x000005C6 impl=0x1083 signature=2002020E101C
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100510000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=stringList attributes=0x2000
+  method GetToleranceScalarOptionsArg attributes=0x000005C6 impl=0x1083 signature=2005020E1002100D1002100D
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01006C0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=bUseHigh attributes=0x0000
+    parameter sequence=3 name=highTol attributes=0x0000
+    parameter sequence=4 name=bUseLow attributes=0x0000
+    parameter sequence=5 name=lowTol attributes=0x0000
+  method GetToleranceVectorOptionsArg attributes=0x000005C6 impl=0x1083 signature=2011020E1002100D1002100D1002100D1002100D1002100D1002100D1002100D1002100D
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100720000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=bUseHighX attributes=0x0000
+    parameter sequence=3 name=highTolX attributes=0x0000
+    parameter sequence=4 name=bUseHighY attributes=0x0000
+    parameter sequence=5 name=highTolY attributes=0x0000
+    parameter sequence=6 name=bUseHighZ attributes=0x0000
+    parameter sequence=7 name=highTolZ attributes=0x0000
+    parameter sequence=8 name=bUseHighM attributes=0x0000
+    parameter sequence=9 name=highTolM attributes=0x0000
+    parameter sequence=10 name=bUseLowX attributes=0x0000
+    parameter sequence=11 name=lowTolX attributes=0x0000
+    parameter sequence=12 name=bUseLowY attributes=0x0000
+    parameter sequence=13 name=lowTolY attributes=0x0000
+    parameter sequence=14 name=bUseLowZ attributes=0x0000
+    parameter sequence=15 name=lowTolZ attributes=0x0000
+    parameter sequence=16 name=bUseLowM attributes=0x0000
+    parameter sequence=17 name=lowTolM attributes=0x0000
+  method GetTransformArg attributes=0x000005C6 impl=0x1083 signature=2002020E101C
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100180000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=transform attributes=0x2000
+  method GetVectorArg attributes=0x000005C6 impl=0x1083 signature=2004020E100D100D100D
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100110000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=XValue attributes=0x0000
+    parameter sequence=3 name=yValue attributes=0x0000
+    parameter sequence=4 name=zValue attributes=0x0000
+  method GetVectorGroupNameArg attributes=0x000005C6 impl=0x1083 signature=2002020E100E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100260000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=vectorGrpName attributes=0x2000
+  method GetVectorNameRefListArg attributes=0x000005C6 impl=0x1083 signature=2002020E101C
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100300000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=vectorNameList attributes=0x2000
+  method GetViewNameArg attributes=0x000005C6 impl=0x1083 signature=2002020E100E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100480000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=viewName attributes=0x2000
+  method GetWorldTransformArg attributes=0x000005C6 impl=0x1083 signature=2003020E101C100D
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100340000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=transform attributes=0x2000
+    parameter sequence=3 name=scaleFactor attributes=0x0000
+  method SetAngularUnitsArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100730000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=angularUnits attributes=0x2000
+  method SetAsciiFileFormatArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100440000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=asciiFileFormat attributes=0x2000
+  method SetAutoFilterProximitySettingsArg attributes=0x000005C6 impl=0x1083 signature=200C020E0D0D0D0D0D0D0808080202
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100970000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=sip attributes=0x0000
+    parameter sequence=3 name=eep attributes=0x0000
+    parameter sequence=4 name=pip attributes=0x0000
+    parameter sequence=5 name=pep attributes=0x0000
+    parameter sequence=6 name=rip attributes=0x0000
+    parameter sequence=7 name=gt attributes=0x0000
+    parameter sequence=8 name=spm attributes=0x0000
+    parameter sequence=9 name=ppm attributes=0x0000
+    parameter sequence=10 name=rpm attributes=0x0000
+    parameter sequence=11 name=pp attributes=0x0000
+    parameter sequence=12 name=apb attributes=0x0000
+  method SetAxisNameArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100550000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=axisName attributes=0x2000
+  method SetBSplineFitOptionsArg attributes=0x000005C6 impl=0x1083 signature=200F020E02020808080D0D08020D0D020D0D
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100890000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=bFit attributes=0x0000
+    parameter sequence=3 name=bOpen attributes=0x0000
+    parameter sequence=4 name=sortMethod attributes=0x0000
+    parameter sequence=5 name=terminateMethod attributes=0x0000
+    parameter sequence=6 name=degree attributes=0x0000
+    parameter sequence=7 name=terminateLength attributes=0x0000
+    parameter sequence=8 name=terminateAvgMultiplier attributes=0x0000
+    parameter sequence=9 name=numFitCPs attributes=0x0000
+    parameter sequence=10 name=uniqueCheck attributes=0x0000
+    parameter sequence=11 name=uniqueThreshold attributes=0x0000
+    parameter sequence=12 name=extension attributes=0x0000
+    parameter sequence=13 name=useGlobalTessellationOptions attributes=0x0000
+    parameter sequence=14 name=maxChordalDeviation attributes=0x0000
+    parameter sequence=15 name=maxTrimEdgeAngle attributes=0x0000
+  method SetBaseColorTypeArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100570000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=baseColorType attributes=0x2000
+  method SetBaseMidColorTypeArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01007B0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=baseMidColorType attributes=0x2000
+  method SetBoolArg attributes=0x000005C6 impl=0x1083 signature=2002020E02
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01000D0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=value attributes=0x0000
+  method SetChartNameArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01002B0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=chartName attributes=0x2000
+  method SetChartTypeArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100650000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=chartType attributes=0x2000
+  method SetCloudNameArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100270000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=cloudName attributes=0x2000
+  method SetCloudThinningOptionsArg attributes=0x000005C6 impl=0x1083 signature=2005020E0E080808
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01006A0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=thinMode attributes=0x2000
+    parameter sequence=3 name=pointIncrement attributes=0x0000
+    parameter sequence=4 name=minNumPts attributes=0x0000
+    parameter sequence=5 name=maxNumPts attributes=0x0000
+  method SetColInstIdArg attributes=0x000005C6 impl=0x1083 signature=2003020E0E08
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01001B0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=collectionName attributes=0x2000
+    parameter sequence=3 name=instId attributes=0x0000
+  method SetColInstIdRefListArg attributes=0x000005C6 impl=0x1083 signature=2002020E101C
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01004B0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=colInstIdList attributes=0x2000
+  method SetColMachineIdArg attributes=0x000005C6 impl=0x1083 signature=2003020E0E08
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100660000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=collectionName attributes=0x2000
+    parameter sequence=3 name=machineId attributes=0x0000
+  method SetColVectorGroupNameArg attributes=0x000005C6 impl=0x1083 signature=2003020E0E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100490000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=collectionName attributes=0x2000
+    parameter sequence=3 name=vectorGroupName attributes=0x2000
+  method SetCollectionGroupNameRefListArg attributes=0x000005C6 impl=0x1083 signature=2002020E101C
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01003F0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=groupNameList attributes=0x2000
+  method SetCollectionNameArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100230000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=collectionName attributes=0x2000
+  method SetCollectionObjectNameArg attributes=0x000005C6 impl=0x1083 signature=2003020E0E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100070000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=collectionName attributes=0x2000
+    parameter sequence=3 name=objectName attributes=0x2000
+  method SetCollectionObjectNameArg2 attributes=0x000005C6 impl=0x1083 signature=2004020E0E0E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01006E0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=collectionName attributes=0x2000
+    parameter sequence=3 name=objectName attributes=0x2000
+    parameter sequence=4 name=objectType attributes=0x2000
+  method SetCollectionObjectNameRefListArg attributes=0x000005C6 impl=0x1083 signature=2002020E101C
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01001F0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=objectNameList attributes=0x2000
+  method SetCollectionVectorGroupNameRefListArg attributes=0x000005C6 impl=0x1083 signature=2002020E101C
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100310000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=colVectorGrpNameList attributes=0x2000
+  method SetCollimationBaselineTypeArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100940000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=mode attributes=0x2000
+  method SetCollimationTypeArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100930000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=mode attributes=0x2000
+  method SetColorArg attributes=0x000005C6 impl=0x1083 signature=2004020E050505
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01005A0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=redColorVal attributes=0x0000
+    parameter sequence=3 name=greenColorVal attributes=0x0000
+    parameter sequence=4 name=blueColorVal attributes=0x0000
+  method SetColorRangeMethodArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100580000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=colorRangeMethod attributes=0x2000
+  method SetColorizationOptionsArg attributes=0x000005C6 impl=0x1083 signature=2014020E0E0E0E0E0202020D08020D020202020D0D0D0D
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100590000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=colorRangeMethod attributes=0x2000
+    parameter sequence=3 name=baseHighColor attributes=0x2000
+    parameter sequence=4 name=baseMidColor attributes=0x2000
+    parameter sequence=5 name=baseLowColor attributes=0x2000
+    parameter sequence=6 name=bDrawTubes attributes=0x0000
+    parameter sequence=7 name=bDrawArrowheads attributes=0x0000
+    parameter sequence=8 name=bIndicateValues attributes=0x0000
+    parameter sequence=9 name=vectorMagnification attributes=0x0000
+    parameter sequence=10 name=vectorWidth attributes=0x0000
+    parameter sequence=11 name=bDrawBlotches attributes=0x0000
+    parameter sequence=12 name=blotchSize attributes=0x0000
+    parameter sequence=13 name=bShowOutOfToleranceOnly attributes=0x0000
+    parameter sequence=14 name=bShowColorBarInView attributes=0x0000
+    parameter sequence=15 name=bShowColorBarPercentages attributes=0x0000
+    parameter sequence=16 name=bShowColorBarFractions attributes=0x0000
+    parameter sequence=17 name=highSaturationLimit attributes=0x0000
+    parameter sequence=18 name=lowSaturationLimit attributes=0x0000
+    parameter sequence=19 name=highTolerance attributes=0x0000
+    parameter sequence=20 name=lowTolerance attributes=0x0000
+  method SetCompTechniqueArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100810000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=compTech attributes=0x2000
+  method SetCoordinateSystemTypeArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100430000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=coordSystemType attributes=0x2000
+  method SetDatasetTypeArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100640000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=datasetType attributes=0x2000
+  method SetDegreeOfFreedomArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01007E0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=degOfFreedom attributes=0x2000
+  method SetDistanceUnitsArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100450000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=distanceUnits attributes=0x2000
+  method SetDoubleArg attributes=0x000005C6 impl=0x1083 signature=2002020E0D
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100080000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=value attributes=0x0000
+  method SetDoubleArrayArg attributes=0x000005C6 impl=0x1083 signature=2003020E08101C
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01006F0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=arraySize attributes=0x0000
+    parameter sequence=3 name=arrayOut attributes=0x2000
+  method SetDynamicCircleModeArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100900000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=mode attributes=0x2000
+  method SetDynamicEllipseModeArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100910000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=mode attributes=0x2000
+  method SetDynamicLineModeArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01008E0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=mode attributes=0x2000
+  method SetDynamicPlaneModeArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01008F0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=mode attributes=0x2000
+  method SetDynamicPointModeArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01008D0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=mode attributes=0x2000
+  method SetEdgeModeArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01007A0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=edgeMode attributes=0x2000
+  method SetEditTextArg attributes=0x000005C6 impl=0x1083 signature=2002020E101C
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01007C0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=stringList attributes=0x2000
+  method SetExportDataDelimeterTypeArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100410000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=delimeterType attributes=0x2000
+  method SetExportTargetNameFormatArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100420000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=targetNameFormat attributes=0x2000
+  method SetExportVectorNameFormatArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100680000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=vectorNameFormat attributes=0x2000
+  method SetFilePathArg attributes=0x000005C6 impl=0x1083 signature=2003020E0E02
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01001D0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=path attributes=0x2000
+    parameter sequence=3 name=embeddedFile attributes=0x0000
+  method SetFitConstraintScalarOptionsArg attributes=0x000005C6 impl=0x1083 signature=2005020E020D020D
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100950000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=bUseHigh attributes=0x0000
+    parameter sequence=3 name=highTol attributes=0x0000
+    parameter sequence=4 name=bUseLow attributes=0x0000
+    parameter sequence=5 name=lowTol attributes=0x0000
+  method SetFitDofOptionsArg attributes=0x000005C6 impl=0x1083 signature=2008020E02020202020202
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01004D0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=bAllowX attributes=0x0000
+    parameter sequence=3 name=bAllowY attributes=0x0000
+    parameter sequence=4 name=bAllowZ attributes=0x0000
+    parameter sequence=5 name=bAllowRx attributes=0x0000
+    parameter sequence=6 name=bAllowRy attributes=0x0000
+    parameter sequence=7 name=bAllowRz attributes=0x0000
+    parameter sequence=8 name=bRotateAboutCentroid attributes=0x0000
+  method SetFitMethodArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01007F0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=fitMethod attributes=0x2000
+  method SetFontTypeArg attributes=0x000005C6 impl=0x1083 signature=2006020E0E05050505
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100360000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=fontName attributes=0x2000
+    parameter sequence=3 name=fontSize attributes=0x0000
+    parameter sequence=4 name=redColorVal attributes=0x0000
+    parameter sequence=5 name=greenColorVal attributes=0x0000
+    parameter sequence=6 name=blueColorVal attributes=0x0000
+  method SetFrameNameArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100210000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=frameName attributes=0x2000
+  method SetGeometryTypeArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100370000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=geometryType attributes=0x2000
+  method SetInstIdArg attributes=0x000005C6 impl=0x1083 signature=2002020E08
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100190000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=instId attributes=0x0000
+  method SetInstTypeNameArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100350000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=instType attributes=0x2000
+  method SetIntegerArg attributes=0x000005C6 impl=0x1083 signature=2002020E08
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01000A0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=value attributes=0x0000
+  method SetLogarithmicFunctionArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100740000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=logarithmicFunction attributes=0x2000
+  method SetMPDialogInteractionModeArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01003A0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=mpDialogInteractionMode attributes=0x2000
+  method SetMPInteractionModeArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100390000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=mpInteractionMode attributes=0x2000
+  method SetMathOperationArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100760000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=mathOperation attributes=0x2000
+  method SetMeasuredSideForPlanarOffsetArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100830000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=measSide attributes=0x2000
+  method SetMeasuredSideForRadialOffsetArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100840000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=measSide attributes=0x2000
+  method SetMoveDirectionTypeArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01003C0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=moveDirection attributes=0x2000
+  method SetNormalDirectionArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100820000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=normDir attributes=0x2000
+  method SetNumComparisonTypeArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100770000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=compType attributes=0x2000
+  method SetObjectNameArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100150000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=objectName attributes=0x2000
+  method SetObjectTypeArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100460000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=objectType attributes=0x2000
+  method SetOffsetDirectionTypeArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01006D0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=offsetDirType attributes=0x2000
+  method SetPerimeterNameArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100290000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=perimeterName attributes=0x2000
+  method SetPointDeltaReportOptionsArg attributes=0x000005C6 impl=0x1083 signature=200D020E0E0E02020202020202020202
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100630000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=coordSys attributes=0x2000
+    parameter sequence=3 name=detailsFormat attributes=0x2000
+    parameter sequence=4 name=bShowA attributes=0x0000
+    parameter sequence=5 name=bShowB attributes=0x0000
+    parameter sequence=6 name=bShowDelta attributes=0x0000
+    parameter sequence=7 name=bShowMag attributes=0x0000
+    parameter sequence=8 name=bShowComponent1 attributes=0x0000
+    parameter sequence=9 name=bShowComponent2 attributes=0x0000
+    parameter sequence=10 name=bShowComponent3 attributes=0x0000
+    parameter sequence=11 name=bSortPointNames attributes=0x0000
+    parameter sequence=12 name=bShowToleranceFields attributes=0x0000
+    parameter sequence=13 name=bColorizeInToleranceFields attributes=0x0000
+  method SetPointFilterInputTypeArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100920000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=pointsInputType attributes=0x2000
+  method SetPointNameArg attributes=0x000005C6 impl=0x1083 signature=2004020E0E0E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100050000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=collectionName attributes=0x2000
+    parameter sequence=3 name=groupName attributes=0x2000
+    parameter sequence=4 name=targetName attributes=0x2000
+  method SetPointNameRefListArg attributes=0x000005C6 impl=0x1083 signature=2002020E101C
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01002D0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=pointNameList attributes=0x2000
+  method SetProjectionOptionsArg attributes=0x000005C6 impl=0x1083 signature=2007020E0E02020D020D
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01003E0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=projectionType attributes=0x2000
+    parameter sequence=3 name=bIgnoreEdgeProjections attributes=0x0000
+    parameter sequence=4 name=bOverrideTargetOffsets attributes=0x0000
+    parameter sequence=5 name=overrideTargetOffsetsValue attributes=0x0000
+    parameter sequence=6 name=bAddExtraMaterialThickness attributes=0x0000
+    parameter sequence=7 name=extraMaterialThicknessValue attributes=0x0000
+  method SetRelWeightingModeArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100990000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=type attributes=0x2000
+  method SetRenderModeTypeArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01005F0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=renderModeType attributes=0x2000
+  method SetReportOutputOptionsArg attributes=0x000005C6 impl=0x1083 signature=2003020E0E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01004E0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=outputType attributes=0x2000
+    parameter sequence=3 name=pathOrEmbeddedName attributes=0x2000
+  method SetReportPageSettingsArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100620000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=pageOrientation attributes=0x2000
+  method SetReportTypeArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100560000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=reportType attributes=0x2000
+  method SetReportViewOptionsArg attributes=0x000005C6 impl=0x1083 signature=2004020E0E0E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100530000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=viewType attributes=0x2000
+    parameter sequence=3 name=collectionName attributes=0x2000
+    parameter sequence=4 name=calloutName attributes=0x2000
+  method SetResultArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01005D0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=objectName attributes=0x2000
+  method SetSAInteractionModeArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100380000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=saInteractionMode attributes=0x2000
+  method SetSaturationLimitTypeArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100780000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=satLimitType attributes=0x2000
+  method SetShowUsmnDialogTypeArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100610000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=showType attributes=0x2000
+  method SetSlotTypeArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100800000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=slotType attributes=0x2000
+  method SetSphereFitComputationModeArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01008B0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=fitMode attributes=0x2000
+  method SetStep attributes=0x000005C6 impl=0x1083 signature=2001010E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100030000000000
+    parameter sequence=1 name=stepName attributes=0x2000
+  method SetStringArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01000E0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=value attributes=0x2000
+  method SetStringRefListArg attributes=0x000005C6 impl=0x1083 signature=2002020E101C
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100500000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=stringList attributes=0x2000
+  method SetSurfDissectModeTypeArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100600000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=dissectModeType attributes=0x2000
+  method SetSurfaceAnalysisModeArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100790000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=surfAnalysisMode attributes=0x2000
+  method SetSystemStringArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100690000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=systemStrName attributes=0x2000
+  method SetTargetComputationMethodArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100880000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=compMethod attributes=0x2000
+  method SetTemperatureUnitsArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100870000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=tempUnits attributes=0x2000
+  method SetToleranceScalarOptionsArg attributes=0x000005C6 impl=0x1083 signature=2005020E020D020D
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01006B0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=bUseHigh attributes=0x0000
+    parameter sequence=3 name=highTol attributes=0x0000
+    parameter sequence=4 name=bUseLow attributes=0x0000
+    parameter sequence=5 name=lowTol attributes=0x0000
+  method SetToleranceVectorOptionsArg attributes=0x000005C6 impl=0x1083 signature=2011020E020D020D020D020D020D020D020D020D
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100710000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=bUseHighX attributes=0x0000
+    parameter sequence=3 name=highTolX attributes=0x0000
+    parameter sequence=4 name=bUseHighY attributes=0x0000
+    parameter sequence=5 name=highTolY attributes=0x0000
+    parameter sequence=6 name=bUseHighZ attributes=0x0000
+    parameter sequence=7 name=highTolZ attributes=0x0000
+    parameter sequence=8 name=bUseHighM attributes=0x0000
+    parameter sequence=9 name=highTolM attributes=0x0000
+    parameter sequence=10 name=bUseLowX attributes=0x0000
+    parameter sequence=11 name=lowTolX attributes=0x0000
+    parameter sequence=12 name=bUseLowY attributes=0x0000
+    parameter sequence=13 name=lowTolY attributes=0x0000
+    parameter sequence=14 name=bUseLowZ attributes=0x0000
+    parameter sequence=15 name=lowTolZ attributes=0x0000
+    parameter sequence=16 name=bUseLowM attributes=0x0000
+    parameter sequence=17 name=lowTolM attributes=0x0000
+  method SetTransformArg attributes=0x000005C6 impl=0x1083 signature=2002020E101C
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100170000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=transform attributes=0x2000
+  method SetTranslucencyTypeArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100850000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=type attributes=0x2000
+  method SetTrigFunctionArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100750000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=trigFunction attributes=0x2000
+  method SetUdpTransmitSettingsArg attributes=0x000005C6 impl=0x1083 signature=2005020E02020E08
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100860000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=bEnabled attributes=0x0000
+    parameter sequence=3 name=bBroadcast attributes=0x0000
+    parameter sequence=4 name=compName attributes=0x2000
+    parameter sequence=5 name=port attributes=0x0000
+  method SetUserSummaryInfoFilesArg attributes=0x000005C6 impl=0x1083 signature=2003020E0E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100520000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=leftSummaryFilePath attributes=0x2000
+    parameter sequence=3 name=rightSummaryFilePath attributes=0x2000
+  method SetVectorArg attributes=0x000005C6 impl=0x1083 signature=2004020E0D0D0D
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100060000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=XValue attributes=0x0000
+    parameter sequence=3 name=yValue attributes=0x0000
+    parameter sequence=4 name=zValue attributes=0x0000
+  method SetVectorGroupNameArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100250000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=vectorGrpName attributes=0x2000
+  method SetVectorNameRefListArg attributes=0x000005C6 impl=0x1083 signature=2002020E101C
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01002F0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=vectorNameList attributes=0x2000
+  method SetViewNameArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100470000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=viewName attributes=0x2000
+  method SetWindowStateArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01005C0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=windowState attributes=0x2000
+  method SetWorkbookAddressModeTypeArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01003B0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=workbookAddressMode attributes=0x2000
+  method SetWorldTransformArg attributes=0x000005C6 impl=0x1083 signature=2003020E101C0D
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100330000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=transform attributes=0x2000
+    parameter sequence=3 name=scaleFactor attributes=0x0000
+  method SetWriteModeTypeArg attributes=0x000005C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01003D0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=writeMode attributes=0x2000
+type Briosa.SpatialAnalyzer.Interop.SpatialAnalyzerSDK attributes=0x000010A1 base=<nil>
+  attribute [mscorlib]System.Runtime.InteropServices.CoClassAttribute::.ctor signature=2001011231 value=0100364272696F73612E5370617469616C416E616C797A65722E496E7465726F702E5370617469616C416E616C797A657253444B436C6173730000
+  attribute [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor signature=2001010E value=01002442323937364533352D453839422D343836322D413031372D4442463239453139393843440000
+  interface Briosa.SpatialAnalyzer.Interop.ISpatialAnalyzerSDK
+type Briosa.SpatialAnalyzer.Interop.SpatialAnalyzerSDKClass attributes=0x00001001 base=[mscorlib]System.Object
+  attribute [mscorlib]System.Runtime.InteropServices.ClassInterfaceAttribute::.ctor signature=2001011129 value=0100000000000000
+  attribute [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor signature=2001010E value=01002437433733444246322D313932312D343846452D393941362D3246384645313234453144450000
+  attribute [mscorlib]System.Runtime.InteropServices.TypeLibTypeAttribute::.ctor signature=2001011115 value=0100020000000000
+  interface Briosa.SpatialAnalyzer.Interop.ISpatialAnalyzerSDK
+  interface Briosa.SpatialAnalyzer.Interop.SpatialAnalyzerSDK
+  method .ctor attributes=0x00001806 impl=0x1003 signature=200001
+  method Connect attributes=0x000001C6 impl=0x1083 signature=2001020E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100020000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=ipAddress attributes=0x2000
+  method ConnectEx attributes=0x000001C6 impl=0x1083 signature=2002020E1008
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01005B0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=ipAddress attributes=0x2000
+    parameter sequence=2 name=statusCode attributes=0x0000
+  method ExecuteStep attributes=0x000001C6 impl=0x1083 signature=200002
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100040000000000
+    parameter sequence=0 name= attributes=0x0000
+  method GetAutoFilterProximitySettingsArg attributes=0x000001C6 impl=0x1083 signature=200C020E100D100D100D100D100D100D10081008100810021002
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100980000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=sip attributes=0x0000
+    parameter sequence=3 name=eep attributes=0x0000
+    parameter sequence=4 name=pip attributes=0x0000
+    parameter sequence=5 name=pep attributes=0x0000
+    parameter sequence=6 name=rip attributes=0x0000
+    parameter sequence=7 name=gt attributes=0x0000
+    parameter sequence=8 name=spm attributes=0x0000
+    parameter sequence=9 name=ppm attributes=0x0000
+    parameter sequence=10 name=rpm attributes=0x0000
+    parameter sequence=11 name=pp attributes=0x0000
+    parameter sequence=12 name=apb attributes=0x0000
+  method GetBSPlineFitOptionsArg attributes=0x000001C6 impl=0x1083 signature=200F020E10021002100810081008100D100D10081002100D100D1002100D100D
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01008A0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=bFit attributes=0x0000
+    parameter sequence=3 name=bOpen attributes=0x0000
+    parameter sequence=4 name=sortMethod attributes=0x0000
+    parameter sequence=5 name=terminateMethod attributes=0x0000
+    parameter sequence=6 name=degree attributes=0x0000
+    parameter sequence=7 name=terminateLength attributes=0x0000
+    parameter sequence=8 name=terminateAvgMultiplier attributes=0x0000
+    parameter sequence=9 name=numFitCPs attributes=0x0000
+    parameter sequence=10 name=uniqueCheck attributes=0x0000
+    parameter sequence=11 name=uniqueThreshold attributes=0x0000
+    parameter sequence=12 name=extension attributes=0x0000
+    parameter sequence=13 name=useGlobalTessellationOptions attributes=0x0000
+    parameter sequence=14 name=maxChordalDeviation attributes=0x0000
+    parameter sequence=15 name=maxTrimEdgeAngle attributes=0x0000
+  method GetBoolArg attributes=0x000001C6 impl=0x1083 signature=2002020E1002
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01000C0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=value attributes=0x0000
+  method GetChartNameArg attributes=0x000001C6 impl=0x1083 signature=2002020E100E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01002C0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=chartName attributes=0x2000
+  method GetCloudNameArg attributes=0x000001C6 impl=0x1083 signature=2002020E100E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100280000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=cloudName attributes=0x2000
+  method GetColInstIdArg attributes=0x000001C6 impl=0x1083 signature=2003020E100E1008
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01001C0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=collectionName attributes=0x2000
+    parameter sequence=3 name=instId attributes=0x0000
+  method GetColInstIdRefListArg attributes=0x000001C6 impl=0x1083 signature=2002020E101C
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01004C0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=colInstIdList attributes=0x2000
+  method GetColMachineIdArg attributes=0x000001C6 impl=0x1083 signature=2003020E100E1008
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100670000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=collectionName attributes=0x2000
+    parameter sequence=3 name=machineId attributes=0x0000
+  method GetColVectorGroupNameArg attributes=0x000001C6 impl=0x1083 signature=2003020E100E100E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01004A0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=collectionName attributes=0x2000
+    parameter sequence=3 name=vectorGroupName attributes=0x2000
+  method GetCollectionGroupNameRefListArg attributes=0x000001C6 impl=0x1083 signature=2002020E101C
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100400000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=colGroupNameList attributes=0x2000
+  method GetCollectionNameArg attributes=0x000001C6 impl=0x1083 signature=2002020E100E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100240000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=collectionName attributes=0x2000
+  method GetCollectionObjectNameArg attributes=0x000001C6 impl=0x1083 signature=2003020E100E100E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100120000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=collectionName attributes=0x2000
+    parameter sequence=3 name=objectName attributes=0x2000
+  method GetCollectionObjectNameRefListArg attributes=0x000001C6 impl=0x1083 signature=2002020E101C
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100200000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=objectNameList attributes=0x2000
+  method GetCollectionVectorGroupNameRefListArg attributes=0x000001C6 impl=0x1083 signature=2002020E101C
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100320000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=colVectorGrpNameList attributes=0x2000
+  method GetDoubleArg attributes=0x000001C6 impl=0x1083 signature=2002020E100D
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100090000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=value attributes=0x0000
+  method GetDoubleArrayArg attributes=0x000001C6 impl=0x1083 signature=2003020E1008101C
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100700000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=arraySize attributes=0x0000
+    parameter sequence=3 name=arrayIn attributes=0x2000
+  method GetEditTextArg attributes=0x000001C6 impl=0x1083 signature=2002020E101C
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01007D0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=stringList attributes=0x2000
+  method GetFilePathArg attributes=0x000001C6 impl=0x1083 signature=2003020E100E1002
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01001E0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=path attributes=0x2000
+    parameter sequence=3 name=embeddedFile attributes=0x0000
+  method GetFitConstraintScalarOptionsArg attributes=0x000001C6 impl=0x1083 signature=2005020E1002100D1002100D
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100960000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=bUseHigh attributes=0x0000
+    parameter sequence=3 name=highTol attributes=0x0000
+    parameter sequence=4 name=bUseLow attributes=0x0000
+    parameter sequence=5 name=lowTol attributes=0x0000
+  method GetFrameNameArg attributes=0x000001C6 impl=0x1083 signature=2002020E100E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100220000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=frameName attributes=0x2000
+  method GetInstIdArg attributes=0x000001C6 impl=0x1083 signature=2002020E1008
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01001A0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=instId attributes=0x0000
+  method GetIntegerArg attributes=0x000001C6 impl=0x1083 signature=2002020E1008
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01000B0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=value attributes=0x0000
+  method GetMPStepMessages attributes=0x000001C6 impl=0x1083 signature=200102101C
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100140000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=vArray attributes=0x2000
+  method GetMPStepResult attributes=0x000001C6 impl=0x1083 signature=2001021008
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100130000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=resultCode attributes=0x0000
+  method GetObjectNameArg attributes=0x000001C6 impl=0x1083 signature=2002020E100E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100160000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=objectName attributes=0x2000
+  method GetPerimeterNameArg attributes=0x000001C6 impl=0x1083 signature=2002020E100E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01002A0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=perimeterName attributes=0x2000
+  method GetPointNameArg attributes=0x000001C6 impl=0x1083 signature=2004020E100E100E100E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100100000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=collectionName attributes=0x2000
+    parameter sequence=3 name=groupName attributes=0x2000
+    parameter sequence=4 name=targetName attributes=0x2000
+  method GetPointNameRefListArg attributes=0x000001C6 impl=0x1083 signature=2002020E101C
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01002E0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=pointNameList attributes=0x2000
+  method GetReportOutputOptionsArg attributes=0x000001C6 impl=0x1083 signature=2003020E100E100E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01004F0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=outputType attributes=0x2000
+    parameter sequence=3 name=pathOrEmbeddedName attributes=0x2000
+  method GetReportViewOptionsArg attributes=0x000001C6 impl=0x1083 signature=2004020E100E100E100E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100540000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=viewType attributes=0x2000
+    parameter sequence=3 name=collectionName attributes=0x2000
+    parameter sequence=4 name=calloutName attributes=0x2000
+  method GetResultArg attributes=0x000001C6 impl=0x1083 signature=2002020E100E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01005E0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=objectName attributes=0x2000
+  method GetStringArg attributes=0x000001C6 impl=0x1083 signature=2002020E100E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01000F0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=value attributes=0x2000
+  method GetStringRefListArg attributes=0x000001C6 impl=0x1083 signature=2002020E101C
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100510000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=stringList attributes=0x2000
+  method GetToleranceScalarOptionsArg attributes=0x000001C6 impl=0x1083 signature=2005020E1002100D1002100D
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01006C0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=bUseHigh attributes=0x0000
+    parameter sequence=3 name=highTol attributes=0x0000
+    parameter sequence=4 name=bUseLow attributes=0x0000
+    parameter sequence=5 name=lowTol attributes=0x0000
+  method GetToleranceVectorOptionsArg attributes=0x000001C6 impl=0x1083 signature=2011020E1002100D1002100D1002100D1002100D1002100D1002100D1002100D1002100D
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100720000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=bUseHighX attributes=0x0000
+    parameter sequence=3 name=highTolX attributes=0x0000
+    parameter sequence=4 name=bUseHighY attributes=0x0000
+    parameter sequence=5 name=highTolY attributes=0x0000
+    parameter sequence=6 name=bUseHighZ attributes=0x0000
+    parameter sequence=7 name=highTolZ attributes=0x0000
+    parameter sequence=8 name=bUseHighM attributes=0x0000
+    parameter sequence=9 name=highTolM attributes=0x0000
+    parameter sequence=10 name=bUseLowX attributes=0x0000
+    parameter sequence=11 name=lowTolX attributes=0x0000
+    parameter sequence=12 name=bUseLowY attributes=0x0000
+    parameter sequence=13 name=lowTolY attributes=0x0000
+    parameter sequence=14 name=bUseLowZ attributes=0x0000
+    parameter sequence=15 name=lowTolZ attributes=0x0000
+    parameter sequence=16 name=bUseLowM attributes=0x0000
+    parameter sequence=17 name=lowTolM attributes=0x0000
+  method GetTransformArg attributes=0x000001C6 impl=0x1083 signature=2002020E101C
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100180000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=transform attributes=0x2000
+  method GetVectorArg attributes=0x000001C6 impl=0x1083 signature=2004020E100D100D100D
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100110000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=XValue attributes=0x0000
+    parameter sequence=3 name=yValue attributes=0x0000
+    parameter sequence=4 name=zValue attributes=0x0000
+  method GetVectorGroupNameArg attributes=0x000001C6 impl=0x1083 signature=2002020E100E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100260000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=vectorGrpName attributes=0x2000
+  method GetVectorNameRefListArg attributes=0x000001C6 impl=0x1083 signature=2002020E101C
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100300000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=vectorNameList attributes=0x2000
+  method GetViewNameArg attributes=0x000001C6 impl=0x1083 signature=2002020E100E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100480000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=viewName attributes=0x2000
+  method GetWorldTransformArg attributes=0x000001C6 impl=0x1083 signature=2003020E101C100D
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100340000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=transform attributes=0x2000
+    parameter sequence=3 name=scaleFactor attributes=0x0000
+  method SetAngularUnitsArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100730000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=angularUnits attributes=0x2000
+  method SetAsciiFileFormatArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100440000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=asciiFileFormat attributes=0x2000
+  method SetAutoFilterProximitySettingsArg attributes=0x000001C6 impl=0x1083 signature=200C020E0D0D0D0D0D0D0808080202
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100970000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=sip attributes=0x0000
+    parameter sequence=3 name=eep attributes=0x0000
+    parameter sequence=4 name=pip attributes=0x0000
+    parameter sequence=5 name=pep attributes=0x0000
+    parameter sequence=6 name=rip attributes=0x0000
+    parameter sequence=7 name=gt attributes=0x0000
+    parameter sequence=8 name=spm attributes=0x0000
+    parameter sequence=9 name=ppm attributes=0x0000
+    parameter sequence=10 name=rpm attributes=0x0000
+    parameter sequence=11 name=pp attributes=0x0000
+    parameter sequence=12 name=apb attributes=0x0000
+  method SetAxisNameArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100550000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=axisName attributes=0x2000
+  method SetBSplineFitOptionsArg attributes=0x000001C6 impl=0x1083 signature=200F020E02020808080D0D08020D0D020D0D
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100890000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=bFit attributes=0x0000
+    parameter sequence=3 name=bOpen attributes=0x0000
+    parameter sequence=4 name=sortMethod attributes=0x0000
+    parameter sequence=5 name=terminateMethod attributes=0x0000
+    parameter sequence=6 name=degree attributes=0x0000
+    parameter sequence=7 name=terminateLength attributes=0x0000
+    parameter sequence=8 name=terminateAvgMultiplier attributes=0x0000
+    parameter sequence=9 name=numFitCPs attributes=0x0000
+    parameter sequence=10 name=uniqueCheck attributes=0x0000
+    parameter sequence=11 name=uniqueThreshold attributes=0x0000
+    parameter sequence=12 name=extension attributes=0x0000
+    parameter sequence=13 name=useGlobalTessellationOptions attributes=0x0000
+    parameter sequence=14 name=maxChordalDeviation attributes=0x0000
+    parameter sequence=15 name=maxTrimEdgeAngle attributes=0x0000
+  method SetBaseColorTypeArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100570000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=baseColorType attributes=0x2000
+  method SetBaseMidColorTypeArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01007B0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=baseMidColorType attributes=0x2000
+  method SetBoolArg attributes=0x000001C6 impl=0x1083 signature=2002020E02
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01000D0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=value attributes=0x0000
+  method SetChartNameArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01002B0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=chartName attributes=0x2000
+  method SetChartTypeArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100650000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=chartType attributes=0x2000
+  method SetCloudNameArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100270000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=cloudName attributes=0x2000
+  method SetCloudThinningOptionsArg attributes=0x000001C6 impl=0x1083 signature=2005020E0E080808
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01006A0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=thinMode attributes=0x2000
+    parameter sequence=3 name=pointIncrement attributes=0x0000
+    parameter sequence=4 name=minNumPts attributes=0x0000
+    parameter sequence=5 name=maxNumPts attributes=0x0000
+  method SetColInstIdArg attributes=0x000001C6 impl=0x1083 signature=2003020E0E08
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01001B0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=collectionName attributes=0x2000
+    parameter sequence=3 name=instId attributes=0x0000
+  method SetColInstIdRefListArg attributes=0x000001C6 impl=0x1083 signature=2002020E101C
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01004B0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=colInstIdList attributes=0x2000
+  method SetColMachineIdArg attributes=0x000001C6 impl=0x1083 signature=2003020E0E08
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100660000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=collectionName attributes=0x2000
+    parameter sequence=3 name=machineId attributes=0x0000
+  method SetColVectorGroupNameArg attributes=0x000001C6 impl=0x1083 signature=2003020E0E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100490000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=collectionName attributes=0x2000
+    parameter sequence=3 name=vectorGroupName attributes=0x2000
+  method SetCollectionGroupNameRefListArg attributes=0x000001C6 impl=0x1083 signature=2002020E101C
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01003F0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=groupNameList attributes=0x2000
+  method SetCollectionNameArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100230000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=collectionName attributes=0x2000
+  method SetCollectionObjectNameArg attributes=0x000001C6 impl=0x1083 signature=2003020E0E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100070000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=collectionName attributes=0x2000
+    parameter sequence=3 name=objectName attributes=0x2000
+  method SetCollectionObjectNameArg2 attributes=0x000001C6 impl=0x1083 signature=2004020E0E0E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01006E0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=collectionName attributes=0x2000
+    parameter sequence=3 name=objectName attributes=0x2000
+    parameter sequence=4 name=objectType attributes=0x2000
+  method SetCollectionObjectNameRefListArg attributes=0x000001C6 impl=0x1083 signature=2002020E101C
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01001F0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=objectNameList attributes=0x2000
+  method SetCollectionVectorGroupNameRefListArg attributes=0x000001C6 impl=0x1083 signature=2002020E101C
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100310000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=colVectorGrpNameList attributes=0x2000
+  method SetCollimationBaselineTypeArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100940000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=mode attributes=0x2000
+  method SetCollimationTypeArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100930000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=mode attributes=0x2000
+  method SetColorArg attributes=0x000001C6 impl=0x1083 signature=2004020E050505
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01005A0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=redColorVal attributes=0x0000
+    parameter sequence=3 name=greenColorVal attributes=0x0000
+    parameter sequence=4 name=blueColorVal attributes=0x0000
+  method SetColorRangeMethodArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100580000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=colorRangeMethod attributes=0x2000
+  method SetColorizationOptionsArg attributes=0x000001C6 impl=0x1083 signature=2014020E0E0E0E0E0202020D08020D020202020D0D0D0D
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100590000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=colorRangeMethod attributes=0x2000
+    parameter sequence=3 name=baseHighColor attributes=0x2000
+    parameter sequence=4 name=baseMidColor attributes=0x2000
+    parameter sequence=5 name=baseLowColor attributes=0x2000
+    parameter sequence=6 name=bDrawTubes attributes=0x0000
+    parameter sequence=7 name=bDrawArrowheads attributes=0x0000
+    parameter sequence=8 name=bIndicateValues attributes=0x0000
+    parameter sequence=9 name=vectorMagnification attributes=0x0000
+    parameter sequence=10 name=vectorWidth attributes=0x0000
+    parameter sequence=11 name=bDrawBlotches attributes=0x0000
+    parameter sequence=12 name=blotchSize attributes=0x0000
+    parameter sequence=13 name=bShowOutOfToleranceOnly attributes=0x0000
+    parameter sequence=14 name=bShowColorBarInView attributes=0x0000
+    parameter sequence=15 name=bShowColorBarPercentages attributes=0x0000
+    parameter sequence=16 name=bShowColorBarFractions attributes=0x0000
+    parameter sequence=17 name=highSaturationLimit attributes=0x0000
+    parameter sequence=18 name=lowSaturationLimit attributes=0x0000
+    parameter sequence=19 name=highTolerance attributes=0x0000
+    parameter sequence=20 name=lowTolerance attributes=0x0000
+  method SetCompTechniqueArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100810000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=compTech attributes=0x2000
+  method SetCoordinateSystemTypeArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100430000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=coordSystemType attributes=0x2000
+  method SetDatasetTypeArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100640000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=datasetType attributes=0x2000
+  method SetDegreeOfFreedomArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01007E0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=degOfFreedom attributes=0x2000
+  method SetDistanceUnitsArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100450000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=distanceUnits attributes=0x2000
+  method SetDoubleArg attributes=0x000001C6 impl=0x1083 signature=2002020E0D
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100080000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=value attributes=0x0000
+  method SetDoubleArrayArg attributes=0x000001C6 impl=0x1083 signature=2003020E08101C
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01006F0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=arraySize attributes=0x0000
+    parameter sequence=3 name=arrayOut attributes=0x2000
+  method SetDynamicCircleModeArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100900000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=mode attributes=0x2000
+  method SetDynamicEllipseModeArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100910000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=mode attributes=0x2000
+  method SetDynamicLineModeArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01008E0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=mode attributes=0x2000
+  method SetDynamicPlaneModeArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01008F0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=mode attributes=0x2000
+  method SetDynamicPointModeArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01008D0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=mode attributes=0x2000
+  method SetEdgeModeArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01007A0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=edgeMode attributes=0x2000
+  method SetEditTextArg attributes=0x000001C6 impl=0x1083 signature=2002020E101C
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01007C0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=stringList attributes=0x2000
+  method SetExportDataDelimeterTypeArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100410000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=delimeterType attributes=0x2000
+  method SetExportTargetNameFormatArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100420000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=targetNameFormat attributes=0x2000
+  method SetExportVectorNameFormatArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100680000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=vectorNameFormat attributes=0x2000
+  method SetFilePathArg attributes=0x000001C6 impl=0x1083 signature=2003020E0E02
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01001D0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=path attributes=0x2000
+    parameter sequence=3 name=embeddedFile attributes=0x0000
+  method SetFitConstraintScalarOptionsArg attributes=0x000001C6 impl=0x1083 signature=2005020E020D020D
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100950000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=bUseHigh attributes=0x0000
+    parameter sequence=3 name=highTol attributes=0x0000
+    parameter sequence=4 name=bUseLow attributes=0x0000
+    parameter sequence=5 name=lowTol attributes=0x0000
+  method SetFitDofOptionsArg attributes=0x000001C6 impl=0x1083 signature=2008020E02020202020202
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01004D0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=bAllowX attributes=0x0000
+    parameter sequence=3 name=bAllowY attributes=0x0000
+    parameter sequence=4 name=bAllowZ attributes=0x0000
+    parameter sequence=5 name=bAllowRx attributes=0x0000
+    parameter sequence=6 name=bAllowRy attributes=0x0000
+    parameter sequence=7 name=bAllowRz attributes=0x0000
+    parameter sequence=8 name=bRotateAboutCentroid attributes=0x0000
+  method SetFitMethodArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01007F0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=fitMethod attributes=0x2000
+  method SetFontTypeArg attributes=0x000001C6 impl=0x1083 signature=2006020E0E05050505
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100360000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=fontName attributes=0x2000
+    parameter sequence=3 name=fontSize attributes=0x0000
+    parameter sequence=4 name=redColorVal attributes=0x0000
+    parameter sequence=5 name=greenColorVal attributes=0x0000
+    parameter sequence=6 name=blueColorVal attributes=0x0000
+  method SetFrameNameArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100210000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=frameName attributes=0x2000
+  method SetGeometryTypeArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100370000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=geometryType attributes=0x2000
+  method SetInstIdArg attributes=0x000001C6 impl=0x1083 signature=2002020E08
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100190000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=instId attributes=0x0000
+  method SetInstTypeNameArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100350000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=instType attributes=0x2000
+  method SetIntegerArg attributes=0x000001C6 impl=0x1083 signature=2002020E08
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01000A0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=value attributes=0x0000
+  method SetLogarithmicFunctionArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100740000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=logarithmicFunction attributes=0x2000
+  method SetMPDialogInteractionModeArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01003A0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=mpDialogInteractionMode attributes=0x2000
+  method SetMPInteractionModeArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100390000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=mpInteractionMode attributes=0x2000
+  method SetMathOperationArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100760000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=mathOperation attributes=0x2000
+  method SetMeasuredSideForPlanarOffsetArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100830000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=measSide attributes=0x2000
+  method SetMeasuredSideForRadialOffsetArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100840000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=measSide attributes=0x2000
+  method SetMoveDirectionTypeArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01003C0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=moveDirection attributes=0x2000
+  method SetNormalDirectionArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100820000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=normDir attributes=0x2000
+  method SetNumComparisonTypeArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100770000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=compType attributes=0x2000
+  method SetObjectNameArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100150000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=objectName attributes=0x2000
+  method SetObjectTypeArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100460000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=objectType attributes=0x2000
+  method SetOffsetDirectionTypeArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01006D0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=offsetDirType attributes=0x2000
+  method SetPerimeterNameArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100290000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=perimeterName attributes=0x2000
+  method SetPointDeltaReportOptionsArg attributes=0x000001C6 impl=0x1083 signature=200D020E0E0E02020202020202020202
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100630000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=coordSys attributes=0x2000
+    parameter sequence=3 name=detailsFormat attributes=0x2000
+    parameter sequence=4 name=bShowA attributes=0x0000
+    parameter sequence=5 name=bShowB attributes=0x0000
+    parameter sequence=6 name=bShowDelta attributes=0x0000
+    parameter sequence=7 name=bShowMag attributes=0x0000
+    parameter sequence=8 name=bShowComponent1 attributes=0x0000
+    parameter sequence=9 name=bShowComponent2 attributes=0x0000
+    parameter sequence=10 name=bShowComponent3 attributes=0x0000
+    parameter sequence=11 name=bSortPointNames attributes=0x0000
+    parameter sequence=12 name=bShowToleranceFields attributes=0x0000
+    parameter sequence=13 name=bColorizeInToleranceFields attributes=0x0000
+  method SetPointFilterInputTypeArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100920000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=pointsInputType attributes=0x2000
+  method SetPointNameArg attributes=0x000001C6 impl=0x1083 signature=2004020E0E0E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100050000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=collectionName attributes=0x2000
+    parameter sequence=3 name=groupName attributes=0x2000
+    parameter sequence=4 name=targetName attributes=0x2000
+  method SetPointNameRefListArg attributes=0x000001C6 impl=0x1083 signature=2002020E101C
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01002D0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=pointNameList attributes=0x2000
+  method SetProjectionOptionsArg attributes=0x000001C6 impl=0x1083 signature=2007020E0E02020D020D
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01003E0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=projectionType attributes=0x2000
+    parameter sequence=3 name=bIgnoreEdgeProjections attributes=0x0000
+    parameter sequence=4 name=bOverrideTargetOffsets attributes=0x0000
+    parameter sequence=5 name=overrideTargetOffsetsValue attributes=0x0000
+    parameter sequence=6 name=bAddExtraMaterialThickness attributes=0x0000
+    parameter sequence=7 name=extraMaterialThicknessValue attributes=0x0000
+  method SetRelWeightingModeArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100990000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=type attributes=0x2000
+  method SetRenderModeTypeArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01005F0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=renderModeType attributes=0x2000
+  method SetReportOutputOptionsArg attributes=0x000001C6 impl=0x1083 signature=2003020E0E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01004E0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=outputType attributes=0x2000
+    parameter sequence=3 name=pathOrEmbeddedName attributes=0x2000
+  method SetReportPageSettingsArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100620000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=pageOrientation attributes=0x2000
+  method SetReportTypeArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100560000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=reportType attributes=0x2000
+  method SetReportViewOptionsArg attributes=0x000001C6 impl=0x1083 signature=2004020E0E0E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100530000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=viewType attributes=0x2000
+    parameter sequence=3 name=collectionName attributes=0x2000
+    parameter sequence=4 name=calloutName attributes=0x2000
+  method SetResultArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01005D0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=objectName attributes=0x2000
+  method SetSAInteractionModeArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100380000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=saInteractionMode attributes=0x2000
+  method SetSaturationLimitTypeArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100780000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=satLimitType attributes=0x2000
+  method SetShowUsmnDialogTypeArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100610000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=showType attributes=0x2000
+  method SetSlotTypeArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100800000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=slotType attributes=0x2000
+  method SetSphereFitComputationModeArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01008B0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=fitMode attributes=0x2000
+  method SetStep attributes=0x000001C6 impl=0x1083 signature=2001010E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100030000000000
+    parameter sequence=1 name=stepName attributes=0x2000
+  method SetStringArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01000E0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=value attributes=0x2000
+  method SetStringRefListArg attributes=0x000001C6 impl=0x1083 signature=2002020E101C
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100500000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=stringList attributes=0x2000
+  method SetSurfDissectModeTypeArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100600000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=dissectModeType attributes=0x2000
+  method SetSurfaceAnalysisModeArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100790000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=surfAnalysisMode attributes=0x2000
+  method SetSystemStringArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100690000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=systemStrName attributes=0x2000
+  method SetTargetComputationMethodArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100880000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=compMethod attributes=0x2000
+  method SetTemperatureUnitsArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100870000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=tempUnits attributes=0x2000
+  method SetToleranceScalarOptionsArg attributes=0x000001C6 impl=0x1083 signature=2005020E020D020D
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01006B0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=bUseHigh attributes=0x0000
+    parameter sequence=3 name=highTol attributes=0x0000
+    parameter sequence=4 name=bUseLow attributes=0x0000
+    parameter sequence=5 name=lowTol attributes=0x0000
+  method SetToleranceVectorOptionsArg attributes=0x000001C6 impl=0x1083 signature=2011020E020D020D020D020D020D020D020D020D
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100710000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=bUseHighX attributes=0x0000
+    parameter sequence=3 name=highTolX attributes=0x0000
+    parameter sequence=4 name=bUseHighY attributes=0x0000
+    parameter sequence=5 name=highTolY attributes=0x0000
+    parameter sequence=6 name=bUseHighZ attributes=0x0000
+    parameter sequence=7 name=highTolZ attributes=0x0000
+    parameter sequence=8 name=bUseHighM attributes=0x0000
+    parameter sequence=9 name=highTolM attributes=0x0000
+    parameter sequence=10 name=bUseLowX attributes=0x0000
+    parameter sequence=11 name=lowTolX attributes=0x0000
+    parameter sequence=12 name=bUseLowY attributes=0x0000
+    parameter sequence=13 name=lowTolY attributes=0x0000
+    parameter sequence=14 name=bUseLowZ attributes=0x0000
+    parameter sequence=15 name=lowTolZ attributes=0x0000
+    parameter sequence=16 name=bUseLowM attributes=0x0000
+    parameter sequence=17 name=lowTolM attributes=0x0000
+  method SetTransformArg attributes=0x000001C6 impl=0x1083 signature=2002020E101C
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100170000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=transform attributes=0x2000
+  method SetTranslucencyTypeArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100850000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=type attributes=0x2000
+  method SetTrigFunctionArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100750000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=trigFunction attributes=0x2000
+  method SetUdpTransmitSettingsArg attributes=0x000001C6 impl=0x1083 signature=2005020E02020E08
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100860000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=bEnabled attributes=0x0000
+    parameter sequence=3 name=bBroadcast attributes=0x0000
+    parameter sequence=4 name=compName attributes=0x2000
+    parameter sequence=5 name=port attributes=0x0000
+  method SetUserSummaryInfoFilesArg attributes=0x000001C6 impl=0x1083 signature=2003020E0E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100520000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=leftSummaryFilePath attributes=0x2000
+    parameter sequence=3 name=rightSummaryFilePath attributes=0x2000
+  method SetVectorArg attributes=0x000001C6 impl=0x1083 signature=2004020E0D0D0D
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100060000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=XValue attributes=0x0000
+    parameter sequence=3 name=yValue attributes=0x0000
+    parameter sequence=4 name=zValue attributes=0x0000
+  method SetVectorGroupNameArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100250000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=vectorGrpName attributes=0x2000
+  method SetVectorNameRefListArg attributes=0x000001C6 impl=0x1083 signature=2002020E101C
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01002F0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=vectorNameList attributes=0x2000
+  method SetViewNameArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100470000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=viewName attributes=0x2000
+  method SetWindowStateArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01005C0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=windowState attributes=0x2000
+  method SetWorkbookAddressModeTypeArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01003B0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=workbookAddressMode attributes=0x2000
+  method SetWorldTransformArg attributes=0x000001C6 impl=0x1083 signature=2003020E101C0D
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=0100330000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=transform attributes=0x2000
+    parameter sequence=3 name=scaleFactor attributes=0x0000
+  method SetWriteModeTypeArg attributes=0x000001C6 impl=0x1083 signature=2002020E0E
+    attribute [mscorlib]System.Runtime.InteropServices.DispIdAttribute::.ctor signature=20010108 value=01003D0000000000
+    parameter sequence=0 name= attributes=0x0000
+    parameter sequence=1 name=argName attributes=0x2000
+    parameter sequence=2 name=writeMode attributes=0x2000

@@ -1,2 +1,29 @@
-# briosa
-The gRPC bridge for the SpatialAnalyzer SDK.
+# Briosa
+
+Briosa is an open-source gRPC bridge around the Hexagon SpatialAnalyzer SDK. SpatialAnalyzer must be installed separately before Briosa can perform useful work.
+
+## Current target
+
+The initial vertical slice targets .NET 10 on Windows x64 and SpatialAnalyzer 2026.1.0529.7. The repository is currently establishing its process, COM interop, protocol, generation, and test boundaries.
+
+## Build
+
+Install the SDK selected by `global.json`, then run:
+
+```powershell
+dotnet restore Briosa.slnx --locked-mode
+dotnet build Briosa.slnx -c Release --no-restore
+dotnet test Briosa.slnx -c Release --no-build --no-restore
+```
+
+The committed managed interop metadata allows these commands to run on an ordinary Windows x64 machine without installing or starting SpatialAnalyzer.
+
+## SpatialAnalyzer interop
+
+Only the worker boundary references the generated COM metadata. Original SpatialAnalyzer binaries and type libraries are not part of this repository.
+
+See [the interop generation guide](docs/development/interop-generation.md) and [the COM boundary architecture decision](docs/architecture/0001-spatialanalyzer-com-boundary.md) for generation, provenance, redistribution, architecture, and STA rules.
+
+## License
+
+Briosa is licensed under Apache-2.0. SpatialAnalyzer, the SA SDK, their brands, and their proprietary implementation remain Hexagon intellectual property. This project does not imply Hexagon affiliation, endorsement, or support.
