@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package briosa.core.v1alpha1;
+
+option csharp_namespace = "Briosa.Core.V1Alpha1";
+
+// Identifies one reproducible Briosa distribution without treating its
+// independent implementation, protocol, and SpatialAnalyzer versions as one
+// semantic version.
+message VersionCoordinates {
+  // Briosa's semantic version, such as 0.3.2.
+  optional string briosa_version = 1;
+
+  // The stable core protobuf package implemented by the distribution.
+  optional string core_protocol_package = 2;
+
+  // The exact SpatialAnalyzer release for which the distribution was built.
+  optional string spatial_analyzer_target = 3;
+
+  // The exact-target protobuf package implemented by the distribution.
+  optional string target_protocol_package = 4;
+
+  // Immutable identity of the reviewed command catalog.
+  optional string catalog_revision = 5;
+
+  // Fingerprint of the approved generated interop metadata.
+  optional string interop_fingerprint = 6;
+
+  // Source-control revision from which the distribution was built.
+  optional string source_revision = 7;
+}
