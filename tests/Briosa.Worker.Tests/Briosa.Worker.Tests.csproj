@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Briosa.Worker\Briosa.Worker.csproj" />
+    <ProjectReference Include="..\Briosa.Worker.Testing\Briosa.Worker.Testing.csproj" />
   </ItemGroup>
 
   <ItemGroup>
