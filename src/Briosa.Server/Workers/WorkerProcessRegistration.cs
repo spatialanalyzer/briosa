@@ -36,7 +36,13 @@ internal static class WorkerProcessRegistration
                 startupTimeout: TimeSpan.FromSeconds(10),
                 shutdownTimeout: TimeSpan.FromSeconds(5),
                 restartDelay: TimeSpan.FromSeconds(1));
-            return new WorkerProcessSupervisor(processFactory, policy);
+            var executionPolicy = new WorkerExecutionPolicy(
+                watchdogTimeout: TimeSpan.FromSeconds(30),
+                queueCapacity: 64);
+            return new WorkerProcessSupervisor(
+                processFactory,
+                policy,
+                executionPolicy);
         });
         services.TryAddEnumerable(
             ServiceDescriptor.Singleton<IHostedService, WorkerSupervisorHostedService>());

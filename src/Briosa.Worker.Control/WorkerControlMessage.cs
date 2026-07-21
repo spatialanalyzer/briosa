@@ -2,7 +2,7 @@ namespace Briosa.Worker.Control;
 
 public static class WorkerControlProtocol
 {
-    public const int CurrentVersion = 2;
+    public const int CurrentVersion = 3;
 
     public const int MaximumMessageBytes = 64 * 1024;
 }
@@ -14,7 +14,26 @@ public enum WorkerControlMessageKind
     Ping,
     Pong,
     Stop,
-    Stopped
+    Stopped,
+    Execute,
+    ExecutionResult
+}
+
+public enum WorkerMpValueKind
+{
+    Logical,
+    WholeNumber,
+    FloatingPoint,
+    Text,
+    PointName,
+    Vector,
+    ToleranceVectorOptions
+}
+
+public enum WorkerExecutionResponseStatus
+{
+    Completed,
+    Unavailable
 }
 
 public enum WorkerConnectionState
@@ -35,13 +54,81 @@ public sealed record WorkerConnectionSnapshot(
     string DiagnosticCode,
     DateTimeOffset TransitionedAt);
 
+public sealed record WorkerPointNameValue(
+    string CollectionName,
+    string GroupName,
+    string TargetName);
+
+public sealed record WorkerVectorValue(double X, double Y, double Z);
+
+public sealed record WorkerToleranceLimit(bool Enabled, double Value);
+
+public sealed record WorkerToleranceVectorOptionsValue(
+    WorkerToleranceLimit HighX,
+    WorkerToleranceLimit HighY,
+    WorkerToleranceLimit HighZ,
+    WorkerToleranceLimit HighMagnitude,
+    WorkerToleranceLimit LowX,
+    WorkerToleranceLimit LowY,
+    WorkerToleranceLimit LowZ,
+    WorkerToleranceLimit LowMagnitude);
+
+public sealed record WorkerMpInputArgument(
+    string Name,
+    WorkerMpValueKind Kind,
+    bool? BooleanValue = null,
+    int? IntegerValue = null,
+    double? DoubleValue = null,
+    string? StringValue = null,
+    WorkerPointNameValue? PointNameValue = null,
+    WorkerVectorValue? VectorValue = null,
+    WorkerToleranceVectorOptionsValue? ToleranceVectorOptionsValue = null);
+
+public sealed record WorkerMpOutputArgument(
+    string Name,
+    WorkerMpValueKind Kind);
+
+public sealed record WorkerMpOutputValue(
+    string Name,
+    WorkerMpValueKind Kind,
+    bool Retrieved,
+    bool? BooleanValue = null,
+    int? IntegerValue = null,
+    double? DoubleValue = null,
+    string? StringValue = null,
+    WorkerPointNameValue? PointNameValue = null,
+    WorkerVectorValue? VectorValue = null,
+    WorkerToleranceVectorOptionsValue? ToleranceVectorOptionsValue = null);
+
+public sealed record WorkerMpCommand(
+    string OperationId,
+    string StepName,
+    IReadOnlyList<WorkerMpInputArgument> InputArguments,
+    IReadOnlyList<WorkerMpOutputArgument> OutputArguments);
+
+public sealed record WorkerMpExecutionResult(
+    bool ExecuteStepReturned,
+    bool MpSucceeded,
+    int MpResultCode,
+    long DurationMilliseconds,
+    IReadOnlyList<WorkerMpOutputValue> OutputValues,
+    string? DiagnosticCode);
+
+public sealed record WorkerExecutionResponse(
+    WorkerExecutionResponseStatus Status,
+    WorkerMpExecutionResult? Execution,
+    WorkerConnectionSnapshot Connection,
+    string? DiagnosticCode);
+
 public sealed record WorkerControlMessage(
     int ProtocolVersion,
     WorkerControlMessageKind Kind,
     Guid CorrelationId,
     int? ProcessId = null,
     string? DiagnosticCode = null,
-    WorkerConnectionSnapshot? Connection = null)
+    WorkerConnectionSnapshot? Connection = null,
+    WorkerMpCommand? Command = null,
+    WorkerExecutionResponse? ExecutionResponse = null)
 {
     public static WorkerControlMessage Ready(
         int processId,
@@ -64,4 +151,20 @@ public sealed record WorkerControlMessage(
 
     public static WorkerControlMessage Stopped(Guid correlationId) =>
         new(WorkerControlProtocol.CurrentVersion, WorkerControlMessageKind.Stopped, correlationId);
+
+    public static WorkerControlMessage Execute(Guid correlationId, WorkerMpCommand command) =>
+        new(
+            WorkerControlProtocol.CurrentVersion,
+            WorkerControlMessageKind.Execute,
+            correlationId,
+            Command: command ?? throw new ArgumentNullException(nameof(command)));
+
+    public static WorkerControlMessage ExecutionResult(
+        Guid correlationId,
+        WorkerExecutionResponse response) =>
+        new(
+            WorkerControlProtocol.CurrentVersion,
+            WorkerControlMessageKind.ExecutionResult,
+            correlationId,
+            ExecutionResponse: response ?? throw new ArgumentNullException(nameof(response)));
 }

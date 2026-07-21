@@ -12,7 +12,9 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
         Converters =
         {
             new JsonStringEnumConverter<WorkerControlMessageKind>(JsonNamingPolicy.CamelCase),
-            new JsonStringEnumConverter<WorkerConnectionState>(JsonNamingPolicy.CamelCase)
+            new JsonStringEnumConverter<WorkerConnectionState>(JsonNamingPolicy.CamelCase),
+            new JsonStringEnumConverter<WorkerMpValueKind>(JsonNamingPolicy.CamelCase),
+            new JsonStringEnumConverter<WorkerExecutionResponseStatus>(JsonNamingPolicy.CamelCase)
         }
     };
 
@@ -110,7 +112,7 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
         if (message.ProtocolVersion != WorkerControlProtocol.CurrentVersion)
         {
             throw new InvalidDataException(
-                $"Unsupported worker control protocol version ''{message.ProtocolVersion}''.");
+                $"Unsupported worker control protocol version '{message.ProtocolVersion}'.");
         }
 
         if (message.Kind == WorkerControlMessageKind.None)
@@ -123,6 +125,105 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
         {
             throw new InvalidDataException(
                 "A worker ready message requires a process identifier and connection snapshot.");
+        }
+
+        if (message.Kind == WorkerControlMessageKind.Execute)
+        {
+            ValidateCommand(message.Command);
+        }
+
+        if (message.Kind == WorkerControlMessageKind.ExecutionResult)
+        {
+            ValidateExecutionResponse(message.ExecutionResponse);
+        }
+    }
+
+    private static void ValidateCommand(WorkerMpCommand? command)
+    {
+        if (command is null ||
+            string.IsNullOrWhiteSpace(command.OperationId) ||
+            string.IsNullOrWhiteSpace(command.StepName) ||
+            command.InputArguments is null ||
+            command.OutputArguments is null)
+        {
+            throw new InvalidDataException(
+                "A worker execute message requires a valid MP command.");
+        }
+
+        if (command.InputArguments.Count + command.OutputArguments.Count > 128 ||
+            command.InputArguments.Any(argument =>
+                string.IsNullOrWhiteSpace(argument.Name) ||
+                !HasInputValueForKind(argument)) ||
+            command.OutputArguments.Any(argument =>
+                string.IsNullOrWhiteSpace(argument.Name) ||
+                !Enum.IsDefined(argument.Kind)))
+        {
+            throw new InvalidDataException("The worker MP argument collection is invalid.");
+        }
+    }
+
+    private static bool HasInputValueForKind(WorkerMpInputArgument argument) =>
+        argument.Kind switch
+        {
+            WorkerMpValueKind.Logical => argument.BooleanValue.HasValue,
+            WorkerMpValueKind.WholeNumber => argument.IntegerValue.HasValue,
+            WorkerMpValueKind.FloatingPoint => argument.DoubleValue.HasValue,
+            WorkerMpValueKind.Text => argument.StringValue is not null,
+            WorkerMpValueKind.PointName => IsValid(argument.PointNameValue),
+            WorkerMpValueKind.Vector => argument.VectorValue is not null,
+            WorkerMpValueKind.ToleranceVectorOptions =>
+                IsValid(argument.ToleranceVectorOptionsValue),
+            _ => false
+        };
+
+    private static bool HasOutputValueForKind(WorkerMpOutputValue output) =>
+        !output.Retrieved ||
+        output.Kind switch
+        {
+            WorkerMpValueKind.Logical => output.BooleanValue.HasValue,
+            WorkerMpValueKind.WholeNumber => output.IntegerValue.HasValue,
+            WorkerMpValueKind.FloatingPoint => output.DoubleValue.HasValue,
+            WorkerMpValueKind.Text => output.StringValue is not null,
+            WorkerMpValueKind.PointName => IsValid(output.PointNameValue),
+            WorkerMpValueKind.Vector => output.VectorValue is not null,
+            WorkerMpValueKind.ToleranceVectorOptions =>
+                IsValid(output.ToleranceVectorOptionsValue),
+            _ => false
+        };
+
+    private static bool IsValid(WorkerPointNameValue? value) =>
+        value is not null &&
+        value.CollectionName is not null &&
+        value.GroupName is not null &&
+        value.TargetName is not null;
+
+    private static bool IsValid(WorkerToleranceVectorOptionsValue? value) =>
+        value is not null &&
+        value.HighX is not null &&
+        value.HighY is not null &&
+        value.HighZ is not null &&
+        value.HighMagnitude is not null &&
+        value.LowX is not null &&
+        value.LowY is not null &&
+        value.LowZ is not null &&
+        value.LowMagnitude is not null;
+
+    private static void ValidateExecutionResponse(WorkerExecutionResponse? response)
+    {
+        if (response is null ||
+            response.Connection is null ||
+            ((response.Status == WorkerExecutionResponseStatus.Completed) !=
+                (response.Execution is not null)) ||
+            response.Execution is { } execution &&
+            (execution.DurationMilliseconds < 0 ||
+                execution.OutputValues is null ||
+                !execution.MpSucceeded && execution.OutputValues.Count != 0 ||
+                execution.OutputValues.Any(output =>
+                    string.IsNullOrWhiteSpace(output.Name) ||
+                    !HasOutputValueForKind(output))))
+        {
+            throw new InvalidDataException(
+                "The worker execution-result message has an invalid response shape.");
         }
     }
 }
