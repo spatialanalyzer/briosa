@@ -278,8 +278,12 @@
         "type": "Project",
         "dependencies": {
           "Briosa.Protocol": "[1.0.0, )",
+          "Briosa.Worker.Control": "[1.0.0, )",
           "Grpc.AspNetCore": "[2.80.0, )"
         }
+      },
+      "briosa.worker.control": {
+        "type": "Project"
       },
       "Grpc.AspNetCore": {
         "type": "CentralTransitive",

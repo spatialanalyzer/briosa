@@ -9,5 +9,6 @@
   <ItemGroup>
     <PackageReference Include="Grpc.AspNetCore" />
     <ProjectReference Include="..\Briosa.Protocol\Briosa.Protocol.csproj" />
+    <ProjectReference Include="..\Briosa.Worker.Control\Briosa.Worker.Control.csproj" />
   </ItemGroup>
 </Project>

@@ -100,6 +100,12 @@
         }
       },
       "briosa.worker": {
+        "type": "Project",
+        "dependencies": {
+          "Briosa.Worker.Control": "[1.0.0, )"
+        }
+      },
+      "briosa.worker.control": {
         "type": "Project"
       },
       "briosa.worker.testing": {

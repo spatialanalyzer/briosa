@@ -9,6 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Briosa.Worker.Control\Briosa.Worker.Control.csproj" />
+
     <Reference Include="Briosa.SpatialAnalyzer.Interop">
       <HintPath>$(SpatialAnalyzerInteropPath)</HintPath>
       <Private>true</Private>

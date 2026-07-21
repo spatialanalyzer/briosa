@@ -71,6 +71,9 @@
       },
       "briosa.protocol": {
         "type": "Project"
+      },
+      "briosa.worker.control": {
+        "type": "Project"
       }
     }
   }
