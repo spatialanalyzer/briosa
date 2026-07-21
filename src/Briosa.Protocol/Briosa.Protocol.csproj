@@ -3,4 +3,15 @@
     <TargetFramework>net10.0</TargetFramework>
     <Description>Language-neutral protocol boundary for Briosa services.</Description>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Google.Protobuf" />
+    <PackageReference Include="Grpc.Tools" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Include="..\..\proto\**\*.proto"
+              ProtoRoot="..\..\proto"
+              GrpcServices="None" />
+  </ItemGroup>
 </Project>

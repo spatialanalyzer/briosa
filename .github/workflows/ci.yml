@@ -20,6 +20,17 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Install Buf
+        uses: bufbuild/buf-setup-action@v1.50.0
+        with:
+          version: 1.72.0
+
+      - name: Verify protobuf schemas
+        shell: pwsh
+        run: ./eng/Verify-Protocol.ps1
 
       - name: Install .NET SDK
         uses: actions/setup-dotnet@v5

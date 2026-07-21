@@ -18,6 +18,14 @@ dotnet test Briosa.slnx -c Release --no-build --no-restore
 
 The committed managed interop metadata allows these commands to run on an ordinary Windows x64 machine without installing or starting SpatialAnalyzer.
 
+## Public protocol
+
+Briosa separates the stable `briosa.core.v1alpha1` package from MP contracts generated for one exact SpatialAnalyzer release, beginning with `briosa.sa.v2026_1_0529_7.v1alpha1`. Target packages are independent, version-faithful APIs; matching command shapes never imply matching semantics across SA releases.
+
+Install Buf 1.72.0 and run `./eng/Verify-Protocol.ps1` to check formatting, lint rules, and compatibility with the current `main` baseline. The .NET build compiles the reviewed protobuf sources directly.
+
+See [the exact-SA-target protocol decision](docs/architecture/0005-exact-sa-target-protocols.md) for package layout, version coordinates, compatibility, presence, target isolation, and review rules.
+
 ## SpatialAnalyzer interop
 
 Only the worker boundary references the generated COM metadata. Original SpatialAnalyzer binaries and type libraries are not part of this repository.
