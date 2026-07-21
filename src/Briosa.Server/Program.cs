@@ -1,7 +1,9 @@
 using Briosa.Protocol;
+using Briosa.Server.Workers;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddGrpc();
+builder.Services.AddWorkerProcessLifecycle(builder.Configuration);
 
 var app = builder.Build();
 

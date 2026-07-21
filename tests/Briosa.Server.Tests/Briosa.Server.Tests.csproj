@@ -5,6 +5,8 @@
     <Prefer32Bit>false</Prefer32Bit>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    <WorkerTestHostOutput>$(MSBuildProjectDirectory)\..\Briosa.Worker.TestHost\bin\$(Configuration)\net10.0-windows\</WorkerTestHostOutput>
+    <WorkerUnderTestOutput>$(MSBuildProjectDirectory)\..\..\src\Briosa.Worker\bin\$(Configuration)\net10.0-windows\</WorkerUnderTestOutput>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,9 +18,23 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Briosa.Server\Briosa.Server.csproj" />
+    <ProjectReference Include="..\..\src\Briosa.Worker\Briosa.Worker.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\Briosa.Worker.TestHost\Briosa.Worker.TestHost.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <ItemGroup>
     <Using Include="Xunit" />
   </ItemGroup>
+  <Target Name="CopyWorkerTestHost" AfterTargets="Build">
+    <ItemGroup>
+      <_WorkerTestHostFiles Include="$(WorkerTestHostOutput)*" />
+      <_WorkerUnderTestFiles Include="$(WorkerUnderTestOutput)*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_WorkerTestHostFiles)"
+          DestinationFolder="$(OutDir)worker-test-host"
+          SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(_WorkerUnderTestFiles)"
+          DestinationFolder="$(OutDir)worker-under-test"
+          SkipUnchangedFiles="true" />
+  </Target>
 </Project>

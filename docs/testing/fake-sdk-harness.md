@@ -21,7 +21,7 @@ The reusable `Briosa.Worker.Testing` assembly provides deterministic scripts for
 | Hang | The watchdog reports a timeout and the supervisor seam replaces the worker |
 | Crash | Abrupt worker loss is reported separately and followed by replacement |
 
-The watchdog and supervisor types in this test-support assembly are harness seams, not the production host-to-worker implementation. Issue #8 owns real process lifecycle and issue #10 owns the production execution/watchdog policy.
+The watchdog and supervisor types in this test-support assembly remain lightweight harness seams. The production process supervisor is exercised separately by `Briosa.Server.Tests`; issue #10 owns MP execution deadlines and watchdog policy.
 
 ## Reusing the contracts
 

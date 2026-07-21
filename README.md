@@ -28,6 +28,14 @@ See [the interop generation guide](docs/development/interop-generation.md) and [
 
 The [fake SDK and contract-test harness](docs/testing/fake-sdk-harness.md) verifies Briosa's lifecycle, serialization, result handling, and recovery seams without installing or licensing SpatialAnalyzer. The scripted fake tests Briosa contracts and is not a SpatialAnalyzer emulator.
 
+## Worker process lifecycle
+
+The gRPC host supervises SpatialAnalyzer automation in a disposable child worker over a private named pipe. It reports explicit lifecycle snapshots, replaces hung or crashed workers within a bounded restart window, and escalates failed graceful shutdown to process-tree termination.
+
+The host expects `Briosa.Worker.exe` beside the server by default. Development or packaged layouts can set `Briosa__Worker__ExecutablePath` to an explicit worker path. A missing worker degrades SDK readiness without terminating the public host.
+
+See [the worker process lifecycle decision](docs/architecture/0002-worker-process-lifecycle.md) for protocol, cleanup, restart, security, and STA ownership details.
+
 ## License
 
 Briosa is licensed under Apache-2.0. SpatialAnalyzer, the SA SDK, their brands, and their proprietary implementation remain Hexagon intellectual property. This project does not imply Hexagon affiliation, endorsement, or support.
