@@ -1,3 +1,4 @@
+using Briosa.Worker.Control;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Briosa.Server.Workers;
@@ -15,12 +16,17 @@ internal static class WorkerProcessRegistration
         var executablePath = string.IsNullOrWhiteSpace(configuredPath)
             ? Path.Combine(AppContext.BaseDirectory, "Briosa.Worker.exe")
             : Path.GetFullPath(configuredPath, AppContext.BaseDirectory);
+        var configuredHost = configuration["Briosa:SpatialAnalyzer:Host"];
+        var targetHost = string.IsNullOrWhiteSpace(configuredHost)
+            ? "localhost"
+            : configuredHost;
 
         services.TryAddSingleton(_ =>
         {
             var processFactory = new NamedPipeWorkerProcessFactory(
                 _ => new WorkerProcessLaunch(
                     executablePath,
+                    ["--sa-host", targetHost],
                     workingDirectory: Path.GetDirectoryName(executablePath)));
             var policy = new WorkerRestartPolicy(
                 maximumRestarts: 3,
@@ -48,13 +54,28 @@ internal sealed partial class WorkerSupervisorHostedService(
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         var started = await _supervisor.StartAsync(cancellationToken).ConfigureAwait(false);
-        if (started)
+        if (!started)
         {
-            LogWorkerReady(_supervisor.Current.Generation);
+            LogWorkerDegraded(_supervisor.Current.DiagnosticCode);
+            return;
+        }
+
+        var connection = _supervisor.Current.Connection!;
+        if (connection.State == WorkerConnectionState.Connected)
+        {
+            LogWorkerReady(
+                _supervisor.Current.Generation,
+                connection.TargetHost,
+                connection.StatusCode);
         }
         else
         {
-            LogWorkerDegraded(_supervisor.Current.DiagnosticCode);
+            LogWorkerReadyWithoutSdk(
+                _supervisor.Current.Generation,
+                connection.State,
+                connection.TargetHost,
+                connection.StatusCode,
+                connection.DiagnosticCode);
         }
     }
 
@@ -64,12 +85,23 @@ internal sealed partial class WorkerSupervisorHostedService(
     [LoggerMessage(
         EventId = 1001,
         Level = LogLevel.Information,
-        Message = "Briosa worker generation {Generation} is ready.")]
-    private partial void LogWorkerReady(int generation);
+        Message = "Briosa worker generation {Generation} is ready and connected to {TargetHost} with ConnectEx status {StatusCode}.")]
+    private partial void LogWorkerReady(int generation, string targetHost, int? statusCode);
 
     [LoggerMessage(
         EventId = 1002,
         Level = LogLevel.Warning,
-        Message = "Briosa worker is degraded: {DiagnosticCode}.")]
+        Message = "Briosa worker process is degraded: {DiagnosticCode}.")]
     private partial void LogWorkerDegraded(string diagnosticCode);
+
+    [LoggerMessage(
+        EventId = 1003,
+        Level = LogLevel.Warning,
+        Message = "Briosa worker generation {Generation} is control-ready but its SDK connection is {ConnectionState} for {TargetHost}; ConnectEx status {StatusCode}, diagnostic {DiagnosticCode}.")]
+    private partial void LogWorkerReadyWithoutSdk(
+        int generation,
+        WorkerConnectionState connectionState,
+        string targetHost,
+        int? statusCode,
+        string diagnosticCode);
 }

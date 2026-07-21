@@ -26,7 +26,7 @@ See [the interop generation guide](docs/development/interop-generation.md) and [
 
 ## Portable SDK tests
 
-The [fake SDK and contract-test harness](docs/testing/fake-sdk-harness.md) verifies Briosa's lifecycle, serialization, result handling, and recovery seams without installing or licensing SpatialAnalyzer. The scripted fake tests Briosa contracts and is not a SpatialAnalyzer emulator.
+The [fake SDK and contract-test harness](docs/testing/fake-sdk-harness.md) verifies Briosa''s lifecycle, serialization, result handling, and recovery seams without installing or licensing SpatialAnalyzer. The scripted fake tests Briosa contracts and is not a SpatialAnalyzer emulator.
 
 ## Worker process lifecycle
 
@@ -34,7 +34,9 @@ The gRPC host supervises SpatialAnalyzer automation in a disposable child worker
 
 The host expects `Briosa.Worker.exe` beside the server by default. Development or packaged layouts can set `Briosa__Worker__ExecutablePath` to an explicit worker path. A missing worker degrades SDK readiness without terminating the public host.
 
-See [the worker process lifecycle decision](docs/architecture/0002-worker-process-lifecycle.md) for protocol, cleanup, restart, security, and STA ownership details.
+Each worker owns one SDK client and reports `Disconnected`, `Connecting`, `Connected`, `Faulted`, or `Stopping` independently from process readiness. The SpatialAnalyzer target defaults to `localhost`; set `Briosa__SpatialAnalyzer__Host` to an explicit hostname or IP address. A connection cycle is bounded to three `ConnectEx` attempts one second apart, and MP work is rejected with a stable unavailable outcome unless the SDK state is `Connected`.
+
+See [the worker process lifecycle decision](docs/architecture/0002-worker-process-lifecycle.md) and [the SDK connection lifecycle decision](docs/architecture/0003-sdk-connection-lifecycle.md) for protocol, connection ownership, cleanup, retry, security, and STA details.
 
 ## License
 

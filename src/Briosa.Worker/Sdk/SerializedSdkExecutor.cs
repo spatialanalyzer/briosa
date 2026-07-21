@@ -25,7 +25,17 @@ internal sealed class SerializedSdkExecutor : IAsyncDisposable
         };
         _thread.SetApartmentState(ApartmentState.STA);
         _thread.Start();
-        _started.Task.GetAwaiter().GetResult();
+        try
+        {
+            _started.Task.GetAwaiter().GetResult();
+        }
+        catch
+        {
+            _queue.CompleteAdding();
+            _thread.Join();
+            _queue.Dispose();
+            throw;
+        }
     }
 
     public Task<SdkConnectionResult> ConnectAsync(string host, CancellationToken cancellationToken = default)

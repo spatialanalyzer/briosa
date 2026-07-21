@@ -11,7 +11,15 @@ if (TryGetArgument(args, "--control-pipe", out var pipeName))
         int.TryParse(parentValue, out var parsedParentProcessId)
             ? parsedParentProcessId
             : (int?)null;
-    return WorkerControlHost.Run(pipeName, parentProcessId);
+    var targetHost = TryGetArgument(args, "--sa-host", out var configuredHost)
+        ? configuredHost
+        : "localhost";
+    var disableSdkActivation = Array.IndexOf(args, "--disable-sdk-activation") >= 0;
+    return WorkerControlHost.Run(
+        pipeName,
+        parentProcessId,
+        targetHost,
+        disableSdkActivation);
 }
 
 Console.WriteLine($"Briosa worker scaffold using {InteropMetadata.AssemblyName.FullName}");

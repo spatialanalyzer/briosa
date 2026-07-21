@@ -11,7 +11,8 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         Converters =
         {
-            new JsonStringEnumConverter<WorkerControlMessageKind>(JsonNamingPolicy.CamelCase)
+            new JsonStringEnumConverter<WorkerControlMessageKind>(JsonNamingPolicy.CamelCase),
+            new JsonStringEnumConverter<WorkerConnectionState>(JsonNamingPolicy.CamelCase)
         }
     };
 
@@ -109,12 +110,19 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
         if (message.ProtocolVersion != WorkerControlProtocol.CurrentVersion)
         {
             throw new InvalidDataException(
-                $"Unsupported worker control protocol version '{message.ProtocolVersion}'.");
+                $"Unsupported worker control protocol version ''{message.ProtocolVersion}''.");
         }
 
         if (message.Kind == WorkerControlMessageKind.None)
         {
             throw new InvalidDataException("The worker control message kind is invalid.");
+        }
+
+        if (message.Kind == WorkerControlMessageKind.Ready &&
+            (message.ProcessId is not > 0 || message.Connection is null))
+        {
+            throw new InvalidDataException(
+                "A worker ready message requires a process identifier and connection snapshot.");
         }
     }
 }

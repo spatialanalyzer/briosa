@@ -39,7 +39,17 @@ internal static class TestWorkerProcess
                 PipeOptions.None);
             pipe.Connect(15_000);
             using var channel = new WorkerControlChannel(pipe, leaveOpen: true);
-            channel.Send(WorkerControlMessage.Ready(Environment.ProcessId));
+            channel.Send(
+                WorkerControlMessage.Ready(
+                    Environment.ProcessId,
+                    new WorkerConnectionSnapshot(
+                        WorkerConnectionState.Connected,
+                        "localhost",
+                        StatusCode: 0,
+                        Attempt: 1,
+                        MaximumAttempts: 1,
+                        "connect-ex-connected",
+                        DateTimeOffset.UtcNow)));
 
             while (true)
             {

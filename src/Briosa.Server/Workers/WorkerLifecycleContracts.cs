@@ -1,3 +1,5 @@
+using Briosa.Worker.Control;
+
 namespace Briosa.Server.Workers;
 
 internal enum WorkerLifecycleState
@@ -23,6 +25,7 @@ internal sealed record WorkerLifecycleSnapshot(
     int RestartCount,
     WorkerTerminationKind LastTermination,
     string DiagnosticCode,
+    WorkerConnectionSnapshot? Connection,
     DateTimeOffset TransitionedAt);
 
 internal sealed class WorkerRestartPolicy

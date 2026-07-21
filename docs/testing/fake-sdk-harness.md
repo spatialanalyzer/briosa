@@ -1,12 +1,14 @@
 # Fake SDK and contract-test harness
 
-The portable worker tests use a scripted adapter instead of installing, starting, or licensing SpatialAnalyzer. The harness exists to verify Briosa's own worker contracts: lifecycle ownership, STA affinity, serialization, result preservation, and recovery policy seams.
+The portable worker tests use a scripted adapter instead of installing, starting, or licensing SpatialAnalyzer. The harness exists to verify Briosa''s own worker contracts: lifecycle ownership, STA affinity, serialization, result preservation, and recovery policy seams.
 
 ## Boundary under test
 
 `ISpatialAnalyzerSdk` is an internal, synchronous worker-boundary contract. It uses Briosa-owned command and outcome types and exposes no COM types. `SerializedSdkExecutor` creates and disposes one adapter on a dedicated STA thread and sends all connection and command work through a single-consumer queue.
 
-Cancellation can stop a caller from waiting, but it does not claim to cancel a synchronous SDK call that has already started. A production watchdog must recover from an unresponsive call by replacing the worker process.
+`SdkConnectionManager` owns at most one active executor, models connection transitions, applies a bounded attempt policy, and returns `sdk-connection-not-ready` without entering the adapter unless its state is `Connected`. Concurrent connection callers share the same owner rather than creating additional SDK clients.
+
+Cancellation can stop a caller from entering the owner or waiting through a retry delay, but it does not claim to cancel a synchronous SDK call that has already started. A production watchdog must recover from an unresponsive call by replacing the worker process.
 
 ## Scripted behaviors
 
@@ -16,7 +18,9 @@ The reusable `Briosa.Worker.Testing` assembly provides deterministic scripts for
 | --- | --- |
 | Success | Connected execution and a successful MP result |
 | MP failure | `ExecuteStep` may return true while the MP result reports failure |
-| Connection failure | Connection availability remains distinct from command outcomes |
+| Connection failure | `ConnectEx` availability and status remain distinct from command outcomes |
+| Delayed connection | Connecting state rejects work while concurrent callers share one adapter |
+| Bounded reconnect | Attempt exhaustion faults deterministically; a new explicit cycle has the same bound |
 | Delay | A blocked command keeps later commands from entering the adapter |
 | Hang | The watchdog reports a timeout and the supervisor seam replaces the worker |
 | Crash | Abrupt worker loss is reported separately and followed by replacement |

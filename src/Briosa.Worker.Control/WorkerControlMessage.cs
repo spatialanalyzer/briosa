@@ -2,7 +2,7 @@ namespace Briosa.Worker.Control;
 
 public static class WorkerControlProtocol
 {
-    public const int CurrentVersion = 1;
+    public const int CurrentVersion = 2;
 
     public const int MaximumMessageBytes = 64 * 1024;
 }
@@ -17,19 +17,41 @@ public enum WorkerControlMessageKind
     Stopped
 }
 
+public enum WorkerConnectionState
+{
+    Disconnected,
+    Connecting,
+    Connected,
+    Faulted,
+    Stopping
+}
+
+public sealed record WorkerConnectionSnapshot(
+    WorkerConnectionState State,
+    string TargetHost,
+    int? StatusCode,
+    int Attempt,
+    int MaximumAttempts,
+    string DiagnosticCode,
+    DateTimeOffset TransitionedAt);
+
 public sealed record WorkerControlMessage(
     int ProtocolVersion,
     WorkerControlMessageKind Kind,
     Guid CorrelationId,
     int? ProcessId = null,
-    string? DiagnosticCode = null)
+    string? DiagnosticCode = null,
+    WorkerConnectionSnapshot? Connection = null)
 {
-    public static WorkerControlMessage Ready(int processId) =>
+    public static WorkerControlMessage Ready(
+        int processId,
+        WorkerConnectionSnapshot connection) =>
         new(
             WorkerControlProtocol.CurrentVersion,
             WorkerControlMessageKind.Ready,
             Guid.Empty,
-            processId);
+            processId,
+            Connection: connection ?? throw new ArgumentNullException(nameof(connection)));
 
     public static WorkerControlMessage Ping(Guid correlationId) =>
         new(WorkerControlProtocol.CurrentVersion, WorkerControlMessageKind.Ping, correlationId);

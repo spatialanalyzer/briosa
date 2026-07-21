@@ -42,6 +42,10 @@ internal sealed record ScriptedExecution(
     public static ScriptedExecution Crash() => new(ScriptedExecutionKind.Crash);
 }
 
+internal sealed record ScriptedConnection(
+    SdkConnectionResult Result,
+    ManualResetEventSlim? Gate = null);
+
 public sealed class SimulatedWorkerCrashException : Exception
 {
     public SimulatedWorkerCrashException()
@@ -62,29 +66,61 @@ public sealed class SimulatedWorkerCrashException : Exception
 
 internal sealed class ScriptedSdkPlan
 {
-    private readonly ConcurrentQueue<SdkConnectionResult> _connections = new();
+    private readonly ConcurrentQueue<ScriptedConnection> _connections = new();
+    private readonly ConcurrentQueue<string> _connectionHosts = new();
     private readonly ConcurrentQueue<ScriptedExecution> _executions = new();
     private readonly ConcurrentQueue<ScriptedCallEvent> _events = new();
     private readonly ConcurrentBag<ManualResetEventSlim> _blockingGates = [];
+    private int _activeAdapterCount;
+    private int _adapterCreationCount;
+    private int _adapterDisposalCount;
+    private int _connectionCallCount;
+    private int _maximumActiveAdapterCount;
     private long _eventSequence;
 
     public IReadOnlyList<ScriptedCallEvent> Events => [.. _events];
 
+    public IReadOnlyList<string> ConnectionHosts => [.. _connectionHosts];
+
     public ApartmentState? AdapterApartmentState { get; private set; }
+
+    public ApartmentState? AdapterDisposalApartmentState { get; private set; }
+
+    public int AdapterCreationCount => Volatile.Read(ref _adapterCreationCount);
+
+    public int AdapterDisposalCount => Volatile.Read(ref _adapterDisposalCount);
+
+    public int ConnectionCallCount => Volatile.Read(ref _connectionCallCount);
+
+    public int MaximumActiveAdapterCount => Volatile.Read(ref _maximumActiveAdapterCount);
 
     public ScriptedSdkPlan ConnectsSuccessfully(int statusCode = 0)
     {
-        _connections.Enqueue(new SdkConnectionResult(SdkConnectionStatus.Connected, statusCode, null));
+        _connections.Enqueue(
+            new ScriptedConnection(
+                new SdkConnectionResult(SdkConnectionStatus.Connected, statusCode, null)));
         return this;
     }
 
     public ScriptedSdkPlan FailsConnection(int statusCode = -1)
     {
         _connections.Enqueue(
-            new SdkConnectionResult(
-                SdkConnectionStatus.Unavailable,
-                statusCode,
-                "scripted-connection-failure"));
+            new ScriptedConnection(
+                new SdkConnectionResult(
+                    SdkConnectionStatus.Unavailable,
+                    statusCode,
+                    "scripted-connection-failure")));
+        return this;
+    }
+
+    public ScriptedSdkPlan DelaysConnection(
+        ManualResetEventSlim gate,
+        SdkConnectionResult result)
+    {
+        ArgumentNullException.ThrowIfNull(gate);
+        ArgumentNullException.ThrowIfNull(result);
+        _connections.Enqueue(new ScriptedConnection(result, gate));
+        _blockingGates.Add(gate);
         return this;
     }
 
@@ -100,7 +136,13 @@ internal sealed class ScriptedSdkPlan
         return this;
     }
 
-    public ISpatialAnalyzerSdk CreateSdk() => new Adapter(this);
+    public ISpatialAnalyzerSdk CreateSdk()
+    {
+        Interlocked.Increment(ref _adapterCreationCount);
+        var active = Interlocked.Increment(ref _activeAdapterCount);
+        UpdateMaximumActiveAdapters(active);
+        return new Adapter(this);
+    }
 
     public void ReleaseBlockedCalls()
     {
@@ -110,15 +152,38 @@ internal sealed class ScriptedSdkPlan
         }
     }
 
+    private void UpdateMaximumActiveAdapters(int active)
+    {
+        while (true)
+        {
+            var maximum = Volatile.Read(ref _maximumActiveAdapterCount);
+            if (active <= maximum ||
+                Interlocked.CompareExchange(
+                    ref _maximumActiveAdapterCount,
+                    active,
+                    maximum) == maximum)
+            {
+                return;
+            }
+        }
+    }
+
     private sealed class Adapter(ScriptedSdkPlan plan) : ISpatialAnalyzerSdk
     {
+        private int _disposeState;
+
         public SdkConnectionResult Connect(string host)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(host);
             plan.AdapterApartmentState = Thread.CurrentThread.GetApartmentState();
-            return plan._connections.TryDequeue(out var result)
-                ? result
-                : new SdkConnectionResult(SdkConnectionStatus.Connected, 0, null);
+            plan._connectionHosts.Enqueue(host);
+            Interlocked.Increment(ref plan._connectionCallCount);
+            var connection = plan._connections.TryDequeue(out var scripted)
+                ? scripted
+                : new ScriptedConnection(
+                    new SdkConnectionResult(SdkConnectionStatus.Connected, 0, null));
+            connection.Gate?.Wait();
+            return connection.Result;
         }
 
         public SdkExecutionResult Execute(SdkCommand command)
@@ -153,6 +218,14 @@ internal sealed class ScriptedSdkPlan
 
         public void Dispose()
         {
+            if (Interlocked.Exchange(ref _disposeState, 1) != 0)
+            {
+                return;
+            }
+
+            plan.AdapterDisposalApartmentState = Thread.CurrentThread.GetApartmentState();
+            Interlocked.Increment(ref plan._adapterDisposalCount);
+            Interlocked.Decrement(ref plan._activeAdapterCount);
         }
     }
 
