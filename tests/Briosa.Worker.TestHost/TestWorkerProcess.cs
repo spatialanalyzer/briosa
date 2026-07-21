@@ -29,6 +29,7 @@ internal static class TestWorkerProcess
             ReleaseThreadId: null,
             ReleaseApartment: null);
         WriteRecord(options.LifecycleRecordPath, record);
+        var executionCount = 0;
 
         try
         {
@@ -42,14 +43,7 @@ internal static class TestWorkerProcess
             channel.Send(
                 WorkerControlMessage.Ready(
                     Environment.ProcessId,
-                    new WorkerConnectionSnapshot(
-                        WorkerConnectionState.Connected,
-                        "localhost",
-                        StatusCode: 0,
-                        Attempt: 1,
-                        MaximumAttempts: 1,
-                        "connect-ex-connected",
-                        DateTimeOffset.UtcNow)));
+                    ConnectionSnapshot()));
 
             while (true)
             {
@@ -68,6 +62,33 @@ internal static class TestWorkerProcess
                         }
 
                         channel.Send(WorkerControlMessage.Pong(message.CorrelationId));
+                        break;
+                    case WorkerControlMessageKind.Execute:
+                        executionCount++;
+                        if (options.Scenario == TestWorkerScenario.HangOnExecute)
+                        {
+                            Thread.Sleep(Timeout.Infinite);
+                        }
+
+                        if (options.Scenario == TestWorkerScenario.CrashOnExecute)
+                        {
+                            Environment.Exit(43);
+                        }
+
+                        var delayed = options.Scenario == TestWorkerScenario.DelayFirstExecute &&
+                            executionCount == 1;
+                        if (delayed)
+                        {
+                            Thread.Sleep(300);
+                        }
+
+                        channel.Send(
+                            WorkerControlMessage.ExecutionResult(
+                                message.CorrelationId,
+                                CompletedExecution(
+                                    mpSucceeded:
+                                        options.Scenario != TestWorkerScenario.MpFailure,
+                                    delayed)));
                         break;
                     case WorkerControlMessageKind.Stop:
                         if (options.Scenario == TestWorkerScenario.IgnoreStop)
@@ -98,6 +119,30 @@ internal static class TestWorkerProcess
         }
     }
 
+    private static WorkerExecutionResponse CompletedExecution(
+        bool mpSucceeded,
+        bool delayed) =>
+        new(
+            WorkerExecutionResponseStatus.Completed,
+            new WorkerMpExecutionResult(
+                ExecuteStepReturned: true,
+                mpSucceeded,
+                mpSucceeded ? 0 : 42,
+                DurationMilliseconds: delayed ? 300 : 5,
+                mpSucceeded ? null : "scripted-mp-failure"),
+            ConnectionSnapshot(),
+            DiagnosticCode: null);
+
+    private static WorkerConnectionSnapshot ConnectionSnapshot() =>
+        new(
+            WorkerConnectionState.Connected,
+            "localhost",
+            StatusCode: 0,
+            Attempt: 1,
+            MaximumAttempts: 1,
+            "connect-ex-connected",
+            DateTimeOffset.UtcNow);
+
     private static void WriteRecord(string? path, LifecycleRecord record)
     {
         if (path is null)
@@ -120,7 +165,11 @@ internal enum TestWorkerScenario
     Normal,
     HangOnPing,
     CrashOnPing,
-    IgnoreStop
+    IgnoreStop,
+    MpFailure,
+    DelayFirstExecute,
+    HangOnExecute,
+    CrashOnExecute
 }
 
 internal sealed record TestWorkerOptions(
@@ -151,6 +200,10 @@ internal sealed record TestWorkerOptions(
             "hang-on-ping" => TestWorkerScenario.HangOnPing,
             "crash-on-ping" => TestWorkerScenario.CrashOnPing,
             "ignore-stop" => TestWorkerScenario.IgnoreStop,
+            "mp-failure" => TestWorkerScenario.MpFailure,
+            "delay-first-execute" => TestWorkerScenario.DelayFirstExecute,
+            "hang-on-execute" => TestWorkerScenario.HangOnExecute,
+            "crash-on-execute" => TestWorkerScenario.CrashOnExecute,
             _ => throw new ArgumentOutOfRangeException(
                 nameof(value),
                 value,

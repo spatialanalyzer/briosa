@@ -71,6 +71,9 @@ internal static class WorkerControlHost
                     case WorkerControlMessageKind.Ping:
                         channel.Send(WorkerControlMessage.Pong(message.CorrelationId));
                         break;
+                    case WorkerControlMessageKind.Execute:
+                        channel.Send(Execute(connectionOwner, message));
+                        break;
                     case WorkerControlMessageKind.Stop:
                         connectionOwner.DisposeAsync().AsTask().GetAwaiter().GetResult();
                         channel.Send(WorkerControlMessage.Stopped(message.CorrelationId));
@@ -97,6 +100,52 @@ internal static class WorkerControlHost
             connectionOwner.DisposeAsync().AsTask().GetAwaiter().GetResult();
         }
     }
+
+    private static WorkerControlMessage Execute(
+        SdkConnectionManager connectionOwner,
+        WorkerControlMessage message)
+    {
+        var request = connectionOwner.ExecuteAsync(ToSdkCommand(message.Command!))
+            .GetAwaiter().GetResult();
+        var response = new WorkerExecutionResponse(
+            request.Status == SdkRequestStatus.Completed
+                ? WorkerExecutionResponseStatus.Completed
+                : WorkerExecutionResponseStatus.Unavailable,
+            request.Execution is null ? null : ToControlResult(request.Execution),
+            ToControlSnapshot(request.Connection),
+            request.DiagnosticCode);
+        return WorkerControlMessage.ExecutionResult(message.CorrelationId, response);
+    }
+
+    private static SdkCommand ToSdkCommand(WorkerMpCommand command) =>
+        new(
+            command.OperationId,
+            command.StepName,
+            [.. command.Arguments.Select(ToSdkArgument)]);
+
+    private static SdkArgument ToSdkArgument(WorkerMpArgument argument) =>
+        new(
+            argument.Name,
+            argument.Kind switch
+            {
+                WorkerMpArgumentKind.Logical => SdkArgumentKind.Logical,
+                WorkerMpArgumentKind.WholeNumber => SdkArgumentKind.WholeNumber,
+                WorkerMpArgumentKind.FloatingPoint => SdkArgumentKind.FloatingPoint,
+                WorkerMpArgumentKind.Text => SdkArgumentKind.Text,
+                _ => throw new UnreachableException()
+            },
+            argument.BooleanValue,
+            argument.IntegerValue,
+            argument.DoubleValue,
+            argument.StringValue);
+
+    private static WorkerMpExecutionResult ToControlResult(SdkExecutionResult execution) =>
+        new(
+            execution.ExecuteStepReturned,
+            execution.MpResult.Succeeded,
+            execution.MpResult.ResultCode,
+            (long)execution.Duration.TotalMilliseconds,
+            execution.MpResult.DiagnosticCode);
 
     private static WorkerConnectionSnapshot ToControlSnapshot(
         SdkConnectionSnapshot connection) =>

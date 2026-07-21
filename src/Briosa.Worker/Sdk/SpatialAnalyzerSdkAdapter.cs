@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using ComSdk = Briosa.SpatialAnalyzer.Interop.ISpatialAnalyzerSDK;
 using ComSdkClass = Briosa.SpatialAnalyzer.Interop.SpatialAnalyzerSDKClass;
@@ -37,8 +38,31 @@ internal sealed class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
     public SdkExecutionResult Execute(SdkCommand command)
     {
         ArgumentNullException.ThrowIfNull(command);
-        throw new NotSupportedException(
-            "SpatialAnalyzer MP execution is not implemented by the connection lifecycle.");
+        ObjectDisposedException.ThrowIf(_sdk is null, this);
+
+        var started = Stopwatch.GetTimestamp();
+        _sdk.SetStep(command.StepName);
+        foreach (var argument in command.Arguments)
+        {
+            if (!SetArgument(_sdk, argument))
+            {
+                return new SdkExecutionResult(
+                    ExecuteStepReturned: false,
+                    new SdkMpResult(false, -1, "sdk-argument-rejected"),
+                    Stopwatch.GetElapsedTime(started));
+            }
+        }
+
+        var executeStepReturned = _sdk.ExecuteStep();
+        var resultCode = 0;
+        var mpSucceeded = _sdk.GetMPStepResult(ref resultCode);
+        return new SdkExecutionResult(
+            executeStepReturned,
+            new SdkMpResult(
+                mpSucceeded,
+                resultCode,
+                mpSucceeded ? null : "mp-command-failed"),
+            Stopwatch.GetElapsedTime(started));
     }
 
     public void Dispose()
@@ -50,4 +74,18 @@ internal sealed class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
             _ = Marshal.FinalReleaseComObject(sdk);
         }
     }
+
+    private static bool SetArgument(ComSdk sdk, SdkArgument argument) =>
+        argument.Kind switch
+        {
+            SdkArgumentKind.Logical when argument.BooleanValue is { } value =>
+                sdk.SetBoolArg(argument.Name, value),
+            SdkArgumentKind.WholeNumber when argument.IntegerValue is { } value =>
+                sdk.SetIntegerArg(argument.Name, value),
+            SdkArgumentKind.FloatingPoint when argument.DoubleValue is { } value =>
+                sdk.SetDoubleArg(argument.Name, value),
+            SdkArgumentKind.Text when argument.StringValue is { } value =>
+                sdk.SetStringArg(argument.Name, value),
+            _ => false
+        };
 }

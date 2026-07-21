@@ -36,7 +36,7 @@ The host expects `Briosa.Worker.exe` beside the server by default. Development o
 
 Each worker owns one SDK client and reports `Disconnected`, `Connecting`, `Connected`, `Faulted`, or `Stopping` independently from process readiness. The SpatialAnalyzer target defaults to `localhost`; set `Briosa__SpatialAnalyzer__Host` to an explicit hostname or IP address. A connection cycle is bounded to three `ConnectEx` attempts one second apart, and MP work is rejected with a stable unavailable outcome unless the SDK state is `Connected`.
 
-See [the worker process lifecycle decision](docs/architecture/0002-worker-process-lifecycle.md) and [the SDK connection lifecycle decision](docs/architecture/0003-sdk-connection-lifecycle.md) for protocol, connection ownership, cleanup, retry, security, and STA details.
+See [the worker process lifecycle decision](docs/architecture/0002-worker-process-lifecycle.md) and [the SDK connection lifecycle decision](docs/architecture/0003-sdk-connection-lifecycle.md), and [the MP execution pipeline decision](docs/architecture/0004-mp-execution-pipeline.md) for protocol, connection ownership, serialization, deadlines, recovery, security, and STA details.
 
 ## License
 

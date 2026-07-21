@@ -8,7 +8,7 @@ The portable worker tests use a scripted adapter instead of installing, starting
 
 `SdkConnectionManager` owns at most one active executor, models connection transitions, applies a bounded attempt policy, and returns `sdk-connection-not-ready` without entering the adapter unless its state is `Connected`. Concurrent connection callers share the same owner rather than creating additional SDK clients.
 
-Cancellation can stop a caller from entering the owner or waiting through a retry delay, but it does not claim to cancel a synchronous SDK call that has already started. A production watchdog must recover from an unresponsive call by replacing the worker process.
+Cancellation can stop a caller from entering the owner or waiting through a retry delay, but it does not claim to cancel a synchronous SDK call that has already started. The production watchdog recovers from an unresponsive call by replacing the worker process.
 
 ## Scripted behaviors
 
@@ -25,7 +25,7 @@ The reusable `Briosa.Worker.Testing` assembly provides deterministic scripts for
 | Hang | The watchdog reports a timeout and the supervisor seam replaces the worker |
 | Crash | Abrupt worker loss is reported separately and followed by replacement |
 
-The watchdog and supervisor types in this test-support assembly remain lightweight harness seams. The production process supervisor is exercised separately by `Briosa.Server.Tests`; issue #10 owns MP execution deadlines and watchdog policy.
+The watchdog and supervisor types in this test-support assembly remain lightweight harness seams. `Briosa.Server.Tests` exercises the production process queue, private execution transport, caller cancellation, watchdog, crash recovery, and MP-result preservation described in [ADR 0004](../architecture/0004-mp-execution-pipeline.md).
 
 ## Reusing the contracts
 

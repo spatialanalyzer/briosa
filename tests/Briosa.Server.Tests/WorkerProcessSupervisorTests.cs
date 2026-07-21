@@ -139,6 +139,117 @@ public sealed class WorkerProcessSupervisorTests
         Assert.Equal("worker-stop-timeout", supervisor.Current.DiagnosticCode);
     }
 
+
+    [Fact]
+    public async Task ConcurrentRequestsRemainSerializedAcrossTheWorkerPipe()
+    {
+        await using var supervisor = CreateSupervisor(
+            _ => CreateLaunch("delay-first-execute"),
+            CreatePolicy(heartbeatInterval: TimeSpan.FromSeconds(10)));
+
+        Assert.True(await supervisor.StartAsync());
+        var first = supervisor.ExecuteAsync(CreateCommand("first"));
+        await Task.Delay(TimeSpan.FromMilliseconds(25));
+        var second = supervisor.ExecuteAsync(CreateCommand("second"));
+        await Task.Delay(TimeSpan.FromMilliseconds(75));
+
+        Assert.False(second.IsCompleted);
+        var results = await Task.WhenAll(first, second);
+
+        Assert.All(
+            results,
+            result => Assert.Equal(WorkerExecutionStatus.Completed, result.Status));
+        Assert.Equal(300, results[0].Execution!.DurationMilliseconds);
+        Assert.Equal(5, results[1].Execution!.DurationMilliseconds);
+        Assert.All(results, result => Assert.Equal(1, result.Generation));
+    }
+
+    [Fact]
+    public async Task CallerCancellationStopsWaitingWithoutDesynchronizingThePipe()
+    {
+        await using var supervisor = CreateSupervisor(
+            _ => CreateLaunch("delay-first-execute"),
+            CreatePolicy(heartbeatInterval: TimeSpan.FromSeconds(10)));
+
+        Assert.True(await supervisor.StartAsync());
+        using var clientCancellation = new CancellationTokenSource(
+            TimeSpan.FromMilliseconds(50));
+        var cancelled = await supervisor.ExecuteAsync(
+            CreateCommand("cancelled-wait"),
+            clientCancellation.Token);
+        var next = await supervisor.ExecuteAsync(CreateCommand("after-cancellation"));
+
+        Assert.Equal(WorkerExecutionStatus.ClientCancelled, cancelled.Status);
+        Assert.Equal("client-wait-cancelled", cancelled.DiagnosticCode);
+        Assert.Equal(WorkerExecutionStatus.Completed, next.Status);
+        Assert.Equal(1, next.Generation);
+        Assert.Equal(1, supervisor.Current.Generation);
+    }
+
+    [Fact]
+    public async Task ExecutionWatchdogForcesReplacementAndTheNextCallSucceeds()
+    {
+        await using var supervisor = CreateSupervisor(
+            generation => CreateLaunch(
+                generation == 1 ? "hang-on-execute" : "normal"),
+            CreatePolicy(heartbeatInterval: TimeSpan.FromSeconds(10)),
+            CreateExecutionPolicy(TimeSpan.FromMilliseconds(150)));
+
+        Assert.True(await supervisor.StartAsync());
+        var timedOut = await supervisor.ExecuteAsync(CreateCommand("hang"));
+        var recovered = await supervisor.ExecuteAsync(CreateCommand("after-hang"));
+
+        Assert.Equal(WorkerExecutionStatus.WatchdogTimeout, timedOut.Status);
+        Assert.Null(timedOut.Execution);
+        Assert.Equal(1, timedOut.Generation);
+        Assert.Equal(WorkerExecutionStatus.Completed, recovered.Status);
+        Assert.Equal(2, recovered.Generation);
+        Assert.Contains(
+            supervisor.History,
+            snapshot => snapshot.State == WorkerLifecycleState.Degraded &&
+                snapshot.LastTermination == WorkerTerminationKind.Forced &&
+                snapshot.DiagnosticCode == "worker-execution-watchdog-timeout");
+    }
+
+    [Fact]
+    public async Task WorkerCrashDuringExecutionIsReplacedAndReportedSeparately()
+    {
+        await using var supervisor = CreateSupervisor(
+            generation => CreateLaunch(
+                generation == 1 ? "crash-on-execute" : "normal"),
+            CreatePolicy(heartbeatInterval: TimeSpan.FromSeconds(10)));
+
+        Assert.True(await supervisor.StartAsync());
+        var failed = await supervisor.ExecuteAsync(CreateCommand("crash"));
+        var recovered = await supervisor.ExecuteAsync(CreateCommand("after-crash"));
+
+        Assert.Equal(WorkerExecutionStatus.WorkerFailure, failed.Status);
+        Assert.Null(failed.Execution);
+        Assert.Equal(WorkerExecutionStatus.Completed, recovered.Status);
+        Assert.Equal(2, recovered.Generation);
+        Assert.Contains(
+            supervisor.History,
+            snapshot => snapshot.State == WorkerLifecycleState.Degraded &&
+                snapshot.LastTermination == WorkerTerminationKind.Crash);
+    }
+
+    [Fact]
+    public async Task MpFailureIsPreservedWhenExecuteStepReturnsTrue()
+    {
+        await using var supervisor = CreateSupervisor(
+            _ => CreateLaunch("mp-failure"),
+            CreatePolicy(heartbeatInterval: TimeSpan.FromSeconds(10)));
+
+        Assert.True(await supervisor.StartAsync());
+        var result = await supervisor.ExecuteAsync(CreateCommand("mp-failure"));
+
+        Assert.Equal(WorkerExecutionStatus.Completed, result.Status);
+        Assert.True(result.Execution!.ExecuteStepReturned);
+        Assert.False(result.Execution.MpSucceeded);
+        Assert.Equal(42, result.Execution.MpResultCode);
+        Assert.Equal("scripted-mp-failure", result.DiagnosticCode);
+    }
+
     [Fact]
     public async Task ProductionWorkerCompletesControlLifecycleWithoutSpatialAnalyzer()
     {
@@ -165,6 +276,13 @@ public sealed class WorkerProcessSupervisorTests
             "sdk-client-activation-failed",
             supervisor.Current.Connection.DiagnosticCode);
 
+        var unavailable = await supervisor.ExecuteAsync(
+            CreateCommand("sdk-unavailable"));
+        Assert.Equal(WorkerExecutionStatus.Unavailable, unavailable.Status);
+        Assert.Null(unavailable.Execution);
+        Assert.Equal("sdk-connection-not-ready", unavailable.DiagnosticCode);
+        Assert.Equal(WorkerConnectionState.Faulted, unavailable.Connection!.State);
+
         await supervisor.StopAsync();
 
         Assert.Equal(WorkerLifecycleState.Stopped, supervisor.Current.State);
@@ -173,8 +291,12 @@ public sealed class WorkerProcessSupervisorTests
 
     private static WorkerProcessSupervisor CreateSupervisor(
         Func<int, WorkerProcessLaunch> launchFactory,
-        WorkerRestartPolicy policy) =>
-        new(new NamedPipeWorkerProcessFactory(launchFactory), policy);
+        WorkerRestartPolicy policy,
+        WorkerExecutionPolicy? executionPolicy = null) =>
+        new(
+            new NamedPipeWorkerProcessFactory(launchFactory),
+            policy,
+            executionPolicy ?? CreateExecutionPolicy());
 
     private static WorkerProcessLaunch CreateLaunch(
         string scenario,
@@ -202,6 +324,36 @@ public sealed class WorkerProcessSupervisorTests
             arguments,
             Path.GetDirectoryName(executable));
     }
+
+
+    private static WorkerMpCommand CreateCommand(string operationId) =>
+        new(
+            operationId,
+            "Scripted Step",
+            [
+                new WorkerMpArgument(
+                    "Enabled",
+                    WorkerMpArgumentKind.Logical,
+                    BooleanValue: true),
+                new WorkerMpArgument(
+                    "Count",
+                    WorkerMpArgumentKind.WholeNumber,
+                    IntegerValue: 2),
+                new WorkerMpArgument(
+                    "Tolerance",
+                    WorkerMpArgumentKind.FloatingPoint,
+                    DoubleValue: 0.01),
+                new WorkerMpArgument(
+                    "Label",
+                    WorkerMpArgumentKind.Text,
+                    StringValue: "portable-test")
+            ]);
+
+    private static WorkerExecutionPolicy CreateExecutionPolicy(
+        TimeSpan? watchdogTimeout = null) =>
+        new(
+            watchdogTimeout ?? TimeSpan.FromSeconds(2),
+            queueCapacity: 16);
 
     private static WorkerRestartPolicy CreatePolicy(
         int maximumRestarts = 3,

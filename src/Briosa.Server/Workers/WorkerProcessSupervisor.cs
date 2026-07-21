@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Text.Json;
+using System.Threading.Channels;
 using Briosa.Worker.Control;
 
 namespace Briosa.Server.Workers;
@@ -9,10 +10,14 @@ internal sealed class WorkerProcessSupervisor : IAsyncDisposable
     private readonly SemaphoreSlim _gate = new(1, 1);
     private readonly List<WorkerLifecycleSnapshot> _history = [];
     private readonly Lock _historyLock = new();
+    private readonly WorkerExecutionPolicy _executionPolicy;
     private readonly IWorkerProcessFactory _processFactory;
     private readonly WorkerRestartPolicy _policy;
     private readonly Queue<DateTimeOffset> _restartTimes = new();
     private readonly TimeProvider _timeProvider;
+    private CancellationTokenSource? _executionCancellation;
+    private Channel<ExecutionWorkItem>? _executionQueue;
+    private Task? _executionTask;
     private CancellationTokenSource? _monitorCancellation;
     private Task? _monitorTask;
     private IWorkerProcess? _worker;
@@ -25,12 +30,16 @@ internal sealed class WorkerProcessSupervisor : IAsyncDisposable
     public WorkerProcessSupervisor(
         IWorkerProcessFactory processFactory,
         WorkerRestartPolicy policy,
+        WorkerExecutionPolicy? executionPolicy = null,
         TimeProvider? timeProvider = null)
     {
         ArgumentNullException.ThrowIfNull(processFactory);
         ArgumentNullException.ThrowIfNull(policy);
         _processFactory = processFactory;
         _policy = policy;
+        _executionPolicy = executionPolicy ?? new WorkerExecutionPolicy(
+            TimeSpan.FromSeconds(30),
+            queueCapacity: 64);
         _timeProvider = timeProvider ?? TimeProvider.System;
         _current = new WorkerLifecycleSnapshot(
             WorkerLifecycleState.Stopped,
@@ -82,6 +91,17 @@ internal sealed class WorkerProcessSupervisor : IAsyncDisposable
             var started = await StartWorker(cancellationToken).ConfigureAwait(false);
             if (started)
             {
+                _executionCancellation = new CancellationTokenSource();
+                _executionQueue = Channel.CreateBounded<ExecutionWorkItem>(
+                    new BoundedChannelOptions(_executionPolicy.QueueCapacity)
+                    {
+                        FullMode = BoundedChannelFullMode.Wait,
+                        SingleReader = true,
+                        SingleWriter = false
+                    });
+                _executionTask = ProcessExecutions(
+                    _executionQueue.Reader,
+                    _executionCancellation.Token);
                 _monitorCancellation = new CancellationTokenSource();
                 _monitorTask = MonitorWorker(_monitorCancellation.Token);
             }
@@ -94,8 +114,59 @@ internal sealed class WorkerProcessSupervisor : IAsyncDisposable
         }
     }
 
+
+    public async Task<WorkerExecutionOutcome> ExecuteAsync(
+        WorkerMpCommand command,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return ClientCancelled();
+        }
+
+        var queue = _executionQueue;
+        if (queue is null || Current.State != WorkerLifecycleState.Ready)
+        {
+            return Unavailable("worker-not-ready");
+        }
+
+        var item = new ExecutionWorkItem(command);
+        try
+        {
+            await queue.Writer.WriteAsync(item, cancellationToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            return ClientCancelled();
+        }
+        catch (ChannelClosedException)
+        {
+            return Unavailable("worker-execution-queue-closed");
+        }
+
+        try
+        {
+            return await item.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            return ClientCancelled();
+        }
+    }
+
     public async Task StopAsync(CancellationToken cancellationToken = default)
     {
+        var executionCancellation = _executionCancellation;
+        var executionTask = _executionTask;
+        _executionCancellation = null;
+        _executionQueue = null;
+        _executionTask = null;
+        if (executionCancellation is not null)
+        {
+            await executionCancellation.CancelAsync().ConfigureAwait(false);
+        }
+
         var monitorCancellation = _monitorCancellation;
         var monitorTask = _monitorTask;
         if (monitorCancellation is not null)
@@ -112,6 +183,10 @@ internal sealed class WorkerProcessSupervisor : IAsyncDisposable
             {
             }
         }
+        if (executionTask is not null)
+        {
+            await executionTask.ConfigureAwait(false);
+        }
 
         await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
@@ -120,6 +195,7 @@ internal sealed class WorkerProcessSupervisor : IAsyncDisposable
             _monitorTask = null;
             _monitorCancellation = null;
             monitorCancellation?.Dispose();
+            executionCancellation?.Dispose();
         }
         finally
         {
@@ -137,6 +213,141 @@ internal sealed class WorkerProcessSupervisor : IAsyncDisposable
         await StopAsync().ConfigureAwait(false);
         _gate.Dispose();
     }
+
+
+    private async Task ProcessExecutions(
+        ChannelReader<ExecutionWorkItem> reader,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await foreach (var item in reader.ReadAllAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var outcome = await ExecuteWorker(item.Command, cancellationToken)
+                    .ConfigureAwait(false);
+                item.TrySetResult(outcome);
+            }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+        }
+        finally
+        {
+            while (reader.TryRead(out var item))
+            {
+                item.TrySetResult(Unavailable("worker-supervisor-stopping"));
+            }
+        }
+    }
+
+    private async Task<WorkerExecutionOutcome> ExecuteWorker(
+        WorkerMpCommand command,
+        CancellationToken cancellationToken)
+    {
+        var acquired = false;
+        try
+        {
+            await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+            acquired = true;
+            var generation = Current.Generation;
+            var worker = _worker;
+            if (Current.State != WorkerLifecycleState.Ready || worker is null)
+            {
+                return Unavailable("worker-not-ready");
+            }
+
+            using var watchdog = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            watchdog.CancelAfter(_executionPolicy.WatchdogTimeout);
+            var correlationId = Guid.NewGuid();
+            try
+            {
+                await worker.SendAsync(
+                    WorkerControlMessage.Execute(correlationId, command),
+                    watchdog.Token).ConfigureAwait(false);
+                var response = await worker.ReceiveAsync(watchdog.Token).ConfigureAwait(false);
+                if (response.Kind != WorkerControlMessageKind.ExecutionResult ||
+                    response.CorrelationId != correlationId ||
+                    response.ExecutionResponse is null)
+                {
+                    throw new InvalidDataException(
+                        "The worker returned an invalid execution response.");
+                }
+
+                var executionResponse = response.ExecutionResponse;
+                if ((executionResponse.Status == WorkerExecutionResponseStatus.Completed) !=
+                    (executionResponse.Execution is not null))
+                {
+                    throw new InvalidDataException(
+                        "The worker execution response has an invalid result shape.");
+                }
+
+                return new WorkerExecutionOutcome(
+                    executionResponse.Status == WorkerExecutionResponseStatus.Completed
+                        ? WorkerExecutionStatus.Completed
+                        : WorkerExecutionStatus.Unavailable,
+                    executionResponse.Execution,
+                    executionResponse.Connection,
+                    executionResponse.DiagnosticCode ??
+                        executionResponse.Execution?.DiagnosticCode ??
+                        "worker-execution-completed",
+                    generation);
+            }
+            catch (OperationCanceledException) when (
+                !cancellationToken.IsCancellationRequested)
+            {
+                _ = await RecoverWorker(
+                    "worker-execution-watchdog-timeout",
+                    cancellationToken).ConfigureAwait(false);
+                return new WorkerExecutionOutcome(
+                    WorkerExecutionStatus.WatchdogTimeout,
+                    Execution: null,
+                    Connection: null,
+                    "worker-execution-watchdog-timeout",
+                    generation);
+            }
+            catch (Exception exception) when (IsRecoverableProcessFailure(exception))
+            {
+                var diagnosticCode = worker.HasExited
+                    ? "worker-exited-during-execution"
+                    : "worker-execution-control-failed";
+                _ = await RecoverWorker(diagnosticCode, cancellationToken)
+                    .ConfigureAwait(false);
+                return new WorkerExecutionOutcome(
+                    WorkerExecutionStatus.WorkerFailure,
+                    Execution: null,
+                    Connection: null,
+                    diagnosticCode,
+                    generation);
+            }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            return Unavailable("worker-supervisor-stopping");
+        }
+        finally
+        {
+            if (acquired)
+            {
+                _gate.Release();
+            }
+        }
+    }
+
+    private WorkerExecutionOutcome ClientCancelled() =>
+        new(
+            WorkerExecutionStatus.ClientCancelled,
+            Execution: null,
+            Current.Connection,
+            "client-wait-cancelled",
+            Current.Generation);
+
+    private WorkerExecutionOutcome Unavailable(string diagnosticCode) =>
+        new(
+            WorkerExecutionStatus.Unavailable,
+            Execution: null,
+            Current.Connection,
+            diagnosticCode,
+            Current.Generation);
 
     private async Task MonitorWorker(CancellationToken cancellationToken)
     {
@@ -429,6 +640,23 @@ internal sealed class WorkerProcessSupervisor : IAsyncDisposable
             _current = snapshot;
             _history.Add(snapshot);
         }
+    }
+
+
+    private sealed class ExecutionWorkItem(WorkerMpCommand command)
+    {
+        private readonly TaskCompletionSource<WorkerExecutionOutcome> _completion =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public WorkerMpCommand Command { get; } = new(
+            command.OperationId,
+            command.StepName,
+            [.. command.Arguments]);
+
+        public Task<WorkerExecutionOutcome> Task => _completion.Task;
+
+        public void TrySetResult(WorkerExecutionOutcome outcome) =>
+            _completion.TrySetResult(outcome);
     }
 
     private static bool IsRecoverableProcessFailure(Exception exception) =>

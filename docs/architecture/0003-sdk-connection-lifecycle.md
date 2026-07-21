@@ -34,4 +34,4 @@ Portable tests use the scripted SDK to cover success, status-code preservation, 
 - The public server can report process and SDK readiness independently.
 - A failed connection does not crash an otherwise healthy worker process.
 - Automatic connection retries are finite and deterministic.
-- MP request transport and process-level execution watchdog behavior remain in issue #10.
+- MP request transport and process-level execution watchdog behavior are defined by [ADR 0004](0004-mp-execution-pipeline.md).

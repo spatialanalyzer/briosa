@@ -210,10 +210,12 @@ internal sealed class ScriptedSdkPlan
             return execution.Kind == ScriptedExecutionKind.MpFailure
                 ? new SdkExecutionResult(
                     ExecuteStepReturned: true,
-                    new SdkMpResult(false, 42, "scripted-mp-failure"))
+                    new SdkMpResult(false, 42, "scripted-mp-failure"),
+                    TimeSpan.FromMilliseconds(7))
                 : new SdkExecutionResult(
                     ExecuteStepReturned: true,
-                    new SdkMpResult(true, 0, null));
+                    new SdkMpResult(true, 0, null),
+                    TimeSpan.FromMilliseconds(5));
         }
 
         public void Dispose()

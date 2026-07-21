@@ -12,7 +12,7 @@ SpatialAnalyzer automation is synchronous COM/OLE Automation. A blocked call can
 The public host supervises one child worker generation at a time.
 
 - The host and worker use a private, randomly named Windows named pipe. The pipe carries versioned, length-prefixed JSON control envelopes with correlation identifiers.
-- The lifecycle protocol is intentionally small: worker ready, heartbeat ping/pong, graceful stop, and stopped acknowledgement. MP execution messages belong to the serialized execution work in issue #10.
+- Protocol versions 1 and 2 established worker ready, heartbeat ping/pong, graceful stop, stopped acknowledgement, and connection readiness. Protocol version 3 adds the serialized execution messages defined by [ADR 0004](0004-mp-execution-pipeline.md).
 - The host reports `Starting`, `Ready`, `Degraded`, and `Stopped` snapshots with generation, process identity, restart count, termination kind, timestamp, and a safe diagnostic code.
 - A heartbeat timeout, broken control channel, or process exit degrades the current generation. The host terminates the entire worker process tree when graceful cleanup is no longer trustworthy, then starts a fresh generation without restarting the public host.
 - Restarts are limited to a configured count inside a rolling time window. Exhausting that budget leaves the supervisor degraded and suppresses further automatic launches.
@@ -35,4 +35,4 @@ Ordinary CI launches a separate fake worker executable that speaks the real life
 - The public server never loads the SpatialAnalyzer interop assembly.
 - A hung SDK call is recovered by terminating the child process, not by claiming in-process cancellation.
 - The internal protocol is versioned independently from the public gRPC schema.
-- Production MP request transport and deadline policy remain intentionally deferred to issue #10.
+- Production MP request transport and deadline policy are defined by [ADR 0004](0004-mp-execution-pipeline.md).

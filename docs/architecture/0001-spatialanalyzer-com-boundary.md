@@ -44,7 +44,7 @@ Repository verification rejects tracked `.exe`, `.tlb`, `.ocx`, and unapproved `
 
 ## Runtime consequences
 
-Referencing the interop metadata does not start SpatialAnalyzer or connect to it. Later issues will implement worker supervision, COM activation, `ConnectEx`, STA serialization, watchdog termination, and MP result handling.
+Referencing the interop metadata does not start SpatialAnalyzer or connect to it. Subsequent decisions define worker supervision, COM activation, `ConnectEx`, STA serialization, watchdog termination, and MP result handling.
 
 Client cancellation cannot be treated as cancellation of a blocked COM call. One worker-owned STA must serialize the complete `SetStep`, argument, `ExecuteStep`, and result sequence. Those runtime requirements remain mandatory even though the metadata assembly is processor-agnostic.
 
