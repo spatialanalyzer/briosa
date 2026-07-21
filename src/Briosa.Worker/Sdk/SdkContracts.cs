@@ -63,47 +63,93 @@ internal sealed record SdkRequestResult(
     SdkConnectionSnapshot Connection,
     string? DiagnosticCode);
 
-internal enum SdkArgumentKind
+internal enum SdkValueKind
 {
     Logical,
     WholeNumber,
     FloatingPoint,
-    Text
+    Text,
+    PointName,
+    Vector,
+    ToleranceVectorOptions
 }
 
-internal sealed record SdkArgument(
+internal sealed record SdkPointNameValue(
+    string CollectionName,
+    string GroupName,
+    string TargetName);
+
+internal sealed record SdkVectorValue(double X, double Y, double Z);
+
+internal sealed record SdkToleranceLimit(bool Enabled, double Value);
+
+internal sealed record SdkToleranceVectorOptionsValue(
+    SdkToleranceLimit HighX,
+    SdkToleranceLimit HighY,
+    SdkToleranceLimit HighZ,
+    SdkToleranceLimit HighMagnitude,
+    SdkToleranceLimit LowX,
+    SdkToleranceLimit LowY,
+    SdkToleranceLimit LowZ,
+    SdkToleranceLimit LowMagnitude);
+
+internal sealed record SdkInputArgument(
     string Name,
-    SdkArgumentKind Kind,
+    SdkValueKind Kind,
     bool? BooleanValue = null,
     int? IntegerValue = null,
     double? DoubleValue = null,
-    string? StringValue = null);
+    string? StringValue = null,
+    SdkPointNameValue? PointNameValue = null,
+    SdkVectorValue? VectorValue = null,
+    SdkToleranceVectorOptionsValue? ToleranceVectorOptionsValue = null);
+
+internal sealed record SdkOutputArgument(
+    string Name,
+    SdkValueKind Kind);
+
+internal sealed record SdkOutputValue(
+    string Name,
+    SdkValueKind Kind,
+    bool Retrieved,
+    bool? BooleanValue = null,
+    int? IntegerValue = null,
+    double? DoubleValue = null,
+    string? StringValue = null,
+    SdkPointNameValue? PointNameValue = null,
+    SdkVectorValue? VectorValue = null,
+    SdkToleranceVectorOptionsValue? ToleranceVectorOptionsValue = null);
 
 internal sealed class SdkCommand
 {
     public SdkCommand(string operationId)
-        : this(operationId, operationId, [])
+        : this(operationId, operationId, [], [])
     {
     }
 
     public SdkCommand(
         string operationId,
         string stepName,
-        IReadOnlyList<SdkArgument> arguments)
+        IReadOnlyList<SdkInputArgument> inputArguments,
+        IReadOnlyList<SdkOutputArgument> outputArguments)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(operationId);
         ArgumentException.ThrowIfNullOrWhiteSpace(stepName);
-        ArgumentNullException.ThrowIfNull(arguments);
+        ArgumentNullException.ThrowIfNull(inputArguments);
+        ArgumentNullException.ThrowIfNull(outputArguments);
         OperationId = operationId;
         StepName = stepName;
-        Arguments = [.. arguments];
+        InputArguments = [.. inputArguments];
+        OutputArguments = [.. outputArguments];
     }
 
     public string OperationId { get; }
 
     public string StepName { get; }
 
-    public IReadOnlyList<SdkArgument> Arguments { get; }
+    public IReadOnlyList<SdkInputArgument> InputArguments { get; }
+
+    public IReadOnlyList<SdkOutputArgument> OutputArguments { get; }
 }
 
 internal sealed record SdkMpResult(
@@ -114,4 +160,6 @@ internal sealed record SdkMpResult(
 internal sealed record SdkExecutionResult(
     bool ExecuteStepReturned,
     SdkMpResult MpResult,
-    TimeSpan Duration);
+    TimeSpan Duration,
+    IReadOnlyList<SdkOutputValue> OutputValues,
+    string? DiagnosticCode);

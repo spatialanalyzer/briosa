@@ -19,12 +19,15 @@ public enum WorkerControlMessageKind
     ExecutionResult
 }
 
-public enum WorkerMpArgumentKind
+public enum WorkerMpValueKind
 {
     Logical,
     WholeNumber,
     FloatingPoint,
-    Text
+    Text,
+    PointName,
+    Vector,
+    ToleranceVectorOptions
 }
 
 public enum WorkerExecutionResponseStatus
@@ -51,24 +54,64 @@ public sealed record WorkerConnectionSnapshot(
     string DiagnosticCode,
     DateTimeOffset TransitionedAt);
 
-public sealed record WorkerMpArgument(
+public sealed record WorkerPointNameValue(
+    string CollectionName,
+    string GroupName,
+    string TargetName);
+
+public sealed record WorkerVectorValue(double X, double Y, double Z);
+
+public sealed record WorkerToleranceLimit(bool Enabled, double Value);
+
+public sealed record WorkerToleranceVectorOptionsValue(
+    WorkerToleranceLimit HighX,
+    WorkerToleranceLimit HighY,
+    WorkerToleranceLimit HighZ,
+    WorkerToleranceLimit HighMagnitude,
+    WorkerToleranceLimit LowX,
+    WorkerToleranceLimit LowY,
+    WorkerToleranceLimit LowZ,
+    WorkerToleranceLimit LowMagnitude);
+
+public sealed record WorkerMpInputArgument(
     string Name,
-    WorkerMpArgumentKind Kind,
+    WorkerMpValueKind Kind,
     bool? BooleanValue = null,
     int? IntegerValue = null,
     double? DoubleValue = null,
-    string? StringValue = null);
+    string? StringValue = null,
+    WorkerPointNameValue? PointNameValue = null,
+    WorkerVectorValue? VectorValue = null,
+    WorkerToleranceVectorOptionsValue? ToleranceVectorOptionsValue = null);
+
+public sealed record WorkerMpOutputArgument(
+    string Name,
+    WorkerMpValueKind Kind);
+
+public sealed record WorkerMpOutputValue(
+    string Name,
+    WorkerMpValueKind Kind,
+    bool Retrieved,
+    bool? BooleanValue = null,
+    int? IntegerValue = null,
+    double? DoubleValue = null,
+    string? StringValue = null,
+    WorkerPointNameValue? PointNameValue = null,
+    WorkerVectorValue? VectorValue = null,
+    WorkerToleranceVectorOptionsValue? ToleranceVectorOptionsValue = null);
 
 public sealed record WorkerMpCommand(
     string OperationId,
     string StepName,
-    IReadOnlyList<WorkerMpArgument> Arguments);
+    IReadOnlyList<WorkerMpInputArgument> InputArguments,
+    IReadOnlyList<WorkerMpOutputArgument> OutputArguments);
 
 public sealed record WorkerMpExecutionResult(
     bool ExecuteStepReturned,
     bool MpSucceeded,
     int MpResultCode,
     long DurationMilliseconds,
+    IReadOnlyList<WorkerMpOutputValue> OutputValues,
     string? DiagnosticCode);
 
 public sealed record WorkerExecutionResponse(

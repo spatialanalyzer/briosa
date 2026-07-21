@@ -86,6 +86,7 @@ internal static class TestWorkerProcess
                             WorkerControlMessage.ExecutionResult(
                                 message.CorrelationId,
                                 CompletedExecution(
+                                    message.Command!,
                                     mpSucceeded:
                                         options.Scenario != TestWorkerScenario.MpFailure,
                                     delayed)));
@@ -120,6 +121,7 @@ internal static class TestWorkerProcess
     }
 
     private static WorkerExecutionResponse CompletedExecution(
+        WorkerMpCommand command,
         bool mpSucceeded,
         bool delayed) =>
         new(
@@ -129,9 +131,58 @@ internal static class TestWorkerProcess
                 mpSucceeded,
                 mpSucceeded ? 0 : 42,
                 DurationMilliseconds: delayed ? 300 : 5,
+                mpSucceeded
+                    ? [.. command.OutputArguments.Select(CreateOutputValue)]
+                    : [],
                 mpSucceeded ? null : "scripted-mp-failure"),
             ConnectionSnapshot(),
             DiagnosticCode: null);
+
+    private static WorkerMpOutputValue CreateOutputValue(WorkerMpOutputArgument output) =>
+        output.Kind switch
+        {
+            WorkerMpValueKind.Logical =>
+                new(output.Name, output.Kind, Retrieved: true, BooleanValue: true),
+            WorkerMpValueKind.WholeNumber =>
+                new(output.Name, output.Kind, Retrieved: true, IntegerValue: 7),
+            WorkerMpValueKind.FloatingPoint =>
+                new(output.Name, output.Kind, Retrieved: true, DoubleValue: 1.25),
+            WorkerMpValueKind.Text =>
+                new(output.Name, output.Kind, Retrieved: true, StringValue: "scripted-output"),
+            WorkerMpValueKind.PointName =>
+                new(
+                    output.Name,
+                    output.Kind,
+                    Retrieved: true,
+                    PointNameValue: new WorkerPointNameValue(
+                        "Collection",
+                        "Group",
+                        "Point")),
+            WorkerMpValueKind.Vector =>
+                new(
+                    output.Name,
+                    output.Kind,
+                    Retrieved: true,
+                    VectorValue: new WorkerVectorValue(1, 2, 3)),
+            WorkerMpValueKind.ToleranceVectorOptions =>
+                new(
+                    output.Name,
+                    output.Kind,
+                    Retrieved: true,
+                    ToleranceVectorOptionsValue: CreateToleranceVectorOptions()),
+            _ => new(output.Name, output.Kind, Retrieved: false)
+        };
+
+    private static WorkerToleranceVectorOptionsValue CreateToleranceVectorOptions() =>
+        new(
+            new WorkerToleranceLimit(Enabled: true, Value: 1),
+            new WorkerToleranceLimit(Enabled: true, Value: 2),
+            new WorkerToleranceLimit(Enabled: true, Value: 3),
+            new WorkerToleranceLimit(Enabled: true, Value: 4),
+            new WorkerToleranceLimit(Enabled: false, Value: -1),
+            new WorkerToleranceLimit(Enabled: false, Value: -2),
+            new WorkerToleranceLimit(Enabled: false, Value: -3),
+            new WorkerToleranceLimit(Enabled: false, Value: -4));
 
     private static WorkerConnectionSnapshot ConnectionSnapshot() =>
         new(

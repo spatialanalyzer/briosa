@@ -233,6 +233,51 @@ public sealed class WorkerProcessSupervisorTests
                 snapshot.LastTermination == WorkerTerminationKind.Crash);
     }
 
+
+    [Fact]
+    public async Task RequestedOutputArgumentsRoundTripAcrossTheWorkerPipe()
+    {
+        await using var supervisor = CreateSupervisor(
+            _ => CreateLaunch("normal"),
+            CreatePolicy(heartbeatInterval: TimeSpan.FromSeconds(10)));
+
+        Assert.True(await supervisor.StartAsync());
+        var result = await supervisor.ExecuteAsync(CreateCommand("mixed-outputs"));
+
+        Assert.Equal(WorkerExecutionStatus.Completed, result.Status);
+        var outputs = result.Execution!.OutputValues;
+        Assert.Equal(7, outputs.Count);
+        Assert.All(outputs, output => Assert.True(output.Retrieved));
+        Assert.Equal(
+            1.25,
+            Assert.Single(outputs, output => output.Name == "Planar Offset")
+                .DoubleValue);
+        Assert.Equal(
+            "scripted-output",
+            Assert.Single(outputs, output => output.Name == "Working Directory")
+                .StringValue);
+
+        var point = Assert.Single(outputs, output => output.Name == "Point Name")
+            .PointNameValue;
+        Assert.Equal("Collection", point!.CollectionName);
+        Assert.Equal("Group", point.GroupName);
+        Assert.Equal("Point", point.TargetName);
+
+        var vector = Assert.Single(
+            outputs,
+            output => output.Name == "Component Weights").VectorValue;
+        Assert.Equal(new WorkerVectorValue(1, 2, 3), vector);
+
+        var tolerance = Assert.Single(
+            outputs,
+            output => output.Name == "Position Tolerance")
+            .ToleranceVectorOptionsValue;
+        Assert.True(tolerance!.HighX.Enabled);
+        Assert.Equal(1, tolerance.HighX.Value);
+        Assert.False(tolerance.LowMagnitude.Enabled);
+        Assert.Equal(-4, tolerance.LowMagnitude.Value);
+    }
+
     [Fact]
     public async Task MpFailureIsPreservedWhenExecuteStepReturnsTrue()
     {
@@ -331,23 +376,57 @@ public sealed class WorkerProcessSupervisorTests
             operationId,
             "Scripted Step",
             [
-                new WorkerMpArgument(
+                new WorkerMpInputArgument(
                     "Enabled",
-                    WorkerMpArgumentKind.Logical,
+                    WorkerMpValueKind.Logical,
                     BooleanValue: true),
-                new WorkerMpArgument(
+                new WorkerMpInputArgument(
                     "Count",
-                    WorkerMpArgumentKind.WholeNumber,
+                    WorkerMpValueKind.WholeNumber,
                     IntegerValue: 2),
-                new WorkerMpArgument(
+                new WorkerMpInputArgument(
                     "Tolerance",
-                    WorkerMpArgumentKind.FloatingPoint,
+                    WorkerMpValueKind.FloatingPoint,
                     DoubleValue: 0.01),
-                new WorkerMpArgument(
+                new WorkerMpInputArgument(
                     "Label",
-                    WorkerMpArgumentKind.Text,
-                    StringValue: "portable-test")
+                    WorkerMpValueKind.Text,
+                    StringValue: "portable-test"),
+                new WorkerMpInputArgument(
+                    "Point Name",
+                    WorkerMpValueKind.PointName,
+                    PointNameValue: new WorkerPointNameValue("", "", "")),
+                new WorkerMpInputArgument(
+                    "Direction",
+                    WorkerMpValueKind.Vector,
+                    VectorValue: new WorkerVectorValue(1, 0, 0)),
+                new WorkerMpInputArgument(
+                    "Position Tolerance",
+                    WorkerMpValueKind.ToleranceVectorOptions,
+                    ToleranceVectorOptionsValue: CreateToleranceVectorOptions())
+            ],
+            [
+                new WorkerMpOutputArgument("Enabled Result", WorkerMpValueKind.Logical),
+                new WorkerMpOutputArgument("Count Result", WorkerMpValueKind.WholeNumber),
+                new WorkerMpOutputArgument("Planar Offset", WorkerMpValueKind.FloatingPoint),
+                new WorkerMpOutputArgument("Working Directory", WorkerMpValueKind.Text),
+                new WorkerMpOutputArgument("Point Name", WorkerMpValueKind.PointName),
+                new WorkerMpOutputArgument("Component Weights", WorkerMpValueKind.Vector),
+                new WorkerMpOutputArgument(
+                    "Position Tolerance",
+                    WorkerMpValueKind.ToleranceVectorOptions)
             ]);
+
+    private static WorkerToleranceVectorOptionsValue CreateToleranceVectorOptions() =>
+        new(
+            new WorkerToleranceLimit(Enabled: true, Value: 1),
+            new WorkerToleranceLimit(Enabled: true, Value: 2),
+            new WorkerToleranceLimit(Enabled: true, Value: 3),
+            new WorkerToleranceLimit(Enabled: true, Value: 4),
+            new WorkerToleranceLimit(Enabled: false, Value: -1),
+            new WorkerToleranceLimit(Enabled: false, Value: -2),
+            new WorkerToleranceLimit(Enabled: false, Value: -3),
+            new WorkerToleranceLimit(Enabled: false, Value: -4));
 
     private static WorkerExecutionPolicy CreateExecutionPolicy(
         TimeSpan? watchdogTimeout = null) =>

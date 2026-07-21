@@ -275,7 +275,9 @@ internal sealed class WorkerProcessSupervisor : IAsyncDisposable
 
                 var executionResponse = response.ExecutionResponse;
                 if ((executionResponse.Status == WorkerExecutionResponseStatus.Completed) !=
-                    (executionResponse.Execution is not null))
+                    (executionResponse.Execution is not null) ||
+                    executionResponse.Execution is { ExecuteStepReturned: true, MpSucceeded: true } execution &&
+                    !OutputsMatch(command.OutputArguments, execution.OutputValues))
                 {
                     throw new InvalidDataException(
                         "The worker execution response has an invalid result shape.");
@@ -643,6 +645,13 @@ internal sealed class WorkerProcessSupervisor : IAsyncDisposable
     }
 
 
+    private static bool OutputsMatch(
+        IReadOnlyList<WorkerMpOutputArgument> requested,
+        IReadOnlyList<WorkerMpOutputValue> returned) =>
+        requested.Count == returned.Count &&
+        requested.Zip(returned).All(pair =>
+            pair.First.Name == pair.Second.Name &&
+            pair.First.Kind == pair.Second.Kind);
     private sealed class ExecutionWorkItem(WorkerMpCommand command)
     {
         private readonly TaskCompletionSource<WorkerExecutionOutcome> _completion =
@@ -651,7 +660,8 @@ internal sealed class WorkerProcessSupervisor : IAsyncDisposable
         public WorkerMpCommand Command { get; } = new(
             command.OperationId,
             command.StepName,
-            [.. command.Arguments]);
+            [.. command.InputArguments],
+            [.. command.OutputArguments]);
 
         public Task<WorkerExecutionOutcome> Task => _completion.Task;
 

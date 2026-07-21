@@ -121,23 +121,63 @@ internal static class WorkerControlHost
         new(
             command.OperationId,
             command.StepName,
-            [.. command.Arguments.Select(ToSdkArgument)]);
+            [.. command.InputArguments.Select(ToSdkInputArgument)],
+            [.. command.OutputArguments.Select(ToSdkOutputArgument)]);
 
-    private static SdkArgument ToSdkArgument(WorkerMpArgument argument) =>
+    private static SdkInputArgument ToSdkInputArgument(WorkerMpInputArgument argument) =>
         new(
             argument.Name,
-            argument.Kind switch
-            {
-                WorkerMpArgumentKind.Logical => SdkArgumentKind.Logical,
-                WorkerMpArgumentKind.WholeNumber => SdkArgumentKind.WholeNumber,
-                WorkerMpArgumentKind.FloatingPoint => SdkArgumentKind.FloatingPoint,
-                WorkerMpArgumentKind.Text => SdkArgumentKind.Text,
-                _ => throw new UnreachableException()
-            },
+            ToSdkValueKind(argument.Kind),
             argument.BooleanValue,
             argument.IntegerValue,
             argument.DoubleValue,
-            argument.StringValue);
+            argument.StringValue,
+            argument.PointNameValue is null
+                ? null
+                : new SdkPointNameValue(
+                    argument.PointNameValue.CollectionName,
+                    argument.PointNameValue.GroupName,
+                    argument.PointNameValue.TargetName),
+            argument.VectorValue is null
+                ? null
+                : new SdkVectorValue(
+                    argument.VectorValue.X,
+                    argument.VectorValue.Y,
+                    argument.VectorValue.Z),
+            argument.ToleranceVectorOptionsValue is null
+                ? null
+                : ToSdkToleranceVectorOptions(argument.ToleranceVectorOptionsValue));
+
+    private static SdkOutputArgument ToSdkOutputArgument(WorkerMpOutputArgument argument) =>
+        new(argument.Name, ToSdkValueKind(argument.Kind));
+
+    private static SdkValueKind ToSdkValueKind(WorkerMpValueKind kind) =>
+        kind switch
+        {
+            WorkerMpValueKind.Logical => SdkValueKind.Logical,
+            WorkerMpValueKind.WholeNumber => SdkValueKind.WholeNumber,
+            WorkerMpValueKind.FloatingPoint => SdkValueKind.FloatingPoint,
+            WorkerMpValueKind.Text => SdkValueKind.Text,
+            WorkerMpValueKind.PointName => SdkValueKind.PointName,
+            WorkerMpValueKind.Vector => SdkValueKind.Vector,
+            WorkerMpValueKind.ToleranceVectorOptions => SdkValueKind.ToleranceVectorOptions,
+            _ => throw new UnreachableException()
+        };
+
+    private static SdkToleranceVectorOptionsValue ToSdkToleranceVectorOptions(
+        WorkerToleranceVectorOptionsValue value) =>
+        new(
+            ToSdkToleranceLimit(value.HighX),
+            ToSdkToleranceLimit(value.HighY),
+            ToSdkToleranceLimit(value.HighZ),
+            ToSdkToleranceLimit(value.HighMagnitude),
+            ToSdkToleranceLimit(value.LowX),
+            ToSdkToleranceLimit(value.LowY),
+            ToSdkToleranceLimit(value.LowZ),
+            ToSdkToleranceLimit(value.LowMagnitude));
+
+    private static SdkToleranceLimit ToSdkToleranceLimit(WorkerToleranceLimit value) =>
+        new(value.Enabled, value.Value);
 
     private static WorkerMpExecutionResult ToControlResult(SdkExecutionResult execution) =>
         new(
@@ -145,7 +185,61 @@ internal static class WorkerControlHost
             execution.MpResult.Succeeded,
             execution.MpResult.ResultCode,
             (long)execution.Duration.TotalMilliseconds,
-            execution.MpResult.DiagnosticCode);
+            [.. execution.OutputValues.Select(ToControlOutputValue)],
+            execution.DiagnosticCode);
+
+    private static WorkerMpOutputValue ToControlOutputValue(SdkOutputValue output) =>
+        new(
+            output.Name,
+            ToControlValueKind(output.Kind),
+            output.Retrieved,
+            output.BooleanValue,
+            output.IntegerValue,
+            output.DoubleValue,
+            output.StringValue,
+            output.PointNameValue is null
+                ? null
+                : new WorkerPointNameValue(
+                    output.PointNameValue.CollectionName,
+                    output.PointNameValue.GroupName,
+                    output.PointNameValue.TargetName),
+            output.VectorValue is null
+                ? null
+                : new WorkerVectorValue(
+                    output.VectorValue.X,
+                    output.VectorValue.Y,
+                    output.VectorValue.Z),
+            output.ToleranceVectorOptionsValue is null
+                ? null
+                : ToControlToleranceVectorOptions(output.ToleranceVectorOptionsValue));
+
+    private static WorkerMpValueKind ToControlValueKind(SdkValueKind kind) =>
+        kind switch
+        {
+            SdkValueKind.Logical => WorkerMpValueKind.Logical,
+            SdkValueKind.WholeNumber => WorkerMpValueKind.WholeNumber,
+            SdkValueKind.FloatingPoint => WorkerMpValueKind.FloatingPoint,
+            SdkValueKind.Text => WorkerMpValueKind.Text,
+            SdkValueKind.PointName => WorkerMpValueKind.PointName,
+            SdkValueKind.Vector => WorkerMpValueKind.Vector,
+            SdkValueKind.ToleranceVectorOptions => WorkerMpValueKind.ToleranceVectorOptions,
+            _ => throw new UnreachableException()
+        };
+
+    private static WorkerToleranceVectorOptionsValue ToControlToleranceVectorOptions(
+        SdkToleranceVectorOptionsValue value) =>
+        new(
+            ToControlToleranceLimit(value.HighX),
+            ToControlToleranceLimit(value.HighY),
+            ToControlToleranceLimit(value.HighZ),
+            ToControlToleranceLimit(value.HighMagnitude),
+            ToControlToleranceLimit(value.LowX),
+            ToControlToleranceLimit(value.LowY),
+            ToControlToleranceLimit(value.LowZ),
+            ToControlToleranceLimit(value.LowMagnitude));
+
+    private static WorkerToleranceLimit ToControlToleranceLimit(SdkToleranceLimit value) =>
+        new(value.Enabled, value.Value);
 
     private static WorkerConnectionSnapshot ToControlSnapshot(
         SdkConnectionSnapshot connection) =>

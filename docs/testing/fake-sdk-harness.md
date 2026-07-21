@@ -1,6 +1,6 @@
 # Fake SDK and contract-test harness
 
-The portable worker tests use a scripted adapter instead of installing, starting, or licensing SpatialAnalyzer. The harness exists to verify Briosa''s own worker contracts: lifecycle ownership, STA affinity, serialization, result preservation, and recovery policy seams.
+The portable worker tests use a scripted adapter instead of installing, starting, or licensing SpatialAnalyzer. The harness exists to verify Briosa''s own worker contracts: lifecycle ownership, STA affinity, serialization, result-only argument retrieval, result preservation, and recovery policy seams.
 
 ## Boundary under test
 
@@ -16,7 +16,7 @@ The reusable `Briosa.Worker.Testing` assembly provides deterministic scripts for
 
 | Behavior | Contract exercised |
 | --- | --- |
-| Success | Connected execution and a successful MP result |
+| Success | Connected execution, a successful MP result, and typed result-only arguments |
 | MP failure | `ExecuteStep` may return true while the MP result reports failure |
 | Connection failure | `ConnectEx` availability and status remain distinct from command outcomes |
 | Delayed connection | Connecting state rejects work while concurrent callers share one adapter |
@@ -25,11 +25,11 @@ The reusable `Briosa.Worker.Testing` assembly provides deterministic scripts for
 | Hang | The watchdog reports a timeout and the supervisor seam replaces the worker |
 | Crash | Abrupt worker loss is reported separately and followed by replacement |
 
-The watchdog and supervisor types in this test-support assembly remain lightweight harness seams. `Briosa.Server.Tests` exercises the production process queue, private execution transport, caller cancellation, watchdog, crash recovery, and MP-result preservation described in [ADR 0004](../architecture/0004-mp-execution-pipeline.md).
+The watchdog and supervisor types in this test-support assembly remain lightweight harness seams. `Briosa.Server.Tests` exercises the production process queue, private execution transport, mixed output-value round trips, caller cancellation, watchdog, crash recovery, and MP-result preservation described in [ADR 0004](../architecture/0004-mp-execution-pipeline.md).
 
 ## Reusing the contracts
 
-`SdkContractAssertions` contains adapter-independent checks. A future licensed integration fixture can supply the real adapter factory and invoke the same applicable checks from a protected Windows environment. Scenarios that intentionally force MP failure, hangs, or crashes remain fake-only unless a safe real-SA procedure is explicitly approved.
+`SdkContractAssertions` contains adapter-independent checks. Production-adapter tests use an injectable synchronous call surface to verify the exact setter/execution/MP-result/getter order without COM activation. A future licensed integration fixture can supply the real adapter factory and invoke the same applicable checks from a protected Windows environment. Scenarios that intentionally force MP failure, hangs, or crashes remain fake-only unless a safe real-SA procedure is explicitly approved.
 
 ## Non-emulation statement
 
