@@ -8,7 +8,7 @@ namespace Briosa.Worker.Sdk;
 /// </summary>
 internal sealed class SerializedSdkExecutor : IAsyncDisposable
 {
-    private readonly BlockingCollection<IWorkItem> _queue = new();
+    private readonly BlockingCollection<IWorkItem> _queue = [];
     private readonly Func<ISpatialAnalyzerSdk> _sdkFactory;
     private readonly TaskCompletionSource _started = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly Thread _thread;

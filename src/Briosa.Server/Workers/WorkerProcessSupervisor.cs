@@ -8,7 +8,7 @@ internal sealed class WorkerProcessSupervisor : IAsyncDisposable
 {
     private readonly SemaphoreSlim _gate = new(1, 1);
     private readonly List<WorkerLifecycleSnapshot> _history = [];
-    private readonly object _historyLock = new();
+    private readonly Lock _historyLock = new();
     private readonly IWorkerProcessFactory _processFactory;
     private readonly WorkerRestartPolicy _policy;
     private readonly Queue<DateTimeOffset> _restartTimes = new();
@@ -61,7 +61,7 @@ internal sealed class WorkerProcessSupervisor : IAsyncDisposable
         {
             lock (_historyLock)
             {
-                return _history.ToArray();
+                return [.. _history];
             }
         }
     }
@@ -156,9 +156,9 @@ internal sealed class WorkerProcessSupervisor : IAsyncDisposable
                         return;
                     }
 
-                    var probe = await ProbeWorker(cancellationToken).ConfigureAwait(false);
-                    if (!probe.Healthy &&
-                        !await RecoverWorker(probe.DiagnosticCode, cancellationToken)
+                    var (healthy, diagnosticCode) = await ProbeWorker(cancellationToken).ConfigureAwait(false);
+                    if (!healthy &&
+                        !await RecoverWorker(diagnosticCode, cancellationToken)
                             .ConfigureAwait(false))
                     {
                         return;

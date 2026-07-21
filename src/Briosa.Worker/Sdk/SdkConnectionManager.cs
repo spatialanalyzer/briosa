@@ -16,7 +16,7 @@ internal sealed class SdkConnectionManager : IAsyncDisposable
         Justification = "The gate remains usable so racing callers can observe the stable Stopping outcome.")]
     private readonly SemaphoreSlim _gate = new(1, 1);
     private readonly List<SdkConnectionSnapshot> _history = [];
-    private readonly object _historyLock = new();
+    private readonly Lock _historyLock = new();
     private readonly SdkConnectionPolicy _policy;
     private readonly Func<ISpatialAnalyzerSdk> _sdkFactory;
     private readonly string _targetHost;
@@ -67,7 +67,7 @@ internal sealed class SdkConnectionManager : IAsyncDisposable
         {
             lock (_historyLock)
             {
-                return _history.ToArray();
+                return [.. _history];
             }
         }
     }

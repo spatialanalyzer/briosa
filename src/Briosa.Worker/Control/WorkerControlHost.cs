@@ -1,9 +1,8 @@
 using System.Diagnostics;
 using System.IO.Pipes;
-using Briosa.Worker.Control;
 using Briosa.Worker.Sdk;
 
-namespace Briosa.Worker;
+namespace Briosa.Worker.Control;
 
 internal static class WorkerControlHost
 {

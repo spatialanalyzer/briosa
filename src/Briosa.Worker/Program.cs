@@ -1,4 +1,5 @@
 using Briosa.Worker;
+using Briosa.Worker.Control;
 
 if (!Environment.Is64BitProcess)
 {
