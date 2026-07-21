@@ -8,7 +8,7 @@ internal sealed class WorkerProcessSupervisor : IAsyncDisposable
 {
     private readonly SemaphoreSlim _gate = new(1, 1);
     private readonly List<WorkerLifecycleSnapshot> _history = [];
-    private readonly object _historyLock = new();
+    private readonly Lock _historyLock = new();
     private readonly IWorkerProcessFactory _processFactory;
     private readonly WorkerRestartPolicy _policy;
     private readonly Queue<DateTimeOffset> _restartTimes = new();
@@ -39,6 +39,7 @@ internal sealed class WorkerProcessSupervisor : IAsyncDisposable
             RestartCount: 0,
             WorkerTerminationKind.None,
             "not-started",
+            Connection: null,
             _timeProvider.GetUtcNow());
         _history.Add(_current);
     }
@@ -60,7 +61,7 @@ internal sealed class WorkerProcessSupervisor : IAsyncDisposable
         {
             lock (_historyLock)
             {
-                return _history.ToArray();
+                return [.. _history];
             }
         }
     }
@@ -155,9 +156,9 @@ internal sealed class WorkerProcessSupervisor : IAsyncDisposable
                         return;
                     }
 
-                    var probe = await ProbeWorker(cancellationToken).ConfigureAwait(false);
-                    if (!probe.Healthy &&
-                        !await RecoverWorker(probe.DiagnosticCode, cancellationToken)
+                    var (healthy, diagnosticCode) = await ProbeWorker(cancellationToken).ConfigureAwait(false);
+                    if (!healthy &&
+                        !await RecoverWorker(diagnosticCode, cancellationToken)
                             .ConfigureAwait(false))
                     {
                         return;
@@ -190,7 +191,9 @@ internal sealed class WorkerProcessSupervisor : IAsyncDisposable
             _worker = await _processFactory.StartAsync(_generation, timeout.Token)
                 .ConfigureAwait(false);
             var ready = await _worker.ReceiveAsync(timeout.Token).ConfigureAwait(false);
-            if (ready.Kind != WorkerControlMessageKind.Ready || ready.ProcessId is not > 0)
+            if (ready.Kind != WorkerControlMessageKind.Ready ||
+                ready.ProcessId is not > 0 ||
+                ready.Connection is null)
             {
                 throw new InvalidDataException("The worker did not provide a valid ready message.");
             }
@@ -200,7 +203,8 @@ internal sealed class WorkerProcessSupervisor : IAsyncDisposable
                 WorkerLifecycleState.Ready,
                 _reportedProcessId,
                 Current.LastTermination,
-                "worker-ready");
+                "worker-ready",
+                ready.Connection);
             return true;
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
@@ -408,7 +412,8 @@ internal sealed class WorkerProcessSupervisor : IAsyncDisposable
         WorkerLifecycleState state,
         int? processId,
         WorkerTerminationKind termination,
-        string diagnosticCode)
+        string diagnosticCode,
+        WorkerConnectionSnapshot? connection = null)
     {
         var snapshot = new WorkerLifecycleSnapshot(
             state,
@@ -417,6 +422,7 @@ internal sealed class WorkerProcessSupervisor : IAsyncDisposable
             _restartCount,
             termination,
             diagnosticCode,
+            connection,
             _timeProvider.GetUtcNow());
         lock (_historyLock)
         {

@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Briosa.Server.Workers;
+using Briosa.Worker.Control;
 
 namespace Briosa.Server.Tests;
 
@@ -22,6 +23,9 @@ public sealed class WorkerProcessSupervisorTests
 
             Assert.Equal(WorkerLifecycleState.Ready, ready.State);
             Assert.True(ready.ProcessId > 0);
+            Assert.Equal(WorkerConnectionState.Connected, ready.Connection!.State);
+            Assert.Equal("localhost", ready.Connection.TargetHost);
+            Assert.Equal(0, ready.Connection.StatusCode);
             Assert.Equal(WorkerLifecycleState.Stopped, supervisor.Current.State);
             Assert.Equal(WorkerTerminationKind.Graceful, supervisor.Current.LastTermination);
             Assert.Contains(
@@ -148,11 +152,18 @@ public sealed class WorkerProcessSupervisorTests
         await using var supervisor = CreateSupervisor(
             _ => new WorkerProcessLaunch(
                 executable,
+                ["--disable-sdk-activation", "--sa-host", "sa-lab"],
                 workingDirectory: Path.GetDirectoryName(executable)),
             CreatePolicy());
 
         Assert.True(await supervisor.StartAsync());
         Assert.Equal(WorkerLifecycleState.Ready, supervisor.Current.State);
+        Assert.Equal(WorkerConnectionState.Faulted, supervisor.Current.Connection!.State);
+        Assert.Equal("sa-lab", supervisor.Current.Connection.TargetHost);
+        Assert.Null(supervisor.Current.Connection.StatusCode);
+        Assert.Equal(
+            "sdk-client-activation-failed",
+            supervisor.Current.Connection.DiagnosticCode);
 
         await supervisor.StopAsync();
 

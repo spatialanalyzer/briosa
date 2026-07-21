@@ -8,7 +8,7 @@ namespace Briosa.Worker.Sdk;
 /// </summary>
 internal sealed class SerializedSdkExecutor : IAsyncDisposable
 {
-    private readonly BlockingCollection<IWorkItem> _queue = new();
+    private readonly BlockingCollection<IWorkItem> _queue = [];
     private readonly Func<ISpatialAnalyzerSdk> _sdkFactory;
     private readonly TaskCompletionSource _started = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly Thread _thread;
@@ -25,7 +25,17 @@ internal sealed class SerializedSdkExecutor : IAsyncDisposable
         };
         _thread.SetApartmentState(ApartmentState.STA);
         _thread.Start();
-        _started.Task.GetAwaiter().GetResult();
+        try
+        {
+            _started.Task.GetAwaiter().GetResult();
+        }
+        catch
+        {
+            _queue.CompleteAdding();
+            _thread.Join();
+            _queue.Dispose();
+            throw;
+        }
     }
 
     public Task<SdkConnectionResult> ConnectAsync(string host, CancellationToken cancellationToken = default)

@@ -20,7 +20,7 @@ The public host supervises one child worker generation at a time.
 - The worker receives the host process identifier and exits if its parent disappears, reducing orphan risk after an abnormal host exit.
 - The worker creates its SDK lifetime on a dedicated STA and releases it on that same STA during graceful shutdown. A killed generation makes no claim that COM cleanup ran; process isolation is the cleanup boundary.
 
-`Ready` in this ADR means that the child process and control channel are ready. SpatialAnalyzer connection readiness is a separate state added by issue #9.
+`Ready` in this ADR means that the child process and control channel are ready. The separate SpatialAnalyzer connection snapshot is defined by [ADR 0003](0003-sdk-connection-lifecycle.md).
 
 ## Security and data handling
 

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Runtime.Versioning;
@@ -56,6 +57,10 @@ internal sealed record TypeLibraryMetadata(
         }
     }
 
+    [SuppressMessage(
+        "Interoperability",
+        "SYSLIB1054:Use LibraryImportAttribute instead of DllImportAttribute",
+        Justification = "LibraryImport cannot marshal the COM ITypeLib out parameter.")]
     [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
     [DllImport("oleaut32.dll", CharSet = CharSet.Unicode, PreserveSig = true)]
     private static extern int LoadTypeLibEx(
