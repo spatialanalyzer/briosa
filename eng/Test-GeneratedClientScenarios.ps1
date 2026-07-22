@@ -203,10 +203,9 @@ try {
                     if (Test-Path -LiteralPath $log.Path -PathType Leaf) {
                         Write-Host "--- server $($log.Name) for $($scenario.Client) ---"
                         foreach ($line in Get-Content -LiteralPath $log.Path) {
-                            $redactedLine = $line
-                                .Replace($temporaryRoot, "<temporary-root>", [StringComparison]::OrdinalIgnoreCase)
-                                .Replace($repositoryRoot, "<repository-root>", [StringComparison]::OrdinalIgnoreCase)
-                                .Replace($packageRoot, "<package-root>", [StringComparison]::OrdinalIgnoreCase)
+                            $redactedLine = $line.Replace($temporaryRoot, "<temporary-root>", [StringComparison]::OrdinalIgnoreCase)
+                            $redactedLine = $redactedLine.Replace($repositoryRoot, "<repository-root>", [StringComparison]::OrdinalIgnoreCase)
+                            $redactedLine = $redactedLine.Replace($packageRoot, "<package-root>", [StringComparison]::OrdinalIgnoreCase)
                             Write-Host $redactedLine
                         }
                     }
