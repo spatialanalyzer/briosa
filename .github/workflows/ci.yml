@@ -45,6 +45,10 @@ jobs:
       - name: Build interop verifier
         run: dotnet build tools/Briosa.Generator/Briosa.Generator.csproj -c Release --no-restore
 
+      - name: Verify command catalog
+        shell: pwsh
+        run: ./eng/Verify-Catalog.ps1 -NoBuild
+
       - name: Verify committed interop metadata
         shell: pwsh
         run: ./eng/Verify-InteropArtifacts.ps1 -NoBuild

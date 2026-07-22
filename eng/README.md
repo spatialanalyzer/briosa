@@ -9,3 +9,13 @@ Run the scripts in this directory from the repository root. Interop generation r
 ```powershell
 ./eng/Verify-Protocol.ps1
 ```
+
+## Command catalog verification
+
+`Verify-Catalog.ps1` applies the versioned JSON Schemas and semantic release rules to every exact-target supported-command catalog. It rejects unlisted files, target or naming drift, unresolved metadata, unsafe default inference, and missing SDK bindings:
+
+```powershell
+./eng/Verify-Catalog.ps1
+```
+
+Pass `-NoBuild` only after `Briosa.Generator` has already been built in the selected configuration.
