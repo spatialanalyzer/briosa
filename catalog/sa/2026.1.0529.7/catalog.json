@@ -1,0 +1,31 @@
+{
+  "$schema": "../../schemas/v1/catalog.schema.json",
+  "schema_version": 1,
+  "catalog_id": "briosa.sa.2026.1.0529.7",
+  "catalog_revision": "1",
+  "spatial_analyzer_target": "2026.1.0529.7",
+  "target_protocol_package": "briosa.sa.v2026_1_0529_7.v1alpha1",
+  "sources": [
+    {
+      "source_id": "maintainer_review",
+      "kind": "maintainer_review",
+      "description": "Review of exact-target command semantics and Briosa support policy.",
+      "source_material_committed": false
+    },
+    {
+      "source_id": "sa_mp_command_reference",
+      "kind": "installed_mp_documentation",
+      "description": "Installed structured MP command reference for the exact SpatialAnalyzer target.",
+      "source_material_committed": false
+    },
+    {
+      "source_id": "sa_view_sdk_code",
+      "kind": "generated_sdk_sample",
+      "description": "Locally generated View SDK Code used to verify exact setter and getter bindings.",
+      "source_material_committed": false
+    }
+  ],
+  "operation_files": [
+    "operations/file_operations.get_working_directory.json"
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "$schema": "../../../schemas/v1/operation.schema.json",
+  "operation_id": "file_operations.get_working_directory",
+  "mp_step": "Get Working Directory",
+  "category": "File Operations",
+  "protocol": {
+    "service": "FileOperations",
+    "rpc": "GetWorkingDirectory",
+    "request": "GetWorkingDirectoryRequest",
+    "result": "GetWorkingDirectoryResult"
+  },
+  "stability": "experimental",
+  "deprecation": {
+    "status": "active"
+  },
+  "risk": {
+    "effect": "read_only",
+    "flags": [
+      "filesystem_metadata"
+    ]
+  },
+  "documentation": {
+    "summary": "Returns the directory SpatialAnalyzer uses to resolve measurement-plan-relative paths."
+  },
+  "arguments": [
+    {
+      "argument_id": "directory",
+      "ordinal": 0,
+      "mp_name": "Directory",
+      "direction": "output",
+      "result_only": "yes",
+      "semantic_type": "string",
+      "sdk_binding": {
+        "status": "available",
+        "setter": null,
+        "getter": "GetStringArg"
+      },
+      "documentation": "The current working directory path."
+    }
+  ],
+  "evidence": [
+    {
+      "source_id": "maintainer_review",
+      "reference": "Issue #14 exact-target catalog review"
+    },
+    {
+      "source_id": "sa_mp_command_reference",
+      "reference": "FileOperations/GetWorkingDirectory.htm"
+    },
+    {
+      "source_id": "sa_view_sdk_code",
+      "reference": "FileOperations.txt: Get Working Directory"
+    }
+  ]
+}

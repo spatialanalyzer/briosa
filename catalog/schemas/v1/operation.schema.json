@@ -1,0 +1,306 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://spatialanalyzer.github.io/briosa/catalog/schemas/v1/operation.schema.json",
+  "title": "Briosa supported MP operation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "operation_id",
+    "mp_step",
+    "category",
+    "protocol",
+    "stability",
+    "deprecation",
+    "risk",
+    "documentation",
+    "arguments",
+    "evidence"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "../../../schemas/v1/operation.schema.json"
+    },
+    "operation_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$"
+    },
+    "mp_step": {
+      "type": "string",
+      "minLength": 1
+    },
+    "category": {
+      "type": "string",
+      "minLength": 1
+    },
+    "protocol": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "service",
+        "rpc",
+        "request",
+        "result"
+      ],
+      "properties": {
+        "service": {
+          "$ref": "#/definitions/pascal_case"
+        },
+        "rpc": {
+          "$ref": "#/definitions/pascal_case"
+        },
+        "request": {
+          "$ref": "#/definitions/pascal_case"
+        },
+        "result": {
+          "$ref": "#/definitions/pascal_case"
+        }
+      }
+    },
+    "stability": {
+      "enum": [
+        "experimental",
+        "stable",
+        "deprecated"
+      ]
+    },
+    "deprecation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "active",
+            "deprecated"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "replacement_operation_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$"
+        }
+      }
+    },
+    "risk": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "effect",
+        "flags"
+      ],
+      "properties": {
+        "effect": {
+          "enum": [
+            "read_only",
+            "mutating",
+            "unknown"
+          ]
+        },
+        "flags": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "filesystem_metadata",
+              "filesystem_read",
+              "filesystem_write",
+              "network_access",
+              "external_process",
+              "device_control",
+              "interactive_ui",
+              "long_running",
+              "credential_or_license_data",
+              "unknown"
+            ]
+          }
+        }
+      }
+    },
+    "documentation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "summary"
+      ],
+      "properties": {
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "arguments": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/argument"
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "source_id",
+          "reference"
+        ],
+        "properties": {
+          "source_id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "reference": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "pascal_case": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Za-z0-9]*$"
+    },
+    "argument": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "argument_id",
+        "ordinal",
+        "mp_name",
+        "direction",
+        "result_only",
+        "semantic_type",
+        "sdk_binding",
+        "documentation"
+      ],
+      "properties": {
+        "argument_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "ordinal": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "mp_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "direction": {
+          "enum": [
+            "input",
+            "output",
+            "input_output",
+            "unknown"
+          ]
+        },
+        "result_only": {
+          "enum": [
+            "yes",
+            "no",
+            "unknown"
+          ]
+        },
+        "semantic_type": {
+          "type": "string",
+          "pattern": "^(?:[a-z][a-z0-9_]*|unknown)$"
+        },
+        "input": {
+          "$ref": "#/definitions/input_metadata"
+        },
+        "sdk_binding": {
+          "$ref": "#/definitions/sdk_binding"
+        },
+        "documentation": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "input_metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "presence",
+        "omission_behavior",
+        "default"
+      ],
+      "properties": {
+        "presence": {
+          "enum": [
+            "required",
+            "optional",
+            "unknown"
+          ]
+        },
+        "omission_behavior": {
+          "enum": [
+            "reject_request",
+            "omit_sdk_setter",
+            "set_catalog_default",
+            "unknown"
+          ]
+        },
+        "default": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status"
+          ],
+          "properties": {
+            "status": {
+              "enum": [
+                "reviewed",
+                "generated_sample",
+                "none",
+                "unknown"
+              ]
+            },
+            "value": {}
+          }
+        }
+      }
+    },
+    "sdk_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "setter",
+        "getter"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "available",
+            "unavailable",
+            "unknown"
+          ]
+        },
+        "setter": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^Set[A-Za-z0-9]+Arg[0-9]*$"
+        },
+        "getter": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^Get[A-Za-z0-9]+Arg[0-9]*$"
+        }
+      }
+    }
+  }
+}
