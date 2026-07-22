@@ -41,6 +41,8 @@ The packaged default binds unencrypted HTTP/2 to loopback only at `127.0.0.1:500
 
 The default SpatialAnalyzer SDK target is `localhost`. ASP.NET Core and Briosa configuration can be overridden with environment variables or command-line settings. Keep the endpoint on loopback unless the security, TLS, authentication, and authorization requirements tracked by the project have been implemented for your deployment.
 
+The worker execution watchdog defaults to 30 seconds. Set `Briosa__Worker__ExecutionWatchdogTimeout` to a positive .NET `TimeSpan` no greater than ten minutes only when deployment evidence justifies an override. A client deadline or cancellation stops that caller from waiting; it does not claim to cancel synchronous COM work already in flight.
+
 Use standard gRPC health checks named `briosa.liveness` and `briosa.readiness`. See `HEALTH-AND-DISCOVERY.md` for discovery and response semantics.
 
 ## Provenance

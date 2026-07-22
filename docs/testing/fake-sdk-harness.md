@@ -29,7 +29,7 @@ The watchdog and supervisor types in this test-support assembly remain lightweig
 
 ## Reusing the contracts
 
-`SdkContractAssertions` contains adapter-independent checks. Production-adapter tests use an injectable synchronous call surface to verify the exact setter/execution/MP-result/getter order without COM activation. A future licensed integration fixture can supply the real adapter factory and invoke the same applicable checks from a protected Windows environment. Scenarios that intentionally force MP failure, hangs, or crashes remain fake-only unless a safe real-SA procedure is explicitly approved.
+`SdkContractAssertions` contains adapter-independent checks. Production-adapter tests use an injectable synchronous call surface to verify the exact setter/execution/MP-result/getter order without COM activation. The [generated-client smoke workflow](generated-client-smoke.md) exercises the packaged network boundary with portable fake-worker scenarios and provides an explicit real-SA success check. MP failure, getter failure, hangs, and crashes remain fake-only.
 
 ## Non-emulation statement
 
