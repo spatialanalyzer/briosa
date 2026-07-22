@@ -28,6 +28,11 @@ See [the exact-SA-target protocol decision](docs/architecture/0005-exact-sa-targ
 
 Successful MP responses pair exact-target typed values with explicit core execution and output-retrieval details. Failed calls use canonical gRPC statuses and carry a value-free typed error in `briosa-operation-error-bin`. See [the MP outcome and error decision](docs/architecture/0008-mp-outcomes-and-grpc-errors.md) for the complete status and retry matrix.
 
+## Health and discovery
+
+The public host exposes standard gRPC health checks named `briosa.liveness` and `briosa.readiness`. Liveness is independent of SpatialAnalyzer; readiness requires a ready worker with a connected SDK snapshot. The stable core `DiscoveryService` reports safe build coordinates and only the operations in the reviewed exact-target catalog.
+
+See the [health and discovery operator guide](docs/operations/health-and-discovery.md) and [architecture decision](docs/architecture/0010-health-version-and-capability-discovery.md) for service names, response semantics, connected-version verification, and the information boundary.
 ## Supported command catalog
 
 The `catalog` directory is the reviewed, machine-readable allowlist of MP operations Briosa exposes for each exact SpatialAnalyzer target. It is deliberately separate from the complete installed SA inventory: catalog absence means an operation is not exposed by Briosa, not that SA lacks it.

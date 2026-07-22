@@ -65,6 +65,7 @@ internal static class CommandCatalogGenerator
                 CommandCatalogArtifactGenerator.GenerateWorkerBindings(
                     generatedNamespace,
                     targetNamespace,
+                    manifest,
                     operations),
                 generatedFiles);
             WriteGeneratedFile(

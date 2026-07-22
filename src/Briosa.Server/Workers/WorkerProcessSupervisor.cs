@@ -5,7 +5,7 @@ using Briosa.Worker.Control;
 
 namespace Briosa.Server.Workers;
 
-internal sealed class WorkerProcessSupervisor : IWorkerCommandExecutor, IAsyncDisposable
+internal sealed class WorkerProcessSupervisor : IWorkerCommandExecutor, IWorkerStatusProvider, IAsyncDisposable
 {
     private readonly SemaphoreSlim _gate = new(1, 1);
     private readonly List<WorkerLifecycleSnapshot> _history = [];

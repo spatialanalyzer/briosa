@@ -69,6 +69,9 @@ public sealed class CommandCatalogGeneratorTests
             Assert.Contains("DirectoryFieldName = \"directory\"", binding, StringComparison.Ordinal);
             Assert.Contains("WorkerMpValueKind.Text", binding, StringComparison.Ordinal);
             Assert.Contains("DirectoryGetter = \"GetStringArg\"", binding, StringComparison.Ordinal);
+            Assert.Contains("TargetCatalogMetadata", binding, StringComparison.Ordinal);
+            Assert.Contains("CatalogId = \"briosa.sa.2026.1.0529.7\"", binding, StringComparison.Ordinal);
+            Assert.Contains("/briosa.sa.v2026_1_0529_7.v1alpha1.FileOperations/GetWorkingDirectory", binding, StringComparison.Ordinal);
             Assert.Contains("OutputContracts", binding, StringComparison.Ordinal);
             Assert.Contains("CreateResult(SuccessfulOperationExecution completed)", binding, StringComparison.Ordinal);
 

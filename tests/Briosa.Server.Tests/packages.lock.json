@@ -52,6 +52,15 @@
           "Grpc.Net.ClientFactory": "2.80.0"
         }
       },
+      "Grpc.HealthCheck": {
+        "type": "Transitive",
+        "resolved": "2.80.0",
+        "contentHash": "mnTOhVQ/PTFIUEjCzR5w1Lh9AAW/FNVbIFUA3qOHIO2K0tRnzHSwS16INHvrJfaFVO/sHfWj9LJD/avINjqfnw==",
+        "dependencies": {
+          "Google.Protobuf": "3.31.1",
+          "Grpc.Core.Api": "2.80.0"
+        }
+      },
       "Grpc.Net.Client": {
         "type": "Transitive",
         "resolved": "2.80.0",
@@ -268,7 +277,8 @@
         "dependencies": {
           "Briosa.Protocol": "[1.0.0, )",
           "Briosa.Worker.Control": "[1.0.0, )",
-          "Grpc.AspNetCore": "[2.80.0, )"
+          "Grpc.AspNetCore": "[2.80.0, )",
+          "Grpc.AspNetCore.HealthChecks": "[2.80.0, )"
         }
       },
       "briosa.worker.control": {
@@ -289,6 +299,16 @@
           "Google.Protobuf": "3.31.1",
           "Grpc.AspNetCore.Server.ClientFactory": "2.80.0",
           "Grpc.Tools": "2.80.0"
+        }
+      },
+      "Grpc.AspNetCore.HealthChecks": {
+        "type": "CentralTransitive",
+        "requested": "[2.80.0, )",
+        "resolved": "2.80.0",
+        "contentHash": "5m/l/iThYxNAeAMBTr4ndcAFPtkPKO1Kwe66534aDo5ntiH/VOQ6aNevW0ajvYHy+W/rJbSRQTMZ9++OL5Ez/Q==",
+        "dependencies": {
+          "Grpc.AspNetCore.Server": "2.80.0",
+          "Grpc.HealthCheck": "2.80.0"
         }
       },
       "Grpc.Core.Api": {

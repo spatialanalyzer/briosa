@@ -15,6 +15,7 @@ internal static class CommandCatalogArtifactGenerator
     public static string GenerateWorkerBindings(
         string generatedNamespace,
         string targetNamespace,
+        CommandCatalogManifest manifest,
         IReadOnlyList<CommandCatalogOperation> operations)
     {
         var builder = new StringBuilder();
@@ -25,6 +26,7 @@ internal static class CommandCatalogArtifactGenerator
         builder.Append("using TargetProtocol = global::").Append(targetNamespace).AppendLine(";");
         builder.AppendLine();
         builder.Append("namespace ").Append(generatedNamespace).AppendLine(";");
+        AppendCatalogMetadata(builder, manifest, operations);
 
         foreach (var operation in operations)
         {
@@ -126,6 +128,50 @@ internal static class CommandCatalogArtifactGenerator
         };
         return JsonSerializer.Serialize(document, CoverageJsonOptions) + "\n";
     }
+
+    private static void AppendCatalogMetadata(
+        StringBuilder builder,
+        CommandCatalogManifest manifest,
+        IReadOnlyList<CommandCatalogOperation> operations)
+    {
+        builder.AppendLine();
+        builder.AppendLine("[global::System.CodeDom.Compiler.GeneratedCode(\"Briosa.Generator\", \"1.0\")]");
+        builder.AppendLine("internal sealed record CatalogOperationDescriptor(");
+        builder.AppendLine("    string OperationId,");
+        builder.AppendLine("    string GrpcService,");
+        builder.AppendLine("    string Rpc,");
+        builder.AppendLine("    string FullyQualifiedMethod,");
+        builder.AppendLine("    string Effect);");
+        builder.AppendLine();
+        builder.AppendLine("[global::System.CodeDom.Compiler.GeneratedCode(\"Briosa.Generator\", \"1.0\")]");
+        builder.AppendLine("internal static class TargetCatalogMetadata");
+        builder.AppendLine("{");
+        AppendConstant(builder, "CatalogId", manifest.CatalogId);
+        AppendConstant(builder, "CatalogRevision", manifest.CatalogRevision);
+        AppendConstant(builder, "SpatialAnalyzerTarget", manifest.SpatialAnalyzerTarget);
+        AppendConstant(builder, "TargetProtocolPackage", manifest.TargetProtocolPackage);
+        builder.AppendLine();
+        builder.AppendLine("    public static IReadOnlyList<CatalogOperationDescriptor> Operations { get; } =");
+        builder.AppendLine("        [");
+        foreach (var operation in operations)
+        {
+            var service = $"{manifest.TargetProtocolPackage}.{operation.Protocol.Service}";
+            builder.Append("            new(\"").Append(EscapeCSharp(operation.OperationId))
+                .Append("\", \"").Append(EscapeCSharp(service))
+                .Append("\", \"").Append(EscapeCSharp(operation.Protocol.Rpc))
+                .Append("\", \"/").Append(EscapeCSharp(service)).Append('/')
+                .Append(EscapeCSharp(operation.Protocol.Rpc))
+                .Append("\", \"").Append(EscapeCSharp(operation.Risk.Effect))
+                .AppendLine("\"),");
+        }
+
+        builder.AppendLine("        ];");
+        builder.AppendLine("}");
+    }
+
+    private static void AppendConstant(StringBuilder builder, string name, string value) =>
+        builder.Append("    public const string ").Append(name).Append(" = \"")
+            .Append(EscapeCSharp(value)).AppendLine("\";");
 
     private static void AppendBinding(StringBuilder builder, CommandCatalogOperation operation)
     {
