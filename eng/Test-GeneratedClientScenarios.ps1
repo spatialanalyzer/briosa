@@ -85,7 +85,8 @@ function Start-ScenarioServer {
         [Parameter(Mandatory)][int]$Port,
         [Parameter(Mandatory)][string]$StandardOutput,
         [Parameter(Mandatory)][string]$StandardError,
-        [string]$WatchdogTimeout
+        [string]$WatchdogTimeout,
+        [switch]$DenyOperation
     )
 
     $environmentValues = [ordered]@{
@@ -93,6 +94,7 @@ function Start-ScenarioServer {
         "BRIOSA_TEST_WORKER_SCENARIO" = $WorkerScenario
         "BRIOSA_TEST_WORKER_STATE_PATH" = $StatePath
         "Briosa__Worker__ExecutionWatchdogTimeout" = $WatchdogTimeout
+        "Briosa__Security__Operations__Deny__0" = $(if ($DenyOperation) { "file_operations.get_working_directory" } else { $null })
     }
     $previousValues = [ordered]@{}
     foreach ($entry in $environmentValues.GetEnumerator()) {
@@ -161,6 +163,7 @@ try {
     $scenarios = @(
         [pscustomobject]@{ Worker = "ready"; Client = "ready"; Watchdog = $null },
         [pscustomobject]@{ Worker = "disconnected"; Client = "unavailable"; Watchdog = $null },
+        [pscustomobject]@{ Worker = "ready"; Client = "policy-denied"; Watchdog = $null },
         [pscustomobject]@{ Worker = "mp-failure"; Client = "mp-failure"; Watchdog = $null },
         [pscustomobject]@{ Worker = "output-failure"; Client = "output-failure"; Watchdog = $null },
         [pscustomobject]@{ Worker = "delay-first-execute"; Client = "deadline"; Watchdog = $null },
@@ -190,6 +193,7 @@ try {
                 StandardOutput = $standardOutput
                 StandardError = $standardError
                 WatchdogTimeout = $scenario.Watchdog
+                DenyOperation = $scenario.Client -eq "policy-denied"
             }
             $serverProcess = Start-ScenarioServer @serverArguments
             if (-not (Wait-ForListener -Process $serverProcess -Port $port)) {

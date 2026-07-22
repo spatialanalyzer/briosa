@@ -179,6 +179,7 @@
         "direction",
         "result_only",
         "semantic_type",
+        "data_classification",
         "sdk_binding",
         "documentation"
       ],
@@ -213,6 +214,19 @@
         "semantic_type": {
           "type": "string",
           "pattern": "^(?:[a-z][a-z0-9_]*|unknown)$"
+        },
+        "data_classification": {
+          "enum": [
+            "non_sensitive",
+            "path",
+            "geometry",
+            "object_identifier",
+            "measurement",
+            "credential",
+            "license_data",
+            "proprietary",
+            "unknown"
+          ]
         },
         "input": {
           "$ref": "#/definitions/input_metadata"

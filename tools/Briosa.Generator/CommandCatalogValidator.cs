@@ -241,6 +241,7 @@ internal static partial class CommandCatalogValidator
         {
             errors.Add($"{displayPath}: supported operations cannot retain unknown risk metadata.");
         }
+        RequireSorted(operation.Risk.Flags, displayPath, "risk.flags", errors);
 
         var argumentIds = new HashSet<string>(StringComparer.Ordinal);
         var ordinals = new HashSet<int>();
@@ -309,6 +310,11 @@ internal static partial class CommandCatalogValidator
         {
             errors.Add($"{argumentPath} has unknown semantic_type.");
         }
+        if (string.Equals(argument.DataClassification, "unknown", StringComparison.Ordinal))
+        {
+            errors.Add($"{argumentPath} has unknown data_classification.");
+        }
+
 
         var isInput = string.Equals(argument.Direction, "input", StringComparison.Ordinal) ||
             string.Equals(argument.Direction, "input_output", StringComparison.Ordinal);

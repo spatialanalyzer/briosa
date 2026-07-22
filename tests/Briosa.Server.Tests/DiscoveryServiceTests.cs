@@ -1,4 +1,7 @@
 using Briosa.Core.V1Alpha1;
+using Briosa.Server.Generated.Sa.V2026_1_0529_7.V1Alpha1;
+using Briosa.Server.Security;
+using Microsoft.Extensions.Configuration;
 using Briosa.Server.Services;
 using Briosa.Server.Workers;
 using Briosa.Worker.Control;
@@ -56,7 +59,8 @@ public sealed class DiscoveryServiceTests
             new FakeWorkerStatusProvider(Snapshot(
                 WorkerLifecycleState.Ready,
                 WorkerConnectionState.Connected)),
-            new FakeBuildIdentityProvider());
+            new FakeBuildIdentityProvider(),
+            CreatePolicy());
 
         var response = service.CreateServerInfo();
 
@@ -77,10 +81,14 @@ public sealed class DiscoveryServiceTests
     [Fact]
     public void CapabilitiesComeFromReviewedGeneratedCatalog()
     {
-        var response = ServerDiscoveryService.CreateCapabilities();
+        var response = new ServerDiscoveryService(
+            new FakeWorkerStatusProvider(Snapshot(WorkerLifecycleState.Stopped, null)),
+            new FakeBuildIdentityProvider(),
+            CreatePolicy())
+            .CreateCapabilities();
 
         Assert.Equal("briosa.sa.2026.1.0529.7", response.CatalogId);
-        Assert.Equal("1", response.CatalogRevision);
+        Assert.Equal("2", response.CatalogRevision);
         Assert.Equal("2026.1.0529.7", response.SpatialAnalyzerTarget);
         Assert.Equal(
             "briosa.sa.v2026_1_0529_7.v1alpha1",
@@ -98,6 +106,18 @@ public sealed class DiscoveryServiceTests
     }
 
     [Fact]
+    public void CapabilitiesExcludeOperationsDeniedByRuntimePolicy()
+    {
+        var response = new ServerDiscoveryService(
+            new FakeWorkerStatusProvider(Snapshot(WorkerLifecycleState.Stopped, null)),
+            new FakeBuildIdentityProvider(),
+            CreatePolicy(allow: false))
+            .CreateCapabilities();
+
+        Assert.Empty(response.Operations);
+    }
+
+    [Fact]
     public void AssemblyIdentityUsesReviewedTargetAndInteropCoordinates()
     {
         var provider = new AssemblyServerBuildIdentityProvider(typeof(Program).Assembly);
@@ -110,12 +130,27 @@ public sealed class DiscoveryServiceTests
         Assert.Equal(
             "briosa.sa.v2026_1_0529_7.v1alpha1",
             coordinates.TargetProtocolPackage);
-        Assert.Equal("1", coordinates.CatalogRevision);
+        Assert.Equal("2", coordinates.CatalogRevision);
         Assert.Equal(
             AssemblyServerBuildIdentityProvider.InteropFingerprint,
             coordinates.InteropFingerprint);
     }
 
+    private static OperationPolicy CreatePolicy(bool allow = true)
+    {
+        var values = new Dictionary<string, string?>(StringComparer.Ordinal);
+        if (allow)
+        {
+            values.Add(
+                $"{OperationPolicy.AllowKey}:0",
+                "file_operations.get_working_directory");
+        }
+
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(values)
+            .Build();
+        return OperationPolicy.Create(configuration, TargetCatalogMetadata.Operations);
+    }
     private static WorkerLifecycleSnapshot Snapshot(
         WorkerLifecycleState workerState,
         WorkerConnectionState? connectionState) =>
@@ -153,7 +188,7 @@ public sealed class DiscoveryServiceTests
                 CoreProtocolPackage = "briosa.core.v1alpha1",
                 SpatialAnalyzerTarget = "2026.1.0529.7",
                 TargetProtocolPackage = "briosa.sa.v2026_1_0529_7.v1alpha1",
-                CatalogRevision = "1",
+                CatalogRevision = "2",
                 InteropFingerprint = "sha256:test"
             };
     }

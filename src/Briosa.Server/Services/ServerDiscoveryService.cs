@@ -1,4 +1,5 @@
 using Briosa.Server.Generated.Sa.V2026_1_0529_7.V1Alpha1;
+using Briosa.Server.Security;
 using Briosa.Server.Workers;
 using Briosa.Worker.Control;
 using Grpc.Core;
@@ -8,13 +9,16 @@ namespace Briosa.Server.Services;
 
 internal sealed class ServerDiscoveryService(
     IWorkerStatusProvider statusProvider,
-    IServerBuildIdentityProvider buildIdentity) :
+    IServerBuildIdentityProvider buildIdentity,
+    OperationPolicy operationPolicy) :
     CoreProtocol.DiscoveryService.DiscoveryServiceBase
 {
     private readonly IServerBuildIdentityProvider _buildIdentity =
         buildIdentity ?? throw new ArgumentNullException(nameof(buildIdentity));
     private readonly IWorkerStatusProvider _statusProvider =
         statusProvider ?? throw new ArgumentNullException(nameof(statusProvider));
+    private readonly OperationPolicy _operationPolicy =
+        operationPolicy ?? throw new ArgumentNullException(nameof(operationPolicy));
 
     public override Task<CoreProtocol.GetServerInfoResponse> GetServerInfo(
         CoreProtocol.GetServerInfoRequest request,
@@ -48,7 +52,7 @@ internal sealed class ServerDiscoveryService(
         };
     }
 
-    internal static CoreProtocol.ListCapabilitiesResponse CreateCapabilities()
+    internal CoreProtocol.ListCapabilitiesResponse CreateCapabilities()
     {
         var response = new CoreProtocol.ListCapabilitiesResponse
         {
@@ -57,7 +61,7 @@ internal sealed class ServerDiscoveryService(
             SpatialAnalyzerTarget = TargetCatalogMetadata.SpatialAnalyzerTarget,
             TargetProtocolPackage = TargetCatalogMetadata.TargetProtocolPackage
         };
-        response.Operations.AddRange(TargetCatalogMetadata.Operations.Select(operation =>
+        response.Operations.AddRange(_operationPolicy.AllowedOperations.Select(operation =>
             new CoreProtocol.OperationCapability
             {
                 OperationId = operation.OperationId,

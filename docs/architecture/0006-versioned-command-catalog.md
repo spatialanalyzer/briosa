@@ -98,7 +98,7 @@ Installed HTML, generated SDK samples, and prior proprietary wrapper source rema
 
 The supported catalog is not a goal to expose every MP command. MP control-flow and subroutine constructs are replaced by the caller's programming language. Office, spreadsheet, serialization, and scalar/vector math helpers are normally better served by dedicated client libraries. Extracted inventory can mark these as intentionally ineligible without adding them to the public surface.
 
-Every supported operation records whether it is read-only or mutating and any relevant risk flags, including filesystem, network, external-process, device-control, interactive, long-running, or sensitive-data behavior. Unknown risk blocks release validation. Later authorization policy may consume these facts without changing command semantics.
+Every supported operation records whether it is read-only or mutating and any relevant risk flags, including filesystem, network, external-process, device-control, interactive, long-running, or sensitive-data behavior. Each argument records an explicit data classification. Unknown risk is denied until reviewed. The runtime exact-ID allow/deny policy consumes these facts without changing command semantics; see [ADR 0015](0015-command-policy-and-audit-events.md).
 
 Stability and deprecation describe Briosa's public API lifecycle. Vendor availability or deprecation is separate evidence and must not be inferred from Briosa status.
 

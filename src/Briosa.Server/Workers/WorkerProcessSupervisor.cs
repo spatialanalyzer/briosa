@@ -2,10 +2,11 @@ using System.ComponentModel;
 using System.Text.Json;
 using System.Threading.Channels;
 using Briosa.Worker.Control;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Briosa.Server.Workers;
 
-internal sealed class WorkerProcessSupervisor : IWorkerCommandExecutor, IWorkerStatusProvider, IAsyncDisposable
+internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, IWorkerStatusProvider, IAsyncDisposable
 {
     private readonly SemaphoreSlim _gate = new(1, 1);
     private readonly List<WorkerLifecycleSnapshot> _history = [];
@@ -15,6 +16,7 @@ internal sealed class WorkerProcessSupervisor : IWorkerCommandExecutor, IWorkerS
     private readonly WorkerRestartPolicy _policy;
     private readonly Queue<DateTimeOffset> _restartTimes = new();
     private readonly TimeProvider _timeProvider;
+    private readonly ILogger<WorkerProcessSupervisor> _logger;
     private CancellationTokenSource? _executionCancellation;
     private Channel<ExecutionWorkItem>? _executionQueue;
     private Task? _executionTask;
@@ -31,7 +33,8 @@ internal sealed class WorkerProcessSupervisor : IWorkerCommandExecutor, IWorkerS
         IWorkerProcessFactory processFactory,
         WorkerRestartPolicy policy,
         WorkerExecutionPolicy? executionPolicy = null,
-        TimeProvider? timeProvider = null)
+        TimeProvider? timeProvider = null,
+        ILogger<WorkerProcessSupervisor>? logger = null)
     {
         ArgumentNullException.ThrowIfNull(processFactory);
         ArgumentNullException.ThrowIfNull(policy);
@@ -41,6 +44,7 @@ internal sealed class WorkerProcessSupervisor : IWorkerCommandExecutor, IWorkerS
             TimeSpan.FromSeconds(30),
             queueCapacity: 64);
         _timeProvider = timeProvider ?? TimeProvider.System;
+        _logger = logger ?? NullLogger<WorkerProcessSupervisor>.Instance;
         _current = new WorkerLifecycleSnapshot(
             WorkerLifecycleState.Stopped,
             Generation: 0,
@@ -115,34 +119,43 @@ internal sealed class WorkerProcessSupervisor : IWorkerCommandExecutor, IWorkerS
     }
 
 
+    public Task<WorkerExecutionOutcome> ExecuteAsync(
+        WorkerMpCommand command,
+        CancellationToken cancellationToken = default) =>
+        ExecuteAsync(command, Guid.NewGuid(), cancellationToken);
+
     public async Task<WorkerExecutionOutcome> ExecuteAsync(
         WorkerMpCommand command,
+        Guid correlationId,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
+        var effectiveCorrelationId = correlationId != Guid.Empty
+            ? correlationId
+            : Guid.NewGuid();
         if (cancellationToken.IsCancellationRequested)
         {
-            return ClientCancelled();
+            return ClientCancelled(effectiveCorrelationId);
         }
 
         var queue = _executionQueue;
         if (queue is null || Current.State != WorkerLifecycleState.Ready)
         {
-            return Unavailable("worker-not-ready");
+            return Unavailable("worker-not-ready", effectiveCorrelationId);
         }
 
-        var item = new ExecutionWorkItem(command);
+        var item = new ExecutionWorkItem(command, effectiveCorrelationId);
         try
         {
             await queue.Writer.WriteAsync(item, cancellationToken).ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            return ClientCancelled();
+            return ClientCancelled(effectiveCorrelationId);
         }
         catch (ChannelClosedException)
         {
-            return Unavailable("worker-execution-queue-closed");
+            return Unavailable("worker-execution-queue-closed", effectiveCorrelationId);
         }
 
         try
@@ -151,7 +164,7 @@ internal sealed class WorkerProcessSupervisor : IWorkerCommandExecutor, IWorkerS
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            return ClientCancelled();
+            return ClientCancelled(effectiveCorrelationId);
         }
     }
 
@@ -223,8 +236,10 @@ internal sealed class WorkerProcessSupervisor : IWorkerCommandExecutor, IWorkerS
         {
             await foreach (var item in reader.ReadAllAsync(cancellationToken).ConfigureAwait(false))
             {
-                var outcome = await ExecuteWorker(item.Command, cancellationToken)
-                    .ConfigureAwait(false);
+                var outcome = await ExecuteWorker(
+                    item.Command,
+                    item.CorrelationId,
+                    cancellationToken).ConfigureAwait(false);
                 item.TrySetResult(outcome);
             }
         }
@@ -235,13 +250,14 @@ internal sealed class WorkerProcessSupervisor : IWorkerCommandExecutor, IWorkerS
         {
             while (reader.TryRead(out var item))
             {
-                item.TrySetResult(Unavailable("worker-supervisor-stopping"));
+                item.TrySetResult(Unavailable("worker-supervisor-stopping", item.CorrelationId));
             }
         }
     }
 
     private async Task<WorkerExecutionOutcome> ExecuteWorker(
         WorkerMpCommand command,
+        Guid correlationId,
         CancellationToken cancellationToken)
     {
         var acquired = false;
@@ -253,12 +269,11 @@ internal sealed class WorkerProcessSupervisor : IWorkerCommandExecutor, IWorkerS
             var worker = _worker;
             if (Current.State != WorkerLifecycleState.Ready || worker is null)
             {
-                return Unavailable("worker-not-ready");
+                return Unavailable("worker-not-ready", correlationId);
             }
 
             using var watchdog = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             watchdog.CancelAfter(_executionPolicy.WatchdogTimeout);
-            var correlationId = Guid.NewGuid();
             try
             {
                 await worker.SendAsync(
@@ -292,7 +307,8 @@ internal sealed class WorkerProcessSupervisor : IWorkerCommandExecutor, IWorkerS
                     executionResponse.DiagnosticCode ??
                         executionResponse.Execution?.DiagnosticCode ??
                         "worker-execution-completed",
-                    generation);
+                    generation,
+                    correlationId);
             }
             catch (OperationCanceledException) when (
                 !cancellationToken.IsCancellationRequested)
@@ -305,7 +321,8 @@ internal sealed class WorkerProcessSupervisor : IWorkerCommandExecutor, IWorkerS
                     Execution: null,
                     Connection: null,
                     "worker-execution-watchdog-timeout",
-                    generation);
+                    generation,
+                    correlationId);
             }
             catch (Exception exception) when (IsRecoverableProcessFailure(exception))
             {
@@ -319,12 +336,13 @@ internal sealed class WorkerProcessSupervisor : IWorkerCommandExecutor, IWorkerS
                     Execution: null,
                     Connection: null,
                     diagnosticCode,
-                    generation);
+                    generation,
+                    correlationId);
             }
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            return Unavailable("worker-supervisor-stopping");
+            return Unavailable("worker-supervisor-stopping", correlationId);
         }
         finally
         {
@@ -335,21 +353,24 @@ internal sealed class WorkerProcessSupervisor : IWorkerCommandExecutor, IWorkerS
         }
     }
 
-    private WorkerExecutionOutcome ClientCancelled() =>
+    private WorkerExecutionOutcome ClientCancelled(Guid correlationId) =>
         new(
             WorkerExecutionStatus.ClientCancelled,
             Execution: null,
             Current.Connection,
             "client-wait-cancelled",
-            Current.Generation);
+            Current.Generation,
+            correlationId);
 
-    private WorkerExecutionOutcome Unavailable(string diagnosticCode) =>
+    private WorkerExecutionOutcome Unavailable(
+        string diagnosticCode, Guid correlationId) =>
         new(
             WorkerExecutionStatus.Unavailable,
             Execution: null,
             Current.Connection,
             diagnosticCode,
-            Current.Generation);
+            Current.Generation,
+            correlationId);
 
     private async Task MonitorWorker(CancellationToken cancellationToken)
     {
@@ -642,7 +663,28 @@ internal sealed class WorkerProcessSupervisor : IWorkerCommandExecutor, IWorkerS
             _current = snapshot;
             _history.Add(snapshot);
         }
+        LogWorkerTransition(
+            snapshot.State,
+            snapshot.Generation,
+            snapshot.RestartCount,
+            snapshot.LastTermination,
+            snapshot.DiagnosticCode,
+            snapshot.Connection?.State,
+            snapshot.Connection?.StatusCode);
     }
+    [LoggerMessage(
+        EventId = 1201,
+        Level = LogLevel.Information,
+        Message = "Worker transitioned to {WorkerState} at generation {Generation} with restart count {RestartCount}, termination {Termination}, diagnostic {DiagnosticCode}, connection state {ConnectionState}, and ConnectEx status {StatusCode}.")]
+    private partial void LogWorkerTransition(
+        WorkerLifecycleState workerState,
+        int generation,
+        int restartCount,
+        WorkerTerminationKind termination,
+        string diagnosticCode,
+        WorkerConnectionState? connectionState,
+        int? statusCode);
+
 
 
     private static bool OutputsMatch(
@@ -652,7 +694,7 @@ internal sealed class WorkerProcessSupervisor : IWorkerCommandExecutor, IWorkerS
         requested.Zip(returned).All(pair =>
             pair.First.Name == pair.Second.Name &&
             pair.First.Kind == pair.Second.Kind);
-    private sealed class ExecutionWorkItem(WorkerMpCommand command)
+    private sealed class ExecutionWorkItem(WorkerMpCommand command, Guid correlationId)
     {
         private readonly TaskCompletionSource<WorkerExecutionOutcome> _completion =
             new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -662,6 +704,8 @@ internal sealed class WorkerProcessSupervisor : IWorkerCommandExecutor, IWorkerS
             command.StepName,
             [.. command.InputArguments],
             [.. command.OutputArguments]);
+        public Guid CorrelationId { get; } = correlationId;
+
 
         public Task<WorkerExecutionOutcome> Task => _completion.Task;
 

@@ -37,6 +37,14 @@ Briosa v0.1 listens on cleartext HTTP/2 at `127.0.0.1:50051` by default and acce
 See the [public endpoint operator guide](docs/operations/endpoint-security.md), [v0.1 threat model](docs/security/threat-model.md), and [loopback endpoint decision](docs/architecture/0014-loopback-only-public-endpoint.md) before deploying the server. `Briosa:SpatialAnalyzer:Host` controls the separate outbound SDK target and never changes the public listener.
 
 ## Public protocol
+## Command policy and auditing
+
+The generated exact-target catalog is the maximum command surface. Runtime exact-ID allow and deny lists reduce that surface, with missing allowlists denying all and deny taking precedence. Policy rejection happens before worker or SDK execution, and capability discovery shows only currently allowed operations.
+
+Structured events correlate the host, policy decision, worker generation, MP outcome, and output-retrieval outcome without accepting arguments or returned values. Enabling verbose logging does not enable value logging.
+
+See the [command policy and auditing guide](docs/operations/command-policy-and-auditing.md), [audit architecture decision](docs/architecture/0015-command-policy-and-audit-events.md), and [v0.1 threat model](docs/security/threat-model.md).
+
 
 Briosa separates the stable `briosa.core.v1alpha1` package from MP contracts generated for one exact SpatialAnalyzer release, beginning with `briosa.sa.v2026_1_0529_7.v1alpha1`. Target packages are independent, version-faithful APIs; matching command shapes never imply matching semantics across SA releases.
 
@@ -48,7 +56,7 @@ Successful MP responses pair exact-target typed values with explicit core execut
 
 ## Health and discovery
 
-The public host exposes standard gRPC health checks named `briosa.liveness` and `briosa.readiness`. Liveness is independent of SpatialAnalyzer; readiness requires a ready worker with a connected SDK snapshot. The stable core `DiscoveryService` reports safe build coordinates and only the operations in the reviewed exact-target catalog.
+The public host exposes standard gRPC health checks named `briosa.liveness` and `briosa.readiness`. Liveness is independent of SpatialAnalyzer; readiness requires a ready worker with a connected SDK snapshot. The stable core `DiscoveryService` reports safe build coordinates and only operations present in the reviewed exact-target catalog and enabled by runtime policy.
 
 See the [health and discovery operator guide](docs/operations/health-and-discovery.md) and [architecture decision](docs/architecture/0010-health-version-and-capability-discovery.md) for service names, response semantics, connected-version verification, and the information boundary.
 

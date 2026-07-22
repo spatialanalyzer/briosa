@@ -44,6 +44,7 @@ enum OperationFailureKind {
   OPERATION_FAILURE_KIND_MP_FAILURE = 10;
   OPERATION_FAILURE_KIND_OUTPUT_RETRIEVAL_FAILURE = 11;
   OPERATION_FAILURE_KIND_INTERNAL = 12;
+  OPERATION_FAILURE_KIND_POLICY_DENIED = 13;
 }
 
 // Records retrieval state by the public operation result field name.

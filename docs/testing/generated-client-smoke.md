@@ -23,6 +23,7 @@ These tests substitute the separate `Briosa.SmokeWorker.exe` process for the rea
 | --- | --- |
 | Ready | Generated `GetWorkingDirectory` client receives a successful MP/result-retrieval shape |
 | Unavailable | Disconnected SDK state maps to `Unavailable` with a typed availability failure |
+| Policy denied | Runtime deny overrides the packaged allowlist, capability discovery hides the operation, and invocation returns `PermissionDenied` with a typed no-retry policy failure before SDK execution |
 | MP failure | MP failure maps to `FailedPrecondition`, preserves the result, and marks output retrieval not attempted |
 | Output failure | A successful MP followed by getter failure maps to `DataLoss` without returning a substitute value |
 | Deadline | An expired client deadline remains distinct and a later call succeeds |
@@ -32,7 +33,7 @@ These tests substitute the separate `Briosa.SmokeWorker.exe` process for the rea
 
 The fake worker's results, codes, delays, failures, and hangs are invented Briosa test inputs. They are not a SpatialAnalyzer emulator.
 
-Adapter tests separately prove that a failed MP suppresses all result-only SDK getters and that a successful MP followed by a failed getter is preserved. Error-mapper tests cover validation, unsupported operation, disconnected SA, unavailable worker, cancellation, deadline, watchdog, worker failure, rejected `ExecuteStep`, MP failure, getter failure, and malformed result shapes.
+Adapter tests separately prove that a failed MP suppresses all result-only SDK getters and that a successful MP followed by a failed getter is preserved. Policy tests prove fail-closed configuration and rejection before worker startup. Error-mapper tests cover validation, policy denial, unsupported operation, disconnected SA, unavailable worker, cancellation, deadline, watchdog, worker failure, rejected `ExecuteStep`, MP failure, getter failure, and malformed result shapes.
 
 ## Licensed SpatialAnalyzer smoke test
 

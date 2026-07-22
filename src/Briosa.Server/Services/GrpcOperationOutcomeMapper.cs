@@ -147,6 +147,24 @@ internal static class GrpcOperationOutcomeMapper
             "worker-execution-failed");
         return outcome.Status switch
         {
+            WorkerExecutionStatus.PolicyDenied => CreateFailure(
+                StatusCode.PermissionDenied,
+                operationId,
+                OperationFailureKind.PolicyDenied,
+                diagnosticCode,
+                RetryGuidance.DoNotRetry,
+                outcome.Generation,
+                mpExecution: null,
+                "The operation is denied by the Briosa operation policy."),
+            WorkerExecutionStatus.Unsupported => CreateFailure(
+                StatusCode.Unimplemented,
+                operationId,
+                OperationFailureKind.Unsupported,
+                diagnosticCode,
+                RetryGuidance.DoNotRetry,
+                outcome.Generation,
+                mpExecution: null,
+                "The operation is not supported by this Briosa target."),
             WorkerExecutionStatus.ClientCancelled when callerDeadlineExceeded => CreateFailure(
                 StatusCode.DeadlineExceeded,
                 operationId,

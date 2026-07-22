@@ -1,4 +1,7 @@
 using System.Globalization;
+using Briosa.Server.Generated.Sa.V2026_1_0529_7.V1Alpha1;
+using Briosa.Server.Security;
+using Briosa.Server.Services;
 using Briosa.Worker.Control;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -26,7 +29,7 @@ internal static class WorkerProcessRegistration
             "Briosa:Worker:ExecutionWatchdogTimeout",
             TimeSpan.FromSeconds(30));
 
-        services.TryAddSingleton(_ =>
+        services.TryAddSingleton(provider =>
         {
             var processFactory = new NamedPipeWorkerProcessFactory(
                 _ => new WorkerProcessLaunch(
@@ -47,14 +50,22 @@ internal static class WorkerProcessRegistration
             return new WorkerProcessSupervisor(
                 processFactory,
                 policy,
-                executionPolicy);
+                executionPolicy,
+                logger: provider.GetRequiredService<ILogger<WorkerProcessSupervisor>>());
         });
+        services.TryAddSingleton<OperationAuditLogger>();
+        services.TryAddSingleton(_ => OperationPolicy.Create(
+            configuration,
+            TargetCatalogMetadata.Operations));
+        services.TryAddSingleton<PolicyEnforcingWorkerCommandExecutor>();
         services.TryAddSingleton<IWorkerCommandExecutor>(provider =>
-            provider.GetRequiredService<WorkerProcessSupervisor>());
+            provider.GetRequiredService<PolicyEnforcingWorkerCommandExecutor>());
         services.TryAddSingleton<IWorkerStatusProvider>(provider =>
             provider.GetRequiredService<WorkerProcessSupervisor>());
         services.TryAddEnumerable(
             ServiceDescriptor.Singleton<IHostedService, WorkerSupervisorHostedService>());
+        services.TryAddEnumerable(
+            ServiceDescriptor.Singleton<IHostedService, OperationPolicyAuditHostedService>());
         return services;
     }
 
@@ -105,7 +116,6 @@ internal sealed partial class WorkerSupervisorHostedService(
         {
             LogWorkerReady(
                 _supervisor.Current.Generation,
-                connection.TargetHost,
                 connection.StatusCode);
         }
         else
@@ -113,7 +123,6 @@ internal sealed partial class WorkerSupervisorHostedService(
             LogWorkerReadyWithoutSdk(
                 _supervisor.Current.Generation,
                 connection.State,
-                connection.TargetHost,
                 connection.StatusCode,
                 connection.DiagnosticCode);
         }
@@ -125,8 +134,8 @@ internal sealed partial class WorkerSupervisorHostedService(
     [LoggerMessage(
         EventId = 1001,
         Level = LogLevel.Information,
-        Message = "Briosa worker generation {Generation} is ready and connected to {TargetHost} with ConnectEx status {StatusCode}.")]
-    private partial void LogWorkerReady(int generation, string targetHost, int? statusCode);
+        Message = "Briosa worker generation {Generation} is ready and connected with ConnectEx status {StatusCode}.")]
+    private partial void LogWorkerReady(int generation, int? statusCode);
 
     [LoggerMessage(
         EventId = 1002,
@@ -137,11 +146,10 @@ internal sealed partial class WorkerSupervisorHostedService(
     [LoggerMessage(
         EventId = 1003,
         Level = LogLevel.Warning,
-        Message = "Briosa worker generation {Generation} is control-ready but its SDK connection is {ConnectionState} for {TargetHost}; ConnectEx status {StatusCode}, diagnostic {DiagnosticCode}.")]
+        Message = "Briosa worker generation {Generation} is control-ready but its SDK connection is {ConnectionState}; ConnectEx status {StatusCode}, diagnostic {DiagnosticCode}.")]
     private partial void LogWorkerReadyWithoutSdk(
         int generation,
         WorkerConnectionState connectionState,
-        string targetHost,
         int? statusCode,
         string diagnosticCode);
 }

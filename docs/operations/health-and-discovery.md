@@ -27,6 +27,6 @@ The connected SpatialAnalyzer version is optional. An SDK connection does not it
 
 ## Capabilities
 
-`briosa.core.v1alpha1.DiscoveryService/ListCapabilities` lists only reviewed operations built into the exact-target catalog. Each entry includes its stable operation ID, gRPC service and RPC, fully qualified method, and reviewed read-only/mutating/unknown effect classification.
+`briosa.core.v1alpha1.DiscoveryService/ListCapabilities` lists only reviewed operations built into the exact-target catalog and enabled by the server's runtime operation policy. Each entry includes its stable operation ID, gRPC service and RPC, fully qualified method, and reviewed read-only/mutating/unknown effect classification. A missing runtime allowlist produces an empty operation list.
 
 Discovery does not expose hostnames, ports, process IDs, status codes, raw diagnostics, license information, credentials, MP arguments, returned values, or the complete installed SpatialAnalyzer command inventory.
