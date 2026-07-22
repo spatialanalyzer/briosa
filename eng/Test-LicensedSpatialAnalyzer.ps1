@@ -3,6 +3,8 @@ param(
     [Parameter(Mandatory)]
     [string]$PackagePath,
 
+    [string]$SmokeClientPath,
+
     [Parameter(Mandatory)]
     [switch]$ConfirmLicensedSpatialAnalyzerTest,
 
@@ -29,6 +31,13 @@ $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $resolvedPackage = [IO.Path]::GetFullPath($PackagePath, $repositoryRoot)
 $smokeClientProject = Join-Path $repositoryRoot "tools\Briosa.SmokeClient\Briosa.SmokeClient.csproj"
 $smokeClientDll = Join-Path $repositoryRoot "tools\Briosa.SmokeClient\bin\$Configuration\net10.0\Briosa.SmokeClient.dll"
+$resolvedSmokeClient = if ([string]::IsNullOrWhiteSpace($SmokeClientPath)) {
+    $smokeClientDll
+}
+else {
+    [IO.Path]::GetFullPath($SmokeClientPath, $repositoryRoot)
+}
+$usesPrebuiltSmokeClient = -not [string]::IsNullOrWhiteSpace($SmokeClientPath)
 $temporaryBase = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
 $temporaryRoot = Join-Path $temporaryBase "briosa-licensed-smoke-$([Guid]::NewGuid().ToString('N'))"
 $extractRoot = Join-Path $temporaryRoot "package"
@@ -106,7 +115,7 @@ if ($null -ne $existingListener) {
 
 [IO.Directory]::CreateDirectory($temporaryRoot) | Out-Null
 try {
-    if (-not $NoBuild) {
+    if (-not $NoBuild -and -not $usesPrebuiltSmokeClient) {
         & dotnet restore $smokeClientProject --locked-mode
         if ($LASTEXITCODE -ne 0) {
             throw "The generated smoke client restore failed."
@@ -118,7 +127,7 @@ try {
         }
     }
 
-    if (-not (Test-Path -LiteralPath $smokeClientDll -PathType Leaf)) {
+    if (-not (Test-Path -LiteralPath $resolvedSmokeClient -PathType Leaf)) {
         throw "The generated smoke client must be built before the licensed test."
     }
 
@@ -157,13 +166,20 @@ try {
     }
 
     $clientArguments = @(
-        $smokeClientDll,
         "--address", "http://127.0.0.1:$Port",
         "--scenario", "ready",
         "--timeout-seconds", "30")
-    $clientOutput = @(
-        & dotnet @clientArguments 2>&1 |
-            ForEach-Object { [string]$_ })
+    $clientOutput = if (
+        [IO.Path]::GetExtension($resolvedSmokeClient) -eq ".dll") {
+        @(
+            & dotnet $resolvedSmokeClient @clientArguments 2>&1 |
+                ForEach-Object { [string]$_ })
+    }
+    else {
+        @(
+            & $resolvedSmokeClient @clientArguments 2>&1 |
+                ForEach-Object { [string]$_ })
+    }
     if ($LASTEXITCODE -ne 0) {
         throw "The generated client did not complete the licensed smoke test."
     }

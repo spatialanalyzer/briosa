@@ -1,0 +1,189 @@
+name: Licensed SpatialAnalyzer validation
+
+on:
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: licensed-sa-2026-1-0529-7
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    name: Prepare trusted licensed-test payload
+    if: >-
+      github.repository == 'spatialanalyzer/briosa' &&
+      github.ref == 'refs/heads/main' &&
+      github.event_name == 'workflow_dispatch'
+    runs-on: windows-latest
+    timeout-minutes: 20
+    outputs:
+      payload_sha256: ${{ steps.payload.outputs.payload_sha256 }}
+
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
+      DOTNET_NOLOGO: 'true'
+      BRIOSA_TEST_VERSION: 0.1.0-licensed.${{ github.run_number }}
+
+    steps:
+      - name: Check out trusted source
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Install .NET SDK
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: '**/packages.lock.json'
+
+      - name: Build exact-target package
+        shell: pwsh
+        run: >
+          ./eng/New-WindowsPackage.ps1
+          -Version $env:BRIOSA_TEST_VERSION
+          -SourceRevision $env:GITHUB_SHA
+          -OutputDirectory artifacts/licensed-runner/package
+
+      - name: Build self-contained generated client
+        shell: pwsh
+        run: |
+          dotnet restore tools/Briosa.SmokeClient/Briosa.SmokeClient.csproj `
+            --locked-mode -r win-x64
+          dotnet publish tools/Briosa.SmokeClient/Briosa.SmokeClient.csproj `
+            -c Release -r win-x64 --self-contained true --no-restore `
+            -p:PublishSingleFile=false -p:PublishTrimmed=false `
+            -o artifacts/licensed-runner/payload/smoke-client
+
+      - name: Assemble and hash trusted payload
+        id: payload
+        shell: pwsh
+        run: |
+          $payloadRoot = 'artifacts/licensed-runner/payload'
+          $engineeringRoot = Join-Path $payloadRoot 'eng'
+          $packageRoot = Join-Path $payloadRoot 'package'
+          New-Item -ItemType Directory -Path $engineeringRoot -Force | Out-Null
+          New-Item -ItemType Directory -Path $packageRoot -Force | Out-Null
+
+          Copy-Item -LiteralPath eng/Test-LicensedSpatialAnalyzer.ps1 `
+            -Destination $engineeringRoot
+          Copy-Item -LiteralPath eng/Test-LicensedRunnerState.ps1 `
+            -Destination $engineeringRoot
+          Copy-Item -Path artifacts/licensed-runner/package/*.zip `
+            -Destination $packageRoot
+
+          [ordered]@{
+            repository = $env:GITHUB_REPOSITORY
+            source_revision = $env:GITHUB_SHA
+            source_ref = $env:GITHUB_REF
+            run_id = $env:GITHUB_RUN_ID
+            run_attempt = $env:GITHUB_RUN_ATTEMPT
+            spatial_analyzer_target = '2026.1.0529.7'
+          } | ConvertTo-Json | Set-Content `
+            -LiteralPath (Join-Path $payloadRoot 'trusted-source.json') `
+            -Encoding utf8NoBOM
+
+          $payloadArchive = 'artifacts/licensed-runner/licensed-sa-payload.zip'
+          Compress-Archive -Path "$payloadRoot/*" -DestinationPath $payloadArchive
+          $payloadHash = (Get-FileHash -LiteralPath $payloadArchive `
+            -Algorithm SHA256).Hash.ToLowerInvariant()
+          "payload_sha256=$payloadHash" | Out-File `
+            -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: Upload trusted payload
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: licensed-sa-payload-${{ github.sha }}-${{ github.run_attempt }}
+          path: artifacts/licensed-runner/licensed-sa-payload.zip
+          if-no-files-found: error
+          retention-days: 7
+
+  licensed-sa:
+    name: Validate SA 2026.1.0529.7
+    needs: prepare
+    if: >-
+      github.repository == 'spatialanalyzer/briosa' &&
+      github.ref == 'refs/heads/main' &&
+      github.event_name == 'workflow_dispatch'
+    environment: licensed-sa-2026-1-0529-7
+    runs-on:
+      group: briosa-licensed-sa
+      labels: [self-hosted, windows, x64, briosa-licensed, sa-2026-1-0529-7]
+    timeout-minutes: 15
+
+    env:
+      RUN_ROOT: ${{ runner.temp }}\briosa-licensed-${{ github.run_id }}-${{ github.run_attempt }}
+      EXPECTED_PAYLOAD_SHA256: ${{ needs.prepare.outputs.payload_sha256 }}
+
+    steps:
+      - name: Download trusted payload
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: licensed-sa-payload-${{ github.sha }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}\briosa-licensed-${{ github.run_id }}-${{ github.run_attempt }}\download
+
+      - name: Verify and extract trusted payload
+        shell: pwsh
+        run: |
+          $archive = Join-Path $env:RUN_ROOT 'download\licensed-sa-payload.zip'
+          $actualHash = (Get-FileHash -LiteralPath $archive `
+            -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($actualHash -ne $env:EXPECTED_PAYLOAD_SHA256) {
+            throw 'The licensed-test payload hash does not match the hosted build.'
+          }
+
+          $payloadRoot = Join-Path $env:RUN_ROOT 'payload'
+          New-Item -ItemType Directory -Path $payloadRoot -Force | Out-Null
+          Expand-Archive -LiteralPath $archive -DestinationPath $payloadRoot
+
+      - name: Verify licensed runner preflight state
+        shell: pwsh
+        run: >
+          & "$env:RUN_ROOT\payload\eng\Test-LicensedRunnerState.ps1"
+          -Phase Preflight
+          -RequireGitHubRunner
+
+      - name: Run licensed generated-client smoke test
+        shell: pwsh
+        run: |
+          $package = @(Get-ChildItem `
+            -LiteralPath "$env:RUN_ROOT\payload\package" -Filter '*.zip')
+          if ($package.Count -ne 1) {
+            throw 'The trusted payload must contain exactly one Briosa package.'
+          }
+
+          & "$env:RUN_ROOT\payload\eng\Test-LicensedSpatialAnalyzer.ps1" `
+            -PackagePath $package[0].FullName `
+            -SmokeClientPath "$env:RUN_ROOT\payload\smoke-client\Briosa.SmokeClient.exe" `
+            -ConfirmLicensedSpatialAnalyzerTest `
+            -NoBuild
+
+      - name: Verify licensed runner postflight state
+        if: always()
+        shell: pwsh
+        run: >
+          & "$env:RUN_ROOT\payload\eng\Test-LicensedRunnerState.ps1"
+          -Phase Postflight
+          -RequireGitHubRunner
+
+      - name: Remove licensed-test payload
+        if: always()
+        shell: pwsh
+        run: |
+          $runRoot = [IO.Path]::GetFullPath($env:RUN_ROOT)
+          $runnerTemp = [IO.Path]::GetFullPath($env:RUNNER_TEMP)
+          $runnerTempPrefix = $runnerTemp.TrimEnd('\') + '\'
+          if (-not $runRoot.StartsWith(
+              $runnerTempPrefix,
+              [StringComparison]::OrdinalIgnoreCase)) {
+            throw 'The licensed-test cleanup root is outside RUNNER_TEMP.'
+          }
+
+          if (Test-Path -LiteralPath $runRoot) {
+            Remove-Item -LiteralPath $runRoot -Recurse -Force
+          }

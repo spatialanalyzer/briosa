@@ -64,4 +64,4 @@ The script:
 
 The connected SA version remains reported as unverified because the approved SDK interface has no reviewed version query. The exact executable prerequisite and package target provide the controlled test assumption; they do not change runtime discovery semantics.
 
-Do not inject MP failures, hangs, crashes, or getter failures into a real production SA session. Those behaviors remain portable fake-worker tests. Protected runner trust boundaries, scheduling, credentials, and recovery policy remain issue #20.
+Do not inject MP failures, hangs, crashes, or getter failures into a real production SA session. Those behaviors remain portable fake-worker tests. The [licensed runner operations guide](../operations/licensed-sa-runner.md) defines the protected workflow, provisioning boundary, state checks, and recovery procedure.

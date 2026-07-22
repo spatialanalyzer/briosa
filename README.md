@@ -70,6 +70,8 @@ The [fake SDK and contract-test harness](docs/testing/fake-sdk-harness.md) verif
 
 The [generated-client smoke guide](docs/testing/generated-client-smoke.md) covers portable packaged-host scenarios and the explicit licensed-SA vertical-slice test. Both use a separate generated client process and redact the returned working-directory value.
 
+The [licensed runner operations guide](docs/operations/licensed-sa-runner.md) defines the dedicated-machine, organization runner-group, protected-environment, trusted-payload, and recovery requirements for real-SA validation. Never attach a repository-level self-hosted runner or a personal workstation to this public repository.
+
 ## Worker process lifecycle
 
 The gRPC host supervises SpatialAnalyzer automation in a disposable child worker over a private named pipe. It reports explicit lifecycle snapshots, replaces hung or crashed workers within a bounded restart window, and escalates failed graceful shutdown to process-tree termination.

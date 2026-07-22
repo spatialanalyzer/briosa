@@ -42,4 +42,17 @@ Run portable packaged-host success and failure scenarios without SpatialAnalyzer
 
 `Test-LicensedSpatialAnalyzer.ps1` is an explicit opt-in check for one already-running, separately licensed SA 2026.1.0529.7 instance.
 
+`Test-LicensedRunnerState.ps1` verifies safe preflight or postflight process state without logging process IDs, paths, license data, or returned values:
+
+```powershell
+./eng/Test-LicensedRunnerState.ps1 -Phase Preflight
+```
+
+`Verify-LicensedRunnerWorkflow.ps1` is an ordinary-CI policy check that rejects untrusted triggers, mutable action references, a licensed-runner checkout, or drift from the exact runner group and environment:
+
+```powershell
+./eng/Verify-LicensedRunnerWorkflow.ps1
+```
+
 See [the generated-client smoke guide](../docs/testing/generated-client-smoke.md) for package creation, prerequisites, safety boundaries, and scenario coverage.
+See [the licensed runner operations guide](../docs/operations/licensed-sa-runner.md) before provisioning or operating the protected machine.

@@ -32,6 +32,10 @@ jobs:
         shell: pwsh
         run: ./eng/Verify-Protocol.ps1
 
+      - name: Verify licensed runner workflow policy
+        shell: pwsh
+        run: ./eng/Verify-LicensedRunnerWorkflow.ps1
+
       - name: Install .NET SDK
         uses: actions/setup-dotnet@v5
         with:
