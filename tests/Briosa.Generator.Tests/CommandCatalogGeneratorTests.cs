@@ -20,7 +20,9 @@ public sealed class CommandCatalogGeneratorTests
             Assert.Equal(
                 [
                     "proto/briosa/sa/v2026_1_0529_7/v1alpha1/operations.proto",
-                    "src/Briosa.Server/Generated/Sa/V2026_1_0529_7/V1Alpha1/Operations.g.cs"
+                    "src/Briosa.Server/Generated/Sa/V2026_1_0529_7/V1Alpha1/Operations.g.cs",
+                    "docs/reference/generated/sa/2026.1.0529.7/operations.md",
+                    "generated/catalog/sa/2026.1.0529.7/coverage.json"
                 ],
                 result.Files);
 
@@ -66,6 +68,9 @@ public sealed class CommandCatalogGeneratorTests
             Assert.Contains("DirectoryArgumentName = \"Directory\"", binding, StringComparison.Ordinal);
             Assert.Contains("DirectoryFieldName = \"directory\"", binding, StringComparison.Ordinal);
             Assert.Contains("WorkerMpValueKind.Text", binding, StringComparison.Ordinal);
+            Assert.Contains("DirectoryGetter = \"GetStringArg\"", binding, StringComparison.Ordinal);
+            Assert.Contains("OutputContracts", binding, StringComparison.Ordinal);
+            Assert.Contains("CreateResult(SuccessfulOperationExecution completed)", binding, StringComparison.Ordinal);
 
             var proto = File.ReadAllText(Path.Combine(
                 outputRoot,

@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "catalog_id": "briosa.sa.2026.1.0529.7",
+  "catalog_revision": "1",
+  "spatial_analyzer_target": "2026.1.0529.7",
+  "target_protocol_package": "briosa.sa.v2026_1_0529_7.v1alpha1",
+  "operations": [
+    {
+      "operation_id": "file_operations.get_working_directory",
+      "mp_step": "Get Working Directory",
+      "service": "FileOperations",
+      "rpc": "GetWorkingDirectory",
+      "request": "GetWorkingDirectoryRequest",
+      "result": "GetWorkingDirectoryResult",
+      "generated": {
+        "protocol": true,
+        "command_adapter": true,
+        "result_adapter": true,
+        "documentation": true
+      },
+      "inputs": [],
+      "outputs": [
+        {
+          "argument_id": "directory",
+          "ordinal": 0,
+          "mp_name": "Directory",
+          "direction": "output",
+          "result_only": "yes",
+          "semantic_type": "string",
+          "getter": "GetStringArg"
+        }
+      ]
+    }
+  ]
+}

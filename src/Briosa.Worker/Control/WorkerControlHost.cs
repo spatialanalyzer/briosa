@@ -146,10 +146,11 @@ internal static class WorkerControlHost
                     argument.VectorValue.Z),
             argument.ToleranceVectorOptionsValue is null
                 ? null
-                : ToSdkToleranceVectorOptions(argument.ToleranceVectorOptionsValue));
+                : ToSdkToleranceVectorOptions(argument.ToleranceVectorOptionsValue),
+            argument.SdkBinding);
 
     private static SdkOutputArgument ToSdkOutputArgument(WorkerMpOutputArgument argument) =>
-        new(argument.Name, ToSdkValueKind(argument.Kind));
+        new(argument.Name, ToSdkValueKind(argument.Kind), argument.SdkBinding);
 
     private static SdkValueKind ToSdkValueKind(WorkerMpValueKind kind) =>
         kind switch

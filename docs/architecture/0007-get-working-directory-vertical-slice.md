@@ -36,7 +36,7 @@ A worker watchdog expiration is not reported as the caller's gRPC deadline. ADR 
 
 ## Generation boundary
 
-This issue generates the contract and no-input command binding needed to prove one vertical slice. Generation rejects cataloged input operations until issue #16 adds reviewed input presence/default mapping, general response adapters, reference documentation, and completeness manifests. Policy, logging, worker supervision, and gRPC outcome mapping remain hand-written review points.
+The initial vertical slice generated only its contract and no-input command binding. [ADR 0009](0009-catalog-derived-operation-artifacts.md) now generalizes reviewed input presence/default mapping, typed response adapters, reference documentation, exact SDK binding enforcement, and completeness manifests. Policy, logging, worker supervision, and gRPC outcome mapping remain hand-written review points.
 
 ## Testing
 

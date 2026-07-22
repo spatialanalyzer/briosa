@@ -102,11 +102,13 @@ internal sealed record SdkInputArgument(
     string? StringValue = null,
     SdkPointNameValue? PointNameValue = null,
     SdkVectorValue? VectorValue = null,
-    SdkToleranceVectorOptionsValue? ToleranceVectorOptionsValue = null);
+    SdkToleranceVectorOptionsValue? ToleranceVectorOptionsValue = null,
+    string? SdkBinding = null);
 
 internal sealed record SdkOutputArgument(
     string Name,
-    SdkValueKind Kind);
+    SdkValueKind Kind,
+    string? SdkBinding = null);
 
 internal sealed record SdkOutputValue(
     string Name,
