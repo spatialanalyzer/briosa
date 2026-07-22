@@ -153,7 +153,7 @@ try {
 
     $processArguments = @{
         FilePath = $serverExecutable
-        ArgumentList = @("--urls", "http://127.0.0.1:$Port")
+        ArgumentList = @("--Briosa:Endpoint:Port=$Port")
         WorkingDirectory = $packageRoot
         WindowStyle = "Hidden"
         RedirectStandardOutput = $standardOutput

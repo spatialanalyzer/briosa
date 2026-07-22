@@ -104,7 +104,7 @@ function Start-ScenarioServer {
     try {
         $processArguments = @{
             FilePath = $ServerExecutable
-            ArgumentList = @("--urls", "http://127.0.0.1:$Port")
+            ArgumentList = @("--Briosa:Endpoint:Port=$Port")
             WorkingDirectory = $WorkingDirectory
             WindowStyle = "Hidden"
             RedirectStandardOutput = $StandardOutput

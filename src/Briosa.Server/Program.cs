@@ -1,7 +1,9 @@
 using Briosa.Protocol;
+using Briosa.Server.Security;
 using Briosa.Server.Services;
 using Briosa.Server.Services.Sa.V2026_1_0529_7.V1Alpha1;
 using Briosa.Server.Workers;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 
 if (args is ["diagnostics"] or ["--diagnostics"])
 {
@@ -9,6 +11,12 @@ if (args is ["diagnostics"] or ["--diagnostics"])
     return;
 }
 var builder = WebApplication.CreateBuilder(args);
+var publicEndpoint = PublicEndpointConfiguration.Resolve(builder.Configuration);
+builder.WebHost.ConfigureKestrel(options =>
+    options.Listen(
+        publicEndpoint.Address,
+        publicEndpoint.Port,
+        listenOptions => listenOptions.Protocols = HttpProtocols.Http2));
 builder.Services.AddGrpc();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddWorkerProcessLifecycle(builder.Configuration);
