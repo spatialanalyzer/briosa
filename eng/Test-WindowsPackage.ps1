@@ -82,6 +82,7 @@ try {
     Assert-Condition -Condition ($configuration.Urls -eq "http://127.0.0.1:50051") -Message "The packaged loopback URL is incorrect."
     Assert-Condition -Condition ($configuration.Kestrel.EndpointDefaults.Protocols -eq "Http2") -Message "The packaged endpoint must require HTTP/2."
     Assert-Condition -Condition ($configuration.Briosa.SpatialAnalyzer.Host -eq "localhost") -Message "The packaged SpatialAnalyzer target must default to localhost."
+    Assert-Condition -Condition ($configuration.Briosa.Worker.ExecutionWatchdogTimeout -eq "00:00:30") -Message "The packaged execution watchdog default is incorrect."
 
     $checksumRoot = Join-Path $packageRoot "files.sha256"
     foreach ($line in Get-Content -LiteralPath $checksumRoot) {

@@ -120,6 +120,30 @@ public sealed class GetWorkingDirectoryServiceTests
     }
 
     [Fact]
+    public async Task CallerCancellationIsDistinctFromADeadline()
+    {
+        var executor = new RecordingExecutor(new WorkerExecutionOutcome(
+            WorkerExecutionStatus.ClientCancelled,
+            Execution: null,
+            Connection: null,
+            "client-wait-cancelled",
+            Generation: 4));
+        var client = CreateClient(executor);
+
+        using var cancellation = new CancellationTokenSource();
+        await cancellation.CancelAsync();
+        var exception = await Assert.ThrowsAsync<RpcException>(async () =>
+            await client.GetWorkingDirectoryAsync(
+                new TargetProtocol.GetWorkingDirectoryRequest(),
+                cancellationToken: cancellation.Token));
+
+        Assert.Equal(StatusCode.Cancelled, exception.StatusCode);
+        Assert.Equal(
+            OperationFailureKind.CallerCancelled,
+            ErrorDetail(exception).Kind);
+    }
+
+    [Fact]
     public async Task WatchdogFailureReportsWorkerUnavailableNotCallerDeadline()
     {
         var executor = new RecordingExecutor(new WorkerExecutionOutcome(

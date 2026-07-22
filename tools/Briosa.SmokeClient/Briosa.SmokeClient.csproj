@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <Description>External generated-client smoke probe for packaged Briosa hosts.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Grpc.Net.Client" />
+    <ProjectReference Include="..\..\src\Briosa.Protocol\Briosa.Protocol.csproj" />
+  </ItemGroup>
+</Project>

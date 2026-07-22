@@ -1,3 +1,4 @@
+using System.Globalization;
 using Briosa.Worker.Control;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -20,6 +21,10 @@ internal static class WorkerProcessRegistration
         var targetHost = string.IsNullOrWhiteSpace(configuredHost)
             ? "localhost"
             : configuredHost;
+        var executionWatchdogTimeout = ReadTimeout(
+            configuration,
+            "Briosa:Worker:ExecutionWatchdogTimeout",
+            TimeSpan.FromSeconds(30));
 
         services.TryAddSingleton(_ =>
         {
@@ -37,7 +42,7 @@ internal static class WorkerProcessRegistration
                 shutdownTimeout: TimeSpan.FromSeconds(5),
                 restartDelay: TimeSpan.FromSeconds(1));
             var executionPolicy = new WorkerExecutionPolicy(
-                watchdogTimeout: TimeSpan.FromSeconds(30),
+                watchdogTimeout: executionWatchdogTimeout,
                 queueCapacity: 64);
             return new WorkerProcessSupervisor(
                 processFactory,
@@ -51,6 +56,31 @@ internal static class WorkerProcessRegistration
         services.TryAddEnumerable(
             ServiceDescriptor.Singleton<IHostedService, WorkerSupervisorHostedService>());
         return services;
+    }
+
+    private static TimeSpan ReadTimeout(
+        IConfiguration configuration,
+        string key,
+        TimeSpan defaultValue)
+    {
+        var configured = configuration[key];
+        if (string.IsNullOrWhiteSpace(configured))
+        {
+            return defaultValue;
+        }
+
+        if (!TimeSpan.TryParse(
+                configured,
+                CultureInfo.InvariantCulture,
+                out var value) ||
+            value <= TimeSpan.Zero ||
+            value > TimeSpan.FromMinutes(10))
+        {
+            throw new InvalidOperationException(
+                $"Configuration value '{key}' must be a positive duration no greater than ten minutes.");
+        }
+
+        return value;
     }
 }
 

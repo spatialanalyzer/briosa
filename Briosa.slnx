@@ -9,11 +9,13 @@
     <Project Path="tests/Briosa.Generator.Tests/Briosa.Generator.Tests.csproj" />
     <Project Path="tests/Briosa.Protocol.Tests/Briosa.Protocol.Tests.csproj" />
     <Project Path="tests/Briosa.Server.Tests/Briosa.Server.Tests.csproj" />
+    <Project Path="tests/Briosa.SmokeWorker/Briosa.SmokeWorker.csproj" />
     <Project Path="tests/Briosa.Worker.TestHost/Briosa.Worker.TestHost.csproj" />
     <Project Path="tests/Briosa.Worker.Testing/Briosa.Worker.Testing.csproj" />
     <Project Path="tests/Briosa.Worker.Tests/Briosa.Worker.Tests.csproj" />
   </Folder>
   <Folder Name="/tools/">
     <Project Path="tools/Briosa.Generator/Briosa.Generator.csproj" />
+    <Project Path="tools/Briosa.SmokeClient/Briosa.SmokeClient.csproj" />
   </Folder>
 </Solution>

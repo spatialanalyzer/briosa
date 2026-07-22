@@ -31,3 +31,15 @@ Generated artifacts are committed but must not be hand-edited. Verify a clean ge
 ```
 
 Pass `-NoBuild` only after `Briosa.Generator` has already been built in the selected configuration.
+
+## Generated-client smoke tests
+
+Run portable packaged-host success and failure scenarios without SpatialAnalyzer:
+
+```powershell
+./eng/Test-GeneratedClientScenarios.ps1 -PackagePath <path-to-briosa-zip>
+```
+
+`Test-LicensedSpatialAnalyzer.ps1` is an explicit opt-in check for one already-running, separately licensed SA 2026.1.0529.7 instance.
+
+See [the generated-client smoke guide](../docs/testing/generated-client-smoke.md) for package creation, prerequisites, safety boundaries, and scenario coverage.

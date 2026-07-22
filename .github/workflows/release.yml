@@ -65,6 +65,12 @@ jobs:
           -Version "${{ steps.version.outputs.value }}"
           -OutputDirectory artifacts/release
 
+      - name: Run packaged generated-client scenarios
+        shell: pwsh
+        run: >
+          ./eng/Test-GeneratedClientScenarios.ps1
+          -PackagePath "artifacts/release/briosa-${{ steps.version.outputs.value }}-sa-2026.1.0529.7-win-x64.zip"
+
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v7
         with:
