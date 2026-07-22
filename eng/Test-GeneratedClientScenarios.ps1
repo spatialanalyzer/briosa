@@ -197,6 +197,21 @@ try {
             }
             $serverProcess = Start-ScenarioServer @serverArguments
             if (-not (Wait-ForListener -Process $serverProcess -Port $port)) {
+                foreach ($log in @(
+                    [pscustomobject]@{ Name = "stdout"; Path = $standardOutput },
+                    [pscustomobject]@{ Name = "stderr"; Path = $standardError })) {
+                    if (Test-Path -LiteralPath $log.Path -PathType Leaf) {
+                        Write-Host "--- server $($log.Name) for $($scenario.Client) ---"
+                        foreach ($line in Get-Content -LiteralPath $log.Path) {
+                            $redactedLine = $line
+                                .Replace($temporaryRoot, "<temporary-root>", [StringComparison]::OrdinalIgnoreCase)
+                                .Replace($repositoryRoot, "<repository-root>", [StringComparison]::OrdinalIgnoreCase)
+                                .Replace($packageRoot, "<package-root>", [StringComparison]::OrdinalIgnoreCase)
+                            Write-Host $redactedLine
+                        }
+                    }
+                }
+
                 throw "The packaged server did not listen for scenario '$($scenario.Client)'."
             }
 
