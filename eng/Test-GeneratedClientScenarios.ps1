@@ -100,7 +100,11 @@ function Start-ScenarioServer {
     foreach ($entry in $environmentValues.GetEnumerator()) {
         $previousValues[$entry.Key] =
             [Environment]::GetEnvironmentVariable($entry.Key)
-        [Environment]::SetEnvironmentVariable($entry.Key, $entry.Value)
+        if ($null -eq $entry.Value) {
+            Remove-Item -LiteralPath "Env:$($entry.Key)" -ErrorAction SilentlyContinue
+        } else {
+            [Environment]::SetEnvironmentVariable($entry.Key, $entry.Value)
+        }
     }
 
     try {
@@ -117,7 +121,11 @@ function Start-ScenarioServer {
     }
     finally {
         foreach ($entry in $previousValues.GetEnumerator()) {
-            [Environment]::SetEnvironmentVariable($entry.Key, $entry.Value)
+            if ($null -eq $entry.Value) {
+                Remove-Item -LiteralPath "Env:$($entry.Key)" -ErrorAction SilentlyContinue
+            } else {
+                [Environment]::SetEnvironmentVariable($entry.Key, $entry.Value)
+            }
         }
     }
 }
