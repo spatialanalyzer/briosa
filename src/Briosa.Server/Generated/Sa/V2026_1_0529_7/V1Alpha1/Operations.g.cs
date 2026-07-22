@@ -10,6 +10,7 @@ internal static class FileOperationsGetWorkingDirectoryBinding
     public const string OperationId = "file_operations.get_working_directory";
     public const string StepName = "Get Working Directory";
     public const string DirectoryArgumentName = "Directory";
+    public const string DirectoryFieldName = "directory";
 
     public static WorkerMpCommand CreateCommand() =>
         new(

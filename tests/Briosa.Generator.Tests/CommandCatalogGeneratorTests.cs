@@ -64,6 +64,7 @@ public sealed class CommandCatalogGeneratorTests
                 "Operations.g.cs"));
             Assert.Contains("StepName = \"Get Working Directory\"", binding, StringComparison.Ordinal);
             Assert.Contains("DirectoryArgumentName = \"Directory\"", binding, StringComparison.Ordinal);
+            Assert.Contains("DirectoryFieldName = \"directory\"", binding, StringComparison.Ordinal);
             Assert.Contains("WorkerMpValueKind.Text", binding, StringComparison.Ordinal);
 
             var proto = File.ReadAllText(Path.Combine(
@@ -79,6 +80,10 @@ public sealed class CommandCatalogGeneratorTests
                 proto,
                 StringComparison.Ordinal);
             Assert.Contains("optional string directory = 1", proto, StringComparison.Ordinal);
+            Assert.Contains(
+                "briosa.core.v1alpha1.MpExecutionDetails execution = 1000",
+                proto,
+                StringComparison.Ordinal);
         }
         finally
         {
