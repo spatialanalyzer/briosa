@@ -1,3 +1,5 @@
+using Briosa.Core.V1Alpha1;
+using Briosa.Server.Services;
 using Briosa.Server.Services.Sa.V2026_1_0529_7.V1Alpha1;
 using Briosa.Server.Workers;
 using Briosa.Worker.Control;
@@ -25,6 +27,13 @@ public sealed class GetWorkingDirectoryServiceTests
 
         Assert.True(result.HasDirectory);
         Assert.Equal(@"C:\Measurements", result.Directory);
+        Assert.NotNull(result.Execution);
+        Assert.Equal(MpExecutionState.Succeeded, result.Execution.State);
+        Assert.True(result.Execution.HasMpResultCode);
+        Assert.Equal(0, result.Execution.MpResultCode);
+        Assert.Equal(
+            OutputRetrievalState.Retrieved,
+            Assert.Single(result.Execution.OutputRetrievals).State);
         Assert.NotNull(executor.Command);
         Assert.Equal(
             "file_operations.get_working_directory",
@@ -87,6 +96,28 @@ public sealed class GetWorkingDirectoryServiceTests
     }
 
     [Fact]
+    public async Task CallerDeadlineIsDistinctFromTheWorkerWatchdog()
+    {
+        var executor = new RecordingExecutor(new WorkerExecutionOutcome(
+            WorkerExecutionStatus.ClientCancelled,
+            Execution: null,
+            Connection: null,
+            "client-wait-cancelled",
+            Generation: 4));
+        var client = CreateClient(executor);
+
+        var exception = await Assert.ThrowsAsync<RpcException>(async () =>
+            await client.GetWorkingDirectoryAsync(
+                new TargetProtocol.GetWorkingDirectoryRequest(),
+                deadline: DateTime.UtcNow.AddSeconds(-1)));
+
+        Assert.Equal(StatusCode.DeadlineExceeded, exception.StatusCode);
+        Assert.Equal(
+            OperationFailureKind.CallerDeadlineExceeded,
+            ErrorDetail(exception).Kind);
+    }
+
+    [Fact]
     public async Task WatchdogFailureReportsWorkerUnavailableNotCallerDeadline()
     {
         var executor = new RecordingExecutor(new WorkerExecutionOutcome(
@@ -112,7 +143,8 @@ public sealed class GetWorkingDirectoryServiceTests
     {
         var service = new FileOperationsService(
             executor,
-            NullLogger<FileOperationsService>.Instance);
+            NullLogger<FileOperationsService>.Instance,
+            TimeProvider.System);
         return new TargetProtocol.FileOperations.FileOperationsClient(
             new ServiceCallInvoker(service));
     }
@@ -136,6 +168,11 @@ public sealed class GetWorkingDirectoryServiceTests
     private static string Trailer(RpcException exception, string key) =>
         exception.Trailers.Single(entry => entry.Key == key).Value;
 
+    private static OperationError ErrorDetail(RpcException exception) =>
+        OperationError.Parser.ParseFrom(
+            exception.Trailers.Single(entry =>
+                entry.Key == GrpcOperationOutcomeMapper.ErrorTrailerName).ValueBytes);
+
     private sealed class RecordingExecutor(WorkerExecutionOutcome outcome) : IWorkerCommandExecutor
     {
         public WorkerMpCommand? Command { get; private set; }
@@ -157,7 +194,7 @@ public sealed class GetWorkingDirectoryServiceTests
             CallOptions options,
             TRequest request)
         {
-            var response = Invoke<TRequest, TResponse>(method, request, options.CancellationToken);
+            var response = Invoke<TRequest, TResponse>(method, request, options.Deadline, options.CancellationToken);
             return new AsyncUnaryCall<TResponse>(
                 response,
                 Task.FromResult(new Metadata()),
@@ -197,6 +234,7 @@ public sealed class GetWorkingDirectoryServiceTests
         private async Task<TResponse> Invoke<TRequest, TResponse>(
             Method<TRequest, TResponse> method,
             TRequest request,
+            DateTime? deadline,
             CancellationToken cancellationToken)
             where TRequest : class
             where TResponse : class
@@ -205,7 +243,7 @@ public sealed class GetWorkingDirectoryServiceTests
                 "/briosa.sa.v2026_1_0529_7.v1alpha1.FileOperations/GetWorkingDirectory",
                 method.FullName);
             Assert.IsType<TargetProtocol.GetWorkingDirectoryRequest>(request);
-            var response = await service.ExecuteGetWorkingDirectory(cancellationToken)
+            var response = await service.ExecuteGetWorkingDirectory(cancellationToken, deadline)
                 .ConfigureAwait(false);
             return (TResponse)(object)response;
         }

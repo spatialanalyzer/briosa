@@ -1,0 +1,71 @@
+syntax = "proto3";
+
+package briosa.core.v1alpha1;
+
+option csharp_namespace = "Briosa.Core.V1Alpha1";
+
+// Describes whether the MP command itself completed successfully.
+enum MpExecutionState {
+  MP_EXECUTION_STATE_UNSPECIFIED = 0;
+  MP_EXECUTION_STATE_SUCCEEDED = 1;
+  MP_EXECUTION_STATE_EXECUTE_STEP_REJECTED = 2;
+  MP_EXECUTION_STATE_FAILED = 3;
+}
+
+// Describes what happened when Briosa requested one result-only argument.
+enum OutputRetrievalState {
+  OUTPUT_RETRIEVAL_STATE_UNSPECIFIED = 0;
+  OUTPUT_RETRIEVAL_STATE_RETRIEVED = 1;
+  OUTPUT_RETRIEVAL_STATE_NOT_ATTEMPTED = 2;
+  OUTPUT_RETRIEVAL_STATE_FAILED = 3;
+}
+
+// Gives clients stable guidance without promising that retrying is idempotent.
+enum RetryGuidance {
+  RETRY_GUIDANCE_UNSPECIFIED = 0;
+  RETRY_GUIDANCE_DO_NOT_RETRY = 1;
+  RETRY_GUIDANCE_RETRY_AFTER_READINESS = 2;
+  RETRY_GUIDANCE_RETRY_AFTER_WORKER_REPLACEMENT = 3;
+  RETRY_GUIDANCE_CALLER_CONTROLLED = 4;
+}
+
+// Classifies one failed operation independently of its gRPC status code.
+enum OperationFailureKind {
+  OPERATION_FAILURE_KIND_UNSPECIFIED = 0;
+  OPERATION_FAILURE_KIND_VALIDATION = 1;
+  OPERATION_FAILURE_KIND_UNSUPPORTED = 2;
+  OPERATION_FAILURE_KIND_SPATIAL_ANALYZER_UNAVAILABLE = 3;
+  OPERATION_FAILURE_KIND_WORKER_UNAVAILABLE = 4;
+  OPERATION_FAILURE_KIND_CALLER_CANCELLED = 5;
+  OPERATION_FAILURE_KIND_CALLER_DEADLINE_EXCEEDED = 6;
+  OPERATION_FAILURE_KIND_WORKER_WATCHDOG_TIMEOUT = 7;
+  OPERATION_FAILURE_KIND_WORKER_FAILURE = 8;
+  OPERATION_FAILURE_KIND_EXECUTE_STEP_REJECTED = 9;
+  OPERATION_FAILURE_KIND_MP_FAILURE = 10;
+  OPERATION_FAILURE_KIND_OUTPUT_RETRIEVAL_FAILURE = 11;
+  OPERATION_FAILURE_KIND_INTERNAL = 12;
+}
+
+// Records retrieval state by the public operation result field name.
+message OutputRetrievalDetails {
+  string field_name = 1;
+  OutputRetrievalState state = 2;
+  optional string diagnostic_code = 3;
+}
+
+// Accompanies every successful MP result and MP-related error detail.
+message MpExecutionDetails {
+  MpExecutionState state = 1;
+  optional int32 mp_result_code = 2;
+  repeated OutputRetrievalDetails output_retrievals = 3;
+}
+
+// Typed, value-free detail carried in briosa-operation-error-bin metadata.
+message OperationError {
+  string operation_id = 1;
+  OperationFailureKind kind = 2;
+  string diagnostic_code = 3;
+  RetryGuidance retry_guidance = 4;
+  optional int32 worker_generation = 5;
+  optional MpExecutionDetails mp_execution = 6;
+}

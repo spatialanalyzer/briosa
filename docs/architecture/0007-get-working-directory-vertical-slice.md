@@ -22,7 +22,7 @@ The reviewed catalog remains the source of truth for repetitive operation artifa
 
 ## Initial transport mapping
 
-The vertical slice uses a deliberately small mapping that can be generalized by issue #13 without adding a provisional public error-envelope schema.
+The vertical slice originally used the deliberately small mapping below. ADR 0008 now supersedes it with the shared typed outcome and error-detail contract while preserving these canonical gRPC statuses.
 
 | Internal outcome | gRPC status | Diagnostic detail |
 | --- | --- | --- |
@@ -32,7 +32,7 @@ The vertical slice uses a deliberately small mapping that can be generalized by 
 | Worker unavailable, crashed, or watchdog expired | `Unavailable` | Curated worker diagnostic |
 | Caller stopped waiting | `Cancelled` | `client-wait-cancelled` |
 
-A worker watchdog expiration is not reported as the caller's gRPC deadline. Issue #13 owns the complete cross-operation mapping, retry guidance, caller-deadline behavior, and any shared typed error details.
+A worker watchdog expiration is not reported as the caller's gRPC deadline. ADR 0008 defines the complete cross-operation mapping, retry guidance, caller-deadline behavior, and shared typed error details.
 
 ## Generation boundary
 

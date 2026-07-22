@@ -80,18 +80,19 @@ internal static class CommandCatalogGenerator
         builder.AppendLine();
         builder.Append("package ").Append(manifest.TargetProtocolPackage).AppendLine(";");
         builder.AppendLine();
-        builder.Append("option csharp_namespace = \"")
-            .Append(ToCSharpNamespace(manifest.TargetProtocolPackage))
-            .AppendLine("\";");
-
+        builder.AppendLine("import \"briosa/core/v1alpha1/operation_outcomes.proto\";");
         if (operations.SelectMany(operation => operation.Arguments)
             .Any(argument => IsMessageType(argument.SemanticType)))
         {
-            builder.AppendLine();
             builder.Append("import \"")
                 .Append(manifest.TargetProtocolPackage.Replace('.', '/'))
                 .AppendLine("/values.proto\";");
         }
+
+        builder.AppendLine();
+        builder.Append("option csharp_namespace = \"")
+            .Append(ToCSharpNamespace(manifest.TargetProtocolPackage))
+            .AppendLine("\";");
 
         foreach (var serviceGroup in operations
             .GroupBy(operation => operation.Protocol.Service, StringComparer.Ordinal)
@@ -124,7 +125,7 @@ internal static class CommandCatalogGenerator
                 operation.Protocol.Request,
                 [.. operation.Arguments.Where(IsInput)]);
             builder.AppendLine();
-            AppendMessage(
+            AppendResultMessage(
                 builder,
                 operation.Protocol.Result,
                 [.. operation.Arguments.Where(IsOutput)]);
@@ -174,6 +175,11 @@ internal static class CommandCatalogGenerator
                     .Append(ToPascalCase(output.ArgumentId))
                     .Append("ArgumentName = \"")
                     .Append(EscapeCSharp(output.MpName))
+                    .AppendLine("\";");
+                builder.Append("    public const string ")
+                    .Append(ToPascalCase(output.ArgumentId))
+                    .Append("FieldName = \"")
+                    .Append(EscapeCSharp(output.ArgumentId))
                     .AppendLine("\";");
             }
 
@@ -239,6 +245,34 @@ internal static class CommandCatalogGenerator
                 .AppendLine(";");
         }
 
+        builder.AppendLine("}");
+    }
+
+    private static void AppendResultMessage(
+        StringBuilder builder,
+        string name,
+        IReadOnlyList<CommandCatalogArgument> arguments)
+    {
+        builder.Append("message ").Append(name).AppendLine(" {");
+        foreach (var argument in arguments.OrderBy(argument => argument.Ordinal))
+        {
+            AppendComment(builder, argument.Documentation, indentation: "  ");
+            builder.Append("  ");
+            if (!IsMessageType(argument.SemanticType))
+            {
+                builder.Append("optional ");
+            }
+
+            builder.Append(ToProtoType(argument.SemanticType))
+                .Append(' ')
+                .Append(argument.ArgumentId)
+                .Append(" = ")
+                .Append((argument.Ordinal + 1).ToString(CultureInfo.InvariantCulture))
+                .AppendLine(";");
+        }
+
+        builder.AppendLine("  // Explicit MP and result-only argument retrieval outcome.");
+        builder.AppendLine("  briosa.core.v1alpha1.MpExecutionDetails execution = 1000;");
         builder.AppendLine("}");
     }
 
