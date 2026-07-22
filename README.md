@@ -34,11 +34,11 @@ The `catalog` directory is the reviewed, machine-readable allowlist of MP operat
 
 Run `./eng/Verify-Catalog.ps1` to validate JSON structure, target and path identity, deterministic protocol names, argument direction, reviewed input omission/default behavior, evidence references, risk metadata, and private SDK setter/getter availability. Validation requires neither SpatialAnalyzer nor the local vendor evidence corpus.
 
-Run `dotnet run --project tools/Briosa.Generator -c Release -- catalog-generate catalog .` to regenerate catalog-derived protobuf and worker-binding artifacts. Never edit those artifacts by hand. `./eng/Verify-CatalogArtifacts.ps1` performs a clean generation and fails on content or file-list drift.
+Run `dotnet run --project tools/Briosa.Generator -c Release -- catalog-generate catalog .` to regenerate exact-target protobuf, server bindings, reference documentation, and coverage manifests. Never edit those artifacts by hand. `./eng/Verify-CatalogArtifacts.ps1` performs a clean generation and fails on content or file-list drift.
 
 See [the Get Working Directory vertical-slice decision](docs/architecture/0007-get-working-directory-vertical-slice.md) for the generated and hand-written boundaries, exact SDK sequence, and failure behavior.
 
-See [the supported-command catalog decision](docs/architecture/0006-versioned-command-catalog.md) for the inventory boundary, schema, naming, review, and release rules.
+See [the supported-command catalog decision](docs/architecture/0006-versioned-command-catalog.md) for the inventory boundary, schema, naming, review, and release rules. See [the catalog-derived artifact decision](docs/architecture/0009-catalog-derived-operation-artifacts.md) for generated adapter responsibilities, exact binding enforcement, documentation, drift checks, and completeness markers.
 
 ## SpatialAnalyzer interop
 

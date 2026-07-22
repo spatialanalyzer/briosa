@@ -2,7 +2,7 @@ namespace Briosa.Worker.Control;
 
 public static class WorkerControlProtocol
 {
-    public const int CurrentVersion = 3;
+    public const int CurrentVersion = 4;
 
     public const int MaximumMessageBytes = 64 * 1024;
 }
@@ -82,11 +82,13 @@ public sealed record WorkerMpInputArgument(
     string? StringValue = null,
     WorkerPointNameValue? PointNameValue = null,
     WorkerVectorValue? VectorValue = null,
-    WorkerToleranceVectorOptionsValue? ToleranceVectorOptionsValue = null);
+    WorkerToleranceVectorOptionsValue? ToleranceVectorOptionsValue = null,
+    string? SdkBinding = null);
 
 public sealed record WorkerMpOutputArgument(
     string Name,
-    WorkerMpValueKind Kind);
+    WorkerMpValueKind Kind,
+    string? SdkBinding = null);
 
 public sealed record WorkerMpOutputValue(
     string Name,

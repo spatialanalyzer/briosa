@@ -92,7 +92,7 @@ internal sealed class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
     }
 
     private static bool SetInputArgument(ISpatialAnalyzerSdkCalls sdk, SdkInputArgument argument) =>
-        argument.Kind switch
+        HasExpectedBinding(argument.SdkBinding, ExpectedSetter(argument.Kind)) && argument.Kind switch
         {
             SdkValueKind.Logical when argument.BooleanValue is { } value =>
                 sdk.SetBoolArg(argument.Name, value),
@@ -119,18 +119,20 @@ internal sealed class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
     private static SdkOutputValue GetOutputValue(
         ISpatialAnalyzerSdkCalls sdk,
         SdkOutputArgument argument) =>
-        argument.Kind switch
-        {
-            SdkValueKind.Logical => GetLogical(sdk, argument),
-            SdkValueKind.WholeNumber => GetWholeNumber(sdk, argument),
-            SdkValueKind.FloatingPoint => GetFloatingPoint(sdk, argument),
-            SdkValueKind.Text => GetText(sdk, argument),
-            SdkValueKind.PointName => GetPointName(sdk, argument),
-            SdkValueKind.Vector => GetVector(sdk, argument),
-            SdkValueKind.ToleranceVectorOptions =>
-                GetToleranceVectorOptions(sdk, argument),
-            _ => new SdkOutputValue(argument.Name, argument.Kind, Retrieved: false)
-        };
+        !HasExpectedBinding(argument.SdkBinding, ExpectedGetter(argument.Kind))
+            ? new SdkOutputValue(argument.Name, argument.Kind, Retrieved: false)
+            : argument.Kind switch
+            {
+                SdkValueKind.Logical => GetLogical(sdk, argument),
+                SdkValueKind.WholeNumber => GetWholeNumber(sdk, argument),
+                SdkValueKind.FloatingPoint => GetFloatingPoint(sdk, argument),
+                SdkValueKind.Text => GetText(sdk, argument),
+                SdkValueKind.PointName => GetPointName(sdk, argument),
+                SdkValueKind.Vector => GetVector(sdk, argument),
+                SdkValueKind.ToleranceVectorOptions =>
+                    GetToleranceVectorOptions(sdk, argument),
+                _ => new SdkOutputValue(argument.Name, argument.Kind, Retrieved: false)
+            };
 
     private static SdkOutputValue GetLogical(ISpatialAnalyzerSdkCalls sdk, SdkOutputArgument argument)
     {
@@ -254,6 +256,35 @@ internal sealed class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
                     lowMagnitude.ToValue())
                 : null);
     }
+
+    private static bool HasExpectedBinding(string? actual, string expected) =>
+        actual is null || string.Equals(actual, expected, StringComparison.Ordinal);
+
+    private static string ExpectedSetter(SdkValueKind kind) =>
+        kind switch
+        {
+            SdkValueKind.Logical => "SetBoolArg",
+            SdkValueKind.WholeNumber => "SetIntegerArg",
+            SdkValueKind.FloatingPoint => "SetDoubleArg",
+            SdkValueKind.Text => "SetStringArg",
+            SdkValueKind.PointName => "SetPointNameArg",
+            SdkValueKind.Vector => "SetVectorArg",
+            SdkValueKind.ToleranceVectorOptions => "SetToleranceVectorOptionsArg",
+            _ => throw new UnreachableException()
+        };
+
+    private static string ExpectedGetter(SdkValueKind kind) =>
+        kind switch
+        {
+            SdkValueKind.Logical => "GetBoolArg",
+            SdkValueKind.WholeNumber => "GetIntegerArg",
+            SdkValueKind.FloatingPoint => "GetDoubleArg",
+            SdkValueKind.Text => "GetStringArg",
+            SdkValueKind.PointName => "GetPointNameArg",
+            SdkValueKind.Vector => "GetVectorArg",
+            SdkValueKind.ToleranceVectorOptions => "GetToleranceVectorOptionsArg",
+            _ => throw new UnreachableException()
+        };
 
     private static bool SetToleranceVectorOptions(
         ISpatialAnalyzerSdkCalls sdk,

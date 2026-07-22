@@ -19,6 +19,7 @@ internal sealed partial class FileOperationsService(
     private readonly TimeProvider _timeProvider =
         timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
 
+    [OperationImplementation(FileOperationsGetWorkingDirectoryBinding.OperationId)]
     public override async Task<TargetProtocol.GetWorkingDirectoryResult> GetWorkingDirectory(
         TargetProtocol.GetWorkingDirectoryRequest request,
         ServerCallContext context)
@@ -27,15 +28,17 @@ internal sealed partial class FileOperationsService(
         ArgumentNullException.ThrowIfNull(context);
 
         return await ExecuteGetWorkingDirectory(
+            request,
             context.CancellationToken,
             context.Deadline).ConfigureAwait(false);
     }
 
     internal async Task<TargetProtocol.GetWorkingDirectoryResult> ExecuteGetWorkingDirectory(
+        TargetProtocol.GetWorkingDirectoryRequest request,
         CancellationToken cancellationToken,
         DateTime? deadline = null)
     {
-        var command = FileOperationsGetWorkingDirectoryBinding.CreateCommand();
+        var command = FileOperationsGetWorkingDirectoryBinding.CreateCommand(request);
         WorkerExecutionOutcome? outcome = null;
         try
         {
@@ -44,29 +47,17 @@ internal sealed partial class FileOperationsService(
             var completed = GrpcOperationOutcomeMapper.RequireSuccess(
                 outcome,
                 command.OperationId,
-                [
-                    new OperationOutputContract(
-                        FileOperationsGetWorkingDirectoryBinding.DirectoryFieldName,
-                        FileOperationsGetWorkingDirectoryBinding.DirectoryArgumentName,
-                        WorkerMpValueKind.Text)
-                ],
+                FileOperationsGetWorkingDirectoryBinding.OutputContracts,
                 deadline is not null &&
                 deadline.Value != DateTime.MaxValue &&
                 deadline.Value <= _timeProvider.GetUtcNow().UtcDateTime);
-            var output = completed.Execution.OutputValues.Single(value =>
-                value.Name == FileOperationsGetWorkingDirectoryBinding.DirectoryArgumentName &&
-                value.Kind == WorkerMpValueKind.Text);
 
             LogOperationCompleted(
                 command.OperationId,
                 outcome.Generation,
                 completed.Execution.DurationMilliseconds,
                 completed.Execution.MpResultCode);
-            return new TargetProtocol.GetWorkingDirectoryResult
-            {
-                Directory = output.StringValue!,
-                Execution = completed.Details
-            };
+            return FileOperationsGetWorkingDirectoryBinding.CreateResult(completed);
         }
         catch (RpcException exception)
         {

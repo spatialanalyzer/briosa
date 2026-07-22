@@ -13,7 +13,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             "file_operations.get_working_directory",
             "Get Working Directory",
             inputArguments: [],
-            [new SdkOutputArgument("Directory", SdkValueKind.Text)]);
+            [new SdkOutputArgument("Directory", SdkValueKind.Text, "GetStringArg")]);
 
         var result = adapter.Execute(command);
 

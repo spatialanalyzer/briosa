@@ -66,6 +66,22 @@ try {
         )
     }
 
+    $documentationRoot = Join-Path $repositoryRoot "docs\reference\generated\sa"
+    if (Test-Path -LiteralPath $documentationRoot) {
+        $actualFiles += @(
+            Get-ChildItem -LiteralPath $documentationRoot -Filter "operations.md" -File -Recurse |
+                ForEach-Object { Get-NormalizedRelativePath $repositoryRoot $_.FullName }
+        )
+    }
+
+    $coverageRoot = Join-Path $repositoryRoot "generated\catalog\sa"
+    if (Test-Path -LiteralPath $coverageRoot) {
+        $actualFiles += @(
+            Get-ChildItem -LiteralPath $coverageRoot -Filter "coverage.json" -File -Recurse |
+                ForEach-Object { Get-NormalizedRelativePath $repositoryRoot $_.FullName }
+        )
+    }
+
     $actualFiles = @($actualFiles | Sort-Object)
     $pathDifferences = @(Compare-Object $expectedFiles $actualFiles)
     if ($pathDifferences.Count -ne 0) {

@@ -12,6 +12,7 @@ namespace Briosa.Server.Tests;
 public sealed class GetWorkingDirectoryServiceTests
 {
     [Fact]
+    [OperationTest("file_operations.get_working_directory")]
     public async Task GeneratedClientRetrievesDirectoryThroughCatalogBinding()
     {
         var executor = new RecordingExecutor(CompletedExecution(
@@ -43,6 +44,7 @@ public sealed class GetWorkingDirectoryServiceTests
         var output = Assert.Single(executor.Command.OutputArguments);
         Assert.Equal("Directory", output.Name);
         Assert.Equal(WorkerMpValueKind.Text, output.Kind);
+        Assert.Equal("GetStringArg", output.SdkBinding);
     }
 
     [Fact]
@@ -243,7 +245,10 @@ public sealed class GetWorkingDirectoryServiceTests
                 "/briosa.sa.v2026_1_0529_7.v1alpha1.FileOperations/GetWorkingDirectory",
                 method.FullName);
             Assert.IsType<TargetProtocol.GetWorkingDirectoryRequest>(request);
-            var response = await service.ExecuteGetWorkingDirectory(cancellationToken, deadline)
+            var response = await service.ExecuteGetWorkingDirectory(
+                    (TargetProtocol.GetWorkingDirectoryRequest)(object)request,
+                    cancellationToken,
+                    deadline)
                 .ConfigureAwait(false);
             return (TResponse)(object)response;
         }
