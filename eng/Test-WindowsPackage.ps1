@@ -79,8 +79,8 @@ try {
     Assert-Condition -Condition (-not $manifest.spatialAnalyzerBundled) -Message "The package must not claim to bundle SpatialAnalyzer."
 
     $configuration = Get-Content -LiteralPath (Join-Path $packageRoot "appsettings.json") -Raw | ConvertFrom-Json
-    Assert-Condition -Condition ($configuration.Urls -eq "http://127.0.0.1:50051") -Message "The packaged loopback URL is incorrect."
-    Assert-Condition -Condition ($configuration.Kestrel.EndpointDefaults.Protocols -eq "Http2") -Message "The packaged endpoint must require HTTP/2."
+    Assert-Condition -Condition ($configuration.Briosa.Endpoint.Address -eq "127.0.0.1") -Message "The packaged loopback address is incorrect."
+    Assert-Condition -Condition ($configuration.Briosa.Endpoint.Port -eq 50051) -Message "The packaged endpoint port is incorrect."
     Assert-Condition -Condition ($configuration.Briosa.SpatialAnalyzer.Host -eq "localhost") -Message "The packaged SpatialAnalyzer target must default to localhost."
     Assert-Condition -Condition ($configuration.Briosa.Worker.ExecutionWatchdogTimeout -eq "00:00:30") -Message "The packaged execution watchdog default is incorrect."
 
@@ -116,7 +116,7 @@ try {
     try {
         $processArguments = @{
             FilePath = $serverExecutable
-            ArgumentList = @("--urls", "http://127.0.0.1:$port")
+            ArgumentList = @("--Briosa:Endpoint:Port=$port")
             WorkingDirectory = $packageRoot
             WindowStyle = "Hidden"
             RedirectStandardOutput = $standardOutput
@@ -154,6 +154,36 @@ try {
     }
 
     Assert-Condition -Condition $listening -Message "The packaged host did not open its configured loopback endpoint without SpatialAnalyzer."
+
+    if (-not $serverProcess.HasExited) {
+        Stop-Process -Id $serverProcess.Id -Force
+        $serverProcess.WaitForExit()
+    }
+    $serverProcess = $null
+
+    $unsafeStandardOutput = Join-Path $temporaryRoot "unsafe-server.stdout.log"
+    $unsafeStandardError = Join-Path $temporaryRoot "unsafe-server.stderr.log"
+    $unsafeProcessArguments = @{
+        FilePath = $serverExecutable
+        ArgumentList = @(
+            "--Briosa:Endpoint:Address=0.0.0.0",
+            "--Briosa:Endpoint:Port=$port")
+        WorkingDirectory = $packageRoot
+        WindowStyle = "Hidden"
+        RedirectStandardOutput = $unsafeStandardOutput
+        RedirectStandardError = $unsafeStandardError
+        PassThru = $true
+    }
+    $serverProcess = Start-Process @unsafeProcessArguments
+    $unsafeProcessExited = $serverProcess.WaitForExit(10000)
+    Assert-Condition `
+        -Condition $unsafeProcessExited `
+        -Message "The packaged host did not reject a non-loopback endpoint."
+    $serverProcess.WaitForExit()
+    Assert-Condition `
+        -Condition ($serverProcess.ExitCode -ne 0) `
+        -Message "The packaged host accepted a non-loopback endpoint."
+    $serverProcess = $null
     Write-Host "Package reproducibility, checksums, diagnostics, and launch smoke tests passed."
 }
 finally {

@@ -30,6 +30,12 @@ Run `./eng/New-WindowsPackage.ps1 -Version 0.1.0` to build an archive, checksum,
 
 See the [Windows package operator guide](docs/operations/windows-package.md) and [package identity decision](docs/architecture/0011-windows-package-identity.md) for prerequisites, verification, defaults, artifact contents, and release behavior.
 
+## Public endpoint security
+
+Briosa v0.1 listens on cleartext HTTP/2 at `127.0.0.1:50051` by default and accepts only IPv4 or IPv6 loopback addresses. LAN, Internet, reverse-proxy, tunnel, shared-host, and other remotely reachable deployments are unsupported: v0.1 has no client authentication, per-operation authorization, or TLS configuration. Generic ASP.NET Core URL and Kestrel endpoint overrides are rejected so they cannot silently widen the listener.
+
+See the [public endpoint operator guide](docs/operations/endpoint-security.md), [v0.1 threat model](docs/security/threat-model.md), and [loopback endpoint decision](docs/architecture/0014-loopback-only-public-endpoint.md) before deploying the server. `Briosa:SpatialAnalyzer:Host` controls the separate outbound SDK target and never changes the public listener.
+
 ## Public protocol
 
 Briosa separates the stable `briosa.core.v1alpha1` package from MP contracts generated for one exact SpatialAnalyzer release, beginning with `briosa.sa.v2026_1_0529_7.v1alpha1`. Target packages are independent, version-faithful APIs; matching command shapes never imply matching semantics across SA releases.
