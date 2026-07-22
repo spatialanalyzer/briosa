@@ -4,7 +4,7 @@ Briosa is an open-source gRPC bridge around the Hexagon SpatialAnalyzer SDK. Spa
 
 ## Current target
 
-The initial vertical slice targets .NET 10 on Windows x64 and SpatialAnalyzer 2026.1.0529.7. The repository is currently establishing its process, COM interop, protocol, generation, and test boundaries.
+The initial vertical slice targets .NET 10 on Windows x64 and SpatialAnalyzer 2026.1.0529.7. Its first public operation is the exact-target `GetWorkingDirectory` RPC.
 
 ## Build
 
@@ -32,6 +32,10 @@ The `catalog` directory is the reviewed, machine-readable allowlist of MP operat
 
 Run `./eng/Verify-Catalog.ps1` to validate JSON structure, target and path identity, deterministic protocol names, argument direction, reviewed input omission/default behavior, evidence references, risk metadata, and private SDK setter/getter availability. Validation requires neither SpatialAnalyzer nor the local vendor evidence corpus.
 
+Run `dotnet run --project tools/Briosa.Generator -c Release -- catalog-generate catalog .` to regenerate catalog-derived protobuf and worker-binding artifacts. Never edit those artifacts by hand. `./eng/Verify-CatalogArtifacts.ps1` performs a clean generation and fails on content or file-list drift.
+
+See [the Get Working Directory vertical-slice decision](docs/architecture/0007-get-working-directory-vertical-slice.md) for the generated and hand-written boundaries, exact SDK sequence, and failure behavior.
+
 See [the supported-command catalog decision](docs/architecture/0006-versioned-command-catalog.md) for the inventory boundary, schema, naming, review, and release rules.
 
 ## SpatialAnalyzer interop
@@ -42,7 +46,7 @@ See [the interop generation guide](docs/development/interop-generation.md) and [
 
 ## Portable SDK tests
 
-The [fake SDK and contract-test harness](docs/testing/fake-sdk-harness.md) verifies Briosa''s lifecycle, serialization, result handling, and recovery seams without installing or licensing SpatialAnalyzer. The scripted fake tests Briosa contracts and is not a SpatialAnalyzer emulator.
+The [fake SDK and contract-test harness](docs/testing/fake-sdk-harness.md) verifies Briosa's lifecycle, serialization, result handling, and recovery seams without installing or licensing SpatialAnalyzer. The scripted fake tests Briosa contracts and is not a SpatialAnalyzer emulator.
 
 ## Worker process lifecycle
 

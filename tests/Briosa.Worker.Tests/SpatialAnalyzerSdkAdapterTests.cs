@@ -2,7 +2,7 @@ using Briosa.Worker.Sdk;
 
 namespace Briosa.Worker.Tests;
 
-public sealed class SpatialAnalyzerSdkAdapterTests
+public sealed partial class SpatialAnalyzerSdkAdapterTests
 {
     [Fact]
     public void SuccessfulMpRetrievesRequestedOutputsAfterInspectingMpResult()
