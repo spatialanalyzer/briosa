@@ -1,0 +1,78 @@
+syntax = "proto3";
+
+package briosa.core.v1alpha1;
+
+import "briosa/core/v1alpha1/version_coordinates.proto";
+
+option csharp_namespace = "Briosa.Core.V1Alpha1";
+
+// Provides low-sensitivity server identity and exact-target capability metadata.
+service DiscoveryService {
+  // Returns build coordinates and a safe current runtime summary.
+  rpc GetServerInfo(GetServerInfoRequest) returns (GetServerInfoResponse);
+
+  // Lists only operations in this build's reviewed command catalog.
+  rpc ListCapabilities(ListCapabilitiesRequest) returns (ListCapabilitiesResponse);
+}
+
+message GetServerInfoRequest {}
+
+message GetServerInfoResponse {
+  VersionCoordinates version = 1;
+  WorkerRuntimeState worker_state = 2;
+  SpatialAnalyzerConnectionState spatial_analyzer_connection_state = 3;
+  bool ready_for_mp = 4;
+
+  // Present only when a reviewed runtime probe established the connected release.
+  optional string connected_spatial_analyzer_version = 5;
+  ConnectedSpatialAnalyzerVersionState connected_spatial_analyzer_version_state = 6;
+}
+
+enum WorkerRuntimeState {
+  WORKER_RUNTIME_STATE_UNSPECIFIED = 0;
+  WORKER_RUNTIME_STATE_STOPPED = 1;
+  WORKER_RUNTIME_STATE_STARTING = 2;
+  WORKER_RUNTIME_STATE_READY = 3;
+  WORKER_RUNTIME_STATE_DEGRADED = 4;
+}
+
+enum SpatialAnalyzerConnectionState {
+  SPATIAL_ANALYZER_CONNECTION_STATE_UNSPECIFIED = 0;
+  SPATIAL_ANALYZER_CONNECTION_STATE_DISCONNECTED = 1;
+  SPATIAL_ANALYZER_CONNECTION_STATE_CONNECTING = 2;
+  SPATIAL_ANALYZER_CONNECTION_STATE_CONNECTED = 3;
+  SPATIAL_ANALYZER_CONNECTION_STATE_FAULTED = 4;
+  SPATIAL_ANALYZER_CONNECTION_STATE_STOPPING = 5;
+}
+
+enum ConnectedSpatialAnalyzerVersionState {
+  CONNECTED_SPATIAL_ANALYZER_VERSION_STATE_UNSPECIFIED = 0;
+  CONNECTED_SPATIAL_ANALYZER_VERSION_STATE_UNAVAILABLE = 1;
+  CONNECTED_SPATIAL_ANALYZER_VERSION_STATE_VERIFIED_MATCH = 2;
+  CONNECTED_SPATIAL_ANALYZER_VERSION_STATE_VERIFIED_MISMATCH = 3;
+}
+
+message ListCapabilitiesRequest {}
+
+message ListCapabilitiesResponse {
+  string catalog_id = 1;
+  string catalog_revision = 2;
+  string spatial_analyzer_target = 3;
+  string target_protocol_package = 4;
+  repeated OperationCapability operations = 5;
+}
+
+message OperationCapability {
+  string operation_id = 1;
+  string grpc_service = 2;
+  string rpc = 3;
+  string fully_qualified_method = 4;
+  OperationEffect effect = 5;
+}
+
+enum OperationEffect {
+  OPERATION_EFFECT_UNSPECIFIED = 0;
+  OPERATION_EFFECT_READ_ONLY = 1;
+  OPERATION_EFFECT_MUTATING = 2;
+  OPERATION_EFFECT_UNKNOWN = 3;
+}

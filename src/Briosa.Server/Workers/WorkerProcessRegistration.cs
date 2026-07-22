@@ -46,6 +46,8 @@ internal static class WorkerProcessRegistration
         });
         services.TryAddSingleton<IWorkerCommandExecutor>(provider =>
             provider.GetRequiredService<WorkerProcessSupervisor>());
+        services.TryAddSingleton<IWorkerStatusProvider>(provider =>
+            provider.GetRequiredService<WorkerProcessSupervisor>());
         services.TryAddEnumerable(
             ServiceDescriptor.Singleton<IHostedService, WorkerSupervisorHostedService>());
         return services;

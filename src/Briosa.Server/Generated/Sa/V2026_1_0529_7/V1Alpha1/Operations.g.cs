@@ -7,6 +7,28 @@ using TargetProtocol = global::Briosa.Sa.V2026_1_0529_7.V1Alpha1;
 namespace Briosa.Server.Generated.Sa.V2026_1_0529_7.V1Alpha1;
 
 [global::System.CodeDom.Compiler.GeneratedCode("Briosa.Generator", "1.0")]
+internal sealed record CatalogOperationDescriptor(
+    string OperationId,
+    string GrpcService,
+    string Rpc,
+    string FullyQualifiedMethod,
+    string Effect);
+
+[global::System.CodeDom.Compiler.GeneratedCode("Briosa.Generator", "1.0")]
+internal static class TargetCatalogMetadata
+{
+    public const string CatalogId = "briosa.sa.2026.1.0529.7";
+    public const string CatalogRevision = "1";
+    public const string SpatialAnalyzerTarget = "2026.1.0529.7";
+    public const string TargetProtocolPackage = "briosa.sa.v2026_1_0529_7.v1alpha1";
+
+    public static IReadOnlyList<CatalogOperationDescriptor> Operations { get; } =
+        [
+            new("file_operations.get_working_directory", "briosa.sa.v2026_1_0529_7.v1alpha1.FileOperations", "GetWorkingDirectory", "/briosa.sa.v2026_1_0529_7.v1alpha1.FileOperations/GetWorkingDirectory", "read_only"),
+        ];
+}
+
+[global::System.CodeDom.Compiler.GeneratedCode("Briosa.Generator", "1.0")]
 internal static class FileOperationsGetWorkingDirectoryBinding
 {
     public const string OperationId = "file_operations.get_working_directory";
