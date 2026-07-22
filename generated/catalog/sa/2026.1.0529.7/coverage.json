@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "catalog_id": "briosa.sa.2026.1.0529.7",
-  "catalog_revision": "1",
+  "catalog_revision": "2",
   "spatial_analyzer_target": "2026.1.0529.7",
   "target_protocol_package": "briosa.sa.v2026_1_0529_7.v1alpha1",
   "operations": [
@@ -27,6 +27,7 @@
           "direction": "output",
           "result_only": "yes",
           "semantic_type": "string",
+          "data_classification": "path",
           "getter": "GetStringArg"
         }
       ]

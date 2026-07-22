@@ -46,7 +46,10 @@ internal static class SmokeClientProgram
                     cancellationToken: timeout.Token)
                 .ResponseAsync.ConfigureAwait(false);
 
-            ValidateIdentity(serverInfo, capabilities);
+            ValidateIdentity(
+                serverInfo,
+                capabilities,
+                expectOperation: options.Scenario != SmokeScenario.PolicyDenied);
             var outcome = await ExecuteScenario(
                     options,
                     channel,
@@ -76,7 +79,8 @@ internal static class SmokeClientProgram
 
     private static void ValidateIdentity(
         GetServerInfoResponse serverInfo,
-        ListCapabilitiesResponse capabilities)
+        ListCapabilitiesResponse capabilities,
+        bool expectOperation)
     {
         if (serverInfo.Version is null ||
             serverInfo.Version.SpatialAnalyzerTarget != ExpectedSpatialAnalyzerTarget ||
@@ -91,10 +95,11 @@ internal static class SmokeClientProgram
             throw new SmokeFailureException("capability-target-identity-mismatch");
         }
 
-        if (!capabilities.Operations.Any(operation =>
-                operation.FullyQualifiedMethod == ExpectedOperation))
+        var operationAdvertised = capabilities.Operations.Any(operation =>
+            operation.FullyQualifiedMethod == ExpectedOperation);
+        if (operationAdvertised != expectOperation)
         {
-            throw new SmokeFailureException("expected-operation-not-advertised");
+            throw new SmokeFailureException("operation-policy-capability-mismatch");
         }
     }
 
@@ -149,6 +154,11 @@ internal static class SmokeClientProgram
                 serverInfo,
                 options.Timeout,
                 cancellationToken).ConfigureAwait(false),
+            SmokeScenario.PolicyDenied => await ExecutePolicyDenied(
+                client,
+                serverInfo,
+                options.Timeout,
+                cancellationToken).ConfigureAwait(false),
             SmokeScenario.UnsupportedVersion => await ExecuteUnsupportedVersion(
                 channel,
                 serverInfo,
@@ -194,6 +204,32 @@ internal static class SmokeClientProgram
                 OperationFailureKind.WorkerUnavailable))
         {
             throw new SmokeFailureException("unexpected-unavailable-kind");
+        }
+
+        return new ScenarioOutcome(
+            OperationSucceeded: false,
+            error.Kind.ToString(),
+            RecoverySucceeded: false);
+    }
+
+    private static async Task<ScenarioOutcome> ExecutePolicyDenied(
+        TargetProtocol.FileOperations.FileOperationsClient client,
+        GetServerInfoResponse serverInfo,
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
+    {
+        RequireReady(serverInfo);
+        var error = await RequireFailure(
+                client,
+                timeout,
+                StatusCode.PermissionDenied,
+                cancellationToken)
+            .ConfigureAwait(false);
+        if (error.Kind != OperationFailureKind.PolicyDenied ||
+            error.RetryGuidance != RetryGuidance.DoNotRetry ||
+            error.MpExecution is not null)
+        {
+            throw new SmokeFailureException("unexpected-policy-denial-shape");
         }
 
         return new ScenarioOutcome(
@@ -446,7 +482,8 @@ internal static class SmokeClientProgram
         Deadline,
         Cancellation,
         WatchdogRecovery,
-        UnsupportedVersion
+        UnsupportedVersion,
+        PolicyDenied
     }
 
     private sealed record SmokeOptions(
@@ -476,6 +513,7 @@ internal static class SmokeClientProgram
                 "cancellation" => SmokeScenario.Cancellation,
                 "watchdog-recovery" => SmokeScenario.WatchdogRecovery,
                 "unsupported-version" => SmokeScenario.UnsupportedVersion,
+                "policy-denied" => SmokeScenario.PolicyDenied,
                 _ => throw new SmokeFailureException("unsupported-smoke-scenario")
             };
             var timeoutSecondsText = GetArgument(arguments, "--timeout-seconds");

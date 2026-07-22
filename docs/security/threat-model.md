@@ -74,11 +74,11 @@ The successful result path reverses the first four boundaries: SA produces MP re
 | T01 | Wildcard or non-loopback listener exposes MP execution | Remote command execution and output theft | Programmatic Kestrel listener accepts only `IPAddress.IsLoopback`; generic URL and endpoint settings are rejected | A tunnel or proxy created outside Briosa can still expose loopback |
 | T02 | Remote caller impersonates an authorized client | Unauthorized MP use | Remote reachability is unsupported and rejected | No local caller identity; remote support requires authentication |
 | T03 | Network request or result is observed or modified | Input tampering and proprietary result disclosure | Traffic is confined to loopback | Cleartext remains visible to sufficiently privileged local software; remote support requires TLS |
-| T04 | Local untrusted process calls discovery or MP methods | Capability discovery, path/result exfiltration, command abuse | Documented single-user/trusted-process deployment; curated API exposes one reviewed read-only operation | Authentication and authorization are required for hostile local multi-user scenarios |
-| T05 | A successful result leaks through logs or diagnostics | Disclosure of paths, geometry, identifiers, or measurements | Default diagnostics are value-free; smoke tests intentionally redact the working directory | Structured logging and field-level redaction policy continue in issue #24 |
+| T04 | Local untrusted process calls discovery or MP methods | Capability discovery, path/result exfiltration, command abuse | Documented single-user/trusted-process deployment; generated catalog plus fail-closed runtime policy restrict exposed operations | Runtime policy is not caller authorization; authenticated identity is required for hostile local multi-user scenarios |
+| T05 | A successful result leaks through logs or diagnostics | Disclosure of paths, geometry, identifiers, or measurements | Audit logger APIs accept metadata only; redaction tests include sensitive results with verbose logging enabled | Client, collector, and third-party middleware logging remain operator responsibilities |
 | T06 | Malicious client floods or overlaps requests | SA starvation, queue pressure, timeouts, or denial of service | One serialized worker execution path, deadlines, watchdog replacement, process isolation | Admission limits, quotas, identities, and per-actor rate policy are unresolved |
 | T07 | SDK call hangs or worker crashes | Availability loss and stale SDK ownership | Disposable worker, bounded watchdog, host survival, explicit readiness | Terminating a worker may leave SDK state requiring operator recovery |
-| T08 | Dangerous MP is exposed or arguments are reinterpreted across SA releases | File/network side effects, production changes, or semantic misuse | Exact-release protobuf identity and reviewed catalog allowlist; absence means unsupported | Command risk classification and allow/deny policy continue in issue #24 |
+| T08 | Dangerous MP is exposed or arguments are reinterpreted across SA releases | File/network side effects, production changes, or semantic misuse | Exact-release bindings, reviewed effect/risk/data classifications, generated catalog ceiling, runtime allow/deny policy, and pre-worker binding checks | Review quality and operator policy remain trusted; deny-by-command is not argument-level authorization |
 | T09 | Returned result is treated as less sensitive than input | Proprietary-data exfiltration | Threat model and diagnostics rules classify both directions as protected | Client applications remain responsible for their own storage and logging |
 | T10 | Operator uses the wrong SA release | Semantically incorrect execution | Exact package/catalog coordinates, exact-target service namespace, fail-closed unsupported service | Connected SA version remains unverified until a reviewed runtime probe exists |
 | T11 | Generic ASP.NET configuration silently overrides the listener | Accidental network exposure | `--urls`, `ASPNETCORE_URLS`, HTTP/HTTPS port keys, and `Kestrel:Endpoints` are rejected; protocols are set in code | Hosting behind IIS or another process is unsupported and must not override the boundary |
@@ -124,7 +124,7 @@ Changing only the listener address, adding a firewall exception, or placing an u
 - Windows firewall and network policy do not publish or proxy the loopback endpoint.
 - The host and worker named-pipe access controls require continued review as service-account and multi-user deployment evolves.
 - Remote SDK transport and licensing remain issue #23.
-- Command authorization, risk classification, logging, audit, redaction, retention, and admission control remain issue #24.
+- Runtime command policy and value-free audit events are implemented. Caller identity, per-actor authorization, centralized retention policy, and admission control remain future remote-access requirements.
 - Exact supported SA releases and connected-version verification remain separately governed decisions.
 
 ## Verification
@@ -132,4 +132,5 @@ Changing only the listener address, adding a firewall exception, or placing an u
 - Unit tests cover default IPv4 loopback, explicit IPv6 loopback, port validation, non-loopback rejection, hostname rejection, generic URL keys, and Kestrel endpoint rejection.
 - Package tests prove the default listener starts on loopback and a packaged server given `0.0.0.0` exits instead of listening.
 - Portable generated-client scenarios cross the real packaged loopback HTTP/2 endpoint.
+- Policy and audit tests cover fail-closed configuration, deny precedence, pre-worker rejection, discovery filtering, typed errors, correlation, outcome metadata, and sensitive-value redaction at verbose log levels.
 - Ordinary CI requires no SA installation or license.

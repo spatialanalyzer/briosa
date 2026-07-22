@@ -83,6 +83,10 @@ try {
     Assert-Condition -Condition ($configuration.Briosa.Endpoint.Port -eq 50051) -Message "The packaged endpoint port is incorrect."
     Assert-Condition -Condition ($configuration.Briosa.SpatialAnalyzer.Host -eq "localhost") -Message "The packaged SpatialAnalyzer target must default to localhost."
     Assert-Condition -Condition ($configuration.Briosa.Worker.ExecutionWatchdogTimeout -eq "00:00:30") -Message "The packaged execution watchdog default is incorrect."
+    Assert-Condition -Condition ($configuration.Briosa.Security.Operations.Allow.Count -eq 1) -Message "The packaged operation allowlist must contain exactly one reviewed operation."
+    Assert-Condition -Condition ($configuration.Briosa.Security.Operations.Allow[0] -eq "file_operations.get_working_directory") -Message "The packaged operation allowlist is incorrect."
+    Assert-Condition -Condition ($configuration.Briosa.Security.Operations.Deny.Count -eq 0) -Message "The packaged operation denylist must be empty by default."
+
 
     $checksumRoot = Join-Path $packageRoot "files.sha256"
     foreach ($line in Get-Content -LiteralPath $checksumRoot) {

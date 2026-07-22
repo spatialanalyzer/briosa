@@ -30,6 +30,7 @@
       "direction": "output",
       "result_only": "yes",
       "semantic_type": "string",
+      "data_classification": "path",
       "sdk_binding": {
         "status": "available",
         "setter": null,

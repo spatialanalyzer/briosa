@@ -4,6 +4,8 @@ namespace Briosa.Server.Workers;
 
 internal enum WorkerExecutionStatus
 {
+    PolicyDenied,
+    Unsupported,
     Completed,
     Unavailable,
     ClientCancelled,
@@ -16,7 +18,8 @@ internal sealed record WorkerExecutionOutcome(
     WorkerMpExecutionResult? Execution,
     WorkerConnectionSnapshot? Connection,
     string DiagnosticCode,
-    int Generation);
+    int Generation,
+    Guid CorrelationId = default);
 
 internal sealed class WorkerExecutionPolicy
 {

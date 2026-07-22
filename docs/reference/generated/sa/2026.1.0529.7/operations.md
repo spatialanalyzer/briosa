@@ -2,7 +2,7 @@
 <!-- Generated from the reviewed Briosa command catalog. Do not edit by hand. -->
 # SpatialAnalyzer 2026.1.0529.7 operation reference
 
-Catalog `briosa.sa.2026.1.0529.7` revision `1`.
+Catalog `briosa.sa.2026.1.0529.7` revision `2`.
 
 Only explicitly reviewed Briosa operations are listed here. This is not the installed SpatialAnalyzer MP catalog.
 
@@ -22,6 +22,6 @@ None.
 
 ### Outputs
 
-| Field | MP argument | Direction | Type | SDK binding | Presence / retrieval |
-| --- | --- | --- | --- | --- | --- |
-| `directory` | `Directory` | `output` | `string` | `GetStringArg` | result-only yes |
+| Field | MP argument | Direction | Type | Data classification | SDK binding | Presence / retrieval |
+| --- | --- | --- | --- | --- | --- | --- |
+| `directory` | `Directory` | `output` | `string` | `path` | `GetStringArg` | result-only yes |

@@ -33,10 +33,39 @@ public sealed class CommandCatalogValidatorTests
         Assert.Equal("output", argument["direction"]!.GetValue<string>());
         Assert.Equal("yes", argument["result_only"]!.GetValue<string>());
         Assert.Equal("string", argument["semantic_type"]!.GetValue<string>());
+        Assert.Equal("path", argument["data_classification"]!.GetValue<string>());
         Assert.Null(argument["sdk_binding"]!["setter"]);
         Assert.Equal(
             "GetStringArg",
             argument["sdk_binding"]!["getter"]!.GetValue<string>());
+    }
+
+    [Fact]
+    public void UnknownArgumentDataClassificationFailsReleaseValidation()
+    {
+        using var fixture = CatalogFixture.Create();
+        fixture.EditOperation(operation =>
+            operation["arguments"]![0]!["data_classification"] = "unknown");
+
+        var result = CommandCatalogValidator.ValidateDirectory(fixture.Root);
+
+        Assert.Contains(
+            result.Errors,
+            error => error.Contains("unknown data_classification", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void RiskFlagsMustUseDeterministicOrder()
+    {
+        using var fixture = CatalogFixture.Create();
+        fixture.EditOperation(operation =>
+            operation["risk"]!["flags"] = new JsonArray("network", "filesystem_metadata"));
+
+        var result = CommandCatalogValidator.ValidateDirectory(fixture.Root);
+
+        Assert.Contains(
+            result.Errors,
+            error => error.Contains("risk.flags must use ordinal sort order", StringComparison.Ordinal));
     }
 
     [Fact]

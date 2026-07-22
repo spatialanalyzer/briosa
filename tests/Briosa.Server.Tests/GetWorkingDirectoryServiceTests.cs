@@ -169,7 +169,8 @@ public sealed class GetWorkingDirectoryServiceTests
     {
         var service = new FileOperationsService(
             executor,
-            NullLogger<FileOperationsService>.Instance,
+            new OperationAuditLogger(
+                NullLogger<OperationAuditLogger>.Instance),
             TimeProvider.System);
         return new TargetProtocol.FileOperations.FileOperationsClient(
             new ServiceCallInvoker(service));

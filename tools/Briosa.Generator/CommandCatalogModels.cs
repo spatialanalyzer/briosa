@@ -142,6 +142,9 @@ internal sealed class CommandCatalogArgument
 
     [JsonRequired]
     public required string SemanticType { get; init; }
+    [JsonRequired]
+    public required string DataClassification { get; init; }
+
 
     public CommandCatalogInputMetadata? Input { get; init; }
 

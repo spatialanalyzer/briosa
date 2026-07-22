@@ -1,4 +1,5 @@
 using Briosa.Server.Generated.Sa.V2026_1_0529_7.V1Alpha1;
+using Briosa.Server.Security;
 using Briosa.Server.Services;
 using Briosa.Server.Workers;
 using Briosa.Worker.Control;
@@ -7,15 +8,19 @@ using TargetProtocol = global::Briosa.Sa.V2026_1_0529_7.V1Alpha1;
 
 namespace Briosa.Server.Services.Sa.V2026_1_0529_7.V1Alpha1;
 
-internal sealed partial class FileOperationsService(
+internal sealed class FileOperationsService(
     IWorkerCommandExecutor executor,
-    ILogger<FileOperationsService> logger,
+    OperationAuditLogger auditLogger,
     TimeProvider timeProvider) : TargetProtocol.FileOperations.FileOperationsBase
 {
+    private static readonly CatalogOperationDescriptor OperationDescriptor =
+        TargetCatalogMetadata.Operations.Single(operation =>
+            operation.OperationId == FileOperationsGetWorkingDirectoryBinding.OperationId);
+
+    private readonly OperationAuditLogger _auditLogger =
+        auditLogger ?? throw new ArgumentNullException(nameof(auditLogger));
     private readonly IWorkerCommandExecutor _executor =
         executor ?? throw new ArgumentNullException(nameof(executor));
-    private readonly ILogger<FileOperationsService> _logger =
-        logger ?? throw new ArgumentNullException(nameof(logger));
     private readonly TimeProvider _timeProvider =
         timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
 
@@ -30,20 +35,34 @@ internal sealed partial class FileOperationsService(
         return await ExecuteGetWorkingDirectory(
             request,
             context.CancellationToken,
-            context.Deadline).ConfigureAwait(false);
+            context.Deadline,
+            Guid.NewGuid(),
+            ClassifyActor(context.Peer)).ConfigureAwait(false);
     }
 
     internal async Task<TargetProtocol.GetWorkingDirectoryResult> ExecuteGetWorkingDirectory(
         TargetProtocol.GetWorkingDirectoryRequest request,
         CancellationToken cancellationToken,
-        DateTime? deadline = null)
+        DateTime? deadline = null,
+        Guid? correlationId = null,
+        string actorCategory = "internal-unattributed")
     {
+        var effectiveCorrelationId = correlationId is { } value && value != Guid.Empty
+            ? value
+            : Guid.NewGuid();
+        _auditLogger.RequestStarted(
+            effectiveCorrelationId,
+            OperationDescriptor,
+            actorCategory);
+        var startedAt = _timeProvider.GetTimestamp();
         var command = FileOperationsGetWorkingDirectoryBinding.CreateCommand(request);
         WorkerExecutionOutcome? outcome = null;
         try
         {
-            outcome = await _executor.ExecuteAsync(command, cancellationToken)
-                .ConfigureAwait(false);
+            outcome = await _executor.ExecuteAsync(
+                command,
+                effectiveCorrelationId,
+                cancellationToken).ConfigureAwait(false);
             var completed = GrpcOperationOutcomeMapper.RequireSuccess(
                 outcome,
                 command.OperationId,
@@ -52,44 +71,43 @@ internal sealed partial class FileOperationsService(
                 deadline.Value != DateTime.MaxValue &&
                 deadline.Value <= _timeProvider.GetUtcNow().UtcDateTime);
 
-            LogOperationCompleted(
+            _auditLogger.OperationCompleted(
+                EffectiveCorrelationId(outcome, effectiveCorrelationId),
                 command.OperationId,
                 outcome.Generation,
-                completed.Execution.DurationMilliseconds,
-                completed.Execution.MpResultCode);
+                RequestDurationMilliseconds(startedAt),
+                OperationAuditSummary.Create(outcome));
             return FileOperationsGetWorkingDirectoryBinding.CreateResult(completed);
         }
         catch (RpcException exception)
         {
             var diagnosticCode = exception.Trailers
-                .Single(entry => entry.Key == GrpcOperationOutcomeMapper.DiagnosticTrailerName)
-                .Value;
-            LogOperationFailed(
+                .FirstOrDefault(entry =>
+                    entry.Key == GrpcOperationOutcomeMapper.DiagnosticTrailerName)
+                ?.Value ?? "grpc-operation-failed";
+            _auditLogger.OperationFailed(
+                EffectiveCorrelationId(outcome, effectiveCorrelationId),
                 command.OperationId,
                 outcome?.Generation ?? 0,
+                RequestDurationMilliseconds(startedAt),
+                OperationAuditSummary.Create(outcome),
                 exception.StatusCode,
                 diagnosticCode);
             throw;
         }
     }
 
-    [LoggerMessage(
-        EventId = 1101,
-        Level = LogLevel.Information,
-        Message = "Operation {OperationId} completed on worker generation {Generation} in {DurationMilliseconds} ms with MP result {MpResultCode}.")]
-    private partial void LogOperationCompleted(
-        string operationId,
-        int generation,
-        long durationMilliseconds,
-        int mpResultCode);
+    private long RequestDurationMilliseconds(long startedAt) =>
+        Math.Max(0, (long)_timeProvider.GetElapsedTime(startedAt).TotalMilliseconds);
 
-    [LoggerMessage(
-        EventId = 1102,
-        Level = LogLevel.Warning,
-        Message = "Operation {OperationId} failed on worker generation {Generation} with gRPC status {GrpcStatus} and diagnostic {DiagnosticCode}.")]
-    private partial void LogOperationFailed(
-        string operationId,
-        int generation,
-        StatusCode grpcStatus,
-        string diagnosticCode);
+    private static Guid EffectiveCorrelationId(
+        WorkerExecutionOutcome? outcome,
+        Guid fallback) =>
+        outcome is { CorrelationId: var value } && value != Guid.Empty ? value : fallback;
+
+    private static string ClassifyActor(string peer) =>
+        peer.StartsWith("ipv4:127.", StringComparison.OrdinalIgnoreCase) ||
+        peer.StartsWith("ipv6:[::1]", StringComparison.OrdinalIgnoreCase)
+            ? "local-unauthenticated"
+            : "unverified-unauthenticated";
 }

@@ -70,6 +70,22 @@ public sealed class GrpcOperationOutcomeMapperTests
                 StatusCode.Unavailable,
                 OperationFailureKind.WorkerFailure,
                 RetryGuidance.RetryAfterWorkerReplacement
+            },
+            {
+                (int)WorkerExecutionStatus.PolicyDenied,
+                false,
+                false,
+                StatusCode.PermissionDenied,
+                OperationFailureKind.PolicyDenied,
+                RetryGuidance.DoNotRetry
+            },
+            {
+                (int)WorkerExecutionStatus.Unsupported,
+                false,
+                false,
+                StatusCode.Unimplemented,
+                OperationFailureKind.Unsupported,
+                RetryGuidance.DoNotRetry
             }
         };
 
@@ -286,6 +302,8 @@ public sealed class GrpcOperationOutcomeMapperTests
                 WorkerExecutionStatus.ClientCancelled => "client-wait-cancelled",
                 WorkerExecutionStatus.WatchdogTimeout => "worker-execution-watchdog-timeout",
                 WorkerExecutionStatus.WorkerFailure => "worker-execution-control-failed",
+                WorkerExecutionStatus.PolicyDenied => "operation-policy-denied",
+                WorkerExecutionStatus.Unsupported => "operation-unsupported",
                 _ => "worker-not-ready"
             };
 
