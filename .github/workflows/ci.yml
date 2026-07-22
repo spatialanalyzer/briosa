@@ -62,3 +62,29 @@ jobs:
 
       - name: Run tests
         run: dotnet test Briosa.slnx -c Release --no-build --no-restore
+
+  package-smoke:
+    name: Windows package reproducibility and smoke test
+    runs-on: windows-latest
+    timeout-minutes: 20
+
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
+      DOTNET_NOLOGO: 'true'
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Install .NET SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: '**/packages.lock.json'
+
+      - name: Build twice and verify package
+        shell: pwsh
+        run: ./eng/Test-WindowsPackage.ps1 -Version 0.1.0-ci

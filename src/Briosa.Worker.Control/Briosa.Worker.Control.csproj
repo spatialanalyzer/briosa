@@ -2,6 +2,7 @@
   <PropertyGroup>
     <TargetFramework>net10.0-windows</TargetFramework>
     <PlatformTarget>x64</PlatformTarget>
+    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
     <Prefer32Bit>false</Prefer32Bit>
     <Description>Private host-to-worker lifecycle protocol for Briosa.</Description>
   </PropertyGroup>

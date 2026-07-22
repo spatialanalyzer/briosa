@@ -3,6 +3,11 @@ using Briosa.Server.Services;
 using Briosa.Server.Services.Sa.V2026_1_0529_7.V1Alpha1;
 using Briosa.Server.Workers;
 
+if (args is ["diagnostics"] or ["--diagnostics"])
+{
+    Environment.ExitCode = ServerDiagnosticsCommand.Run(Console.Out, AppContext.BaseDirectory);
+    return;
+}
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddGrpc();
 builder.Services.AddSingleton(TimeProvider.System);
