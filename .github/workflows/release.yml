@@ -1,0 +1,101 @@
+name: Release Windows package
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Briosa semantic version without the v prefix
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    name: Build and verify Windows x64 package
+    runs-on: windows-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
+      DOTNET_NOLOGO: 'true'
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Install .NET SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: '**/packages.lock.json'
+
+      - name: Resolve package version
+        id: version
+        shell: pwsh
+        env:
+          DISPATCH_VERSION: ${{ inputs.version }}
+        run: |
+          if ("${{ github.event_name }}" -eq "push") {
+            $version = $env:GITHUB_REF_NAME.Substring(1)
+          }
+          else {
+            $version = $env:DISPATCH_VERSION
+          }
+
+          if ($version -notmatch '^[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?$') {
+            throw "Version '$version' is not a supported semantic version."
+          }
+
+          "value=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: Build twice and verify package
+        shell: pwsh
+        run: >
+          ./eng/Test-WindowsPackage.ps1
+          -Version "${{ steps.version.outputs.value }}"
+          -OutputDirectory artifacts/release
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: briosa-${{ steps.version.outputs.value }}-sa-2026.1.0529.7-win-x64
+          path: artifacts/release/*
+          if-no-files-found: error
+
+      - name: Publish GitHub Release
+        if: github.event_name == 'push' && github.ref_type == 'tag'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PACKAGE_VERSION: ${{ steps.version.outputs.value }}
+        run: |
+          $files = Get-ChildItem -LiteralPath artifacts/release -File |
+            Sort-Object Name |
+            ForEach-Object FullName
+          $releaseArguments = @(
+            "release",
+            "create",
+            $env:GITHUB_REF_NAME,
+            "--verify-tag",
+            "--generate-notes",
+            "--title",
+            "Briosa $env:PACKAGE_VERSION"
+          )
+          if ($env:PACKAGE_VERSION.Contains("-")) {
+            $releaseArguments += "--prerelease"
+          }
+
+          & gh @releaseArguments @files
+          if ($LASTEXITCODE -ne 0) {
+            throw "GitHub Release publication failed."
+          }

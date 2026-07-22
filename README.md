@@ -18,6 +18,18 @@ dotnet test Briosa.slnx -c Release --no-build --no-restore
 
 The committed managed interop metadata allows these commands to run on an ordinary Windows x64 machine without installing or starting SpatialAnalyzer.
 
+## Windows package
+
+Release archives are self-contained, non-trimmed Windows x64 directory publishes for one exact SpatialAnalyzer target:
+
+```text
+briosa-<briosa-version>-sa-2026.1.0529.7-win-x64.zip
+```
+
+Run `./eng/New-WindowsPackage.ps1 -Version 0.1.0` to build an archive, checksum, and provenance manifest locally. Run `./eng/Test-WindowsPackage.ps1 -Version 0.1.0-test` to build twice and verify reproducibility, package checksums, offline diagnostics, and host startup without SpatialAnalyzer.
+
+See the [Windows package operator guide](docs/operations/windows-package.md) and [package identity decision](docs/architecture/0011-windows-package-identity.md) for prerequisites, verification, defaults, artifact contents, and release behavior.
+
 ## Public protocol
 
 Briosa separates the stable `briosa.core.v1alpha1` package from MP contracts generated for one exact SpatialAnalyzer release, beginning with `briosa.sa.v2026_1_0529_7.v1alpha1`. Target packages are independent, version-faithful APIs; matching command shapes never imply matching semantics across SA releases.
@@ -33,6 +45,7 @@ Successful MP responses pair exact-target typed values with explicit core execut
 The public host exposes standard gRPC health checks named `briosa.liveness` and `briosa.readiness`. Liveness is independent of SpatialAnalyzer; readiness requires a ready worker with a connected SDK snapshot. The stable core `DiscoveryService` reports safe build coordinates and only the operations in the reviewed exact-target catalog.
 
 See the [health and discovery operator guide](docs/operations/health-and-discovery.md) and [architecture decision](docs/architecture/0010-health-version-and-capability-discovery.md) for service names, response semantics, connected-version verification, and the information boundary.
+
 ## Supported command catalog
 
 The `catalog` directory is the reviewed, machine-readable allowlist of MP operations Briosa exposes for each exact SpatialAnalyzer target. It is deliberately separate from the complete installed SA inventory: catalog absence means an operation is not exposed by Briosa, not that SA lacks it.
