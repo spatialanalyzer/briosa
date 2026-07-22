@@ -18,4 +18,16 @@ Run the scripts in this directory from the repository root. Interop generation r
 ./eng/Verify-Catalog.ps1
 ```
 
+Regenerate the catalog-derived protobuf contracts and worker bindings with:
+
+```powershell
+dotnet run --project tools/Briosa.Generator -c Release -- catalog-generate catalog .
+```
+
+Generated artifacts are committed but must not be hand-edited. Verify a clean generation and reject stale or extra generated files with:
+
+```powershell
+./eng/Verify-CatalogArtifacts.ps1
+```
+
 Pass `-NoBuild` only after `Briosa.Generator` has already been built in the selected configuration.

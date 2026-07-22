@@ -4,6 +4,11 @@ modules:
 lint:
   use:
     - STANDARD
+  # Catalog-reviewed names intentionally use domain services and typed results.
+  # CommandCatalogValidator enforces their deterministic form.
+  except:
+    - SERVICE_SUFFIX
+    - RPC_RESPONSE_STANDARD_NAME
 breaking:
   use:
     - FILE
