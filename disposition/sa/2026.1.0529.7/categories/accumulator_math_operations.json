@@ -1,0 +1,248 @@
+{
+  "$schema": "../../../schemas/v1/shard.schema.json",
+  "schema_version": 1,
+  "spatial_analyzer_target": "2026.1.0529.7",
+  "category": "AccumulatorMathOperations",
+  "entries": [
+    {
+      "inventory_key": "documentation:AccumulatorMathOperations/AccumulatorAdd.htm",
+      "mp_step": "Accumulator Add",
+      "category_path": [
+        "AccumulatorMathOperations"
+      ],
+      "inventory_entry_sha256": "1278ca15396e9c511e09efb50bea696fe5accab972ee95412c8b4a31861ad396",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:AccumulatorMathOperations/AccumulatorAdd.htm",
+        "sdk:AccumulatorMathOperations.txt#2"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:AccumulatorMathOperations/AccumulatorChangeSign.htm",
+      "mp_step": "Accumulator Change Sign",
+      "category_path": [
+        "AccumulatorMathOperations"
+      ],
+      "inventory_entry_sha256": "58467261f986f55c126b8e5c1ba36279bcd219da8c6d210fcf60d6f894005284",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:AccumulatorMathOperations/AccumulatorChangeSign.htm",
+        "sdk:AccumulatorMathOperations.txt#8"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:AccumulatorMathOperations/AccumulatorClear.htm",
+      "mp_step": "Accumulator Clear",
+      "category_path": [
+        "AccumulatorMathOperations"
+      ],
+      "inventory_entry_sha256": "88f3d4f8a2d186a41a755b9ec9a67eeaa7a04a2227a1bd0808f81f70a34d2526",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:AccumulatorMathOperations/AccumulatorClear.htm",
+        "sdk:AccumulatorMathOperations.txt#1"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:AccumulatorMathOperations/AccumulatorDivide.htm",
+      "mp_step": "Accumulator Divide",
+      "category_path": [
+        "AccumulatorMathOperations"
+      ],
+      "inventory_entry_sha256": "7a6a3c13780bc5d4d50121404e77ef92e2efd284617d4ca2825c88ab343fda39",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:AccumulatorMathOperations/AccumulatorDivide.htm",
+        "sdk:AccumulatorMathOperations.txt#5"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:AccumulatorMathOperations/AccumulatorInvert.htm",
+      "mp_step": "Accumulator Invert",
+      "category_path": [
+        "AccumulatorMathOperations"
+      ],
+      "inventory_entry_sha256": "c94f02b73d95a06a048a79ea707e7e3e08ee5dfc1629e72d8f8a899d3acb4de1",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:AccumulatorMathOperations/AccumulatorInvert.htm",
+        "sdk:AccumulatorMathOperations.txt#7"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:AccumulatorMathOperations/AccumulatorMultiply.htm",
+      "mp_step": "Accumulator Multiply",
+      "category_path": [
+        "AccumulatorMathOperations"
+      ],
+      "inventory_entry_sha256": "f5be53998e9b03b51de2c7f4dcaccfd09bd705a6690ed0b05638824e7ac44186",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:AccumulatorMathOperations/AccumulatorMultiply.htm",
+        "sdk:AccumulatorMathOperations.txt#4"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:AccumulatorMathOperations/AccumulatorPower.htm",
+      "mp_step": "Accumulator Power",
+      "category_path": [
+        "AccumulatorMathOperations"
+      ],
+      "inventory_entry_sha256": "b86fe0fd1881eb26cc1df43e4113994c68abbf71c1e435b59a1e35f2f7b2994d",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:AccumulatorMathOperations/AccumulatorPower.htm",
+        "sdk:AccumulatorMathOperations.txt#6"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:AccumulatorMathOperations/AccumulatorSubtract.htm",
+      "mp_step": "Accumulator Subtract",
+      "category_path": [
+        "AccumulatorMathOperations"
+      ],
+      "inventory_entry_sha256": "40512ac1ff20afc7ab147942c679d059c8121bc0d9997f272db7de84f8c10ab8",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:AccumulatorMathOperations/AccumulatorSubtract.htm",
+        "sdk:AccumulatorMathOperations.txt#3"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    }
+  ]
+}

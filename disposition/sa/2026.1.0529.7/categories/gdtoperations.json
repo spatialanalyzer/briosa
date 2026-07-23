@@ -1,0 +1,98 @@
+{
+  "$schema": "../../../schemas/v1/shard.schema.json",
+  "schema_version": 1,
+  "spatial_analyzer_target": "2026.1.0529.7",
+  "category": "GDTOperations",
+  "entries": [
+    {
+      "inventory_key": "sdk:GDTOperations_GDTAnalysis.txt#17",
+      "mp_step": "Set Global Force Simultaneous Evaluation",
+      "category_path": [
+        "GDTOperations",
+        "GDTAnalysis"
+      ],
+      "inventory_entry_sha256": "c4b3969103ec6c7987d41eb45754b1dd687089eab12e25200d8be1427f856e1d",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "sdk:GDTOperations_GDTAnalysis.txt#17"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "sdk:GDTOperations_GDTAnalysis.txt#20",
+      "mp_step": "Generate Feature Check Summary",
+      "category_path": [
+        "GDTOperations",
+        "GDTAnalysis"
+      ],
+      "inventory_entry_sha256": "ffecc8e92331ad29617adff2d502a5b890c413b777f5b94149896a6f322edab8",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "sdk:GDTOperations_GDTAnalysis.txt#20"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "sdk:GDTOperations_GDTConstruction.txt#2",
+      "mp_step": "Make Surface Face List From Surface",
+      "category_path": [
+        "GDTOperations",
+        "GDTConstruction"
+      ],
+      "inventory_entry_sha256": "ee17f962c9de3d6f50085db3b4cc06558558050673be4ade505b20a42cc75beb",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "sdk:GDTOperations_GDTConstruction.txt#2"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    }
+  ]
+}

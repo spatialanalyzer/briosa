@@ -1,0 +1,98 @@
+{
+  "$schema": "../../../schemas/v1/shard.schema.json",
+  "schema_version": 1,
+  "spatial_analyzer_target": "2026.1.0529.7",
+  "category": "ScaleBars",
+  "entries": [
+    {
+      "inventory_key": "documentation:ScaleBars/DeleteScaleBar.htm",
+      "mp_step": "Delete Scale Bar",
+      "category_path": [
+        "ScaleBars"
+      ],
+      "inventory_entry_sha256": "02dadda3858899335c464b05448cf69aaa277f4b8a3a1fc96d86819da1cb6657",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ScaleBars/DeleteScaleBar.htm",
+        "sdk:ScaleBarOperations.txt#3"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ScaleBars/GetScaleBarStats.htm",
+      "mp_step": "Get Scale Bar Stats",
+      "category_path": [
+        "ScaleBars"
+      ],
+      "inventory_entry_sha256": "77f921d4f289b1f6a854da6771eb7141fb9e510df4dab42db0779865d57d1020",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ScaleBars/GetScaleBarStats.htm",
+        "sdk:ScaleBarOperations.txt#1"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ScaleBars/ScaleBarCheck.htm",
+      "mp_step": "Scale Bar Check",
+      "category_path": [
+        "ScaleBars"
+      ],
+      "inventory_entry_sha256": "18a34d21c0f70e5e4a2fc36035ac45583c5c359a47aad476a50f489d301f349d",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ScaleBars/ScaleBarCheck.htm",
+        "sdk:ScaleBarOperations.txt#2"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    }
+  ]
+}

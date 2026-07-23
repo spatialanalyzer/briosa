@@ -1,0 +1,997 @@
+{
+  "$schema": "../../../schemas/v1/shard.schema.json",
+  "schema_version": 1,
+  "spatial_analyzer_target": "2026.1.0529.7",
+  "category": "RobotOperations",
+  "entries": [
+    {
+      "inventory_key": "documentation:RobotOperations/AddRobotMachineManipKin.htm",
+      "mp_step": "Add Robot/Machine (.ManipKin)",
+      "category_path": [
+        "RobotOperations"
+      ],
+      "inventory_entry_sha256": "19a771f9c206de310c0fb87d132dcda4a2e32f52996f65105459de746e1d8da7",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:RobotOperations/AddRobotMachineManipKin.htm",
+        "sdk:RobotOperations.txt#2"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:RobotOperations/AddRobotMachineSAMachine.htm",
+      "mp_step": "Add Robot/Machine (.SAMachine)",
+      "category_path": [
+        "RobotOperations"
+      ],
+      "inventory_entry_sha256": "dfcacb8f80580bf0111866efec8725214340dbe0ab3ae4adca3c182a720df5c6",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:RobotOperations/AddRobotMachineSAMachine.htm",
+        "sdk:RobotOperations.txt#1"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:RobotOperations/Compute Robot Machine Adjusted.htm",
+      "mp_step": "Compute Robot/Machine Adjusted Goal Frame",
+      "category_path": [
+        "RobotOperations"
+      ],
+      "inventory_entry_sha256": "97633293ba4cd43fc067bce292894cf13145a77f9940ff685702ab319ee0cad4",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:RobotOperations/Compute Robot Machine Adjusted.htm",
+        "sdk:RobotOperations.txt#14"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:RobotOperations/Create Robot Calibration.htm",
+      "mp_step": "Create Robot Calibration",
+      "category_path": [
+        "RobotOperations"
+      ],
+      "inventory_entry_sha256": "524c41f905c1f15dda8792fd4ba56ee56a60a2d1b6cbd1dfc7fba54200fdb5fb",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:RobotOperations/Create Robot Calibration.htm",
+        "sdk:RobotOperations.txt#17"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:RobotOperations/Delete Robot Calibration.htm",
+      "mp_step": "Delete Robot Calibration",
+      "category_path": [
+        "RobotOperations"
+      ],
+      "inventory_entry_sha256": "f0ecb9dd98ae3cf698f315ac7ddcdb32f6c6c7d0f3ba734ef2a7fdb7269539d2",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:RobotOperations/Delete Robot Calibration.htm",
+        "sdk:RobotOperations.txt#18"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:RobotOperations/DeleteRobotMachine.htm",
+      "mp_step": "Delete Robot/Machine",
+      "category_path": [
+        "RobotOperations"
+      ],
+      "inventory_entry_sha256": "7b30b3894baf353be3b80cce92efd475561875506de3e787f58cf0fcd5dfd0d9",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:RobotOperations/DeleteRobotMachine.htm",
+        "sdk:RobotOperations.txt#3"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:RobotOperations/Get Calibration Appliance.htm",
+      "mp_step": "Get Calibration Appliance Integer Value",
+      "category_path": [
+        "RobotOperations"
+      ],
+      "inventory_entry_sha256": "03a3c2f4325d450bd2ebea370574b5b601a5817965853ae7a31b7c88d679a208",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:RobotOperations/Get Calibration Appliance.htm",
+        "sdk:RobotOperations.txt#28"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:RobotOperations/Get Robot Machine Model Link.htm",
+      "mp_step": "Get Robot/Machine Model Link Parameters",
+      "category_path": [
+        "RobotOperations"
+      ],
+      "inventory_entry_sha256": "c6ed1e28e6e443baf2caeba4adc8756e34aa642d055e89cb141d8f3014d3e3fa",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:RobotOperations/Get Robot Machine Model Link.htm",
+        "sdk:RobotOperations.txt#10"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:RobotOperations/Get Robot Machine Parameter.htm",
+      "mp_step": "Get Robot/Machine Parameter",
+      "category_path": [
+        "RobotOperations"
+      ],
+      "inventory_entry_sha256": "3fc63bfc477150c06f2b9e7f5d72e96855f369b607dbe731678eaeb9e445ee07",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:RobotOperations/Get Robot Machine Parameter.htm",
+        "sdk:RobotOperations.txt#8"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:RobotOperations/Get Robot Pose for a Frame.htm",
+      "mp_step": "Get Robot Pose for a Frame",
+      "category_path": [
+        "RobotOperations"
+      ],
+      "inventory_entry_sha256": "d6a18bcce4c84f732c37fc5c18821b9f8a1f3e7eb6bd26ab1a7036b6cfe459bc",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:RobotOperations/Get Robot Pose for a Frame.htm",
+        "sdk:RobotOperations.txt#27"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:RobotOperations/GetCalibrationApplianceData.htm",
+      "mp_step": "Get Calibration Appliance Data",
+      "category_path": [
+        "RobotOperations"
+      ],
+      "inventory_entry_sha256": "5c30c600fca5d908f04d0b5794df44defb5468784f5685c258fec3f43f740aaf",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:RobotOperations/GetCalibrationApplianceData.htm",
+        "sdk:RobotOperations.txt#32"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:RobotOperations/GetCalibrationApplianceReal.htm",
+      "mp_step": "Get Calibration Appliance Real Value",
+      "category_path": [
+        "RobotOperations"
+      ],
+      "inventory_entry_sha256": "43930edb2909d46ee27f6e48122415e70761eb50e6185a116f649ab330070e83",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:RobotOperations/GetCalibrationApplianceReal.htm",
+        "sdk:RobotOperations.txt#30"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:RobotOperations/Import Poses Match to Frames.htm",
+      "mp_step": "Import Poses Match to Frames",
+      "category_path": [
+        "RobotOperations"
+      ],
+      "inventory_entry_sha256": "6e4e12f9e57b0df28c59c649c75c9ca710b6233e653fc2ba7358d3ef311f775d",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:RobotOperations/Import Poses Match to Frames.htm",
+        "sdk:RobotOperations.txt#20"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:RobotOperations/Import Poses Match to Measurements.htm",
+      "mp_step": "Import Poses Match to Measurements",
+      "category_path": [
+        "RobotOperations"
+      ],
+      "inventory_entry_sha256": "59054a3354fac6a016f702c2edfac016fd768a8fb34445fb39de7cca38e8b323",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:RobotOperations/Import Poses Match to Measurements.htm",
+        "sdk:RobotOperations.txt#19"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:RobotOperations/Move Robot Machine through.htm",
+      "mp_step": "Move Robot/Machine through Path",
+      "category_path": [
+        "RobotOperations"
+      ],
+      "inventory_entry_sha256": "770f153951b600d1d15df5eb8f97ebf8dec3fcc5e1fa06a889f75941743b4e8b",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:RobotOperations/Move Robot Machine through.htm",
+        "sdk:RobotOperations.txt#5"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:RobotOperations/Move Robot Machine to Frame.htm",
+      "mp_step": "Move Robot/Machine to Frame",
+      "category_path": [
+        "RobotOperations"
+      ],
+      "inventory_entry_sha256": "f2e2cae8b2f974ba5dcd6048d20e026a7e84eb5ec05a43720333bedda65c1d36",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:RobotOperations/Move Robot Machine to Frame.htm",
+        "sdk:RobotOperations.txt#4"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:RobotOperations/Move Robot Machine to Joint.htm",
+      "mp_step": "Move Robot/Machine to Joint Pose (6DOF)",
+      "category_path": [
+        "RobotOperations"
+      ],
+      "inventory_entry_sha256": "d4cf1891f4ada835af5b8056b3d7d75b9fa9606051d471639d2ca25af7291a39",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:RobotOperations/Move Robot Machine to Joint.htm",
+        "sdk:RobotOperations.txt#15"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:RobotOperations/Move Robot Machine to Named.htm",
+      "mp_step": "Move Robot/Machine to Named Destination",
+      "category_path": [
+        "RobotOperations"
+      ],
+      "inventory_entry_sha256": "c9f75ed58ac5184b779a681a60eb6f1c0508b20088a887bb469dfba09b714cda",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:RobotOperations/Move Robot Machine to Named.htm",
+        "sdk:RobotOperations.txt#6"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:RobotOperations/Perform Robot Calibration.htm",
+      "mp_step": "Perform Robot Calibration",
+      "category_path": [
+        "RobotOperations"
+      ],
+      "inventory_entry_sha256": "be0ecb5d7bd0daa531f7f450fbc2559a400054d179da3e662a092201d2624c33",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:RobotOperations/Perform Robot Calibration.htm",
+        "sdk:RobotOperations.txt#21"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:RobotOperations/PerformRobotCalibrationAlternate.htm",
+      "mp_step": "Perform Robot Calibration (Alternate)",
+      "category_path": [
+        "RobotOperations"
+      ],
+      "inventory_entry_sha256": "1183a62506b27a853ecde9ad1d47e120a25355647d24e553e2c3181d7355a8df",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:RobotOperations/PerformRobotCalibrationAlternate.htm",
+        "sdk:RobotOperations.txt#22"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:RobotOperations/Set Active Robot Calibration.htm",
+      "mp_step": "Set Active Robot Calibration",
+      "category_path": [
+        "RobotOperations"
+      ],
+      "inventory_entry_sha256": "4c006387dda1197605f456953803268324a705b2b64fe1e620189ddc5c6b0342",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:RobotOperations/Set Active Robot Calibration.htm",
+        "sdk:RobotOperations.txt#24"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:RobotOperations/Set Calibration Appliance.htm",
+      "mp_step": "Set Calibration Appliance Integer Value",
+      "category_path": [
+        "RobotOperations"
+      ],
+      "inventory_entry_sha256": "80a705d368195b1cdc520f876b5a48b8a16f4e3f367309a69644f739700a1ddc",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:RobotOperations/Set Calibration Appliance.htm",
+        "sdk:RobotOperations.txt#29"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:RobotOperations/Set Robot Calibration Measurement.htm",
+      "mp_step": "Set Robot Calibration Measurement Offset in Tool Frame",
+      "category_path": [
+        "RobotOperations"
+      ],
+      "inventory_entry_sha256": "587df501bb3838b34e230caade821d42c984833d889a6afb9b511c1ee7ad46b9",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:RobotOperations/Set Robot Calibration Measurement.htm",
+        "sdk:RobotOperations.txt#26"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:RobotOperations/Set Robot Calibration Tool.htm",
+      "mp_step": "Set Robot Calibration Tool Frame",
+      "category_path": [
+        "RobotOperations"
+      ],
+      "inventory_entry_sha256": "fc20f9c92da867536e94f7202efe89541da1806a8ddb872937e1a3f0b566796d",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:RobotOperations/Set Robot Calibration Tool.htm",
+        "sdk:RobotOperations.txt#25"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:RobotOperations/Set Robot Machine Model Link.htm",
+      "mp_step": "Set Robot/Machine Model Link Parameters",
+      "category_path": [
+        "RobotOperations"
+      ],
+      "inventory_entry_sha256": "afc1399050a14382924d2cd0e657eb411625b09f06ce3e6f04579ebc1279eb98",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:RobotOperations/Set Robot Machine Model Link.htm",
+        "sdk:RobotOperations.txt#9"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:RobotOperations/Set Robot Machine Parameter.htm",
+      "mp_step": "Set Robot/Machine Parameter",
+      "category_path": [
+        "RobotOperations"
+      ],
+      "inventory_entry_sha256": "37995172093c235f02cfd6f28f1c64c585c587c987ab98ba987a60602c769333",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:RobotOperations/Set Robot Machine Parameter.htm",
+        "sdk:RobotOperations.txt#7"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:RobotOperations/SetCalibrationApplianceData.htm",
+      "mp_step": "Set Calibration Appliance Data",
+      "category_path": [
+        "RobotOperations"
+      ],
+      "inventory_entry_sha256": "c9e46dcb0ee99e53be4fb3deef71749ad0c4ea6c1fef48e2c44aa7a5f4c196e3",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:RobotOperations/SetCalibrationApplianceData.htm",
+        "sdk:RobotOperations.txt#33"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:RobotOperations/SetCalibrationApplianceReal.htm",
+      "mp_step": "Set Calibration Appliance Real Value",
+      "category_path": [
+        "RobotOperations"
+      ],
+      "inventory_entry_sha256": "8e6460fb2a8783e15f2756d8aa0fba5038207e852c59dd9a2d147db95d3430e0",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:RobotOperations/SetCalibrationApplianceReal.htm",
+        "sdk:RobotOperations.txt#31"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:RobotOperations/Simulate Robot Machine Path.htm",
+      "mp_step": "Simulate Robot/Machine Path, Output CSV File",
+      "category_path": [
+        "RobotOperations"
+      ],
+      "inventory_entry_sha256": "1f88fb940c44aa7cae541a5d0c175b11c0acc4ec021e328c21c92f7d9a25c9d1",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:RobotOperations/Simulate Robot Machine Path.htm",
+        "sdk:RobotOperations.txt#16"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:RobotOperations/Start Robot Machine Interface.htm",
+      "mp_step": "Start Robot/Machine Interface",
+      "category_path": [
+        "RobotOperations"
+      ],
+      "inventory_entry_sha256": "d1cea6d2e88a516df0b7bd57085589963876e4c90cbd71edcaaae63c84f4716f",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:RobotOperations/Start Robot Machine Interface.htm",
+        "sdk:RobotOperations.txt#12"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:RobotOperations/Start Stop Robot Calibration.htm",
+      "mp_step": "Start/Stop Robot Calibration Trapping",
+      "category_path": [
+        "RobotOperations"
+      ],
+      "inventory_entry_sha256": "834f0406755300f9ede3e97e9e3efd24af8d29a0889d7e52c71984f13385480e",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:RobotOperations/Start Stop Robot Calibration.htm",
+        "sdk:RobotOperations.txt#23"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:RobotOperations/Stop Robot Machine Interface.htm",
+      "mp_step": "Stop Robot/Machine Interface",
+      "category_path": [
+        "RobotOperations"
+      ],
+      "inventory_entry_sha256": "f129d73859dece019a4b822b376e47827e65fcb8085508c6ee3506a381003d56",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:RobotOperations/Stop Robot Machine Interface.htm",
+        "sdk:RobotOperations.txt#13"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "sdk:RobotOperations.txt#11",
+      "mp_step": "Set Robot/Machine Base Transform",
+      "category_path": [
+        "RobotOperations"
+      ],
+      "inventory_entry_sha256": "d5139cc143979f8642e9def6034726db0eb69d108580f4fb68977d95dd789263",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "sdk:RobotOperations.txt#11"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    }
+  ]
+}

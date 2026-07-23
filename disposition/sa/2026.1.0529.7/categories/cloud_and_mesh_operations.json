@@ -1,0 +1,37 @@
+{
+  "$schema": "../../../schemas/v1/shard.schema.json",
+  "schema_version": 1,
+  "spatial_analyzer_target": "2026.1.0529.7",
+  "category": "CloudAndMeshOperations",
+  "entries": [
+    {
+      "inventory_key": "sdk:CloudAndMeshOperations.txt#7",
+      "mp_step": "Clear Cloud Point Deviations",
+      "category_path": [
+        "CloudAndMeshOperations"
+      ],
+      "inventory_entry_sha256": "55b044aabf254538bf5f52abdc7acbe93a87c716e6dc5e9b8001a43b77f820b6",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "sdk:CloudAndMeshOperations.txt#7"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    }
+  ]
+}

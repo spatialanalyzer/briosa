@@ -1,0 +1,3840 @@
+{
+  "$schema": "../../../schemas/v1/shard.schema.json",
+  "schema_version": 1,
+  "spatial_analyzer_target": "2026.1.0529.7",
+  "category": "FileOperations",
+  "entries": [
+    {
+      "inventory_key": "documentation:FileOperations/ASIIDataFileOperations/ClearAllASCIIFiles.htm",
+      "mp_step": "Clear All ASCII Files",
+      "category_path": [
+        "FileOperations",
+        "ASIIDataFileOperations"
+      ],
+      "inventory_entry_sha256": "d23d113d5c0f5ab1f0f45e5bcd0f85ff3d6b2e025a4fe0e41a310de0154606d1",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/ASIIDataFileOperations/ClearAllASCIIFiles.htm",
+        "sdk:FileOperations_ASCIIDataFileOperations.txt#1"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/ASIIDataFileOperations/CloseASCIIFile.htm",
+      "mp_step": "Close ASCII File",
+      "category_path": [
+        "FileOperations",
+        "ASIIDataFileOperations"
+      ],
+      "inventory_entry_sha256": "37b235bb0b137705d460dc3afe0955e2346c6f1874f04dc695b8c7ca3df722ec",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/ASIIDataFileOperations/CloseASCIIFile.htm",
+        "sdk:FileOperations_ASCIIDataFileOperations.txt#5"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/ASIIDataFileOperations/OpenASCIIFile.htm",
+      "mp_step": "Open ASCII File",
+      "category_path": [
+        "FileOperations",
+        "ASIIDataFileOperations"
+      ],
+      "inventory_entry_sha256": "f56eaf4eeb8bb8cd68f04a3a4e0ca954cdec922baf411bbdb15eea8d8c5b5a50",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/ASIIDataFileOperations/OpenASCIIFile.htm",
+        "sdk:FileOperations_ASCIIDataFileOperations.txt#2"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/ASIIDataFileOperations/ReadASCIILineIterator.htm",
+      "mp_step": "Read ASCII Line (Iterator)",
+      "category_path": [
+        "FileOperations",
+        "ASIIDataFileOperations"
+      ],
+      "inventory_entry_sha256": "0b7939a8a2a2e72576a3cb11fc18bb0b43deedc15888dda2227309d5187ddac2",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/ASIIDataFileOperations/ReadASCIILineIterator.htm",
+        "sdk:FileOperations_ASCIIDataFileOperations.txt#4"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/ASIIDataFileOperations/WriteASCIILine.htm",
+      "mp_step": "Write ASCII Line",
+      "category_path": [
+        "FileOperations",
+        "ASIIDataFileOperations"
+      ],
+      "inventory_entry_sha256": "1512b23a5fa220a0656f6e85b082f862d648e4f5cf832dc00e2484620fa0a86d",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/ASIIDataFileOperations/WriteASCIILine.htm",
+        "sdk:FileOperations_ASCIIDataFileOperations.txt#3"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/BackupNow.htm",
+      "mp_step": "Backup Now",
+      "category_path": [
+        "FileOperations"
+      ],
+      "inventory_entry_sha256": "6d56756913c62c2ab6c7d2f89616c7179986db19909690803f72f6c99d6ddc76",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/BackupNow.htm",
+        "sdk:FileOperations.txt#15"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/BrowseForDirectory.htm",
+      "mp_step": "Browse For Directory",
+      "category_path": [
+        "FileOperations"
+      ],
+      "inventory_entry_sha256": "b1947c15f171718eddd531537ed07a738cf81e563072e8e6b2de910849c6898a",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/BrowseForDirectory.htm",
+        "sdk:FileOperations.txt#28"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/BrowseForFile.htm",
+      "mp_step": "Browse For File",
+      "category_path": [
+        "FileOperations"
+      ],
+      "inventory_entry_sha256": "bb0846276eb430c9faf338e23ef7ed331dc080a551b0efc7e7bfc7db8e038865",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/BrowseForFile.htm",
+        "sdk:FileOperations.txt#29"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/CopyDirectory.htm",
+      "mp_step": "Copy Directory",
+      "category_path": [
+        "FileOperations"
+      ],
+      "inventory_entry_sha256": "29e8ff39a5009bfcea0c5581e60d7b261b511db9e075fbd584cd42cc6d6b3e39",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/CopyDirectory.htm",
+        "sdk:FileOperations.txt#10"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/CopyGeneralFile.htm",
+      "mp_step": "Copy General File",
+      "category_path": [
+        "FileOperations"
+      ],
+      "inventory_entry_sha256": "05f5236d3377d5aef6ba9b9aff2f6ac13ccfce60ee78819e4b148791751c6c04",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/CopyGeneralFile.htm",
+        "sdk:FileOperations.txt#23"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/DatabaseOperations/DeletefromODBCDatabase.htm",
+      "mp_step": "Delete from ODBC Database",
+      "category_path": [
+        "FileOperations",
+        "DatabaseOperations"
+      ],
+      "inventory_entry_sha256": "56d04b88883582e8d8dafd1981d9f245222ee311f4367835d4f71ee0b7aaf1dd",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/DatabaseOperations/DeletefromODBCDatabase.htm",
+        "sdk:FileOperations_DatabaseOperations.txt#3"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/DatabaseOperations/GetfromODBCDatabase.htm",
+      "mp_step": "Get from ODBC Database",
+      "category_path": [
+        "FileOperations",
+        "DatabaseOperations"
+      ],
+      "inventory_entry_sha256": "32d3227e49e9fe47761f74086ab0762cdfc7bca698689ac8db0f0fc5b2fe1140",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/DatabaseOperations/GetfromODBCDatabase.htm",
+        "sdk:FileOperations_DatabaseOperations.txt#2"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/DatabaseOperations/PuttoODBCDatabase.htm",
+      "mp_step": "Put to ODBC Database",
+      "category_path": [
+        "FileOperations",
+        "DatabaseOperations"
+      ],
+      "inventory_entry_sha256": "f53bdfa7e3f09b0ac16c9fef9ce07e6fa4f4060bbb70586f6a6a5f002ae5f0b9",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/DatabaseOperations/PuttoODBCDatabase.htm",
+        "sdk:FileOperations_DatabaseOperations.txt#1"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/DatashareOperations/GetBooleanFromDataShare.htm",
+      "mp_step": "Get Boolean From DataShare File",
+      "category_path": [
+        "FileOperations",
+        "DatashareOperations"
+      ],
+      "inventory_entry_sha256": "e338b6082d90a7f283aacb38e9b7554e9dbc94625937531662aad4b353149796",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/DatashareOperations/GetBooleanFromDataShare.htm",
+        "sdk:FileOperations_DataShareOperations.txt#5"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/DatashareOperations/GetDoubleFromDataShare.htm",
+      "mp_step": "Get Double From DataShare File",
+      "category_path": [
+        "FileOperations",
+        "DatashareOperations"
+      ],
+      "inventory_entry_sha256": "ec73504ec20a7f99a5934d8b5b6268b32b0bc1278c5494c91b2bbf0e70da0fc2",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/DatashareOperations/GetDoubleFromDataShare.htm",
+        "sdk:FileOperations_DataShareOperations.txt#7"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/DatashareOperations/GetIntegerFromDataShare.htm",
+      "mp_step": "Get Integer From DataShare File",
+      "category_path": [
+        "FileOperations",
+        "DatashareOperations"
+      ],
+      "inventory_entry_sha256": "2aaa11f6c5f2cac099910dc5a8dd12084a11a0ed60cc3cf46df3edacdcbd3ec1",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/DatashareOperations/GetIntegerFromDataShare.htm",
+        "sdk:FileOperations_DataShareOperations.txt#6"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/DatashareOperations/GetStringFromDataShare.htm",
+      "mp_step": "Get String From DataShare File",
+      "category_path": [
+        "FileOperations",
+        "DatashareOperations"
+      ],
+      "inventory_entry_sha256": "4d79240bf02da2b753d58ca510b703392eb10a3ba68fd8644572643ebb49c6a6",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/DatashareOperations/GetStringFromDataShare.htm",
+        "sdk:FileOperations_DataShareOperations.txt#8"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/DatashareOperations/GetTransformFromDataShare.htm",
+      "mp_step": "Get Transform From DataShare File",
+      "category_path": [
+        "FileOperations",
+        "DatashareOperations"
+      ],
+      "inventory_entry_sha256": "a177079610a0b2e7e5040eb53e5bd51ff759a03adc980f22f723936143213dcb",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/DatashareOperations/GetTransformFromDataShare.htm",
+        "sdk:FileOperations_DataShareOperations.txt#10"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/DatashareOperations/GetVectorFromDataShare.htm",
+      "mp_step": "Get Vector From DataShare File",
+      "category_path": [
+        "FileOperations",
+        "DatashareOperations"
+      ],
+      "inventory_entry_sha256": "45c96a86987f1179108776288018c8ef998b70e02e631ca730602ccee2cffa0c",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/DatashareOperations/GetVectorFromDataShare.htm",
+        "sdk:FileOperations_DataShareOperations.txt#9"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/DatashareOperations/LoadDataShareFile.htm",
+      "mp_step": "Load DataShare File",
+      "category_path": [
+        "FileOperations",
+        "DatashareOperations"
+      ],
+      "inventory_entry_sha256": "67243cf75ceed7b3c4d887a218a01a542a0a599b829954bc352cea21b4441e16",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/DatashareOperations/LoadDataShareFile.htm",
+        "sdk:FileOperations_DataShareOperations.txt#3"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/DatashareOperations/LoadHTMLForm.htm",
+      "mp_step": "Load HTML Form",
+      "category_path": [
+        "FileOperations",
+        "DatashareOperations"
+      ],
+      "inventory_entry_sha256": "b654b80776533fb3841393b5abba8510b2190c645ca603f73b43061d5e2cd144",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/DatashareOperations/LoadHTMLForm.htm",
+        "sdk:FileOperations_DataShareOperations.txt#2"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/DatashareOperations/LoadHTMLForminEdgeBrowser.htm",
+      "mp_step": "Load HTML Form in Edge Browser",
+      "category_path": [
+        "FileOperations",
+        "DatashareOperations"
+      ],
+      "inventory_entry_sha256": "951bd797538ec429a106249e4d45237e56cb124daf0a20f428eba192791767b1",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/DatashareOperations/LoadHTMLForminEdgeBrowser.htm",
+        "sdk:FileOperations_DataShareOperations.txt#1"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/DatashareOperations/SaveDataShareFile.htm",
+      "mp_step": "Save DataShare File",
+      "category_path": [
+        "FileOperations",
+        "DatashareOperations"
+      ],
+      "inventory_entry_sha256": "d125188aa0c397c0fdae049a7161302bd28f557f91efe18753c1e1ff966b8b3f",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/DatashareOperations/SaveDataShareFile.htm",
+        "sdk:FileOperations_DataShareOperations.txt#4"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/DatashareOperations/SetBooleanInDataShareFile.htm",
+      "mp_step": "Set Boolean In DataShare File",
+      "category_path": [
+        "FileOperations",
+        "DatashareOperations"
+      ],
+      "inventory_entry_sha256": "04722b47d756f0ccaefcc42479b1363c2fb8263419eb9b181a45514e2b05bd3d",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/DatashareOperations/SetBooleanInDataShareFile.htm",
+        "sdk:FileOperations_DataShareOperations.txt#11"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/DatashareOperations/SetDoubleInDataShareFile.htm",
+      "mp_step": "Set Double In DataShare File",
+      "category_path": [
+        "FileOperations",
+        "DatashareOperations"
+      ],
+      "inventory_entry_sha256": "e2bd2670aaad9ce2ed8be5a1f2c0064e6099a0d75d60a89e7f4da59e03de7cfe",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/DatashareOperations/SetDoubleInDataShareFile.htm",
+        "sdk:FileOperations_DataShareOperations.txt#13"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/DatashareOperations/SetIntegerInDataShareFile.htm",
+      "mp_step": "Set Integer In DataShare File",
+      "category_path": [
+        "FileOperations",
+        "DatashareOperations"
+      ],
+      "inventory_entry_sha256": "8bfa0fabf10488733a863f930fc843cad16c4b678a1be35682648c0af938ebba",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/DatashareOperations/SetIntegerInDataShareFile.htm",
+        "sdk:FileOperations_DataShareOperations.txt#12"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/DatashareOperations/SetStringInDataShareFile.htm",
+      "mp_step": "Set String In DataShare File",
+      "category_path": [
+        "FileOperations",
+        "DatashareOperations"
+      ],
+      "inventory_entry_sha256": "e3bc914870f21ede184a35e03364ca0f65554f6a09c95ff83e1463285eb15db0",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/DatashareOperations/SetStringInDataShareFile.htm",
+        "sdk:FileOperations_DataShareOperations.txt#14"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/DatashareOperations/SetTransformInDataShare.htm",
+      "mp_step": "Set Transform In DataShare File",
+      "category_path": [
+        "FileOperations",
+        "DatashareOperations"
+      ],
+      "inventory_entry_sha256": "54cd5e9bb00eb333123638fe4bce44644a7998223b9b625446c7dc749c6e6c45",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/DatashareOperations/SetTransformInDataShare.htm",
+        "sdk:FileOperations_DataShareOperations.txt#16"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/DatashareOperations/SetVectorInDataShareFile.htm",
+      "mp_step": "Set Vector In DataShare File",
+      "category_path": [
+        "FileOperations",
+        "DatashareOperations"
+      ],
+      "inventory_entry_sha256": "98e3b0603907ba84ac2a2654864de2eecd1de66b48f1ce37f2d50c5cba9661fc",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/DatashareOperations/SetVectorInDataShareFile.htm",
+        "sdk:FileOperations_DataShareOperations.txt#15"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/DeleteDirectory.htm",
+      "mp_step": "Delete Directory",
+      "category_path": [
+        "FileOperations"
+      ],
+      "inventory_entry_sha256": "6a3d61914cda8c47cde011e2c6ff0b47904bebe7f4a072645e0fad03a12d9938",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/DeleteDirectory.htm",
+        "sdk:FileOperations.txt#9"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/DeleteGeneralFile.htm",
+      "mp_step": "Delete General File",
+      "category_path": [
+        "FileOperations"
+      ],
+      "inventory_entry_sha256": "ee4268720d6cfa10c91f5a7781333f52196055efc4da0175170ea76121dfee39",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/DeleteGeneralFile.htm",
+        "sdk:FileOperations.txt#25"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/DirectoryExistence.htm",
+      "mp_step": "Directory Existence",
+      "category_path": [
+        "FileOperations"
+      ],
+      "inventory_entry_sha256": "5c555d739ed5d77fcd9ac645862582604cbcfc0736671b87fd38313ee5ae2b5b",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/DirectoryExistence.htm",
+        "sdk:FileOperations.txt#8"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/ExitMeasurementPlan.htm",
+      "mp_step": "Exit Measurement Plan",
+      "category_path": [
+        "FileOperations"
+      ],
+      "inventory_entry_sha256": "364f30261cc5d9315cf8a0637e13301d69efbce08c76a930695482d3ed5aa472",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/ExitMeasurementPlan.htm",
+        "sdk:FileOperations.txt#18"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/FileExport/ExportASCIIFrameSet.htm",
+      "mp_step": "Export ASCII Frame Set",
+      "category_path": [
+        "FileOperations",
+        "FileExport"
+      ],
+      "inventory_entry_sha256": "1bea2ce2292354d7fca6fec10472b75e0b74e44197e977c07a288c0539a9ec00",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/FileExport/ExportASCIIFrameSet.htm",
+        "sdk:FileOperations_FileExport.txt#3"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/FileExport/ExportASCIIFrames.htm",
+      "mp_step": "Export ASCII Frames",
+      "category_path": [
+        "FileOperations",
+        "FileExport"
+      ],
+      "inventory_entry_sha256": "268da575bbc0d9d49740cb0dee54cd04cc32b68b0cc6042295688efebc99912a",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/FileExport/ExportASCIIFrames.htm",
+        "sdk:FileOperations_FileExport.txt#4"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/FileExport/ExportASCIIPointClouds.htm",
+      "mp_step": "Export ASCII Point Clouds",
+      "category_path": [
+        "FileOperations",
+        "FileExport"
+      ],
+      "inventory_entry_sha256": "6d6bb14e458a5169c0890b7b3a48c72c8c70a29409215b0bc7fdd4b0ad799929",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/FileExport/ExportASCIIPointClouds.htm",
+        "sdk:FileOperations_FileExport.txt#5"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/FileExport/ExportASCIIPointSets.htm",
+      "mp_step": "Export ASCII Point Sets",
+      "category_path": [
+        "FileOperations",
+        "FileExport"
+      ],
+      "inventory_entry_sha256": "8c00cbb86f62ebfd43edd5ba512bbb2793ea5526d40ddffabee73a141e73fa52",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/FileExport/ExportASCIIPointSets.htm"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/FileExport/ExportASIIPoints.htm",
+      "mp_step": "Export ASII Points",
+      "category_path": [
+        "FileOperations",
+        "FileExport"
+      ],
+      "inventory_entry_sha256": "e99d2d746e64eb25754af2ce073104382bbe5045a3cd5a1dfda0537628ba4aad",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/FileExport/ExportASIIPoints.htm"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/FileExport/ExportDXF.htm",
+      "mp_step": "Export DXF",
+      "category_path": [
+        "FileOperations",
+        "FileExport"
+      ],
+      "inventory_entry_sha256": "c70b03bae9288ce3f8ca7f2cc1f1f6f019c8843f88f2d00bc93ac8de03c7939e",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/FileExport/ExportDXF.htm",
+        "sdk:FileOperations_FileExport.txt#16"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/FileExport/ExportEmbeddedFile.htm",
+      "mp_step": "Export Embedded File",
+      "category_path": [
+        "FileOperations",
+        "FileExport"
+      ],
+      "inventory_entry_sha256": "c1a933ff16e0c25e4fdabd96378c90cfeb00f5fecc5dd2735c72b4ca582a230f",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/FileExport/ExportEmbeddedFile.htm",
+        "sdk:FileOperations_FileExport.txt#15"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/FileExport/ExportHiddenPointBarXMLFile.htm",
+      "mp_step": "Export Hidden Point Bar XML File",
+      "category_path": [
+        "FileOperations",
+        "FileExport"
+      ],
+      "inventory_entry_sha256": "cbafcc2bde0c708dba3b77c7b085f7b0b4918fc5108c2ef4aaca4cceba0045c9",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/FileExport/ExportHiddenPointBarXMLFile.htm",
+        "sdk:FileOperations_XML.txt#13"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/FileExport/ExportIGESFileEntireModel.htm",
+      "mp_step": "Export IGES File - Entire Model",
+      "category_path": [
+        "FileOperations",
+        "FileExport"
+      ],
+      "inventory_entry_sha256": "2eb69f1c838a5040e48ea5d32582f4943c0f968e00919c4ed87b93090decd6ae",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/FileExport/ExportIGESFileEntireModel.htm",
+        "sdk:FileOperations_FileExport.txt#11"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/FileExport/ExportIGESFilePartialModel.htm",
+      "mp_step": "Export IGES File - Partial Model",
+      "category_path": [
+        "FileOperations",
+        "FileExport"
+      ],
+      "inventory_entry_sha256": "eb05b276b6c70e7e3d4a81cf9513723e2da6fecd4f1fb266119533c1356c9d75",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/FileExport/ExportIGESFilePartialModel.htm",
+        "sdk:FileOperations_FileExport.txt#12"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/FileExport/ExportPTXPointClouds.htm",
+      "mp_step": "Export PTX Point Clouds",
+      "category_path": [
+        "FileOperations",
+        "FileExport"
+      ],
+      "inventory_entry_sha256": "0b5e446de884f54c537b1b8531520f3c793c25a9322f7b067d5c4f9b8cd97508",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/FileExport/ExportPTXPointClouds.htm",
+        "sdk:FileOperations_FileExport.txt#6"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/FileExport/ExportSTEPFileEntireModel.htm",
+      "mp_step": "Export STEP File - Entire Model",
+      "category_path": [
+        "FileOperations",
+        "FileExport"
+      ],
+      "inventory_entry_sha256": "fe003effe30c301b0b3f2de76028f9b0d51de4d9b7ec2b93dec9700717a700bc",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/FileExport/ExportSTEPFileEntireModel.htm",
+        "sdk:FileOperations_FileExport.txt#9"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/FileExport/ExportSTEPFilePartialModel.htm",
+      "mp_step": "Export STEP File - Partial Model",
+      "category_path": [
+        "FileOperations",
+        "FileExport"
+      ],
+      "inventory_entry_sha256": "f9703acb5c1c9af084a8d3050b7d518a1175b9a5f6774a4ee88bd9d12da2be2d",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/FileExport/ExportSTEPFilePartialModel.htm",
+        "sdk:FileOperations_FileExport.txt#10"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/FileExport/ExportScanStripeMeshToSTLFile.htm",
+      "mp_step": "Export Scan Stripe Mesh to STL File",
+      "category_path": [
+        "FileOperations",
+        "FileExport"
+      ],
+      "inventory_entry_sha256": "9cee689b94d3f8d685744d0e1dd3590159cce242a51a8546db2901da1bc3e56f",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/FileExport/ExportScanStripeMeshToSTLFile.htm",
+        "sdk:FileOperations_FileExport.txt#17"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/FileExport/ExportVDAFSFileEntireModel.htm",
+      "mp_step": "Export VDA/FS File - Entire Model",
+      "category_path": [
+        "FileOperations",
+        "FileExport"
+      ],
+      "inventory_entry_sha256": "c001a57a10a081d7b564d8373af124ab76b3c318b52d4492230390686311990d",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/FileExport/ExportVDAFSFileEntireModel.htm",
+        "sdk:FileOperations_FileExport.txt#13"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/FileExport/ExportVDAFSFilePartialModel.htm",
+      "mp_step": "Export VDA/FS File - Partial Model",
+      "category_path": [
+        "FileOperations",
+        "FileExport"
+      ],
+      "inventory_entry_sha256": "720ab75aff5ca46c4b972252e0af6ba99707c4bf54488f0d253d033a3312f1d2",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/FileExport/ExportVDAFSFilePartialModel.htm",
+        "sdk:FileOperations_FileExport.txt#14"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/FileExport/ExportVectorContainerToASCIIFile.htm",
+      "mp_step": "Export Vector Container to ASCII File",
+      "category_path": [
+        "FileOperations",
+        "FileExport"
+      ],
+      "inventory_entry_sha256": "9a409b32c4107b76d5557baef04764d0a78e057e89df78fdcc32f3e489980e53",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/FileExport/ExportVectorContainerToASCIIFile.htm",
+        "sdk:FileOperations_FileExport.txt#8"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/FileExport/ExportVectorContainerToExcelFile.htm",
+      "mp_step": "Export Vector Container to Excel File",
+      "category_path": [
+        "FileOperations",
+        "FileExport"
+      ],
+      "inventory_entry_sha256": "f1bacf45910881553301ca4da11597e6054b81b2b59642406420c40f9ecc2768",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/FileExport/ExportVectorContainerToExcelFile.htm",
+        "sdk:FileOperations_FileExport.txt#7"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/FileImport/DirectCADAccess.htm",
+      "mp_step": "Direct CAD Access",
+      "category_path": [
+        "FileOperations",
+        "FileImport"
+      ],
+      "inventory_entry_sha256": "ea476577206068c69f243d93af1c4b9d50b7907f2b6571477f093a906497953d",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/FileImport/DirectCADAccess.htm",
+        "sdk:FileOperations_FileImport.txt#13"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/FileImport/ImportASCIIPredefinedFormats.htm",
+      "mp_step": "Import ASCII: Predefined Formats",
+      "category_path": [
+        "FileOperations",
+        "FileImport"
+      ],
+      "inventory_entry_sha256": "d579da3c929c78a513feee866796fcbf37d4f542715e1215785c2e618c1ea57c",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/FileImport/ImportASCIIPredefinedFormats.htm",
+        "sdk:FileOperations_FileImport.txt#2"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/FileImport/ImportASCIIPredefinedFrame.htm",
+      "mp_step": "Import ASCII: Predefined Frame Set Formats",
+      "category_path": [
+        "FileOperations",
+        "FileImport"
+      ],
+      "inventory_entry_sha256": "993d562cb799c91408c8a7120df302ad4bd443fc35fb4694d858c27d3ad64c5e",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/FileImport/ImportASCIIPredefinedFrame.htm",
+        "sdk:FileOperations_FileImport.txt#4"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/FileImport/ImportE57File.htm",
+      "mp_step": "Import E57 File",
+      "category_path": [
+        "FileOperations",
+        "FileImport"
+      ],
+      "inventory_entry_sha256": "62ac83631144be769f060f2f450dffa7ef9bc5edd1cb6972df0832d468021939",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/FileImport/ImportE57File.htm",
+        "sdk:FileOperations_FileImport.txt#3"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/FileImport/ImportFileAsEmbedded File.htm",
+      "mp_step": "Import File As Embedded File",
+      "category_path": [
+        "FileOperations",
+        "FileImport"
+      ],
+      "inventory_entry_sha256": "3d4e4cefa199cd322abcccdd20934e142df83b0986b1e09a265641f574a39b0f",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/FileImport/ImportFileAsEmbedded File.htm",
+        "sdk:FileOperations_FileImport.txt#10"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/FileImport/ImportFileAsPicture.htm",
+      "mp_step": "Import File as Picture",
+      "category_path": [
+        "FileOperations",
+        "FileImport"
+      ],
+      "inventory_entry_sha256": "b4e061f625e5d3263930e9364daef6647344a7576359a0d8581451537f2cadac",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/FileImport/ImportFileAsPicture.htm",
+        "sdk:FileOperations_FileImport.txt#12"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/FileImport/ImportHiddenPointBarXMLFile.htm",
+      "mp_step": "Import Hidden Point Bar XML File",
+      "category_path": [
+        "FileOperations",
+        "FileImport"
+      ],
+      "inventory_entry_sha256": "976695e430cff8fd2ae21591ff8a9d0e2d509b52112af9baadf6f30227ca24ee",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/FileImport/ImportHiddenPointBarXMLFile.htm",
+        "sdk:FileOperations_XML.txt#12"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/FileImport/ImportIGESFile.htm",
+      "mp_step": "Import IGES File",
+      "category_path": [
+        "FileOperations",
+        "FileImport"
+      ],
+      "inventory_entry_sha256": "2fed4adfcdb44acf031e65424e70b7089947ff25df5fd2d66ed49a8ad0585e67",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/FileImport/ImportIGESFile.htm",
+        "sdk:FileOperations_FileImport.txt#7"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/FileImport/ImportLeicaGSIFile.htm",
+      "mp_step": "Import Leica GSI File",
+      "category_path": [
+        "FileOperations",
+        "FileImport"
+      ],
+      "inventory_entry_sha256": "899440a83374347eaf1b43ba89acf1b75d7dc2faccfa4bdffafc209e9e4662d0",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/FileImport/ImportLeicaGSIFile.htm",
+        "sdk:FileOperations_FileImport.txt#17"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/FileImport/ImportLeicaSDBFile.htm",
+      "mp_step": "Import Leica SDB File",
+      "category_path": [
+        "FileOperations",
+        "FileImport"
+      ],
+      "inventory_entry_sha256": "ce9ed86f9db77a27cde743764b05f2a609fdf58b9a3d7f2292b804c9d54df1e9",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/FileImport/ImportLeicaSDBFile.htm",
+        "sdk:FileOperations_FileImport.txt#18"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/FileImport/ImportMPFileAsEmbeddedMP.htm",
+      "mp_step": "Import MP File As Embedded MP",
+      "category_path": [
+        "FileOperations",
+        "FileImport"
+      ],
+      "inventory_entry_sha256": "3a10601631c1bd3bac4acaa16511e53d35b8e25426a86e0b4bf81f0f83713a3c",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/FileImport/ImportMPFileAsEmbeddedMP.htm",
+        "sdk:FileOperations_FileImport.txt#11"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/FileImport/ImportSAFile.htm",
+      "mp_step": "Import SA File",
+      "category_path": [
+        "FileOperations",
+        "FileImport"
+      ],
+      "inventory_entry_sha256": "73e4db2fbfe3d69d7cd2886838006ec50d6cc260e4275d00583ee8d4db93f0a4",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/FileImport/ImportSAFile.htm",
+        "sdk:FileOperations_FileImport.txt#1"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/FileImport/ImportSATFile.htm",
+      "mp_step": "Import SAT File",
+      "category_path": [
+        "FileOperations",
+        "FileImport"
+      ],
+      "inventory_entry_sha256": "9b17f75a0da3d7ac20e397858111dfa734b1b14fbb17ebb1cb3499d421cb6bec",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/FileImport/ImportSATFile.htm",
+        "sdk:FileOperations_FileImport.txt#9"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/FileImport/ImportSAWindowsPlacement.htm",
+      "mp_step": "Import SA Windows Placement",
+      "category_path": [
+        "FileOperations",
+        "FileImport"
+      ],
+      "inventory_entry_sha256": "01bd7731072b087256d48ff85b88c43a3084a268c58d421d7de2a9ae1f565f61",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/FileImport/ImportSAWindowsPlacement.htm",
+        "sdk:FileOperations_FileImport.txt#14"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/FileImport/ImportSTEPFile.htm",
+      "mp_step": "Import STEP File",
+      "category_path": [
+        "FileOperations",
+        "FileImport"
+      ],
+      "inventory_entry_sha256": "1bc0aa9173ca2f128a67b3858605c54cb63eed4d8f6e8ae12158478c76efb95c",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/FileImport/ImportSTEPFile.htm",
+        "sdk:FileOperations_FileImport.txt#6"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/FileImport/ImportSTLFile.htm",
+      "mp_step": "Import STL File",
+      "category_path": [
+        "FileOperations",
+        "FileImport"
+      ],
+      "inventory_entry_sha256": "7e574bc2ad2ce45dfbc9161d8320e1868d730fdce53ec4a4914dd98da80e63a6",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/FileImport/ImportSTLFile.htm",
+        "sdk:FileOperations_FileImport.txt#5"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/FileImport/ImportVDAFSFile.htm",
+      "mp_step": "Import VDA/FS File",
+      "category_path": [
+        "FileOperations",
+        "FileImport"
+      ],
+      "inventory_entry_sha256": "438cc0a5d3127096238c625e9bea699e6295645855033bd10a079865848c27e1",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/FileImport/ImportVDAFSFile.htm",
+        "sdk:FileOperations_FileImport.txt#8"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/FileImport/ImportVSTARSxyzFile.htm",
+      "mp_step": "Import VSTARS .xyz File",
+      "category_path": [
+        "FileOperations",
+        "FileImport"
+      ],
+      "inventory_entry_sha256": "7f7904d53df643d0195e8f781eca2158aaf18d608d9d203bf165cd561dd4e0ab",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/FileImport/ImportVSTARSxyzFile.htm",
+        "sdk:FileOperations_FileImport.txt#15"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/FindFilesInDirectory.htm",
+      "mp_step": "Find Files in Directory",
+      "category_path": [
+        "FileOperations"
+      ],
+      "inventory_entry_sha256": "461485679c258f4281f36967f6395999f58a29c6f33e9cd48a5b765706fce0b7",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/FindFilesInDirectory.htm",
+        "sdk:FileOperations.txt#30"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/FindSubDirectoriesInDirectory.htm",
+      "mp_step": "Find Sub-Directories in Directory",
+      "category_path": [
+        "FileOperations"
+      ],
+      "inventory_entry_sha256": "3a38d289bac57482e9b7723e6949ba4827fa9d1bda01befc84f5edbaf73856ff",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/FindSubDirectoriesInDirectory.htm",
+        "sdk:FileOperations.txt#31"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/GetDirectoryAndFilename.htm",
+      "mp_step": "Get Directory and Filename from Path",
+      "category_path": [
+        "FileOperations"
+      ],
+      "inventory_entry_sha256": "6bed05d1efea83d60d8374cc1f9ec1015a4ce7c68751981572e0c90699b0bedf",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/GetDirectoryAndFilename.htm",
+        "sdk:FileOperations.txt#32"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/GetWorkingDirectory.htm",
+      "mp_step": "Get Working Directory",
+      "category_path": [
+        "FileOperations"
+      ],
+      "inventory_entry_sha256": "26047d8f98025bb35cc64c5d476f1c83d487cc4ae2bc7b0b417dbd5dde0d343b",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/GetWorkingDirectory.htm",
+        "sdk:FileOperations.txt#2"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/JSON/CloseJSONFile.htm",
+      "mp_step": "Close JSON File",
+      "category_path": [
+        "FileOperations",
+        "JSON"
+      ],
+      "inventory_entry_sha256": "22c1998625f34e84d4e4ef38ee7bd1ce300f7cc2a7d2d1d7220411b64e4d5b36",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/JSON/CloseJSONFile.htm",
+        "sdk:FileOperations_JSON.txt#2"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/JSON/GetJSONArraySize.htm",
+      "mp_step": "Get JSON Array Size",
+      "category_path": [
+        "FileOperations",
+        "JSON"
+      ],
+      "inventory_entry_sha256": "21775d5f8d9dd759f275c486cc39cd79b6a4bb34b325556517b97d288e12855f",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/JSON/GetJSONArraySize.htm",
+        "sdk:FileOperations_JSON.txt#8"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/JSON/GetJSONDoubleValue.htm",
+      "mp_step": "Get JSON Double Value",
+      "category_path": [
+        "FileOperations",
+        "JSON"
+      ],
+      "inventory_entry_sha256": "333a124c4e5fd3319ecc575738157b6c618e47dd806c46fa714ccd6769052d79",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/JSON/GetJSONDoubleValue.htm",
+        "sdk:FileOperations_JSON.txt#5"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/JSON/GetJSONIntegerValue.htm",
+      "mp_step": "Get JSON Integer Value",
+      "category_path": [
+        "FileOperations",
+        "JSON"
+      ],
+      "inventory_entry_sha256": "c2cd9c4440066b5c0ba7765adc522d9bb286719bb8fbe2e2d5c6442f6479ade2",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/JSON/GetJSONIntegerValue.htm",
+        "sdk:FileOperations_JSON.txt#6"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/JSON/GetJSONObjectValue.htm",
+      "mp_step": "Get JSON Object Value",
+      "category_path": [
+        "FileOperations",
+        "JSON"
+      ],
+      "inventory_entry_sha256": "2edb5a14e6611390235a9e51cb6acf4c025fce8decc2407970c61af051e89266",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/JSON/GetJSONObjectValue.htm",
+        "sdk:FileOperations_JSON.txt#7"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/JSON/GetJSONStringValue.htm",
+      "mp_step": "Get JSON String Value",
+      "category_path": [
+        "FileOperations",
+        "JSON"
+      ],
+      "inventory_entry_sha256": "3bd42a25056ad41630ad20896a93ad468e877aaf29207e75cd259c4067cacf5c",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/JSON/GetJSONStringValue.htm",
+        "sdk:FileOperations_JSON.txt#4"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/JSON/GetJSONTreePointerList.htm",
+      "mp_step": "Get JSON Tree Pointer List",
+      "category_path": [
+        "FileOperations",
+        "JSON"
+      ],
+      "inventory_entry_sha256": "4bc341f2fe6c15ae38ed7e823584d1679f86745df83552760f35431c6f811a01",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/JSON/GetJSONTreePointerList.htm",
+        "sdk:FileOperations_JSON.txt#3"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/JSON/OpenJSONFile.htm",
+      "mp_step": "Open JSON File",
+      "category_path": [
+        "FileOperations",
+        "JSON"
+      ],
+      "inventory_entry_sha256": "4d02bd575c703412830b096d851d5f0e2597649f6456c89444431d0d6f04fadb",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/JSON/OpenJSONFile.htm",
+        "sdk:FileOperations_JSON.txt#1"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/MakeDirectory.htm",
+      "mp_step": "Make Directory",
+      "category_path": [
+        "FileOperations"
+      ],
+      "inventory_entry_sha256": "a2273fedd4f383bd56eb2ddf40e44c1d247b2b79c47b7ccdd1fbde5f7e4e17cf",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/MakeDirectory.htm",
+        "sdk:FileOperations.txt#7"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/MakeEmbeddedFileNameList.htm",
+      "mp_step": "Make Embedded File Name List",
+      "category_path": [
+        "FileOperations"
+      ],
+      "inventory_entry_sha256": "fe1d056f66d3047981356296736da2abed8e934e498d2d9be305b94c5302422b",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/MakeEmbeddedFileNameList.htm",
+        "sdk:FileOperations.txt#33"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/NewSAFile.htm",
+      "mp_step": "New SA File",
+      "category_path": [
+        "FileOperations"
+      ],
+      "inventory_entry_sha256": "7cdff3a0b2ecd6a07dcc344e2a1b4633ae49ec47aa5d617248bd7f03a8e46cc5",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/NewSAFile.htm",
+        "sdk:FileOperations.txt#11"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/OpenSAFile.htm",
+      "mp_step": "Open SA File",
+      "category_path": [
+        "FileOperations"
+      ],
+      "inventory_entry_sha256": "0df3db9fa5321ec536eb7b72e660951f29feb85608c5a6d2d22c345fb486e9b7",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/OpenSAFile.htm",
+        "sdk:FileOperations.txt#12"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/OpenTemplateFile.htm",
+      "mp_step": "Open Template File",
+      "category_path": [
+        "FileOperations"
+      ],
+      "inventory_entry_sha256": "9df8ca3e9c7c7e8639e9616461cf9ee7340bcd7536b6bba55e4db73cf911a705",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/OpenTemplateFile.htm",
+        "sdk:FileOperations.txt#16"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/QDASFileExport/AddK-FieldtoQDASDataList.htm",
+      "mp_step": "Add K-Field to QDAS Data List",
+      "category_path": [
+        "FileOperations",
+        "QDASFileExport"
+      ],
+      "inventory_entry_sha256": "269734c51dc5cbcc4003aa9aa1216b9a8ca4f922b0136fe4b9d5563a5e748b1b",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/QDASFileExport/AddK-FieldtoQDASDataList.htm",
+        "sdk:FileOperations_FileExport_QDASFileExport.txt#2"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/QDASFileExport/ExportQDASCharacteristics.htm",
+      "mp_step": "Export QDAS Characteristics",
+      "category_path": [
+        "FileOperations",
+        "QDASFileExport"
+      ],
+      "inventory_entry_sha256": "70ffacee1cbadc93573781937bd57bb9e145cd529189949b616f97167287ab68",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/QDASFileExport/ExportQDASCharacteristics.htm",
+        "sdk:FileOperations_FileExport_QDASFileExport.txt#4"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/QDASFileExport/ExportQDASDataList.htm",
+      "mp_step": "Export QDAS Data List",
+      "category_path": [
+        "FileOperations",
+        "QDASFileExport"
+      ],
+      "inventory_entry_sha256": "003264fb47abac939148021f4ea3f2250b9ae16ac17ca22a62c26353b8c49685",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/QDASFileExport/ExportQDASDataList.htm",
+        "sdk:FileOperations_FileExport_QDASFileExport.txt#3"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/QDASFileExport/GetQDASCatalogEntries.htm",
+      "mp_step": "Get QDAS Catalog Entries",
+      "category_path": [
+        "FileOperations",
+        "QDASFileExport"
+      ],
+      "inventory_entry_sha256": "d25fd9fab911809ad1d734f5546be8fa22d4290284d76b6c008600f54622da26",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/QDASFileExport/GetQDASCatalogEntries.htm",
+        "sdk:FileOperations_FileExport_QDASFileExport_QDASCatalog.txt#2"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/QDASFileExport/GetQDASCatalogEntryIdentifier.htm",
+      "mp_step": "Get QDAS Catalog Entry Identifier",
+      "category_path": [
+        "FileOperations",
+        "QDASFileExport"
+      ],
+      "inventory_entry_sha256": "04e6ee895ff4f230814ff046b789783e169fa30b4d837b7e53af4a838ad38390",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/QDASFileExport/GetQDASCatalogEntryIdentifier.htm",
+        "sdk:FileOperations_FileExport_QDASFileExport_QDASCatalog.txt#3"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/QDASFileExport/ImportQDasCatalogFile.htm",
+      "mp_step": "Import QDas Catalog File",
+      "category_path": [
+        "FileOperations",
+        "QDASFileExport"
+      ],
+      "inventory_entry_sha256": "1e1eaf8d69f67b67790276cec5a41ad736a3e1ccfa1bf8440e9cf48bd109bb8a",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/QDASFileExport/ImportQDasCatalogFile.htm",
+        "sdk:FileOperations_FileExport_QDASFileExport_QDASCatalog.txt#1"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/QDASFileExport/PrepareQDASDataList.htm",
+      "mp_step": "Prepare QDAS Data List",
+      "category_path": [
+        "FileOperations",
+        "QDASFileExport"
+      ],
+      "inventory_entry_sha256": "449e409d5df13592e3702d6c967381718a9e802be9564bd3853084ae9949fe89",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/QDASFileExport/PrepareQDASDataList.htm",
+        "sdk:FileOperations_FileExport_QDASFileExport.txt#1"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/QDASFileExport/SetK-FieldfromQDASCatalog.htm",
+      "mp_step": "Set K-Field from QDAS Catalog",
+      "category_path": [
+        "FileOperations",
+        "QDASFileExport"
+      ],
+      "inventory_entry_sha256": "f3f026ec066dee4437629a12025c9fcd629f3ea15e6ace3e64bae19abe726def",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/QDASFileExport/SetK-FieldfromQDASCatalog.htm",
+        "sdk:FileOperations_FileExport_QDASFileExport_QDASCatalog.txt#4"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/RenameGeneralFile.htm",
+      "mp_step": "Rename General File",
+      "category_path": [
+        "FileOperations"
+      ],
+      "inventory_entry_sha256": "059116579bbb6487fa2a2362cf1b8b644e3f24be5ba9a21695a3b6ad840d8e15",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/RenameGeneralFile.htm",
+        "sdk:FileOperations.txt#24"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/RunAnotherProgram.htm",
+      "mp_step": "Run Another Program",
+      "category_path": [
+        "FileOperations"
+      ],
+      "inventory_entry_sha256": "e83372023552f2cd51f0f73cb2f2e4a0eadc6df83895b6a91b9c062269de4adc",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/RunAnotherProgram.htm",
+        "sdk:FileOperations.txt#21"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/RunPowershellScript.htm",
+      "mp_step": "Run Powershell Script",
+      "category_path": [
+        "FileOperations"
+      ],
+      "inventory_entry_sha256": "ada52ea781c766424a4b56494bbff722c861a8f7773ca1d37b7ab6c2a3a1a75e",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/RunPowershellScript.htm",
+        "sdk:FileOperations.txt#22"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/Save.htm",
+      "mp_step": "Save",
+      "category_path": [
+        "FileOperations"
+      ],
+      "inventory_entry_sha256": "7fa799db1ca421f0867203b45dd8193891e68280c577c0b9215208a26d6b58ad",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/Save.htm",
+        "sdk:FileOperations.txt#13"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/SaveAs.htm",
+      "mp_step": "Save As",
+      "category_path": [
+        "FileOperations"
+      ],
+      "inventory_entry_sha256": "132e309c4de8906f33f5cdbf1f29b26985c5e9351001a4a3d548e5f5dcebaf2c",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/SaveAs.htm",
+        "sdk:FileOperations.txt#14"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/SaveAsReadOnlyTemplate.htm",
+      "mp_step": "Save As Read-Only Template",
+      "category_path": [
+        "FileOperations"
+      ],
+      "inventory_entry_sha256": "662a75169a19c2237e34f7c90b5ba838bdbaebee47a34cc63bb9d6d538907a22",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/SaveAsReadOnlyTemplate.htm",
+        "sdk:FileOperations.txt#17"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/SetBackupDirectory.htm",
+      "mp_step": "Set Backup Directory",
+      "category_path": [
+        "FileOperations"
+      ],
+      "inventory_entry_sha256": "b1cf37f7b822aa586a813cab804f589d6718bc0ce49862e0d4f742c0ba69e09e",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/SetBackupDirectory.htm",
+        "sdk:FileOperations.txt#4"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/SetDataRootDirectory.htm",
+      "mp_step": "Set Data Root Directory",
+      "category_path": [
+        "FileOperations"
+      ],
+      "inventory_entry_sha256": "a124e1b93b40deb859d8b3d9b73265be3fdf8d83f48b5ba86f1524830659311d",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/SetDataRootDirectory.htm",
+        "sdk:FileOperations.txt#3"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/SetReportsDirectory.htm",
+      "mp_step": "Set Reports Directory",
+      "category_path": [
+        "FileOperations"
+      ],
+      "inventory_entry_sha256": "79bc9bf3d1832851462e8c919ef1b2bd5b330c14db755a67469c8dd3e82609bd",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/SetReportsDirectory.htm",
+        "sdk:FileOperations.txt#6"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/SetTemplatesDirectory.htm",
+      "mp_step": "Set Templates Directory",
+      "category_path": [
+        "FileOperations"
+      ],
+      "inventory_entry_sha256": "61f5405e419d4670918779a15b618e11cc65a7799b45a713060f7f992dd057bf",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/SetTemplatesDirectory.htm",
+        "sdk:FileOperations.txt#5"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/SetWorkingDirectory.htm",
+      "mp_step": "Set Working Directory",
+      "category_path": [
+        "FileOperations"
+      ],
+      "inventory_entry_sha256": "cd495b461d9e6656c110bc66a8669457dbcf5ad3596b521a08b7f31f91849254",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/SetWorkingDirectory.htm",
+        "sdk:FileOperations.txt#1"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/ShutDownSA.htm",
+      "mp_step": "Shut Down SA",
+      "category_path": [
+        "FileOperations"
+      ],
+      "inventory_entry_sha256": "68ac1888fa1e91be22d12c663ec2d7c9b033de989dd938355403d74e2766d08d",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/ShutDownSA.htm",
+        "sdk:FileOperations.txt#20"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/VerifyGeneralFileExists.htm",
+      "mp_step": "Verify General File Exists",
+      "category_path": [
+        "FileOperations"
+      ],
+      "inventory_entry_sha256": "d22bb88b9942759de64061b026f6d1f34f1c51de7c3471306e845a8ac7e1393c",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/VerifyGeneralFileExists.htm",
+        "sdk:FileOperations.txt#26"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/VerifyMPFileExists.htm",
+      "mp_step": "Verify MP File Exists",
+      "category_path": [
+        "FileOperations"
+      ],
+      "inventory_entry_sha256": "cafcf0085de41a22ced285b03c17fe24ba437e4fdc882da4892099335dce9b6d",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/VerifyMPFileExists.htm",
+        "sdk:FileOperations.txt#27"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/XML/AddXMLElement.htm",
+      "mp_step": "Add XML Element",
+      "category_path": [
+        "FileOperations",
+        "XML"
+      ],
+      "inventory_entry_sha256": "819335d19186a2943772479338a511fb961063a48ebb110072d992c2aa325a29",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/XML/AddXMLElement.htm",
+        "sdk:FileOperations_XML.txt#4"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/XML/CloseXMLFile.htm",
+      "mp_step": "Close XML File",
+      "category_path": [
+        "FileOperations",
+        "XML"
+      ],
+      "inventory_entry_sha256": "741ed0296c1beffef6b5812f45f7def03bea45b1ae703d9740d6f95b4d31198f",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/XML/CloseXMLFile.htm",
+        "sdk:FileOperations_XML.txt#3"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/XML/GetXMLAttribute.htm",
+      "mp_step": "Get XML Attribute",
+      "category_path": [
+        "FileOperations",
+        "XML"
+      ],
+      "inventory_entry_sha256": "9a7688545f912a388c606aa3a8473cf70a18a04f2c9733e0ed27d19bc36cae84",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/XML/GetXMLAttribute.htm",
+        "sdk:FileOperations_XML.txt#7"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/XML/GetXMLElementTextContent.htm",
+      "mp_step": "Get XML Element Text Content",
+      "category_path": [
+        "FileOperations",
+        "XML"
+      ],
+      "inventory_entry_sha256": "0ea2f83912e81d2f9d487c8c5bc12f12c90647fb46390bf2ed8ffc00d1fd8d8d",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/XML/GetXMLElementTextContent.htm",
+        "sdk:FileOperations_XML.txt#6"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/XML/ImportNominalsFromXMLFile.htm",
+      "mp_step": "Import Nominals from XML File",
+      "category_path": [
+        "FileOperations",
+        "XML"
+      ],
+      "inventory_entry_sha256": "d8fca6341601929b61e2eebaccb2095d38155a6b1643a0e62cc59ba9da336700",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/XML/ImportNominalsFromXMLFile.htm",
+        "sdk:FileOperations_XML.txt#10"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/XML/MergeMeasurementsintoXML.htm",
+      "mp_step": "Merge Measurements into XML File",
+      "category_path": [
+        "FileOperations",
+        "XML"
+      ],
+      "inventory_entry_sha256": "1ecfcd5ade0024b1d578d145f3962c82a09dd6a3bc72c5e7db3668a642a2aa56",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/XML/MergeMeasurementsintoXML.htm",
+        "sdk:FileOperations_XML.txt#11"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/XML/OpenXMLFile.htm",
+      "mp_step": "Open XML File",
+      "category_path": [
+        "FileOperations",
+        "XML"
+      ],
+      "inventory_entry_sha256": "980a2c3d26cfc96f6c5942e3165ab29dff73a55368439d9334f28ac1bca202f1",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/XML/OpenXMLFile.htm",
+        "sdk:FileOperations_XML.txt#2"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/XML/RemoveXMLAttribute.htm",
+      "mp_step": "Remove XML Attribute",
+      "category_path": [
+        "FileOperations",
+        "XML"
+      ],
+      "inventory_entry_sha256": "a33c120f48ec6f2d82cba4c08d343bb9cbe967650f2c6006a33b64ca5ab05136",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/XML/RemoveXMLAttribute.htm",
+        "sdk:FileOperations_XML.txt#9"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/XML/RemoveXMLElement.htm",
+      "mp_step": "Remove XML Element",
+      "category_path": [
+        "FileOperations",
+        "XML"
+      ],
+      "inventory_entry_sha256": "7f918dccb5704859fa90c685d4fb2519e94cdce54f5270e6e7ba2eebe4a0b316",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/XML/RemoveXMLElement.htm",
+        "sdk:FileOperations_XML.txt#5"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:FileOperations/XML/SetXMLAttribute.htm",
+      "mp_step": "Set XML Attribute",
+      "category_path": [
+        "FileOperations",
+        "XML"
+      ],
+      "inventory_entry_sha256": "75ac60ab0877c666b7e5be59bad27c9a063c12f1db408227dd518c1e2e4e7280",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:FileOperations/XML/SetXMLAttribute.htm",
+        "sdk:FileOperations_XML.txt#8"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "sdk:FileOperations.txt#19",
+      "mp_step": "Terminate All Running MPs",
+      "category_path": [
+        "FileOperations"
+      ],
+      "inventory_entry_sha256": "128896078ca38ac47391920c64396c0f57cf67d24ff205349708c0ace3b3ccb8",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "sdk:FileOperations.txt#19"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "sdk:FileOperations.txt#34",
+      "mp_step": "Pop PolyBay Analysis Window",
+      "category_path": [
+        "FileOperations"
+      ],
+      "inventory_entry_sha256": "b7613ee725d43ffa3ad80f963b304a7602499bfd5df533aafe63a2a6f8363cd1",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "sdk:FileOperations.txt#34"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "sdk:FileOperations_FileExport.txt#1",
+      "mp_step": "Export ASCII Points",
+      "category_path": [
+        "FileOperations",
+        "FileExport"
+      ],
+      "inventory_entry_sha256": "39935d7d324bb00d83437e108f90b534b101f12f97c9c26139479a7316e8b452",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "sdk:FileOperations_FileExport.txt#1"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "sdk:FileOperations_FileExport.txt#2",
+      "mp_step": "Export ASCII Point Set",
+      "category_path": [
+        "FileOperations",
+        "FileExport"
+      ],
+      "inventory_entry_sha256": "96898fe97b65b73433eeb91894ce28c89ec7b9683f008a85f868cdf37940a34f",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "sdk:FileOperations_FileExport.txt#2"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "sdk:FileOperations_FileImport.txt#16",
+      "mp_step": "Import VSTARS Cameras",
+      "category_path": [
+        "FileOperations",
+        "FileImport"
+      ],
+      "inventory_entry_sha256": "ca93b5343840abeb037333580629cef362f4065fc31ea1b6934acb24afc0714b",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "sdk:FileOperations_FileImport.txt#16"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "sdk:FileOperations_FileImport.txt#19",
+      "mp_step": "Import Polyworks File",
+      "category_path": [
+        "FileOperations",
+        "FileImport"
+      ],
+      "inventory_entry_sha256": "e39e6d45a3e43a147452d332723609e80e7fb7d2fd0bbb5127a27e0de699c21a",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "sdk:FileOperations_FileImport.txt#19"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "sdk:FileOperations_XML.txt#1",
+      "mp_step": "Use NRKXML Library",
+      "category_path": [
+        "FileOperations",
+        "XML"
+      ],
+      "inventory_entry_sha256": "86e4c0754f9623962722e590b2a7567841da85990aef5da6b5155034ada3e674",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "sdk:FileOperations_XML.txt#1"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    }
+  ]
+}

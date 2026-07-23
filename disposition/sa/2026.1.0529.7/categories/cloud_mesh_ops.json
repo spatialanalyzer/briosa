@@ -1,0 +1,869 @@
+{
+  "$schema": "../../../schemas/v1/shard.schema.json",
+  "schema_version": 1,
+  "spatial_analyzer_target": "2026.1.0529.7",
+  "category": "CloudMeshOps",
+  "entries": [
+    {
+      "inventory_key": "documentation:CloudMeshOps/CloudDisplayControl.htm",
+      "mp_step": "Cloud Display Control",
+      "category_path": [
+        "CloudMeshOps"
+      ],
+      "inventory_entry_sha256": "5fb83d5899c0c3f872ed5f89e73af1988ba13d06787dc2fd5b380f715c21007b",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:CloudMeshOps/CloudDisplayControl.htm",
+        "sdk:CloudAndMeshOperations.txt#1"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:CloudMeshOps/CloudFilters/DeleteCloudPointsByRadial.htm",
+      "mp_step": "Delete Cloud Points by Radial Distance from Points",
+      "category_path": [
+        "CloudMeshOps",
+        "CloudFilters"
+      ],
+      "inventory_entry_sha256": "532d97094692d914fc690ac8e5c6ccafdf725de0cbb58f851ad7699c34707c3c",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:CloudMeshOps/CloudFilters/DeleteCloudPointsByRadial.htm",
+        "sdk:CloudAndMeshOperations_CloudFilters.txt#12"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:CloudMeshOps/CloudFilters/DeleteCloudPointsByXYZ.htm",
+      "mp_step": "Delete Cloud Points by X Y Z Range",
+      "category_path": [
+        "CloudMeshOps",
+        "CloudFilters"
+      ],
+      "inventory_entry_sha256": "3bd2f77c677835496a90fbe437c7798437a925c905d6475c660d865bb244564c",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:CloudMeshOps/CloudFilters/DeleteCloudPointsByXYZ.htm",
+        "sdk:CloudAndMeshOperations_CloudFilters.txt#13"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:CloudMeshOps/CloudFilters/FilterCloudsToBSplines.htm",
+      "mp_step": "Filter Clouds to BSplines",
+      "category_path": [
+        "CloudMeshOps",
+        "CloudFilters"
+      ],
+      "inventory_entry_sha256": "56d0b0ad799c111b8cfec188223834bc6a3bbb8471da10db38df352bbe8e434f",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:CloudMeshOps/CloudFilters/FilterCloudsToBSplines.htm",
+        "sdk:CloudAndMeshOperations_CloudFilters.txt#4"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:CloudMeshOps/CloudFilters/FilterCloudsToGroup.htm",
+      "mp_step": "Filter Clouds to Group",
+      "category_path": [
+        "CloudMeshOps",
+        "CloudFilters"
+      ],
+      "inventory_entry_sha256": "cfdc44d553fa01787c488f9d93a10f0df5a34adea4e21482c8de73f95606d824",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:CloudMeshOps/CloudFilters/FilterCloudsToGroup.htm",
+        "sdk:CloudAndMeshOperations_CloudFilters.txt#2"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:CloudMeshOps/CloudFilters/FilterCloudsToLineSegment.htm",
+      "mp_step": "Filter Clouds to Line Segment",
+      "category_path": [
+        "CloudMeshOps",
+        "CloudFilters"
+      ],
+      "inventory_entry_sha256": "5f286796ea7b30fe43921218b25d2c0c9f76f33ae8fd80174eb6cdd2af05c99e",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:CloudMeshOps/CloudFilters/FilterCloudsToLineSegment.htm",
+        "sdk:CloudAndMeshOperations_CloudFilters.txt#5"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:CloudMeshOps/CloudFilters/FilterCloudsToPlane.htm",
+      "mp_step": "Filter Clouds to Plane",
+      "category_path": [
+        "CloudMeshOps",
+        "CloudFilters"
+      ],
+      "inventory_entry_sha256": "a92596ebda2b303e153ac7d0e338503621453041620488803ba42e44bfb2d65b",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:CloudMeshOps/CloudFilters/FilterCloudsToPlane.htm",
+        "sdk:CloudAndMeshOperations_CloudFilters.txt#1"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:CloudMeshOps/CloudFilters/FilterCloudsToSurface.htm",
+      "mp_step": "Filter Clouds to Surface",
+      "category_path": [
+        "CloudMeshOps",
+        "CloudFilters"
+      ],
+      "inventory_entry_sha256": "eb7266d6094a0d65b0ff11556aec4c93c1dc2a52f6f2f8cbf0e1d4abe48e7180",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:CloudMeshOps/CloudFilters/FilterCloudsToSurface.htm",
+        "sdk:CloudAndMeshOperations_CloudFilters.txt#3"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:CloudMeshOps/CloudFilters/FilterCloudsToVectorGroups.htm",
+      "mp_step": "Filter Clouds to Vector Groups - Resolve Points",
+      "category_path": [
+        "CloudMeshOps",
+        "CloudFilters"
+      ],
+      "inventory_entry_sha256": "dec83633b7745e766dad63ffa516b533e3abb5854f8be65fc3977bc559177aa9",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:CloudMeshOps/CloudFilters/FilterCloudsToVectorGroups.htm",
+        "sdk:CloudAndMeshOperations_CloudFilters.txt#6"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:CloudMeshOps/CloudFilters/FilterCloudsToVectorGroupsClouds.htm",
+      "mp_step": "Filter Clouds to Vector Groups - Resolve Clouds",
+      "category_path": [
+        "CloudMeshOps",
+        "CloudFilters"
+      ],
+      "inventory_entry_sha256": "78898afe0db276d3fdd46d2cd4c0d71a50d3f1ec757be239bf9f96110851c487",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:CloudMeshOps/CloudFilters/FilterCloudsToVectorGroupsClouds.htm",
+        "sdk:CloudAndMeshOperations_CloudFilters.txt#7"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:CloudMeshOps/CloudFilters/GetCloudRGBValues.htm",
+      "mp_step": "Get Cloud RGB Values",
+      "category_path": [
+        "CloudMeshOps",
+        "CloudFilters"
+      ],
+      "inventory_entry_sha256": "b489f1f51d0b67088b7ee41e64c61622b755e10096b479cfcc36b5382bc21998",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:CloudMeshOps/CloudFilters/GetCloudRGBValues.htm",
+        "sdk:CloudAndMeshOperations_CloudFilters.txt#9"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:CloudMeshOps/CloudFilters/GetCloudRGBValuesNearPt.htm",
+      "mp_step": "Get Cloud RGB Values Near Point",
+      "category_path": [
+        "CloudMeshOps",
+        "CloudFilters"
+      ],
+      "inventory_entry_sha256": "e39d64515e28c67e72dae8e610484c038e762aa9989d7618a69f0ac79224d907",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:CloudMeshOps/CloudFilters/GetCloudRGBValuesNearPt.htm",
+        "sdk:CloudAndMeshOperations_CloudFilters.txt#10"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:CloudMeshOps/CloudFilters/RGBCloudPointFilter.htm",
+      "mp_step": "RGB Cloud Point Filter",
+      "category_path": [
+        "CloudMeshOps",
+        "CloudFilters"
+      ],
+      "inventory_entry_sha256": "b47f621731a7b87c119d0ac0f453a98a2d45b4e4fb93ccc5a30ac65e16248870",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:CloudMeshOps/CloudFilters/RGBCloudPointFilter.htm",
+        "sdk:CloudAndMeshOperations_CloudFilters.txt#8"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:CloudMeshOps/CloudFilters/SubdivideCloudbyPtSpacing.htm",
+      "mp_step": "Subdivide Cloud by Point Spacing",
+      "category_path": [
+        "CloudMeshOps",
+        "CloudFilters"
+      ],
+      "inventory_entry_sha256": "e2057b72fd9a233b95cde6762b11266a31d01779050cc3a3585724b10cf56ba3",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:CloudMeshOps/CloudFilters/SubdivideCloudbyPtSpacing.htm",
+        "sdk:CloudAndMeshOperations_CloudFilters.txt#11"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:CloudMeshOps/CrossSections/EnableAllCloudCrossSections.htm",
+      "mp_step": "Enable All Cloud Cross Sections",
+      "category_path": [
+        "CloudMeshOps",
+        "CrossSections"
+      ],
+      "inventory_entry_sha256": "5688a5e3423144732ad85799e35498ab2a318191bd43f7a508f03b60c7001dab",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:CloudMeshOps/CrossSections/EnableAllCloudCrossSections.htm",
+        "sdk:CloudAndMeshOperations_CloudCrossSections.txt#1"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:CloudMeshOps/CrossSections/EnableDisableCloudCross.htm",
+      "mp_step": "Enable/Disable Cloud Cross Sections",
+      "category_path": [
+        "CloudMeshOps",
+        "CrossSections"
+      ],
+      "inventory_entry_sha256": "7fdd9a5d33023c3a0e22d4f3c75b80063b1617820bfa7f33b08229aa05ece2a4",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:CloudMeshOps/CrossSections/EnableDisableCloudCross.htm",
+        "sdk:CloudAndMeshOperations_CloudCrossSections.txt#2"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:CloudMeshOps/CrossSections/EnableSingleCloudCross.htm",
+      "mp_step": "Enable Single Cloud Cross Section",
+      "category_path": [
+        "CloudMeshOps",
+        "CrossSections"
+      ],
+      "inventory_entry_sha256": "6b9dab142e00d61188b5b79ac77a523df53b326906631b75a996a08d17680d20",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:CloudMeshOps/CrossSections/EnableSingleCloudCross.htm",
+        "sdk:CloudAndMeshOperations_CloudCrossSections.txt#3"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:CloudMeshOps/CrossSections/GetNumberOfCrossSections.htm",
+      "mp_step": "Get Number of Cross Sections in Cross Section Cloud",
+      "category_path": [
+        "CloudMeshOps",
+        "CrossSections"
+      ],
+      "inventory_entry_sha256": "ca345351c5c37b78c5623fff26499c7be43448ba4763bc79c99ba848af8fb419",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:CloudMeshOps/CrossSections/GetNumberOfCrossSections.htm",
+        "sdk:CloudAndMeshOperations_CloudCrossSections.txt#4"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:CloudMeshOps/GetCloudPointCount.htm",
+      "mp_step": "Get Cloud Point Count",
+      "category_path": [
+        "CloudMeshOps"
+      ],
+      "inventory_entry_sha256": "501e9b3bfe15aeaa51bf0ff7810ac3a553ac5276b4b10747bc0c537f0a0599c6",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:CloudMeshOps/GetCloudPointCount.htm",
+        "sdk:CloudAndMeshOperations.txt#3"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:CloudMeshOps/MeshOperations/Consolidate Mesh.htm",
+      "mp_step": "Consolidate Mesh",
+      "category_path": [
+        "CloudMeshOps",
+        "MeshOperations"
+      ],
+      "inventory_entry_sha256": "5c9ba1c0f5874943def0e84f426f622c0449e49616480ce828df53d9aa3f7b44",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:CloudMeshOps/MeshOperations/Consolidate Mesh.htm",
+        "sdk:CloudAndMeshOperations_MeshOperations.txt#2"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:CloudMeshOps/MeshOperations/GenerateGeneralMesh.htm",
+      "mp_step": "Generate General Mesh",
+      "category_path": [
+        "CloudMeshOps",
+        "MeshOperations"
+      ],
+      "inventory_entry_sha256": "e5be6a588909d3c83324d46f2021588fd7d25fc4e2eff663fbf58da75fd0ed79",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:CloudMeshOps/MeshOperations/GenerateGeneralMesh.htm",
+        "sdk:CloudAndMeshOperations_MeshOperations.txt#1"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:CloudMeshOps/MeshOperations/GenerateRegenerateCoarseMesh.htm",
+      "mp_step": "Generate/Regenerate Coarse Mesh",
+      "category_path": [
+        "CloudMeshOps",
+        "MeshOperations"
+      ],
+      "inventory_entry_sha256": "56ab34ca1e2d9ba65e8a01577bb5a4efbc0b30dda9d0fe350a3ac23222231771",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:CloudMeshOps/MeshOperations/GenerateRegenerateCoarseMesh.htm"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:CloudMeshOps/MeshOperations/MeshFillHoles.htm",
+      "mp_step": "Mesh Fill Holes",
+      "category_path": [
+        "CloudMeshOps",
+        "MeshOperations"
+      ],
+      "inventory_entry_sha256": "c5eece77109ff9f716915351416d2aca1a67ab01494fd96a97a081feb5db6168",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:CloudMeshOps/MeshOperations/MeshFillHoles.htm",
+        "sdk:CloudAndMeshOperations_MeshOperations.txt#4"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:CloudMeshOps/MeshOperations/MeshVolume.htm",
+      "mp_step": "Mesh Volume",
+      "category_path": [
+        "CloudMeshOps",
+        "MeshOperations"
+      ],
+      "inventory_entry_sha256": "5844d46c6d6fd4b70070c5dd1dd9a51f30f669cdcdf6d987a028abae1c59abb0",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:CloudMeshOps/MeshOperations/MeshVolume.htm",
+        "sdk:CloudAndMeshOperations_MeshOperations.txt#3"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:CloudMeshOps/NewRasterScanEdgeInspection.htm",
+      "mp_step": "New Raster Scan Edge Inspection",
+      "category_path": [
+        "CloudMeshOps"
+      ],
+      "inventory_entry_sha256": "b91c94bd5aa72cff8228ccb12c296b53c54fb7f13e8d02e70daba98d2dbbb05f",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:CloudMeshOps/NewRasterScanEdgeInspection.htm",
+        "sdk:CloudAndMeshOperations.txt#6"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:CloudMeshOps/RasterScanEdgeInspection.htm",
+      "mp_step": "Raster Scan Edge Inspection",
+      "category_path": [
+        "CloudMeshOps"
+      ],
+      "inventory_entry_sha256": "996eff613b4c57c9b71d1d537e2d134af32a9d87743de025aefc0eba2e28acb6",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:CloudMeshOps/RasterScanEdgeInspection.htm",
+        "sdk:CloudAndMeshOperations.txt#5"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:CloudMeshOps/ResetCloudBoundingBox.htm",
+      "mp_step": "Reset Cloud Bounding Box",
+      "category_path": [
+        "CloudMeshOps"
+      ],
+      "inventory_entry_sha256": "33c68c2690fa9abb3879c4eb8cc03db2d2ef73b3cd1f3822e782172e76e32c42",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:CloudMeshOps/ResetCloudBoundingBox.htm",
+        "sdk:CloudAndMeshOperations.txt#2"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:CloudMeshOps/SetCloudDefaultClippingPlane.htm",
+      "mp_step": "Set Cloud Default Clipping Plane",
+      "category_path": [
+        "CloudMeshOps"
+      ],
+      "inventory_entry_sha256": "179aed6b987634e9ae116dbb2078f6b34ed9f2dd575ab8c6763faf89d9af1e1f",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:CloudMeshOps/SetCloudDefaultClippingPlane.htm",
+        "sdk:CloudAndMeshOperations.txt#4"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    }
+  ]
+}

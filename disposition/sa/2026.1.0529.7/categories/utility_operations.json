@@ -1,0 +1,3243 @@
+{
+  "$schema": "../../../schemas/v1/shard.schema.json",
+  "schema_version": 1,
+  "spatial_analyzer_target": "2026.1.0529.7",
+  "category": "UtilityOperations",
+  "entries": [
+    {
+      "inventory_key": "documentation:UtilityOperations/Folders/DeleteFolder.htm",
+      "mp_step": "Delete Folder",
+      "category_path": [
+        "UtilityOperations",
+        "Folders"
+      ],
+      "inventory_entry_sha256": "ab7343ba38f8b3c2aaef2f21558b32e8f230cc3515d996dcdecdcdeeaaafa6a0",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Folders/DeleteFolder.htm",
+        "sdk:UtilityOperations_Folders.txt#1"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Folders/GetFolderCollections.htm",
+      "mp_step": "Get Folder Collections",
+      "category_path": [
+        "UtilityOperations",
+        "Folders"
+      ],
+      "inventory_entry_sha256": "cf2d5874af606cdedde2dd8be648a9dacdf4dd3186370790c4f9b44272dc4aa6",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Folders/GetFolderCollections.htm",
+        "sdk:UtilityOperations_Folders.txt#5"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Folders/GetFolderNotes.htm",
+      "mp_step": "Get Folder Notes",
+      "category_path": [
+        "UtilityOperations",
+        "Folders"
+      ],
+      "inventory_entry_sha256": "5dc78eaf22c16f51ba8c826e276461917420f62f24f0465720cdcab9b6cb8cd1",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Folders/GetFolderNotes.htm",
+        "sdk:UtilityOperations_Notes.txt#1"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Folders/GetFoldersByWildcard.htm",
+      "mp_step": "Get Folders by Wildcard",
+      "category_path": [
+        "UtilityOperations",
+        "Folders"
+      ],
+      "inventory_entry_sha256": "2ae0d03d6f9c7308bbdc026f76a470c6138973cf3fa162bd1840a3bd4c8e3f3f",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Folders/GetFoldersByWildcard.htm",
+        "sdk:UtilityOperations_Folders.txt#4"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Folders/MoveCollectionToFolder.htm",
+      "mp_step": "Move Collection to Folder",
+      "category_path": [
+        "UtilityOperations",
+        "Folders"
+      ],
+      "inventory_entry_sha256": "f80d25dbc064f4769820376175799ea68817624cef4f2d29ab3a93a985d563eb",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Folders/MoveCollectionToFolder.htm",
+        "sdk:UtilityOperations_Folders.txt#2"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Folders/MoveFolderToFolder.htm",
+      "mp_step": "Move Folder to Folder",
+      "category_path": [
+        "UtilityOperations",
+        "Folders"
+      ],
+      "inventory_entry_sha256": "107b838dd13cad2efd6c5d8f30729d7d0875a873268ca7a7b0366ae182237395",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Folders/MoveFolderToFolder.htm",
+        "sdk:UtilityOperations_Folders.txt#3"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Folders/SetFolderNotes.htm",
+      "mp_step": "Set Folder Notes",
+      "category_path": [
+        "UtilityOperations",
+        "Folders"
+      ],
+      "inventory_entry_sha256": "27ad3f74df37ed5fb4668b9816b727e0bc106058c4666ce5f911a4b251a5542d",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Folders/SetFolderNotes.htm",
+        "sdk:UtilityOperations_Notes.txt#2"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Language/GetActiveLanguage.htm",
+      "mp_step": "Get Active Language",
+      "category_path": [
+        "UtilityOperations",
+        "Language"
+      ],
+      "inventory_entry_sha256": "993ce4d41e25b3281abc23648751de1d69457dccf68b2d54ffc6d010266f0f27",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Language/GetActiveLanguage.htm",
+        "sdk:UtilityOperations_Language.txt#3"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Language/SetActiveCustomLanguage.htm",
+      "mp_step": "Set Active Custom Language",
+      "category_path": [
+        "UtilityOperations",
+        "Language"
+      ],
+      "inventory_entry_sha256": "44935960be97e0a20a68a36f8d47ace6d2adf7167abe961acc5d04f9462f8dbf",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Language/SetActiveCustomLanguage.htm",
+        "sdk:UtilityOperations_Language.txt#2"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Language/SetActiveIntegratedLanguage.htm",
+      "mp_step": "Set Active Integrated Language",
+      "category_path": [
+        "UtilityOperations",
+        "Language"
+      ],
+      "inventory_entry_sha256": "94da98b3a065603c8b37093e9a026d06ff1b0034cc18b01f38755092c22ff697",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Language/SetActiveIntegratedLanguage.htm",
+        "sdk:UtilityOperations_Language.txt#1"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Network/GetScreenResolution.htm",
+      "mp_step": "Get Screen Resolution",
+      "category_path": [
+        "UtilityOperations",
+        "Network"
+      ],
+      "inventory_entry_sha256": "938b4813c621b2da82478bfa5da74a10329d9eb115fd225a96fbb74e7b11c400",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Network/GetScreenResolution.htm",
+        "sdk:UtilityOperations.txt#29"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Network/HTTPGETRequest.htm",
+      "mp_step": "HTTP GET Request",
+      "category_path": [
+        "UtilityOperations",
+        "Network"
+      ],
+      "inventory_entry_sha256": "d6df3e34a8f0c5c3bd0de086f5dfa749b9e642ba9844b7478b66599f0ee35a3a",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Network/HTTPGETRequest.htm"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Network/HTTPSEnterUserCredentials.htm",
+      "mp_step": "HTTPS Enter User Credentials",
+      "category_path": [
+        "UtilityOperations",
+        "Network"
+      ],
+      "inventory_entry_sha256": "dedb70827dc6575225ad0f48cfc7d3c38aa46b09172eb46490e849ce1becdc24",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Network/HTTPSEnterUserCredentials.htm",
+        "sdk:UtilityOperations_Network.txt#3"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Network/LockUnlockTrappingControl.htm",
+      "mp_step": "Lock/Unlock Trapping Control",
+      "category_path": [
+        "UtilityOperations",
+        "Network"
+      ],
+      "inventory_entry_sha256": "71ee832064abb80d6a34b08200ffa3bae4e513d801812cdd6b5df6646a704884",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Network/LockUnlockTrappingControl.htm",
+        "sdk:UtilityOperations.txt#31"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Network/SetWildCardAsteriskMode.htm",
+      "mp_step": "Set Wild Card Asterisk Mode",
+      "category_path": [
+        "UtilityOperations",
+        "Network"
+      ],
+      "inventory_entry_sha256": "ebf1af63c6547b9a051f83ca46bfb239f717ec00dbde1bb2d20d585b1a5e3e59",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Network/SetWildCardAsteriskMode.htm",
+        "sdk:UtilityOperations.txt#30"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Network/UDPReceiveString.htm",
+      "mp_step": "UDP Receive String",
+      "category_path": [
+        "UtilityOperations",
+        "Network"
+      ],
+      "inventory_entry_sha256": "a1a7c45024ffe1c2597adf2365051537cd208bbb5a81bd26f0eac160acbe3510",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Network/UDPReceiveString.htm",
+        "sdk:UtilityOperations_Network.txt#2"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Network/UDPSendString.htm",
+      "mp_step": "UDP Send String",
+      "category_path": [
+        "UtilityOperations",
+        "Network"
+      ],
+      "inventory_entry_sha256": "41094f21b8e04293fce1c7d6c70d13a289d9ddd5b3a4f20aae3446d8bca059ec",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Network/UDPSendString.htm",
+        "sdk:UtilityOperations_Network.txt#1"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Notes/GetCollectionNotes.htm",
+      "mp_step": "Get Collection Notes",
+      "category_path": [
+        "UtilityOperations",
+        "Notes"
+      ],
+      "inventory_entry_sha256": "22c056b750b598bd1da0c05f595d8fc7615f4f7ef79e390c20a35468317ffd6a",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Notes/GetCollectionNotes.htm",
+        "sdk:UtilityOperations_Notes.txt#3"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Notes/GetObjectNotes.htm",
+      "mp_step": "Get Object Notes",
+      "category_path": [
+        "UtilityOperations",
+        "Notes"
+      ],
+      "inventory_entry_sha256": "a9f5aebe9e72942ef5662001fd64923448377ee48cd4b5bee95ec6f6d1741e1c",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Notes/GetObjectNotes.htm",
+        "sdk:UtilityOperations_Notes.txt#5"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Notes/GetPointNotes.htm",
+      "mp_step": "Get Point Notes",
+      "category_path": [
+        "UtilityOperations",
+        "Notes"
+      ],
+      "inventory_entry_sha256": "8d7303694afb1af6d833ea9df9d25b3fa27d57bbfb0b7aa09cabf87574dec6b3",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Notes/GetPointNotes.htm",
+        "sdk:UtilityOperations_Notes.txt#7"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Notes/SetCollectionNotes.htm",
+      "mp_step": "Set Collection Notes",
+      "category_path": [
+        "UtilityOperations",
+        "Notes"
+      ],
+      "inventory_entry_sha256": "81e5131204eeaeec359c9e383560f81d9740de34419f04cbcaa0df6efccd86a1",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Notes/SetCollectionNotes.htm",
+        "sdk:UtilityOperations_Notes.txt#4"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Notes/SetObjectNotes.htm",
+      "mp_step": "Set Object Notes",
+      "category_path": [
+        "UtilityOperations",
+        "Notes"
+      ],
+      "inventory_entry_sha256": "13915e6a08d8859b5bcbceb49d56bda1345142db417addb727a1477a7778e391",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Notes/SetObjectNotes.htm",
+        "sdk:UtilityOperations_Notes.txt#6"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Notes/SetPointNotes.htm",
+      "mp_step": "Set Point Notes",
+      "category_path": [
+        "UtilityOperations",
+        "Notes"
+      ],
+      "inventory_entry_sha256": "4ec70f8c1faa40c7f6dc2a2552c0558734ed1337c66627a661f8ee221473e23b",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Notes/SetPointNotes.htm",
+        "sdk:UtilityOperations_Notes.txt#8"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/OPC-DAServer/GetOPCDATagValueDouble.htm",
+      "mp_step": "Get OPC DA Tag Value Double",
+      "category_path": [
+        "UtilityOperations",
+        "OPC-DAServer"
+      ],
+      "inventory_entry_sha256": "db4189916d0de939dbebc897469a5e0362adee23aa5fe5a60711dd85560bb353",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/OPC-DAServer/GetOPCDATagValueDouble.htm",
+        "sdk:UtilityOperations_OPCDAServer.txt#2"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/OPC-DAServer/GetOPCDATagValueInteger.htm",
+      "mp_step": "Get OPC DA Tag Value Integer",
+      "category_path": [
+        "UtilityOperations",
+        "OPC-DAServer"
+      ],
+      "inventory_entry_sha256": "ec040e1f25a2c32906ce1a637556705142fc65f7751227f35f15e2386dc847f1",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/OPC-DAServer/GetOPCDATagValueInteger.htm",
+        "sdk:UtilityOperations_OPCDAServer.txt#4"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/OPC-DAServer/GetOPCDATagValueString.htm",
+      "mp_step": "Get OPC DA Tag Value String",
+      "category_path": [
+        "UtilityOperations",
+        "OPC-DAServer"
+      ],
+      "inventory_entry_sha256": "fe6b8930c4a678e8c954ad1fb4e443b92de59e43d6ba85f111cf4be99ae997ce",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/OPC-DAServer/GetOPCDATagValueString.htm",
+        "sdk:UtilityOperations_OPCDAServer.txt#6"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/OPC-DAServer/SetOPCDATagValueDouble.htm",
+      "mp_step": "Set OPC DA Tag Value Double",
+      "category_path": [
+        "UtilityOperations",
+        "OPC-DAServer"
+      ],
+      "inventory_entry_sha256": "78830647a4f6a818df6874948ed2b79ff95721a6c2ee13a6bfa810e1df0a520d",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/OPC-DAServer/SetOPCDATagValueDouble.htm",
+        "sdk:UtilityOperations_OPCDAServer.txt#1"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/OPC-DAServer/SetOPCDATagValueInteger.htm",
+      "mp_step": "Set OPC DA Tag Value Integer",
+      "category_path": [
+        "UtilityOperations",
+        "OPC-DAServer"
+      ],
+      "inventory_entry_sha256": "7c51da2dabbfe9cadc728870560811fb18a14b6504fa9490e0540303fd8f76ff",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/OPC-DAServer/SetOPCDATagValueInteger.htm",
+        "sdk:UtilityOperations_OPCDAServer.txt#3"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/OPC-DAServer/SetOPCDATagValueString.htm",
+      "mp_step": "Set OPC DA Tag Value String",
+      "category_path": [
+        "UtilityOperations",
+        "OPC-DAServer"
+      ],
+      "inventory_entry_sha256": "00d7e1b21cd67c12bae0bc62c0e37345f4cd77cff1c90862fdda1197de41f166",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/OPC-DAServer/SetOPCDATagValueString.htm",
+        "sdk:UtilityOperations_OPCDAServer.txt#5"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/OPC-UAClient/ConnectToOPCUAServer.htm",
+      "mp_step": "Connect to OPC UA Server",
+      "category_path": [
+        "UtilityOperations",
+        "OPC-UAClient"
+      ],
+      "inventory_entry_sha256": "28d66edf59c896c3130065d08c4a25651ffe7dd5fb061a496cdef3b9cf6413ec",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/OPC-UAClient/ConnectToOPCUAServer.htm",
+        "sdk:UtilityOperations_OPCUAClient.txt#1"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/OPC-UAClient/DisconnectFromOPCUAServer.htm",
+      "mp_step": "Disconnect from OPC UA Server",
+      "category_path": [
+        "UtilityOperations",
+        "OPC-UAClient"
+      ],
+      "inventory_entry_sha256": "d232d69e2c565a0f345e50a65b947cad113cbfd561557c6e07515ef52b30203d",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/OPC-UAClient/DisconnectFromOPCUAServer.htm",
+        "sdk:UtilityOperations_OPCUAClient.txt#2"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/OPC-UAClient/GetOPCUANodeValueDouble.htm",
+      "mp_step": "Get OPC UA Node Value Double",
+      "category_path": [
+        "UtilityOperations",
+        "OPC-UAClient"
+      ],
+      "inventory_entry_sha256": "6cea0a0b1986fe12e008f8ffe50ad1d164c8a3c4fb55fadd4d37874410327f3d",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/OPC-UAClient/GetOPCUANodeValueDouble.htm",
+        "sdk:UtilityOperations_OPCUAClient.txt#4"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/OPC-UAClient/GetOPCUANodeValueInteger.htm",
+      "mp_step": "Get OPC UA Node Value Integer",
+      "category_path": [
+        "UtilityOperations",
+        "OPC-UAClient"
+      ],
+      "inventory_entry_sha256": "c8a5098759959877bc64b94a70b58444e151c0d4df703bd3b7b02da291948c10",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/OPC-UAClient/GetOPCUANodeValueInteger.htm",
+        "sdk:UtilityOperations_OPCUAClient.txt#6"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/OPC-UAClient/GetOPCUANodeValueString.htm",
+      "mp_step": "Get OPC UA Node Value String",
+      "category_path": [
+        "UtilityOperations",
+        "OPC-UAClient"
+      ],
+      "inventory_entry_sha256": "cbf58ffb7d5c569c974600397905d756301cef334ba83f18785523436535ef9a",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/OPC-UAClient/GetOPCUANodeValueString.htm",
+        "sdk:UtilityOperations_OPCUAClient.txt#8"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/OPC-UAClient/OPCUAShowDiagnosticDisplay.htm",
+      "mp_step": "OPC UA Show Diagnostic Display",
+      "category_path": [
+        "UtilityOperations",
+        "OPC-UAClient"
+      ],
+      "inventory_entry_sha256": "a0af9dfda8daf1d9f36a3f43572f34e4c6f05952695ba9b0332fa5e1a6db91e0",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/OPC-UAClient/OPCUAShowDiagnosticDisplay.htm",
+        "sdk:UtilityOperations_OPCUAClient.txt#22"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/OPC-UAClient/RegisterOPCUANodeNotificationService(Boolean).htm",
+      "mp_step": "Register OPC UA Node Notification Service (Boolean)",
+      "category_path": [
+        "UtilityOperations",
+        "OPC-UAClient"
+      ],
+      "inventory_entry_sha256": "1a1506e63e56fdda0f49109f707fd85631a92f217c9b74cbc8277ef1b1bffd0c",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/OPC-UAClient/RegisterOPCUANodeNotificationService(Boolean).htm",
+        "sdk:UtilityOperations_OPCUAClient.txt#12"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/OPC-UAClient/RegisterOPCUANodeNotificationService(Heartbeat).htm",
+      "mp_step": "Register OPC UA Node Notification Service (MP Heartbeat)",
+      "category_path": [
+        "UtilityOperations",
+        "OPC-UAClient"
+      ],
+      "inventory_entry_sha256": "48e82e95245054a6f3b3fbc5c490d6655e47080dc30c0700163d3d76303e9d5c",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/OPC-UAClient/RegisterOPCUANodeNotificationService(Heartbeat).htm",
+        "sdk:UtilityOperations_OPCUAClient.txt#14"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/OPC-UAClient/RegisterOPCUANodeNotificationService(String).htm",
+      "mp_step": "Register OPC UA Node Notification Service (String)",
+      "category_path": [
+        "UtilityOperations",
+        "OPC-UAClient"
+      ],
+      "inventory_entry_sha256": "2ba5dc73ea5bae731ad88e142cfcfec296800ec063985c30b0cadf7a00668509",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/OPC-UAClient/RegisterOPCUANodeNotificationService(String).htm",
+        "sdk:UtilityOperations_OPCUAClient.txt#13"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/OPC-UAClient/ResetOPCUANotificationTimeout.htm",
+      "mp_step": "Reset OPC UA Notification Timeout",
+      "category_path": [
+        "UtilityOperations",
+        "OPC-UAClient"
+      ],
+      "inventory_entry_sha256": "21fe377e825b01dfdfeaebedc9b5fbb099823a9898ba118b43f894667c6f8a04",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/OPC-UAClient/ResetOPCUANotificationTimeout.htm",
+        "sdk:UtilityOperations_OPCUAClient.txt#21"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/OPC-UAClient/SetOPCUANodeValueDouble.htm",
+      "mp_step": "Set OPC UA Node Value Double",
+      "category_path": [
+        "UtilityOperations",
+        "OPC-UAClient"
+      ],
+      "inventory_entry_sha256": "a26524ab737290d3e6dffb16fffb4528f55b6b13f18d7e72c41346fda9c7236a",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/OPC-UAClient/SetOPCUANodeValueDouble.htm",
+        "sdk:UtilityOperations_OPCUAClient.txt#3"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/OPC-UAClient/SetOPCUANodeValueInteger.htm",
+      "mp_step": "Set OPC UA Node Value Integer",
+      "category_path": [
+        "UtilityOperations",
+        "OPC-UAClient"
+      ],
+      "inventory_entry_sha256": "f8bd079d7d11ca22ac9d4d3f5d287e6563f71bcc4e1025f367f346c0faeed317",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/OPC-UAClient/SetOPCUANodeValueInteger.htm",
+        "sdk:UtilityOperations_OPCUAClient.txt#5"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/OPC-UAClient/SetOPCUANodeValueString.htm",
+      "mp_step": "Set OPC UA Node Value String",
+      "category_path": [
+        "UtilityOperations",
+        "OPC-UAClient"
+      ],
+      "inventory_entry_sha256": "ddccd67e091296454cdd940d4f8cb0a988ddda7eb23317865aa99d954aab868d",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/OPC-UAClient/SetOPCUANodeValueString.htm",
+        "sdk:UtilityOperations_OPCUAClient.txt#7"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/OPC-UAClient/SetOPCUANotificationServiceState.htm",
+      "mp_step": "Set OPC UA Notification Service State",
+      "category_path": [
+        "UtilityOperations",
+        "OPC-UAClient"
+      ],
+      "inventory_entry_sha256": "fc4ce0934dec85d8c677eade9ff2e1fae9248fbec9f1c7a9d2d6c084968cb738",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/OPC-UAClient/SetOPCUANotificationServiceState.htm",
+        "sdk:UtilityOperations_OPCUAClient.txt#19"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/OPC-UAClient/SetOPCUANotificationServiceString.htm",
+      "mp_step": "Set OPC UA Notification Service String",
+      "category_path": [
+        "UtilityOperations",
+        "OPC-UAClient"
+      ],
+      "inventory_entry_sha256": "f9d5416797887d26804ed3f77d3145451c9969c06cde4d75f9d26af21666d813",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/OPC-UAClient/SetOPCUANotificationServiceString.htm",
+        "sdk:UtilityOperations_OPCUAClient.txt#20"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/OPC-UAClient/StartOPCUANodeNotificationServices.htm",
+      "mp_step": "Start OPC UA Node Notification Services",
+      "category_path": [
+        "UtilityOperations",
+        "OPC-UAClient"
+      ],
+      "inventory_entry_sha256": "b57ea045c7005c14cc66229a0e5475ab967a271d78312bfc21ef7a9ba8449236",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/OPC-UAClient/StartOPCUANodeNotificationServices.htm",
+        "sdk:UtilityOperations_OPCUAClient.txt#17"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/OPC-UAClient/StopOPCUANodeNotificationServices.htm",
+      "mp_step": "Stop OPC UA Node Notification Services",
+      "category_path": [
+        "UtilityOperations",
+        "OPC-UAClient"
+      ],
+      "inventory_entry_sha256": "444fdb52c26c82a3ea1a3a5da7d9b5b888fe831d17bb14b36e0643a8fef83a2d",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/OPC-UAClient/StopOPCUANodeNotificationServices.htm",
+        "sdk:UtilityOperations_OPCUAClient.txt#18"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/OPC-UAClient/SubscribetoOPCUANode.htm",
+      "mp_step": "Subscribe to OPC UA Node",
+      "category_path": [
+        "UtilityOperations",
+        "OPC-UAClient"
+      ],
+      "inventory_entry_sha256": "33de1eb295ba013fc64d2dccc84746d59429c3c109b9219bfc12ab629a9d47f0",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/OPC-UAClient/SubscribetoOPCUANode.htm",
+        "sdk:UtilityOperations_OPCUAClient.txt#9"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/OPC-UAClient/UnregisterAllOPCUANodeNotificationServices.htm",
+      "mp_step": "Unregister All OPC UA Node Notification Services",
+      "category_path": [
+        "UtilityOperations",
+        "OPC-UAClient"
+      ],
+      "inventory_entry_sha256": "8cadc35be8444a1dcdd7c980344595cd9afd8895bc96317e94736d2ac094f3b8",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/OPC-UAClient/UnregisterAllOPCUANodeNotificationServices.htm",
+        "sdk:UtilityOperations_OPCUAClient.txt#16"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/OPC-UAClient/UnregisterOPCUANodeNotificationService.htm",
+      "mp_step": "Unregister OPC UA Node Notification Service",
+      "category_path": [
+        "UtilityOperations",
+        "OPC-UAClient"
+      ],
+      "inventory_entry_sha256": "cfb6cd925af06341713754929baa14378266c4a900c9e91e3855a022f2df3d5b",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/OPC-UAClient/UnregisterOPCUANodeNotificationService.htm",
+        "sdk:UtilityOperations_OPCUAClient.txt#15"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/OPC-UAClient/UnsubscribeFromAllOPCUANodesr.htm",
+      "mp_step": "Unsubscribe From All OPC UA Nodes",
+      "category_path": [
+        "UtilityOperations",
+        "OPC-UAClient"
+      ],
+      "inventory_entry_sha256": "a04cccab9c68278bbcdbf08207e7b8733138f25380616ab1f026b9c659251c53",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/OPC-UAClient/UnsubscribeFromAllOPCUANodesr.htm",
+        "sdk:UtilityOperations_OPCUAClient.txt#11"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/OPC-UAClient/UnsubscribeFromOPCUANodes.htm",
+      "mp_step": "Unsubscribe From OPC UA Node",
+      "category_path": [
+        "UtilityOperations",
+        "OPC-UAClient"
+      ],
+      "inventory_entry_sha256": "c018191d70ea6416c977cab972556f0da1d949a4b40dc1b0f41e0dc8179a8012",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/OPC-UAClient/UnsubscribeFromOPCUANodes.htm",
+        "sdk:UtilityOperations_OPCUAClient.txt#10"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/CloseAllWatchWindows.htm",
+      "mp_step": "Close All Watch Windows",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "82ae7ee291a5ae3e82f3f6793d5208a1a39e9d98b45b70af849f22422aaa5cd4",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/CloseAllWatchWindows.htm",
+        "sdk:UtilityOperations.txt#22"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/CopyDirectory.htm",
+      "mp_step": "Copy Directory",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "dc1c48cd299828bc349ad553904a0a56a3b239f426c8d2ea4bd9f6f4bb0dec82",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/CopyDirectory.htm"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/DelayForSpecifiedTime.htm",
+      "mp_step": "Delay for Specified Time",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "111b2c83644b2f36c97b56e3fd77b42f37bd0ac390e508c4395ae9f3c467684a",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/DelayForSpecifiedTime.htm",
+        "sdk:UtilityOperations.txt#3"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/DeleteDirectory.htm",
+      "mp_step": "Delete Directory",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "c68cec5246e5099ad03713bd025c009f9ea831f6c406c819adc49d88cdb8aab7",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/DeleteDirectory.htm"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/DeleteItems.htm",
+      "mp_step": "Delete Items",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "613ce2d8c4c52557368d9eee129b9ebe1caa120e53869a7b7b707f91caf543aa",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/DeleteItems.htm",
+        "sdk:UtilityOperations.txt#8"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/DeleteObjects.htm",
+      "mp_step": "Delete Objects",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "ae3918b5130c2535ddcd7fd877e90a75c862b3ac913e25ca0f30adbc09ee103a",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/DeleteObjects.htm",
+        "sdk:UtilityOperations.txt#7"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/DirectoryExistence.htm",
+      "mp_step": "Directory Existence",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "d2684104b93ab1bfeda69d25c1ab94d25165a406666e0458e670490e458c42a7",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/DirectoryExistence.htm"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/GenerateRandomNumber.htm",
+      "mp_step": "Generate Random Number",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "c315fae09ba41825165697c481f240fb320ed3bf16daeefe35a2adf9f4773269",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/GenerateRandomNumber.htm",
+        "sdk:UtilityOperations.txt#24"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/GetActiveUnits.htm",
+      "mp_step": "Get Active Units",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "d8e38d498726cd71337e91f7cf464211ae535ca1755f3bdeb920cca4108abbe2",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/GetActiveUnits.htm",
+        "sdk:UtilityOperations_Units.txt#1"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/GetAngularRepresentation.htm",
+      "mp_step": "Get Angular Representation",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "e387a0d780e265707b21363faaf35db9078ebddcc3fc5680259f56e891109373",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/GetAngularRepresentation.htm",
+        "sdk:UtilityOperations_Units.txt#5"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/GetObjectColor.htm",
+      "mp_step": "Get Object Color",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "0e3369798253a214f62b41ef17fd7af2cee81bd9d74ff7aae4c1345dcc20e63a",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/GetObjectColor.htm"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/GetTickCount.htm",
+      "mp_step": "Get Tick Count",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "a29ec03a67f53d04306f6d349f88795c767abbc037d4a0e0da4a0afda41f06bc",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/GetTickCount.htm",
+        "sdk:UtilityOperations.txt#4"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/GetWorkingFrameProperties.htm",
+      "mp_step": "Get Working Frame Properties",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "dda4a6d3ad9731f799b596b086d7c8d1b46096dc9809bfa31d466c605fedbcd4",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/GetWorkingFrameProperties.htm",
+        "sdk:UtilityOperations.txt#6"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/HighlightObjects.htm",
+      "mp_step": "Highlight Objects",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "03ce3a6cf03e12cb4ee5a0c0cd35c1db117a1afdfa074f8e433f3963547f751d",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/HighlightObjects.htm"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/HighlightPoint.htm",
+      "mp_step": "Highlight Point",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "04e1ae119de0b9f8695b2d8615cfafc808c3c60fada7e4d59bbc9175a334f705",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/HighlightPoint.htm"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/Highlight_Objects.htm",
+      "mp_step": "Highlight Relationships",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "0ea35e0eaed67afa9e69bb92330f1e8b5f41462be15bcdc4b0479ff71b5e56db",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/Highlight_Objects.htm"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/IncrementPointName.htm",
+      "mp_step": "Increment Point Name",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "9c33cd10c636427651b2138f9972f73852bf6af3af16c5b2dcfea0b1b5f97abb",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/IncrementPointName.htm",
+        "sdk:UtilityOperations.txt#15"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/LockImportedItems.htm",
+      "mp_step": "Lock Imported Items",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "208161faf110276a1d0994b8aa36d6f5f837868eeb2a982983636fd7750ea261",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/LockImportedItems.htm",
+        "sdk:UtilityOperations.txt#9"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/LockUnlockSelectedItems.htm",
+      "mp_step": "Lock/Unlock Selected Items",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "529c9cfb4adad28ff7cfaed91bef0417949e44bffd4de87a0509b8c8a10a7822",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/LockUnlockSelectedItems.htm",
+        "sdk:UtilityOperations.txt#10"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/MakeDirectory.htm",
+      "mp_step": "Make Directory",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "afc753067226229adbb1effb53938ee18b628bf002d90078f0a3ee5bab75fb27",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/MakeDirectory.htm"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/MoveInstrumentsDragGraphically.htm",
+      "mp_step": "Move Instruments Drag Graphically",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "e5381de26f965157922ec2ab4a4245337b2fbdad87d1a0af213b92218740f171",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/MoveInstrumentsDragGraphically.htm",
+        "sdk:UtilityOperations.txt#13"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/MoveObjectsDragGraphically.htm",
+      "mp_step": "Move Objects Drag Graphically",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "3b13445f8ea2fd034f479af5ffe6d224b351a985d784c3bdc0ad0751ecc8cdc3",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/MoveObjectsDragGraphically.htm",
+        "sdk:UtilityOperations.txt#11"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/RefreshViews.htm",
+      "mp_step": "Refresh Views",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "214196fcc49ecb5e5cece53cceee1e792bb3e4a607abbc67f04dbb9cdb2e953a",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/RefreshViews.htm"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/RemoveSpecifiedCharacters.htm",
+      "mp_step": "Remove Specified Characters From String",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "da110f4bf7cc8746219295c1c43a09176f78aa07176ec5b959c774827c011c61",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/RemoveSpecifiedCharacters.htm",
+        "sdk:UtilityOperations.txt#21"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/ScaleObjects.htm",
+      "mp_step": "Scale Objects",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "6573711fd098ce03fefc78cf372e07e97c087a02c347d7087635d878091fd4fb",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/ScaleObjects.htm",
+        "sdk:UtilityOperations.txt#12"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/SendMPResultToExternal.htm",
+      "mp_step": "Send MP Result to External Device",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "161eec772c4471a8211d59cda6e223e4ed44d6605e0d4be782079d7d3e437cad",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/SendMPResultToExternal.htm",
+        "sdk:UtilityOperations_Network.txt#5"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/SendMPStepsStatusToExternal.htm",
+      "mp_step": "Send MP Step\u2019s Status to External Device",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "0cd9ece9eed2723af244947b5a1a89aa25fe6b665eeffb62aefa9f60ebcfb448",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/SendMPStepsStatusToExternal.htm",
+        "sdk:UtilityOperations_Network.txt#6"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/SetActiveUnits.htm",
+      "mp_step": "Set Active Units",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "ae95ad660b29fd4bd219ba4d8f942e470dbdd4d8d30f0808821f0877d9e2a68c",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/SetActiveUnits.htm",
+        "sdk:UtilityOperations_Units.txt#2"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/SetAngularRepresentation.htm",
+      "mp_step": "Set Angular Representation",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "cce3d17e0493688b0b56e07e9094d57a77100ba976f215999a800b509a515f34",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/SetAngularRepresentation.htm",
+        "sdk:UtilityOperations_Units.txt#4"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/SetAutoEventCreation.htm",
+      "mp_step": "Set Auto Event Creation",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "197d0e6ff9f3a619013174c46835e532ed7fc6d5b32020293c2b697951abb9b3",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/SetAutoEventCreation.htm",
+        "sdk:UtilityOperations.txt#19"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/SetAutomaticBackupState.htm",
+      "mp_step": "Set Automatic Backup State",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "027b5167a9d518dab8de831351b99afa8543045cf80913b5b26e60b4f25dcb93",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/SetAutomaticBackupState.htm",
+        "sdk:UtilityOperations.txt#26"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/SetAutomaticRelationship.htm",
+      "mp_step": "Set Automatic Relationship Construction State",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "f1a67473506f5b4d962546fb6d2849eb31794f2c6d6e3c6ee5fac38356ca30cb",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/SetAutomaticRelationship.htm",
+        "sdk:UtilityOperations.txt#17"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/SetDecimalDigitsForDisplay.htm",
+      "mp_step": "Set Decimal Digits for Display",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "9a49a5d5139524479e1b9c3043f3082261f94487a7252d9bdc15c3e3e17ee6f1",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/SetDecimalDigitsForDisplay.htm",
+        "sdk:UtilityOperations_Units.txt#3"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/SetInteractionMode.htm",
+      "mp_step": "Set Interaction Mode",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "865b0d09b3e57a24a55e6f6c11b5cc0efc1607570e70992c71ffa388560a6087",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/SetInteractionMode.htm",
+        "sdk:UtilityOperations.txt#28"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/SetLoggingState.htm",
+      "mp_step": "Set Logging State",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "d0c62a920061df1f79f5467bb76d5901dc428eea3603f5698ec95255d9f6e1fa",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/SetLoggingState.htm",
+        "sdk:UtilityOperations.txt#16"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/SetMPStepMode.htm",
+      "mp_step": "Set MP Step Mode",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "2d3977bf6d4069fad6396c0a55f53b1a157d0d2082e5f45045aad9041daf09f7",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/SetMPStepMode.htm",
+        "sdk:UtilityOperations.txt#2"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/SetNotificationCancelOverride.htm",
+      "mp_step": "Set Notification Cancel Override",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "1bd64880bbdd0443aaa4813bd85a9cd87b62d7f02000563080d124608fb9dd5c",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/SetNotificationCancelOverride.htm",
+        "sdk:UtilityOperations.txt#27"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/SetObjectsColor.htm",
+      "mp_step": "Set Object(s) Color",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "a6ae2e21af2083aea7ba828ce28562492d7067aa08addc2dc08cd73f9438bc1a",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/SetObjectsColor.htm"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/SetObjectsTranslucency.htm",
+      "mp_step": "Set Object(s) Translucency",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "b8ebfff135f885c2287ea36f6d76870b27d81b87ebad55f8065b5fe5236dfe30",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/SetObjectsTranslucency.htm"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/SetSpecialMPMode.htm",
+      "mp_step": "Set Special MP Mode",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "bdef039226ed6e745a7e8f64ac63281dde3489edbe63e639e59abea162a8f6af",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/SetSpecialMPMode.htm",
+        "sdk:UtilityOperations.txt#14"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/SetUserInterfaceProfile.htm",
+      "mp_step": "Set User Interface Profile",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "1b185f5b9e4cad668fe1540478f4fc3a0f3c5b785341a23d4bb9fed8455e5078",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/SetUserInterfaceProfile.htm",
+        "sdk:UtilityOperations.txt#1"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/SetViewIdleUpdateFrequency.htm",
+      "mp_step": "Set View Idle Update Frequency",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "0b820784786e82e0f811f0c952875e2aa34b4264406af04839b28e579e7c44bc",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/SetViewIdleUpdateFrequency.htm",
+        "sdk:UtilityOperations.txt#25"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/SetWorkingColor.htm",
+      "mp_step": "Set Working Color",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "4baaea319210d864fd35e6b308a77a9cd5f6d5ac975a5957fa3d6a76472ddd62",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/SetWorkingColor.htm"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/SetWorkingColorAutoIncrement.htm",
+      "mp_step": "Set Working Color Auto Increment",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "9eedd28362c28ecd9cb605185bb6efa6b801abac93ce7fd6c86badfcc1c708e5",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/SetWorkingColorAutoIncrement.htm"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/SetWorkingFrame.htm",
+      "mp_step": "Set Working Frame",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "31704dc74551ffa0927371bc8653d7cefeeb6f09adb4b46d10103c7b551f5d0d",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/SetWorkingFrame.htm",
+        "sdk:UtilityOperations.txt#5"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/SpeakToUser.htm",
+      "mp_step": "Speak To User",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "17828cbe48637f427cd5dfc65221b529c3f0352a087cf381992973bf78c5e5cb",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/SpeakToUser.htm"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/StatusDialog.htm",
+      "mp_step": "Status Dialog",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "8c9e112c0becc255fa8002c6cb634deb762ea6f744c81317363b58d24e7de33f",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/StatusDialog.htm",
+        "sdk:UtilityOperations.txt#23"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/StepComment.htm",
+      "mp_step": "Step Comment",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "517c233cee9c1dc035d98b41371f329f922c5a127ac9d494ea0c747401bd17b1",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/StepComment.htm"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/TrimLogFile.htm",
+      "mp_step": "Trim Log File",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "ac53ed69909ddb37186444d5160942911aaa159c8880a18a27bd237702a979b7",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/TrimLogFile.htm",
+        "sdk:UtilityOperations.txt#18"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:UtilityOperations/Units/WriteToLog.htm",
+      "mp_step": "Write to Log",
+      "category_path": [
+        "UtilityOperations",
+        "Units"
+      ],
+      "inventory_entry_sha256": "fe10ba7199eb5e7683b9fd20aaaa1f066eae622151515305940cb230b7622157",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:UtilityOperations/Units/WriteToLog.htm",
+        "sdk:UtilityOperations.txt#20"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "sdk:UtilityOperations_Network.txt#4",
+      "mp_step": "HTTPS GET Request",
+      "category_path": [
+        "UtilityOperations",
+        "Network"
+      ],
+      "inventory_entry_sha256": "e99a29a0bbeb5099aa9f47b8fe235affb7ed1e64d0b84cced37370e9b091cafc",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "sdk:UtilityOperations_Network.txt#4"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "sdk:UtilityOperations_OPCUAClient.txt#23",
+      "mp_step": "OPC UA MP Configuration Auto Run Settings",
+      "category_path": [
+        "UtilityOperations",
+        "OPCUAClient"
+      ],
+      "inventory_entry_sha256": "cecb10ee0c08ec999d88a5b893e2cd14b86d1025f67cc390e0ea8feea8ad5c2e",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "sdk:UtilityOperations_OPCUAClient.txt#23"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "sdk:UtilityOperations_OPCUAClient.txt#24",
+      "mp_step": "Set OPC UA Node Named Coordinate Frame",
+      "category_path": [
+        "UtilityOperations",
+        "OPCUAClient"
+      ],
+      "inventory_entry_sha256": "6546417caf6a3ffb9c88bc561519a243067a7a443f8b4e03cb03d9c79fd82a2a",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "sdk:UtilityOperations_OPCUAClient.txt#24"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "sdk:UtilityOperations_OPCUAClient.txt#25",
+      "mp_step": "Get OPC UA Node Named Coordinate Frame",
+      "category_path": [
+        "UtilityOperations",
+        "OPCUAClient"
+      ],
+      "inventory_entry_sha256": "5deb41ecdda214cf0003ed6d1f471e0a42ccfe53f2f7bbb2d2e3d9e3cea613c3",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "sdk:UtilityOperations_OPCUAClient.txt#25"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    }
+  ]
+}

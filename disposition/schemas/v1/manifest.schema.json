@@ -1,0 +1,90 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://spatialanalyzer.github.io/briosa/disposition/schemas/v1/manifest.schema.json",
+  "title": "Briosa exact-target command disposition manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schema_version",
+    "spatial_analyzer_target",
+    "inventory",
+    "shards"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "../../schemas/v1/manifest.schema.json"
+    },
+    "schema_version": {
+      "const": 1
+    },
+    "spatial_analyzer_target": {
+      "type": "string",
+      "pattern": "^[0-9]+(?:\\.[0-9]+)+$"
+    },
+    "inventory": {
+      "$ref": "#/definitions/inventory"
+    },
+    "shards": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/shard"
+      }
+    }
+  },
+  "definitions": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "inventory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256",
+        "command_count"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "$ref": "#/definitions/sha256"
+        },
+        "command_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "shard": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "category",
+        "path",
+        "entry_count",
+        "sha256"
+      ],
+      "properties": {
+        "category": {
+          "type": "string",
+          "minLength": 1
+        },
+        "path": {
+          "type": "string",
+          "pattern": "^categories/[a-z0-9_]+\\.json$"
+        },
+        "entry_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sha256": {
+          "$ref": "#/definitions/sha256"
+        }
+      }
+    }
+  }
+}

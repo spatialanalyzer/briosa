@@ -32,6 +32,22 @@ Generated artifacts are committed but must not be hand-edited. Verify a clean ge
 
 Pass `-NoBuild` only after `Briosa.Generator` has already been built in the selected configuration.
 
+## Command disposition verification
+
+`Verify-Disposition.ps1` validates the complete exact-target command review ledger against its pinned inventory. It applies the versioned schemas, requires exact inventory-key coverage, enforces fail-closed review semantics, and rejects stale shards, hashes, or reports:
+
+```powershell
+./eng/Verify-Disposition.ps1
+```
+
+Synchronize a ledger after inventory or reviewed decision changes with:
+
+```powershell
+dotnet run --project tools/Briosa.Generator -c Release -- disposition-sync <inventory-path> <target-directory>
+```
+
+See [the command disposition review guide](../docs/development/command-dispositions.md) before editing category decisions.
+
 ## Generated-client smoke tests
 
 Run portable packaged-host success and failure scenarios without SpatialAnalyzer:

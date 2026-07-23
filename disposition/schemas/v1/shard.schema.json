@@ -1,0 +1,186 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://spatialanalyzer.github.io/briosa/disposition/schemas/v1/shard.schema.json",
+  "title": "Briosa exact-target command disposition shard",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schema_version",
+    "spatial_analyzer_target",
+    "category",
+    "entries"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "../../../schemas/v1/shard.schema.json"
+    },
+    "schema_version": {
+      "const": 1
+    },
+    "spatial_analyzer_target": {
+      "type": "string",
+      "pattern": "^[0-9]+(?:\\.[0-9]+)+$"
+    },
+    "category": {
+      "type": "string",
+      "minLength": 1
+    },
+    "entries": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/entry"
+      }
+    }
+  },
+  "definitions": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "github_reference": {
+      "type": "string",
+      "pattern": "^https://github\\.com/spatialanalyzer/[A-Za-z0-9_.-]+/(?:issues|pull)/[1-9][0-9]*$"
+    },
+    "reference_list": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "github_reference_list": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/github_reference"
+      }
+    },
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "inventory_key",
+        "mp_step",
+        "category_path",
+        "inventory_entry_sha256",
+        "disposition",
+        "review_state",
+        "rationale",
+        "reason_codes",
+        "evidence_references",
+        "decision_references",
+        "blocker_references",
+        "risk_effect",
+        "risk_flags",
+        "value_families",
+        "delivery_wave"
+      ],
+      "properties": {
+        "inventory_key": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mp_step": {
+          "type": "string",
+          "minLength": 1
+        },
+        "category_path": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "inventory_entry_sha256": {
+          "$ref": "#/definitions/sha256"
+        },
+        "disposition": {
+          "enum": [
+            "approved_candidate",
+            "blocked",
+            "intentional_exclusion",
+            "sdk_unavailable"
+          ]
+        },
+        "review_state": {
+          "enum": [
+            "needs_re_review",
+            "reviewed",
+            "unreviewed"
+          ]
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reason_codes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          }
+        },
+        "evidence_references": {
+          "$ref": "#/definitions/reference_list"
+        },
+        "decision_references": {
+          "$ref": "#/definitions/github_reference_list"
+        },
+        "blocker_references": {
+          "$ref": "#/definitions/github_reference_list"
+        },
+        "risk_effect": {
+          "enum": [
+            "read_only",
+            "mutating",
+            "unknown"
+          ]
+        },
+        "risk_flags": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "enum": [
+              "filesystem_metadata",
+              "filesystem_read",
+              "filesystem_write",
+              "network_access",
+              "external_process",
+              "device_control",
+              "interactive_ui",
+              "long_running",
+              "credential_or_license_data",
+              "unknown"
+            ]
+          }
+        },
+        "value_families": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          }
+        },
+        "delivery_wave": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "enum": [
+                "wave_1",
+                "wave_2",
+                "wave_3",
+                "wave_4",
+                "final"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}
