@@ -14,7 +14,7 @@ Each exact target contains:
 
 When intentional exclusions exist, `report.md` also publishes an exact command-level table with each exclusion's Briosa-authored rationale and decision reference.
 
-The generator owns inventory identity, MP step, category path, evidence references, per-command evidence fingerprint, manifest hashes, shard placement, and the report. Reviewers own disposition, review state, rationale, reason codes, decision references, blocker references, risk assessment, value families, and delivery wave. Do not edit `manifest.json` or `report.md` by hand.
+The generator owns inventory identity, MP step, category path, evidence references, per-command evidence fingerprint, manifest hashes, shard placement, and the report. Reviewers own disposition, review state, rationale, reason codes, decision references, blocker references, risk assessment, data classifications, value families, and delivery wave. Do not edit `manifest.json` or `report.md` by hand.
 
 Reviewers may update decision fields in category shards and then run synchronization. Synchronization preserves reviewed decision fields when the command evidence is unchanged. If the per-command inventory fingerprint changes, it sets the entry to `needs_re_review`, adds `evidence_changed`, and restores the review blocker. This is intentionally command-scoped; unrelated inventory changes do not invalidate already reviewed decisions.
 
@@ -46,14 +46,14 @@ A maintainer-reviewed pull request is sufficient decision approval. Escalate to 
 
 Use concise Briosa-authored rationale; do not copy vendor documentation prose, SDK source, sample default values, geometry, paths, or other proprietary content into the ledger.
 
-Reason codes and value families are stable lowercase identifiers such as `read_only_operation`, `office_integration`, `path`, or `geometry`. Keep lists ordinally sorted and prefer an existing code when it has the same meaning. Risk effects and flags reuse the supported-catalog vocabulary. Decision and blocker references must be canonical `https://github.com/spatialanalyzer/.../issues/<number>` or pull-request URLs. Do not record reviewer names, timestamps, workstation paths, or local source locations.
+Reason codes and value families are stable lowercase identifiers such as `read_only_operation`, `office_integration`, `path`, or `geometry`. Keep lists ordinally sorted and prefer an existing code when it has the same meaning. Risk effects, risk flags, and data classifications reuse the supported-catalog vocabulary. An empty `risk_flags` array means the review found no special command-level risk flag; `unknown` remains an explicit unresolved state. Decision and blocker references must be canonical `https://github.com/spatialanalyzer/.../issues/<number>` or pull-request URLs. Do not record reviewer names, timestamps, workstation paths, or local source locations.
 
 The semantic rules are:
 
 - every entry needs at least one reason code and non-empty rationale;
 - a `reviewed` entry needs a decision reference;
 - a reviewed `approved_candidate` needs one delivery wave and no blockers;
-- a reviewed `approved_candidate` must replace `unknown` risk and value-family metadata with an assessment;
+- a reviewed `approved_candidate` must replace `unknown` risk, data-classification, and value-family metadata with an assessment;
 - a reviewed `blocked` entry needs at least one blocker and no delivery wave;
 - reviewed `intentional_exclusion` and `sdk_unavailable` entries have neither blockers nor a delivery wave;
 - `unreviewed` and `needs_re_review` entries remain blocked from promotion;
@@ -81,3 +81,5 @@ Review category shards in a focused pull request, update only reviewer-owned fie
 The verifier applies both JSON Schemas, checks exact inventory coverage and hashes, enforces state combinations and reference formats, regenerates a temporary copy, and fails on stale or nondeterministic output. It requires neither SpatialAnalyzer, an SA license, proprietary binaries, nor the local documentation and SDK-code evidence corpus.
 
 When a new exact SpatialAnalyzer release is added, create its inventory first and run `disposition-sync` against a new exact-target directory. Never reuse a prior release's decisions without review: MP argument shapes and meanings may change even when names and primitive types appear unchanged.
+
+The first domain-scale review and its fail-closed decision rules are summarized in [SA 2026.1.0529.7 geometry command review](geometry-command-review.md).

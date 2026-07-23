@@ -8,7 +8,7 @@
   },
   "dispositions": {
     "path": "../../../disposition/sa/2026.1.0529.7/manifest.json",
-    "sha256": "e0521d55fd2c707d56489d7837390478e84b13fa1c1a5fa0b5c3ac72cd264c75"
+    "sha256": "40896e2b012050de410fb0c56063065a32d7af13cc3b6c562b42c7a7cd0840e5"
   },
   "interop_assembly": {
     "path": "../../../interop/SpatialAnalyzer/2026.1.0529.7/Briosa.SpatialAnalyzer.Interop.dll",
@@ -383,7 +383,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "not_required",
       "binding_methods": [
         "SetCompTechniqueArg"
       ]
@@ -422,7 +422,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "not_required",
       "binding_methods": [
         "SetDegreeOfFreedomArg"
       ]
@@ -638,7 +638,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "not_required",
       "binding_methods": [
         "SetFitMethodArg"
       ]
@@ -815,7 +815,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "not_required",
       "binding_methods": [
         "SetMeasuredSideForPlanarOffsetArg"
       ]
@@ -828,7 +828,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "not_required",
       "binding_methods": [
         "SetMeasuredSideForRadialOffsetArg"
       ]
@@ -893,7 +893,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "not_required",
       "binding_methods": [
         "SetNormalDirectionArg"
       ]
@@ -1206,7 +1206,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "not_required",
       "binding_methods": [
         "SetSlotTypeArg"
       ]
@@ -1219,7 +1219,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "not_required",
       "binding_methods": [
         "SetSphereFitComputationModeArg"
       ]
@@ -2215,8 +2215,8 @@
       "inventory_usage": {
         "argument_count": 39,
         "command_count": 37,
-        "excluded_command_count": 10,
-        "remaining_command_count": 27,
+        "excluded_command_count": 19,
+        "remaining_command_count": 18,
         "sha256": "48d991b98469c47f38e2664b67ac7dc822e24d34f1fa137ae25971e53cacd0a5"
       },
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
@@ -2546,8 +2546,8 @@
       "inventory_usage": {
         "argument_count": 2,
         "command_count": 2,
-        "excluded_command_count": 0,
-        "remaining_command_count": 2,
+        "excluded_command_count": 1,
+        "remaining_command_count": 1,
         "sha256": "bb5c85ccabbd02523c2fa5ad58fabae2c5c9cc2afdd2f30dba79d88f7ee7b674"
       },
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
@@ -2675,8 +2675,8 @@
       "inventory_usage": {
         "argument_count": 146,
         "command_count": 88,
-        "excluded_command_count": 36,
-        "remaining_command_count": 52,
+        "excluded_command_count": 40,
+        "remaining_command_count": 48,
         "sha256": "c751439bab2fb3c9ac4dddac7ebd46462f25d2ad6e80ae089150969eb7cfa647"
       },
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
@@ -3033,8 +3033,8 @@
       "inventory_usage": {
         "argument_count": 2,
         "command_count": 2,
-        "excluded_command_count": 0,
-        "remaining_command_count": 2,
+        "excluded_command_count": 1,
+        "remaining_command_count": 1,
         "sha256": "4ace4e08a4d068ce036d3a44990dc7044cfbea893b64c27cb0e524428faccc49"
       },
       "rationale": "The binding is emitted by exact-target View SDK Code but is absent from the committed exact-target interop API.",
@@ -3078,8 +3078,8 @@
       "inventory_usage": {
         "argument_count": 121,
         "command_count": 76,
-        "excluded_command_count": 38,
-        "remaining_command_count": 38,
+        "excluded_command_count": 39,
+        "remaining_command_count": 37,
         "sha256": "cbd1d958f0944cd4b3b877f93b7a2d0c4dd42fe6b0488f47f35071683fd32235"
       },
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
@@ -3182,8 +3182,8 @@
       "inventory_usage": {
         "argument_count": 3,
         "command_count": 3,
-        "excluded_command_count": 0,
-        "remaining_command_count": 3,
+        "excluded_command_count": 2,
+        "remaining_command_count": 1,
         "sha256": "c046a737fe6245f93ffce453eee66f173fd708a082e8e45ae8808981f4218693"
       },
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
@@ -3315,8 +3315,8 @@
       "inventory_usage": {
         "argument_count": 5,
         "command_count": 5,
-        "excluded_command_count": 0,
-        "remaining_command_count": 5,
+        "excluded_command_count": 2,
+        "remaining_command_count": 3,
         "sha256": "ab119839f098b92224e9afdfcecd789425be970f85d0b0ccdf670379589f1f28"
       },
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
@@ -3413,8 +3413,8 @@
       "inventory_usage": {
         "argument_count": 78,
         "command_count": 42,
-        "excluded_command_count": 14,
-        "remaining_command_count": 28,
+        "excluded_command_count": 15,
+        "remaining_command_count": 27,
         "sha256": "3f39f5dcaa28a90cec80ae16436dea5440fac69a677f4c87cf48a32fd8f6fc1e"
       },
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
@@ -4073,8 +4073,8 @@
       "inventory_usage": {
         "argument_count": 793,
         "command_count": 378,
-        "excluded_command_count": 40,
-        "remaining_command_count": 338,
+        "excluded_command_count": 56,
+        "remaining_command_count": 322,
         "sha256": "b220ecb6effc7efe8f9eb203fdd52afb7ce4e66a0478395bb3abfcdad4fe3322"
       },
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
@@ -4341,8 +4341,8 @@
       "inventory_usage": {
         "argument_count": 151,
         "command_count": 149,
-        "excluded_command_count": 3,
-        "remaining_command_count": 146,
+        "excluded_command_count": 4,
+        "remaining_command_count": 145,
         "sha256": "972b097095d12156e018cbbab95e2aeb20802ef18515b2aba4c5b4aa85dec220"
       },
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
@@ -4672,8 +4672,8 @@
       "inventory_usage": {
         "argument_count": 665,
         "command_count": 480,
-        "excluded_command_count": 9,
-        "remaining_command_count": 471,
+        "excluded_command_count": 14,
+        "remaining_command_count": 466,
         "sha256": "6b2997da30a6367a59598eb0f6e879c44563db75246733af85558c39d8d7897f"
       },
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
@@ -4715,8 +4715,8 @@
       "inventory_usage": {
         "argument_count": 223,
         "command_count": 187,
-        "excluded_command_count": 21,
-        "remaining_command_count": 166,
+        "excluded_command_count": 29,
+        "remaining_command_count": 158,
         "sha256": "91ffebaeb6fade53e21722788cfb974f153f4c8bcb6d4653e8125b2865a3c71f"
       },
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
@@ -5107,14 +5107,14 @@
       "method": "SetCompTechniqueArg",
       "direction": "setter",
       "source_status": "inventory_and_interop",
-      "registry_status": "usable",
+      "registry_status": "excluded_only",
       "semantic_value_family": "computation_technique",
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "not_required",
+        "worker": "not_required",
+        "adapter": "not_required",
+        "fake": "not_required",
+        "generator": "not_required"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -5136,11 +5136,11 @@
       "inventory_usage": {
         "argument_count": 3,
         "command_count": 3,
-        "excluded_command_count": 0,
-        "remaining_command_count": 3,
+        "excluded_command_count": 3,
+        "remaining_command_count": 0,
         "sha256": "a0d67fef37da75d7155ffccd754c742ad686f1834f41c29e388604a2bdf7e8b8"
       },
-      "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
+      "rationale": "The binding is observed only on commands intentionally excluded from Briosa.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54"
       ],
@@ -5236,14 +5236,14 @@
       "method": "SetDegreeOfFreedomArg",
       "direction": "setter",
       "source_status": "inventory_and_interop",
-      "registry_status": "usable",
+      "registry_status": "excluded_only",
       "semantic_value_family": "degree_of_freedom",
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "not_required",
+        "worker": "not_required",
+        "adapter": "not_required",
+        "fake": "not_required",
+        "generator": "not_required"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -5265,11 +5265,11 @@
       "inventory_usage": {
         "argument_count": 1,
         "command_count": 1,
-        "excluded_command_count": 0,
-        "remaining_command_count": 1,
+        "excluded_command_count": 1,
+        "remaining_command_count": 0,
         "sha256": "b2d2fb8676c9ea6a3c1ab3d7bcd2dea2218e9f16dd6f3dac92f60511a23401f8"
       },
-      "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
+      "rationale": "The binding is observed only on commands intentionally excluded from Briosa.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54"
       ],
@@ -5351,8 +5351,8 @@
       "inventory_usage": {
         "argument_count": 504,
         "command_count": 226,
-        "excluded_command_count": 34,
-        "remaining_command_count": 192,
+        "excluded_command_count": 49,
+        "remaining_command_count": 177,
         "sha256": "fa5f05d69dce35a6debeefb9c41d19915b6bffd934745d725320ea8c150c2e5d"
       },
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
@@ -6033,14 +6033,14 @@
       "method": "SetFitMethodArg",
       "direction": "setter",
       "source_status": "inventory_and_interop",
-      "registry_status": "usable",
+      "registry_status": "excluded_only",
       "semantic_value_family": "fit_method",
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "not_required",
+        "worker": "not_required",
+        "adapter": "not_required",
+        "fake": "not_required",
+        "generator": "not_required"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -6062,11 +6062,11 @@
       "inventory_usage": {
         "argument_count": 1,
         "command_count": 1,
-        "excluded_command_count": 0,
-        "remaining_command_count": 1,
+        "excluded_command_count": 1,
+        "remaining_command_count": 0,
         "sha256": "72c66ab8c564b9a3eacdb288fb77f3db910aaf5a6c3dfa44a199fa262225c22e"
       },
-      "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
+      "rationale": "The binding is observed only on commands intentionally excluded from Briosa.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54"
       ],
@@ -6344,8 +6344,8 @@
       "inventory_usage": {
         "argument_count": 346,
         "command_count": 243,
-        "excluded_command_count": 91,
-        "remaining_command_count": 152,
+        "excluded_command_count": 100,
+        "remaining_command_count": 143,
         "sha256": "72fb94dc7cf5dd467475051f2c2c6e16383ba33853bd72d28784a22eed66257f"
       },
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
@@ -6617,14 +6617,14 @@
       "method": "SetMeasuredSideForPlanarOffsetArg",
       "direction": "setter",
       "source_status": "inventory_and_interop",
-      "registry_status": "usable",
+      "registry_status": "excluded_only",
       "semantic_value_family": "measured_side_for_planar_offset",
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "not_required",
+        "worker": "not_required",
+        "adapter": "not_required",
+        "fake": "not_required",
+        "generator": "not_required"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -6646,11 +6646,11 @@
       "inventory_usage": {
         "argument_count": 4,
         "command_count": 4,
-        "excluded_command_count": 0,
-        "remaining_command_count": 4,
+        "excluded_command_count": 4,
+        "remaining_command_count": 0,
         "sha256": "8287af43fcb2aa5d14c73b735c79ef1b2628290e58ed3bc73aee1d887a208a27"
       },
-      "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
+      "rationale": "The binding is observed only on commands intentionally excluded from Briosa.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54"
       ],
@@ -6660,14 +6660,14 @@
       "method": "SetMeasuredSideForRadialOffsetArg",
       "direction": "setter",
       "source_status": "inventory_and_interop",
-      "registry_status": "usable",
+      "registry_status": "excluded_only",
       "semantic_value_family": "measured_side_for_radial_offset",
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "not_required",
+        "worker": "not_required",
+        "adapter": "not_required",
+        "fake": "not_required",
+        "generator": "not_required"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -6689,11 +6689,11 @@
       "inventory_usage": {
         "argument_count": 7,
         "command_count": 7,
-        "excluded_command_count": 0,
-        "remaining_command_count": 7,
+        "excluded_command_count": 7,
+        "remaining_command_count": 0,
         "sha256": "5f38905f30f50d4c547623831bd35cc9e96a14005e5700024e7abfc8f4542beb"
       },
-      "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
+      "rationale": "The binding is observed only on commands intentionally excluded from Briosa.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54"
       ],
@@ -6775,14 +6775,14 @@
       "method": "SetNormalDirectionArg",
       "direction": "setter",
       "source_status": "inventory_and_interop",
-      "registry_status": "usable",
+      "registry_status": "excluded_only",
       "semantic_value_family": "normal_direction",
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "not_required",
+        "worker": "not_required",
+        "adapter": "not_required",
+        "fake": "not_required",
+        "generator": "not_required"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -6804,11 +6804,11 @@
       "inventory_usage": {
         "argument_count": 4,
         "command_count": 4,
-        "excluded_command_count": 0,
-        "remaining_command_count": 4,
+        "excluded_command_count": 4,
+        "remaining_command_count": 0,
         "sha256": "42f76423d06ce9754adcf827db1cd16edb20ffef538cfcdf6092139b3bfd98b7"
       },
-      "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
+      "rationale": "The binding is observed only on commands intentionally excluded from Briosa.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54"
       ],
@@ -7804,14 +7804,14 @@
       "method": "SetSlotTypeArg",
       "direction": "setter",
       "source_status": "inventory_and_interop",
-      "registry_status": "usable",
+      "registry_status": "excluded_only",
       "semantic_value_family": "slot_type",
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "not_required",
+        "worker": "not_required",
+        "adapter": "not_required",
+        "fake": "not_required",
+        "generator": "not_required"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -7833,11 +7833,11 @@
       "inventory_usage": {
         "argument_count": 1,
         "command_count": 1,
-        "excluded_command_count": 0,
-        "remaining_command_count": 1,
+        "excluded_command_count": 1,
+        "remaining_command_count": 0,
         "sha256": "944a132d3b483c7bdea1c64483b297cae5aba5352414baa092cd34070bb70467"
       },
-      "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
+      "rationale": "The binding is observed only on commands intentionally excluded from Briosa.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54"
       ],
@@ -7847,14 +7847,14 @@
       "method": "SetSphereFitComputationModeArg",
       "direction": "setter",
       "source_status": "inventory_and_interop",
-      "registry_status": "usable",
+      "registry_status": "excluded_only",
       "semantic_value_family": "sphere_fit_computation_mode",
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "not_required",
+        "worker": "not_required",
+        "adapter": "not_required",
+        "fake": "not_required",
+        "generator": "not_required"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -7876,11 +7876,11 @@
       "inventory_usage": {
         "argument_count": 1,
         "command_count": 1,
-        "excluded_command_count": 0,
-        "remaining_command_count": 1,
+        "excluded_command_count": 1,
+        "remaining_command_count": 0,
         "sha256": "8f8c86f539c75a7afde2cd65526bdc133063b2f5c58cff17dfc64b1e1cd72e9a"
       },
-      "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
+      "rationale": "The binding is observed only on commands intentionally excluded from Briosa.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54"
       ],
@@ -7919,8 +7919,8 @@
       "inventory_usage": {
         "argument_count": 508,
         "command_count": 367,
-        "excluded_command_count": 152,
-        "remaining_command_count": 215,
+        "excluded_command_count": 162,
+        "remaining_command_count": 205,
         "sha256": "092d380132e1243456ffad12991e80159cc3a857b7d228c22e719aae9871ab28"
       },
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",

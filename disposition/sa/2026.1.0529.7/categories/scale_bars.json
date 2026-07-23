@@ -11,28 +11,29 @@
         "ScaleBars"
       ],
       "inventory_entry_sha256": "02dadda3858899335c464b05448cf69aaa277f4b8a3a1fc96d86819da1cb6657",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command changes SpatialAnalyzer state within Briosa automation scope; retain it as an approved candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "documentation:ScaleBars/DeleteScaleBar.htm",
         "sdk:ScaleBarOperations.txt#3"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
+      "blocker_references": [],
+      "risk_effect": "mutating",
+      "risk_flags": [],
+      "data_classifications": [
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_2"
     },
     {
       "inventory_key": "documentation:ScaleBars/GetScaleBarStats.htm",
@@ -42,25 +43,32 @@
       ],
       "inventory_entry_sha256": "77f921d4f289b1f6a854da6771eb7141fb9e510df4dab42db0779865d57d1020",
       "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "review_state": "reviewed",
+      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
       "reason_codes": [
-        "awaiting_review"
+        "argument_semantics_unresolved",
+        "sdk_binding_unresolved"
       ],
       "evidence_references": [
         "documentation:ScaleBars/GetScaleBarStats.htm",
         "sdk:ScaleBarOperations.txt#1"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/53"
+      ],
+      "risk_effect": "read_only",
+      "risk_flags": [],
+      "data_classifications": [
+        "geometry",
+        "measurement",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name",
+        "floating_point"
       ],
       "delivery_wave": null
     },
@@ -71,28 +79,32 @@
         "ScaleBars"
       ],
       "inventory_entry_sha256": "18a34d21c0f70e5e4a2fc36035ac45583c5c359a47aad476a50f489d301f349d",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command queries SpatialAnalyzer state without an identified state mutation; retain it as an approved candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "read_only_operation"
       ],
       "evidence_references": [
         "documentation:ScaleBars/ScaleBarCheck.htm",
         "sdk:ScaleBarOperations.txt#2"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
+      "blocker_references": [],
+      "risk_effect": "read_only",
+      "risk_flags": [],
+      "data_classifications": [
+        "geometry",
+        "measurement",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "floating_point",
+        "point_name"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_1"
     }
   ]
 }
