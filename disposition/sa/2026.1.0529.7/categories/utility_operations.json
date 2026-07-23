@@ -322,20 +322,20 @@
         "Network"
       ],
       "inventory_entry_sha256": "938b4813c621b2da82478bfa5da74a10329d9eb115fd225a96fbb74e7b11c400",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Operator prompts and interactive SpatialAnalyzer UI control belong in the client application.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_user_experience"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Network/GetScreenResolution.htm",
         "sdk:UtilityOperations.txt#29"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -353,19 +353,19 @@
         "Network"
       ],
       "inventory_entry_sha256": "d6df3e34a8f0c5c3bd0de086f5dfa749b9e642ba9844b7478b66599f0ee35a3a",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_external_integration"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Network/HTTPGETRequest.htm"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -383,20 +383,20 @@
         "Network"
       ],
       "inventory_entry_sha256": "dedb70827dc6575225ad0f48cfc7d3c38aa46b09172eb46490e849ce1becdc24",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_external_integration"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Network/HTTPSEnterUserCredentials.htm",
         "sdk:UtilityOperations_Network.txt#3"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -476,20 +476,20 @@
         "Network"
       ],
       "inventory_entry_sha256": "a1a7c45024ffe1c2597adf2365051537cd208bbb5a81bd26f0eac160acbe3510",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_external_integration"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Network/UDPReceiveString.htm",
         "sdk:UtilityOperations_Network.txt#2"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -507,20 +507,20 @@
         "Network"
       ],
       "inventory_entry_sha256": "41094f21b8e04293fce1c7d6c70d13a289d9ddd5b3a4f20aae3446d8bca059ec",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_external_integration"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Network/UDPSendString.htm",
         "sdk:UtilityOperations_Network.txt#1"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -724,20 +724,20 @@
         "OPC-DAServer"
       ],
       "inventory_entry_sha256": "db4189916d0de939dbebc897469a5e0362adee23aa5fe5a60711dd85560bb353",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_external_integration"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/OPC-DAServer/GetOPCDATagValueDouble.htm",
         "sdk:UtilityOperations_OPCDAServer.txt#2"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -755,20 +755,20 @@
         "OPC-DAServer"
       ],
       "inventory_entry_sha256": "ec040e1f25a2c32906ce1a637556705142fc65f7751227f35f15e2386dc847f1",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_external_integration"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/OPC-DAServer/GetOPCDATagValueInteger.htm",
         "sdk:UtilityOperations_OPCDAServer.txt#4"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -786,20 +786,20 @@
         "OPC-DAServer"
       ],
       "inventory_entry_sha256": "fe6b8930c4a678e8c954ad1fb4e443b92de59e43d6ba85f111cf4be99ae997ce",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_external_integration"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/OPC-DAServer/GetOPCDATagValueString.htm",
         "sdk:UtilityOperations_OPCDAServer.txt#6"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -817,20 +817,20 @@
         "OPC-DAServer"
       ],
       "inventory_entry_sha256": "78830647a4f6a818df6874948ed2b79ff95721a6c2ee13a6bfa810e1df0a520d",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_external_integration"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/OPC-DAServer/SetOPCDATagValueDouble.htm",
         "sdk:UtilityOperations_OPCDAServer.txt#1"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -848,20 +848,20 @@
         "OPC-DAServer"
       ],
       "inventory_entry_sha256": "7c51da2dabbfe9cadc728870560811fb18a14b6504fa9490e0540303fd8f76ff",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_external_integration"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/OPC-DAServer/SetOPCDATagValueInteger.htm",
         "sdk:UtilityOperations_OPCDAServer.txt#3"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -879,20 +879,20 @@
         "OPC-DAServer"
       ],
       "inventory_entry_sha256": "00d7e1b21cd67c12bae0bc62c0e37345f4cd77cff1c90862fdda1197de41f166",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_external_integration"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/OPC-DAServer/SetOPCDATagValueString.htm",
         "sdk:UtilityOperations_OPCDAServer.txt#5"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -910,20 +910,20 @@
         "OPC-UAClient"
       ],
       "inventory_entry_sha256": "28d66edf59c896c3130065d08c4a25651ffe7dd5fb061a496cdef3b9cf6413ec",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_external_integration"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/OPC-UAClient/ConnectToOPCUAServer.htm",
         "sdk:UtilityOperations_OPCUAClient.txt#1"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -941,20 +941,20 @@
         "OPC-UAClient"
       ],
       "inventory_entry_sha256": "d232d69e2c565a0f345e50a65b947cad113cbfd561557c6e07515ef52b30203d",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_external_integration"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/OPC-UAClient/DisconnectFromOPCUAServer.htm",
         "sdk:UtilityOperations_OPCUAClient.txt#2"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -972,20 +972,20 @@
         "OPC-UAClient"
       ],
       "inventory_entry_sha256": "6cea0a0b1986fe12e008f8ffe50ad1d164c8a3c4fb55fadd4d37874410327f3d",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_external_integration"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/OPC-UAClient/GetOPCUANodeValueDouble.htm",
         "sdk:UtilityOperations_OPCUAClient.txt#4"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -1003,20 +1003,20 @@
         "OPC-UAClient"
       ],
       "inventory_entry_sha256": "c8a5098759959877bc64b94a70b58444e151c0d4df703bd3b7b02da291948c10",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_external_integration"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/OPC-UAClient/GetOPCUANodeValueInteger.htm",
         "sdk:UtilityOperations_OPCUAClient.txt#6"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -1034,20 +1034,20 @@
         "OPC-UAClient"
       ],
       "inventory_entry_sha256": "cbf58ffb7d5c569c974600397905d756301cef334ba83f18785523436535ef9a",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_external_integration"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/OPC-UAClient/GetOPCUANodeValueString.htm",
         "sdk:UtilityOperations_OPCUAClient.txt#8"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -1065,20 +1065,20 @@
         "OPC-UAClient"
       ],
       "inventory_entry_sha256": "a0af9dfda8daf1d9f36a3f43572f34e4c6f05952695ba9b0332fa5e1a6db91e0",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_external_integration"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/OPC-UAClient/OPCUAShowDiagnosticDisplay.htm",
         "sdk:UtilityOperations_OPCUAClient.txt#22"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -1096,20 +1096,20 @@
         "OPC-UAClient"
       ],
       "inventory_entry_sha256": "1a1506e63e56fdda0f49109f707fd85631a92f217c9b74cbc8277ef1b1bffd0c",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_external_integration"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/OPC-UAClient/RegisterOPCUANodeNotificationService(Boolean).htm",
         "sdk:UtilityOperations_OPCUAClient.txt#12"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -1127,20 +1127,20 @@
         "OPC-UAClient"
       ],
       "inventory_entry_sha256": "48e82e95245054a6f3b3fbc5c490d6655e47080dc30c0700163d3d76303e9d5c",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_external_integration"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/OPC-UAClient/RegisterOPCUANodeNotificationService(Heartbeat).htm",
         "sdk:UtilityOperations_OPCUAClient.txt#14"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -1158,20 +1158,20 @@
         "OPC-UAClient"
       ],
       "inventory_entry_sha256": "2ba5dc73ea5bae731ad88e142cfcfec296800ec063985c30b0cadf7a00668509",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_external_integration"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/OPC-UAClient/RegisterOPCUANodeNotificationService(String).htm",
         "sdk:UtilityOperations_OPCUAClient.txt#13"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -1189,20 +1189,20 @@
         "OPC-UAClient"
       ],
       "inventory_entry_sha256": "21fe377e825b01dfdfeaebedc9b5fbb099823a9898ba118b43f894667c6f8a04",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_external_integration"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/OPC-UAClient/ResetOPCUANotificationTimeout.htm",
         "sdk:UtilityOperations_OPCUAClient.txt#21"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -1220,20 +1220,20 @@
         "OPC-UAClient"
       ],
       "inventory_entry_sha256": "a26524ab737290d3e6dffb16fffb4528f55b6b13f18d7e72c41346fda9c7236a",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_external_integration"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/OPC-UAClient/SetOPCUANodeValueDouble.htm",
         "sdk:UtilityOperations_OPCUAClient.txt#3"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -1251,20 +1251,20 @@
         "OPC-UAClient"
       ],
       "inventory_entry_sha256": "f8bd079d7d11ca22ac9d4d3f5d287e6563f71bcc4e1025f367f346c0faeed317",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_external_integration"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/OPC-UAClient/SetOPCUANodeValueInteger.htm",
         "sdk:UtilityOperations_OPCUAClient.txt#5"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -1282,20 +1282,20 @@
         "OPC-UAClient"
       ],
       "inventory_entry_sha256": "ddccd67e091296454cdd940d4f8cb0a988ddda7eb23317865aa99d954aab868d",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_external_integration"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/OPC-UAClient/SetOPCUANodeValueString.htm",
         "sdk:UtilityOperations_OPCUAClient.txt#7"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -1313,20 +1313,20 @@
         "OPC-UAClient"
       ],
       "inventory_entry_sha256": "fc4ce0934dec85d8c677eade9ff2e1fae9248fbec9f1c7a9d2d6c084968cb738",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_external_integration"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/OPC-UAClient/SetOPCUANotificationServiceState.htm",
         "sdk:UtilityOperations_OPCUAClient.txt#19"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -1344,20 +1344,20 @@
         "OPC-UAClient"
       ],
       "inventory_entry_sha256": "f9d5416797887d26804ed3f77d3145451c9969c06cde4d75f9d26af21666d813",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_external_integration"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/OPC-UAClient/SetOPCUANotificationServiceString.htm",
         "sdk:UtilityOperations_OPCUAClient.txt#20"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -1375,20 +1375,20 @@
         "OPC-UAClient"
       ],
       "inventory_entry_sha256": "b57ea045c7005c14cc66229a0e5475ab967a271d78312bfc21ef7a9ba8449236",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_external_integration"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/OPC-UAClient/StartOPCUANodeNotificationServices.htm",
         "sdk:UtilityOperations_OPCUAClient.txt#17"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -1406,20 +1406,20 @@
         "OPC-UAClient"
       ],
       "inventory_entry_sha256": "444fdb52c26c82a3ea1a3a5da7d9b5b888fe831d17bb14b36e0643a8fef83a2d",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_external_integration"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/OPC-UAClient/StopOPCUANodeNotificationServices.htm",
         "sdk:UtilityOperations_OPCUAClient.txt#18"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -1437,20 +1437,20 @@
         "OPC-UAClient"
       ],
       "inventory_entry_sha256": "33de1eb295ba013fc64d2dccc84746d59429c3c109b9219bfc12ab629a9d47f0",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_external_integration"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/OPC-UAClient/SubscribetoOPCUANode.htm",
         "sdk:UtilityOperations_OPCUAClient.txt#9"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -1468,20 +1468,20 @@
         "OPC-UAClient"
       ],
       "inventory_entry_sha256": "8cadc35be8444a1dcdd7c980344595cd9afd8895bc96317e94736d2ac094f3b8",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_external_integration"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/OPC-UAClient/UnregisterAllOPCUANodeNotificationServices.htm",
         "sdk:UtilityOperations_OPCUAClient.txt#16"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -1499,20 +1499,20 @@
         "OPC-UAClient"
       ],
       "inventory_entry_sha256": "cfb6cd925af06341713754929baa14378266c4a900c9e91e3855a022f2df3d5b",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_external_integration"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/OPC-UAClient/UnregisterOPCUANodeNotificationService.htm",
         "sdk:UtilityOperations_OPCUAClient.txt#15"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -1530,20 +1530,20 @@
         "OPC-UAClient"
       ],
       "inventory_entry_sha256": "a04cccab9c68278bbcdbf08207e7b8733138f25380616ab1f026b9c659251c53",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_external_integration"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/OPC-UAClient/UnsubscribeFromAllOPCUANodesr.htm",
         "sdk:UtilityOperations_OPCUAClient.txt#11"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -1561,20 +1561,20 @@
         "OPC-UAClient"
       ],
       "inventory_entry_sha256": "c018191d70ea6416c977cab972556f0da1d949a4b40dc1b0f41e0dc8179a8012",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_external_integration"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/OPC-UAClient/UnsubscribeFromOPCUANodes.htm",
         "sdk:UtilityOperations_OPCUAClient.txt#10"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -1592,20 +1592,20 @@
         "Units"
       ],
       "inventory_entry_sha256": "82ae7ee291a5ae3e82f3f6793d5208a1a39e9d98b45b70af849f22422aaa5cd4",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Operator prompts and interactive SpatialAnalyzer UI control belong in the client application.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_user_experience"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/CloseAllWatchWindows.htm",
         "sdk:UtilityOperations.txt#22"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -1653,20 +1653,20 @@
         "Units"
       ],
       "inventory_entry_sha256": "111b2c83644b2f36c97b56e3fd77b42f37bd0ac390e508c4395ae9f3c467684a",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Client-language state and control flow replace this measurement-plan programming helper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_state_and_control_flow"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/DelayForSpecifiedTime.htm",
         "sdk:UtilityOperations.txt#3"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -1806,20 +1806,20 @@
         "Units"
       ],
       "inventory_entry_sha256": "c315fae09ba41825165697c481f240fb320ed3bf16daeefe35a2adf9f4773269",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Client-language state and control flow replace this measurement-plan programming helper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_state_and_control_flow"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/GenerateRandomNumber.htm",
         "sdk:UtilityOperations.txt#24"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -1929,20 +1929,20 @@
         "Units"
       ],
       "inventory_entry_sha256": "a29ec03a67f53d04306f6d349f88795c767abbc037d4a0e0da4a0afda41f06bc",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Client-language state and control flow replace this measurement-plan programming helper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_state_and_control_flow"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/GetTickCount.htm",
         "sdk:UtilityOperations.txt#4"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -2081,20 +2081,20 @@
         "Units"
       ],
       "inventory_entry_sha256": "9c33cd10c636427651b2138f9972f73852bf6af3af16c5b2dcfea0b1b5f97abb",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value construction, conversion, decomposition, or list algebra belongs in Briosa client types and client-language code.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_construction"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/IncrementPointName.htm",
         "sdk:UtilityOperations.txt#15"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -2204,20 +2204,20 @@
         "Units"
       ],
       "inventory_entry_sha256": "e5381de26f965157922ec2ab4a4245337b2fbdad87d1a0af213b92218740f171",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Operator prompts and interactive SpatialAnalyzer UI control belong in the client application.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_user_experience"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/MoveInstrumentsDragGraphically.htm",
         "sdk:UtilityOperations.txt#13"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -2235,20 +2235,20 @@
         "Units"
       ],
       "inventory_entry_sha256": "3b13445f8ea2fd034f479af5ffe6d224b351a985d784c3bdc0ad0751ecc8cdc3",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Operator prompts and interactive SpatialAnalyzer UI control belong in the client application.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_user_experience"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/MoveObjectsDragGraphically.htm",
         "sdk:UtilityOperations.txt#11"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -2296,20 +2296,20 @@
         "Units"
       ],
       "inventory_entry_sha256": "da110f4bf7cc8746219295c1c43a09176f78aa07176ec5b959c774827c011c61",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value construction, conversion, decomposition, or list algebra belongs in Briosa client types and client-language code.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_construction"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/RemoveSpecifiedCharacters.htm",
         "sdk:UtilityOperations.txt#21"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -2358,20 +2358,20 @@
         "Units"
       ],
       "inventory_entry_sha256": "161eec772c4471a8211d59cda6e223e4ed44d6605e0d4be782079d7d3e437cad",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_external_integration"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/SendMPResultToExternal.htm",
         "sdk:UtilityOperations_Network.txt#5"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -2389,20 +2389,20 @@
         "Units"
       ],
       "inventory_entry_sha256": "0cd9ece9eed2723af244947b5a1a89aa25fe6b665eeffb62aefa9f60ebcfb448",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_external_integration"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/SendMPStepsStatusToExternal.htm",
         "sdk:UtilityOperations_Network.txt#6"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -2606,20 +2606,20 @@
         "Units"
       ],
       "inventory_entry_sha256": "865b0d09b3e57a24a55e6f6c11b5cc0efc1607570e70992c71ffa388560a6087",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Operator prompts and interactive SpatialAnalyzer UI control belong in the client application.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_user_experience"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/SetInteractionMode.htm",
         "sdk:UtilityOperations.txt#28"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -2821,20 +2821,20 @@
         "Units"
       ],
       "inventory_entry_sha256": "1b185f5b9e4cad668fe1540478f4fc3a0f3c5b785341a23d4bb9fed8455e5078",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Operator prompts and interactive SpatialAnalyzer UI control belong in the client application.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_user_experience"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/SetUserInterfaceProfile.htm",
         "sdk:UtilityOperations.txt#1"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -2974,19 +2974,19 @@
         "Units"
       ],
       "inventory_entry_sha256": "17828cbe48637f427cd5dfc65221b529c3f0352a087cf381992973bf78c5e5cb",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Operator prompts and interactive SpatialAnalyzer UI control belong in the client application.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_user_experience"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/SpeakToUser.htm"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -3004,20 +3004,20 @@
         "Units"
       ],
       "inventory_entry_sha256": "8c9e112c0becc255fa8002c6cb634deb762ea6f744c81317363b58d24e7de33f",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Operator prompts and interactive SpatialAnalyzer UI control belong in the client application.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_user_experience"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/StatusDialog.htm",
         "sdk:UtilityOperations.txt#23"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -3035,19 +3035,19 @@
         "Units"
       ],
       "inventory_entry_sha256": "517c233cee9c1dc035d98b41371f329f922c5a127ac9d494ea0c747401bd17b1",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Client-language state and control flow replace this measurement-plan programming helper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_state_and_control_flow"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/StepComment.htm"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -3127,19 +3127,19 @@
         "Network"
       ],
       "inventory_entry_sha256": "e99a29a0bbeb5099aa9f47b8fe235affb7ed1e64d0b84cced37370e9b091cafc",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_external_integration"
       ],
       "evidence_references": [
         "sdk:UtilityOperations_Network.txt#4"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -3157,19 +3157,19 @@
         "OPCUAClient"
       ],
       "inventory_entry_sha256": "cecb10ee0c08ec999d88a5b893e2cd14b86d1025f67cc390e0ea8feea8ad5c2e",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_external_integration"
       ],
       "evidence_references": [
         "sdk:UtilityOperations_OPCUAClient.txt#23"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -3187,19 +3187,19 @@
         "OPCUAClient"
       ],
       "inventory_entry_sha256": "6546417caf6a3ffb9c88bc561519a243067a7a443f8b4e03cb03d9c79fd82a2a",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_external_integration"
       ],
       "evidence_references": [
         "sdk:UtilityOperations_OPCUAClient.txt#24"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -3217,19 +3217,19 @@
         "OPCUAClient"
       ],
       "inventory_entry_sha256": "5deb41ecdda214cf0003ed6d1f471e0a42ccfe53f2f7bbb2d2e3d9e3cea613c3",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_external_integration"
       ],
       "evidence_references": [
         "sdk:UtilityOperations_OPCUAClient.txt#25"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"

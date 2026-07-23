@@ -11,20 +11,20 @@
         "ProcessFlowOperations"
       ],
       "inventory_entry_sha256": "a205b52a35107c90862693093af9c79fcfd9a8f3ea7401be24b3249ab01fa697",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Operator prompts and interactive SpatialAnalyzer UI control belong in the client application.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_user_experience"
       ],
       "evidence_references": [
         "documentation:ProcessFlowOperations/AskforDouble.htm",
         "sdk:ProcessFlowOperations.txt#18"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -41,20 +41,20 @@
         "ProcessFlowOperations"
       ],
       "inventory_entry_sha256": "7eb4f52fde07ba058f48f9c97b7f9ca69f46c72b52c882ab6707bf8324a76288",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Operator prompts and interactive SpatialAnalyzer UI control belong in the client application.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_user_experience"
       ],
       "evidence_references": [
         "documentation:ProcessFlowOperations/AskforInteger.htm",
         "sdk:ProcessFlowOperations.txt#17"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -71,20 +71,20 @@
         "ProcessFlowOperations"
       ],
       "inventory_entry_sha256": "c939382f81a20579042a19ae9aaa2e61e5c205c9d97a02c7a38d3be9863af7c3",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Operator prompts and interactive SpatialAnalyzer UI control belong in the client application.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_user_experience"
       ],
       "evidence_references": [
         "documentation:ProcessFlowOperations/AskforPointName.htm",
         "sdk:ProcessFlowOperations.txt#16"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -101,20 +101,20 @@
         "ProcessFlowOperations"
       ],
       "inventory_entry_sha256": "c8a989c91a8e45e25d56140df7e27048cc4962203761aef5b0a0d0943c35cde3",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Operator prompts and interactive SpatialAnalyzer UI control belong in the client application.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_user_experience"
       ],
       "evidence_references": [
         "documentation:ProcessFlowOperations/AskforString.htm",
         "sdk:ProcessFlowOperations.txt#14"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -131,20 +131,20 @@
         "ProcessFlowOperations"
       ],
       "inventory_entry_sha256": "d42e429e4c5c179a6ad6a111d9fa9df17cbfa8cfaf080cc9504e84267ebfeff2",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Operator prompts and interactive SpatialAnalyzer UI control belong in the client application.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_user_experience"
       ],
       "evidence_references": [
         "documentation:ProcessFlowOperations/AskforStringPullDownVersion.htm",
         "sdk:ProcessFlowOperations.txt#15"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -161,20 +161,20 @@
         "ProcessFlowOperations"
       ],
       "inventory_entry_sha256": "650c5a3876fee58eff39218c293c598100d0909927dfcf12b5e8e99f0025651b",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Operator prompts and interactive SpatialAnalyzer UI control belong in the client application.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_user_experience"
       ],
       "evidence_references": [
         "documentation:ProcessFlowOperations/AskforUserDecisionExtended.htm",
         "sdk:ProcessFlowOperations.txt#19"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -191,20 +191,20 @@
         "ProcessFlowOperations"
       ],
       "inventory_entry_sha256": "f3e3fbd6d65c8e4f0983cfd5aa30616f25c751f8b57d3704397fbe811b1686f7",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Operator prompts and interactive SpatialAnalyzer UI control belong in the client application.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_user_experience"
       ],
       "evidence_references": [
         "documentation:ProcessFlowOperations/AskforUserDecisionHTML.htm",
         "sdk:ProcessFlowOperations.txt#20"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -221,20 +221,20 @@
         "ProcessFlowOperations"
       ],
       "inventory_entry_sha256": "75679b62118ae1d38e2c126ab0c9f361e48b2f40318c2851376aa58635e47004",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Operator prompts and interactive SpatialAnalyzer UI control belong in the client application.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_user_experience"
       ],
       "evidence_references": [
         "documentation:ProcessFlowOperations/AskforUserDecisionPullDownVersion.htm",
         "sdk:ProcessFlowOperations.txt#21"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -251,20 +251,20 @@
         "ProcessFlowOperations"
       ],
       "inventory_entry_sha256": "50a7644e3226f21fbd2ccef4c0932fdb181c9c0ee3501a4eaca88a652bb9c1e6",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Operator prompts and interactive SpatialAnalyzer UI control belong in the client application.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_user_experience"
       ],
       "evidence_references": [
         "documentation:ProcessFlowOperations/AskforUserDecisionfromImage.htm",
         "sdk:ProcessFlowOperations.txt#23"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -281,20 +281,20 @@
         "ProcessFlowOperations"
       ],
       "inventory_entry_sha256": "72218afacaaabcaf25b9936adce47ad16019a4a3dda9a25c270810eb7470fa43",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Operator prompts and interactive SpatialAnalyzer UI control belong in the client application.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_user_experience"
       ],
       "evidence_references": [
         "documentation:ProcessFlowOperations/AskforUserDecisionfromStrings.htm",
         "sdk:ProcessFlowOperations.txt#22"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -341,20 +341,20 @@
         "ProcessFlowOperations"
       ],
       "inventory_entry_sha256": "4503fc4de932880129b60fa4270e572e7634e28a9b08a6d80c5a081fff37026e",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Client-language state and control flow replace this measurement-plan programming helper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_state_and_control_flow"
       ],
       "evidence_references": [
         "documentation:ProcessFlowOperations/CreateCounter.htm",
         "sdk:ProcessFlowOperations.txt#10"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -371,20 +371,20 @@
         "ProcessFlowOperations"
       ],
       "inventory_entry_sha256": "bac8e1234c9e815d6e5273571b2356a4047464cd7921452eae54bef3743d65c5",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Client-language state and control flow replace this measurement-plan programming helper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_state_and_control_flow"
       ],
       "evidence_references": [
         "documentation:ProcessFlowOperations/DecrementCounter.htm",
         "sdk:ProcessFlowOperations.txt#12"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -401,20 +401,20 @@
         "ProcessFlowOperations"
       ],
       "inventory_entry_sha256": "0869ad3a9c509463637a03135a3ba2fffcac6c8d00779f4c40b0e062682d505c",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Client-language state and control flow replace this measurement-plan programming helper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_state_and_control_flow"
       ],
       "evidence_references": [
         "documentation:ProcessFlowOperations/GoNoGoRangeCheckResults.htm",
         "sdk:ProcessFlowOperations.txt#6"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -431,20 +431,20 @@
         "ProcessFlowOperations"
       ],
       "inventory_entry_sha256": "346faaae3922e288e39d3bd6e924a1a239d9f3cc1f4f0b9a39556958381a47e5",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Client-language state and control flow replace this measurement-plan programming helper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_state_and_control_flow"
       ],
       "evidence_references": [
         "documentation:ProcessFlowOperations/IncrementCounter.htm",
         "sdk:ProcessFlowOperations.txt#11"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -461,20 +461,20 @@
         "ProcessFlowOperations"
       ],
       "inventory_entry_sha256": "6e9f9a7eecc6958a6d25d60995352b70df6513dc6f70738c8eed358147a0a95d",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Client-language state and control flow replace this measurement-plan programming helper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_state_and_control_flow"
       ],
       "evidence_references": [
         "documentation:ProcessFlowOperations/JumpBasedonRangedStatus.htm",
         "sdk:ProcessFlowOperations.txt#5"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -491,20 +491,20 @@
         "ProcessFlowOperations"
       ],
       "inventory_entry_sha256": "ab80e036d14c77c1c3259ef0a031fea9679ab7a5b95ae8c5bb62b7f360c00874",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Client-language state and control flow replace this measurement-plan programming helper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_state_and_control_flow"
       ],
       "evidence_references": [
         "documentation:ProcessFlowOperations/JumpToOtherMeasurement.htm",
         "sdk:ProcessFlowOperations.txt#3"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -521,20 +521,20 @@
         "ProcessFlowOperations"
       ],
       "inventory_entry_sha256": "b1701bca1c433c97c33771103117c6bd66ba6ff6fcc6d97c0a87ad4cc12ac6ed",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Client-language state and control flow replace this measurement-plan programming helper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_state_and_control_flow"
       ],
       "evidence_references": [
         "documentation:ProcessFlowOperations/JumpToStep.htm",
         "sdk:ProcessFlowOperations.txt#2"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -611,20 +611,20 @@
         "ProcessFlowOperations"
       ],
       "inventory_entry_sha256": "bb8ba0501c813e60654fa1a7ceb8e7ed8045197b4b17889fb1fb5b00ad4a6d87",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Spreadsheet integration belongs in the client application or a dedicated spreadsheet library.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_spreadsheet_integration"
       ],
       "evidence_references": [
         "documentation:ProcessFlowOperations/OutputSAReportToExcel.htm",
         "sdk:ReportingOperations.txt#24"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -671,20 +671,20 @@
         "ProcessFlowOperations"
       ],
       "inventory_entry_sha256": "6de357cac86d32e31f4ee68a625641c778bde03192291868b0e7a1bd8f97d15b",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Client-language state and control flow replace this measurement-plan programming helper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_state_and_control_flow"
       ],
       "evidence_references": [
         "documentation:ProcessFlowOperations/ResetCounter.htm",
         "sdk:ProcessFlowOperations.txt#13"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -701,20 +701,20 @@
         "ProcessFlowOperations"
       ],
       "inventory_entry_sha256": "7ca9bd7aafb3ee739b0cb261689771bf73f36d1ae3e029a241a0f253a5d5282a",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Client-language state and control flow replace this measurement-plan programming helper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_state_and_control_flow"
       ],
       "evidence_references": [
         "documentation:ProcessFlowOperations/StepStatusTest.htm",
         "sdk:ProcessFlowOperations.txt#4"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -731,20 +731,20 @@
         "ProcessFlowOperations"
       ],
       "inventory_entry_sha256": "5d2abe3f08c167f1e96bcaade321312c29bd98f6c365531b3670f78903bbfa9e",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Client-language state and control flow replace this measurement-plan programming helper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_state_and_control_flow"
       ],
       "evidence_references": [
         "documentation:ProcessFlowOperations/WaitforStepstoComplete.htm",
         "sdk:ProcessFlowOperations.txt#1"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"

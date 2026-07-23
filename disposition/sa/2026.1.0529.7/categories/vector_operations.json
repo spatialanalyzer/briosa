@@ -11,20 +11,20 @@
         "Vector Operations"
       ],
       "inventory_entry_sha256": "2f4c8e8d33a3baeb5c84c65fa74d5840a43ea8bbad3001e528c7933e3da8e76b",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value construction, conversion, decomposition, or list algebra belongs in Briosa client types and client-language code.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_construction"
       ],
       "evidence_references": [
         "documentation:Vector Operations/AddAVectorToVectorName.htm",
         "sdk:VectorOperations.txt#6"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -221,20 +221,20 @@
         "Vector Operations"
       ],
       "inventory_entry_sha256": "ec63acc96a90c1de068c83b54d99e1828d4244840f659160f28fff072a5239d3",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value construction, conversion, decomposition, or list algebra belongs in Briosa client types and client-language code.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_construction"
       ],
       "evidence_references": [
         "documentation:Vector Operations/GetI-thVectorFromVectorName.htm",
         "sdk:VectorOperations.txt#4"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -281,20 +281,20 @@
         "Vector Operations"
       ],
       "inventory_entry_sha256": "053d98ce31467f49ba14debed2eb09cec1281e52db2802ddba7ca08f6229c417",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value computation belongs in the client application and does not require SpatialAnalyzer.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_computation"
       ],
       "evidence_references": [
         "documentation:Vector Operations/GetNumberOfVectorsInVectorName.htm",
         "sdk:VectorOperations.txt#2"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -462,20 +462,20 @@
         "VectorMathOperations"
       ],
       "inventory_entry_sha256": "8f8607f45c838045c60aacde5a91f3d81c9158dacd1aa853fdb73f969757e192",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value computation belongs in the client application and does not require SpatialAnalyzer.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_computation"
       ],
       "evidence_references": [
         "documentation:Vector Operations/VectorMathOperations/VectorAddition.htm",
         "sdk:VectorOperations_VectorMathOperations.txt#1"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -493,20 +493,20 @@
         "VectorMathOperations"
       ],
       "inventory_entry_sha256": "54605659712f781f72ba34979d2d1c364b55d9cff4c79cc2449739c664fc926e",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value computation belongs in the client application and does not require SpatialAnalyzer.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_computation"
       ],
       "evidence_references": [
         "documentation:Vector Operations/VectorMathOperations/VectorCrossProduct.htm",
         "sdk:VectorOperations_VectorMathOperations.txt#4"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -524,20 +524,20 @@
         "VectorMathOperations"
       ],
       "inventory_entry_sha256": "a007d326a8bae1015b5f77fac1ebe31983594fb9c2b7bdb1001a914d831b70d8",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value computation belongs in the client application and does not require SpatialAnalyzer.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_computation"
       ],
       "evidence_references": [
         "documentation:Vector Operations/VectorMathOperations/VectorDotProduct.htm",
         "sdk:VectorOperations_VectorMathOperations.txt#3"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -555,20 +555,20 @@
         "VectorMathOperations"
       ],
       "inventory_entry_sha256": "b011c71a229c6901942df9bee2e5028141f627e153f165b5fdccdfba397a04f9",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value computation belongs in the client application and does not require SpatialAnalyzer.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_computation"
       ],
       "evidence_references": [
         "documentation:Vector Operations/VectorMathOperations/VectorMagnitudeLength.htm",
         "sdk:VectorOperations_VectorMathOperations.txt#7"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -586,20 +586,20 @@
         "VectorMathOperations"
       ],
       "inventory_entry_sha256": "305c86495e4f70542c83c70dfee35106a962036a04fe4dd39fb78c134102637e",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value computation belongs in the client application and does not require SpatialAnalyzer.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_computation"
       ],
       "evidence_references": [
         "documentation:Vector Operations/VectorMathOperations/VectorNormalize.htm",
         "sdk:VectorOperations_VectorMathOperations.txt#6"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -617,20 +617,20 @@
         "VectorMathOperations"
       ],
       "inventory_entry_sha256": "6f5a897aa10d76b5232b87d911db3ef8cec696b7eb725d4e455184dead7800ad",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value computation belongs in the client application and does not require SpatialAnalyzer.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_computation"
       ],
       "evidence_references": [
         "documentation:Vector Operations/VectorMathOperations/VectorScaling.htm",
         "sdk:VectorOperations_VectorMathOperations.txt#5"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -648,20 +648,20 @@
         "VectorMathOperations"
       ],
       "inventory_entry_sha256": "3587985b3c2091bcf38bfb01291c604a3327b18c39c424a2d940ea36accbe090",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value computation belongs in the client application and does not require SpatialAnalyzer.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_computation"
       ],
       "evidence_references": [
         "documentation:Vector Operations/VectorMathOperations/VectorSubtraction.htm",
         "sdk:VectorOperations_VectorMathOperations.txt#2"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"

@@ -971,6 +971,7 @@ internal static partial class CommandDispositionLedger
                 .Select(entry => entry.DeliveryWave)
                 .Where(wave => wave is not null)
                 .Cast<string>());
+        AppendIntentionalExclusions(builder, entries);
 
         builder.AppendLine();
         builder.AppendLine("## Promotion policy");
@@ -991,6 +992,46 @@ internal static partial class CommandDispositionLedger
             "- A changed per-command inventory fingerprint requires re-review before " +
             "promotion.");
         return builder.ToString().ReplaceLineEndings("\n");
+    }
+
+    private static void AppendIntentionalExclusions(
+        StringBuilder builder,
+        IEnumerable<CommandDispositionEntry> entries)
+    {
+        var exclusions = entries
+            .Where(entry => string.Equals(
+                entry.Disposition,
+                "intentional_exclusion",
+                StringComparison.Ordinal))
+            .OrderBy(
+                entry => string.Join('/', entry.CategoryPath),
+                StringComparer.Ordinal)
+            .ThenBy(entry => entry.MpStep, StringComparer.Ordinal)
+            .ThenBy(entry => entry.InventoryKey, StringComparer.Ordinal)
+            .ToArray();
+        builder.AppendLine();
+        builder.AppendLine("## Reviewed intentional exclusions");
+        builder.AppendLine();
+        if (exclusions.Length == 0)
+        {
+            builder.AppendLine("None.");
+            return;
+        }
+
+        builder.AppendLine(
+            "| Category path | MP step | Inventory key | Reason codes | Rationale | Decision |");
+        builder.AppendLine("| --- | --- | --- | --- | --- | --- |");
+        foreach (var entry in exclusions)
+        {
+            builder.AppendLine(
+                CultureInfo.InvariantCulture,
+                $"| {EscapeMarkdown(string.Join(" / ", entry.CategoryPath))} | " +
+                $"{EscapeMarkdown(entry.MpStep)} | " +
+                $"{EscapeMarkdown(entry.InventoryKey)} | " +
+                $"{EscapeMarkdown(string.Join(", ", entry.ReasonCodes))} | " +
+                $"{EscapeMarkdown(entry.Rationale)} | " +
+                $"{EscapeMarkdown(string.Join(", ", entry.DecisionReferences))} |");
+        }
     }
 
     private static bool IsUnresolved(CommandDispositionEntry entry) =>

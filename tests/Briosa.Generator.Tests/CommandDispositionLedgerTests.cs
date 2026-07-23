@@ -35,6 +35,105 @@ public sealed class CommandDispositionLedgerTests
     }
 
     [Fact]
+    public void Issue52ReviewPublishesExactIntentionalExclusions()
+    {
+        var entries = ReadCommittedEntries();
+        var exclusions = entries
+            .Where(entry => string.Equals(
+                entry.Disposition,
+                "intentional_exclusion",
+                StringComparison.Ordinal))
+            .ToArray();
+        var counts = exclusions
+            .SelectMany(entry => entry.ReasonCodes)
+            .GroupBy(reason => reason, StringComparer.Ordinal)
+            .ToDictionary(group => group.Key, group => group.Count(), StringComparer.Ordinal);
+
+        Assert.Equal(349, exclusions.Length);
+        Assert.Equal(39, counts["client_owned_external_integration"]);
+        Assert.Equal(14, counts["client_owned_office_integration"]);
+        Assert.Equal(17, counts["client_owned_serialization"]);
+        Assert.Equal(38, counts["client_owned_spreadsheet_integration"]);
+        Assert.Equal(63, counts["client_owned_state_and_control_flow"]);
+        Assert.Equal(54, counts["client_owned_user_experience"]);
+        Assert.Equal(60, counts["client_owned_value_computation"]);
+        Assert.Equal(64, counts["client_owned_value_construction"]);
+        Assert.All(exclusions, entry =>
+        {
+            Assert.Equal("reviewed", entry.ReviewState);
+            Assert.Equal(
+                ["https://github.com/spatialanalyzer/briosa/issues/52"],
+                entry.DecisionReferences);
+            Assert.Empty(entry.BlockerReferences);
+            Assert.Null(entry.DeliveryWave);
+        });
+
+        AssertDisposition(
+            entries,
+            "Vector Operations",
+            "Vector Addition",
+            "intentional_exclusion");
+        AssertDisposition(
+            entries,
+            "FileOperations",
+            "Close JSON File",
+            "intentional_exclusion");
+        AssertDisposition(
+            entries,
+            "UtilityOperations",
+            "Get OPC UA Node Named Coordinate Frame",
+            "intentional_exclusion");
+        AssertDisposition(
+            entries,
+            "ConstructionOperations",
+            "Construct Objects From Surface Faces - Runtime Select",
+            "intentional_exclusion");
+
+        AssertDisposition(
+            entries,
+            "Vector Operations",
+            "Delete Vector by Name",
+            "blocked");
+        AssertDisposition(
+            entries,
+            "FileOperations",
+            "Import Nominals from XML File",
+            "blocked");
+        AssertDisposition(
+            entries,
+            "ConstructionOperations",
+            "Make a Point Name - Ensure Unique",
+            "blocked");
+        AssertDisposition(
+            entries,
+            "AnalysisOperations",
+            "Get Point Properties",
+            "blocked");
+        AssertDisposition(
+            entries,
+            "ProcessFlowOperations",
+            "Output SA Report to PDF",
+            "blocked");
+
+        var reportPath = Path.Combine(
+            FindRepositoryRoot().FullName,
+            "disposition",
+            "sa",
+            "2026.1.0529.7",
+            "report.md");
+        var report = File.ReadAllText(reportPath);
+        Assert.Contains("## Reviewed intentional exclusions", report, StringComparison.Ordinal);
+        Assert.Contains(
+            "| FileOperations / JSON | Close JSON File |",
+            report,
+            StringComparison.Ordinal);
+        Assert.DoesNotContain(
+            "| FileOperations / XML | Import Nominals from XML File |",
+            report,
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void SyncInitializesEveryCommandAsBlockedAndUnreviewed()
     {
         using var fixture = DispositionFixture.Create();
@@ -151,6 +250,38 @@ public sealed class CommandDispositionLedgerTests
         }
 
         return directory ?? throw new InvalidOperationException("Could not find the repository root.");
+    }
+
+    private static CommandDispositionEntry[] ReadCommittedEntries()
+    {
+        var targetDirectory = Path.Combine(
+            FindRepositoryRoot().FullName,
+            "disposition",
+            "sa",
+            "2026.1.0529.7");
+        var manifest = JsonSerializer.Deserialize<CommandDispositionManifest>(
+            File.ReadAllText(Path.Combine(targetDirectory, "manifest.json")),
+            JsonOptions)!;
+        return manifest.Shards
+            .SelectMany(shard =>
+                JsonSerializer.Deserialize<CommandDispositionShard>(
+                    File.ReadAllText(Path.Combine(
+                        targetDirectory,
+                        shard.Path.Replace('/', Path.DirectorySeparatorChar))),
+                    JsonOptions)!.Entries)
+            .ToArray();
+    }
+
+    private static void AssertDisposition(
+        IEnumerable<CommandDispositionEntry> entries,
+        string category,
+        string mpStep,
+        string disposition)
+    {
+        var entry = Assert.Single(entries, entry =>
+            string.Equals(entry.CategoryPath[0], category, StringComparison.Ordinal) &&
+            string.Equals(entry.MpStep, mpStep, StringComparison.Ordinal));
+        Assert.Equal(disposition, entry.Disposition);
     }
 
     private sealed class DispositionFixture : IDisposable

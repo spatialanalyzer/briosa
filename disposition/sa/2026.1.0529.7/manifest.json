@@ -12,13 +12,13 @@
       "category": "AccumulatorMathOperations",
       "path": "categories/accumulator_math_operations.json",
       "entry_count": 8,
-      "sha256": "f621a5dc451c306da76822c0441f6b5bc070bebe0e72dd874c4849b92551259f"
+      "sha256": "af20a5543068129ced97d0b16c48fb87554fb00b3198d3c7aaef2e891e0b27ac"
     },
     {
       "category": "AnalysisOperations",
       "path": "categories/analysis_operations.json",
       "entry_count": 189,
-      "sha256": "fa7b6925af6dc346c69d3531e3136f0c54c2e7e9e62c63619d95157b7d65a49d"
+      "sha256": "caa5e47f414822ed16d8f8d60c87b35dcf612e141e0cf2c14522691bed5a86e7"
     },
     {
       "category": "CloudAndMeshOperations",
@@ -36,7 +36,7 @@
       "category": "ConstructionOperations",
       "path": "categories/construction_operations.json",
       "entry_count": 278,
-      "sha256": "e32c581a54a131ba5f44fbe6666122f90d4e3210e8ae5f9ac373b0dce1269afc"
+      "sha256": "84d39cad7bbb728d661c18d87dad77216bd856f5a5d48003efe100d903fc778f"
     },
     {
       "category": "DimensionOperations",
@@ -66,19 +66,19 @@
       "category": "ExcelDirectConnect",
       "path": "categories/excel_direct_connect.json",
       "entry_count": 17,
-      "sha256": "c8c3324e04d61108081b922be004abd6b3f1c081e50032b87deeabcc4558de6b"
+      "sha256": "6487f255fc909f52628ea8e5cd6fef39d4ab9b58e82cc1cf243605b1988d6eca"
     },
     {
       "category": "FileOperations",
       "path": "categories/file_operations.json",
       "entry_count": 125,
-      "sha256": "9f249d748cb0e359bbb5e13e82bc0995d1173c1bc0309e95407ad2842072ffca"
+      "sha256": "5ef00787100507bd0b8c392faef8667cca81598ccff1ff1f3bf7a36c7d1322a1"
     },
     {
       "category": "GDT",
       "path": "categories/gdt.json",
       "entry_count": 40,
-      "sha256": "73512ba3d1441ea2b16bd78ed36c227d3c185f0e236f5f62264a4d0185da4b3f"
+      "sha256": "435d699313b5404a83f8c8a84b54cd7edc190b8ec241327eec1a1153df1de6dc"
     },
     {
       "category": "GDTOperations",
@@ -90,43 +90,43 @@
       "category": "GoogleSheets",
       "path": "categories/google_sheets.json",
       "entry_count": 18,
-      "sha256": "dac76bd5b15e69162dd4f512c999d36cdbcf5d5afaa749626ccb378700a66884"
+      "sha256": "bb7be35fa05832bf4f859cb79509126ca82699b8a5057252e90e9277e621adc4"
     },
     {
       "category": "GoogleSheetsOperations",
       "path": "categories/google_sheets_operations.json",
       "entry_count": 1,
-      "sha256": "2ddc8e91e5cfe7297e4585f741b3322f63b40555a8633e4f7a6a9227a7ba3152"
+      "sha256": "5d89c3575bcdb99bc3a6bbe9f598db1b3f756330171b686a056c49a5c563778e"
     },
     {
       "category": "InstrumentOperations",
       "path": "categories/instrument_operations.json",
       "entry_count": 185,
-      "sha256": "d8e56003720d81be6af5fc49644457b0fa18ac5ddba1184896cae53ab32234c2"
+      "sha256": "2a8a859e72d07c2dd1acbbfea6f4f1d92e816ba32d1fccc7abdd8563a4057782"
     },
     {
       "category": "MPSubroutines",
       "path": "categories/mpsubroutines.json",
       "entry_count": 4,
-      "sha256": "f994617281e4e16dc18f66563fde7a1a978008548d877b199832498ec4e3e3a6"
+      "sha256": "1ffa76f31aca8071fefe69d34da4212f7b3fab384f9de6be2716ac85abadd998"
     },
     {
       "category": "MPTaskOverview",
       "path": "categories/mptask_overview.json",
       "entry_count": 11,
-      "sha256": "3ab22a34bd7ad9061916e450fb515ab42413611c4c144782ab8d6666e2c182e6"
+      "sha256": "7158a449b0b3bd25bddbaee9acd60ee93cab54821c41a69aab86f47afbca6f2a"
     },
     {
       "category": "MSOfficeReportingOperations",
       "path": "categories/msoffice_reporting_operations.json",
       "entry_count": 14,
-      "sha256": "da0b60e3d18267f1a122fcab22a6c03b86cb76e0880e59c1e3b3d43d6b812167"
+      "sha256": "02e2fa15aa4dec22fe571c83743316d804355cc5c612f4542744a24f0f4bd2f2"
     },
     {
       "category": "ProcessFlowOperations",
       "path": "categories/process_flow_operations.json",
       "entry_count": 25,
-      "sha256": "53d5c0b79129f1ac7c7db7d11d845ab8a18abdcf07a34b4e9f18cd1663bbb2d2"
+      "sha256": "2cb5cc746595fece1641ee5e183f12ec39eb3c2722fa21f8ba650b9c0c20d8d2"
     },
     {
       "category": "RelationshipOperations",
@@ -156,7 +156,7 @@
       "category": "ScalarMathOperations",
       "path": "categories/scalar_math_operations.json",
       "entry_count": 21,
-      "sha256": "78259895c75d0a2e157ffe86cd418eab83371b5c19a1cb02b9c03495e4a55498"
+      "sha256": "b23ad73f0f233af247e67fe147ef61680d2ae912e69dd5c7776270b26395294c"
     },
     {
       "category": "ScaleBars",
@@ -168,19 +168,19 @@
       "category": "UtilityOperations",
       "path": "categories/utility_operations.json",
       "entry_count": 105,
-      "sha256": "c3c96ec428ac1f837df3d961f28d020ff9786e6ed34911e153cf72e9dcf01243"
+      "sha256": "46ec86b6e111740d78da16e20ad37665086c6c9c3f5cae41afab394a8f74dfa2"
     },
     {
       "category": "Variables",
       "path": "categories/variables.json",
       "entry_count": 41,
-      "sha256": "55393209e25e45a5dff47a9f220b2cc330d4755f554f2c3d9e6864a9edb71dd5"
+      "sha256": "c1ae32cfc8702086200f4ea38ecafae4d9da7992251fc9d722d615e7ad383dcf"
     },
     {
       "category": "Vector Operations",
       "path": "categories/vector_operations.json",
       "entry_count": 22,
-      "sha256": "3f4ef67d03dd602ce10182a8a527a75442e2220e359b7e7c625523f078056664"
+      "sha256": "ac1ef5a840f80852664ae4f17d53263f1383ea240275423b6ff0274096f4cd8b"
     },
     {
       "category": "ViewControl",
