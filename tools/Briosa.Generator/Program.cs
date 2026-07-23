@@ -12,6 +12,20 @@ return args switch
         SyncDispositions(inventoryPath, targetDirectory),
     ["disposition-validate", var inventoryPath, var targetDirectory] =>
         ValidateDispositions(inventoryPath, targetDirectory),
+    ["binding-registry-sync", var inventoryPath, var dispositionDirectory,
+        var interopDirectory, var targetDirectory] =>
+        SyncBindingRegistry(
+            inventoryPath,
+            dispositionDirectory,
+            interopDirectory,
+            targetDirectory),
+    ["binding-registry-validate", var inventoryPath, var dispositionDirectory,
+        var interopDirectory, var targetDirectory] =>
+        ValidateBindingRegistry(
+            inventoryPath,
+            dispositionDirectory,
+            interopDirectory,
+            targetDirectory),
     ["catalog-validate", var catalogRoot] => ValidateCatalog(catalogRoot),
     ["interop-api", var assemblyPath, var outputPath] => WriteInteropApi(assemblyPath, outputPath),
     ["interop-api", var assemblyPath] => WriteInteropApi(assemblyPath, null),
@@ -104,6 +118,57 @@ static int ValidateDispositions(string inventoryPath, string targetDirectory)
     return 0;
 }
 
+static int SyncBindingRegistry(
+    string inventoryPath,
+    string dispositionDirectory,
+    string interopDirectory,
+    string targetDirectory)
+{
+    var result = SdkBindingRegistry.Sync(
+        inventoryPath,
+        dispositionDirectory,
+        interopDirectory,
+        targetDirectory);
+    foreach (var file in result.Files)
+    {
+        Console.WriteLine(file);
+    }
+
+    Console.WriteLine(
+        $"Synchronized {result.BindingCount} binding(s) across " +
+        $"{result.ValueFamilyCount} semantic value families.");
+    return 0;
+}
+
+static int ValidateBindingRegistry(
+    string inventoryPath,
+    string dispositionDirectory,
+    string interopDirectory,
+    string targetDirectory)
+{
+    var result = SdkBindingRegistry.Validate(
+        inventoryPath,
+        dispositionDirectory,
+        interopDirectory,
+        targetDirectory);
+    foreach (var error in result.Errors)
+    {
+        Console.Error.WriteLine(error);
+    }
+
+    if (!result.IsValid)
+    {
+        Console.Error.WriteLine(
+            $"Binding registry validation failed with {result.Errors.Count} error(s).");
+        return 1;
+    }
+
+    Console.WriteLine(
+        $"Validated {result.BindingCount} binding(s) across " +
+        $"{result.ValueFamilyCount} semantic value families.");
+    return 0;
+}
+
 static int WriteInteropApi(string assemblyPath, string? outputPath)
 {
     var manifest = InteropApiManifest.Create(assemblyPath);
@@ -148,6 +213,12 @@ static int ShowUsage()
         "  Briosa.Generator disposition-sync <inventory-path> <target-directory>");
     Console.Error.WriteLine(
         "  Briosa.Generator disposition-validate <inventory-path> <target-directory>");
+    Console.Error.WriteLine(
+        "  Briosa.Generator binding-registry-sync <inventory-path> " +
+        "<disposition-directory> <interop-directory> <target-directory>");
+    Console.Error.WriteLine(
+        "  Briosa.Generator binding-registry-validate <inventory-path> " +
+        "<disposition-directory> <interop-directory> <target-directory>");
     Console.Error.WriteLine("  Briosa.Generator mp-inventory-extract <sa-target> <documentation-root> <sdk-code-root> <output-root>");
     Console.Error.WriteLine("  Briosa.Generator interop-api <assembly-path> [output-path]");
     Console.Error.WriteLine("  Briosa.Generator typelib-info <type-library-path>");

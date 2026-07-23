@@ -48,6 +48,22 @@ dotnet run --project tools/Briosa.Generator -c Release -- disposition-sync <inve
 
 See [the command disposition review guide](../docs/development/command-dispositions.md) before editing category decisions.
 
+## SDK binding registry verification
+
+`Verify-BindingRegistry.ps1` reconciles the inventory-observed setter/getter names, command dispositions, committed exact-target interop signatures, semantic value families, and protocol/worker/adapter/fake/generator coverage. It rejects stale generated artifacts, unknown families, uncovered methods, and sample-only methods that are not blocked explicitly:
+
+```powershell
+./eng/Verify-BindingRegistry.ps1
+```
+
+Regenerate the exact-target registry and report after reviewing `bindings/sa/<target>/review.json`:
+
+```powershell
+dotnet run --project tools/Briosa.Generator -c Release -- binding-registry-sync <inventory-path> <disposition-directory> <interop-directory> <target-directory>
+```
+
+See [the SDK binding registry guide](../docs/development/sdk-binding-registry.md) before changing semantic-family mappings or adapter coverage.
+
 ## Generated-client smoke tests
 
 Run portable packaged-host success and failure scenarios without SpatialAnalyzer:

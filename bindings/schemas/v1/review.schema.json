@@ -1,0 +1,133 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://spatialanalyzer.github.io/briosa/bindings/schemas/v1/review.schema.json",
+  "title": "Briosa exact-target SDK binding review",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schema_version",
+    "spatial_analyzer_target",
+    "decision_references",
+    "missing_interop_blocker",
+    "implemented_coverage",
+    "families"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "../../schemas/v1/review.schema.json"
+    },
+    "schema_version": {
+      "const": 1
+    },
+    "spatial_analyzer_target": {
+      "type": "string",
+      "pattern": "^[0-9]+(?:\\.[0-9]+){3}$"
+    },
+    "decision_references": {
+      "$ref": "#/definitions/references"
+    },
+    "missing_interop_blocker": {
+      "$ref": "#/definitions/reference"
+    },
+    "implemented_coverage": {
+      "$ref": "#/definitions/implemented_coverage"
+    },
+    "families": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "$ref": "#/definitions/family"
+      }
+    }
+  },
+  "definitions": {
+    "binding_method": {
+      "type": "string",
+      "pattern": "^(?:Set|Get)[A-Za-z0-9]+Arg[0-9]*$"
+    },
+    "reference": {
+      "type": "string",
+      "pattern": "^https://github\\.com/spatialanalyzer/[A-Za-z0-9_.-]+/(?:issues|pull)/[1-9][0-9]*$"
+    },
+    "references": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/definitions/reference"
+      }
+    },
+    "implemented_coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "protocol",
+        "worker",
+        "adapter",
+        "fake",
+        "generator"
+      ],
+      "properties": {
+        "protocol": {
+          "$ref": "#/definitions/binding_methods"
+        },
+        "worker": {
+          "$ref": "#/definitions/binding_methods"
+        },
+        "adapter": {
+          "$ref": "#/definitions/binding_methods"
+        },
+        "fake": {
+          "$ref": "#/definitions/binding_methods"
+        },
+        "generator": {
+          "$ref": "#/definitions/binding_methods"
+        }
+      }
+    },
+    "binding_methods": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/definitions/binding_method"
+      }
+    },
+    "family": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "family_id",
+        "shape",
+        "public_type_target",
+        "worker_type_target"
+      ],
+      "properties": {
+        "family_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "shape": {
+          "enum": [
+            "array",
+            "enum",
+            "identifier",
+            "path",
+            "reference_list",
+            "scalar",
+            "structured",
+            "transform"
+          ]
+        },
+        "public_type_target": {
+          "type": "string",
+          "minLength": 1
+        },
+        "worker_type_target": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

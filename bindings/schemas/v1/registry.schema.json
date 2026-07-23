@@ -1,0 +1,343 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://spatialanalyzer.github.io/briosa/bindings/schemas/v1/registry.schema.json",
+  "title": "Briosa generated exact-target SDK binding registry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schema_version",
+    "spatial_analyzer_target",
+    "inventory",
+    "dispositions",
+    "interop_assembly",
+    "interop_public_api",
+    "review",
+    "value_families",
+    "bindings"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "../../schemas/v1/registry.schema.json"
+    },
+    "schema_version": {
+      "const": 1
+    },
+    "spatial_analyzer_target": {
+      "type": "string",
+      "pattern": "^[0-9]+(?:\\.[0-9]+){3}$"
+    },
+    "inventory": {
+      "$ref": "#/definitions/source_reference"
+    },
+    "dispositions": {
+      "$ref": "#/definitions/source_reference"
+    },
+    "interop_assembly": {
+      "$ref": "#/definitions/source_reference"
+    },
+    "interop_public_api": {
+      "$ref": "#/definitions/source_reference"
+    },
+    "review": {
+      "$ref": "#/definitions/source_reference"
+    },
+    "value_families": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/value_family"
+      }
+    },
+    "bindings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/binding"
+      }
+    }
+  },
+  "definitions": {
+    "binding_method": {
+      "type": "string",
+      "pattern": "^(?:Set|Get)[A-Za-z0-9]+Arg[0-9]*$"
+    },
+    "reference": {
+      "type": "string",
+      "pattern": "^https://github\\.com/spatialanalyzer/[A-Za-z0-9_.-]+/(?:issues|pull)/[1-9][0-9]*$"
+    },
+    "references": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/definitions/reference"
+      }
+    },
+    "source_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "value_family": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "family_id",
+        "shape",
+        "public_type_target",
+        "worker_type_target",
+        "direction_support",
+        "implementation_status",
+        "binding_methods"
+      ],
+      "properties": {
+        "family_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "shape": {
+          "enum": [
+            "array",
+            "enum",
+            "identifier",
+            "path",
+            "reference_list",
+            "scalar",
+            "structured",
+            "transform"
+          ]
+        },
+        "public_type_target": {
+          "type": "string",
+          "minLength": 1
+        },
+        "worker_type_target": {
+          "type": "string",
+          "minLength": 1
+        },
+        "direction_support": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "getter",
+              "setter"
+            ]
+          }
+        },
+        "implementation_status": {
+          "enum": [
+            "blocked",
+            "implemented",
+            "not_required",
+            "planned"
+          ]
+        },
+        "binding_methods": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/definitions/binding_method"
+          }
+        }
+      }
+    },
+    "binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "method",
+        "direction",
+        "source_status",
+        "registry_status",
+        "semantic_value_family",
+        "coverage",
+        "interop_signature",
+        "inventory_usage",
+        "rationale",
+        "decision_references",
+        "blocker_references"
+      ],
+      "properties": {
+        "method": {
+          "$ref": "#/definitions/binding_method"
+        },
+        "direction": {
+          "enum": [
+            "getter",
+            "setter"
+          ]
+        },
+        "source_status": {
+          "enum": [
+            "interop_only",
+            "inventory_and_interop",
+            "inventory_only"
+          ]
+        },
+        "registry_status": {
+          "enum": [
+            "blocked_missing_interop",
+            "excluded_only",
+            "unobserved_interop",
+            "usable"
+          ]
+        },
+        "semantic_value_family": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "coverage": {
+          "$ref": "#/definitions/coverage"
+        },
+        "interop_signature": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "required": [
+            "return_type",
+            "parameters"
+          ],
+          "properties": {
+            "return_type": {
+              "type": "string",
+              "minLength": 1
+            },
+            "parameters": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/parameter"
+              }
+            }
+          }
+        },
+        "inventory_usage": {
+          "$ref": "#/definitions/inventory_usage"
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        },
+        "decision_references": {
+          "$ref": "#/definitions/references"
+        },
+        "blocker_references": {
+          "$ref": "#/definitions/references"
+        }
+      }
+    },
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "protocol",
+        "worker",
+        "adapter",
+        "fake",
+        "generator"
+      ],
+      "properties": {
+        "protocol": {
+          "$ref": "#/definitions/coverage_status"
+        },
+        "worker": {
+          "$ref": "#/definitions/coverage_status"
+        },
+        "adapter": {
+          "$ref": "#/definitions/coverage_status"
+        },
+        "fake": {
+          "$ref": "#/definitions/coverage_status"
+        },
+        "generator": {
+          "$ref": "#/definitions/coverage_status"
+        }
+      }
+    },
+    "coverage_status": {
+      "enum": [
+        "blocked",
+        "implemented",
+        "not_required",
+        "planned"
+      ]
+    },
+    "parameter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "position",
+        "name",
+        "clr_type",
+        "passing"
+      ],
+      "properties": {
+        "position": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "name": {
+          "type": "string"
+        },
+        "clr_type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "passing": {
+          "enum": [
+            "ref",
+            "value"
+          ]
+        }
+      }
+    },
+    "inventory_usage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "argument_count",
+        "command_count",
+        "excluded_command_count",
+        "remaining_command_count",
+        "sha256"
+      ],
+      "properties": {
+        "argument_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "command_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "excluded_command_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "remaining_command_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    }
+  }
+}
