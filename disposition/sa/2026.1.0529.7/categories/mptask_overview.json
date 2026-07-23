@@ -1,0 +1,338 @@
+{
+  "$schema": "../../../schemas/v1/shard.schema.json",
+  "schema_version": 1,
+  "spatial_analyzer_target": "2026.1.0529.7",
+  "category": "MPTaskOverview",
+  "entries": [
+    {
+      "inventory_key": "documentation:MPTaskOverview/AddTaskOverviewItem.htm",
+      "mp_step": "Add Task Overview Item",
+      "category_path": [
+        "MPTaskOverview"
+      ],
+      "inventory_entry_sha256": "5786005f8e5243a3f4273418b7f10acc94952c43e9894dae6dd53a764835da72",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:MPTaskOverview/AddTaskOverviewItem.htm",
+        "sdk:MPTaskOverview.txt#4"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:MPTaskOverview/CreateClearTaskOverviewList.htm",
+      "mp_step": "Create/Clear Task Overview List",
+      "category_path": [
+        "MPTaskOverview"
+      ],
+      "inventory_entry_sha256": "0bf3700422a19dcdc8120dcf503f2ab2d8823f17d52f87a17acb649027cffd0b",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:MPTaskOverview/CreateClearTaskOverviewList.htm",
+        "sdk:MPTaskOverview.txt#1"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:MPTaskOverview/SetCurrentTask.htm",
+      "mp_step": "Set Current Task",
+      "category_path": [
+        "MPTaskOverview"
+      ],
+      "inventory_entry_sha256": "a44413c42d00f2fd81788068b232a70a3a60f9933b5630253aaa0df01a3e8ef1",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:MPTaskOverview/SetCurrentTask.htm",
+        "sdk:MPTaskOverview.txt#10"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:MPTaskOverview/SetOverviewImage.htm",
+      "mp_step": "Set Overview Image",
+      "category_path": [
+        "MPTaskOverview"
+      ],
+      "inventory_entry_sha256": "89de824ed69c567bab88a9825422a6a121e40a358186124ad00ea981f9206fc6",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:MPTaskOverview/SetOverviewImage.htm",
+        "sdk:MPTaskOverview.txt#3"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:MPTaskOverview/SetOverviewTitle.htm",
+      "mp_step": "Set Overview Title",
+      "category_path": [
+        "MPTaskOverview"
+      ],
+      "inventory_entry_sha256": "5a8e2fc55de19361b028a90886a23a12aa7424bfb72c57c2540420c8a65968b7",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:MPTaskOverview/SetOverviewTitle.htm",
+        "sdk:MPTaskOverview.txt#2"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:MPTaskOverview/SetTaskItemComment.htm",
+      "mp_step": "Set Task Item Comment",
+      "category_path": [
+        "MPTaskOverview"
+      ],
+      "inventory_entry_sha256": "54e3285ce97bcd606f5f161563499bcaee20f410975e413ee1b30e15ec34d184",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:MPTaskOverview/SetTaskItemComment.htm",
+        "sdk:MPTaskOverview.txt#7"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:MPTaskOverview/SetTaskItemCompletionValues.htm",
+      "mp_step": "Set Task Item Completion Values",
+      "category_path": [
+        "MPTaskOverview"
+      ],
+      "inventory_entry_sha256": "564a79195471a3b942d3f4f7859c43bc39fa7abc51fd6b5d6fcae79296c76bc6",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:MPTaskOverview/SetTaskItemCompletionValues.htm",
+        "sdk:MPTaskOverview.txt#9"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:MPTaskOverview/SetTaskItemName.htm",
+      "mp_step": "Set Task Item Name",
+      "category_path": [
+        "MPTaskOverview"
+      ],
+      "inventory_entry_sha256": "803902337b2b3f6df8e3b551cbca9d9f47d73f880eaeb3802336900dba3ba204",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:MPTaskOverview/SetTaskItemName.htm",
+        "sdk:MPTaskOverview.txt#6"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:MPTaskOverview/SetTaskItemStatus.htm",
+      "mp_step": "Set Task Item Status",
+      "category_path": [
+        "MPTaskOverview"
+      ],
+      "inventory_entry_sha256": "07b088bdb6fba36741af9c3f27104bac84e62ce28f17b3e440d3bd50ea0d977c",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:MPTaskOverview/SetTaskItemStatus.htm",
+        "sdk:MPTaskOverview.txt#5"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:MPTaskOverview/ShowProgressforTaskItem.htm",
+      "mp_step": "Show Progress for Task Item",
+      "category_path": [
+        "MPTaskOverview"
+      ],
+      "inventory_entry_sha256": "a626a6cc8ce79da084295a1fbfef85ba2d0dbfb92af7e028328a4aff2836fce9",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:MPTaskOverview/ShowProgressforTaskItem.htm",
+        "sdk:MPTaskOverview.txt#8"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:MPTaskOverview/ShowTaskOverviewList.htm",
+      "mp_step": "Show Task Overview List",
+      "category_path": [
+        "MPTaskOverview"
+      ],
+      "inventory_entry_sha256": "8df389e03a3caeb82b0ff43b3f00fab3ec4b7d2b02e68b85acd50da022f05ace",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:MPTaskOverview/ShowTaskOverviewList.htm",
+        "sdk:MPTaskOverview.txt#11"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    }
+  ]
+}

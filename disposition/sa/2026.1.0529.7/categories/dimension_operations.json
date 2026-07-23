@@ -1,0 +1,37 @@
+{
+  "$schema": "../../../schemas/v1/shard.schema.json",
+  "schema_version": 1,
+  "spatial_analyzer_target": "2026.1.0529.7",
+  "category": "DimensionOperations",
+  "entries": [
+    {
+      "inventory_key": "sdk:DimensionOperations.txt#12",
+      "mp_step": "Set Dimension Tolerance",
+      "category_path": [
+        "DimensionOperations"
+      ],
+      "inventory_entry_sha256": "14266236fe19b5a9cc5b397fabcb04f09f4ba4cfa386f19fa7722d2750bd6ea7",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "sdk:DimensionOperations.txt#12"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    }
+  ]
+}

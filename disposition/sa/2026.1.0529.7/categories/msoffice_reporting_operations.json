@@ -1,0 +1,426 @@
+{
+  "$schema": "../../../schemas/v1/shard.schema.json",
+  "schema_version": 1,
+  "spatial_analyzer_target": "2026.1.0529.7",
+  "category": "MSOfficeReportingOperations",
+  "entries": [
+    {
+      "inventory_key": "documentation:MSOfficeReportingOperations/AddGraphicsViewToReport.htm",
+      "mp_step": "Add Graphics View to Report",
+      "category_path": [
+        "MSOfficeReportingOperations"
+      ],
+      "inventory_entry_sha256": "6383d7b5583710bc28e14fd4b9b0727c59bfb886937a9dc0392f22b73e89596a",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:MSOfficeReportingOperations/AddGraphicsViewToReport.htm",
+        "sdk:MSOfficeReportingOperations.txt#7"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:MSOfficeReportingOperations/AddObjectsToReport.htm",
+      "mp_step": "Add Objects to Report",
+      "category_path": [
+        "MSOfficeReportingOperations"
+      ],
+      "inventory_entry_sha256": "eb9424e5c3ae7529d0d7077e785689ae5706638491d063e0523e5c7de125948a",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:MSOfficeReportingOperations/AddObjectsToReport.htm",
+        "sdk:MSOfficeReportingOperations.txt#5"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:MSOfficeReportingOperations/AddPresetNotesToReport.htm",
+      "mp_step": "Add Preset Notes to Report",
+      "category_path": [
+        "MSOfficeReportingOperations"
+      ],
+      "inventory_entry_sha256": "453942212b1b393c25f7bfd9227a6fcf0ccc4ae453a1069d4cc58fa84a39a114",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:MSOfficeReportingOperations/AddPresetNotesToReport.htm",
+        "sdk:MSOfficeReportingOperations.txt#9"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:MSOfficeReportingOperations/AddSADocFromFileRTF.htm",
+      "mp_step": "Add SADoc From File (RTF)",
+      "category_path": [
+        "MSOfficeReportingOperations"
+      ],
+      "inventory_entry_sha256": "0886f3de1dcd208e8f7ab84d25e107b622d88a2fc0c0c980e94a259ce328b44e",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:MSOfficeReportingOperations/AddSADocFromFileRTF.htm",
+        "sdk:MSOfficeReportingOperations.txt#13"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:MSOfficeReportingOperations/AddSectionHeadingToReport.htm",
+      "mp_step": "Add Section Heading to Report",
+      "category_path": [
+        "MSOfficeReportingOperations"
+      ],
+      "inventory_entry_sha256": "2f800c1f27604b972b1df9113f2a1c9adc0ce6e58b5c92841c9b8a739d15b37a",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:MSOfficeReportingOperations/AddSectionHeadingToReport.htm",
+        "sdk:MSOfficeReportingOperations.txt#4"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:MSOfficeReportingOperations/AddUserInputNotesToReport.htm",
+      "mp_step": "Add User Input Notes to Report",
+      "category_path": [
+        "MSOfficeReportingOperations"
+      ],
+      "inventory_entry_sha256": "d94c0810b11fba464651557b6576f7c3598faa2a0745e29d185a72a0c2fb9f0e",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:MSOfficeReportingOperations/AddUserInputNotesToReport.htm",
+        "sdk:MSOfficeReportingOperations.txt#8"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:MSOfficeReportingOperations/AddsAnImageToAnMSOffice.htm",
+      "mp_step": "Adds an image to an MS Office report.",
+      "category_path": [
+        "MSOfficeReportingOperations"
+      ],
+      "inventory_entry_sha256": "28b09ac2f0365f1c38ad1e9123f05f55cdb23f4f64db0352f112081013762321",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:MSOfficeReportingOperations/AddsAnImageToAnMSOffice.htm"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:MSOfficeReportingOperations/CloseOfficeReport.htm",
+      "mp_step": "Close Office Report",
+      "category_path": [
+        "MSOfficeReportingOperations"
+      ],
+      "inventory_entry_sha256": "0f8fe655b0f82b6b1659dc6ce55518e8fc6088ae301b8536fcf39b03c8d79ebf",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:MSOfficeReportingOperations/CloseOfficeReport.htm",
+        "sdk:MSOfficeReportingOperations.txt#11"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:MSOfficeReportingOperations/InitializeOfficeReport.htm",
+      "mp_step": "Initialize Office Report",
+      "category_path": [
+        "MSOfficeReportingOperations"
+      ],
+      "inventory_entry_sha256": "2e948a133f68acf234a0655f51f02f64ac2def07a4f3d8defee95712302f68ee",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:MSOfficeReportingOperations/InitializeOfficeReport.htm",
+        "sdk:MSOfficeReportingOperations.txt#1"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:MSOfficeReportingOperations/InsertSectionBreak.htm",
+      "mp_step": "Insert Section Break",
+      "category_path": [
+        "MSOfficeReportingOperations"
+      ],
+      "inventory_entry_sha256": "58982b56019ded3516fea041c8bf84a2cc88be881842ae20b1ad9880b7b60d0d",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:MSOfficeReportingOperations/InsertSectionBreak.htm",
+        "sdk:MSOfficeReportingOperations.txt#2"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:MSOfficeReportingOperations/MakeReportTable.htm",
+      "mp_step": "Make Report Table",
+      "category_path": [
+        "MSOfficeReportingOperations"
+      ],
+      "inventory_entry_sha256": "af9c53d0695df3e9bc3a5b3d631c5a5163eef12677317e52d2e48966e1772271",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:MSOfficeReportingOperations/MakeReportTable.htm",
+        "sdk:MSOfficeReportingOperations.txt#10"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:MSOfficeReportingOperations/SaveOfficeReportAsRTF.htm",
+      "mp_step": "Save Office Report as RTF",
+      "category_path": [
+        "MSOfficeReportingOperations"
+      ],
+      "inventory_entry_sha256": "d63628c5a8a722d8d278cd32f0b110a3a447cd7936c5ef06dfc9b02a41610302",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:MSOfficeReportingOperations/SaveOfficeReportAsRTF.htm",
+        "sdk:MSOfficeReportingOperations.txt#12"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:MSOfficeReportingOperations/SetPageOrientation.htm",
+      "mp_step": "Set Page Orientation",
+      "category_path": [
+        "MSOfficeReportingOperations"
+      ],
+      "inventory_entry_sha256": "b6223b9ca21eed22b9eed8efa477ad6bd84c1ecd1d26f3e4947674ce433810f0",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:MSOfficeReportingOperations/SetPageOrientation.htm",
+        "sdk:MSOfficeReportingOperations.txt#3"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "sdk:MSOfficeReportingOperations.txt#6",
+      "mp_step": "Insert Graphics from file",
+      "category_path": [
+        "MSOfficeReportingOperations"
+      ],
+      "inventory_entry_sha256": "b204eed77f44068249e0322292e7af882ecdb44e4c22df29f2cdcbaaeaf80994",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "sdk:MSOfficeReportingOperations.txt#6"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    }
+  ]
+}

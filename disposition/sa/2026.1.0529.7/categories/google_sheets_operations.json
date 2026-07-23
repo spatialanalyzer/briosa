@@ -1,0 +1,37 @@
+{
+  "$schema": "../../../schemas/v1/shard.schema.json",
+  "schema_version": 1,
+  "spatial_analyzer_target": "2026.1.0529.7",
+  "category": "GoogleSheetsOperations",
+  "entries": [
+    {
+      "inventory_key": "sdk:GoogleSheetsOperations.txt#8",
+      "mp_step": "Google Sheets Run Script",
+      "category_path": [
+        "GoogleSheetsOperations"
+      ],
+      "inventory_entry_sha256": "22225be7b90d6fb295368b500b5f190dbc85e7e5d3794d017c36b4ab7fa4e4cc",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "sdk:GoogleSheetsOperations.txt#8"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    }
+  ]
+}

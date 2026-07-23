@@ -1,0 +1,37 @@
+{
+  "$schema": "../../../schemas/v1/shard.schema.json",
+  "schema_version": 1,
+  "spatial_analyzer_target": "2026.1.0529.7",
+  "category": "EventOperations",
+  "entries": [
+    {
+      "inventory_key": "sdk:EventOperations.txt#4",
+      "mp_step": "Export Event Ref List",
+      "category_path": [
+        "EventOperations"
+      ],
+      "inventory_entry_sha256": "793abe4e51914e2be684dabceef09df31204d37a9ea4da3e20fb12630fd9f656",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "sdk:EventOperations.txt#4"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    }
+  ]
+}

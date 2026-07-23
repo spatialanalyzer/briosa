@@ -1,0 +1,192 @@
+{
+  "$schema": "../../schemas/v1/manifest.schema.json",
+  "schema_version": 1,
+  "spatial_analyzer_target": "2026.1.0529.7",
+  "inventory": {
+    "path": "../../../inventory/sa/2026.1.0529.7/inventory.json",
+    "sha256": "8a5e16b0fda8ebda70219b2c795af0c1b57004b0b048a32392d5b3253c97e502",
+    "command_count": 1412
+  },
+  "shards": [
+    {
+      "category": "AccumulatorMathOperations",
+      "path": "categories/accumulator_math_operations.json",
+      "entry_count": 8,
+      "sha256": "f621a5dc451c306da76822c0441f6b5bc070bebe0e72dd874c4849b92551259f"
+    },
+    {
+      "category": "AnalysisOperations",
+      "path": "categories/analysis_operations.json",
+      "entry_count": 189,
+      "sha256": "fa7b6925af6dc346c69d3531e3136f0c54c2e7e9e62c63619d95157b7d65a49d"
+    },
+    {
+      "category": "CloudAndMeshOperations",
+      "path": "categories/cloud_and_mesh_operations.json",
+      "entry_count": 1,
+      "sha256": "483f3f450786c86785e67d059aaf7723bb6f8e661c8f1f532c1d9fb1051b990e"
+    },
+    {
+      "category": "CloudMeshOps",
+      "path": "categories/cloud_mesh_ops.json",
+      "entry_count": 28,
+      "sha256": "2d7b02184df6f27a7173f5643ee0341bb329c2ed8def732dbcc491a986634206"
+    },
+    {
+      "category": "ConstructionOperations",
+      "path": "categories/construction_operations.json",
+      "entry_count": 278,
+      "sha256": "e32c581a54a131ba5f44fbe6666122f90d4e3210e8ae5f9ac373b0dce1269afc"
+    },
+    {
+      "category": "DimensionOperations",
+      "path": "categories/dimension_operations.json",
+      "entry_count": 1,
+      "sha256": "04199b040998e77ea43a9482565218bebcbea03f119028feb911243635d3187d"
+    },
+    {
+      "category": "Dimensions",
+      "path": "categories/dimensions.json",
+      "entry_count": 19,
+      "sha256": "ea71001e530a8ad28d019fe09bfe6e3cb27dde731a6c3aaf00d220feecb8bc16"
+    },
+    {
+      "category": "EventOperations",
+      "path": "categories/event_operations.json",
+      "entry_count": 1,
+      "sha256": "5bbcb9b4011ddd3b7fa587be544ba472404f4d093ab15e5e74919be17eb9d84a"
+    },
+    {
+      "category": "Events",
+      "path": "categories/events.json",
+      "entry_count": 5,
+      "sha256": "25d53e9c18546b9deaf2398a716ae5f06af7923d19d32ffe99c18ea345f3c487"
+    },
+    {
+      "category": "ExcelDirectConnect",
+      "path": "categories/excel_direct_connect.json",
+      "entry_count": 17,
+      "sha256": "c8c3324e04d61108081b922be004abd6b3f1c081e50032b87deeabcc4558de6b"
+    },
+    {
+      "category": "FileOperations",
+      "path": "categories/file_operations.json",
+      "entry_count": 125,
+      "sha256": "9f249d748cb0e359bbb5e13e82bc0995d1173c1bc0309e95407ad2842072ffca"
+    },
+    {
+      "category": "GDT",
+      "path": "categories/gdt.json",
+      "entry_count": 40,
+      "sha256": "73512ba3d1441ea2b16bd78ed36c227d3c185f0e236f5f62264a4d0185da4b3f"
+    },
+    {
+      "category": "GDTOperations",
+      "path": "categories/gdtoperations.json",
+      "entry_count": 3,
+      "sha256": "031d94a63a16c6ef06ce0002594d23157c0fbbe9d8544fd89896c9972fb6e881"
+    },
+    {
+      "category": "GoogleSheets",
+      "path": "categories/google_sheets.json",
+      "entry_count": 18,
+      "sha256": "dac76bd5b15e69162dd4f512c999d36cdbcf5d5afaa749626ccb378700a66884"
+    },
+    {
+      "category": "GoogleSheetsOperations",
+      "path": "categories/google_sheets_operations.json",
+      "entry_count": 1,
+      "sha256": "2ddc8e91e5cfe7297e4585f741b3322f63b40555a8633e4f7a6a9227a7ba3152"
+    },
+    {
+      "category": "InstrumentOperations",
+      "path": "categories/instrument_operations.json",
+      "entry_count": 185,
+      "sha256": "d8e56003720d81be6af5fc49644457b0fa18ac5ddba1184896cae53ab32234c2"
+    },
+    {
+      "category": "MPSubroutines",
+      "path": "categories/mpsubroutines.json",
+      "entry_count": 4,
+      "sha256": "f994617281e4e16dc18f66563fde7a1a978008548d877b199832498ec4e3e3a6"
+    },
+    {
+      "category": "MPTaskOverview",
+      "path": "categories/mptask_overview.json",
+      "entry_count": 11,
+      "sha256": "3ab22a34bd7ad9061916e450fb515ab42413611c4c144782ab8d6666e2c182e6"
+    },
+    {
+      "category": "MSOfficeReportingOperations",
+      "path": "categories/msoffice_reporting_operations.json",
+      "entry_count": 14,
+      "sha256": "da0b60e3d18267f1a122fcab22a6c03b86cb76e0880e59c1e3b3d43d6b812167"
+    },
+    {
+      "category": "ProcessFlowOperations",
+      "path": "categories/process_flow_operations.json",
+      "entry_count": 25,
+      "sha256": "53d5c0b79129f1ac7c7db7d11d845ab8a18abdcf07a34b4e9f18cd1663bbb2d2"
+    },
+    {
+      "category": "RelationshipOperations",
+      "path": "categories/relationship_operations.json",
+      "entry_count": 67,
+      "sha256": "39eb4b8b2a3fe95a314ec208819d34015770b296cb05926bfdfaff4488670c4b"
+    },
+    {
+      "category": "ReportingOperations",
+      "path": "categories/reporting_operations.json",
+      "entry_count": 71,
+      "sha256": "9f46ec19b35394bb99dfef905a90736075fee459cd4bcb9d675e5ece24ab5bd0"
+    },
+    {
+      "category": "RobotCalibrationApplianceNodeOperations",
+      "path": "categories/robot_calibration_appliance_node_operations.json",
+      "entry_count": 25,
+      "sha256": "2e243f420443bf4d8e9056ab43057bf74cfd6c276e1afb847350d1d2034b6c06"
+    },
+    {
+      "category": "RobotOperations",
+      "path": "categories/robot_operations.json",
+      "entry_count": 33,
+      "sha256": "a71f5679c1ab7c090c6a788a62b77a0d3554f7bd80f0d21d2f7d87782993bdc0"
+    },
+    {
+      "category": "ScalarMathOperations",
+      "path": "categories/scalar_math_operations.json",
+      "entry_count": 21,
+      "sha256": "78259895c75d0a2e157ffe86cd418eab83371b5c19a1cb02b9c03495e4a55498"
+    },
+    {
+      "category": "ScaleBars",
+      "path": "categories/scale_bars.json",
+      "entry_count": 3,
+      "sha256": "eb14cb2e887a7ef71063c77cf53bb528f013a289233936079974090958f44f57"
+    },
+    {
+      "category": "UtilityOperations",
+      "path": "categories/utility_operations.json",
+      "entry_count": 105,
+      "sha256": "c3c96ec428ac1f837df3d961f28d020ff9786e6ed34911e153cf72e9dcf01243"
+    },
+    {
+      "category": "Variables",
+      "path": "categories/variables.json",
+      "entry_count": 41,
+      "sha256": "55393209e25e45a5dff47a9f220b2cc330d4755f554f2c3d9e6864a9edb71dd5"
+    },
+    {
+      "category": "Vector Operations",
+      "path": "categories/vector_operations.json",
+      "entry_count": 22,
+      "sha256": "3f4ef67d03dd602ce10182a8a527a75442e2220e359b7e7c625523f078056664"
+    },
+    {
+      "category": "ViewControl",
+      "path": "categories/view_control.json",
+      "entry_count": 51,
+      "sha256": "61990ba740e100e7d3d82c269919402a999818007910113543d1ba6818576cec"
+    }
+  ]
+}

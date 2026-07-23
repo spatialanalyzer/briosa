@@ -1,0 +1,1571 @@
+{
+  "$schema": "../../../schemas/v1/shard.schema.json",
+  "schema_version": 1,
+  "spatial_analyzer_target": "2026.1.0529.7",
+  "category": "ViewControl",
+  "entries": [
+    {
+      "inventory_key": "documentation:ViewControl/Auto-Scale.htm",
+      "mp_step": "Auto-Scale",
+      "category_path": [
+        "ViewControl"
+      ],
+      "inventory_entry_sha256": "038178dbbec5217635399aa64e3ae762101c81cd1a7b8f0d9703aaba4a4af727",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/Auto-Scale.htm",
+        "sdk:ViewControl.txt#2"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ViewControl/CenterGraphicsAboutObjects.htm",
+      "mp_step": "Center Graphics About Object(s)",
+      "category_path": [
+        "ViewControl"
+      ],
+      "inventory_entry_sha256": "c423b0dde7cbbc44fff46ad668a4decb5cef87e923cb3e480c895347f4d56f81",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/CenterGraphicsAboutObjects.htm",
+        "sdk:ViewControl.txt#12"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ViewControl/CenterGraphicsAboutPoint.htm",
+      "mp_step": "Center Graphics About Point",
+      "category_path": [
+        "ViewControl"
+      ],
+      "inventory_entry_sha256": "d377a360c104621acfcd1050435ae168074ed43dc25b6bb125a059e1f816e918",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/CenterGraphicsAboutPoint.htm",
+        "sdk:ViewControl.txt#11"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ViewControl/Colors/ConvertIntegerValuestoRGB.htm",
+      "mp_step": "Convert Integer Values to RGB",
+      "category_path": [
+        "ViewControl",
+        "Colors"
+      ],
+      "inventory_entry_sha256": "7a0186a2010f31e2faf3cc5a691434a0a6418b8e10bd5fb5910e11996bcdc72d",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/Colors/ConvertIntegerValuestoRGB.htm",
+        "sdk:ViewControl_Colors.txt#7"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ViewControl/Colors/ConvertRGBValuestoInteger.htm",
+      "mp_step": "Convert RGB Values to Integer",
+      "category_path": [
+        "ViewControl",
+        "Colors"
+      ],
+      "inventory_entry_sha256": "e3a2cc74c5061cb9a864ec4eb50c0ef5e2dac39f0abeadad89b097dba6805ef2",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/Colors/ConvertRGBValuestoInteger.htm",
+        "sdk:ViewControl_Colors.txt#6"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ViewControl/Colors/GetObjectColor.htm",
+      "mp_step": "Get Object Color",
+      "category_path": [
+        "ViewControl",
+        "Colors"
+      ],
+      "inventory_entry_sha256": "99f2758057af7d5035d025a999c279308f35907f24facc64e2bedc74ce83edb8",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/Colors/GetObjectColor.htm",
+        "sdk:ViewControl_Colors.txt#5"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ViewControl/Colors/SetBackgroundColor.htm",
+      "mp_step": "Set Background Color",
+      "category_path": [
+        "ViewControl",
+        "Colors"
+      ],
+      "inventory_entry_sha256": "62752d0cda2c7409e3755066873fa597386d9ffeb157752516d79658cd7a8352",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/Colors/SetBackgroundColor.htm",
+        "sdk:ViewControl_Colors.txt#3"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ViewControl/Colors/SetObjectsColor.htm",
+      "mp_step": "Set Object(s) Color",
+      "category_path": [
+        "ViewControl",
+        "Colors"
+      ],
+      "inventory_entry_sha256": "0402da48eb518d178d7355b1d36b5c32214239941dd489270a65899c5a59a862",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/Colors/SetObjectsColor.htm",
+        "sdk:ViewControl_Colors.txt#4"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ViewControl/Colors/SetWorkingColor.htm",
+      "mp_step": "Set Working Color",
+      "category_path": [
+        "ViewControl",
+        "Colors"
+      ],
+      "inventory_entry_sha256": "5ce4d764615f67fa9a4a9540ccc34ac387a7483ee5c44026868c4525bb8e2d1a",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/Colors/SetWorkingColor.htm",
+        "sdk:ViewControl_Colors.txt#1"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ViewControl/Colors/SetWorkingColorAutoIncrement.htm",
+      "mp_step": "Set Working Color Auto Increment",
+      "category_path": [
+        "ViewControl",
+        "Colors"
+      ],
+      "inventory_entry_sha256": "e27d647acb5cd09ca5c9cd5f518d63726a83f1b9033f54c9b16c75b4deb0cc6f",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/Colors/SetWorkingColorAutoIncrement.htm",
+        "sdk:ViewControl_Colors.txt#2"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ViewControl/GetActiveClippingPlanes.htm",
+      "mp_step": "Get Active Clipping Planes",
+      "category_path": [
+        "ViewControl"
+      ],
+      "inventory_entry_sha256": "360a9fdc9159fc5374fad3340aa87ad5230bb965f1605702dce09585715c1a06",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/GetActiveClippingPlanes.htm",
+        "sdk:ViewControl.txt#6"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ViewControl/HideShowOperations/HideAllCalloutView.htm",
+      "mp_step": "Hide All Callout View",
+      "category_path": [
+        "ViewControl",
+        "HideShowOperations"
+      ],
+      "inventory_entry_sha256": "d8ff2409c8f56eef423ca144e64257c3f5bb743d5a85b1190894101e2a294a1e",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/HideShowOperations/HideAllCalloutView.htm"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ViewControl/HideShowOperations/HideObjects.htm",
+      "mp_step": "Hide Objects",
+      "category_path": [
+        "ViewControl",
+        "HideShowOperations"
+      ],
+      "inventory_entry_sha256": "3ded82b060da3a52579c7f599c8eae8261689ddb8e7807580200209e7f2a5870",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/HideShowOperations/HideObjects.htm",
+        "sdk:ViewControl_HideShowOperations.txt#5"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ViewControl/HideShowOperations/SetToolkitVisibility.htm",
+      "mp_step": "Set Toolkit Visibility",
+      "category_path": [
+        "ViewControl",
+        "HideShowOperations"
+      ],
+      "inventory_entry_sha256": "8a039c1dae315f9e6b76ac310ddedbf3117d3c1ffdac82d98a1e3733f9decd78",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/HideShowOperations/SetToolkitVisibility.htm",
+        "sdk:ViewControl_HideShowOperations.txt#1"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ViewControl/HideShowOperations/ShowHideAnnotationsforDatums.htm",
+      "mp_step": "Show/Hide Annotations for Datums",
+      "category_path": [
+        "ViewControl",
+        "HideShowOperations"
+      ],
+      "inventory_entry_sha256": "ee23557d2d89bbe9c0dfbf2b98a52efb2594a2375bcb34a62badc8178a45b157",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/HideShowOperations/ShowHideAnnotationsforDatums.htm",
+        "sdk:ViewControl_HideShowOperations.txt#12"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ViewControl/HideShowOperations/ShowHideAnnotationsforFeatureChecks.htm",
+      "mp_step": "Show/Hide Annotations for Feature Checks",
+      "category_path": [
+        "ViewControl",
+        "HideShowOperations"
+      ],
+      "inventory_entry_sha256": "2ec4a50884b418584ca701b48ca7316129164ec8657cf3839ee50ae75bc14786",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/HideShowOperations/ShowHideAnnotationsforFeatureChecks.htm",
+        "sdk:ViewControl_HideShowOperations.txt#11"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ViewControl/HideShowOperations/ShowHideCalloutView.htm",
+      "mp_step": "Show/Hide Callout View",
+      "category_path": [
+        "ViewControl",
+        "HideShowOperations"
+      ],
+      "inventory_entry_sha256": "88118a2deae91c11002c2053ace8b621da0943c5a7a1a0c3338d49000462b38f",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/HideShowOperations/ShowHideCalloutView.htm",
+        "sdk:ViewControl_HideShowOperations.txt#9"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ViewControl/HideShowOperations/ShowHideDimensions.htm",
+      "mp_step": "Show/Hide Dimensions",
+      "category_path": [
+        "ViewControl",
+        "HideShowOperations"
+      ],
+      "inventory_entry_sha256": "ba8b652b9994322808b78d5b35bb98b603c495dd6062a3cbdfd52648f431bdb2",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/HideShowOperations/ShowHideDimensions.htm"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ViewControl/HideShowOperations/ShowHideInstrumentProbeTip.htm",
+      "mp_step": "Show/Hide Instrument Probe Tip",
+      "category_path": [
+        "ViewControl",
+        "HideShowOperations"
+      ],
+      "inventory_entry_sha256": "610cc7df5c8a8d9378803000e3110f0327ff1fe17e321b0881d96a472c941697",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/HideShowOperations/ShowHideInstrumentProbeTip.htm",
+        "sdk:ViewControl_HideShowOperations.txt#15"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ViewControl/HideShowOperations/ShowHideInstruments.htm",
+      "mp_step": "Show/Hide Instruments",
+      "category_path": [
+        "ViewControl",
+        "HideShowOperations"
+      ],
+      "inventory_entry_sha256": "7ab8dc63734a3a51637fa9edfdbca0afad3aba8866915dc233cf808009f15c48",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/HideShowOperations/ShowHideInstruments.htm",
+        "sdk:ViewControl_HideShowOperations.txt#14"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ViewControl/HideShowOperations/ShowHidePoints.htm",
+      "mp_step": "Show/Hide Points",
+      "category_path": [
+        "ViewControl",
+        "HideShowOperations"
+      ],
+      "inventory_entry_sha256": "c567c5cca2ee9c1b9df52597f97185b88c3b2e0a36a1f40cfe4d0b41f6e9f27d",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/HideShowOperations/ShowHidePoints.htm",
+        "sdk:ViewControl_HideShowOperations.txt#7"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ViewControl/HideShowOperations/ShowHideRelationshipReport.htm",
+      "mp_step": "Show/Hide Relationship Report",
+      "category_path": [
+        "ViewControl",
+        "HideShowOperations"
+      ],
+      "inventory_entry_sha256": "dc076ba6eb404229360cf4567ceaa299ad69e849b81dbf439c8c98f9e77a6731",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/HideShowOperations/ShowHideRelationshipReport.htm",
+        "sdk:ViewControl_HideShowOperations.txt#17"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ViewControl/HideShowOperations/ShowHideRelationshipWatch.htm",
+      "mp_step": "Show/Hide Relationship Watch",
+      "category_path": [
+        "ViewControl",
+        "HideShowOperations"
+      ],
+      "inventory_entry_sha256": "89b133176fc2d94807d2d4b7fa65176049aced15a8e094227d6114b944f8f019",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/HideShowOperations/ShowHideRelationshipWatch.htm",
+        "sdk:ViewControl_HideShowOperations.txt#18"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ViewControl/HideShowOperations/ShowHidebyObjectType.htm",
+      "mp_step": "Show/Hide by Object Type",
+      "category_path": [
+        "ViewControl",
+        "HideShowOperations"
+      ],
+      "inventory_entry_sha256": "dcb38896bb7ae37b6fca6a3f0f41ba06281469a3a580f16d20334eaae637fdc1",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/HideShowOperations/ShowHidebyObjectType.htm",
+        "sdk:ViewControl_HideShowOperations.txt#6"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ViewControl/HideShowOperations/ShowItemsinTree.htm",
+      "mp_step": "Show Items in Tree",
+      "category_path": [
+        "ViewControl",
+        "HideShowOperations"
+      ],
+      "inventory_entry_sha256": "3cb65875227bf93d4656a52823048bba2f96ebefe5b902b4bbf4f964d1302c48",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/HideShowOperations/ShowItemsinTree.htm",
+        "sdk:ViewControl_HideShowOperations.txt#19"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ViewControl/HideShowOperations/ShowLabels.htm",
+      "mp_step": "Show Labels",
+      "category_path": [
+        "ViewControl",
+        "HideShowOperations"
+      ],
+      "inventory_entry_sha256": "f4857bc4e0599be5d4f1339644975a3015ea0e99ca80f4f790d351edce38ec7d",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/HideShowOperations/ShowLabels.htm",
+        "sdk:ViewControl_HideShowOperations.txt#2"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ViewControl/HideShowOperations/ShowObjects.htm",
+      "mp_step": "Show Objects",
+      "category_path": [
+        "ViewControl",
+        "HideShowOperations"
+      ],
+      "inventory_entry_sha256": "2ba17c55ed8241a852c6a6529b88facb3e14256ceb83772ffa5229050e032a53",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/HideShowOperations/ShowObjects.htm",
+        "sdk:ViewControl_HideShowOperations.txt#3"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ViewControl/HideShowOperations/ShowbyObjectType.htm",
+      "mp_step": "Show by Object Type",
+      "category_path": [
+        "ViewControl",
+        "HideShowOperations"
+      ],
+      "inventory_entry_sha256": "b37a4b468c4041f1f55a4dcaa39a5ad4582e57eaffeaf997cd9eb0bb7dbaa244",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/HideShowOperations/ShowbyObjectType.htm",
+        "sdk:ViewControl_HideShowOperations.txt#4"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ViewControl/HighlightOperations/HighlightObjects.htm",
+      "mp_step": "Highlight Objects",
+      "category_path": [
+        "ViewControl",
+        "HighlightOperations"
+      ],
+      "inventory_entry_sha256": "adcb89edef96e92e943eeb94d37c63ac4fb196e01ef73d53d910135aee960be3",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/HighlightOperations/HighlightObjects.htm",
+        "sdk:ViewControl_HighlightOperations.txt#1"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ViewControl/HighlightOperations/HighlightPoint.htm",
+      "mp_step": "Highlight Point",
+      "category_path": [
+        "ViewControl",
+        "HighlightOperations"
+      ],
+      "inventory_entry_sha256": "aef7d12800351c101807bd05a21863f0afc1dcc8af531cbc6c539cc3dffb2f4a",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/HighlightOperations/HighlightPoint.htm",
+        "sdk:ViewControl_HighlightOperations.txt#3"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ViewControl/HighlightOperations/HighlightRelationships.htm",
+      "mp_step": "Highlight Relationships",
+      "category_path": [
+        "ViewControl",
+        "HighlightOperations"
+      ],
+      "inventory_entry_sha256": "308064778e4d3b4b512410ca6d90971ad7f38c74a38d8d5f1b3bbbe1a40fcdc9",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/HighlightOperations/HighlightRelationships.htm",
+        "sdk:ViewControl_HighlightOperations.txt#2"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ViewControl/PointofView/DefinePointofView.htm",
+      "mp_step": "Define Point of View",
+      "category_path": [
+        "ViewControl",
+        "PointofView"
+      ],
+      "inventory_entry_sha256": "b6daf5cf81662fd138ec71701ab1766957c3dcafd048f49250fd0d894fdd24de",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/PointofView/DefinePointofView.htm",
+        "sdk:ViewControl_PointOfView.txt#5"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ViewControl/PointofView/GetPointofViewParameters.htm",
+      "mp_step": "Get Point of View Parameters",
+      "category_path": [
+        "ViewControl",
+        "PointofView"
+      ],
+      "inventory_entry_sha256": "e809419fa3bf4861e732f4775d2f6d7f279e252c34f91fa082404e1fcb964cf6",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/PointofView/GetPointofViewParameters.htm",
+        "sdk:ViewControl_PointOfView.txt#6"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ViewControl/PointofView/SavePointofView.htm",
+      "mp_step": "Save Point of View",
+      "category_path": [
+        "ViewControl",
+        "PointofView"
+      ],
+      "inventory_entry_sha256": "74b2928b1aa2663b6d05df5c187aac878917d23cedb83b8b8e860067587d93aa",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/PointofView/SavePointofView.htm",
+        "sdk:ViewControl_PointOfView.txt#4"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ViewControl/PointofView/SetPointofView.htm",
+      "mp_step": "Set Point of View",
+      "category_path": [
+        "ViewControl",
+        "PointofView"
+      ],
+      "inventory_entry_sha256": "591f4b68e1377616d3e8ac1fde352ddbe71bd23a49e6f88651f223263fdbae75",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/PointofView/SetPointofView.htm",
+        "sdk:ViewControl_PointOfView.txt#3"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ViewControl/PointofView/SetPointofViewFromFrame.htm",
+      "mp_step": "Set Point of View From Frame",
+      "category_path": [
+        "ViewControl",
+        "PointofView"
+      ],
+      "inventory_entry_sha256": "28377643bee9ebfe6dc0b86e5b2342153998295719f37c52283a25e6cefe8b7e",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/PointofView/SetPointofViewFromFrame.htm",
+        "sdk:ViewControl_PointOfView.txt#1"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ViewControl/PointofView/SetPointofViewFromInstrument.htm",
+      "mp_step": "Set Point of View From Instrument Updates",
+      "category_path": [
+        "ViewControl",
+        "PointofView"
+      ],
+      "inventory_entry_sha256": "8cb975a5ab9fc44d52af95e334273b0148b89fc0c0d24b9c8844f70173ae5928",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/PointofView/SetPointofViewFromInstrument.htm",
+        "sdk:ViewControl_PointOfView.txt#2"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ViewControl/RefreshViews.htm",
+      "mp_step": "Refresh Views",
+      "category_path": [
+        "ViewControl"
+      ],
+      "inventory_entry_sha256": "71f7b861db18a1bc2be1bdc1fdb8f867a8193d234d4e9035d811836b029e005e",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/RefreshViews.htm",
+        "sdk:ViewControl.txt#1"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ViewControl/RibbonBar/LoadRibbonBarfromXMLFile.htm",
+      "mp_step": "Load Ribbon Bar from XML File",
+      "category_path": [
+        "ViewControl",
+        "RibbonBar"
+      ],
+      "inventory_entry_sha256": "88faeb34f5cf665a51ff80785705f40acd005d162ee75e60cf835e314a161bc7",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/RibbonBar/LoadRibbonBarfromXMLFile.htm",
+        "sdk:ViewControl_RibbonBar.txt#2"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ViewControl/RibbonBar/ResetRibbonBartoDefault.htm",
+      "mp_step": "Reset Ribbon Bar to Default",
+      "category_path": [
+        "ViewControl",
+        "RibbonBar"
+      ],
+      "inventory_entry_sha256": "08e33fa7d91da8064e75a0ba5826aa57879c3a371d0b86eb1c5220da4ae593b9",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/RibbonBar/ResetRibbonBartoDefault.htm",
+        "sdk:ViewControl_RibbonBar.txt#1"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ViewControl/SetMPsWindowState.htm",
+      "mp_step": "Set MP\u2019s Window State",
+      "category_path": [
+        "ViewControl"
+      ],
+      "inventory_entry_sha256": "8311b5907999afecf82d38a6888bdacfe680caadc57eb15c6bfe64b66d278e0e",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/SetMPsWindowState.htm",
+        "sdk:ViewControl.txt#10"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ViewControl/SetObjectsTranslucency.htm",
+      "mp_step": "Set Object(s) Translucency",
+      "category_path": [
+        "ViewControl"
+      ],
+      "inventory_entry_sha256": "8083f336b7571bb4194de85084073bfd6317fba28869fe5e75b95d2f28d3b18d",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/SetObjectsTranslucency.htm",
+        "sdk:ViewControl.txt#13"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ViewControl/SetRenderModeType.htm",
+      "mp_step": "Set Render Mode Type",
+      "category_path": [
+        "ViewControl"
+      ],
+      "inventory_entry_sha256": "821d75be46c04bf2b32b98ba08a686da40ca88df75adb8707b92147437c3b053",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/SetRenderModeType.htm",
+        "sdk:ViewControl.txt#4"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ViewControl/SetSAsWindowPos.htm",
+      "mp_step": "Set SA\u2019s Window Pos",
+      "category_path": [
+        "ViewControl"
+      ],
+      "inventory_entry_sha256": "827c965e0dc47dc40d9422fde8a8b9b278cf92e76523daa7bb88afdb44e268e8",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/SetSAsWindowPos.htm",
+        "sdk:ViewControl.txt#8"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ViewControl/SetSAsWindowSize.htm",
+      "mp_step": "Set SA\u2019s Window Size",
+      "category_path": [
+        "ViewControl"
+      ],
+      "inventory_entry_sha256": "bc2a883ab69cc71059383502800cbfd5be1d27a08f2748a4ec84a99eadfb842c",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/SetSAsWindowSize.htm",
+        "sdk:ViewControl.txt#9"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ViewControl/SetSAsWindowState.htm",
+      "mp_step": "Set SA\u2019s Window State",
+      "category_path": [
+        "ViewControl"
+      ],
+      "inventory_entry_sha256": "dcb4058274e687d3416f3d7edab8b9c0586118655aacf6df1055d9642b4d3f42",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/SetSAsWindowState.htm",
+        "sdk:ViewControl.txt#7"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ViewControl/SetTargetLabelsUseFullNames.htm",
+      "mp_step": "Set Target Labels Use Full Names",
+      "category_path": [
+        "ViewControl"
+      ],
+      "inventory_entry_sha256": "8c6b3f89dda141c66ce46dc2d0dae2ea6abed03fc1842ede058be0e4ad51c4f6",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/SetTargetLabelsUseFullNames.htm",
+        "sdk:ViewControl.txt#3"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:ViewControl/SetViewClippingPlane.htm",
+      "mp_step": "Set View Clipping Plane",
+      "category_path": [
+        "ViewControl"
+      ],
+      "inventory_entry_sha256": "95c98ad538135c0685ae58e4bbde184c8ba640b064063c4b3cb2f29b66b90958",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:ViewControl/SetViewClippingPlane.htm",
+        "sdk:ViewControl.txt#5"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "sdk:ViewControl_HideShowOperations.txt#10",
+      "mp_step": "Hide All Callout Views",
+      "category_path": [
+        "ViewControl",
+        "HideShowOperations"
+      ],
+      "inventory_entry_sha256": "d371c37b5bbeb103679bde1f5b1c2ee8771740a1fafb8897614827c2a77f1285",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "sdk:ViewControl_HideShowOperations.txt#10"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "sdk:ViewControl_HideShowOperations.txt#16",
+      "mp_step": "Show/Hide Inspection Bar",
+      "category_path": [
+        "ViewControl",
+        "HideShowOperations"
+      ],
+      "inventory_entry_sha256": "7c156598c7fa3e5233221f997ccf3d8eb7b4a63c9f2e43031909a18d936e5182",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "sdk:ViewControl_HideShowOperations.txt#16"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "sdk:ViewControl_HideShowOperations.txt#8",
+      "mp_step": "Show / Hide Dimension",
+      "category_path": [
+        "ViewControl",
+        "HideShowOperations"
+      ],
+      "inventory_entry_sha256": "26c2f2e831c5ab01bb07541da8127f02a60e34fd7cff2a72b01012c4134b90d7",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "sdk:ViewControl_HideShowOperations.txt#8"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    }
+  ]
+}

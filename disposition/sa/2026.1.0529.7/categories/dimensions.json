@@ -1,0 +1,578 @@
+{
+  "$schema": "../../../schemas/v1/shard.schema.json",
+  "schema_version": 1,
+  "spatial_analyzer_target": "2026.1.0529.7",
+  "category": "Dimensions",
+  "entries": [
+    {
+      "inventory_key": "documentation:Dimensions/AddADimensionToDimension.htm",
+      "mp_step": "Add a Dimension to Dimension Ref List",
+      "category_path": [
+        "Dimensions"
+      ],
+      "inventory_entry_sha256": "292b22ba2ce88c32829fa28c538e12b583ffe029fdf2362b7bdcbb4a72c54760",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:Dimensions/AddADimensionToDimension.htm",
+        "sdk:DimensionOperations.txt#16"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:Dimensions/CreateDiameterDimension.htm",
+      "mp_step": "Create Diameter Dimension",
+      "category_path": [
+        "Dimensions"
+      ],
+      "inventory_entry_sha256": "d05491aad263528777a88e6e975387dc57cb11cf516a301ad1275afcc44966ae",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:Dimensions/CreateDiameterDimension.htm",
+        "sdk:DimensionOperations.txt#4"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:Dimensions/CreateObjectToObjectDimension.htm",
+      "mp_step": "Create Object to Object Dimension",
+      "category_path": [
+        "Dimensions"
+      ],
+      "inventory_entry_sha256": "326901221689481a41a92e1335be7c64fd97662c6f23aa87a2ee0482c18dacc0",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:Dimensions/CreateObjectToObjectDimension.htm",
+        "sdk:DimensionOperations.txt#3"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:Dimensions/CreatePointToObjectDimension.htm",
+      "mp_step": "Create Point to Object Dimension",
+      "category_path": [
+        "Dimensions"
+      ],
+      "inventory_entry_sha256": "45c974236f61514ae761c86154eac4e0f5a4789a02268d7127a4bf021fbf4225",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:Dimensions/CreatePointToObjectDimension.htm",
+        "sdk:DimensionOperations.txt#2"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:Dimensions/CreatePointToPointDimension.htm",
+      "mp_step": "Create Point to Point Dimension",
+      "category_path": [
+        "Dimensions"
+      ],
+      "inventory_entry_sha256": "268e1579ad8c2616978975ee243860d427c275b7727c540b1d4a0dea9bdba847",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:Dimensions/CreatePointToPointDimension.htm",
+        "sdk:DimensionOperations.txt#1"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:Dimensions/CreateRadiusDimension.htm",
+      "mp_step": "Create Radius Dimension",
+      "category_path": [
+        "Dimensions"
+      ],
+      "inventory_entry_sha256": "cf02fa5f41ace82498f57eb8d88f16bffccbf7fed4f3b8eda7425c15b14f46a1",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:Dimensions/CreateRadiusDimension.htm",
+        "sdk:DimensionOperations.txt#5"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:Dimensions/DeleteDimension.htm",
+      "mp_step": "Delete Dimension",
+      "category_path": [
+        "Dimensions"
+      ],
+      "inventory_entry_sha256": "dc1fda4d380fbdaf1b90fc90e12a9c94fb299efd1fc27545cbecbf0953fa212e",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:Dimensions/DeleteDimension.htm",
+        "sdk:DimensionOperations.txt#20"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:Dimensions/GetDimensionValue.htm",
+      "mp_step": "Get Dimension Value",
+      "category_path": [
+        "Dimensions"
+      ],
+      "inventory_entry_sha256": "de831a3ddccad1fa1e431e2806c007685d0a6d337400b3ec1c29922b1585f567",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:Dimensions/GetDimensionValue.htm",
+        "sdk:DimensionOperations.txt#19"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:Dimensions/GetI-thDimensionFromDimension.htm",
+      "mp_step": "Get i-th Dimension From Dimension Ref List",
+      "category_path": [
+        "Dimensions"
+      ],
+      "inventory_entry_sha256": "08e1321eb1e67455a217bd0c55353fd755ea4b1b234493deea588e862d93cfe7",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:Dimensions/GetI-thDimensionFromDimension.htm",
+        "sdk:DimensionOperations.txt#17"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:Dimensions/GetI-thDimensionFromDimensionIterator.htm",
+      "mp_step": "Get i-th Dimension From Dimension Ref List (Iterator)",
+      "category_path": [
+        "Dimensions"
+      ],
+      "inventory_entry_sha256": "4d0c7556a0726418705f23e4b708b715bc951d4206579f96b47af876da8546de",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:Dimensions/GetI-thDimensionFromDimensionIterator.htm",
+        "sdk:DimensionOperations.txt#18"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:Dimensions/GetNumberOfDimensionsIn.htm",
+      "mp_step": "Get Number of Dimensions in Dimension Ref List",
+      "category_path": [
+        "Dimensions"
+      ],
+      "inventory_entry_sha256": "0a186f21e61d6ba95a2a0be759e28417d4df96916684c7466dff890998008cfe",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:Dimensions/GetNumberOfDimensionsIn.htm",
+        "sdk:DimensionOperations.txt#15"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:Dimensions/MakeADimensionRefListCollection.htm",
+      "mp_step": "Make a Dimension Ref List from a Collection",
+      "category_path": [
+        "Dimensions"
+      ],
+      "inventory_entry_sha256": "598218eb4ef97b91c4dc9e4b7a24b9406caa023319d5c803dd9d61f985308734",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:Dimensions/MakeADimensionRefListCollection.htm",
+        "sdk:DimensionOperations.txt#13"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:Dimensions/MakeADimensionRefListSelection.htm",
+      "mp_step": "Make a Dimension Ref List- WildCard Selection",
+      "category_path": [
+        "Dimensions"
+      ],
+      "inventory_entry_sha256": "eb5bd63373829a4205a08c873875d8d141676fe7f591157f73e5cd9444f79db2",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:Dimensions/MakeADimensionRefListSelection.htm",
+        "sdk:DimensionOperations.txt#14"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:Dimensions/SetCommonPropertiesToDimensions.htm",
+      "mp_step": "Set Common Properties to Dimensions",
+      "category_path": [
+        "Dimensions"
+      ],
+      "inventory_entry_sha256": "f0050528a34e259573fe11668818c81d87d446b539447d9a7331c36a4867dd6e",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:Dimensions/SetCommonPropertiesToDimensions.htm",
+        "sdk:DimensionOperations.txt#11"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:Dimensions/SetDiameterDimensionProperties.htm",
+      "mp_step": "Set Diameter Dimension Properties",
+      "category_path": [
+        "Dimensions"
+      ],
+      "inventory_entry_sha256": "d0c91b3c56fc0cb16150a96b89406fca4728d3b27bc8cbc5622850d70497c51d",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:Dimensions/SetDiameterDimensionProperties.htm",
+        "sdk:DimensionOperations.txt#9"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:Dimensions/SetObjectToObjectDimension.htm",
+      "mp_step": "Set Object to Object Dimension Properties",
+      "category_path": [
+        "Dimensions"
+      ],
+      "inventory_entry_sha256": "090aa5b2c1483ca00fbb0df0d6af32b22651801371e60cc71132442403467060",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:Dimensions/SetObjectToObjectDimension.htm",
+        "sdk:DimensionOperations.txt#8"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:Dimensions/SetPointToObjectDimension.htm",
+      "mp_step": "Set Point to Object Dimension Properties",
+      "category_path": [
+        "Dimensions"
+      ],
+      "inventory_entry_sha256": "0656b0d7266794a535c55e382a519795eb361b0372165e0dd618649ae2e7bfce",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:Dimensions/SetPointToObjectDimension.htm",
+        "sdk:DimensionOperations.txt#7"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:Dimensions/SetPointToPointDimension.htm",
+      "mp_step": "Set Point to Point Dimension Properties",
+      "category_path": [
+        "Dimensions"
+      ],
+      "inventory_entry_sha256": "77ee0fc00887a416012a20370082aeb9cdf9cec7e755744ebca859609c5e8f7e",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:Dimensions/SetPointToPointDimension.htm",
+        "sdk:DimensionOperations.txt#6"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:Dimensions/SetRadiusDimensionProperties.htm",
+      "mp_step": "Set Radius Dimension Properties",
+      "category_path": [
+        "Dimensions"
+      ],
+      "inventory_entry_sha256": "87b574630445feb48bb980e85a91b74fa8ae10845b4408e2f1f2af5fd91978d4",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:Dimensions/SetRadiusDimensionProperties.htm",
+        "sdk:DimensionOperations.txt#10"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    }
+  ]
+}

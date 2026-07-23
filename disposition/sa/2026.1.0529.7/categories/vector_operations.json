@@ -1,0 +1,675 @@
+{
+  "$schema": "../../../schemas/v1/shard.schema.json",
+  "schema_version": 1,
+  "spatial_analyzer_target": "2026.1.0529.7",
+  "category": "Vector Operations",
+  "entries": [
+    {
+      "inventory_key": "documentation:Vector Operations/AddAVectorToVectorName.htm",
+      "mp_step": "Add a Vector to Vector Name Ref List",
+      "category_path": [
+        "Vector Operations"
+      ],
+      "inventory_entry_sha256": "2f4c8e8d33a3baeb5c84c65fa74d5840a43ea8bbad3001e528c7933e3da8e76b",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:Vector Operations/AddAVectorToVectorName.htm",
+        "sdk:VectorOperations.txt#6"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:Vector Operations/AutoRangeAndSetVectorGroupAll.htm",
+      "mp_step": "Auto-Range and Set Vector Group Colorization (All)",
+      "category_path": [
+        "Vector Operations"
+      ],
+      "inventory_entry_sha256": "4b90a8f6176e96623fb68eb2dec552cef6b747299e75b161e576592d304ed88f",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:Vector Operations/AutoRangeAndSetVectorGroupAll.htm",
+        "sdk:VectorOperations.txt#14"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:Vector Operations/AutoRangeAndSetVectorGroupSelected.htm",
+      "mp_step": "Auto-Range and Set Vector Group Colorization (Selected)",
+      "category_path": [
+        "Vector Operations"
+      ],
+      "inventory_entry_sha256": "c58cc3ba3819715884ada741e007669e34fd90c6ee40e5be40ac6d985de577f2",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:Vector Operations/AutoRangeAndSetVectorGroupSelected.htm",
+        "sdk:VectorOperations.txt#13"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:Vector Operations/DeleteI-thVectorFromVector.htm",
+      "mp_step": "Delete i-th Vector From Vector Group",
+      "category_path": [
+        "Vector Operations"
+      ],
+      "inventory_entry_sha256": "69bcc5ddde884d6f8d6c06bd06c3e81910fe126fc345cb17ff65a4b6823ee489",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:Vector Operations/DeleteI-thVectorFromVector.htm",
+        "sdk:VectorOperations.txt#7"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:Vector Operations/DeleteVectorByName.htm",
+      "mp_step": "Delete Vector by Name",
+      "category_path": [
+        "Vector Operations"
+      ],
+      "inventory_entry_sha256": "0ccdba2830562f89385e8eb736bd36d14bc18096b66e895ec71cf849df9eb16e",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:Vector Operations/DeleteVectorByName.htm",
+        "sdk:VectorOperations.txt#8"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:Vector Operations/DeleteVectors.htm",
+      "mp_step": "Delete Vectors",
+      "category_path": [
+        "Vector Operations"
+      ],
+      "inventory_entry_sha256": "94fcd5c44e40a6f36b95116ee9c6525af63143dba2909b1d66f57c2c9a09dbb9",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:Vector Operations/DeleteVectors.htm",
+        "sdk:VectorOperations.txt#9"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:Vector Operations/GetI-thVectorFromVectorGroup.htm",
+      "mp_step": "Get i-th Vector From Vector Group",
+      "category_path": [
+        "Vector Operations"
+      ],
+      "inventory_entry_sha256": "e4d6d5851568e041fb6fb99c902a2c1dcbd73e19fdb3211b703d481e054d8479",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:Vector Operations/GetI-thVectorFromVectorGroup.htm",
+        "sdk:VectorOperations.txt#3"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:Vector Operations/GetI-thVectorFromVectorName.htm",
+      "mp_step": "Get i-th Vector From Vector Name Ref List",
+      "category_path": [
+        "Vector Operations"
+      ],
+      "inventory_entry_sha256": "ec63acc96a90c1de068c83b54d99e1828d4244840f659160f28fff072a5239d3",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:Vector Operations/GetI-thVectorFromVectorName.htm",
+        "sdk:VectorOperations.txt#4"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:Vector Operations/GetNumberOfVectorsInVectorGroup.htm",
+      "mp_step": "Get Number of Vectors in Vector Group",
+      "category_path": [
+        "Vector Operations"
+      ],
+      "inventory_entry_sha256": "f01233d5539daa83ba276fe89b582c3d666fd14c8f20d014d4cbd18d4644366f",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:Vector Operations/GetNumberOfVectorsInVectorGroup.htm",
+        "sdk:VectorOperations.txt#1"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:Vector Operations/GetNumberOfVectorsInVectorName.htm",
+      "mp_step": "Get Number of Vectors in Vector Name Ref List",
+      "category_path": [
+        "Vector Operations"
+      ],
+      "inventory_entry_sha256": "053d98ce31467f49ba14debed2eb09cec1281e52db2802ddba7ca08f6229c417",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:Vector Operations/GetNumberOfVectorsInVectorName.htm",
+        "sdk:VectorOperations.txt#2"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:Vector Operations/GetVectorFromVectorGroup.htm",
+      "mp_step": "Get Vector From Vector Group By Name",
+      "category_path": [
+        "Vector Operations"
+      ],
+      "inventory_entry_sha256": "461da2ed8965c067df6beef3f1b315f40977cf3c4ce47189289e2485bbc7de7e",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:Vector Operations/GetVectorFromVectorGroup.htm",
+        "sdk:VectorOperations.txt#5"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:Vector Operations/SetVectorGroupColorizationOptionsAll.htm",
+      "mp_step": "Set Vector Group Colorization Options (All)",
+      "category_path": [
+        "Vector Operations"
+      ],
+      "inventory_entry_sha256": "a05d8d8622d3df4ac3cf4b51357d07d641ea0ea8102e9a51e7a2937ad6790c13",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:Vector Operations/SetVectorGroupColorizationOptionsAll.htm",
+        "sdk:VectorOperations.txt#16"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:Vector Operations/SetVectorGroupColorizationOptionsSelected.htm",
+      "mp_step": "Set Vector Group Colorization Options (Selected)",
+      "category_path": [
+        "Vector Operations"
+      ],
+      "inventory_entry_sha256": "9aea758b0e7ef533d3e7d680130e4d7cab808964e689ac27be09e40cd98bd04b",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:Vector Operations/SetVectorGroupColorizationOptionsSelected.htm",
+        "sdk:VectorOperations.txt#15"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:Vector Operations/SetVectorGroupDisplayAttributes.htm",
+      "mp_step": "Set Vector Group Display Attributes",
+      "category_path": [
+        "Vector Operations"
+      ],
+      "inventory_entry_sha256": "746d7c08ed2fa2952cb138d2a67835b3d09774d19b43a7277b4d9825ca55eda0",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:Vector Operations/SetVectorGroupDisplayAttributes.htm",
+        "sdk:VectorOperations.txt#10"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:Vector Operations/SortVectors.htm",
+      "mp_step": "Sort Vectors",
+      "category_path": [
+        "Vector Operations"
+      ],
+      "inventory_entry_sha256": "e6265f0a216f9a486f2d7c8cecef6ecb88fa4c1df90548b31fce8672d0e95ffa",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:Vector Operations/SortVectors.htm",
+        "sdk:VectorOperations.txt#18"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:Vector Operations/VectorMathOperations/VectorAddition.htm",
+      "mp_step": "Vector Addition",
+      "category_path": [
+        "Vector Operations",
+        "VectorMathOperations"
+      ],
+      "inventory_entry_sha256": "8f8607f45c838045c60aacde5a91f3d81c9158dacd1aa853fdb73f969757e192",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:Vector Operations/VectorMathOperations/VectorAddition.htm",
+        "sdk:VectorOperations_VectorMathOperations.txt#1"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:Vector Operations/VectorMathOperations/VectorCrossProduct.htm",
+      "mp_step": "Vector Cross Product",
+      "category_path": [
+        "Vector Operations",
+        "VectorMathOperations"
+      ],
+      "inventory_entry_sha256": "54605659712f781f72ba34979d2d1c364b55d9cff4c79cc2449739c664fc926e",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:Vector Operations/VectorMathOperations/VectorCrossProduct.htm",
+        "sdk:VectorOperations_VectorMathOperations.txt#4"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:Vector Operations/VectorMathOperations/VectorDotProduct.htm",
+      "mp_step": "Vector Dot Product",
+      "category_path": [
+        "Vector Operations",
+        "VectorMathOperations"
+      ],
+      "inventory_entry_sha256": "a007d326a8bae1015b5f77fac1ebe31983594fb9c2b7bdb1001a914d831b70d8",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:Vector Operations/VectorMathOperations/VectorDotProduct.htm",
+        "sdk:VectorOperations_VectorMathOperations.txt#3"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:Vector Operations/VectorMathOperations/VectorMagnitudeLength.htm",
+      "mp_step": "Vector Magnitude (Length)",
+      "category_path": [
+        "Vector Operations",
+        "VectorMathOperations"
+      ],
+      "inventory_entry_sha256": "b011c71a229c6901942df9bee2e5028141f627e153f165b5fdccdfba397a04f9",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:Vector Operations/VectorMathOperations/VectorMagnitudeLength.htm",
+        "sdk:VectorOperations_VectorMathOperations.txt#7"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:Vector Operations/VectorMathOperations/VectorNormalize.htm",
+      "mp_step": "Vector Normalize",
+      "category_path": [
+        "Vector Operations",
+        "VectorMathOperations"
+      ],
+      "inventory_entry_sha256": "305c86495e4f70542c83c70dfee35106a962036a04fe4dd39fb78c134102637e",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:Vector Operations/VectorMathOperations/VectorNormalize.htm",
+        "sdk:VectorOperations_VectorMathOperations.txt#6"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:Vector Operations/VectorMathOperations/VectorScaling.htm",
+      "mp_step": "Vector Scaling",
+      "category_path": [
+        "Vector Operations",
+        "VectorMathOperations"
+      ],
+      "inventory_entry_sha256": "6f5a897aa10d76b5232b87d911db3ef8cec696b7eb725d4e455184dead7800ad",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:Vector Operations/VectorMathOperations/VectorScaling.htm",
+        "sdk:VectorOperations_VectorMathOperations.txt#5"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:Vector Operations/VectorMathOperations/VectorSubtraction.htm",
+      "mp_step": "Vector Subtraction",
+      "category_path": [
+        "Vector Operations",
+        "VectorMathOperations"
+      ],
+      "inventory_entry_sha256": "3587985b3c2091bcf38bfb01291c604a3327b18c39c424a2d940ea36accbe090",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:Vector Operations/VectorMathOperations/VectorSubtraction.htm",
+        "sdk:VectorOperations_VectorMathOperations.txt#2"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    }
+  ]
+}

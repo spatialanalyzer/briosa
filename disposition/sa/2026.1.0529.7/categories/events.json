@@ -1,0 +1,158 @@
+{
+  "$schema": "../../../schemas/v1/shard.schema.json",
+  "schema_version": 1,
+  "spatial_analyzer_target": "2026.1.0529.7",
+  "category": "Events",
+  "entries": [
+    {
+      "inventory_key": "documentation:Events/DeleteEvent.htm",
+      "mp_step": "Delete Event",
+      "category_path": [
+        "Events"
+      ],
+      "inventory_entry_sha256": "096e080d1c5b1a8e6de73bc1b489a072cfde1ae9930ebf1a3dd456f3f8383e5d",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:Events/DeleteEvent.htm",
+        "sdk:EventOperations.txt#6"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:Events/GetI-thEventFromEvent.htm",
+      "mp_step": "Get i-th Event From Event Ref List",
+      "category_path": [
+        "Events"
+      ],
+      "inventory_entry_sha256": "d04cbe99accee56f85ca1b99e245fab7e551f16c68964d491e3eea7a5e84dd19",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:Events/GetI-thEventFromEvent.htm",
+        "sdk:EventOperations.txt#2"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:Events/GetI-thEventFromEventIterator.htm",
+      "mp_step": "Get i-th Event From Event Ref List (Iterator)",
+      "category_path": [
+        "Events"
+      ],
+      "inventory_entry_sha256": "36f1443668b2cb1fda6335a9db243d55c621397249f04b6498cf34054b1a5a4f",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:Events/GetI-thEventFromEventIterator.htm",
+        "sdk:EventOperations.txt#3"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:Events/GetNumberOfEventsInEventRefList.htm",
+      "mp_step": "Get Number of Events in Event Ref List",
+      "category_path": [
+        "Events"
+      ],
+      "inventory_entry_sha256": "ae72691d0c5aacb6389089e80d792f7da0af0eeb06de053033912139050c64b7",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:Events/GetNumberOfEventsInEventRefList.htm",
+        "sdk:EventOperations.txt#1"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    },
+    {
+      "inventory_key": "documentation:Events/RenameEvent.htm",
+      "mp_step": "Rename Event",
+      "category_path": [
+        "Events"
+      ],
+      "inventory_entry_sha256": "df63e7383dc66bb000f9764fc6bb66867712799c47ee3597baa9bae6798b3c7b",
+      "disposition": "blocked",
+      "review_state": "unreviewed",
+      "rationale": "Awaiting exact-target command disposition review.",
+      "reason_codes": [
+        "awaiting_review"
+      ],
+      "evidence_references": [
+        "documentation:Events/RenameEvent.htm",
+        "sdk:EventOperations.txt#5"
+      ],
+      "decision_references": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/43"
+      ],
+      "risk_effect": "unknown",
+      "risk_flags": [
+        "unknown"
+      ],
+      "value_families": [
+        "unknown"
+      ],
+      "delivery_wave": null
+    }
+  ]
+}
