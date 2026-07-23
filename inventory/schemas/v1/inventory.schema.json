@@ -1,0 +1,396 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://spatialanalyzer.github.io/briosa/inventory/schemas/v1/inventory.schema.json",
+  "title": "Briosa extracted SpatialAnalyzer MP command inventory",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schema_version",
+    "spatial_analyzer_target",
+    "provenance",
+    "summary",
+    "commands"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "../../schemas/v1/inventory.schema.json"
+    },
+    "schema_version": {
+      "const": 1
+    },
+    "spatial_analyzer_target": {
+      "type": "string",
+      "pattern": "^[0-9]+(?:\\.[0-9]+)+$"
+    },
+    "provenance": {
+      "$ref": "#/definitions/provenance"
+    },
+    "summary": {
+      "$ref": "#/definitions/summary"
+    },
+    "commands": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/command"
+      }
+    }
+  },
+  "definitions": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "reference": {
+      "type": "string",
+      "minLength": 1,
+      "not": {
+        "pattern": "^(?:[A-Za-z]:|/|\\\\\\\\)"
+      }
+    },
+    "findings": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9_]*$"
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "documentation",
+        "sdk_code"
+      ],
+      "properties": {
+        "documentation": {
+          "$ref": "#/definitions/source"
+        },
+        "sdk_code": {
+          "$ref": "#/definitions/source"
+        }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "file_count",
+        "record_count",
+        "aggregate_sha256",
+        "source_material_committed"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "installed_mp_documentation",
+            "generated_sdk_sample"
+          ]
+        },
+        "file_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "record_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "aggregate_sha256": {
+          "$ref": "#/definitions/sha256"
+        },
+        "source_material_committed": {
+          "const": false
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command_count",
+        "matched_command_count",
+        "documentation_only_command_count",
+        "sdk_only_command_count",
+        "ambiguous_command_count",
+        "finding_counts"
+      ],
+      "properties": {
+        "command_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "matched_command_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "documentation_only_command_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sdk_only_command_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "ambiguous_command_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "finding_counts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "finding",
+              "count"
+            ],
+            "properties": {
+              "finding": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "count": {
+                "type": "integer",
+                "minimum": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    "command": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "inventory_key",
+        "mp_step",
+        "category_path",
+        "documentation",
+        "sdk_evidence",
+        "overall_outcome",
+        "arguments",
+        "findings"
+      ],
+      "properties": {
+        "inventory_key": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mp_step": {
+          "type": "string",
+          "minLength": 1
+        },
+        "category_path": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "documentation": {
+          "oneOf": [
+            {
+              "$ref": "#/definitions/document_evidence"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "sdk_evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/sdk_evidence"
+          }
+        },
+        "overall_outcome": {
+          "enum": [
+            "documented",
+            "missing",
+            "unknown"
+          ]
+        },
+        "arguments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/argument"
+          }
+        },
+        "findings": {
+          "$ref": "#/definitions/findings"
+        }
+      }
+    },
+    "document_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reference",
+        "sha256",
+        "has_input_arguments_section",
+        "has_return_arguments_section",
+        "has_returned_status_section"
+      ],
+      "properties": {
+        "reference": {
+          "$ref": "#/definitions/reference"
+        },
+        "sha256": {
+          "$ref": "#/definitions/sha256"
+        },
+        "has_input_arguments_section": {
+          "type": "boolean"
+        },
+        "has_return_arguments_section": {
+          "type": "boolean"
+        },
+        "has_returned_status_section": {
+          "type": "boolean"
+        }
+      }
+    },
+    "sdk_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reference",
+        "sha256",
+        "occurrence",
+        "mp_step"
+      ],
+      "properties": {
+        "reference": {
+          "$ref": "#/definitions/reference"
+        },
+        "sha256": {
+          "$ref": "#/definitions/sha256"
+        },
+        "occurrence": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "mp_step": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "argument": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ordinal",
+        "sdk_order",
+        "mp_name",
+        "documented_type",
+        "direction",
+        "result_only",
+        "presence",
+        "sdk_binding",
+        "findings"
+      ],
+      "properties": {
+        "ordinal": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "sdk_order": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "mp_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "documented_type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "direction": {
+          "enum": [
+            "input",
+            "output",
+            "input_output",
+            "unknown"
+          ]
+        },
+        "result_only": {
+          "enum": [
+            "yes",
+            "no",
+            "unknown"
+          ]
+        },
+        "presence": {
+          "enum": [
+            "optional",
+            "unknown",
+            "not_applicable"
+          ]
+        },
+        "sdk_binding": {
+          "$ref": "#/definitions/sdk_binding"
+        },
+        "findings": {
+          "$ref": "#/definitions/findings"
+        }
+      }
+    },
+    "sdk_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "setter",
+        "getter"
+      ],
+      "properties": {
+        "setter": {
+          "$ref": "#/definitions/binding_evidence"
+        },
+        "getter": {
+          "$ref": "#/definitions/binding_evidence"
+        }
+      }
+    },
+    "binding_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "method",
+        "argument_name"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "available",
+            "unavailable",
+            "not_observed",
+            "ambiguous"
+          ]
+        },
+        "method": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^(?:Set|Get)[A-Za-z0-9]+Arg[0-9]*$"
+        },
+        "argument_name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    }
+  }
+}

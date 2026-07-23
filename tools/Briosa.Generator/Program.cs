@@ -6,6 +6,8 @@ return args switch
 {
     ["catalog-generate", var catalogRoot, var outputRoot] =>
         GenerateCatalog(catalogRoot, outputRoot),
+    ["mp-inventory-extract", var saTarget, var documentationRoot, var sdkCodeRoot, var outputRoot] =>
+        ExtractMpInventory(saTarget, documentationRoot, sdkCodeRoot, outputRoot),
     ["catalog-validate", var catalogRoot] => ValidateCatalog(catalogRoot),
     ["interop-api", var assemblyPath, var outputPath] => WriteInteropApi(assemblyPath, outputPath),
     ["interop-api", var assemblyPath] => WriteInteropApi(assemblyPath, null),
@@ -22,6 +24,25 @@ static int GenerateCatalog(string catalogRoot, string outputRoot)
     }
 
     Console.WriteLine($"Generated {result.Files.Count} catalog artifact(s).");
+    return 0;
+}
+
+static int ExtractMpInventory(
+    string spatialAnalyzerTarget,
+    string documentationRoot,
+    string sdkCodeRoot,
+    string outputRoot)
+{
+    var files = MpCommandInventoryExtractor.Write(
+        spatialAnalyzerTarget,
+        documentationRoot,
+        sdkCodeRoot,
+        outputRoot);
+    foreach (var file in files)
+    {
+        Console.WriteLine(file);
+    }
+
     return 0;
 }
 
@@ -84,6 +105,7 @@ static int ShowUsage()
     Console.Error.WriteLine("Usage:");
     Console.Error.WriteLine("  Briosa.Generator catalog-generate <catalog-root> <output-root>");
     Console.Error.WriteLine("  Briosa.Generator catalog-validate <catalog-root>");
+    Console.Error.WriteLine("  Briosa.Generator mp-inventory-extract <sa-target> <documentation-root> <sdk-code-root> <output-root>");
     Console.Error.WriteLine("  Briosa.Generator interop-api <assembly-path> [output-path]");
     Console.Error.WriteLine("  Briosa.Generator typelib-info <type-library-path>");
     return 1;
