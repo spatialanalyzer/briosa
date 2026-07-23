@@ -64,6 +64,8 @@ See the [health and discovery operator guide](docs/operations/health-and-discove
 
 The `catalog` directory is the reviewed, machine-readable allowlist of MP operations Briosa exposes for each exact SpatialAnalyzer target. It is deliberately separate from the complete installed SA inventory: catalog absence means an operation is not exposed by Briosa, not that SA lacks it.
 
+The `inventory` directory contains deterministic derived facts from locally installed MP documentation and **View SDK Code** exports. It preserves missing and conflicting metadata for review without committing vendor source material or making an operation public. See [the extraction guide](docs/development/mp-command-inventory.md) for inputs, provenance, regeneration, and the intellectual-property boundary.
+
 Run `./eng/Verify-Catalog.ps1` to validate JSON structure, target and path identity, deterministic protocol names, argument direction, reviewed input omission/default behavior, evidence references, risk metadata, and private SDK setter/getter availability. Validation requires neither SpatialAnalyzer nor the local vendor evidence corpus.
 
 Run `dotnet run --project tools/Briosa.Generator -c Release -- catalog-generate catalog .` to regenerate exact-target protobuf, server bindings, reference documentation, and coverage manifests. Never edit those artifacts by hand. `./eng/Verify-CatalogArtifacts.ps1` performs a clean generation and fails on content or file-list drift.

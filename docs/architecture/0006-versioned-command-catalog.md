@@ -18,6 +18,8 @@ Briosa distinguishes two datasets.
 - The extracted SA inventory records candidate commands and evidence from installed documentation and generated SDK samples. Issue #15 owns extraction and review disposition.
 - The supported-command catalog is the reviewed allowlist used by Briosa builds. Only catalog entries may produce public operations. Issue #16 owns generation from those entries.
 
+The extracted inventory is stored separately under `inventory/sa/<exact-version>`. Its schema, deterministic extraction procedure, discrepancy policy, and intellectual-property boundary are documented in [Extracted MP command inventory](../development/mp-command-inventory.md). Inventory entries retain exact documentation and SDK evidence strings when those sources disagree; they never normalize a release's command shape into another release.
+
 Absence from the supported catalog means only that Briosa does not expose the command. It does not claim that the command is absent from SpatialAnalyzer.
 
 ## Exact-target layout and identity
