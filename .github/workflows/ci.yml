@@ -57,6 +57,10 @@ jobs:
         shell: pwsh
         run: ./eng/Verify-Disposition.ps1 -NoBuild
 
+      - name: Verify SDK binding registry
+        shell: pwsh
+        run: ./eng/Verify-BindingRegistry.ps1 -NoBuild
+
       - name: Verify generated catalog artifacts
         shell: pwsh
         run: ./eng/Verify-CatalogArtifacts.ps1 -NoBuild
