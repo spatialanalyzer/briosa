@@ -41,6 +41,19 @@ internal static partial class CommandDispositionLedger
         "unknown"
     ];
 
+    private static readonly string[] DataClassifications =
+    [
+        "credential",
+        "geometry",
+        "license_data",
+        "measurement",
+        "non_sensitive",
+        "object_identifier",
+        "path",
+        "proprietary",
+        "unknown"
+    ];
+
     private static readonly JsonSerializerOptions ReadOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
@@ -517,6 +530,11 @@ internal static partial class CommandDispositionLedger
             "blocker_references",
             errors);
         RequireSortedUnique(entry.RiskFlags, displayPath, "risk_flags", errors);
+        RequireSortedUnique(
+            entry.DataClassifications,
+            displayPath,
+            "data_classifications",
+            errors);
         RequireSortedUnique(entry.ValueFamilies, displayPath, "value_families", errors);
 
         if (!Dispositions.Contains(entry.Disposition, StringComparer.Ordinal))
@@ -572,13 +590,29 @@ internal static partial class CommandDispositionLedger
             errors.Add($"{displayPath}: unknown risk flag '{riskFlag}'.");
         }
 
-        if (entry.RiskFlags.Count == 0 ||
-            (entry.RiskFlags.Count > 1 &&
-             entry.RiskFlags.Contains("unknown", StringComparer.Ordinal)))
+        if (entry.RiskFlags.Count > 1 &&
+            entry.RiskFlags.Contains("unknown", StringComparer.Ordinal))
         {
             errors.Add(
-                $"{displayPath}: risk_flags require at least one value and cannot combine " +
-                "unknown with assessed flags.");
+                $"{displayPath}: risk_flags cannot combine unknown with assessed flags.");
+        }
+
+        foreach (var classification in entry.DataClassifications.Where(
+                     classification => !DataClassifications.Contains(
+                         classification,
+                         StringComparer.Ordinal)))
+        {
+            errors.Add(
+                $"{displayPath}: unknown data classification '{classification}'.");
+        }
+
+        if (entry.DataClassifications.Count == 0 ||
+            (entry.DataClassifications.Count > 1 &&
+             entry.DataClassifications.Contains("unknown", StringComparer.Ordinal)))
+        {
+            errors.Add(
+                $"{displayPath}: data_classifications require at least one value and cannot " +
+                "combine unknown with assessed classifications.");
         }
 
         foreach (var valueFamily in entry.ValueFamilies.Where(
@@ -661,11 +695,12 @@ internal static partial class CommandDispositionLedger
 
                 if (string.Equals(entry.RiskEffect, "unknown", StringComparison.Ordinal) ||
                     entry.RiskFlags.Contains("unknown", StringComparer.Ordinal) ||
+                    entry.DataClassifications.Contains("unknown", StringComparer.Ordinal) ||
                     entry.ValueFamilies.Contains("unknown", StringComparer.Ordinal))
                 {
                     errors.Add(
-                        $"{displayPath}: approved candidates require assessed risk and value " +
-                        "family metadata.");
+                        $"{displayPath}: approved candidates require assessed risk, data " +
+                        "classification, and value family metadata.");
                 }
 
                 break;
@@ -709,6 +744,7 @@ internal static partial class CommandDispositionLedger
             BlockerReferences = [InitialBlocker],
             RiskEffect = "unknown",
             RiskFlags = ["unknown"],
+            DataClassifications = ["unknown"],
             ValueFamilies = ["unknown"],
             DeliveryWave = null
         };
@@ -738,6 +774,7 @@ internal static partial class CommandDispositionLedger
                 BlockerReferences = SortedDistinct(existing.BlockerReferences),
                 RiskEffect = existing.RiskEffect,
                 RiskFlags = SortedDistinct(existing.RiskFlags),
+                DataClassifications = SortedDistinct(existing.DataClassifications),
                 ValueFamilies = SortedDistinct(existing.ValueFamilies),
                 DeliveryWave = existing.DeliveryWave
             };
@@ -759,6 +796,7 @@ internal static partial class CommandDispositionLedger
                 [.. existing.BlockerReferences, InitialBlocker]),
             RiskEffect = existing.RiskEffect,
             RiskFlags = SortedDistinct(existing.RiskFlags),
+            DataClassifications = SortedDistinct(existing.DataClassifications),
             ValueFamilies = SortedDistinct(existing.ValueFamilies),
             DeliveryWave = existing.DeliveryWave
         };
@@ -952,6 +990,10 @@ internal static partial class CommandDispositionLedger
             builder,
             "Unresolved work by risk flag",
             unresolvedEntries.SelectMany(entry => entry.RiskFlags));
+        AppendCountSection(
+            builder,
+            "Unresolved work by data classification",
+            unresolvedEntries.SelectMany(entry => entry.DataClassifications));
         AppendCountSection(
             builder,
             "Unresolved work by value family",
