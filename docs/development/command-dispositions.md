@@ -12,6 +12,8 @@ Each exact target contains:
 - `categories/*.json`, which groups decisions by the inventory's top-level category;
 - `report.md`, a deterministic summary containing every disposition and review-state count.
 
+When intentional exclusions exist, `report.md` also publishes an exact command-level table with each exclusion's Briosa-authored rationale and decision reference.
+
 The generator owns inventory identity, MP step, category path, evidence references, per-command evidence fingerprint, manifest hashes, shard placement, and the report. Reviewers own disposition, review state, rationale, reason codes, decision references, blocker references, risk assessment, value families, and delivery wave. Do not edit `manifest.json` or `report.md` by hand.
 
 Reviewers may update decision fields in category shards and then run synchronization. Synchronization preserves reviewed decision fields when the command evidence is unchanged. If the per-command inventory fingerprint changes, it sets the entry to `needs_re_review`, adds `evidence_changed`, and restores the review blocker. This is intentionally command-scoped; unrelated inventory changes do not invalidate already reviewed decisions.

@@ -1551,20 +1551,20 @@
         "FileExport"
       ],
       "inventory_entry_sha256": "f1bacf45910881553301ca4da11597e6054b81b2b59642406420c40f9ecc2768",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Spreadsheet integration belongs in the client application or a dedicated spreadsheet library.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_spreadsheet_integration"
       ],
       "evidence_references": [
         "documentation:FileOperations/FileExport/ExportVectorContainerToExcelFile.htm",
         "sdk:FileOperations_FileExport.txt#7"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -2260,20 +2260,20 @@
         "JSON"
       ],
       "inventory_entry_sha256": "22c1998625f34e84d4e4ef38ee7bd1ce300f7cc2a7d2d1d7220411b64e4d5b36",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Generic JSON or XML parsing and mutation belongs in the client application or a serialization library.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_serialization"
       ],
       "evidence_references": [
         "documentation:FileOperations/JSON/CloseJSONFile.htm",
         "sdk:FileOperations_JSON.txt#2"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -2291,20 +2291,20 @@
         "JSON"
       ],
       "inventory_entry_sha256": "21775d5f8d9dd759f275c486cc39cd79b6a4bb34b325556517b97d288e12855f",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Generic JSON or XML parsing and mutation belongs in the client application or a serialization library.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_serialization"
       ],
       "evidence_references": [
         "documentation:FileOperations/JSON/GetJSONArraySize.htm",
         "sdk:FileOperations_JSON.txt#8"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -2322,20 +2322,20 @@
         "JSON"
       ],
       "inventory_entry_sha256": "333a124c4e5fd3319ecc575738157b6c618e47dd806c46fa714ccd6769052d79",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Generic JSON or XML parsing and mutation belongs in the client application or a serialization library.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_serialization"
       ],
       "evidence_references": [
         "documentation:FileOperations/JSON/GetJSONDoubleValue.htm",
         "sdk:FileOperations_JSON.txt#5"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -2353,20 +2353,20 @@
         "JSON"
       ],
       "inventory_entry_sha256": "c2cd9c4440066b5c0ba7765adc522d9bb286719bb8fbe2e2d5c6442f6479ade2",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Generic JSON or XML parsing and mutation belongs in the client application or a serialization library.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_serialization"
       ],
       "evidence_references": [
         "documentation:FileOperations/JSON/GetJSONIntegerValue.htm",
         "sdk:FileOperations_JSON.txt#6"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -2384,20 +2384,20 @@
         "JSON"
       ],
       "inventory_entry_sha256": "2edb5a14e6611390235a9e51cb6acf4c025fce8decc2407970c61af051e89266",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Generic JSON or XML parsing and mutation belongs in the client application or a serialization library.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_serialization"
       ],
       "evidence_references": [
         "documentation:FileOperations/JSON/GetJSONObjectValue.htm",
         "sdk:FileOperations_JSON.txt#7"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -2415,20 +2415,20 @@
         "JSON"
       ],
       "inventory_entry_sha256": "3bd42a25056ad41630ad20896a93ad468e877aaf29207e75cd259c4067cacf5c",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Generic JSON or XML parsing and mutation belongs in the client application or a serialization library.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_serialization"
       ],
       "evidence_references": [
         "documentation:FileOperations/JSON/GetJSONStringValue.htm",
         "sdk:FileOperations_JSON.txt#4"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -2446,20 +2446,20 @@
         "JSON"
       ],
       "inventory_entry_sha256": "4bc341f2fe6c15ae38ed7e823584d1679f86745df83552760f35431c6f811a01",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Generic JSON or XML parsing and mutation belongs in the client application or a serialization library.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_serialization"
       ],
       "evidence_references": [
         "documentation:FileOperations/JSON/GetJSONTreePointerList.htm",
         "sdk:FileOperations_JSON.txt#3"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -2477,20 +2477,20 @@
         "JSON"
       ],
       "inventory_entry_sha256": "4d02bd575c703412830b096d851d5f0e2597649f6456c89444431d0d6f04fadb",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Generic JSON or XML parsing and mutation belongs in the client application or a serialization library.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_serialization"
       ],
       "evidence_references": [
         "documentation:FileOperations/JSON/OpenJSONFile.htm",
         "sdk:FileOperations_JSON.txt#1"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -3326,20 +3326,20 @@
         "XML"
       ],
       "inventory_entry_sha256": "819335d19186a2943772479338a511fb961063a48ebb110072d992c2aa325a29",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Generic JSON or XML parsing and mutation belongs in the client application or a serialization library.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_serialization"
       ],
       "evidence_references": [
         "documentation:FileOperations/XML/AddXMLElement.htm",
         "sdk:FileOperations_XML.txt#4"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -3357,20 +3357,20 @@
         "XML"
       ],
       "inventory_entry_sha256": "741ed0296c1beffef6b5812f45f7def03bea45b1ae703d9740d6f95b4d31198f",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Generic JSON or XML parsing and mutation belongs in the client application or a serialization library.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_serialization"
       ],
       "evidence_references": [
         "documentation:FileOperations/XML/CloseXMLFile.htm",
         "sdk:FileOperations_XML.txt#3"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -3388,20 +3388,20 @@
         "XML"
       ],
       "inventory_entry_sha256": "9a7688545f912a388c606aa3a8473cf70a18a04f2c9733e0ed27d19bc36cae84",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Generic JSON or XML parsing and mutation belongs in the client application or a serialization library.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_serialization"
       ],
       "evidence_references": [
         "documentation:FileOperations/XML/GetXMLAttribute.htm",
         "sdk:FileOperations_XML.txt#7"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -3419,20 +3419,20 @@
         "XML"
       ],
       "inventory_entry_sha256": "0ea2f83912e81d2f9d487c8c5bc12f12c90647fb46390bf2ed8ffc00d1fd8d8d",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Generic JSON or XML parsing and mutation belongs in the client application or a serialization library.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_serialization"
       ],
       "evidence_references": [
         "documentation:FileOperations/XML/GetXMLElementTextContent.htm",
         "sdk:FileOperations_XML.txt#6"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -3512,20 +3512,20 @@
         "XML"
       ],
       "inventory_entry_sha256": "980a2c3d26cfc96f6c5942e3165ab29dff73a55368439d9334f28ac1bca202f1",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Generic JSON or XML parsing and mutation belongs in the client application or a serialization library.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_serialization"
       ],
       "evidence_references": [
         "documentation:FileOperations/XML/OpenXMLFile.htm",
         "sdk:FileOperations_XML.txt#2"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -3543,20 +3543,20 @@
         "XML"
       ],
       "inventory_entry_sha256": "a33c120f48ec6f2d82cba4c08d343bb9cbe967650f2c6006a33b64ca5ab05136",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Generic JSON or XML parsing and mutation belongs in the client application or a serialization library.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_serialization"
       ],
       "evidence_references": [
         "documentation:FileOperations/XML/RemoveXMLAttribute.htm",
         "sdk:FileOperations_XML.txt#9"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -3574,20 +3574,20 @@
         "XML"
       ],
       "inventory_entry_sha256": "7f918dccb5704859fa90c685d4fb2519e94cdce54f5270e6e7ba2eebe4a0b316",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Generic JSON or XML parsing and mutation belongs in the client application or a serialization library.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_serialization"
       ],
       "evidence_references": [
         "documentation:FileOperations/XML/RemoveXMLElement.htm",
         "sdk:FileOperations_XML.txt#5"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -3605,20 +3605,20 @@
         "XML"
       ],
       "inventory_entry_sha256": "75ac60ab0877c666b7e5be59bad27c9a063c12f1db408227dd518c1e2e4e7280",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Generic JSON or XML parsing and mutation belongs in the client application or a serialization library.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_serialization"
       ],
       "evidence_references": [
         "documentation:FileOperations/XML/SetXMLAttribute.htm",
         "sdk:FileOperations_XML.txt#8"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -3814,19 +3814,19 @@
         "XML"
       ],
       "inventory_entry_sha256": "86e4c0754f9623962722e590b2a7567841da85990aef5da6b5155034ada3e674",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Generic JSON or XML parsing and mutation belongs in the client application or a serialization library.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_serialization"
       ],
       "evidence_references": [
         "sdk:FileOperations_XML.txt#1"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"

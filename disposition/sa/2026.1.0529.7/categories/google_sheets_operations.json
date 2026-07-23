@@ -11,19 +11,19 @@
         "GoogleSheetsOperations"
       ],
       "inventory_entry_sha256": "22225be7b90d6fb295368b500b5f190dbc85e7e5d3794d017c36b4ab7fa4e4cc",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Spreadsheet integration belongs in the client application or a dedicated spreadsheet library.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_spreadsheet_integration"
       ],
       "evidence_references": [
         "sdk:GoogleSheetsOperations.txt#8"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"

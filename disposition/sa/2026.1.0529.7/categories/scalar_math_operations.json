@@ -11,20 +11,20 @@
         "ScalarMathOperations"
       ],
       "inventory_entry_sha256": "ec3c00299171083ce70b81811e91d54a7a0d3169ea8492635dcf9ffd8e4ce022",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value computation belongs in the client application and does not require SpatialAnalyzer.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_computation"
       ],
       "evidence_references": [
         "documentation:ScalarMathOperations/BooleanComparison.htm",
         "sdk:ScalarMathOperations.txt#11"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -41,20 +41,20 @@
         "ScalarMathOperations"
       ],
       "inventory_entry_sha256": "821acab72c5f7907cf7fb998be6ed362eb7f68699d2a8e6f4f286a6467effa12",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value computation belongs in the client application and does not require SpatialAnalyzer.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_computation"
       ],
       "evidence_references": [
         "documentation:ScalarMathOperations/BooleanComparisonResult.htm",
         "sdk:ScalarMathOperations.txt#12"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -71,20 +71,20 @@
         "ScalarMathOperations"
       ],
       "inventory_entry_sha256": "9f9d49d8ab9577894ccc3c7a876b388b8d5b984d0c3b35dcbdcf7c654c5809e6",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value computation belongs in the client application and does not require SpatialAnalyzer.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_computation"
       ],
       "evidence_references": [
         "documentation:ScalarMathOperations/ChangeStringCase.htm",
         "sdk:ScalarMathOperations.txt#9"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -101,20 +101,20 @@
         "ScalarMathOperations"
       ],
       "inventory_entry_sha256": "20bc4c702af7f2b79ac397ac7ea8502cecdcf7134043b53705ad1880e4ce668f",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value computation belongs in the client application and does not require SpatialAnalyzer.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_computation"
       ],
       "evidence_references": [
         "documentation:ScalarMathOperations/ColorComparison.htm",
         "sdk:ScalarMathOperations.txt#13"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -131,20 +131,20 @@
         "ScalarMathOperations"
       ],
       "inventory_entry_sha256": "27526fbef0d41dd35c8624b34c4a9b3b32b3cdd5e0e1f2829ba6c082f282c7e4",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value computation belongs in the client application and does not require SpatialAnalyzer.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_computation"
       ],
       "evidence_references": [
         "documentation:ScalarMathOperations/ColorComparisonResult.htm",
         "sdk:ScalarMathOperations.txt#14"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -161,20 +161,20 @@
         "ScalarMathOperations"
       ],
       "inventory_entry_sha256": "af5b642ca340b82c7a74537d32491b75a3cea2150d6008c011259336316db46e",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value computation belongs in the client application and does not require SpatialAnalyzer.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_computation"
       ],
       "evidence_references": [
         "documentation:ScalarMathOperations/DoesStringContainSub-String.htm",
         "sdk:ScalarMathOperations.txt#10"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -191,20 +191,20 @@
         "ScalarMathOperations"
       ],
       "inventory_entry_sha256": "b11b41d09714ee8f944aaa39b4abd800639f443cb4a11cae0ae9e09536e95282",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value computation belongs in the client application and does not require SpatialAnalyzer.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_computation"
       ],
       "evidence_references": [
         "documentation:ScalarMathOperations/DoubleAbsoluteValue.htm",
         "sdk:ScalarMathOperations.txt#16"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -221,20 +221,20 @@
         "ScalarMathOperations"
       ],
       "inventory_entry_sha256": "51310818100127b986d0e15a3d8e7e9ae680e0bec47a275f8eac71f876ec811b",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value computation belongs in the client application and does not require SpatialAnalyzer.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_computation"
       ],
       "evidence_references": [
         "documentation:ScalarMathOperations/DoubleAngleConversion.htm",
         "sdk:ScalarMathOperations.txt#21"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -251,20 +251,20 @@
         "ScalarMathOperations"
       ],
       "inventory_entry_sha256": "360bf8465c9a94e8e06bcf9fe7d3559d1576d8457eb4ba62c4f720768d8b38ed",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value computation belongs in the client application and does not require SpatialAnalyzer.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_computation"
       ],
       "evidence_references": [
         "documentation:ScalarMathOperations/DoubleComparison.htm",
         "sdk:ScalarMathOperations.txt#3"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -281,20 +281,20 @@
         "ScalarMathOperations"
       ],
       "inventory_entry_sha256": "894c14b304dfd878f479f4d7e704ecfd032a4c5b8a1f9488251fb9eba0b86292",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value computation belongs in the client application and does not require SpatialAnalyzer.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_computation"
       ],
       "evidence_references": [
         "documentation:ScalarMathOperations/DoubleComparisonResult.htm",
         "sdk:ScalarMathOperations.txt#4"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -311,20 +311,20 @@
         "ScalarMathOperations"
       ],
       "inventory_entry_sha256": "841a30c46095926fef2f093b1352f5d68b389c17ac82ffdf6b06fabde6e74107",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value computation belongs in the client application and does not require SpatialAnalyzer.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_computation"
       ],
       "evidence_references": [
         "documentation:ScalarMathOperations/DoubleMathOperation.htm",
         "sdk:ScalarMathOperations.txt#2"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -341,20 +341,20 @@
         "ScalarMathOperations"
       ],
       "inventory_entry_sha256": "446a52a8653d80f999913d230b1f127682a4786620eee5ec246f86b141b9f136",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value computation belongs in the client application and does not require SpatialAnalyzer.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_computation"
       ],
       "evidence_references": [
         "documentation:ScalarMathOperations/DoubleSquareRoot.htm",
         "sdk:ScalarMathOperations.txt#17"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -371,20 +371,20 @@
         "ScalarMathOperations"
       ],
       "inventory_entry_sha256": "18e67e5360552dc295cd14e16c77f99f66d5bb45888451bfa003943c12205777",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value computation belongs in the client application and does not require SpatialAnalyzer.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_computation"
       ],
       "evidence_references": [
         "documentation:ScalarMathOperations/IntegerAbsoluteValue.htm",
         "sdk:ScalarMathOperations.txt#15"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -401,20 +401,20 @@
         "ScalarMathOperations"
       ],
       "inventory_entry_sha256": "ece766eaddb215bfc66f7803b980bf1d4cc2106e2199488202efad873005da0c",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value computation belongs in the client application and does not require SpatialAnalyzer.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_computation"
       ],
       "evidence_references": [
         "documentation:ScalarMathOperations/IntegerComparison.htm",
         "sdk:ScalarMathOperations.txt#5"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -431,20 +431,20 @@
         "ScalarMathOperations"
       ],
       "inventory_entry_sha256": "2f6e8788772514b1e95c17869545382ee8674e1457130db0ec6780383c7396d7",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value computation belongs in the client application and does not require SpatialAnalyzer.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_computation"
       ],
       "evidence_references": [
         "documentation:ScalarMathOperations/IntegerComparisonResult.htm",
         "sdk:ScalarMathOperations.txt#6"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -461,20 +461,20 @@
         "ScalarMathOperations"
       ],
       "inventory_entry_sha256": "18ecfb98b32d19a05ed092fde705e9c9141523297e19125c67a99bd6bbf54c98",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value computation belongs in the client application and does not require SpatialAnalyzer.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_computation"
       ],
       "evidence_references": [
         "documentation:ScalarMathOperations/IntegerMathOperation.htm",
         "sdk:ScalarMathOperations.txt#1"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -491,20 +491,20 @@
         "ScalarMathOperations"
       ],
       "inventory_entry_sha256": "ecdd9764315d70437026e6eda9711c07f0c87039e7273ddc709929c27815e07f",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value computation belongs in the client application and does not require SpatialAnalyzer.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_computation"
       ],
       "evidence_references": [
         "documentation:ScalarMathOperations/LogarithmicFunction.htm",
         "sdk:ScalarMathOperations.txt#20"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -521,20 +521,20 @@
         "ScalarMathOperations"
       ],
       "inventory_entry_sha256": "86c2f5cef6114c3954b9f0c73c7051b5d5c3e9ef394c87740518dc3cb688c4c9",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value computation belongs in the client application and does not require SpatialAnalyzer.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_computation"
       ],
       "evidence_references": [
         "documentation:ScalarMathOperations/RoundDouble.htm",
         "sdk:ScalarMathOperations.txt#18"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -551,20 +551,20 @@
         "ScalarMathOperations"
       ],
       "inventory_entry_sha256": "681f3829699e38d7364e14b3ffce49c0ca2c046d4ef1841913d88a7bbba50ea3",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value computation belongs in the client application and does not require SpatialAnalyzer.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_computation"
       ],
       "evidence_references": [
         "documentation:ScalarMathOperations/StringComparison.htm",
         "sdk:ScalarMathOperations.txt#7"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -581,20 +581,20 @@
         "ScalarMathOperations"
       ],
       "inventory_entry_sha256": "611b13b32253062329a44c2cf4f76d492081e0037a7da425edd5cab04d73ec16",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value computation belongs in the client application and does not require SpatialAnalyzer.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_computation"
       ],
       "evidence_references": [
         "documentation:ScalarMathOperations/StringComparisonResult.htm",
         "sdk:ScalarMathOperations.txt#8"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -611,20 +611,20 @@
         "ScalarMathOperations"
       ],
       "inventory_entry_sha256": "1332b049c8de88a5178391edd3077e9339a4835e7ca2fddd378b7ad4f262cbf8",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value computation belongs in the client application and does not require SpatialAnalyzer.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_computation"
       ],
       "evidence_references": [
         "documentation:ScalarMathOperations/TrigFunction.htm",
         "sdk:ScalarMathOperations.txt#19"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"

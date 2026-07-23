@@ -11,20 +11,20 @@
         "MPSubroutines"
       ],
       "inventory_entry_sha256": "d39d73a861b2b329a8b2044c39d758f3c86fa723c6faaec368880748c9412f85",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Client-language state and control flow replace this measurement-plan programming helper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_state_and_control_flow"
       ],
       "evidence_references": [
         "documentation:MPSubroutines/DefineSubroutineInputValues.htm",
         "sdk:MPSubroutines.txt#2"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -41,20 +41,20 @@
         "MPSubroutines"
       ],
       "inventory_entry_sha256": "bd3f3c86c944888082855f2dbfb04bf8b089e4a3ba074d7512205eab62bbf969",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Client-language state and control flow replace this measurement-plan programming helper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_state_and_control_flow"
       ],
       "evidence_references": [
         "documentation:MPSubroutines/DefineSubroutineReturnValues.htm",
         "sdk:MPSubroutines.txt#4"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -71,20 +71,20 @@
         "MPSubroutines"
       ],
       "inventory_entry_sha256": "c483cf9e2c8e5b5fbb9b881c215510eaac5d4f5013a6c6aa06fd3c4fa5d39424",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Client-language state and control flow replace this measurement-plan programming helper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_state_and_control_flow"
       ],
       "evidence_references": [
         "documentation:MPSubroutines/ReturnFromSubroutineNow.htm",
         "sdk:MPSubroutines.txt#3"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -101,20 +101,20 @@
         "MPSubroutines"
       ],
       "inventory_entry_sha256": "aa7e4303bdedad9b9471deb5ed9a41a8e79f06e9396c2a19cc6b4f0b38c036b1",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Client-language state and control flow replace this measurement-plan programming helper.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_state_and_control_flow"
       ],
       "evidence_references": [
         "documentation:MPSubroutines/RunSubroutine.htm",
         "sdk:MPSubroutines.txt#1"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"

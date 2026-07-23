@@ -441,20 +441,20 @@
         "GDTConstruct"
       ],
       "inventory_entry_sha256": "9f28dc4c92176c3d874d52caddd61999308af5a7452dfc8f808a9e7ed1550dd1",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Operator prompts and interactive SpatialAnalyzer UI control belong in the client application.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_user_experience"
       ],
       "evidence_references": [
         "documentation:GDT/GDTConstruct/MakeSurfaceFaceList-RuntimeSelect.htm",
         "sdk:GDTOperations_GDTConstruction.txt#1"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"

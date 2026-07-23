@@ -11,20 +11,20 @@
         "AnalysisOperations"
       ],
       "inventory_entry_sha256": "03ca6053b991bdc1c77489dc3cd1baddbb79fd7f82d44a3b347a094a2d67ece9",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value construction, conversion, decomposition, or list algebra belongs in Briosa client types and client-language code.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_construction"
       ],
       "evidence_references": [
         "documentation:AnalysisOperations/AddAPictureToPictureName.htm",
         "sdk:AnalysisOperations.txt#46"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -41,20 +41,20 @@
         "AnalysisOperations"
       ],
       "inventory_entry_sha256": "cf16f94669dcc52d5473590b453173c6bf5a161aec9fa346f49c05213b80de9a",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value construction, conversion, decomposition, or list algebra belongs in Briosa client types and client-language code.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_construction"
       ],
       "evidence_references": [
         "documentation:AnalysisOperations/AddAReportToReportRef.htm",
         "sdk:AnalysisOperations.txt#49"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -161,20 +161,20 @@
         "AnalysisOperations"
       ],
       "inventory_entry_sha256": "7384d249ee8bcd3ee9eab013b635d8ad2075e0bfd1ba1681fe0e0d4952ad0434",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value construction, conversion, decomposition, or list algebra belongs in Briosa client types and client-language code.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_construction"
       ],
       "evidence_references": [
         "documentation:AnalysisOperations/AppendToStringRefList.htm",
         "sdk:AnalysisOperations.txt#53"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -860,20 +860,20 @@
         "AnalysisOperations"
       ],
       "inventory_entry_sha256": "51a366cc501bc87037c58c2666491594abfc7ec9547c265a984e6f60c5c9f21a",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value computation belongs in the client application and does not require SpatialAnalyzer.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_computation"
       ],
       "evidence_references": [
         "documentation:AnalysisOperations/GetDoubleListMaxMin.htm",
         "sdk:AnalysisOperations.txt#112"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -950,20 +950,20 @@
         "AnalysisOperations"
       ],
       "inventory_entry_sha256": "56c6e7d24d310149b31cb8350cf6394d9620f709d5fda948ea1c54d61dbae329",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value construction, conversion, decomposition, or list algebra belongs in Briosa client types and client-language code.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_construction"
       ],
       "evidence_references": [
         "documentation:AnalysisOperations/GetI-thInstrumentFromCollection.htm",
         "sdk:AnalysisOperations.txt#33"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -980,20 +980,20 @@
         "AnalysisOperations"
       ],
       "inventory_entry_sha256": "3b2af6dc210d35cc699cf9fa3daf77b8b96010e7218914f8351b6dc445794c1b",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value construction, conversion, decomposition, or list algebra belongs in Briosa client types and client-language code.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_construction"
       ],
       "evidence_references": [
         "documentation:AnalysisOperations/GetI-thObjectFromCollection.htm",
         "sdk:AnalysisOperations.txt#31"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -1010,20 +1010,20 @@
         "AnalysisOperations"
       ],
       "inventory_entry_sha256": "19b1dc7a41868f1316be4e2aefd30971e9c4b8a4567d65c2933ddba83fc3667f",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value construction, conversion, decomposition, or list algebra belongs in Briosa client types and client-language code.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_construction"
       ],
       "evidence_references": [
         "documentation:AnalysisOperations/GetI-thObjectFromCollectionIterator.htm",
         "sdk:AnalysisOperations.txt#32"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -1040,20 +1040,20 @@
         "AnalysisOperations"
       ],
       "inventory_entry_sha256": "e764ec7215c2d2a3312e5edb5d42ee782e0c2f7596c0374f99138e5020698ad0",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value construction, conversion, decomposition, or list algebra belongs in Briosa client types and client-language code.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_construction"
       ],
       "evidence_references": [
         "documentation:AnalysisOperations/GetI-thPictureFromPictureName.htm",
         "sdk:AnalysisOperations.txt#45"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -1100,20 +1100,20 @@
         "AnalysisOperations"
       ],
       "inventory_entry_sha256": "3b84bece01c2f2248a3ba6e50e44df10a1762e48e6252c06e503c049e14d5892",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value construction, conversion, decomposition, or list algebra belongs in Briosa client types and client-language code.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_construction"
       ],
       "evidence_references": [
         "documentation:AnalysisOperations/GetI-thPointNameFromPointNameIterator.htm",
         "sdk:AnalysisOperations.txt#30"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -1130,20 +1130,20 @@
         "AnalysisOperations"
       ],
       "inventory_entry_sha256": "4b4134111a0b1a4fb2f06a981af02ec4020e6447f9be10dfbb592d354ace8ae3",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value construction, conversion, decomposition, or list algebra belongs in Briosa client types and client-language code.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_construction"
       ],
       "evidence_references": [
         "documentation:AnalysisOperations/GetI-thPointNameFromPointNameRefList.htm",
         "sdk:AnalysisOperations.txt#29"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -1160,20 +1160,20 @@
         "AnalysisOperations"
       ],
       "inventory_entry_sha256": "6974059ffd645cb207bbf5f40796152bf91e5c422e7f8042749744cf97bc4757",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value construction, conversion, decomposition, or list algebra belongs in Briosa client types and client-language code.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_construction"
       ],
       "evidence_references": [
         "documentation:AnalysisOperations/GetI-thReportItemFromReportItem.htm",
         "sdk:AnalysisOperations.txt#6"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -1190,19 +1190,19 @@
         "AnalysisOperations"
       ],
       "inventory_entry_sha256": "f64dd2fc0d4e2258a44278deda6aa6304526c75de443612bef95761c5a70fbc3",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value construction, conversion, decomposition, or list algebra belongs in Briosa client types and client-language code.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_construction"
       ],
       "evidence_references": [
         "documentation:AnalysisOperations/GetI-thReportRefList.htm"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -1219,20 +1219,20 @@
         "AnalysisOperations"
       ],
       "inventory_entry_sha256": "9dc1885b470efe02f45f2ba36e56c295292a6d8b8b1b1bae1bddeabf39ef9923",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value construction, conversion, decomposition, or list algebra belongs in Briosa client types and client-language code.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_construction"
       ],
       "evidence_references": [
         "documentation:AnalysisOperations/GetI-thStringFromStringIterator.htm",
         "sdk:AnalysisOperations.txt#43"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -1249,20 +1249,20 @@
         "AnalysisOperations"
       ],
       "inventory_entry_sha256": "31c943c55166e7d654f0d90839e1d90833768ee0b53232b9cb5956904fe90292",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value construction, conversion, decomposition, or list algebra belongs in Briosa client types and client-language code.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_construction"
       ],
       "evidence_references": [
         "documentation:AnalysisOperations/GetI-thStringFromStringRefList.htm",
         "sdk:AnalysisOperations.txt#42"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -1399,20 +1399,20 @@
         "AnalysisOperations"
       ],
       "inventory_entry_sha256": "53099f94df518822a934df1ba4ae45c5ab8e8affedc4ecf349cad7344ff28d7b",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value computation belongs in the client application and does not require SpatialAnalyzer.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_computation"
       ],
       "evidence_references": [
         "documentation:AnalysisOperations/GetNumbeOfReportsInReport.htm",
         "sdk:AnalysisOperations.txt#47"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -1429,20 +1429,20 @@
         "AnalysisOperations"
       ],
       "inventory_entry_sha256": "ca31d548efba0008c4a65003e8530f0b96573571045162550e88cf08dd603f0b",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value computation belongs in the client application and does not require SpatialAnalyzer.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_computation"
       ],
       "evidence_references": [
         "documentation:AnalysisOperations/GetNumberOfCharactersInAString.htm",
         "sdk:AnalysisOperations.txt#17"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -1519,20 +1519,20 @@
         "AnalysisOperations"
       ],
       "inventory_entry_sha256": "424d8696c862b82e67e4ddcd08d38d9092590d649dcff2ad4197586df355136f",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value computation belongs in the client application and does not require SpatialAnalyzer.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_computation"
       ],
       "evidence_references": [
         "documentation:AnalysisOperations/GetNumberOfInstruments.htm",
         "sdk:AnalysisOperations.txt#10"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -1549,20 +1549,20 @@
         "AnalysisOperations"
       ],
       "inventory_entry_sha256": "ee3e78ec4ca33240909e07bff9e58eeb167d3bd1cc8d83875ee2a72564ef019f",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value computation belongs in the client application and does not require SpatialAnalyzer.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_computation"
       ],
       "evidence_references": [
         "documentation:AnalysisOperations/GetNumberOfObjectsInCollection.htm",
         "sdk:AnalysisOperations.txt#12"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -1579,20 +1579,20 @@
         "AnalysisOperations"
       ],
       "inventory_entry_sha256": "d67195bee1332aa3e47d07662deff6eb7bcf45590fabd95e35be4e824c696794",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value computation belongs in the client application and does not require SpatialAnalyzer.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_computation"
       ],
       "evidence_references": [
         "documentation:AnalysisOperations/GetNumberOfPicturesInPicture.htm",
         "sdk:AnalysisOperations.txt#44"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -1609,20 +1609,20 @@
         "AnalysisOperations"
       ],
       "inventory_entry_sha256": "d8f71ab6df3653bbca87dfa8f0e15c6b055c14da2d6caaf4c65a644791322455",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value computation belongs in the client application and does not require SpatialAnalyzer.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_computation"
       ],
       "evidence_references": [
         "documentation:AnalysisOperations/GetNumberOfPointNames.htm",
         "sdk:AnalysisOperations.txt#11"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -1699,20 +1699,20 @@
         "AnalysisOperations"
       ],
       "inventory_entry_sha256": "1eab34e495bed6b69bb8f5053bc7af64d9dc998740538826b7e92f838f403fb0",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value computation belongs in the client application and does not require SpatialAnalyzer.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_computation"
       ],
       "evidence_references": [
         "documentation:AnalysisOperations/GetNumberOfStringsInString.htm",
         "sdk:AnalysisOperations.txt#16"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -4790,20 +4790,20 @@
         "AnalysisOperations"
       ],
       "inventory_entry_sha256": "2f44530b6cdfbe646e7c0f3c86284b982849762527c9e3a61c1e291c6b35867c",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value construction, conversion, decomposition, or list algebra belongs in Briosa client types and client-language code.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_construction"
       ],
       "evidence_references": [
         "documentation:AnalysisOperations/RemoveI-thObjectFromCollection.htm",
         "sdk:AnalysisOperations.txt#50"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -4820,20 +4820,20 @@
         "AnalysisOperations"
       ],
       "inventory_entry_sha256": "f33fd5b112dc3df128d2f441f79fd8daf43328735590806d6d0d129274e9e886",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value construction, conversion, decomposition, or list algebra belongs in Briosa client types and client-language code.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_construction"
       ],
       "evidence_references": [
         "documentation:AnalysisOperations/RemoveI-thPointNameFromPoint.htm",
         "sdk:AnalysisOperations.txt#51"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -4850,20 +4850,20 @@
         "AnalysisOperations"
       ],
       "inventory_entry_sha256": "a9f05154e5119c2d00f88d4cfa47e702df46c50b1d578134fc7efc5cb7581920",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value construction, conversion, decomposition, or list algebra belongs in Briosa client types and client-language code.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_construction"
       ],
       "evidence_references": [
         "documentation:AnalysisOperations/RemoveI-thStringFromString.htm",
         "sdk:AnalysisOperations.txt#52"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -5624,19 +5624,19 @@
         "AnalysisOperations"
       ],
       "inventory_entry_sha256": "d16a9612ce33b8b989658f192853debdbc60853f33d1255a34e687822a65b364",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value construction, conversion, decomposition, or list algebra belongs in Briosa client types and client-language code.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_construction"
       ],
       "evidence_references": [
         "sdk:AnalysisOperations.txt#48"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"

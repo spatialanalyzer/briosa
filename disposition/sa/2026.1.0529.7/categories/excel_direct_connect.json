@@ -11,20 +11,20 @@
         "ExcelDirectConnect"
       ],
       "inventory_entry_sha256": "34781e5d89cf99125efaecc8fcaef1a9a99af4c6c267633fe9b58da1f6b89084",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Spreadsheet integration belongs in the client application or a dedicated spreadsheet library.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_spreadsheet_integration"
       ],
       "evidence_references": [
         "documentation:ExcelDirectConnect/Close.htm",
         "sdk:ExcelDirectConnect.txt#7"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -41,20 +41,20 @@
         "ExcelDirectConnect"
       ],
       "inventory_entry_sha256": "c854f07ba3fde73065fb569893aff639e5738cc9ce48583202072d99d99e4ad6",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Spreadsheet integration belongs in the client application or a dedicated spreadsheet library.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_spreadsheet_integration"
       ],
       "evidence_references": [
         "documentation:ExcelDirectConnect/CloseAllWorkbooks.htm",
         "sdk:ExcelDirectConnect.txt#8"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -71,20 +71,20 @@
         "ExcelDirectConnect"
       ],
       "inventory_entry_sha256": "423a3e6c63441c198e2b19f4afbce904eb0d01749f2909843ac80f30287195b1",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Spreadsheet integration belongs in the client application or a dedicated spreadsheet library.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_spreadsheet_integration"
       ],
       "evidence_references": [
         "documentation:ExcelDirectConnect/GetWorkbookAddress.htm",
         "sdk:ExcelDirectConnect.txt#3"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -101,20 +101,20 @@
         "ExcelDirectConnect"
       ],
       "inventory_entry_sha256": "0737b1720e00ea3d20a208502d545c8a27afa2b6364fb8e19797a99d8e570107",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Spreadsheet integration belongs in the client application or a dedicated spreadsheet library.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_spreadsheet_integration"
       ],
       "evidence_references": [
         "documentation:ExcelDirectConnect/OpenWorkbookFile.htm",
         "sdk:ExcelDirectConnect.txt#1"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -132,20 +132,20 @@
         "Read"
       ],
       "inventory_entry_sha256": "4e5d0b5c3e75e36f6669f0c6b35f2045adc8f10873a03f3d22bd066058083dc5",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Spreadsheet integration belongs in the client application or a dedicated spreadsheet library.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_spreadsheet_integration"
       ],
       "evidence_references": [
         "documentation:ExcelDirectConnect/Read/ReadDouble.htm",
         "sdk:ExcelDirectConnect_Read.txt#2"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -163,20 +163,20 @@
         "Read"
       ],
       "inventory_entry_sha256": "16b20b0287489142b55843b3d3bd11689a772a6ab4ba85d93f1e41e1e01140fa",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Spreadsheet integration belongs in the client application or a dedicated spreadsheet library.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_spreadsheet_integration"
       ],
       "evidence_references": [
         "documentation:ExcelDirectConnect/Read/ReadInteger.htm",
         "sdk:ExcelDirectConnect_Read.txt#1"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -194,20 +194,20 @@
         "Read"
       ],
       "inventory_entry_sha256": "c25c89b596006e41e49005ba3934de2642a4301338fa63603dd9ba94f51201a0",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Spreadsheet integration belongs in the client application or a dedicated spreadsheet library.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_spreadsheet_integration"
       ],
       "evidence_references": [
         "documentation:ExcelDirectConnect/Read/ReadString.htm",
         "sdk:ExcelDirectConnect_Read.txt#3"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -225,20 +225,20 @@
         "Read"
       ],
       "inventory_entry_sha256": "3c216a671d72f11a6b48279fefe7aac528ae34dec64a24a1b6e6c0f5cdfdadd1",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Spreadsheet integration belongs in the client application or a dedicated spreadsheet library.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_spreadsheet_integration"
       ],
       "evidence_references": [
         "documentation:ExcelDirectConnect/Read/ReadVariables.htm",
         "sdk:ExcelDirectConnect_Read.txt#4"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -255,20 +255,20 @@
         "ExcelDirectConnect"
       ],
       "inventory_entry_sha256": "f775e3f7e27061d4758ab6731ba72af2e7fabcf02d23dbf9c26d3ebf2b804587",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Spreadsheet integration belongs in the client application or a dedicated spreadsheet library.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_spreadsheet_integration"
       ],
       "evidence_references": [
         "documentation:ExcelDirectConnect/RunMacro.htm",
         "sdk:ExcelDirectConnect.txt#5"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -285,20 +285,20 @@
         "ExcelDirectConnect"
       ],
       "inventory_entry_sha256": "bdaa1dce9d710963a5ad1664fd616b0ff884d18bbf2c4b7d296972048c6dc45b",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Spreadsheet integration belongs in the client application or a dedicated spreadsheet library.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_spreadsheet_integration"
       ],
       "evidence_references": [
         "documentation:ExcelDirectConnect/Save.htm",
         "sdk:ExcelDirectConnect.txt#6"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -315,20 +315,20 @@
         "ExcelDirectConnect"
       ],
       "inventory_entry_sha256": "4eb00c6410b52866d7c4a28b55ceba44507ad6445e12a8b6d15c43f09b07c147",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Spreadsheet integration belongs in the client application or a dedicated spreadsheet library.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_spreadsheet_integration"
       ],
       "evidence_references": [
         "documentation:ExcelDirectConnect/SetClearAfterInsert.htm",
         "sdk:ExcelDirectConnect.txt#4"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -345,20 +345,20 @@
         "ExcelDirectConnect"
       ],
       "inventory_entry_sha256": "7405960b06640363e4b389e8a5cde42bc793477aca4c413515579285047cf5a5",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Spreadsheet integration belongs in the client application or a dedicated spreadsheet library.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_spreadsheet_integration"
       ],
       "evidence_references": [
         "documentation:ExcelDirectConnect/SetWorkbookAddress.htm",
         "sdk:ExcelDirectConnect.txt#2"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -376,20 +376,20 @@
         "Write"
       ],
       "inventory_entry_sha256": "1f11166a87b4016e31509f3fcf88599f1cf09fe3fd630d8b9e7a0951613ee677",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Spreadsheet integration belongs in the client application or a dedicated spreadsheet library.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_spreadsheet_integration"
       ],
       "evidence_references": [
         "documentation:ExcelDirectConnect/Write/WriteDouble.htm",
         "sdk:ExcelDirectConnect_Write.txt#2"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -407,20 +407,20 @@
         "Write"
       ],
       "inventory_entry_sha256": "4580ae8b519b89bf6ec0c5aa6d08c0d93828f161e9a8d24770bc3276a82ec933",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Spreadsheet integration belongs in the client application or a dedicated spreadsheet library.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_spreadsheet_integration"
       ],
       "evidence_references": [
         "documentation:ExcelDirectConnect/Write/WriteInteger.htm",
         "sdk:ExcelDirectConnect_Write.txt#1"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -438,20 +438,20 @@
         "Write"
       ],
       "inventory_entry_sha256": "025df8d39906e184070a5cf363f87090d36f559e668f209dda867faf515a686a",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Spreadsheet integration belongs in the client application or a dedicated spreadsheet library.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_spreadsheet_integration"
       ],
       "evidence_references": [
         "documentation:ExcelDirectConnect/Write/WritePicture.htm",
         "sdk:ExcelDirectConnect_Write.txt#5"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -469,20 +469,20 @@
         "Write"
       ],
       "inventory_entry_sha256": "30071d4b41aa718f7ca35f455194da3d3f241317dd0320034f4c9694d0dd1abf",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Spreadsheet integration belongs in the client application or a dedicated spreadsheet library.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_spreadsheet_integration"
       ],
       "evidence_references": [
         "documentation:ExcelDirectConnect/Write/WriteString.htm",
         "sdk:ExcelDirectConnect_Write.txt#3"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
@@ -500,20 +500,20 @@
         "Write"
       ],
       "inventory_entry_sha256": "4c19d14afcd1b8bff484b8b06f83ae403990cfd3da201b66968101863dcf66e9",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Spreadsheet integration belongs in the client application or a dedicated spreadsheet library.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_spreadsheet_integration"
       ],
       "evidence_references": [
         "documentation:ExcelDirectConnect/Write/WriteVariables.htm",
         "sdk:ExcelDirectConnect_Write.txt#4"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
         "unknown"
