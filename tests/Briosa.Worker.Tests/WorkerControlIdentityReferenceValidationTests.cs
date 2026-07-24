@@ -22,7 +22,7 @@ public sealed class WorkerControlIdentityReferenceValidationTests
                             new WorkerCollectionObjectNameValue(
                                 "Collection",
                                 "Object",
-                                ObjectType: null),
+                                ObjectType: null!),
                         SdkBinding: "SetCollectionObjectNameArg2")
                 ],
                 []));

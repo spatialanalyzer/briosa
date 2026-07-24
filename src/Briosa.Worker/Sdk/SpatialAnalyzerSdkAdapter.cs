@@ -420,13 +420,17 @@ internal sealed class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
             argument.Name,
             ref collectionName,
             ref objectName);
+        SdkCollectionObjectNameValue? parsed = null;
+        retrieved = retrieved &&
+            SdkReferenceListCodec.TryParseObjectNameResult(
+                collectionName,
+                objectName,
+                out parsed);
         return new SdkOutputValue(
             argument.Name,
             argument.Kind,
             retrieved,
-            CollectionObjectNameValue: retrieved
-                ? new SdkCollectionObjectNameValue(collectionName, objectName, null)
-                : null);
+            CollectionObjectNameValue: retrieved ? parsed : null);
     }
 
     private static SdkOutputValue GetNamedString(

@@ -186,9 +186,9 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
             WorkerMpValueKind.CollectionMachineId =>
                 IsValid(argument.CollectionMachineIdValue),
             WorkerMpValueKind.CollectionObjectName =>
-                IsValidInput(argument.CollectionObjectNameValue),
+                IsValid(argument.CollectionObjectNameValue),
             WorkerMpValueKind.CollectionObjectNameList =>
-                IsValidInput(argument.CollectionObjectNameListValue),
+                IsValid(argument.CollectionObjectNameListValue),
             WorkerMpValueKind.CollectionGroupNameList =>
                 IsValid(argument.CollectionGroupNameListValue),
             WorkerMpValueKind.CollectionVectorGroupName =>
@@ -226,9 +226,9 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
             WorkerMpValueKind.CollectionMachineId =>
                 IsValid(output.CollectionMachineIdValue),
             WorkerMpValueKind.CollectionObjectName =>
-                IsValidOutput(output.CollectionObjectNameValue),
+                IsValid(output.CollectionObjectNameValue),
             WorkerMpValueKind.CollectionObjectNameList =>
-                IsValidOutput(output.CollectionObjectNameListValue),
+                IsValid(output.CollectionObjectNameListValue),
             WorkerMpValueKind.CollectionGroupNameList =>
                 IsValid(output.CollectionGroupNameListValue),
             WorkerMpValueKind.CollectionVectorGroupName =>
@@ -253,14 +253,11 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
     private static bool IsValid(WorkerCollectionMachineIdValue? value) =>
         value is not null && value.CollectionName is not null;
 
-    private static bool IsValidInput(WorkerCollectionObjectNameValue? value) =>
+    private static bool IsValid(WorkerCollectionObjectNameValue? value) =>
         value is not null &&
         value.CollectionName is not null &&
         value.ObjectName is not null &&
         value.ObjectType is not null;
-
-    private static bool IsValidOutput(WorkerCollectionObjectNameValue? value) =>
-        value is not null && value.CollectionName is not null && value.ObjectName is not null;
 
     private static bool IsValid(WorkerCollectionGroupNameValue? value) =>
         value is not null && value.CollectionName is not null && value.GroupName is not null;
@@ -280,11 +277,8 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
     private static bool IsValid(WorkerCollectionGroupNameListValue? value) =>
         value?.Values is not null && value.Values.All(IsValid);
 
-    private static bool IsValidInput(WorkerCollectionObjectNameListValue? value) =>
-        value?.Values is not null && value.Values.All(IsValidInput);
-
-    private static bool IsValidOutput(WorkerCollectionObjectNameListValue? value) =>
-        value?.Values is not null && value.Values.All(IsValidOutput);
+    private static bool IsValid(WorkerCollectionObjectNameListValue? value) =>
+        value?.Values is not null && value.Values.All(IsValid);
 
     private static bool IsValid(WorkerCollectionVectorGroupNameListValue? value) =>
         value?.Values is not null && value.Values.All(IsValid);

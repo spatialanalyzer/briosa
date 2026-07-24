@@ -296,7 +296,8 @@ public sealed class WorkerProcessSupervisorTests
             17,
             outputs.Single(value => value.Kind == WorkerMpValueKind.CollectionInstrumentId)
                 .CollectionInstrumentIdValue!.InstrumentId);
-        Assert.Null(
+        Assert.Equal(
+            "Point Group",
             outputs.Single(value => value.Kind == WorkerMpValueKind.CollectionObjectName)
                 .CollectionObjectNameValue!.ObjectType);
         Assert.Equal(

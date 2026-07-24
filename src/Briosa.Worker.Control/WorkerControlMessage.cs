@@ -87,7 +87,7 @@ public sealed record WorkerCollectionMachineIdValue(
 public sealed record WorkerCollectionObjectNameValue(
     string CollectionName,
     string ObjectName,
-    string? ObjectType);
+    string ObjectType);
 
 public sealed record WorkerCollectionGroupNameValue(
     string CollectionName,

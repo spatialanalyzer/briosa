@@ -204,7 +204,8 @@ internal static class TestWorkerProcess
                     output.Kind,
                     Retrieved: true,
                     CollectionObjectNameValue:
-                        new WorkerCollectionObjectNameValue("Collection", "Object", null)),
+                        new WorkerCollectionObjectNameValue(
+                            "Collection", "Object", "Point Group")),
             WorkerMpValueKind.CollectionObjectNameList =>
                 new(
                     output.Name,

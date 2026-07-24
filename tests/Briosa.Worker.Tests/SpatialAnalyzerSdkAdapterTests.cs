@@ -143,7 +143,9 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         Assert.All(result.OutputValues, output => Assert.True(output.Retrieved));
         Assert.Equal(17, result.OutputValues[0].CollectionInstrumentIdValue!.InstrumentId);
         Assert.Equal(2, result.OutputValues[1].CollectionInstrumentIdListValue!.Values.Count);
-        Assert.Null(result.OutputValues[3].CollectionObjectNameValue!.ObjectType);
+        Assert.Equal(
+            "Point Group",
+            result.OutputValues[3].CollectionObjectNameValue!.ObjectType);
         Assert.Equal("Point Group", result.OutputValues[4].CollectionObjectNameListValue!.Values[0].ObjectType);
         Assert.Equal("Point B", result.OutputValues[5].PointNameListValue!.Values[1].TargetName);
         Assert.Equal(["A", "B"], result.OutputValues[6].StringListValue!.Values);
@@ -170,6 +172,28 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         var output = Assert.Single(result.OutputValues);
         Assert.False(output.Retrieved);
         Assert.Null(output.PointNameListValue);
+        Assert.Equal("sdk-output-retrieval-failed", result.DiagnosticCode);
+    }
+
+    [Fact]
+    public void CollectionObjectOutputWithoutEmbeddedTypeIsNotRetrieved()
+    {
+        using var calls = new RecordingSdkCalls { MalformedOutputName = "Object" };
+        using var adapter = new SpatialAnalyzerSdkAdapter(calls);
+        var command = new SdkCommand(
+            "malformed-object",
+            "Malformed Object",
+            [],
+            [new SdkOutputArgument(
+                "Object",
+                SdkValueKind.CollectionObjectName,
+                "GetCollectionObjectNameArg")]);
+
+        var result = adapter.Execute(command);
+
+        var output = Assert.Single(result.OutputValues);
+        Assert.False(output.Retrieved);
+        Assert.Null(output.CollectionObjectNameValue);
         Assert.Equal("sdk-output-retrieval-failed", result.DiagnosticCode);
     }
 
@@ -419,13 +443,15 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         {
             Events.Add($"GetCollectionObjectNameArg:{name}");
             collectionName = "Collection";
-            objectName = "Object";
+            objectName = name == MalformedOutputName
+                ? "Object"
+                : "Object,Point Group,";
             return true;
         }
 
         public bool GetCollectionObjectNameRefListArg(string name, ref object values) =>
             ReturnReferenceList(name, "GetCollectionObjectNameRefListArg", ref values,
-                "Collection::Object::Point Group");
+                "Collection::Object::Point Group,");
 
         public bool GetPointNameRefListArg(string name, ref object values) =>
             ReturnReferenceList(name, "GetPointNameRefListArg", ref values,

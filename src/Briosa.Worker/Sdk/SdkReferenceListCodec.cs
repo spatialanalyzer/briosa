@@ -21,8 +21,7 @@ internal static class SdkReferenceListCodec
         Join(value.CollectionName, value.GroupName);
 
     public static string Format(SdkCollectionObjectNameValue value) =>
-        Join(value.CollectionName, value.ObjectName, value.ObjectType ??
-            throw new ArgumentException("A collection object input requires an object type."));
+        Join(value.CollectionName, value.ObjectName, value.ObjectType);
 
     public static string Format(SdkCollectionVectorGroupNameValue value) =>
         Join(value.CollectionName, value.VectorGroupName);
@@ -48,8 +47,24 @@ internal static class SdkReferenceListCodec
     public static bool TryParseObjectNames(
         object value,
         out SdkCollectionObjectNameListValue? result) =>
-        TryParseList<SdkCollectionObjectNameValue, SdkCollectionObjectNameListValue>(value, TryParseObjectName, values =>
+        TryParseList<SdkCollectionObjectNameValue, SdkCollectionObjectNameListValue>(value, TryParseObjectNameReference, values =>
             new SdkCollectionObjectNameListValue(values), out result);
+
+    public static bool TryParseObjectNameResult(
+        string collectionName,
+        string value,
+        out SdkCollectionObjectNameValue? result)
+    {
+        var parts = value.Split(',', StringSplitOptions.None);
+        if (parts.Length >= 2)
+        {
+            result = new SdkCollectionObjectNameValue(collectionName, parts[0], parts[1]);
+            return true;
+        }
+
+        result = null;
+        return false;
+    }
 
     public static bool TryParseVectorGroupNames(
         object value,
@@ -123,12 +138,17 @@ internal static class SdkReferenceListCodec
         return false;
     }
 
-    private static bool TryParseObjectName(string value, out SdkCollectionObjectNameValue result)
+    private static bool TryParseObjectNameReference(
+        string value,
+        out SdkCollectionObjectNameValue result)
     {
         var parts = value.Split(Separator, StringSplitOptions.None);
         if (parts.Length == 3)
         {
-            result = new SdkCollectionObjectNameValue(parts[0], parts[1], parts[2]);
+            result = new SdkCollectionObjectNameValue(
+                parts[0],
+                parts[1],
+                parts[2].Split(',', 2, StringSplitOptions.None)[0]);
             return true;
         }
 

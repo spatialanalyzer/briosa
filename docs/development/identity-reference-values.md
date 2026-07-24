@@ -13,7 +13,7 @@ Composite public values cover:
 - point and vector names;
 - ordered lists of the supported composite references and strings.
 
-Every scalar component uses protobuf explicit presence. A collection-object input requires `object_type` because `SetCollectionObjectNameArg2` requires it. `GetCollectionObjectNameArg` returns only collection and object names, so a result may legitimately omit `object_type`. Empty lists are valid and list order is preserved.
+Every scalar component uses protobuf explicit presence. A collection-object value requires `object_type`: `SetCollectionObjectNameArg2` accepts it explicitly, while `GetCollectionObjectNameArg` returns it in the comma-delimited object payload alongside the object name. The adapter decodes that SDK representation before the value crosses the worker boundary. Empty lists are valid and list order is preserved.
 
 ## Exact SDK boundary
 

@@ -26,9 +26,8 @@ message CollectionMachineId {
   optional int32 machine_id = 2;
 }
 
-// Identifies a collection object. SetCollectionObjectNameArg2 requires
-// object_type; the exact-target getter returns only collection_name and
-// object_name, so an output may legitimately omit object_type.
+// Identifies a collection object. All three components are required by the
+// exact-target setter and are returned by the exact-target getter.
 message CollectionObjectName {
   optional string collection_name = 1;
   optional string object_name = 2;

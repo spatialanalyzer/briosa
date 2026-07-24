@@ -497,9 +497,10 @@ internal static class CommandCatalogArtifactGenerator
                 $"new TargetProtocol.CollectionInstrumentIdList {{ Values = {{ {variable}.CollectionInstrumentIdListValue!.Values.Select(value => new TargetProtocol.CollectionInstrumentId {{ CollectionName = value.CollectionName, InstrumentId = value.InstrumentId }}) }} }}",
             "collection_machine_id" =>
                 $"new TargetProtocol.CollectionMachineId {{ CollectionName = {variable}.CollectionMachineIdValue!.CollectionName, MachineId = {variable}.CollectionMachineIdValue.MachineId }}",
-            "collection_object_name" => CollectionObjectResultExpression(variable),
+            "collection_object_name" =>
+                $"new TargetProtocol.CollectionObjectName {{ CollectionName = {variable}.CollectionObjectNameValue!.CollectionName, ObjectName = {variable}.CollectionObjectNameValue.ObjectName, ObjectType = {variable}.CollectionObjectNameValue.ObjectType }}",
             "collection_object_name_list" =>
-                $"new TargetProtocol.CollectionObjectNameList {{ Values = {{ {variable}.CollectionObjectNameListValue!.Values.Select(value => new TargetProtocol.CollectionObjectName {{ CollectionName = value.CollectionName, ObjectName = value.ObjectName, ObjectType = value.ObjectType! }}) }} }}",
+                $"new TargetProtocol.CollectionObjectNameList {{ Values = {{ {variable}.CollectionObjectNameListValue!.Values.Select(value => new TargetProtocol.CollectionObjectName {{ CollectionName = value.CollectionName, ObjectName = value.ObjectName, ObjectType = value.ObjectType }}) }} }}",
             "collection_group_name_list" =>
                 $"new TargetProtocol.CollectionGroupNameList {{ Values = {{ {variable}.CollectionGroupNameListValue!.Values.Select(value => new TargetProtocol.CollectionGroupName {{ CollectionName = value.CollectionName, GroupName = value.GroupName }}) }} }}",
             "collection_vector_group_name" =>
@@ -516,13 +517,6 @@ internal static class CommandCatalogArtifactGenerator
                 $"Semantic type '{output.SemanticType}' has no result mapping.")
         };
 
-    private static string CollectionObjectResultExpression(string variable)
-    {
-        var value = $"{variable}.CollectionObjectNameValue!";
-        return $"{value}.ObjectType is {{ }} objectType ? " +
-            $"new TargetProtocol.CollectionObjectName {{ CollectionName = {value}.CollectionName, ObjectName = {value}.ObjectName, ObjectType = objectType }} : " +
-            $"new TargetProtocol.CollectionObjectName {{ CollectionName = {value}.CollectionName, ObjectName = {value}.ObjectName }}";
-    }
     private static string DefaultExpression(CommandCatalogArgument input)
     {
         var value = input.Input!.Default.Value ??

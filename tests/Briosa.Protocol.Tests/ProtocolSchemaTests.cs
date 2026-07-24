@@ -87,19 +87,21 @@ public sealed partial class ProtocolSchemaTests
     }
 
     [Fact]
-    public void CollectionObjectOutputCanOmitTypeWithoutLosingOtherPresence()
+    public void CollectionObjectPreservesAllRequiredComponents()
     {
         var value = new TargetProtocol.CollectionObjectName
         {
             CollectionName = "Collection",
-            ObjectName = "Object"
+            ObjectName = "Object",
+            ObjectType = "Point Group"
         };
 
         var roundTrip = TargetProtocol.CollectionObjectName.Parser.ParseFrom(value.ToByteArray());
 
         Assert.True(roundTrip.HasCollectionName);
         Assert.True(roundTrip.HasObjectName);
-        Assert.False(roundTrip.HasObjectType);
+        Assert.True(roundTrip.HasObjectType);
+        Assert.Equal("Point Group", roundTrip.ObjectType);
         Assert.NotEqual(
             TargetProtocol.CollectionInstrumentId.Descriptor.FullName,
             TargetProtocol.CollectionMachineId.Descriptor.FullName);

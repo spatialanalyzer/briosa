@@ -107,7 +107,7 @@ internal sealed record SdkCollectionMachineIdValue(
 internal sealed record SdkCollectionObjectNameValue(
     string CollectionName,
     string ObjectName,
-    string? ObjectType);
+    string ObjectType);
 
 internal sealed record SdkCollectionGroupNameValue(
     string CollectionName,
