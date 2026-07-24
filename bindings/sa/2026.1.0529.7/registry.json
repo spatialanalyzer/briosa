@@ -8,7 +8,7 @@
   },
   "dispositions": {
     "path": "../../../disposition/sa/2026.1.0529.7/manifest.json",
-    "sha256": "40896e2b012050de410fb0c56063065a32d7af13cc3b6c562b42c7a7cd0840e5"
+    "sha256": "c8b551f2758fa068c9c7a347456a59ea67e92c11fb03d80262f12b1e83734830"
   },
   "interop_assembly": {
     "path": "../../../interop/SpatialAnalyzer/2026.1.0529.7/Briosa.SpatialAnalyzer.Interop.dll",
@@ -2816,8 +2816,8 @@
       "inventory_usage": {
         "argument_count": 14,
         "command_count": 14,
-        "excluded_command_count": 7,
-        "remaining_command_count": 7,
+        "excluded_command_count": 8,
+        "remaining_command_count": 6,
         "sha256": "7bf094ec560cd062124144e87d1aac8621dc128eaf783ce0bd92b17aabb00629"
       },
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
@@ -4073,8 +4073,8 @@
       "inventory_usage": {
         "argument_count": 793,
         "command_count": 378,
-        "excluded_command_count": 56,
-        "remaining_command_count": 322,
+        "excluded_command_count": 67,
+        "remaining_command_count": 311,
         "sha256": "b220ecb6effc7efe8f9eb203fdd52afb7ce4e66a0478395bb3abfcdad4fe3322"
       },
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
@@ -4341,8 +4341,8 @@
       "inventory_usage": {
         "argument_count": 151,
         "command_count": 149,
-        "excluded_command_count": 4,
-        "remaining_command_count": 145,
+        "excluded_command_count": 16,
+        "remaining_command_count": 133,
         "sha256": "972b097095d12156e018cbbab95e2aeb20802ef18515b2aba4c5b4aa85dec220"
       },
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
@@ -4568,8 +4568,8 @@
       "inventory_usage": {
         "argument_count": 37,
         "command_count": 36,
-        "excluded_command_count": 2,
-        "remaining_command_count": 34,
+        "excluded_command_count": 6,
+        "remaining_command_count": 30,
         "sha256": "dedfb69b5aa919e923de25d92a69b3d48e5e268be4060c5348a3ad64f19f8f8a"
       },
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
@@ -4672,8 +4672,8 @@
       "inventory_usage": {
         "argument_count": 665,
         "command_count": 480,
-        "excluded_command_count": 14,
-        "remaining_command_count": 466,
+        "excluded_command_count": 21,
+        "remaining_command_count": 459,
         "sha256": "6b2997da30a6367a59598eb0f6e879c44563db75246733af85558c39d8d7897f"
       },
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
@@ -4715,8 +4715,8 @@
       "inventory_usage": {
         "argument_count": 223,
         "command_count": 187,
-        "excluded_command_count": 29,
-        "remaining_command_count": 158,
+        "excluded_command_count": 32,
+        "remaining_command_count": 155,
         "sha256": "91ffebaeb6fade53e21722788cfb974f153f4c8bcb6d4653e8125b2865a3c71f"
       },
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
@@ -4899,8 +4899,8 @@
       "inventory_usage": {
         "argument_count": 25,
         "command_count": 13,
-        "excluded_command_count": 2,
-        "remaining_command_count": 11,
+        "excluded_command_count": 3,
+        "remaining_command_count": 10,
         "sha256": "92de4e3e9ccc6184b9a548e8b8ae0eea61c685617bff5630e402162c8610d0e8"
       },
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
@@ -5179,8 +5179,8 @@
       "inventory_usage": {
         "argument_count": 7,
         "command_count": 7,
-        "excluded_command_count": 0,
-        "remaining_command_count": 7,
+        "excluded_command_count": 1,
+        "remaining_command_count": 6,
         "sha256": "5ebf6f91cb27896b2d11c55e71ed53675174ca0c0aecaa681a8dabb1f7b90720"
       },
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
@@ -5351,8 +5351,8 @@
       "inventory_usage": {
         "argument_count": 504,
         "command_count": 226,
-        "excluded_command_count": 49,
-        "remaining_command_count": 177,
+        "excluded_command_count": 50,
+        "remaining_command_count": 176,
         "sha256": "fa5f05d69dce35a6debeefb9c41d19915b6bffd934745d725320ea8c150c2e5d"
       },
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
@@ -5879,8 +5879,8 @@
       "inventory_usage": {
         "argument_count": 129,
         "command_count": 120,
-        "excluded_command_count": 16,
-        "remaining_command_count": 104,
+        "excluded_command_count": 17,
+        "remaining_command_count": 103,
         "sha256": "e434e665eaee5af3e139ba77b87610d941fef36c07d4d6133a268fbec332f864"
       },
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
@@ -6129,8 +6129,8 @@
       "inventory_usage": {
         "argument_count": 22,
         "command_count": 21,
-        "excluded_command_count": 11,
-        "remaining_command_count": 10,
+        "excluded_command_count": 12,
+        "remaining_command_count": 9,
         "sha256": "ac85d74c81a86a2b92a39890581360f2432203481d412fa3dfdcfe61d938d6bb"
       },
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
@@ -6344,8 +6344,8 @@
       "inventory_usage": {
         "argument_count": 346,
         "command_count": 243,
-        "excluded_command_count": 100,
-        "remaining_command_count": 143,
+        "excluded_command_count": 106,
+        "remaining_command_count": 137,
         "sha256": "72fb94dc7cf5dd467475051f2c2c6e16383ba33853bd72d28784a22eed66257f"
       },
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
@@ -7226,8 +7226,8 @@
       "inventory_usage": {
         "argument_count": 131,
         "command_count": 97,
-        "excluded_command_count": 5,
-        "remaining_command_count": 92,
+        "excluded_command_count": 8,
+        "remaining_command_count": 89,
         "sha256": "88b791dc1eff2c93ed95e5aeb16ea5fac7c5b0f3d7a0bc100ae1dadf7bd88411"
       },
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
@@ -7342,8 +7342,8 @@
       "inventory_usage": {
         "argument_count": 10,
         "command_count": 10,
-        "excluded_command_count": 0,
-        "remaining_command_count": 10,
+        "excluded_command_count": 2,
+        "remaining_command_count": 8,
         "sha256": "34e391dd33d2e28e4d643ea255ce809583002be9c5243fcf9827ef15a4cb648b"
       },
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
@@ -7919,8 +7919,8 @@
       "inventory_usage": {
         "argument_count": 508,
         "command_count": 367,
-        "excluded_command_count": 162,
-        "remaining_command_count": 205,
+        "excluded_command_count": 171,
+        "remaining_command_count": 196,
         "sha256": "092d380132e1243456ffad12991e80159cc3a857b7d228c22e719aae9871ab28"
       },
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
@@ -8371,8 +8371,8 @@
       "inventory_usage": {
         "argument_count": 18,
         "command_count": 13,
-        "excluded_command_count": 0,
-        "remaining_command_count": 13,
+        "excluded_command_count": 1,
+        "remaining_command_count": 12,
         "sha256": "dcc927f01acbd6b085c21a24133823299b45b6b6ed366a9b41e629a437c79a0b"
       },
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
@@ -8561,8 +8561,8 @@
       "inventory_usage": {
         "argument_count": 2,
         "command_count": 2,
-        "excluded_command_count": 0,
-        "remaining_command_count": 2,
+        "excluded_command_count": 1,
+        "remaining_command_count": 1,
         "sha256": "d9c17536e3853528b3ee1e991bc9266cd8d049ee59db62ea4ba14611768e4e28"
       },
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",

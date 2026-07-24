@@ -82,4 +82,7 @@ The verifier applies both JSON Schemas, checks exact inventory coverage and hash
 
 When a new exact SpatialAnalyzer release is added, create its inventory first and run `disposition-sync` against a new exact-target directory. Never reuse a prior release's decisions without review: MP argument shapes and meanings may change even when names and primitive types appear unchanged.
 
-The first domain-scale review and its fail-closed decision rules are summarized in [SA 2026.1.0529.7 geometry command review](geometry-command-review.md).
+The domain-scale reviews and their fail-closed decision rules are summarized in:
+
+- [SA 2026.1.0529.7 geometry command review](geometry-command-review.md)
+- [SA 2026.1.0529.7 device command review](device-command-review.md)

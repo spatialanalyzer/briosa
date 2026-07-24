@@ -102,7 +102,7 @@
       "category": "InstrumentOperations",
       "path": "categories/instrument_operations.json",
       "entry_count": 185,
-      "sha256": "362bf5cfc4806beb00d3dc0ed7650f4872652c94ceaf5bc42468d27143a39204"
+      "sha256": "39b0b1a2e543cb0150a981a2a73040ab543ccc23b278ac805a30abc5904ed23b"
     },
     {
       "category": "MPSubroutines",
@@ -144,13 +144,13 @@
       "category": "RobotCalibrationApplianceNodeOperations",
       "path": "categories/robot_calibration_appliance_node_operations.json",
       "entry_count": 25,
-      "sha256": "80ead4e62bbe7d84eeeb55af1c6b621521048fe9b38d0c5640955a92ebd2de9b"
+      "sha256": "22c0ef314351fe19e60bf0c72a0897c4b5c802eee05a28e3bddf82a9b349b496"
     },
     {
       "category": "RobotOperations",
       "path": "categories/robot_operations.json",
       "entry_count": 33,
-      "sha256": "ec4e70f427e6db16e9baf027f060e99f1fed842f06be72c0868dbe73461be8dd"
+      "sha256": "5efde6e10d7d0eebacac7a8fd08dc19bff17746c3cf3cfd14f64d1377346dcc9"
     },
     {
       "category": "ScalarMathOperations",
