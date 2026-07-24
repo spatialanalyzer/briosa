@@ -29,12 +29,12 @@ public sealed class BindingRegistryCoverageTests
             .Where(method =>
                 (method.StartsWith("Get", StringComparison.Ordinal) ||
                  method.StartsWith("Set", StringComparison.Ordinal)) &&
-                method.EndsWith("Arg", StringComparison.Ordinal))
+                method.Contains("Arg", StringComparison.Ordinal))
             .OrderBy(method => method, StringComparer.Ordinal)
             .ToArray();
 
         Assert.Equal(workerSeam, registered);
-        Assert.Equal(14, registered.Length);
+        Assert.Equal(39, registered.Length);
 
         using var registry = JsonDocument.Parse(File.ReadAllText(Path.Combine(
             root,
@@ -52,12 +52,29 @@ public sealed class BindingRegistryCoverageTests
             .ToArray();
         Assert.Equal(
             [
+                "chart_name",
+                "cloud_name",
+                "collection_group_name_list",
+                "collection_instrument_id",
+                "collection_instrument_id_list",
+                "collection_machine_id",
+                "collection_name",
+                "collection_object_name",
+                "collection_object_name_list",
+                "collection_vector_group_name",
+                "collection_vector_group_name_list",
                 "floating_point",
+                "frame_name",
                 "logical",
                 "point_name",
+                "point_name_list",
                 "string",
+                "string_list",
                 "tolerance_vector_options",
                 "vector3",
+                "vector_group_name",
+                "vector_name_list",
+                "view_name",
                 "whole_number"
             ],
             implementedFamilies);

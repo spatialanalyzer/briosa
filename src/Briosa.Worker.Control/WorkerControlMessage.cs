@@ -2,7 +2,7 @@ namespace Briosa.Worker.Control;
 
 public static class WorkerControlProtocol
 {
-    public const int CurrentVersion = 4;
+    public const int CurrentVersion = 5;
 
     public const int MaximumMessageBytes = 64 * 1024;
 }
@@ -27,7 +27,24 @@ public enum WorkerMpValueKind
     Text,
     PointName,
     Vector,
-    ToleranceVectorOptions
+    ToleranceVectorOptions,
+    ChartName,
+    CloudName,
+    CollectionGroupNameList,
+    CollectionInstrumentId,
+    CollectionInstrumentIdList,
+    CollectionMachineId,
+    CollectionName,
+    CollectionObjectName,
+    CollectionObjectNameList,
+    CollectionVectorGroupName,
+    CollectionVectorGroupNameList,
+    FrameName,
+    PointNameList,
+    StringList,
+    VectorGroupName,
+    VectorNameList,
+    ViewName
 }
 
 public enum WorkerExecutionResponseStatus
@@ -59,6 +76,51 @@ public sealed record WorkerPointNameValue(
     string GroupName,
     string TargetName);
 
+public sealed record WorkerCollectionInstrumentIdValue(
+    string CollectionName,
+    int InstrumentId);
+
+public sealed record WorkerCollectionMachineIdValue(
+    string CollectionName,
+    int MachineId);
+
+public sealed record WorkerCollectionObjectNameValue(
+    string CollectionName,
+    string ObjectName,
+    string? ObjectType);
+
+public sealed record WorkerCollectionGroupNameValue(
+    string CollectionName,
+    string GroupName);
+
+public sealed record WorkerCollectionVectorGroupNameValue(
+    string CollectionName,
+    string VectorGroupName);
+
+public sealed record WorkerVectorNameValue(
+    string CollectionName,
+    string GroupName,
+    string VectorName);
+
+public sealed record WorkerCollectionInstrumentIdListValue(
+    IReadOnlyList<WorkerCollectionInstrumentIdValue> Values);
+
+public sealed record WorkerCollectionGroupNameListValue(
+    IReadOnlyList<WorkerCollectionGroupNameValue> Values);
+
+public sealed record WorkerCollectionObjectNameListValue(
+    IReadOnlyList<WorkerCollectionObjectNameValue> Values);
+
+public sealed record WorkerCollectionVectorGroupNameListValue(
+    IReadOnlyList<WorkerCollectionVectorGroupNameValue> Values);
+
+public sealed record WorkerPointNameListValue(
+    IReadOnlyList<WorkerPointNameValue> Values);
+
+public sealed record WorkerStringListValue(IReadOnlyList<string> Values);
+
+public sealed record WorkerVectorNameListValue(
+    IReadOnlyList<WorkerVectorNameValue> Values);
 public sealed record WorkerVectorValue(double X, double Y, double Z);
 
 public sealed record WorkerToleranceLimit(bool Enabled, double Value);
@@ -83,8 +145,18 @@ public sealed record WorkerMpInputArgument(
     WorkerPointNameValue? PointNameValue = null,
     WorkerVectorValue? VectorValue = null,
     WorkerToleranceVectorOptionsValue? ToleranceVectorOptionsValue = null,
+    WorkerCollectionInstrumentIdValue? CollectionInstrumentIdValue = null,
+    WorkerCollectionInstrumentIdListValue? CollectionInstrumentIdListValue = null,
+    WorkerCollectionMachineIdValue? CollectionMachineIdValue = null,
+    WorkerCollectionObjectNameValue? CollectionObjectNameValue = null,
+    WorkerCollectionObjectNameListValue? CollectionObjectNameListValue = null,
+    WorkerCollectionGroupNameListValue? CollectionGroupNameListValue = null,
+    WorkerCollectionVectorGroupNameValue? CollectionVectorGroupNameValue = null,
+    WorkerCollectionVectorGroupNameListValue? CollectionVectorGroupNameListValue = null,
+    WorkerPointNameListValue? PointNameListValue = null,
+    WorkerStringListValue? StringListValue = null,
+    WorkerVectorNameListValue? VectorNameListValue = null,
     string? SdkBinding = null);
-
 public sealed record WorkerMpOutputArgument(
     string Name,
     WorkerMpValueKind Kind,
@@ -100,8 +172,18 @@ public sealed record WorkerMpOutputValue(
     string? StringValue = null,
     WorkerPointNameValue? PointNameValue = null,
     WorkerVectorValue? VectorValue = null,
-    WorkerToleranceVectorOptionsValue? ToleranceVectorOptionsValue = null);
-
+    WorkerToleranceVectorOptionsValue? ToleranceVectorOptionsValue = null,
+    WorkerCollectionInstrumentIdValue? CollectionInstrumentIdValue = null,
+    WorkerCollectionInstrumentIdListValue? CollectionInstrumentIdListValue = null,
+    WorkerCollectionMachineIdValue? CollectionMachineIdValue = null,
+    WorkerCollectionObjectNameValue? CollectionObjectNameValue = null,
+    WorkerCollectionObjectNameListValue? CollectionObjectNameListValue = null,
+    WorkerCollectionGroupNameListValue? CollectionGroupNameListValue = null,
+    WorkerCollectionVectorGroupNameValue? CollectionVectorGroupNameValue = null,
+    WorkerCollectionVectorGroupNameListValue? CollectionVectorGroupNameListValue = null,
+    WorkerPointNameListValue? PointNameListValue = null,
+    WorkerStringListValue? StringListValue = null,
+    WorkerVectorNameListValue? VectorNameListValue = null);
 public sealed record WorkerMpCommand(
     string OperationId,
     string StepName,

@@ -147,7 +147,13 @@ internal static class TestWorkerProcess
                 new(output.Name, output.Kind, Retrieved: true, IntegerValue: 7),
             WorkerMpValueKind.FloatingPoint =>
                 new(output.Name, output.Kind, Retrieved: true, DoubleValue: 1.25),
-            WorkerMpValueKind.Text =>
+            WorkerMpValueKind.Text or
+            WorkerMpValueKind.ChartName or
+            WorkerMpValueKind.CloudName or
+            WorkerMpValueKind.CollectionName or
+            WorkerMpValueKind.FrameName or
+            WorkerMpValueKind.VectorGroupName or
+            WorkerMpValueKind.ViewName =>
                 new(output.Name, output.Kind, Retrieved: true, StringValue: "scripted-output"),
             WorkerMpValueKind.PointName =>
                 new(
@@ -170,6 +176,91 @@ internal static class TestWorkerProcess
                     output.Kind,
                     Retrieved: true,
                     ToleranceVectorOptionsValue: CreateToleranceVectorOptions()),
+            WorkerMpValueKind.CollectionInstrumentId =>
+                new(
+                    output.Name,
+                    output.Kind,
+                    Retrieved: true,
+                    CollectionInstrumentIdValue:
+                        new WorkerCollectionInstrumentIdValue("Collection", 17)),
+            WorkerMpValueKind.CollectionInstrumentIdList =>
+                new(
+                    output.Name,
+                    output.Kind,
+                    Retrieved: true,
+                    CollectionInstrumentIdListValue:
+                        new WorkerCollectionInstrumentIdListValue(
+                            [new WorkerCollectionInstrumentIdValue("Collection", 17)])),
+            WorkerMpValueKind.CollectionMachineId =>
+                new(
+                    output.Name,
+                    output.Kind,
+                    Retrieved: true,
+                    CollectionMachineIdValue:
+                        new WorkerCollectionMachineIdValue("Collection", 18)),
+            WorkerMpValueKind.CollectionObjectName =>
+                new(
+                    output.Name,
+                    output.Kind,
+                    Retrieved: true,
+                    CollectionObjectNameValue:
+                        new WorkerCollectionObjectNameValue("Collection", "Object", null)),
+            WorkerMpValueKind.CollectionObjectNameList =>
+                new(
+                    output.Name,
+                    output.Kind,
+                    Retrieved: true,
+                    CollectionObjectNameListValue:
+                        new WorkerCollectionObjectNameListValue(
+                            [new WorkerCollectionObjectNameValue(
+                                "Collection", "Object", "Point Group")])),
+            WorkerMpValueKind.CollectionGroupNameList =>
+                new(
+                    output.Name,
+                    output.Kind,
+                    Retrieved: true,
+                    CollectionGroupNameListValue:
+                        new WorkerCollectionGroupNameListValue(
+                            [new WorkerCollectionGroupNameValue("Collection", "Group")])),
+            WorkerMpValueKind.CollectionVectorGroupName =>
+                new(
+                    output.Name,
+                    output.Kind,
+                    Retrieved: true,
+                    CollectionVectorGroupNameValue:
+                        new WorkerCollectionVectorGroupNameValue("Collection", "Vectors")),
+            WorkerMpValueKind.CollectionVectorGroupNameList =>
+                new(
+                    output.Name,
+                    output.Kind,
+                    Retrieved: true,
+                    CollectionVectorGroupNameListValue:
+                        new WorkerCollectionVectorGroupNameListValue(
+                            [new WorkerCollectionVectorGroupNameValue(
+                                "Collection", "Vectors")])),
+            WorkerMpValueKind.PointNameList =>
+                new(
+                    output.Name,
+                    output.Kind,
+                    Retrieved: true,
+                    PointNameListValue:
+                        new WorkerPointNameListValue(
+                            [new WorkerPointNameValue("Collection", "Group", "Point")])),
+            WorkerMpValueKind.StringList =>
+                new(
+                    output.Name,
+                    output.Kind,
+                    Retrieved: true,
+                    StringListValue: new WorkerStringListValue(["A", "B"])),
+            WorkerMpValueKind.VectorNameList =>
+                new(
+                    output.Name,
+                    output.Kind,
+                    Retrieved: true,
+                    VectorNameListValue:
+                        new WorkerVectorNameListValue(
+                            [new WorkerVectorNameValue(
+                                "Collection", "Vectors", "Vector")])),
             _ => new(output.Name, output.Kind, Retrieved: false)
         };
 

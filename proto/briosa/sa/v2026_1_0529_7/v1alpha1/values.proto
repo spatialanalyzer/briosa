@@ -12,6 +12,76 @@ message PointName {
   optional string target_name = 3;
 }
 
+// Identifies an instrument by its containing collection and numeric identifier.
+message CollectionInstrumentId {
+  optional string collection_name = 1;
+  optional int32 instrument_id = 2;
+}
+
+// Identifies a machine by its containing collection and numeric identifier.
+// This remains distinct from CollectionInstrumentId even though the primitive
+// component shapes are identical.
+message CollectionMachineId {
+  optional string collection_name = 1;
+  optional int32 machine_id = 2;
+}
+
+// Identifies a collection object. SetCollectionObjectNameArg2 requires
+// object_type; the exact-target getter returns only collection_name and
+// object_name, so an output may legitimately omit object_type.
+message CollectionObjectName {
+  optional string collection_name = 1;
+  optional string object_name = 2;
+  optional string object_type = 3;
+}
+
+// Identifies a group by collection and group name.
+message CollectionGroupName {
+  optional string collection_name = 1;
+  optional string group_name = 2;
+}
+
+// Identifies a vector group by collection and vector-group name.
+message CollectionVectorGroupName {
+  optional string collection_name = 1;
+  optional string vector_group_name = 2;
+}
+
+// Identifies a vector by collection, vector group, and vector name.
+message VectorName {
+  optional string collection_name = 1;
+  optional string group_name = 2;
+  optional string name = 3;
+}
+
+message CollectionInstrumentIdList {
+  repeated CollectionInstrumentId values = 1;
+}
+
+message CollectionGroupNameList {
+  repeated CollectionGroupName values = 1;
+}
+
+message CollectionObjectNameList {
+  repeated CollectionObjectName values = 1;
+}
+
+message CollectionVectorGroupNameList {
+  repeated CollectionVectorGroupName values = 1;
+}
+
+message PointNameList {
+  repeated PointName values = 1;
+}
+
+message StringList {
+  repeated string values = 1;
+}
+
+message VectorNameList {
+  repeated VectorName values = 1;
+}
+
 // Carries three numeric components. The owning target-scoped command field
 // determines whether they represent coordinates, a direction, weights, or
 // another SpatialAnalyzer concept.

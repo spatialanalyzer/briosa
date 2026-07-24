@@ -102,6 +102,18 @@ internal sealed class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
                 sdk.SetDoubleArg(argument.Name, value),
             SdkValueKind.Text when argument.StringValue is { } value =>
                 sdk.SetStringArg(argument.Name, value),
+            SdkValueKind.ChartName when argument.StringValue is { } value =>
+                sdk.SetChartNameArg(argument.Name, value),
+            SdkValueKind.CloudName when argument.StringValue is { } value =>
+                sdk.SetCloudNameArg(argument.Name, value),
+            SdkValueKind.CollectionName when argument.StringValue is { } value =>
+                sdk.SetCollectionNameArg(argument.Name, value),
+            SdkValueKind.FrameName when argument.StringValue is { } value =>
+                sdk.SetFrameNameArg(argument.Name, value),
+            SdkValueKind.VectorGroupName when argument.StringValue is { } value =>
+                sdk.SetVectorGroupNameArg(argument.Name, value),
+            SdkValueKind.ViewName when argument.StringValue is { } value =>
+                sdk.SetViewNameArg(argument.Name, value),
             SdkValueKind.PointName when argument.PointNameValue is { } value =>
                 sdk.SetPointNameArg(
                     argument.Name,
@@ -113,6 +125,43 @@ internal sealed class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
             SdkValueKind.ToleranceVectorOptions
                 when argument.ToleranceVectorOptionsValue is { } value =>
                 SetToleranceVectorOptions(sdk, argument.Name, value),
+            SdkValueKind.CollectionInstrumentId
+                when argument.CollectionInstrumentIdValue is { } value =>
+                sdk.SetColInstIdArg(argument.Name, value.CollectionName, value.InstrumentId),
+            SdkValueKind.CollectionInstrumentIdList
+                when argument.CollectionInstrumentIdListValue is { } value =>
+                SetCollectionInstrumentIdList(sdk, argument.Name, value),
+            SdkValueKind.CollectionMachineId
+                when argument.CollectionMachineIdValue is { } value =>
+                sdk.SetColMachineIdArg(argument.Name, value.CollectionName, value.MachineId),
+            SdkValueKind.CollectionObjectName
+                when argument.CollectionObjectNameValue is { ObjectType: not null } value =>
+                sdk.SetCollectionObjectNameArg2(
+                    argument.Name,
+                    value.CollectionName,
+                    value.ObjectName,
+                    value.ObjectType),
+            SdkValueKind.CollectionObjectNameList
+                when argument.CollectionObjectNameListValue is { } value =>
+                SetCollectionObjectNameList(sdk, argument.Name, value),
+            SdkValueKind.CollectionGroupNameList
+                when argument.CollectionGroupNameListValue is { } value =>
+                SetCollectionGroupNameList(sdk, argument.Name, value),
+            SdkValueKind.CollectionVectorGroupName
+                when argument.CollectionVectorGroupNameValue is { } value =>
+                sdk.SetColVectorGroupNameArg(
+                    argument.Name,
+                    value.CollectionName,
+                    value.VectorGroupName),
+            SdkValueKind.CollectionVectorGroupNameList
+                when argument.CollectionVectorGroupNameListValue is { } value =>
+                SetCollectionVectorGroupNameList(sdk, argument.Name, value),
+            SdkValueKind.PointNameList when argument.PointNameListValue is { } value =>
+                SetPointNameList(sdk, argument.Name, value),
+            SdkValueKind.StringList when argument.StringListValue is { } value =>
+                SetStringList(sdk, argument.Name, value),
+            SdkValueKind.VectorNameList when argument.VectorNameListValue is { } value =>
+                SetVectorNameList(sdk, argument.Name, value),
             _ => false
         };
 
@@ -131,6 +180,20 @@ internal sealed class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
                 SdkValueKind.Vector => GetVector(sdk, argument),
                 SdkValueKind.ToleranceVectorOptions =>
                     GetToleranceVectorOptions(sdk, argument),
+                SdkValueKind.CollectionInstrumentId =>
+                    GetCollectionInstrumentId(sdk, argument),
+                SdkValueKind.CollectionInstrumentIdList =>
+                    GetCollectionInstrumentIdList(sdk, argument),
+                SdkValueKind.CollectionName => GetNamedString(
+                    sdk.GetCollectionNameArg,
+                    argument),
+                SdkValueKind.CollectionObjectName =>
+                    GetCollectionObjectName(sdk, argument),
+                SdkValueKind.CollectionObjectNameList =>
+                    GetCollectionObjectNameList(sdk, argument),
+                SdkValueKind.PointNameList => GetPointNameList(sdk, argument),
+                SdkValueKind.StringList => GetStringList(sdk, argument),
+                SdkValueKind.VectorNameList => GetVectorNameList(sdk, argument),
                 _ => new SdkOutputValue(argument.Name, argument.Kind, Retrieved: false)
             };
 
@@ -257,6 +320,216 @@ internal sealed class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
                 : null);
     }
 
+    private static bool SetCollectionInstrumentIdList(
+        ISpatialAnalyzerSdkCalls sdk,
+        string name,
+        SdkCollectionInstrumentIdListValue value) =>
+        SetReferenceList(
+            value.Values.Select(SdkReferenceListCodec.Format),
+            (ref object values) => sdk.SetColInstIdRefListArg(name, ref values));
+
+    private static bool SetCollectionGroupNameList(
+        ISpatialAnalyzerSdkCalls sdk,
+        string name,
+        SdkCollectionGroupNameListValue value) =>
+        SetReferenceList(
+            value.Values.Select(SdkReferenceListCodec.Format),
+            (ref object values) => sdk.SetCollectionGroupNameRefListArg(name, ref values));
+
+    private static bool SetCollectionObjectNameList(
+        ISpatialAnalyzerSdkCalls sdk,
+        string name,
+        SdkCollectionObjectNameListValue value) =>
+        SetReferenceList(
+            value.Values.Select(SdkReferenceListCodec.Format),
+            (ref object values) => sdk.SetCollectionObjectNameRefListArg(name, ref values));
+
+    private static bool SetCollectionVectorGroupNameList(
+        ISpatialAnalyzerSdkCalls sdk,
+        string name,
+        SdkCollectionVectorGroupNameListValue value) =>
+        SetReferenceList(
+            value.Values.Select(SdkReferenceListCodec.Format),
+            (ref object values) => sdk.SetCollectionVectorGroupNameRefListArg(name, ref values));
+
+    private static bool SetPointNameList(
+        ISpatialAnalyzerSdkCalls sdk,
+        string name,
+        SdkPointNameListValue value) =>
+        SetReferenceList(
+            value.Values.Select(SdkReferenceListCodec.Format),
+            (ref object values) => sdk.SetPointNameRefListArg(name, ref values));
+
+    private static bool SetStringList(
+        ISpatialAnalyzerSdkCalls sdk,
+        string name,
+        SdkStringListValue value) =>
+        SetReferenceList(
+            value.Values,
+            (ref object values) => sdk.SetStringRefListArg(name, ref values));
+
+    private static bool SetVectorNameList(
+        ISpatialAnalyzerSdkCalls sdk,
+        string name,
+        SdkVectorNameListValue value) =>
+        SetReferenceList(
+            value.Values.Select(SdkReferenceListCodec.Format),
+            (ref object values) => sdk.SetVectorNameRefListArg(name, ref values));
+
+    private static bool SetReferenceList(
+        IEnumerable<string> values,
+        ReferenceListCall call)
+    {
+        try
+        {
+            var sdkValue = SdkReferenceListCodec.ToComValue(values);
+            return call(ref sdkValue);
+        }
+        catch (ArgumentException)
+        {
+            return false;
+        }
+    }
+
+    private static SdkOutputValue GetCollectionInstrumentId(
+        ISpatialAnalyzerSdkCalls sdk,
+        SdkOutputArgument argument)
+    {
+        var collectionName = string.Empty;
+        var instrumentId = 0;
+        var retrieved = sdk.GetColInstIdArg(
+            argument.Name,
+            ref collectionName,
+            ref instrumentId);
+        return new SdkOutputValue(
+            argument.Name,
+            argument.Kind,
+            retrieved,
+            CollectionInstrumentIdValue: retrieved
+                ? new SdkCollectionInstrumentIdValue(collectionName, instrumentId)
+                : null);
+    }
+
+    private static SdkOutputValue GetCollectionObjectName(
+        ISpatialAnalyzerSdkCalls sdk,
+        SdkOutputArgument argument)
+    {
+        var collectionName = string.Empty;
+        var objectName = string.Empty;
+        var retrieved = sdk.GetCollectionObjectNameArg(
+            argument.Name,
+            ref collectionName,
+            ref objectName);
+        return new SdkOutputValue(
+            argument.Name,
+            argument.Kind,
+            retrieved,
+            CollectionObjectNameValue: retrieved
+                ? new SdkCollectionObjectNameValue(collectionName, objectName, null)
+                : null);
+    }
+
+    private static SdkOutputValue GetNamedString(
+        NamedStringGetter getter,
+        SdkOutputArgument argument)
+    {
+        var value = string.Empty;
+        var retrieved = getter(argument.Name, ref value);
+        return new SdkOutputValue(
+            argument.Name,
+            argument.Kind,
+            retrieved,
+            StringValue: retrieved ? value : null);
+    }
+
+    private static SdkOutputValue GetCollectionInstrumentIdList(
+        ISpatialAnalyzerSdkCalls sdk,
+        SdkOutputArgument argument) =>
+        GetReferenceList<SdkCollectionInstrumentIdListValue>(
+            argument,
+            sdk.GetColInstIdRefListArg,
+            SdkReferenceListCodec.TryParseInstrumentIds,
+            (name, kind, value) => new SdkOutputValue(
+                name,
+                kind,
+                true,
+                CollectionInstrumentIdListValue: value));
+
+    private static SdkOutputValue GetCollectionObjectNameList(
+        ISpatialAnalyzerSdkCalls sdk,
+        SdkOutputArgument argument) =>
+        GetReferenceList<SdkCollectionObjectNameListValue>(
+            argument,
+            sdk.GetCollectionObjectNameRefListArg,
+            SdkReferenceListCodec.TryParseObjectNames,
+            (name, kind, value) => new SdkOutputValue(
+                name,
+                kind,
+                true,
+                CollectionObjectNameListValue: value));
+
+    private static SdkOutputValue GetPointNameList(
+        ISpatialAnalyzerSdkCalls sdk,
+        SdkOutputArgument argument) =>
+        GetReferenceList<SdkPointNameListValue>(
+            argument,
+            sdk.GetPointNameRefListArg,
+            SdkReferenceListCodec.TryParsePointNames,
+            (name, kind, value) => new SdkOutputValue(
+                name,
+                kind,
+                true,
+                PointNameListValue: value));
+
+    private static SdkOutputValue GetStringList(
+        ISpatialAnalyzerSdkCalls sdk,
+        SdkOutputArgument argument) =>
+        GetReferenceList<SdkStringListValue>(
+            argument,
+            sdk.GetStringRefListArg,
+            SdkReferenceListCodec.TryParseStrings,
+            (name, kind, value) => new SdkOutputValue(
+                name,
+                kind,
+                true,
+                StringListValue: value));
+
+    private static SdkOutputValue GetVectorNameList(
+        ISpatialAnalyzerSdkCalls sdk,
+        SdkOutputArgument argument) =>
+        GetReferenceList<SdkVectorNameListValue>(
+            argument,
+            sdk.GetVectorNameRefListArg,
+            SdkReferenceListCodec.TryParseVectorNames,
+            (name, kind, value) => new SdkOutputValue(
+                name,
+                kind,
+                true,
+                VectorNameListValue: value));
+
+    private static SdkOutputValue GetReferenceList<T>(
+        SdkOutputArgument argument,
+        ReferenceListGetter getter,
+        TryParseList<T> parser,
+        Func<string, SdkValueKind, T, SdkOutputValue> create)
+        where T : class
+    {
+        object value = Array.Empty<object>();
+        if (!getter(argument.Name, ref value) || !parser(value, out var parsed) || parsed is null)
+        {
+            return new SdkOutputValue(argument.Name, argument.Kind, Retrieved: false);
+        }
+
+        return create(argument.Name, argument.Kind, parsed);
+    }
+
+    private delegate bool ReferenceListCall(ref object values);
+
+    private delegate bool ReferenceListGetter(string name, ref object values);
+
+    private delegate bool NamedStringGetter(string name, ref string value);
+
+    private delegate bool TryParseList<T>(object value, out T? result) where T : class;
     private static bool HasExpectedBinding(string? actual, string expected) =>
         actual is null || string.Equals(actual, expected, StringComparison.Ordinal);
 
@@ -270,6 +543,23 @@ internal sealed class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
             SdkValueKind.PointName => "SetPointNameArg",
             SdkValueKind.Vector => "SetVectorArg",
             SdkValueKind.ToleranceVectorOptions => "SetToleranceVectorOptionsArg",
+            SdkValueKind.ChartName => "SetChartNameArg",
+            SdkValueKind.CloudName => "SetCloudNameArg",
+            SdkValueKind.CollectionGroupNameList => "SetCollectionGroupNameRefListArg",
+            SdkValueKind.CollectionInstrumentId => "SetColInstIdArg",
+            SdkValueKind.CollectionInstrumentIdList => "SetColInstIdRefListArg",
+            SdkValueKind.CollectionMachineId => "SetColMachineIdArg",
+            SdkValueKind.CollectionName => "SetCollectionNameArg",
+            SdkValueKind.CollectionObjectName => "SetCollectionObjectNameArg2",
+            SdkValueKind.CollectionObjectNameList => "SetCollectionObjectNameRefListArg",
+            SdkValueKind.CollectionVectorGroupName => "SetColVectorGroupNameArg",
+            SdkValueKind.CollectionVectorGroupNameList => "SetCollectionVectorGroupNameRefListArg",
+            SdkValueKind.FrameName => "SetFrameNameArg",
+            SdkValueKind.PointNameList => "SetPointNameRefListArg",
+            SdkValueKind.StringList => "SetStringRefListArg",
+            SdkValueKind.VectorGroupName => "SetVectorGroupNameArg",
+            SdkValueKind.VectorNameList => "SetVectorNameRefListArg",
+            SdkValueKind.ViewName => "SetViewNameArg",
             _ => throw new UnreachableException()
         };
 
@@ -283,9 +573,25 @@ internal sealed class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
             SdkValueKind.PointName => "GetPointNameArg",
             SdkValueKind.Vector => "GetVectorArg",
             SdkValueKind.ToleranceVectorOptions => "GetToleranceVectorOptionsArg",
+            SdkValueKind.ChartName => "GetChartNameArg",
+            SdkValueKind.CloudName => "GetCloudNameArg",
+            SdkValueKind.CollectionGroupNameList => "GetCollectionGroupNameRefListArg",
+            SdkValueKind.CollectionInstrumentId => "GetColInstIdArg",
+            SdkValueKind.CollectionInstrumentIdList => "GetColInstIdRefListArg",
+            SdkValueKind.CollectionMachineId => "GetColMachineIdArg",
+            SdkValueKind.CollectionName => "GetCollectionNameArg",
+            SdkValueKind.CollectionObjectName => "GetCollectionObjectNameArg",
+            SdkValueKind.CollectionObjectNameList => "GetCollectionObjectNameRefListArg",
+            SdkValueKind.CollectionVectorGroupName => "GetColVectorGroupNameArg",
+            SdkValueKind.CollectionVectorGroupNameList => "GetCollectionVectorGroupNameRefListArg",
+            SdkValueKind.FrameName => "GetFrameNameArg",
+            SdkValueKind.PointNameList => "GetPointNameRefListArg",
+            SdkValueKind.StringList => "GetStringRefListArg",
+            SdkValueKind.VectorGroupName => "GetVectorGroupNameArg",
+            SdkValueKind.VectorNameList => "GetVectorNameRefListArg",
+            SdkValueKind.ViewName => "GetViewNameArg",
             _ => throw new UnreachableException()
         };
-
     private static bool SetToleranceVectorOptions(
         ISpatialAnalyzerSdkCalls sdk,
         string name,
@@ -346,6 +652,63 @@ internal sealed class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
             string targetName) =>
             Sdk.SetPointNameArg(name, collectionName, groupName, targetName);
 
+        public bool SetChartNameArg(string name, string chartName) =>
+            Sdk.SetChartNameArg(name, chartName);
+
+        public bool SetCloudNameArg(string name, string cloudName) =>
+            Sdk.SetCloudNameArg(name, cloudName);
+
+        public bool SetColInstIdArg(string name, string collectionName, int instrumentId) =>
+            Sdk.SetColInstIdArg(name, collectionName, instrumentId);
+
+        public bool SetColInstIdRefListArg(string name, ref object values) =>
+            Sdk.SetColInstIdRefListArg(name, ref values);
+
+        public bool SetColMachineIdArg(string name, string collectionName, int machineId) =>
+            Sdk.SetColMachineIdArg(name, collectionName, machineId);
+
+        public bool SetCollectionGroupNameRefListArg(string name, ref object values) =>
+            Sdk.SetCollectionGroupNameRefListArg(name, ref values);
+
+        public bool SetCollectionNameArg(string name, string collectionName) =>
+            Sdk.SetCollectionNameArg(name, collectionName);
+
+        public bool SetCollectionObjectNameArg2(
+            string name,
+            string collectionName,
+            string objectName,
+            string objectType) =>
+            Sdk.SetCollectionObjectNameArg2(name, collectionName, objectName, objectType);
+
+        public bool SetCollectionObjectNameRefListArg(string name, ref object values) =>
+            Sdk.SetCollectionObjectNameRefListArg(name, ref values);
+
+        public bool SetCollectionVectorGroupNameRefListArg(string name, ref object values) =>
+            Sdk.SetCollectionVectorGroupNameRefListArg(name, ref values);
+
+        public bool SetColVectorGroupNameArg(
+            string name,
+            string collectionName,
+            string vectorGroupName) =>
+            Sdk.SetColVectorGroupNameArg(name, collectionName, vectorGroupName);
+
+        public bool SetFrameNameArg(string name, string frameName) =>
+            Sdk.SetFrameNameArg(name, frameName);
+
+        public bool SetPointNameRefListArg(string name, ref object values) =>
+            Sdk.SetPointNameRefListArg(name, ref values);
+
+        public bool SetStringRefListArg(string name, ref object values) =>
+            Sdk.SetStringRefListArg(name, ref values);
+
+        public bool SetVectorGroupNameArg(string name, string vectorGroupName) =>
+            Sdk.SetVectorGroupNameArg(name, vectorGroupName);
+
+        public bool SetVectorNameRefListArg(string name, ref object values) =>
+            Sdk.SetVectorNameRefListArg(name, ref values);
+
+        public bool SetViewNameArg(string name, string viewName) =>
+            Sdk.SetViewNameArg(name, viewName);
         public bool SetVectorArg(string name, double x, double y, double z) =>
             Sdk.SetVectorArg(name, x, y, z);
 
@@ -414,6 +777,35 @@ internal sealed class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
                 ref groupName,
                 ref targetName);
 
+        public bool GetColInstIdArg(
+            string name,
+            ref string collectionName,
+            ref int instrumentId) =>
+            Sdk.GetColInstIdArg(name, ref collectionName, ref instrumentId);
+
+        public bool GetColInstIdRefListArg(string name, ref object values) =>
+            Sdk.GetColInstIdRefListArg(name, ref values);
+
+        public bool GetCollectionNameArg(string name, ref string collectionName) =>
+            Sdk.GetCollectionNameArg(name, ref collectionName);
+
+        public bool GetCollectionObjectNameArg(
+            string name,
+            ref string collectionName,
+            ref string objectName) =>
+            Sdk.GetCollectionObjectNameArg(name, ref collectionName, ref objectName);
+
+        public bool GetCollectionObjectNameRefListArg(string name, ref object values) =>
+            Sdk.GetCollectionObjectNameRefListArg(name, ref values);
+
+        public bool GetPointNameRefListArg(string name, ref object values) =>
+            Sdk.GetPointNameRefListArg(name, ref values);
+
+        public bool GetStringRefListArg(string name, ref object values) =>
+            Sdk.GetStringRefListArg(name, ref values);
+
+        public bool GetVectorNameRefListArg(string name, ref object values) =>
+            Sdk.GetVectorNameRefListArg(name, ref values);
         public bool GetVectorArg(
             string name,
             ref double x,

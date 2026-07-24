@@ -106,17 +106,17 @@ public sealed class SdkBindingRegistryTests
             bindings["GetCollectionObjectNameArg"].SemanticValueFamily,
             bindings["SetCollectionObjectNameArg2"].SemanticValueFamily);
 
-        Assert.Equal(14, registry.Bindings.Count(binding =>
+        Assert.Equal(39, registry.Bindings.Count(binding =>
             binding.Coverage.Protocol == "implemented"));
-        Assert.Equal(14, registry.Bindings.Count(binding =>
+        Assert.Equal(39, registry.Bindings.Count(binding =>
             binding.Coverage.Worker == "implemented"));
-        Assert.Equal(14, registry.Bindings.Count(binding =>
+        Assert.Equal(39, registry.Bindings.Count(binding =>
             binding.Coverage.Adapter == "implemented"));
-        Assert.Equal(14, registry.Bindings.Count(binding =>
+        Assert.Equal(39, registry.Bindings.Count(binding =>
             binding.Coverage.Fake == "implemented"));
-        Assert.Equal(14, registry.Bindings.Count(binding =>
+        Assert.Equal(39, registry.Bindings.Count(binding =>
             binding.Coverage.Generator == "implemented"));
-        Assert.Equal(7, registry.ValueFamilies.Count(family =>
+        Assert.Equal(24, registry.ValueFamilies.Count(family =>
             family.ImplementationStatus == "implemented"));
         Assert.All(
             registry.Bindings.Where(binding => binding.RegistryStatus == "usable"),

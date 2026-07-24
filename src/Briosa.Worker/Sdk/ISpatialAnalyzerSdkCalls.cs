@@ -23,6 +23,46 @@ internal interface ISpatialAnalyzerSdkCalls : IDisposable
         string groupName,
         string targetName);
 
+    bool SetChartNameArg(string name, string chartName);
+
+    bool SetCloudNameArg(string name, string cloudName);
+
+    bool SetColInstIdArg(string name, string collectionName, int instrumentId);
+
+    bool SetColInstIdRefListArg(string name, ref object values);
+
+    bool SetColMachineIdArg(string name, string collectionName, int machineId);
+
+    bool SetCollectionGroupNameRefListArg(string name, ref object values);
+
+    bool SetCollectionNameArg(string name, string collectionName);
+
+    bool SetCollectionObjectNameArg2(
+        string name,
+        string collectionName,
+        string objectName,
+        string objectType);
+
+    bool SetCollectionObjectNameRefListArg(string name, ref object values);
+
+    bool SetCollectionVectorGroupNameRefListArg(string name, ref object values);
+
+    bool SetColVectorGroupNameArg(
+        string name,
+        string collectionName,
+        string vectorGroupName);
+
+    bool SetFrameNameArg(string name, string frameName);
+
+    bool SetPointNameRefListArg(string name, ref object values);
+
+    bool SetStringRefListArg(string name, ref object values);
+
+    bool SetVectorGroupNameArg(string name, string vectorGroupName);
+
+    bool SetVectorNameRefListArg(string name, ref object values);
+
+    bool SetViewNameArg(string name, string viewName);
     bool SetVectorArg(string name, double x, double y, double z);
 
     bool SetToleranceVectorOptionsArg(
@@ -62,6 +102,27 @@ internal interface ISpatialAnalyzerSdkCalls : IDisposable
         ref string groupName,
         ref string targetName);
 
+    bool GetColInstIdArg(
+        string name,
+        ref string collectionName,
+        ref int instrumentId);
+
+    bool GetColInstIdRefListArg(string name, ref object values);
+
+    bool GetCollectionNameArg(string name, ref string collectionName);
+
+    bool GetCollectionObjectNameArg(
+        string name,
+        ref string collectionName,
+        ref string objectName);
+
+    bool GetCollectionObjectNameRefListArg(string name, ref object values);
+
+    bool GetPointNameRefListArg(string name, ref object values);
+
+    bool GetStringRefListArg(string name, ref object values);
+
+    bool GetVectorNameRefListArg(string name, ref object values);
     bool GetVectorArg(string name, ref double x, ref double y, ref double z);
 
     bool GetToleranceVectorOptionsArg(

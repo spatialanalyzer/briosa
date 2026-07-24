@@ -279,6 +279,40 @@ public sealed class WorkerProcessSupervisorTests
     }
 
     [Fact]
+    public async Task IdentityReferenceValuesRoundTripAcrossTheWorkerPipe()
+    {
+        await using var supervisor = CreateSupervisor(
+            _ => CreateLaunch("normal"),
+            CreatePolicy(heartbeatInterval: TimeSpan.FromSeconds(10)));
+
+        Assert.True(await supervisor.StartAsync());
+        var result = await supervisor.ExecuteAsync(CreateIdentityReferenceCommand());
+
+        Assert.Equal(WorkerExecutionStatus.Completed, result.Status);
+        var outputs = result.Execution!.OutputValues;
+        Assert.Equal(5, outputs.Count);
+        Assert.All(outputs, output => Assert.True(output.Retrieved));
+        Assert.Equal(
+            17,
+            outputs.Single(value => value.Kind == WorkerMpValueKind.CollectionInstrumentId)
+                .CollectionInstrumentIdValue!.InstrumentId);
+        Assert.Null(
+            outputs.Single(value => value.Kind == WorkerMpValueKind.CollectionObjectName)
+                .CollectionObjectNameValue!.ObjectType);
+        Assert.Equal(
+            "Point",
+            outputs.Single(value => value.Kind == WorkerMpValueKind.PointNameList)
+                .PointNameListValue!.Values[0].TargetName);
+        Assert.Equal(
+            ["A", "B"],
+            outputs.Single(value => value.Kind == WorkerMpValueKind.StringList)
+                .StringListValue!.Values);
+        Assert.Equal(
+            "Vector",
+            outputs.Single(value => value.Kind == WorkerMpValueKind.VectorNameList)
+                .VectorNameListValue!.Values[0].VectorName);
+    }
+    [Fact]
     public async Task MpFailureIsPreservedWhenExecuteStepReturnsTrue()
     {
         await using var supervisor = CreateSupervisor(
@@ -371,6 +405,50 @@ public sealed class WorkerProcessSupervisorTests
     }
 
 
+    private static WorkerMpCommand CreateIdentityReferenceCommand() =>
+        new(
+            "identity-reference-pipe",
+            "Identity Reference Pipe",
+            [
+                new WorkerMpInputArgument(
+                    "Object",
+                    WorkerMpValueKind.CollectionObjectName,
+                    CollectionObjectNameValue: new WorkerCollectionObjectNameValue(
+                        "Collection",
+                        "Object",
+                        "Point Group")),
+                new WorkerMpInputArgument(
+                    "Points",
+                    WorkerMpValueKind.PointNameList,
+                    PointNameListValue: new WorkerPointNameListValue(
+                        [new WorkerPointNameValue("Collection", "Group", "Point")])),
+                new WorkerMpInputArgument(
+                    "Strings",
+                    WorkerMpValueKind.StringList,
+                    StringListValue: new WorkerStringListValue([])),
+                new WorkerMpInputArgument(
+                    "Machine",
+                    WorkerMpValueKind.CollectionMachineId,
+                    CollectionMachineIdValue:
+                        new WorkerCollectionMachineIdValue("Collection", 4))
+            ],
+            [
+                new WorkerMpOutputArgument(
+                    "Instrument",
+                    WorkerMpValueKind.CollectionInstrumentId),
+                new WorkerMpOutputArgument(
+                    "Object",
+                    WorkerMpValueKind.CollectionObjectName),
+                new WorkerMpOutputArgument(
+                    "Points",
+                    WorkerMpValueKind.PointNameList),
+                new WorkerMpOutputArgument(
+                    "Strings",
+                    WorkerMpValueKind.StringList),
+                new WorkerMpOutputArgument(
+                    "Vectors",
+                    WorkerMpValueKind.VectorNameList)
+            ]);
     private static WorkerMpCommand CreateCommand(string operationId) =>
         new(
             operationId,

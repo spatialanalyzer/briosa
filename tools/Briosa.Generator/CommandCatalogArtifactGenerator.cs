@@ -323,7 +323,7 @@ internal static class CommandCatalogArtifactGenerator
             : $"request.Has{property}";
         builder.Append("        if (").Append(present).AppendLine(")");
         builder.AppendLine("        {");
-        if (IsMessageType(input.SemanticType))
+        if (RequiresComponentValidation(input.SemanticType))
         {
             AppendMessageValidation(builder, input, property, "            ");
         }
@@ -358,12 +358,32 @@ internal static class CommandCatalogArtifactGenerator
         string property,
         string indentation)
     {
+        var value = $"request.{property}";
         var condition = input.SemanticType switch
         {
-            "point_name" => $"!request.{property}.HasCollectionName || !request.{property}.HasGroupName || !request.{property}.HasTargetName",
-            "vector" => $"!request.{property}.HasX || !request.{property}.HasY || !request.{property}.HasZ",
+            "point_name" => MissingPointNameComponents(value),
+            "vector" => $"!{value}.HasX || !{value}.HasY || !{value}.HasZ",
             "tolerance_vector_options" => string.Join(" || ", ToleranceNames.Select(name =>
-                $"request.{property}.{name} is null || !request.{property}.{name}.HasEnabled || !request.{property}.{name}.HasValue")),
+                $"{value}.{name} is null || !{value}.{name}.HasEnabled || !{value}.{name}.HasValue")),
+            "collection_instrument_id" =>
+                $"!{value}.HasCollectionName || !{value}.HasInstrumentId",
+            "collection_machine_id" =>
+                $"!{value}.HasCollectionName || !{value}.HasMachineId",
+            "collection_object_name" => MissingCollectionObjectNameComponents(value),
+            "collection_vector_group_name" =>
+                $"!{value}.HasCollectionName || !{value}.HasVectorGroupName",
+            "collection_instrument_id_list" =>
+                $"{value}.Values.Any(item => !item.HasCollectionName || !item.HasInstrumentId)",
+            "collection_group_name_list" =>
+                $"{value}.Values.Any(item => !item.HasCollectionName || !item.HasGroupName)",
+            "collection_object_name_list" =>
+                $"{value}.Values.Any(item => !item.HasCollectionName || !item.HasObjectName || !item.HasObjectType)",
+            "collection_vector_group_name_list" =>
+                $"{value}.Values.Any(item => !item.HasCollectionName || !item.HasVectorGroupName)",
+            "point_name_list" =>
+                $"{value}.Values.Any(item => {MissingPointNameComponents("item")})",
+            "vector_name_list" =>
+                $"{value}.Values.Any(item => !item.HasCollectionName || !item.HasGroupName || !item.HasName)",
             _ => throw new NotSupportedException()
         };
         builder.Append(indentation).Append("if (").Append(condition).AppendLine(")");
@@ -374,6 +394,11 @@ internal static class CommandCatalogArtifactGenerator
         builder.Append(indentation).AppendLine("}");
     }
 
+    private static string MissingPointNameComponents(string value) =>
+        $"!{value}.HasCollectionName || !{value}.HasGroupName || !{value}.HasTargetName";
+
+    private static string MissingCollectionObjectNameComponents(string value) =>
+        $"!{value}.HasCollectionName || !{value}.HasObjectName || !{value}.HasObjectType";
     private static string CreateInputExpression(CommandCatalogArgument input, string valueExpression)
     {
         var name = ToPascalCase(input.ArgumentId);
@@ -383,16 +408,43 @@ internal static class CommandCatalogArtifactGenerator
             "logical" => prefix + $"BooleanValue: {valueExpression})",
             "whole_number" => prefix + $"IntegerValue: {valueExpression})",
             "floating_point" => prefix + $"DoubleValue: {valueExpression})",
-            "string" => prefix + $"StringValue: {valueExpression})",
+            "string" or
+            "chart_name" or
+            "cloud_name" or
+            "collection_name" or
+            "frame_name" or
+            "vector_group_name" or
+            "view_name" => prefix + $"StringValue: {valueExpression})",
             "point_name" => prefix + $"PointNameValue: new({valueExpression}.CollectionName, {valueExpression}.GroupName, {valueExpression}.TargetName))",
             "vector" => prefix + $"VectorValue: new({valueExpression}.X, {valueExpression}.Y, {valueExpression}.Z))",
             "tolerance_vector_options" => prefix +
                 $"ToleranceVectorOptionsValue: new({string.Join(", ", ToleranceNames.Select(nameValue => $"new({valueExpression}.{nameValue}.Enabled, {valueExpression}.{nameValue}.Value)"))}))",
+            "collection_instrument_id" => prefix +
+                $"CollectionInstrumentIdValue: new({valueExpression}.CollectionName, {valueExpression}.InstrumentId))",
+            "collection_instrument_id_list" => prefix +
+                $"CollectionInstrumentIdListValue: new([.. {valueExpression}.Values.Select(value => new WorkerCollectionInstrumentIdValue(value.CollectionName, value.InstrumentId))]))",
+            "collection_machine_id" => prefix +
+                $"CollectionMachineIdValue: new({valueExpression}.CollectionName, {valueExpression}.MachineId))",
+            "collection_object_name" => prefix +
+                $"CollectionObjectNameValue: new({valueExpression}.CollectionName, {valueExpression}.ObjectName, {valueExpression}.ObjectType))",
+            "collection_object_name_list" => prefix +
+                $"CollectionObjectNameListValue: new([.. {valueExpression}.Values.Select(value => new WorkerCollectionObjectNameValue(value.CollectionName, value.ObjectName, value.ObjectType))]))",
+            "collection_group_name_list" => prefix +
+                $"CollectionGroupNameListValue: new([.. {valueExpression}.Values.Select(value => new WorkerCollectionGroupNameValue(value.CollectionName, value.GroupName))]))",
+            "collection_vector_group_name" => prefix +
+                $"CollectionVectorGroupNameValue: new({valueExpression}.CollectionName, {valueExpression}.VectorGroupName))",
+            "collection_vector_group_name_list" => prefix +
+                $"CollectionVectorGroupNameListValue: new([.. {valueExpression}.Values.Select(value => new WorkerCollectionVectorGroupNameValue(value.CollectionName, value.VectorGroupName))]))",
+            "point_name_list" => prefix +
+                $"PointNameListValue: new([.. {valueExpression}.Values.Select(value => new WorkerPointNameValue(value.CollectionName, value.GroupName, value.TargetName))]))",
+            "string_list" => prefix +
+                $"StringListValue: new([.. {valueExpression}.Values]))",
+            "vector_name_list" => prefix +
+                $"VectorNameListValue: new([.. {valueExpression}.Values.Select(value => new WorkerVectorNameValue(value.CollectionName, value.GroupName, value.Name))]))",
             _ => throw new NotSupportedException(
                 $"Semantic type '{input.SemanticType}' has no input mapping.")
         };
     }
-
     private static void AppendCreateResult(
         StringBuilder builder,
         CommandCatalogOperation operation,
@@ -429,14 +481,48 @@ internal static class CommandCatalogArtifactGenerator
             "logical" => $"{variable}.BooleanValue!.Value",
             "whole_number" => $"{variable}.IntegerValue!.Value",
             "floating_point" => $"{variable}.DoubleValue!.Value",
-            "string" => $"{variable}.StringValue!",
+            "string" or
+            "chart_name" or
+            "cloud_name" or
+            "collection_name" or
+            "frame_name" or
+            "vector_group_name" or
+            "view_name" => $"{variable}.StringValue!",
             "point_name" => $"new TargetProtocol.PointName {{ CollectionName = {variable}.PointNameValue!.CollectionName, GroupName = {variable}.PointNameValue.GroupName, TargetName = {variable}.PointNameValue.TargetName }}",
             "vector" => $"new TargetProtocol.Vector3 {{ X = {variable}.VectorValue!.X, Y = {variable}.VectorValue.Y, Z = {variable}.VectorValue.Z }}",
             "tolerance_vector_options" => $"new TargetProtocol.ToleranceVectorOptions {{ {string.Join(", ", ToleranceNames.Select(name => $"{name} = new TargetProtocol.ToleranceLimit {{ Enabled = {variable}.ToleranceVectorOptionsValue!.{name}.Enabled, Value = {variable}.ToleranceVectorOptionsValue.{name}.Value }}"))} }}",
+            "collection_instrument_id" =>
+                $"new TargetProtocol.CollectionInstrumentId {{ CollectionName = {variable}.CollectionInstrumentIdValue!.CollectionName, InstrumentId = {variable}.CollectionInstrumentIdValue.InstrumentId }}",
+            "collection_instrument_id_list" =>
+                $"new TargetProtocol.CollectionInstrumentIdList {{ Values = {{ {variable}.CollectionInstrumentIdListValue!.Values.Select(value => new TargetProtocol.CollectionInstrumentId {{ CollectionName = value.CollectionName, InstrumentId = value.InstrumentId }}) }} }}",
+            "collection_machine_id" =>
+                $"new TargetProtocol.CollectionMachineId {{ CollectionName = {variable}.CollectionMachineIdValue!.CollectionName, MachineId = {variable}.CollectionMachineIdValue.MachineId }}",
+            "collection_object_name" => CollectionObjectResultExpression(variable),
+            "collection_object_name_list" =>
+                $"new TargetProtocol.CollectionObjectNameList {{ Values = {{ {variable}.CollectionObjectNameListValue!.Values.Select(value => new TargetProtocol.CollectionObjectName {{ CollectionName = value.CollectionName, ObjectName = value.ObjectName, ObjectType = value.ObjectType! }}) }} }}",
+            "collection_group_name_list" =>
+                $"new TargetProtocol.CollectionGroupNameList {{ Values = {{ {variable}.CollectionGroupNameListValue!.Values.Select(value => new TargetProtocol.CollectionGroupName {{ CollectionName = value.CollectionName, GroupName = value.GroupName }}) }} }}",
+            "collection_vector_group_name" =>
+                $"new TargetProtocol.CollectionVectorGroupName {{ CollectionName = {variable}.CollectionVectorGroupNameValue!.CollectionName, VectorGroupName = {variable}.CollectionVectorGroupNameValue.VectorGroupName }}",
+            "collection_vector_group_name_list" =>
+                $"new TargetProtocol.CollectionVectorGroupNameList {{ Values = {{ {variable}.CollectionVectorGroupNameListValue!.Values.Select(value => new TargetProtocol.CollectionVectorGroupName {{ CollectionName = value.CollectionName, VectorGroupName = value.VectorGroupName }}) }} }}",
+            "point_name_list" =>
+                $"new TargetProtocol.PointNameList {{ Values = {{ {variable}.PointNameListValue!.Values.Select(value => new TargetProtocol.PointName {{ CollectionName = value.CollectionName, GroupName = value.GroupName, TargetName = value.TargetName }}) }} }}",
+            "string_list" =>
+                $"new TargetProtocol.StringList {{ Values = {{ {variable}.StringListValue!.Values }} }}",
+            "vector_name_list" =>
+                $"new TargetProtocol.VectorNameList {{ Values = {{ {variable}.VectorNameListValue!.Values.Select(value => new TargetProtocol.VectorName {{ CollectionName = value.CollectionName, GroupName = value.GroupName, Name = value.VectorName }}) }} }}",
             _ => throw new NotSupportedException(
                 $"Semantic type '{output.SemanticType}' has no result mapping.")
         };
 
+    private static string CollectionObjectResultExpression(string variable)
+    {
+        var value = $"{variable}.CollectionObjectNameValue!";
+        return $"{value}.ObjectType is {{ }} objectType ? " +
+            $"new TargetProtocol.CollectionObjectName {{ CollectionName = {value}.CollectionName, ObjectName = {value}.ObjectName, ObjectType = objectType }} : " +
+            $"new TargetProtocol.CollectionObjectName {{ CollectionName = {value}.CollectionName, ObjectName = {value}.ObjectName }}";
+    }
     private static string DefaultExpression(CommandCatalogArgument input)
     {
         var value = input.Input!.Default.Value ??
@@ -446,7 +532,13 @@ internal static class CommandCatalogArtifactGenerator
             "logical" => value.GetBoolean() ? "true" : "false",
             "whole_number" => value.GetInt32().ToString(CultureInfo.InvariantCulture),
             "floating_point" => value.GetDouble().ToString("R", CultureInfo.InvariantCulture) + "d",
-            "string" => $"\"{EscapeCSharp(value.GetString() ?? string.Empty)}\"",
+            "string" or
+            "chart_name" or
+            "cloud_name" or
+            "collection_name" or
+            "frame_name" or
+            "vector_group_name" or
+            "view_name" => $"\"{EscapeCSharp(value.GetString() ?? string.Empty)}\"",
             _ => throw new NotSupportedException(
                 $"Reviewed defaults for semantic type '{input.SemanticType}' are not supported yet.")
         };
@@ -488,7 +580,24 @@ internal static class CommandCatalogArtifactGenerator
         argument.Direction is "output" or "input_output";
 
     private static bool IsMessageType(string semanticType) =>
-        semanticType is "point_name" or "vector" or "tolerance_vector_options";
+        semanticType is
+            "point_name" or
+            "vector" or
+            "tolerance_vector_options" or
+            "collection_group_name_list" or
+            "collection_instrument_id" or
+            "collection_instrument_id_list" or
+            "collection_machine_id" or
+            "collection_object_name" or
+            "collection_object_name_list" or
+            "collection_vector_group_name" or
+            "collection_vector_group_name_list" or
+            "point_name_list" or
+            "string_list" or
+            "vector_name_list";
+
+    private static bool RequiresComponentValidation(string semanticType) =>
+        IsMessageType(semanticType) && semanticType != "string_list";
 
     private static string ToWorkerValueKind(string semanticType) =>
         semanticType switch
@@ -500,10 +609,26 @@ internal static class CommandCatalogArtifactGenerator
             "point_name" => "PointName",
             "vector" => "Vector",
             "tolerance_vector_options" => "ToleranceVectorOptions",
+            "chart_name" => "ChartName",
+            "cloud_name" => "CloudName",
+            "collection_group_name_list" => "CollectionGroupNameList",
+            "collection_instrument_id" => "CollectionInstrumentId",
+            "collection_instrument_id_list" => "CollectionInstrumentIdList",
+            "collection_machine_id" => "CollectionMachineId",
+            "collection_name" => "CollectionName",
+            "collection_object_name" => "CollectionObjectName",
+            "collection_object_name_list" => "CollectionObjectNameList",
+            "collection_vector_group_name" => "CollectionVectorGroupName",
+            "collection_vector_group_name_list" => "CollectionVectorGroupNameList",
+            "frame_name" => "FrameName",
+            "point_name_list" => "PointNameList",
+            "string_list" => "StringList",
+            "vector_group_name" => "VectorGroupName",
+            "vector_name_list" => "VectorNameList",
+            "view_name" => "ViewName",
             _ => throw new NotSupportedException(
                 $"Semantic type '{semanticType}' has no worker value mapping.")
         };
-
     private static string ToPascalCase(string value) =>
         string.Concat(value.Split('_', StringSplitOptions.RemoveEmptyEntries)
             .Select(segment => char.ToUpperInvariant(segment[0]) + segment[1..]));

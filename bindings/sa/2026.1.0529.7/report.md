@@ -33,54 +33,54 @@ This deterministic report reconciles extracted View SDK Code evidence with the c
 | Value | Count |
 | --- | ---: |
 | `blocked` | 6 |
-| `implemented` | 14 |
+| `implemented` | 39 |
 | `not_required` | 44 |
-| `planned` | 87 |
+| `planned` | 62 |
 
 ## Worker coverage
 
 | Value | Count |
 | --- | ---: |
 | `blocked` | 6 |
-| `implemented` | 14 |
+| `implemented` | 39 |
 | `not_required` | 44 |
-| `planned` | 87 |
+| `planned` | 62 |
 
 ## Adapter coverage
 
 | Value | Count |
 | --- | ---: |
 | `blocked` | 6 |
-| `implemented` | 14 |
+| `implemented` | 39 |
 | `not_required` | 44 |
-| `planned` | 87 |
+| `planned` | 62 |
 
 ## Fake coverage
 
 | Value | Count |
 | --- | ---: |
 | `blocked` | 6 |
-| `implemented` | 14 |
+| `implemented` | 39 |
 | `not_required` | 44 |
-| `planned` | 87 |
+| `planned` | 62 |
 
 ## Generator coverage
 
 | Value | Count |
 | --- | ---: |
 | `blocked` | 6 |
-| `implemented` | 14 |
+| `implemented` | 39 |
 | `not_required` | 44 |
-| `planned` | 87 |
+| `planned` | 62 |
 
 ## Value-family implementation status
 
 | Value | Count |
 | --- | ---: |
 | `blocked` | 6 |
-| `implemented` | 7 |
+| `implemented` | 24 |
 | `not_required` | 27 |
-| `planned` | 71 |
+| `planned` | 54 |
 
 ## Semantic value families
 
@@ -93,20 +93,20 @@ This deterministic report reconciles extracted View SDK Code evidence with the c
 | `b_spline_fit_options` | `structured` | getter, setter | `BSplineFitOptions` | `SdkBSplineFitOptionsValue` | `planned` | GetBSPlineFitOptionsArg, SetBSplineFitOptionsArg |
 | `base_color_type` | `enum` | setter | `BaseColorType` | `SdkBaseColorTypeValue` | `planned` | SetBaseColorTypeArg |
 | `base_mid_color_type` | `enum` | setter | `BaseMidColorType` | `SdkBaseMidColorTypeValue` | `planned` | SetBaseMidColorTypeArg |
-| `chart_name` | `identifier` | getter, setter | `string` | `string` | `planned` | GetChartNameArg, SetChartNameArg |
+| `chart_name` | `identifier` | getter, setter | `string` | `string` | `implemented` | GetChartNameArg, SetChartNameArg |
 | `chart_type` | `enum` | setter | `ChartType` | `SdkChartTypeValue` | `planned` | SetChartTypeArg |
-| `cloud_name` | `identifier` | getter, setter | `string` | `string` | `planned` | GetCloudNameArg, SetCloudNameArg |
+| `cloud_name` | `identifier` | getter, setter | `string` | `string` | `implemented` | GetCloudNameArg, SetCloudNameArg |
 | `cloud_thinning_mode` | `enum` | setter | `CloudThinningMode` | `SdkCloudThinningModeValue` | `blocked` | SetCloudThinningModeTypeArg |
 | `cloud_thinning_options` | `structured` | setter | `CloudThinningOptions` | `SdkCloudThinningOptionsValue` | `planned` | SetCloudThinningOptionsArg |
-| `collection_group_name_list` | `reference_list` | getter, setter | `CollectionGroupNameList` | `SdkCollectionGroupNameListValue` | `planned` | GetCollectionGroupNameRefListArg, SetCollectionGroupNameRefListArg |
-| `collection_instrument_id` | `identifier` | getter, setter | `CollectionInstrumentId` | `SdkCollectionInstrumentIdValue` | `planned` | GetColInstIdArg, SetColInstIdArg |
-| `collection_instrument_id_list` | `reference_list` | getter, setter | `CollectionInstrumentIdList` | `SdkCollectionInstrumentIdListValue` | `planned` | GetColInstIdRefListArg, SetColInstIdRefListArg |
-| `collection_machine_id` | `identifier` | getter, setter | `CollectionMachineId` | `SdkCollectionMachineIdValue` | `planned` | GetColMachineIdArg, SetColMachineIdArg |
-| `collection_name` | `identifier` | getter, setter | `string` | `string` | `planned` | GetCollectionNameArg, SetCollectionNameArg |
-| `collection_object_name` | `identifier` | getter, setter | `CollectionObjectName` | `SdkCollectionObjectNameValue` | `planned` | GetCollectionObjectNameArg, SetCollectionObjectNameArg, SetCollectionObjectNameArg2 |
-| `collection_object_name_list` | `reference_list` | getter, setter | `CollectionObjectNameList` | `SdkCollectionObjectNameListValue` | `planned` | GetCollectionObjectNameRefListArg, SetCollectionObjectNameRefListArg |
-| `collection_vector_group_name` | `identifier` | getter, setter | `CollectionVectorGroupName` | `SdkCollectionVectorGroupNameValue` | `planned` | GetColVectorGroupNameArg, SetColVectorGroupNameArg |
-| `collection_vector_group_name_list` | `reference_list` | getter, setter | `CollectionVectorGroupNameList` | `SdkCollectionVectorGroupNameListValue` | `planned` | GetCollectionVectorGroupNameRefListArg, SetCollectionVectorGroupNameRefListArg |
+| `collection_group_name_list` | `reference_list` | getter, setter | `CollectionGroupNameList` | `SdkCollectionGroupNameListValue` | `implemented` | GetCollectionGroupNameRefListArg, SetCollectionGroupNameRefListArg |
+| `collection_instrument_id` | `identifier` | getter, setter | `CollectionInstrumentId` | `SdkCollectionInstrumentIdValue` | `implemented` | GetColInstIdArg, SetColInstIdArg |
+| `collection_instrument_id_list` | `reference_list` | getter, setter | `CollectionInstrumentIdList` | `SdkCollectionInstrumentIdListValue` | `implemented` | GetColInstIdRefListArg, SetColInstIdRefListArg |
+| `collection_machine_id` | `identifier` | getter, setter | `CollectionMachineId` | `SdkCollectionMachineIdValue` | `implemented` | GetColMachineIdArg, SetColMachineIdArg |
+| `collection_name` | `identifier` | getter, setter | `string` | `string` | `implemented` | GetCollectionNameArg, SetCollectionNameArg |
+| `collection_object_name` | `identifier` | getter, setter | `CollectionObjectName` | `SdkCollectionObjectNameValue` | `implemented` | GetCollectionObjectNameArg, SetCollectionObjectNameArg, SetCollectionObjectNameArg2 |
+| `collection_object_name_list` | `reference_list` | getter, setter | `CollectionObjectNameList` | `SdkCollectionObjectNameListValue` | `implemented` | GetCollectionObjectNameRefListArg, SetCollectionObjectNameRefListArg |
+| `collection_vector_group_name` | `identifier` | getter, setter | `CollectionVectorGroupName` | `SdkCollectionVectorGroupNameValue` | `implemented` | GetColVectorGroupNameArg, SetColVectorGroupNameArg |
+| `collection_vector_group_name_list` | `reference_list` | getter, setter | `CollectionVectorGroupNameList` | `SdkCollectionVectorGroupNameListValue` | `implemented` | GetCollectionVectorGroupNameRefListArg, SetCollectionVectorGroupNameRefListArg |
 | `collimation_baseline_type` | `enum` | setter | `CollimationBaselineType` | `SdkCollimationBaselineTypeValue` | `planned` | SetCollimationBaselineTypeArg |
 | `collimation_type` | `enum` | setter | `CollimationType` | `SdkCollimationTypeValue` | `planned` | SetCollimationTypeArg |
 | `color_range_method` | `enum` | setter | `ColorRangeMethod` | `SdkColorRangeMethodValue` | `planned` | SetColorRangeMethodArg |
@@ -133,7 +133,7 @@ This deterministic report reconciles extracted View SDK Code evidence with the c
 | `fit_method` | `enum` | setter | `FitMethod` | `SdkFitMethodValue` | `not_required` | SetFitMethodArg |
 | `floating_point` | `scalar` | getter, setter | `double` | `double` | `implemented` | GetDoubleArg, SetDoubleArg |
 | `font` | `structured` | setter | `Font` | `SdkFontValue` | `planned` | SetFontTypeArg |
-| `frame_name` | `identifier` | getter, setter | `string` | `string` | `planned` | GetFrameNameArg, SetFrameNameArg |
+| `frame_name` | `identifier` | getter, setter | `string` | `string` | `implemented` | GetFrameNameArg, SetFrameNameArg |
 | `gdt_check_validator_type` | `enum` | setter | `GdtCheckValidatorType` | `SdkGdtCheckValidatorTypeValue` | `blocked` | SetMPGDTOptionsCheckValidatorTypeArg |
 | `gdt_distance_between_mode` | `enum` | setter | `GdtDistanceBetweenMode` | `SdkGdtDistanceBetweenModeValue` | `blocked` | SetMPGDTOptionsDistanceBetweenModeArg |
 | `geometry_type` | `enum` | setter | `GeometryType` | `SdkGeometryTypeValue` | `planned` | SetGeometryTypeArg |
@@ -158,7 +158,7 @@ This deterministic report reconciles extracted View SDK Code evidence with the c
 | `point_delta_report_options` | `structured` | setter | `PointDeltaReportOptions` | `SdkPointDeltaReportOptionsValue` | `planned` | SetPointDeltaReportOptionsArg |
 | `point_filter_input_type` | `enum` | setter | `PointFilterInputType` | `SdkPointFilterInputTypeValue` | `planned` | SetPointFilterInputTypeArg |
 | `point_name` | `identifier` | getter, setter | `PointName` | `SdkPointNameValue` | `implemented` | GetPointNameArg, SetPointNameArg |
-| `point_name_list` | `reference_list` | getter, setter | `PointNameList` | `SdkPointNameListValue` | `planned` | GetPointNameRefListArg, SetPointNameRefListArg |
+| `point_name_list` | `reference_list` | getter, setter | `PointNameList` | `SdkPointNameListValue` | `implemented` | GetPointNameRefListArg, SetPointNameRefListArg |
 | `projection_options` | `structured` | setter | `ProjectionOptions` | `SdkProjectionOptionsValue` | `planned` | SetProjectionOptionsArg |
 | `relationship_weighting_mode` | `enum` | setter | `RelationshipWeightingMode` | `SdkRelationshipWeightingModeValue` | `planned` | SetRelWeightingModeArg |
 | `render_mode_type` | `enum` | setter | `RenderModeType` | `SdkRenderModeTypeValue` | `planned` | SetRenderModeTypeArg |
@@ -175,7 +175,7 @@ This deterministic report reconciles extracted View SDK Code evidence with the c
 | `slot_type` | `enum` | setter | `SlotType` | `SdkSlotTypeValue` | `not_required` | SetSlotTypeArg |
 | `sphere_fit_computation_mode` | `enum` | setter | `SphereFitComputationMode` | `SdkSphereFitComputationModeValue` | `not_required` | SetSphereFitComputationModeArg |
 | `string` | `scalar` | getter, setter | `string` | `string` | `implemented` | GetStringArg, SetStringArg |
-| `string_list` | `reference_list` | getter, setter | `StringList` | `SdkStringListValue` | `planned` | GetStringRefListArg, SetStringRefListArg |
+| `string_list` | `reference_list` | getter, setter | `StringList` | `SdkStringListValue` | `implemented` | GetStringRefListArg, SetStringRefListArg |
 | `surface_analysis_mode` | `enum` | setter | `SurfaceAnalysisMode` | `SdkSurfaceAnalysisModeValue` | `planned` | SetSurfaceAnalysisModeArg |
 | `surface_dissection_mode_type` | `enum` | setter | `SurfaceDissectionModeType` | `SdkSurfaceDissectionModeTypeValue` | `planned` | SetSurfDissectModeTypeArg |
 | `system_string` | `enum` | setter | `SystemString` | `SdkSystemStringValue` | `not_required` | SetSystemStringArg |
@@ -189,9 +189,9 @@ This deterministic report reconciles extracted View SDK Code evidence with the c
 | `udp_transmit_settings` | `structured` | setter | `UdpTransmitSettings` | `SdkUdpTransmitSettingsValue` | `not_required` | SetUdpTransmitSettingsArg |
 | `user_summary_info_files` | `structured` | setter | `UserSummaryInfoFiles` | `SdkUserSummaryInfoFilesValue` | `not_required` | SetUserSummaryInfoFilesArg |
 | `vector3` | `structured` | getter, setter | `Vector3` | `SdkVectorValue` | `implemented` | GetVectorArg, SetVectorArg |
-| `vector_group_name` | `identifier` | getter, setter | `string` | `string` | `planned` | GetVectorGroupNameArg, SetVectorGroupNameArg |
-| `vector_name_list` | `reference_list` | getter, setter | `VectorNameList` | `SdkVectorNameListValue` | `planned` | GetVectorNameRefListArg, SetVectorNameRefListArg |
-| `view_name` | `identifier` | getter, setter | `string` | `string` | `planned` | GetViewNameArg, SetViewNameArg |
+| `vector_group_name` | `identifier` | getter, setter | `string` | `string` | `implemented` | GetVectorGroupNameArg, SetVectorGroupNameArg |
+| `vector_name_list` | `reference_list` | getter, setter | `VectorNameList` | `SdkVectorNameListValue` | `implemented` | GetVectorNameRefListArg, SetVectorNameRefListArg |
+| `view_name` | `identifier` | getter, setter | `string` | `string` | `implemented` | GetViewNameArg, SetViewNameArg |
 | `whole_number` | `scalar` | getter, setter | `int32` | `int` | `implemented` | GetIntegerArg, SetIntegerArg |
 | `window_state` | `enum` | setter | `WindowState` | `SdkWindowStateValue` | `not_required` | SetWindowStateArg |
 | `workbook_address_mode_type` | `enum` | setter | `WorkbookAddressModeType` | `SdkWorkbookAddressModeTypeValue` | `not_required` | SetWorkbookAddressModeTypeArg |
@@ -207,14 +207,14 @@ This deterministic report reconciles extracted View SDK Code evidence with the c
 | `GetBoolArg` | `getter` | `inventory_and_interop` | `usable` | `logical` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 56 | 13 | 43 | boolean (value string argName, ref boolean value) |  |
 | `GetChartNameArg` | `getter` | `interop_only` | `unobserved_interop` | `chart_name` | `not_required` | `not_required` | `not_required` | `not_required` | `not_required` | 0 | 0 | 0 | boolean (value string argName, ref string chartName) |  |
 | `GetCloudNameArg` | `getter` | `interop_only` | `unobserved_interop` | `cloud_name` | `not_required` | `not_required` | `not_required` | `not_required` | `not_required` | 0 | 0 | 0 | boolean (value string argName, ref string cloudName) |  |
-| `GetColInstIdArg` | `getter` | `inventory_and_interop` | `usable` | `collection_instrument_id` | `planned` | `planned` | `planned` | `planned` | `planned` | 8 | 3 | 5 | boolean (value string argName, ref string collectionName, ref int32 instId) |  |
-| `GetColInstIdRefListArg` | `getter` | `inventory_and_interop` | `usable` | `collection_instrument_id_list` | `planned` | `planned` | `planned` | `planned` | `planned` | 3 | 2 | 1 | boolean (value string argName, ref object colInstIdList) |  |
+| `GetColInstIdArg` | `getter` | `inventory_and_interop` | `usable` | `collection_instrument_id` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 8 | 3 | 5 | boolean (value string argName, ref string collectionName, ref int32 instId) |  |
+| `GetColInstIdRefListArg` | `getter` | `inventory_and_interop` | `usable` | `collection_instrument_id_list` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 3 | 2 | 1 | boolean (value string argName, ref object colInstIdList) |  |
 | `GetColMachineIdArg` | `getter` | `inventory_and_interop` | `excluded_only` | `collection_machine_id` | `not_required` | `not_required` | `not_required` | `not_required` | `not_required` | 1 | 1 | 0 | boolean (value string argName, ref string collectionName, ref int32 machineId) |  |
 | `GetColVectorGroupNameArg` | `getter` | `interop_only` | `unobserved_interop` | `collection_vector_group_name` | `not_required` | `not_required` | `not_required` | `not_required` | `not_required` | 0 | 0 | 0 | boolean (value string argName, ref string collectionName, ref string vectorGroupName) |  |
 | `GetCollectionGroupNameRefListArg` | `getter` | `interop_only` | `unobserved_interop` | `collection_group_name_list` | `not_required` | `not_required` | `not_required` | `not_required` | `not_required` | 0 | 0 | 0 | boolean (value string argName, ref object colGroupNameList) |  |
-| `GetCollectionNameArg` | `getter` | `inventory_and_interop` | `usable` | `collection_name` | `planned` | `planned` | `planned` | `planned` | `planned` | 3 | 2 | 1 | boolean (value string argName, ref string collectionName) |  |
-| `GetCollectionObjectNameArg` | `getter` | `inventory_and_interop` | `usable` | `collection_object_name` | `planned` | `planned` | `planned` | `planned` | `planned` | 37 | 19 | 18 | boolean (value string argName, ref string collectionName, ref string objectName) |  |
-| `GetCollectionObjectNameRefListArg` | `getter` | `inventory_and_interop` | `usable` | `collection_object_name_list` | `planned` | `planned` | `planned` | `planned` | `planned` | 44 | 11 | 33 | boolean (value string argName, ref object objectNameList) |  |
+| `GetCollectionNameArg` | `getter` | `inventory_and_interop` | `usable` | `collection_name` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 3 | 2 | 1 | boolean (value string argName, ref string collectionName) |  |
+| `GetCollectionObjectNameArg` | `getter` | `inventory_and_interop` | `usable` | `collection_object_name` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 37 | 19 | 18 | boolean (value string argName, ref string collectionName, ref string objectName) |  |
+| `GetCollectionObjectNameRefListArg` | `getter` | `inventory_and_interop` | `usable` | `collection_object_name_list` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 44 | 11 | 33 | boolean (value string argName, ref object objectNameList) |  |
 | `GetCollectionVectorGroupNameRefListArg` | `getter` | `inventory_and_interop` | `excluded_only` | `collection_vector_group_name_list` | `not_required` | `not_required` | `not_required` | `not_required` | `not_required` | 1 | 1 | 0 | boolean (value string argName, ref object colVectorGrpNameList) |  |
 | `GetDoubleArg` | `getter` | `inventory_and_interop` | `usable` | `floating_point` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 147 | 42 | 105 | boolean (value string argName, ref double value) |  |
 | `GetDoubleArrayArg` | `getter` | `inventory_and_interop` | `usable` | `double_array` | `planned` | `planned` | `planned` | `planned` | `planned` | 7 | 1 | 6 | boolean (value string argName, ref int32 arraySize, ref object arrayIn) |  |
@@ -227,19 +227,19 @@ This deterministic report reconciles extracted View SDK Code evidence with the c
 | `GetObjectNameArg` | `getter` | `interop_only` | `unobserved_interop` | `object_name` | `not_required` | `not_required` | `not_required` | `not_required` | `not_required` | 0 | 0 | 0 | boolean (value string argName, ref string objectName) |  |
 | `GetPerimeterNameArg` | `getter` | `interop_only` | `unobserved_interop` | `perimeter_name` | `not_required` | `not_required` | `not_required` | `not_required` | `not_required` | 0 | 0 | 0 | boolean (value string argName, ref string perimeterName) |  |
 | `GetPointNameArg` | `getter` | `inventory_and_interop` | `usable` | `point_name` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 14 | 8 | 6 | boolean (value string argName, ref string collectionName, ref string groupName, ref string targetName) |  |
-| `GetPointNameRefListArg` | `getter` | `inventory_and_interop` | `usable` | `point_name_list` | `planned` | `planned` | `planned` | `planned` | `planned` | 16 | 4 | 12 | boolean (value string argName, ref object pointNameList) |  |
+| `GetPointNameRefListArg` | `getter` | `inventory_and_interop` | `usable` | `point_name_list` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 16 | 4 | 12 | boolean (value string argName, ref object pointNameList) |  |
 | `GetReportOutputOptionsArg` | `getter` | `inventory_and_interop` | `excluded_only` | `report_output_options` | `not_required` | `not_required` | `not_required` | `not_required` | `not_required` | 1 | 1 | 0 | boolean (value string argName, ref string outputType, ref string pathOrEmbeddedName) |  |
 | `GetReportViewOptionsArg` | `getter` | `inventory_and_interop` | `excluded_only` | `report_view_options` | `not_required` | `not_required` | `not_required` | `not_required` | `not_required` | 1 | 1 | 0 | boolean (value string argName, ref string viewType, ref string collectionName, ref string calloutName) |  |
 | `GetResultArg` | `getter` | `interop_only` | `unobserved_interop` | `result_object_name` | `not_required` | `not_required` | `not_required` | `not_required` | `not_required` | 0 | 0 | 0 | boolean (value string argName, ref string objectName) |  |
 | `GetSigmoidalGapConstraintOptionsArg` | `getter` | `inventory_only` | `blocked_missing_interop` | `sigmoidal_gap_constraint_options` | `blocked` | `blocked` | `blocked` | `blocked` | `blocked` | 2 | 1 | 1 | not present in interop | https://github.com/spatialanalyzer/briosa/issues/79 |
 | `GetStringArg` | `getter` | `inventory_and_interop` | `usable` | `string` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 76 | 43 | 33 | boolean (value string argName, ref string value) |  |
-| `GetStringRefListArg` | `getter` | `inventory_and_interop` | `usable` | `string_list` | `planned` | `planned` | `planned` | `planned` | `planned` | 14 | 7 | 7 | boolean (value string argName, ref object stringList) |  |
+| `GetStringRefListArg` | `getter` | `inventory_and_interop` | `usable` | `string_list` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 14 | 7 | 7 | boolean (value string argName, ref object stringList) |  |
 | `GetToleranceScalarOptionsArg` | `getter` | `inventory_and_interop` | `usable` | `tolerance_scalar_options` | `planned` | `planned` | `planned` | `planned` | `planned` | 3 | 2 | 1 | boolean (value string argName, ref boolean bUseHigh, ref double highTol, ref boolean bUseLow, ref double lowTol) |  |
 | `GetToleranceVectorOptionsArg` | `getter` | `inventory_and_interop` | `usable` | `tolerance_vector_options` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 5 | 2 | 3 | boolean (value string argName, ref boolean bUseHighX, ref double highTolX, ref boolean bUseHighY, ref double highTolY, ref boolean bUseHighZ, ref double highTolZ, ref boolean bUseHighM, ref double highTolM, ref boolean bUseLowX, ref double lowTolX, ref boolean bUseLowY, ref double lowTolY, ref boolean bUseLowZ, ref double lowTolZ, ref boolean bUseLowM, ref double lowTolM) |  |
 | `GetTransformArg` | `getter` | `inventory_and_interop` | `usable` | `transform` | `planned` | `planned` | `planned` | `planned` | `planned` | 22 | 8 | 14 | boolean (value string argName, ref object transform) |  |
 | `GetVectorArg` | `getter` | `inventory_and_interop` | `usable` | `vector3` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 42 | 16 | 26 | boolean (value string argName, ref double XValue, ref double yValue, ref double zValue) |  |
 | `GetVectorGroupNameArg` | `getter` | `interop_only` | `unobserved_interop` | `vector_group_name` | `not_required` | `not_required` | `not_required` | `not_required` | `not_required` | 0 | 0 | 0 | boolean (value string argName, ref string vectorGrpName) |  |
-| `GetVectorNameRefListArg` | `getter` | `inventory_and_interop` | `usable` | `vector_name_list` | `planned` | `planned` | `planned` | `planned` | `planned` | 4 | 2 | 2 | boolean (value string argName, ref object vectorNameList) |  |
+| `GetVectorNameRefListArg` | `getter` | `inventory_and_interop` | `usable` | `vector_name_list` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 4 | 2 | 2 | boolean (value string argName, ref object vectorNameList) |  |
 | `GetViewNameArg` | `getter` | `interop_only` | `unobserved_interop` | `view_name` | `not_required` | `not_required` | `not_required` | `not_required` | `not_required` | 0 | 0 | 0 | boolean (value string argName, ref string viewName) |  |
 | `GetWorldTransformArg` | `getter` | `inventory_and_interop` | `usable` | `world_transform` | `planned` | `planned` | `planned` | `planned` | `planned` | 7 | 1 | 6 | boolean (value string argName, ref object transform, ref double scaleFactor) |  |
 | `SetAngularUnitsArg` | `setter` | `inventory_and_interop` | `usable` | `angular_unit` | `planned` | `planned` | `planned` | `planned` | `planned` | 7 | 4 | 3 | boolean (value string argName, value string angularUnits) |  |
@@ -250,21 +250,21 @@ This deterministic report reconciles extracted View SDK Code evidence with the c
 | `SetBaseColorTypeArg` | `setter` | `inventory_and_interop` | `usable` | `base_color_type` | `planned` | `planned` | `planned` | `planned` | `planned` | 1 | 0 | 1 | boolean (value string argName, value string baseColorType) |  |
 | `SetBaseMidColorTypeArg` | `setter` | `inventory_and_interop` | `usable` | `base_mid_color_type` | `planned` | `planned` | `planned` | `planned` | `planned` | 1 | 0 | 1 | boolean (value string argName, value string baseMidColorType) |  |
 | `SetBoolArg` | `setter` | `inventory_and_interop` | `usable` | `logical` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 378 | 96 | 282 | boolean (value string argName, value boolean value) |  |
-| `SetChartNameArg` | `setter` | `inventory_and_interop` | `usable` | `chart_name` | `planned` | `planned` | `planned` | `planned` | `planned` | 2 | 0 | 2 | boolean (value string argName, value string chartName) |  |
+| `SetChartNameArg` | `setter` | `inventory_and_interop` | `usable` | `chart_name` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 2 | 0 | 2 | boolean (value string argName, value string chartName) |  |
 | `SetChartTypeArg` | `setter` | `inventory_and_interop` | `usable` | `chart_type` | `planned` | `planned` | `planned` | `planned` | `planned` | 1 | 0 | 1 | boolean (value string argName, value string chartType) |  |
-| `SetCloudNameArg` | `setter` | `inventory_and_interop` | `usable` | `cloud_name` | `planned` | `planned` | `planned` | `planned` | `planned` | 1 | 0 | 1 | boolean (value string argName, value string cloudName) |  |
+| `SetCloudNameArg` | `setter` | `inventory_and_interop` | `usable` | `cloud_name` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 1 | 0 | 1 | boolean (value string argName, value string cloudName) |  |
 | `SetCloudThinningModeTypeArg` | `setter` | `inventory_only` | `blocked_missing_interop` | `cloud_thinning_mode` | `blocked` | `blocked` | `blocked` | `blocked` | `blocked` | 1 | 0 | 1 | not present in interop | https://github.com/spatialanalyzer/briosa/issues/79 |
 | `SetCloudThinningOptionsArg` | `setter` | `inventory_and_interop` | `usable` | `cloud_thinning_options` | `planned` | `planned` | `planned` | `planned` | `planned` | 6 | 0 | 6 | boolean (value string argName, value string thinMode, value int32 pointIncrement, value int32 minNumPts, value int32 maxNumPts) |  |
-| `SetColInstIdArg` | `setter` | `inventory_and_interop` | `usable` | `collection_instrument_id` | `planned` | `planned` | `planned` | `planned` | `planned` | 149 | 17 | 132 | boolean (value string argName, value string collectionName, value int32 instId) |  |
-| `SetColInstIdRefListArg` | `setter` | `inventory_and_interop` | `usable` | `collection_instrument_id_list` | `planned` | `planned` | `planned` | `planned` | `planned` | 18 | 6 | 12 | boolean (value string argName, ref object colInstIdList) |  |
-| `SetColMachineIdArg` | `setter` | `inventory_and_interop` | `usable` | `collection_machine_id` | `planned` | `planned` | `planned` | `planned` | `planned` | 23 | 0 | 23 | boolean (value string argName, value string collectionName, value int32 machineId) |  |
-| `SetColVectorGroupNameArg` | `setter` | `inventory_and_interop` | `usable` | `collection_vector_group_name` | `planned` | `planned` | `planned` | `planned` | `planned` | 3 | 0 | 3 | boolean (value string argName, value string collectionName, value string vectorGroupName) |  |
-| `SetCollectionGroupNameRefListArg` | `setter` | `inventory_and_interop` | `usable` | `collection_group_name_list` | `planned` | `planned` | `planned` | `planned` | `planned` | 1 | 0 | 1 | boolean (value string argName, ref object groupNameList) |  |
-| `SetCollectionNameArg` | `setter` | `inventory_and_interop` | `usable` | `collection_name` | `planned` | `planned` | `planned` | `planned` | `planned` | 36 | 6 | 30 | boolean (value string argName, value string collectionName) |  |
+| `SetColInstIdArg` | `setter` | `inventory_and_interop` | `usable` | `collection_instrument_id` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 149 | 17 | 132 | boolean (value string argName, value string collectionName, value int32 instId) |  |
+| `SetColInstIdRefListArg` | `setter` | `inventory_and_interop` | `usable` | `collection_instrument_id_list` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 18 | 6 | 12 | boolean (value string argName, ref object colInstIdList) |  |
+| `SetColMachineIdArg` | `setter` | `inventory_and_interop` | `usable` | `collection_machine_id` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 23 | 0 | 23 | boolean (value string argName, value string collectionName, value int32 machineId) |  |
+| `SetColVectorGroupNameArg` | `setter` | `inventory_and_interop` | `usable` | `collection_vector_group_name` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 3 | 0 | 3 | boolean (value string argName, value string collectionName, value string vectorGroupName) |  |
+| `SetCollectionGroupNameRefListArg` | `setter` | `inventory_and_interop` | `usable` | `collection_group_name_list` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 1 | 0 | 1 | boolean (value string argName, ref object groupNameList) |  |
+| `SetCollectionNameArg` | `setter` | `inventory_and_interop` | `usable` | `collection_name` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 36 | 6 | 30 | boolean (value string argName, value string collectionName) |  |
 | `SetCollectionObjectNameArg` | `setter` | `interop_only` | `unobserved_interop` | `collection_object_name` | `not_required` | `not_required` | `not_required` | `not_required` | `not_required` | 0 | 0 | 0 | boolean (value string argName, value string collectionName, value string objectName) |  |
-| `SetCollectionObjectNameArg2` | `setter` | `inventory_and_interop` | `usable` | `collection_object_name` | `planned` | `planned` | `planned` | `planned` | `planned` | 480 | 24 | 456 | boolean (value string argName, value string collectionName, value string objectName, value string objectType) |  |
-| `SetCollectionObjectNameRefListArg` | `setter` | `inventory_and_interop` | `usable` | `collection_object_name_list` | `planned` | `planned` | `planned` | `planned` | `planned` | 187 | 34 | 153 | boolean (value string argName, ref object objectNameList) |  |
-| `SetCollectionVectorGroupNameRefListArg` | `setter` | `inventory_and_interop` | `usable` | `collection_vector_group_name_list` | `planned` | `planned` | `planned` | `planned` | `planned` | 5 | 1 | 4 | boolean (value string argName, ref object colVectorGrpNameList) |  |
+| `SetCollectionObjectNameArg2` | `setter` | `inventory_and_interop` | `usable` | `collection_object_name` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 480 | 24 | 456 | boolean (value string argName, value string collectionName, value string objectName, value string objectType) |  |
+| `SetCollectionObjectNameRefListArg` | `setter` | `inventory_and_interop` | `usable` | `collection_object_name_list` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 187 | 34 | 153 | boolean (value string argName, ref object objectNameList) |  |
+| `SetCollectionVectorGroupNameRefListArg` | `setter` | `inventory_and_interop` | `usable` | `collection_vector_group_name_list` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 5 | 1 | 4 | boolean (value string argName, ref object colVectorGrpNameList) |  |
 | `SetCollimationBaselineTypeArg` | `setter` | `inventory_and_interop` | `usable` | `collimation_baseline_type` | `planned` | `planned` | `planned` | `planned` | `planned` | 1 | 0 | 1 | boolean (value string argName, value string mode) |  |
 | `SetCollimationTypeArg` | `setter` | `inventory_and_interop` | `usable` | `collimation_type` | `planned` | `planned` | `planned` | `planned` | `planned` | 1 | 0 | 1 | boolean (value string argName, value string mode) |  |
 | `SetColorArg` | `setter` | `inventory_and_interop` | `usable` | `rgb_color` | `planned` | `planned` | `planned` | `planned` | `planned` | 13 | 5 | 8 | boolean (value string argName, value byte redColorVal, value byte greenColorVal, value byte blueColorVal) |  |
@@ -292,7 +292,7 @@ This deterministic report reconciles extracted View SDK Code evidence with the c
 | `SetFitDofOptionsArg` | `setter` | `inventory_and_interop` | `usable` | `fit_degree_of_freedom_options` | `planned` | `planned` | `planned` | `planned` | `planned` | 2 | 0 | 2 | boolean (value string argName, value boolean bAllowX, value boolean bAllowY, value boolean bAllowZ, value boolean bAllowRx, value boolean bAllowRy, value boolean bAllowRz, value boolean bRotateAboutCentroid) |  |
 | `SetFitMethodArg` | `setter` | `inventory_and_interop` | `excluded_only` | `fit_method` | `not_required` | `not_required` | `not_required` | `not_required` | `not_required` | 1 | 1 | 0 | boolean (value string argName, value string fitMethod) |  |
 | `SetFontTypeArg` | `setter` | `inventory_and_interop` | `usable` | `font` | `planned` | `planned` | `planned` | `planned` | `planned` | 21 | 16 | 5 | boolean (value string argName, value string fontName, value byte fontSize, value byte redColorVal, value byte greenColorVal, value byte blueColorVal) |  |
-| `SetFrameNameArg` | `setter` | `inventory_and_interop` | `usable` | `frame_name` | `planned` | `planned` | `planned` | `planned` | `planned` | 5 | 0 | 5 | boolean (value string argName, value string frameName) |  |
+| `SetFrameNameArg` | `setter` | `inventory_and_interop` | `usable` | `frame_name` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 5 | 0 | 5 | boolean (value string argName, value string frameName) |  |
 | `SetGeometryTypeArg` | `setter` | `inventory_and_interop` | `usable` | `geometry_type` | `planned` | `planned` | `planned` | `planned` | `planned` | 6 | 0 | 6 | boolean (value string argName, value string geometryType) |  |
 | `SetInstIdArg` | `setter` | `interop_only` | `unobserved_interop` | `instrument_id` | `not_required` | `not_required` | `not_required` | `not_required` | `not_required` | 0 | 0 | 0 | boolean (value string argName, value int32 instId) |  |
 | `SetInstTypeNameArg` | `setter` | `inventory_and_interop` | `usable` | `instrument_type` | `planned` | `planned` | `planned` | `planned` | `planned` | 1 | 0 | 1 | boolean (value string argName, value string instType) |  |
@@ -317,7 +317,7 @@ This deterministic report reconciles extracted View SDK Code evidence with the c
 | `SetPointDeltaReportOptionsArg` | `setter` | `inventory_and_interop` | `usable` | `point_delta_report_options` | `planned` | `planned` | `planned` | `planned` | `planned` | 2 | 0 | 2 | boolean (value string argName, value string coordSys, value string detailsFormat, value boolean bShowA, value boolean bShowB, value boolean bShowDelta, value boolean bShowMag, value boolean bShowComponent1, value boolean bShowComponent2, value boolean bShowComponent3, value boolean bSortPointNames, value boolean bShowToleranceFields, value boolean bColorizeInToleranceFields) |  |
 | `SetPointFilterInputTypeArg` | `setter` | `inventory_and_interop` | `usable` | `point_filter_input_type` | `planned` | `planned` | `planned` | `planned` | `planned` | 1 | 0 | 1 | boolean (value string argName, value string pointsInputType) |  |
 | `SetPointNameArg` | `setter` | `inventory_and_interop` | `usable` | `point_name` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 97 | 8 | 89 | boolean (value string argName, value string collectionName, value string groupName, value string targetName) |  |
-| `SetPointNameRefListArg` | `setter` | `inventory_and_interop` | `usable` | `point_name_list` | `planned` | `planned` | `planned` | `planned` | `planned` | 57 | 8 | 49 | boolean (value string argName, ref object pointNameList) |  |
+| `SetPointNameRefListArg` | `setter` | `inventory_and_interop` | `usable` | `point_name_list` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 57 | 8 | 49 | boolean (value string argName, ref object pointNameList) |  |
 | `SetProjectionOptionsArg` | `setter` | `inventory_and_interop` | `usable` | `projection_options` | `planned` | `planned` | `planned` | `planned` | `planned` | 10 | 2 | 8 | boolean (value string argName, value string projectionType, value boolean bIgnoreEdgeProjections, value boolean bOverrideTargetOffsets, value double overrideTargetOffsetsValue, value boolean bAddExtraMaterialThickness, value double extraMaterialThicknessValue) |  |
 | `SetRelWeightingModeArg` | `setter` | `inventory_and_interop` | `usable` | `relationship_weighting_mode` | `planned` | `planned` | `planned` | `planned` | `planned` | 1 | 0 | 1 | boolean (value string argName, value string type) |  |
 | `SetRenderModeTypeArg` | `setter` | `inventory_and_interop` | `usable` | `render_mode_type` | `planned` | `planned` | `planned` | `planned` | `planned` | 2 | 0 | 2 | boolean (value string argName, value string renderModeType) |  |
@@ -332,7 +332,7 @@ This deterministic report reconciles extracted View SDK Code evidence with the c
 | `SetSlotTypeArg` | `setter` | `inventory_and_interop` | `excluded_only` | `slot_type` | `not_required` | `not_required` | `not_required` | `not_required` | `not_required` | 1 | 1 | 0 | boolean (value string argName, value string slotType) |  |
 | `SetSphereFitComputationModeArg` | `setter` | `inventory_and_interop` | `excluded_only` | `sphere_fit_computation_mode` | `not_required` | `not_required` | `not_required` | `not_required` | `not_required` | 1 | 1 | 0 | boolean (value string argName, value string fitMode) |  |
 | `SetStringArg` | `setter` | `inventory_and_interop` | `usable` | `string` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 367 | 200 | 167 | boolean (value string argName, value string value) |  |
-| `SetStringRefListArg` | `setter` | `inventory_and_interop` | `usable` | `string_list` | `planned` | `planned` | `planned` | `planned` | `planned` | 16 | 10 | 6 | boolean (value string argName, ref object stringList) |  |
+| `SetStringRefListArg` | `setter` | `inventory_and_interop` | `usable` | `string_list` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 16 | 10 | 6 | boolean (value string argName, ref object stringList) |  |
 | `SetSurfDissectModeTypeArg` | `setter` | `inventory_and_interop` | `usable` | `surface_dissection_mode_type` | `planned` | `planned` | `planned` | `planned` | `planned` | 1 | 0 | 1 | boolean (value string argName, value string dissectModeType) |  |
 | `SetSurfaceAnalysisModeArg` | `setter` | `inventory_and_interop` | `usable` | `surface_analysis_mode` | `planned` | `planned` | `planned` | `planned` | `planned` | 1 | 0 | 1 | boolean (value string argName, value string surfAnalysisMode) |  |
 | `SetSystemStringArg` | `setter` | `inventory_and_interop` | `excluded_only` | `system_string` | `not_required` | `not_required` | `not_required` | `not_required` | `not_required` | 1 | 1 | 0 | boolean (value string argName, value string systemStrName) |  |
@@ -346,9 +346,9 @@ This deterministic report reconciles extracted View SDK Code evidence with the c
 | `SetUdpTransmitSettingsArg` | `setter` | `inventory_and_interop` | `excluded_only` | `udp_transmit_settings` | `not_required` | `not_required` | `not_required` | `not_required` | `not_required` | 2 | 2 | 0 | boolean (value string argName, value boolean bEnabled, value boolean bBroadcast, value string compName, value int32 port) |  |
 | `SetUserSummaryInfoFilesArg` | `setter` | `interop_only` | `unobserved_interop` | `user_summary_info_files` | `not_required` | `not_required` | `not_required` | `not_required` | `not_required` | 0 | 0 | 0 | boolean (value string argName, value string leftSummaryFilePath, value string rightSummaryFilePath) |  |
 | `SetVectorArg` | `setter` | `inventory_and_interop` | `usable` | `vector3` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 36 | 11 | 25 | boolean (value string argName, value double XValue, value double yValue, value double zValue) |  |
-| `SetVectorGroupNameArg` | `setter` | `inventory_and_interop` | `usable` | `vector_group_name` | `planned` | `planned` | `planned` | `planned` | `planned` | 1 | 0 | 1 | boolean (value string argName, value string vectorGrpName) |  |
-| `SetVectorNameRefListArg` | `setter` | `inventory_and_interop` | `usable` | `vector_name_list` | `planned` | `planned` | `planned` | `planned` | `planned` | 8 | 4 | 4 | boolean (value string argName, ref object vectorNameList) |  |
-| `SetViewNameArg` | `setter` | `inventory_and_interop` | `usable` | `view_name` | `planned` | `planned` | `planned` | `planned` | `planned` | 4 | 0 | 4 | boolean (value string argName, value string viewName) |  |
+| `SetVectorGroupNameArg` | `setter` | `inventory_and_interop` | `usable` | `vector_group_name` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 1 | 0 | 1 | boolean (value string argName, value string vectorGrpName) |  |
+| `SetVectorNameRefListArg` | `setter` | `inventory_and_interop` | `usable` | `vector_name_list` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 8 | 4 | 4 | boolean (value string argName, ref object vectorNameList) |  |
+| `SetViewNameArg` | `setter` | `inventory_and_interop` | `usable` | `view_name` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 4 | 0 | 4 | boolean (value string argName, value string viewName) |  |
 | `SetWindowStateArg` | `setter` | `inventory_and_interop` | `excluded_only` | `window_state` | `not_required` | `not_required` | `not_required` | `not_required` | `not_required` | 2 | 2 | 0 | boolean (value string argName, value string windowState) |  |
 | `SetWorkbookAddressModeTypeArg` | `setter` | `inventory_and_interop` | `excluded_only` | `workbook_address_mode_type` | `not_required` | `not_required` | `not_required` | `not_required` | `not_required` | 2 | 2 | 0 | boolean (value string argName, value string workbookAddressMode) |  |
 | `SetWorldTransformArg` | `setter` | `inventory_and_interop` | `usable` | `world_transform` | `planned` | `planned` | `planned` | `planned` | `planned` | 5 | 2 | 3 | boolean (value string argName, ref object transform, value double scaleFactor) |  |

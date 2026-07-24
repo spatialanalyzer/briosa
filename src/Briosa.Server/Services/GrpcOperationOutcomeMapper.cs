@@ -342,11 +342,36 @@ internal static class GrpcOperationOutcomeMapper
             WorkerMpValueKind.Logical => value.BooleanValue.HasValue,
             WorkerMpValueKind.WholeNumber => value.IntegerValue.HasValue,
             WorkerMpValueKind.FloatingPoint => value.DoubleValue.HasValue,
-            WorkerMpValueKind.Text => value.StringValue is not null,
+            WorkerMpValueKind.Text or
+            WorkerMpValueKind.ChartName or
+            WorkerMpValueKind.CloudName or
+            WorkerMpValueKind.CollectionName or
+            WorkerMpValueKind.FrameName or
+            WorkerMpValueKind.VectorGroupName or
+            WorkerMpValueKind.ViewName => value.StringValue is not null,
             WorkerMpValueKind.PointName => value.PointNameValue is not null,
             WorkerMpValueKind.Vector => value.VectorValue is not null,
             WorkerMpValueKind.ToleranceVectorOptions =>
                 value.ToleranceVectorOptionsValue is not null,
+            WorkerMpValueKind.CollectionInstrumentId =>
+                value.CollectionInstrumentIdValue is not null,
+            WorkerMpValueKind.CollectionInstrumentIdList =>
+                value.CollectionInstrumentIdListValue is not null,
+            WorkerMpValueKind.CollectionMachineId =>
+                value.CollectionMachineIdValue is not null,
+            WorkerMpValueKind.CollectionObjectName =>
+                value.CollectionObjectNameValue is not null,
+            WorkerMpValueKind.CollectionObjectNameList =>
+                value.CollectionObjectNameListValue is not null,
+            WorkerMpValueKind.CollectionGroupNameList =>
+                value.CollectionGroupNameListValue is not null,
+            WorkerMpValueKind.CollectionVectorGroupName =>
+                value.CollectionVectorGroupNameValue is not null,
+            WorkerMpValueKind.CollectionVectorGroupNameList =>
+                value.CollectionVectorGroupNameListValue is not null,
+            WorkerMpValueKind.PointNameList => value.PointNameListValue is not null,
+            WorkerMpValueKind.StringList => value.StringListValue is not null,
+            WorkerMpValueKind.VectorNameList => value.VectorNameListValue is not null,
             _ => false
         };
 

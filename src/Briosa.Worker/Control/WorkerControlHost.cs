@@ -128,27 +128,69 @@ internal static class WorkerControlHost
         new(
             argument.Name,
             ToSdkValueKind(argument.Kind),
-            argument.BooleanValue,
-            argument.IntegerValue,
-            argument.DoubleValue,
-            argument.StringValue,
-            argument.PointNameValue is null
+            BooleanValue: argument.BooleanValue,
+            IntegerValue: argument.IntegerValue,
+            DoubleValue: argument.DoubleValue,
+            StringValue: argument.StringValue,
+            PointNameValue: argument.PointNameValue is null
                 ? null
-                : new SdkPointNameValue(
-                    argument.PointNameValue.CollectionName,
-                    argument.PointNameValue.GroupName,
-                    argument.PointNameValue.TargetName),
-            argument.VectorValue is null
+                : ToSdkPointName(argument.PointNameValue),
+            VectorValue: argument.VectorValue is null
                 ? null
                 : new SdkVectorValue(
                     argument.VectorValue.X,
                     argument.VectorValue.Y,
                     argument.VectorValue.Z),
-            argument.ToleranceVectorOptionsValue is null
+            ToleranceVectorOptionsValue: argument.ToleranceVectorOptionsValue is null
                 ? null
                 : ToSdkToleranceVectorOptions(argument.ToleranceVectorOptionsValue),
-            argument.SdkBinding);
-
+            CollectionInstrumentIdValue: argument.CollectionInstrumentIdValue is null
+                ? null
+                : ToSdkCollectionInstrumentId(argument.CollectionInstrumentIdValue),
+            CollectionInstrumentIdListValue: argument.CollectionInstrumentIdListValue is null
+                ? null
+                : new SdkCollectionInstrumentIdListValue(
+                    [.. argument.CollectionInstrumentIdListValue.Values.Select(ToSdkCollectionInstrumentId)]),
+            CollectionMachineIdValue: argument.CollectionMachineIdValue is null
+                ? null
+                : new SdkCollectionMachineIdValue(
+                    argument.CollectionMachineIdValue.CollectionName,
+                    argument.CollectionMachineIdValue.MachineId),
+            CollectionObjectNameValue: argument.CollectionObjectNameValue is null
+                ? null
+                : ToSdkCollectionObjectName(argument.CollectionObjectNameValue),
+            CollectionObjectNameListValue: argument.CollectionObjectNameListValue is null
+                ? null
+                : new SdkCollectionObjectNameListValue(
+                    [.. argument.CollectionObjectNameListValue.Values.Select(ToSdkCollectionObjectName)]),
+            CollectionGroupNameListValue: argument.CollectionGroupNameListValue is null
+                ? null
+                : new SdkCollectionGroupNameListValue(
+                    [.. argument.CollectionGroupNameListValue.Values.Select(value =>
+                        new SdkCollectionGroupNameValue(value.CollectionName, value.GroupName))]),
+            CollectionVectorGroupNameValue: argument.CollectionVectorGroupNameValue is null
+                ? null
+                : ToSdkCollectionVectorGroupName(argument.CollectionVectorGroupNameValue),
+            CollectionVectorGroupNameListValue: argument.CollectionVectorGroupNameListValue is null
+                ? null
+                : new SdkCollectionVectorGroupNameListValue(
+                    [.. argument.CollectionVectorGroupNameListValue.Values.Select(ToSdkCollectionVectorGroupName)]),
+            PointNameListValue: argument.PointNameListValue is null
+                ? null
+                : new SdkPointNameListValue(
+                    [.. argument.PointNameListValue.Values.Select(ToSdkPointName)]),
+            StringListValue: argument.StringListValue is null
+                ? null
+                : new SdkStringListValue([.. argument.StringListValue.Values]),
+            VectorNameListValue: argument.VectorNameListValue is null
+                ? null
+                : new SdkVectorNameListValue(
+                    [.. argument.VectorNameListValue.Values.Select(value =>
+                        new SdkVectorNameValue(
+                            value.CollectionName,
+                            value.GroupName,
+                            value.VectorName))]),
+            SdkBinding: argument.SdkBinding);
     private static SdkOutputArgument ToSdkOutputArgument(WorkerMpOutputArgument argument) =>
         new(argument.Name, ToSdkValueKind(argument.Kind), argument.SdkBinding);
 
@@ -162,9 +204,40 @@ internal static class WorkerControlHost
             WorkerMpValueKind.PointName => SdkValueKind.PointName,
             WorkerMpValueKind.Vector => SdkValueKind.Vector,
             WorkerMpValueKind.ToleranceVectorOptions => SdkValueKind.ToleranceVectorOptions,
+            WorkerMpValueKind.ChartName => SdkValueKind.ChartName,
+            WorkerMpValueKind.CloudName => SdkValueKind.CloudName,
+            WorkerMpValueKind.CollectionGroupNameList => SdkValueKind.CollectionGroupNameList,
+            WorkerMpValueKind.CollectionInstrumentId => SdkValueKind.CollectionInstrumentId,
+            WorkerMpValueKind.CollectionInstrumentIdList => SdkValueKind.CollectionInstrumentIdList,
+            WorkerMpValueKind.CollectionMachineId => SdkValueKind.CollectionMachineId,
+            WorkerMpValueKind.CollectionName => SdkValueKind.CollectionName,
+            WorkerMpValueKind.CollectionObjectName => SdkValueKind.CollectionObjectName,
+            WorkerMpValueKind.CollectionObjectNameList => SdkValueKind.CollectionObjectNameList,
+            WorkerMpValueKind.CollectionVectorGroupName => SdkValueKind.CollectionVectorGroupName,
+            WorkerMpValueKind.CollectionVectorGroupNameList => SdkValueKind.CollectionVectorGroupNameList,
+            WorkerMpValueKind.FrameName => SdkValueKind.FrameName,
+            WorkerMpValueKind.PointNameList => SdkValueKind.PointNameList,
+            WorkerMpValueKind.StringList => SdkValueKind.StringList,
+            WorkerMpValueKind.VectorGroupName => SdkValueKind.VectorGroupName,
+            WorkerMpValueKind.VectorNameList => SdkValueKind.VectorNameList,
+            WorkerMpValueKind.ViewName => SdkValueKind.ViewName,
             _ => throw new UnreachableException()
         };
 
+    private static SdkPointNameValue ToSdkPointName(WorkerPointNameValue value) =>
+        new(value.CollectionName, value.GroupName, value.TargetName);
+
+    private static SdkCollectionInstrumentIdValue ToSdkCollectionInstrumentId(
+        WorkerCollectionInstrumentIdValue value) =>
+        new(value.CollectionName, value.InstrumentId);
+
+    private static SdkCollectionObjectNameValue ToSdkCollectionObjectName(
+        WorkerCollectionObjectNameValue value) =>
+        new(value.CollectionName, value.ObjectName, value.ObjectType);
+
+    private static SdkCollectionVectorGroupNameValue ToSdkCollectionVectorGroupName(
+        WorkerCollectionVectorGroupNameValue value) =>
+        new(value.CollectionName, value.VectorGroupName);
     private static SdkToleranceVectorOptionsValue ToSdkToleranceVectorOptions(
         WorkerToleranceVectorOptionsValue value) =>
         new(
@@ -194,26 +267,68 @@ internal static class WorkerControlHost
             output.Name,
             ToControlValueKind(output.Kind),
             output.Retrieved,
-            output.BooleanValue,
-            output.IntegerValue,
-            output.DoubleValue,
-            output.StringValue,
-            output.PointNameValue is null
+            BooleanValue: output.BooleanValue,
+            IntegerValue: output.IntegerValue,
+            DoubleValue: output.DoubleValue,
+            StringValue: output.StringValue,
+            PointNameValue: output.PointNameValue is null
                 ? null
-                : new WorkerPointNameValue(
-                    output.PointNameValue.CollectionName,
-                    output.PointNameValue.GroupName,
-                    output.PointNameValue.TargetName),
-            output.VectorValue is null
+                : ToControlPointName(output.PointNameValue),
+            VectorValue: output.VectorValue is null
                 ? null
                 : new WorkerVectorValue(
                     output.VectorValue.X,
                     output.VectorValue.Y,
                     output.VectorValue.Z),
-            output.ToleranceVectorOptionsValue is null
+            ToleranceVectorOptionsValue: output.ToleranceVectorOptionsValue is null
                 ? null
-                : ToControlToleranceVectorOptions(output.ToleranceVectorOptionsValue));
-
+                : ToControlToleranceVectorOptions(output.ToleranceVectorOptionsValue),
+            CollectionInstrumentIdValue: output.CollectionInstrumentIdValue is null
+                ? null
+                : ToControlCollectionInstrumentId(output.CollectionInstrumentIdValue),
+            CollectionInstrumentIdListValue: output.CollectionInstrumentIdListValue is null
+                ? null
+                : new WorkerCollectionInstrumentIdListValue(
+                    [.. output.CollectionInstrumentIdListValue.Values.Select(ToControlCollectionInstrumentId)]),
+            CollectionMachineIdValue: output.CollectionMachineIdValue is null
+                ? null
+                : new WorkerCollectionMachineIdValue(
+                    output.CollectionMachineIdValue.CollectionName,
+                    output.CollectionMachineIdValue.MachineId),
+            CollectionObjectNameValue: output.CollectionObjectNameValue is null
+                ? null
+                : ToControlCollectionObjectName(output.CollectionObjectNameValue),
+            CollectionObjectNameListValue: output.CollectionObjectNameListValue is null
+                ? null
+                : new WorkerCollectionObjectNameListValue(
+                    [.. output.CollectionObjectNameListValue.Values.Select(ToControlCollectionObjectName)]),
+            CollectionGroupNameListValue: output.CollectionGroupNameListValue is null
+                ? null
+                : new WorkerCollectionGroupNameListValue(
+                    [.. output.CollectionGroupNameListValue.Values.Select(value =>
+                        new WorkerCollectionGroupNameValue(value.CollectionName, value.GroupName))]),
+            CollectionVectorGroupNameValue: output.CollectionVectorGroupNameValue is null
+                ? null
+                : ToControlCollectionVectorGroupName(output.CollectionVectorGroupNameValue),
+            CollectionVectorGroupNameListValue: output.CollectionVectorGroupNameListValue is null
+                ? null
+                : new WorkerCollectionVectorGroupNameListValue(
+                    [.. output.CollectionVectorGroupNameListValue.Values.Select(ToControlCollectionVectorGroupName)]),
+            PointNameListValue: output.PointNameListValue is null
+                ? null
+                : new WorkerPointNameListValue(
+                    [.. output.PointNameListValue.Values.Select(ToControlPointName)]),
+            StringListValue: output.StringListValue is null
+                ? null
+                : new WorkerStringListValue([.. output.StringListValue.Values]),
+            VectorNameListValue: output.VectorNameListValue is null
+                ? null
+                : new WorkerVectorNameListValue(
+                    [.. output.VectorNameListValue.Values.Select(value =>
+                        new WorkerVectorNameValue(
+                            value.CollectionName,
+                            value.GroupName,
+                            value.VectorName))]));
     private static WorkerMpValueKind ToControlValueKind(SdkValueKind kind) =>
         kind switch
         {
@@ -224,9 +339,40 @@ internal static class WorkerControlHost
             SdkValueKind.PointName => WorkerMpValueKind.PointName,
             SdkValueKind.Vector => WorkerMpValueKind.Vector,
             SdkValueKind.ToleranceVectorOptions => WorkerMpValueKind.ToleranceVectorOptions,
+            SdkValueKind.ChartName => WorkerMpValueKind.ChartName,
+            SdkValueKind.CloudName => WorkerMpValueKind.CloudName,
+            SdkValueKind.CollectionGroupNameList => WorkerMpValueKind.CollectionGroupNameList,
+            SdkValueKind.CollectionInstrumentId => WorkerMpValueKind.CollectionInstrumentId,
+            SdkValueKind.CollectionInstrumentIdList => WorkerMpValueKind.CollectionInstrumentIdList,
+            SdkValueKind.CollectionMachineId => WorkerMpValueKind.CollectionMachineId,
+            SdkValueKind.CollectionName => WorkerMpValueKind.CollectionName,
+            SdkValueKind.CollectionObjectName => WorkerMpValueKind.CollectionObjectName,
+            SdkValueKind.CollectionObjectNameList => WorkerMpValueKind.CollectionObjectNameList,
+            SdkValueKind.CollectionVectorGroupName => WorkerMpValueKind.CollectionVectorGroupName,
+            SdkValueKind.CollectionVectorGroupNameList => WorkerMpValueKind.CollectionVectorGroupNameList,
+            SdkValueKind.FrameName => WorkerMpValueKind.FrameName,
+            SdkValueKind.PointNameList => WorkerMpValueKind.PointNameList,
+            SdkValueKind.StringList => WorkerMpValueKind.StringList,
+            SdkValueKind.VectorGroupName => WorkerMpValueKind.VectorGroupName,
+            SdkValueKind.VectorNameList => WorkerMpValueKind.VectorNameList,
+            SdkValueKind.ViewName => WorkerMpValueKind.ViewName,
             _ => throw new UnreachableException()
         };
 
+    private static WorkerPointNameValue ToControlPointName(SdkPointNameValue value) =>
+        new(value.CollectionName, value.GroupName, value.TargetName);
+
+    private static WorkerCollectionInstrumentIdValue ToControlCollectionInstrumentId(
+        SdkCollectionInstrumentIdValue value) =>
+        new(value.CollectionName, value.InstrumentId);
+
+    private static WorkerCollectionObjectNameValue ToControlCollectionObjectName(
+        SdkCollectionObjectNameValue value) =>
+        new(value.CollectionName, value.ObjectName, value.ObjectType);
+
+    private static WorkerCollectionVectorGroupNameValue ToControlCollectionVectorGroupName(
+        SdkCollectionVectorGroupNameValue value) =>
+        new(value.CollectionName, value.VectorGroupName);
     private static WorkerToleranceVectorOptionsValue ToControlToleranceVectorOptions(
         SdkToleranceVectorOptionsValue value) =>
         new(
