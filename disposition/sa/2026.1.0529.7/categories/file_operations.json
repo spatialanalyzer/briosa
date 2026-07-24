@@ -5161,7 +5161,7 @@
       "inventory_entry_sha256": "d25fd9fab911809ad1d734f5546be8fa22d4290284d76b6c008600f54622da26",
       "disposition": "approved_candidate",
       "review_state": "reviewed",
-      "rationale": "The exact generated SDK occurrence resolves the executable step, argument names, direction, and order. Briosa requires explicit values unless installed documentation marks an input optional; no generated sample value becomes a default.",
+      "rationale": "The installed command-reference table places one or more semantically returned values under Input Arguments, but its prose describes returned data and the exact SA 2026 generated getter sequence confirms the output shape. The command shape is therefore resolved without treating the table-label defect as an executable ambiguity.",
       "reason_codes": [
         "command_shape_resolved"
       ],
@@ -5310,7 +5310,20 @@
               "presence": "required",
               "omission_behavior": "reject_request",
               "default": {
-                "status": "none"
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": [
+                      "MS Shell Dlg",
+                      8,
+                      0,
+                      0,
+                      0
+                    ]
+                  }
+                ]
               }
             },
             "sdk_binding": {

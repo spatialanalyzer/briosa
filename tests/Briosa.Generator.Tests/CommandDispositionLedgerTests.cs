@@ -41,6 +41,22 @@ public sealed class CommandDispositionLedgerTests
         const string issue79 = "https://github.com/spatialanalyzer/briosa/issues/79";
         const string issue80 = "https://github.com/spatialanalyzer/briosa/issues/80";
         var entries = ReadCommittedEntries();
+        var inventory = ReadCommittedInventory();
+        var directionFindings = inventory.Commands
+            .SelectMany(command => command.Arguments
+                .SelectMany(argument => argument.Findings
+                    .Where(finding => finding.StartsWith(
+                        "direction_disagreement_",
+                        StringComparison.Ordinal))
+                    .Select(finding => (command.InventoryKey, Finding: finding))))
+            .ToArray();
+        var directionKeys = directionFindings
+            .Select(finding => finding.InventoryKey)
+            .ToHashSet(StringComparer.Ordinal);
+        var directionDispositions = entries
+            .Where(entry => directionKeys.Contains(entry.InventoryKey))
+            .GroupBy(entry => entry.Disposition, StringComparer.Ordinal)
+            .ToDictionary(group => group.Key, group => group.Count(), StringComparer.Ordinal);
         var candidates = entries
             .Where(entry => entry.Disposition == "approved_candidate")
             .ToArray();
@@ -52,6 +68,11 @@ public sealed class CommandDispositionLedgerTests
             .Cast<CommandInputResolution>()
             .ToArray();
 
+        Assert.Equal(30, directionFindings.Length);
+        Assert.Equal(16, directionKeys.Count);
+        Assert.Equal(7, directionDispositions["approved_candidate"]);
+        Assert.Equal(8, directionDispositions["intentional_exclusion"]);
+        Assert.Equal(1, directionDispositions["sdk_unavailable"]);
         Assert.Equal(673, candidates.Length);
         Assert.Equal(56, blocked.Length);
         Assert.Equal(207, entries.Count(entry => entry.Disposition == "sdk_unavailable"));
@@ -67,11 +88,34 @@ public sealed class CommandDispositionLedgerTests
             Assert.Empty(entry.CommandShape.Discrepancies);
             Assert.Contains(issue53, entry.DecisionReferences);
         });
-        Assert.Equal(1942, inputs.Count(input => input.Presence == "required"));
-        Assert.Equal(64, inputs.Count(input => input.Presence == "optional"));
+        Assert.Equal(1756, inputs.Count(input => input.Presence == "required"));
+        Assert.Equal(250, inputs.Count(input => input.Presence == "optional"));
         Assert.Equal(64, inputs.Count(input => input.OmissionBehavior == "omit_sdk_setter"));
-        Assert.DoesNotContain(inputs, input => input.Default.Status == "reviewed");
-        Assert.DoesNotContain(inputs, input => input.Default.Value is not null);
+        Assert.Equal(186, inputs.Count(input => input.Default.Status == "reviewed"));
+        Assert.Equal(536, inputs.Count(input => input.Default.ReviewStatus == "needs_review"));
+        Assert.All(
+            inputs.Where(input => input.Default.Status == "reviewed"),
+            input =>
+            {
+                Assert.Equal("optional", input.Presence);
+                Assert.Equal("set_catalog_default", input.OmissionBehavior);
+                Assert.NotNull(input.Default.Value);
+                Assert.Equal(
+                    ["objectivesa_prior_release", "sa_2026_generated_vb"],
+                    input.Default.Evidence);
+                Assert.Null(input.Default.ReviewStatus);
+                Assert.Null(input.Default.Candidates);
+            });
+        Assert.All(
+            inputs.Where(input => input.Default.ReviewStatus == "needs_review"),
+            input =>
+            {
+                Assert.Equal("required", input.Presence);
+                Assert.Equal("reject_request", input.OmissionBehavior);
+                Assert.Equal("none", input.Default.Status);
+                Assert.Null(input.Default.Value);
+                Assert.NotEmpty(input.Default.Candidates!);
+            });
 
         Assert.Equal(45, blocked.Count(entry => entry.BlockerReferences.SequenceEqual([issue79])));
         Assert.Equal(11, blocked.Count(entry => entry.BlockerReferences.SequenceEqual([issue80])));
@@ -115,6 +159,21 @@ public sealed class CommandDispositionLedgerTests
                 Assert.NotNull(argument.SdkBinding.Getter);
             });
 
+        var orientation = Assert.Single(
+            entries,
+            entry => entry.MpStep == "Compute Group to Group Orientation (Rx, Ry, Rz)");
+        Assert.Equal("read_only", orientation.RiskEffect);
+        Assert.Equal("wave_1", orientation.DeliveryWave);
+        Assert.Equal(
+            ["input", "input", "output", "output", "output"],
+            orientation.CommandShape!.Arguments.Select(argument => argument.Direction));
+
+        var apdisCalibration = Assert.Single(
+            entries,
+            entry => entry.MpStep == "LR APDIS Activate MCM Calibration");
+        Assert.Equal("wave_4", apdisCalibration.DeliveryWave);
+        Assert.Contains("device_control", apdisCalibration.RiskFlags);
+        Assert.Contains("long_running", apdisCalibration.RiskFlags);
         var missingInterop = Assert.Single(
             entries,
             entry => entry.MpStep == "Get Relationship Sigmoidal Gap Fit Constraints");
@@ -238,8 +297,8 @@ public sealed class CommandDispositionLedgerTests
         Assert.Equal(44, reviewed.Count(entry => entry.Disposition == "blocked"));
         Assert.Equal(36, reviewed.Count(entry => entry.Disposition == "intentional_exclusion"));
         Assert.Equal(91, reviewed.Count(entry => entry.Disposition == "sdk_unavailable"));
-        Assert.Equal(64, reviewed.Count(entry => entry.DeliveryWave == "wave_1"));
-        Assert.Equal(133, reviewed.Count(entry => entry.DeliveryWave == "wave_2"));
+        Assert.Equal(65, reviewed.Count(entry => entry.DeliveryWave == "wave_1"));
+        Assert.Equal(132, reviewed.Count(entry => entry.DeliveryWave == "wave_2"));
         Assert.Equal(44, reviewed.Count(entry => entry.DeliveryWave == "wave_3"));
         Assert.Equal(38, reviewed.Count(entry => entry.DeliveryWave == "wave_4"));
 
@@ -307,9 +366,9 @@ public sealed class CommandDispositionLedgerTests
         Assert.Equal(0, reviewed.Count(entry => entry.Disposition == "blocked"));
         Assert.Equal(16, reviewed.Count(entry => entry.Disposition == "intentional_exclusion"));
         Assert.Equal(47, reviewed.Count(entry => entry.Disposition == "sdk_unavailable"));
-        Assert.Equal(178, reviewed.Count(entry => entry.DeliveryWave == "wave_4"));
+        Assert.Equal(179, reviewed.Count(entry => entry.DeliveryWave == "wave_4"));
         Assert.Equal(
-            85,
+            86,
             reviewed.Count(entry =>
                 entry.Disposition == "approved_candidate" &&
                 entry.RiskFlags.Contains("device_control", StringComparer.Ordinal)));
@@ -637,6 +696,19 @@ public sealed class CommandDispositionLedgerTests
         }
 
         return directory ?? throw new InvalidOperationException("Could not find the repository root.");
+    }
+
+    private static MpCommandInventory ReadCommittedInventory()
+    {
+        var inventoryPath = Path.Combine(
+            FindRepositoryRoot().FullName,
+            "inventory",
+            "sa",
+            "2026.1.0529.7",
+            "inventory.json");
+        return JsonSerializer.Deserialize<MpCommandInventory>(
+            File.ReadAllText(inventoryPath),
+            JsonOptions)!;
     }
 
     private static CommandDispositionEntry[] ReadCommittedEntries()

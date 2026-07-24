@@ -330,10 +330,15 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none"
+                "status": "reviewed",
+                "value": 0.1,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
+                ]
               }
             },
             "sdk_binding": {
@@ -348,10 +353,15 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none"
+                "status": "reviewed",
+                "value": 0.1,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
+                ]
               }
             },
             "sdk_binding": {
@@ -366,10 +376,15 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none"
+                "status": "reviewed",
+                "value": "Both",
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
+                ]
               }
             },
             "sdk_binding": {
@@ -384,10 +399,15 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none"
+                "status": "reviewed",
+                "value": false,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
+                ]
               }
             },
             "sdk_binding": {
@@ -402,10 +422,15 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none"
+                "status": "reviewed",
+                "value": false,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
+                ]
               }
             },
             "sdk_binding": {
@@ -420,10 +445,15 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none"
+                "status": "reviewed",
+                "value": 0,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
+                ]
               }
             },
             "sdk_binding": {
@@ -441,7 +471,14 @@
               "presence": "required",
               "omission_behavior": "reject_request",
               "default": {
-                "status": "none"
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "objectivesa_prior_release",
+                    "value": null
+                  }
+                ]
               }
             },
             "sdk_binding": {
@@ -456,10 +493,15 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none"
+                "status": "reviewed",
+                "value": true,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
+                ]
               }
             },
             "sdk_binding": {
@@ -474,10 +516,15 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none"
+                "status": "reviewed",
+                "value": false,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
+                ]
               }
             },
             "sdk_binding": {
@@ -739,7 +786,14 @@
               "presence": "required",
               "omission_behavior": "reject_request",
               "default": {
-                "status": "none"
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": "*"
+                  }
+                ]
               }
             },
             "sdk_binding": {
@@ -757,7 +811,14 @@
               "presence": "required",
               "omission_behavior": "reject_request",
               "default": {
-                "status": "none"
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": "*"
+                  }
+                ]
               }
             },
             "sdk_binding": {
@@ -1082,7 +1143,14 @@
               "presence": "required",
               "omission_behavior": "reject_request",
               "default": {
-                "status": "none"
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": false
+                  }
+                ]
               }
             },
             "sdk_binding": {
@@ -1100,7 +1168,14 @@
               "presence": "required",
               "omission_behavior": "reject_request",
               "default": {
-                "status": "none"
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": false
+                  }
+                ]
               }
             },
             "sdk_binding": {
@@ -2414,10 +2489,15 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none"
+                "status": "reviewed",
+                "value": false,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
+                ]
               }
             },
             "sdk_binding": {
@@ -2494,10 +2574,15 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none"
+                "status": "reviewed",
+                "value": false,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
+                ]
               }
             },
             "sdk_binding": {
@@ -2512,10 +2597,15 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none"
+                "status": "reviewed",
+                "value": 0.0,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
+                ]
               }
             },
             "sdk_binding": {
@@ -2629,10 +2719,15 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none"
+                "status": "reviewed",
+                "value": false,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
+                ]
               }
             },
             "sdk_binding": {
@@ -2809,7 +2904,14 @@
               "presence": "required",
               "omission_behavior": "reject_request",
               "default": {
-                "status": "none"
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": true
+                  }
+                ]
               }
             },
             "sdk_binding": {
@@ -2827,7 +2929,14 @@
               "presence": "required",
               "omission_behavior": "reject_request",
               "default": {
-                "status": "none"
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": "Least Squares"
+                  }
+                ]
               }
             },
             "sdk_binding": {
@@ -2845,7 +2954,14 @@
               "presence": "required",
               "omission_behavior": "reject_request",
               "default": {
-                "status": "none"
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": "Least Squares"
+                  }
+                ]
               }
             },
             "sdk_binding": {
@@ -2863,7 +2979,14 @@
               "presence": "required",
               "omission_behavior": "reject_request",
               "default": {
-                "status": "none"
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": "Least Squares"
+                  }
+                ]
               }
             },
             "sdk_binding": {
@@ -2881,7 +3004,14 @@
               "presence": "required",
               "omission_behavior": "reject_request",
               "default": {
-                "status": "none"
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": "Least Squares"
+                  }
+                ]
               }
             },
             "sdk_binding": {
@@ -2899,7 +3029,14 @@
               "presence": "required",
               "omission_behavior": "reject_request",
               "default": {
-                "status": "none"
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": "Least Squares"
+                  }
+                ]
               }
             },
             "sdk_binding": {
@@ -2917,7 +3054,14 @@
               "presence": "required",
               "omission_behavior": "reject_request",
               "default": {
-                "status": "none"
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": "Least Squares"
+                  }
+                ]
               }
             },
             "sdk_binding": {
@@ -2935,7 +3079,14 @@
               "presence": "required",
               "omission_behavior": "reject_request",
               "default": {
-                "status": "none"
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": "Least Squares"
+                  }
+                ]
               }
             },
             "sdk_binding": {
@@ -2953,7 +3104,14 @@
               "presence": "required",
               "omission_behavior": "reject_request",
               "default": {
-                "status": "none"
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": "Least Squares"
+                  }
+                ]
               }
             },
             "sdk_binding": {
@@ -2971,7 +3129,14 @@
               "presence": "required",
               "omission_behavior": "reject_request",
               "default": {
-                "status": "none"
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": "Least Squares"
+                  }
+                ]
               }
             },
             "sdk_binding": {

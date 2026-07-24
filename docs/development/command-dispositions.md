@@ -44,7 +44,7 @@ A maintainer-reviewed pull request is sufficient decision approval. Escalate to 
 
 ## Required decision metadata
 
-Use concise Briosa-authored rationale; do not copy vendor documentation prose, SDK source, sample default values, geometry, paths, or other proprietary content into the ledger.
+Use concise Briosa-authored rationale; do not copy vendor documentation prose, SDK source, geometry, paths, or other proprietary content into the ledger. A primitive or structured value may be retained only as curated default-review metadata under the exact-target precedence rules in [Command-shape resolution](command-shape-resolution.md); raw generated code and surrounding vendor text remain local evidence.
 
 Reason codes and value families are stable lowercase identifiers such as `read_only_operation`, `office_integration`, `path`, or `geometry`. Keep lists ordinally sorted and prefer an existing code when it has the same meaning. Risk effects, risk flags, and data classifications reuse the supported-catalog vocabulary. An empty `risk_flags` array means the review found no special command-level risk flag; `unknown` remains an explicit unresolved state. Decision and blocker references must be canonical `https://github.com/spatialanalyzer/.../issues/<number>` or pull-request URLs. Do not record reviewer names, timestamps, workstation paths, or local source locations.
 
@@ -72,6 +72,7 @@ dotnet run --project tools/Briosa.Generator -c Release -- `
   disposition/sa/2026.1.0529.7
 ```
 
+For the initial SA 2026.1.0529.7 default review, maintainers with the local prior-release ObjectiveSA source and exact-target VB export may run `eng/Review-CommandDefaults.ps1`. It activates only corroborated prior-release defaults, leaves all other proposals inactive, and excludes sensitive values and obvious placeholders. The generated report is the manual-review queue; changing a candidate into a reviewed default remains a reviewed ledger decision.
 Review category shards in a focused pull request, update only reviewer-owned fields, and synchronize again so hashes and the report reflect the decisions. Then run:
 
 ```powershell

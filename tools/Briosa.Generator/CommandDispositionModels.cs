@@ -174,7 +174,25 @@ internal sealed class CommandDefaultResolution
     public required string Status { get; init; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? ReviewStatus { get; init; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public object? Value { get; init; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public List<string>? Evidence { get; init; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public List<CommandDefaultCandidate>? Candidates { get; init; }
+}
+
+internal sealed class CommandDefaultCandidate
+{
+    [JsonRequired]
+    public required string Source { get; init; }
+
+    [JsonRequired]
+    public required object? Value { get; init; }
 }
 
 internal sealed class CommandSdkBindingResolution

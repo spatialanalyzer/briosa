@@ -91,7 +91,14 @@
               "presence": "required",
               "omission_behavior": "reject_request",
               "default": {
-                "status": "none"
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": false
+                  }
+                ]
               }
             },
             "sdk_binding": {
@@ -109,7 +116,34 @@
               "presence": "required",
               "omission_behavior": "reject_request",
               "default": {
-                "status": "none"
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": [
+                      "Continuous",
+                      "Blue",
+                      "Green",
+                      "Red",
+                      false,
+                      true,
+                      false,
+                      100.0,
+                      1,
+                      false,
+                      0.1,
+                      false,
+                      false,
+                      true,
+                      false,
+                      0.5,
+                      -0.5,
+                      0.03,
+                      -0.03
+                    ]
+                  }
+                ]
               }
             },
             "sdk_binding": {
@@ -188,7 +222,14 @@
               "presence": "required",
               "omission_behavior": "reject_request",
               "default": {
-                "status": "none"
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": false
+                  }
+                ]
               }
             },
             "sdk_binding": {
@@ -206,7 +247,34 @@
               "presence": "required",
               "omission_behavior": "reject_request",
               "default": {
-                "status": "none"
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": [
+                      "Continuous",
+                      "Blue",
+                      "Green",
+                      "Red",
+                      false,
+                      true,
+                      false,
+                      100.0,
+                      1,
+                      false,
+                      0.1,
+                      false,
+                      false,
+                      true,
+                      false,
+                      0.5,
+                      -0.5,
+                      0.03,
+                      -0.03
+                    ]
+                  }
+                ]
               }
             },
             "sdk_binding": {
@@ -284,7 +352,14 @@
               "presence": "required",
               "omission_behavior": "reject_request",
               "default": {
-                "status": "none"
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": 0
+                  }
+                ]
               }
             },
             "sdk_binding": {
@@ -502,7 +577,14 @@
               "presence": "required",
               "omission_behavior": "reject_request",
               "default": {
-                "status": "none"
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": 0
+                  }
+                ]
               }
             },
             "sdk_binding": {
@@ -923,7 +1005,34 @@
               "presence": "required",
               "omission_behavior": "reject_request",
               "default": {
-                "status": "none"
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": [
+                      "Continuous",
+                      "Blue",
+                      "Green",
+                      "Red",
+                      false,
+                      true,
+                      false,
+                      100.0,
+                      1,
+                      false,
+                      0.1,
+                      false,
+                      false,
+                      true,
+                      false,
+                      0.5,
+                      -0.5,
+                      0.03,
+                      -0.03
+                    ]
+                  }
+                ]
               }
             },
             "sdk_binding": {
@@ -1001,7 +1110,34 @@
               "presence": "required",
               "omission_behavior": "reject_request",
               "default": {
-                "status": "none"
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": [
+                      "Continuous",
+                      "Blue",
+                      "Green",
+                      "Red",
+                      false,
+                      true,
+                      false,
+                      100.0,
+                      1,
+                      false,
+                      0.1,
+                      false,
+                      false,
+                      true,
+                      false,
+                      0.5,
+                      -0.5,
+                      0.03,
+                      -0.03
+                    ]
+                  }
+                ]
               }
             },
             "sdk_binding": {
@@ -1125,10 +1261,15 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none"
+                "status": "reviewed",
+                "value": "Magnitude",
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
+                ]
               }
             },
             "sdk_binding": {
@@ -1143,10 +1284,15 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none"
+                "status": "reviewed",
+                "value": "Cartesian",
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
+                ]
               }
             },
             "sdk_binding": {
@@ -1161,10 +1307,15 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none"
+                "status": "reviewed",
+                "value": "X (R)",
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
+                ]
               }
             },
             "sdk_binding": {
@@ -1179,10 +1330,15 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none"
+                "status": "reviewed",
+                "value": "Y (Theta)",
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
+                ]
               }
             },
             "sdk_binding": {
@@ -1197,10 +1353,15 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none"
+                "status": "reviewed",
+                "value": "Z (Phi)",
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
+                ]
               }
             },
             "sdk_binding": {
@@ -1215,10 +1376,15 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none"
+                "status": "reviewed",
+                "value": 0.0,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
+                ]
               }
             },
             "sdk_binding": {
@@ -1233,10 +1399,15 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none"
+                "status": "reviewed",
+                "value": 0.0,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
+                ]
               }
             },
             "sdk_binding": {
@@ -1251,10 +1422,15 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none"
+                "status": "reviewed",
+                "value": 0.0,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
+                ]
               }
             },
             "sdk_binding": {
@@ -1269,10 +1445,15 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none"
+                "status": "reviewed",
+                "value": false,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
+                ]
               }
             },
             "sdk_binding": {

@@ -259,6 +259,31 @@
       "required": ["status"],
       "properties": {
         "status": { "enum": ["none", "reviewed"] },
+        "review_status": { "const": "needs_review" },
+        "value": {},
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": ["objectivesa_prior_release", "sa_2026_generated_vb"]
+          }
+        },
+        "candidates": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/default_candidate" }
+        }
+      }
+    },
+    "default_candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "value"],
+      "properties": {
+        "source": {
+          "enum": ["objectivesa_prior_release", "sa_2026_generated_vb"]
+        },
         "value": {}
       }
     },

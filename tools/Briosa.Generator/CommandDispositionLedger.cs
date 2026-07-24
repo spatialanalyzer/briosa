@@ -943,15 +943,63 @@ internal static partial class CommandDispositionLedger
             return;
         }
 
+        var defaultStatus = input.Default.Status;
+        var reviewStatus = input.Default.ReviewStatus;
         var hasDefaultValue = input.Default.Value is not null;
+        var evidence = input.Default.Evidence ?? [];
+        var candidates = input.Default.Candidates ?? [];
+        switch (defaultStatus)
+        {
+            case "none":
+                if (hasDefaultValue || evidence.Count != 0)
+                {
+                    errors.Add(
+                        $"{argumentPath}: a default with status none cannot retain an active " +
+                        "value or reviewed evidence.");
+                }
+
+                var hasPendingReview = candidates.Count != 0;
+                if (hasPendingReview != string.Equals(
+                        reviewStatus,
+                        "needs_review",
+                        StringComparison.Ordinal))
+                {
+                    errors.Add(
+                        $"{argumentPath}: inactive candidates require review_status " +
+                        "needs_review, and that marker requires candidates.");
+                }
+
+                if (!candidates.Select(candidate => candidate.Source).SequenceEqual(
+                        candidates.Select(candidate => candidate.Source).Order(StringComparer.Ordinal),
+                        StringComparer.Ordinal))
+                {
+                    errors.Add($"{argumentPath}: default candidates must be ordered by source.");
+                }
+
+                break;
+            case "reviewed":
+                if (!hasDefaultValue || evidence.Count == 0 || candidates.Count != 0 ||
+                    reviewStatus is not null)
+                {
+                    errors.Add(
+                        $"{argumentPath}: a reviewed default requires a value and evidence, " +
+                        "and cannot retain pending-review metadata.");
+                }
+
+                RequireSortedUnique(evidence, argumentPath, "default evidence", errors);
+                break;
+            default:
+                errors.Add($"{argumentPath}: unknown default status '{defaultStatus}'.");
+                break;
+        }
         if (string.Equals(input.Presence, "required", StringComparison.Ordinal))
         {
             if (!string.Equals(input.OmissionBehavior, "reject_request", StringComparison.Ordinal) ||
-                !string.Equals(input.Default.Status, "none", StringComparison.Ordinal) ||
-                hasDefaultValue)
+                string.Equals(defaultStatus, "reviewed", StringComparison.Ordinal))
             {
                 errors.Add(
-                    $"{argumentPath}: required inputs must reject omission and define no default.");
+                    $"{argumentPath}: required inputs must reject omission and cannot activate " +
+                    "a reviewed default.");
             }
 
             return;
@@ -972,13 +1020,11 @@ internal static partial class CommandDispositionLedger
             "set_catalog_default",
             StringComparison.Ordinal);
         if ((!omitsSetter && !setsDefault) ||
-            (omitsSetter && (!string.Equals(input.Default.Status, "none", StringComparison.Ordinal) ||
-                             hasDefaultValue)) ||
-            (setsDefault && (!string.Equals(input.Default.Status, "reviewed", StringComparison.Ordinal) ||
-                             !hasDefaultValue)))
+            (omitsSetter && !string.Equals(defaultStatus, "none", StringComparison.Ordinal)) ||
+            (setsDefault && !string.Equals(defaultStatus, "reviewed", StringComparison.Ordinal)))
         {
             errors.Add(
-                $"{argumentPath}: optional omission behavior and reviewed default metadata " +
+                $"{argumentPath}: optional omission behavior and default review status " +
                 "are inconsistent.");
         }
     }
@@ -1380,6 +1426,7 @@ internal static partial class CommandDispositionLedger
                 .Where(wave => wave is not null)
                 .Cast<string>());
         AppendCommandShapeDiscrepancies(builder, entries);
+        AppendDefaultReviewQueue(builder, entries);
         AppendIntentionalExclusions(builder, entries);
 
         builder.AppendLine();
@@ -1455,8 +1502,63 @@ internal static partial class CommandDispositionLedger
             input.Default.Status,
             "reviewed",
             StringComparison.Ordinal))}");
+        builder.AppendLine(CultureInfo.InvariantCulture, $"- Proposed defaults needing review: {inputs.Count(input => string.Equals(
+            input.Default.ReviewStatus,
+            "needs_review",
+            StringComparison.Ordinal))}");
         builder.AppendLine(
-            "- Generated SDK sample values are not stored or promoted as defaults.");
+            "- A generated SA 2026 VB value remains inactive review evidence unless a matching " +
+            "ObjectiveSA prior-release default corroborates it without an exact-target conflict.");
+    }
+
+    private static void AppendDefaultReviewQueue(
+        StringBuilder builder,
+        IEnumerable<CommandDispositionEntry> entries)
+    {
+        var pending = entries
+            .Where(entry => string.Equals(
+                entry.CommandShape?.Status,
+                "resolved",
+                StringComparison.Ordinal))
+            .SelectMany(entry => entry.CommandShape!.Arguments
+                .Where(argument => string.Equals(
+                    argument.Input?.Default.ReviewStatus,
+                    "needs_review",
+                    StringComparison.Ordinal))
+                .Select(argument => (Entry: entry, Argument: argument)))
+            .OrderBy(item => item.Entry.InventoryKey, StringComparer.Ordinal)
+            .ThenBy(item => item.Argument.Ordinal)
+            .ToArray();
+
+        builder.AppendLine();
+        builder.AppendLine("## Proposed defaults requiring maintainer review");
+        builder.AppendLine();
+        if (pending.Length == 0)
+        {
+            builder.AppendLine("None.");
+            return;
+        }
+
+        builder.AppendLine(
+            "These values are evidence-backed proposals only. Their inputs continue to reject " +
+            "omission until a reviewed disposition explicitly activates a catalog default. " +
+            "Maintainer review is tracked by https://github.com/spatialanalyzer/briosa/issues/82.");
+        builder.AppendLine();
+        builder.AppendLine("| Category path | MP step | Argument | Candidate evidence |");
+        builder.AppendLine("| --- | --- | --- | --- |");
+        foreach (var item in pending)
+        {
+            var candidates = item.Argument.Input!.Default.Candidates ?? [];
+            var renderedCandidates = string.Join(
+                "; ",
+                candidates.Select(candidate =>
+                    $"{candidate.Source}={JsonSerializer.Serialize(candidate.Value, CompactOptions)}"));
+            builder.AppendLine(
+                CultureInfo.InvariantCulture,
+                $"| {EscapeMarkdown(string.Join(" / ", item.Entry.CategoryPath))} | " +
+                $"{EscapeMarkdown(item.Entry.MpStep)} | {EscapeMarkdown(item.Argument.MpName)} | " +
+                $"{EscapeMarkdown(renderedCandidates)} |");
+        }
     }
 
     private static void AppendCommandShapeDiscrepancies(
