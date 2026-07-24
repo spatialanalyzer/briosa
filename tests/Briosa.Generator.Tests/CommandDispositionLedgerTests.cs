@@ -51,13 +51,13 @@ public sealed class CommandDispositionLedgerTests
             .GroupBy(reason => reason, StringComparer.Ordinal)
             .ToDictionary(group => group.Key, group => group.Count(), StringComparer.Ordinal);
 
-        Assert.Equal(349, exclusions.Length);
+        Assert.Equal(348, exclusions.Length);
         Assert.Equal(39, counts["client_owned_external_integration"]);
         Assert.Equal(14, counts["client_owned_office_integration"]);
         Assert.Equal(17, counts["client_owned_serialization"]);
         Assert.Equal(38, counts["client_owned_spreadsheet_integration"]);
         Assert.Equal(63, counts["client_owned_state_and_control_flow"]);
-        Assert.Equal(54, counts["client_owned_user_experience"]);
+        Assert.Equal(53, counts["client_owned_user_experience"]);
         Assert.Equal(60, counts["client_owned_value_computation"]);
         Assert.Equal(64, counts["client_owned_value_construction"]);
         Assert.All(exclusions, entry =>
@@ -203,6 +203,98 @@ public sealed class CommandDispositionLedgerTests
             entry.MpStep == "Best Fit Transformation - Group to Group");
         Assert.Equal("wave_4", bestFit.DeliveryWave);
         Assert.Equal(["filesystem_write", "long_running"], bestFit.RiskFlags);
+    }
+
+    [Fact]
+    public void Issue50ReviewCuratesEveryDeviceDomainCommandWithoutPromotingIt()
+    {
+        const string issue50 = "https://github.com/spatialanalyzer/briosa/issues/50";
+        var entries = ReadCommittedEntries();
+        var reviewed = entries
+            .Where(entry => entry.DecisionReferences.Contains(issue50, StringComparer.Ordinal))
+            .ToArray();
+
+        Assert.Equal(243, reviewed.Length);
+        Assert.Equal(176, reviewed.Count(entry => entry.Disposition == "approved_candidate"));
+        Assert.Equal(35, reviewed.Count(entry => entry.Disposition == "blocked"));
+        Assert.Equal(16, reviewed.Count(entry => entry.Disposition == "intentional_exclusion"));
+        Assert.Equal(16, reviewed.Count(entry => entry.Disposition == "sdk_unavailable"));
+        Assert.Equal(176, reviewed.Count(entry => entry.DeliveryWave == "wave_4"));
+        Assert.Equal(
+            85,
+            reviewed.Count(entry =>
+                entry.Disposition == "approved_candidate" &&
+                entry.RiskFlags.Contains("device_control", StringComparer.Ordinal)));
+
+        Assert.All(reviewed, entry =>
+        {
+            Assert.Equal("reviewed", entry.ReviewState);
+            Assert.NotEqual("unknown", entry.RiskEffect);
+            Assert.DoesNotContain("unknown", entry.RiskFlags);
+            Assert.DoesNotContain("unknown", entry.DataClassifications);
+            Assert.DoesNotContain("unknown", entry.ValueFamilies);
+        });
+        Assert.All(
+            reviewed.Where(entry => entry.Disposition == "approved_candidate"),
+            entry =>
+            {
+                Assert.Empty(entry.BlockerReferences);
+                Assert.Equal("wave_4", entry.DeliveryWave);
+            });
+        Assert.All(
+            reviewed.Where(entry => entry.Disposition == "blocked"),
+            entry => Assert.Equal(
+                ["https://github.com/spatialanalyzer/briosa/issues/53"],
+                entry.BlockerReferences));
+
+        AssertDisposition(entries, "InstrumentOperations", "Measure", "approved_candidate");
+        AssertDisposition(
+            entries,
+            "RobotOperations",
+            "Move Robot/Machine to Frame",
+            "approved_candidate");
+        AssertDisposition(
+            entries,
+            "RobotCalibrationApplianceNodeOperations",
+            "Set Calibration Appliance Node Measurement Profile",
+            "approved_candidate");
+        AssertDisposition(
+            entries,
+            "InstrumentOperations",
+            "Watch Window Template 3D",
+            "intentional_exclusion");
+        AssertDisposition(
+            entries,
+            "RobotOperations",
+            "Perform Robot Calibration",
+            "sdk_unavailable");
+        AssertDisposition(
+            entries,
+            "RobotOperations",
+            "Get Robot/Machine Model Link Parameters",
+            "blocked");
+
+        var deviceCandidateSteps = reviewed
+            .Where(entry =>
+                entry.Disposition == "approved_candidate" &&
+                entry.RiskFlags.Contains("device_control", StringComparer.Ordinal))
+            .Select(entry => entry.MpStep)
+            .ToHashSet(StringComparer.Ordinal);
+        var catalogDirectory = Path.Combine(
+            FindRepositoryRoot().FullName,
+            "catalog",
+            "sa",
+            "2026.1.0529.7");
+        var catalog = JsonNode.Parse(File.ReadAllText(
+            Path.Combine(catalogDirectory, "catalog.json")))!.AsObject();
+        var supportedSteps = catalog["operation_files"]!.AsArray()
+            .Select(file => JsonNode.Parse(File.ReadAllText(Path.Combine(
+                catalogDirectory,
+                file!.GetValue<string>().Replace('/', Path.DirectorySeparatorChar))))!
+                ["mp_step"]!.GetValue<string>())
+            .ToArray();
+
+        Assert.DoesNotContain(supportedSteps, deviceCandidateSteps.Contains);
     }
 
     [Fact]

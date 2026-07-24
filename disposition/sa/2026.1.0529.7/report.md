@@ -13,18 +13,18 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 
 | Disposition | Count |
 | --- | ---: |
-| `approved_candidate` | 220 |
-| `blocked` | 769 |
-| `intentional_exclusion` | 385 |
-| `sdk_unavailable` | 38 |
+| `approved_candidate` | 396 |
+| `blocked` | 562 |
+| `intentional_exclusion` | 400 |
+| `sdk_unavailable` | 54 |
 
 ## Review states
 
 | Review state | Count |
 | --- | ---: |
 | `needs_re_review` | 0 |
-| `reviewed` | 799 |
-| `unreviewed` | 613 |
+| `reviewed` | 1041 |
+| `unreviewed` | 371 |
 
 ## Categories
 
@@ -45,15 +45,15 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 | GDTOperations | 3 | 0 | 0 | 0 | 3 | 3 | 0 | 0 |
 | GoogleSheets | 18 | 0 | 18 | 0 | 0 | 0 | 0 | 0 |
 | GoogleSheetsOperations | 1 | 0 | 1 | 0 | 0 | 0 | 0 | 0 |
-| InstrumentOperations | 185 | 0 | 1 | 0 | 184 | 184 | 184 | 0 |
+| InstrumentOperations | 185 | 125 | 16 | 12 | 32 | 32 | 0 | 0 |
 | MPSubroutines | 4 | 0 | 4 | 0 | 0 | 0 | 0 | 0 |
 | MPTaskOverview | 11 | 0 | 11 | 0 | 0 | 0 | 0 | 0 |
 | MSOfficeReportingOperations | 14 | 0 | 14 | 0 | 0 | 0 | 0 | 0 |
 | ProcessFlowOperations | 25 | 0 | 21 | 0 | 4 | 4 | 4 | 0 |
 | RelationshipOperations | 67 | 0 | 0 | 0 | 67 | 67 | 67 | 0 |
 | ReportingOperations | 71 | 0 | 0 | 0 | 71 | 71 | 71 | 0 |
-| RobotCalibrationApplianceNodeOperations | 25 | 0 | 0 | 0 | 25 | 25 | 25 | 0 |
-| RobotOperations | 33 | 0 | 0 | 0 | 33 | 33 | 33 | 0 |
+| RobotCalibrationApplianceNodeOperations | 25 | 23 | 0 | 2 | 0 | 0 | 0 | 0 |
+| RobotOperations | 33 | 28 | 0 | 2 | 3 | 3 | 0 | 0 |
 | ScalarMathOperations | 21 | 0 | 21 | 0 | 0 | 0 | 0 | 0 |
 | ScaleBars | 3 | 2 | 0 | 0 | 1 | 1 | 0 | 0 |
 | UtilityOperations | 105 | 0 | 52 | 0 | 53 | 53 | 53 | 0 |
@@ -65,28 +65,30 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 
 | Value | Count |
 | --- | ---: |
-| `mutating` | 108 |
-| `read_only` | 48 |
-| `unknown` | 613 |
+| `mutating` | 133 |
+| `read_only` | 58 |
+| `unknown` | 371 |
 
 ## Unresolved work by risk flag
 
 | Value | Count |
 | --- | ---: |
+| `device_control` | 11 |
 | `filesystem_read` | 2 |
-| `long_running` | 19 |
-| `unknown` | 613 |
+| `long_running` | 29 |
+| `network_access` | 1 |
+| `unknown` | 371 |
 
 ## Unresolved work by data classification
 
 | Value | Count |
 | --- | ---: |
-| `geometry` | 138 |
-| `measurement` | 89 |
+| `geometry` | 166 |
+| `measurement` | 106 |
 | `non_sensitive` | 1 |
-| `object_identifier` | 147 |
-| `path` | 5 |
-| `unknown` | 613 |
+| `object_identifier` | 182 |
+| `path` | 7 |
+| `unknown` | 371 |
 
 ## Unresolved work by value family
 
@@ -97,25 +99,30 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 | `boolean` | 11 |
 | `cloud_thinning_mode` | 1 |
 | `cloud_thinning_options` | 2 |
-| `collection_instrument_id` | 1 |
+| `collection_instrument_id` | 29 |
 | `collection_instrument_id_list` | 1 |
+| `collection_machine_id` | 2 |
 | `collection_name` | 3 |
-| `collection_object_name` | 116 |
-| `collection_object_name_list` | 45 |
+| `collection_object_name` | 126 |
+| `collection_object_name_list` | 48 |
 | `collection_object_name_ref_list` | 4 |
 | `collection_vector_group_name` | 1 |
+| `collimation_baseline_method` | 1 |
+| `collimation_baseline_type` | 1 |
+| `collimation_type` | 1 |
 | `color` | 1 |
 | `color_range_method` | 1 |
 | `colorization_options` | 3 |
 | `coordinate_system_type` | 1 |
 | `dimension_ref_list` | 1 |
 | `double` | 8 |
+| `double_array` | 1 |
 | `edit_text` | 3 |
 | `feature_check_ref_list` | 1 |
 | `file_path_or_embedded_file` | 1 |
-| `file_reference` | 1 |
+| `file_reference` | 3 |
 | `fit_constraint_scalar_options` | 1 |
-| `floating_point` | 72 |
+| `floating_point` | 90 |
 | `font` | 1 |
 | `gd_and_t_options_check_validator_type` | 2 |
 | `gd_and_t_options_distance_between_mode` | 1 |
@@ -132,61 +139,63 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 | `gdt_sphere_extended_options` | 1 |
 | `geometry_type` | 2 |
 | `integer` | 7 |
+| `integer_array` | 1 |
 | `item_type` | 1 |
-| `logical` | 76 |
+| `logical` | 97 |
 | `mesh_orientation_type` | 1 |
 | `object_type` | 2 |
 | `offset_direction_type` | 2 |
 | `outlier_rejection_options_scalar_type` | 3 |
 | `point_filter_input_type` | 1 |
-| `point_name` | 18 |
-| `point_name_list` | 9 |
+| `point_name` | 21 |
+| `point_name_list` | 12 |
 | `projection_options` | 1 |
 | `rgb_color` | 3 |
 | `sigmoidal_gap_constraint_options` | 1 |
-| `string` | 45 |
+| `string` | 53 |
 | `surface_analysis_mode` | 1 |
 | `surface_dissection_mode_type` | 1 |
+| `surface_face_list` | 1 |
 | `tolerance_vector_options` | 3 |
-| `transform` | 6 |
-| `unknown` | 613 |
+| `transform` | 9 |
+| `unknown` | 371 |
 | `vector` | 3 |
-| `vector3` | 15 |
+| `vector3` | 17 |
 | `vector_creation_trigger` | 1 |
 | `vector_name_list` | 2 |
-| `whole_number` | 37 |
-| `world_transform` | 2 |
+| `whole_number` | 50 |
+| `world_transform` | 4 |
 
 ## Reason codes
 
 | Value | Count |
 | --- | ---: |
-| `argument_semantics_unresolved` | 155 |
-| `awaiting_review` | 613 |
-| `client_owned_external_integration` | 39 |
+| `argument_semantics_unresolved` | 190 |
+| `awaiting_review` | 371 |
+| `client_owned_external_integration` | 40 |
 | `client_owned_office_integration` | 14 |
 | `client_owned_serialization` | 17 |
 | `client_owned_spreadsheet_integration` | 38 |
-| `client_owned_state_and_control_flow` | 63 |
-| `client_owned_user_experience` | 54 |
+| `client_owned_state_and_control_flow` | 64 |
+| `client_owned_user_experience` | 56 |
 | `client_owned_value_computation` | 60 |
 | `client_owned_value_construction` | 97 |
-| `filesystem_operation` | 1 |
+| `filesystem_operation` | 11 |
 | `interactive_operation` | 2 |
-| `long_running_operation` | 28 |
-| `operator_ui_dependency` | 3 |
-| `read_only_operation` | 66 |
+| `long_running_operation` | 61 |
+| `operator_ui_dependency` | 14 |
+| `read_only_operation` | 101 |
 | `sdk_binding_unresolved` | 62 |
-| `sdk_command_not_observed` | 12 |
-| `sdk_input_binding_unavailable` | 26 |
-| `state_mutation` | 154 |
+| `sdk_command_not_observed` | 21 |
+| `sdk_input_binding_unavailable` | 33 |
+| `state_mutation` | 295 |
 
 ## Blockers
 
 | Value | Count |
 | --- | ---: |
-| `https://github.com/spatialanalyzer/briosa/issues/43` | 613 |
-| `https://github.com/spatialanalyzer/briosa/issues/53` | 156 |
+| `https://github.com/spatialanalyzer/briosa/issues/43` | 371 |
+| `https://github.com/spatialanalyzer/briosa/issues/53` | 191 |
 
 ## Delivery waves
 
@@ -195,7 +204,7 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 | `wave_1` | 48 |
 | `wave_2` | 98 |
 | `wave_3` | 44 |
-| `wave_4` | 30 |
+| `wave_4` | 206 |
 
 ## Reviewed intentional exclusions
 
@@ -411,7 +420,22 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 | GoogleSheets | Open Google Sheets Spreadsheet | documentation:GoogleSheets/OpenGoogleSheetsSpreadsheet.htm | client_owned_spreadsheet_integration | Spreadsheet integration belongs in the client application or a dedicated spreadsheet library. | https://github.com/spatialanalyzer/briosa/issues/52 |
 | GoogleSheets | Set Google Sheets Spreadsheet Cell Address | documentation:GoogleSheets/SetGoogleSheetsCellAddress.htm | client_owned_spreadsheet_integration | Spreadsheet integration belongs in the client application or a dedicated spreadsheet library. | https://github.com/spatialanalyzer/briosa/issues/52 |
 | GoogleSheetsOperations | Google Sheets Run Script | sdk:GoogleSheetsOperations.txt#8 | client_owned_spreadsheet_integration | Spreadsheet integration belongs in the client application or a dedicated spreadsheet library. | https://github.com/spatialanalyzer/briosa/issues/52 |
-| InstrumentOperations | Close Auto-Correspond Closest Point Dialog | documentation:InstrumentOperations/CloseAutoCorrespondClosest.htm | client_owned_user_experience | Operator prompts and interactive SpatialAnalyzer UI control belong in the client application. | https://github.com/spatialanalyzer/briosa/issues/52 |
+| InstrumentOperations | Activate/Deactivate Instrument Toolbar | documentation:InstrumentOperations/ActivateDeactivateInstrument.htm | operator_ui_dependency | This command depends on operator-driven SpatialAnalyzer UI interaction, which is not suitable for a deterministic unattended gRPC operation. | https://github.com/spatialanalyzer/briosa/issues/50, https://github.com/spatialanalyzer/briosa/issues/52 |
+| InstrumentOperations | Close Auto-Correspond Closest Point Dialog | documentation:InstrumentOperations/CloseAutoCorrespondClosest.htm | client_owned_user_experience | Operator prompts and interactive SpatialAnalyzer UI control belong in the client application. | https://github.com/spatialanalyzer/briosa/issues/50, https://github.com/spatialanalyzer/briosa/issues/52 |
+| InstrumentOperations | Dock Instrument Interface | documentation:InstrumentOperations/DockInstrumentInterface.htm | client_owned_user_experience | Operator prompts and interactive SpatialAnalyzer UI control belong in the client application. | https://github.com/spatialanalyzer/briosa/issues/50, https://github.com/spatialanalyzer/briosa/issues/52 |
+| InstrumentOperations | Measure Existing Single Point (Manual Guide) | documentation:InstrumentOperations/MeasureExistingSinglePointManual.htm | operator_ui_dependency | This command depends on operator-driven SpatialAnalyzer UI interaction, which is not suitable for a deterministic unattended gRPC operation. | https://github.com/spatialanalyzer/briosa/issues/50, https://github.com/spatialanalyzer/briosa/issues/52 |
+| InstrumentOperations | Show/Hide Instrument Interface | documentation:InstrumentOperations/ShowHideInstrumentInterface.htm | client_owned_user_experience | Operator prompts and interactive SpatialAnalyzer UI control belong in the client application. | https://github.com/spatialanalyzer/briosa/issues/50, https://github.com/spatialanalyzer/briosa/issues/52 |
+| InstrumentOperations | Start GD&T Inspection | documentation:InstrumentOperations/StartGDTInspection.htm | operator_ui_dependency | This command depends on operator-driven SpatialAnalyzer UI interaction, which is not suitable for a deterministic unattended gRPC operation. | https://github.com/spatialanalyzer/briosa/issues/50, https://github.com/spatialanalyzer/briosa/issues/52 |
+| InstrumentOperations | Start GD&T Inspection Design | documentation:InstrumentOperations/StartGDTInspectionDesign.htm | operator_ui_dependency | This command depends on operator-driven SpatialAnalyzer UI interaction, which is not suitable for a deterministic unattended gRPC operation. | https://github.com/spatialanalyzer/briosa/issues/50, https://github.com/spatialanalyzer/briosa/issues/52 |
+| InstrumentOperations | Start GD&T Inspection Rehearse | documentation:InstrumentOperations/StartGDTInspectionRehearse.htm | operator_ui_dependency | This command depends on operator-driven SpatialAnalyzer UI interaction, which is not suitable for a deterministic unattended gRPC operation. | https://github.com/spatialanalyzer/briosa/issues/50, https://github.com/spatialanalyzer/briosa/issues/52 |
+| InstrumentOperations | Watch Closest Point | documentation:InstrumentOperations/WatchClosestPoint.htm | operator_ui_dependency | This command depends on operator-driven SpatialAnalyzer UI interaction, which is not suitable for a deterministic unattended gRPC operation. | https://github.com/spatialanalyzer/briosa/issues/50, https://github.com/spatialanalyzer/briosa/issues/52 |
+| InstrumentOperations | Watch Instrument | documentation:InstrumentOperations/WatchInstrument.htm | operator_ui_dependency | This command depends on operator-driven SpatialAnalyzer UI interaction, which is not suitable for a deterministic unattended gRPC operation. | https://github.com/spatialanalyzer/briosa/issues/50, https://github.com/spatialanalyzer/briosa/issues/52 |
+| InstrumentOperations | Watch Point to Edge | documentation:InstrumentOperations/WatchPointToEdge.htm | operator_ui_dependency | This command depends on operator-driven SpatialAnalyzer UI interaction, which is not suitable for a deterministic unattended gRPC operation. | https://github.com/spatialanalyzer/briosa/issues/50, https://github.com/spatialanalyzer/briosa/issues/52 |
+| InstrumentOperations | Watch Point to Objects | documentation:InstrumentOperations/WatchPointToObjects.htm | operator_ui_dependency | This command depends on operator-driven SpatialAnalyzer UI interaction, which is not suitable for a deterministic unattended gRPC operation. | https://github.com/spatialanalyzer/briosa/issues/50, https://github.com/spatialanalyzer/briosa/issues/52 |
+| InstrumentOperations | Watch Point to Point | documentation:InstrumentOperations/WatchPointToPoint.htm | operator_ui_dependency | This command depends on operator-driven SpatialAnalyzer UI interaction, which is not suitable for a deterministic unattended gRPC operation. | https://github.com/spatialanalyzer/briosa/issues/50, https://github.com/spatialanalyzer/briosa/issues/52 |
+| InstrumentOperations | Watch Point to Point With View Zooming | documentation:InstrumentOperations/WatchPointToPointWith.htm | operator_ui_dependency | This command depends on operator-driven SpatialAnalyzer UI interaction, which is not suitable for a deterministic unattended gRPC operation. | https://github.com/spatialanalyzer/briosa/issues/50, https://github.com/spatialanalyzer/briosa/issues/52 |
+| InstrumentOperations | Watch Window Template 3D | documentation:InstrumentOperations/WatchWindowTemplate3D.htm | client_owned_external_integration | This command combines operator-facing watch-window behavior with SA-hosted UDP integration, both of which are outside Briosa public gRPC scope. | https://github.com/spatialanalyzer/briosa/issues/50, https://github.com/spatialanalyzer/briosa/issues/52 |
+| InstrumentOperations / CribSheetOperations | Run Crib Sheet | documentation:InstrumentOperations/CribSheetOperations/RunCribSheet.htm | client_owned_state_and_control_flow | Briosa clients own application sequencing and control flow; executing an SA crib-sheet program is outside the public gRPC command surface. | https://github.com/spatialanalyzer/briosa/issues/50, https://github.com/spatialanalyzer/briosa/issues/52 |
 | MPSubroutines | Define Subroutine Input Values | documentation:MPSubroutines/DefineSubroutineInputValues.htm | client_owned_state_and_control_flow | Client-language state and control flow replace this measurement-plan programming helper. | https://github.com/spatialanalyzer/briosa/issues/52 |
 | MPSubroutines | Define Subroutine Return Values | documentation:MPSubroutines/DefineSubroutineReturnValues.htm | client_owned_state_and_control_flow | Client-language state and control flow replace this measurement-plan programming helper. | https://github.com/spatialanalyzer/briosa/issues/52 |
 | MPSubroutines | Return from Subroutine Now | documentation:MPSubroutines/ReturnFromSubroutineNow.htm | client_owned_state_and_control_flow | Client-language state and control flow replace this measurement-plan programming helper. | https://github.com/spatialanalyzer/briosa/issues/52 |

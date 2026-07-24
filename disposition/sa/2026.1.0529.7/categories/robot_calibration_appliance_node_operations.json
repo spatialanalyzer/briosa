@@ -11,30 +11,32 @@
         "RobotCalibrationApplianceNodeOperations"
       ],
       "inventory_entry_sha256": "45e85cb231ad8fae7c5ee90afaa5159d0a5306c7c97d62c51bdf7c0679a72a9a",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command is within Briosa automation scope; retain it as a Wave 4 candidate subject to generated policy gates and the documented protected-fixture prerequisites.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#1"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/50"
       ],
-      "risk_effect": "unknown",
+      "blocker_references": [],
+      "risk_effect": "mutating",
       "risk_flags": [
-        "unknown"
+        "device_control",
+        "network_access"
       ],
       "data_classifications": [
-        "unknown"
+        "measurement",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_4"
     },
     {
       "inventory_key": "sdk:RobotCalibrationApplianceNodeOperations.txt#10",
@@ -43,30 +45,33 @@
         "RobotCalibrationApplianceNodeOperations"
       ],
       "inventory_entry_sha256": "fa012a6d1d457c12523052bda44b2de04b5b1edd4dc4a92d1d508d523c31e5a8",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command is within Briosa automation scope; retain it as a Wave 4 candidate subject to generated policy gates and the documented protected-fixture prerequisites.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#10"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/50"
       ],
-      "risk_effect": "unknown",
+      "blocker_references": [],
+      "risk_effect": "mutating",
       "risk_flags": [
-        "unknown"
+        "device_control",
+        "network_access"
       ],
       "data_classifications": [
-        "unknown"
+        "geometry",
+        "measurement",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_4"
     },
     {
       "inventory_key": "sdk:RobotCalibrationApplianceNodeOperations.txt#11",
@@ -75,30 +80,34 @@
         "RobotCalibrationApplianceNodeOperations"
       ],
       "inventory_entry_sha256": "ed8d540cda1e4e9526bf82fcd8631ee3e4adaa8fe44a39c2e3d514c51cfb6039",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command is within Briosa automation scope; retain it as a Wave 4 candidate subject to generated policy gates and the documented protected-fixture prerequisites.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#11"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/50"
       ],
-      "risk_effect": "unknown",
+      "blocker_references": [],
+      "risk_effect": "mutating",
       "risk_flags": [
-        "unknown"
+        "device_control",
+        "network_access"
       ],
       "data_classifications": [
-        "unknown"
+        "geometry",
+        "measurement",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name",
+        "transform"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_4"
     },
     {
       "inventory_key": "sdk:RobotCalibrationApplianceNodeOperations.txt#12",
@@ -107,30 +116,33 @@
         "RobotCalibrationApplianceNodeOperations"
       ],
       "inventory_entry_sha256": "5b7c0e7f2a70a342f2d3e3307ad69d1ebbfa74ad45023de2bac55eda4b1bcb82",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command is within Briosa automation scope; retain it as a Wave 4 candidate subject to generated policy gates and the documented protected-fixture prerequisites.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#12"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/50"
       ],
-      "risk_effect": "unknown",
+      "blocker_references": [],
+      "risk_effect": "mutating",
       "risk_flags": [
-        "unknown"
+        "device_control",
+        "network_access"
       ],
       "data_classifications": [
-        "unknown"
+        "geometry",
+        "measurement",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_4"
     },
     {
       "inventory_key": "sdk:RobotCalibrationApplianceNodeOperations.txt#13",
@@ -139,30 +151,33 @@
         "RobotCalibrationApplianceNodeOperations"
       ],
       "inventory_entry_sha256": "472bf00f09cc54cfdd99d790ad638ab8c73e84e1aac144695e8c2aba5d4306f7",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command is within Briosa automation scope; retain it as a Wave 4 candidate subject to generated policy gates and the documented protected-fixture prerequisites.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#13"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/50"
       ],
-      "risk_effect": "unknown",
+      "blocker_references": [],
+      "risk_effect": "mutating",
       "risk_flags": [
-        "unknown"
+        "device_control",
+        "network_access"
       ],
       "data_classifications": [
-        "unknown"
+        "measurement",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name",
+        "string"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_4"
     },
     {
       "inventory_key": "sdk:RobotCalibrationApplianceNodeOperations.txt#14",
@@ -171,30 +186,33 @@
         "RobotCalibrationApplianceNodeOperations"
       ],
       "inventory_entry_sha256": "853e25791f8d5306c4a40ca9dec8beb3936245ee3dcfb812ef03efcca9b19054",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command is within Briosa automation scope; retain it as a Wave 4 candidate subject to generated policy gates and the documented protected-fixture prerequisites.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#14"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/50"
       ],
-      "risk_effect": "unknown",
+      "blocker_references": [],
+      "risk_effect": "mutating",
       "risk_flags": [
-        "unknown"
+        "device_control",
+        "network_access"
       ],
       "data_classifications": [
-        "unknown"
+        "measurement",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name",
+        "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_4"
     },
     {
       "inventory_key": "sdk:RobotCalibrationApplianceNodeOperations.txt#15",
@@ -203,30 +221,33 @@
         "RobotCalibrationApplianceNodeOperations"
       ],
       "inventory_entry_sha256": "ebed99891feeed3157364325fc41d14ca31f33af2fda8c7e87ef837ce1afdaff",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command is within Briosa automation scope; retain it as a Wave 4 candidate subject to generated policy gates and the documented protected-fixture prerequisites.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#15"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/50"
       ],
-      "risk_effect": "unknown",
+      "blocker_references": [],
+      "risk_effect": "mutating",
       "risk_flags": [
-        "unknown"
+        "device_control",
+        "network_access"
       ],
       "data_classifications": [
-        "unknown"
+        "measurement",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name",
+        "logical"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_4"
     },
     {
       "inventory_key": "sdk:RobotCalibrationApplianceNodeOperations.txt#16",
@@ -235,30 +256,32 @@
         "RobotCalibrationApplianceNodeOperations"
       ],
       "inventory_entry_sha256": "2dbce26731ecf9d505e354f40b2f3748246dfa99fb047f5fd7dcc19ebcc9809a",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command is within Briosa automation scope; retain it as a Wave 4 candidate subject to generated policy gates and the documented protected-fixture prerequisites.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#16"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/50"
       ],
-      "risk_effect": "unknown",
+      "blocker_references": [],
+      "risk_effect": "mutating",
       "risk_flags": [
-        "unknown"
+        "device_control",
+        "network_access"
       ],
       "data_classifications": [
-        "unknown"
+        "measurement",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_4"
     },
     {
       "inventory_key": "sdk:RobotCalibrationApplianceNodeOperations.txt#17",
@@ -267,30 +290,33 @@
         "RobotCalibrationApplianceNodeOperations"
       ],
       "inventory_entry_sha256": "b1c82d4cae47443c5a807b62c2929e2e1ba5c0c2242c7d99b3da6a241bede326",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command is within Briosa automation scope; retain it as a Wave 4 candidate subject to generated policy gates and the documented protected-fixture prerequisites.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#17"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/50"
       ],
-      "risk_effect": "unknown",
+      "blocker_references": [],
+      "risk_effect": "mutating",
       "risk_flags": [
-        "unknown"
+        "device_control",
+        "network_access"
       ],
       "data_classifications": [
-        "unknown"
+        "measurement",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name",
+        "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_4"
     },
     {
       "inventory_key": "sdk:RobotCalibrationApplianceNodeOperations.txt#18",
@@ -299,30 +325,32 @@
         "RobotCalibrationApplianceNodeOperations"
       ],
       "inventory_entry_sha256": "26176e144c764e6a0f781ddfc72b6bb8ef43947666c31777471642ff09569ace",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command is within Briosa automation scope; retain it as a Wave 4 candidate subject to generated policy gates and the documented protected-fixture prerequisites.",
       "reason_codes": [
-        "awaiting_review"
+        "read_only_operation"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#18"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/50"
       ],
-      "risk_effect": "unknown",
+      "blocker_references": [],
+      "risk_effect": "read_only",
       "risk_flags": [
-        "unknown"
+        "network_access"
       ],
       "data_classifications": [
-        "unknown"
+        "measurement",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name",
+        "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_4"
     },
     {
       "inventory_key": "sdk:RobotCalibrationApplianceNodeOperations.txt#19",
@@ -331,30 +359,35 @@
         "RobotCalibrationApplianceNodeOperations"
       ],
       "inventory_entry_sha256": "6cffbe77695c2b2a2825dcdb6c0493937ef84b86c822af5333ca80e3d9eb61fd",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command is within Briosa automation scope; retain it as a Wave 4 candidate subject to generated policy gates and the documented protected-fixture prerequisites.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#19"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/50"
       ],
-      "risk_effect": "unknown",
+      "blocker_references": [],
+      "risk_effect": "mutating",
       "risk_flags": [
-        "unknown"
+        "device_control",
+        "network_access"
       ],
       "data_classifications": [
-        "unknown"
+        "geometry",
+        "measurement",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name",
+        "floating_point",
+        "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_4"
     },
     {
       "inventory_key": "sdk:RobotCalibrationApplianceNodeOperations.txt#2",
@@ -363,30 +396,32 @@
         "RobotCalibrationApplianceNodeOperations"
       ],
       "inventory_entry_sha256": "2cad50d7af6c2e83072c6c8be99ae5f0d23d7bd0780f1e9d6da554358c4a6edf",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command is within Briosa automation scope; retain it as a Wave 4 candidate subject to generated policy gates and the documented protected-fixture prerequisites.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#2"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/50"
       ],
-      "risk_effect": "unknown",
+      "blocker_references": [],
+      "risk_effect": "mutating",
       "risk_flags": [
-        "unknown"
+        "device_control",
+        "network_access"
       ],
       "data_classifications": [
-        "unknown"
+        "measurement",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_4"
     },
     {
       "inventory_key": "sdk:RobotCalibrationApplianceNodeOperations.txt#20",
@@ -395,30 +430,34 @@
         "RobotCalibrationApplianceNodeOperations"
       ],
       "inventory_entry_sha256": "9832bc2b154e41d1ab90abef4d99cc1e0b8a346191b3e7b489145e9d3e6a208f",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command is within Briosa automation scope; retain it as a Wave 4 candidate subject to generated policy gates and the documented protected-fixture prerequisites.",
       "reason_codes": [
-        "awaiting_review"
+        "read_only_operation"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#20"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/50"
       ],
-      "risk_effect": "unknown",
+      "blocker_references": [],
+      "risk_effect": "read_only",
       "risk_flags": [
-        "unknown"
+        "network_access"
       ],
       "data_classifications": [
-        "unknown"
+        "geometry",
+        "measurement",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name",
+        "floating_point",
+        "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_4"
     },
     {
       "inventory_key": "sdk:RobotCalibrationApplianceNodeOperations.txt#21",
@@ -427,28 +466,32 @@
         "RobotCalibrationApplianceNodeOperations"
       ],
       "inventory_entry_sha256": "71233d3fd47a0b9e1985125513ba2fd59eb67d81d97523aef0634ba4fc10c578",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "sdk_unavailable",
+      "review_state": "reviewed",
+      "rationale": "The exact-target evidence lacks a viable SDK command occurrence or a required input binding, so Briosa cannot expose this command through the SA SDK.",
       "reason_codes": [
-        "awaiting_review"
+        "sdk_input_binding_unavailable"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#21"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/50"
       ],
-      "risk_effect": "unknown",
+      "blocker_references": [],
+      "risk_effect": "mutating",
       "risk_flags": [
-        "unknown"
+        "device_control",
+        "network_access"
       ],
       "data_classifications": [
-        "unknown"
+        "measurement",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name",
+        "double_array",
+        "integer_array"
       ],
       "delivery_wave": null
     },
@@ -459,28 +502,31 @@
         "RobotCalibrationApplianceNodeOperations"
       ],
       "inventory_entry_sha256": "3b1378947a854d4d3d5ff81575605a28990acfe76240d5a517c130a499fba313",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "sdk_unavailable",
+      "review_state": "reviewed",
+      "rationale": "The exact-target evidence lacks a viable SDK command occurrence or a required input binding, so Briosa cannot expose this command through the SA SDK.",
       "reason_codes": [
-        "awaiting_review"
+        "sdk_input_binding_unavailable"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#22"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/50"
       ],
-      "risk_effect": "unknown",
+      "blocker_references": [],
+      "risk_effect": "read_only",
       "risk_flags": [
-        "unknown"
+        "network_access"
       ],
       "data_classifications": [
-        "unknown"
+        "measurement",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name",
+        "double_array",
+        "integer_array"
       ],
       "delivery_wave": null
     },
@@ -491,30 +537,32 @@
         "RobotCalibrationApplianceNodeOperations"
       ],
       "inventory_entry_sha256": "0fc1c0cf7411e4e55211246cd7e949ea714b25f6f72d930c70a71b1f4b0dedd1",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command is within Briosa automation scope; retain it as a Wave 4 candidate subject to generated policy gates and the documented protected-fixture prerequisites.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#23"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/50"
       ],
-      "risk_effect": "unknown",
+      "blocker_references": [],
+      "risk_effect": "mutating",
       "risk_flags": [
-        "unknown"
+        "network_access"
       ],
       "data_classifications": [
-        "unknown"
+        "measurement",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_machine_id",
+        "collection_object_name"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_4"
     },
     {
       "inventory_key": "sdk:RobotCalibrationApplianceNodeOperations.txt#24",
@@ -523,30 +571,32 @@
         "RobotCalibrationApplianceNodeOperations"
       ],
       "inventory_entry_sha256": "0233cab2ab8710b116ba0884f512b172e2b13d1f8cf6227f96a466befbef9d69",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command is within Briosa automation scope; retain it as a Wave 4 candidate subject to generated policy gates and the documented protected-fixture prerequisites.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#24"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/50"
       ],
-      "risk_effect": "unknown",
+      "blocker_references": [],
+      "risk_effect": "mutating",
       "risk_flags": [
-        "unknown"
+        "network_access"
       ],
       "data_classifications": [
-        "unknown"
+        "measurement",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name",
+        "logical"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_4"
     },
     {
       "inventory_key": "sdk:RobotCalibrationApplianceNodeOperations.txt#25",
@@ -555,30 +605,32 @@
         "RobotCalibrationApplianceNodeOperations"
       ],
       "inventory_entry_sha256": "e3a863712a4f7e6d47221d44e6852ba5c1c0bcb75f38d2d18b0c48de01f94585",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command is within Briosa automation scope; retain it as a Wave 4 candidate subject to generated policy gates and the documented protected-fixture prerequisites.",
       "reason_codes": [
-        "awaiting_review"
+        "read_only_operation"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#25"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/50"
       ],
-      "risk_effect": "unknown",
+      "blocker_references": [],
+      "risk_effect": "read_only",
       "risk_flags": [
-        "unknown"
+        "network_access"
       ],
       "data_classifications": [
-        "unknown"
+        "measurement",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name",
+        "logical"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_4"
     },
     {
       "inventory_key": "sdk:RobotCalibrationApplianceNodeOperations.txt#3",
@@ -587,30 +639,33 @@
         "RobotCalibrationApplianceNodeOperations"
       ],
       "inventory_entry_sha256": "b6683c3791c43f2da92cb1f3cbd65a4ea1a263e8367e62b66dfdf9b24defb447",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command is within Briosa automation scope; retain it as a Wave 4 candidate subject to generated policy gates and the documented protected-fixture prerequisites.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#3"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/50"
       ],
-      "risk_effect": "unknown",
+      "blocker_references": [],
+      "risk_effect": "mutating",
       "risk_flags": [
-        "unknown"
+        "device_control",
+        "network_access"
       ],
       "data_classifications": [
-        "unknown"
+        "measurement",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name",
+        "logical"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_4"
     },
     {
       "inventory_key": "sdk:RobotCalibrationApplianceNodeOperations.txt#4",
@@ -619,30 +674,33 @@
         "RobotCalibrationApplianceNodeOperations"
       ],
       "inventory_entry_sha256": "de55bf205811f1e278045caa2f52519347bcf13704c2e1624e5c68d48a4eda4b",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command is within Briosa automation scope; retain it as a Wave 4 candidate subject to generated policy gates and the documented protected-fixture prerequisites.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#4"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/50"
       ],
-      "risk_effect": "unknown",
+      "blocker_references": [],
+      "risk_effect": "mutating",
       "risk_flags": [
-        "unknown"
+        "device_control",
+        "network_access"
       ],
       "data_classifications": [
-        "unknown"
+        "measurement",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_instrument_id",
+        "collection_object_name"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_4"
     },
     {
       "inventory_key": "sdk:RobotCalibrationApplianceNodeOperations.txt#5",
@@ -651,30 +709,34 @@
         "RobotCalibrationApplianceNodeOperations"
       ],
       "inventory_entry_sha256": "6cded9b2ecbe18c873ac2674919e6e28b7b0ba8a214b1ff561fe2f9823a98946",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command is within Briosa automation scope; retain it as a Wave 4 candidate subject to generated policy gates and the documented protected-fixture prerequisites.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#5"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/50"
       ],
-      "risk_effect": "unknown",
+      "blocker_references": [],
+      "risk_effect": "mutating",
       "risk_flags": [
-        "unknown"
+        "device_control",
+        "network_access"
       ],
       "data_classifications": [
-        "unknown"
+        "measurement",
+        "object_identifier",
+        "path"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name",
+        "string"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_4"
     },
     {
       "inventory_key": "sdk:RobotCalibrationApplianceNodeOperations.txt#6",
@@ -683,30 +745,33 @@
         "RobotCalibrationApplianceNodeOperations"
       ],
       "inventory_entry_sha256": "089c4abaf8ddc885800234a0a13d7c53c83185638d6a1c4fe79f205b209db61d",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command is within Briosa automation scope; retain it as a Wave 4 candidate subject to generated policy gates and the documented protected-fixture prerequisites.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#6"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/50"
       ],
-      "risk_effect": "unknown",
+      "blocker_references": [],
+      "risk_effect": "mutating",
       "risk_flags": [
-        "unknown"
+        "device_control",
+        "network_access"
       ],
       "data_classifications": [
-        "unknown"
+        "measurement",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name",
+        "string"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_4"
     },
     {
       "inventory_key": "sdk:RobotCalibrationApplianceNodeOperations.txt#7",
@@ -715,30 +780,34 @@
         "RobotCalibrationApplianceNodeOperations"
       ],
       "inventory_entry_sha256": "078838ced290b94ea730bbdac956dd002d10408025e3a8578379b655c1af135d",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command is within Briosa automation scope; retain it as a Wave 4 candidate subject to generated policy gates and the documented protected-fixture prerequisites.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#7"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/50"
       ],
-      "risk_effect": "unknown",
+      "blocker_references": [],
+      "risk_effect": "mutating",
       "risk_flags": [
-        "unknown"
+        "device_control",
+        "network_access"
       ],
       "data_classifications": [
-        "unknown"
+        "geometry",
+        "measurement",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name",
+        "logical"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_4"
     },
     {
       "inventory_key": "sdk:RobotCalibrationApplianceNodeOperations.txt#8",
@@ -747,30 +816,34 @@
         "RobotCalibrationApplianceNodeOperations"
       ],
       "inventory_entry_sha256": "2853c15cf7b2e9835b45b7d5051e580a2928f261a0a10d8273ded95e82692b0d",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command is within Briosa automation scope; retain it as a Wave 4 candidate subject to generated policy gates and the documented protected-fixture prerequisites.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#8"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/50"
       ],
-      "risk_effect": "unknown",
+      "blocker_references": [],
+      "risk_effect": "mutating",
       "risk_flags": [
-        "unknown"
+        "device_control",
+        "network_access"
       ],
       "data_classifications": [
-        "unknown"
+        "geometry",
+        "measurement",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name",
+        "floating_point"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_4"
     },
     {
       "inventory_key": "sdk:RobotCalibrationApplianceNodeOperations.txt#9",
@@ -779,30 +852,32 @@
         "RobotCalibrationApplianceNodeOperations"
       ],
       "inventory_entry_sha256": "3edfcc0f25e71a86b87ef5375ccc460e63ce9865698854911cace514ccd09323",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command is within Briosa automation scope; retain it as a Wave 4 candidate subject to generated policy gates and the documented protected-fixture prerequisites.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#9"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/50"
       ],
-      "risk_effect": "unknown",
+      "blocker_references": [],
+      "risk_effect": "mutating",
       "risk_flags": [
-        "unknown"
+        "device_control",
+        "network_access"
       ],
       "data_classifications": [
-        "unknown"
+        "measurement",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_4"
     }
   ]
 }
