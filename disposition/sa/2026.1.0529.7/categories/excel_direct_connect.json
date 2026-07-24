@@ -35,7 +35,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ExcelDirectConnect/CloseAllWorkbooks.htm",
@@ -68,7 +74,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ExcelDirectConnect/GetWorkbookAddress.htm",
@@ -101,7 +113,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ExcelDirectConnect/OpenWorkbookFile.htm",
@@ -134,7 +152,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ExcelDirectConnect/Read/ReadDouble.htm",
@@ -168,7 +192,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ExcelDirectConnect/Read/ReadInteger.htm",
@@ -202,7 +232,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ExcelDirectConnect/Read/ReadString.htm",
@@ -236,7 +272,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ExcelDirectConnect/Read/ReadVariables.htm",
@@ -270,7 +312,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ExcelDirectConnect/RunMacro.htm",
@@ -303,7 +351,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ExcelDirectConnect/Save.htm",
@@ -336,7 +390,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ExcelDirectConnect/SetClearAfterInsert.htm",
@@ -369,7 +429,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ExcelDirectConnect/SetWorkbookAddress.htm",
@@ -402,7 +468,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ExcelDirectConnect/Write/WriteDouble.htm",
@@ -436,7 +508,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ExcelDirectConnect/Write/WriteInteger.htm",
@@ -470,7 +548,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ExcelDirectConnect/Write/WritePicture.htm",
@@ -504,7 +588,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ExcelDirectConnect/Write/WriteString.htm",
@@ -538,7 +628,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ExcelDirectConnect/Write/WriteVariables.htm",
@@ -572,7 +668,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     }
   ]
 }

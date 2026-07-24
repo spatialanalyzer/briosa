@@ -15,6 +15,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -22,7 +23,8 @@
         "sdk:ReportingOperations.txt#21"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -39,7 +41,150 @@
         "logical",
         "whole_number"
       ],
-      "delivery_wave": "wave_2"
+      "delivery_wave": "wave_2",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Add Item to SA Report at Location",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Report Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Item Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Page Number",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": 0
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetIntegerArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 3,
+            "ordinal": 3,
+            "mp_name": "Horizontal Location",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": 1.0
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetDoubleArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 4,
+            "ordinal": 4,
+            "mp_name": "Vertical Location",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": 1.0
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetDoubleArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 5,
+            "ordinal": 5,
+            "mp_name": "Show Report?",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": false
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/AppendItemsToSAReport.htm",
@@ -52,6 +197,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -59,7 +205,8 @@
         "sdk:ReportingOperations.txt#20"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -74,7 +221,100 @@
         "collection_object_name_list",
         "logical"
       ],
-      "delivery_wave": "wave_2"
+      "delivery_wave": "wave_2",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Append Items to SA Report",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Report Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Items To Report",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameRefListArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Show Report?",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": false
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 3,
+            "ordinal": 3,
+            "mp_name": "Begin On New Page?",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": false
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/CaptureCurrentView.htm",
@@ -87,6 +327,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "interactive_operation",
         "state_mutation"
       ],
@@ -95,7 +336,8 @@
         "sdk:ReportingOperations.txt#35"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -109,7 +351,32 @@
       "value_families": [
         "collection_object_name"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Capture Current View",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Picture Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/CaptureScreenToFileBMP.htm",
@@ -122,6 +389,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "filesystem_operation",
         "read_only_operation"
       ],
@@ -130,7 +398,8 @@
         "sdk:ReportingOperations.txt#34"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "read_only",
@@ -144,7 +413,32 @@
       "value_families": [
         "file_reference"
       ],
-      "delivery_wave": "wave_3"
+      "delivery_wave": "wave_3",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Capture Screen to File (BMP/JPG/PNG/GIF/TIFF)",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "File to save to",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetFilePathArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/CloseAllReports.htm",
@@ -157,6 +451,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "interactive_operation",
         "state_mutation"
       ],
@@ -165,7 +460,8 @@
         "sdk:ReportingOperations.txt#17"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -180,7 +476,13 @@
       "value_families": [
         "none"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Close All Reports",
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/CloseHTMLDisplayBoard.htm",
@@ -213,7 +515,13 @@
       "value_families": [
         "none"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/CombineSAReports.htm",
@@ -226,6 +534,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -233,7 +542,8 @@
         "sdk:ReportingOperations.txt#15"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -248,7 +558,75 @@
         "collection_object_name_list",
         "logical"
       ],
-      "delivery_wave": "wave_2"
+      "delivery_wave": "wave_2",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Combine SA Reports",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "SA Reports to Combine",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameRefListArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Output SA Report Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Show Report?",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": false
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/CreateChartFromVectorGroup.htm",
@@ -261,6 +639,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -268,7 +647,8 @@
         "sdk:ReportingOperations.txt#37"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -284,7 +664,147 @@
         "dataset_type",
         "logical"
       ],
-      "delivery_wave": "wave_2"
+      "delivery_wave": "wave_2",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Create Chart from Vector Group",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "New Chart Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetChartNameArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Vector Group Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Chart Type",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetChartTypeArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 3,
+            "ordinal": 3,
+            "mp_name": "Data Set to Chart",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetDatasetTypeArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 4,
+            "ordinal": 4,
+            "mp_name": "Aux Data Set to Chart",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetDatasetTypeArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 5,
+            "ordinal": 5,
+            "mp_name": "Template Chart Name (optional)",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "optional",
+              "omission_behavior": "omit_sdk_setter",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetChartNameArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 6,
+            "ordinal": 6,
+            "mp_name": "Show Interface?",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": false
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/CustomReportTables/AddCustomTableToSAReport.htm",
@@ -298,6 +818,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -305,7 +826,8 @@
         "sdk:ReportingOperations_CustomReportTables.txt#13"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -319,7 +841,75 @@
         "collection_object_name",
         "logical"
       ],
-      "delivery_wave": "wave_2"
+      "delivery_wave": "wave_2",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Add Custom Table to SA Report",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Table Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Report Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Show Report?",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": false
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/CustomReportTables/ClearCustomTable.htm",
@@ -333,6 +923,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -340,7 +931,8 @@
         "sdk:ReportingOperations_CustomReportTables.txt#2"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -352,7 +944,32 @@
       "value_families": [
         "collection_object_name"
       ],
-      "delivery_wave": "wave_2"
+      "delivery_wave": "wave_2",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Clear Custom Table",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Table Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/CustomReportTables/DeleteCustomTable.htm",
@@ -366,6 +983,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -373,7 +991,8 @@
         "sdk:ReportingOperations_CustomReportTables.txt#3"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -385,7 +1004,32 @@
       "value_families": [
         "collection_object_name"
       ],
-      "delivery_wave": "wave_2"
+      "delivery_wave": "wave_2",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Delete Custom Table",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Table Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/CustomReportTables/GetCustomTableCellDouble.htm",
@@ -399,6 +1043,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "read_only_operation"
       ],
       "evidence_references": [
@@ -406,7 +1051,8 @@
         "sdk:ReportingOperations_CustomReportTables.txt#5"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "read_only",
@@ -421,7 +1067,94 @@
         "floating_point",
         "whole_number"
       ],
-      "delivery_wave": "wave_1"
+      "delivery_wave": "wave_1",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Get Custom Table Cell Double",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Table Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Row",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": 0
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetIntegerArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Column",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": 0
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetIntegerArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 3,
+            "ordinal": 3,
+            "mp_name": "Value",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetDoubleArg"
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/CustomReportTables/GetCustomTableCellString.htm",
@@ -435,6 +1168,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "read_only_operation"
       ],
       "evidence_references": [
@@ -442,7 +1176,8 @@
         "sdk:ReportingOperations_CustomReportTables.txt#4"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "read_only",
@@ -456,7 +1191,94 @@
         "string",
         "whole_number"
       ],
-      "delivery_wave": "wave_1"
+      "delivery_wave": "wave_1",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Get Custom Table Cell String",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Table Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Row",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": 0
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetIntegerArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Column",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": 0
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetIntegerArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 3,
+            "ordinal": 3,
+            "mp_name": "Value",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetStringArg"
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/CustomReportTables/MakeCustomTable.htm",
@@ -470,6 +1292,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -477,7 +1300,8 @@
         "sdk:ReportingOperations_CustomReportTables.txt#1"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -490,7 +1314,57 @@
         "collection_object_name",
         "whole_number"
       ],
-      "delivery_wave": "wave_2"
+      "delivery_wave": "wave_2",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Make Custom Table",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Table Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Decimal Precision",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": 6
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetIntegerArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/CustomReportTables/SetCustomTableCellColor.htm",
@@ -504,6 +1378,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -511,7 +1386,8 @@
         "sdk:ReportingOperations_CustomReportTables.txt#11"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -525,7 +1401,140 @@
         "rgb_color",
         "whole_number"
       ],
-      "delivery_wave": "wave_2"
+      "delivery_wave": "wave_2",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Set Custom Table Cell Color",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Table Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Row",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": 0
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetIntegerArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Column",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": 0
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetIntegerArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 3,
+            "ordinal": 3,
+            "mp_name": "Foreground Color Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": [
+                      255,
+                      0,
+                      0
+                    ]
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetColorArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 4,
+            "ordinal": 4,
+            "mp_name": "Background Color Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": [
+                      255,
+                      0,
+                      0
+                    ]
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetColorArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/CustomReportTables/SetCustomTableCellDouble.htm",
@@ -562,7 +1571,13 @@
         "floating_point",
         "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/CustomReportTables/SetCustomTableCellFont.htm",
@@ -576,6 +1591,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -583,7 +1599,8 @@
         "sdk:ReportingOperations_CustomReportTables.txt#12"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -597,7 +1614,113 @@
         "font",
         "whole_number"
       ],
-      "delivery_wave": "wave_2"
+      "delivery_wave": "wave_2",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Set Custom Table Cell Font",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Table Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Row",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": 0
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetIntegerArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Column",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": 0
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetIntegerArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 3,
+            "ordinal": 3,
+            "mp_name": "Font",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": [
+                      "MS Shell Dlg",
+                      8,
+                      0,
+                      0,
+                      0
+                    ]
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetFontTypeArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/CustomReportTables/SetCustomTableCellString.htm",
@@ -633,7 +1756,13 @@
         "string",
         "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/CustomReportTables/SetCustomTableHeaderCell.htm",
@@ -669,7 +1798,13 @@
         "string",
         "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/CustomReportTables/SetCustomTableHeaderRow.htm",
@@ -705,7 +1840,13 @@
         "string",
         "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/CustomReportTables/SetCustomTableTitle.htm",
@@ -719,6 +1860,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -726,7 +1868,8 @@
         "sdk:ReportingOperations_CustomReportTables.txt#6"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -739,7 +1882,68 @@
         "collection_object_name",
         "string"
       ],
-      "delivery_wave": "wave_2"
+      "delivery_wave": "wave_2",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Set Custom Table Title",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Table Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Title Line 1",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetStringArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Title Line 2",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "optional",
+              "omission_behavior": "omit_sdk_setter",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetStringArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/DefineReportTemplate.htm",
@@ -780,7 +1984,13 @@
         "report_view_options",
         "string_list"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/DeleteChart.htm",
@@ -793,6 +2003,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -800,7 +2011,8 @@
         "sdk:ReportingOperations.txt#39"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -812,7 +2024,32 @@
       "value_families": [
         "collection_object_name"
       ],
-      "delivery_wave": "wave_2"
+      "delivery_wave": "wave_2",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Delete Chart",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Chart Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/DeletePicture.htm",
@@ -825,6 +2062,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -832,7 +2070,8 @@
         "sdk:ReportingOperations.txt#14"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -844,7 +2083,32 @@
       "value_families": [
         "collection_object_name"
       ],
-      "delivery_wave": "wave_2"
+      "delivery_wave": "wave_2",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Delete Picture",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Picture Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/DeleteSADoc.htm",
@@ -857,6 +2121,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -864,7 +2129,8 @@
         "sdk:ReportingOperations.txt#27"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -876,7 +2142,32 @@
       "value_families": [
         "collection_object_name"
       ],
-      "delivery_wave": "wave_2"
+      "delivery_wave": "wave_2",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Delete SA Doc",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Doc Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/DeleteSAReport.htm",
@@ -889,6 +2180,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -896,7 +2188,8 @@
         "sdk:ReportingOperations.txt#26"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -909,7 +2202,32 @@
       "value_families": [
         "collection_object_name"
       ],
-      "delivery_wave": "wave_2"
+      "delivery_wave": "wave_2",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Delete SA Report",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Report Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/DeleteSAReportTemplate.htm",
@@ -922,6 +2240,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -929,7 +2248,8 @@
         "sdk:ReportingOperations.txt#25"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -942,7 +2262,32 @@
       "value_families": [
         "collection_object_name"
       ],
-      "delivery_wave": "wave_2"
+      "delivery_wave": "wave_2",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Delete SA Report Template",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Report Template Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/GenerateCustomHTMLReport.htm",
@@ -980,7 +2325,13 @@
         "file_reference",
         "html_keyword_association_list"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/GenerateStandardHTMLReport.htm",
@@ -993,6 +2344,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "filesystem_operation",
         "long_running_operation",
         "state_mutation"
@@ -1002,7 +2354,8 @@
         "sdk:ReportingOperations.txt#33"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -1020,7 +2373,50 @@
         "file_reference",
         "whole_number"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Generate Standard HTML Report",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "HTML Output File",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetFilePathArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Decimal Precision",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetIntegerArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/GenerateUpdateTemplated.htm",
@@ -1033,6 +2429,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -1040,7 +2437,8 @@
         "sdk:ReportingOperations.txt#28"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -1053,7 +2451,32 @@
       "value_families": [
         "collection_object_name"
       ],
-      "delivery_wave": "wave_2"
+      "delivery_wave": "wave_2",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Generate/Update Templated Report",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Report Template",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/GetDefinedReportTags.htm",
@@ -1066,6 +2489,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "read_only_operation"
       ],
       "evidence_references": [
@@ -1073,7 +2497,8 @@
         "sdk:ReportingOperations.txt#5"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "read_only",
@@ -1086,7 +2511,26 @@
       "value_families": [
         "string_list"
       ],
-      "delivery_wave": "wave_1"
+      "delivery_wave": "wave_1",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Get Defined Report Tags",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Defined Tags",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetStringRefListArg"
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/GetReportTagValue.htm",
@@ -1099,6 +2543,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "read_only_operation"
       ],
       "evidence_references": [
@@ -1106,7 +2551,8 @@
         "sdk:ReportingOperations.txt#4"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "read_only",
@@ -1122,7 +2568,68 @@
         "string",
         "whole_number"
       ],
-      "delivery_wave": "wave_1"
+      "delivery_wave": "wave_1",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Get Report Tag Value",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Tag Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetStringArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Tag Value As String",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetStringArg"
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Tag Value As Integer",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetIntegerArg"
+            }
+          },
+          {
+            "inventory_index": 3,
+            "ordinal": 3,
+            "mp_name": "Tag Value As Double",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetDoubleArg"
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/HTMLDisplayBoard.htm",
@@ -1157,7 +2664,13 @@
         "file_reference",
         "logical"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/InsertPageBreak.htm",
@@ -1170,6 +2683,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -1177,7 +2691,8 @@
         "sdk:ReportingOperations.txt#31"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -1188,7 +2703,13 @@
       "value_families": [
         "none"
       ],
-      "delivery_wave": "wave_2"
+      "delivery_wave": "wave_2",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Insert Page Break",
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/MakeNewSAReport.htm",
@@ -1201,6 +2722,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -1208,7 +2730,8 @@
         "sdk:ReportingOperations.txt#19"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -1221,7 +2744,50 @@
       "value_families": [
         "collection_object_name"
       ],
-      "delivery_wave": "wave_2"
+      "delivery_wave": "wave_2",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Make New SA Report",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "New SA Report Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "SA Report Template (optional)",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "optional",
+              "omission_behavior": "omit_sdk_setter",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/MakeReportGraphicalView.htm",
@@ -1256,7 +2822,13 @@
         "report_view_options",
         "string"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/MakeReportOutputOptions.htm",
@@ -1293,7 +2865,13 @@
         "report_output_options",
         "string"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/MakeUtilityChart.htm",
@@ -1306,6 +2884,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -1313,7 +2892,8 @@
         "sdk:ReportingOperations.txt#40"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -1331,7 +2911,152 @@
         "logical",
         "string"
       ],
-      "delivery_wave": "wave_2"
+      "delivery_wave": "wave_2",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Make Utility Chart",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "ASCII File Path",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetFilePathArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Chart Title Override",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetStringArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Output Picture Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 3,
+            "ordinal": 3,
+            "mp_name": "Show Chart Dialog?",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 4,
+            "ordinal": 4,
+            "mp_name": "Plot Additional XY Value?",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 5,
+            "ordinal": 5,
+            "mp_name": "X Value",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetDoubleArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 6,
+            "ordinal": 6,
+            "mp_name": "Y Value",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetDoubleArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 7,
+            "ordinal": 7,
+            "mp_name": "Is Point Inside?",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetBoolArg"
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/NotifyUserDouble.htm",
@@ -1369,7 +3094,13 @@
         "string",
         "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/NotifyUserHTML.htm",
@@ -1405,7 +3136,13 @@
         "step_id",
         "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/NotifyUserInteger.htm",
@@ -1440,7 +3177,13 @@
         "string",
         "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/NotifyUserTextArray.htm",
@@ -1477,7 +3220,13 @@
         "string",
         "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/QuickReport.htm",
@@ -1490,6 +3239,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "interactive_operation",
         "long_running_operation",
         "state_mutation"
@@ -1499,7 +3249,8 @@
         "sdk:ReportingOperations.txt#16"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -1517,7 +3268,75 @@
         "logical",
         "string"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Quick Report",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Item Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Report Name (optional)",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "optional",
+              "omission_behavior": "omit_sdk_setter",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetStringArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Open Report?",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": true
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/RemoveReportTag.htm",
@@ -1530,6 +3349,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -1537,7 +3357,8 @@
         "sdk:ReportingOperations.txt#6"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -1550,7 +3371,32 @@
       "value_families": [
         "string"
       ],
-      "delivery_wave": "wave_2"
+      "delivery_wave": "wave_2",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Remove Report Tag",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Tag Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetStringArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/RenamePicture.htm",
@@ -1563,6 +3409,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -1570,7 +3417,8 @@
         "sdk:ReportingOperations.txt#13"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -1583,7 +3431,75 @@
         "collection_object_name",
         "logical"
       ],
-      "delivery_wave": "wave_2"
+      "delivery_wave": "wave_2",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Rename Picture",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Original Picture Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "New Picture Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Overwrite if exists?",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": false
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/ReportBar/AddCalloutViewsToReport.htm",
@@ -1618,7 +3534,13 @@
         "callout_view_ref_list",
         "logical"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/ReportBar/AddChartsToReportBar.htm",
@@ -1632,6 +3554,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -1639,7 +3562,8 @@
         "sdk:ReportingOperations_ReportBar.txt#3"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -1653,7 +3577,57 @@
         "collection_object_name_list",
         "logical"
       ],
-      "delivery_wave": "wave_2"
+      "delivery_wave": "wave_2",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Add Charts to Report Bar",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Chart(s)",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameRefListArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Clear Existing?",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": false
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/ReportBar/AddCustomTablesToReport.htm",
@@ -1667,6 +3641,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -1674,7 +3649,8 @@
         "sdk:ReportingOperations_ReportBar.txt#11"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -1688,7 +3664,57 @@
         "collection_object_name_list",
         "logical"
       ],
-      "delivery_wave": "wave_2"
+      "delivery_wave": "wave_2",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Add Custom Tables to Report Bar",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Custom Table(s) To Report",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameRefListArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Clear Existing?",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": false
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/ReportBar/AddDatumsToReportBar.htm",
@@ -1702,6 +3728,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -1709,7 +3736,8 @@
         "sdk:ReportingOperations_ReportBar.txt#4"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -1723,7 +3751,57 @@
         "collection_object_name_list",
         "logical"
       ],
-      "delivery_wave": "wave_2"
+      "delivery_wave": "wave_2",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Add Datums to Report Bar",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Datum(s)",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameRefListArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Clear Existing?",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": false
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/ReportBar/AddDimensionsToReportBar.htm",
@@ -1758,7 +3836,13 @@
         "dimension_ref_list",
         "logical"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/ReportBar/AddEventsToReportBar.htm",
@@ -1772,6 +3856,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -1779,7 +3864,8 @@
         "sdk:ReportingOperations_ReportBar.txt#6"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -1793,7 +3879,57 @@
         "collection_object_name_list",
         "logical"
       ],
-      "delivery_wave": "wave_2"
+      "delivery_wave": "wave_2",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Add Events to Report Bar",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Event(s)",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameRefListArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Clear Existing?",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": false
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/ReportBar/AddFeatureChecksToReport.htm",
@@ -1807,6 +3943,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -1814,7 +3951,8 @@
         "sdk:ReportingOperations_ReportBar.txt#7"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -1828,7 +3966,57 @@
         "collection_object_name_list",
         "logical"
       ],
-      "delivery_wave": "wave_2"
+      "delivery_wave": "wave_2",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Add Feature Checks to Report Bar",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Feature Check(s)",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameRefListArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Clear Existing?",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": false
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/ReportBar/AddObjectsToReportBar.htm",
@@ -1842,6 +4030,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -1849,7 +4038,8 @@
         "sdk:ReportingOperations_ReportBar.txt#1"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -1863,7 +4053,57 @@
         "collection_object_name_list",
         "logical"
       ],
-      "delivery_wave": "wave_2"
+      "delivery_wave": "wave_2",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Add Objects to Report Bar",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Object(s)",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameRefListArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Clear Existing?",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": true
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/ReportBar/AddPicturesToReportBar.htm",
@@ -1877,6 +4117,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -1884,7 +4125,8 @@
         "sdk:ReportingOperations_ReportBar.txt#8"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -1898,7 +4140,57 @@
         "collection_object_name_list",
         "logical"
       ],
-      "delivery_wave": "wave_2"
+      "delivery_wave": "wave_2",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Add Pictures to Report Bar",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Picture(s)",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameRefListArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Clear Existing?",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": false
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/ReportBar/AddRelationshipsToReport.htm",
@@ -1912,6 +4204,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -1919,7 +4212,8 @@
         "sdk:ReportingOperations_ReportBar.txt#9"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -1933,7 +4227,57 @@
         "collection_object_name_list",
         "logical"
       ],
-      "delivery_wave": "wave_2"
+      "delivery_wave": "wave_2",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Add Relationships to Report Bar",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Relationship(s)",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameRefListArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Clear Existing?",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": false
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/ReportBar/AddScaleBarsToReportBar.htm",
@@ -1968,7 +4312,13 @@
         "logical",
         "scale_bar_ref_list"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/ReportBar/GenerateQuickReportFrom.htm",
@@ -1978,22 +4328,21 @@
         "ReportBar"
       ],
       "inventory_entry_sha256": "9d2d5ebd17d73a67e0d1bd74c6eb0c333bef35ddbeebbfcdde5997eeb589e000",
-      "disposition": "blocked",
+      "disposition": "sdk_unavailable",
       "review_state": "reviewed",
-      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
+      "rationale": "At least one exact-target argument has no observed SDK setter or getter, so Briosa cannot expose the complete command shape.",
       "reason_codes": [
-        "argument_semantics_unresolved"
+        "sdk_binding_unavailable"
       ],
       "evidence_references": [
         "documentation:ReportingOperations/ReportBar/GenerateQuickReportFrom.htm",
         "sdk:ReportingOperations_ReportBar.txt#12"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
-      ],
-      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51",
         "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
+      "blocker_references": [],
       "risk_effect": "mutating",
       "risk_flags": [
         "interactive_ui",
@@ -2009,7 +4358,13 @@
         "report_output_options",
         "string"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/ReportBar/RefreshReportBar.htm",
@@ -2023,6 +4378,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "interactive_operation",
         "state_mutation"
       ],
@@ -2031,7 +4387,8 @@
         "sdk:ReportingOperations_ReportBar.txt#14"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -2046,7 +4403,13 @@
       "value_families": [
         "none"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Refresh Report Bar",
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/ReportBar/SetReportBarVisibility.htm",
@@ -2060,6 +4423,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "interactive_operation",
         "state_mutation"
       ],
@@ -2068,7 +4432,8 @@
         "sdk:ReportingOperations_ReportBar.txt#13"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -2083,7 +4448,39 @@
       "value_families": [
         "logical"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Set Report Bar Visibility",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Show Report Bar?",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": false
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/SaveChartToJPEGFile.htm",
@@ -2096,6 +4493,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "filesystem_operation",
         "read_only_operation"
       ],
@@ -2104,7 +4502,8 @@
         "sdk:ReportingOperations.txt#38"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "read_only",
@@ -2120,7 +4519,50 @@
         "chart_name",
         "file_reference"
       ],
-      "delivery_wave": "wave_3"
+      "delivery_wave": "wave_3",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Save Chart to JPeg file",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Chart to Save",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetChartNameArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "File to save to",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetFilePathArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/SaveCurrentViewBMPJPG.htm",
@@ -2133,6 +4575,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "filesystem_operation",
         "read_only_operation"
       ],
@@ -2141,7 +4584,8 @@
         "sdk:ReportingOperations.txt#36"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "read_only",
@@ -2158,7 +4602,50 @@
         "file_reference",
         "floating_point"
       ],
-      "delivery_wave": "wave_3"
+      "delivery_wave": "wave_3",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Save Current View (BMP/JPG/PNG/GIF/TIFF)",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "File to save to",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetFilePathArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Render Scale Factor (1.0 uses window size)",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetDoubleArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/SetPointDeltaReportOptions.htm",
@@ -2195,7 +4682,13 @@
         "report_details_line_format",
         "report_output_options"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/SetPointGroupReportOptions.htm",
@@ -2208,6 +4701,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -2215,7 +4709,8 @@
         "sdk:ReportingOperations.txt#11"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -2231,7 +4726,357 @@
         "coordinate_system_type",
         "logical"
       ],
-      "delivery_wave": "wave_2"
+      "delivery_wave": "wave_2",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Set Point Group Report Options",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Point Group",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Coordinate System",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": "Cartesian"
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCoordinateSystemTypeArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Show X Component",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": true
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 3,
+            "ordinal": 3,
+            "mp_name": "Show Y Component",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": true
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 4,
+            "ordinal": 4,
+            "mp_name": "Show Z Component",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": true
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 5,
+            "ordinal": 5,
+            "mp_name": "Show Offsets",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": false
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 6,
+            "ordinal": 6,
+            "mp_name": "Show Uncertainty",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": true
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 7,
+            "ordinal": 7,
+            "mp_name": "Show Notes",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": false
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 8,
+            "ordinal": 8,
+            "mp_name": "Show Measurements",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": false
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 9,
+            "ordinal": 9,
+            "mp_name": "Show Measurement Details",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": false
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 10,
+            "ordinal": 10,
+            "mp_name": "Show PointingError/Worst Angle",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": false
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 11,
+            "ordinal": 11,
+            "mp_name": "Sort by Point Names",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": true
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 12,
+            "ordinal": 12,
+            "mp_name": "Make Default",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": false
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 13,
+            "ordinal": 13,
+            "mp_name": "Apply to All",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": false
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/SetRelationshipReportOptions.htm",
@@ -2244,6 +5089,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -2251,7 +5097,8 @@
         "sdk:ReportingOperations.txt#9"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -2267,7 +5114,70 @@
         "point_delta_report_options",
         "report_output_options"
       ],
-      "delivery_wave": "wave_2"
+      "delivery_wave": "wave_2",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Set Relationship Report Options",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Relationship Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Report Options",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": [
+                      "Cartesian",
+                      "Single",
+                      true,
+                      true,
+                      true,
+                      true,
+                      true,
+                      true,
+                      true,
+                      false,
+                      true,
+                      true
+                    ]
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetPointDeltaReportOptionsArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/SetReportOptionsForObject.htm",
@@ -2280,6 +5190,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -2287,7 +5198,8 @@
         "sdk:ReportingOperations.txt#7"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -2300,7 +5212,32 @@
       "value_families": [
         "collection_object_name"
       ],
-      "delivery_wave": "wave_2"
+      "delivery_wave": "wave_2",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Set Report Options for Object",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Object",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/SetReportTagValueFromDouble.htm",
@@ -2313,6 +5250,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -2320,7 +5258,8 @@
         "sdk:ReportingOperations.txt#3"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -2335,7 +5274,57 @@
         "floating_point",
         "string"
       ],
-      "delivery_wave": "wave_2"
+      "delivery_wave": "wave_2",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Set Report Tag Value From Double",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Tag Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetStringArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Tag Value",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": 0.0
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetDoubleArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/SetReportTagValueFromInteger.htm",
@@ -2348,6 +5337,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -2355,7 +5345,8 @@
         "sdk:ReportingOperations.txt#2"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -2369,7 +5360,57 @@
         "string",
         "whole_number"
       ],
-      "delivery_wave": "wave_2"
+      "delivery_wave": "wave_2",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Set Report Tag Value From Integer",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Tag Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetStringArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Tag Value",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": 0
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetIntegerArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/SetReportTagValueFromString.htm",
@@ -2382,6 +5423,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -2389,7 +5431,8 @@
         "sdk:ReportingOperations.txt#1"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -2402,7 +5445,50 @@
       "value_families": [
         "string"
       ],
-      "delivery_wave": "wave_2"
+      "delivery_wave": "wave_2",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Set Report Tag Value From String",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Tag Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetStringArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Tag Value",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetStringArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/SetScaleforPicture.htm",
@@ -2415,6 +5501,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -2422,7 +5509,8 @@
         "sdk:ReportingOperations.txt#12"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -2436,7 +5524,57 @@
         "collection_object_name",
         "floating_point"
       ],
-      "delivery_wave": "wave_2"
+      "delivery_wave": "wave_2",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Set Scale for Picture",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Picture Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Scale",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": 100.0
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetDoubleArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:ReportingOperations/SetVectorGroupReportOptions.htm",
@@ -2449,6 +5587,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -2456,7 +5595,8 @@
         "sdk:ReportingOperations.txt#8"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -2472,7 +5612,70 @@
         "point_delta_report_options",
         "report_output_options"
       ],
-      "delivery_wave": "wave_2"
+      "delivery_wave": "wave_2",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Set Vector Group Report Options",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Vector Group",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Report Options",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": [
+                      "Cartesian",
+                      "Single",
+                      true,
+                      true,
+                      true,
+                      true,
+                      true,
+                      true,
+                      true,
+                      false,
+                      true,
+                      true
+                    ]
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetPointDeltaReportOptionsArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "sdk:ReportingOperations.txt#22",
@@ -2485,6 +5688,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "interactive_operation",
         "state_mutation"
       ],
@@ -2492,7 +5696,8 @@
         "sdk:ReportingOperations.txt#22"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -2507,7 +5712,32 @@
       "value_families": [
         "collection_object_name"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Refresh Callout Views in SA Report",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Report Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     }
   ]
 }

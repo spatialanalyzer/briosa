@@ -34,7 +34,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     }
   ]
 }

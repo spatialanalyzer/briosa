@@ -22,10 +22,11 @@
         "sdk:GDTOperations_GDTAnalysis.txt#23"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
+        "https://github.com/spatialanalyzer/briosa/issues/49",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/53"
+        "https://github.com/spatialanalyzer/briosa/issues/79"
       ],
       "risk_effect": "mutating",
       "risk_flags": [
@@ -41,7 +42,23 @@
         "collection_object_name_list",
         "logical"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "blocked",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": [
+          {
+            "code": "sdk_argument_not_documented",
+            "argument_indexes": [
+              3
+            ],
+            "owner": "hexagon",
+            "blocker_reference": "https://github.com/spatialanalyzer/briosa/issues/79",
+            "rationale": "Installed documentation and generated SDK evidence do not establish complete exact-target argument semantics for this command."
+          }
+        ]
+      }
     },
     {
       "inventory_key": "documentation:GDT/EnableDisableDatumAlignment.htm",
@@ -61,10 +78,11 @@
         "sdk:GDTOperations_GDTAnalysis.txt#22"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
+        "https://github.com/spatialanalyzer/briosa/issues/49",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/53"
+        "https://github.com/spatialanalyzer/briosa/issues/79"
       ],
       "risk_effect": "mutating",
       "risk_flags": [
@@ -77,7 +95,23 @@
         "collection_object_name",
         "logical"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "blocked",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": [
+          {
+            "code": "sdk_argument_not_documented",
+            "argument_indexes": [
+              4
+            ],
+            "owner": "hexagon",
+            "blocker_reference": "https://github.com/spatialanalyzer/briosa/issues/79",
+            "rationale": "Installed documentation and generated SDK evidence do not establish complete exact-target argument semantics for this command."
+          }
+        ]
+      }
     },
     {
       "inventory_key": "documentation:GDT/EvaluateFeatureCheck.htm",
@@ -97,10 +131,11 @@
         "sdk:GDTOperations_GDTAnalysis.txt#18"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
+        "https://github.com/spatialanalyzer/briosa/issues/49",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/53"
+        "https://github.com/spatialanalyzer/briosa/issues/79"
       ],
       "risk_effect": "mutating",
       "risk_flags": [
@@ -118,7 +153,23 @@
         "string",
         "world_transform"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "blocked",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": [
+          {
+            "code": "sdk_argument_not_documented",
+            "argument_indexes": [
+              21
+            ],
+            "owner": "hexagon",
+            "blocker_reference": "https://github.com/spatialanalyzer/briosa/issues/79",
+            "rationale": "Installed documentation and generated SDK evidence do not establish complete exact-target argument semantics for this command."
+          }
+        ]
+      }
     },
     {
       "inventory_key": "documentation:GDT/EvaluateFeatureChecks.htm",
@@ -138,10 +189,11 @@
         "sdk:GDTOperations_GDTAnalysis.txt#19"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
+        "https://github.com/spatialanalyzer/briosa/issues/49",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/53"
+        "https://github.com/spatialanalyzer/briosa/issues/79"
       ],
       "risk_effect": "mutating",
       "risk_flags": [
@@ -156,7 +208,24 @@
         "logical",
         "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "blocked",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": [
+          {
+            "code": "sdk_argument_not_documented",
+            "argument_indexes": [
+              4,
+              5
+            ],
+            "owner": "hexagon",
+            "blocker_reference": "https://github.com/spatialanalyzer/briosa/issues/79",
+            "rationale": "Installed documentation and generated SDK evidence do not establish complete exact-target argument semantics for this command."
+          }
+        ]
+      }
     },
     {
       "inventory_key": "documentation:GDT/FeatureInspectionAutoFilter.htm",
@@ -165,22 +234,21 @@
         "GDT"
       ],
       "inventory_entry_sha256": "522b001b9de75bd8326df457804b6514c741bdc1d57af585f2a8b361b8cafd86",
-      "disposition": "blocked",
+      "disposition": "approved_candidate",
       "review_state": "reviewed",
-      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
+      "rationale": "The exact generated SDK occurrence resolves the executable step, argument names, direction, and order. Briosa requires explicit values unless installed documentation marks an input optional; no generated sample value becomes a default.",
       "reason_codes": [
-        "argument_semantics_unresolved"
+        "command_shape_resolved"
       ],
       "evidence_references": [
         "documentation:GDT/FeatureInspectionAutoFilter.htm",
         "sdk:GDTOperations_GDTAnalysis.txt#16"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
-      ],
-      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49",
         "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
+      "blocker_references": [],
       "risk_effect": "mutating",
       "risk_flags": [],
       "data_classifications": [
@@ -196,7 +264,277 @@
         "point_name_list",
         "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_2",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Feature Inspection Auto Filter",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Point Names",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetPointNameRefListArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Group Names",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameRefListArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Cloud Names",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameRefListArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 3,
+            "ordinal": 3,
+            "mp_name": "Surface Offset",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
+              "default": {
+                "status": "reviewed",
+                "value": 0.1,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetDoubleArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 4,
+            "ordinal": 4,
+            "mp_name": "Edge Offset",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
+              "default": {
+                "status": "reviewed",
+                "value": 0.1,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetDoubleArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 5,
+            "ordinal": 5,
+            "mp_name": "Offset Direction",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
+              "default": {
+                "status": "reviewed",
+                "value": "Both",
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetOffsetDirectionTypeArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 6,
+            "ordinal": 6,
+            "mp_name": "Include Pts within Cylinder Axis Proximity?",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
+              "default": {
+                "status": "reviewed",
+                "value": false,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 7,
+            "ordinal": 7,
+            "mp_name": "Enforce Max Pts per Face in Output?",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
+              "default": {
+                "status": "reviewed",
+                "value": false,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 8,
+            "ordinal": 8,
+            "mp_name": "Max Pts per Face",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
+              "default": {
+                "status": "reviewed",
+                "value": 0,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetIntegerArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 9,
+            "ordinal": 9,
+            "mp_name": "Feature Check Name List",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "objectivesa_prior_release",
+                    "value": null
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameRefListArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 10,
+            "ordinal": 10,
+            "mp_name": "Include Datums?",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
+              "default": {
+                "status": "reviewed",
+                "value": true,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 11,
+            "ordinal": 11,
+            "mp_name": "Create Cloud for Each Datum/Check",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
+              "default": {
+                "status": "reviewed",
+                "value": false,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:GDT/GDTConstruct/DeleteFeatureChecks.htm",
@@ -210,6 +548,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command changes SpatialAnalyzer state within Briosa automation scope; retain it as an approved candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -217,7 +556,8 @@
         "sdk:GDTOperations_GDTConstruction.txt#10"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
+        "https://github.com/spatialanalyzer/briosa/issues/49",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -228,7 +568,32 @@
       "value_families": [
         "collection_object_name_list"
       ],
-      "delivery_wave": "wave_3"
+      "delivery_wave": "wave_3",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Delete Feature Checks",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Feature Check Name List",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameRefListArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:GDT/GDTConstruct/MakeADatumRefListFrom.htm",
@@ -242,6 +607,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command queries SpatialAnalyzer state without an identified state mutation; retain it as an approved candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "read_only_operation"
       ],
       "evidence_references": [
@@ -249,7 +615,8 @@
         "sdk:GDTOperations_GDTConstruction.txt#11"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
+        "https://github.com/spatialanalyzer/briosa/issues/49",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "read_only",
@@ -261,7 +628,44 @@
         "collection_name",
         "collection_object_name_list"
       ],
-      "delivery_wave": "wave_1"
+      "delivery_wave": "wave_1",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Make a Datum Ref List from a Collection",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Collection Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionNameArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Datum Ref List",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetCollectionObjectNameRefListArg"
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:GDT/GDTConstruct/MakeAFeatureCheckRefList.htm",
@@ -275,6 +679,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command queries SpatialAnalyzer state without an identified state mutation; retain it as an approved candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "read_only_operation"
       ],
       "evidence_references": [
@@ -282,7 +687,8 @@
         "sdk:GDTOperations_GDTConstruction.txt#6"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
+        "https://github.com/spatialanalyzer/briosa/issues/49",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "read_only",
@@ -294,7 +700,44 @@
         "collection_name",
         "collection_object_name_list"
       ],
-      "delivery_wave": "wave_1"
+      "delivery_wave": "wave_1",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Make a Feature Check Ref List from a Collection",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Collection Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionNameArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Feature Check Ref List",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetCollectionObjectNameRefListArg"
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:GDT/GDTConstruct/MakeAFeatureCheckReference.htm",
@@ -304,22 +747,21 @@
         "GDTConstruct"
       ],
       "inventory_entry_sha256": "512a43f58be8e0ef434395485471c88add62145194f25c099fdd41e8c5c326ff",
-      "disposition": "blocked",
+      "disposition": "approved_candidate",
       "review_state": "reviewed",
-      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
+      "rationale": "The exact generated SDK occurrence resolves the executable step, argument names, direction, and order. Briosa requires explicit values unless installed documentation marks an input optional; no generated sample value becomes a default.",
       "reason_codes": [
-        "argument_semantics_unresolved"
+        "command_shape_resolved"
       ],
       "evidence_references": [
         "documentation:GDT/GDTConstruct/MakeAFeatureCheckReference.htm",
         "sdk:GDTOperations_GDTConstruction.txt#7"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
-      ],
-      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49",
         "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
+      "blocker_references": [],
       "risk_effect": "read_only",
       "risk_flags": [],
       "data_classifications": [
@@ -329,7 +771,76 @@
         "collection_object_name_list",
         "string"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_1",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Make a Feature Check Reference List- WildCard Selection",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Collection Wildcard Criteria",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": "*"
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetStringArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Feature Check Wildcard Criteria",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": "*"
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetStringArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Resultant Feature Check Reference List",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetCollectionObjectNameRefListArg"
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:GDT/GDTConstruct/MakeAnnotationRefListFrom.htm",
@@ -339,23 +850,21 @@
         "GDTConstruct"
       ],
       "inventory_entry_sha256": "3b4ddd84ee727ec55caef479a71828432bf82a1681439c41d3de697699664e2c",
-      "disposition": "blocked",
+      "disposition": "sdk_unavailable",
       "review_state": "reviewed",
-      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
+      "rationale": "At least one exact-target argument has no observed SDK setter or getter, so Briosa cannot expose the complete command shape.",
       "reason_codes": [
-        "argument_semantics_unresolved",
-        "sdk_binding_unresolved"
+        "sdk_binding_unavailable"
       ],
       "evidence_references": [
         "documentation:GDT/GDTConstruct/MakeAnnotationRefListFrom.htm",
         "sdk:GDTOperations_GDTConstruction.txt#8"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
-      ],
-      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49",
         "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
+      "blocker_references": [],
       "risk_effect": "read_only",
       "risk_flags": [],
       "data_classifications": [
@@ -366,7 +875,13 @@
         "collection_object_name_list",
         "feature_check_ref_list"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:GDT/GDTConstruct/MakeAnnotationRefListWildCard.htm",
@@ -376,23 +891,21 @@
         "GDTConstruct"
       ],
       "inventory_entry_sha256": "5f1a36f66b2890d35d42cc83a3e9d3869941bf0a56bfa0978558fd8442c3eb4b",
-      "disposition": "blocked",
+      "disposition": "sdk_unavailable",
       "review_state": "reviewed",
-      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
+      "rationale": "At least one exact-target argument has no observed SDK setter or getter, so Briosa cannot expose the complete command shape.",
       "reason_codes": [
-        "argument_semantics_unresolved",
-        "sdk_binding_unresolved"
+        "sdk_binding_unavailable"
       ],
       "evidence_references": [
         "documentation:GDT/GDTConstruct/MakeAnnotationRefListWildCard.htm",
         "sdk:GDTOperations_GDTConstruction.txt#9"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
-      ],
-      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49",
         "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
+      "blocker_references": [],
       "risk_effect": "read_only",
       "risk_flags": [],
       "data_classifications": [
@@ -402,7 +915,13 @@
         "collection_object_name_list",
         "string"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:GDT/GDTConstruct/MakeFeatureChecks.htm",
@@ -416,6 +935,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command changes SpatialAnalyzer state within Briosa automation scope; retain it as an approved candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "long_running_operation",
         "state_mutation"
       ],
@@ -424,7 +944,8 @@
         "sdk:GDTOperations_GDTConstruction.txt#5"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
+        "https://github.com/spatialanalyzer/briosa/issues/49",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -437,7 +958,32 @@
       "value_families": [
         "collection_name"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Make Feature Checks",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Collection Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionNameArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:GDT/GDTConstruct/MakeGDTDatumAnnotation.htm",
@@ -447,22 +993,21 @@
         "GDTConstruct"
       ],
       "inventory_entry_sha256": "4f1417a1186a903220ad898031907fad62ec0b7da833210205e0a2551bfba1e9",
-      "disposition": "blocked",
+      "disposition": "approved_candidate",
       "review_state": "reviewed",
-      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
+      "rationale": "The exact generated SDK occurrence resolves the executable step, argument names, direction, and order. Briosa requires explicit values unless installed documentation marks an input optional; no generated sample value becomes a default.",
       "reason_codes": [
-        "argument_semantics_unresolved"
+        "command_shape_resolved"
       ],
       "evidence_references": [
         "documentation:GDT/GDTConstruct/MakeGDTDatumAnnotation.htm",
         "sdk:GDTOperations_GDTConstruction.txt#4"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
-      ],
-      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49",
         "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
+      "blocker_references": [],
       "risk_effect": "mutating",
       "risk_flags": [],
       "data_classifications": [
@@ -475,7 +1020,172 @@
         "logical",
         "string"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_2",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Make GD\u0026T Datum Annotation",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Datum Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetStringArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Objects",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameRefListArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Geometry Relationships",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameRefListArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 3,
+            "ordinal": 3,
+            "mp_name": "Surface Faces",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetStringArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 4,
+            "ordinal": 4,
+            "mp_name": "Auxiliary Object",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 5,
+            "ordinal": 5,
+            "mp_name": "Auxiliary Geometry Relationship",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 6,
+            "ordinal": 6,
+            "mp_name": "Is Slot?",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": false
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 7,
+            "ordinal": 7,
+            "mp_name": "Force Surface Feature?",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": false
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:GDT/GDTConstruct/MakeGDTFeatureCheckAnnotation.htm",
@@ -485,23 +1195,21 @@
         "GDTConstruct"
       ],
       "inventory_entry_sha256": "6598d1d41e3cb75e02b7148390647a3dd4a4253f6c7708cae4a7bbd8ce1dec4d",
-      "disposition": "blocked",
+      "disposition": "sdk_unavailable",
       "review_state": "reviewed",
-      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
+      "rationale": "At least one exact-target argument has no observed SDK setter or getter, so Briosa cannot expose the complete command shape.",
       "reason_codes": [
-        "argument_semantics_unresolved",
-        "sdk_binding_unresolved"
+        "sdk_binding_unavailable"
       ],
       "evidence_references": [
         "documentation:GDT/GDTConstruct/MakeGDTFeatureCheckAnnotation.htm",
         "sdk:GDTOperations_GDTConstruction.txt#3"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
-      ],
-      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49",
         "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
+      "blocker_references": [],
       "risk_effect": "mutating",
       "risk_flags": [],
       "data_classifications": [
@@ -517,7 +1225,13 @@
         "logical",
         "string"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:GDT/GDTConstruct/MakeSurfaceFaceList-RuntimeSelect.htm",
@@ -551,7 +1265,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:GDT/GetDatumMeasurements.htm",
@@ -564,6 +1284,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command queries SpatialAnalyzer state without an identified state mutation; retain it as an approved candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "read_only_operation"
       ],
       "evidence_references": [
@@ -571,7 +1292,8 @@
         "sdk:GDTOperations_GDTAnalysis.txt#10"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
+        "https://github.com/spatialanalyzer/briosa/issues/49",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "read_only",
@@ -586,7 +1308,56 @@
         "collection_object_name_list",
         "point_name_list"
       ],
-      "delivery_wave": "wave_1"
+      "delivery_wave": "wave_1",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Get Datum Measurements",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Datum",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Point Names",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetPointNameRefListArg"
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Cloud Names",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetCollectionObjectNameRefListArg"
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:GDT/GetFeatureCheckCylinder.htm",
@@ -599,6 +1370,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command queries SpatialAnalyzer state without an identified state mutation; retain it as an approved candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "read_only_operation"
       ],
       "evidence_references": [
@@ -606,7 +1378,8 @@
         "sdk:GDTOperations_GDTAnalysis.txt#14"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
+        "https://github.com/spatialanalyzer/briosa/issues/49",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "read_only",
@@ -621,7 +1394,56 @@
         "floating_point",
         "logical"
       ],
-      "delivery_wave": "wave_1"
+      "delivery_wave": "wave_1",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Get Feature Check Cylinder Eval Options",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Feature Check",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Enable Actual Diameter Override",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetBoolArg"
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Actual Diameter Override",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetDoubleArg"
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:GDT/GetFeatureCheckDatumReferences.htm",
@@ -630,22 +1452,21 @@
         "GDT"
       ],
       "inventory_entry_sha256": "c58f5e7a7056b4992df8b61821e6d53de6daad0d2754b9e4f3bad23b3e1ef6bb",
-      "disposition": "blocked",
+      "disposition": "approved_candidate",
       "review_state": "reviewed",
-      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
+      "rationale": "The exact generated SDK occurrence resolves the executable step, argument names, direction, and order. Briosa requires explicit values unless installed documentation marks an input optional; no generated sample value becomes a default.",
       "reason_codes": [
-        "argument_semantics_unresolved"
+        "command_shape_resolved"
       ],
       "evidence_references": [
         "documentation:GDT/GetFeatureCheckDatumReferences.htm",
         "sdk:GDTOperations_GDTAnalysis.txt#2"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
-      ],
-      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49",
         "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
+      "blocker_references": [],
       "risk_effect": "read_only",
       "risk_flags": [],
       "data_classifications": [
@@ -657,7 +1478,248 @@
         "collection_object_name_list",
         "string"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_1",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Get Feature Check Datum References",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Feature Check",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Datum 1 Reference String",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetStringArg"
+            }
+          },
+          {
+            "inventory_index": 4,
+            "ordinal": 2,
+            "mp_name": "Datum 1 CAD Faces",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetStringArg"
+            }
+          },
+          {
+            "inventory_index": 7,
+            "ordinal": 3,
+            "mp_name": "Datum 1 SA Objects",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetCollectionObjectNameRefListArg"
+            }
+          },
+          {
+            "inventory_index": 10,
+            "ordinal": 4,
+            "mp_name": "Datum 1 Aux SA Objects",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetCollectionObjectNameRefListArg"
+            }
+          },
+          {
+            "inventory_index": 13,
+            "ordinal": 5,
+            "mp_name": "Datum 1 Geometry Relationships",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetCollectionObjectNameRefListArg"
+            }
+          },
+          {
+            "inventory_index": 16,
+            "ordinal": 6,
+            "mp_name": "Datum 1 Aux Geometry Relationships",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetCollectionObjectNameRefListArg"
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 7,
+            "mp_name": "Datum 2 Reference String",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetStringArg"
+            }
+          },
+          {
+            "inventory_index": 5,
+            "ordinal": 8,
+            "mp_name": "Datum 2 CAD Faces",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetStringArg"
+            }
+          },
+          {
+            "inventory_index": 8,
+            "ordinal": 9,
+            "mp_name": "Datum 2 SA Objects",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetCollectionObjectNameRefListArg"
+            }
+          },
+          {
+            "inventory_index": 11,
+            "ordinal": 10,
+            "mp_name": "Datum 2 Aux SA Objects",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetCollectionObjectNameRefListArg"
+            }
+          },
+          {
+            "inventory_index": 14,
+            "ordinal": 11,
+            "mp_name": "Datum 2 Geometry Relationships",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetCollectionObjectNameRefListArg"
+            }
+          },
+          {
+            "inventory_index": 17,
+            "ordinal": 12,
+            "mp_name": "Datum 2 Aux Geometry Relationships",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetCollectionObjectNameRefListArg"
+            }
+          },
+          {
+            "inventory_index": 3,
+            "ordinal": 13,
+            "mp_name": "Datum 3 Reference String",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetStringArg"
+            }
+          },
+          {
+            "inventory_index": 6,
+            "ordinal": 14,
+            "mp_name": "Datum 3 CAD Faces",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetStringArg"
+            }
+          },
+          {
+            "inventory_index": 9,
+            "ordinal": 15,
+            "mp_name": "Datum 3 SA Objects",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetCollectionObjectNameRefListArg"
+            }
+          },
+          {
+            "inventory_index": 12,
+            "ordinal": 16,
+            "mp_name": "Datum 3 Aux SA Objects",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetCollectionObjectNameRefListArg"
+            }
+          },
+          {
+            "inventory_index": 15,
+            "ordinal": 17,
+            "mp_name": "Datum 3 Geometry Relationships",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetCollectionObjectNameRefListArg"
+            }
+          },
+          {
+            "inventory_index": 18,
+            "ordinal": 18,
+            "mp_name": "Datum 3 Aux Geometry Relationships",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetCollectionObjectNameRefListArg"
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:GDT/GetFeatureCheckMeasurements.htm",
@@ -670,6 +1732,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command queries SpatialAnalyzer state without an identified state mutation; retain it as an approved candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "read_only_operation"
       ],
       "evidence_references": [
@@ -677,7 +1740,8 @@
         "sdk:GDTOperations_GDTAnalysis.txt#12"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
+        "https://github.com/spatialanalyzer/briosa/issues/49",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "read_only",
@@ -692,7 +1756,56 @@
         "collection_object_name_list",
         "point_name_list"
       ],
-      "delivery_wave": "wave_1"
+      "delivery_wave": "wave_1",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Get Feature Check Measurements",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Feature Check",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Point Names",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetPointNameRefListArg"
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Cloud Names",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetCollectionObjectNameRefListArg"
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:GDT/GetFeatureCheckReporting.htm",
@@ -701,23 +1814,21 @@
         "GDT"
       ],
       "inventory_entry_sha256": "cee1deb93332f51042959f5d79d34ed41f4b6f6b30e1c511ab65d501aad9c555",
-      "disposition": "blocked",
+      "disposition": "sdk_unavailable",
       "review_state": "reviewed",
-      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
+      "rationale": "At least one exact-target argument has no observed SDK setter or getter, so Briosa cannot expose the complete command shape.",
       "reason_codes": [
-        "argument_semantics_unresolved",
-        "sdk_binding_unresolved"
+        "sdk_binding_unavailable"
       ],
       "evidence_references": [
         "documentation:GDT/GetFeatureCheckReporting.htm",
         "sdk:GDTOperations_GDTAnalysis.txt#32"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
-      ],
-      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49",
         "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
+      "blocker_references": [],
       "risk_effect": "read_only",
       "risk_flags": [],
       "data_classifications": [
@@ -731,7 +1842,13 @@
         "logical",
         "vector_creation_trigger"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:GDT/GetFeatureCheckReportingFrame.htm",
@@ -744,6 +1861,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command queries SpatialAnalyzer state without an identified state mutation; retain it as an approved candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "read_only_operation"
       ],
       "evidence_references": [
@@ -751,7 +1869,8 @@
         "sdk:GDTOperations_GDTAnalysis.txt#30"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
+        "https://github.com/spatialanalyzer/briosa/issues/49",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "read_only",
@@ -763,7 +1882,44 @@
       "value_families": [
         "collection_object_name"
       ],
-      "delivery_wave": "wave_1"
+      "delivery_wave": "wave_1",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Get Feature Check Reporting Frame",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Feature Check",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Reporting Frame",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetCollectionObjectNameArg"
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:GDT/GetGDTExtendedOps.htm",
@@ -772,23 +1928,21 @@
         "GDT"
       ],
       "inventory_entry_sha256": "2639fe09069ba576fc2854cc702d4bfd883eaa43e59ae564d2ac4ed480be7ad0",
-      "disposition": "blocked",
+      "disposition": "sdk_unavailable",
       "review_state": "reviewed",
-      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
+      "rationale": "At least one exact-target argument has no observed SDK setter or getter, so Briosa cannot expose the complete command shape.",
       "reason_codes": [
-        "argument_semantics_unresolved",
-        "sdk_binding_unresolved"
+        "sdk_binding_unavailable"
       ],
       "evidence_references": [
         "documentation:GDT/GetGDTExtendedOps.htm",
         "sdk:GDTOperations_GDTAnalysis.txt#27"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
-      ],
-      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49",
         "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
+      "blocker_references": [],
       "risk_effect": "read_only",
       "risk_flags": [],
       "data_classifications": [
@@ -806,7 +1960,13 @@
         "gdt_sphere_extended_options",
         "logical"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:GDT/GetGDTOptions.htm",
@@ -815,23 +1975,21 @@
         "GDT"
       ],
       "inventory_entry_sha256": "c2aa5b601600e9571409e1ad1ed5ca41909c6c0f2b0eae22ba0336cb32db3766",
-      "disposition": "blocked",
+      "disposition": "sdk_unavailable",
       "review_state": "reviewed",
-      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
+      "rationale": "At least one exact-target argument has no observed SDK setter or getter, so Briosa cannot expose the complete command shape.",
       "reason_codes": [
-        "argument_semantics_unresolved",
-        "sdk_binding_unresolved"
+        "sdk_binding_unavailable"
       ],
       "evidence_references": [
         "documentation:GDT/GetGDTOptions.htm",
         "sdk:GDTOperations_GDTAnalysis.txt#24"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
-      ],
-      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49",
         "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
+      "blocker_references": [],
       "risk_effect": "read_only",
       "risk_flags": [],
       "data_classifications": [
@@ -844,7 +2002,13 @@
         "gd_and_t_options_distance_between_mode",
         "logical"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:GDT/GetI-thAnnotationFromAnnotation.htm",
@@ -878,7 +2042,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:GDT/GetI-thAnnotationFromAnnotationIterator.htm",
@@ -912,7 +2082,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:GDT/GetI-thDatumFromDatum.htm",
@@ -946,7 +2122,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:GDT/GetI-thDatumFromDatumIterator.htm",
@@ -980,7 +2162,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:GDT/GetI-thFeatureCheckFromFeatureCheck.htm",
@@ -1014,7 +2202,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:GDT/GetI-thFeatureCheckFromFeatureIterator.htm",
@@ -1048,7 +2242,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:GDT/GetNumberOfDatumsInDatum.htm",
@@ -1082,7 +2282,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:GDT/GetNumberOfFeatureChecks.htm",
@@ -1116,7 +2322,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:GDT/RefreshDatumsFeatureChecks.htm",
@@ -1129,6 +2341,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command changes SpatialAnalyzer state within Briosa automation scope; retain it as an approved candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -1136,7 +2349,8 @@
         "sdk:GDTOperations_GDTAnalysis.txt#28"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
+        "https://github.com/spatialanalyzer/briosa/issues/49",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -1147,7 +2361,32 @@
       "value_families": [
         "collection_name"
       ],
-      "delivery_wave": "wave_3"
+      "delivery_wave": "wave_3",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Refresh Datums/Feature Checks from Annotations",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Collection",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionNameArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:GDT/SetDatumMeasurements.htm",
@@ -1156,23 +2395,21 @@
         "GDT"
       ],
       "inventory_entry_sha256": "755590a26ffe3fcb4f51b878ed111d993c3f7c3c26ff3c1be61dcb0bb77e4af4",
-      "disposition": "blocked",
+      "disposition": "approved_candidate",
       "review_state": "reviewed",
-      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
+      "rationale": "The exact generated SDK occurrence resolves the executable step, argument names, direction, and order. Briosa requires explicit values unless installed documentation marks an input optional; no generated sample value becomes a default.",
       "reason_codes": [
-        "argument_semantics_unresolved",
-        "sdk_binding_unresolved"
+        "command_shape_resolved"
       ],
       "evidence_references": [
         "documentation:GDT/SetDatumMeasurements.htm",
         "sdk:GDTOperations_GDTAnalysis.txt#11"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
-      ],
-      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49",
         "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
+      "blocker_references": [],
       "risk_effect": "mutating",
       "risk_flags": [],
       "data_classifications": [
@@ -1186,7 +2423,91 @@
         "logical",
         "point_name_list"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_2",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Set Datum Measurements",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Datum",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Point Names",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetPointNameRefListArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Cloud Names",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameRefListArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 3,
+            "ordinal": 3,
+            "mp_name": "Replace Existing Measurements?",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
+              "default": {
+                "status": "reviewed",
+                "value": false,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:GDT/SetFeatureCheckCylinder.htm",
@@ -1199,6 +2520,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command changes SpatialAnalyzer state within Briosa automation scope; retain it as an approved candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -1206,7 +2528,8 @@
         "sdk:GDTOperations_GDTAnalysis.txt#15"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
+        "https://github.com/spatialanalyzer/briosa/issues/49",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -1221,7 +2544,78 @@
         "floating_point",
         "logical"
       ],
-      "delivery_wave": "wave_3"
+      "delivery_wave": "wave_3",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Set Feature Check Cylinder Eval Options",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Feature Check",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Enable Actual Diameter Override",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
+              "default": {
+                "status": "reviewed",
+                "value": false,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Actual Diameter Override",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
+              "default": {
+                "status": "reviewed",
+                "value": 0.0,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetDoubleArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:GDT/SetFeatureCheckMeasurements.htm",
@@ -1234,6 +2628,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command changes SpatialAnalyzer state within Briosa automation scope; retain it as an approved candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -1241,7 +2636,8 @@
         "sdk:GDTOperations_GDTAnalysis.txt#13"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
+        "https://github.com/spatialanalyzer/briosa/issues/49",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -1257,7 +2653,91 @@
         "logical",
         "point_name_list"
       ],
-      "delivery_wave": "wave_3"
+      "delivery_wave": "wave_3",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Set Feature Check Measurements",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Feature Check",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Point Names",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetPointNameRefListArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Cloud Names",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameRefListArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 3,
+            "ordinal": 3,
+            "mp_name": "Replace Existing Measurements?",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
+              "default": {
+                "status": "reviewed",
+                "value": false,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:GDT/SetFeatureCheckReporting.htm",
@@ -1292,7 +2772,13 @@
         "logical",
         "vector_creation_trigger"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:GDT/SetFeatureCheckReportingFrame.htm",
@@ -1305,6 +2791,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command changes SpatialAnalyzer state within Briosa automation scope; retain it as an approved candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -1312,7 +2799,8 @@
         "sdk:GDTOperations_GDTAnalysis.txt#29"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
+        "https://github.com/spatialanalyzer/briosa/issues/49",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -1324,7 +2812,50 @@
       "value_families": [
         "collection_object_name"
       ],
-      "delivery_wave": "wave_3"
+      "delivery_wave": "wave_3",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Set Feature Check Reporting Frame",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Feature Check",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Reporting Frame",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:GDT/SetGDTExtendedOps.htm",
@@ -1337,6 +2868,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command changes SpatialAnalyzer state within Briosa automation scope; retain it as an approved candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -1344,7 +2876,8 @@
         "sdk:GDTOperations_GDTAnalysis.txt#26"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
+        "https://github.com/spatialanalyzer/briosa/issues/49",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -1356,7 +2889,264 @@
         "logical",
         "string"
       ],
-      "delivery_wave": "wave_3"
+      "delivery_wave": "wave_3",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Set GD\u0026T Extended Options",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Use Extended Options",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": true
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Circle Extended Options",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": "Least Squares"
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetStringArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Cone Extended Options",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": "Least Squares"
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetStringArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 3,
+            "ordinal": 3,
+            "mp_name": "Cylinder Extended Options",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": "Least Squares"
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetStringArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 4,
+            "ordinal": 4,
+            "mp_name": "Ellipse Extended Options",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": "Least Squares"
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetStringArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 5,
+            "ordinal": 5,
+            "mp_name": "Line Extended Options",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": "Least Squares"
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetStringArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 6,
+            "ordinal": 6,
+            "mp_name": "Open Slot Extended Options",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": "Least Squares"
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetStringArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 7,
+            "ordinal": 7,
+            "mp_name": "Plane Extended Options",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": "Least Squares"
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetStringArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 8,
+            "ordinal": 8,
+            "mp_name": "Slot Extended Options",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": "Least Squares"
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetStringArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 9,
+            "ordinal": 9,
+            "mp_name": "Sphere Extended Options",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": "Least Squares"
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetStringArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:GDT/SetGDTOptions.htm",
@@ -1377,10 +3167,11 @@
         "sdk:GDTOperations_GDTAnalysis.txt#25"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
+        "https://github.com/spatialanalyzer/briosa/issues/49",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/53"
+        "https://github.com/spatialanalyzer/briosa/issues/79"
       ],
       "risk_effect": "mutating",
       "risk_flags": [],
@@ -1395,7 +3186,24 @@
         "gdt_distance_between_mode",
         "logical"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "blocked",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": [
+          {
+            "code": "exact_interop_binding_missing",
+            "argument_indexes": [
+              1,
+              8
+            ],
+            "owner": "hexagon",
+            "blocker_reference": "https://github.com/spatialanalyzer/briosa/issues/79",
+            "rationale": "View SDK Code names an exact binding that is absent from the committed exact-target interop public API."
+          }
+        ]
+      }
     },
     {
       "inventory_key": "documentation:GDT/StartStopFeatureCheckTrapping.htm",
@@ -1429,7 +3237,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     }
   ]
 }

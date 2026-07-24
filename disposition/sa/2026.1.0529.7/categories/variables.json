@@ -35,7 +35,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:Variables/ClearDoubleList.htm",
@@ -68,7 +74,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:Variables/ClearNamedDoubleListVariable.htm",
@@ -101,7 +113,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:Variables/DeleteVariable.htm",
@@ -134,7 +152,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:Variables/DeleteVariablesWildcard.htm",
@@ -167,7 +191,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:Variables/GetCollectionObjectName.htm",
@@ -200,7 +230,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:Variables/GetCollectionObjectRef.htm",
@@ -233,7 +269,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:Variables/GetDoubleVariable.htm",
@@ -266,7 +308,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:Variables/GetFontVariable.htm",
@@ -299,7 +347,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:Variables/GetI-thDoubleFromList.htm",
@@ -332,7 +386,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:Variables/GetIntegerVariable.htm",
@@ -365,7 +425,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:Variables/GetNamedDoubleListVariable.htm",
@@ -398,7 +464,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:Variables/GetNamedDoubleListVariableMinMax.htm",
@@ -431,7 +503,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:Variables/GetNumberOfDoublesInList.htm",
@@ -464,7 +542,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:Variables/GetPointNameRefListVariable.htm",
@@ -497,7 +581,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:Variables/GetPointNameVariable.htm",
@@ -530,7 +620,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:Variables/GetRelationshipRefList.htm",
@@ -563,7 +659,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:Variables/GetReportItemsReference.htm",
@@ -596,7 +698,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:Variables/GetStringRefListVariable.htm",
@@ -629,7 +737,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:Variables/GetStringVariable.htm",
@@ -662,7 +776,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:Variables/GetTransformVariable.htm",
@@ -695,7 +815,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:Variables/GetVectorVariable.htm",
@@ -728,7 +854,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:Variables/SetBooleanVariable.htm",
@@ -761,7 +893,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:Variables/SetCollectionObjectName.htm",
@@ -794,7 +932,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:Variables/SetCollectionObjectRef.htm",
@@ -827,7 +971,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:Variables/SetDoubleVariable.htm",
@@ -860,7 +1010,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:Variables/SetFontVariable.htm",
@@ -893,7 +1049,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:Variables/SetIntegerVariable.htm",
@@ -926,7 +1088,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:Variables/SetNamedDoubleListVariable.htm",
@@ -959,7 +1127,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:Variables/SetPointNameRefListVariable.htm",
@@ -992,7 +1166,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:Variables/SetPointNameVariable.htm",
@@ -1025,7 +1205,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:Variables/SetRelationshipRefList.htm",
@@ -1058,7 +1244,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:Variables/SetReportItemsReference.htm",
@@ -1091,7 +1283,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:Variables/SetStringRefListVariable.htm",
@@ -1124,7 +1322,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:Variables/SetStringVariable.htm",
@@ -1157,7 +1361,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:Variables/SetTransformVariable.htm",
@@ -1190,7 +1400,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:Variables/SetVectorVariable.htm",
@@ -1223,7 +1439,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "sdk:Variables.txt#10",
@@ -1255,7 +1477,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "sdk:Variables.txt#17",
@@ -1287,7 +1515,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "sdk:Variables.txt#34",
@@ -1319,7 +1553,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "sdk:Variables.txt#35",
@@ -1351,7 +1591,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     }
   ]
 }

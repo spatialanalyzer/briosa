@@ -21,10 +21,11 @@
         "sdk:DimensionOperations.txt#12"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
+        "https://github.com/spatialanalyzer/briosa/issues/49",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/53"
+        "https://github.com/spatialanalyzer/briosa/issues/79"
       ],
       "risk_effect": "mutating",
       "risk_flags": [],
@@ -38,7 +39,35 @@
         "floating_point",
         "logical"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "blocked",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": [
+          {
+            "code": "documentation_command_missing",
+            "argument_indexes": [],
+            "owner": "hexagon",
+            "blocker_reference": "https://github.com/spatialanalyzer/briosa/issues/79",
+            "rationale": "Installed documentation and generated SDK evidence do not establish complete exact-target argument semantics for this command."
+          },
+          {
+            "code": "sdk_argument_not_documented",
+            "argument_indexes": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "owner": "hexagon",
+            "blocker_reference": "https://github.com/spatialanalyzer/briosa/issues/79",
+            "rationale": "Installed documentation and generated SDK evidence do not establish complete exact-target argument semantics for this command."
+          }
+        ]
+      }
     }
   ]
 }

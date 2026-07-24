@@ -115,6 +115,109 @@ internal sealed class CommandDispositionEntry
 
     [JsonRequired]
     public required string? DeliveryWave { get; init; }
+
+    public CommandShapeResolution? CommandShape { get; init; }
+}
+
+internal sealed class CommandShapeResolution
+{
+    [JsonRequired]
+    public required string Status { get; init; }
+
+    public required string? MpStep { get; init; }
+
+    [JsonRequired]
+    public required List<CommandArgumentResolution> Arguments { get; init; }
+
+    [JsonRequired]
+    public required List<CommandShapeDiscrepancy> Discrepancies { get; init; }
+}
+
+internal sealed class CommandArgumentResolution
+{
+    [JsonRequired]
+    public required int InventoryIndex { get; init; }
+
+    [JsonRequired]
+    public required int Ordinal { get; init; }
+
+    [JsonRequired]
+    public required string MpName { get; init; }
+
+    [JsonRequired]
+    public required string Direction { get; init; }
+
+    [JsonRequired]
+    public required string ResultOnly { get; init; }
+
+    public CommandInputResolution? Input { get; init; }
+
+    [JsonRequired]
+    public required CommandSdkBindingResolution SdkBinding { get; init; }
+}
+
+internal sealed class CommandInputResolution
+{
+    [JsonRequired]
+    public required string Presence { get; init; }
+
+    [JsonRequired]
+    public required string OmissionBehavior { get; init; }
+
+    [JsonRequired]
+    public required CommandDefaultResolution Default { get; init; }
+}
+
+internal sealed class CommandDefaultResolution
+{
+    [JsonRequired]
+    public required string Status { get; init; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? ReviewStatus { get; init; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public object? Value { get; init; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public List<string>? Evidence { get; init; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public List<CommandDefaultCandidate>? Candidates { get; init; }
+}
+
+internal sealed class CommandDefaultCandidate
+{
+    [JsonRequired]
+    public required string Source { get; init; }
+
+    [JsonRequired]
+    public required object? Value { get; init; }
+}
+
+internal sealed class CommandSdkBindingResolution
+{
+    public required string? Setter { get; init; }
+
+    public required string? Getter { get; init; }
+}
+
+internal sealed class CommandShapeDiscrepancy
+{
+    [JsonRequired]
+    public required string Code { get; init; }
+
+    [JsonRequired]
+    public required List<int> ArgumentIndexes { get; init; }
+
+    [JsonRequired]
+    public required string Owner { get; init; }
+
+    [JsonRequired]
+    public required string BlockerReference { get; init; }
+
+    [JsonRequired]
+    public required string Rationale { get; init; }
 }
 
 internal sealed record CommandDispositionValidationResult(

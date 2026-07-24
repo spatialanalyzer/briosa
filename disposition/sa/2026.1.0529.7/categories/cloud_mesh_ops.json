@@ -15,6 +15,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command changes SpatialAnalyzer state within Briosa automation scope; retain it as an approved candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "interactive_operation",
         "state_mutation"
       ],
@@ -23,7 +24,8 @@
         "sdk:CloudAndMeshOperations.txt#1"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
+        "https://github.com/spatialanalyzer/briosa/issues/49",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -37,7 +39,60 @@
       "value_families": [
         "whole_number"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Cloud Display Control",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Thin (Draw Increment)",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
+              "default": {
+                "status": "reviewed",
+                "value": 1,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetIntegerArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Point Size",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
+              "default": {
+                "status": "reviewed",
+                "value": 1,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetIntegerArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:CloudMeshOps/CloudFilters/DeleteCloudPointsByRadial.htm",
@@ -51,6 +106,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command changes SpatialAnalyzer state within Briosa automation scope; retain it as an approved candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -58,7 +114,8 @@
         "sdk:CloudAndMeshOperations_CloudFilters.txt#12"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
+        "https://github.com/spatialanalyzer/briosa/issues/49",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -74,7 +131,96 @@
         "logical",
         "point_name_list"
       ],
-      "delivery_wave": "wave_2"
+      "delivery_wave": "wave_2",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Delete Cloud Points by Radial Distance from Points",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Cloud Names",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameRefListArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Points",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetPointNameRefListArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Radius",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
+              "default": {
+                "status": "reviewed",
+                "value": 0.0,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetDoubleArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 3,
+            "ordinal": 3,
+            "mp_name": "Delete Inside",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
+              "default": {
+                "status": "reviewed",
+                "value": false,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:CloudMeshOps/CloudFilters/DeleteCloudPointsByXYZ.htm",
@@ -110,7 +256,13 @@
         "double",
         "logical"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:CloudMeshOps/CloudFilters/FilterCloudsToBSplines.htm",
@@ -124,6 +276,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command changes SpatialAnalyzer state within Briosa automation scope; retain it as an approved candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "long_running_operation",
         "state_mutation"
       ],
@@ -132,7 +285,8 @@
         "sdk:CloudAndMeshOperations_CloudFilters.txt#4"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
+        "https://github.com/spatialanalyzer/briosa/issues/49",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -150,7 +304,143 @@
         "floating_point",
         "string"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Filter Clouds to BSplines",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Cloud Names",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameRefListArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Filter BSpline Names",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameRefListArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Output Group Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 3,
+            "ordinal": 3,
+            "mp_name": "Minimum Proximity",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": 0.0
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetDoubleArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 4,
+            "ordinal": 4,
+            "mp_name": "Maximum Proximity",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": 0.0
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetDoubleArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 5,
+            "ordinal": 5,
+            "mp_name": "Output Type",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": "Points"
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetStringArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:CloudMeshOps/CloudFilters/FilterCloudsToGroup.htm",
@@ -160,22 +450,21 @@
         "CloudFilters"
       ],
       "inventory_entry_sha256": "cfdc44d553fa01787c488f9d93a10f0df5a34adea4e21482c8de73f95606d824",
-      "disposition": "blocked",
+      "disposition": "approved_candidate",
       "review_state": "reviewed",
-      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
+      "rationale": "The exact generated SDK occurrence resolves the executable step, argument names, direction, and order. Briosa requires explicit values unless installed documentation marks an input optional; no generated sample value becomes a default.",
       "reason_codes": [
-        "argument_semantics_unresolved"
+        "command_shape_resolved"
       ],
       "evidence_references": [
         "documentation:CloudMeshOps/CloudFilters/FilterCloudsToGroup.htm",
         "sdk:CloudAndMeshOperations_CloudFilters.txt#2"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
-      ],
-      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49",
         "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
+      "blocker_references": [],
       "risk_effect": "mutating",
       "risk_flags": [
         "long_running"
@@ -192,7 +481,143 @@
         "string",
         "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Filter Clouds to Group",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Cloud Names",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameRefListArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Filter Group\u0027s Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Output Group Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 3,
+            "ordinal": 3,
+            "mp_name": "Proximity (0 for Closest Point only)",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": 0.0
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetDoubleArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 4,
+            "ordinal": 4,
+            "mp_name": "Maximum Number of Points (0 for Unlimited)",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": 0
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetIntegerArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 5,
+            "ordinal": 5,
+            "mp_name": "Output Type",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": "Points"
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetStringArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:CloudMeshOps/CloudFilters/FilterCloudsToLineSegment.htm",
@@ -206,6 +631,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command changes SpatialAnalyzer state within Briosa automation scope; retain it as an approved candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "long_running_operation",
         "state_mutation"
       ],
@@ -214,7 +640,8 @@
         "sdk:CloudAndMeshOperations_CloudFilters.txt#5"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
+        "https://github.com/spatialanalyzer/briosa/issues/49",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -233,7 +660,161 @@
         "point_name",
         "string"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Filter Clouds to Line Segment",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Cloud Names",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameRefListArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "First Line End Point",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetPointNameArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Second Line End Point",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetPointNameArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 3,
+            "ordinal": 3,
+            "mp_name": "Output Group Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 4,
+            "ordinal": 4,
+            "mp_name": "Minimum Proximity",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": 0.0
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetDoubleArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 5,
+            "ordinal": 5,
+            "mp_name": "Maximum Proximity",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": 0.0
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetDoubleArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 6,
+            "ordinal": 6,
+            "mp_name": "Output Type",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": "Points"
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetStringArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:CloudMeshOps/CloudFilters/FilterCloudsToPlane.htm",
@@ -243,22 +824,21 @@
         "CloudFilters"
       ],
       "inventory_entry_sha256": "a92596ebda2b303e153ac7d0e338503621453041620488803ba42e44bfb2d65b",
-      "disposition": "blocked",
+      "disposition": "approved_candidate",
       "review_state": "reviewed",
-      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
+      "rationale": "The exact generated SDK occurrence resolves the executable step, argument names, direction, and order. Briosa requires explicit values unless installed documentation marks an input optional; no generated sample value becomes a default.",
       "reason_codes": [
-        "argument_semantics_unresolved"
+        "command_shape_resolved"
       ],
       "evidence_references": [
         "documentation:CloudMeshOps/CloudFilters/FilterCloudsToPlane.htm",
         "sdk:CloudAndMeshOperations_CloudFilters.txt#1"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
-      ],
-      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49",
         "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
+      "blocker_references": [],
       "risk_effect": "mutating",
       "risk_flags": [
         "long_running"
@@ -275,7 +855,129 @@
         "offset_direction_type",
         "string"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Filter Clouds to Plane",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Cloud Names",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameRefListArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Filter Plane\u0027s Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Output Group Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 3,
+            "ordinal": 3,
+            "mp_name": "Proximity",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": 0.0
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetDoubleArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 4,
+            "ordinal": 4,
+            "mp_name": "Allowable Offset Dir",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetOffsetDirectionTypeArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 5,
+            "ordinal": 5,
+            "mp_name": "Output Type",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetStringArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:CloudMeshOps/CloudFilters/FilterCloudsToSurface.htm",
@@ -285,22 +987,21 @@
         "CloudFilters"
       ],
       "inventory_entry_sha256": "eb7266d6094a0d65b0ff11556aec4c93c1dc2a52f6f2f8cbf0e1d4abe48e7180",
-      "disposition": "blocked",
+      "disposition": "approved_candidate",
       "review_state": "reviewed",
-      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
+      "rationale": "The exact generated SDK occurrence resolves the executable step, argument names, direction, and order. Briosa requires explicit values unless installed documentation marks an input optional; no generated sample value becomes a default.",
       "reason_codes": [
-        "argument_semantics_unresolved"
+        "command_shape_resolved"
       ],
       "evidence_references": [
         "documentation:CloudMeshOps/CloudFilters/FilterCloudsToSurface.htm",
         "sdk:CloudAndMeshOperations_CloudFilters.txt#3"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
-      ],
-      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49",
         "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
+      "blocker_references": [],
       "risk_effect": "mutating",
       "risk_flags": [
         "long_running"
@@ -317,7 +1018,168 @@
         "string",
         "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Filter Clouds to Surface",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Cloud Names",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameRefListArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Filter Surface\u0027s Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Output Group Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 3,
+            "ordinal": 3,
+            "mp_name": "Low Proximity",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": 0.0
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetDoubleArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 4,
+            "ordinal": 4,
+            "mp_name": "High Proximity",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": 0.0
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetDoubleArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 5,
+            "ordinal": 5,
+            "mp_name": "Skip Factor",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": 0
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetIntegerArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 6,
+            "ordinal": 6,
+            "mp_name": "Output Type",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": "Points"
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetStringArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:CloudMeshOps/CloudFilters/FilterCloudsToVectorGroups.htm",
@@ -338,10 +1200,11 @@
         "sdk:CloudAndMeshOperations_CloudFilters.txt#6"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
+        "https://github.com/spatialanalyzer/briosa/issues/49",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/53"
+        "https://github.com/spatialanalyzer/briosa/issues/79"
       ],
       "risk_effect": "mutating",
       "risk_flags": [
@@ -360,7 +1223,24 @@
         "string",
         "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "blocked",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": [
+          {
+            "code": "sdk_argument_not_documented",
+            "argument_indexes": [
+              8,
+              9
+            ],
+            "owner": "hexagon",
+            "blocker_reference": "https://github.com/spatialanalyzer/briosa/issues/79",
+            "rationale": "Installed documentation and generated SDK evidence do not establish complete exact-target argument semantics for this command."
+          }
+        ]
+      }
     },
     {
       "inventory_key": "documentation:CloudMeshOps/CloudFilters/FilterCloudsToVectorGroupsClouds.htm",
@@ -374,6 +1254,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command changes SpatialAnalyzer state within Briosa automation scope; retain it as an approved candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "long_running_operation",
         "state_mutation"
       ],
@@ -382,7 +1263,8 @@
         "sdk:CloudAndMeshOperations_CloudFilters.txt#7"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
+        "https://github.com/spatialanalyzer/briosa/issues/49",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -399,7 +1281,155 @@
         "collection_object_name_list",
         "floating_point"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Filter Clouds to Vector Groups - Resolve Clouds",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Cloud Names",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameRefListArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Vector Group Names",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameRefListArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Radial Cutoff",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": 0.1
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetDoubleArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 3,
+            "ordinal": 3,
+            "mp_name": "Lower Cutoff",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": -0.1
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetDoubleArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 4,
+            "ordinal": 4,
+            "mp_name": "Upper Cutoff",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": 0.1
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetDoubleArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 5,
+            "ordinal": 5,
+            "mp_name": "Output Collection Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionNameArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 6,
+            "ordinal": 6,
+            "mp_name": "Filtered Clouds",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetCollectionObjectNameRefListArg"
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:CloudMeshOps/CloudFilters/GetCloudRGBValues.htm",
@@ -413,6 +1443,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command queries SpatialAnalyzer state without an identified state mutation; retain it as an approved candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "read_only_operation"
       ],
       "evidence_references": [
@@ -420,7 +1451,8 @@
         "sdk:CloudAndMeshOperations_CloudFilters.txt#9"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
+        "https://github.com/spatialanalyzer/briosa/issues/49",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "read_only",
@@ -435,7 +1467,105 @@
         "string",
         "whole_number"
       ],
-      "delivery_wave": "wave_1"
+      "delivery_wave": "wave_1",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Get Cloud RGB Values",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Source Cloud Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "RGB Color Channel",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": "Intensity"
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetStringArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Low Value",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetIntegerArg"
+            }
+          },
+          {
+            "inventory_index": 3,
+            "ordinal": 3,
+            "mp_name": "High Value",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetIntegerArg"
+            }
+          },
+          {
+            "inventory_index": 4,
+            "ordinal": 4,
+            "mp_name": "Average Value",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetIntegerArg"
+            }
+          },
+          {
+            "inventory_index": 5,
+            "ordinal": 5,
+            "mp_name": "Standard Deviation",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetIntegerArg"
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:CloudMeshOps/CloudFilters/GetCloudRGBValuesNearPt.htm",
@@ -449,6 +1579,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command queries SpatialAnalyzer state without an identified state mutation; retain it as an approved candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "read_only_operation"
       ],
       "evidence_references": [
@@ -456,7 +1587,8 @@
         "sdk:CloudAndMeshOperations_CloudFilters.txt#10"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
+        "https://github.com/spatialanalyzer/briosa/issues/49",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "read_only",
@@ -473,7 +1605,148 @@
         "string",
         "whole_number"
       ],
-      "delivery_wave": "wave_1"
+      "delivery_wave": "wave_1",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Get Cloud RGB Values Near Point",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Source Cloud Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Single Point",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetPointNameArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Diameter",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": 10.0
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetDoubleArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 3,
+            "ordinal": 3,
+            "mp_name": "RGB Color Channel",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": "Intensity"
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetStringArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 4,
+            "ordinal": 4,
+            "mp_name": "Low Value",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetIntegerArg"
+            }
+          },
+          {
+            "inventory_index": 5,
+            "ordinal": 5,
+            "mp_name": "High Value",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetIntegerArg"
+            }
+          },
+          {
+            "inventory_index": 6,
+            "ordinal": 6,
+            "mp_name": "Average Value",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetIntegerArg"
+            }
+          },
+          {
+            "inventory_index": 7,
+            "ordinal": 7,
+            "mp_name": "Standard Deviation",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetIntegerArg"
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:CloudMeshOps/CloudFilters/RGBCloudPointFilter.htm",
@@ -483,23 +1756,21 @@
         "CloudFilters"
       ],
       "inventory_entry_sha256": "b47f621731a7b87c119d0ac0f453a98a2d45b4e4fb93ccc5a30ac65e16248870",
-      "disposition": "blocked",
+      "disposition": "sdk_unavailable",
       "review_state": "reviewed",
-      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
+      "rationale": "At least one exact-target argument has no observed SDK setter or getter, so Briosa cannot expose the complete command shape.",
       "reason_codes": [
-        "argument_semantics_unresolved",
-        "sdk_binding_unresolved"
+        "sdk_binding_unavailable"
       ],
       "evidence_references": [
         "documentation:CloudMeshOps/CloudFilters/RGBCloudPointFilter.htm",
         "sdk:CloudAndMeshOperations_CloudFilters.txt#8"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
-      ],
-      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49",
         "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
+      "blocker_references": [],
       "risk_effect": "mutating",
       "risk_flags": [],
       "data_classifications": [
@@ -515,7 +1786,13 @@
         "string",
         "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:CloudMeshOps/CloudFilters/SubdivideCloudbyPtSpacing.htm",
@@ -529,6 +1806,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command changes SpatialAnalyzer state within Briosa automation scope; retain it as an approved candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "long_running_operation",
         "state_mutation"
       ],
@@ -537,7 +1815,8 @@
         "sdk:CloudAndMeshOperations_CloudFilters.txt#11"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
+        "https://github.com/spatialanalyzer/briosa/issues/49",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -555,7 +1834,125 @@
         "logical",
         "whole_number"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Subdivide Cloud by Point Spacing",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Source Cloud Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Point Spacing",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": 0.0
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetDoubleArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Minimum Points Per Group",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": 0
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetIntegerArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 3,
+            "ordinal": 3,
+            "mp_name": "New Cloud Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 4,
+            "ordinal": 4,
+            "mp_name": "Keep All Groups?",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": true
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:CloudMeshOps/CrossSections/EnableAllCloudCrossSections.htm",
@@ -569,6 +1966,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command changes SpatialAnalyzer state within Briosa automation scope; retain it as an approved candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -576,7 +1974,8 @@
         "sdk:CloudAndMeshOperations_CloudCrossSections.txt#1"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
+        "https://github.com/spatialanalyzer/briosa/issues/49",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -588,7 +1987,32 @@
       "value_families": [
         "collection_object_name"
       ],
-      "delivery_wave": "wave_2"
+      "delivery_wave": "wave_2",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Enable All Cloud Cross Sections",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Cross Section Cloud Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:CloudMeshOps/CrossSections/EnableDisableCloudCross.htm",
@@ -598,22 +2022,21 @@
         "CrossSections"
       ],
       "inventory_entry_sha256": "7fdd9a5d33023c3a0e22d4f3c75b80063b1617820bfa7f33b08229aa05ece2a4",
-      "disposition": "blocked",
+      "disposition": "approved_candidate",
       "review_state": "reviewed",
-      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
+      "rationale": "The exact generated SDK occurrence resolves the executable step, argument names, direction, and order. Briosa requires explicit values unless installed documentation marks an input optional; no generated sample value becomes a default.",
       "reason_codes": [
-        "argument_semantics_unresolved"
+        "command_shape_resolved"
       ],
       "evidence_references": [
         "documentation:CloudMeshOps/CrossSections/EnableDisableCloudCross.htm",
         "sdk:CloudAndMeshOperations_CloudCrossSections.txt#2"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
-      ],
-      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49",
         "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
+      "blocker_references": [],
       "risk_effect": "mutating",
       "risk_flags": [],
       "data_classifications": [
@@ -626,7 +2049,82 @@
         "logical",
         "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_2",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Enable/Disable Cloud Cross Sections",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Cross Section Cloud Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Cross Section ID",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": 0
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetIntegerArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Enable (TRUE) / Disable (FALSE)?",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": true
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:CloudMeshOps/CrossSections/EnableSingleCloudCross.htm",
@@ -640,6 +2138,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command changes SpatialAnalyzer state within Briosa automation scope; retain it as an approved candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -647,7 +2146,8 @@
         "sdk:CloudAndMeshOperations_CloudCrossSections.txt#3"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
+        "https://github.com/spatialanalyzer/briosa/issues/49",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -661,7 +2161,57 @@
         "collection_object_name",
         "whole_number"
       ],
-      "delivery_wave": "wave_2"
+      "delivery_wave": "wave_2",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Enable Single Cloud Cross Section",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Cross Section Cloud Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Cross Section ID",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": 0
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetIntegerArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:CloudMeshOps/CrossSections/GetNumberOfCrossSections.htm",
@@ -675,6 +2225,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command queries SpatialAnalyzer state without an identified state mutation; retain it as an approved candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "read_only_operation"
       ],
       "evidence_references": [
@@ -682,7 +2233,8 @@
         "sdk:CloudAndMeshOperations_CloudCrossSections.txt#4"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
+        "https://github.com/spatialanalyzer/briosa/issues/49",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "read_only",
@@ -696,7 +2248,44 @@
         "collection_object_name",
         "whole_number"
       ],
-      "delivery_wave": "wave_1"
+      "delivery_wave": "wave_1",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Get Number of Cross Sections in Cross Section Cloud",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Cross Section Cloud Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Cross Section Count",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetIntegerArg"
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:CloudMeshOps/GetCloudPointCount.htm",
@@ -705,23 +2294,21 @@
         "CloudMeshOps"
       ],
       "inventory_entry_sha256": "501e9b3bfe15aeaa51bf0ff7810ac3a553ac5276b4b10747bc0c537f0a0599c6",
-      "disposition": "blocked",
+      "disposition": "sdk_unavailable",
       "review_state": "reviewed",
-      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
+      "rationale": "At least one exact-target argument has no observed SDK setter or getter, so Briosa cannot expose the complete command shape.",
       "reason_codes": [
-        "argument_semantics_unresolved",
-        "sdk_binding_unresolved"
+        "sdk_binding_unavailable"
       ],
       "evidence_references": [
         "documentation:CloudMeshOps/GetCloudPointCount.htm",
         "sdk:CloudAndMeshOperations.txt#3"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
-      ],
-      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49",
         "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
+      "blocker_references": [],
       "risk_effect": "read_only",
       "risk_flags": [],
       "data_classifications": [
@@ -735,7 +2322,13 @@
         "integer",
         "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:CloudMeshOps/MeshOperations/Consolidate Mesh.htm",
@@ -749,6 +2342,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command changes SpatialAnalyzer state within Briosa automation scope; retain it as an approved candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "long_running_operation",
         "state_mutation"
       ],
@@ -757,7 +2351,8 @@
         "sdk:CloudAndMeshOperations_MeshOperations.txt#2"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
+        "https://github.com/spatialanalyzer/briosa/issues/49",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -771,7 +2366,32 @@
       "value_families": [
         "collection_object_name"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Consolidate Mesh",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Mesh",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:CloudMeshOps/MeshOperations/GenerateGeneralMesh.htm",
@@ -781,23 +2401,21 @@
         "MeshOperations"
       ],
       "inventory_entry_sha256": "e5be6a588909d3c83324d46f2021588fd7d25fc4e2eff663fbf58da75fd0ed79",
-      "disposition": "blocked",
+      "disposition": "sdk_unavailable",
       "review_state": "reviewed",
-      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
+      "rationale": "At least one exact-target argument has no observed SDK setter or getter, so Briosa cannot expose the complete command shape.",
       "reason_codes": [
-        "argument_semantics_unresolved",
-        "sdk_binding_unresolved"
+        "sdk_binding_unavailable"
       ],
       "evidence_references": [
         "documentation:CloudMeshOps/MeshOperations/GenerateGeneralMesh.htm",
         "sdk:CloudAndMeshOperations_MeshOperations.txt#1"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
-      ],
-      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49",
         "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
+      "blocker_references": [],
       "risk_effect": "mutating",
       "risk_flags": [
         "long_running"
@@ -816,7 +2434,13 @@
         "logical",
         "string"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:CloudMeshOps/MeshOperations/GenerateRegenerateCoarseMesh.htm",
@@ -854,7 +2478,13 @@
         "double",
         "integer"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:CloudMeshOps/MeshOperations/MeshFillHoles.htm",
@@ -868,6 +2498,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command changes SpatialAnalyzer state within Briosa automation scope; retain it as an approved candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "long_running_operation",
         "state_mutation"
       ],
@@ -876,7 +2507,8 @@
         "sdk:CloudAndMeshOperations_MeshOperations.txt#4"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
+        "https://github.com/spatialanalyzer/briosa/issues/49",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -893,7 +2525,132 @@
         "floating_point",
         "logical"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Mesh Fill Holes",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Mesh",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Maximum Triangle Length",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": -1.0
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetDoubleArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Tension",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": 0.0
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetDoubleArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 3,
+            "ordinal": 3,
+            "mp_name": "Unconditional Filling?",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": false
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 4,
+            "ordinal": 4,
+            "mp_name": "Fill All Holes?",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": true
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:CloudMeshOps/MeshOperations/MeshVolume.htm",
@@ -907,6 +2664,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command queries SpatialAnalyzer state without an identified state mutation; retain it as an approved candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "read_only_operation"
       ],
       "evidence_references": [
@@ -914,7 +2672,8 @@
         "sdk:CloudAndMeshOperations_MeshOperations.txt#3"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
+        "https://github.com/spatialanalyzer/briosa/issues/49",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "read_only",
@@ -928,7 +2687,74 @@
         "collection_object_name",
         "floating_point"
       ],
-      "delivery_wave": "wave_1"
+      "delivery_wave": "wave_1",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Mesh Volume",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Mesh",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Plane",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Above",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetDoubleArg"
+            }
+          },
+          {
+            "inventory_index": 3,
+            "ordinal": 3,
+            "mp_name": "Below",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetDoubleArg"
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:CloudMeshOps/NewRasterScanEdgeInspection.htm",
@@ -937,22 +2763,21 @@
         "CloudMeshOps"
       ],
       "inventory_entry_sha256": "b91c94bd5aa72cff8228ccb12c296b53c54fb7f13e8d02e70daba98d2dbbb05f",
-      "disposition": "blocked",
+      "disposition": "approved_candidate",
       "review_state": "reviewed",
-      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
+      "rationale": "The exact generated SDK occurrence resolves the executable step, argument names, direction, and order. Briosa requires explicit values unless installed documentation marks an input optional; no generated sample value becomes a default.",
       "reason_codes": [
-        "argument_semantics_unresolved"
+        "command_shape_resolved"
       ],
       "evidence_references": [
         "documentation:CloudMeshOps/NewRasterScanEdgeInspection.htm",
         "sdk:CloudAndMeshOperations.txt#6"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
-      ],
-      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49",
         "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
+      "blocker_references": [],
       "risk_effect": "mutating",
       "risk_flags": [
         "filesystem_read",
@@ -973,7 +2798,224 @@
         "string",
         "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "New Raster Scan Edge Inspection",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Edge Cloud Names",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameRefListArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Edge Surface Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Edge BSpline Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 3,
+            "ordinal": 3,
+            "mp_name": "Output Prefix",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 4,
+            "ordinal": 4,
+            "mp_name": "Inspection Increment",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetDoubleArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 5,
+            "ordinal": 5,
+            "mp_name": "Proximity Filter Distance",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetDoubleArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 6,
+            "ordinal": 6,
+            "mp_name": "Edge Bias Value",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetDoubleArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 7,
+            "ordinal": 7,
+            "mp_name": "Error Tolerance",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetDoubleArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 8,
+            "ordinal": 8,
+            "mp_name": "Use Cosine Projection Method",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 9,
+            "ordinal": 9,
+            "mp_name": "Minimum Number of Edge Points per segment",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetIntegerArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 10,
+            "ordinal": 10,
+            "mp_name": "Intermediate Calculation Results File(optional)",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "optional",
+              "omission_behavior": "omit_sdk_setter",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetFilePathArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 11,
+            "ordinal": 11,
+            "mp_name": "Summary Result",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetStringArg"
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:CloudMeshOps/RasterScanEdgeInspection.htm",
@@ -982,23 +3024,21 @@
         "CloudMeshOps"
       ],
       "inventory_entry_sha256": "996eff613b4c57c9b71d1d537e2d134af32a9d87743de025aefc0eba2e28acb6",
-      "disposition": "blocked",
+      "disposition": "sdk_unavailable",
       "review_state": "reviewed",
-      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
+      "rationale": "At least one exact-target argument has no observed SDK setter or getter, so Briosa cannot expose the complete command shape.",
       "reason_codes": [
-        "argument_semantics_unresolved",
-        "sdk_binding_unresolved"
+        "sdk_binding_unavailable"
       ],
       "evidence_references": [
         "documentation:CloudMeshOps/RasterScanEdgeInspection.htm",
         "sdk:CloudAndMeshOperations.txt#5"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
-      ],
-      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49",
         "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
+      "blocker_references": [],
       "risk_effect": "mutating",
       "risk_flags": [
         "long_running"
@@ -1017,7 +3057,13 @@
         "string",
         "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:CloudMeshOps/ResetCloudBoundingBox.htm",
@@ -1026,23 +3072,21 @@
         "CloudMeshOps"
       ],
       "inventory_entry_sha256": "33c68c2690fa9abb3879c4eb8cc03db2d2ef73b3cd1f3822e782172e76e32c42",
-      "disposition": "blocked",
+      "disposition": "sdk_unavailable",
       "review_state": "reviewed",
-      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
+      "rationale": "At least one exact-target argument has no observed SDK setter or getter, so Briosa cannot expose the complete command shape.",
       "reason_codes": [
-        "argument_semantics_unresolved",
-        "sdk_binding_unresolved"
+        "sdk_binding_unavailable"
       ],
       "evidence_references": [
         "documentation:CloudMeshOps/ResetCloudBoundingBox.htm",
         "sdk:CloudAndMeshOperations.txt#2"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/49"
-      ],
-      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49",
         "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
+      "blocker_references": [],
       "risk_effect": "mutating",
       "risk_flags": [],
       "data_classifications": [
@@ -1061,7 +3105,13 @@
         "vector3",
         "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:CloudMeshOps/SetCloudDefaultClippingPlane.htm",
@@ -1095,7 +3145,13 @@
         "collection_object_name",
         "logical"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     }
   ]
 }

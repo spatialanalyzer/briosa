@@ -36,7 +36,13 @@
       "value_families": [
         "none"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/ASIIDataFileOperations/CloseASCIIFile.htm",
@@ -71,7 +77,13 @@
         "logical",
         "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/ASIIDataFileOperations/OpenASCIIFile.htm",
@@ -106,7 +118,13 @@
         "file_reference",
         "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/ASIIDataFileOperations/ReadASCIILineIterator.htm",
@@ -142,7 +160,13 @@
         "step_id",
         "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/ASIIDataFileOperations/WriteASCIILine.htm",
@@ -177,7 +201,13 @@
         "logical",
         "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/BackupNow.htm",
@@ -190,6 +220,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "filesystem_operation",
         "long_running_operation",
         "read_only_operation"
@@ -199,7 +230,8 @@
         "sdk:FileOperations.txt#15"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "read_only",
@@ -213,7 +245,13 @@
       "value_families": [
         "none"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Backup Now",
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/BrowseForDirectory.htm",
@@ -248,7 +286,13 @@
         "file_reference",
         "string"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/BrowseForFile.htm",
@@ -284,7 +328,13 @@
         "logical",
         "string"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/CopyDirectory.htm",
@@ -318,7 +368,13 @@
         "file_reference",
         "logical"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/CopyGeneralFile.htm",
@@ -352,7 +408,13 @@
         "file_reference",
         "logical"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/DatabaseOperations/DeletefromODBCDatabase.htm",
@@ -386,7 +448,13 @@
       "value_families": [
         "string"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/DatabaseOperations/GetfromODBCDatabase.htm",
@@ -420,7 +488,13 @@
       "value_families": [
         "string"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/DatabaseOperations/PuttoODBCDatabase.htm",
@@ -454,7 +528,13 @@
       "value_families": [
         "string"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/DatashareOperations/GetBooleanFromDataShare.htm",
@@ -491,7 +571,13 @@
         "logical",
         "string"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/DatashareOperations/GetDoubleFromDataShare.htm",
@@ -530,7 +616,13 @@
         "floating_point",
         "string"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/DatashareOperations/GetIntegerFromDataShare.htm",
@@ -567,7 +659,13 @@
         "string",
         "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/DatashareOperations/GetStringFromDataShare.htm",
@@ -603,7 +701,13 @@
         "file_reference",
         "string"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/DatashareOperations/GetTransformFromDataShare.htm",
@@ -641,7 +745,13 @@
         "string",
         "transform"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/DatashareOperations/GetVectorFromDataShare.htm",
@@ -680,7 +790,13 @@
         "string",
         "vector3"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/DatashareOperations/LoadDataShareFile.htm",
@@ -717,7 +833,13 @@
         "file_reference",
         "logical"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/DatashareOperations/LoadHTMLForm.htm",
@@ -756,7 +878,13 @@
         "string",
         "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/DatashareOperations/LoadHTMLForminEdgeBrowser.htm",
@@ -794,7 +922,13 @@
         "step_id",
         "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/DatashareOperations/SaveDataShareFile.htm",
@@ -830,7 +964,13 @@
         "file_reference",
         "logical"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/DatashareOperations/SetBooleanInDataShareFile.htm",
@@ -867,7 +1007,13 @@
         "logical",
         "string"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/DatashareOperations/SetDoubleInDataShareFile.htm",
@@ -906,7 +1052,13 @@
         "floating_point",
         "string"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/DatashareOperations/SetIntegerInDataShareFile.htm",
@@ -943,7 +1095,13 @@
         "string",
         "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/DatashareOperations/SetStringInDataShareFile.htm",
@@ -979,7 +1137,13 @@
         "file_reference",
         "string"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/DatashareOperations/SetTransformInDataShare.htm",
@@ -1017,7 +1181,13 @@
         "string",
         "transform"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/DatashareOperations/SetVectorInDataShareFile.htm",
@@ -1056,7 +1226,13 @@
         "string",
         "vector3"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/DeleteDirectory.htm",
@@ -1089,7 +1265,13 @@
       "value_families": [
         "file_reference"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/DeleteGeneralFile.htm",
@@ -1122,7 +1304,13 @@
       "value_families": [
         "file_reference"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/DirectoryExistence.htm",
@@ -1156,7 +1344,13 @@
         "file_reference",
         "logical"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/ExitMeasurementPlan.htm",
@@ -1187,7 +1381,13 @@
       "value_families": [
         "none"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/FileExport/ExportASCIIFrameSet.htm",
@@ -1197,22 +1397,21 @@
         "FileExport"
       ],
       "inventory_entry_sha256": "1bea2ce2292354d7fca6fec10472b75e0b74e44197e977c07a288c0539a9ec00",
-      "disposition": "blocked",
+      "disposition": "sdk_unavailable",
       "review_state": "reviewed",
-      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
+      "rationale": "At least one exact-target argument has no observed SDK setter or getter, so Briosa cannot expose the complete command shape.",
       "reason_codes": [
-        "argument_semantics_unresolved"
+        "sdk_binding_unavailable"
       ],
       "evidence_references": [
         "documentation:FileOperations/FileExport/ExportASCIIFrameSet.htm",
         "sdk:FileOperations_FileExport.txt#3"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
-      ],
-      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51",
         "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
+      "blocker_references": [],
       "risk_effect": "read_only",
       "risk_flags": [
         "filesystem_write",
@@ -1230,7 +1429,13 @@
         "logical",
         "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/FileExport/ExportASCIIFrames.htm",
@@ -1244,6 +1449,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "filesystem_operation",
         "long_running_operation",
         "read_only_operation"
@@ -1253,7 +1459,8 @@
         "sdk:FileOperations_FileExport.txt#4"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "read_only",
@@ -1271,7 +1478,86 @@
         "logical",
         "string"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Export ASCII Frames",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "ASCII File Path",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetFilePathArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Object List",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameRefListArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Export Frame Mode",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetStringArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 3,
+            "ordinal": 3,
+            "mp_name": "Overwrite existing file?",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/FileExport/ExportASCIIPointClouds.htm",
@@ -1281,22 +1567,21 @@
         "FileExport"
       ],
       "inventory_entry_sha256": "6d6bb14e458a5169c0890b7b3a48c72c8c70a29409215b0bc7fdd4b0ad799929",
-      "disposition": "blocked",
+      "disposition": "sdk_unavailable",
       "review_state": "reviewed",
-      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
+      "rationale": "At least one exact-target argument has no observed SDK setter or getter, so Briosa cannot expose the complete command shape.",
       "reason_codes": [
-        "argument_semantics_unresolved"
+        "sdk_binding_unavailable"
       ],
       "evidence_references": [
         "documentation:FileOperations/FileExport/ExportASCIIPointClouds.htm",
         "sdk:FileOperations_FileExport.txt#5"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
-      ],
-      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51",
         "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
+      "blocker_references": [],
       "risk_effect": "read_only",
       "risk_flags": [
         "filesystem_write",
@@ -1313,7 +1598,13 @@
         "file_reference",
         "logical"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/FileExport/ExportASCIIPointSets.htm",
@@ -1356,7 +1647,13 @@
         "logical",
         "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/FileExport/ExportASIIPoints.htm",
@@ -1398,7 +1695,13 @@
         "logical",
         "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/FileExport/ExportDXF.htm",
@@ -1412,6 +1715,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "filesystem_operation",
         "long_running_operation",
         "read_only_operation"
@@ -1421,7 +1725,8 @@
         "sdk:FileOperations_FileExport.txt#16"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "read_only",
@@ -1440,7 +1745,86 @@
         "logical",
         "point_name_list"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Export DXF",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "DXF File Path",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetFilePathArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Point Names",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetPointNameRefListArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Cloud Names",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameRefListArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 3,
+            "ordinal": 3,
+            "mp_name": "Include Point Labels?",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/FileExport/ExportEmbeddedFile.htm",
@@ -1454,6 +1838,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "filesystem_operation",
         "long_running_operation",
         "read_only_operation"
@@ -1463,7 +1848,8 @@
         "sdk:FileOperations_FileExport.txt#15"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "read_only",
@@ -1482,7 +1868,86 @@
         "logical",
         "string"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Export Embedded File",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Embedded File Collection Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionNameArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Embedded File Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetStringArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "External File Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetFilePathArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 3,
+            "ordinal": 3,
+            "mp_name": "Replace Existing?",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/FileExport/ExportHiddenPointBarXMLFile.htm",
@@ -1492,22 +1957,21 @@
         "FileExport"
       ],
       "inventory_entry_sha256": "cbafcc2bde0c708dba3b77c7b085f7b0b4918fc5108c2ef4aaca4cceba0045c9",
-      "disposition": "blocked",
+      "disposition": "sdk_unavailable",
       "review_state": "reviewed",
-      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
+      "rationale": "At least one exact-target argument has no observed SDK setter or getter, so Briosa cannot expose the complete command shape.",
       "reason_codes": [
-        "argument_semantics_unresolved"
+        "sdk_binding_unavailable"
       ],
       "evidence_references": [
         "documentation:FileOperations/FileExport/ExportHiddenPointBarXMLFile.htm",
         "sdk:FileOperations_XML.txt#13"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
-      ],
-      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51",
         "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
+      "blocker_references": [],
       "risk_effect": "read_only",
       "risk_flags": [
         "filesystem_write",
@@ -1521,7 +1985,13 @@
         "file_reference",
         "logical"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/FileExport/ExportIGESFileEntireModel.htm",
@@ -1535,6 +2005,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "filesystem_operation",
         "long_running_operation",
         "read_only_operation"
@@ -1544,7 +2015,8 @@
         "sdk:FileOperations_FileExport.txt#11"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "read_only",
@@ -1559,7 +2031,32 @@
       "value_families": [
         "file_reference"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Export IGES File  - Entire Model",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "IGES File Path",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetFilePathArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/FileExport/ExportIGESFilePartialModel.htm",
@@ -1573,6 +2070,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "filesystem_operation",
         "long_running_operation",
         "read_only_operation"
@@ -1582,7 +2080,8 @@
         "sdk:FileOperations_FileExport.txt#12"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "read_only",
@@ -1599,7 +2098,50 @@
         "collection_object_name_list",
         "file_reference"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Export IGES File - Partial Model",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "IGES File Path",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetFilePathArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Object Name List",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameRefListArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/FileExport/ExportPTXPointClouds.htm",
@@ -1609,22 +2151,21 @@
         "FileExport"
       ],
       "inventory_entry_sha256": "0b5e446de884f54c537b1b8531520f3c793c25a9322f7b067d5c4f9b8cd97508",
-      "disposition": "blocked",
+      "disposition": "sdk_unavailable",
       "review_state": "reviewed",
-      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
+      "rationale": "At least one exact-target argument has no observed SDK setter or getter, so Briosa cannot expose the complete command shape.",
       "reason_codes": [
-        "argument_semantics_unresolved"
+        "sdk_binding_unavailable"
       ],
       "evidence_references": [
         "documentation:FileOperations/FileExport/ExportPTXPointClouds.htm",
         "sdk:FileOperations_FileExport.txt#6"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
-      ],
-      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51",
         "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
+      "blocker_references": [],
       "risk_effect": "read_only",
       "risk_flags": [
         "filesystem_write",
@@ -1640,7 +2181,13 @@
         "file_reference",
         "logical"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/FileExport/ExportSTEPFileEntireModel.htm",
@@ -1654,6 +2201,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "filesystem_operation",
         "long_running_operation",
         "read_only_operation"
@@ -1663,7 +2211,8 @@
         "sdk:FileOperations_FileExport.txt#9"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "read_only",
@@ -1679,7 +2228,32 @@
         "file_reference",
         "step_id"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Export STEP File - Entire Model",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "STEP File Path",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetFilePathArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/FileExport/ExportSTEPFilePartialModel.htm",
@@ -1693,6 +2267,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "filesystem_operation",
         "long_running_operation",
         "read_only_operation"
@@ -1702,7 +2277,8 @@
         "sdk:FileOperations_FileExport.txt#10"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "read_only",
@@ -1720,7 +2296,50 @@
         "file_reference",
         "step_id"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Export STEP File - Partial Model",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "STEP File Path",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetFilePathArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Object Name List",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameRefListArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/FileExport/ExportScanStripeMeshToSTLFile.htm",
@@ -1734,6 +2353,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "filesystem_operation",
         "long_running_operation",
         "read_only_operation"
@@ -1743,7 +2363,8 @@
         "sdk:FileOperations_FileExport.txt#17"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "read_only",
@@ -1760,7 +2381,50 @@
         "collection_object_name",
         "file_reference"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Export Scan Stripe Mesh to STL File",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "STL File Path",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetFilePathArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Mesh",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/FileExport/ExportVDAFSFileEntireModel.htm",
@@ -1774,6 +2438,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "filesystem_operation",
         "long_running_operation",
         "read_only_operation"
@@ -1783,7 +2448,8 @@
         "sdk:FileOperations_FileExport.txt#13"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "read_only",
@@ -1798,7 +2464,32 @@
       "value_families": [
         "file_reference"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Export VDA/FS File  - Entire Model",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "VDA/FS File Path",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetFilePathArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/FileExport/ExportVDAFSFilePartialModel.htm",
@@ -1812,6 +2503,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "filesystem_operation",
         "long_running_operation",
         "read_only_operation"
@@ -1821,7 +2513,8 @@
         "sdk:FileOperations_FileExport.txt#14"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "read_only",
@@ -1838,7 +2531,50 @@
         "collection_object_name_list",
         "file_reference"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Export VDA/FS File - Partial Model",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "VDA/FS File Path",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetFilePathArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Object Name List",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameRefListArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/FileExport/ExportVectorContainerToASCIIFile.htm",
@@ -1848,22 +2584,21 @@
         "FileExport"
       ],
       "inventory_entry_sha256": "9a409b32c4107b76d5557baef04764d0a78e057e89df78fdcc32f3e489980e53",
-      "disposition": "blocked",
+      "disposition": "sdk_unavailable",
       "review_state": "reviewed",
-      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
+      "rationale": "At least one exact-target argument has no observed SDK setter or getter, so Briosa cannot expose the complete command shape.",
       "reason_codes": [
-        "argument_semantics_unresolved"
+        "sdk_binding_unavailable"
       ],
       "evidence_references": [
         "documentation:FileOperations/FileExport/ExportVectorContainerToASCIIFile.htm",
         "sdk:FileOperations_FileExport.txt#8"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
-      ],
-      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51",
         "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
+      "blocker_references": [],
       "risk_effect": "read_only",
       "risk_flags": [
         "filesystem_write",
@@ -1881,7 +2616,13 @@
         "file_reference",
         "logical"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/FileExport/ExportVectorContainerToExcelFile.htm",
@@ -1915,7 +2656,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/FileImport/DirectCADAccess.htm",
@@ -1925,22 +2672,21 @@
         "FileImport"
       ],
       "inventory_entry_sha256": "ea476577206068c69f243d93af1c4b9d50b7907f2b6571477f093a906497953d",
-      "disposition": "blocked",
+      "disposition": "sdk_unavailable",
       "review_state": "reviewed",
-      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
+      "rationale": "At least one exact-target argument has no observed SDK setter or getter, so Briosa cannot expose the complete command shape.",
       "reason_codes": [
-        "argument_semantics_unresolved"
+        "sdk_binding_unavailable"
       ],
       "evidence_references": [
         "documentation:FileOperations/FileImport/DirectCADAccess.htm",
         "sdk:FileOperations_FileImport.txt#13"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
-      ],
-      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51",
         "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
+      "blocker_references": [],
       "risk_effect": "mutating",
       "risk_flags": [
         "filesystem_read",
@@ -1959,7 +2705,13 @@
         "vector3",
         "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/FileImport/ImportASCIIPredefinedFormats.htm",
@@ -1973,6 +2725,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "filesystem_operation",
         "long_running_operation",
         "state_mutation"
@@ -1982,7 +2735,8 @@
         "sdk:FileOperations_FileImport.txt#2"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -2002,7 +2756,158 @@
         "file_reference",
         "logical"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Import ASCII: Predefined Formats",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "ASCII File Path",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetFilePathArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "File Format",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetAsciiFileFormatArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Units",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetDistanceUnitsArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 3,
+            "ordinal": 3,
+            "mp_name": "Angular Units",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetAngularUnitsArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 4,
+            "ordinal": 4,
+            "mp_name": "Group Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 5,
+            "ordinal": 5,
+            "mp_name": "Import as Cloud",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 6,
+            "ordinal": 6,
+            "mp_name": "Ensure New Point Group",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 7,
+            "ordinal": 7,
+            "mp_name": "Ensure Unique Names",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/FileImport/ImportASCIIPredefinedFrame.htm",
@@ -2016,6 +2921,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "filesystem_operation",
         "long_running_operation",
         "state_mutation"
@@ -2025,7 +2931,8 @@
         "sdk:FileOperations_FileImport.txt#4"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -2045,7 +2952,122 @@
         "file_reference",
         "logical"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Import ASCII: Predefined Frame Set Formats",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "ASCII File Path",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetFilePathArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "File Format",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetAsciiFileFormatArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Units",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetDistanceUnitsArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 3,
+            "ordinal": 3,
+            "mp_name": "Angular Units",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetAngularUnitsArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 4,
+            "ordinal": 4,
+            "mp_name": "Frame Set Container Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 5,
+            "ordinal": 5,
+            "mp_name": "Ensure Unique Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/FileImport/ImportE57File.htm",
@@ -2055,22 +3077,21 @@
         "FileImport"
       ],
       "inventory_entry_sha256": "62ac83631144be769f060f2f450dffa7ef9bc5edd1cb6972df0832d468021939",
-      "disposition": "blocked",
+      "disposition": "sdk_unavailable",
       "review_state": "reviewed",
-      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
+      "rationale": "At least one exact-target argument has no observed SDK setter or getter, so Briosa cannot expose the complete command shape.",
       "reason_codes": [
-        "argument_semantics_unresolved"
+        "sdk_binding_unavailable"
       ],
       "evidence_references": [
         "documentation:FileOperations/FileImport/ImportE57File.htm",
         "sdk:FileOperations_FileImport.txt#3"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
-      ],
-      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51",
         "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
+      "blocker_references": [],
       "risk_effect": "mutating",
       "risk_flags": [
         "filesystem_read",
@@ -2084,7 +3105,13 @@
         "file_reference",
         "logical"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/FileImport/ImportFileAsEmbedded File.htm",
@@ -2098,6 +3125,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "filesystem_operation",
         "long_running_operation",
         "state_mutation"
@@ -2107,7 +3135,8 @@
         "sdk:FileOperations_FileImport.txt#10"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -2123,7 +3152,50 @@
         "file_reference",
         "logical"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Import File as Embedded File",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "External File Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetFilePathArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Replace Existing?",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/FileImport/ImportFileAsPicture.htm",
@@ -2133,22 +3205,21 @@
         "FileImport"
       ],
       "inventory_entry_sha256": "b4e061f625e5d3263930e9364daef6647344a7576359a0d8581451537f2cadac",
-      "disposition": "blocked",
+      "disposition": "sdk_unavailable",
       "review_state": "reviewed",
-      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
+      "rationale": "At least one exact-target argument has no observed SDK setter or getter, so Briosa cannot expose the complete command shape.",
       "reason_codes": [
-        "argument_semantics_unresolved"
+        "sdk_binding_unavailable"
       ],
       "evidence_references": [
         "documentation:FileOperations/FileImport/ImportFileAsPicture.htm",
         "sdk:FileOperations_FileImport.txt#12"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
-      ],
-      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51",
         "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
+      "blocker_references": [],
       "risk_effect": "mutating",
       "risk_flags": [
         "filesystem_read",
@@ -2162,7 +3233,13 @@
         "file_reference",
         "logical"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/FileImport/ImportHiddenPointBarXMLFile.htm",
@@ -2176,6 +3253,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "filesystem_operation",
         "long_running_operation",
         "state_mutation"
@@ -2185,7 +3263,8 @@
         "sdk:FileOperations_XML.txt#12"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -2201,7 +3280,50 @@
         "file_reference",
         "logical"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Import Hidden Point Bar XML File",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "XML File Path",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetFilePathArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Replace Existing Entries?",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/FileImport/ImportIGESFile.htm",
@@ -2215,6 +3337,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "filesystem_operation",
         "long_running_operation",
         "state_mutation"
@@ -2224,7 +3347,8 @@
         "sdk:FileOperations_FileImport.txt#7"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -2239,7 +3363,32 @@
       "value_families": [
         "file_reference"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Import IGES File",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "IGES File Path",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetFilePathArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/FileImport/ImportLeicaGSIFile.htm",
@@ -2253,6 +3402,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "filesystem_operation",
         "long_running_operation",
         "state_mutation"
@@ -2262,7 +3412,8 @@
         "sdk:FileOperations_FileImport.txt#17"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -2280,7 +3431,68 @@
         "collection_object_name",
         "file_reference"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Import Leica GSI File",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Instrument ID",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetColInstIdArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Group Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "File Path",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetFilePathArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/FileImport/ImportLeicaSDBFile.htm",
@@ -2294,6 +3506,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "filesystem_operation",
         "long_running_operation",
         "state_mutation"
@@ -2303,7 +3516,8 @@
         "sdk:FileOperations_FileImport.txt#18"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -2321,7 +3535,68 @@
         "collection_object_name",
         "file_reference"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Import Leica SDB File",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Instrument ID",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetColInstIdArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Scan Cloud Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "File Path",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetFilePathArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/FileImport/ImportMPFileAsEmbeddedMP.htm",
@@ -2335,6 +3610,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "filesystem_operation",
         "long_running_operation",
         "state_mutation"
@@ -2344,7 +3620,8 @@
         "sdk:FileOperations_FileImport.txt#11"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -2360,7 +3637,50 @@
         "file_reference",
         "logical"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Import MP File as Embedded MP",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "External MP File Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetFilePathArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Replace Existing?",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/FileImport/ImportSAFile.htm",
@@ -2374,6 +3694,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "filesystem_operation",
         "long_running_operation",
         "state_mutation"
@@ -2383,7 +3704,8 @@
         "sdk:FileOperations_FileImport.txt#1"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -2400,7 +3722,68 @@
         "logical",
         "string_list"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Import SA File",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "SA File Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetFilePathArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Allow Operator Selections",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Selected Collections (optional)",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "optional",
+              "omission_behavior": "omit_sdk_setter",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetStringRefListArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/FileImport/ImportSATFile.htm",
@@ -2414,6 +3797,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "filesystem_operation",
         "long_running_operation",
         "state_mutation"
@@ -2423,7 +3807,8 @@
         "sdk:FileOperations_FileImport.txt#9"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -2438,7 +3823,32 @@
       "value_families": [
         "file_reference"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Import SAT File",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "SAT File Path",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetFilePathArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/FileImport/ImportSAWindowsPlacement.htm",
@@ -2452,6 +3862,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "filesystem_operation",
         "interactive_operation",
         "long_running_operation",
@@ -2462,7 +3873,8 @@
         "sdk:FileOperations_FileImport.txt#14"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -2477,7 +3889,32 @@
       "value_families": [
         "file_reference"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Import SA Windows Placement",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "File Path",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetFilePathArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/FileImport/ImportSTEPFile.htm",
@@ -2491,6 +3928,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "filesystem_operation",
         "long_running_operation",
         "state_mutation"
@@ -2500,7 +3938,8 @@
         "sdk:FileOperations_FileImport.txt#6"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -2517,7 +3956,68 @@
         "logical",
         "step_id"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Import STEP File",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "STEP File Path",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetFilePathArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Display Entity Filters",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Display Residuals",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/FileImport/ImportSTLFile.htm",
@@ -2527,22 +4027,21 @@
         "FileImport"
       ],
       "inventory_entry_sha256": "7e574bc2ad2ce45dfbc9161d8320e1868d730fdce53ec4a4914dd98da80e63a6",
-      "disposition": "blocked",
+      "disposition": "sdk_unavailable",
       "review_state": "reviewed",
-      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
+      "rationale": "At least one exact-target argument has no observed SDK setter or getter, so Briosa cannot expose the complete command shape.",
       "reason_codes": [
-        "argument_semantics_unresolved"
+        "sdk_binding_unavailable"
       ],
       "evidence_references": [
         "documentation:FileOperations/FileImport/ImportSTLFile.htm",
         "sdk:FileOperations_FileImport.txt#5"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
-      ],
-      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51",
         "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
+      "blocker_references": [],
       "risk_effect": "mutating",
       "risk_flags": [
         "filesystem_read",
@@ -2558,7 +4057,13 @@
         "logical",
         "step_id"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/FileImport/ImportVDAFSFile.htm",
@@ -2572,6 +4077,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "filesystem_operation",
         "long_running_operation",
         "state_mutation"
@@ -2581,7 +4087,8 @@
         "sdk:FileOperations_FileImport.txt#8"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -2596,7 +4103,32 @@
       "value_families": [
         "file_reference"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Import VDA/FS File",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "VDA/FS File Path",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetFilePathArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/FileImport/ImportVSTARSxyzFile.htm",
@@ -2610,6 +4142,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "filesystem_operation",
         "long_running_operation",
         "state_mutation"
@@ -2619,7 +4152,8 @@
         "sdk:FileOperations_FileImport.txt#15"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -2634,7 +4168,32 @@
       "value_families": [
         "file_reference"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Import VSTARS .xyz File",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "File Path",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetFilePathArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/FindFilesInDirectory.htm",
@@ -2670,7 +4229,13 @@
         "string",
         "string_list"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/FindSubDirectoriesInDirectory.htm",
@@ -2706,7 +4271,13 @@
         "string",
         "string_list"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/GetDirectoryAndFilename.htm",
@@ -2741,7 +4312,13 @@
         "string",
         "string_list"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/GetWorkingDirectory.htm",
@@ -2754,6 +4331,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "filesystem_operation",
         "read_only_operation"
       ],
@@ -2762,7 +4340,8 @@
         "sdk:FileOperations.txt#2"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "read_only",
@@ -2776,7 +4355,26 @@
         "file_reference",
         "string"
       ],
-      "delivery_wave": "wave_3"
+      "delivery_wave": "wave_3",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Get Working Directory",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Directory",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetStringArg"
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/JSON/CloseJSONFile.htm",
@@ -2810,7 +4408,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/JSON/GetJSONArraySize.htm",
@@ -2844,7 +4448,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/JSON/GetJSONDoubleValue.htm",
@@ -2878,7 +4488,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/JSON/GetJSONIntegerValue.htm",
@@ -2912,7 +4528,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/JSON/GetJSONObjectValue.htm",
@@ -2946,7 +4568,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/JSON/GetJSONStringValue.htm",
@@ -2980,7 +4608,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/JSON/GetJSONTreePointerList.htm",
@@ -3014,7 +4648,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/JSON/OpenJSONFile.htm",
@@ -3048,7 +4688,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/MakeDirectory.htm",
@@ -3081,7 +4727,13 @@
       "value_families": [
         "file_reference"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/MakeEmbeddedFileNameList.htm",
@@ -3094,6 +4746,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "read_only_operation"
       ],
       "evidence_references": [
@@ -3101,7 +4754,8 @@
         "sdk:FileOperations.txt#33"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "read_only",
@@ -3114,7 +4768,62 @@
         "string",
         "string_list"
       ],
-      "delivery_wave": "wave_1"
+      "delivery_wave": "wave_1",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Make Embedded File Name List",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Collection Wildcard Criteria",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetStringArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "File Name Pattern",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetStringArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Embedded Files",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetStringRefListArg"
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/NewSAFile.htm",
@@ -3127,6 +4836,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "filesystem_operation",
         "state_mutation"
       ],
@@ -3135,7 +4845,8 @@
         "sdk:FileOperations.txt#11"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -3149,7 +4860,13 @@
       "value_families": [
         "none"
       ],
-      "delivery_wave": "wave_3"
+      "delivery_wave": "wave_3",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "New SA File",
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/OpenSAFile.htm",
@@ -3162,6 +4879,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "filesystem_operation",
         "long_running_operation",
         "state_mutation"
@@ -3171,7 +4889,8 @@
         "sdk:FileOperations.txt#12"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -3186,7 +4905,32 @@
       "value_families": [
         "file_reference"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Open SA File",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "SA File Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetFilePathArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/OpenTemplateFile.htm",
@@ -3199,6 +4943,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "filesystem_operation",
         "long_running_operation",
         "state_mutation"
@@ -3208,7 +4953,8 @@
         "sdk:FileOperations.txt#16"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -3222,7 +4968,32 @@
       "value_families": [
         "file_reference"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Open Template File",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Template File Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetFilePathArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/QDASFileExport/AddK-FieldtoQDASDataList.htm",
@@ -3257,7 +5028,13 @@
         "string",
         "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/QDASFileExport/ExportQDASCharacteristics.htm",
@@ -3300,7 +5077,13 @@
         "string",
         "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/QDASFileExport/ExportQDASDataList.htm",
@@ -3314,6 +5097,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "filesystem_operation",
         "long_running_operation",
         "read_only_operation"
@@ -3323,7 +5107,8 @@
         "sdk:FileOperations_FileExport_QDASFileExport.txt#3"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "read_only",
@@ -3339,7 +5124,32 @@
       "value_families": [
         "file_reference"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Export QDAS Data List",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "QDAS Export File Path",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetFilePathArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/QDASFileExport/GetQDASCatalogEntries.htm",
@@ -3349,22 +5159,21 @@
         "QDASFileExport"
       ],
       "inventory_entry_sha256": "d25fd9fab911809ad1d734f5546be8fa22d4290284d76b6c008600f54622da26",
-      "disposition": "blocked",
+      "disposition": "approved_candidate",
       "review_state": "reviewed",
-      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
+      "rationale": "The installed command-reference table places one or more semantically returned values under Input Arguments, but its prose describes returned data and the exact SA 2026 generated getter sequence confirms the output shape. The command shape is therefore resolved without treating the table-label defect as an executable ambiguity.",
       "reason_codes": [
-        "argument_semantics_unresolved"
+        "command_shape_resolved"
       ],
       "evidence_references": [
         "documentation:FileOperations/QDASFileExport/GetQDASCatalogEntries.htm",
         "sdk:FileOperations_FileExport_QDASFileExport_QDASCatalog.txt#2"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
-      ],
-      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51",
         "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
+      "blocker_references": [],
       "risk_effect": "read_only",
       "risk_flags": [],
       "data_classifications": [
@@ -3375,7 +5184,44 @@
         "string",
         "string_list"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_1",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Get QDAS Catalog Entries",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "K-Field Target",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetStringArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Catalog Entries",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetStringRefListArg"
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/QDASFileExport/GetQDASCatalogEntryIdentifier.htm",
@@ -3389,6 +5235,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "read_only_operation"
       ],
       "evidence_references": [
@@ -3396,7 +5243,8 @@
         "sdk:FileOperations_FileExport_QDASFileExport_QDASCatalog.txt#3"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "read_only",
@@ -3411,7 +5259,93 @@
         "string_list",
         "whole_number"
       ],
-      "delivery_wave": "wave_1"
+      "delivery_wave": "wave_1",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Get QDAS Catalog Entry Identifier",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "K-Field Target",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetStringArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "User Prompt",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetStringRefListArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Font",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": [
+                      "MS Shell Dlg",
+                      8,
+                      0,
+                      0,
+                      0
+                    ]
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetFontTypeArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 3,
+            "ordinal": 3,
+            "mp_name": "Entry Identifier",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetIntegerArg"
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/QDASFileExport/ImportQDasCatalogFile.htm",
@@ -3425,6 +5359,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "filesystem_operation",
         "long_running_operation",
         "state_mutation"
@@ -3434,7 +5369,8 @@
         "sdk:FileOperations_FileExport_QDASFileExport_QDASCatalog.txt#1"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -3450,7 +5386,32 @@
       "value_families": [
         "file_reference"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Import QDAS Catalog File",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "QDAS DFD File Path",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetFilePathArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/QDASFileExport/PrepareQDASDataList.htm",
@@ -3488,7 +5449,13 @@
         "string",
         "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/QDASFileExport/SetK-FieldfromQDASCatalog.htm",
@@ -3498,22 +5465,21 @@
         "QDASFileExport"
       ],
       "inventory_entry_sha256": "f3f026ec066dee4437629a12025c9fcd629f3ea15e6ace3e64bae19abe726def",
-      "disposition": "blocked",
+      "disposition": "sdk_unavailable",
       "review_state": "reviewed",
-      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
+      "rationale": "At least one exact-target argument has no observed SDK setter or getter, so Briosa cannot expose the complete command shape.",
       "reason_codes": [
-        "argument_semantics_unresolved"
+        "sdk_binding_unavailable"
       ],
       "evidence_references": [
         "documentation:FileOperations/QDASFileExport/SetK-FieldfromQDASCatalog.htm",
         "sdk:FileOperations_FileExport_QDASFileExport_QDASCatalog.txt#4"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
-      ],
-      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51",
         "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
+      "blocker_references": [],
       "risk_effect": "mutating",
       "risk_flags": [],
       "data_classifications": [
@@ -3523,7 +5489,13 @@
       "value_families": [
         "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/RenameGeneralFile.htm",
@@ -3557,7 +5529,13 @@
         "file_reference",
         "logical"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/RunAnotherProgram.htm",
@@ -3594,7 +5572,13 @@
         "string",
         "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/RunPowershellScript.htm",
@@ -3632,7 +5616,13 @@
         "string",
         "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/Save.htm",
@@ -3652,10 +5642,11 @@
         "sdk:FileOperations.txt#13"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/53"
+        "https://github.com/spatialanalyzer/briosa/issues/80"
       ],
       "risk_effect": "mutating",
       "risk_flags": [
@@ -3667,7 +5658,21 @@
       "value_families": [
         "none"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "blocked",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": [
+          {
+            "code": "file_behavior_unresolved",
+            "argument_indexes": [],
+            "owner": "briosa",
+            "blocker_reference": "https://github.com/spatialanalyzer/briosa/issues/80",
+            "rationale": "Required path presence, append or replacement behavior, overwrite consent, or interactive side effects are not established safely."
+          }
+        ]
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/SaveAs.htm",
@@ -3687,10 +5692,11 @@
         "sdk:FileOperations.txt#14"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/53"
+        "https://github.com/spatialanalyzer/briosa/issues/80"
       ],
       "risk_effect": "mutating",
       "risk_flags": [
@@ -3705,7 +5711,25 @@
         "logical",
         "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "blocked",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": [
+          {
+            "code": "file_behavior_unresolved",
+            "argument_indexes": [
+              0,
+              1,
+              2
+            ],
+            "owner": "briosa",
+            "blocker_reference": "https://github.com/spatialanalyzer/briosa/issues/80",
+            "rationale": "Required path presence, append or replacement behavior, overwrite consent, or interactive side effects are not established safely."
+          }
+        ]
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/SaveAsReadOnlyTemplate.htm",
@@ -3725,10 +5749,11 @@
         "sdk:FileOperations.txt#17"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/53"
+        "https://github.com/spatialanalyzer/briosa/issues/80"
       ],
       "risk_effect": "mutating",
       "risk_flags": [
@@ -3741,7 +5766,23 @@
       "value_families": [
         "file_reference"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "blocked",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": [
+          {
+            "code": "file_behavior_unresolved",
+            "argument_indexes": [
+              0
+            ],
+            "owner": "briosa",
+            "blocker_reference": "https://github.com/spatialanalyzer/briosa/issues/80",
+            "rationale": "Required path presence, append or replacement behavior, overwrite consent, or interactive side effects are not established safely."
+          }
+        ]
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/SetBackupDirectory.htm",
@@ -3774,7 +5815,13 @@
       "value_families": [
         "file_reference"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/SetDataRootDirectory.htm",
@@ -3807,7 +5854,13 @@
       "value_families": [
         "file_reference"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/SetReportsDirectory.htm",
@@ -3843,7 +5896,13 @@
       "value_families": [
         "file_reference"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/SetTemplatesDirectory.htm",
@@ -3876,7 +5935,13 @@
       "value_families": [
         "file_reference"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/SetWorkingDirectory.htm",
@@ -3909,7 +5974,13 @@
       "value_families": [
         "file_reference"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/ShutDownSA.htm",
@@ -3940,7 +6011,13 @@
       "value_families": [
         "none"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/VerifyGeneralFileExists.htm",
@@ -3975,7 +6052,13 @@
         "file_reference",
         "step_id"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/VerifyMPFileExists.htm",
@@ -4011,7 +6094,13 @@
         "file_reference",
         "step_id"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/XML/AddXMLElement.htm",
@@ -4045,7 +6134,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/XML/CloseXMLFile.htm",
@@ -4079,7 +6174,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/XML/GetXMLAttribute.htm",
@@ -4113,7 +6214,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/XML/GetXMLElementTextContent.htm",
@@ -4147,7 +6254,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/XML/ImportNominalsFromXMLFile.htm",
@@ -4168,10 +6281,11 @@
         "sdk:FileOperations_XML.txt#10"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/53"
+        "https://github.com/spatialanalyzer/briosa/issues/80"
       ],
       "risk_effect": "mutating",
       "risk_flags": [
@@ -4185,7 +6299,23 @@
       "value_families": [
         "file_reference"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "blocked",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": [
+          {
+            "code": "file_behavior_unresolved",
+            "argument_indexes": [
+              0
+            ],
+            "owner": "briosa",
+            "blocker_reference": "https://github.com/spatialanalyzer/briosa/issues/80",
+            "rationale": "Required path presence, append or replacement behavior, overwrite consent, or interactive side effects are not established safely."
+          }
+        ]
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/XML/MergeMeasurementsintoXML.htm",
@@ -4206,10 +6336,11 @@
         "sdk:FileOperations_XML.txt#11"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/53"
+        "https://github.com/spatialanalyzer/briosa/issues/80"
       ],
       "risk_effect": "mutating",
       "risk_flags": [
@@ -4226,7 +6357,24 @@
         "collection_object_name",
         "file_reference"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "blocked",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": [
+          {
+            "code": "file_behavior_unresolved",
+            "argument_indexes": [
+              0,
+              1
+            ],
+            "owner": "briosa",
+            "blocker_reference": "https://github.com/spatialanalyzer/briosa/issues/80",
+            "rationale": "Required path presence, append or replacement behavior, overwrite consent, or interactive side effects are not established safely."
+          }
+        ]
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/XML/OpenXMLFile.htm",
@@ -4260,7 +6408,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/XML/RemoveXMLAttribute.htm",
@@ -4294,7 +6448,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/XML/RemoveXMLElement.htm",
@@ -4328,7 +6488,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:FileOperations/XML/SetXMLAttribute.htm",
@@ -4362,7 +6528,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "sdk:FileOperations.txt#19",
@@ -4392,7 +6564,13 @@
       "value_families": [
         "none"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "sdk:FileOperations.txt#34",
@@ -4424,7 +6602,13 @@
       "value_families": [
         "string"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "sdk:FileOperations_FileExport.txt#1",
@@ -4444,10 +6628,11 @@
         "sdk:FileOperations_FileExport.txt#1"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/53"
+        "https://github.com/spatialanalyzer/briosa/issues/80"
       ],
       "risk_effect": "read_only",
       "risk_flags": [
@@ -4468,7 +6653,40 @@
         "logical",
         "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "blocked",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": [
+          {
+            "code": "file_behavior_unresolved",
+            "argument_indexes": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17
+            ],
+            "owner": "briosa",
+            "blocker_reference": "https://github.com/spatialanalyzer/briosa/issues/80",
+            "rationale": "Required path presence, append or replacement behavior, overwrite consent, or interactive side effects are not established safely."
+          }
+        ]
+      }
     },
     {
       "inventory_key": "sdk:FileOperations_FileExport.txt#2",
@@ -4488,10 +6706,11 @@
         "sdk:FileOperations_FileExport.txt#2"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/53"
+        "https://github.com/spatialanalyzer/briosa/issues/80"
       ],
       "risk_effect": "read_only",
       "risk_flags": [
@@ -4513,7 +6732,35 @@
         "logical",
         "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "blocked",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": [
+          {
+            "code": "file_behavior_unresolved",
+            "argument_indexes": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12
+            ],
+            "owner": "briosa",
+            "blocker_reference": "https://github.com/spatialanalyzer/briosa/issues/80",
+            "rationale": "Required path presence, append or replacement behavior, overwrite consent, or interactive side effects are not established safely."
+          }
+        ]
+      }
     },
     {
       "inventory_key": "sdk:FileOperations_FileImport.txt#16",
@@ -4533,10 +6780,11 @@
         "sdk:FileOperations_FileImport.txt#16"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/53"
+        "https://github.com/spatialanalyzer/briosa/issues/80"
       ],
       "risk_effect": "mutating",
       "risk_flags": [
@@ -4550,7 +6798,23 @@
       "value_families": [
         "file_reference"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "blocked",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": [
+          {
+            "code": "file_behavior_unresolved",
+            "argument_indexes": [
+              0
+            ],
+            "owner": "briosa",
+            "blocker_reference": "https://github.com/spatialanalyzer/briosa/issues/80",
+            "rationale": "Required path presence, append or replacement behavior, overwrite consent, or interactive side effects are not established safely."
+          }
+        ]
+      }
     },
     {
       "inventory_key": "sdk:FileOperations_FileImport.txt#19",
@@ -4570,10 +6834,11 @@
         "sdk:FileOperations_FileImport.txt#19"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/53"
+        "https://github.com/spatialanalyzer/briosa/issues/80"
       ],
       "risk_effect": "mutating",
       "risk_flags": [
@@ -4588,7 +6853,24 @@
         "collection_object_name",
         "file_reference"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "blocked",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": [
+          {
+            "code": "file_behavior_unresolved",
+            "argument_indexes": [
+              0,
+              1
+            ],
+            "owner": "briosa",
+            "blocker_reference": "https://github.com/spatialanalyzer/briosa/issues/80",
+            "rationale": "Required path presence, append or replacement behavior, overwrite consent, or interactive side effects are not established safely."
+          }
+        ]
+      }
     },
     {
       "inventory_key": "sdk:FileOperations_XML.txt#1",
@@ -4621,7 +6903,13 @@
       "value_families": [
         "unknown"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     }
   ]
 }

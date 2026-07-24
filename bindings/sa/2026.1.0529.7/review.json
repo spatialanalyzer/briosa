@@ -5,7 +5,7 @@
   "decision_references": [
     "https://github.com/spatialanalyzer/briosa/issues/54"
   ],
-  "missing_interop_blocker": "https://github.com/spatialanalyzer/briosa/issues/53",
+  "missing_interop_blocker": "https://github.com/spatialanalyzer/briosa/issues/79",
   "implemented_coverage": {
     "protocol": [
       "GetBoolArg", "GetDoubleArg", "GetIntegerArg", "GetPointNameArg",

@@ -78,7 +78,7 @@ public sealed class SdkBindingRegistryTests
                 Assert.Equal("blocked", binding.Coverage.Fake);
                 Assert.Equal("blocked", binding.Coverage.Generator);
                 Assert.Equal(
-                    ["https://github.com/spatialanalyzer/briosa/issues/53"],
+                    ["https://github.com/spatialanalyzer/briosa/issues/79"],
                     binding.BlockerReferences);
             });
     }

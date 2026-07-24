@@ -13,10 +13,10 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 
 | Disposition | Count |
 | --- | ---: |
-| `approved_candidate` | 609 |
-| `blocked` | 231 |
+| `approved_candidate` | 673 |
+| `blocked` | 56 |
 | `intentional_exclusion` | 476 |
-| `sdk_unavailable` | 96 |
+| `sdk_unavailable` | 207 |
 
 ## Review states
 
@@ -26,170 +26,124 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 | `reviewed` | 1412 |
 | `unreviewed` | 0 |
 
+## Command shape resolution
+
+| Status | Commands |
+| --- | ---: |
+| `resolved` | 673 |
+| `blocked` | 56 |
+| `not_applicable` | 683 |
+
+- Resolved arguments: 2508
+- Required inputs: 1756
+- Optional inputs: 250
+- Omitted SDK setters: 64
+- Reviewed catalog defaults: 186
+- Proposed defaults needing review: 536
+- A generated SA 2026 VB value remains inactive review evidence unless a matching ObjectiveSA prior-release default corroborates it without an exact-target conflict.
+
 ## Categories
 
 | Category | Entries | Approved | Excluded | SDK unavailable | Blocked | Unresolved | Unreviewed | Needs re-review |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | AccumulatorMathOperations | 8 | 0 | 8 | 0 | 0 | 0 | 0 | 0 |
-| AnalysisOperations | 189 | 86 | 40 | 9 | 54 | 54 | 0 | 0 |
+| AnalysisOperations | 189 | 103 | 40 | 31 | 15 | 15 | 0 | 0 |
 | CloudAndMeshOperations | 1 | 0 | 0 | 0 | 1 | 1 | 0 | 0 |
-| CloudMeshOps | 28 | 14 | 0 | 3 | 11 | 11 | 0 | 0 |
-| ConstructionOperations | 278 | 104 | 94 | 13 | 67 | 67 | 0 | 0 |
+| CloudMeshOps | 28 | 19 | 0 | 8 | 1 | 1 | 0 | 0 |
+| ConstructionOperations | 278 | 134 | 94 | 32 | 18 | 18 | 0 | 0 |
 | DimensionOperations | 1 | 0 | 0 | 0 | 1 | 1 | 0 | 0 |
-| Dimensions | 19 | 1 | 4 | 12 | 2 | 2 | 0 | 0 |
+| Dimensions | 19 | 2 | 4 | 13 | 0 | 0 | 0 | 0 |
 | EventOperations | 1 | 0 | 0 | 0 | 1 | 1 | 0 | 0 |
 | Events | 5 | 4 | 0 | 1 | 0 | 0 | 0 | 0 |
 | ExcelDirectConnect | 17 | 0 | 17 | 0 | 0 | 0 | 0 | 0 |
-| FileOperations | 125 | 33 | 62 | 10 | 20 | 20 | 0 | 0 |
-| GDT | 40 | 13 | 10 | 1 | 16 | 16 | 0 | 0 |
+| FileOperations | 125 | 34 | 62 | 20 | 9 | 9 | 0 | 0 |
+| GDT | 40 | 18 | 10 | 7 | 5 | 5 | 0 | 0 |
 | GDTOperations | 3 | 0 | 0 | 0 | 3 | 3 | 0 | 0 |
 | GoogleSheets | 18 | 0 | 18 | 0 | 0 | 0 | 0 | 0 |
 | GoogleSheetsOperations | 1 | 0 | 1 | 0 | 0 | 0 | 0 | 0 |
-| InstrumentOperations | 185 | 125 | 16 | 12 | 32 | 32 | 0 | 0 |
+| InstrumentOperations | 185 | 129 | 16 | 40 | 0 | 0 | 0 | 0 |
 | MPSubroutines | 4 | 0 | 4 | 0 | 0 | 0 | 0 | 0 |
 | MPTaskOverview | 11 | 0 | 11 | 0 | 0 | 0 | 0 | 0 |
 | MSOfficeReportingOperations | 14 | 0 | 14 | 0 | 0 | 0 | 0 | 0 |
 | ProcessFlowOperations | 25 | 1 | 21 | 2 | 1 | 1 | 0 | 0 |
-| RelationshipOperations | 67 | 48 | 5 | 6 | 8 | 8 | 0 | 0 |
-| ReportingOperations | 71 | 52 | 8 | 10 | 1 | 1 | 0 | 0 |
+| RelationshipOperations | 67 | 48 | 5 | 13 | 1 | 1 | 0 | 0 |
+| ReportingOperations | 71 | 52 | 8 | 11 | 0 | 0 | 0 | 0 |
 | RobotCalibrationApplianceNodeOperations | 25 | 23 | 0 | 2 | 0 | 0 | 0 | 0 |
-| RobotOperations | 33 | 28 | 0 | 2 | 3 | 3 | 0 | 0 |
+| RobotOperations | 33 | 28 | 0 | 5 | 0 | 0 | 0 | 0 |
 | ScalarMathOperations | 21 | 0 | 21 | 0 | 0 | 0 | 0 | 0 |
-| ScaleBars | 3 | 2 | 0 | 0 | 1 | 1 | 0 | 0 |
-| UtilityOperations | 105 | 33 | 60 | 10 | 2 | 2 | 0 | 0 |
+| ScaleBars | 3 | 3 | 0 | 0 | 0 | 0 | 0 | 0 |
+| UtilityOperations | 105 | 33 | 60 | 12 | 0 | 0 | 0 | 0 |
 | Variables | 41 | 0 | 41 | 0 | 0 | 0 | 0 | 0 |
-| Vector Operations | 22 | 11 | 10 | 0 | 1 | 1 | 0 | 0 |
-| ViewControl | 51 | 31 | 11 | 3 | 6 | 6 | 0 | 0 |
+| Vector Operations | 22 | 11 | 10 | 1 | 0 | 0 | 0 | 0 |
+| ViewControl | 51 | 31 | 11 | 9 | 0 | 0 | 0 | 0 |
 
 ## Unresolved work by risk effect
 
 | Value | Count |
 | --- | ---: |
-| `mutating` | 159 |
-| `read_only` | 72 |
+| `mutating` | 43 |
+| `read_only` | 13 |
 
 ## Unresolved work by risk flag
 
 | Value | Count |
 | --- | ---: |
-| `device_control` | 11 |
-| `filesystem_read` | 9 |
-| `filesystem_write` | 13 |
-| `interactive_ui` | 6 |
-| `long_running` | 51 |
-| `network_access` | 1 |
+| `filesystem_read` | 3 |
+| `filesystem_write` | 8 |
+| `long_running` | 17 |
 
 ## Unresolved work by data classification
 
 | Value | Count |
 | --- | ---: |
-| `geometry` | 186 |
-| `measurement` | 111 |
+| `geometry` | 42 |
+| `measurement` | 18 |
 | `non_sensitive` | 1 |
-| `object_identifier` | 210 |
-| `path` | 28 |
-| `proprietary` | 13 |
+| `object_identifier` | 48 |
+| `path` | 11 |
+| `proprietary` | 5 |
 
 ## Unresolved work by value family
 
 | Value | Count |
 | --- | ---: |
-| `angular_unit` | 1 |
-| `ascii_file_format` | 1 |
 | `b_spline_fit_options` | 1 |
-| `base_color_type` | 2 |
-| `base_mid_color_type` | 1 |
-| `boolean` | 11 |
 | `cloud_thinning_mode` | 1 |
-| `cloud_thinning_options` | 2 |
 | `collection_group_name_list` | 1 |
-| `collection_instrument_id` | 30 |
-| `collection_instrument_id_list` | 2 |
-| `collection_machine_id` | 2 |
-| `collection_name` | 4 |
-| `collection_object_name` | 140 |
-| `collection_object_name_list` | 56 |
-| `collection_object_name_ref_list` | 4 |
-| `collection_vector_group_name` | 1 |
-| `collection_vector_group_name_list` | 1 |
-| `collimation_baseline_method` | 1 |
-| `collimation_baseline_type` | 1 |
-| `collimation_type` | 1 |
-| `color` | 1 |
-| `color_range_method` | 2 |
-| `colorization_options` | 4 |
-| `coordinate_system_type` | 3 |
-| `dimension_ref_list` | 1 |
-| `distance_unit` | 3 |
-| `double` | 8 |
-| `double_array` | 1 |
-| `edit_text` | 3 |
-| `export_data_delimiter_type` | 4 |
+| `collection_instrument_id_list` | 1 |
+| `collection_object_name` | 39 |
+| `collection_object_name_list` | 14 |
+| `collection_object_name_ref_list` | 1 |
+| `coordinate_system_type` | 2 |
+| `export_data_delimiter_type` | 2 |
 | `export_target_name_format` | 2 |
-| `export_vector_name_format` | 1 |
-| `feature_check_ref_list` | 1 |
-| `file_path_or_embedded_file` | 1 |
-| `file_reference` | 23 |
+| `file_reference` | 10 |
 | `fit_constraint_scalar_options` | 1 |
-| `fit_degree_of_freedom_options` | 2 |
-| `floating_point` | 100 |
-| `font` | 2 |
-| `gd_and_t_options_check_validator_type` | 2 |
-| `gd_and_t_options_distance_between_mode` | 1 |
+| `floating_point` | 19 |
+| `gd_and_t_options_check_validator_type` | 1 |
 | `gdt_check_validator_type` | 1 |
-| `gdt_circle_extended_options` | 1 |
-| `gdt_cone_extended_options` | 1 |
-| `gdt_cylinder_extended_options` | 1 |
 | `gdt_distance_between_mode` | 1 |
-| `gdt_ellipse_extended_options` | 1 |
-| `gdt_line_extended_options` | 1 |
-| `gdt_open_slot_extended_options` | 1 |
-| `gdt_plane_extended_options` | 1 |
-| `gdt_slot_extended_options` | 1 |
-| `gdt_sphere_extended_options` | 1 |
-| `geometry_type` | 2 |
-| `integer` | 7 |
-| `integer_array` | 1 |
 | `item_type` | 1 |
-| `logical` | 123 |
+| `logical` | 27 |
 | `mesh_orientation_type` | 1 |
 | `none` | 1 |
-| `object_type` | 2 |
-| `offset_direction_type` | 2 |
-| `outlier_rejection_options_scalar_type` | 3 |
 | `point_filter_input_type` | 1 |
-| `point_name` | 21 |
-| `point_name_list` | 13 |
-| `projection_options` | 1 |
-| `relationship_ref_list` | 2 |
-| `render_mode_type` | 1 |
-| `report_output_options` | 1 |
-| `rgb_color` | 4 |
-| `saturation_limit_type` | 1 |
+| `point_name` | 2 |
+| `point_name_list` | 4 |
 | `sigmoidal_gap_constraint_options` | 1 |
-| `solver_mode` | 1 |
-| `step_id` | 1 |
-| `string` | 59 |
-| `string_list` | 2 |
-| `surface_analysis_mode` | 1 |
-| `surface_dissection_mode_type` | 1 |
-| `surface_face_list` | 1 |
-| `temperature_unit` | 1 |
-| `tolerance_vector_options` | 4 |
-| `transform` | 10 |
-| `vector` | 3 |
-| `vector3` | 18 |
-| `vector_creation_trigger` | 1 |
-| `vector_name_list` | 2 |
-| `view_name` | 1 |
-| `whole_number` | 59 |
-| `world_transform` | 5 |
+| `string` | 11 |
+| `tolerance_vector_options` | 1 |
+| `transform` | 2 |
+| `vector3` | 7 |
+| `vector_name_list` | 1 |
+| `whole_number` | 13 |
+| `world_transform` | 1 |
 
 ## Reason codes
 
 | Value | Count |
 | --- | ---: |
-| `argument_semantics_unresolved` | 219 |
+| `argument_semantics_unresolved` | 43 |
 | `client_owned_external_integration` | 74 |
 | `client_owned_office_integration` | 14 |
 | `client_owned_serialization` | 22 |
@@ -198,32 +152,666 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 | `client_owned_user_experience` | 75 |
 | `client_owned_value_computation` | 64 |
 | `client_owned_value_construction` | 100 |
+| `command_shape_resolved` | 673 |
 | `file_semantics_unresolved` | 11 |
 | `filesystem_operation` | 49 |
 | `interactive_operation` | 40 |
-| `long_running_operation` | 99 |
+| `long_running_operation` | 100 |
 | `operator_ui_dependency` | 18 |
-| `read_only_operation` | 152 |
-| `sdk_binding_unresolved` | 62 |
+| `read_only_operation` | 153 |
+| `sdk_binding_unavailable` | 111 |
+| `sdk_binding_unresolved` | 5 |
 | `sdk_command_not_observed` | 39 |
 | `sdk_input_binding_unavailable` | 57 |
 | `server_lifecycle_boundary` | 1 |
-| `state_mutation` | 457 |
+| `state_mutation` | 458 |
 
 ## Blockers
 
 | Value | Count |
 | --- | ---: |
-| `https://github.com/spatialanalyzer/briosa/issues/53` | 231 |
+| `https://github.com/spatialanalyzer/briosa/issues/79` | 45 |
+| `https://github.com/spatialanalyzer/briosa/issues/80` | 11 |
 
 ## Delivery waves
 
 | Value | Count |
 | --- | ---: |
-| `wave_1` | 82 |
-| `wave_2` | 195 |
+| `wave_1` | 101 |
+| `wave_2` | 229 |
 | `wave_3` | 52 |
-| `wave_4` | 280 |
+| `wave_4` | 291 |
+
+## Command-specific shape discrepancies
+
+| Category path | MP step | Inventory key | Discrepancy | Owner | Dependency |
+| --- | --- | --- | --- | --- | --- |
+| AnalysisOperations | Get Cylinder Properties | documentation:AnalysisOperations/GetCylinderProperties.htm | `sdk_argument_not_documented` (arguments 7, 8, 9, 10, 11) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| AnalysisOperations / PipeRelationships | Pipe Relationship Force Cut to Frame | documentation:AnalysisOperations/PipeRelationships/PipeRelationshipForceCut.htm | `sdk_argument_not_documented` (arguments 5, 6) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| AnalysisOperations / RelationshipAttributes | Set Geom Relationship Auto Vectors Nominal (AVN) | documentation:AnalysisOperations/RelationshipAttributes/SetGeomRelationshipAuto.htm | `sdk_argument_not_documented` (arguments 3, 4) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| AnalysisOperations / RelationshipAttributes | Set Relationship Auto Vectors Fit (AVF) | documentation:AnalysisOperations/RelationshipAttributes/SetRelationshipAutoVectors.htm | `sdk_argument_not_documented` (arguments 2, 3) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| AnalysisOperations / RelationshipAttributesScalarTypes | Get Relationship Fit Constraints (Scalar Type) | documentation:AnalysisOperations/RelationshipAttributesScalarTypes/GetRelationshipFitConstraints.htm | `sdk_argument_not_documented` (arguments 2, 3, 4, 5) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| AnalysisOperations | Set Point Properties | documentation:AnalysisOperations/SetPointProperties.htm | `sdk_argument_not_documented` (arguments 3, 4) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| CloudMeshOps / CloudFilters | Filter Clouds to Vector Groups - Resolve Points | documentation:CloudMeshOps/CloudFilters/FilterCloudsToVectorGroups.htm | `sdk_argument_not_documented` (arguments 8, 9) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / OtherMPTypes | Make a Collection Item Name Reference List - Wildcard Selection | documentation:ConstructionOperations/OtherMPTypes/MakeACollectionItemNameReference.htm | `exact_interop_binding_missing` (arguments 2) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / PointsandGroups | Construct Point at Intersection of Planes | documentation:ConstructionOperations/PointsandGroups/ConstructPointAtIntersectionOfPlanes.htm | `missing_input_arguments_section` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / PointsandGroups | Construct Point at Intersection of Planes | documentation:ConstructionOperations/PointsandGroups/ConstructPointAtIntersectionOfPlanes.htm | `sdk_argument_not_documented` (arguments 1, 2, 3) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / PointsandGroups | Construct Point Groups from Vector Groups | documentation:ConstructionOperations/PointsandGroups/ConstructPointGroupsfromVectorGroups.htm | `missing_input_arguments_section` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / PointsandGroups | Construct Point Groups from Vector Groups | documentation:ConstructionOperations/PointsandGroups/ConstructPointGroupsfromVectorGroups.htm | `sdk_argument_not_documented` (arguments 1, 2, 3, 4) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / PolygonizedSurfaces | Construct Polygonized Surface from Point Clouds | documentation:ConstructionOperations/PolygonizedSurfaces/ConstructPolygonizedSurfacefromPointClouds.htm | `exact_interop_binding_missing` (arguments 1) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / Surfaces | Construct Surface From Cylinder | documentation:ConstructionOperations/Surfaces/ConstructSurfaceFromCylinder.htm | `sdk_argument_not_documented` (arguments 3) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / VectorGroups | Make a Vector Name Ref List From a Vector Group | documentation:ConstructionOperations/VectorGroups/MakeAVectorNameRefList.htm | `missing_input_arguments_section` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / VectorGroups | Make a Vector Name Ref List From a Vector Group | documentation:ConstructionOperations/VectorGroups/MakeAVectorNameRefList.htm | `sdk_argument_not_documented` (arguments 1) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / VectorGroups | Make Vector Names Unique in Vector Group | documentation:ConstructionOperations/VectorGroups/MakeVectorNamesUniqueIn.htm | `missing_return_arguments_section` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| FileOperations | Save | documentation:FileOperations/Save.htm | `file_behavior_unresolved` | `briosa` | https://github.com/spatialanalyzer/briosa/issues/80 |
+| FileOperations | Save As | documentation:FileOperations/SaveAs.htm | `file_behavior_unresolved` (arguments 0, 1, 2) | `briosa` | https://github.com/spatialanalyzer/briosa/issues/80 |
+| FileOperations | Save As Read-Only Template | documentation:FileOperations/SaveAsReadOnlyTemplate.htm | `file_behavior_unresolved` (arguments 0) | `briosa` | https://github.com/spatialanalyzer/briosa/issues/80 |
+| FileOperations / XML | Import Nominals from XML File | documentation:FileOperations/XML/ImportNominalsFromXMLFile.htm | `file_behavior_unresolved` (arguments 0) | `briosa` | https://github.com/spatialanalyzer/briosa/issues/80 |
+| FileOperations / XML | Merge Measurements into XML File | documentation:FileOperations/XML/MergeMeasurementsintoXML.htm | `file_behavior_unresolved` (arguments 0, 1) | `briosa` | https://github.com/spatialanalyzer/briosa/issues/80 |
+| GDT | Datum Alignment | documentation:GDT/DatumAlignment.htm | `sdk_argument_not_documented` (arguments 3) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| GDT | Enable/Disable Datum Alignment for Feature Check | documentation:GDT/EnableDisableDatumAlignment.htm | `sdk_argument_not_documented` (arguments 4) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| GDT | Evaluate Feature Check | documentation:GDT/EvaluateFeatureCheck.htm | `sdk_argument_not_documented` (arguments 21) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| GDT | Evaluate Feature Checks | documentation:GDT/EvaluateFeatureChecks.htm | `sdk_argument_not_documented` (arguments 4, 5) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| GDT | Set GD&T Options | documentation:GDT/SetGDTOptions.htm | `exact_interop_binding_missing` (arguments 1, 8) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ProcessFlowOperations | Output SA Report to PDF | documentation:ProcessFlowOperations/OutputSAReportToPDF.htm | `file_behavior_unresolved` (arguments 0, 1, 2) | `briosa` | https://github.com/spatialanalyzer/briosa/issues/80 |
+| AnalysisOperations | Create Point Uncertainty Cloud Point Sets | sdk:AnalysisOperations.txt#19 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| AnalysisOperations | Create Point Uncertainty Cloud Point Sets | sdk:AnalysisOperations.txt#19 | `sdk_argument_not_documented` (arguments 1, 2, 3, 4, 5, 6, 7) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| AnalysisOperations | Set Point Weights From Uncertainties | sdk:AnalysisOperations.txt#20 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| AnalysisOperations | Set Point Weights From Uncertainties | sdk:AnalysisOperations.txt#20 | `sdk_argument_not_documented` (arguments 1, 2, 3, 4, 5, 6) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| AnalysisOperations | Get Point Coordinate | sdk:AnalysisOperations.txt#21 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| AnalysisOperations | Get Point Coordinate | sdk:AnalysisOperations.txt#21 | `sdk_argument_not_documented` (arguments 1, 2, 3, 4) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| AnalysisOperations | Set Transform for i-th Frame in Frame Set | sdk:AnalysisOperations.txt#37 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| AnalysisOperations | Set Transform for i-th Frame in Frame Set | sdk:AnalysisOperations.txt#37 | `sdk_argument_not_documented` (arguments 1, 2) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| AnalysisOperations | Get Euler Parameters for i-th Frame in Frame Set | sdk:AnalysisOperations.txt#38 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| AnalysisOperations | Get Euler Parameters for i-th Frame in Frame Set | sdk:AnalysisOperations.txt#38 | `sdk_argument_not_documented` (arguments 1, 2, 3, 4, 5, 6, 7, 8) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| AnalysisOperations | Get Euler Parameters for Frame | sdk:AnalysisOperations.txt#39 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| AnalysisOperations | Get Euler Parameters for Frame | sdk:AnalysisOperations.txt#39 | `sdk_argument_not_documented` (arguments 1, 2, 3, 4, 5, 6, 7) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| AnalysisOperations | Set Line Properties | sdk:AnalysisOperations.txt#55 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| AnalysisOperations | Set Line Properties | sdk:AnalysisOperations.txt#55 | `sdk_argument_not_documented` (arguments 1, 2, 3) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| AnalysisOperations | Set Cylinder Properties | sdk:AnalysisOperations.txt#60 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| AnalysisOperations | Set Cylinder Properties | sdk:AnalysisOperations.txt#60 | `sdk_argument_not_documented` (arguments 1, 2, 3, 4, 5, 6, 7, 8, 9) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| AnalysisOperations | Set Ellipse Properties | sdk:AnalysisOperations.txt#62 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| AnalysisOperations | Set Ellipse Properties | sdk:AnalysisOperations.txt#62 | `sdk_argument_not_documented` (arguments 1, 2, 3, 4) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| CloudAndMeshOperations | Clear Cloud Point Deviations | sdk:CloudAndMeshOperations.txt#7 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| CloudAndMeshOperations | Clear Cloud Point Deviations | sdk:CloudAndMeshOperations.txt#7 | `sdk_argument_not_documented` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / BSplines | Construct B-Spline From Point Set | sdk:ConstructionOperations_BSplines.txt#3 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / BSplines | Construct B-Spline From Point Set | sdk:ConstructionOperations_BSplines.txt#3 | `sdk_argument_not_documented` (arguments 1, 2) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / BSplines | Construct B-Splines From Intersection of Plane and Mesh | sdk:ConstructionOperations_BSplines.txt#9 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / BSplines | Construct B-Splines From Intersection of Plane and Mesh | sdk:ConstructionOperations_BSplines.txt#9 | `sdk_argument_not_documented` (arguments 1, 2, 3, 4, 5, 6) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / Ellipses | Construct Ellipse | sdk:ConstructionOperations_Ellipses.txt#1 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / Ellipses | Construct Ellipse | sdk:ConstructionOperations_Ellipses.txt#1 | `sdk_argument_not_documented` (arguments 1, 2, 3, 4) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / Frames | Construct Frames By Projecting Frames On Mesh Along Frame Direction | sdk:ConstructionOperations_Frames.txt#16 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / Frames | Construct Frames By Projecting Frames On Mesh Along Frame Direction | sdk:ConstructionOperations_Frames.txt#16 | `sdk_argument_not_documented` (arguments 1, 2, 3, 4) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / Frames | Construct Frames By Projecting Frames On Mesh Along Reference Direction | sdk:ConstructionOperations_Frames.txt#17 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / Frames | Construct Frames By Projecting Frames On Mesh Along Reference Direction | sdk:ConstructionOperations_Frames.txt#17 | `sdk_argument_not_documented` (arguments 1, 2, 3, 4, 5) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / Frames | Add Surface To Mesh Offset Along Reference Direction | sdk:ConstructionOperations_Frames.txt#18 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / Frames | Add Surface To Mesh Offset Along Reference Direction | sdk:ConstructionOperations_Frames.txt#18 | `sdk_argument_not_documented` (arguments 1, 2, 3, 4, 5, 6) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / Frames | Construct Frame From Transform In World | sdk:ConstructionOperations_Frames.txt#3 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / Frames | Construct Frame From Transform In World | sdk:ConstructionOperations_Frames.txt#3 | `sdk_argument_not_documented` (arguments 1) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / Planes | Construct Planes, Bisect 2 Planes | sdk:ConstructionOperations_Planes.txt#4 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / Planes | Construct Planes, Bisect 2 Planes | sdk:ConstructionOperations_Planes.txt#4 | `sdk_argument_not_documented` (arguments 1, 2) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / PointClouds | Create Cloud Thinning Settings | sdk:ConstructionOperations_PointClouds.txt#11 | `exact_interop_binding_missing` (arguments 0) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / PointClouds | Construct Point Cloud from Visible Cloud Points | sdk:ConstructionOperations_PointClouds.txt#5 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / PointClouds | Construct Point Cloud from Visible Cloud Points | sdk:ConstructionOperations_PointClouds.txt#5 | `sdk_argument_not_documented` (arguments 1) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / PointsAndGroups | Construct Points By Projecting Points On Mesh Along Direction | sdk:ConstructionOperations_PointsAndGroups.txt#26 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / PointsAndGroups | Construct Points By Projecting Points On Mesh Along Direction | sdk:ConstructionOperations_PointsAndGroups.txt#26 | `sdk_argument_not_documented` (arguments 1, 2, 3, 4, 5) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| DimensionOperations | Set Dimension Tolerance | sdk:DimensionOperations.txt#12 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| DimensionOperations | Set Dimension Tolerance | sdk:DimensionOperations.txt#12 | `sdk_argument_not_documented` (arguments 1, 2, 3, 4, 5, 6) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| EventOperations | Export Event Ref List | sdk:EventOperations.txt#4 | `file_behavior_unresolved` (arguments 0, 1, 2, 3) | `briosa` | https://github.com/spatialanalyzer/briosa/issues/80 |
+| FileOperations / FileExport | Export ASCII Points | sdk:FileOperations_FileExport.txt#1 | `file_behavior_unresolved` (arguments 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17) | `briosa` | https://github.com/spatialanalyzer/briosa/issues/80 |
+| FileOperations / FileExport | Export ASCII Point Set | sdk:FileOperations_FileExport.txt#2 | `file_behavior_unresolved` (arguments 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12) | `briosa` | https://github.com/spatialanalyzer/briosa/issues/80 |
+| FileOperations / FileImport | Import VSTARS Cameras | sdk:FileOperations_FileImport.txt#16 | `file_behavior_unresolved` (arguments 0) | `briosa` | https://github.com/spatialanalyzer/briosa/issues/80 |
+| FileOperations / FileImport | Import Polyworks File | sdk:FileOperations_FileImport.txt#19 | `file_behavior_unresolved` (arguments 0, 1) | `briosa` | https://github.com/spatialanalyzer/briosa/issues/80 |
+| GDTOperations / GDTAnalysis | Set Global Force Simultaneous Evaluation | sdk:GDTOperations_GDTAnalysis.txt#17 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| GDTOperations / GDTAnalysis | Set Global Force Simultaneous Evaluation | sdk:GDTOperations_GDTAnalysis.txt#17 | `sdk_argument_not_documented` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| GDTOperations / GDTAnalysis | Generate Feature Check Summary | sdk:GDTOperations_GDTAnalysis.txt#20 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| GDTOperations / GDTAnalysis | Generate Feature Check Summary | sdk:GDTOperations_GDTAnalysis.txt#20 | `sdk_argument_not_documented` (arguments 1) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| GDTOperations / GDTConstruction | Make Surface Face List From Surface | sdk:GDTOperations_GDTConstruction.txt#2 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| GDTOperations / GDTConstruction | Make Surface Face List From Surface | sdk:GDTOperations_GDTConstruction.txt#2 | `sdk_argument_not_documented` (arguments 1) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| RelationshipOperations / RelationshipAttributesScalarTypes | Get Relationship Sigmoidal Gap Fit Constraints | sdk:RelationshipOperations_RelationshipAttributesScalarTypes.txt#8 | `exact_interop_binding_missing` (arguments 9) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+
+## Proposed defaults requiring maintainer review
+
+These values are evidence-backed proposals only. Their inputs continue to reject omission until a reviewed disposition explicitly activates a catalog default. Maintainer review is tracked by https://github.com/spatialanalyzer/briosa/issues/82.
+
+| Category path | MP step | Argument | Candidate evidence |
+| --- | --- | --- | --- |
+| AnalysisOperations | Get i-th Collection Name | Collection Index | sa_2026_generated_vb=0 |
+| AnalysisOperations | Get Timestamp for i-th Frame in Frame Set | Frame Set Index | sa_2026_generated_vb=0 |
+| AnalysisOperations | Get Timestamp for i-th Point in Point Set | Point Set Index | sa_2026_generated_vb=0 |
+| AnalysisOperations | Get Transform for i-th Frame in Frame Set | Frame Set Index | sa_2026_generated_vb=0 |
+| AnalysisOperations | Is Object of Type | Object Type | sa_2026_generated_vb="Any" |
+| AnalysisOperations | Mushroom Target Hole Inspection | Sphere Target Radius | sa_2026_generated_vb=0.0 |
+| AnalysisOperations / PipeRelationships | Make pipe Relationship Cut | Pipe 1 - Make Cut | sa_2026_generated_vb=true |
+| AnalysisOperations / PipeRelationships | Make pipe Relationship Cut | Pipe 1 - Create Frame | sa_2026_generated_vb=false |
+| AnalysisOperations / PipeRelationships | Make pipe Relationship Cut | Pipe 2 - Make Cut | sa_2026_generated_vb=true |
+| AnalysisOperations / PipeRelationships | Make pipe Relationship Cut | Pipe 2 - Create Frame | sa_2026_generated_vb=false |
+| AnalysisOperations | Query Clouds to Objects | Projection Options | sa_2026_generated_vb=["Object To Probe Vectors",false,false,0.0,false,0.0] |
+| AnalysisOperations | Query Clouds to Surface | Projection Options | sa_2026_generated_vb=["Object To Probe Vectors",false,false,0.0,false,0.0] |
+| AnalysisOperations | Query Groups to Objects | Projection Options | sa_2026_generated_vb=["Object To Probe Vectors",false,false,0.0,false,0.0] |
+| AnalysisOperations | Query Groups to Objects | Show Results Dialog? | objectivesa_prior_release=false; sa_2026_generated_vb=true |
+| AnalysisOperations | Query Points to Circle | Is Inside Measurement | sa_2026_generated_vb=true |
+| AnalysisOperations | Query Points to Circle | Auto Scale Vectors to % of Radius | sa_2026_generated_vb=40 |
+| AnalysisOperations | Query Points to Objects | Projection Options | sa_2026_generated_vb=["Object To Probe Vectors",false,false,0.0,false,0.0] |
+| AnalysisOperations | Query Points to Objects | Show Results Dialog? | objectivesa_prior_release=false; sa_2026_generated_vb=true |
+| AnalysisOperations | Re-Compute Calculated Items | Refresh Filtered Cloud Data? | sa_2026_generated_vb=false |
+| AnalysisOperations / RelationshipAttributes | Enable/Disable Relationships for Optimization | Enable? | sa_2026_generated_vb=false |
+| AnalysisOperations / RelationshipAttributes | Set Geom Relationship Criteria | Show in Report | sa_2026_generated_vb=true |
+| AnalysisOperations / RelationshipAttributes | Set Geom Relationship Criteria | Tolerance Options | sa_2026_generated_vb=[false,0.0,false,0.0] |
+| AnalysisOperations / RelationshipAttributes | Set Geom Relationship Criteria | Optimization: Delta Weight | sa_2026_generated_vb=0.0 |
+| AnalysisOperations / RelationshipAttributes | Set Geom Relationship Criteria | Optimization: Out of Tolerance Weight | sa_2026_generated_vb=0.0 |
+| AnalysisOperations / RelationshipAttributes | Set Geom Relationship Nominal Geometry | Compare To Nominal? | sa_2026_generated_vb=true |
+| AnalysisOperations / RelationshipAttributes | Set Geom Relationship Nominal Avg Point | Compare To Nominal? | sa_2026_generated_vb=true |
+| AnalysisOperations / RelationshipAttributes | Set Geom Relationship Projection Plane | Project to Plane? | sa_2026_generated_vb=true |
+| AnalysisOperations / RelationshipAttributes | Set Relationship Auto Vectors Group Default Prefix | Geom Rel AVN VG Default Prefix | sa_2026_generated_vb="GR-AVN-" |
+| AnalysisOperations / RelationshipAttributes | Set Relationship Auto Vectors Group Default Prefix | Geom Rel AVF VG Default Prefix | sa_2026_generated_vb="GR-AVF-" |
+| AnalysisOperations / RelationshipAttributes | Set Relationship Auto Vectors Group Default Prefix | Non-Geom Rel VG Default Prefix | sa_2026_generated_vb="Auto Vectors: " |
+| AnalysisOperations / RelationshipAttributes | Set Relationship Orientation Fit Constraints (Vector Type) | Orientation Vector Constraint | sa_2026_generated_vb=[true,0.0,true,0.0,true,0.0,false,0.0,true,0.0,true,0.0,true,0.0,false,0.0] |
+| AnalysisOperations / RelationshipAttributes | Set Relationship Position Fit Constraints (Vector Type) | Position Vector Constraint | sa_2026_generated_vb=[true,0.0,true,0.0,true,0.0,false,0.0,true,0.0,true,0.0,true,0.0,false,0.0] |
+| AnalysisOperations / RelationshipAttributes | Set Relationship Projection Options | Projection Options | sa_2026_generated_vb=["Object To Probe Vectors",false,false,0.0,false,0.0] |
+| AnalysisOperations / RelationshipAttributes | Set Relationship Tolerance (Vector Type) | Vector Tolerance | sa_2026_generated_vb=[false,0.0,false,0.0,false,0.0,false,0.0,false,0.0,false,0.0,false,0.0,false,0.0] |
+| AnalysisOperations / RelationshipAttributes | Set Relationship Weights Normalized | Pick Weighting Mode | sa_2026_generated_vb="Normalize on equation count" |
+| AnalysisOperations / RelationshipAttributesScalarTypes | Set Object to Object Direction Relationship Fit Constraints | Angle Between Vectors Fit Constraints | sa_2026_generated_vb=[true,0.0,true,0.0] |
+| AnalysisOperations / RelationshipAttributesScalarTypes | Set Object to Object Direction Relationship Fit Constraints | Mutual Perpendicular Length Fit Constraints | sa_2026_generated_vb=[true,0.0,true,0.0] |
+| AnalysisOperations / RelationshipAttributesScalarTypes | Set Relationship Fit Constraints (Scalar Type) | Fit Constraint Options | sa_2026_generated_vb=[true,0.0,true,0.0] |
+| AnalysisOperations / RelationshipAttributesScalarTypes | Set Relationship Tolerance (Scalar Type) | Tolerance Options | sa_2026_generated_vb=[false,0.0,false,0.0] |
+| AnalysisOperations | Set Circle Properties | Center Coordinate | sa_2026_generated_vb=[0.0,0.0,0.0] |
+| AnalysisOperations | Set Circle Properties | Normal Direction | sa_2026_generated_vb=[0.0,0.0,0.0] |
+| AnalysisOperations | Set Circle Properties | Radius | sa_2026_generated_vb=0.0 |
+| AnalysisOperations | Set Cone Properties | Cone End Point (in working coordinates) | sa_2026_generated_vb=[0.0,0.0,0.0] |
+| AnalysisOperations | Set Cone Properties | Cone Axis (in working coordinates) | sa_2026_generated_vb=[0.0,0.0,0.0] |
+| AnalysisOperations | Set Cone Properties | Cone Length | sa_2026_generated_vb=0.0 |
+| AnalysisOperations | Set Cone Properties | Cone Theta Start | sa_2026_generated_vb=0.0 |
+| AnalysisOperations | Set Cone Properties | Cone Theta Span | sa_2026_generated_vb=0.0 |
+| AnalysisOperations | Set Cone Properties | Cone Included Angle | sa_2026_generated_vb=0.0 |
+| AnalysisOperations | Set Cone Properties | Cut Length from Apex | sa_2026_generated_vb=0.0 |
+| AnalysisOperations | Set Default Colorization Options | Colorization Options | sa_2026_generated_vb=["Continuous","Blue","Green","Red",false,true,false,100.0,1,false,0.1,false,false,true,false,0.5,-0.5,0.03,-0.03] |
+| AnalysisOperations | Set Measurement Auxiliary Data | Value | sa_2026_generated_vb=0.0 |
+| AnalysisOperations | Sphere Axis Check | Sphere Target Radius | sa_2026_generated_vb=0.0 |
+| AnalysisOperations | Temperature Compensate a group | Material CTE (1/Deg F) | sa_2026_generated_vb=0.0 |
+| AnalysisOperations | Temperature Compensate a group | Initial Temperature (F) | sa_2026_generated_vb=0.0 |
+| AnalysisOperations | Temperature Compensate a group | Final Temperature (F) | sa_2026_generated_vb=0.0 |
+| AnalysisOperations | Translate Objects by Delta | Delta Translation | sa_2026_generated_vb=[0.0,0.0,0.0] |
+| CloudMeshOps / CloudFilters | Filter Clouds to BSplines | Minimum Proximity | sa_2026_generated_vb=0.0 |
+| CloudMeshOps / CloudFilters | Filter Clouds to BSplines | Maximum Proximity | sa_2026_generated_vb=0.0 |
+| CloudMeshOps / CloudFilters | Filter Clouds to BSplines | Output Type | sa_2026_generated_vb="Points" |
+| CloudMeshOps / CloudFilters | Filter Clouds to Group | Proximity (0 for Closest Point only) | sa_2026_generated_vb=0.0 |
+| CloudMeshOps / CloudFilters | Filter Clouds to Group | Maximum Number of Points (0 for Unlimited) | sa_2026_generated_vb=0 |
+| CloudMeshOps / CloudFilters | Filter Clouds to Group | Output Type | sa_2026_generated_vb="Points" |
+| CloudMeshOps / CloudFilters | Filter Clouds to Line Segment | Minimum Proximity | sa_2026_generated_vb=0.0 |
+| CloudMeshOps / CloudFilters | Filter Clouds to Line Segment | Maximum Proximity | sa_2026_generated_vb=0.0 |
+| CloudMeshOps / CloudFilters | Filter Clouds to Line Segment | Output Type | sa_2026_generated_vb="Points" |
+| CloudMeshOps / CloudFilters | Filter Clouds to Plane | Proximity | sa_2026_generated_vb=0.0 |
+| CloudMeshOps / CloudFilters | Filter Clouds to Surface | Low Proximity | sa_2026_generated_vb=0.0 |
+| CloudMeshOps / CloudFilters | Filter Clouds to Surface | High Proximity | sa_2026_generated_vb=0.0 |
+| CloudMeshOps / CloudFilters | Filter Clouds to Surface | Skip Factor | sa_2026_generated_vb=0 |
+| CloudMeshOps / CloudFilters | Filter Clouds to Surface | Output Type | sa_2026_generated_vb="Points" |
+| CloudMeshOps / CloudFilters | Filter Clouds to Vector Groups - Resolve Clouds | Radial Cutoff | sa_2026_generated_vb=0.1 |
+| CloudMeshOps / CloudFilters | Filter Clouds to Vector Groups - Resolve Clouds | Lower Cutoff | sa_2026_generated_vb=-0.1 |
+| CloudMeshOps / CloudFilters | Filter Clouds to Vector Groups - Resolve Clouds | Upper Cutoff | sa_2026_generated_vb=0.1 |
+| CloudMeshOps / CloudFilters | Get Cloud RGB Values | RGB Color Channel | sa_2026_generated_vb="Intensity" |
+| CloudMeshOps / CloudFilters | Get Cloud RGB Values Near Point | Diameter | sa_2026_generated_vb=10.0 |
+| CloudMeshOps / CloudFilters | Get Cloud RGB Values Near Point | RGB Color Channel | sa_2026_generated_vb="Intensity" |
+| CloudMeshOps / CloudFilters | Subdivide Cloud by Point Spacing | Point Spacing | sa_2026_generated_vb=0.0 |
+| CloudMeshOps / CloudFilters | Subdivide Cloud by Point Spacing | Minimum Points Per Group | sa_2026_generated_vb=0 |
+| CloudMeshOps / CloudFilters | Subdivide Cloud by Point Spacing | Keep All Groups? | sa_2026_generated_vb=true |
+| CloudMeshOps / CrossSections | Enable/Disable Cloud Cross Sections | Cross Section ID | sa_2026_generated_vb=0 |
+| CloudMeshOps / CrossSections | Enable/Disable Cloud Cross Sections | Enable (TRUE) / Disable (FALSE)? | sa_2026_generated_vb=true |
+| CloudMeshOps / CrossSections | Enable Single Cloud Cross Section | Cross Section ID | sa_2026_generated_vb=0 |
+| CloudMeshOps / MeshOperations | Mesh Fill Holes | Maximum Triangle Length | sa_2026_generated_vb=-1.0 |
+| CloudMeshOps / MeshOperations | Mesh Fill Holes | Tension | sa_2026_generated_vb=0.0 |
+| CloudMeshOps / MeshOperations | Mesh Fill Holes | Unconditional Filling? | sa_2026_generated_vb=false |
+| CloudMeshOps / MeshOperations | Mesh Fill Holes | Fill All Holes? | sa_2026_generated_vb=true |
+| ConstructionOperations / Callouts | Create Picture Callout | Object for Callout Anchor Point | objectivesa_prior_release=null |
+| ConstructionOperations / Callouts | Set I-th Callout Position in Callout View | Callout View Index | sa_2026_generated_vb=0 |
+| ConstructionOperations / Callouts | Set I-th Callout Position in Callout View | X Position | sa_2026_generated_vb=0 |
+| ConstructionOperations / Callouts | Set I-th Callout Position in Callout View | Y Position | sa_2026_generated_vb=0 |
+| ConstructionOperations / Circles | Construct Circle | Circle Center (in working coordinates) | sa_2026_generated_vb=[0.0,0.0,0.0] |
+| ConstructionOperations / Circles | Construct Circle | Circle Normal (in working coordinates) | sa_2026_generated_vb=[0.0,0.0,0.0] |
+| ConstructionOperations / Circles | Construct Circle | Circle Radius | sa_2026_generated_vb=0.0 |
+| ConstructionOperations / Cones | Construct Cone | Cone End Point (in working coordinates) | sa_2026_generated_vb=[0.0,0.0,0.0] |
+| ConstructionOperations / Cones | Construct Cone | Cone Axis (in working coordinates) | sa_2026_generated_vb=[0.0,0.0,0.0] |
+| ConstructionOperations / Cones | Construct Cone | Cone Length | sa_2026_generated_vb=0.0 |
+| ConstructionOperations / Cones | Construct Cone | Cone Theta Start | sa_2026_generated_vb=0.0 |
+| ConstructionOperations / Cones | Construct Cone | Cone Theta Span | sa_2026_generated_vb=0.0 |
+| ConstructionOperations / Cones | Construct Cone | Cone Included Angle | sa_2026_generated_vb=0.0 |
+| ConstructionOperations / Cylinders | Construct Cylinder | Cylinder End Point (in working coordinates) | sa_2026_generated_vb=[0.0,0.0,0.0] |
+| ConstructionOperations / Cylinders | Construct Cylinder | Cylinder Axis (in working coordinates) | sa_2026_generated_vb=[0.0,0.0,0.0] |
+| ConstructionOperations / Cylinders | Construct Cylinder | Cylinder Diameter | sa_2026_generated_vb=0.0 |
+| ConstructionOperations / Cylinders | Construct Cylinder | Cylinder Length | sa_2026_generated_vb=0.0 |
+| ConstructionOperations / Cylinders | Construct Cylinder From End Points | Cylinder End Point A (in working coordinates) | sa_2026_generated_vb=[0.0,0.0,0.0] |
+| ConstructionOperations / Cylinders | Construct Cylinder From End Points | Cylinder End Point B (in working coordinates) | sa_2026_generated_vb=[0.0,0.0,0.0] |
+| ConstructionOperations / Cylinders | Construct Cylinder From End Points | Cylinder Diameter | sa_2026_generated_vb=0.0 |
+| ConstructionOperations / Folders | Delete Folders by Wildcard | Case Sensitive Search | sa_2026_generated_vb=true |
+| ConstructionOperations / Folders | Delete Folders by Wildcard | Allow Deleting all Folders | sa_2026_generated_vb=false |
+| ConstructionOperations / Frames | Construct Frame, Known Origin, Object Direction, Object Direction | Known Point Value in New Frame | sa_2026_generated_vb=[0.0,0.0,0.0] |
+| ConstructionOperations / Frames | Construct Frame, 3 Planes | X Value on PLane | sa_2026_generated_vb=0.0 |
+| ConstructionOperations / Frames | Construct Frame, 3 Planes | Y Value on PLane | sa_2026_generated_vb=0.0 |
+| ConstructionOperations / Frames | Construct Frame, 3 Planes | Z Value on Plane | sa_2026_generated_vb=0.0 |
+| ConstructionOperations / Frames | Construct Mirror Cube Frame | Use Current Measurements Marked as Mirror Shots | sa_2026_generated_vb=true |
+| ConstructionOperations / Frames | Construct Mirror Cube Frame | Nominal Cube Face Angle | sa_2026_generated_vb=90.0 |
+| ConstructionOperations / Lines | Construct Line 2 Points (Vector Notation) | First Vector | sa_2026_generated_vb=[0.0,0.0,0.0] |
+| ConstructionOperations / Lines | Construct Line 2 Points (Vector Notation) | Second Vector | sa_2026_generated_vb=[0.0,0.0,0.0] |
+| ConstructionOperations / Lines | Construct Line From Instrument Shot | Observation Index | sa_2026_generated_vb=0 |
+| ConstructionOperations / Lines | Construct Line Normal to Object | Line Length | sa_2026_generated_vb=1.0 |
+| ConstructionOperations / OtherMPTypes | Add Collection Instruments to a Ref List - WildCard Selection | Collection Wildcard Criteria | sa_2026_generated_vb="*" |
+| ConstructionOperations / OtherMPTypes | Add Collection Instruments to a Ref List - WildCard Selection | Instrument Wildcard Criteria | sa_2026_generated_vb="*" |
+| ConstructionOperations / OtherMPTypes | Make a Collection Object Name - Ensure Unique | Use Number Suffix? | sa_2026_generated_vb=false |
+| ConstructionOperations / OtherMPTypes | Make a Collection Object Name Ref List - By Type and Color | Object Type | sa_2026_generated_vb="Any" |
+| ConstructionOperations / OtherMPTypes | Make a Collection Object Name Ref List - By Type and Color | Object Color | sa_2026_generated_vb=[255,0,0] |
+| ConstructionOperations / OtherMPTypes | Make a Collection Object Name Ref List - By Type | Object Type | sa_2026_generated_vb="Any" |
+| ConstructionOperations / OtherMPTypes | Make a Collection Object Name Reference List - WildCard Selection | Collection Wildcard Criteria | sa_2026_generated_vb="*" |
+| ConstructionOperations / OtherMPTypes | Make a Collection Object Name Reference List - WildCard Selection | Object Wildcard Criteria | sa_2026_generated_vb="*" |
+| ConstructionOperations / OtherMPTypes | Make a Collection Object Name Reference List - WildCard Selection | Object Type | sa_2026_generated_vb="Any" |
+| ConstructionOperations / OtherMPTypes | Make a Point Name - Ensure Unique | Use Number Suffix? | sa_2026_generated_vb=false |
+| ConstructionOperations / OtherMPTypes | Make a Point Name Ref List - Wildcard Select | Collection Wildcard Criteria | sa_2026_generated_vb="*" |
+| ConstructionOperations / OtherMPTypes | Make a Point Name Ref List - Wildcard Select | Group Name Wildcard Criteria | sa_2026_generated_vb="*" |
+| ConstructionOperations / OtherMPTypes | Make a Point Name Ref List - Wildcard Select | Point Name Wildcard Criteria | sa_2026_generated_vb="*" |
+| ConstructionOperations / OtherMPTypes | Make an Event Reference List-Wildcard Selection | Collection Wildcard Criteria | sa_2026_generated_vb="*" |
+| ConstructionOperations / OtherMPTypes | Make an Event Reference List-Wildcard Selection | Event Wildcard Criteria | sa_2026_generated_vb="*" |
+| ConstructionOperations / Perimeters | Construct Perimeter From Points | Open Perimeter? | sa_2026_generated_vb=false |
+| ConstructionOperations / Planes | Construct Plane, Normal to Object, Through Point | Plane Edge Dimension | sa_2026_generated_vb=0.0 |
+| ConstructionOperations / Planes | Construct Plane | Plane Center (in working coordinates) | sa_2026_generated_vb=[0.0,0.0,0.0] |
+| ConstructionOperations / Planes | Construct Plane | Plane Normal (in working coordinates) | sa_2026_generated_vb=[0.0,0.0,0.0] |
+| ConstructionOperations / Planes | Construct Plane | Plane Edge Dimension | sa_2026_generated_vb=0.0 |
+| ConstructionOperations / Planes | Shift Plane | Shift Along Normal | sa_2026_generated_vb=0.0 |
+| ConstructionOperations / Planes | Shift Plane | Grow Bounds by Factor | sa_2026_generated_vb=0.0 |
+| ConstructionOperations / PointClouds | Construct Cross Section Cloud | Cylindrical Cross Section Mode? | sa_2026_generated_vb=false |
+| ConstructionOperations / PointClouds | Construct Cross Section Cloud | Start Distance | sa_2026_generated_vb=0.0 |
+| ConstructionOperations / PointClouds | Construct Cross Section Cloud | Section Spacing | sa_2026_generated_vb=0.0 |
+| ConstructionOperations / PointClouds | Construct Cross Section Cloud | Proximity Threshold | sa_2026_generated_vb=0.0 |
+| ConstructionOperations / PointClouds | Construct Cross Section Cloud | Maximum Section Count | sa_2026_generated_vb=0 |
+| ConstructionOperations / PointClouds | Construct Cross Section Cloud | Limit Cross Section Extent | sa_2026_generated_vb=false |
+| ConstructionOperations / PointClouds | Construct Cross Section Cloud | Radius Limit | sa_2026_generated_vb=0.0 |
+| ConstructionOperations / PointClouds | Construct Cross Section Cloud | Project to Reference Surface | sa_2026_generated_vb=false |
+| ConstructionOperations / PointClouds | Construct Cross Section Cloud | Cloud Thinning Settings | sa_2026_generated_vb=["Nth Point",5,100,20000] |
+| ConstructionOperations / PointClouds | Construct Cross Section Cloud | Update Existing Cloud | sa_2026_generated_vb=false |
+| ConstructionOperations / PointClouds | Construct Point Cloud Limiting Probing Directions | Acceptance Angle | sa_2026_generated_vb=30.0 |
+| ConstructionOperations / PointClouds | Construct Point Cloud Limiting Probing Directions | Hide Source Cloud | sa_2026_generated_vb=false |
+| ConstructionOperations / PointClouds | Construct Point Clouds from Existing Clouds - Uniform Spacing | Desired Point Spacing | sa_2026_generated_vb=0.02 |
+| ConstructionOperations / PointClouds | Construct Point Clouds from Existing Clouds - Uniform Spacing | Minimum Points Per Output Point | sa_2026_generated_vb=3 |
+| ConstructionOperations / PointClouds | Extract Sphere Centers from Point Cloud | Desired Diameter | sa_2026_generated_vb=0.0 |
+| ConstructionOperations / PointClouds | Extract Sphere Centers from Point Cloud | Extraction Tolerance | sa_2026_generated_vb=0.0 |
+| ConstructionOperations / PointClouds | Extract Sphere Centers from Point Cloud | Minimum Point Count | sa_2026_generated_vb=50 |
+| ConstructionOperations / PointsandGroups | Average a set of Groups | RMS Tolerance (0.0 for none) | sa_2026_generated_vb=0.0 |
+| ConstructionOperations / PointsandGroups | Average a set of Groups | Maximum Absolute Tolerance (0.0 for none) | sa_2026_generated_vb=0.0 |
+| ConstructionOperations / PointsandGroups | Average a set of Groups | Maximum Average Tolerance (0.0 for none) | sa_2026_generated_vb=0.0 |
+| ConstructionOperations / PointsandGroups | Construct a Point in Working Coordinates | Working Coordinates | sa_2026_generated_vb=[0.0,0.0,0.0] |
+| ConstructionOperations / PointsandGroups | Construct Point at Intersection of B-Spline and Surfaces | Approximation Tolerance | sa_2026_generated_vb=0.001 |
+| ConstructionOperations / PointsandGroups | Construct Point From Survey Target Center | Survey Target Type | sa_2026_generated_vb="Triangle" |
+| ConstructionOperations / PointsandGroups | Construct Point From Survey Target Center | Search Diameter | sa_2026_generated_vb=0.0 |
+| ConstructionOperations / PointsandGroups | Construct Point Group from Point Cloud | Point Prefix | sa_2026_generated_vb="pt" |
+| ConstructionOperations / PointsandGroups | Construct Point Group from Point Cloud | Starting Point Number | sa_2026_generated_vb=0 |
+| ConstructionOperations / PointsandGroups | Construct Point Group from Point Cloud | Point Offset | sa_2026_generated_vb=0.0 |
+| ConstructionOperations / PointsandGroups | Construct Point Group from Point Cloud | Sub-Sampling? | sa_2026_generated_vb=false |
+| ConstructionOperations / PointsandGroups | Construct Point Group from Point Cloud | Sub-Sampling Distance | sa_2026_generated_vb=0.5 |
+| ConstructionOperations / PointsandGroups | Construct Point Group from Point Cloud | Show Progress? | sa_2026_generated_vb=false |
+| ConstructionOperations / PointsandGroups | Construct Points Auto-Correspond 2 groups Inter-Point Distance | Auto-correspond same-point tolerance | sa_2026_generated_vb=0.1 |
+| ConstructionOperations / PointsandGroups | Construct Points Auto-Correspond 2 groups Proximity | Auto-correspond same-point tolerance | sa_2026_generated_vb=0.25 |
+| ConstructionOperations / PointsandGroups | Construct Points Cylindrically Shifted | Radial Shift | sa_2026_generated_vb=0.0 |
+| ConstructionOperations / PointsandGroups | Construct Points Cylindrically Shifted | Theta Shift (degrees) | sa_2026_generated_vb=0.0 |
+| ConstructionOperations / PointsandGroups | Construct Points Cylindrically Shifted | Planar Shift | sa_2026_generated_vb=0.0 |
+| ConstructionOperations / PointsandGroups | Construct Points From Surfaces On UV Grid | UV Point Group Base Name | sa_2026_generated_vb="UV Points" |
+| ConstructionOperations / PointsandGroups | Construct Points From Surfaces On UV Grid | Make Each Line Separate Group? | sa_2026_generated_vb=false |
+| ConstructionOperations / PointsandGroups | Construct Points From Surfaces On UV Grid | Number of U Grids | sa_2026_generated_vb=5 |
+| ConstructionOperations / PointsandGroups | Construct Points From Surfaces On UV Grid | Number of V Grids | sa_2026_generated_vb=5 |
+| ConstructionOperations / PointsandGroups | Construct Points From Surfaces On UV Grid | Edge Point Mode | sa_2026_generated_vb="Include Edges" |
+| ConstructionOperations / PointsandGroups | Construct Points Layout on Grid | Point Prefix | sa_2026_generated_vb="p" |
+| ConstructionOperations / PointsandGroups | Construct Points Layout on Grid | X Min | sa_2026_generated_vb=0.0 |
+| ConstructionOperations / PointsandGroups | Construct Points Layout on Grid | X Max | sa_2026_generated_vb=100.0 |
+| ConstructionOperations / PointsandGroups | Construct Points Layout on Grid | X Count | sa_2026_generated_vb=10 |
+| ConstructionOperations / PointsandGroups | Construct Points Layout on Grid | Y Min | sa_2026_generated_vb=0.0 |
+| ConstructionOperations / PointsandGroups | Construct Points Layout on Grid | Y Max | sa_2026_generated_vb=50.0 |
+| ConstructionOperations / PointsandGroups | Construct Points Layout on Grid | Y Count | sa_2026_generated_vb=10 |
+| ConstructionOperations / PointsandGroups | Construct Points Layout on Grid | Z Min | sa_2026_generated_vb=0.0 |
+| ConstructionOperations / PointsandGroups | Construct Points Layout on Grid | Z Max | sa_2026_generated_vb=0.0 |
+| ConstructionOperations / PointsandGroups | Construct Points Layout on Grid | Z Count | sa_2026_generated_vb=1 |
+| ConstructionOperations / PointsandGroups | Construct Points N-Spaced on Curves | Number of Evenly Spaced Points | sa_2026_generated_vb=10 |
+| ConstructionOperations / PointsandGroups | Construct Points Shifted in Working Frame | Shift Vector | sa_2026_generated_vb=[0.0,0.0,0.0] |
+| ConstructionOperations / PointsandGroups | Construct Points Spaced at a Distance on Curves | Distance Between Points | sa_2026_generated_vb=0.5 |
+| ConstructionOperations / PointsandGroups | Construct Points Subset with Greatest Spacing | Subset Size | sa_2026_generated_vb=10 |
+| ConstructionOperations / PointsandGroups | Construct Points WildCard Selection | Include prior complete name | sa_2026_generated_vb=false |
+| ConstructionOperations / PointsandGroups | Create Hidden Point | Hidden Point Rod Index | sa_2026_generated_vb=0 |
+| ConstructionOperations / PointsandGroups | Create Hidden Point | Overwrite existing point? | sa_2026_generated_vb=false |
+| ConstructionOperations / PointsandGroups | Create Hidden Point Rod | A to B (Target to Target) Distance | sa_2026_generated_vb=0.0 |
+| ConstructionOperations / PointsandGroups | Create Hidden Point Rod | A to C (Target to Tip) Distance | sa_2026_generated_vb=0.0 |
+| ConstructionOperations / PointsandGroups | Create Hidden Point Rod | A to B Inter-point Tolerance (0.0 for none) | sa_2026_generated_vb=0.0 |
+| ConstructionOperations / PointsandGroups | Delete Hidden point Rod | Hidden Point Rod Index | sa_2026_generated_vb=0 |
+| ConstructionOperations / PointsandGroups | Get Gradient At Projected Point On Surface | Generate output vector lines? | sa_2026_generated_vb=false |
+| ConstructionOperations / PointsandGroups | Transform Points by Delta (About Working Frame) | Delta In Working Coordinates | sa_2026_generated_vb=[0.0,0.0,0.0] |
+| ConstructionOperations / Spheres | Construct Sphere | Sphere Center (in working coordinates) | sa_2026_generated_vb=[0.0,0.0,0.0] |
+| ConstructionOperations / Spheres | Construct Sphere | Sphere Radius | sa_2026_generated_vb=0.0 |
+| ConstructionOperations / Surfaces | Construct Surface by offsetting a surface | Surface offset | sa_2026_generated_vb=0.0 |
+| ConstructionOperations / Surfaces | Construct Surface by offsetting a surface | Hide original surface? | sa_2026_generated_vb=true |
+| ConstructionOperations / Surfaces | Construct Surface From a Collection of Surfaces | Hide Original Surfaces? | sa_2026_generated_vb=true |
+| ConstructionOperations / Surfaces | Construct Surface From a Collection of Surfaces | Delete Original Surfaces? | sa_2026_generated_vb=false |
+| ConstructionOperations / Surfaces | Construct Surface From a Collection of Surfaces | Enable Sewing Tolerance? | sa_2026_generated_vb=false |
+| ConstructionOperations / Surfaces | Construct Surface From a Collection of Surfaces | Sewing Tolerance | sa_2026_generated_vb=-1.0 |
+| ConstructionOperations / VectorGroups | Construct a Vector Group - Group to Group Compare | RMS Deviation Tolerance (0.0 for none) | sa_2026_generated_vb=0.0 |
+| ConstructionOperations / VectorGroups | Construct a Vector Group - Group to Group Compare | Max Absolute Deviation Tolerance (0.0 for none) | sa_2026_generated_vb=0.0 |
+| ConstructionOperations / VectorGroups | Construct a Vector Group - Group to Group Compare | Average Deviation Tolerance (0.0 for none) | sa_2026_generated_vb=0.0 |
+| ConstructionOperations / VectorGroups | Construct a Vector in Working Coordinates (Begin/Delta) | 'Begin' in Working Coordinates | sa_2026_generated_vb=[0.0,0.0,0.0] |
+| ConstructionOperations / VectorGroups | Construct a Vector in Working Coordinates (Begin/Delta) | 'Delta' in Working Coordinates | sa_2026_generated_vb=[0.0,0.0,0.0] |
+| ConstructionOperations / VectorGroups | Construct a Vector in Working Coordinates (Begin/Delta) | Is Magnitude Negative | sa_2026_generated_vb=false |
+| ConstructionOperations / VectorGroups | Construct a Vector in Working Coordinates (Begin/Direction/Mag.) | 'Begin' in Working Coordinates | sa_2026_generated_vb=[0.0,0.0,0.0] |
+| ConstructionOperations / VectorGroups | Construct a Vector in Working Coordinates (Begin/Direction/Mag.) | 'Direction' in Working Coordinates | sa_2026_generated_vb=[0.0,0.0,0.0] |
+| ConstructionOperations / VectorGroups | Construct a Vector in Working Coordinates (Begin/Direction/Mag.) | Signed Magnitude | sa_2026_generated_vb=0.0 |
+| Events | Get i-th Event From Event Ref List | Event Index | sa_2026_generated_vb=0 |
+| FileOperations / QDASFileExport | Get QDAS Catalog Entry Identifier | Font | sa_2026_generated_vb=["MS Shell Dlg",8,0,0,0] |
+| GDT | Feature Inspection Auto Filter | Feature Check Name List | objectivesa_prior_release=null |
+| GDT / GDTConstruct | Make a Feature Check Reference List - WildCard Selection | Collection Wildcard Criteria | sa_2026_generated_vb="*" |
+| GDT / GDTConstruct | Make a Feature Check Reference List - WildCard Selection | Feature Check Wildcard Criteria | sa_2026_generated_vb="*" |
+| GDT / GDTConstruct | Make GD&T Datum Annotation | Is Slot? | sa_2026_generated_vb=false |
+| GDT / GDTConstruct | Make GD&T Datum Annotation | Force Surface Feature? | sa_2026_generated_vb=false |
+| GDT | Set GD&T Extended Options | Use Extended Options | sa_2026_generated_vb=true |
+| GDT | Set GD&T Extended Options | Circle Extended Options | sa_2026_generated_vb="Least Squares" |
+| GDT | Set GD&T Extended Options | Cone Extended Options | sa_2026_generated_vb="Least Squares" |
+| GDT | Set GD&T Extended Options | Cylinder Extended Options | sa_2026_generated_vb="Least Squares" |
+| GDT | Set GD&T Extended Options | Ellipse Extended Options | sa_2026_generated_vb="Least Squares" |
+| GDT | Set GD&T Extended Options | Line Extended Options | sa_2026_generated_vb="Least Squares" |
+| GDT | Set GD&T Extended Options | Open Slot Extended Options | sa_2026_generated_vb="Least Squares" |
+| GDT | Set GD&T Extended Options | Plane Extended Options | sa_2026_generated_vb="Least Squares" |
+| GDT | Set GD&T Extended Options | Slot Extended Options | sa_2026_generated_vb="Least Squares" |
+| GDT | Set GD&T Extended Options | Sphere Extended Options | sa_2026_generated_vb="Least Squares" |
+| InstrumentOperations / APILadar | Set LADAR Auto Meas Point | Sample Time MS (1-2000) | sa_2026_generated_vb=0 |
+| InstrumentOperations / APILadar | Set LADAR Auto Meas Sphere | Sphere Radius | sa_2026_generated_vb=1.1875 |
+| InstrumentOperations / APILadar | Set LADAR Auto Meas Sphere | Scan Line Spacing | sa_2026_generated_vb=0.05 |
+| InstrumentOperations / APILadar | Set LADAR Auto Meas Sphere | Send Center Point? | sa_2026_generated_vb=true |
+| InstrumentOperations / APILadar | Set LADAR Auto Meas Sphere | Send Sphere? | sa_2026_generated_vb=false |
+| InstrumentOperations / APILadar | Set LADAR Auto Meas Sphere | Send Measured Cloud? | sa_2026_generated_vb=false |
+| InstrumentOperations | Add Nominal Point to TCP Fixture | Nominal Point Location | sa_2026_generated_vb=[0.0,0.0,0.0] |
+| InstrumentOperations | Add Nominal Point to TCP Fixture | Var XX | sa_2026_generated_vb=0.0 |
+| InstrumentOperations | Add Nominal Point to TCP Fixture | Var YY | sa_2026_generated_vb=0.0 |
+| InstrumentOperations | Add Nominal Point to TCP Fixture | Var ZZ | sa_2026_generated_vb=0.0 |
+| InstrumentOperations | Add Nominal Point to TCP Fixture | CoVar XY | sa_2026_generated_vb=0.0 |
+| InstrumentOperations | Add Nominal Point to TCP Fixture | CoVar XZ | sa_2026_generated_vb=0.0 |
+| InstrumentOperations | Add Nominal Point to TCP Fixture | CoVar YZ | sa_2026_generated_vb=0.0 |
+| InstrumentOperations / AdvancedInstrumentOperations | Set Instrument Axes | Number of Steps | sa_2026_generated_vb=0 |
+| InstrumentOperations | Auto-Correspond with Proximity Trigger | Point distance threshold | sa_2026_generated_vb=0.5 |
+| InstrumentOperations | Auto-Correspond with Proximity Trigger | Vector axis threshold | sa_2026_generated_vb=0.25 |
+| InstrumentOperations | Auto-Correspond with Proximity Trigger | Project results to nominal vector | sa_2026_generated_vb=false |
+| InstrumentOperations | Auto-Correspond with Proximity Trigger | Warbler ramp start zone distance | sa_2026_generated_vb=12.0 |
+| InstrumentOperations | Auto-Correspond with Proximity Trigger | Show Watch window on startup | sa_2026_generated_vb=false |
+| InstrumentOperations | Auto-Correspond with Proximity Trigger | Make unmeasured group when done | sa_2026_generated_vb=false |
+| InstrumentOperations | Auto-Correspond with Proximity Trigger | Measure each point only once | sa_2026_generated_vb=false |
+| InstrumentOperations | Auto-Measure Batch of Features | Wait for Complete | sa_2026_generated_vb=true |
+| InstrumentOperations | Auto Measure Points | Force use of existing group? | sa_2026_generated_vb=false |
+| InstrumentOperations | Auto Measure Points | Show complete dialog? | sa_2026_generated_vb=false |
+| InstrumentOperations | Auto Measure Points | Wait for Completion? | sa_2026_generated_vb=true |
+| InstrumentOperations | Auto Measure Points | Auto Start? | sa_2026_generated_vb=false |
+| InstrumentOperations | Auto-Measure Specified Geometry | Wait for Complete | sa_2026_generated_vb=false |
+| InstrumentOperations | Auto-Measure Vectors | Project Point to Vector | sa_2026_generated_vb=false |
+| InstrumentOperations | Auto-Measure Vectors | Angle Tolerance | sa_2026_generated_vb=0.0 |
+| InstrumentOperations | Auto-Measure Vectors | High Tolerance | sa_2026_generated_vb=0.0 |
+| InstrumentOperations | Auto-Measure Vectors | Low Tolerance | sa_2026_generated_vb=0.0 |
+| InstrumentOperations | Compute CTE Scale Factor | Material CTE (1/Deg F) | sa_2026_generated_vb=0.0 |
+| InstrumentOperations | Compute CTE Scale Factor | Initial Temperature (F) | sa_2026_generated_vb=0.0 |
+| InstrumentOperations | Compute CTE Scale Factor | Final Temperature (F) | sa_2026_generated_vb=0.0 |
+| InstrumentOperations | Configure and Measure | Measure Immediately | sa_2026_generated_vb=false |
+| InstrumentOperations | Configure and Measure | Wait for Completion | sa_2026_generated_vb=true |
+| InstrumentOperations | Configure and Measure | Timeout in Seconds | sa_2026_generated_vb=0.0 |
+| InstrumentOperations | Delete Instrument | Prompt user to confirm? | sa_2026_generated_vb=true |
+| InstrumentOperations | Delete Instrument | Keep resulting points? | sa_2026_generated_vb=true |
+| InstrumentOperations | Delete Measurement Observation | Observation index | sa_2026_generated_vb=0 |
+| InstrumentOperations | Delete Measurement Observation | Delete point if no measurements remain? | sa_2026_generated_vb=false |
+| InstrumentOperations | Delete Measurements | Delete point if no measurements remain? | sa_2026_generated_vb=false |
+| InstrumentOperations | Get Current Instrument Position Update | Reporting Frame | sa_2026_generated_vb="Instrument Base" |
+| InstrumentOperations | Get Current Instrument Position Update | Polar Coordinates? | sa_2026_generated_vb=false |
+| InstrumentOperations | Get Observation Info | Observation Index | sa_2026_generated_vb=0 |
+| InstrumentOperations | Initiate Servo-Guide | Tolerance | sa_2026_generated_vb=0.0 |
+| InstrumentOperations | Jump Instrument to New Location | Hide the Previous Instrument? | sa_2026_generated_vb=false |
+| InstrumentOperations | Locate Instrument (Group to Surface Quick Fit) | RMS Tolerance (0.0 for none) | sa_2026_generated_vb=0.0 |
+| InstrumentOperations | Locate Instrument (Group to Surface Quick Fit) | Maximum Absolute Tolerance (0.0 for none) | sa_2026_generated_vb=0.0 |
+| InstrumentOperations | Locate Instruments (USMN) | Move In Working Frame (TRUE) or Instrument Frame (FALSE) | sa_2026_generated_vb=false |
+| InstrumentOperations | Locate Instruments (USMN) | AutoReject Outliers and Resolve | sa_2026_generated_vb=false |
+| InstrumentOperations | Locate Instruments (USMN) | Max Acceptable RMS Error Value (0.0 for none) | sa_2026_generated_vb=0.0 |
+| InstrumentOperations | Locate Instruments (USMN) | Max Acceptable Error Value (0.0 for none) | sa_2026_generated_vb=0.0 |
+| InstrumentOperations | Locate Instruments (USMN) | Exclude Points Measured By Only One Instrument | sa_2026_generated_vb=false |
+| InstrumentOperations | Move Measurement Observation | Observation index | sa_2026_generated_vb=0 |
+| InstrumentOperations | Move Measurement Observation | Delete point if no measurements remain? | sa_2026_generated_vb=false |
+| InstrumentOperations | Move Measurement Observation | Force observation to be active? | sa_2026_generated_vb=true |
+| InstrumentOperations / NikonMetrologyLaserRadar / CloudViewerOperations | Set Filter | Filter Value | sa_2026_generated_vb=0 |
+| InstrumentOperations / NikonMetrologyLaserRadar | LR APDIS Perform MCM Calibration | Use Matte Tooling Ball? | sa_2026_generated_vb=true |
+| InstrumentOperations / NikonMetrologyLaserRadar | LR Hardware Connect | Port | sa_2026_generated_vb=0 |
+| InstrumentOperations / NikonMetrologyLaserRadar | LR Self Test - LO Sep | Region (1=Region12,2=Region23,3=Region34) | sa_2026_generated_vb=0 |
+| InstrumentOperations / NikonMetrologyLaserRadar | LR Self Test - LO Sep | Num Range Measurements | sa_2026_generated_vb=0 |
+| InstrumentOperations / NikonMetrologyLaserRadar | LR Set Red Laser Intensity | Intensity (0-100) | sa_2026_generated_vb=0 |
+| InstrumentOperations | Quick Align | Align to Individual Faces Only (not Entire Surface) | sa_2026_generated_vb=false |
+| InstrumentOperations | Scan CAD Faces | Enable exclusions? | sa_2026_generated_vb=true |
+| InstrumentOperations | Scan CAD Faces | Wait for Completion | sa_2026_generated_vb=true |
+| InstrumentOperations | Scan within Perimeter | Wait for Completion | sa_2026_generated_vb=true |
+| InstrumentOperations | Set (absolute) Instrument Scale Factor (CAUTION!) | Scale Factor | sa_2026_generated_vb=0.0 |
+| InstrumentOperations | Set Instrument Interface Response Timeout | Timeout (secs) | sa_2026_generated_vb=0.0 |
+| InstrumentOperations | Set Instrument Transform | Number of Steps | sa_2026_generated_vb=0 |
+| InstrumentOperations | Set Instrument Weather Setting | Temperature (F) | sa_2026_generated_vb=0.0 |
+| InstrumentOperations | Set Instrument Weather Setting | Pressure (mmHg) | sa_2026_generated_vb=0.0 |
+| InstrumentOperations | Set Instrument Weather Setting | Humidity (%Rel) | sa_2026_generated_vb=0.0 |
+| InstrumentOperations | Set Instrument Weather Setting | Set Automatically? (Ignore above values) | sa_2026_generated_vb=false |
+| InstrumentOperations | Set Observation Status | Observation Index | sa_2026_generated_vb=0 |
+| InstrumentOperations | Set Observation Status | Active? | sa_2026_generated_vb=false |
+| InstrumentOperations | Set Probe Offset Frame Offline (Select Previously Measured Frame) | Face ID  | sa_2026_generated_vb=0 |
+| InstrumentOperations | Set Target Computation Options | Target Computation Method | sa_2026_generated_vb="Use most recent shot from each face" |
+| InstrumentOperations | Set Target Computation Options | Ignore Distance Measurements | sa_2026_generated_vb=false |
+| InstrumentOperations | Set (multiply) Instrument Scale Factor (CAUTION!) | Scale Factor | sa_2026_generated_vb=0.0 |
+| InstrumentOperations | Start Instrument Interface | Initialize at Startup | sa_2026_generated_vb=false |
+| InstrumentOperations | Start Instrument Interface | Interface Type (0=default) | sa_2026_generated_vb=0 |
+| InstrumentOperations | Start Instrument Interface | Run in Simulation | sa_2026_generated_vb=false |
+| InstrumentOperations | Start Instrument Interface | Allow Start w/o Init Requirements | sa_2026_generated_vb=false |
+| InstrumentOperations | Transform Instrument by Delta | Apply Scale from Transform to Instrument | sa_2026_generated_vb=false |
+| InstrumentOperations | Transform Instrument - Frame To Frame | Number of Steps | sa_2026_generated_vb=0 |
+| InstrumentOperations | Transform Multiple Instruments by Delta | Apply Scale from Transform to Instrument | sa_2026_generated_vb=false |
+| RelationshipOperations | Auto Filter Clouds to Nominal Geometry 2D | Cloud Thinning Settings | sa_2026_generated_vb=["Nth Point",5,100,20000] |
+| RelationshipOperations | Auto Filter Clouds to Nominal Geometry 2D | Geometry Extraction Tolerance | sa_2026_generated_vb=0.01 |
+| RelationshipOperations | Auto Filter Clouds to Nominal Geometry 2D | Use Feature Specific Filter Settings? | sa_2026_generated_vb=false |
+| RelationshipOperations | Auto Filter Clouds to Nominal Geometry 3D | Cloud Thinning Settings | sa_2026_generated_vb=["Nth Point",5,100,20000] |
+| RelationshipOperations | Auto Filter Clouds to Nominal Geometry 3D | Use Feature Specific Filter Settings? | sa_2026_generated_vb=false |
+| RelationshipOperations | Auto Filter Points/Groups/Clouds to Surface Faces | Cloud Thinning Settings | objectivesa_prior_release=null; sa_2026_generated_vb=["Nth Point",5,100,20000] |
+| RelationshipOperations | Create Points to Objects Map | Proximity Tolerance | sa_2026_generated_vb=0.0 |
+| RelationshipOperations | Edit Geometry Relationship Point List | Point Edit Mode | objectivesa_prior_release="Point List" |
+| RelationshipOperations | Extract Geometry From Point Clouds | Geometry Type | sa_2026_generated_vb="Circle" |
+| RelationshipOperations | Extract Geometry From Point Clouds | Tolerance | sa_2026_generated_vb=0.1 |
+| RelationshipOperations | Extract Geometry From Point Clouds | Reverse Normal | sa_2026_generated_vb=false |
+| RelationshipOperations | Extract Geometry From Point Clouds | Planar Point Count | sa_2026_generated_vb=1000 |
+| RelationshipOperations | Filter Geometry Relationship Outlier Cloud Points | Sigma Threshold | sa_2026_generated_vb=3.0 |
+| RelationshipOperations | Filter Geometry Relationship Outlier Cloud Points | Modify Existing Input Clouds | sa_2026_generated_vb=false |
+| RelationshipOperations | Get i-th Relationship From Relationship Ref List | Relationship Index | sa_2026_generated_vb=0 |
+| RelationshipOperations | Make Dynamic Circle Relationship | Construction Mode | sa_2026_generated_vb="Cylinder and Plane Intersection - Hold Plane Normal" |
+| RelationshipOperations | Make Dynamic Ellipse Relationship | Construction Mode | sa_2026_generated_vb="Cylinder and Plane Intersection" |
+| RelationshipOperations | Make Dynamic Line Relationship | Construction Mode | sa_2026_generated_vb="Intersection of Two Planes" |
+| RelationshipOperations | Make Dynamic Plane Relationship | Construction Mode | sa_2026_generated_vb="Bisect Two Planes" |
+| RelationshipOperations | Make Dynamic Point Relationship | Construction Mode | sa_2026_generated_vb="Intersection of Line and Plane" |
+| RelationshipOperations | Make Frame to Frame Relationship | Orientation Tolerance | objectivesa_prior_release=null; sa_2026_generated_vb=[false,0.0,false,0.0] |
+| RelationshipOperations | Make Frame to Frame Relationship | Position Tolerance | objectivesa_prior_release=null; sa_2026_generated_vb=[false,0.0,false,0.0,false,0.0,false,0.0,false,0.0,false,0.0,false,0.0,false,0.0] |
+| RelationshipOperations | Make Group to Group Relationship | Tolerance | objectivesa_prior_release=null; sa_2026_generated_vb=[false,0.0,false,0.0,false,0.0,false,0.0,false,0.0,false,0.0,false,0.0,false,0.0] |
+| RelationshipOperations | Make Group to Group Relationship | Constraint | objectivesa_prior_release=null; sa_2026_generated_vb=[true,0.0,true,0.0,true,0.0,false,0.0,true,0.0,true,0.0,true,0.0,false,0.0] |
+| RelationshipOperations | Make Point Clouds to Objects Relationship | Projection Options | sa_2026_generated_vb=["Object To Probe Vectors",false,false,0.0,false,0.0] |
+| RelationshipOperations | Make Point to Point Relationship | Tolerance | objectivesa_prior_release=null; sa_2026_generated_vb=[false,0.0,false,0.0,false,0.0,false,0.0,false,0.0,false,0.0,false,0.0,false,0.0] |
+| RelationshipOperations | Make Point to Point Relationship | Constraint | objectivesa_prior_release=null; sa_2026_generated_vb=[true,0.0,true,0.0,true,0.0,false,0.0,true,0.0,true,0.0,true,0.0,false,0.0] |
+| RelationshipOperations | Make Points to Objects Relationship | Projection Options | sa_2026_generated_vb=["Object To Probe Vectors",false,false,0.0,false,0.0] |
+| ReportingOperations | Add Item to SA Report at Location | Page Number | sa_2026_generated_vb=0 |
+| ReportingOperations | Add Item to SA Report at Location | Horizontal Location | sa_2026_generated_vb=1.0 |
+| ReportingOperations | Add Item to SA Report at Location | Vertical Location | sa_2026_generated_vb=1.0 |
+| ReportingOperations | Add Item to SA Report at Location | Show Report? | sa_2026_generated_vb=false |
+| ReportingOperations | Append Items to SA Report | Show Report? | sa_2026_generated_vb=false |
+| ReportingOperations | Append Items to SA Report | Begin On New Page? | sa_2026_generated_vb=false |
+| ReportingOperations | Combine SA Reports | Show Report? | sa_2026_generated_vb=false |
+| ReportingOperations | Create Chart from Vector Group | Show Interface? | sa_2026_generated_vb=false |
+| ReportingOperations / CustomReportTables | Add Custom Table to SA Report | Show Report? | sa_2026_generated_vb=false |
+| ReportingOperations / CustomReportTables | Get Custom Table Cell Double | Row | sa_2026_generated_vb=0 |
+| ReportingOperations / CustomReportTables | Get Custom Table Cell Double | Column | sa_2026_generated_vb=0 |
+| ReportingOperations / CustomReportTables | Get Custom Table Cell String | Row | sa_2026_generated_vb=0 |
+| ReportingOperations / CustomReportTables | Get Custom Table Cell String | Column | sa_2026_generated_vb=0 |
+| ReportingOperations / CustomReportTables | Make Custom Table | Decimal Precision | sa_2026_generated_vb=6 |
+| ReportingOperations / CustomReportTables | Set Custom Table Cell Color | Row | sa_2026_generated_vb=0 |
+| ReportingOperations / CustomReportTables | Set Custom Table Cell Color | Column | sa_2026_generated_vb=0 |
+| ReportingOperations / CustomReportTables | Set Custom Table Cell Color | Foreground Color Name | sa_2026_generated_vb=[255,0,0] |
+| ReportingOperations / CustomReportTables | Set Custom Table Cell Color | Background Color Name | sa_2026_generated_vb=[255,0,0] |
+| ReportingOperations / CustomReportTables | Set Custom Table Cell Font | Row | sa_2026_generated_vb=0 |
+| ReportingOperations / CustomReportTables | Set Custom Table Cell Font | Column | sa_2026_generated_vb=0 |
+| ReportingOperations / CustomReportTables | Set Custom Table Cell Font | Font | sa_2026_generated_vb=["MS Shell Dlg",8,0,0,0] |
+| ReportingOperations | Quick Report | Open Report? | sa_2026_generated_vb=true |
+| ReportingOperations | Rename Picture | Overwrite if exists? | sa_2026_generated_vb=false |
+| ReportingOperations / ReportBar | Add Charts to Report Bar | Clear Existing? | sa_2026_generated_vb=false |
+| ReportingOperations / ReportBar | Add Custom Tables to Report Bar | Clear Existing? | sa_2026_generated_vb=false |
+| ReportingOperations / ReportBar | Add Datums to Report Bar | Clear Existing? | sa_2026_generated_vb=false |
+| ReportingOperations / ReportBar | Add Events to Report Bar | Clear Existing? | sa_2026_generated_vb=false |
+| ReportingOperations / ReportBar | Add Feature Checks to Report Bar | Clear Existing? | sa_2026_generated_vb=false |
+| ReportingOperations / ReportBar | Add Objects to Report Bar | Clear Existing? | sa_2026_generated_vb=true |
+| ReportingOperations / ReportBar | Add Pictures to Report Bar | Clear Existing? | sa_2026_generated_vb=false |
+| ReportingOperations / ReportBar | Add Relationships to Report Bar | Clear Existing? | sa_2026_generated_vb=false |
+| ReportingOperations / ReportBar | Set Report Bar Visibility | Show Report Bar? | sa_2026_generated_vb=false |
+| ReportingOperations | Set Point Group Report Options | Coordinate System | sa_2026_generated_vb="Cartesian" |
+| ReportingOperations | Set Point Group Report Options | Show X Component | sa_2026_generated_vb=true |
+| ReportingOperations | Set Point Group Report Options | Show Y Component | sa_2026_generated_vb=true |
+| ReportingOperations | Set Point Group Report Options | Show Z Component | sa_2026_generated_vb=true |
+| ReportingOperations | Set Point Group Report Options | Show Offsets | sa_2026_generated_vb=false |
+| ReportingOperations | Set Point Group Report Options | Show Uncertainty | sa_2026_generated_vb=true |
+| ReportingOperations | Set Point Group Report Options | Show Notes | sa_2026_generated_vb=false |
+| ReportingOperations | Set Point Group Report Options | Show Measurements | sa_2026_generated_vb=false |
+| ReportingOperations | Set Point Group Report Options | Show Measurement Details | sa_2026_generated_vb=false |
+| ReportingOperations | Set Point Group Report Options | Show PointingError/Worst Angle | sa_2026_generated_vb=false |
+| ReportingOperations | Set Point Group Report Options | Sort by Point Names | sa_2026_generated_vb=true |
+| ReportingOperations | Set Point Group Report Options | Make Default | sa_2026_generated_vb=false |
+| ReportingOperations | Set Point Group Report Options | Apply to All | sa_2026_generated_vb=false |
+| ReportingOperations | Set Relationship Report Options | Report Options | sa_2026_generated_vb=["Cartesian","Single",true,true,true,true,true,true,true,false,true,true] |
+| ReportingOperations | Set Report Tag Value From Double | Tag Value | sa_2026_generated_vb=0.0 |
+| ReportingOperations | Set Report Tag Value From Integer | Tag Value | sa_2026_generated_vb=0 |
+| ReportingOperations | Set Scale for Picture | Scale | sa_2026_generated_vb=100.0 |
+| ReportingOperations | Set Vector Group Report Options | Report Options | sa_2026_generated_vb=["Cartesian","Single",true,true,true,true,true,true,true,false,true,true] |
+| RobotOperations | Get Calibration Appliance Integer Value | Index Offset | sa_2026_generated_vb=0 |
+| RobotOperations | Get Calibration Appliance Real Value | Index Offset | sa_2026_generated_vb=0 |
+| RobotOperations | Move Robot/Machine through Path | Use SA Kinematics | sa_2026_generated_vb=true |
+| RobotOperations | Move Robot/Machine through Path | Linear Segments | sa_2026_generated_vb=false |
+| RobotOperations | Move Robot/Machine through Path | Acknowledge Arrival | sa_2026_generated_vb=true |
+| RobotOperations | Move Robot/Machine to Frame | Use SA Kinematics | sa_2026_generated_vb=false |
+| RobotOperations | Move Robot/Machine to Frame | Acknowledge Arrival | sa_2026_generated_vb=false |
+| RobotOperations | Move Robot/Machine to Joint Pose (6DOF) | Joint 1 | sa_2026_generated_vb=0.0 |
+| RobotOperations | Move Robot/Machine to Joint Pose (6DOF) | Joint 2 | sa_2026_generated_vb=0.0 |
+| RobotOperations | Move Robot/Machine to Joint Pose (6DOF) | Joint 3 | sa_2026_generated_vb=0.0 |
+| RobotOperations | Move Robot/Machine to Joint Pose (6DOF) | Joint 4 | sa_2026_generated_vb=0.0 |
+| RobotOperations | Move Robot/Machine to Joint Pose (6DOF) | Joint 5 | sa_2026_generated_vb=0.0 |
+| RobotOperations | Move Robot/Machine to Joint Pose (6DOF) | Joint 6 | sa_2026_generated_vb=0.0 |
+| RobotOperations | Move Robot/Machine to Named Destination | Acknowledge Arrival | sa_2026_generated_vb=false |
+| RobotOperations | Perform Robot Calibration (Alternate) | Set Current Base as Nominal? | sa_2026_generated_vb=false |
+| RobotOperations | Perform Robot Calibration (Alternate) | Show Interface | sa_2026_generated_vb=false |
+| RobotOperations | Perform Robot Calibration (Alternate) | Allowed Outlier Rejection Count | sa_2026_generated_vb=0 |
+| RobotOperations | Perform Robot Calibration (Alternate) | Allowable Maximum Error | sa_2026_generated_vb=0.0 |
+| RobotOperations | Perform Robot Calibration (Alternate) | Allowable Average Error | sa_2026_generated_vb=0.0 |
+| RobotOperations | Set Calibration Appliance Integer Value | Index Offset | sa_2026_generated_vb=0 |
+| RobotOperations | Set Calibration Appliance Integer Value | Integer Value | sa_2026_generated_vb=0 |
+| RobotOperations | Set Robot/Machine Parameter | Parameter Value | sa_2026_generated_vb=0.0 |
+| RobotOperations | Set Calibration Appliance Real Value | Index Offset | sa_2026_generated_vb=0 |
+| RobotOperations | Set Calibration Appliance Real Value | Real Value | sa_2026_generated_vb=0.0 |
+| RobotOperations | Start Robot/Machine Interface | Interface Type | sa_2026_generated_vb=0 |
+| RobotOperations | Start Robot/Machine Interface | Run in Simulation | sa_2026_generated_vb=false |
+| RobotOperations | Start/Stop Robot Calibration Trapping | Start Trapping (FALSE = Stop) | sa_2026_generated_vb=false |
+| ScaleBars | Scale Bar Check | Current Temperature (F) | sa_2026_generated_vb=0.0 |
+| ScaleBars | Scale Bar Check | Length of Bar at 68F | sa_2026_generated_vb=0.0 |
+| ScaleBars | Scale Bar Check | Material CTE (PPM/F) | sa_2026_generated_vb=0.0 |
+| ScaleBars | Scale Bar Check | Tolerance | sa_2026_generated_vb=0.0 |
+| UtilityOperations / Folders | Get Folders by Wildcard | Case Sensitive Search | sa_2026_generated_vb=true |
+| UtilityOperations / Folders | Set Folder Notes | Append? (FALSE = Overwrite) | sa_2026_generated_vb=true |
+| UtilityOperations / Network | Set Wild Card Asterisk Mode | Auto Wrap Search String? | sa_2026_generated_vb=true |
+| UtilityOperations / Notes | Set Collection Notes | Append? (FALSE = Overwrite) | sa_2026_generated_vb=true |
+| UtilityOperations / Notes | Set Object Notes | Append? (FALSE = Overwrite) | sa_2026_generated_vb=true |
+| UtilityOperations / Notes | Set Point Notes | Append? (FALSE = Overwrite) | sa_2026_generated_vb=true |
+| UtilityOperations / Units | Lock Imported Items | Lock Items? | sa_2026_generated_vb=false |
+| UtilityOperations / Units | Lock/Unlock Selected Items | Lock Items? | sa_2026_generated_vb=false |
+| UtilityOperations / Units | Scale Objects | Scale Factor | sa_2026_generated_vb=0.0 |
+| UtilityOperations / Units | Set Angular Representation | 0-360, (FALSE = +/-180) | sa_2026_generated_vb=false |
+| UtilityOperations / Units | Set Auto Event Creation | Active? | sa_2026_generated_vb=false |
+| UtilityOperations / Units | Set Automatic Backup State | Auto Job File Restore Points Active? | sa_2026_generated_vb=true |
+| UtilityOperations / Units | Set Automatic Backup State | Auto Measurements Backup Active? | sa_2026_generated_vb=true |
+| UtilityOperations / Units | Set Automatic Relationship Construction State | Active? | sa_2026_generated_vb=false |
+| UtilityOperations / Units | Set Decimal Digits for Display | Length | sa_2026_generated_vb=0 |
+| UtilityOperations / Units | Set Decimal Digits for Display | Angle | sa_2026_generated_vb=0 |
+| UtilityOperations / Units | Set Decimal Digits for Display | Scale | sa_2026_generated_vb=0 |
+| UtilityOperations / Units | Set Decimal Digits for Display | Unit Vector | sa_2026_generated_vb=0 |
+| UtilityOperations / Units | Set Decimal Digits for Display | Weight | sa_2026_generated_vb=0 |
+| UtilityOperations / Units | Set View Idle Update Frequency | Idle Count | sa_2026_generated_vb=0 |
+| Vector Operations | Auto-Range and Set Vector Group Colorization (All) | Treat Individually? | sa_2026_generated_vb=false |
+| Vector Operations | Auto-Range and Set Vector Group Colorization (All) | Colorization Options (Uses Mode Only) | sa_2026_generated_vb=["Continuous","Blue","Green","Red",false,true,false,100.0,1,false,0.1,false,false,true,false,0.5,-0.5,0.03,-0.03] |
+| Vector Operations | Auto-Range and Set Vector Group Colorization (Selected) | Treat Individually? | sa_2026_generated_vb=false |
+| Vector Operations | Auto-Range and Set Vector Group Colorization (Selected) | Colorization Options (Uses Mode Only) | sa_2026_generated_vb=["Continuous","Blue","Green","Red",false,true,false,100.0,1,false,0.1,false,false,true,false,0.5,-0.5,0.03,-0.03] |
+| Vector Operations | Delete i-th Vector From Vector Group | Vector Index | sa_2026_generated_vb=0 |
+| Vector Operations | Get i-th Vector From Vector Group | Vector Index | sa_2026_generated_vb=0 |
+| Vector Operations | Set Vector Group Colorization Options (All) | Colorization Options | sa_2026_generated_vb=["Continuous","Blue","Green","Red",false,true,false,100.0,1,false,0.1,false,false,true,false,0.5,-0.5,0.03,-0.03] |
+| Vector Operations | Set Vector Group Colorization Options (Selected) | Colorization Options | sa_2026_generated_vb=["Continuous","Blue","Green","Red",false,true,false,100.0,1,false,0.1,false,false,true,false,0.5,-0.5,0.03,-0.03] |
+| ViewControl | Center Graphics About Object(s) | Object Type | sa_2026_generated_vb="Any" |
+| ViewControl | Center Graphics About Object(s) | Collection Wildcard Criteria | sa_2026_generated_vb="*" |
+| ViewControl | Center Graphics About Object(s) | Object Wildcard Criteria | sa_2026_generated_vb="*" |
+| ViewControl / Colors | Set Object(s) Color | New Working Color Name | sa_2026_generated_vb=[255,0,0] |
+| ViewControl / Colors | Set Object(s) Color | Auto Increment | sa_2026_generated_vb=false |
+| ViewControl / Colors | Set Working Color | New Working Color Name | sa_2026_generated_vb=[255,0,0] |
+| ViewControl / Colors | Set Working Color Auto Increment | Auto Increment | sa_2026_generated_vb=false |
+| ViewControl / HideShowOperations | Show/Hide Annotations for Datums | Show? | sa_2026_generated_vb=false |
+| ViewControl / HideShowOperations | Show/Hide Annotations for Datums | Highlight? | sa_2026_generated_vb=false |
+| ViewControl / HideShowOperations | Show/Hide Annotations for Datums | Set Inspection View? | sa_2026_generated_vb=false |
+| ViewControl / HideShowOperations | Show/Hide Annotations for Feature Checks | Show? | sa_2026_generated_vb=false |
+| ViewControl / HideShowOperations | Show/Hide Annotations for Feature Checks | Highlight? | sa_2026_generated_vb=false |
+| ViewControl / HideShowOperations | Show/Hide Annotations for Feature Checks | Set Inspection View? | sa_2026_generated_vb=false |
+| ViewControl / HideShowOperations | Show/Hide Callout View | Show Callout View? | sa_2026_generated_vb=true |
+| ViewControl / HideShowOperations | Show/Hide Instrument Probe Tip | Show Instrument Probe Tip? | sa_2026_generated_vb=false |
+| ViewControl / HideShowOperations | Show/Hide Instruments | Show Instruments? | sa_2026_generated_vb=false |
+| ViewControl / HideShowOperations | Show/Hide Points | Show? (Hide = FALSE) | sa_2026_generated_vb=false |
+| ViewControl / HideShowOperations | Show/Hide Relationship Report | Show Relationship Report | sa_2026_generated_vb=false |
+| ViewControl / HideShowOperations | Show/Hide by Object Type | All Collections? | sa_2026_generated_vb=false |
+| ViewControl / HideShowOperations | Show/Hide by Object Type | Object Type To Show / Hide | sa_2026_generated_vb="Any" |
+| ViewControl / HideShowOperations | Show/Hide by Object Type | Hide? (Show = FALSE) | sa_2026_generated_vb=true |
+| ViewControl / HideShowOperations | Show Items in Tree | Collapse all other Items? | sa_2026_generated_vb=true |
+| ViewControl / HideShowOperations | Show by Object Type | All Collections? | sa_2026_generated_vb=false |
+| ViewControl / HighlightOperations | Highlight Objects | HighLight Objects? | sa_2026_generated_vb=false |
+| ViewControl / HighlightOperations | Highlight Point | Show Point? | sa_2026_generated_vb=false |
+| ViewControl / PointofView | Define Point of View | Rotation (x) | sa_2026_generated_vb=0.0 |
+| ViewControl / PointofView | Define Point of View | Rotation (y) | sa_2026_generated_vb=0.0 |
+| ViewControl / PointofView | Define Point of View | Rotation (z) | sa_2026_generated_vb=0.0 |
+| ViewControl / PointofView | Define Point of View | Restore Zoom Settings? | sa_2026_generated_vb=false |
+| ViewControl / PointofView | Define Point of View | Scale Factor | sa_2026_generated_vb=1.0 |
+| ViewControl / PointofView | Define Point of View | Origin (x) | sa_2026_generated_vb=0.0 |
+| ViewControl / PointofView | Define Point of View | Origin (y) | sa_2026_generated_vb=0.0 |
+| ViewControl / PointofView | Define Point of View | Restore Render Mode? | sa_2026_generated_vb=false |
+| ViewControl / PointofView | Define Point of View | Rendering Mode | sa_2026_generated_vb="Wireframe" |
+| ViewControl / PointofView | Save Point of View | Restore Zoom Settings? | sa_2026_generated_vb=true |
+| ViewControl | Set Object(s) Translucency | Opacity Value | sa_2026_generated_vb=0.0 |
+| ViewControl | Set Target Labels Use Full Names | Use Full Names? | sa_2026_generated_vb=false |
+| ViewControl | Set View Clipping Plane | Remove Clipping Plane? | sa_2026_generated_vb=false |
+| InstrumentOperations | Construct Mirror from Two Points | Send Mirror to Instrument? | sa_2026_generated_vb=true |
+| InstrumentOperations | Set Inspection Verification Mode | Enable Verification? | sa_2026_generated_vb=false |
+| InstrumentOperations | Set WRTL Channel | Channel | sa_2026_generated_vb=0 |
+| InstrumentOperations | Enable/Disable Frame Set Scan Mode (By Instrument) | Enable Frame Set Scan Mode | sa_2026_generated_vb=true |
+| InstrumentOperations | Multi Measurement Initiate | Wait for Completion | sa_2026_generated_vb=false |
+| InstrumentOperations | Set XYZ Instrument Uncertainties | X Uncertainty | sa_2026_generated_vb=0.0005 |
+| InstrumentOperations | Set XYZ Instrument Uncertainties | Y Uncertainty | sa_2026_generated_vb=0.0005 |
+| InstrumentOperations | Set XYZ Instrument Uncertainties | Z Uncertainty) | sa_2026_generated_vb=0.0005 |
+| InstrumentOperations / APILADAR | Set LADAR FeatureMeas Sphere | Scan Line Spacing | sa_2026_generated_vb=0.05 |
+| InstrumentOperations / APILADAR | Set LADAR FeatureMeas Circle | Scan Line Spacing | sa_2026_generated_vb=0.05 |
+| InstrumentOperations / APILADAR | Set LADAR FeatureMeas Circle | Width of Extra Area Around Scan | sa_2026_generated_vb=0.0 |
+| InstrumentOperations / APILADAR | Set LADAR FeatureMeas Slot | Scan Line Spacing | sa_2026_generated_vb=0.05 |
+| InstrumentOperations / APILADAR | Set LADAR FeatureMeas Slot | Width of Extra Area Around Scan | sa_2026_generated_vb=0.0 |
+| InstrumentOperations / APILADAR | Set LADAR FeatureMeas Cylinder | Scan Line Spacing | sa_2026_generated_vb=0.05 |
+| InstrumentOperations / APILADAR | Set LADAR FeatureMeas Cylinder | Width of Extra Area Around Scan | sa_2026_generated_vb=0.0 |
+| RelationshipOperations | Make Groups to Objects Relationship | Projection Options | sa_2026_generated_vb=["Object To Probe Vectors",false,false,0.0,false,0.0] |
+| RelationshipOperations | Make Cloud to Swatch Relationship | Maximum Radial Offset | sa_2026_generated_vb=0.125 |
+| RelationshipOperations | Make Cloud to Swatch Relationship | Minimum Axial Offset | sa_2026_generated_vb=-0.125 |
+| RelationshipOperations | Make Cloud to Swatch Relationship | Maximum Axial Offset | sa_2026_generated_vb=0.125 |
+| RelationshipOperations / RelationshipAttributes | Get Geom Relationship Criteria Name List | Include All Criteria? | sa_2026_generated_vb=false |
+| RelationshipOperations / RelationshipAttributesScalarTypes | Set Object to Object Direction Relationship Tolerances | Angle Between Vectors Tolerances | sa_2026_generated_vb=[false,0.0,false,0.0] |
+| RelationshipOperations / RelationshipAttributesScalarTypes | Set Object to Object Direction Relationship Tolerances | Mutual Perpendicular Length Tolerances | sa_2026_generated_vb=[false,0.0,false,0.0] |
+| RobotCalibrationApplianceNodeOperations | Set Calibration Appliance Node Calibration Appliance IP Address | Calibration Appliance IP Address | sa_2026_generated_vb="0.0.0.0" |
+| RobotCalibrationApplianceNodeOperations | Set Calibration Appliance Node Trapping Node ID | Trapping Node ID | sa_2026_generated_vb=0 |
+| RobotCalibrationApplianceNodeOperations | Enable/Disable Calibration Appliance Node Trap Manager | Enable(TRUE), Disable(FALSE)? | sa_2026_generated_vb=true |
+| RobotCalibrationApplianceNodeOperations | Set Calibration Appliance Node Integer Value | Index Offset | sa_2026_generated_vb=0 |
+| RobotCalibrationApplianceNodeOperations | Set Calibration Appliance Node Integer Value | Integer Value | sa_2026_generated_vb=0 |
+| RobotCalibrationApplianceNodeOperations | Get Calibration Appliance Node Integer Value | Index Offset | sa_2026_generated_vb=0 |
+| RobotCalibrationApplianceNodeOperations | Set Calibration Appliance Node Real Value | Index Offset | sa_2026_generated_vb=0 |
+| RobotCalibrationApplianceNodeOperations | Set Calibration Appliance Node Real Value | Real Value | sa_2026_generated_vb=0.0 |
+| RobotCalibrationApplianceNodeOperations | Get Calibration Appliance Node Real Value | Index Offset | sa_2026_generated_vb=0 |
+| RobotCalibrationApplianceNodeOperations | Update Calibration Appliance Node Display Robot Joints | Enable Display Robot Joint Updates? | sa_2026_generated_vb=true |
+| RobotCalibrationApplianceNodeOperations | Connect/Disconnect Calibration Appliance Node | Connect(TRUE) or Disconnect(FALSE)? | sa_2026_generated_vb=true |
+| RobotCalibrationApplianceNodeOperations | Enable/Disable Calibration Appliance Node Instrument Auto Point | Enable Instrument Auto Point? | sa_2026_generated_vb=true |
+| RobotCalibrationApplianceNodeOperations | Set Calibration Appliance Node Instrument Dwell Time | Measurement Dwell Time (Seconds) | sa_2026_generated_vb=0.0 |
+| RobotOperations | Set Robot/Machine Base Transform | Number of Steps | sa_2026_generated_vb=0 |
+| ViewControl / HideShowOperations | Show / Hide Dimension | Show Dimension? | sa_2026_generated_vb=true |
 
 ## Reviewed intentional exclusions
 

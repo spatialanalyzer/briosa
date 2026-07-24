@@ -15,6 +15,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -22,7 +23,8 @@
         "sdk:EventOperations.txt#6"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -33,7 +35,32 @@
       "value_families": [
         "collection_object_name"
       ],
-      "delivery_wave": "wave_2"
+      "delivery_wave": "wave_2",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Delete Event",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Event Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:Events/GetI-thEventFromEvent.htm",
@@ -46,6 +73,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "read_only_operation"
       ],
       "evidence_references": [
@@ -53,7 +81,8 @@
         "sdk:EventOperations.txt#2"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "read_only",
@@ -66,7 +95,69 @@
         "collection_object_name_list",
         "whole_number"
       ],
-      "delivery_wave": "wave_1"
+      "delivery_wave": "wave_1",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Get i-th Event From Event Ref List",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Event List",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameRefListArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Event Index",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": 0
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetIntegerArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Resultant Item",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetCollectionObjectNameArg"
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:Events/GetI-thEventFromEventIterator.htm",
@@ -101,7 +192,13 @@
         "string",
         "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:Events/GetNumberOfEventsInEventRefList.htm",
@@ -114,6 +211,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "read_only_operation"
       ],
       "evidence_references": [
@@ -121,7 +219,8 @@
         "sdk:EventOperations.txt#1"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "read_only",
@@ -133,7 +232,44 @@
         "collection_object_name_list",
         "whole_number"
       ],
-      "delivery_wave": "wave_1"
+      "delivery_wave": "wave_1",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Get Number of Events in Event Ref List",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Event List",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameRefListArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Total Count",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetIntegerArg"
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "documentation:Events/RenameEvent.htm",
@@ -146,6 +282,7 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
@@ -153,7 +290,8 @@
         "sdk:EventOperations.txt#5"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -165,7 +303,73 @@
         "collection_object_name",
         "logical"
       ],
-      "delivery_wave": "wave_2"
+      "delivery_wave": "wave_2",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Rename Event",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Original Event Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "New Event Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Overwrite if exists?",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
+              "default": {
+                "status": "reviewed",
+                "value": false,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     }
   ]
 }

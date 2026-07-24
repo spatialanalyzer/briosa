@@ -15,13 +15,15 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command is within Briosa automation scope; retain it as a Wave 4 candidate subject to generated policy gates and the documented protected-fixture prerequisites.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#1"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/50"
+        "https://github.com/spatialanalyzer/briosa/issues/50",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -36,7 +38,32 @@
       "value_families": [
         "collection_object_name"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Add Calibration Appliance Node",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Calibration Appliance Node to Add",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "sdk:RobotCalibrationApplianceNodeOperations.txt#10",
@@ -49,13 +76,15 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command is within Briosa automation scope; retain it as a Wave 4 candidate subject to generated policy gates and the documented protected-fixture prerequisites.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#10"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/50"
+        "https://github.com/spatialanalyzer/briosa/issues/50",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -71,7 +100,50 @@
       "value_families": [
         "collection_object_name"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Set Calibration Appliance Node Measurement Frame",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Calibration Appliance Node",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Measurement Reference Frame",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "sdk:RobotCalibrationApplianceNodeOperations.txt#11",
@@ -84,13 +156,15 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command is within Briosa automation scope; retain it as a Wave 4 candidate subject to generated policy gates and the documented protected-fixture prerequisites.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#11"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/50"
+        "https://github.com/spatialanalyzer/briosa/issues/50",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -107,7 +181,50 @@
         "collection_object_name",
         "transform"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Set Calibration Appliance Node Measurement Offset Transform",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Calibration Appliance Node",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Measurement Offset Transform",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetTransformArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "sdk:RobotCalibrationApplianceNodeOperations.txt#12",
@@ -120,13 +237,15 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command is within Briosa automation scope; retain it as a Wave 4 candidate subject to generated policy gates and the documented protected-fixture prerequisites.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#12"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/50"
+        "https://github.com/spatialanalyzer/briosa/issues/50",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -142,7 +261,50 @@
       "value_families": [
         "collection_object_name"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Set Calibration Appliance Node Measurement Point Group",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Calibration Appliance Node",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Point Group Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "sdk:RobotCalibrationApplianceNodeOperations.txt#13",
@@ -155,13 +317,15 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command is within Briosa automation scope; retain it as a Wave 4 candidate subject to generated policy gates and the documented protected-fixture prerequisites.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#13"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/50"
+        "https://github.com/spatialanalyzer/briosa/issues/50",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -177,7 +341,57 @@
         "collection_object_name",
         "string"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Set Calibration Appliance Node Calibration Appliance IP Address",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Calibration Appliance Node",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Calibration Appliance IP Address",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": "0.0.0.0"
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetStringArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "sdk:RobotCalibrationApplianceNodeOperations.txt#14",
@@ -190,13 +404,15 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command is within Briosa automation scope; retain it as a Wave 4 candidate subject to generated policy gates and the documented protected-fixture prerequisites.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#14"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/50"
+        "https://github.com/spatialanalyzer/briosa/issues/50",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -212,7 +428,57 @@
         "collection_object_name",
         "whole_number"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Set Calibration Appliance Node Trapping Node ID",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Calibration Appliance Node",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Trapping Node ID",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": 0
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetIntegerArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "sdk:RobotCalibrationApplianceNodeOperations.txt#15",
@@ -225,13 +491,15 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command is within Briosa automation scope; retain it as a Wave 4 candidate subject to generated policy gates and the documented protected-fixture prerequisites.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#15"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/50"
+        "https://github.com/spatialanalyzer/briosa/issues/50",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -247,7 +515,57 @@
         "collection_object_name",
         "logical"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Enable/Disable Calibration Appliance Node Trap Manager",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Calibration Appliance Node",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Enable(TRUE), Disable(FALSE)?",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": true
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "sdk:RobotCalibrationApplianceNodeOperations.txt#16",
@@ -260,13 +578,15 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command is within Briosa automation scope; retain it as a Wave 4 candidate subject to generated policy gates and the documented protected-fixture prerequisites.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#16"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/50"
+        "https://github.com/spatialanalyzer/briosa/issues/50",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -281,7 +601,32 @@
       "value_families": [
         "collection_object_name"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Clear Calibration Appliance Node Trap Manager Requests",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Calibration Appliance Node",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "sdk:RobotCalibrationApplianceNodeOperations.txt#17",
@@ -294,13 +639,15 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command is within Briosa automation scope; retain it as a Wave 4 candidate subject to generated policy gates and the documented protected-fixture prerequisites.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#17"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/50"
+        "https://github.com/spatialanalyzer/briosa/issues/50",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -316,7 +663,82 @@
         "collection_object_name",
         "whole_number"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Set Calibration Appliance Node Integer Value",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Calibration Appliance Node",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Index Offset",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": 0
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetIntegerArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Integer Value",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": 0
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetIntegerArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "sdk:RobotCalibrationApplianceNodeOperations.txt#18",
@@ -329,13 +751,15 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command is within Briosa automation scope; retain it as a Wave 4 candidate subject to generated policy gates and the documented protected-fixture prerequisites.",
       "reason_codes": [
+        "command_shape_resolved",
         "read_only_operation"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#18"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/50"
+        "https://github.com/spatialanalyzer/briosa/issues/50",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "read_only",
@@ -350,7 +774,69 @@
         "collection_object_name",
         "whole_number"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Get Calibration Appliance Node Integer Value",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Calibration Appliance Node",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Index Offset",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": 0
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetIntegerArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Integer Value",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetIntegerArg"
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "sdk:RobotCalibrationApplianceNodeOperations.txt#19",
@@ -363,13 +849,15 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command is within Briosa automation scope; retain it as a Wave 4 candidate subject to generated policy gates and the documented protected-fixture prerequisites.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#19"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/50"
+        "https://github.com/spatialanalyzer/briosa/issues/50",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -387,7 +875,82 @@
         "floating_point",
         "whole_number"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Set Calibration Appliance Node Real Value",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Calibration Appliance Node",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Index Offset",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": 0
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetIntegerArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Real Value",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": 0.0
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetDoubleArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "sdk:RobotCalibrationApplianceNodeOperations.txt#2",
@@ -400,13 +963,15 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command is within Briosa automation scope; retain it as a Wave 4 candidate subject to generated policy gates and the documented protected-fixture prerequisites.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#2"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/50"
+        "https://github.com/spatialanalyzer/briosa/issues/50",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -421,7 +986,32 @@
       "value_families": [
         "collection_object_name"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Delete Calibration Appliance Node",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Calibration Appliance Node to Delete",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "sdk:RobotCalibrationApplianceNodeOperations.txt#20",
@@ -434,13 +1024,15 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command is within Briosa automation scope; retain it as a Wave 4 candidate subject to generated policy gates and the documented protected-fixture prerequisites.",
       "reason_codes": [
+        "command_shape_resolved",
         "read_only_operation"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#20"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/50"
+        "https://github.com/spatialanalyzer/briosa/issues/50",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "read_only",
@@ -457,7 +1049,69 @@
         "floating_point",
         "whole_number"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Get Calibration Appliance Node Real Value",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Calibration Appliance Node",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Index Offset",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": 0
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetIntegerArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Real Value",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetDoubleArg"
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "sdk:RobotCalibrationApplianceNodeOperations.txt#21",
@@ -493,7 +1147,13 @@
         "double_array",
         "integer_array"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "sdk:RobotCalibrationApplianceNodeOperations.txt#22",
@@ -528,7 +1188,13 @@
         "double_array",
         "integer_array"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "sdk:RobotCalibrationApplianceNodeOperations.txt#23",
@@ -541,13 +1207,15 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command is within Briosa automation scope; retain it as a Wave 4 candidate subject to generated policy gates and the documented protected-fixture prerequisites.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#23"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/50"
+        "https://github.com/spatialanalyzer/briosa/issues/50",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -562,7 +1230,50 @@
         "collection_machine_id",
         "collection_object_name"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Set Calibration Appliance Node Display Robot",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Calibration Appliance Node",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Machine ID",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetColMachineIdArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "sdk:RobotCalibrationApplianceNodeOperations.txt#24",
@@ -575,13 +1286,15 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command is within Briosa automation scope; retain it as a Wave 4 candidate subject to generated policy gates and the documented protected-fixture prerequisites.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#24"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/50"
+        "https://github.com/spatialanalyzer/briosa/issues/50",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -596,7 +1309,57 @@
         "collection_object_name",
         "logical"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Update Calibration Appliance Node Display Robot Joints",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Calibration Appliance Node",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Enable Display Robot Joint Updates?",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": true
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "sdk:RobotCalibrationApplianceNodeOperations.txt#25",
@@ -609,13 +1372,15 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command is within Briosa automation scope; retain it as a Wave 4 candidate subject to generated policy gates and the documented protected-fixture prerequisites.",
       "reason_codes": [
+        "command_shape_resolved",
         "read_only_operation"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#25"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/50"
+        "https://github.com/spatialanalyzer/briosa/issues/50",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "read_only",
@@ -630,7 +1395,56 @@
         "collection_object_name",
         "logical"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Get Calibration Appliance Node Status",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Calibration Appliance Node",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Instrument Connected?",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetBoolArg"
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Calibration Appliance Connected?",
+            "direction": "output",
+            "result_only": "yes",
+            "input": null,
+            "sdk_binding": {
+              "setter": null,
+              "getter": "GetBoolArg"
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "sdk:RobotCalibrationApplianceNodeOperations.txt#3",
@@ -643,13 +1457,15 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command is within Briosa automation scope; retain it as a Wave 4 candidate subject to generated policy gates and the documented protected-fixture prerequisites.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#3"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/50"
+        "https://github.com/spatialanalyzer/briosa/issues/50",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -665,7 +1481,57 @@
         "collection_object_name",
         "logical"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Connect/Disconnect Calibration Appliance Node",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Calibration Appliance Node",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Connect(TRUE) or Disconnect(FALSE)?",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": true
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "sdk:RobotCalibrationApplianceNodeOperations.txt#4",
@@ -678,13 +1544,15 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command is within Briosa automation scope; retain it as a Wave 4 candidate subject to generated policy gates and the documented protected-fixture prerequisites.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#4"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/50"
+        "https://github.com/spatialanalyzer/briosa/issues/50",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -700,7 +1568,50 @@
         "collection_instrument_id",
         "collection_object_name"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Set Calibration Appliance Node Instrument",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Calibration Appliance Node",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Instrument ID",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetColInstIdArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "sdk:RobotCalibrationApplianceNodeOperations.txt#5",
@@ -713,13 +1624,15 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command is within Briosa automation scope; retain it as a Wave 4 candidate subject to generated policy gates and the documented protected-fixture prerequisites.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#5"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/50"
+        "https://github.com/spatialanalyzer/briosa/issues/50",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -736,7 +1649,50 @@
         "collection_object_name",
         "string"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Set Calibration Appliance Node Measurement Profile",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Calibration Appliance Node",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Measurement Profile",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetStringArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "sdk:RobotCalibrationApplianceNodeOperations.txt#6",
@@ -749,13 +1705,15 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command is within Briosa automation scope; retain it as a Wave 4 candidate subject to generated policy gates and the documented protected-fixture prerequisites.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#6"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/50"
+        "https://github.com/spatialanalyzer/briosa/issues/50",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -771,7 +1729,50 @@
         "collection_object_name",
         "string"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Set Calibration Appliance Node Measurement Target",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Calibration Appliance Node",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Measurement Target",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetStringArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "sdk:RobotCalibrationApplianceNodeOperations.txt#7",
@@ -784,13 +1785,15 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command is within Briosa automation scope; retain it as a Wave 4 candidate subject to generated policy gates and the documented protected-fixture prerequisites.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#7"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/50"
+        "https://github.com/spatialanalyzer/briosa/issues/50",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -807,7 +1810,57 @@
         "collection_object_name",
         "logical"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Enable/Disable Calibration Appliance Node Instrument Auto Point",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Calibration Appliance Node",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Enable Instrument Auto Point?",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": true
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "sdk:RobotCalibrationApplianceNodeOperations.txt#8",
@@ -820,13 +1873,15 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command is within Briosa automation scope; retain it as a Wave 4 candidate subject to generated policy gates and the documented protected-fixture prerequisites.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#8"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/50"
+        "https://github.com/spatialanalyzer/briosa/issues/50",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -843,7 +1898,57 @@
         "collection_object_name",
         "floating_point"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Set Calibration Appliance Node Instrument Dwell Time",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Calibration Appliance Node",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Measurement Dwell Time (Seconds)",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none",
+                "review_status": "needs_review",
+                "candidates": [
+                  {
+                    "source": "sa_2026_generated_vb",
+                    "value": 0.0
+                  }
+                ]
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetDoubleArg",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     },
     {
       "inventory_key": "sdk:RobotCalibrationApplianceNodeOperations.txt#9",
@@ -856,13 +1961,15 @@
       "review_state": "reviewed",
       "rationale": "The exact-target SDK evidence is coherent and the command is within Briosa automation scope; retain it as a Wave 4 candidate subject to generated policy gates and the documented protected-fixture prerequisites.",
       "reason_codes": [
+        "command_shape_resolved",
         "state_mutation"
       ],
       "evidence_references": [
         "sdk:RobotCalibrationApplianceNodeOperations.txt#9"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/50"
+        "https://github.com/spatialanalyzer/briosa/issues/50",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -877,7 +1984,32 @@
       "value_families": [
         "collection_object_name"
       ],
-      "delivery_wave": "wave_4"
+      "delivery_wave": "wave_4",
+      "command_shape": {
+        "status": "resolved",
+        "mp_step": "Skip Calibration Appliance Node Measurement",
+        "arguments": [
+          {
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Calibration Appliance Node",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          }
+        ],
+        "discrepancies": []
+      }
     }
   ]
 }
