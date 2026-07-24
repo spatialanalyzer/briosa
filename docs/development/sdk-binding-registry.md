@@ -29,7 +29,7 @@ The review deliberately keeps specialized SDK methods distinct even when their C
 
 Mixed-use methods remain `usable` when at least one non-excluded command observes them. Product-scope exclusion is command-specific and must not disable a shared binding needed by another command.
 
-The first exact-target review found six `blocked_missing_interop` methods. They remain linked to issue #53 for command-specific resolution or focused Hexagon clarification. A generated sample call is not evidence that Briosa may substitute a generic SDK method.
+The first exact-target review found six `blocked_missing_interop` methods. Issue #53 isolated their affected commands, and focused Hexagon issue #79 now owns the remaining exact-target clarification. A generated sample call is not evidence that Briosa may substitute a generic SDK method.
 
 ## Workflow
 

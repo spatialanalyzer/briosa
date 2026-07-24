@@ -630,6 +630,7 @@ internal static partial class CommandDispositionLedger
                 "unknown with assessed families.");
         }
 
+        ValidateCommandShape(entry, command, displayPath, errors);
         ValidateReviewState(entry, displayPath, errors);
     }
 
@@ -725,6 +726,356 @@ internal static partial class CommandDispositionLedger
         }
     }
 
+    private static void ValidateCommandShape(
+        CommandDispositionEntry entry,
+        MpCommandInventoryCommand command,
+        string displayPath,
+        List<string> errors)
+    {
+        var shape = entry.CommandShape;
+        if (shape is null)
+        {
+            errors.Add($"{displayPath}: command_shape is required.");
+            return;
+        }
+
+        var expectedStatus = !string.Equals(
+            entry.ReviewState,
+            "reviewed",
+            StringComparison.Ordinal)
+            ? "blocked"
+            : entry.Disposition switch
+            {
+                "approved_candidate" => "resolved",
+                "blocked" => "blocked",
+                _ => "not_applicable"
+            };
+        if (!string.Equals(shape.Status, expectedStatus, StringComparison.Ordinal))
+        {
+            errors.Add(
+                $"{displayPath}: command_shape.status must be '{expectedStatus}' for " +
+                $"{entry.ReviewState} {entry.Disposition} entries.");
+        }
+
+        if (string.Equals(shape.Status, "not_applicable", StringComparison.Ordinal))
+        {
+            if (shape.MpStep is not null || shape.Arguments.Count != 0 ||
+                shape.Discrepancies.Count != 0)
+            {
+                errors.Add(
+                    $"{displayPath}: not-applicable command shapes cannot contain a step, " +
+                    "arguments, or discrepancies.");
+            }
+
+            return;
+        }
+
+        if (string.Equals(shape.Status, "blocked", StringComparison.Ordinal))
+        {
+            if (shape.MpStep is not null || shape.Arguments.Count != 0 ||
+                shape.Discrepancies.Count == 0)
+            {
+                errors.Add(
+                    $"{displayPath}: blocked command shapes require discrepancies and cannot " +
+                    "publish a resolved step or arguments.");
+            }
+
+            ValidateDiscrepancies(entry, command, shape.Discrepancies, displayPath, errors);
+            return;
+        }
+
+        if (!string.Equals(shape.Status, "resolved", StringComparison.Ordinal))
+        {
+            errors.Add($"{displayPath}: unknown command_shape.status '{shape.Status}'.");
+            return;
+        }
+
+        if (shape.Discrepancies.Count != 0)
+        {
+            errors.Add($"{displayPath}: resolved command shapes cannot retain discrepancies.");
+        }
+
+        if (command.SdkEvidence.Count != 1)
+        {
+            errors.Add(
+                $"{displayPath}: resolved command shapes require exactly one SDK occurrence.");
+        }
+        else
+        {
+            RequireEqual(
+                shape.MpStep ?? string.Empty,
+                command.SdkEvidence[0].MpStep,
+                displayPath,
+                "command_shape.mp_step",
+                errors);
+        }
+
+        var argumentsByIndex = new Dictionary<int, CommandArgumentResolution>();
+        foreach (var argument in shape.Arguments)
+        {
+            if (!argumentsByIndex.TryAdd(argument.InventoryIndex, argument))
+            {
+                errors.Add(
+                    $"{displayPath}: duplicate resolved inventory argument index " +
+                    $"{argument.InventoryIndex}.");
+            }
+        }
+
+        if (argumentsByIndex.Count != command.Arguments.Count ||
+            !argumentsByIndex.Keys.Order().SequenceEqual(Enumerable.Range(0, command.Arguments.Count)))
+        {
+            errors.Add(
+                $"{displayPath}: resolved command shape must cover every inventory argument " +
+                "exactly once.");
+        }
+
+        var ordinals = shape.Arguments.Select(argument => argument.Ordinal).ToArray();
+        if (!ordinals.SequenceEqual(ordinals.Order()))
+        {
+            errors.Add($"{displayPath}: resolved arguments must be ordered by ordinal.");
+        }
+
+        if (ordinals.Distinct().Count() != ordinals.Length)
+        {
+            errors.Add($"{displayPath}: resolved argument ordinals must be unique.");
+        }
+
+        foreach (var pair in argumentsByIndex.OrderBy(pair => pair.Key))
+        {
+            if (pair.Key < 0 || pair.Key >= command.Arguments.Count)
+            {
+                continue;
+            }
+
+            ValidateResolvedArgument(
+                pair.Value,
+                command.Arguments[pair.Key],
+                displayPath,
+                errors);
+        }
+    }
+
+    private static void ValidateResolvedArgument(
+        CommandArgumentResolution resolved,
+        MpCommandInventoryArgument evidence,
+        string displayPath,
+        List<string> errors)
+    {
+        var argumentPath = $"{displayPath}: argument[{resolved.InventoryIndex}]";
+        if (evidence.SdkOrder is null || resolved.Ordinal != evidence.SdkOrder.Value)
+        {
+            errors.Add(
+                $"{argumentPath}: ordinal must match the observed SDK order " +
+                $"'{evidence.SdkOrder?.ToString(CultureInfo.InvariantCulture) ?? "none"}'.");
+        }
+
+        var setter = AvailableMethod(evidence.SdkBinding.Setter);
+        var getter = AvailableMethod(evidence.SdkBinding.Getter);
+        if (setter is null && getter is null)
+        {
+            errors.Add($"{argumentPath}: resolved arguments require an available SDK binding.");
+        }
+
+        RequireEqual(
+            resolved.SdkBinding.Setter ?? string.Empty,
+            setter ?? string.Empty,
+            argumentPath,
+            "sdk_binding.setter",
+            errors);
+        RequireEqual(
+            resolved.SdkBinding.Getter ?? string.Empty,
+            getter ?? string.Empty,
+            argumentPath,
+            "sdk_binding.getter",
+            errors);
+
+        var expectedDirection = (setter is not null, getter is not null) switch
+        {
+            (true, true) => "input_output",
+            (true, false) => "input",
+            (false, true) => "output",
+            _ => "unknown"
+        };
+        RequireEqual(
+            resolved.Direction,
+            expectedDirection,
+            argumentPath,
+            "direction",
+            errors);
+        RequireEqual(
+            resolved.ResultOnly,
+            expectedDirection == "output" ? "yes" : "no",
+            argumentPath,
+            "result_only",
+            errors);
+
+        var expectedMpName = setter is not null
+            ? evidence.SdkBinding.Setter.ArgumentName
+            : evidence.SdkBinding.Getter.ArgumentName;
+        RequireEqual(
+            resolved.MpName,
+            expectedMpName ?? string.Empty,
+            argumentPath,
+            "mp_name",
+            errors);
+
+        if (expectedDirection == "output")
+        {
+            if (resolved.Input is not null)
+            {
+                errors.Add($"{argumentPath}: output-only arguments cannot define input policy.");
+            }
+
+            return;
+        }
+
+        ValidateInputResolution(resolved.Input, argumentPath, errors);
+    }
+
+    private static void ValidateInputResolution(
+        CommandInputResolution? input,
+        string argumentPath,
+        List<string> errors)
+    {
+        if (input is null)
+        {
+            errors.Add($"{argumentPath}: input and input/output arguments require input policy.");
+            return;
+        }
+
+        var hasDefaultValue = input.Default.Value is not null;
+        if (string.Equals(input.Presence, "required", StringComparison.Ordinal))
+        {
+            if (!string.Equals(input.OmissionBehavior, "reject_request", StringComparison.Ordinal) ||
+                !string.Equals(input.Default.Status, "none", StringComparison.Ordinal) ||
+                hasDefaultValue)
+            {
+                errors.Add(
+                    $"{argumentPath}: required inputs must reject omission and define no default.");
+            }
+
+            return;
+        }
+
+        if (!string.Equals(input.Presence, "optional", StringComparison.Ordinal))
+        {
+            errors.Add($"{argumentPath}: input presence must be required or optional.");
+            return;
+        }
+
+        var omitsSetter = string.Equals(
+            input.OmissionBehavior,
+            "omit_sdk_setter",
+            StringComparison.Ordinal);
+        var setsDefault = string.Equals(
+            input.OmissionBehavior,
+            "set_catalog_default",
+            StringComparison.Ordinal);
+        if ((!omitsSetter && !setsDefault) ||
+            (omitsSetter && (!string.Equals(input.Default.Status, "none", StringComparison.Ordinal) ||
+                             hasDefaultValue)) ||
+            (setsDefault && (!string.Equals(input.Default.Status, "reviewed", StringComparison.Ordinal) ||
+                             !hasDefaultValue)))
+        {
+            errors.Add(
+                $"{argumentPath}: optional omission behavior and reviewed default metadata " +
+                "are inconsistent.");
+        }
+    }
+
+    private static void ValidateDiscrepancies(
+        CommandDispositionEntry entry,
+        MpCommandInventoryCommand command,
+        IReadOnlyList<CommandShapeDiscrepancy> discrepancies,
+        string displayPath,
+        List<string> errors)
+    {
+        RequireSortedUnique(
+            discrepancies.Select(discrepancy => discrepancy.Code).ToArray(),
+            displayPath,
+            "command_shape.discrepancies by code",
+            errors);
+        foreach (var discrepancy in discrepancies)
+        {
+            if (!ReasonCode().IsMatch(discrepancy.Code))
+            {
+                errors.Add($"{displayPath}: invalid discrepancy code '{discrepancy.Code}'.");
+            }
+
+            if (discrepancy.Owner is not "briosa" and not "hexagon")
+            {
+                errors.Add(
+                    $"{displayPath}: discrepancy owner must be briosa or hexagon.");
+            }
+
+            ValidateGitHubReference(
+                discrepancy.BlockerReference,
+                displayPath,
+                "discrepancy blocker reference",
+                errors);
+            if (!entry.BlockerReferences.Contains(
+                    discrepancy.BlockerReference,
+                    StringComparer.Ordinal))
+            {
+                errors.Add(
+                    $"{displayPath}: discrepancy blocker must also appear in blocker_references.");
+            }
+
+            if (string.IsNullOrWhiteSpace(discrepancy.Rationale))
+            {
+                errors.Add($"{displayPath}: discrepancy rationale must not be empty.");
+            }
+
+            var indexes = discrepancy.ArgumentIndexes;
+            if (!indexes.SequenceEqual(indexes.Order()) || indexes.Distinct().Count() != indexes.Count ||
+                indexes.Any(index => index < 0 || index >= command.Arguments.Count))
+            {
+                errors.Add(
+                    $"{displayPath}: discrepancy argument_indexes must be sorted, unique, " +
+                    "and identify arguments in this command.");
+            }
+        }
+
+        var discrepancyBlockers = discrepancies
+            .Select(discrepancy => discrepancy.BlockerReference)
+            .Distinct(StringComparer.Ordinal)
+            .Order(StringComparer.Ordinal);
+        if (!discrepancyBlockers.SequenceEqual(entry.BlockerReferences, StringComparer.Ordinal))
+        {
+            errors.Add(
+                $"{displayPath}: every command blocker must own at least one discrepancy.");
+        }
+    }
+
+    private static string? AvailableMethod(MpCommandInventoryBindingEvidence evidence) =>
+        string.Equals(evidence.Status, "available", StringComparison.Ordinal)
+            ? evidence.Method
+            : null;
+
+    private static CommandShapeResolution CreateBlockedShape(
+        string code,
+        List<int> argumentIndexes,
+        string owner,
+        string blockerReference,
+        string rationale) =>
+        new()
+        {
+            Status = "blocked",
+            MpStep = null,
+            Arguments = [],
+            Discrepancies =
+            [
+                new CommandShapeDiscrepancy
+                {
+                    Code = code,
+                    ArgumentIndexes = argumentIndexes,
+                    Owner = owner,
+                    BlockerReference = blockerReference,
+                    Rationale = rationale
+                }
+            ]
+        };
+
     private static CommandDispositionEntry CreateUnreviewedEntry(
         MpCommandInventoryCommand command,
         string fingerprint,
@@ -746,7 +1097,13 @@ internal static partial class CommandDispositionLedger
             RiskFlags = ["unknown"],
             DataClassifications = ["unknown"],
             ValueFamilies = ["unknown"],
-            DeliveryWave = null
+            DeliveryWave = null,
+            CommandShape = CreateBlockedShape(
+                "awaiting_review",
+                [],
+                "briosa",
+                InitialBlocker,
+                "Exact-target command shape review has not been completed.")
         };
 
     private static CommandDispositionEntry UpdateEntry(
@@ -776,7 +1133,8 @@ internal static partial class CommandDispositionLedger
                 RiskFlags = SortedDistinct(existing.RiskFlags),
                 DataClassifications = SortedDistinct(existing.DataClassifications),
                 ValueFamilies = SortedDistinct(existing.ValueFamilies),
-                DeliveryWave = existing.DeliveryWave
+                DeliveryWave = existing.DeliveryWave,
+                CommandShape = existing.CommandShape
             };
         }
 
@@ -798,7 +1156,13 @@ internal static partial class CommandDispositionLedger
             RiskFlags = SortedDistinct(existing.RiskFlags),
             DataClassifications = SortedDistinct(existing.DataClassifications),
             ValueFamilies = SortedDistinct(existing.ValueFamilies),
-            DeliveryWave = existing.DeliveryWave
+            DeliveryWave = existing.DeliveryWave,
+            CommandShape = CreateBlockedShape(
+                "evidence_changed",
+                [],
+                "briosa",
+                InitialBlocker,
+                "The exact-target inventory fingerprint changed and requires shape re-review.")
         };
     }
 
@@ -958,6 +1322,8 @@ internal static partial class CommandDispositionLedger
                     StringComparison.Ordinal))} |");
         }
 
+        AppendCommandShapeSummary(builder, entries);
+
         builder.AppendLine();
         builder.AppendLine("## Categories");
         builder.AppendLine();
@@ -1013,6 +1379,7 @@ internal static partial class CommandDispositionLedger
                 .Select(entry => entry.DeliveryWave)
                 .Where(wave => wave is not null)
                 .Cast<string>());
+        AppendCommandShapeDiscrepancies(builder, entries);
         AppendIntentionalExclusions(builder, entries);
 
         builder.AppendLine();
@@ -1034,6 +1401,103 @@ internal static partial class CommandDispositionLedger
             "- A changed per-command inventory fingerprint requires re-review before " +
             "promotion.");
         return builder.ToString().ReplaceLineEndings("\n");
+    }
+
+    private static void AppendCommandShapeSummary(
+        StringBuilder builder,
+        IEnumerable<CommandDispositionEntry> entries)
+    {
+        var shapes = entries
+            .Select(entry => entry.CommandShape)
+            .Where(shape => shape is not null)
+            .Cast<CommandShapeResolution>()
+            .ToArray();
+        var resolvedArguments = shapes
+            .Where(shape => string.Equals(shape.Status, "resolved", StringComparison.Ordinal))
+            .SelectMany(shape => shape.Arguments)
+            .ToArray();
+        var inputs = resolvedArguments
+            .Select(argument => argument.Input)
+            .Where(input => input is not null)
+            .Cast<CommandInputResolution>()
+            .ToArray();
+
+        builder.AppendLine();
+        builder.AppendLine("## Command shape resolution");
+        builder.AppendLine();
+        builder.AppendLine("| Status | Commands |");
+        builder.AppendLine("| --- | ---: |");
+        foreach (var status in new[] { "resolved", "blocked", "not_applicable" })
+        {
+            builder.AppendLine(
+                CultureInfo.InvariantCulture,
+                $"| `{status}` | {shapes.Count(shape => string.Equals(
+                    shape.Status,
+                    status,
+                    StringComparison.Ordinal))} |");
+        }
+
+        builder.AppendLine();
+        builder.AppendLine(CultureInfo.InvariantCulture, $"- Resolved arguments: {resolvedArguments.Length}");
+        builder.AppendLine(CultureInfo.InvariantCulture, $"- Required inputs: {inputs.Count(input => string.Equals(
+            input.Presence,
+            "required",
+            StringComparison.Ordinal))}");
+        builder.AppendLine(CultureInfo.InvariantCulture, $"- Optional inputs: {inputs.Count(input => string.Equals(
+            input.Presence,
+            "optional",
+            StringComparison.Ordinal))}");
+        builder.AppendLine(CultureInfo.InvariantCulture, $"- Omitted SDK setters: {inputs.Count(input => string.Equals(
+            input.OmissionBehavior,
+            "omit_sdk_setter",
+            StringComparison.Ordinal))}");
+        builder.AppendLine(CultureInfo.InvariantCulture, $"- Reviewed catalog defaults: {inputs.Count(input => string.Equals(
+            input.Default.Status,
+            "reviewed",
+            StringComparison.Ordinal))}");
+        builder.AppendLine(
+            "- Generated SDK sample values are not stored or promoted as defaults.");
+    }
+
+    private static void AppendCommandShapeDiscrepancies(
+        StringBuilder builder,
+        IEnumerable<CommandDispositionEntry> entries)
+    {
+        var blocked = entries
+            .Where(entry => string.Equals(
+                entry.CommandShape?.Status,
+                "blocked",
+                StringComparison.Ordinal))
+            .OrderBy(entry => entry.InventoryKey, StringComparer.Ordinal)
+            .ToArray();
+        builder.AppendLine();
+        builder.AppendLine("## Command-specific shape discrepancies");
+        builder.AppendLine();
+        if (blocked.Length == 0)
+        {
+            builder.AppendLine("None.");
+            return;
+        }
+
+        builder.AppendLine(
+            "| Category path | MP step | Inventory key | Discrepancy | Owner | Dependency |");
+        builder.AppendLine("| --- | --- | --- | --- | --- | --- |");
+        foreach (var entry in blocked)
+        {
+            foreach (var discrepancy in entry.CommandShape!.Discrepancies)
+            {
+                var argumentSuffix = discrepancy.ArgumentIndexes.Count == 0
+                    ? string.Empty
+                    : $" (arguments {string.Join(", ", discrepancy.ArgumentIndexes)})";
+                builder.AppendLine(
+                    CultureInfo.InvariantCulture,
+                    $"| {EscapeMarkdown(string.Join(" / ", entry.CategoryPath))} | " +
+                    $"{EscapeMarkdown(entry.MpStep)} | {EscapeMarkdown(entry.InventoryKey)} | " +
+                    $"`{EscapeMarkdown(discrepancy.Code)}`{argumentSuffix} | " +
+                    $"`{EscapeMarkdown(discrepancy.Owner)}` | " +
+                    $"{EscapeMarkdown(discrepancy.BlockerReference)} |");
+            }
+        }
     }
 
     private static void AppendIntentionalExclusions(

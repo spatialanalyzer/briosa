@@ -14,7 +14,7 @@ Each exact target contains:
 
 When intentional exclusions exist, `report.md` also publishes an exact command-level table with each exclusion's Briosa-authored rationale and decision reference.
 
-The generator owns inventory identity, MP step, category path, evidence references, per-command evidence fingerprint, manifest hashes, shard placement, and the report. Reviewers own disposition, review state, rationale, reason codes, decision references, blocker references, risk assessment, data classifications, value families, and delivery wave. Do not edit `manifest.json` or `report.md` by hand.
+The generator owns inventory identity, MP step, category path, evidence references, per-command evidence fingerprint, manifest hashes, shard placement, and the report. Reviewers own disposition, review state, rationale, reason codes, decision references, blocker references, risk assessment, data classifications, value families, delivery wave, and the reviewed `command_shape`. Do not edit `manifest.json` or `report.md` by hand.
 
 Reviewers may update decision fields in category shards and then run synchronization. Synchronization preserves reviewed decision fields when the command evidence is unchanged. If the per-command inventory fingerprint changes, it sets the entry to `needs_re_review`, adds `evidence_changed`, and restores the review blocker. This is intentionally command-scoped; unrelated inventory changes do not invalidate already reviewed decisions.
 
@@ -87,3 +87,4 @@ The domain-scale reviews and their fail-closed decision rules are summarized in:
 - [SA 2026.1.0529.7 geometry command review](geometry-command-review.md)
 - [SA 2026.1.0529.7 device command review](device-command-review.md)
 - [SA 2026.1.0529.7 administrative and data-flow command review](administrative-command-review.md)
+- [SA 2026.1.0529.7 command-shape resolution](command-shape-resolution.md)

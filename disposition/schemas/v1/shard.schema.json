@@ -75,7 +75,8 @@
         "risk_flags",
         "data_classifications",
         "value_families",
-        "delivery_wave"
+        "delivery_wave",
+        "command_shape"
       ],
       "properties": {
         "inventory_key": {
@@ -196,7 +197,100 @@
               ]
             }
           ]
+        },
+        "command_shape": {
+          "$ref": "#/definitions/command_shape"
         }
+      }
+    },
+    "command_shape": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "mp_step", "arguments", "discrepancies"],
+      "properties": {
+        "status": { "enum": ["resolved", "blocked", "not_applicable"] },
+        "mp_step": { "type": ["string", "null"] },
+        "arguments": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/resolved_argument" }
+        },
+        "discrepancies": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/discrepancy" }
+        }
+      }
+    },
+    "resolved_argument": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "inventory_index", "ordinal", "mp_name", "direction", "result_only", "input", "sdk_binding"
+      ],
+      "properties": {
+        "inventory_index": { "type": "integer", "minimum": 0 },
+        "ordinal": { "type": "integer", "minimum": 0 },
+        "mp_name": { "type": "string", "minLength": 1 },
+        "direction": { "enum": ["input", "output", "input_output"] },
+        "result_only": { "enum": ["yes", "no"] },
+        "input": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/definitions/input_resolution" }
+          ]
+        },
+        "sdk_binding": { "$ref": "#/definitions/sdk_binding" }
+      }
+    },
+    "input_resolution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["presence", "omission_behavior", "default"],
+      "properties": {
+        "presence": { "enum": ["required", "optional"] },
+        "omission_behavior": {
+          "enum": ["reject_request", "omit_sdk_setter", "set_catalog_default"]
+        },
+        "default": { "$ref": "#/definitions/default_resolution" }
+      }
+    },
+    "default_resolution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status"],
+      "properties": {
+        "status": { "enum": ["none", "reviewed"] },
+        "value": {}
+      }
+    },
+    "sdk_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["setter", "getter"],
+      "properties": {
+        "setter": {
+          "type": ["string", "null"],
+          "pattern": "^Set[A-Za-z0-9]+Arg[0-9]*$"
+        },
+        "getter": {
+          "type": ["string", "null"],
+          "pattern": "^Get[A-Za-z0-9]+Arg[0-9]*$"
+        }
+      }
+    },
+    "discrepancy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "argument_indexes", "owner", "blocker_reference", "rationale"],
+      "properties": {
+        "code": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+        "argument_indexes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "integer", "minimum": 0 }
+        },
+        "owner": { "enum": ["briosa", "hexagon"] },
+        "blocker_reference": { "$ref": "#/definitions/github_reference" },
+        "rationale": { "type": "string", "minLength": 1 }
       }
     }
   }

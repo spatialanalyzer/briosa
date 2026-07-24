@@ -8,7 +8,7 @@
   },
   "dispositions": {
     "path": "../../../disposition/sa/2026.1.0529.7/manifest.json",
-    "sha256": "0fce1b269512c091c9d855535d008b1e0577d59df8c6233a56cdfa7f401ee68e"
+    "sha256": "64301ef537dfc1b80a447cbbdb948cb7c590ceb79c62a28caf25955cbc8a49fe"
   },
   "interop_assembly": {
     "path": "../../../interop/SpatialAnalyzer/2026.1.0529.7/Briosa.SpatialAnalyzer.Interop.dll",
@@ -20,7 +20,7 @@
   },
   "review": {
     "path": "review.json",
-    "sha256": "4a481f0228a87242b993ca0b89392551d39faf1d88bf44924ad36498da1506c5"
+    "sha256": "4f71951f5a17f46b97fb3eec53fda66745efe4922a2e856c5800c99e416605e0"
   },
   "value_families": [
     {
@@ -3042,7 +3042,7 @@
         "https://github.com/spatialanalyzer/briosa/issues/54"
       ],
       "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/53"
+        "https://github.com/spatialanalyzer/briosa/issues/79"
       ]
     },
     {
@@ -4238,7 +4238,7 @@
         "https://github.com/spatialanalyzer/briosa/issues/54"
       ],
       "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/53"
+        "https://github.com/spatialanalyzer/briosa/issues/79"
       ]
     },
     {
@@ -6380,7 +6380,7 @@
         "https://github.com/spatialanalyzer/briosa/issues/54"
       ],
       "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/53"
+        "https://github.com/spatialanalyzer/briosa/issues/79"
       ]
     },
     {
@@ -6495,7 +6495,7 @@
         "https://github.com/spatialanalyzer/briosa/issues/54"
       ],
       "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/53"
+        "https://github.com/spatialanalyzer/briosa/issues/79"
       ]
     },
     {
@@ -6524,7 +6524,7 @@
         "https://github.com/spatialanalyzer/briosa/issues/54"
       ],
       "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/53"
+        "https://github.com/spatialanalyzer/briosa/issues/79"
       ]
     },
     {
@@ -6725,7 +6725,7 @@
         "https://github.com/spatialanalyzer/briosa/issues/54"
       ],
       "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/53"
+        "https://github.com/spatialanalyzer/briosa/issues/79"
       ]
     },
     {

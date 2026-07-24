@@ -88,6 +88,8 @@ Input presence and default values are separate decisions. Each input records:
 
 A generated SDK sample value is evidence, not a reviewed default. Validation permits `set_catalog_default` only with a reviewed value. Required inputs reject omission. Optional inputs must explicitly say whether the server omits the setter or supplies a reviewed default.
 
+The intermediate disposition ledger records these decisions in a reviewed `command_shape` before catalog promotion. For the initial exact target, inputs explicitly marked optional by installed documentation omit their setter when absent; every other SDK-settable input is required by Briosa. This conservative public contract does not claim that SpatialAnalyzer lacks an undocumented default. Exact View SDK Code establishes the executable step, SDK argument name, observed order, and setter/getter direction, while the inventory retains any conflicting documentation evidence unchanged.
+
 `NOT_SUPPORTED` is recorded as unavailable SDK binding evidence. An operation with a required unsupported input is ineligible for the supported catalog. Any proposed exception for a genuinely optional unsupported argument requires explicit command review; there is no automatic fallback to a generic setter.
 
 ## Evidence and intellectual-property boundary

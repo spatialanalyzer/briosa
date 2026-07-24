@@ -21,10 +21,11 @@
         "sdk:EventOperations.txt#4"
       ],
       "decision_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/51"
+        "https://github.com/spatialanalyzer/briosa/issues/51",
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
       "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/53"
+        "https://github.com/spatialanalyzer/briosa/issues/80"
       ],
       "risk_effect": "read_only",
       "risk_flags": [
@@ -41,7 +42,26 @@
         "logical",
         "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": null,
+      "command_shape": {
+        "status": "blocked",
+        "mp_step": null,
+        "arguments": [],
+        "discrepancies": [
+          {
+            "code": "file_behavior_unresolved",
+            "argument_indexes": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "owner": "briosa",
+            "blocker_reference": "https://github.com/spatialanalyzer/briosa/issues/80",
+            "rationale": "Required path presence, append or replacement behavior, overwrite consent, or interactive side effects are not established safely."
+          }
+        ]
+      }
     }
   ]
 }

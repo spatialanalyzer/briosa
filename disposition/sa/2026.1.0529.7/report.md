@@ -13,10 +13,10 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 
 | Disposition | Count |
 | --- | ---: |
-| `approved_candidate` | 609 |
-| `blocked` | 231 |
+| `approved_candidate` | 673 |
+| `blocked` | 56 |
 | `intentional_exclusion` | 476 |
-| `sdk_unavailable` | 96 |
+| `sdk_unavailable` | 207 |
 
 ## Review states
 
@@ -26,170 +26,123 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 | `reviewed` | 1412 |
 | `unreviewed` | 0 |
 
+## Command shape resolution
+
+| Status | Commands |
+| --- | ---: |
+| `resolved` | 673 |
+| `blocked` | 56 |
+| `not_applicable` | 683 |
+
+- Resolved arguments: 2508
+- Required inputs: 1942
+- Optional inputs: 64
+- Omitted SDK setters: 64
+- Reviewed catalog defaults: 0
+- Generated SDK sample values are not stored or promoted as defaults.
+
 ## Categories
 
 | Category | Entries | Approved | Excluded | SDK unavailable | Blocked | Unresolved | Unreviewed | Needs re-review |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | AccumulatorMathOperations | 8 | 0 | 8 | 0 | 0 | 0 | 0 | 0 |
-| AnalysisOperations | 189 | 86 | 40 | 9 | 54 | 54 | 0 | 0 |
+| AnalysisOperations | 189 | 103 | 40 | 31 | 15 | 15 | 0 | 0 |
 | CloudAndMeshOperations | 1 | 0 | 0 | 0 | 1 | 1 | 0 | 0 |
-| CloudMeshOps | 28 | 14 | 0 | 3 | 11 | 11 | 0 | 0 |
-| ConstructionOperations | 278 | 104 | 94 | 13 | 67 | 67 | 0 | 0 |
+| CloudMeshOps | 28 | 19 | 0 | 8 | 1 | 1 | 0 | 0 |
+| ConstructionOperations | 278 | 134 | 94 | 32 | 18 | 18 | 0 | 0 |
 | DimensionOperations | 1 | 0 | 0 | 0 | 1 | 1 | 0 | 0 |
-| Dimensions | 19 | 1 | 4 | 12 | 2 | 2 | 0 | 0 |
+| Dimensions | 19 | 2 | 4 | 13 | 0 | 0 | 0 | 0 |
 | EventOperations | 1 | 0 | 0 | 0 | 1 | 1 | 0 | 0 |
 | Events | 5 | 4 | 0 | 1 | 0 | 0 | 0 | 0 |
 | ExcelDirectConnect | 17 | 0 | 17 | 0 | 0 | 0 | 0 | 0 |
-| FileOperations | 125 | 33 | 62 | 10 | 20 | 20 | 0 | 0 |
-| GDT | 40 | 13 | 10 | 1 | 16 | 16 | 0 | 0 |
+| FileOperations | 125 | 34 | 62 | 20 | 9 | 9 | 0 | 0 |
+| GDT | 40 | 18 | 10 | 7 | 5 | 5 | 0 | 0 |
 | GDTOperations | 3 | 0 | 0 | 0 | 3 | 3 | 0 | 0 |
 | GoogleSheets | 18 | 0 | 18 | 0 | 0 | 0 | 0 | 0 |
 | GoogleSheetsOperations | 1 | 0 | 1 | 0 | 0 | 0 | 0 | 0 |
-| InstrumentOperations | 185 | 125 | 16 | 12 | 32 | 32 | 0 | 0 |
+| InstrumentOperations | 185 | 129 | 16 | 40 | 0 | 0 | 0 | 0 |
 | MPSubroutines | 4 | 0 | 4 | 0 | 0 | 0 | 0 | 0 |
 | MPTaskOverview | 11 | 0 | 11 | 0 | 0 | 0 | 0 | 0 |
 | MSOfficeReportingOperations | 14 | 0 | 14 | 0 | 0 | 0 | 0 | 0 |
 | ProcessFlowOperations | 25 | 1 | 21 | 2 | 1 | 1 | 0 | 0 |
-| RelationshipOperations | 67 | 48 | 5 | 6 | 8 | 8 | 0 | 0 |
-| ReportingOperations | 71 | 52 | 8 | 10 | 1 | 1 | 0 | 0 |
+| RelationshipOperations | 67 | 48 | 5 | 13 | 1 | 1 | 0 | 0 |
+| ReportingOperations | 71 | 52 | 8 | 11 | 0 | 0 | 0 | 0 |
 | RobotCalibrationApplianceNodeOperations | 25 | 23 | 0 | 2 | 0 | 0 | 0 | 0 |
-| RobotOperations | 33 | 28 | 0 | 2 | 3 | 3 | 0 | 0 |
+| RobotOperations | 33 | 28 | 0 | 5 | 0 | 0 | 0 | 0 |
 | ScalarMathOperations | 21 | 0 | 21 | 0 | 0 | 0 | 0 | 0 |
-| ScaleBars | 3 | 2 | 0 | 0 | 1 | 1 | 0 | 0 |
-| UtilityOperations | 105 | 33 | 60 | 10 | 2 | 2 | 0 | 0 |
+| ScaleBars | 3 | 3 | 0 | 0 | 0 | 0 | 0 | 0 |
+| UtilityOperations | 105 | 33 | 60 | 12 | 0 | 0 | 0 | 0 |
 | Variables | 41 | 0 | 41 | 0 | 0 | 0 | 0 | 0 |
-| Vector Operations | 22 | 11 | 10 | 0 | 1 | 1 | 0 | 0 |
-| ViewControl | 51 | 31 | 11 | 3 | 6 | 6 | 0 | 0 |
+| Vector Operations | 22 | 11 | 10 | 1 | 0 | 0 | 0 | 0 |
+| ViewControl | 51 | 31 | 11 | 9 | 0 | 0 | 0 | 0 |
 
 ## Unresolved work by risk effect
 
 | Value | Count |
 | --- | ---: |
-| `mutating` | 159 |
-| `read_only` | 72 |
+| `mutating` | 43 |
+| `read_only` | 13 |
 
 ## Unresolved work by risk flag
 
 | Value | Count |
 | --- | ---: |
-| `device_control` | 11 |
-| `filesystem_read` | 9 |
-| `filesystem_write` | 13 |
-| `interactive_ui` | 6 |
-| `long_running` | 51 |
-| `network_access` | 1 |
+| `filesystem_read` | 3 |
+| `filesystem_write` | 8 |
+| `long_running` | 17 |
 
 ## Unresolved work by data classification
 
 | Value | Count |
 | --- | ---: |
-| `geometry` | 186 |
-| `measurement` | 111 |
+| `geometry` | 42 |
+| `measurement` | 18 |
 | `non_sensitive` | 1 |
-| `object_identifier` | 210 |
-| `path` | 28 |
-| `proprietary` | 13 |
+| `object_identifier` | 48 |
+| `path` | 11 |
+| `proprietary` | 5 |
 
 ## Unresolved work by value family
 
 | Value | Count |
 | --- | ---: |
-| `angular_unit` | 1 |
-| `ascii_file_format` | 1 |
 | `b_spline_fit_options` | 1 |
-| `base_color_type` | 2 |
-| `base_mid_color_type` | 1 |
-| `boolean` | 11 |
 | `cloud_thinning_mode` | 1 |
-| `cloud_thinning_options` | 2 |
 | `collection_group_name_list` | 1 |
-| `collection_instrument_id` | 30 |
-| `collection_instrument_id_list` | 2 |
-| `collection_machine_id` | 2 |
-| `collection_name` | 4 |
-| `collection_object_name` | 140 |
-| `collection_object_name_list` | 56 |
-| `collection_object_name_ref_list` | 4 |
-| `collection_vector_group_name` | 1 |
-| `collection_vector_group_name_list` | 1 |
-| `collimation_baseline_method` | 1 |
-| `collimation_baseline_type` | 1 |
-| `collimation_type` | 1 |
-| `color` | 1 |
-| `color_range_method` | 2 |
-| `colorization_options` | 4 |
-| `coordinate_system_type` | 3 |
-| `dimension_ref_list` | 1 |
-| `distance_unit` | 3 |
-| `double` | 8 |
-| `double_array` | 1 |
-| `edit_text` | 3 |
-| `export_data_delimiter_type` | 4 |
+| `collection_instrument_id_list` | 1 |
+| `collection_object_name` | 39 |
+| `collection_object_name_list` | 14 |
+| `collection_object_name_ref_list` | 1 |
+| `coordinate_system_type` | 2 |
+| `export_data_delimiter_type` | 2 |
 | `export_target_name_format` | 2 |
-| `export_vector_name_format` | 1 |
-| `feature_check_ref_list` | 1 |
-| `file_path_or_embedded_file` | 1 |
-| `file_reference` | 23 |
+| `file_reference` | 10 |
 | `fit_constraint_scalar_options` | 1 |
-| `fit_degree_of_freedom_options` | 2 |
-| `floating_point` | 100 |
-| `font` | 2 |
-| `gd_and_t_options_check_validator_type` | 2 |
-| `gd_and_t_options_distance_between_mode` | 1 |
+| `floating_point` | 19 |
+| `gd_and_t_options_check_validator_type` | 1 |
 | `gdt_check_validator_type` | 1 |
-| `gdt_circle_extended_options` | 1 |
-| `gdt_cone_extended_options` | 1 |
-| `gdt_cylinder_extended_options` | 1 |
 | `gdt_distance_between_mode` | 1 |
-| `gdt_ellipse_extended_options` | 1 |
-| `gdt_line_extended_options` | 1 |
-| `gdt_open_slot_extended_options` | 1 |
-| `gdt_plane_extended_options` | 1 |
-| `gdt_slot_extended_options` | 1 |
-| `gdt_sphere_extended_options` | 1 |
-| `geometry_type` | 2 |
-| `integer` | 7 |
-| `integer_array` | 1 |
 | `item_type` | 1 |
-| `logical` | 123 |
+| `logical` | 27 |
 | `mesh_orientation_type` | 1 |
 | `none` | 1 |
-| `object_type` | 2 |
-| `offset_direction_type` | 2 |
-| `outlier_rejection_options_scalar_type` | 3 |
 | `point_filter_input_type` | 1 |
-| `point_name` | 21 |
-| `point_name_list` | 13 |
-| `projection_options` | 1 |
-| `relationship_ref_list` | 2 |
-| `render_mode_type` | 1 |
-| `report_output_options` | 1 |
-| `rgb_color` | 4 |
-| `saturation_limit_type` | 1 |
+| `point_name` | 2 |
+| `point_name_list` | 4 |
 | `sigmoidal_gap_constraint_options` | 1 |
-| `solver_mode` | 1 |
-| `step_id` | 1 |
-| `string` | 59 |
-| `string_list` | 2 |
-| `surface_analysis_mode` | 1 |
-| `surface_dissection_mode_type` | 1 |
-| `surface_face_list` | 1 |
-| `temperature_unit` | 1 |
-| `tolerance_vector_options` | 4 |
-| `transform` | 10 |
-| `vector` | 3 |
-| `vector3` | 18 |
-| `vector_creation_trigger` | 1 |
-| `vector_name_list` | 2 |
-| `view_name` | 1 |
-| `whole_number` | 59 |
-| `world_transform` | 5 |
+| `string` | 11 |
+| `tolerance_vector_options` | 1 |
+| `transform` | 2 |
+| `vector3` | 7 |
+| `vector_name_list` | 1 |
+| `whole_number` | 13 |
+| `world_transform` | 1 |
 
 ## Reason codes
 
 | Value | Count |
 | --- | ---: |
-| `argument_semantics_unresolved` | 219 |
+| `argument_semantics_unresolved` | 43 |
 | `client_owned_external_integration` | 74 |
 | `client_owned_office_integration` | 14 |
 | `client_owned_serialization` | 22 |
@@ -198,13 +151,15 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 | `client_owned_user_experience` | 75 |
 | `client_owned_value_computation` | 64 |
 | `client_owned_value_construction` | 100 |
+| `command_shape_resolved` | 673 |
 | `file_semantics_unresolved` | 11 |
 | `filesystem_operation` | 49 |
 | `interactive_operation` | 40 |
 | `long_running_operation` | 99 |
 | `operator_ui_dependency` | 18 |
 | `read_only_operation` | 152 |
-| `sdk_binding_unresolved` | 62 |
+| `sdk_binding_unavailable` | 111 |
+| `sdk_binding_unresolved` | 5 |
 | `sdk_command_not_observed` | 39 |
 | `sdk_input_binding_unavailable` | 57 |
 | `server_lifecycle_boundary` | 1 |
@@ -214,16 +169,105 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 
 | Value | Count |
 | --- | ---: |
-| `https://github.com/spatialanalyzer/briosa/issues/53` | 231 |
+| `https://github.com/spatialanalyzer/briosa/issues/79` | 45 |
+| `https://github.com/spatialanalyzer/briosa/issues/80` | 11 |
 
 ## Delivery waves
 
 | Value | Count |
 | --- | ---: |
-| `wave_1` | 82 |
-| `wave_2` | 195 |
+| `wave_1` | 100 |
+| `wave_2` | 231 |
 | `wave_3` | 52 |
-| `wave_4` | 280 |
+| `wave_4` | 290 |
+
+## Command-specific shape discrepancies
+
+| Category path | MP step | Inventory key | Discrepancy | Owner | Dependency |
+| --- | --- | --- | --- | --- | --- |
+| AnalysisOperations | Get Cylinder Properties | documentation:AnalysisOperations/GetCylinderProperties.htm | `sdk_argument_not_documented` (arguments 7, 8, 9, 10, 11) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| AnalysisOperations / PipeRelationships | Pipe Relationship Force Cut to Frame | documentation:AnalysisOperations/PipeRelationships/PipeRelationshipForceCut.htm | `sdk_argument_not_documented` (arguments 5, 6) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| AnalysisOperations / RelationshipAttributes | Set Geom Relationship Auto Vectors Nominal (AVN) | documentation:AnalysisOperations/RelationshipAttributes/SetGeomRelationshipAuto.htm | `sdk_argument_not_documented` (arguments 3, 4) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| AnalysisOperations / RelationshipAttributes | Set Relationship Auto Vectors Fit (AVF) | documentation:AnalysisOperations/RelationshipAttributes/SetRelationshipAutoVectors.htm | `sdk_argument_not_documented` (arguments 2, 3) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| AnalysisOperations / RelationshipAttributesScalarTypes | Get Relationship Fit Constraints (Scalar Type) | documentation:AnalysisOperations/RelationshipAttributesScalarTypes/GetRelationshipFitConstraints.htm | `sdk_argument_not_documented` (arguments 2, 3, 4, 5) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| AnalysisOperations | Set Point Properties | documentation:AnalysisOperations/SetPointProperties.htm | `sdk_argument_not_documented` (arguments 3, 4) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| CloudMeshOps / CloudFilters | Filter Clouds to Vector Groups - Resolve Points | documentation:CloudMeshOps/CloudFilters/FilterCloudsToVectorGroups.htm | `sdk_argument_not_documented` (arguments 8, 9) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / OtherMPTypes | Make a Collection Item Name Reference List - Wildcard Selection | documentation:ConstructionOperations/OtherMPTypes/MakeACollectionItemNameReference.htm | `exact_interop_binding_missing` (arguments 2) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / PointsandGroups | Construct Point at Intersection of Planes | documentation:ConstructionOperations/PointsandGroups/ConstructPointAtIntersectionOfPlanes.htm | `missing_input_arguments_section` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / PointsandGroups | Construct Point at Intersection of Planes | documentation:ConstructionOperations/PointsandGroups/ConstructPointAtIntersectionOfPlanes.htm | `sdk_argument_not_documented` (arguments 1, 2, 3) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / PointsandGroups | Construct Point Groups from Vector Groups | documentation:ConstructionOperations/PointsandGroups/ConstructPointGroupsfromVectorGroups.htm | `missing_input_arguments_section` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / PointsandGroups | Construct Point Groups from Vector Groups | documentation:ConstructionOperations/PointsandGroups/ConstructPointGroupsfromVectorGroups.htm | `sdk_argument_not_documented` (arguments 1, 2, 3, 4) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / PolygonizedSurfaces | Construct Polygonized Surface from Point Clouds | documentation:ConstructionOperations/PolygonizedSurfaces/ConstructPolygonizedSurfacefromPointClouds.htm | `exact_interop_binding_missing` (arguments 1) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / Surfaces | Construct Surface From Cylinder | documentation:ConstructionOperations/Surfaces/ConstructSurfaceFromCylinder.htm | `sdk_argument_not_documented` (arguments 3) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / VectorGroups | Make a Vector Name Ref List From a Vector Group | documentation:ConstructionOperations/VectorGroups/MakeAVectorNameRefList.htm | `missing_input_arguments_section` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / VectorGroups | Make a Vector Name Ref List From a Vector Group | documentation:ConstructionOperations/VectorGroups/MakeAVectorNameRefList.htm | `sdk_argument_not_documented` (arguments 1) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / VectorGroups | Make Vector Names Unique in Vector Group | documentation:ConstructionOperations/VectorGroups/MakeVectorNamesUniqueIn.htm | `missing_return_arguments_section` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| FileOperations | Save | documentation:FileOperations/Save.htm | `file_behavior_unresolved` | `briosa` | https://github.com/spatialanalyzer/briosa/issues/80 |
+| FileOperations | Save As | documentation:FileOperations/SaveAs.htm | `file_behavior_unresolved` (arguments 0, 1, 2) | `briosa` | https://github.com/spatialanalyzer/briosa/issues/80 |
+| FileOperations | Save As Read-Only Template | documentation:FileOperations/SaveAsReadOnlyTemplate.htm | `file_behavior_unresolved` (arguments 0) | `briosa` | https://github.com/spatialanalyzer/briosa/issues/80 |
+| FileOperations / XML | Import Nominals from XML File | documentation:FileOperations/XML/ImportNominalsFromXMLFile.htm | `file_behavior_unresolved` (arguments 0) | `briosa` | https://github.com/spatialanalyzer/briosa/issues/80 |
+| FileOperations / XML | Merge Measurements into XML File | documentation:FileOperations/XML/MergeMeasurementsintoXML.htm | `file_behavior_unresolved` (arguments 0, 1) | `briosa` | https://github.com/spatialanalyzer/briosa/issues/80 |
+| GDT | Datum Alignment | documentation:GDT/DatumAlignment.htm | `sdk_argument_not_documented` (arguments 3) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| GDT | Enable/Disable Datum Alignment for Feature Check | documentation:GDT/EnableDisableDatumAlignment.htm | `sdk_argument_not_documented` (arguments 4) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| GDT | Evaluate Feature Check | documentation:GDT/EvaluateFeatureCheck.htm | `sdk_argument_not_documented` (arguments 21) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| GDT | Evaluate Feature Checks | documentation:GDT/EvaluateFeatureChecks.htm | `sdk_argument_not_documented` (arguments 4, 5) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| GDT | Set GD&T Options | documentation:GDT/SetGDTOptions.htm | `exact_interop_binding_missing` (arguments 1, 8) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ProcessFlowOperations | Output SA Report to PDF | documentation:ProcessFlowOperations/OutputSAReportToPDF.htm | `file_behavior_unresolved` (arguments 0, 1, 2) | `briosa` | https://github.com/spatialanalyzer/briosa/issues/80 |
+| AnalysisOperations | Create Point Uncertainty Cloud Point Sets | sdk:AnalysisOperations.txt#19 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| AnalysisOperations | Create Point Uncertainty Cloud Point Sets | sdk:AnalysisOperations.txt#19 | `sdk_argument_not_documented` (arguments 1, 2, 3, 4, 5, 6, 7) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| AnalysisOperations | Set Point Weights From Uncertainties | sdk:AnalysisOperations.txt#20 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| AnalysisOperations | Set Point Weights From Uncertainties | sdk:AnalysisOperations.txt#20 | `sdk_argument_not_documented` (arguments 1, 2, 3, 4, 5, 6) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| AnalysisOperations | Get Point Coordinate | sdk:AnalysisOperations.txt#21 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| AnalysisOperations | Get Point Coordinate | sdk:AnalysisOperations.txt#21 | `sdk_argument_not_documented` (arguments 1, 2, 3, 4) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| AnalysisOperations | Set Transform for i-th Frame in Frame Set | sdk:AnalysisOperations.txt#37 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| AnalysisOperations | Set Transform for i-th Frame in Frame Set | sdk:AnalysisOperations.txt#37 | `sdk_argument_not_documented` (arguments 1, 2) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| AnalysisOperations | Get Euler Parameters for i-th Frame in Frame Set | sdk:AnalysisOperations.txt#38 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| AnalysisOperations | Get Euler Parameters for i-th Frame in Frame Set | sdk:AnalysisOperations.txt#38 | `sdk_argument_not_documented` (arguments 1, 2, 3, 4, 5, 6, 7, 8) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| AnalysisOperations | Get Euler Parameters for Frame | sdk:AnalysisOperations.txt#39 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| AnalysisOperations | Get Euler Parameters for Frame | sdk:AnalysisOperations.txt#39 | `sdk_argument_not_documented` (arguments 1, 2, 3, 4, 5, 6, 7) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| AnalysisOperations | Set Line Properties | sdk:AnalysisOperations.txt#55 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| AnalysisOperations | Set Line Properties | sdk:AnalysisOperations.txt#55 | `sdk_argument_not_documented` (arguments 1, 2, 3) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| AnalysisOperations | Set Cylinder Properties | sdk:AnalysisOperations.txt#60 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| AnalysisOperations | Set Cylinder Properties | sdk:AnalysisOperations.txt#60 | `sdk_argument_not_documented` (arguments 1, 2, 3, 4, 5, 6, 7, 8, 9) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| AnalysisOperations | Set Ellipse Properties | sdk:AnalysisOperations.txt#62 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| AnalysisOperations | Set Ellipse Properties | sdk:AnalysisOperations.txt#62 | `sdk_argument_not_documented` (arguments 1, 2, 3, 4) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| CloudAndMeshOperations | Clear Cloud Point Deviations | sdk:CloudAndMeshOperations.txt#7 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| CloudAndMeshOperations | Clear Cloud Point Deviations | sdk:CloudAndMeshOperations.txt#7 | `sdk_argument_not_documented` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / BSplines | Construct B-Spline From Point Set | sdk:ConstructionOperations_BSplines.txt#3 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / BSplines | Construct B-Spline From Point Set | sdk:ConstructionOperations_BSplines.txt#3 | `sdk_argument_not_documented` (arguments 1, 2) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / BSplines | Construct B-Splines From Intersection of Plane and Mesh | sdk:ConstructionOperations_BSplines.txt#9 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / BSplines | Construct B-Splines From Intersection of Plane and Mesh | sdk:ConstructionOperations_BSplines.txt#9 | `sdk_argument_not_documented` (arguments 1, 2, 3, 4, 5, 6) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / Ellipses | Construct Ellipse | sdk:ConstructionOperations_Ellipses.txt#1 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / Ellipses | Construct Ellipse | sdk:ConstructionOperations_Ellipses.txt#1 | `sdk_argument_not_documented` (arguments 1, 2, 3, 4) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / Frames | Construct Frames By Projecting Frames On Mesh Along Frame Direction | sdk:ConstructionOperations_Frames.txt#16 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / Frames | Construct Frames By Projecting Frames On Mesh Along Frame Direction | sdk:ConstructionOperations_Frames.txt#16 | `sdk_argument_not_documented` (arguments 1, 2, 3, 4) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / Frames | Construct Frames By Projecting Frames On Mesh Along Reference Direction | sdk:ConstructionOperations_Frames.txt#17 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / Frames | Construct Frames By Projecting Frames On Mesh Along Reference Direction | sdk:ConstructionOperations_Frames.txt#17 | `sdk_argument_not_documented` (arguments 1, 2, 3, 4, 5) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / Frames | Add Surface To Mesh Offset Along Reference Direction | sdk:ConstructionOperations_Frames.txt#18 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / Frames | Add Surface To Mesh Offset Along Reference Direction | sdk:ConstructionOperations_Frames.txt#18 | `sdk_argument_not_documented` (arguments 1, 2, 3, 4, 5, 6) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / Frames | Construct Frame From Transform In World | sdk:ConstructionOperations_Frames.txt#3 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / Frames | Construct Frame From Transform In World | sdk:ConstructionOperations_Frames.txt#3 | `sdk_argument_not_documented` (arguments 1) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / Planes | Construct Planes, Bisect 2 Planes | sdk:ConstructionOperations_Planes.txt#4 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / Planes | Construct Planes, Bisect 2 Planes | sdk:ConstructionOperations_Planes.txt#4 | `sdk_argument_not_documented` (arguments 1, 2) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / PointClouds | Create Cloud Thinning Settings | sdk:ConstructionOperations_PointClouds.txt#11 | `exact_interop_binding_missing` (arguments 0) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / PointClouds | Construct Point Cloud from Visible Cloud Points | sdk:ConstructionOperations_PointClouds.txt#5 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / PointClouds | Construct Point Cloud from Visible Cloud Points | sdk:ConstructionOperations_PointClouds.txt#5 | `sdk_argument_not_documented` (arguments 1) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / PointsAndGroups | Construct Points By Projecting Points On Mesh Along Direction | sdk:ConstructionOperations_PointsAndGroups.txt#26 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| ConstructionOperations / PointsAndGroups | Construct Points By Projecting Points On Mesh Along Direction | sdk:ConstructionOperations_PointsAndGroups.txt#26 | `sdk_argument_not_documented` (arguments 1, 2, 3, 4, 5) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| DimensionOperations | Set Dimension Tolerance | sdk:DimensionOperations.txt#12 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| DimensionOperations | Set Dimension Tolerance | sdk:DimensionOperations.txt#12 | `sdk_argument_not_documented` (arguments 1, 2, 3, 4, 5, 6) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| EventOperations | Export Event Ref List | sdk:EventOperations.txt#4 | `file_behavior_unresolved` (arguments 0, 1, 2, 3) | `briosa` | https://github.com/spatialanalyzer/briosa/issues/80 |
+| FileOperations / FileExport | Export ASCII Points | sdk:FileOperations_FileExport.txt#1 | `file_behavior_unresolved` (arguments 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17) | `briosa` | https://github.com/spatialanalyzer/briosa/issues/80 |
+| FileOperations / FileExport | Export ASCII Point Set | sdk:FileOperations_FileExport.txt#2 | `file_behavior_unresolved` (arguments 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12) | `briosa` | https://github.com/spatialanalyzer/briosa/issues/80 |
+| FileOperations / FileImport | Import VSTARS Cameras | sdk:FileOperations_FileImport.txt#16 | `file_behavior_unresolved` (arguments 0) | `briosa` | https://github.com/spatialanalyzer/briosa/issues/80 |
+| FileOperations / FileImport | Import Polyworks File | sdk:FileOperations_FileImport.txt#19 | `file_behavior_unresolved` (arguments 0, 1) | `briosa` | https://github.com/spatialanalyzer/briosa/issues/80 |
+| GDTOperations / GDTAnalysis | Set Global Force Simultaneous Evaluation | sdk:GDTOperations_GDTAnalysis.txt#17 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| GDTOperations / GDTAnalysis | Set Global Force Simultaneous Evaluation | sdk:GDTOperations_GDTAnalysis.txt#17 | `sdk_argument_not_documented` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| GDTOperations / GDTAnalysis | Generate Feature Check Summary | sdk:GDTOperations_GDTAnalysis.txt#20 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| GDTOperations / GDTAnalysis | Generate Feature Check Summary | sdk:GDTOperations_GDTAnalysis.txt#20 | `sdk_argument_not_documented` (arguments 1) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| GDTOperations / GDTConstruction | Make Surface Face List From Surface | sdk:GDTOperations_GDTConstruction.txt#2 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| GDTOperations / GDTConstruction | Make Surface Face List From Surface | sdk:GDTOperations_GDTConstruction.txt#2 | `sdk_argument_not_documented` (arguments 1) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
+| RelationshipOperations / RelationshipAttributesScalarTypes | Get Relationship Sigmoidal Gap Fit Constraints | sdk:RelationshipOperations_RelationshipAttributesScalarTypes.txt#8 | `exact_interop_binding_missing` (arguments 9) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
 
 ## Reviewed intentional exclusions
 
