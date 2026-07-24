@@ -86,3 +86,4 @@ The domain-scale reviews and their fail-closed decision rules are summarized in:
 
 - [SA 2026.1.0529.7 geometry command review](geometry-command-review.md)
 - [SA 2026.1.0529.7 device command review](device-command-review.md)
+- [SA 2026.1.0529.7 administrative and data-flow command review](administrative-command-review.md)
