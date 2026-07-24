@@ -52,13 +52,19 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         Assert.Null(result.DiagnosticCode);
     }
 
-    [Fact]
-    public void MpFailureDoesNotAttemptResultOnlyArgumentGetters()
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(3)]
+    [InlineData(4)]
+    [InlineData(5)]
+    [InlineData(42)]
+    public void NonSuccessMpCodesDoNotAttemptResultOnlyArgumentGetters(int resultCode)
     {
         using var calls = new RecordingSdkCalls
         {
-            MpSucceeded = false,
-            MpResultCode = 42
+            MpResultCode = resultCode
         };
         using var adapter = new SpatialAnalyzerSdkAdapter(calls);
         var command = new SdkCommand(
@@ -73,9 +79,56 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             ["SetStep:Failed Operation", "ExecuteStep", "GetMPStepResult"],
             calls.Events);
         Assert.False(result.MpResult.Succeeded);
-        Assert.Equal(42, result.MpResult.ResultCode);
+        Assert.True(result.MpResult.Retrieved);
+        Assert.Equal(resultCode, result.MpResult.ResultCode);
         Assert.Empty(result.OutputValues);
         Assert.Equal("mp-command-failed", result.DiagnosticCode);
+    }
+
+    [Fact]
+    public void MpResultRetrievalFailureDoesNotAttemptOutputGetters()
+    {
+        using var calls = new RecordingSdkCalls { MpResultRetrieved = false };
+        using var adapter = new SpatialAnalyzerSdkAdapter(calls);
+        var command = new SdkCommand(
+            "result-retrieval-failure",
+            "Result Retrieval Failure",
+            inputArguments: [],
+            [new SdkOutputArgument("Result", SdkValueKind.Text)]);
+
+        var result = adapter.Execute(command);
+
+        Assert.Equal(
+            ["SetStep:Result Retrieval Failure", "ExecuteStep", "GetMPStepResult"],
+            calls.Events);
+        Assert.True(result.ExecuteStepReturned);
+        Assert.False(result.MpResult.Retrieved);
+        Assert.False(result.MpResult.Succeeded);
+        Assert.Null(result.MpResult.ResultCode);
+        Assert.Empty(result.OutputValues);
+        Assert.Equal("sdk-mp-result-retrieval-failed", result.DiagnosticCode);
+    }
+
+    [Fact]
+    public void ExecuteStepRejectionDoesNotRequestMpResultOrOutputs()
+    {
+        using var calls = new RecordingSdkCalls { ExecuteStepReturned = false };
+        using var adapter = new SpatialAnalyzerSdkAdapter(calls);
+        var command = new SdkCommand(
+            "execute-rejected",
+            "Execute Rejected",
+            inputArguments: [],
+            [new SdkOutputArgument("Result", SdkValueKind.Text)]);
+
+        var result = adapter.Execute(command);
+
+        Assert.Equal(["SetStep:Execute Rejected", "ExecuteStep"], calls.Events);
+        Assert.False(result.ExecuteStepReturned);
+        Assert.False(result.MpResult.Retrieved);
+        Assert.False(result.MpResult.Succeeded);
+        Assert.Null(result.MpResult.ResultCode);
+        Assert.Empty(result.OutputValues);
+        Assert.Equal("execute-step-rejected", result.DiagnosticCode);
     }
 
     [Fact]
@@ -154,6 +207,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         Assert.Equal(["Collection::Group::Point"], calls.ReferenceArguments["Points"]);
         Assert.Contains("SetCollectionObjectNameArg2:Object", calls.Events);
         Assert.Contains("GetCollectionObjectNameArg:Object Result", calls.Events);
+        Assert.True(calls.ReferenceGettersReceivedVariantWrapper);
     }
 
     [Fact]
@@ -243,9 +297,13 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
     {
         public List<string> Events { get; } = [];
 
-        public bool MpSucceeded { get; init; } = true;
+        public bool ExecuteStepReturned { get; init; } = true;
 
-        public int MpResultCode { get; init; }
+        public bool MpResultRetrieved { get; init; } = true;
+
+        public int MpResultCode { get; init; } = 2;
+
+        public bool ReferenceGettersReceivedVariantWrapper { get; private set; } = true;
 
         public string? FailedOutputName { get; init; }
 
@@ -358,14 +416,14 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         public bool ExecuteStep()
         {
             Events.Add("ExecuteStep");
-            return true;
+            return ExecuteStepReturned;
         }
 
         public bool GetMPStepResult(ref int resultCode)
         {
             Events.Add("GetMPStepResult");
             resultCode = MpResultCode;
-            return MpSucceeded;
+            return MpResultRetrieved;
         }
 
         public bool GetBoolArg(string name, ref bool value)
@@ -540,6 +598,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             params string[] result)
         {
             Events.Add($"{method}:{name}");
+            ReferenceGettersReceivedVariantWrapper &= values is VariantWrapper;
             if (name == MalformedOutputName)
             {
                 values = new object[] { 42 };

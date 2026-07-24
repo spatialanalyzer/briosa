@@ -128,8 +128,9 @@ internal static class TestWorkerProcess
             WorkerExecutionResponseStatus.Completed,
             new WorkerMpExecutionResult(
                 ExecuteStepReturned: true,
+                MpResultRetrieved: true,
                 mpSucceeded,
-                mpSucceeded ? 0 : 42,
+                mpSucceeded ? 2 : 3,
                 DurationMilliseconds: delayed ? 300 : 5,
                 mpSucceeded
                     ? [.. command.OutputArguments.Select(CreateOutputValue)]

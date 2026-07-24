@@ -311,6 +311,16 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
             response.Execution is { } execution &&
             (execution.DurationMilliseconds < 0 ||
                 execution.OutputValues is null ||
+                !execution.ExecuteStepReturned &&
+                    (execution.MpResultRetrieved ||
+                        execution.MpSucceeded ||
+                        execution.MpResultCode is not null) ||
+                execution.ExecuteStepReturned &&
+                    !execution.MpResultRetrieved &&
+                    (execution.MpSucceeded || execution.MpResultCode is not null) ||
+                execution.MpResultRetrieved && execution.MpResultCode is null ||
+                execution.MpSucceeded !=
+                    (execution.MpResultRetrieved && execution.MpResultCode == 2) ||
                 !execution.MpSucceeded && execution.OutputValues.Count != 0 ||
                 execution.OutputValues.Any(output =>
                     string.IsNullOrWhiteSpace(output.Name) ||

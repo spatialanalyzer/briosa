@@ -326,7 +326,7 @@ public sealed class WorkerProcessSupervisorTests
         Assert.Equal(WorkerExecutionStatus.Completed, result.Status);
         Assert.True(result.Execution!.ExecuteStepReturned);
         Assert.False(result.Execution.MpSucceeded);
-        Assert.Equal(42, result.Execution.MpResultCode);
+        Assert.Equal(3, result.Execution.MpResultCode);
         Assert.Equal("scripted-mp-failure", result.DiagnosticCode);
     }
 

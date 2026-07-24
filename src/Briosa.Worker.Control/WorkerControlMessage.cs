@@ -2,7 +2,7 @@ namespace Briosa.Worker.Control;
 
 public static class WorkerControlProtocol
 {
-    public const int CurrentVersion = 5;
+    public const int CurrentVersion = 6;
 
     public const int MaximumMessageBytes = 64 * 1024;
 }
@@ -192,8 +192,9 @@ public sealed record WorkerMpCommand(
 
 public sealed record WorkerMpExecutionResult(
     bool ExecuteStepReturned,
+    bool MpResultRetrieved,
     bool MpSucceeded,
-    int MpResultCode,
+    int? MpResultCode,
     long DurationMilliseconds,
     IReadOnlyList<WorkerMpOutputValue> OutputValues,
     string? DiagnosticCode);

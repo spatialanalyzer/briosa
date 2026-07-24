@@ -16,7 +16,7 @@ The reviewed catalog remains the source of truth for repetitive operation artifa
 - `Briosa.Generator catalog-generate` generates the exact-target `operations.proto` contract and an immutable worker-command binding. CI regenerates both in a temporary directory and fails when committed artifacts differ or stale generated files remain.
 - The generated binding creates a command with operation ID `file_operations.get_working_directory`, MP step `Get Working Directory`, no input setters, and one requested text output named `Directory`.
 - The hand-written target service submits that command through `IWorkerCommandExecutor`. The production implementation is the existing `WorkerProcessSupervisor`; the public host never owns SDK or COM state.
-- The worker executes `SetStep("Get Working Directory")`, `ExecuteStep`, `GetMPStepResult`, and, only after MP success, `GetStringArg("Directory", ...)` on its single SDK-owning STA.
+- The worker executes `SetStep("Get Working Directory")`, `ExecuteStep`, `GetMPStepResult`, and, only when the result getter succeeds with MP result code `2`, `GetStringArg("Directory", ...)` on its single SDK-owning STA.
 - A successful getter produces a present `directory` field. An MP failure suppresses output retrieval. A failed getter produces a gRPC failure and never creates a response containing an empty or default directory.
 - Diagnostics contain only curated codes, generation, duration, and the numeric MP result. The retrieved path is neither logged nor placed in error status text.
 
@@ -27,7 +27,8 @@ The vertical slice originally used the deliberately small mapping below. ADR 000
 | Internal outcome | gRPC status | Diagnostic detail |
 | --- | --- | --- |
 | Completed with retrieved output | OK | Typed result with explicit string presence |
-| `ExecuteStep` rejected or MP failed | `FailedPrecondition` | Curated diagnostic; MP code in metadata when available |
+| `ExecuteStep` rejected or a retrieved MP result failed | `FailedPrecondition` | Curated diagnostic; MP code in metadata when available |
+| MP result could not be retrieved | `Internal` | `sdk-mp-result-retrieval-failed`; no MP code |
 | Output getter failed | `DataLoss` | `sdk-output-retrieval-failed` |
 | Worker unavailable, crashed, or watchdog expired | `Unavailable` | Curated worker diagnostic |
 | Caller stopped waiting | `Cancelled` | `client-wait-cancelled` |

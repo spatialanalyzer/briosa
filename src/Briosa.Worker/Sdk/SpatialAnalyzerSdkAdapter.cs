@@ -48,7 +48,11 @@ internal sealed class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
             {
                 return new SdkExecutionResult(
                     ExecuteStepReturned: false,
-                    new SdkMpResult(false, -1, "sdk-argument-rejected"),
+                    new SdkMpResult(
+                        Retrieved: false,
+                        Succeeded: false,
+                        ResultCode: null,
+                        "sdk-argument-rejected"),
                     Stopwatch.GetElapsedTime(started),
                     OutputValues: [],
                     "sdk-argument-rejected");
@@ -56,11 +60,23 @@ internal sealed class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
         }
 
         var executeStepReturned = _sdk.ExecuteStep();
+        var mpResultRetrieved = false;
         var resultCode = 0;
-        var mpSucceeded = _sdk.GetMPStepResult(ref resultCode);
+        if (executeStepReturned)
+        {
+            mpResultRetrieved = _sdk.GetMPStepResult(ref resultCode);
+        }
+
+        var mpSucceeded = mpResultRetrieved && resultCode == 2;
         IReadOnlyList<SdkOutputValue> outputValues = [];
-        var diagnosticCode = mpSucceeded ? null : "mp-command-failed";
-        if (executeStepReturned && mpSucceeded)
+        var diagnosticCode = executeStepReturned switch
+        {
+            false => "execute-step-rejected",
+            true when !mpResultRetrieved => "sdk-mp-result-retrieval-failed",
+            true when !mpSucceeded => "mp-command-failed",
+            _ => null
+        };
+        if (mpSucceeded)
         {
             outputValues = [.. command.OutputArguments.Select(argument => GetOutputValue(_sdk, argument))];
             if (outputValues.Any(output => !output.Retrieved))
@@ -68,17 +84,14 @@ internal sealed class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
                 diagnosticCode = "sdk-output-retrieval-failed";
             }
         }
-        else if (!executeStepReturned)
-        {
-            diagnosticCode = "execute-step-rejected";
-        }
 
         return new SdkExecutionResult(
             executeStepReturned,
             new SdkMpResult(
+                mpResultRetrieved,
                 mpSucceeded,
-                resultCode,
-                mpSucceeded ? null : "mp-command-failed"),
+                mpResultRetrieved ? resultCode : null,
+                diagnosticCode),
             Stopwatch.GetElapsedTime(started),
             outputValues,
             diagnosticCode);
@@ -518,7 +531,7 @@ internal sealed class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
         Func<string, SdkValueKind, T, SdkOutputValue> create)
         where T : class
     {
-        object value = Array.Empty<object>();
+        var value = SdkReferenceListCodec.ToComValue([]);
         if (!getter(argument.Name, ref value) || !parser(value, out var parsed) || parsed is null)
         {
             return new SdkOutputValue(argument.Name, argument.Kind, Retrieved: false);

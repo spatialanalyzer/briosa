@@ -30,6 +30,15 @@ internal sealed record OperationAuditSummary(
                 execution.MpResultCode);
         }
 
+        if (!execution.MpResultRetrieved)
+        {
+            return new OperationAuditSummary(
+                "result_unavailable",
+                "not_attempted",
+                execution.DurationMilliseconds,
+                execution.MpResultCode);
+        }
+
         if (!execution.MpSucceeded)
         {
             return new OperationAuditSummary(

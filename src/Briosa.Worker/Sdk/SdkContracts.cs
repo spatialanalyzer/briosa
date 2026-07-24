@@ -235,8 +235,9 @@ internal sealed class SdkCommand
 }
 
 internal sealed record SdkMpResult(
+    bool Retrieved,
     bool Succeeded,
-    int ResultCode,
+    int? ResultCode,
     string? DiagnosticCode);
 
 internal sealed record SdkExecutionResult(

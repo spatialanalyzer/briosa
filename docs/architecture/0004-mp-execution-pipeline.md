@@ -17,7 +17,7 @@ Private worker protocol version 3 adds typed MP execution requests and responses
 - The server supervisor owns a bounded, single-consumer execution queue. This is the transport-neutral seam that future gRPC service methods call.
 - The worker maps each request to an `SdkCommand`. Its existing `SerializedSdkExecutor` performs the complete `SetStep`, input-setter, `ExecuteStep`, `GetMPStepResult`, and successful result-argument getter sequence on its one SDK-owning STA. No request can interleave another request's sequence.
 - An argument setter that returns false produces the curated `sdk-argument-rejected` outcome and does not execute a partially configured step.
-- After `ExecuteStep`, the adapter always calls `GetMPStepResult`. Only a successful `ExecuteStep` and MP result allow the requested output getters to run. The response preserves both Boolean outcomes, the MP result code, SDK-sequence duration, each typed output value and retrieval status, and a curated diagnostic code. A failed getter produces `sdk-output-retrieval-failed` without silently substituting a default value.
+- The adapter calls `GetMPStepResult` only after `ExecuteStep` returns true. The getter Boolean means that the numeric result was retrieved; it is not the MP success flag. Result code `2` is success. Codes `-1`, `0`, `1`, `3`, `4`, `5`, and unknown values are preserved as non-success outcomes, and a false getter return is preserved separately as `sdk-mp-result-retrieval-failed` with no result code. Requested output getters run only after code `2`. Private worker protocol version 6 carries execute acceptance, MP-result retrieval, MP success, and the optional raw result code independently. A failed output getter produces `sdk-output-retrieval-failed` without silently substituting a default value.
 - The server's production watchdog defaults to 30 seconds. The execution queue capacity defaults to 64. These are worker-safety limits and are independent of a gRPC deadline or caller cancellation token.
 - A canceled caller stops waiting and receives `client-wait-cancelled`. An already queued request remains owned by the single consumer so its response is drained and the pipe stays synchronized. Cancellation does not claim to stop the COM call.
 - If the watchdog expires, the supervisor force-terminates the worker process tree, starts a replacement within the existing bounded restart policy, and reports `WatchdogTimeout` for the affected request.
@@ -38,7 +38,8 @@ Portable process tests use the fake worker executable to verify:
 - caller cancellation returns promptly while a later request succeeds on the same generation;
 - a hung execution triggers forced replacement and the next call succeeds;
 - a crashed execution is distinct from a watchdog timeout and is replaced;
-- MP failure survives when `ExecuteStep` returns true and prevents output getter calls;
+- every documented non-success MP result code survives when `ExecuteStep` returns true and prevents output getter calls;
+- MP-result retrieval failure remains distinct from an MP-reported failure and prevents output getter calls;
 - scalar, point-name, vector, and tolerance-vector outputs round-trip across the process boundary;
 - an SDK-faulted production worker returns unavailable without activating or controlling SpatialAnalyzer.
 

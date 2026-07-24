@@ -10,6 +10,7 @@ enum MpExecutionState {
   MP_EXECUTION_STATE_SUCCEEDED = 1;
   MP_EXECUTION_STATE_EXECUTE_STEP_REJECTED = 2;
   MP_EXECUTION_STATE_FAILED = 3;
+  MP_EXECUTION_STATE_RESULT_UNAVAILABLE = 4;
 }
 
 // Describes what happened when Briosa requested one result-only argument.
@@ -45,6 +46,7 @@ enum OperationFailureKind {
   OPERATION_FAILURE_KIND_OUTPUT_RETRIEVAL_FAILURE = 11;
   OPERATION_FAILURE_KIND_INTERNAL = 12;
   OPERATION_FAILURE_KIND_POLICY_DENIED = 13;
+  OPERATION_FAILURE_KIND_MP_RESULT_RETRIEVAL_FAILURE = 14;
 }
 
 // Records retrieval state by the public operation result field name.

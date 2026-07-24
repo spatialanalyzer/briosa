@@ -114,8 +114,9 @@ internal static class SmokeWorkerProgram
                 WorkerExecutionResponseStatus.Completed,
                 new WorkerMpExecutionResult(
                     ExecuteStepReturned: true,
+                    MpResultRetrieved: true,
                     mpSucceeded,
-                    MpResultCode: mpSucceeded ? 0 : 42,
+                    MpResultCode: mpSucceeded ? 2 : 3,
                     DurationMilliseconds: 5,
                     outputs,
                     diagnosticCode),

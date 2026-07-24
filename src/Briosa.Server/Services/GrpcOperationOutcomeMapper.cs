@@ -63,6 +63,26 @@ internal static class GrpcOperationOutcomeMapper
                 "SpatialAnalyzer rejected the MP execution request.");
         }
 
+        if (!execution.MpResultRetrieved)
+        {
+            var details = CreateMpDetails(
+                execution,
+                outputs,
+                MpExecutionState.ResultUnavailable,
+                OutputRetrievalState.NotAttempted);
+            throw CreateFailure(
+                StatusCode.Internal,
+                operationId,
+                OperationFailureKind.MpResultRetrievalFailure,
+                NormalizeDiagnosticCode(
+                    execution.DiagnosticCode,
+                    "sdk-mp-result-retrieval-failed"),
+                RetryGuidance.DoNotRetry,
+                outcome.Generation,
+                details,
+                "SpatialAnalyzer did not return the MP execution result.");
+        }
+
         if (!execution.MpSucceeded)
         {
             var details = CreateMpDetails(
@@ -281,9 +301,12 @@ internal static class GrpcOperationOutcomeMapper
     {
         var details = new MpExecutionDetails
         {
-            State = state,
-            MpResultCode = execution.MpResultCode
+            State = state
         };
+        if (execution.MpResultCode is { } resultCode)
+        {
+            details.MpResultCode = resultCode;
+        }
         details.OutputRetrievals.AddRange(outputs.Select(output =>
             new OutputRetrievalDetails
             {
@@ -299,9 +322,12 @@ internal static class GrpcOperationOutcomeMapper
     {
         var details = new MpExecutionDetails
         {
-            State = MpExecutionState.Succeeded,
-            MpResultCode = execution.MpResultCode
+            State = MpExecutionState.Succeeded
         };
+        if (execution.MpResultCode is { } resultCode)
+        {
+            details.MpResultCode = resultCode;
+        }
         foreach (var output in outputs)
         {
             var value = execution.OutputValues.Single(candidate =>

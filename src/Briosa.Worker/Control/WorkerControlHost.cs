@@ -256,6 +256,7 @@ internal static class WorkerControlHost
     private static WorkerMpExecutionResult ToControlResult(SdkExecutionResult execution) =>
         new(
             execution.ExecuteStepReturned,
+            execution.MpResult.Retrieved,
             execution.MpResult.Succeeded,
             execution.MpResult.ResultCode,
             (long)execution.Duration.TotalMilliseconds,
