@@ -12,31 +12,29 @@
         "Folders"
       ],
       "inventory_entry_sha256": "ab7343ba38f8b3c2aaef2f21558b32e8f230cc3515d996dcdecdcdeeaaafa6a0",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Folders/DeleteFolder.htm",
         "sdk:UtilityOperations_Folders.txt#1"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
-      ],
+      "blocker_references": [],
+      "risk_effect": "mutating",
+      "risk_flags": [],
       "data_classifications": [
-        "unknown"
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "string"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_2"
     },
     {
       "inventory_key": "documentation:UtilityOperations/Folders/GetFolderCollections.htm",
@@ -46,31 +44,30 @@
         "Folders"
       ],
       "inventory_entry_sha256": "cf2d5874af606cdedde2dd8be648a9dacdf4dd3186370790c4f9b44272dc4aa6",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "read_only_operation"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Folders/GetFolderCollections.htm",
         "sdk:UtilityOperations_Folders.txt#5"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
-      ],
+      "blocker_references": [],
+      "risk_effect": "read_only",
+      "risk_flags": [],
       "data_classifications": [
-        "unknown"
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "string",
+        "string_list"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_1"
     },
     {
       "inventory_key": "documentation:UtilityOperations/Folders/GetFolderNotes.htm",
@@ -80,31 +77,30 @@
         "Folders"
       ],
       "inventory_entry_sha256": "5dc78eaf22c16f51ba8c826e276461917420f62f24f0465720cdcab9b6cb8cd1",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "read_only_operation"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Folders/GetFolderNotes.htm",
         "sdk:UtilityOperations_Notes.txt#1"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
-      ],
+      "blocker_references": [],
+      "risk_effect": "read_only",
+      "risk_flags": [],
       "data_classifications": [
-        "unknown"
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "edit_text",
+        "string"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_1"
     },
     {
       "inventory_key": "documentation:UtilityOperations/Folders/GetFoldersByWildcard.htm",
@@ -114,31 +110,31 @@
         "Folders"
       ],
       "inventory_entry_sha256": "2ae0d03d6f9c7308bbdc026f76a470c6138973cf3fa162bd1840a3bd4c8e3f3f",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "read_only_operation"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Folders/GetFoldersByWildcard.htm",
         "sdk:UtilityOperations_Folders.txt#4"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
-      ],
+      "blocker_references": [],
+      "risk_effect": "read_only",
+      "risk_flags": [],
       "data_classifications": [
-        "unknown"
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "logical",
+        "string",
+        "string_list"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_1"
     },
     {
       "inventory_key": "documentation:UtilityOperations/Folders/MoveCollectionToFolder.htm",
@@ -148,31 +144,30 @@
         "Folders"
       ],
       "inventory_entry_sha256": "f80d25dbc064f4769820376175799ea68817624cef4f2d29ab3a93a985d563eb",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Folders/MoveCollectionToFolder.htm",
         "sdk:UtilityOperations_Folders.txt#2"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
-      ],
+      "blocker_references": [],
+      "risk_effect": "mutating",
+      "risk_flags": [],
       "data_classifications": [
-        "unknown"
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_name",
+        "string"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_2"
     },
     {
       "inventory_key": "documentation:UtilityOperations/Folders/MoveFolderToFolder.htm",
@@ -182,31 +177,29 @@
         "Folders"
       ],
       "inventory_entry_sha256": "107b838dd13cad2efd6c5d8f30729d7d0875a873268ca7a7b0366ae182237395",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Folders/MoveFolderToFolder.htm",
         "sdk:UtilityOperations_Folders.txt#3"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
-      ],
+      "blocker_references": [],
+      "risk_effect": "mutating",
+      "risk_flags": [],
       "data_classifications": [
-        "unknown"
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "string"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_2"
     },
     {
       "inventory_key": "documentation:UtilityOperations/Folders/SetFolderNotes.htm",
@@ -216,31 +209,31 @@
         "Folders"
       ],
       "inventory_entry_sha256": "27ad3f74df37ed5fb4668b9816b727e0bc106058c4666ce5f911a4b251a5542d",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Folders/SetFolderNotes.htm",
         "sdk:UtilityOperations_Notes.txt#2"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
-      ],
+      "blocker_references": [],
+      "risk_effect": "mutating",
+      "risk_flags": [],
       "data_classifications": [
-        "unknown"
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "edit_text",
+        "logical",
+        "string"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_2"
     },
     {
       "inventory_key": "documentation:UtilityOperations/Language/GetActiveLanguage.htm",
@@ -251,28 +244,30 @@
       ],
       "inventory_entry_sha256": "993ce4d41e25b3281abc23648751de1d69457dccf68b2d54ffc6d010266f0f27",
       "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "review_state": "reviewed",
+      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
       "reason_codes": [
-        "awaiting_review"
+        "argument_semantics_unresolved"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Language/GetActiveLanguage.htm",
         "sdk:UtilityOperations_Language.txt#3"
       ],
-      "decision_references": [],
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
+      ],
       "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
-      ],
+      "risk_effect": "read_only",
+      "risk_flags": [],
       "data_classifications": [
-        "unknown"
+        "path"
       ],
       "value_families": [
-        "unknown"
+        "file_reference",
+        "font",
+        "logical"
       ],
       "delivery_wave": null
     },
@@ -284,31 +279,30 @@
         "Language"
       ],
       "inventory_entry_sha256": "44935960be97e0a20a68a36f8d47ace6d2adf7167abe961acc5d04f9462f8dbf",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Language/SetActiveCustomLanguage.htm",
         "sdk:UtilityOperations_Language.txt#2"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
-      ],
+      "blocker_references": [],
+      "risk_effect": "mutating",
+      "risk_flags": [],
       "data_classifications": [
-        "unknown"
+        "path"
       ],
       "value_families": [
-        "unknown"
+        "file_reference",
+        "font"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_2"
     },
     {
       "inventory_key": "documentation:UtilityOperations/Language/SetActiveIntegratedLanguage.htm",
@@ -318,29 +312,27 @@
         "Language"
       ],
       "inventory_entry_sha256": "94da98b3a065603c8b37093e9a026d06ff1b0034cc18b01f38755092c22ff697",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "sdk_unavailable",
+      "review_state": "reviewed",
+      "rationale": "The exact-target evidence lacks a viable SDK command occurrence or a required input binding, so Briosa cannot expose this command through the SA SDK.",
       "reason_codes": [
-        "awaiting_review"
+        "sdk_input_binding_unavailable"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Language/SetActiveIntegratedLanguage.htm",
         "sdk:UtilityOperations_Language.txt#1"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
-      ],
+      "blocker_references": [],
+      "risk_effect": "mutating",
+      "risk_flags": [],
       "data_classifications": [
-        "unknown"
+        "non_sensitive"
       ],
       "value_families": [
-        "unknown"
+        "active_language"
       ],
       "delivery_wave": null
     },
@@ -453,29 +445,29 @@
         "Network"
       ],
       "inventory_entry_sha256": "71ee832064abb80d6a34b08200ffa3bae4e513d801812cdd6b5df6646a704884",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Programming-language control flow and MP runtime sequencing belong in the client application.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_state_and_control_flow"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Network/LockUnlockTrappingControl.htm",
         "sdk:UtilityOperations.txt#31"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
-      ],
+      "blocker_references": [],
+      "risk_effect": "mutating",
+      "risk_flags": [],
       "data_classifications": [
-        "unknown"
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name_list",
+        "logical",
+        "relationship_ref_list"
       ],
       "delivery_wave": null
     },
@@ -487,31 +479,29 @@
         "Network"
       ],
       "inventory_entry_sha256": "ebf1af63c6547b9a051f83ca46bfb239f717ec00dbde1bb2d20d585b1a5e3e59",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Network/SetWildCardAsteriskMode.htm",
         "sdk:UtilityOperations.txt#30"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
-      ],
+      "blocker_references": [],
+      "risk_effect": "mutating",
+      "risk_flags": [],
       "data_classifications": [
-        "unknown"
+        "non_sensitive"
       ],
       "value_families": [
-        "unknown"
+        "logical"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_2"
     },
     {
       "inventory_key": "documentation:UtilityOperations/Network/UDPReceiveString.htm",
@@ -589,31 +579,30 @@
         "Notes"
       ],
       "inventory_entry_sha256": "22c056b750b598bd1da0c05f595d8fc7615f4f7ef79e390c20a35468317ffd6a",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "read_only_operation"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Notes/GetCollectionNotes.htm",
         "sdk:UtilityOperations_Notes.txt#3"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
-      ],
+      "blocker_references": [],
+      "risk_effect": "read_only",
+      "risk_flags": [],
       "data_classifications": [
-        "unknown"
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_name",
+        "edit_text"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_1"
     },
     {
       "inventory_key": "documentation:UtilityOperations/Notes/GetObjectNotes.htm",
@@ -623,31 +612,30 @@
         "Notes"
       ],
       "inventory_entry_sha256": "a9f5aebe9e72942ef5662001fd64923448377ee48cd4b5bee95ec6f6d1741e1c",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "read_only_operation"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Notes/GetObjectNotes.htm",
         "sdk:UtilityOperations_Notes.txt#5"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
-      ],
+      "blocker_references": [],
+      "risk_effect": "read_only",
+      "risk_flags": [],
       "data_classifications": [
-        "unknown"
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name",
+        "edit_text"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_1"
     },
     {
       "inventory_key": "documentation:UtilityOperations/Notes/GetPointNotes.htm",
@@ -657,31 +645,31 @@
         "Notes"
       ],
       "inventory_entry_sha256": "8d7303694afb1af6d833ea9df9d25b3fa27d57bbfb0b7aa09cabf87574dec6b3",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "read_only_operation"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Notes/GetPointNotes.htm",
         "sdk:UtilityOperations_Notes.txt#7"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
-      ],
+      "blocker_references": [],
+      "risk_effect": "read_only",
+      "risk_flags": [],
       "data_classifications": [
-        "unknown"
+        "geometry",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "edit_text",
+        "point_name"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_1"
     },
     {
       "inventory_key": "documentation:UtilityOperations/Notes/SetCollectionNotes.htm",
@@ -691,31 +679,31 @@
         "Notes"
       ],
       "inventory_entry_sha256": "81e5131204eeaeec359c9e383560f81d9740de34419f04cbcaa0df6efccd86a1",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Notes/SetCollectionNotes.htm",
         "sdk:UtilityOperations_Notes.txt#4"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
-      ],
+      "blocker_references": [],
+      "risk_effect": "mutating",
+      "risk_flags": [],
       "data_classifications": [
-        "unknown"
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_name",
+        "edit_text",
+        "logical"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_2"
     },
     {
       "inventory_key": "documentation:UtilityOperations/Notes/SetObjectNotes.htm",
@@ -725,31 +713,31 @@
         "Notes"
       ],
       "inventory_entry_sha256": "13915e6a08d8859b5bcbceb49d56bda1345142db417addb727a1477a7778e391",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Notes/SetObjectNotes.htm",
         "sdk:UtilityOperations_Notes.txt#6"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
-      ],
+      "blocker_references": [],
+      "risk_effect": "mutating",
+      "risk_flags": [],
       "data_classifications": [
-        "unknown"
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name",
+        "edit_text",
+        "logical"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_2"
     },
     {
       "inventory_key": "documentation:UtilityOperations/Notes/SetPointNotes.htm",
@@ -759,31 +747,32 @@
         "Notes"
       ],
       "inventory_entry_sha256": "4ec70f8c1faa40c7f6dc2a2552c0558734ed1337c66627a661f8ee221473e23b",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Notes/SetPointNotes.htm",
         "sdk:UtilityOperations_Notes.txt#8"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
-      ],
+      "blocker_references": [],
+      "risk_effect": "mutating",
+      "risk_flags": [],
       "data_classifications": [
-        "unknown"
+        "geometry",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "edit_text",
+        "logical",
+        "point_name"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_2"
     },
     {
       "inventory_key": "documentation:UtilityOperations/OPC-DAServer/GetOPCDATagValueDouble.htm",
@@ -1779,28 +1768,29 @@
         "Units"
       ],
       "inventory_entry_sha256": "dc1c48cd299828bc349ad553904a0a56a3b239f426c8d2ea4bd9f6f4bb0dec82",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Generic filesystem, database, or process integration belongs in the client application and would unnecessarily expand Briosa authority.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_external_integration"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/CopyDirectory.htm"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
+      "blocker_references": [],
+      "risk_effect": "mutating",
       "risk_flags": [
-        "unknown"
+        "filesystem_write"
       ],
       "data_classifications": [
-        "unknown"
+        "path"
       ],
       "value_families": [
-        "unknown"
+        "file_reference",
+        "logical"
       ],
       "delivery_wave": null
     },
@@ -1846,28 +1836,28 @@
         "Units"
       ],
       "inventory_entry_sha256": "c68cec5246e5099ad03713bd025c009f9ea831f6c406c819adc49d88cdb8aab7",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Generic filesystem, database, or process integration belongs in the client application and would unnecessarily expand Briosa authority.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_external_integration"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/DeleteDirectory.htm"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
+      "blocker_references": [],
+      "risk_effect": "mutating",
       "risk_flags": [
-        "unknown"
+        "filesystem_write"
       ],
       "data_classifications": [
-        "unknown"
+        "path"
       ],
       "value_families": [
-        "unknown"
+        "file_reference"
       ],
       "delivery_wave": null
     },
@@ -1879,31 +1869,29 @@
         "Units"
       ],
       "inventory_entry_sha256": "613ce2d8c4c52557368d9eee129b9ebe1caa120e53869a7b7b707f91caf543aa",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/DeleteItems.htm",
         "sdk:UtilityOperations.txt#8"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
-      ],
+      "blocker_references": [],
+      "risk_effect": "mutating",
+      "risk_flags": [],
       "data_classifications": [
-        "unknown"
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name_list"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_2"
     },
     {
       "inventory_key": "documentation:UtilityOperations/Units/DeleteObjects.htm",
@@ -1913,31 +1901,29 @@
         "Units"
       ],
       "inventory_entry_sha256": "ae3918b5130c2535ddcd7fd877e90a75c862b3ac913e25ca0f30adbc09ee103a",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/DeleteObjects.htm",
         "sdk:UtilityOperations.txt#7"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
-      ],
+      "blocker_references": [],
+      "risk_effect": "mutating",
+      "risk_flags": [],
       "data_classifications": [
-        "unknown"
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name_list"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_2"
     },
     {
       "inventory_key": "documentation:UtilityOperations/Units/DirectoryExistence.htm",
@@ -1947,28 +1933,29 @@
         "Units"
       ],
       "inventory_entry_sha256": "d2684104b93ab1bfeda69d25c1ab94d25165a406666e0458e670490e458c42a7",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Generic filesystem, database, or process integration belongs in the client application and would unnecessarily expand Briosa authority.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_external_integration"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/DirectoryExistence.htm"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
+      "blocker_references": [],
+      "risk_effect": "read_only",
       "risk_flags": [
-        "unknown"
+        "filesystem_metadata"
       ],
       "data_classifications": [
-        "unknown"
+        "path"
       ],
       "value_families": [
-        "unknown"
+        "file_reference",
+        "logical"
       ],
       "delivery_wave": null
     },
@@ -2014,31 +2001,29 @@
         "Units"
       ],
       "inventory_entry_sha256": "d8e38d498726cd71337e91f7cf464211ae535ca1755f3bdeb920cca4108abbe2",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "read_only_operation"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/GetActiveUnits.htm",
         "sdk:UtilityOperations_Units.txt#1"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
-      ],
+      "blocker_references": [],
+      "risk_effect": "read_only",
+      "risk_flags": [],
       "data_classifications": [
-        "unknown"
+        "non_sensitive"
       ],
       "value_families": [
-        "unknown"
+        "string"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_1"
     },
     {
       "inventory_key": "documentation:UtilityOperations/Units/GetAngularRepresentation.htm",
@@ -2048,31 +2033,29 @@
         "Units"
       ],
       "inventory_entry_sha256": "e387a0d780e265707b21363faaf35db9078ebddcc3fc5680259f56e891109373",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "read_only_operation"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/GetAngularRepresentation.htm",
         "sdk:UtilityOperations_Units.txt#5"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
-      ],
+      "blocker_references": [],
+      "risk_effect": "read_only",
+      "risk_flags": [],
       "data_classifications": [
-        "unknown"
+        "non_sensitive"
       ],
       "value_families": [
-        "unknown"
+        "logical"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_1"
     },
     {
       "inventory_key": "documentation:UtilityOperations/Units/GetObjectColor.htm",
@@ -2082,28 +2065,27 @@
         "Units"
       ],
       "inventory_entry_sha256": "0e3369798253a214f62b41ef17fd7af2cee81bd9d74ff7aae4c1345dcc20e63a",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "sdk_unavailable",
+      "review_state": "reviewed",
+      "rationale": "The exact-target evidence lacks a viable SDK command occurrence or a required input binding, so Briosa cannot expose this command through the SA SDK.",
       "reason_codes": [
-        "awaiting_review"
+        "sdk_command_not_observed"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/GetObjectColor.htm"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
-      ],
+      "blocker_references": [],
+      "risk_effect": "read_only",
+      "risk_flags": [],
       "data_classifications": [
-        "unknown"
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name",
+        "rgb_color"
       ],
       "delivery_wave": null
     },
@@ -2149,31 +2131,30 @@
         "Units"
       ],
       "inventory_entry_sha256": "dda4a6d3ad9731f799b596b086d7c8d1b46096dc9809bfa31d466c605fedbcd4",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "read_only_operation"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/GetWorkingFrameProperties.htm",
         "sdk:UtilityOperations.txt#6"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
-      ],
+      "blocker_references": [],
+      "risk_effect": "read_only",
+      "risk_flags": [],
       "data_classifications": [
-        "unknown"
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name",
+        "string"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_1"
     },
     {
       "inventory_key": "documentation:UtilityOperations/Units/HighlightObjects.htm",
@@ -2183,28 +2164,29 @@
         "Units"
       ],
       "inventory_entry_sha256": "03ce3a6cf03e12cb4ee5a0c0cd35c1db117a1afdfa074f8e433f3963547f751d",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "sdk_unavailable",
+      "review_state": "reviewed",
+      "rationale": "The exact-target evidence lacks a viable SDK command occurrence or a required input binding, so Briosa cannot expose this command through the SA SDK.",
       "reason_codes": [
-        "awaiting_review"
+        "sdk_command_not_observed"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/HighlightObjects.htm"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
+      "blocker_references": [],
+      "risk_effect": "mutating",
       "risk_flags": [
-        "unknown"
+        "interactive_ui"
       ],
       "data_classifications": [
-        "unknown"
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name_list",
+        "logical"
       ],
       "delivery_wave": null
     },
@@ -2216,28 +2198,30 @@
         "Units"
       ],
       "inventory_entry_sha256": "04e1ae119de0b9f8695b2d8615cfafc808c3c60fada7e4d59bbc9175a334f705",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "sdk_unavailable",
+      "review_state": "reviewed",
+      "rationale": "The exact-target evidence lacks a viable SDK command occurrence or a required input binding, so Briosa cannot expose this command through the SA SDK.",
       "reason_codes": [
-        "awaiting_review"
+        "sdk_command_not_observed"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/HighlightPoint.htm"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
+      "blocker_references": [],
+      "risk_effect": "mutating",
       "risk_flags": [
-        "unknown"
+        "interactive_ui"
       ],
       "data_classifications": [
-        "unknown"
+        "geometry",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "logical",
+        "point_name"
       ],
       "delivery_wave": null
     },
@@ -2249,28 +2233,29 @@
         "Units"
       ],
       "inventory_entry_sha256": "0ea35e0eaed67afa9e69bb92330f1e8b5f41462be15bcdc4b0479ff71b5e56db",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "sdk_unavailable",
+      "review_state": "reviewed",
+      "rationale": "The exact-target evidence lacks a viable SDK command occurrence or a required input binding, so Briosa cannot expose this command through the SA SDK.",
       "reason_codes": [
-        "awaiting_review"
+        "sdk_command_not_observed"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/Highlight_Objects.htm"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
+      "blocker_references": [],
+      "risk_effect": "mutating",
       "risk_flags": [
-        "unknown"
+        "interactive_ui"
       ],
       "data_classifications": [
-        "unknown"
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "logical",
+        "relationship_ref_list"
       ],
       "delivery_wave": null
     },
@@ -2316,31 +2301,29 @@
         "Units"
       ],
       "inventory_entry_sha256": "208161faf110276a1d0994b8aa36d6f5f837868eeb2a982983636fd7750ea261",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/LockImportedItems.htm",
         "sdk:UtilityOperations.txt#9"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
-      ],
+      "blocker_references": [],
+      "risk_effect": "mutating",
+      "risk_flags": [],
       "data_classifications": [
-        "unknown"
+        "non_sensitive"
       ],
       "value_families": [
-        "unknown"
+        "logical"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_2"
     },
     {
       "inventory_key": "documentation:UtilityOperations/Units/LockUnlockSelectedItems.htm",
@@ -2350,31 +2333,31 @@
         "Units"
       ],
       "inventory_entry_sha256": "529c9cfb4adad28ff7cfaed91bef0417949e44bffd4de87a0509b8c8a10a7822",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/LockUnlockSelectedItems.htm",
         "sdk:UtilityOperations.txt#10"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
-      ],
+      "blocker_references": [],
+      "risk_effect": "mutating",
+      "risk_flags": [],
       "data_classifications": [
-        "unknown"
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_instrument_id_list",
+        "collection_object_name_list",
+        "logical"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_2"
     },
     {
       "inventory_key": "documentation:UtilityOperations/Units/MakeDirectory.htm",
@@ -2384,28 +2367,28 @@
         "Units"
       ],
       "inventory_entry_sha256": "afc753067226229adbb1effb53938ee18b628bf002d90078f0a3ee5bab75fb27",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Generic filesystem, database, or process integration belongs in the client application and would unnecessarily expand Briosa authority.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_external_integration"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/MakeDirectory.htm"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
+      "blocker_references": [],
+      "risk_effect": "mutating",
       "risk_flags": [
-        "unknown"
+        "filesystem_write"
       ],
       "data_classifications": [
-        "unknown"
+        "path"
       ],
       "value_families": [
-        "unknown"
+        "file_reference"
       ],
       "delivery_wave": null
     },
@@ -2485,28 +2468,28 @@
         "Units"
       ],
       "inventory_entry_sha256": "214196fcc49ecb5e5cece53cceee1e792bb3e4a607abbc67f04dbb9cdb2e953a",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "sdk_unavailable",
+      "review_state": "reviewed",
+      "rationale": "The exact-target evidence lacks a viable SDK command occurrence or a required input binding, so Briosa cannot expose this command through the SA SDK.",
       "reason_codes": [
-        "awaiting_review"
+        "sdk_command_not_observed"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/RefreshViews.htm"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
+      "blocker_references": [],
+      "risk_effect": "mutating",
       "risk_flags": [
-        "unknown"
+        "interactive_ui"
       ],
       "data_classifications": [
-        "unknown"
+        "non_sensitive"
       ],
       "value_families": [
-        "unknown"
+        "none"
       ],
       "delivery_wave": null
     },
@@ -2552,31 +2535,31 @@
         "Units"
       ],
       "inventory_entry_sha256": "6573711fd098ce03fefc78cf372e07e97c087a02c347d7087635d878091fd4fb",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/ScaleObjects.htm",
         "sdk:UtilityOperations.txt#12"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
-      ],
+      "blocker_references": [],
+      "risk_effect": "mutating",
+      "risk_flags": [],
       "data_classifications": [
-        "unknown"
+        "geometry",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name_list",
+        "floating_point"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_2"
     },
     {
       "inventory_key": "documentation:UtilityOperations/Units/SendMPResultToExternal.htm",
@@ -2655,28 +2638,33 @@
       ],
       "inventory_entry_sha256": "ae95ad660b29fd4bd219ba4d8f942e470dbdd4d8d30f0808821f0877d9e2a68c",
       "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "review_state": "reviewed",
+      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
       "reason_codes": [
-        "awaiting_review"
+        "argument_semantics_unresolved"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/SetActiveUnits.htm",
         "sdk:UtilityOperations_Units.txt#2"
       ],
-      "decision_references": [],
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
+      ],
       "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+        "https://github.com/spatialanalyzer/briosa/issues/53"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
-      ],
+      "risk_effect": "mutating",
+      "risk_flags": [],
       "data_classifications": [
-        "unknown"
+        "geometry",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "angular_unit",
+        "distance_unit",
+        "floating_point",
+        "logical",
+        "temperature_unit"
       ],
       "delivery_wave": null
     },
@@ -2688,31 +2676,29 @@
         "Units"
       ],
       "inventory_entry_sha256": "cce3d17e0493688b0b56e07e9094d57a77100ba976f215999a800b509a515f34",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/SetAngularRepresentation.htm",
         "sdk:UtilityOperations_Units.txt#4"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
-      ],
+      "blocker_references": [],
+      "risk_effect": "mutating",
+      "risk_flags": [],
       "data_classifications": [
-        "unknown"
+        "non_sensitive"
       ],
       "value_families": [
-        "unknown"
+        "logical"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_2"
     },
     {
       "inventory_key": "documentation:UtilityOperations/Units/SetAutoEventCreation.htm",
@@ -2722,31 +2708,29 @@
         "Units"
       ],
       "inventory_entry_sha256": "197d0e6ff9f3a619013174c46835e532ed7fc6d5b32020293c2b697951abb9b3",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/SetAutoEventCreation.htm",
         "sdk:UtilityOperations.txt#19"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
-      ],
+      "blocker_references": [],
+      "risk_effect": "mutating",
+      "risk_flags": [],
       "data_classifications": [
-        "unknown"
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "logical"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_2"
     },
     {
       "inventory_key": "documentation:UtilityOperations/Units/SetAutomaticBackupState.htm",
@@ -2756,31 +2740,29 @@
         "Units"
       ],
       "inventory_entry_sha256": "027b5167a9d518dab8de831351b99afa8543045cf80913b5b26e60b4f25dcb93",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/SetAutomaticBackupState.htm",
         "sdk:UtilityOperations.txt#26"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
-      ],
+      "blocker_references": [],
+      "risk_effect": "mutating",
+      "risk_flags": [],
       "data_classifications": [
-        "unknown"
+        "non_sensitive"
       ],
       "value_families": [
-        "unknown"
+        "logical"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_2"
     },
     {
       "inventory_key": "documentation:UtilityOperations/Units/SetAutomaticRelationship.htm",
@@ -2790,31 +2772,29 @@
         "Units"
       ],
       "inventory_entry_sha256": "f1a67473506f5b4d962546fb6d2849eb31794f2c6d6e3c6ee5fac38356ca30cb",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/SetAutomaticRelationship.htm",
         "sdk:UtilityOperations.txt#17"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
-      ],
+      "blocker_references": [],
+      "risk_effect": "mutating",
+      "risk_flags": [],
       "data_classifications": [
-        "unknown"
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "logical"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_2"
     },
     {
       "inventory_key": "documentation:UtilityOperations/Units/SetDecimalDigitsForDisplay.htm",
@@ -2824,31 +2804,29 @@
         "Units"
       ],
       "inventory_entry_sha256": "9a49a5d5139524479e1b9c3043f3082261f94487a7252d9bdc15c3e3e17ee6f1",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/SetDecimalDigitsForDisplay.htm",
         "sdk:UtilityOperations_Units.txt#3"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
-      ],
+      "blocker_references": [],
+      "risk_effect": "mutating",
+      "risk_flags": [],
       "data_classifications": [
-        "unknown"
+        "non_sensitive"
       ],
       "value_families": [
-        "unknown"
+        "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_2"
     },
     {
       "inventory_key": "documentation:UtilityOperations/Units/SetInteractionMode.htm",
@@ -2892,31 +2870,32 @@
         "Units"
       ],
       "inventory_entry_sha256": "d0c62a920061df1f79f5467bb76d5901dc428eea3603f5698ec95255d9f6e1fa",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "filesystem_operation",
+        "state_mutation"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/SetLoggingState.htm",
         "sdk:UtilityOperations.txt#16"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
+      "blocker_references": [],
+      "risk_effect": "mutating",
       "risk_flags": [
-        "unknown"
+        "filesystem_write"
       ],
       "data_classifications": [
-        "unknown"
+        "path"
       ],
       "value_families": [
-        "unknown"
+        "logical"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_3"
     },
     {
       "inventory_key": "documentation:UtilityOperations/Units/SetMPStepMode.htm",
@@ -2926,29 +2905,27 @@
         "Units"
       ],
       "inventory_entry_sha256": "2d3977bf6d4069fad6396c0a55f53b1a157d0d2082e5f45045aad9041daf09f7",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Programming-language control flow and MP runtime sequencing belong in the client application.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_state_and_control_flow"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/SetMPStepMode.htm",
         "sdk:UtilityOperations.txt#2"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
-      ],
+      "blocker_references": [],
+      "risk_effect": "mutating",
+      "risk_flags": [],
       "data_classifications": [
-        "unknown"
+        "proprietary"
       ],
       "value_families": [
-        "unknown"
+        "mp_step_mode"
       ],
       "delivery_wave": null
     },
@@ -2960,29 +2937,27 @@
         "Units"
       ],
       "inventory_entry_sha256": "1bd64880bbdd0443aaa4813bd85a9cd87b62d7f02000563080d124608fb9dd5c",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Programming-language control flow and MP runtime sequencing belong in the client application.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_state_and_control_flow"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/SetNotificationCancelOverride.htm",
         "sdk:UtilityOperations.txt#27"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
-      ],
+      "blocker_references": [],
+      "risk_effect": "mutating",
+      "risk_flags": [],
       "data_classifications": [
-        "unknown"
+        "non_sensitive"
       ],
       "value_families": [
-        "unknown"
+        "logical"
       ],
       "delivery_wave": null
     },
@@ -2994,28 +2969,28 @@
         "Units"
       ],
       "inventory_entry_sha256": "a6ae2e21af2083aea7ba828ce28562492d7067aa08addc2dc08cd73f9438bc1a",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "sdk_unavailable",
+      "review_state": "reviewed",
+      "rationale": "The exact-target evidence lacks a viable SDK command occurrence or a required input binding, so Briosa cannot expose this command through the SA SDK.",
       "reason_codes": [
-        "awaiting_review"
+        "sdk_command_not_observed"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/SetObjectsColor.htm"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
-      ],
+      "blocker_references": [],
+      "risk_effect": "mutating",
+      "risk_flags": [],
       "data_classifications": [
-        "unknown"
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name_list",
+        "logical",
+        "rgb_color"
       ],
       "delivery_wave": null
     },
@@ -3027,28 +3002,29 @@
         "Units"
       ],
       "inventory_entry_sha256": "b8ebfff135f885c2287ea36f6d76870b27d81b87ebad55f8065b5fe5236dfe30",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "sdk_unavailable",
+      "review_state": "reviewed",
+      "rationale": "The exact-target evidence lacks a viable SDK command occurrence or a required input binding, so Briosa cannot expose this command through the SA SDK.",
       "reason_codes": [
-        "awaiting_review"
+        "sdk_command_not_observed"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/SetObjectsTranslucency.htm"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
-      ],
+      "blocker_references": [],
+      "risk_effect": "mutating",
+      "risk_flags": [],
       "data_classifications": [
-        "unknown"
+        "geometry",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name_list",
+        "floating_point",
+        "translucency_type"
       ],
       "delivery_wave": null
     },
@@ -3060,29 +3036,28 @@
         "Units"
       ],
       "inventory_entry_sha256": "bdef039226ed6e745a7e8f64ac63281dde3489edbe63e639e59abea162a8f6af",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Programming-language control flow and MP runtime sequencing belong in the client application.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_state_and_control_flow"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/SetSpecialMPMode.htm",
         "sdk:UtilityOperations.txt#14"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
-      ],
+      "blocker_references": [],
+      "risk_effect": "mutating",
+      "risk_flags": [],
       "data_classifications": [
-        "unknown"
+        "non_sensitive"
       ],
       "value_families": [
-        "unknown"
+        "logical",
+        "string"
       ],
       "delivery_wave": null
     },
@@ -3128,31 +3103,29 @@
         "Units"
       ],
       "inventory_entry_sha256": "0b820784786e82e0f811f0c952875e2aa34b4264406af04839b28e579e7c44bc",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/SetViewIdleUpdateFrequency.htm",
         "sdk:UtilityOperations.txt#25"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
-      ],
+      "blocker_references": [],
+      "risk_effect": "mutating",
+      "risk_flags": [],
       "data_classifications": [
-        "unknown"
+        "non_sensitive"
       ],
       "value_families": [
-        "unknown"
+        "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_2"
     },
     {
       "inventory_key": "documentation:UtilityOperations/Units/SetWorkingColor.htm",
@@ -3162,28 +3135,26 @@
         "Units"
       ],
       "inventory_entry_sha256": "4baaea319210d864fd35e6b308a77a9cd5f6d5ac975a5957fa3d6a76472ddd62",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "sdk_unavailable",
+      "review_state": "reviewed",
+      "rationale": "The exact-target evidence lacks a viable SDK command occurrence or a required input binding, so Briosa cannot expose this command through the SA SDK.",
       "reason_codes": [
-        "awaiting_review"
+        "sdk_command_not_observed"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/SetWorkingColor.htm"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
-      ],
+      "blocker_references": [],
+      "risk_effect": "mutating",
+      "risk_flags": [],
       "data_classifications": [
-        "unknown"
+        "non_sensitive"
       ],
       "value_families": [
-        "unknown"
+        "rgb_color"
       ],
       "delivery_wave": null
     },
@@ -3195,28 +3166,26 @@
         "Units"
       ],
       "inventory_entry_sha256": "9eedd28362c28ecd9cb605185bb6efa6b801abac93ce7fd6c86badfcc1c708e5",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "sdk_unavailable",
+      "review_state": "reviewed",
+      "rationale": "The exact-target evidence lacks a viable SDK command occurrence or a required input binding, so Briosa cannot expose this command through the SA SDK.",
       "reason_codes": [
-        "awaiting_review"
+        "sdk_command_not_observed"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/SetWorkingColorAutoIncrement.htm"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
-      ],
+      "blocker_references": [],
+      "risk_effect": "mutating",
+      "risk_flags": [],
       "data_classifications": [
-        "unknown"
+        "non_sensitive"
       ],
       "value_families": [
-        "unknown"
+        "logical"
       ],
       "delivery_wave": null
     },
@@ -3228,31 +3197,29 @@
         "Units"
       ],
       "inventory_entry_sha256": "31704dc74551ffa0927371bc8653d7cefeeb6f09adb4b46d10103c7b551f5d0d",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/SetWorkingFrame.htm",
         "sdk:UtilityOperations.txt#5"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
-      ],
+      "blocker_references": [],
+      "risk_effect": "mutating",
+      "risk_flags": [],
       "data_classifications": [
-        "unknown"
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_2"
     },
     {
       "inventory_key": "documentation:UtilityOperations/Units/SpeakToUser.htm",
@@ -3362,31 +3329,32 @@
         "Units"
       ],
       "inventory_entry_sha256": "ac53ed69909ddb37186444d5160942911aaa159c8880a18a27bd237702a979b7",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "filesystem_operation",
+        "state_mutation"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/TrimLogFile.htm",
         "sdk:UtilityOperations.txt#18"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
+      "blocker_references": [],
+      "risk_effect": "mutating",
       "risk_flags": [
-        "unknown"
+        "filesystem_write"
       ],
       "data_classifications": [
-        "unknown"
+        "path"
       ],
       "value_families": [
-        "unknown"
+        "whole_number"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_3"
     },
     {
       "inventory_key": "documentation:UtilityOperations/Units/WriteToLog.htm",
@@ -3396,31 +3364,32 @@
         "Units"
       ],
       "inventory_entry_sha256": "fe10ba7199eb5e7683b9fd20aaaa1f066eae622151515305940cb230b7622157",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "filesystem_operation",
+        "state_mutation"
       ],
       "evidence_references": [
         "documentation:UtilityOperations/Units/WriteToLog.htm",
         "sdk:UtilityOperations.txt#20"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
+      "blocker_references": [],
+      "risk_effect": "mutating",
       "risk_flags": [
-        "unknown"
+        "filesystem_write"
       ],
       "data_classifications": [
-        "unknown"
+        "path"
       ],
       "value_families": [
-        "unknown"
+        "string"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_3"
     },
     {
       "inventory_key": "sdk:UtilityOperations_Network.txt#4",

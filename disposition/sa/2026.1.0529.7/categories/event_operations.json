@@ -12,27 +12,34 @@
       ],
       "inventory_entry_sha256": "793abe4e51914e2be684dabceef09df31204d37a9ea4da3e20fb12630fd9f656",
       "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "review_state": "reviewed",
+      "rationale": "The command can write, replace, merge, or redirect persistent output, but the exact-target evidence does not establish sufficiently precise path, presence, or overwrite semantics; keep it blocked pending focused reconciliation.",
       "reason_codes": [
-        "awaiting_review"
+        "file_semantics_unresolved"
       ],
       "evidence_references": [
         "sdk:EventOperations.txt#4"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/53"
+      ],
+      "risk_effect": "read_only",
       "risk_flags": [
-        "unknown"
+        "filesystem_write",
+        "long_running"
       ],
       "data_classifications": [
-        "unknown"
+        "object_identifier",
+        "path"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name_list",
+        "file_reference",
+        "logical",
+        "whole_number"
       ],
       "delivery_wave": null
     }

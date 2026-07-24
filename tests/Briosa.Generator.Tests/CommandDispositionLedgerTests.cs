@@ -95,7 +95,7 @@ public sealed class CommandDispositionLedgerTests
             entries,
             "Vector Operations",
             "Delete Vector by Name",
-            "blocked");
+            "approved_candidate");
         AssertDisposition(
             entries,
             "FileOperations",
@@ -295,6 +295,101 @@ public sealed class CommandDispositionLedgerTests
             .ToArray();
 
         Assert.DoesNotContain(supportedSteps, deviceCandidateSteps.Contains);
+    }
+
+    [Fact]
+    public void Issue51ReviewCuratesEveryRemainingAdministrativeDomainCommand()
+    {
+        const string issue51 = "https://github.com/spatialanalyzer/briosa/issues/51";
+        var entries = ReadCommittedEntries();
+        var reviewed = entries
+            .Where(entry => entry.DecisionReferences.Contains(issue51, StringComparer.Ordinal))
+            .ToArray();
+
+        Assert.Equal(371, reviewed.Length);
+        Assert.Equal(213, reviewed.Count(entry => entry.Disposition == "approved_candidate"));
+        Assert.Equal(40, reviewed.Count(entry => entry.Disposition == "blocked"));
+        Assert.Equal(76, reviewed.Count(entry => entry.Disposition == "intentional_exclusion"));
+        Assert.Equal(42, reviewed.Count(entry => entry.Disposition == "sdk_unavailable"));
+        Assert.Equal(34, reviewed.Count(entry => entry.DeliveryWave == "wave_1"));
+        Assert.Equal(97, reviewed.Count(entry => entry.DeliveryWave == "wave_2"));
+        Assert.Equal(8, reviewed.Count(entry => entry.DeliveryWave == "wave_3"));
+        Assert.Equal(74, reviewed.Count(entry => entry.DeliveryWave == "wave_4"));
+
+        Assert.Equal(1412, entries.Length);
+        Assert.All(entries, entry => Assert.Equal("reviewed", entry.ReviewState));
+        Assert.All(reviewed, entry =>
+        {
+            Assert.NotEqual("unknown", entry.RiskEffect);
+            Assert.DoesNotContain("unknown", entry.RiskFlags);
+            Assert.DoesNotContain("unknown", entry.DataClassifications);
+            Assert.DoesNotContain("unknown", entry.ValueFamilies);
+        });
+        Assert.All(
+            reviewed.Where(entry => entry.Disposition == "blocked"),
+            entry => Assert.Equal(
+                ["https://github.com/spatialanalyzer/briosa/issues/53"],
+                entry.BlockerReferences));
+        Assert.All(
+            reviewed.Where(entry =>
+                entry.Disposition == "approved_candidate" &&
+                entry.RiskFlags.Any(flag => flag.StartsWith("filesystem_", StringComparison.Ordinal))),
+            entry => Assert.True(entry.DeliveryWave is "wave_3" or "wave_4"));
+        Assert.DoesNotContain(
+            reviewed.Where(entry => entry.Disposition == "approved_candidate"),
+            entry => entry.RiskFlags.Contains("external_process", StringComparer.Ordinal) ||
+                entry.RiskFlags.Contains("network_access", StringComparer.Ordinal));
+        Assert.Equal(
+            11,
+            reviewed.Count(entry =>
+                entry.Disposition == "blocked" &&
+                entry.ReasonCodes.Contains("file_semantics_unresolved", StringComparer.Ordinal)));
+
+        AssertDisposition(entries, "FileOperations", "Get Working Directory", "approved_candidate");
+        AssertDisposition(entries, "FileOperations", "Export IGES File - Entire Model", "approved_candidate");
+        AssertDisposition(entries, "FileOperations", "Save As", "blocked");
+        AssertDisposition(entries, "FileOperations", "Run Powershell Script", "intentional_exclusion");
+        AssertDisposition(entries, "EventOperations", "Export Event Ref List", "blocked");
+        AssertDisposition(entries, "ProcessFlowOperations", "Output SA Report to PDF", "blocked");
+        AssertDisposition(
+            entries,
+            "RelationshipOperations",
+            "Relationship Watch Window Template",
+            "intentional_exclusion");
+        AssertDisposition(
+            entries,
+            "RelationshipOperations",
+            "Get General Relationship Statistics",
+            "approved_candidate");
+        AssertDisposition(
+            entries,
+            "ReportingOperations",
+            "Generate Standard HTML Report",
+            "approved_candidate");
+        AssertDisposition(entries, "ReportingOperations", "Notify User HTML", "intentional_exclusion");
+        AssertDisposition(entries, "UtilityOperations", "Set Logging State", "approved_candidate");
+        AssertDisposition(
+            entries,
+            "Vector Operations",
+            "Get Vector From Vector Group By Name",
+            "approved_candidate");
+        AssertDisposition(entries, "ViewControl", "Auto-Scale", "approved_candidate");
+
+        var catalogDirectory = Path.Combine(
+            FindRepositoryRoot().FullName,
+            "catalog",
+            "sa",
+            "2026.1.0529.7");
+        var catalog = JsonNode.Parse(File.ReadAllText(
+            Path.Combine(catalogDirectory, "catalog.json")))!.AsObject();
+        var supportedSteps = catalog["operation_files"]!.AsArray()
+            .Select(file => JsonNode.Parse(File.ReadAllText(Path.Combine(
+                catalogDirectory,
+                file!.GetValue<string>().Replace('/', Path.DirectorySeparatorChar))))!
+                ["mp_step"]!.GetValue<string>())
+            .ToArray();
+
+        Assert.Equal(["Get Working Directory"], supportedSteps);
     }
 
     [Fact]

@@ -341,29 +341,28 @@
         "ProcessFlowOperations"
       ],
       "inventory_entry_sha256": "bfb958ea8628d85326978e01ca57f671c0a10016985e60dd647cb89b80789190",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "sdk_unavailable",
+      "review_state": "reviewed",
+      "rationale": "The exact-target evidence lacks a viable SDK command occurrence or a required input binding, so Briosa cannot expose this command through the SA SDK.",
       "reason_codes": [
-        "awaiting_review"
+        "sdk_input_binding_unavailable"
       ],
       "evidence_references": [
         "documentation:ProcessFlowOperations/CollectionExistenceTest.htm",
         "sdk:ProcessFlowOperations.txt#9"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
-      ],
+      "blocker_references": [],
+      "risk_effect": "mutating",
+      "risk_flags": [],
       "data_classifications": [
-        "unknown"
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_name",
+        "step_id"
       ],
       "delivery_wave": null
     },
@@ -605,29 +604,28 @@
         "ProcessFlowOperations"
       ],
       "inventory_entry_sha256": "398752235983ac34cfd109da8f823728111b2a7b8383588db9f78f1a7ea6be99",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "sdk_unavailable",
+      "review_state": "reviewed",
+      "rationale": "The exact-target evidence lacks a viable SDK command occurrence or a required input binding, so Briosa cannot expose this command through the SA SDK.",
       "reason_codes": [
-        "awaiting_review"
+        "sdk_input_binding_unavailable"
       ],
       "evidence_references": [
         "documentation:ProcessFlowOperations/ObjectExistenceTest.htm",
         "sdk:ProcessFlowOperations.txt#7"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
-      ],
+      "blocker_references": [],
+      "risk_effect": "read_only",
+      "risk_flags": [],
       "data_classifications": [
-        "unknown"
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name",
+        "step_id"
       ],
       "delivery_wave": null
     },
@@ -638,31 +636,30 @@
         "ProcessFlowOperations"
       ],
       "inventory_entry_sha256": "3f7f55ec65b3032338f15456ca656734e86b17721c49fdacfea8e03226f97a42",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command performs SpatialAnalyzer-specific state, data-flow, reporting, or view automation; retain it as a deny-by-default candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "read_only_operation"
       ],
       "evidence_references": [
         "documentation:ProcessFlowOperations/ObjectExistenceTestCheckOnly.htm",
         "sdk:ProcessFlowOperations.txt#8"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
-      ],
+      "blocker_references": [],
+      "risk_effect": "read_only",
+      "risk_flags": [],
       "data_classifications": [
-        "unknown"
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name",
+        "logical"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_1"
     },
     {
       "inventory_key": "documentation:ProcessFlowOperations/OutputSAReportToExcel.htm",
@@ -705,28 +702,36 @@
       ],
       "inventory_entry_sha256": "4f362c987acfaf3680ba055b3d6f89d818ba1d05e74cf1d431743b3fb3c1eb01",
       "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "review_state": "reviewed",
+      "rationale": "The command can write, replace, merge, or redirect persistent output, but the exact-target evidence does not establish sufficiently precise path, presence, or overwrite semantics; keep it blocked pending focused reconciliation.",
       "reason_codes": [
-        "awaiting_review"
+        "file_semantics_unresolved"
       ],
       "evidence_references": [
         "documentation:ProcessFlowOperations/OutputSAReportToPDF.htm",
         "sdk:ReportingOperations.txt#23"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/51"
       ],
-      "risk_effect": "unknown",
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/53"
+      ],
+      "risk_effect": "read_only",
       "risk_flags": [
-        "unknown"
+        "filesystem_write",
+        "long_running"
       ],
       "data_classifications": [
-        "unknown"
+        "measurement",
+        "object_identifier",
+        "path",
+        "proprietary"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name",
+        "file_reference",
+        "logical"
       ],
       "delivery_wave": null
     },

@@ -13,18 +13,18 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 
 | Disposition | Count |
 | --- | ---: |
-| `approved_candidate` | 396 |
-| `blocked` | 562 |
-| `intentional_exclusion` | 400 |
-| `sdk_unavailable` | 54 |
+| `approved_candidate` | 609 |
+| `blocked` | 231 |
+| `intentional_exclusion` | 476 |
+| `sdk_unavailable` | 96 |
 
 ## Review states
 
 | Review state | Count |
 | --- | ---: |
 | `needs_re_review` | 0 |
-| `reviewed` | 1041 |
-| `unreviewed` | 371 |
+| `reviewed` | 1412 |
+| `unreviewed` | 0 |
 
 ## Categories
 
@@ -37,10 +37,10 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 | ConstructionOperations | 278 | 104 | 94 | 13 | 67 | 67 | 0 | 0 |
 | DimensionOperations | 1 | 0 | 0 | 0 | 1 | 1 | 0 | 0 |
 | Dimensions | 19 | 1 | 4 | 12 | 2 | 2 | 0 | 0 |
-| EventOperations | 1 | 0 | 0 | 0 | 1 | 1 | 1 | 0 |
-| Events | 5 | 0 | 0 | 0 | 5 | 5 | 5 | 0 |
+| EventOperations | 1 | 0 | 0 | 0 | 1 | 1 | 0 | 0 |
+| Events | 5 | 4 | 0 | 1 | 0 | 0 | 0 | 0 |
 | ExcelDirectConnect | 17 | 0 | 17 | 0 | 0 | 0 | 0 | 0 |
-| FileOperations | 125 | 0 | 18 | 0 | 107 | 107 | 107 | 0 |
+| FileOperations | 125 | 33 | 62 | 10 | 20 | 20 | 0 | 0 |
 | GDT | 40 | 13 | 10 | 1 | 16 | 16 | 0 | 0 |
 | GDTOperations | 3 | 0 | 0 | 0 | 3 | 3 | 0 | 0 |
 | GoogleSheets | 18 | 0 | 18 | 0 | 0 | 0 | 0 | 0 |
@@ -49,81 +49,91 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 | MPSubroutines | 4 | 0 | 4 | 0 | 0 | 0 | 0 | 0 |
 | MPTaskOverview | 11 | 0 | 11 | 0 | 0 | 0 | 0 | 0 |
 | MSOfficeReportingOperations | 14 | 0 | 14 | 0 | 0 | 0 | 0 | 0 |
-| ProcessFlowOperations | 25 | 0 | 21 | 0 | 4 | 4 | 4 | 0 |
-| RelationshipOperations | 67 | 0 | 0 | 0 | 67 | 67 | 67 | 0 |
-| ReportingOperations | 71 | 0 | 0 | 0 | 71 | 71 | 71 | 0 |
+| ProcessFlowOperations | 25 | 1 | 21 | 2 | 1 | 1 | 0 | 0 |
+| RelationshipOperations | 67 | 48 | 5 | 6 | 8 | 8 | 0 | 0 |
+| ReportingOperations | 71 | 52 | 8 | 10 | 1 | 1 | 0 | 0 |
 | RobotCalibrationApplianceNodeOperations | 25 | 23 | 0 | 2 | 0 | 0 | 0 | 0 |
 | RobotOperations | 33 | 28 | 0 | 2 | 3 | 3 | 0 | 0 |
 | ScalarMathOperations | 21 | 0 | 21 | 0 | 0 | 0 | 0 | 0 |
 | ScaleBars | 3 | 2 | 0 | 0 | 1 | 1 | 0 | 0 |
-| UtilityOperations | 105 | 0 | 52 | 0 | 53 | 53 | 53 | 0 |
+| UtilityOperations | 105 | 33 | 60 | 10 | 2 | 2 | 0 | 0 |
 | Variables | 41 | 0 | 41 | 0 | 0 | 0 | 0 | 0 |
-| Vector Operations | 22 | 0 | 10 | 0 | 12 | 12 | 12 | 0 |
-| ViewControl | 51 | 0 | 0 | 0 | 51 | 51 | 51 | 0 |
+| Vector Operations | 22 | 11 | 10 | 0 | 1 | 1 | 0 | 0 |
+| ViewControl | 51 | 31 | 11 | 3 | 6 | 6 | 0 | 0 |
 
 ## Unresolved work by risk effect
 
 | Value | Count |
 | --- | ---: |
-| `mutating` | 133 |
-| `read_only` | 58 |
-| `unknown` | 371 |
+| `mutating` | 159 |
+| `read_only` | 72 |
 
 ## Unresolved work by risk flag
 
 | Value | Count |
 | --- | ---: |
 | `device_control` | 11 |
-| `filesystem_read` | 2 |
-| `long_running` | 29 |
+| `filesystem_read` | 9 |
+| `filesystem_write` | 13 |
+| `interactive_ui` | 6 |
+| `long_running` | 51 |
 | `network_access` | 1 |
-| `unknown` | 371 |
 
 ## Unresolved work by data classification
 
 | Value | Count |
 | --- | ---: |
-| `geometry` | 166 |
-| `measurement` | 106 |
+| `geometry` | 186 |
+| `measurement` | 111 |
 | `non_sensitive` | 1 |
-| `object_identifier` | 182 |
-| `path` | 7 |
-| `unknown` | 371 |
+| `object_identifier` | 210 |
+| `path` | 28 |
+| `proprietary` | 13 |
 
 ## Unresolved work by value family
 
 | Value | Count |
 | --- | ---: |
+| `angular_unit` | 1 |
+| `ascii_file_format` | 1 |
 | `b_spline_fit_options` | 1 |
-| `base_color_type` | 1 |
+| `base_color_type` | 2 |
+| `base_mid_color_type` | 1 |
 | `boolean` | 11 |
 | `cloud_thinning_mode` | 1 |
 | `cloud_thinning_options` | 2 |
-| `collection_instrument_id` | 29 |
-| `collection_instrument_id_list` | 1 |
+| `collection_group_name_list` | 1 |
+| `collection_instrument_id` | 30 |
+| `collection_instrument_id_list` | 2 |
 | `collection_machine_id` | 2 |
-| `collection_name` | 3 |
-| `collection_object_name` | 126 |
-| `collection_object_name_list` | 48 |
+| `collection_name` | 4 |
+| `collection_object_name` | 140 |
+| `collection_object_name_list` | 56 |
 | `collection_object_name_ref_list` | 4 |
 | `collection_vector_group_name` | 1 |
+| `collection_vector_group_name_list` | 1 |
 | `collimation_baseline_method` | 1 |
 | `collimation_baseline_type` | 1 |
 | `collimation_type` | 1 |
 | `color` | 1 |
-| `color_range_method` | 1 |
-| `colorization_options` | 3 |
-| `coordinate_system_type` | 1 |
+| `color_range_method` | 2 |
+| `colorization_options` | 4 |
+| `coordinate_system_type` | 3 |
 | `dimension_ref_list` | 1 |
+| `distance_unit` | 3 |
 | `double` | 8 |
 | `double_array` | 1 |
 | `edit_text` | 3 |
+| `export_data_delimiter_type` | 4 |
+| `export_target_name_format` | 2 |
+| `export_vector_name_format` | 1 |
 | `feature_check_ref_list` | 1 |
 | `file_path_or_embedded_file` | 1 |
-| `file_reference` | 3 |
+| `file_reference` | 23 |
 | `fit_constraint_scalar_options` | 1 |
-| `floating_point` | 90 |
-| `font` | 1 |
+| `fit_degree_of_freedom_options` | 2 |
+| `floating_point` | 100 |
+| `font` | 2 |
 | `gd_and_t_options_check_validator_type` | 2 |
 | `gd_and_t_options_distance_between_mode` | 1 |
 | `gdt_check_validator_type` | 1 |
@@ -141,70 +151,79 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 | `integer` | 7 |
 | `integer_array` | 1 |
 | `item_type` | 1 |
-| `logical` | 97 |
+| `logical` | 123 |
 | `mesh_orientation_type` | 1 |
+| `none` | 1 |
 | `object_type` | 2 |
 | `offset_direction_type` | 2 |
 | `outlier_rejection_options_scalar_type` | 3 |
 | `point_filter_input_type` | 1 |
 | `point_name` | 21 |
-| `point_name_list` | 12 |
+| `point_name_list` | 13 |
 | `projection_options` | 1 |
-| `rgb_color` | 3 |
+| `relationship_ref_list` | 2 |
+| `render_mode_type` | 1 |
+| `report_output_options` | 1 |
+| `rgb_color` | 4 |
+| `saturation_limit_type` | 1 |
 | `sigmoidal_gap_constraint_options` | 1 |
-| `string` | 53 |
+| `solver_mode` | 1 |
+| `step_id` | 1 |
+| `string` | 59 |
+| `string_list` | 2 |
 | `surface_analysis_mode` | 1 |
 | `surface_dissection_mode_type` | 1 |
 | `surface_face_list` | 1 |
-| `tolerance_vector_options` | 3 |
-| `transform` | 9 |
-| `unknown` | 371 |
+| `temperature_unit` | 1 |
+| `tolerance_vector_options` | 4 |
+| `transform` | 10 |
 | `vector` | 3 |
-| `vector3` | 17 |
+| `vector3` | 18 |
 | `vector_creation_trigger` | 1 |
 | `vector_name_list` | 2 |
-| `whole_number` | 50 |
-| `world_transform` | 4 |
+| `view_name` | 1 |
+| `whole_number` | 59 |
+| `world_transform` | 5 |
 
 ## Reason codes
 
 | Value | Count |
 | --- | ---: |
-| `argument_semantics_unresolved` | 190 |
-| `awaiting_review` | 371 |
-| `client_owned_external_integration` | 40 |
+| `argument_semantics_unresolved` | 219 |
+| `client_owned_external_integration` | 74 |
 | `client_owned_office_integration` | 14 |
-| `client_owned_serialization` | 17 |
+| `client_owned_serialization` | 22 |
 | `client_owned_spreadsheet_integration` | 38 |
-| `client_owned_state_and_control_flow` | 64 |
-| `client_owned_user_experience` | 56 |
-| `client_owned_value_computation` | 60 |
-| `client_owned_value_construction` | 97 |
-| `filesystem_operation` | 11 |
-| `interactive_operation` | 2 |
-| `long_running_operation` | 61 |
-| `operator_ui_dependency` | 14 |
-| `read_only_operation` | 101 |
+| `client_owned_state_and_control_flow` | 70 |
+| `client_owned_user_experience` | 75 |
+| `client_owned_value_computation` | 64 |
+| `client_owned_value_construction` | 100 |
+| `file_semantics_unresolved` | 11 |
+| `filesystem_operation` | 49 |
+| `interactive_operation` | 40 |
+| `long_running_operation` | 99 |
+| `operator_ui_dependency` | 18 |
+| `read_only_operation` | 152 |
 | `sdk_binding_unresolved` | 62 |
-| `sdk_command_not_observed` | 21 |
-| `sdk_input_binding_unavailable` | 33 |
-| `state_mutation` | 295 |
+| `sdk_command_not_observed` | 39 |
+| `sdk_input_binding_unavailable` | 57 |
+| `server_lifecycle_boundary` | 1 |
+| `state_mutation` | 457 |
 
 ## Blockers
 
 | Value | Count |
 | --- | ---: |
-| `https://github.com/spatialanalyzer/briosa/issues/43` | 371 |
-| `https://github.com/spatialanalyzer/briosa/issues/53` | 191 |
+| `https://github.com/spatialanalyzer/briosa/issues/53` | 231 |
 
 ## Delivery waves
 
 | Value | Count |
 | --- | ---: |
-| `wave_1` | 48 |
-| `wave_2` | 98 |
-| `wave_3` | 44 |
-| `wave_4` | 206 |
+| `wave_1` | 82 |
+| `wave_2` | 195 |
+| `wave_3` | 52 |
+| `wave_4` | 280 |
 
 ## Reviewed intentional exclusions
 
@@ -373,6 +392,50 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 | ExcelDirectConnect / Write | Write Picture | documentation:ExcelDirectConnect/Write/WritePicture.htm | client_owned_spreadsheet_integration | Spreadsheet integration belongs in the client application or a dedicated spreadsheet library. | https://github.com/spatialanalyzer/briosa/issues/52 |
 | ExcelDirectConnect / Write | Write String | documentation:ExcelDirectConnect/Write/WriteString.htm | client_owned_spreadsheet_integration | Spreadsheet integration belongs in the client application or a dedicated spreadsheet library. | https://github.com/spatialanalyzer/briosa/issues/52 |
 | ExcelDirectConnect / Write | Write Variables | documentation:ExcelDirectConnect/Write/WriteVariables.htm | client_owned_spreadsheet_integration | Spreadsheet integration belongs in the client application or a dedicated spreadsheet library. | https://github.com/spatialanalyzer/briosa/issues/52 |
+| FileOperations | Browse For Directory | documentation:FileOperations/BrowseForDirectory.htm | client_owned_user_experience | Operator prompts and application-chrome control belong in the client application rather than an unattended gRPC API. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| FileOperations | Browse For File | documentation:FileOperations/BrowseForFile.htm | client_owned_user_experience | Operator prompts and application-chrome control belong in the client application rather than an unattended gRPC API. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| FileOperations | Copy Directory | documentation:FileOperations/CopyDirectory.htm | client_owned_external_integration | Generic filesystem, database, or process integration belongs in the client application and would unnecessarily expand Briosa authority. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| FileOperations | Copy General File | documentation:FileOperations/CopyGeneralFile.htm | client_owned_external_integration | Generic filesystem, database, or process integration belongs in the client application and would unnecessarily expand Briosa authority. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| FileOperations | Delete Directory | documentation:FileOperations/DeleteDirectory.htm | client_owned_external_integration | Generic filesystem, database, or process integration belongs in the client application and would unnecessarily expand Briosa authority. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| FileOperations | Delete General File | documentation:FileOperations/DeleteGeneralFile.htm | client_owned_external_integration | Generic filesystem, database, or process integration belongs in the client application and would unnecessarily expand Briosa authority. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| FileOperations | Directory Existence | documentation:FileOperations/DirectoryExistence.htm | client_owned_external_integration | Generic filesystem, database, or process integration belongs in the client application and would unnecessarily expand Briosa authority. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| FileOperations | Exit Measurement Plan | documentation:FileOperations/ExitMeasurementPlan.htm | client_owned_state_and_control_flow | Programming-language control flow and MP runtime sequencing belong in the client application. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| FileOperations | Find Files in Directory | documentation:FileOperations/FindFilesInDirectory.htm | client_owned_external_integration | Generic filesystem, database, or process integration belongs in the client application and would unnecessarily expand Briosa authority. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| FileOperations | Find Sub-Directories in Directory | documentation:FileOperations/FindSubDirectoriesInDirectory.htm | client_owned_external_integration | Generic filesystem, database, or process integration belongs in the client application and would unnecessarily expand Briosa authority. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| FileOperations | Get Directory and Filename from Path | documentation:FileOperations/GetDirectoryAndFilename.htm | client_owned_value_computation | This deterministic value or reference-list computation belongs in the client library and does not require SpatialAnalyzer automation. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| FileOperations | Make Directory | documentation:FileOperations/MakeDirectory.htm | client_owned_external_integration | Generic filesystem, database, or process integration belongs in the client application and would unnecessarily expand Briosa authority. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| FileOperations | Pop PolyBay Analysis Window | sdk:FileOperations.txt#34 | client_owned_user_experience | Operator prompts and application-chrome control belong in the client application rather than an unattended gRPC API. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| FileOperations | Rename General File | documentation:FileOperations/RenameGeneralFile.htm | client_owned_external_integration | Generic filesystem, database, or process integration belongs in the client application and would unnecessarily expand Briosa authority. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| FileOperations | Run Another Program | documentation:FileOperations/RunAnotherProgram.htm | client_owned_external_integration | Generic filesystem, database, or process integration belongs in the client application and would unnecessarily expand Briosa authority. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| FileOperations | Run Powershell Script | documentation:FileOperations/RunPowershellScript.htm | client_owned_external_integration | Generic filesystem, database, or process integration belongs in the client application and would unnecessarily expand Briosa authority. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| FileOperations | Shut Down SA | documentation:FileOperations/ShutDownSA.htm | server_lifecycle_boundary | Briosa may observe SpatialAnalyzer availability but does not expose a public command that shuts down the separately installed application. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| FileOperations | Terminate All Running MPs | sdk:FileOperations.txt#19 | client_owned_state_and_control_flow | Programming-language control flow and MP runtime sequencing belong in the client application. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| FileOperations | Verify General File Exists | documentation:FileOperations/VerifyGeneralFileExists.htm | client_owned_external_integration | Generic filesystem, database, or process integration belongs in the client application and would unnecessarily expand Briosa authority. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| FileOperations | Verify MP File Exists | documentation:FileOperations/VerifyMPFileExists.htm | client_owned_external_integration | Generic filesystem, database, or process integration belongs in the client application and would unnecessarily expand Briosa authority. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| FileOperations / ASIIDataFileOperations | Clear All ASCII Files | documentation:FileOperations/ASIIDataFileOperations/ClearAllASCIIFiles.htm | client_owned_serialization | Raw file parsing and serialization belong in the client application rather than the SpatialAnalyzer gRPC command surface. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| FileOperations / ASIIDataFileOperations | Close ASCII File | documentation:FileOperations/ASIIDataFileOperations/CloseASCIIFile.htm | client_owned_serialization | Raw file parsing and serialization belong in the client application rather than the SpatialAnalyzer gRPC command surface. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| FileOperations / ASIIDataFileOperations | Open ASCII File | documentation:FileOperations/ASIIDataFileOperations/OpenASCIIFile.htm | client_owned_serialization | Raw file parsing and serialization belong in the client application rather than the SpatialAnalyzer gRPC command surface. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| FileOperations / ASIIDataFileOperations | Read ASCII Line (Iterator) | documentation:FileOperations/ASIIDataFileOperations/ReadASCIILineIterator.htm | client_owned_serialization | Raw file parsing and serialization belong in the client application rather than the SpatialAnalyzer gRPC command surface. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| FileOperations / ASIIDataFileOperations | Write ASCII Line | documentation:FileOperations/ASIIDataFileOperations/WriteASCIILine.htm | client_owned_serialization | Raw file parsing and serialization belong in the client application rather than the SpatialAnalyzer gRPC command surface. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| FileOperations / DatabaseOperations | Delete from ODBC Database | documentation:FileOperations/DatabaseOperations/DeletefromODBCDatabase.htm | client_owned_external_integration | Generic filesystem, database, or process integration belongs in the client application and would unnecessarily expand Briosa authority. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| FileOperations / DatabaseOperations | Get from ODBC Database | documentation:FileOperations/DatabaseOperations/GetfromODBCDatabase.htm | client_owned_external_integration | Generic filesystem, database, or process integration belongs in the client application and would unnecessarily expand Briosa authority. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| FileOperations / DatabaseOperations | Put to ODBC Database | documentation:FileOperations/DatabaseOperations/PuttoODBCDatabase.htm | client_owned_external_integration | Generic filesystem, database, or process integration belongs in the client application and would unnecessarily expand Briosa authority. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| FileOperations / DatashareOperations | Get Boolean From DataShare File | documentation:FileOperations/DatashareOperations/GetBooleanFromDataShare.htm | client_owned_external_integration | Generic filesystem, database, or process integration belongs in the client application and would unnecessarily expand Briosa authority. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| FileOperations / DatashareOperations | Get Double From DataShare File | documentation:FileOperations/DatashareOperations/GetDoubleFromDataShare.htm | client_owned_external_integration | Generic filesystem, database, or process integration belongs in the client application and would unnecessarily expand Briosa authority. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| FileOperations / DatashareOperations | Get Integer From DataShare File | documentation:FileOperations/DatashareOperations/GetIntegerFromDataShare.htm | client_owned_external_integration | Generic filesystem, database, or process integration belongs in the client application and would unnecessarily expand Briosa authority. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| FileOperations / DatashareOperations | Get String From DataShare File | documentation:FileOperations/DatashareOperations/GetStringFromDataShare.htm | client_owned_external_integration | Generic filesystem, database, or process integration belongs in the client application and would unnecessarily expand Briosa authority. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| FileOperations / DatashareOperations | Get Transform From DataShare File | documentation:FileOperations/DatashareOperations/GetTransformFromDataShare.htm | client_owned_external_integration | Generic filesystem, database, or process integration belongs in the client application and would unnecessarily expand Briosa authority. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| FileOperations / DatashareOperations | Get Vector From DataShare File | documentation:FileOperations/DatashareOperations/GetVectorFromDataShare.htm | client_owned_external_integration | Generic filesystem, database, or process integration belongs in the client application and would unnecessarily expand Briosa authority. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| FileOperations / DatashareOperations | Load DataShare File | documentation:FileOperations/DatashareOperations/LoadDataShareFile.htm | client_owned_external_integration | Generic filesystem, database, or process integration belongs in the client application and would unnecessarily expand Briosa authority. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| FileOperations / DatashareOperations | Load HTML Form | documentation:FileOperations/DatashareOperations/LoadHTMLForm.htm | client_owned_user_experience | Operator prompts and application-chrome control belong in the client application rather than an unattended gRPC API. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| FileOperations / DatashareOperations | Load HTML Form in Edge Browser | documentation:FileOperations/DatashareOperations/LoadHTMLForminEdgeBrowser.htm | client_owned_user_experience | Operator prompts and application-chrome control belong in the client application rather than an unattended gRPC API. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| FileOperations / DatashareOperations | Save DataShare File | documentation:FileOperations/DatashareOperations/SaveDataShareFile.htm | client_owned_external_integration | Generic filesystem, database, or process integration belongs in the client application and would unnecessarily expand Briosa authority. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| FileOperations / DatashareOperations | Set Boolean In DataShare File | documentation:FileOperations/DatashareOperations/SetBooleanInDataShareFile.htm | client_owned_external_integration | Generic filesystem, database, or process integration belongs in the client application and would unnecessarily expand Briosa authority. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| FileOperations / DatashareOperations | Set Double In DataShare File | documentation:FileOperations/DatashareOperations/SetDoubleInDataShareFile.htm | client_owned_external_integration | Generic filesystem, database, or process integration belongs in the client application and would unnecessarily expand Briosa authority. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| FileOperations / DatashareOperations | Set Integer In DataShare File | documentation:FileOperations/DatashareOperations/SetIntegerInDataShareFile.htm | client_owned_external_integration | Generic filesystem, database, or process integration belongs in the client application and would unnecessarily expand Briosa authority. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| FileOperations / DatashareOperations | Set String In DataShare File | documentation:FileOperations/DatashareOperations/SetStringInDataShareFile.htm | client_owned_external_integration | Generic filesystem, database, or process integration belongs in the client application and would unnecessarily expand Briosa authority. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| FileOperations / DatashareOperations | Set Transform In DataShare File | documentation:FileOperations/DatashareOperations/SetTransformInDataShare.htm | client_owned_external_integration | Generic filesystem, database, or process integration belongs in the client application and would unnecessarily expand Briosa authority. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| FileOperations / DatashareOperations | Set Vector In DataShare File | documentation:FileOperations/DatashareOperations/SetVectorInDataShareFile.htm | client_owned_external_integration | Generic filesystem, database, or process integration belongs in the client application and would unnecessarily expand Briosa authority. | https://github.com/spatialanalyzer/briosa/issues/51 |
 | FileOperations / FileExport | Export Vector Container to Excel File | documentation:FileOperations/FileExport/ExportVectorContainerToExcelFile.htm | client_owned_spreadsheet_integration | Spreadsheet integration belongs in the client application or a dedicated spreadsheet library. | https://github.com/spatialanalyzer/briosa/issues/52 |
 | FileOperations / JSON | Close JSON File | documentation:FileOperations/JSON/CloseJSONFile.htm | client_owned_serialization | Generic JSON or XML parsing and mutation belongs in the client application or a serialization library. | https://github.com/spatialanalyzer/briosa/issues/52 |
 | FileOperations / JSON | Get JSON Array Size | documentation:FileOperations/JSON/GetJSONArraySize.htm | client_owned_serialization | Generic JSON or XML parsing and mutation belongs in the client application or a serialization library. | https://github.com/spatialanalyzer/briosa/issues/52 |
@@ -486,6 +549,19 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 | ProcessFlowOperations | Reset Counter | documentation:ProcessFlowOperations/ResetCounter.htm | client_owned_state_and_control_flow | Client-language state and control flow replace this measurement-plan programming helper. | https://github.com/spatialanalyzer/briosa/issues/52 |
 | ProcessFlowOperations | Step Status Test | documentation:ProcessFlowOperations/StepStatusTest.htm | client_owned_state_and_control_flow | Client-language state and control flow replace this measurement-plan programming helper. | https://github.com/spatialanalyzer/briosa/issues/52 |
 | ProcessFlowOperations | Wait for Steps to Complete | documentation:ProcessFlowOperations/WaitforStepstoComplete.htm | client_owned_state_and_control_flow | Client-language state and control flow replace this measurement-plan programming helper. | https://github.com/spatialanalyzer/briosa/issues/52 |
+| RelationshipOperations | Make Auto Filter Proximity Settings | documentation:RelationshipOperations/MakeAutoFilterProximity.htm | client_owned_value_construction | Constructing a transportable option value does not require SpatialAnalyzer state and belongs in the client library. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| RelationshipOperations | Relationship Watch Window Template | documentation:RelationshipOperations/RelationshipWatchWindowTemplate.htm | operator_ui_dependency | This command depends on operator-driven watch or trapping UI, which is not suitable for a deterministic unattended gRPC operation. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| RelationshipOperations | Show/Hide Relationship Watch | documentation:RelationshipOperations/ShowHideRelationshipWatch.htm | operator_ui_dependency | This command depends on operator-driven watch or trapping UI, which is not suitable for a deterministic unattended gRPC operation. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| RelationshipOperations | Sort Relationship Ref List | documentation:RelationshipOperations/SortRelationshipRefList.htm | client_owned_value_computation | This deterministic value or reference-list computation belongs in the client library and does not require SpatialAnalyzer automation. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| RelationshipOperations | Start/Stop Relationship Trapping | documentation:RelationshipOperations/StartStopRelationshipTrapping.htm | operator_ui_dependency | This command depends on operator-driven watch or trapping UI, which is not suitable for a deterministic unattended gRPC operation. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| ReportingOperations | Close HTML Display Board | documentation:ReportingOperations/CloseHTMLDisplayBoard.htm | client_owned_user_experience | Operator prompts and application-chrome control belong in the client application rather than an unattended gRPC API. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| ReportingOperations | HTML Display Board | documentation:ReportingOperations/HTMLDisplayBoard.htm | client_owned_user_experience | Operator prompts and application-chrome control belong in the client application rather than an unattended gRPC API. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| ReportingOperations | Make Report Graphical View Options | documentation:ReportingOperations/MakeReportGraphicalView.htm | client_owned_value_construction | Constructing a transportable option value does not require SpatialAnalyzer state and belongs in the client library. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| ReportingOperations | Make Report Output Options | documentation:ReportingOperations/MakeReportOutputOptions.htm | client_owned_value_construction | Constructing a transportable option value does not require SpatialAnalyzer state and belongs in the client library. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| ReportingOperations | Notify User Double | documentation:ReportingOperations/NotifyUserDouble.htm | client_owned_user_experience | Operator prompts and application-chrome control belong in the client application rather than an unattended gRPC API. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| ReportingOperations | Notify User HTML | documentation:ReportingOperations/NotifyUserHTML.htm | client_owned_user_experience | Operator prompts and application-chrome control belong in the client application rather than an unattended gRPC API. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| ReportingOperations | Notify User Integer | documentation:ReportingOperations/NotifyUserInteger.htm | client_owned_user_experience | Operator prompts and application-chrome control belong in the client application rather than an unattended gRPC API. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| ReportingOperations | Notify User Text Array | documentation:ReportingOperations/NotifyUserTextArray.htm | client_owned_user_experience | Operator prompts and application-chrome control belong in the client application rather than an unattended gRPC API. | https://github.com/spatialanalyzer/briosa/issues/51 |
 | ScalarMathOperations | Boolean Comparison | documentation:ScalarMathOperations/BooleanComparison.htm | client_owned_value_computation | Pure value computation belongs in the client application and does not require SpatialAnalyzer. | https://github.com/spatialanalyzer/briosa/issues/52 |
 | ScalarMathOperations | Boolean Comparison (result) | documentation:ScalarMathOperations/BooleanComparisonResult.htm | client_owned_value_computation | Pure value computation belongs in the client application and does not require SpatialAnalyzer. | https://github.com/spatialanalyzer/briosa/issues/52 |
 | ScalarMathOperations | Change String Case | documentation:ScalarMathOperations/ChangeStringCase.htm | client_owned_value_computation | Pure value computation belongs in the client application and does not require SpatialAnalyzer. | https://github.com/spatialanalyzer/briosa/issues/52 |
@@ -511,6 +587,7 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 | UtilityOperations / Network | HTTP GET Request | documentation:UtilityOperations/Network/HTTPGETRequest.htm | client_owned_external_integration | Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper. | https://github.com/spatialanalyzer/briosa/issues/52 |
 | UtilityOperations / Network | HTTPS Enter User Credentials | documentation:UtilityOperations/Network/HTTPSEnterUserCredentials.htm | client_owned_external_integration | Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper. | https://github.com/spatialanalyzer/briosa/issues/52 |
 | UtilityOperations / Network | HTTPS GET Request | sdk:UtilityOperations_Network.txt#4 | client_owned_external_integration | Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper. | https://github.com/spatialanalyzer/briosa/issues/52 |
+| UtilityOperations / Network | Lock/Unlock Trapping Control | documentation:UtilityOperations/Network/LockUnlockTrappingControl.htm | client_owned_state_and_control_flow | Programming-language control flow and MP runtime sequencing belong in the client application. | https://github.com/spatialanalyzer/briosa/issues/51 |
 | UtilityOperations / Network | UDP Receive String | documentation:UtilityOperations/Network/UDPReceiveString.htm | client_owned_external_integration | Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper. | https://github.com/spatialanalyzer/briosa/issues/52 |
 | UtilityOperations / Network | UDP Send String | documentation:UtilityOperations/Network/UDPSendString.htm | client_owned_external_integration | Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper. | https://github.com/spatialanalyzer/briosa/issues/52 |
 | UtilityOperations / OPC-DAServer | Get OPC DA Tag Value Double | documentation:UtilityOperations/OPC-DAServer/GetOPCDATagValueDouble.htm | client_owned_external_integration | Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper. | https://github.com/spatialanalyzer/briosa/issues/52 |
@@ -545,16 +622,23 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 | UtilityOperations / OPCUAClient | OPC UA MP Configuration Auto Run Settings | sdk:UtilityOperations_OPCUAClient.txt#23 | client_owned_external_integration | Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper. | https://github.com/spatialanalyzer/briosa/issues/52 |
 | UtilityOperations / OPCUAClient | Set OPC UA Node Named Coordinate Frame | sdk:UtilityOperations_OPCUAClient.txt#24 | client_owned_external_integration | Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper. | https://github.com/spatialanalyzer/briosa/issues/52 |
 | UtilityOperations / Units | Close All Watch Windows | documentation:UtilityOperations/Units/CloseAllWatchWindows.htm | client_owned_user_experience | Operator prompts and interactive SpatialAnalyzer UI control belong in the client application. | https://github.com/spatialanalyzer/briosa/issues/52 |
+| UtilityOperations / Units | Copy Directory | documentation:UtilityOperations/Units/CopyDirectory.htm | client_owned_external_integration | Generic filesystem, database, or process integration belongs in the client application and would unnecessarily expand Briosa authority. | https://github.com/spatialanalyzer/briosa/issues/51 |
 | UtilityOperations / Units | Delay for Specified Time | documentation:UtilityOperations/Units/DelayForSpecifiedTime.htm | client_owned_state_and_control_flow | Client-language state and control flow replace this measurement-plan programming helper. | https://github.com/spatialanalyzer/briosa/issues/52 |
+| UtilityOperations / Units | Delete Directory | documentation:UtilityOperations/Units/DeleteDirectory.htm | client_owned_external_integration | Generic filesystem, database, or process integration belongs in the client application and would unnecessarily expand Briosa authority. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| UtilityOperations / Units | Directory Existence | documentation:UtilityOperations/Units/DirectoryExistence.htm | client_owned_external_integration | Generic filesystem, database, or process integration belongs in the client application and would unnecessarily expand Briosa authority. | https://github.com/spatialanalyzer/briosa/issues/51 |
 | UtilityOperations / Units | Generate Random Number | documentation:UtilityOperations/Units/GenerateRandomNumber.htm | client_owned_state_and_control_flow | Client-language state and control flow replace this measurement-plan programming helper. | https://github.com/spatialanalyzer/briosa/issues/52 |
 | UtilityOperations / Units | Get Tick Count | documentation:UtilityOperations/Units/GetTickCount.htm | client_owned_state_and_control_flow | Client-language state and control flow replace this measurement-plan programming helper. | https://github.com/spatialanalyzer/briosa/issues/52 |
 | UtilityOperations / Units | Increment Point Name | documentation:UtilityOperations/Units/IncrementPointName.htm | client_owned_value_construction | Pure value construction, conversion, decomposition, or list algebra belongs in Briosa client types and client-language code. | https://github.com/spatialanalyzer/briosa/issues/52 |
+| UtilityOperations / Units | Make Directory | documentation:UtilityOperations/Units/MakeDirectory.htm | client_owned_external_integration | Generic filesystem, database, or process integration belongs in the client application and would unnecessarily expand Briosa authority. | https://github.com/spatialanalyzer/briosa/issues/51 |
 | UtilityOperations / Units | Move Instruments Drag Graphically | documentation:UtilityOperations/Units/MoveInstrumentsDragGraphically.htm | client_owned_user_experience | Operator prompts and interactive SpatialAnalyzer UI control belong in the client application. | https://github.com/spatialanalyzer/briosa/issues/52 |
 | UtilityOperations / Units | Move Objects Drag Graphically | documentation:UtilityOperations/Units/MoveObjectsDragGraphically.htm | client_owned_user_experience | Operator prompts and interactive SpatialAnalyzer UI control belong in the client application. | https://github.com/spatialanalyzer/briosa/issues/52 |
 | UtilityOperations / Units | Remove Specified Characters From String | documentation:UtilityOperations/Units/RemoveSpecifiedCharacters.htm | client_owned_value_construction | Pure value construction, conversion, decomposition, or list algebra belongs in Briosa client types and client-language code. | https://github.com/spatialanalyzer/briosa/issues/52 |
 | UtilityOperations / Units | Send MP Result to External Device | documentation:UtilityOperations/Units/SendMPResultToExternal.htm | client_owned_external_integration | Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper. | https://github.com/spatialanalyzer/briosa/issues/52 |
 | UtilityOperations / Units | Send MP Step’s Status to External Device | documentation:UtilityOperations/Units/SendMPStepsStatusToExternal.htm | client_owned_external_integration | Network and industrial-protocol integration belongs in the client application or a future Briosa-owned integration, not an SA-hosted MP wrapper. | https://github.com/spatialanalyzer/briosa/issues/52 |
 | UtilityOperations / Units | Set Interaction Mode | documentation:UtilityOperations/Units/SetInteractionMode.htm | client_owned_user_experience | Operator prompts and interactive SpatialAnalyzer UI control belong in the client application. | https://github.com/spatialanalyzer/briosa/issues/52 |
+| UtilityOperations / Units | Set MP Step Mode | documentation:UtilityOperations/Units/SetMPStepMode.htm | client_owned_state_and_control_flow | Programming-language control flow and MP runtime sequencing belong in the client application. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| UtilityOperations / Units | Set Notification Cancel Override | documentation:UtilityOperations/Units/SetNotificationCancelOverride.htm | client_owned_state_and_control_flow | Programming-language control flow and MP runtime sequencing belong in the client application. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| UtilityOperations / Units | Set Special MP Mode | documentation:UtilityOperations/Units/SetSpecialMPMode.htm | client_owned_state_and_control_flow | Programming-language control flow and MP runtime sequencing belong in the client application. | https://github.com/spatialanalyzer/briosa/issues/51 |
 | UtilityOperations / Units | Set User Interface Profile | documentation:UtilityOperations/Units/SetUserInterfaceProfile.htm | client_owned_user_experience | Operator prompts and interactive SpatialAnalyzer UI control belong in the client application. | https://github.com/spatialanalyzer/briosa/issues/52 |
 | UtilityOperations / Units | Speak To User | documentation:UtilityOperations/Units/SpeakToUser.htm | client_owned_user_experience | Operator prompts and interactive SpatialAnalyzer UI control belong in the client application. | https://github.com/spatialanalyzer/briosa/issues/52 |
 | UtilityOperations / Units | Status Dialog | documentation:UtilityOperations/Units/StatusDialog.htm | client_owned_user_experience | Operator prompts and interactive SpatialAnalyzer UI control belong in the client application. | https://github.com/spatialanalyzer/briosa/issues/52 |
@@ -610,6 +694,17 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 | Vector Operations / VectorMathOperations | Vector Normalize | documentation:Vector Operations/VectorMathOperations/VectorNormalize.htm | client_owned_value_computation | Pure value computation belongs in the client application and does not require SpatialAnalyzer. | https://github.com/spatialanalyzer/briosa/issues/52 |
 | Vector Operations / VectorMathOperations | Vector Scaling | documentation:Vector Operations/VectorMathOperations/VectorScaling.htm | client_owned_value_computation | Pure value computation belongs in the client application and does not require SpatialAnalyzer. | https://github.com/spatialanalyzer/briosa/issues/52 |
 | Vector Operations / VectorMathOperations | Vector Subtraction | documentation:Vector Operations/VectorMathOperations/VectorSubtraction.htm | client_owned_value_computation | Pure value computation belongs in the client application and does not require SpatialAnalyzer. | https://github.com/spatialanalyzer/briosa/issues/52 |
+| ViewControl | Set MP’s Window State | documentation:ViewControl/SetMPsWindowState.htm | client_owned_user_experience | Operator prompts and application-chrome control belong in the client application rather than an unattended gRPC API. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| ViewControl | Set SA’s Window Pos | documentation:ViewControl/SetSAsWindowPos.htm | client_owned_user_experience | Operator prompts and application-chrome control belong in the client application rather than an unattended gRPC API. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| ViewControl | Set SA’s Window Size | documentation:ViewControl/SetSAsWindowSize.htm | client_owned_user_experience | Operator prompts and application-chrome control belong in the client application rather than an unattended gRPC API. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| ViewControl | Set SA’s Window State | documentation:ViewControl/SetSAsWindowState.htm | client_owned_user_experience | Operator prompts and application-chrome control belong in the client application rather than an unattended gRPC API. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| ViewControl / Colors | Convert Integer Values to RGB | documentation:ViewControl/Colors/ConvertIntegerValuestoRGB.htm | client_owned_value_computation | This deterministic value or reference-list computation belongs in the client library and does not require SpatialAnalyzer automation. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| ViewControl / Colors | Convert RGB Values to Integer | documentation:ViewControl/Colors/ConvertRGBValuestoInteger.htm | client_owned_value_computation | This deterministic value or reference-list computation belongs in the client library and does not require SpatialAnalyzer automation. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| ViewControl / HideShowOperations | Set Toolkit Visibility | documentation:ViewControl/HideShowOperations/SetToolkitVisibility.htm | client_owned_user_experience | Operator prompts and application-chrome control belong in the client application rather than an unattended gRPC API. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| ViewControl / HideShowOperations | Show/Hide Inspection Bar | sdk:ViewControl_HideShowOperations.txt#16 | client_owned_user_experience | Operator prompts and application-chrome control belong in the client application rather than an unattended gRPC API. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| ViewControl / HideShowOperations | Show/Hide Relationship Watch | documentation:ViewControl/HideShowOperations/ShowHideRelationshipWatch.htm | operator_ui_dependency | This command depends on operator-driven watch or trapping UI, which is not suitable for a deterministic unattended gRPC operation. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| ViewControl / RibbonBar | Load Ribbon Bar from XML File | documentation:ViewControl/RibbonBar/LoadRibbonBarfromXMLFile.htm | client_owned_user_experience | Operator prompts and application-chrome control belong in the client application rather than an unattended gRPC API. | https://github.com/spatialanalyzer/briosa/issues/51 |
+| ViewControl / RibbonBar | Reset Ribbon Bar to Default | documentation:ViewControl/RibbonBar/ResetRibbonBartoDefault.htm | client_owned_user_experience | Operator prompts and application-chrome control belong in the client application rather than an unattended gRPC API. | https://github.com/spatialanalyzer/briosa/issues/51 |
 
 ## Promotion policy
 
