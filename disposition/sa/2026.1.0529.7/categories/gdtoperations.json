@@ -13,24 +13,27 @@
       ],
       "inventory_entry_sha256": "c4b3969103ec6c7987d41eb45754b1dd687089eab12e25200d8be1427f856e1d",
       "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "review_state": "reviewed",
+      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
       "reason_codes": [
-        "awaiting_review"
+        "argument_semantics_unresolved"
       ],
       "evidence_references": [
         "sdk:GDTOperations_GDTAnalysis.txt#17"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/53"
+      ],
+      "risk_effect": "mutating",
+      "risk_flags": [],
+      "data_classifications": [
+        "non_sensitive"
       ],
       "value_families": [
-        "unknown"
+        "logical"
       ],
       "delivery_wave": null
     },
@@ -43,24 +46,28 @@
       ],
       "inventory_entry_sha256": "ffecc8e92331ad29617adff2d502a5b890c413b777f5b94149896a6f322edab8",
       "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "review_state": "reviewed",
+      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
       "reason_codes": [
-        "awaiting_review"
+        "argument_semantics_unresolved"
       ],
       "evidence_references": [
         "sdk:GDTOperations_GDTAnalysis.txt#20"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/53"
+      ],
+      "risk_effect": "mutating",
+      "risk_flags": [],
+      "data_classifications": [
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name_list",
+        "string"
       ],
       "delivery_wave": null
     },
@@ -73,24 +80,29 @@
       ],
       "inventory_entry_sha256": "ee17f962c9de3d6f50085db3b4cc06558558050673be4ade505b20a42cc75beb",
       "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "review_state": "reviewed",
+      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
       "reason_codes": [
-        "awaiting_review"
+        "argument_semantics_unresolved"
       ],
       "evidence_references": [
         "sdk:GDTOperations_GDTConstruction.txt#2"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/53"
+      ],
+      "risk_effect": "read_only",
+      "risk_flags": [],
+      "data_classifications": [
+        "geometry",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name",
+        "string"
       ],
       "delivery_wave": null
     }

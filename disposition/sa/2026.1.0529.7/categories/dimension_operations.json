@@ -12,24 +12,31 @@
       ],
       "inventory_entry_sha256": "14266236fe19b5a9cc5b397fabcb04f09f4ba4cfa386f19fa7722d2750bd6ea7",
       "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "review_state": "reviewed",
+      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
       "reason_codes": [
-        "awaiting_review"
+        "argument_semantics_unresolved"
       ],
       "evidence_references": [
         "sdk:DimensionOperations.txt#12"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/53"
+      ],
+      "risk_effect": "mutating",
+      "risk_flags": [],
+      "data_classifications": [
+        "geometry",
+        "measurement",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name",
+        "floating_point",
+        "logical"
       ],
       "delivery_wave": null
     }

@@ -13,36 +13,36 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 
 | Disposition | Count |
 | --- | ---: |
-| `approved_candidate` | 0 |
-| `blocked` | 1063 |
-| `intentional_exclusion` | 349 |
-| `sdk_unavailable` | 0 |
+| `approved_candidate` | 220 |
+| `blocked` | 769 |
+| `intentional_exclusion` | 385 |
+| `sdk_unavailable` | 38 |
 
 ## Review states
 
 | Review state | Count |
 | --- | ---: |
 | `needs_re_review` | 0 |
-| `reviewed` | 349 |
-| `unreviewed` | 1063 |
+| `reviewed` | 799 |
+| `unreviewed` | 613 |
 
 ## Categories
 
 | Category | Entries | Approved | Excluded | SDK unavailable | Blocked | Unresolved | Unreviewed | Needs re-review |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | AccumulatorMathOperations | 8 | 0 | 8 | 0 | 0 | 0 | 0 | 0 |
-| AnalysisOperations | 189 | 0 | 25 | 0 | 164 | 164 | 164 | 0 |
-| CloudAndMeshOperations | 1 | 0 | 0 | 0 | 1 | 1 | 1 | 0 |
-| CloudMeshOps | 28 | 0 | 0 | 0 | 28 | 28 | 28 | 0 |
-| ConstructionOperations | 278 | 0 | 86 | 0 | 192 | 192 | 192 | 0 |
-| DimensionOperations | 1 | 0 | 0 | 0 | 1 | 1 | 1 | 0 |
-| Dimensions | 19 | 0 | 0 | 0 | 19 | 19 | 19 | 0 |
+| AnalysisOperations | 189 | 86 | 40 | 9 | 54 | 54 | 0 | 0 |
+| CloudAndMeshOperations | 1 | 0 | 0 | 0 | 1 | 1 | 0 | 0 |
+| CloudMeshOps | 28 | 14 | 0 | 3 | 11 | 11 | 0 | 0 |
+| ConstructionOperations | 278 | 104 | 94 | 13 | 67 | 67 | 0 | 0 |
+| DimensionOperations | 1 | 0 | 0 | 0 | 1 | 1 | 0 | 0 |
+| Dimensions | 19 | 1 | 4 | 12 | 2 | 2 | 0 | 0 |
 | EventOperations | 1 | 0 | 0 | 0 | 1 | 1 | 1 | 0 |
 | Events | 5 | 0 | 0 | 0 | 5 | 5 | 5 | 0 |
 | ExcelDirectConnect | 17 | 0 | 17 | 0 | 0 | 0 | 0 | 0 |
 | FileOperations | 125 | 0 | 18 | 0 | 107 | 107 | 107 | 0 |
-| GDT | 40 | 0 | 1 | 0 | 39 | 39 | 39 | 0 |
-| GDTOperations | 3 | 0 | 0 | 0 | 3 | 3 | 3 | 0 |
+| GDT | 40 | 13 | 10 | 1 | 16 | 16 | 0 | 0 |
+| GDTOperations | 3 | 0 | 0 | 0 | 3 | 3 | 0 | 0 |
 | GoogleSheets | 18 | 0 | 18 | 0 | 0 | 0 | 0 | 0 |
 | GoogleSheetsOperations | 1 | 0 | 1 | 0 | 0 | 0 | 0 | 0 |
 | InstrumentOperations | 185 | 0 | 1 | 0 | 184 | 184 | 184 | 0 |
@@ -55,7 +55,7 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 | RobotCalibrationApplianceNodeOperations | 25 | 0 | 0 | 0 | 25 | 25 | 25 | 0 |
 | RobotOperations | 33 | 0 | 0 | 0 | 33 | 33 | 33 | 0 |
 | ScalarMathOperations | 21 | 0 | 21 | 0 | 0 | 0 | 0 | 0 |
-| ScaleBars | 3 | 0 | 0 | 0 | 3 | 3 | 3 | 0 |
+| ScaleBars | 3 | 2 | 0 | 0 | 1 | 1 | 0 | 0 |
 | UtilityOperations | 105 | 0 | 52 | 0 | 53 | 53 | 53 | 0 |
 | Variables | 41 | 0 | 41 | 0 | 0 | 0 | 0 | 0 |
 | Vector Operations | 22 | 0 | 10 | 0 | 12 | 12 | 12 | 0 |
@@ -65,25 +65,104 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 
 | Value | Count |
 | --- | ---: |
-| `unknown` | 1063 |
+| `mutating` | 108 |
+| `read_only` | 48 |
+| `unknown` | 613 |
 
 ## Unresolved work by risk flag
 
 | Value | Count |
 | --- | ---: |
-| `unknown` | 1063 |
+| `filesystem_read` | 2 |
+| `long_running` | 19 |
+| `unknown` | 613 |
+
+## Unresolved work by data classification
+
+| Value | Count |
+| --- | ---: |
+| `geometry` | 138 |
+| `measurement` | 89 |
+| `non_sensitive` | 1 |
+| `object_identifier` | 147 |
+| `path` | 5 |
+| `unknown` | 613 |
 
 ## Unresolved work by value family
 
 | Value | Count |
 | --- | ---: |
-| `unknown` | 1063 |
+| `b_spline_fit_options` | 1 |
+| `base_color_type` | 1 |
+| `boolean` | 11 |
+| `cloud_thinning_mode` | 1 |
+| `cloud_thinning_options` | 2 |
+| `collection_instrument_id` | 1 |
+| `collection_instrument_id_list` | 1 |
+| `collection_name` | 3 |
+| `collection_object_name` | 116 |
+| `collection_object_name_list` | 45 |
+| `collection_object_name_ref_list` | 4 |
+| `collection_vector_group_name` | 1 |
+| `color` | 1 |
+| `color_range_method` | 1 |
+| `colorization_options` | 3 |
+| `coordinate_system_type` | 1 |
+| `dimension_ref_list` | 1 |
+| `double` | 8 |
+| `edit_text` | 3 |
+| `feature_check_ref_list` | 1 |
+| `file_path_or_embedded_file` | 1 |
+| `file_reference` | 1 |
+| `fit_constraint_scalar_options` | 1 |
+| `floating_point` | 72 |
+| `font` | 1 |
+| `gd_and_t_options_check_validator_type` | 2 |
+| `gd_and_t_options_distance_between_mode` | 1 |
+| `gdt_check_validator_type` | 1 |
+| `gdt_circle_extended_options` | 1 |
+| `gdt_cone_extended_options` | 1 |
+| `gdt_cylinder_extended_options` | 1 |
+| `gdt_distance_between_mode` | 1 |
+| `gdt_ellipse_extended_options` | 1 |
+| `gdt_line_extended_options` | 1 |
+| `gdt_open_slot_extended_options` | 1 |
+| `gdt_plane_extended_options` | 1 |
+| `gdt_slot_extended_options` | 1 |
+| `gdt_sphere_extended_options` | 1 |
+| `geometry_type` | 2 |
+| `integer` | 7 |
+| `item_type` | 1 |
+| `logical` | 76 |
+| `mesh_orientation_type` | 1 |
+| `object_type` | 2 |
+| `offset_direction_type` | 2 |
+| `outlier_rejection_options_scalar_type` | 3 |
+| `point_filter_input_type` | 1 |
+| `point_name` | 18 |
+| `point_name_list` | 9 |
+| `projection_options` | 1 |
+| `rgb_color` | 3 |
+| `sigmoidal_gap_constraint_options` | 1 |
+| `string` | 45 |
+| `surface_analysis_mode` | 1 |
+| `surface_dissection_mode_type` | 1 |
+| `tolerance_vector_options` | 3 |
+| `transform` | 6 |
+| `unknown` | 613 |
+| `vector` | 3 |
+| `vector3` | 15 |
+| `vector_creation_trigger` | 1 |
+| `vector_name_list` | 2 |
+| `whole_number` | 37 |
+| `world_transform` | 2 |
 
 ## Reason codes
 
 | Value | Count |
 | --- | ---: |
-| `awaiting_review` | 1063 |
+| `argument_semantics_unresolved` | 155 |
+| `awaiting_review` | 613 |
 | `client_owned_external_integration` | 39 |
 | `client_owned_office_integration` | 14 |
 | `client_owned_serialization` | 17 |
@@ -91,17 +170,32 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 | `client_owned_state_and_control_flow` | 63 |
 | `client_owned_user_experience` | 54 |
 | `client_owned_value_computation` | 60 |
-| `client_owned_value_construction` | 64 |
+| `client_owned_value_construction` | 97 |
+| `filesystem_operation` | 1 |
+| `interactive_operation` | 2 |
+| `long_running_operation` | 28 |
+| `operator_ui_dependency` | 3 |
+| `read_only_operation` | 66 |
+| `sdk_binding_unresolved` | 62 |
+| `sdk_command_not_observed` | 12 |
+| `sdk_input_binding_unavailable` | 26 |
+| `state_mutation` | 154 |
 
 ## Blockers
 
 | Value | Count |
 | --- | ---: |
-| `https://github.com/spatialanalyzer/briosa/issues/43` | 1063 |
+| `https://github.com/spatialanalyzer/briosa/issues/43` | 613 |
+| `https://github.com/spatialanalyzer/briosa/issues/53` | 156 |
 
 ## Delivery waves
 
-None.
+| Value | Count |
+| --- | ---: |
+| `wave_1` | 48 |
+| `wave_2` | 98 |
+| `wave_3` | 44 |
+| `wave_4` | 30 |
 
 ## Reviewed intentional exclusions
 
@@ -140,10 +234,31 @@ None.
 | AnalysisOperations | Remove i-th Object From Collection Object Name Ref List | documentation:AnalysisOperations/RemoveI-thObjectFromCollection.htm | client_owned_value_construction | Pure value construction, conversion, decomposition, or list algebra belongs in Briosa client types and client-language code. | https://github.com/spatialanalyzer/briosa/issues/52 |
 | AnalysisOperations | Remove i-th Point Name From Point Name Ref List | documentation:AnalysisOperations/RemoveI-thPointNameFromPoint.htm | client_owned_value_construction | Pure value construction, conversion, decomposition, or list algebra belongs in Briosa client types and client-language code. | https://github.com/spatialanalyzer/briosa/issues/52 |
 | AnalysisOperations | Remove i-th String from String Ref List | documentation:AnalysisOperations/RemoveI-thStringFromString.htm | client_owned_value_construction | Pure value construction, conversion, decomposition, or list algebra belongs in Briosa client types and client-language code. | https://github.com/spatialanalyzer/briosa/issues/52 |
+| AnalysisOperations / GeometryFitProfiles | Make Circle Fit Profile | documentation:AnalysisOperations/GeometryFitProfiles/MakeCircleFitProfile.htm | client_owned_value_construction | Pure value construction, decomposition, or reference-list algebra belongs in Briosa client types and client-language code. | https://github.com/spatialanalyzer/briosa/issues/49, https://github.com/spatialanalyzer/briosa/issues/52 |
+| AnalysisOperations / GeometryFitProfiles | Make Cone Fit Profile | documentation:AnalysisOperations/GeometryFitProfiles/MakeConeFitProfile.htm | client_owned_value_construction | Pure value construction, decomposition, or reference-list algebra belongs in Briosa client types and client-language code. | https://github.com/spatialanalyzer/briosa/issues/49, https://github.com/spatialanalyzer/briosa/issues/52 |
+| AnalysisOperations / GeometryFitProfiles | Make Cylinder Fit Profile | documentation:AnalysisOperations/GeometryFitProfiles/MakeCylinderFitProfile.htm | client_owned_value_construction | Pure value construction, decomposition, or reference-list algebra belongs in Briosa client types and client-language code. | https://github.com/spatialanalyzer/briosa/issues/49, https://github.com/spatialanalyzer/briosa/issues/52 |
+| AnalysisOperations / GeometryFitProfiles | Make Ellipse Fit Profile | documentation:AnalysisOperations/GeometryFitProfiles/MakeEllipseFitProfile.htm | client_owned_value_construction | Pure value construction, decomposition, or reference-list algebra belongs in Briosa client types and client-language code. | https://github.com/spatialanalyzer/briosa/issues/49, https://github.com/spatialanalyzer/briosa/issues/52 |
+| AnalysisOperations / GeometryFitProfiles | Make Line Fit Profile | documentation:AnalysisOperations/GeometryFitProfiles/MakeLineFitProfile.htm | client_owned_value_construction | Pure value construction, decomposition, or reference-list algebra belongs in Briosa client types and client-language code. | https://github.com/spatialanalyzer/briosa/issues/49, https://github.com/spatialanalyzer/briosa/issues/52 |
+| AnalysisOperations / GeometryFitProfiles | Make Paraboloid Fit Profile | documentation:AnalysisOperations/GeometryFitProfiles/MakeParaboloidFitProfile.htm | client_owned_value_construction | Pure value construction, decomposition, or reference-list algebra belongs in Briosa client types and client-language code. | https://github.com/spatialanalyzer/briosa/issues/49, https://github.com/spatialanalyzer/briosa/issues/52 |
+| AnalysisOperations / GeometryFitProfiles | Make Plane Fit Profile | documentation:AnalysisOperations/GeometryFitProfiles/MakePlaneFitProfile.htm | client_owned_value_construction | Pure value construction, decomposition, or reference-list algebra belongs in Briosa client types and client-language code. | https://github.com/spatialanalyzer/briosa/issues/49, https://github.com/spatialanalyzer/briosa/issues/52 |
+| AnalysisOperations / GeometryFitProfiles | Make Slot Fit Profile | documentation:AnalysisOperations/GeometryFitProfiles/MakeSlotFitProfile.htm | client_owned_value_construction | Pure value construction, decomposition, or reference-list algebra belongs in Briosa client types and client-language code. | https://github.com/spatialanalyzer/briosa/issues/49, https://github.com/spatialanalyzer/briosa/issues/52 |
+| AnalysisOperations / GeometryFitProfiles | Make Sphere Fit Profile | documentation:AnalysisOperations/GeometryFitProfiles/MakeSphereFitProfile.htm | client_owned_value_construction | Pure value construction, decomposition, or reference-list algebra belongs in Briosa client types and client-language code. | https://github.com/spatialanalyzer/briosa/issues/49, https://github.com/spatialanalyzer/briosa/issues/52 |
+| AnalysisOperations / RelationshipAttributes | Make Vector Fit Constraint | documentation:AnalysisOperations/RelationshipAttributes/MakeVectorFitConstraint.htm | client_owned_value_construction | Pure value construction, decomposition, or reference-list algebra belongs in Briosa client types and client-language code. | https://github.com/spatialanalyzer/briosa/issues/49, https://github.com/spatialanalyzer/briosa/issues/52 |
+| AnalysisOperations / RelationshipAttributes | Make Vector Tolerance | documentation:AnalysisOperations/RelationshipAttributes/MakeVectorTolerance.htm | client_owned_value_construction | Pure value construction, decomposition, or reference-list algebra belongs in Briosa client types and client-language code. | https://github.com/spatialanalyzer/briosa/issues/49, https://github.com/spatialanalyzer/briosa/issues/52 |
+| AnalysisOperations / RelationshipAttributesScalarTypes | Make Relationship Sigmoidal Gap Fit Constraints | documentation:AnalysisOperations/RelationshipAttributesScalarTypes/MakeRelSigmoidConstraints.htm | client_owned_value_construction | Pure value construction, decomposition, or reference-list algebra belongs in Briosa client types and client-language code. | https://github.com/spatialanalyzer/briosa/issues/49, https://github.com/spatialanalyzer/briosa/issues/52 |
+| AnalysisOperations / RelationshipAttributesScalarTypes | Make Scalar Fit Constraint | documentation:AnalysisOperations/RelationshipAttributesScalarTypes/MakeScalarFitConstraint.htm | client_owned_value_construction | Pure value construction, decomposition, or reference-list algebra belongs in Briosa client types and client-language code. | https://github.com/spatialanalyzer/briosa/issues/49, https://github.com/spatialanalyzer/briosa/issues/52 |
+| AnalysisOperations / RelationshipAttributesScalarTypes | Make Scalar Tolerance | documentation:AnalysisOperations/RelationshipAttributesScalarTypes/MakeScalarTolerance.htm | client_owned_value_construction | Pure value construction, decomposition, or reference-list algebra belongs in Briosa client types and client-language code. | https://github.com/spatialanalyzer/briosa/issues/49, https://github.com/spatialanalyzer/briosa/issues/52 |
+| AnalysisOperations / RelationshipAttributesScalarTypes | Make Symmetric Scalar Tolerance | documentation:AnalysisOperations/RelationshipAttributesScalarTypes/MakeSymmetricScalarTolerance.htm | client_owned_value_construction | Pure value construction, decomposition, or reference-list algebra belongs in Briosa client types and client-language code. | https://github.com/spatialanalyzer/briosa/issues/49, https://github.com/spatialanalyzer/briosa/issues/52 |
 | ConstructionOperations | Construct Objects From Surface Faces - Runtime Select | documentation:ConstructionOperations/ConstructObjectsFromSurface.htm | client_owned_user_experience | Operator prompts and interactive SpatialAnalyzer UI control belong in the client application. | https://github.com/spatialanalyzer/briosa/issues/52 |
+| ConstructionOperations / Callouts | Add a Callout View to Callout View Ref List | documentation:ConstructionOperations/Callouts/AddACalloutViewToCallout.htm | client_owned_value_construction | Pure value construction, decomposition, or reference-list algebra belongs in Briosa client types and client-language code. | https://github.com/spatialanalyzer/briosa/issues/49, https://github.com/spatialanalyzer/briosa/issues/52 |
+| ConstructionOperations / Callouts | Get Number of Callout Views in Callout View Ref List | documentation:ConstructionOperations/Callouts/GetNumberOfCalloutViews.htm | client_owned_value_construction | Pure value construction, decomposition, or reference-list algebra belongs in Briosa client types and client-language code. | https://github.com/spatialanalyzer/briosa/issues/49, https://github.com/spatialanalyzer/briosa/issues/52 |
+| ConstructionOperations / Callouts | Get i-th Callout View From Callout View Ref List | documentation:ConstructionOperations/Callouts/GetI-thCalloutViewFrom.htm | client_owned_value_construction | Pure value construction, decomposition, or reference-list algebra belongs in Briosa client types and client-language code. | https://github.com/spatialanalyzer/briosa/issues/49, https://github.com/spatialanalyzer/briosa/issues/52 |
+| ConstructionOperations / Callouts | Make a Callout View Ref List | documentation:ConstructionOperations/Callouts/MakeACalloutViewRefList.htm | client_owned_value_construction | Pure value construction, decomposition, or reference-list algebra belongs in Briosa client types and client-language code. | https://github.com/spatialanalyzer/briosa/issues/49, https://github.com/spatialanalyzer/briosa/issues/52 |
+| ConstructionOperations / Callouts | Sort Callout View Ref List | documentation:ConstructionOperations/Callouts/SortCalloutViewRefList.htm | client_owned_value_construction | Pure value construction, decomposition, or reference-list algebra belongs in Briosa client types and client-language code. | https://github.com/spatialanalyzer/briosa/issues/49, https://github.com/spatialanalyzer/briosa/issues/52 |
 | ConstructionOperations / Circles | Construct Circles From Surface Faces-Runtime Select | documentation:ConstructionOperations/Circles/ConstructCirclesFromSurfaceFaces-RuntimeSelect.htm | client_owned_user_experience | Operator prompts and interactive SpatialAnalyzer UI control belong in the client application. | https://github.com/spatialanalyzer/briosa/issues/52 |
 | ConstructionOperations / Cones | Construct Cones From Surface Faces-Runtime Select | documentation:ConstructionOperations/Cones/ConstructConesFromSurfaceFaces-RuntimeSelect.htm | client_owned_user_experience | Operator prompts and interactive SpatialAnalyzer UI control belong in the client application. | https://github.com/spatialanalyzer/briosa/issues/52 |
 | ConstructionOperations / Cylinders | Construct Cylinders From Surface Faces-Runtime Select | documentation:ConstructionOperations/Cylinders/ConstructCylindersFromSurfaceFaces-RuntimeSelect.htm | client_owned_user_experience | Operator prompts and interactive SpatialAnalyzer UI control belong in the client application. | https://github.com/spatialanalyzer/briosa/issues/52 |
+| ConstructionOperations / Frames | Construct Frame with Wizard | documentation:ConstructionOperations/Frames/ConstructFrameWithWizard.htm | operator_ui_dependency | This command depends on operator-driven SpatialAnalyzer UI interaction, which is not suitable for a deterministic unattended gRPC operation. | https://github.com/spatialanalyzer/briosa/issues/49, https://github.com/spatialanalyzer/briosa/issues/52 |
 | ConstructionOperations / Lines | Construct Lines From Surface Faces-Runtime Select | documentation:ConstructionOperations/Lines/ConstructLinesFromSurfaceFaces-RuntimeSelect.htm | client_owned_user_experience | Operator prompts and interactive SpatialAnalyzer UI control belong in the client application. | https://github.com/spatialanalyzer/briosa/issues/52 |
 | ConstructionOperations / OtherMPTypes | Add Double to Double List | documentation:ConstructionOperations/OtherMPTypes/AddDoubleToDoubleList.htm | client_owned_value_construction | Pure value construction, conversion, decomposition, or list algebra belongs in Briosa client types and client-language code. | https://github.com/spatialanalyzer/briosa/issues/52 |
 | ConstructionOperations / OtherMPTypes | Add a Collection Instrument to a Ref List | documentation:ConstructionOperations/OtherMPTypes/AddACollectionInstrument.htm | client_owned_value_construction | Pure value construction, conversion, decomposition, or list algebra belongs in Briosa client types and client-language code. | https://github.com/spatialanalyzer/briosa/issues/52 |
@@ -225,7 +340,13 @@ None.
 | ConstructionOperations / PointClouds | Construct Point Clouds from Existing Cloud Points - Runtime Select | documentation:ConstructionOperations/PointClouds/ConstructPointCloudsfromExistingCloudPoints.htm | client_owned_user_experience | Operator prompts and interactive SpatialAnalyzer UI control belong in the client application. | https://github.com/spatialanalyzer/briosa/issues/52 |
 | ConstructionOperations / PointsandGroups | Construct Point from Cloud Point - Runtime Select | documentation:ConstructionOperations/PointsandGroups/ConstructPointfromCloudPoint-RuntimeSelect.htm | client_owned_user_experience | Operator prompts and interactive SpatialAnalyzer UI control belong in the client application. | https://github.com/spatialanalyzer/briosa/issues/52 |
 | ConstructionOperations / PointsandGroups | Construct Points From Surface Faces - Runtime Select | documentation:ConstructionOperations/PointsandGroups/ConstructPointsFromSurfaceFaces.htm | client_owned_user_experience | Operator prompts and interactive SpatialAnalyzer UI control belong in the client application. | https://github.com/spatialanalyzer/briosa/issues/52 |
+| ConstructionOperations / PointsandGroups | Construct Points on Surface(s) by Clicking | documentation:ConstructionOperations/PointsandGroups/ConstructPointsonSurfacesbyClicking.htm | operator_ui_dependency | This command depends on operator-driven SpatialAnalyzer UI interaction, which is not suitable for a deterministic unattended gRPC operation. | https://github.com/spatialanalyzer/briosa/issues/49, https://github.com/spatialanalyzer/briosa/issues/52 |
 | ConstructionOperations / Spheres | Construct Spheres From Surface Faces-Runtime Select | documentation:ConstructionOperations/Spheres/ConstructSpheresFromSurfaceFaces-RuntimeSelect.htm | client_owned_user_experience | Operator prompts and interactive SpatialAnalyzer UI control belong in the client application. | https://github.com/spatialanalyzer/briosa/issues/52 |
+| ConstructionOperations / VectorGroups | Make a Vector from Doubles | documentation:ConstructionOperations/VectorGroups/MakeAVectorFromDoubles.htm | client_owned_value_construction | Pure value construction, decomposition, or reference-list algebra belongs in Briosa client types and client-language code. | https://github.com/spatialanalyzer/briosa/issues/49, https://github.com/spatialanalyzer/briosa/issues/52 |
+| Dimensions | Add a Dimension to Dimension Ref List | documentation:Dimensions/AddADimensionToDimension.htm | client_owned_value_construction | Pure value construction, decomposition, or reference-list algebra belongs in Briosa client types and client-language code. | https://github.com/spatialanalyzer/briosa/issues/49, https://github.com/spatialanalyzer/briosa/issues/52 |
+| Dimensions | Get Number of Dimensions in Dimension Ref List | documentation:Dimensions/GetNumberOfDimensionsIn.htm | client_owned_value_construction | Pure value construction, decomposition, or reference-list algebra belongs in Briosa client types and client-language code. | https://github.com/spatialanalyzer/briosa/issues/49, https://github.com/spatialanalyzer/briosa/issues/52 |
+| Dimensions | Get i-th Dimension From Dimension Ref List | documentation:Dimensions/GetI-thDimensionFromDimension.htm | client_owned_value_construction | Pure value construction, decomposition, or reference-list algebra belongs in Briosa client types and client-language code. | https://github.com/spatialanalyzer/briosa/issues/49, https://github.com/spatialanalyzer/briosa/issues/52 |
+| Dimensions | Get i-th Dimension From Dimension Ref List (Iterator) | documentation:Dimensions/GetI-thDimensionFromDimensionIterator.htm | client_owned_value_construction | Pure value construction, decomposition, or reference-list algebra belongs in Briosa client types and client-language code. | https://github.com/spatialanalyzer/briosa/issues/49, https://github.com/spatialanalyzer/briosa/issues/52 |
 | ExcelDirectConnect | Close | documentation:ExcelDirectConnect/Close.htm | client_owned_spreadsheet_integration | Spreadsheet integration belongs in the client application or a dedicated spreadsheet library. | https://github.com/spatialanalyzer/briosa/issues/52 |
 | ExcelDirectConnect | Close All Workbooks | documentation:ExcelDirectConnect/CloseAllWorkbooks.htm | client_owned_spreadsheet_integration | Spreadsheet integration belongs in the client application or a dedicated spreadsheet library. | https://github.com/spatialanalyzer/briosa/issues/52 |
 | ExcelDirectConnect | Get Workbook Address | documentation:ExcelDirectConnect/GetWorkbookAddress.htm | client_owned_spreadsheet_integration | Spreadsheet integration belongs in the client application or a dedicated spreadsheet library. | https://github.com/spatialanalyzer/briosa/issues/52 |
@@ -261,6 +382,15 @@ None.
 | FileOperations / XML | Remove XML Element | documentation:FileOperations/XML/RemoveXMLElement.htm | client_owned_serialization | Generic JSON or XML parsing and mutation belongs in the client application or a serialization library. | https://github.com/spatialanalyzer/briosa/issues/52 |
 | FileOperations / XML | Set XML Attribute | documentation:FileOperations/XML/SetXMLAttribute.htm | client_owned_serialization | Generic JSON or XML parsing and mutation belongs in the client application or a serialization library. | https://github.com/spatialanalyzer/briosa/issues/52 |
 | FileOperations / XML | Use NRKXML Library | sdk:FileOperations_XML.txt#1 | client_owned_serialization | Generic JSON or XML parsing and mutation belongs in the client application or a serialization library. | https://github.com/spatialanalyzer/briosa/issues/52 |
+| GDT | Get Number of Datums in Datum Ref List | documentation:GDT/GetNumberOfDatumsInDatum.htm | client_owned_value_construction | Pure value construction, decomposition, or reference-list algebra belongs in Briosa client types and client-language code. | https://github.com/spatialanalyzer/briosa/issues/49, https://github.com/spatialanalyzer/briosa/issues/52 |
+| GDT | Get Number of Feature Checks in Feature Check Ref List | documentation:GDT/GetNumberOfFeatureChecks.htm | client_owned_value_construction | Pure value construction, decomposition, or reference-list algebra belongs in Briosa client types and client-language code. | https://github.com/spatialanalyzer/briosa/issues/49, https://github.com/spatialanalyzer/briosa/issues/52 |
+| GDT | Get i-th Annotation From Annotation Ref List | documentation:GDT/GetI-thAnnotationFromAnnotation.htm | client_owned_value_construction | Pure value construction, decomposition, or reference-list algebra belongs in Briosa client types and client-language code. | https://github.com/spatialanalyzer/briosa/issues/49, https://github.com/spatialanalyzer/briosa/issues/52 |
+| GDT | Get i-th Annotation From Annotation Ref List (Iterator) | documentation:GDT/GetI-thAnnotationFromAnnotationIterator.htm | client_owned_value_construction | Pure value construction, decomposition, or reference-list algebra belongs in Briosa client types and client-language code. | https://github.com/spatialanalyzer/briosa/issues/49, https://github.com/spatialanalyzer/briosa/issues/52 |
+| GDT | Get i-th Datum From Datum Ref List | documentation:GDT/GetI-thDatumFromDatum.htm | client_owned_value_construction | Pure value construction, decomposition, or reference-list algebra belongs in Briosa client types and client-language code. | https://github.com/spatialanalyzer/briosa/issues/49, https://github.com/spatialanalyzer/briosa/issues/52 |
+| GDT | Get i-th Datum From Datum Ref List (Iterator) | documentation:GDT/GetI-thDatumFromDatumIterator.htm | client_owned_value_construction | Pure value construction, decomposition, or reference-list algebra belongs in Briosa client types and client-language code. | https://github.com/spatialanalyzer/briosa/issues/49, https://github.com/spatialanalyzer/briosa/issues/52 |
+| GDT | Get i-th Feature Check From Feature Check Ref List | documentation:GDT/GetI-thFeatureCheckFromFeatureCheck.htm | client_owned_value_construction | Pure value construction, decomposition, or reference-list algebra belongs in Briosa client types and client-language code. | https://github.com/spatialanalyzer/briosa/issues/49, https://github.com/spatialanalyzer/briosa/issues/52 |
+| GDT | Get i-th Feature Check From Feature Check Ref List (Iterator) | documentation:GDT/GetI-thFeatureCheckFromFeatureIterator.htm | client_owned_value_construction | Pure value construction, decomposition, or reference-list algebra belongs in Briosa client types and client-language code. | https://github.com/spatialanalyzer/briosa/issues/49, https://github.com/spatialanalyzer/briosa/issues/52 |
+| GDT | Start/Stop Feature Check Trapping | documentation:GDT/StartStopFeatureCheckTrapping.htm | operator_ui_dependency | This command depends on operator-driven SpatialAnalyzer UI interaction, which is not suitable for a deterministic unattended gRPC operation. | https://github.com/spatialanalyzer/briosa/issues/49, https://github.com/spatialanalyzer/briosa/issues/52 |
 | GDT / GDTConstruct | Make Surface Face List - Runtime Select | documentation:GDT/GDTConstruct/MakeSurfaceFaceList-RuntimeSelect.htm | client_owned_user_experience | Operator prompts and interactive SpatialAnalyzer UI control belong in the client application. | https://github.com/spatialanalyzer/briosa/issues/52 |
 | GoogleSheets | Close All Google Sheets Spreadsheets | documentation:GoogleSheets/CloseAllGoogleSheetsSpreadsheets.htm | client_owned_spreadsheet_integration | Spreadsheet integration belongs in the client application or a dedicated spreadsheet library. | https://github.com/spatialanalyzer/briosa/issues/52 |
 | GoogleSheets | Close Google Sheets Spreadsheet | documentation:GoogleSheets/CloseGoogleSheetsSpreadsheet.htm | client_owned_spreadsheet_integration | Spreadsheet integration belongs in the client application or a dedicated spreadsheet library. | https://github.com/spatialanalyzer/briosa/issues/52 |

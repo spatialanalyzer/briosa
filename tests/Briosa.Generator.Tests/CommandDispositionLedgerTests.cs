@@ -42,7 +42,9 @@ public sealed class CommandDispositionLedgerTests
             .Where(entry => string.Equals(
                 entry.Disposition,
                 "intentional_exclusion",
-                StringComparison.Ordinal))
+                StringComparison.Ordinal) &&
+                entry.DecisionReferences.SequenceEqual(
+                    ["https://github.com/spatialanalyzer/briosa/issues/52"]))
             .ToArray();
         var counts = exclusions
             .SelectMany(entry => entry.ReasonCodes)
@@ -103,12 +105,12 @@ public sealed class CommandDispositionLedgerTests
             entries,
             "ConstructionOperations",
             "Make a Point Name - Ensure Unique",
-            "blocked");
+            "approved_candidate");
         AssertDisposition(
             entries,
             "AnalysisOperations",
             "Get Point Properties",
-            "blocked");
+            "approved_candidate");
         AssertDisposition(
             entries,
             "ProcessFlowOperations",
@@ -134,6 +136,76 @@ public sealed class CommandDispositionLedgerTests
     }
 
     [Fact]
+    public void Issue49ReviewCuratesEveryGeometryDomainCommand()
+    {
+        var entries = ReadCommittedEntries();
+        var reviewed = entries
+            .Where(entry => entry.DecisionReferences.Contains(
+                "https://github.com/spatialanalyzer/briosa/issues/49",
+                StringComparer.Ordinal))
+            .ToArray();
+
+        Assert.Equal(450, reviewed.Length);
+        Assert.Equal(220, reviewed.Count(entry => entry.Disposition == "approved_candidate"));
+        Assert.Equal(156, reviewed.Count(entry => entry.Disposition == "blocked"));
+        Assert.Equal(36, reviewed.Count(entry => entry.Disposition == "intentional_exclusion"));
+        Assert.Equal(38, reviewed.Count(entry => entry.Disposition == "sdk_unavailable"));
+        Assert.Equal(48, reviewed.Count(entry => entry.DeliveryWave == "wave_1"));
+        Assert.Equal(98, reviewed.Count(entry => entry.DeliveryWave == "wave_2"));
+        Assert.Equal(44, reviewed.Count(entry => entry.DeliveryWave == "wave_3"));
+        Assert.Equal(30, reviewed.Count(entry => entry.DeliveryWave == "wave_4"));
+
+        Assert.All(reviewed, entry => Assert.Equal("reviewed", entry.ReviewState));
+        Assert.All(
+            reviewed.Where(entry => entry.Disposition == "approved_candidate"),
+            entry =>
+            {
+                Assert.Empty(entry.BlockerReferences);
+                Assert.NotNull(entry.DeliveryWave);
+                Assert.NotEqual("unknown", entry.RiskEffect);
+                Assert.DoesNotContain("unknown", entry.RiskFlags);
+                Assert.DoesNotContain("unknown", entry.DataClassifications);
+                Assert.DoesNotContain("unknown", entry.ValueFamilies);
+            });
+        Assert.All(
+            reviewed.Where(entry => entry.Disposition == "blocked"),
+            entry => Assert.Equal(
+                ["https://github.com/spatialanalyzer/briosa/issues/53"],
+                entry.BlockerReferences));
+
+        AssertDisposition(
+            entries,
+            "AnalysisOperations",
+            "Get Point Properties",
+            "approved_candidate");
+        AssertDisposition(
+            entries,
+            "ConstructionOperations",
+            "Construct Sphere",
+            "approved_candidate");
+        AssertDisposition(
+            entries,
+            "ConstructionOperations",
+            "Construct Frame with Wizard",
+            "intentional_exclusion");
+        AssertDisposition(
+            entries,
+            "CloudMeshOps",
+            "Delete Cloud Points by X Y Z Range",
+            "sdk_unavailable");
+        AssertDisposition(
+            entries,
+            "CloudMeshOps",
+            "Get Cloud Point Count",
+            "blocked");
+
+        var bestFit = Assert.Single(entries, entry =>
+            entry.MpStep == "Best Fit Transformation - Group to Group");
+        Assert.Equal("wave_4", bestFit.DeliveryWave);
+        Assert.Equal(["filesystem_write", "long_running"], bestFit.RiskFlags);
+    }
+
+    [Fact]
     public void SyncInitializesEveryCommandAsBlockedAndUnreviewed()
     {
         using var fixture = DispositionFixture.Create();
@@ -148,6 +220,7 @@ public sealed class CommandDispositionLedgerTests
         Assert.Equal("blocked", entry["disposition"]!.GetValue<string>());
         Assert.Equal("unreviewed", entry["review_state"]!.GetValue<string>());
         Assert.Equal("unknown", entry["risk_effect"]!.GetValue<string>());
+        Assert.Equal("unknown", entry["data_classifications"]![0]!.GetValue<string>());
         Assert.Equal("unknown", entry["value_families"]![0]!.GetValue<string>());
         Assert.Equal("awaiting_review", entry["reason_codes"]![0]!.GetValue<string>());
         Assert.Equal(
@@ -227,6 +300,7 @@ public sealed class CommandDispositionLedgerTests
                 "https://github.com/spatialanalyzer/briosa/issues/48");
             entry["risk_effect"] = "read_only";
             entry["risk_flags"] = new JsonArray("filesystem_metadata");
+            entry["data_classifications"] = new JsonArray("path");
             entry["value_families"] = new JsonArray("path");
         });
 
@@ -238,6 +312,42 @@ public sealed class CommandDispositionLedgerTests
             result.Errors,
             error => error.Contains(
                 "approved candidates require a delivery wave and no blockers",
+                StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void ApprovedCandidateMayHaveNoSpecialRiskFlags()
+    {
+        using var fixture = DispositionFixture.Create();
+        CommandDispositionLedger.Sync(fixture.InventoryPath, fixture.TargetDirectory);
+        fixture.MarkEntryReviewedCandidate();
+        fixture.EditEntry(entry => entry["risk_flags"] = new JsonArray());
+        CommandDispositionLedger.Sync(fixture.InventoryPath, fixture.TargetDirectory);
+
+        var result = CommandDispositionLedger.Validate(
+            fixture.InventoryPath,
+            fixture.TargetDirectory);
+
+        Assert.Empty(result.Errors);
+    }
+
+    [Fact]
+    public void ValidationRejectsUnknownApprovedDataClassification()
+    {
+        using var fixture = DispositionFixture.Create();
+        CommandDispositionLedger.Sync(fixture.InventoryPath, fixture.TargetDirectory);
+        fixture.MarkEntryReviewedCandidate();
+        fixture.EditEntry(entry =>
+            entry["data_classifications"] = new JsonArray("unknown"));
+
+        var result = CommandDispositionLedger.Validate(
+            fixture.InventoryPath,
+            fixture.TargetDirectory);
+
+        Assert.Contains(
+            result.Errors,
+            error => error.Contains(
+                "approved candidates require assessed risk, data classification",
                 StringComparison.Ordinal));
     }
 
@@ -336,6 +446,7 @@ public sealed class CommandDispositionLedgerTests
             entry["blocker_references"] = new JsonArray();
             entry["risk_effect"] = "read_only";
             entry["risk_flags"] = new JsonArray("filesystem_metadata");
+            entry["data_classifications"] = new JsonArray("path");
             entry["value_families"] = new JsonArray("path");
             entry["delivery_wave"] = "wave_1";
             WriteShard(shard);

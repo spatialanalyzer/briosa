@@ -12,25 +12,34 @@
       ],
       "inventory_entry_sha256": "e64972bb5b31c91d7f08a5aa5907e066af4229d1bf5341c3df94feddb380aebd",
       "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "review_state": "reviewed",
+      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
       "reason_codes": [
-        "awaiting_review"
+        "argument_semantics_unresolved"
       ],
       "evidence_references": [
         "documentation:GDT/DatumAlignment.htm",
         "sdk:GDTOperations_GDTAnalysis.txt#23"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49"
       ],
-      "risk_effect": "unknown",
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/53"
+      ],
+      "risk_effect": "mutating",
       "risk_flags": [
-        "unknown"
+        "long_running"
+      ],
+      "data_classifications": [
+        "geometry",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_instrument_id_list",
+        "collection_object_name",
+        "collection_object_name_list",
+        "logical"
       ],
       "delivery_wave": null
     },
@@ -42,25 +51,31 @@
       ],
       "inventory_entry_sha256": "2ac065276a6a2083bd82c6687006680af156d04e6b3b907ebb5c05c1fe09440b",
       "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "review_state": "reviewed",
+      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
       "reason_codes": [
-        "awaiting_review"
+        "argument_semantics_unresolved"
       ],
       "evidence_references": [
         "documentation:GDT/EnableDisableDatumAlignment.htm",
         "sdk:GDTOperations_GDTAnalysis.txt#22"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49"
       ],
-      "risk_effect": "unknown",
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/53"
+      ],
+      "risk_effect": "mutating",
       "risk_flags": [
-        "unknown"
+        "long_running"
+      ],
+      "data_classifications": [
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name",
+        "logical"
       ],
       "delivery_wave": null
     },
@@ -72,25 +87,36 @@
       ],
       "inventory_entry_sha256": "3650cdefdbbf14a6e1f23aee6d3b0283b846f1093a5d946d18ba7110872038bf",
       "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "review_state": "reviewed",
+      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
       "reason_codes": [
-        "awaiting_review"
+        "argument_semantics_unresolved"
       ],
       "evidence_references": [
         "documentation:GDT/EvaluateFeatureCheck.htm",
         "sdk:GDTOperations_GDTAnalysis.txt#18"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49"
       ],
-      "risk_effect": "unknown",
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/53"
+      ],
+      "risk_effect": "mutating",
       "risk_flags": [
-        "unknown"
+        "long_running"
+      ],
+      "data_classifications": [
+        "geometry",
+        "measurement",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name",
+        "floating_point",
+        "logical",
+        "string",
+        "world_transform"
       ],
       "delivery_wave": null
     },
@@ -102,25 +128,33 @@
       ],
       "inventory_entry_sha256": "9ef051f937969396fea7c4d984955e4ac4a0519a01677735e5c976c909ff7f62",
       "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "review_state": "reviewed",
+      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
       "reason_codes": [
-        "awaiting_review"
+        "argument_semantics_unresolved"
       ],
       "evidence_references": [
         "documentation:GDT/EvaluateFeatureChecks.htm",
         "sdk:GDTOperations_GDTAnalysis.txt#19"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49"
       ],
-      "risk_effect": "unknown",
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/53"
+      ],
+      "risk_effect": "mutating",
       "risk_flags": [
-        "unknown"
+        "long_running"
+      ],
+      "data_classifications": [
+        "measurement",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name_list",
+        "logical",
+        "whole_number"
       ],
       "delivery_wave": null
     },
@@ -132,25 +166,35 @@
       ],
       "inventory_entry_sha256": "522b001b9de75bd8326df457804b6514c741bdc1d57af585f2a8b361b8cafd86",
       "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "review_state": "reviewed",
+      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
       "reason_codes": [
-        "awaiting_review"
+        "argument_semantics_unresolved"
       ],
       "evidence_references": [
         "documentation:GDT/FeatureInspectionAutoFilter.htm",
         "sdk:GDTOperations_GDTAnalysis.txt#16"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/53"
+      ],
+      "risk_effect": "mutating",
+      "risk_flags": [],
+      "data_classifications": [
+        "geometry",
+        "measurement",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name_list",
+        "floating_point",
+        "logical",
+        "offset_direction_type",
+        "point_name_list",
+        "whole_number"
       ],
       "delivery_wave": null
     },
@@ -162,28 +206,29 @@
         "GDTConstruct"
       ],
       "inventory_entry_sha256": "00f4e2373eccdfef8deaa9abfefb12ab7345c9aa307d12b35ea22bb5b103f21e",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command changes SpatialAnalyzer state within Briosa automation scope; retain it as an approved candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "documentation:GDT/GDTConstruct/DeleteFeatureChecks.htm",
         "sdk:GDTOperations_GDTConstruction.txt#10"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
+      "blocker_references": [],
+      "risk_effect": "mutating",
+      "risk_flags": [],
+      "data_classifications": [
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name_list"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_3"
     },
     {
       "inventory_key": "documentation:GDT/GDTConstruct/MakeADatumRefListFrom.htm",
@@ -193,28 +238,30 @@
         "GDTConstruct"
       ],
       "inventory_entry_sha256": "2858f162d3770703432c96c07b1041c62ad91e1e476aba7cd1bf35b929a12468",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command queries SpatialAnalyzer state without an identified state mutation; retain it as an approved candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "read_only_operation"
       ],
       "evidence_references": [
         "documentation:GDT/GDTConstruct/MakeADatumRefListFrom.htm",
         "sdk:GDTOperations_GDTConstruction.txt#11"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
+      "blocker_references": [],
+      "risk_effect": "read_only",
+      "risk_flags": [],
+      "data_classifications": [
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_name",
+        "collection_object_name_list"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_1"
     },
     {
       "inventory_key": "documentation:GDT/GDTConstruct/MakeAFeatureCheckRefList.htm",
@@ -224,28 +271,30 @@
         "GDTConstruct"
       ],
       "inventory_entry_sha256": "e5df95eebbdd4d368a5145dd03b26cd7b890076c00c60b9a1de6cc6acfd8f384",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command queries SpatialAnalyzer state without an identified state mutation; retain it as an approved candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "read_only_operation"
       ],
       "evidence_references": [
         "documentation:GDT/GDTConstruct/MakeAFeatureCheckRefList.htm",
         "sdk:GDTOperations_GDTConstruction.txt#6"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
+      "blocker_references": [],
+      "risk_effect": "read_only",
+      "risk_flags": [],
+      "data_classifications": [
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_name",
+        "collection_object_name_list"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_1"
     },
     {
       "inventory_key": "documentation:GDT/GDTConstruct/MakeAFeatureCheckReference.htm",
@@ -256,25 +305,29 @@
       ],
       "inventory_entry_sha256": "512a43f58be8e0ef434395485471c88add62145194f25c099fdd41e8c5c326ff",
       "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "review_state": "reviewed",
+      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
       "reason_codes": [
-        "awaiting_review"
+        "argument_semantics_unresolved"
       ],
       "evidence_references": [
         "documentation:GDT/GDTConstruct/MakeAFeatureCheckReference.htm",
         "sdk:GDTOperations_GDTConstruction.txt#7"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/53"
+      ],
+      "risk_effect": "read_only",
+      "risk_flags": [],
+      "data_classifications": [
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name_list",
+        "string"
       ],
       "delivery_wave": null
     },
@@ -287,25 +340,31 @@
       ],
       "inventory_entry_sha256": "3b4ddd84ee727ec55caef479a71828432bf82a1681439c41d3de697699664e2c",
       "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "review_state": "reviewed",
+      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
       "reason_codes": [
-        "awaiting_review"
+        "argument_semantics_unresolved",
+        "sdk_binding_unresolved"
       ],
       "evidence_references": [
         "documentation:GDT/GDTConstruct/MakeAnnotationRefListFrom.htm",
         "sdk:GDTOperations_GDTConstruction.txt#8"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/53"
+      ],
+      "risk_effect": "read_only",
+      "risk_flags": [],
+      "data_classifications": [
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_name",
+        "collection_object_name_list",
+        "feature_check_ref_list"
       ],
       "delivery_wave": null
     },
@@ -318,25 +377,30 @@
       ],
       "inventory_entry_sha256": "5f1a36f66b2890d35d42cc83a3e9d3869941bf0a56bfa0978558fd8442c3eb4b",
       "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "review_state": "reviewed",
+      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
       "reason_codes": [
-        "awaiting_review"
+        "argument_semantics_unresolved",
+        "sdk_binding_unresolved"
       ],
       "evidence_references": [
         "documentation:GDT/GDTConstruct/MakeAnnotationRefListWildCard.htm",
         "sdk:GDTOperations_GDTConstruction.txt#9"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/53"
+      ],
+      "risk_effect": "read_only",
+      "risk_flags": [],
+      "data_classifications": [
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name_list",
+        "string"
       ],
       "delivery_wave": null
     },
@@ -348,28 +412,32 @@
         "GDTConstruct"
       ],
       "inventory_entry_sha256": "b230708c4decbd6588215d9463fa2493dea5713137430fe09af3eb9ea01e81c2",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command changes SpatialAnalyzer state within Briosa automation scope; retain it as an approved candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "long_running_operation",
+        "state_mutation"
       ],
       "evidence_references": [
         "documentation:GDT/GDTConstruct/MakeFeatureChecks.htm",
         "sdk:GDTOperations_GDTConstruction.txt#5"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49"
       ],
-      "risk_effect": "unknown",
+      "blocker_references": [],
+      "risk_effect": "mutating",
       "risk_flags": [
-        "unknown"
+        "long_running"
+      ],
+      "data_classifications": [
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_name"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_4"
     },
     {
       "inventory_key": "documentation:GDT/GDTConstruct/MakeGDTDatumAnnotation.htm",
@@ -380,25 +448,32 @@
       ],
       "inventory_entry_sha256": "4f1417a1186a903220ad898031907fad62ec0b7da833210205e0a2551bfba1e9",
       "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "review_state": "reviewed",
+      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
       "reason_codes": [
-        "awaiting_review"
+        "argument_semantics_unresolved"
       ],
       "evidence_references": [
         "documentation:GDT/GDTConstruct/MakeGDTDatumAnnotation.htm",
         "sdk:GDTOperations_GDTConstruction.txt#4"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/53"
+      ],
+      "risk_effect": "mutating",
+      "risk_flags": [],
+      "data_classifications": [
+        "geometry",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name",
+        "collection_object_name_list",
+        "logical",
+        "string"
       ],
       "delivery_wave": null
     },
@@ -411,25 +486,36 @@
       ],
       "inventory_entry_sha256": "6598d1d41e3cb75e02b7148390647a3dd4a4253f6c7708cae4a7bbd8ce1dec4d",
       "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "review_state": "reviewed",
+      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
       "reason_codes": [
-        "awaiting_review"
+        "argument_semantics_unresolved",
+        "sdk_binding_unresolved"
       ],
       "evidence_references": [
         "documentation:GDT/GDTConstruct/MakeGDTFeatureCheckAnnotation.htm",
         "sdk:GDTOperations_GDTConstruction.txt#3"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/53"
+      ],
+      "risk_effect": "mutating",
+      "risk_flags": [],
+      "data_classifications": [
+        "geometry",
+        "measurement",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "boolean",
+        "collection_object_name",
+        "collection_object_name_list",
+        "floating_point",
+        "logical",
+        "string"
       ],
       "delivery_wave": null
     },
@@ -459,6 +545,9 @@
       "risk_flags": [
         "unknown"
       ],
+      "data_classifications": [
+        "unknown"
+      ],
       "value_families": [
         "unknown"
       ],
@@ -471,28 +560,33 @@
         "GDT"
       ],
       "inventory_entry_sha256": "348b642daf5109bdd3a2ee3cc7ce22d7418605dcc77e8099c293a30880f1fcb0",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command queries SpatialAnalyzer state without an identified state mutation; retain it as an approved candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "read_only_operation"
       ],
       "evidence_references": [
         "documentation:GDT/GetDatumMeasurements.htm",
         "sdk:GDTOperations_GDTAnalysis.txt#10"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
+      "blocker_references": [],
+      "risk_effect": "read_only",
+      "risk_flags": [],
+      "data_classifications": [
+        "geometry",
+        "measurement",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name",
+        "collection_object_name_list",
+        "point_name_list"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_1"
     },
     {
       "inventory_key": "documentation:GDT/GetFeatureCheckCylinder.htm",
@@ -501,28 +595,33 @@
         "GDT"
       ],
       "inventory_entry_sha256": "e1668fb675f2b64405977e04395e3c67fb299b79122509b0fad439592b091c4c",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command queries SpatialAnalyzer state without an identified state mutation; retain it as an approved candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "read_only_operation"
       ],
       "evidence_references": [
         "documentation:GDT/GetFeatureCheckCylinder.htm",
         "sdk:GDTOperations_GDTAnalysis.txt#14"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
+      "blocker_references": [],
+      "risk_effect": "read_only",
+      "risk_flags": [],
+      "data_classifications": [
+        "geometry",
+        "measurement",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name",
+        "floating_point",
+        "logical"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_1"
     },
     {
       "inventory_key": "documentation:GDT/GetFeatureCheckDatumReferences.htm",
@@ -532,25 +631,31 @@
       ],
       "inventory_entry_sha256": "c58f5e7a7056b4992df8b61821e6d53de6daad0d2754b9e4f3bad23b3e1ef6bb",
       "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "review_state": "reviewed",
+      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
       "reason_codes": [
-        "awaiting_review"
+        "argument_semantics_unresolved"
       ],
       "evidence_references": [
         "documentation:GDT/GetFeatureCheckDatumReferences.htm",
         "sdk:GDTOperations_GDTAnalysis.txt#2"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/53"
+      ],
+      "risk_effect": "read_only",
+      "risk_flags": [],
+      "data_classifications": [
+        "geometry",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name",
+        "collection_object_name_list",
+        "string"
       ],
       "delivery_wave": null
     },
@@ -561,28 +666,33 @@
         "GDT"
       ],
       "inventory_entry_sha256": "671fdb93022391baf243fb980328e88f0550d8cb0b998bc0b84bd0396d8b4ee4",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command queries SpatialAnalyzer state without an identified state mutation; retain it as an approved candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "read_only_operation"
       ],
       "evidence_references": [
         "documentation:GDT/GetFeatureCheckMeasurements.htm",
         "sdk:GDTOperations_GDTAnalysis.txt#12"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
+      "blocker_references": [],
+      "risk_effect": "read_only",
+      "risk_flags": [],
+      "data_classifications": [
+        "geometry",
+        "measurement",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name",
+        "collection_object_name_list",
+        "point_name_list"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_1"
     },
     {
       "inventory_key": "documentation:GDT/GetFeatureCheckReporting.htm",
@@ -592,25 +702,34 @@
       ],
       "inventory_entry_sha256": "cee1deb93332f51042959f5d79d34ed41f4b6f6b30e1c511ab65d501aad9c555",
       "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "review_state": "reviewed",
+      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
       "reason_codes": [
-        "awaiting_review"
+        "argument_semantics_unresolved",
+        "sdk_binding_unresolved"
       ],
       "evidence_references": [
         "documentation:GDT/GetFeatureCheckReporting.htm",
         "sdk:GDTOperations_GDTAnalysis.txt#32"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/53"
+      ],
+      "risk_effect": "read_only",
+      "risk_flags": [],
+      "data_classifications": [
+        "geometry",
+        "measurement",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "boolean",
+        "collection_object_name",
+        "logical",
+        "vector_creation_trigger"
       ],
       "delivery_wave": null
     },
@@ -621,28 +740,30 @@
         "GDT"
       ],
       "inventory_entry_sha256": "47a413b8d311c7fcda4f2e55af4a6db1629fdd339b20e31ae8960bcef19de138",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command queries SpatialAnalyzer state without an identified state mutation; retain it as an approved candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "read_only_operation"
       ],
       "evidence_references": [
         "documentation:GDT/GetFeatureCheckReportingFrame.htm",
         "sdk:GDTOperations_GDTAnalysis.txt#30"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
+      "blocker_references": [],
+      "risk_effect": "read_only",
+      "risk_flags": [],
+      "data_classifications": [
+        "geometry",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_1"
     },
     {
       "inventory_key": "documentation:GDT/GetGDTExtendedOps.htm",
@@ -652,25 +773,38 @@
       ],
       "inventory_entry_sha256": "2639fe09069ba576fc2854cc702d4bfd883eaa43e59ae564d2ac4ed480be7ad0",
       "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "review_state": "reviewed",
+      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
       "reason_codes": [
-        "awaiting_review"
+        "argument_semantics_unresolved",
+        "sdk_binding_unresolved"
       ],
       "evidence_references": [
         "documentation:GDT/GetGDTExtendedOps.htm",
         "sdk:GDTOperations_GDTAnalysis.txt#27"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/53"
+      ],
+      "risk_effect": "read_only",
+      "risk_flags": [],
+      "data_classifications": [
+        "geometry"
       ],
       "value_families": [
-        "unknown"
+        "gdt_circle_extended_options",
+        "gdt_cone_extended_options",
+        "gdt_cylinder_extended_options",
+        "gdt_ellipse_extended_options",
+        "gdt_line_extended_options",
+        "gdt_open_slot_extended_options",
+        "gdt_plane_extended_options",
+        "gdt_slot_extended_options",
+        "gdt_sphere_extended_options",
+        "logical"
       ],
       "delivery_wave": null
     },
@@ -682,25 +816,33 @@
       ],
       "inventory_entry_sha256": "c2aa5b601600e9571409e1ad1ed5ca41909c6c0f2b0eae22ba0336cb32db3766",
       "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "review_state": "reviewed",
+      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
       "reason_codes": [
-        "awaiting_review"
+        "argument_semantics_unresolved",
+        "sdk_binding_unresolved"
       ],
       "evidence_references": [
         "documentation:GDT/GetGDTOptions.htm",
         "sdk:GDTOperations_GDTAnalysis.txt#24"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/53"
+      ],
+      "risk_effect": "read_only",
+      "risk_flags": [],
+      "data_classifications": [
+        "geometry",
+        "measurement"
       ],
       "value_families": [
-        "unknown"
+        "floating_point",
+        "gd_and_t_options_check_validator_type",
+        "gd_and_t_options_distance_between_mode",
+        "logical"
       ],
       "delivery_wave": null
     },
@@ -711,22 +853,26 @@
         "GDT"
       ],
       "inventory_entry_sha256": "0854a7a57018277ab95fe20c7379d0ac57b4826a2448d67708e4c5299acfcc20",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value construction, decomposition, or reference-list algebra belongs in Briosa client types and client-language code.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_construction"
       ],
       "evidence_references": [
         "documentation:GDT/GetI-thAnnotationFromAnnotation.htm",
         "sdk:GDTOperations_GDTAnalysis.txt#8"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49",
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
+        "unknown"
+      ],
+      "data_classifications": [
         "unknown"
       ],
       "value_families": [
@@ -741,22 +887,26 @@
         "GDT"
       ],
       "inventory_entry_sha256": "c07b1363338adbe3ffe7fa39e7ed8cfc56356166d34af412ae5df417786d852a",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value construction, decomposition, or reference-list algebra belongs in Briosa client types and client-language code.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_construction"
       ],
       "evidence_references": [
         "documentation:GDT/GetI-thAnnotationFromAnnotationIterator.htm",
         "sdk:GDTOperations_GDTAnalysis.txt#9"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49",
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
+        "unknown"
+      ],
+      "data_classifications": [
         "unknown"
       ],
       "value_families": [
@@ -771,22 +921,26 @@
         "GDT"
       ],
       "inventory_entry_sha256": "6c2e183b37a465a5ed58aaa191695847220ae78c9e14a6993398800266a95700",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value construction, decomposition, or reference-list algebra belongs in Briosa client types and client-language code.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_construction"
       ],
       "evidence_references": [
         "documentation:GDT/GetI-thDatumFromDatum.htm",
         "sdk:GDTOperations_GDTAnalysis.txt#6"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49",
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
+        "unknown"
+      ],
+      "data_classifications": [
         "unknown"
       ],
       "value_families": [
@@ -801,22 +955,26 @@
         "GDT"
       ],
       "inventory_entry_sha256": "f1df3c5ea6de5875ab523c4dc2a90b71cf4492fd8c904af6b00e2a9ea6cf1e0e",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value construction, decomposition, or reference-list algebra belongs in Briosa client types and client-language code.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_construction"
       ],
       "evidence_references": [
         "documentation:GDT/GetI-thDatumFromDatumIterator.htm",
         "sdk:GDTOperations_GDTAnalysis.txt#7"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49",
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
+        "unknown"
+      ],
+      "data_classifications": [
         "unknown"
       ],
       "value_families": [
@@ -831,22 +989,26 @@
         "GDT"
       ],
       "inventory_entry_sha256": "f7537696dfee52fe83b8ae8008b6a3b752ebaa24b78bffd358e7750adf66af80",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value construction, decomposition, or reference-list algebra belongs in Briosa client types and client-language code.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_construction"
       ],
       "evidence_references": [
         "documentation:GDT/GetI-thFeatureCheckFromFeatureCheck.htm",
         "sdk:GDTOperations_GDTAnalysis.txt#3"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49",
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
+        "unknown"
+      ],
+      "data_classifications": [
         "unknown"
       ],
       "value_families": [
@@ -861,22 +1023,26 @@
         "GDT"
       ],
       "inventory_entry_sha256": "68127d04651b492708fbbd948705e3af89416677737ade3cf4511cc8d2647ed7",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value construction, decomposition, or reference-list algebra belongs in Briosa client types and client-language code.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_construction"
       ],
       "evidence_references": [
         "documentation:GDT/GetI-thFeatureCheckFromFeatureIterator.htm",
         "sdk:GDTOperations_GDTAnalysis.txt#4"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49",
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
+        "unknown"
+      ],
+      "data_classifications": [
         "unknown"
       ],
       "value_families": [
@@ -891,22 +1057,26 @@
         "GDT"
       ],
       "inventory_entry_sha256": "738d6884f669a9cb462fe528748a2bbf7d755ae0bc06745fee0eeb456b3405de",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value construction, decomposition, or reference-list algebra belongs in Briosa client types and client-language code.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_construction"
       ],
       "evidence_references": [
         "documentation:GDT/GetNumberOfDatumsInDatum.htm",
         "sdk:GDTOperations_GDTAnalysis.txt#5"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49",
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
+        "unknown"
+      ],
+      "data_classifications": [
         "unknown"
       ],
       "value_families": [
@@ -921,22 +1091,26 @@
         "GDT"
       ],
       "inventory_entry_sha256": "67cf2365f831ed5e55250c2fd9b60a9dbe87706a4a368632568fbc054bf5c71c",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "Pure value construction, decomposition, or reference-list algebra belongs in Briosa client types and client-language code.",
       "reason_codes": [
-        "awaiting_review"
+        "client_owned_value_construction"
       ],
       "evidence_references": [
         "documentation:GDT/GetNumberOfFeatureChecks.htm",
         "sdk:GDTOperations_GDTAnalysis.txt#1"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49",
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
+        "unknown"
+      ],
+      "data_classifications": [
         "unknown"
       ],
       "value_families": [
@@ -951,28 +1125,29 @@
         "GDT"
       ],
       "inventory_entry_sha256": "322d3a43d28a3c33e393b78913bd79861c953923a5da2f3acd8a35233c9ed27a",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command changes SpatialAnalyzer state within Briosa automation scope; retain it as an approved candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "documentation:GDT/RefreshDatumsFeatureChecks.htm",
         "sdk:GDTOperations_GDTAnalysis.txt#28"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
+      "blocker_references": [],
+      "risk_effect": "mutating",
+      "risk_flags": [],
+      "data_classifications": [
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_name"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_3"
     },
     {
       "inventory_key": "documentation:GDT/SetDatumMeasurements.htm",
@@ -982,25 +1157,34 @@
       ],
       "inventory_entry_sha256": "755590a26ffe3fcb4f51b878ed111d993c3f7c3c26ff3c1be61dcb0bb77e4af4",
       "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "review_state": "reviewed",
+      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
       "reason_codes": [
-        "awaiting_review"
+        "argument_semantics_unresolved",
+        "sdk_binding_unresolved"
       ],
       "evidence_references": [
         "documentation:GDT/SetDatumMeasurements.htm",
         "sdk:GDTOperations_GDTAnalysis.txt#11"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/53"
+      ],
+      "risk_effect": "mutating",
+      "risk_flags": [],
+      "data_classifications": [
+        "geometry",
+        "measurement",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name",
+        "collection_object_name_list",
+        "logical",
+        "point_name_list"
       ],
       "delivery_wave": null
     },
@@ -1011,28 +1195,33 @@
         "GDT"
       ],
       "inventory_entry_sha256": "8a594b09dfaab038e930f713d268d01f7470eb639a2b65bcb91b2881a182a1e1",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command changes SpatialAnalyzer state within Briosa automation scope; retain it as an approved candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "documentation:GDT/SetFeatureCheckCylinder.htm",
         "sdk:GDTOperations_GDTAnalysis.txt#15"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
+      "blocker_references": [],
+      "risk_effect": "mutating",
+      "risk_flags": [],
+      "data_classifications": [
+        "geometry",
+        "measurement",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name",
+        "floating_point",
+        "logical"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_3"
     },
     {
       "inventory_key": "documentation:GDT/SetFeatureCheckMeasurements.htm",
@@ -1041,28 +1230,34 @@
         "GDT"
       ],
       "inventory_entry_sha256": "2ee70aedefb2824c7cd853efe219da524c42203eb241649a9c8e59b884f4b4ff",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command changes SpatialAnalyzer state within Briosa automation scope; retain it as an approved candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "documentation:GDT/SetFeatureCheckMeasurements.htm",
         "sdk:GDTOperations_GDTAnalysis.txt#13"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
+      "blocker_references": [],
+      "risk_effect": "mutating",
+      "risk_flags": [],
+      "data_classifications": [
+        "geometry",
+        "measurement",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name",
+        "collection_object_name_list",
+        "logical",
+        "point_name_list"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_3"
     },
     {
       "inventory_key": "documentation:GDT/SetFeatureCheckReporting.htm",
@@ -1071,26 +1266,31 @@
         "GDT"
       ],
       "inventory_entry_sha256": "4d903dcf454baaf95d456483e9660e38ef2a55ac121bf1d16b09b273e64e9e80",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "sdk_unavailable",
+      "review_state": "reviewed",
+      "rationale": "At least one documented input is explicitly unavailable through the exact-target generated SDK binding, so Briosa cannot execute the complete command shape.",
       "reason_codes": [
-        "awaiting_review"
+        "sdk_input_binding_unavailable"
       ],
       "evidence_references": [
         "documentation:GDT/SetFeatureCheckReporting.htm",
         "sdk:GDTOperations_GDTAnalysis.txt#31"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
+      "blocker_references": [],
+      "risk_effect": "mutating",
+      "risk_flags": [],
+      "data_classifications": [
+        "geometry",
+        "measurement",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name",
+        "logical",
+        "vector_creation_trigger"
       ],
       "delivery_wave": null
     },
@@ -1101,28 +1301,30 @@
         "GDT"
       ],
       "inventory_entry_sha256": "70ee7cb0acdda797a93715c3aea0f9adc1d12cd62deb17342bf270ca0853d73d",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command changes SpatialAnalyzer state within Briosa automation scope; retain it as an approved candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "documentation:GDT/SetFeatureCheckReportingFrame.htm",
         "sdk:GDTOperations_GDTAnalysis.txt#29"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
+      "blocker_references": [],
+      "risk_effect": "mutating",
+      "risk_flags": [],
+      "data_classifications": [
+        "geometry",
+        "object_identifier"
       ],
       "value_families": [
-        "unknown"
+        "collection_object_name"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_3"
     },
     {
       "inventory_key": "documentation:GDT/SetGDTExtendedOps.htm",
@@ -1131,28 +1333,30 @@
         "GDT"
       ],
       "inventory_entry_sha256": "69c28850f9281c0b52753d8373476168a7d1f23524775e685d5937ddc7489f16",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "approved_candidate",
+      "review_state": "reviewed",
+      "rationale": "The exact-target SDK evidence is coherent and the command changes SpatialAnalyzer state within Briosa automation scope; retain it as an approved candidate in the risk-ordered delivery plan.",
       "reason_codes": [
-        "awaiting_review"
+        "state_mutation"
       ],
       "evidence_references": [
         "documentation:GDT/SetGDTExtendedOps.htm",
         "sdk:GDTOperations_GDTAnalysis.txt#26"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
+      "blocker_references": [],
+      "risk_effect": "mutating",
+      "risk_flags": [],
+      "data_classifications": [
+        "geometry"
       ],
       "value_families": [
-        "unknown"
+        "logical",
+        "string"
       ],
-      "delivery_wave": null
+      "delivery_wave": "wave_3"
     },
     {
       "inventory_key": "documentation:GDT/SetGDTOptions.htm",
@@ -1162,25 +1366,34 @@
       ],
       "inventory_entry_sha256": "5ceb9d99c87366a2a511558b583904f2a5958aac80ed7d82d79e03e93ece4524",
       "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "review_state": "reviewed",
+      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
       "reason_codes": [
-        "awaiting_review"
+        "argument_semantics_unresolved",
+        "sdk_binding_unresolved"
       ],
       "evidence_references": [
         "documentation:GDT/SetGDTOptions.htm",
         "sdk:GDTOperations_GDTAnalysis.txt#25"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49"
       ],
-      "risk_effect": "unknown",
-      "risk_flags": [
-        "unknown"
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/53"
+      ],
+      "risk_effect": "mutating",
+      "risk_flags": [],
+      "data_classifications": [
+        "geometry",
+        "measurement"
       ],
       "value_families": [
-        "unknown"
+        "floating_point",
+        "gd_and_t_options_check_validator_type",
+        "gdt_check_validator_type",
+        "gdt_distance_between_mode",
+        "logical"
       ],
       "delivery_wave": null
     },
@@ -1191,22 +1404,26 @@
         "GDT"
       ],
       "inventory_entry_sha256": "0aceb8d2574f6a854c802a405ee9b11996d5a309c503b0cba819e87378f545aa",
-      "disposition": "blocked",
-      "review_state": "unreviewed",
-      "rationale": "Awaiting exact-target command disposition review.",
+      "disposition": "intentional_exclusion",
+      "review_state": "reviewed",
+      "rationale": "This command depends on operator-driven SpatialAnalyzer UI interaction, which is not suitable for a deterministic unattended gRPC operation.",
       "reason_codes": [
-        "awaiting_review"
+        "operator_ui_dependency"
       ],
       "evidence_references": [
         "documentation:GDT/StartStopFeatureCheckTrapping.htm",
         "sdk:GDTOperations_GDTAnalysis.txt#21"
       ],
-      "decision_references": [],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/43"
+      "decision_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/49",
+        "https://github.com/spatialanalyzer/briosa/issues/52"
       ],
+      "blocker_references": [],
       "risk_effect": "unknown",
       "risk_flags": [
+        "interactive_ui"
+      ],
+      "data_classifications": [
         "unknown"
       ],
       "value_families": [

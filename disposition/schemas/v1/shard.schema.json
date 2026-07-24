@@ -73,6 +73,7 @@
         "blocker_references",
         "risk_effect",
         "risk_flags",
+        "data_classifications",
         "value_families",
         "delivery_wave"
       ],
@@ -140,7 +141,6 @@
         },
         "risk_flags": {
           "type": "array",
-          "minItems": 1,
           "items": {
             "enum": [
               "filesystem_metadata",
@@ -152,6 +152,23 @@
               "interactive_ui",
               "long_running",
               "credential_or_license_data",
+              "unknown"
+            ]
+          }
+        },
+        "data_classifications": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "enum": [
+              "credential",
+              "geometry",
+              "license_data",
+              "measurement",
+              "non_sensitive",
+              "object_identifier",
+              "path",
+              "proprietary",
               "unknown"
             ]
           }

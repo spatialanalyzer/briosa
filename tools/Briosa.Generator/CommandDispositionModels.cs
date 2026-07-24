@@ -108,6 +108,8 @@ internal sealed class CommandDispositionEntry
     [JsonRequired]
     public required List<string> RiskFlags { get; init; }
 
+    public List<string> DataClassifications { get; init; } = ["unknown"];
+
     [JsonRequired]
     public required List<string> ValueFamilies { get; init; }
 
