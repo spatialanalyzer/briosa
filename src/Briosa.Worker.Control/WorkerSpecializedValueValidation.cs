@@ -25,7 +25,7 @@ internal static class WorkerSpecializedValueValidation
             WorkerMpValueKind.ExportTargetNameFormat => IsEnum(argument, 4),
             WorkerMpValueKind.ExportVectorNameFormat => IsEnum(argument, 4),
             WorkerMpValueKind.GeometryType => IsEnum(argument, 10),
-            WorkerMpValueKind.InstrumentType => IsEnum(argument, 40),
+            WorkerMpValueKind.InstrumentType => IsEnum(argument, 190),
             WorkerMpValueKind.ObjectType => IsEnum(argument, 25),
             WorkerMpValueKind.OffsetDirectionType => IsEnum(argument, 3),
             WorkerMpValueKind.PointFilterInputType => IsEnum(argument, 3),

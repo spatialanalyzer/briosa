@@ -10,6 +10,8 @@ Public protobuf enums reserve numeric value zero for `UNSPECIFIED`. The server r
 
 The adapter never substitutes `SetStringArg` or `SetIntegerArg` for a specialized setter. Exact text is centralized in `SdkSpecializedValueCodec`; tests invoke every reviewed enum member so an unmapped member fails before release.
 
+`InstrumentType` contains the 190 non-stand instrument models installed with SA `2026.1.0529.7`. The exact SDK strings come from that release's `Instrument Models/Instrument.lst` and were cross-checked against ObjectiveSA's manually reviewed Add New Instrument list. Category 10 entries in `Instrument.lst` are stand or mount graphics, not Add New Instrument choices, and are intentionally excluded. The installed MP command reference describes the argument but does not enumerate its choices, while View SDK Code emits an empty default; neither source is sufficient by itself to construct this enum.
+
 ## Structured values
 
 Structured protobuf fields use explicit presence for scalar components. Generated server bindings reject a request unless every exact-target component is present, including nested enum values and scalar tolerance limits. Worker-channel validation repeats the structural and range checks at the process boundary.

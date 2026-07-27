@@ -11,6 +11,8 @@ public sealed class SpecializedValueProtocolTests
         Assert.Equal(0, (int)TargetProtocol.RenderModeType.Unspecified);
         Assert.Equal(3, (int)TargetProtocol.RenderModeType.SolidAndEdges);
         Assert.Equal(5, (int)TargetProtocol.InstrumentType.CreaformVxElements);
+        Assert.Equal(108, (int)TargetProtocol.InstrumentType.FaroVantage);
+        Assert.Equal(191, Enum.GetValues<TargetProtocol.InstrumentType>().Length);
         Assert.Equal(25, (int)TargetProtocol.ObjectType.VectorGroup);
     }
 

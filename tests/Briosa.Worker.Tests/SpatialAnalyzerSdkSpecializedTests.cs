@@ -89,7 +89,17 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             }
         }
 
-        Assert.Equal(264, mappedValueCount);
+        Assert.Equal(414, mappedValueCount);
+    }
+
+    [Fact]
+    public void InstrumentTypeMappingCoversExactTargetCatalog()
+    {
+        Assert.Equal(190, Enum.GetValues<SdkInstrumentTypeValue>().Length);
+        Assert.Equal("Faro Vantage", SdkSpecializedValueCodec.ToSdkString(SdkInstrumentTypeValue.FaroVantage));
+        Assert.Equal(
+            "CimCore Arm 6DOF: 3012i, 5012, 1.2m",
+            SdkSpecializedValueCodec.ToSdkString(SdkInstrumentTypeValue.CimCoreArm6Dof3012i501212m));
     }
 
     [Fact]
