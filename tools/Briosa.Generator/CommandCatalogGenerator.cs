@@ -95,12 +95,25 @@ internal static class CommandCatalogGenerator
         builder.Append("package ").Append(manifest.TargetProtocolPackage).AppendLine(";");
         builder.AppendLine();
         builder.AppendLine("import \"briosa/core/v1alpha1/operation_outcomes.proto\";");
-        if (operations.SelectMany(operation => operation.Arguments)
-            .Any(argument => IsMessageType(argument.SemanticType)))
+        var semanticTypes = operations
+            .SelectMany(operation => operation.Arguments)
+            .Select(argument => argument.SemanticType)
+            .ToArray();
+        var targetPath = manifest.TargetProtocolPackage.Replace('.', '/');
+        if (semanticTypes.Any(semanticType =>
+                IsMessageType(semanticType) &&
+                !SpecializedValueMappings.IsStructured(semanticType)))
         {
             builder.Append("import \"")
-                .Append(manifest.TargetProtocolPackage.Replace('.', '/'))
+                .Append(targetPath)
                 .AppendLine("/values.proto\";");
+        }
+
+        if (semanticTypes.Any(SpecializedValueMappings.IsSupported))
+        {
+            builder.Append("import \"")
+                .Append(targetPath)
+                .AppendLine("/specialized_values.proto\";");
         }
 
         builder.AppendLine();
