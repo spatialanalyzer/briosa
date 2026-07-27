@@ -179,13 +179,15 @@ internal static partial class SdkBindingRegistry
                     ? "inventory_and_interop"
                     : "interop_only"
                 : "inventory_only";
-            var registryStatus = sourceStatus switch
-            {
-                "inventory_only" => "blocked_missing_interop",
-                "interop_only" => "unobserved_interop",
-                _ when remainingCommandCount == 0 => "excluded_only",
-                _ => "usable"
-            };
+            var registryStatus = review.SemanticBlockers.ContainsKey(methodName)
+                ? "blocked_semantics"
+                : sourceStatus switch
+                {
+                    "inventory_only" => "blocked_missing_interop",
+                    "interop_only" => "unobserved_interop",
+                    _ when remainingCommandCount == 0 => "excluded_only",
+                    _ => "usable"
+                };
             var core = SemanticCore(methodName);
             if (!review.Families.TryGetValue(core, out var familyReview))
             {
@@ -208,10 +210,24 @@ internal static partial class SdkBindingRegistry
                 InventoryUsage = CreateUsage(methodObservations, excludedCommandCount),
                 Rationale = Rationale(registryStatus),
                 DecisionReferences = [.. review.DecisionReferences],
-                BlockerReferences = registryStatus == "blocked_missing_interop"
-                    ? [review.MissingInteropBlocker]
-                    : []
+                BlockerReferences = registryStatus switch
+                {
+                    "blocked_missing_interop" => [review.MissingInteropBlocker],
+                    "blocked_semantics" => [review.SemanticBlockers[methodName]],
+                    _ => []
+                }
             });
+        }
+
+        var unknownSemanticBlockers = review.SemanticBlockers.Keys
+            .Except(methodNames, StringComparer.Ordinal)
+            .OrderBy(method => method, StringComparer.Ordinal)
+            .ToArray();
+        if (unknownSemanticBlockers.Length > 0)
+        {
+            throw new InvalidDataException(
+                "review.json semantic_blockers contains unknown method(s): " +
+                string.Join(", ", unknownSemanticBlockers));
         }
 
         ValidateImplementedCoverage(review, bindings);
@@ -260,6 +276,15 @@ internal static partial class SdkBindingRegistry
         {
             throw new InvalidDataException(
                 "review.json requires canonical spatialanalyzer GitHub issue or PR decision references.");
+        }
+
+        if (review.SemanticBlockers.Any(pair =>
+                !BindingMethod().IsMatch(pair.Key) ||
+                !DecisionReference().IsMatch(pair.Value)))
+        {
+            throw new InvalidDataException(
+                "review.json semantic_blockers requires binding method keys and canonical " +
+                "spatialanalyzer GitHub issue or PR references.");
         }
 
         if (!DecisionReference().IsMatch(review.MissingInteropBlocker))
@@ -548,7 +573,7 @@ internal static partial class SdkBindingRegistry
         string method) =>
         registryStatus switch
         {
-            "blocked_missing_interop" => "blocked",
+            "blocked_missing_interop" or "blocked_semantics" => "blocked",
             "excluded_only" or "unobserved_interop" => "not_required",
             _ when implementedMethods.Contains(method, StringComparer.Ordinal) => "implemented",
             _ => "planned"
@@ -633,10 +658,8 @@ internal static partial class SdkBindingRegistry
                     ? usable.All(IsFullyImplemented)
                         ? "implemented"
                         : "planned"
-                    : familyBindings.Any(binding => string.Equals(
-                        binding.RegistryStatus,
-                        "blocked_missing_interop",
-                        StringComparison.Ordinal))
+                    : familyBindings.Any(binding =>
+                        binding.RegistryStatus is "blocked_missing_interop" or "blocked_semantics")
                         ? "blocked"
                         : "not_required";
                 return new SdkBindingValueFamily
@@ -686,6 +709,9 @@ internal static partial class SdkBindingRegistry
         "blocked_missing_interop" =>
             "The binding is emitted by exact-target View SDK Code but is absent from the " +
             "committed exact-target interop API.",
+        "blocked_semantics" =>
+            "The exact interop signature is present, but unresolved release-specific semantics " +
+            "prevent a safe public and worker mapping.",
         "unobserved_interop" =>
             "The method is exposed by the exact-target interop API but was not observed in " +
             "the extracted command evidence.",
@@ -990,6 +1016,9 @@ internal sealed class SdkBindingReview
 
     [JsonRequired]
     public required string MissingInteropBlocker { get; init; }
+
+    [JsonRequired]
+    public required Dictionary<string, string> SemanticBlockers { get; init; }
 
     [JsonRequired]
     public required SdkBindingCoverageReview ImplementedCoverage { get; init; }

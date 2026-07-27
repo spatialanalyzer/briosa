@@ -8,7 +8,7 @@ namespace Briosa.Worker.Sdk;
 /// <summary>
 /// Adapts the generated SpatialAnalyzer COM interface to the worker-owned SDK boundary.
 /// </summary>
-internal sealed class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
+internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
 {
     private ISpatialAnalyzerSdkCalls? _sdk;
 
@@ -201,7 +201,7 @@ internal sealed class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
                 SetStringList(sdk, argument.Name, value),
             SdkValueKind.VectorNameList when argument.VectorNameListValue is { } value =>
                 SetVectorNameList(sdk, argument.Name, value),
-            _ => false
+            _ => SetSpecializedInputArgument(sdk, argument)
         };
 
     private static SdkOutputValue GetOutputValue(
@@ -238,7 +238,7 @@ internal sealed class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
                 SdkValueKind.PointNameList => GetPointNameList(sdk, argument),
                 SdkValueKind.StringList => GetStringList(sdk, argument),
                 SdkValueKind.VectorNameList => GetVectorNameList(sdk, argument),
-                _ => new SdkOutputValue(argument.Name, argument.Kind, Retrieved: false)
+                _ => GetSpecializedOutputValue(sdk, argument)
             };
 
     private static SdkOutputValue GetLogical(ISpatialAnalyzerSdkCalls sdk, SdkOutputArgument argument)
@@ -809,7 +809,7 @@ internal sealed class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
             SdkValueKind.VectorGroupName => "SetVectorGroupNameArg",
             SdkValueKind.VectorNameList => "SetVectorNameRefListArg",
             SdkValueKind.ViewName => "SetViewNameArg",
-            _ => throw new UnreachableException()
+            _ => SpecializedExpectedSetter(kind)
         };
 
     private static string ExpectedGetter(SdkValueKind kind) =>
@@ -849,7 +849,7 @@ internal sealed class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
             SdkValueKind.VectorGroupName => "GetVectorGroupNameArg",
             SdkValueKind.VectorNameList => "GetVectorNameRefListArg",
             SdkValueKind.ViewName => "GetViewNameArg",
-            _ => throw new UnreachableException()
+            _ => SpecializedExpectedGetter(kind)
         };
     private static bool SetToleranceVectorOptions(
         ISpatialAnalyzerSdkCalls sdk,
@@ -882,7 +882,7 @@ internal sealed class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
 
         public SdkToleranceLimit ToValue() => new(Enabled, Value);
     }
-    private sealed class ComSdkCalls(ComSdk sdk) : ISpatialAnalyzerSdkCalls
+    private sealed partial class ComSdkCalls(ComSdk sdk) : ISpatialAnalyzerSdkCalls
     {
         private ComSdk? _sdk = sdk;
 

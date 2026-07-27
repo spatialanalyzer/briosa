@@ -108,21 +108,31 @@ public sealed class SdkBindingRegistryTests
         Assert.Equal(
             bindings["GetBSPlineFitOptionsArg"].SemanticValueFamily,
             bindings["SetBSplineFitOptionsArg"].SemanticValueFamily);
+        Assert.All(
+            new[] { bindings["GetBSPlineFitOptionsArg"], bindings["SetBSplineFitOptionsArg"] },
+            binding =>
+            {
+                Assert.Equal("blocked_semantics", binding.RegistryStatus);
+                Assert.Equal("blocked", binding.Coverage.Protocol);
+                Assert.Equal(
+                    ["https://github.com/spatialanalyzer/briosa/issues/79"],
+                    binding.BlockerReferences);
+            });
         Assert.Equal(
             bindings["GetCollectionObjectNameArg"].SemanticValueFamily,
             bindings["SetCollectionObjectNameArg2"].SemanticValueFamily);
 
-        Assert.Equal(54, registry.Bindings.Count(binding =>
+        Assert.Equal(99, registry.Bindings.Count(binding =>
             binding.Coverage.Protocol == "implemented"));
-        Assert.Equal(54, registry.Bindings.Count(binding =>
+        Assert.Equal(99, registry.Bindings.Count(binding =>
             binding.Coverage.Worker == "implemented"));
-        Assert.Equal(54, registry.Bindings.Count(binding =>
+        Assert.Equal(99, registry.Bindings.Count(binding =>
             binding.Coverage.Adapter == "implemented"));
-        Assert.Equal(54, registry.Bindings.Count(binding =>
+        Assert.Equal(99, registry.Bindings.Count(binding =>
             binding.Coverage.Fake == "implemented"));
-        Assert.Equal(54, registry.Bindings.Count(binding =>
+        Assert.Equal(99, registry.Bindings.Count(binding =>
             binding.Coverage.Generator == "implemented"));
-        Assert.Equal(34, registry.ValueFamilies.Count(family =>
+        Assert.Equal(77, registry.ValueFamilies.Count(family =>
             family.ImplementationStatus == "implemented"));
         Assert.All(
             registry.Bindings.Where(binding => binding.RegistryStatus == "usable"),

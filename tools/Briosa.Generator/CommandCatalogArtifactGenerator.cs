@@ -394,7 +394,7 @@ internal static class CommandCatalogArtifactGenerator
                 $"{value}.Values.Any(item => {MissingPointNameComponents("item")})",
             "vector_name_list" =>
                 $"{value}.Values.Any(item => !item.HasCollectionName || !item.HasGroupName || !item.HasName)",
-            _ => throw new NotSupportedException()
+            _ => SpecializedValueMappings.ValidationCondition(input.SemanticType, value)
         };
         builder.Append(indentation).Append("if (").Append(condition).AppendLine(")");
         builder.Append(indentation).AppendLine("{");
@@ -471,8 +471,7 @@ internal static class CommandCatalogArtifactGenerator
                 $"StringListValue: new([.. {valueExpression}.Values]))",
             "vector_name_list" => prefix +
                 $"VectorNameListValue: new([.. {valueExpression}.Values.Select(value => new WorkerVectorNameValue(value.CollectionName, value.GroupName, value.Name))]))",
-            _ => throw new NotSupportedException(
-                $"Semantic type '{input.SemanticType}' has no input mapping.")
+            _ => SpecializedValueMappings.CreateInputExpression(input.SemanticType, prefix, valueExpression)
         };
     }
     private static void AppendCreateResult(
@@ -553,8 +552,7 @@ internal static class CommandCatalogArtifactGenerator
                 $"new TargetProtocol.StringList {{ Values = {{ {variable}.StringListValue!.Values }} }}",
             "vector_name_list" =>
                 $"new TargetProtocol.VectorNameList {{ Values = {{ {variable}.VectorNameListValue!.Values.Select(value => new TargetProtocol.VectorName {{ CollectionName = value.CollectionName, GroupName = value.GroupName, Name = value.VectorName }}) }} }}",
-            _ => throw new NotSupportedException(
-                $"Semantic type '{output.SemanticType}' has no result mapping.")
+            _ => SpecializedValueMappings.ResultValueExpression(output.SemanticType, variable)
         };
 
     private static string DefaultExpression(CommandCatalogArgument input)
@@ -573,8 +571,7 @@ internal static class CommandCatalogArtifactGenerator
             "frame_name" or
             "vector_group_name" or
             "view_name" => $"\"{EscapeCSharp(value.GetString() ?? string.Empty)}\"",
-            _ => throw new NotSupportedException(
-                $"Reviewed defaults for semantic type '{input.SemanticType}' are not supported yet.")
+            _ => SpecializedValueMappings.DefaultExpression(input.SemanticType, value)
         };
     }
 
@@ -635,7 +632,8 @@ internal static class CommandCatalogArtifactGenerator
             "collection_vector_group_name_list" or
             "point_name_list" or
             "string_list" or
-            "vector_name_list";
+            "vector_name_list" ||
+        SpecializedValueMappings.IsStructured(semanticType);
 
     private static bool RequiresComponentValidation(string semanticType) =>
         semanticType is
@@ -647,6 +645,7 @@ internal static class CommandCatalogArtifactGenerator
             "angular_unit" or
             "distance_unit" or
             "temperature_unit" ||
+            SpecializedValueMappings.IsSupported(semanticType) ||
         (IsMessageType(semanticType) &&
          semanticType is not "string_list" and not "double_array" and not "edit_text");
 
@@ -687,8 +686,7 @@ internal static class CommandCatalogArtifactGenerator
             "vector_group_name" => "VectorGroupName",
             "vector_name_list" => "VectorNameList",
             "view_name" => "ViewName",
-            _ => throw new NotSupportedException(
-                $"Semantic type '{semanticType}' has no worker value mapping.")
+            _ => SpecializedValueMappings.ToTypeName(semanticType)
         };
     private static string ToPascalCase(string value) =>
         string.Concat(value.Split('_', StringSplitOptions.RemoveEmptyEntries)

@@ -10,6 +10,7 @@
     "spatial_analyzer_target",
     "decision_references",
     "missing_interop_blocker",
+    "semantic_blockers",
     "implemented_coverage",
     "families"
   ],
@@ -29,6 +30,15 @@
     },
     "missing_interop_blocker": {
       "$ref": "#/definitions/reference"
+    },
+    "semantic_blockers": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/definitions/binding_method"
+      },
+      "additionalProperties": {
+        "$ref": "#/definitions/reference"
+      }
     },
     "implemented_coverage": {
       "$ref": "#/definitions/implemented_coverage"

@@ -244,7 +244,8 @@ internal static class CommandCatalogGenerator
             "collection_vector_group_name_list" or
             "point_name_list" or
             "string_list" or
-            "vector_name_list";
+            "vector_name_list" ||
+        SpecializedValueMappings.IsStructured(semanticType);
 
     private static string ToProtoType(string semanticType) =>
         semanticType switch
@@ -283,8 +284,7 @@ internal static class CommandCatalogGenerator
             "point_name_list" => "PointNameList",
             "string_list" => "StringList",
             "vector_name_list" => "VectorNameList",
-            _ => throw new NotSupportedException(
-                $"Semantic type '{semanticType}' has no protobuf mapping.")
+            _ => SpecializedValueMappings.ToTypeName(semanticType)
         };
 
     private static string ToCSharpNamespace(string package)

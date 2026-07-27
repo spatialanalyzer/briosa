@@ -25,11 +25,12 @@ The review deliberately keeps specialized SDK methods distinct even when their C
 | `usable` | The inventory observation, exact interop signature, and semantic family agree. Individual commands still require disposition and catalog approval. |
 | `excluded_only` | The method is currently observed only on intentionally excluded commands. No adapter is required solely for those commands. |
 | `blocked_missing_interop` | View SDK Code named the method, but the exact-target interop API does not expose it. Briosa cannot call it through the approved interface. |
+| `blocked_semantics` | The exact interop method exists, but release-specific argument semantics are unresolved, so Briosa cannot define a safe public/worker mapping. |
 | `unobserved_interop` | The interop API exposes the method, but no extracted command argument uses it. It is retained for drift accounting, not treated as supported. |
 
 Mixed-use methods remain `usable` when at least one non-excluded command observes them. Product-scope exclusion is command-specific and must not disable a shared binding needed by another command.
 
-The first exact-target review found six `blocked_missing_interop` methods. Issue #53 isolated their affected commands, and focused Hexagon issue #79 now owns the remaining exact-target clarification. A generated sample call is not evidence that Briosa may substitute a generic SDK method.
+The first exact-target review found six `blocked_missing_interop` methods. Issue #53 isolated their affected commands, and focused Hexagon issue #79 now owns the remaining exact-target clarification. Issue #57 also records the B-spline getter and setter as `blocked_semantics` because the exact release does not provide a verified `Sort Method` encoding. A generated sample call is not evidence that Briosa may substitute a generic SDK method.
 
 ## Workflow
 

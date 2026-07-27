@@ -32,6 +32,10 @@ public sealed class CommandCatalogInputGenerationTests
             {
                 syntheticArguments.Add(argument?.DeepClone());
             }
+            foreach (var argument in JsonNode.Parse(SpecializedValueArguments)!.AsArray())
+            {
+                syntheticArguments.Add(argument?.DeepClone());
+            }
 
             File.WriteAllText(
                 Path.Combine(targetRoot, "operations", "synthetic.all_types.json"),
@@ -106,6 +110,13 @@ public sealed class CommandCatalogInputGenerationTests
             Assert.Contains("new TargetProtocol.DoubleArray", binding, StringComparison.Ordinal);
             Assert.Contains("new TargetProtocol.WorldTransform", binding, StringComparison.Ordinal);
             Assert.Contains("new TargetProtocol.FileReference", binding, StringComparison.Ordinal);
+            Assert.Contains("WorkerMpValueKind.RenderModeType", binding, StringComparison.Ordinal);
+            Assert.Contains("SpecializedEnumValue: new((int)request.RenderMode - 1)", binding, StringComparison.Ordinal);
+            Assert.Contains("!request.Filter.HasSurfaceInclusionProximity", binding, StringComparison.Ordinal);
+            Assert.Contains("request.Filter.RadialProximityMode == 0", binding, StringComparison.Ordinal);
+            Assert.Contains("AutoFilterProximitySettingsValue", binding, StringComparison.Ordinal);
+            Assert.Contains("GetToleranceScalarOptionsArg", binding, StringComparison.Ordinal);
+            Assert.Contains("new TargetProtocol.ToleranceScalarOptions", binding, StringComparison.Ordinal);
 
             var coverage = File.ReadAllText(Path.Combine(
                 outputRoot,
@@ -197,7 +208,13 @@ public sealed class CommandCatalogInputGenerationTests
           { "argument_id": "font", "ordinal": 36, "mp_name": "Font", "direction": "input", "result_only": "no", "semantic_type": "font", "data_classification": "non_sensitive", "input": { "presence": "required", "omission_behavior": "reject_request", "default": { "status": "none" } }, "sdk_binding": { "status": "available", "setter": "SetFontTypeArg", "getter": null }, "documentation": "Font." }
         ]
         """;
-    private const string SyntheticOperation = """
+    private const string SpecializedValueArguments = """
+        [
+          { "argument_id": "render_mode", "ordinal": 37, "mp_name": "Render Mode", "direction": "input", "result_only": "no", "semantic_type": "render_mode_type", "data_classification": "non_sensitive", "input": { "presence": "required", "omission_behavior": "reject_request", "default": { "status": "none" } }, "sdk_binding": { "status": "available", "setter": "SetRenderModeTypeArg", "getter": null }, "documentation": "Exact-target render mode." },
+          { "argument_id": "filter", "ordinal": 38, "mp_name": "Filter", "direction": "input", "result_only": "no", "semantic_type": "auto_filter_proximity_settings", "data_classification": "measurement", "input": { "presence": "required", "omission_behavior": "reject_request", "default": { "status": "none" } }, "sdk_binding": { "status": "available", "setter": "SetAutoFilterProximitySettingsArg", "getter": null }, "documentation": "Exact-target auto-filter settings." },
+          { "argument_id": "scalar_tolerance", "ordinal": 39, "mp_name": "Scalar Tolerance", "direction": "input_output", "result_only": "no", "semantic_type": "tolerance_scalar_options", "data_classification": "measurement", "input": { "presence": "required", "omission_behavior": "reject_request", "default": { "status": "none" } }, "sdk_binding": { "status": "available", "setter": "SetToleranceScalarOptionsArg", "getter": "GetToleranceScalarOptionsArg" }, "documentation": "Exact-target scalar tolerance." }
+        ]
+        """; private const string SyntheticOperation = """
         {
           "$schema": "../../../schemas/v1/operation.schema.json",
           "operation_id": "synthetic.all_types",

@@ -191,6 +191,7 @@
         "registry_status": {
           "enum": [
             "blocked_missing_interop",
+            "blocked_semantics",
             "excluded_only",
             "unobserved_interop",
             "usable"

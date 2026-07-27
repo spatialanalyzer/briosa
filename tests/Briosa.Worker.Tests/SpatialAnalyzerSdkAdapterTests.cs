@@ -448,7 +448,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         Assert.Equal("sdk-argument-rejected", result.DiagnosticCode);
         Assert.DoesNotContain("ExecuteStep", calls.Events);
     }
-    private sealed class RecordingSdkCalls : ISpatialAnalyzerSdkCalls
+    private sealed partial class RecordingSdkCalls : ISpatialAnalyzerSdkCalls
     {
         public List<string> Events { get; } = [];
 

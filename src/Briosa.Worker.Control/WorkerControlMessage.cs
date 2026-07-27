@@ -2,7 +2,7 @@ namespace Briosa.Worker.Control;
 
 public static class WorkerControlProtocol
 {
-    public const int CurrentVersion = 7;
+    public const int CurrentVersion = 8;
 
     public const int MaximumMessageBytes = 64 * 1024;
 }
@@ -35,6 +35,49 @@ public enum WorkerMpValueKind
     DistanceUnit,
     TemperatureUnit,
     Font,
+    AsciiFileFormat,
+    AutoFilterProximitySettings,
+    AxisIdentifier,
+    BaseColorType,
+    BaseMidColorType,
+    ChartType,
+    CloudThinningOptions,
+    CollimationBaselineType,
+    CollimationType,
+    ColorRangeMethod,
+    ColorizationOptions,
+    CoordinateSystemType,
+    DatasetType,
+    DynamicCircleMode,
+    DynamicEllipseMode,
+    DynamicLineMode,
+    DynamicPlaneMode,
+    DynamicPointMode,
+    EdgeMode,
+    ExportDataDelimiterType,
+    ExportTargetNameFormat,
+    ExportVectorNameFormat,
+    FitConstraintScalarOptions,
+    FitDegreeOfFreedomOptions,
+    GeometryType,
+    InstrumentType,
+    ObjectType,
+    OffsetDirectionType,
+    PointDeltaReportOptions,
+    PointFilterInputType,
+    ProjectionOptions,
+    RelationshipWeightingMode,
+    RenderModeType,
+    ReportOutputOptions,
+    ReportPageOrientation,
+    ReportViewOptions,
+    SaturationLimitType,
+    ShowUsmnDialogType,
+    SurfaceAnalysisMode,
+    SurfaceDissectionModeType,
+    TargetComputationMethod,
+    ToleranceScalarOptions,
+    TranslucencyType,
     PointName,
     Vector,
     ToleranceVectorOptions,
@@ -223,6 +266,17 @@ public sealed record WorkerMpInputArgument(
     WorkerDistanceUnitValue? DistanceUnitValue = null,
     WorkerTemperatureUnitValue? TemperatureUnitValue = null,
     WorkerFontValue? FontValue = null,
+    WorkerSpecializedEnumValue? SpecializedEnumValue = null,
+    WorkerAutoFilterProximitySettingsValue? AutoFilterProximitySettingsValue = null,
+    WorkerCloudThinningOptionsValue? CloudThinningOptionsValue = null,
+    WorkerColorizationOptionsValue? ColorizationOptionsValue = null,
+    WorkerFitConstraintScalarOptionsValue? FitConstraintScalarOptionsValue = null,
+    WorkerFitDegreeOfFreedomOptionsValue? FitDegreeOfFreedomOptionsValue = null,
+    WorkerPointDeltaReportOptionsValue? PointDeltaReportOptionsValue = null,
+    WorkerProjectionOptionsValue? ProjectionOptionsValue = null,
+    WorkerReportOutputOptionsValue? ReportOutputOptionsValue = null,
+    WorkerReportViewOptionsValue? ReportViewOptionsValue = null,
+    WorkerToleranceScalarOptionsValue? ToleranceScalarOptionsValue = null,
     string? SdkBinding = null);
 public sealed record WorkerMpOutputArgument(
     string Name,
@@ -254,7 +308,9 @@ public sealed record WorkerMpOutputValue(
     WorkerDoubleArrayValue? DoubleArrayValue = null,
     WorkerTransformValue? TransformValue = null,
     WorkerWorldTransformValue? WorldTransformValue = null,
-    WorkerFileReferenceValue? FileReferenceValue = null);
+    WorkerFileReferenceValue? FileReferenceValue = null,
+    WorkerFitConstraintScalarOptionsValue? FitConstraintScalarOptionsValue = null,
+    WorkerToleranceScalarOptionsValue? ToleranceScalarOptionsValue = null);
 public sealed record WorkerMpCommand(
     string OperationId,
     string StepName,

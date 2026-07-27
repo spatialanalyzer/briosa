@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+import public "briosa/sa/v2026_1_0529_7/v1alpha1/specialized_values.proto";
+
 package briosa.sa.v2026_1_0529_7.v1alpha1;
 
 option csharp_namespace = "Briosa.Sa.V2026_1_0529_7.V1Alpha1";
