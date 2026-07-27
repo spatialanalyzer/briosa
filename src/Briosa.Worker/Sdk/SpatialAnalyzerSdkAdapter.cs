@@ -115,6 +115,32 @@ internal sealed class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
                 sdk.SetDoubleArg(argument.Name, value),
             SdkValueKind.Text when argument.StringValue is { } value =>
                 sdk.SetStringArg(argument.Name, value),
+            SdkValueKind.DoubleArray when argument.DoubleArrayValue is { } value =>
+                SetDoubleArray(sdk, argument.Name, value),
+            SdkValueKind.EditText when argument.StringListValue is { } value =>
+                SetEditText(sdk, argument.Name, value),
+            SdkValueKind.Transform when argument.TransformValue is { } value =>
+                SetTransform(sdk, argument.Name, value),
+            SdkValueKind.WorldTransform when argument.WorldTransformValue is { } value =>
+                SetWorldTransform(sdk, argument.Name, value),
+            SdkValueKind.RgbColor when argument.RgbColorValue is { } value =>
+                sdk.SetColorArg(argument.Name, value.Red, value.Green, value.Blue),
+            SdkValueKind.FileReference when argument.FileReferenceValue is { } value =>
+                sdk.SetFilePathArg(argument.Name, value.Path, value.EmbeddedFile),
+            SdkValueKind.AngularUnit when argument.AngularUnitValue is { } value =>
+                SetAngularUnit(sdk, argument.Name, value),
+            SdkValueKind.DistanceUnit when argument.DistanceUnitValue is { } value =>
+                SetDistanceUnit(sdk, argument.Name, value),
+            SdkValueKind.TemperatureUnit when argument.TemperatureUnitValue is { } value =>
+                SetTemperatureUnit(sdk, argument.Name, value),
+            SdkValueKind.Font when argument.FontValue is { } value =>
+                sdk.SetFontTypeArg(
+                    argument.Name,
+                    value.FontName,
+                    value.Size,
+                    value.Color.Red,
+                    value.Color.Green,
+                    value.Color.Blue),
             SdkValueKind.ChartName when argument.StringValue is { } value =>
                 sdk.SetChartNameArg(argument.Name, value),
             SdkValueKind.CloudName when argument.StringValue is { } value =>
@@ -189,6 +215,11 @@ internal sealed class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
                 SdkValueKind.WholeNumber => GetWholeNumber(sdk, argument),
                 SdkValueKind.FloatingPoint => GetFloatingPoint(sdk, argument),
                 SdkValueKind.Text => GetText(sdk, argument),
+                SdkValueKind.DoubleArray => GetDoubleArray(sdk, argument),
+                SdkValueKind.EditText => GetEditText(sdk, argument),
+                SdkValueKind.Transform => GetTransform(sdk, argument),
+                SdkValueKind.WorldTransform => GetWorldTransform(sdk, argument),
+                SdkValueKind.FileReference => GetFileReference(sdk, argument),
                 SdkValueKind.PointName => GetPointName(sdk, argument),
                 SdkValueKind.Vector => GetVector(sdk, argument),
                 SdkValueKind.ToleranceVectorOptions =>
@@ -330,6 +361,197 @@ internal sealed class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
                     lowY.ToValue(),
                     lowZ.ToValue(),
                     lowMagnitude.ToValue())
+                : null);
+    }
+
+    private static bool SetDoubleArray(
+        ISpatialAnalyzerSdkCalls sdk,
+        string name,
+        SdkDoubleArrayValue value)
+    {
+        var sdkValue = SdkContainerValueCodec.ToDoubleArrayComValue(value);
+        return sdk.SetDoubleArrayArg(name, value.Values.Count, ref sdkValue);
+    }
+
+    private static bool SetEditText(
+        ISpatialAnalyzerSdkCalls sdk,
+        string name,
+        SdkStringListValue value)
+    {
+        var sdkValue = SdkContainerValueCodec.ToEditTextComValue(value);
+        return sdk.SetEditTextArg(name, ref sdkValue);
+    }
+
+    private static bool SetTransform(
+        ISpatialAnalyzerSdkCalls sdk,
+        string name,
+        SdkTransformValue value)
+    {
+        try
+        {
+            var sdkValue = SdkContainerValueCodec.ToTransformComValue(value);
+            return sdk.SetTransformArg(name, ref sdkValue);
+        }
+        catch (ArgumentException)
+        {
+            return false;
+        }
+    }
+
+    private static bool SetWorldTransform(
+        ISpatialAnalyzerSdkCalls sdk,
+        string name,
+        SdkWorldTransformValue value)
+    {
+        try
+        {
+            var sdkValue = SdkContainerValueCodec.ToTransformComValue(value.Transform);
+            return sdk.SetWorldTransformArg(name, ref sdkValue, value.ScaleFactor);
+        }
+        catch (ArgumentException)
+        {
+            return false;
+        }
+    }
+
+    private static bool SetAngularUnit(
+        ISpatialAnalyzerSdkCalls sdk,
+        string name,
+        SdkAngularUnitValue value) =>
+        AngularUnitSdkString(value) is { } sdkValue &&
+        sdk.SetAngularUnitsArg(name, sdkValue);
+
+    private static bool SetDistanceUnit(
+        ISpatialAnalyzerSdkCalls sdk,
+        string name,
+        SdkDistanceUnitValue value) =>
+        DistanceUnitSdkString(value) is { } sdkValue &&
+        sdk.SetDistanceUnitsArg(name, sdkValue);
+
+    private static bool SetTemperatureUnit(
+        ISpatialAnalyzerSdkCalls sdk,
+        string name,
+        SdkTemperatureUnitValue value) =>
+        TemperatureUnitSdkString(value) is { } sdkValue &&
+        sdk.SetTemperatureUnitsArg(name, sdkValue);
+
+    private static string? AngularUnitSdkString(SdkAngularUnitValue value) =>
+        value switch
+        {
+            SdkAngularUnitValue.Degrees => "Degrees",
+            SdkAngularUnitValue.DegreesMinutesSeconds => "Deg:Min:Sec",
+            SdkAngularUnitValue.Radians => "Radians",
+            SdkAngularUnitValue.Milliradians => "Milliradians",
+            SdkAngularUnitValue.GonsGrad => "Gons/Grad",
+            SdkAngularUnitValue.Mils => "Mils",
+            SdkAngularUnitValue.Arcseconds => "Arcseconds",
+            SdkAngularUnitValue.DegreesMinutes => "Deg:Min",
+            _ => null
+        };
+
+    private static string? DistanceUnitSdkString(SdkDistanceUnitValue value) =>
+        value switch
+        {
+            SdkDistanceUnitValue.Meters => "Meters",
+            SdkDistanceUnitValue.Centimeters => "Centimeters",
+            SdkDistanceUnitValue.Millimeters => "Millimeters",
+            SdkDistanceUnitValue.Feet => "Feet",
+            SdkDistanceUnitValue.Inches => "Inches",
+            SdkDistanceUnitValue.UsSurveyFeet => "US Survey Feet",
+            _ => null
+        };
+
+    private static string? TemperatureUnitSdkString(SdkTemperatureUnitValue value) =>
+        value switch
+        {
+            SdkTemperatureUnitValue.Fahrenheit => "Fahrenheit",
+            SdkTemperatureUnitValue.Celsius => "Celsius",
+            _ => null
+        };
+
+    private static SdkOutputValue GetDoubleArray(
+        ISpatialAnalyzerSdkCalls sdk,
+        SdkOutputArgument argument)
+    {
+        var size = 0;
+        var sdkValue = SdkContainerValueCodec.EmptyArrayBuffer();
+        SdkDoubleArrayValue? value = null;
+        var retrieved = sdk.GetDoubleArrayArg(argument.Name, ref size, ref sdkValue) &&
+            SdkContainerValueCodec.TryParseDoubleArray(sdkValue, size, out value);
+        return new SdkOutputValue(
+            argument.Name,
+            argument.Kind,
+            retrieved,
+            DoubleArrayValue: retrieved ? value : null);
+    }
+
+    private static SdkOutputValue GetEditText(
+        ISpatialAnalyzerSdkCalls sdk,
+        SdkOutputArgument argument)
+    {
+        var sdkValue = SdkContainerValueCodec.EmptyArrayBuffer();
+        SdkStringListValue? value = null;
+        var retrieved = sdk.GetEditTextArg(argument.Name, ref sdkValue) &&
+            SdkContainerValueCodec.TryParseEditText(sdkValue, out value);
+        return new SdkOutputValue(
+            argument.Name,
+            argument.Kind,
+            retrieved,
+            StringListValue: retrieved ? value : null);
+    }
+
+    private static SdkOutputValue GetTransform(
+        ISpatialAnalyzerSdkCalls sdk,
+        SdkOutputArgument argument)
+    {
+        var sdkValue = SdkContainerValueCodec.TransformBuffer();
+        SdkTransformValue? value = null;
+        var retrieved = sdk.GetTransformArg(argument.Name, ref sdkValue) &&
+            SdkContainerValueCodec.TryParseTransform(sdkValue, out value);
+        return new SdkOutputValue(
+            argument.Name,
+            argument.Kind,
+            retrieved,
+            TransformValue: retrieved ? value : null);
+    }
+
+    private static SdkOutputValue GetWorldTransform(
+        ISpatialAnalyzerSdkCalls sdk,
+        SdkOutputArgument argument)
+    {
+        var sdkValue = SdkContainerValueCodec.TransformBuffer();
+        var scaleFactor = 0d;
+        SdkTransformValue? transform = null;
+        var retrieved = sdk.GetWorldTransformArg(
+            argument.Name,
+            ref sdkValue,
+            ref scaleFactor) &&
+            SdkContainerValueCodec.TryParseTransform(sdkValue, out transform);
+        return new SdkOutputValue(
+            argument.Name,
+            argument.Kind,
+            retrieved,
+            WorldTransformValue: retrieved
+                ? new SdkWorldTransformValue(transform!, scaleFactor)
+                : null);
+    }
+
+    private static SdkOutputValue GetFileReference(
+        ISpatialAnalyzerSdkCalls sdk,
+        SdkOutputArgument argument)
+    {
+        var path = string.Empty;
+        var embeddedFile = false;
+        var retrieved = sdk.GetFilePathArg(
+            argument.Name,
+            ref path,
+            ref embeddedFile);
+        return new SdkOutputValue(
+            argument.Name,
+            argument.Kind,
+            retrieved,
+            FileReferenceValue: retrieved
+                ? new SdkFileReferenceValue(path, embeddedFile)
                 : null);
     }
 
@@ -557,6 +779,16 @@ internal sealed class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
             SdkValueKind.WholeNumber => "SetIntegerArg",
             SdkValueKind.FloatingPoint => "SetDoubleArg",
             SdkValueKind.Text => "SetStringArg",
+            SdkValueKind.DoubleArray => "SetDoubleArrayArg",
+            SdkValueKind.EditText => "SetEditTextArg",
+            SdkValueKind.Transform => "SetTransformArg",
+            SdkValueKind.WorldTransform => "SetWorldTransformArg",
+            SdkValueKind.RgbColor => "SetColorArg",
+            SdkValueKind.FileReference => "SetFilePathArg",
+            SdkValueKind.AngularUnit => "SetAngularUnitsArg",
+            SdkValueKind.DistanceUnit => "SetDistanceUnitsArg",
+            SdkValueKind.TemperatureUnit => "SetTemperatureUnitsArg",
+            SdkValueKind.Font => "SetFontTypeArg",
             SdkValueKind.PointName => "SetPointNameArg",
             SdkValueKind.Vector => "SetVectorArg",
             SdkValueKind.ToleranceVectorOptions => "SetToleranceVectorOptionsArg",
@@ -587,6 +819,16 @@ internal sealed class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
             SdkValueKind.WholeNumber => "GetIntegerArg",
             SdkValueKind.FloatingPoint => "GetDoubleArg",
             SdkValueKind.Text => "GetStringArg",
+            SdkValueKind.DoubleArray => "GetDoubleArrayArg",
+            SdkValueKind.EditText => "GetEditTextArg",
+            SdkValueKind.Transform => "GetTransformArg",
+            SdkValueKind.WorldTransform => "GetWorldTransformArg",
+            SdkValueKind.FileReference => "GetFilePathArg",
+            SdkValueKind.RgbColor => "GetColorArg",
+            SdkValueKind.AngularUnit => "GetAngularUnitsArg",
+            SdkValueKind.DistanceUnit => "GetDistanceUnitsArg",
+            SdkValueKind.TemperatureUnit => "GetTemperatureUnitsArg",
+            SdkValueKind.Font => "GetFontTypeArg",
             SdkValueKind.PointName => "GetPointNameArg",
             SdkValueKind.Vector => "GetVectorArg",
             SdkValueKind.ToleranceVectorOptions => "GetToleranceVectorOptionsArg",
@@ -766,6 +1008,45 @@ internal sealed class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
                 useLowMagnitude,
                 lowMagnitude);
 
+        public bool SetDoubleArrayArg(string name, int arraySize, ref object values) =>
+            Sdk.SetDoubleArrayArg(name, arraySize, ref values);
+
+        public bool SetEditTextArg(string name, ref object values) =>
+            Sdk.SetEditTextArg(name, ref values);
+
+        public bool SetTransformArg(string name, ref object transform) =>
+            Sdk.SetTransformArg(name, ref transform);
+
+        public bool SetWorldTransformArg(
+            string name,
+            ref object transform,
+            double scaleFactor) =>
+            Sdk.SetWorldTransformArg(name, ref transform, scaleFactor);
+
+        public bool SetColorArg(string name, byte red, byte green, byte blue) =>
+            Sdk.SetColorArg(name, red, green, blue);
+
+        public bool SetFilePathArg(string name, string path, bool embeddedFile) =>
+            Sdk.SetFilePathArg(name, path, embeddedFile);
+
+        public bool SetAngularUnitsArg(string name, string angularUnits) =>
+            Sdk.SetAngularUnitsArg(name, angularUnits);
+
+        public bool SetDistanceUnitsArg(string name, string distanceUnits) =>
+            Sdk.SetDistanceUnitsArg(name, distanceUnits);
+
+        public bool SetTemperatureUnitsArg(string name, string temperatureUnits) =>
+            Sdk.SetTemperatureUnitsArg(name, temperatureUnits);
+
+        public bool SetFontTypeArg(
+            string name,
+            string fontName,
+            byte fontSize,
+            byte red,
+            byte green,
+            byte blue) =>
+            Sdk.SetFontTypeArg(name, fontName, fontSize, red, green, blue);
+
         public bool ExecuteStep() => Sdk.ExecuteStep();
 
         public bool GetMPStepResult(ref int resultCode) =>
@@ -866,6 +1147,30 @@ internal sealed class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
                 ref lowZ,
                 ref useLowMagnitude,
                 ref lowMagnitude);
+
+        public bool GetDoubleArrayArg(
+            string name,
+            ref int arraySize,
+            ref object values) =>
+            Sdk.GetDoubleArrayArg(name, ref arraySize, ref values);
+
+        public bool GetEditTextArg(string name, ref object values) =>
+            Sdk.GetEditTextArg(name, ref values);
+
+        public bool GetTransformArg(string name, ref object transform) =>
+            Sdk.GetTransformArg(name, ref transform);
+
+        public bool GetWorldTransformArg(
+            string name,
+            ref object transform,
+            ref double scaleFactor) =>
+            Sdk.GetWorldTransformArg(name, ref transform, ref scaleFactor);
+
+        public bool GetFilePathArg(
+            string name,
+            ref string path,
+            ref bool embeddedFile) =>
+            Sdk.GetFilePathArg(name, ref path, ref embeddedFile);
 
         public void Dispose()
         {

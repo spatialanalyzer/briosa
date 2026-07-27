@@ -2,7 +2,7 @@ namespace Briosa.Worker.Control;
 
 public static class WorkerControlProtocol
 {
-    public const int CurrentVersion = 6;
+    public const int CurrentVersion = 7;
 
     public const int MaximumMessageBytes = 64 * 1024;
 }
@@ -25,6 +25,16 @@ public enum WorkerMpValueKind
     WholeNumber,
     FloatingPoint,
     Text,
+    DoubleArray,
+    EditText,
+    Transform,
+    WorldTransform,
+    RgbColor,
+    FileReference,
+    AngularUnit,
+    DistanceUnit,
+    TemperatureUnit,
+    Font,
     PointName,
     Vector,
     ToleranceVectorOptions,
@@ -45,6 +55,37 @@ public enum WorkerMpValueKind
     VectorGroupName,
     VectorNameList,
     ViewName
+}
+
+public enum WorkerAngularUnitValue
+{
+    Unspecified,
+    Degrees,
+    DegreesMinutesSeconds,
+    Radians,
+    Milliradians,
+    GonsGrad,
+    Mils,
+    Arcseconds,
+    DegreesMinutes
+}
+
+public enum WorkerDistanceUnitValue
+{
+    Unspecified,
+    Meters,
+    Centimeters,
+    Millimeters,
+    Feet,
+    Inches,
+    UsSurveyFeet
+}
+
+public enum WorkerTemperatureUnitValue
+{
+    Unspecified,
+    Fahrenheit,
+    Celsius
 }
 
 public enum WorkerExecutionResponseStatus
@@ -119,6 +160,23 @@ public sealed record WorkerPointNameListValue(
 
 public sealed record WorkerStringListValue(IReadOnlyList<string> Values);
 
+public sealed record WorkerDoubleArrayValue(IReadOnlyList<double> Values);
+
+public sealed record WorkerTransformValue(IReadOnlyList<double> Values);
+
+public sealed record WorkerWorldTransformValue(
+    WorkerTransformValue Transform,
+    double ScaleFactor);
+
+public sealed record WorkerRgbColorValue(byte Red, byte Green, byte Blue);
+
+public sealed record WorkerFileReferenceValue(string Path, bool EmbeddedFile);
+
+public sealed record WorkerFontValue(
+    string FontName,
+    byte Size,
+    WorkerRgbColorValue Color);
+
 public sealed record WorkerVectorNameListValue(
     IReadOnlyList<WorkerVectorNameValue> Values);
 public sealed record WorkerVectorValue(double X, double Y, double Z);
@@ -156,6 +214,15 @@ public sealed record WorkerMpInputArgument(
     WorkerPointNameListValue? PointNameListValue = null,
     WorkerStringListValue? StringListValue = null,
     WorkerVectorNameListValue? VectorNameListValue = null,
+    WorkerDoubleArrayValue? DoubleArrayValue = null,
+    WorkerTransformValue? TransformValue = null,
+    WorkerWorldTransformValue? WorldTransformValue = null,
+    WorkerRgbColorValue? RgbColorValue = null,
+    WorkerFileReferenceValue? FileReferenceValue = null,
+    WorkerAngularUnitValue? AngularUnitValue = null,
+    WorkerDistanceUnitValue? DistanceUnitValue = null,
+    WorkerTemperatureUnitValue? TemperatureUnitValue = null,
+    WorkerFontValue? FontValue = null,
     string? SdkBinding = null);
 public sealed record WorkerMpOutputArgument(
     string Name,
@@ -183,7 +250,11 @@ public sealed record WorkerMpOutputValue(
     WorkerCollectionVectorGroupNameListValue? CollectionVectorGroupNameListValue = null,
     WorkerPointNameListValue? PointNameListValue = null,
     WorkerStringListValue? StringListValue = null,
-    WorkerVectorNameListValue? VectorNameListValue = null);
+    WorkerVectorNameListValue? VectorNameListValue = null,
+    WorkerDoubleArrayValue? DoubleArrayValue = null,
+    WorkerTransformValue? TransformValue = null,
+    WorkerWorldTransformValue? WorldTransformValue = null,
+    WorkerFileReferenceValue? FileReferenceValue = null);
 public sealed record WorkerMpCommand(
     string OperationId,
     string StepName,

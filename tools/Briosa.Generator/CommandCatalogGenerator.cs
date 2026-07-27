@@ -224,6 +224,13 @@ internal static class CommandCatalogGenerator
 
     private static bool IsMessageType(string semanticType) =>
         semanticType is
+            "double_array" or
+            "edit_text" or
+            "transform" or
+            "world_transform" or
+            "rgb_color" or
+            "file_reference" or
+            "font" or
             "point_name" or
             "vector" or
             "tolerance_vector_options" or
@@ -252,6 +259,16 @@ internal static class CommandCatalogGenerator
             "frame_name" or
             "vector_group_name" or
             "view_name" => "string",
+            "angular_unit" => "AngularUnit",
+            "distance_unit" => "DistanceUnit",
+            "temperature_unit" => "TemperatureUnit",
+            "double_array" => "DoubleArray",
+            "edit_text" => "StringList",
+            "transform" => "Transform",
+            "world_transform" => "WorldTransform",
+            "rgb_color" => "RgbColor",
+            "file_reference" => "FileReference",
+            "font" => "Font",
             "point_name" => "PointName",
             "vector" => "Vector3",
             "tolerance_vector_options" => "ToleranceVectorOptions",

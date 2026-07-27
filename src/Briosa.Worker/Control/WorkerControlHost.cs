@@ -190,6 +190,46 @@ internal static class WorkerControlHost
                             value.CollectionName,
                             value.GroupName,
                             value.VectorName))]),
+            DoubleArrayValue: argument.DoubleArrayValue is null
+                ? null
+                : new SdkDoubleArrayValue([.. argument.DoubleArrayValue.Values]),
+            TransformValue: argument.TransformValue is null
+                ? null
+                : new SdkTransformValue([.. argument.TransformValue.Values]),
+            WorldTransformValue: argument.WorldTransformValue is null
+                ? null
+                : new SdkWorldTransformValue(
+                    new SdkTransformValue([.. argument.WorldTransformValue.Transform.Values]),
+                    argument.WorldTransformValue.ScaleFactor),
+            RgbColorValue: argument.RgbColorValue is null
+                ? null
+                : new SdkRgbColorValue(
+                    argument.RgbColorValue.Red,
+                    argument.RgbColorValue.Green,
+                    argument.RgbColorValue.Blue),
+            FileReferenceValue: argument.FileReferenceValue is null
+                ? null
+                : new SdkFileReferenceValue(
+                    argument.FileReferenceValue.Path,
+                    argument.FileReferenceValue.EmbeddedFile),
+            AngularUnitValue: argument.AngularUnitValue is null
+                ? null
+                : (SdkAngularUnitValue)(int)argument.AngularUnitValue.Value,
+            DistanceUnitValue: argument.DistanceUnitValue is null
+                ? null
+                : (SdkDistanceUnitValue)(int)argument.DistanceUnitValue.Value,
+            TemperatureUnitValue: argument.TemperatureUnitValue is null
+                ? null
+                : (SdkTemperatureUnitValue)(int)argument.TemperatureUnitValue.Value,
+            FontValue: argument.FontValue is null
+                ? null
+                : new SdkFontValue(
+                    argument.FontValue.FontName,
+                    argument.FontValue.Size,
+                    new SdkRgbColorValue(
+                        argument.FontValue.Color.Red,
+                        argument.FontValue.Color.Green,
+                        argument.FontValue.Color.Blue)),
             SdkBinding: argument.SdkBinding);
     private static SdkOutputArgument ToSdkOutputArgument(WorkerMpOutputArgument argument) =>
         new(argument.Name, ToSdkValueKind(argument.Kind), argument.SdkBinding);
@@ -201,6 +241,16 @@ internal static class WorkerControlHost
             WorkerMpValueKind.WholeNumber => SdkValueKind.WholeNumber,
             WorkerMpValueKind.FloatingPoint => SdkValueKind.FloatingPoint,
             WorkerMpValueKind.Text => SdkValueKind.Text,
+            WorkerMpValueKind.DoubleArray => SdkValueKind.DoubleArray,
+            WorkerMpValueKind.EditText => SdkValueKind.EditText,
+            WorkerMpValueKind.Transform => SdkValueKind.Transform,
+            WorkerMpValueKind.WorldTransform => SdkValueKind.WorldTransform,
+            WorkerMpValueKind.RgbColor => SdkValueKind.RgbColor,
+            WorkerMpValueKind.FileReference => SdkValueKind.FileReference,
+            WorkerMpValueKind.AngularUnit => SdkValueKind.AngularUnit,
+            WorkerMpValueKind.DistanceUnit => SdkValueKind.DistanceUnit,
+            WorkerMpValueKind.TemperatureUnit => SdkValueKind.TemperatureUnit,
+            WorkerMpValueKind.Font => SdkValueKind.Font,
             WorkerMpValueKind.PointName => SdkValueKind.PointName,
             WorkerMpValueKind.Vector => SdkValueKind.Vector,
             WorkerMpValueKind.ToleranceVectorOptions => SdkValueKind.ToleranceVectorOptions,
@@ -329,7 +379,23 @@ internal static class WorkerControlHost
                         new WorkerVectorNameValue(
                             value.CollectionName,
                             value.GroupName,
-                            value.VectorName))]));
+                            value.VectorName))]),
+            DoubleArrayValue: output.DoubleArrayValue is null
+                ? null
+                : new WorkerDoubleArrayValue([.. output.DoubleArrayValue.Values]),
+            TransformValue: output.TransformValue is null
+                ? null
+                : new WorkerTransformValue([.. output.TransformValue.Values]),
+            WorldTransformValue: output.WorldTransformValue is null
+                ? null
+                : new WorkerWorldTransformValue(
+                    new WorkerTransformValue([.. output.WorldTransformValue.Transform.Values]),
+                    output.WorldTransformValue.ScaleFactor),
+            FileReferenceValue: output.FileReferenceValue is null
+                ? null
+                : new WorkerFileReferenceValue(
+                    output.FileReferenceValue.Path,
+                    output.FileReferenceValue.EmbeddedFile));
     private static WorkerMpValueKind ToControlValueKind(SdkValueKind kind) =>
         kind switch
         {
@@ -337,6 +403,16 @@ internal static class WorkerControlHost
             SdkValueKind.WholeNumber => WorkerMpValueKind.WholeNumber,
             SdkValueKind.FloatingPoint => WorkerMpValueKind.FloatingPoint,
             SdkValueKind.Text => WorkerMpValueKind.Text,
+            SdkValueKind.DoubleArray => WorkerMpValueKind.DoubleArray,
+            SdkValueKind.EditText => WorkerMpValueKind.EditText,
+            SdkValueKind.Transform => WorkerMpValueKind.Transform,
+            SdkValueKind.WorldTransform => WorkerMpValueKind.WorldTransform,
+            SdkValueKind.RgbColor => WorkerMpValueKind.RgbColor,
+            SdkValueKind.FileReference => WorkerMpValueKind.FileReference,
+            SdkValueKind.AngularUnit => WorkerMpValueKind.AngularUnit,
+            SdkValueKind.DistanceUnit => WorkerMpValueKind.DistanceUnit,
+            SdkValueKind.TemperatureUnit => WorkerMpValueKind.TemperatureUnit,
+            SdkValueKind.Font => WorkerMpValueKind.Font,
             SdkValueKind.PointName => WorkerMpValueKind.PointName,
             SdkValueKind.Vector => WorkerMpValueKind.Vector,
             SdkValueKind.ToleranceVectorOptions => WorkerMpValueKind.ToleranceVectorOptions,

@@ -361,6 +361,16 @@ internal static class CommandCatalogArtifactGenerator
         var value = $"request.{property}";
         var condition = input.SemanticType switch
         {
+            "transform" => $"{value}.Values.Count != 16",
+            "world_transform" =>
+                $"{value}.Transform is null || {value}.Transform.Values.Count != 16 || !{value}.HasScaleFactor",
+            "rgb_color" =>
+                $"!{value}.HasRed || {value}.Red > byte.MaxValue || !{value}.HasGreen || {value}.Green > byte.MaxValue || !{value}.HasBlue || {value}.Blue > byte.MaxValue",
+            "file_reference" => $"!{value}.HasPath || !{value}.HasEmbeddedFile",
+            "font" =>
+                $"!{value}.HasFontName || !{value}.HasSize || {value}.Size > byte.MaxValue || {value}.Color is null || !{value}.Color.HasRed || {value}.Color.Red > byte.MaxValue || !{value}.Color.HasGreen || {value}.Color.Green > byte.MaxValue || !{value}.Color.HasBlue || {value}.Color.Blue > byte.MaxValue",
+            "angular_unit" or "distance_unit" or "temperature_unit" =>
+                $"{value} == 0 || !Enum.IsDefined({value})",
             "point_name" => MissingPointNameComponents(value),
             "vector" => $"!{value}.HasX || !{value}.HasY || !{value}.HasZ",
             "tolerance_vector_options" => string.Join(" || ", ToleranceNames.Select(name =>
@@ -415,6 +425,26 @@ internal static class CommandCatalogArtifactGenerator
             "frame_name" or
             "vector_group_name" or
             "view_name" => prefix + $"StringValue: {valueExpression})",
+            "double_array" => prefix +
+                $"DoubleArrayValue: new([.. {valueExpression}.Values]))",
+            "edit_text" => prefix +
+                $"StringListValue: new([.. {valueExpression}.Values]))",
+            "transform" => prefix +
+                $"TransformValue: new([.. {valueExpression}.Values]))",
+            "world_transform" => prefix +
+                $"WorldTransformValue: new(new WorkerTransformValue([.. {valueExpression}.Transform.Values]), {valueExpression}.ScaleFactor))",
+            "rgb_color" => prefix +
+                $"RgbColorValue: new((byte){valueExpression}.Red, (byte){valueExpression}.Green, (byte){valueExpression}.Blue))",
+            "file_reference" => prefix +
+                $"FileReferenceValue: new({valueExpression}.Path, {valueExpression}.EmbeddedFile))",
+            "angular_unit" => prefix +
+                $"AngularUnitValue: (WorkerAngularUnitValue)(int){valueExpression})",
+            "distance_unit" => prefix +
+                $"DistanceUnitValue: (WorkerDistanceUnitValue)(int){valueExpression})",
+            "temperature_unit" => prefix +
+                $"TemperatureUnitValue: (WorkerTemperatureUnitValue)(int){valueExpression})",
+            "font" => prefix +
+                $"FontValue: new({valueExpression}.FontName, (byte){valueExpression}.Size, new WorkerRgbColorValue((byte){valueExpression}.Color.Red, (byte){valueExpression}.Color.Green, (byte){valueExpression}.Color.Blue)))",
             "point_name" => prefix + $"PointNameValue: new({valueExpression}.CollectionName, {valueExpression}.GroupName, {valueExpression}.TargetName))",
             "vector" => prefix + $"VectorValue: new({valueExpression}.X, {valueExpression}.Y, {valueExpression}.Z))",
             "tolerance_vector_options" => prefix +
@@ -488,6 +518,16 @@ internal static class CommandCatalogArtifactGenerator
             "frame_name" or
             "vector_group_name" or
             "view_name" => $"{variable}.StringValue!",
+            "double_array" =>
+                $"new TargetProtocol.DoubleArray {{ Values = {{ {variable}.DoubleArrayValue!.Values }} }}",
+            "edit_text" =>
+                $"new TargetProtocol.StringList {{ Values = {{ {variable}.StringListValue!.Values }} }}",
+            "transform" =>
+                $"new TargetProtocol.Transform {{ Values = {{ {variable}.TransformValue!.Values }} }}",
+            "world_transform" =>
+                $"new TargetProtocol.WorldTransform {{ Transform = new TargetProtocol.Transform {{ Values = {{ {variable}.WorldTransformValue!.Transform.Values }} }}, ScaleFactor = {variable}.WorldTransformValue.ScaleFactor }}",
+            "file_reference" =>
+                $"new TargetProtocol.FileReference {{ Path = {variable}.FileReferenceValue!.Path, EmbeddedFile = {variable}.FileReferenceValue.EmbeddedFile }}",
             "point_name" => $"new TargetProtocol.PointName {{ CollectionName = {variable}.PointNameValue!.CollectionName, GroupName = {variable}.PointNameValue.GroupName, TargetName = {variable}.PointNameValue.TargetName }}",
             "vector" => $"new TargetProtocol.Vector3 {{ X = {variable}.VectorValue!.X, Y = {variable}.VectorValue.Y, Z = {variable}.VectorValue.Z }}",
             "tolerance_vector_options" => $"new TargetProtocol.ToleranceVectorOptions {{ {string.Join(", ", ToleranceNames.Select(name => $"{name} = new TargetProtocol.ToleranceLimit {{ Enabled = {variable}.ToleranceVectorOptionsValue!.{name}.Enabled, Value = {variable}.ToleranceVectorOptionsValue.{name}.Value }}"))} }}",
@@ -575,6 +615,13 @@ internal static class CommandCatalogArtifactGenerator
 
     private static bool IsMessageType(string semanticType) =>
         semanticType is
+            "double_array" or
+            "edit_text" or
+            "transform" or
+            "world_transform" or
+            "rgb_color" or
+            "file_reference" or
+            "font" or
             "point_name" or
             "vector" or
             "tolerance_vector_options" or
@@ -591,7 +638,17 @@ internal static class CommandCatalogArtifactGenerator
             "vector_name_list";
 
     private static bool RequiresComponentValidation(string semanticType) =>
-        IsMessageType(semanticType) && semanticType != "string_list";
+        semanticType is
+            "transform" or
+            "world_transform" or
+            "rgb_color" or
+            "file_reference" or
+            "font" or
+            "angular_unit" or
+            "distance_unit" or
+            "temperature_unit" ||
+        (IsMessageType(semanticType) &&
+         semanticType is not "string_list" and not "double_array" and not "edit_text");
 
     private static string ToWorkerValueKind(string semanticType) =>
         semanticType switch
@@ -600,6 +657,16 @@ internal static class CommandCatalogArtifactGenerator
             "whole_number" => "WholeNumber",
             "floating_point" => "FloatingPoint",
             "string" => "Text",
+            "double_array" => "DoubleArray",
+            "edit_text" => "EditText",
+            "transform" => "Transform",
+            "world_transform" => "WorldTransform",
+            "rgb_color" => "RgbColor",
+            "file_reference" => "FileReference",
+            "angular_unit" => "AngularUnit",
+            "distance_unit" => "DistanceUnit",
+            "temperature_unit" => "TemperatureUnit",
+            "font" => "Font",
             "point_name" => "PointName",
             "vector" => "Vector",
             "tolerance_vector_options" => "ToleranceVectorOptions",

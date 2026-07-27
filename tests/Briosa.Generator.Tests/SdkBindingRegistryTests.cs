@@ -96,6 +96,12 @@ public sealed class SdkBindingRegistryTests
 
         Assert.Equal("angular_unit", bindings["SetAngularUnitsArg"].SemanticValueFamily);
         Assert.Equal("string", bindings["SetStringArg"].SemanticValueFamily);
+        Assert.Equal("double_array", bindings["SetDoubleArrayArg"].SemanticValueFamily);
+        Assert.Equal("edit_text", bindings["SetEditTextArg"].SemanticValueFamily);
+        Assert.Equal("string_list", bindings["SetStringRefListArg"].SemanticValueFamily);
+        Assert.Equal("transform", bindings["SetTransformArg"].SemanticValueFamily);
+        Assert.Equal("world_transform", bindings["SetWorldTransformArg"].SemanticValueFamily);
+        Assert.Equal("file_reference", bindings["SetFilePathArg"].SemanticValueFamily);
         Assert.Equal(
             "b_spline_fit_options",
             bindings["GetBSPlineFitOptionsArg"].SemanticValueFamily);
@@ -106,17 +112,17 @@ public sealed class SdkBindingRegistryTests
             bindings["GetCollectionObjectNameArg"].SemanticValueFamily,
             bindings["SetCollectionObjectNameArg2"].SemanticValueFamily);
 
-        Assert.Equal(39, registry.Bindings.Count(binding =>
+        Assert.Equal(54, registry.Bindings.Count(binding =>
             binding.Coverage.Protocol == "implemented"));
-        Assert.Equal(39, registry.Bindings.Count(binding =>
+        Assert.Equal(54, registry.Bindings.Count(binding =>
             binding.Coverage.Worker == "implemented"));
-        Assert.Equal(39, registry.Bindings.Count(binding =>
+        Assert.Equal(54, registry.Bindings.Count(binding =>
             binding.Coverage.Adapter == "implemented"));
-        Assert.Equal(39, registry.Bindings.Count(binding =>
+        Assert.Equal(54, registry.Bindings.Count(binding =>
             binding.Coverage.Fake == "implemented"));
-        Assert.Equal(39, registry.Bindings.Count(binding =>
+        Assert.Equal(54, registry.Bindings.Count(binding =>
             binding.Coverage.Generator == "implemented"));
-        Assert.Equal(24, registry.ValueFamilies.Count(family =>
+        Assert.Equal(34, registry.ValueFamilies.Count(family =>
             family.ImplementationStatus == "implemented"));
         Assert.All(
             registry.Bindings.Where(binding => binding.RegistryStatus == "usable"),
