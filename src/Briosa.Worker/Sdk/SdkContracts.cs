@@ -71,7 +71,24 @@ internal enum SdkValueKind
     Text,
     PointName,
     Vector,
-    ToleranceVectorOptions
+    ToleranceVectorOptions,
+    ChartName,
+    CloudName,
+    CollectionGroupNameList,
+    CollectionInstrumentId,
+    CollectionInstrumentIdList,
+    CollectionMachineId,
+    CollectionName,
+    CollectionObjectName,
+    CollectionObjectNameList,
+    CollectionVectorGroupName,
+    CollectionVectorGroupNameList,
+    FrameName,
+    PointNameList,
+    StringList,
+    VectorGroupName,
+    VectorNameList,
+    ViewName
 }
 
 internal sealed record SdkPointNameValue(
@@ -79,6 +96,49 @@ internal sealed record SdkPointNameValue(
     string GroupName,
     string TargetName);
 
+internal sealed record SdkCollectionInstrumentIdValue(
+    string CollectionName,
+    int InstrumentId);
+
+internal sealed record SdkCollectionMachineIdValue(
+    string CollectionName,
+    int MachineId);
+
+internal sealed record SdkCollectionObjectNameValue(
+    string CollectionName,
+    string ObjectName,
+    string ObjectType);
+
+internal sealed record SdkCollectionGroupNameValue(
+    string CollectionName,
+    string GroupName);
+
+internal sealed record SdkCollectionVectorGroupNameValue(
+    string CollectionName,
+    string VectorGroupName);
+
+internal sealed record SdkVectorNameValue(
+    string CollectionName,
+    string GroupName,
+    string VectorName);
+
+internal sealed record SdkCollectionInstrumentIdListValue(
+    IReadOnlyList<SdkCollectionInstrumentIdValue> Values);
+
+internal sealed record SdkCollectionGroupNameListValue(
+    IReadOnlyList<SdkCollectionGroupNameValue> Values);
+
+internal sealed record SdkCollectionObjectNameListValue(
+    IReadOnlyList<SdkCollectionObjectNameValue> Values);
+
+internal sealed record SdkCollectionVectorGroupNameListValue(
+    IReadOnlyList<SdkCollectionVectorGroupNameValue> Values);
+
+internal sealed record SdkPointNameListValue(IReadOnlyList<SdkPointNameValue> Values);
+
+internal sealed record SdkStringListValue(IReadOnlyList<string> Values);
+
+internal sealed record SdkVectorNameListValue(IReadOnlyList<SdkVectorNameValue> Values);
 internal sealed record SdkVectorValue(double X, double Y, double Z);
 
 internal sealed record SdkToleranceLimit(bool Enabled, double Value);
@@ -103,8 +163,18 @@ internal sealed record SdkInputArgument(
     SdkPointNameValue? PointNameValue = null,
     SdkVectorValue? VectorValue = null,
     SdkToleranceVectorOptionsValue? ToleranceVectorOptionsValue = null,
+    SdkCollectionInstrumentIdValue? CollectionInstrumentIdValue = null,
+    SdkCollectionInstrumentIdListValue? CollectionInstrumentIdListValue = null,
+    SdkCollectionMachineIdValue? CollectionMachineIdValue = null,
+    SdkCollectionObjectNameValue? CollectionObjectNameValue = null,
+    SdkCollectionObjectNameListValue? CollectionObjectNameListValue = null,
+    SdkCollectionGroupNameListValue? CollectionGroupNameListValue = null,
+    SdkCollectionVectorGroupNameValue? CollectionVectorGroupNameValue = null,
+    SdkCollectionVectorGroupNameListValue? CollectionVectorGroupNameListValue = null,
+    SdkPointNameListValue? PointNameListValue = null,
+    SdkStringListValue? StringListValue = null,
+    SdkVectorNameListValue? VectorNameListValue = null,
     string? SdkBinding = null);
-
 internal sealed record SdkOutputArgument(
     string Name,
     SdkValueKind Kind,
@@ -120,8 +190,18 @@ internal sealed record SdkOutputValue(
     string? StringValue = null,
     SdkPointNameValue? PointNameValue = null,
     SdkVectorValue? VectorValue = null,
-    SdkToleranceVectorOptionsValue? ToleranceVectorOptionsValue = null);
-
+    SdkToleranceVectorOptionsValue? ToleranceVectorOptionsValue = null,
+    SdkCollectionInstrumentIdValue? CollectionInstrumentIdValue = null,
+    SdkCollectionInstrumentIdListValue? CollectionInstrumentIdListValue = null,
+    SdkCollectionMachineIdValue? CollectionMachineIdValue = null,
+    SdkCollectionObjectNameValue? CollectionObjectNameValue = null,
+    SdkCollectionObjectNameListValue? CollectionObjectNameListValue = null,
+    SdkCollectionGroupNameListValue? CollectionGroupNameListValue = null,
+    SdkCollectionVectorGroupNameValue? CollectionVectorGroupNameValue = null,
+    SdkCollectionVectorGroupNameListValue? CollectionVectorGroupNameListValue = null,
+    SdkPointNameListValue? PointNameListValue = null,
+    SdkStringListValue? StringListValue = null,
+    SdkVectorNameListValue? VectorNameListValue = null);
 internal sealed class SdkCommand
 {
     public SdkCommand(string operationId)
@@ -155,8 +235,9 @@ internal sealed class SdkCommand
 }
 
 internal sealed record SdkMpResult(
+    bool Retrieved,
     bool Succeeded,
-    int ResultCode,
+    int? ResultCode,
     string? DiagnosticCode);
 
 internal sealed record SdkExecutionResult(

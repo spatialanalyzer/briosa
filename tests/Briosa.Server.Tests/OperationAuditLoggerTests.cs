@@ -23,8 +23,9 @@ public sealed class OperationAuditLoggerTests
             WorkerExecutionStatus.Completed,
             new WorkerMpExecutionResult(
                 ExecuteStepReturned: true,
+                MpResultRetrieved: true,
                 MpSucceeded: true,
-                MpResultCode: 0,
+                MpResultCode: 2,
                 DurationMilliseconds: 12,
                 OutputValues:
                 [
@@ -67,8 +68,9 @@ public sealed class OperationAuditLoggerTests
             WorkerExecutionStatus.Completed,
             new WorkerMpExecutionResult(
                 ExecuteStepReturned: true,
+                MpResultRetrieved: true,
                 MpSucceeded: false,
-                MpResultCode: 42,
+                MpResultCode: 3,
                 DurationMilliseconds: 9,
                 OutputValues:
                 [

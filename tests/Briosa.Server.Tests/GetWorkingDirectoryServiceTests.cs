@@ -31,7 +31,7 @@ public sealed class GetWorkingDirectoryServiceTests
         Assert.NotNull(result.Execution);
         Assert.Equal(MpExecutionState.Succeeded, result.Execution.State);
         Assert.True(result.Execution.HasMpResultCode);
-        Assert.Equal(0, result.Execution.MpResultCode);
+        Assert.Equal(2, result.Execution.MpResultCode);
         Assert.Equal(
             OutputRetrievalState.Retrieved,
             Assert.Single(result.Execution.OutputRetrievals).State);
@@ -54,8 +54,9 @@ public sealed class GetWorkingDirectoryServiceTests
             WorkerExecutionStatus.Completed,
             new WorkerMpExecutionResult(
                 ExecuteStepReturned: true,
+                MpResultRetrieved: true,
                 MpSucceeded: false,
-                MpResultCode: 42,
+                MpResultCode: 3,
                 DurationMilliseconds: 7,
                 OutputValues: [],
                 "mp-command-failed"),
@@ -72,7 +73,7 @@ public sealed class GetWorkingDirectoryServiceTests
         Assert.Equal(
             "mp-command-failed",
             Trailer(exception, "briosa-diagnostic-code"));
-        Assert.Equal("42", Trailer(exception, "briosa-mp-result-code"));
+        Assert.Equal("3", Trailer(exception, "briosa-mp-result-code"));
         Assert.Empty(executor.Command!.InputArguments);
     }
 
@@ -183,8 +184,9 @@ public sealed class GetWorkingDirectoryServiceTests
             WorkerExecutionStatus.Completed,
             new WorkerMpExecutionResult(
                 ExecuteStepReturned: true,
+                MpResultRetrieved: true,
                 MpSucceeded: true,
-                MpResultCode: 0,
+                MpResultCode: 2,
                 DurationMilliseconds: 5,
                 OutputValues: [output],
                 diagnosticCode),

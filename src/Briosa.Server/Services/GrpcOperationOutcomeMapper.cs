@@ -63,6 +63,26 @@ internal static class GrpcOperationOutcomeMapper
                 "SpatialAnalyzer rejected the MP execution request.");
         }
 
+        if (!execution.MpResultRetrieved)
+        {
+            var details = CreateMpDetails(
+                execution,
+                outputs,
+                MpExecutionState.ResultUnavailable,
+                OutputRetrievalState.NotAttempted);
+            throw CreateFailure(
+                StatusCode.Internal,
+                operationId,
+                OperationFailureKind.MpResultRetrievalFailure,
+                NormalizeDiagnosticCode(
+                    execution.DiagnosticCode,
+                    "sdk-mp-result-retrieval-failed"),
+                RetryGuidance.DoNotRetry,
+                outcome.Generation,
+                details,
+                "SpatialAnalyzer did not return the MP execution result.");
+        }
+
         if (!execution.MpSucceeded)
         {
             var details = CreateMpDetails(
@@ -281,9 +301,12 @@ internal static class GrpcOperationOutcomeMapper
     {
         var details = new MpExecutionDetails
         {
-            State = state,
-            MpResultCode = execution.MpResultCode
+            State = state
         };
+        if (execution.MpResultCode is { } resultCode)
+        {
+            details.MpResultCode = resultCode;
+        }
         details.OutputRetrievals.AddRange(outputs.Select(output =>
             new OutputRetrievalDetails
             {
@@ -299,9 +322,12 @@ internal static class GrpcOperationOutcomeMapper
     {
         var details = new MpExecutionDetails
         {
-            State = MpExecutionState.Succeeded,
-            MpResultCode = execution.MpResultCode
+            State = MpExecutionState.Succeeded
         };
+        if (execution.MpResultCode is { } resultCode)
+        {
+            details.MpResultCode = resultCode;
+        }
         foreach (var output in outputs)
         {
             var value = execution.OutputValues.Single(candidate =>
@@ -342,11 +368,36 @@ internal static class GrpcOperationOutcomeMapper
             WorkerMpValueKind.Logical => value.BooleanValue.HasValue,
             WorkerMpValueKind.WholeNumber => value.IntegerValue.HasValue,
             WorkerMpValueKind.FloatingPoint => value.DoubleValue.HasValue,
-            WorkerMpValueKind.Text => value.StringValue is not null,
+            WorkerMpValueKind.Text or
+            WorkerMpValueKind.ChartName or
+            WorkerMpValueKind.CloudName or
+            WorkerMpValueKind.CollectionName or
+            WorkerMpValueKind.FrameName or
+            WorkerMpValueKind.VectorGroupName or
+            WorkerMpValueKind.ViewName => value.StringValue is not null,
             WorkerMpValueKind.PointName => value.PointNameValue is not null,
             WorkerMpValueKind.Vector => value.VectorValue is not null,
             WorkerMpValueKind.ToleranceVectorOptions =>
                 value.ToleranceVectorOptionsValue is not null,
+            WorkerMpValueKind.CollectionInstrumentId =>
+                value.CollectionInstrumentIdValue is not null,
+            WorkerMpValueKind.CollectionInstrumentIdList =>
+                value.CollectionInstrumentIdListValue is not null,
+            WorkerMpValueKind.CollectionMachineId =>
+                value.CollectionMachineIdValue is not null,
+            WorkerMpValueKind.CollectionObjectName =>
+                value.CollectionObjectNameValue is not null,
+            WorkerMpValueKind.CollectionObjectNameList =>
+                value.CollectionObjectNameListValue is not null,
+            WorkerMpValueKind.CollectionGroupNameList =>
+                value.CollectionGroupNameListValue is not null,
+            WorkerMpValueKind.CollectionVectorGroupName =>
+                value.CollectionVectorGroupNameValue is not null,
+            WorkerMpValueKind.CollectionVectorGroupNameList =>
+                value.CollectionVectorGroupNameListValue is not null,
+            WorkerMpValueKind.PointNameList => value.PointNameListValue is not null,
+            WorkerMpValueKind.StringList => value.StringListValue is not null,
+            WorkerMpValueKind.VectorNameList => value.VectorNameListValue is not null,
             _ => false
         };
 

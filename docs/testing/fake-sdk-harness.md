@@ -17,7 +17,8 @@ The reusable `Briosa.Worker.Testing` assembly provides deterministic scripts for
 | Behavior | Contract exercised |
 | --- | --- |
 | Success | Connected execution, a successful MP result, and typed result-only arguments |
-| MP failure | `ExecuteStep` may return true while the MP result reports failure |
+| MP-result retrieval failure | `GetMPStepResult` may return false, leaving no trustworthy numeric result |
+| MP failure | `ExecuteStep` may return true while a retrieved MP result code other than `2` reports failure |
 | Connection failure | `ConnectEx` availability and status remain distinct from command outcomes |
 | Delayed connection | Connecting state rejects work while concurrent callers share one adapter |
 | Bounded reconnect | Attempt exhaustion faults deterministically; a new explicit cycle has the same bound |
@@ -33,7 +34,7 @@ The watchdog and supervisor types in this test-support assembly remain lightweig
 
 ## Non-emulation statement
 
-The scripted fake is not an implementation, simulator, or behavioral model of SpatialAnalyzer. Its result codes, diagnostic codes, delays, failures, hangs, and crashes are invented test inputs. Passing these tests demonstrates Briosa behavior only at the contracts listed above.
+The scripted fake is not an implementation, simulator, or behavioral model of SpatialAnalyzer. It uses the documented MP result codes (`2` for success and `3` for failure), while its diagnostic codes, delays, failures, hangs, and crashes are controlled test inputs. Passing these tests demonstrates Briosa behavior only at the contracts listed above.
 
 Run the portable checks with:
 

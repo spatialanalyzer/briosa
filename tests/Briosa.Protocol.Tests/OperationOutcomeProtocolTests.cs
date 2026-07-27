@@ -28,7 +28,7 @@ public sealed partial class ProtocolSchemaTests
             Execution = new MpExecutionDetails
             {
                 State = MpExecutionState.Succeeded,
-                MpResultCode = 0
+                MpResultCode = 2
             }
         };
         result.Execution.OutputRetrievals.Add(new OutputRetrievalDetails
@@ -62,7 +62,7 @@ public sealed partial class ProtocolSchemaTests
             MpExecution = new MpExecutionDetails
             {
                 State = MpExecutionState.Succeeded,
-                MpResultCode = 0
+                MpResultCode = 2
             }
         };
         error.MpExecution.OutputRetrievals.Add(new OutputRetrievalDetails

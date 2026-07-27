@@ -223,7 +223,21 @@ internal static class CommandCatalogGenerator
         argument.Direction is "output" or "input_output";
 
     private static bool IsMessageType(string semanticType) =>
-        semanticType is "point_name" or "vector" or "tolerance_vector_options";
+        semanticType is
+            "point_name" or
+            "vector" or
+            "tolerance_vector_options" or
+            "collection_group_name_list" or
+            "collection_instrument_id" or
+            "collection_instrument_id_list" or
+            "collection_machine_id" or
+            "collection_object_name" or
+            "collection_object_name_list" or
+            "collection_vector_group_name" or
+            "collection_vector_group_name_list" or
+            "point_name_list" or
+            "string_list" or
+            "vector_name_list";
 
     private static string ToProtoType(string semanticType) =>
         semanticType switch
@@ -231,26 +245,29 @@ internal static class CommandCatalogGenerator
             "logical" => "bool",
             "whole_number" => "int32",
             "floating_point" => "double",
-            "string" => "string",
+            "string" or
+            "chart_name" or
+            "cloud_name" or
+            "collection_name" or
+            "frame_name" or
+            "vector_group_name" or
+            "view_name" => "string",
             "point_name" => "PointName",
             "vector" => "Vector3",
             "tolerance_vector_options" => "ToleranceVectorOptions",
+            "collection_group_name_list" => "CollectionGroupNameList",
+            "collection_instrument_id" => "CollectionInstrumentId",
+            "collection_instrument_id_list" => "CollectionInstrumentIdList",
+            "collection_machine_id" => "CollectionMachineId",
+            "collection_object_name" => "CollectionObjectName",
+            "collection_object_name_list" => "CollectionObjectNameList",
+            "collection_vector_group_name" => "CollectionVectorGroupName",
+            "collection_vector_group_name_list" => "CollectionVectorGroupNameList",
+            "point_name_list" => "PointNameList",
+            "string_list" => "StringList",
+            "vector_name_list" => "VectorNameList",
             _ => throw new NotSupportedException(
                 $"Semantic type '{semanticType}' has no protobuf mapping.")
-        };
-
-    private static string ToWorkerValueKind(string semanticType) =>
-        semanticType switch
-        {
-            "logical" => "Logical",
-            "whole_number" => "WholeNumber",
-            "floating_point" => "FloatingPoint",
-            "string" => "Text",
-            "point_name" => "PointName",
-            "vector" => "Vector",
-            "tolerance_vector_options" => "ToleranceVectorOptions",
-            _ => throw new NotSupportedException(
-                $"Semantic type '{semanticType}' has no worker value mapping.")
         };
 
     private static string ToCSharpNamespace(string package)

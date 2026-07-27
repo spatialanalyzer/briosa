@@ -168,11 +168,36 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
             WorkerMpValueKind.Logical => argument.BooleanValue.HasValue,
             WorkerMpValueKind.WholeNumber => argument.IntegerValue.HasValue,
             WorkerMpValueKind.FloatingPoint => argument.DoubleValue.HasValue,
-            WorkerMpValueKind.Text => argument.StringValue is not null,
+            WorkerMpValueKind.Text or
+            WorkerMpValueKind.ChartName or
+            WorkerMpValueKind.CloudName or
+            WorkerMpValueKind.CollectionName or
+            WorkerMpValueKind.FrameName or
+            WorkerMpValueKind.VectorGroupName or
+            WorkerMpValueKind.ViewName => argument.StringValue is not null,
             WorkerMpValueKind.PointName => IsValid(argument.PointNameValue),
             WorkerMpValueKind.Vector => argument.VectorValue is not null,
             WorkerMpValueKind.ToleranceVectorOptions =>
                 IsValid(argument.ToleranceVectorOptionsValue),
+            WorkerMpValueKind.CollectionInstrumentId =>
+                IsValid(argument.CollectionInstrumentIdValue),
+            WorkerMpValueKind.CollectionInstrumentIdList =>
+                IsValid(argument.CollectionInstrumentIdListValue),
+            WorkerMpValueKind.CollectionMachineId =>
+                IsValid(argument.CollectionMachineIdValue),
+            WorkerMpValueKind.CollectionObjectName =>
+                IsValid(argument.CollectionObjectNameValue),
+            WorkerMpValueKind.CollectionObjectNameList =>
+                IsValid(argument.CollectionObjectNameListValue),
+            WorkerMpValueKind.CollectionGroupNameList =>
+                IsValid(argument.CollectionGroupNameListValue),
+            WorkerMpValueKind.CollectionVectorGroupName =>
+                IsValid(argument.CollectionVectorGroupNameValue),
+            WorkerMpValueKind.CollectionVectorGroupNameList =>
+                IsValid(argument.CollectionVectorGroupNameListValue),
+            WorkerMpValueKind.PointNameList => IsValid(argument.PointNameListValue),
+            WorkerMpValueKind.StringList => IsValid(argument.StringListValue),
+            WorkerMpValueKind.VectorNameList => IsValid(argument.VectorNameListValue),
             _ => false
         };
 
@@ -183,11 +208,36 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
             WorkerMpValueKind.Logical => output.BooleanValue.HasValue,
             WorkerMpValueKind.WholeNumber => output.IntegerValue.HasValue,
             WorkerMpValueKind.FloatingPoint => output.DoubleValue.HasValue,
-            WorkerMpValueKind.Text => output.StringValue is not null,
+            WorkerMpValueKind.Text or
+            WorkerMpValueKind.ChartName or
+            WorkerMpValueKind.CloudName or
+            WorkerMpValueKind.CollectionName or
+            WorkerMpValueKind.FrameName or
+            WorkerMpValueKind.VectorGroupName or
+            WorkerMpValueKind.ViewName => output.StringValue is not null,
             WorkerMpValueKind.PointName => IsValid(output.PointNameValue),
             WorkerMpValueKind.Vector => output.VectorValue is not null,
             WorkerMpValueKind.ToleranceVectorOptions =>
                 IsValid(output.ToleranceVectorOptionsValue),
+            WorkerMpValueKind.CollectionInstrumentId =>
+                IsValid(output.CollectionInstrumentIdValue),
+            WorkerMpValueKind.CollectionInstrumentIdList =>
+                IsValid(output.CollectionInstrumentIdListValue),
+            WorkerMpValueKind.CollectionMachineId =>
+                IsValid(output.CollectionMachineIdValue),
+            WorkerMpValueKind.CollectionObjectName =>
+                IsValid(output.CollectionObjectNameValue),
+            WorkerMpValueKind.CollectionObjectNameList =>
+                IsValid(output.CollectionObjectNameListValue),
+            WorkerMpValueKind.CollectionGroupNameList =>
+                IsValid(output.CollectionGroupNameListValue),
+            WorkerMpValueKind.CollectionVectorGroupName =>
+                IsValid(output.CollectionVectorGroupNameValue),
+            WorkerMpValueKind.CollectionVectorGroupNameList =>
+                IsValid(output.CollectionVectorGroupNameListValue),
+            WorkerMpValueKind.PointNameList => IsValid(output.PointNameListValue),
+            WorkerMpValueKind.StringList => IsValid(output.StringListValue),
+            WorkerMpValueKind.VectorNameList => IsValid(output.VectorNameListValue),
             _ => false
         };
 
@@ -197,6 +247,50 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
         value.GroupName is not null &&
         value.TargetName is not null;
 
+    private static bool IsValid(WorkerCollectionInstrumentIdValue? value) =>
+        value is not null && value.CollectionName is not null;
+
+    private static bool IsValid(WorkerCollectionMachineIdValue? value) =>
+        value is not null && value.CollectionName is not null;
+
+    private static bool IsValid(WorkerCollectionObjectNameValue? value) =>
+        value is not null &&
+        value.CollectionName is not null &&
+        value.ObjectName is not null &&
+        value.ObjectType is not null;
+
+    private static bool IsValid(WorkerCollectionGroupNameValue? value) =>
+        value is not null && value.CollectionName is not null && value.GroupName is not null;
+
+    private static bool IsValid(WorkerCollectionVectorGroupNameValue? value) =>
+        value is not null && value.CollectionName is not null && value.VectorGroupName is not null;
+
+    private static bool IsValid(WorkerVectorNameValue? value) =>
+        value is not null &&
+        value.CollectionName is not null &&
+        value.GroupName is not null &&
+        value.VectorName is not null;
+
+    private static bool IsValid(WorkerCollectionInstrumentIdListValue? value) =>
+        value?.Values is not null && value.Values.All(IsValid);
+
+    private static bool IsValid(WorkerCollectionGroupNameListValue? value) =>
+        value?.Values is not null && value.Values.All(IsValid);
+
+    private static bool IsValid(WorkerCollectionObjectNameListValue? value) =>
+        value?.Values is not null && value.Values.All(IsValid);
+
+    private static bool IsValid(WorkerCollectionVectorGroupNameListValue? value) =>
+        value?.Values is not null && value.Values.All(IsValid);
+
+    private static bool IsValid(WorkerPointNameListValue? value) =>
+        value?.Values is not null && value.Values.All(IsValid);
+
+    private static bool IsValid(WorkerStringListValue? value) =>
+        value?.Values is not null && value.Values.All(item => item is not null);
+
+    private static bool IsValid(WorkerVectorNameListValue? value) =>
+        value?.Values is not null && value.Values.All(IsValid);
     private static bool IsValid(WorkerToleranceVectorOptionsValue? value) =>
         value is not null &&
         value.HighX is not null &&
@@ -217,6 +311,16 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
             response.Execution is { } execution &&
             (execution.DurationMilliseconds < 0 ||
                 execution.OutputValues is null ||
+                !execution.ExecuteStepReturned &&
+                    (execution.MpResultRetrieved ||
+                        execution.MpSucceeded ||
+                        execution.MpResultCode is not null) ||
+                execution.ExecuteStepReturned &&
+                    !execution.MpResultRetrieved &&
+                    (execution.MpSucceeded || execution.MpResultCode is not null) ||
+                execution.MpResultRetrieved && execution.MpResultCode is null ||
+                execution.MpSucceeded !=
+                    (execution.MpResultRetrieved && execution.MpResultCode == 2) ||
                 !execution.MpSucceeded && execution.OutputValues.Count != 0 ||
                 execution.OutputValues.Any(output =>
                     string.IsNullOrWhiteSpace(output.Name) ||

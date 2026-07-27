@@ -22,9 +22,16 @@ public sealed class CommandCatalogInputGenerationTests
             var manifest = JsonNode.Parse(File.ReadAllText(manifestPath))!.AsObject();
             manifest["operation_files"]!.AsArray().Add("operations/synthetic.all_types.json");
             File.WriteAllText(manifestPath, manifest.ToJsonString(JsonOptions));
+            var syntheticOperation = JsonNode.Parse(SyntheticOperation)!.AsObject();
+            var syntheticArguments = syntheticOperation["arguments"]!.AsArray();
+            foreach (var argument in JsonNode.Parse(IdentityReferenceArguments)!.AsArray())
+            {
+                syntheticArguments.Add(argument?.DeepClone());
+            }
+
             File.WriteAllText(
                 Path.Combine(targetRoot, "operations", "synthetic.all_types.json"),
-                SyntheticOperation);
+                syntheticOperation.ToJsonString(JsonOptions));
 
             _ = CommandCatalogGenerator.Generate(catalogRoot, outputRoot);
 
@@ -52,6 +59,33 @@ public sealed class CommandCatalogInputGenerationTests
             Assert.Contains("new TargetProtocol.Vector3", binding, StringComparison.Ordinal);
             Assert.Contains("new TargetProtocol.ToleranceVectorOptions", binding, StringComparison.Ordinal);
             Assert.Contains("Execution = completed.Details", binding, StringComparison.Ordinal);
+            Assert.Contains("SetChartNameArg", binding, StringComparison.Ordinal);
+            Assert.Contains("SetCloudNameArg", binding, StringComparison.Ordinal);
+            Assert.Contains("SetColInstIdArg", binding, StringComparison.Ordinal);
+            Assert.Contains("SetColInstIdRefListArg", binding, StringComparison.Ordinal);
+            Assert.Contains("SetColMachineIdArg", binding, StringComparison.Ordinal);
+            Assert.Contains("SetCollectionGroupNameRefListArg", binding, StringComparison.Ordinal);
+            Assert.Contains("SetCollectionNameArg", binding, StringComparison.Ordinal);
+            Assert.Contains("SetCollectionObjectNameArg2", binding, StringComparison.Ordinal);
+            Assert.Contains("SetCollectionObjectNameRefListArg", binding, StringComparison.Ordinal);
+            Assert.Contains("SetColVectorGroupNameArg", binding, StringComparison.Ordinal);
+            Assert.Contains("SetCollectionVectorGroupNameRefListArg", binding, StringComparison.Ordinal);
+            Assert.Contains("SetFrameNameArg", binding, StringComparison.Ordinal);
+            Assert.Contains("SetPointNameRefListArg", binding, StringComparison.Ordinal);
+            Assert.Contains("SetStringRefListArg", binding, StringComparison.Ordinal);
+            Assert.Contains("SetVectorGroupNameArg", binding, StringComparison.Ordinal);
+            Assert.Contains("SetVectorNameRefListArg", binding, StringComparison.Ordinal);
+            Assert.Contains("SetViewNameArg", binding, StringComparison.Ordinal);
+            Assert.Contains("GetCollectionObjectNameArg", binding, StringComparison.Ordinal);
+            Assert.Contains("GetVectorNameRefListArg", binding, StringComparison.Ordinal);
+            Assert.Contains("WorkerMpValueKind.CollectionMachineId", binding, StringComparison.Ordinal);
+            Assert.Contains("new TargetProtocol.CollectionInstrumentIdList", binding, StringComparison.Ordinal);
+            Assert.Contains("new TargetProtocol.CollectionObjectNameList", binding, StringComparison.Ordinal);
+            Assert.Contains("new TargetProtocol.PointNameList", binding, StringComparison.Ordinal);
+            Assert.Contains("new TargetProtocol.StringList", binding, StringComparison.Ordinal);
+            Assert.Contains("new TargetProtocol.VectorNameList", binding, StringComparison.Ordinal);
+            Assert.Contains("!item.HasName", binding, StringComparison.Ordinal);
+            Assert.Contains("Name = value.VectorName", binding, StringComparison.Ordinal);
 
             var coverage = File.ReadAllText(Path.Combine(
                 outputRoot,
@@ -108,6 +142,27 @@ public sealed class CommandCatalogInputGenerationTests
         WriteIndented = true
     };
 
+    private const string IdentityReferenceArguments = """
+        [
+          { "argument_id": "chart", "ordinal": 10, "mp_name": "Chart", "direction": "input", "result_only": "no", "semantic_type": "chart_name", "data_classification": "object_identifier", "input": { "presence": "required", "omission_behavior": "reject_request", "default": { "status": "none" } }, "sdk_binding": { "status": "available", "setter": "SetChartNameArg", "getter": null }, "documentation": "Chart name." },
+          { "argument_id": "cloud", "ordinal": 11, "mp_name": "Cloud", "direction": "input", "result_only": "no", "semantic_type": "cloud_name", "data_classification": "object_identifier", "input": { "presence": "required", "omission_behavior": "reject_request", "default": { "status": "none" } }, "sdk_binding": { "status": "available", "setter": "SetCloudNameArg", "getter": null }, "documentation": "Cloud name." },
+          { "argument_id": "instrument", "ordinal": 12, "mp_name": "Instrument", "direction": "input_output", "result_only": "no", "semantic_type": "collection_instrument_id", "data_classification": "object_identifier", "input": { "presence": "required", "omission_behavior": "reject_request", "default": { "status": "none" } }, "sdk_binding": { "status": "available", "setter": "SetColInstIdArg", "getter": "GetColInstIdArg" }, "documentation": "Instrument identifier." },
+          { "argument_id": "instruments", "ordinal": 13, "mp_name": "Instruments", "direction": "input_output", "result_only": "no", "semantic_type": "collection_instrument_id_list", "data_classification": "object_identifier", "input": { "presence": "required", "omission_behavior": "reject_request", "default": { "status": "none" } }, "sdk_binding": { "status": "available", "setter": "SetColInstIdRefListArg", "getter": "GetColInstIdRefListArg" }, "documentation": "Instrument identifiers." },
+          { "argument_id": "machine", "ordinal": 14, "mp_name": "Machine", "direction": "input", "result_only": "no", "semantic_type": "collection_machine_id", "data_classification": "object_identifier", "input": { "presence": "required", "omission_behavior": "reject_request", "default": { "status": "none" } }, "sdk_binding": { "status": "available", "setter": "SetColMachineIdArg", "getter": null }, "documentation": "Machine identifier." },
+          { "argument_id": "groups", "ordinal": 15, "mp_name": "Groups", "direction": "input", "result_only": "no", "semantic_type": "collection_group_name_list", "data_classification": "object_identifier", "input": { "presence": "required", "omission_behavior": "reject_request", "default": { "status": "none" } }, "sdk_binding": { "status": "available", "setter": "SetCollectionGroupNameRefListArg", "getter": null }, "documentation": "Group names." },
+          { "argument_id": "collection", "ordinal": 16, "mp_name": "Collection", "direction": "input_output", "result_only": "no", "semantic_type": "collection_name", "data_classification": "object_identifier", "input": { "presence": "required", "omission_behavior": "reject_request", "default": { "status": "none" } }, "sdk_binding": { "status": "available", "setter": "SetCollectionNameArg", "getter": "GetCollectionNameArg" }, "documentation": "Collection name." },
+          { "argument_id": "object", "ordinal": 17, "mp_name": "Object", "direction": "input_output", "result_only": "no", "semantic_type": "collection_object_name", "data_classification": "object_identifier", "input": { "presence": "required", "omission_behavior": "reject_request", "default": { "status": "none" } }, "sdk_binding": { "status": "available", "setter": "SetCollectionObjectNameArg2", "getter": "GetCollectionObjectNameArg" }, "documentation": "Object name." },
+          { "argument_id": "objects", "ordinal": 18, "mp_name": "Objects", "direction": "input_output", "result_only": "no", "semantic_type": "collection_object_name_list", "data_classification": "object_identifier", "input": { "presence": "required", "omission_behavior": "reject_request", "default": { "status": "none" } }, "sdk_binding": { "status": "available", "setter": "SetCollectionObjectNameRefListArg", "getter": "GetCollectionObjectNameRefListArg" }, "documentation": "Object names." },
+          { "argument_id": "collection_vector_group", "ordinal": 19, "mp_name": "Vector Group", "direction": "input", "result_only": "no", "semantic_type": "collection_vector_group_name", "data_classification": "object_identifier", "input": { "presence": "required", "omission_behavior": "reject_request", "default": { "status": "none" } }, "sdk_binding": { "status": "available", "setter": "SetColVectorGroupNameArg", "getter": null }, "documentation": "Collection vector group." },
+          { "argument_id": "collection_vector_groups", "ordinal": 20, "mp_name": "Vector Groups", "direction": "input", "result_only": "no", "semantic_type": "collection_vector_group_name_list", "data_classification": "object_identifier", "input": { "presence": "required", "omission_behavior": "reject_request", "default": { "status": "none" } }, "sdk_binding": { "status": "available", "setter": "SetCollectionVectorGroupNameRefListArg", "getter": null }, "documentation": "Collection vector groups." },
+          { "argument_id": "frame", "ordinal": 21, "mp_name": "Frame", "direction": "input", "result_only": "no", "semantic_type": "frame_name", "data_classification": "object_identifier", "input": { "presence": "required", "omission_behavior": "reject_request", "default": { "status": "none" } }, "sdk_binding": { "status": "available", "setter": "SetFrameNameArg", "getter": null }, "documentation": "Frame name." },
+          { "argument_id": "points", "ordinal": 22, "mp_name": "Points", "direction": "input_output", "result_only": "no", "semantic_type": "point_name_list", "data_classification": "object_identifier", "input": { "presence": "required", "omission_behavior": "reject_request", "default": { "status": "none" } }, "sdk_binding": { "status": "available", "setter": "SetPointNameRefListArg", "getter": "GetPointNameRefListArg" }, "documentation": "Point names." },
+          { "argument_id": "strings", "ordinal": 23, "mp_name": "Strings", "direction": "input_output", "result_only": "no", "semantic_type": "string_list", "data_classification": "proprietary", "input": { "presence": "required", "omission_behavior": "reject_request", "default": { "status": "none" } }, "sdk_binding": { "status": "available", "setter": "SetStringRefListArg", "getter": "GetStringRefListArg" }, "documentation": "Strings." },
+          { "argument_id": "vector_group", "ordinal": 24, "mp_name": "Vector Group Name", "direction": "input", "result_only": "no", "semantic_type": "vector_group_name", "data_classification": "object_identifier", "input": { "presence": "required", "omission_behavior": "reject_request", "default": { "status": "none" } }, "sdk_binding": { "status": "available", "setter": "SetVectorGroupNameArg", "getter": null }, "documentation": "Vector group name." },
+          { "argument_id": "vectors", "ordinal": 25, "mp_name": "Vectors", "direction": "input_output", "result_only": "no", "semantic_type": "vector_name_list", "data_classification": "object_identifier", "input": { "presence": "required", "omission_behavior": "reject_request", "default": { "status": "none" } }, "sdk_binding": { "status": "available", "setter": "SetVectorNameRefListArg", "getter": "GetVectorNameRefListArg" }, "documentation": "Vector names." },
+          { "argument_id": "view", "ordinal": 26, "mp_name": "View", "direction": "input", "result_only": "no", "semantic_type": "view_name", "data_classification": "object_identifier", "input": { "presence": "required", "omission_behavior": "reject_request", "default": { "status": "none" } }, "sdk_binding": { "status": "available", "setter": "SetViewNameArg", "getter": null }, "documentation": "View name." }
+        ]
+        """;
     private const string SyntheticOperation = """
         {
           "$schema": "../../../schemas/v1/operation.schema.json",

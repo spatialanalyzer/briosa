@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using Briosa.Core.V1Alpha1;
+using Google.Protobuf;
 using TargetProtocol = Briosa.Sa.V2026_1_0529_7.V1Alpha1;
 
 namespace Briosa.Protocol.Tests;
@@ -39,6 +40,72 @@ public sealed partial class ProtocolSchemaTests
         Assert.False(limit.HasValue);
     }
 
+    [Fact]
+    public void IdentityAndReferenceMessagesPreservePresenceOrderAndEmptyLists()
+    {
+        var objects = new TargetProtocol.CollectionObjectNameList();
+        objects.Values.Add(new TargetProtocol.CollectionObjectName
+        {
+            CollectionName = "Collection",
+            ObjectName = "Object",
+            ObjectType = "Point Group"
+        });
+        var points = new TargetProtocol.PointNameList();
+        points.Values.Add(new TargetProtocol.PointName
+        {
+            CollectionName = "Collection",
+            GroupName = "Group",
+            TargetName = "Point A"
+        });
+        points.Values.Add(new TargetProtocol.PointName
+        {
+            CollectionName = "Collection",
+            GroupName = "Group",
+            TargetName = ""
+        });
+
+        var objectRoundTrip = TargetProtocol.CollectionObjectNameList.Parser.ParseFrom(
+            objects.ToByteArray());
+        var pointRoundTrip = TargetProtocol.PointNameList.Parser.ParseFrom(
+            points.ToByteArray());
+        var vectors = new TargetProtocol.VectorNameList();
+        vectors.Values.Add(new TargetProtocol.VectorName
+        {
+            CollectionName = "Collection",
+            GroupName = "Vectors",
+            Name = "Vector A"
+        });
+        var vectorRoundTrip = TargetProtocol.VectorNameList.Parser.ParseFrom(
+            vectors.ToByteArray());
+        var emptyRoundTrip = TargetProtocol.StringList.Parser.ParseFrom(
+            new TargetProtocol.StringList().ToByteArray());
+
+        Assert.Equal("Point Group", Assert.Single(objectRoundTrip.Values).ObjectType);
+        Assert.Equal(["Point A", ""], pointRoundTrip.Values.Select(value => value.TargetName));
+        Assert.Equal("Vector A", Assert.Single(vectorRoundTrip.Values).Name);
+        Assert.Empty(emptyRoundTrip.Values);
+    }
+
+    [Fact]
+    public void CollectionObjectPreservesAllRequiredComponents()
+    {
+        var value = new TargetProtocol.CollectionObjectName
+        {
+            CollectionName = "Collection",
+            ObjectName = "Object",
+            ObjectType = "Point Group"
+        };
+
+        var roundTrip = TargetProtocol.CollectionObjectName.Parser.ParseFrom(value.ToByteArray());
+
+        Assert.True(roundTrip.HasCollectionName);
+        Assert.True(roundTrip.HasObjectName);
+        Assert.True(roundTrip.HasObjectType);
+        Assert.Equal("Point Group", roundTrip.ObjectType);
+        Assert.NotEqual(
+            TargetProtocol.CollectionInstrumentId.Descriptor.FullName,
+            TargetProtocol.CollectionMachineId.Descriptor.FullName);
+    }
     [Fact]
     public void SchemaPackagesMatchTheirDirectories()
     {

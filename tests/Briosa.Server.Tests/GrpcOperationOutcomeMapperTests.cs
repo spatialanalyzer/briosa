@@ -172,11 +172,48 @@ public sealed class GrpcOperationOutcomeMapperTests
         Assert.Equal(expectedKind, error.Kind);
         Assert.NotNull(error.MpExecution);
         Assert.Equal(expectedState, error.MpExecution.State);
-        Assert.True(error.MpExecution.HasMpResultCode);
-        Assert.Equal(42, error.MpExecution.MpResultCode);
+        Assert.Equal(executeStepReturned, error.MpExecution.HasMpResultCode);
+        if (executeStepReturned)
+        {
+            Assert.Equal(3, error.MpExecution.MpResultCode);
+        }
         var retrieval = Assert.Single(error.MpExecution.OutputRetrievals);
         Assert.Equal("directory", retrieval.FieldName);
         Assert.Equal(OutputRetrievalState.NotAttempted, retrieval.State);
+    }
+
+    [Fact]
+    public void MpResultRetrievalFailureIsExplicitAndHasNoResultCode()
+    {
+        var outcome = new WorkerExecutionOutcome(
+            WorkerExecutionStatus.Completed,
+            new WorkerMpExecutionResult(
+                ExecuteStepReturned: true,
+                MpResultRetrieved: false,
+                MpSucceeded: false,
+                MpResultCode: null,
+                DurationMilliseconds: 5,
+                OutputValues: [],
+                DiagnosticCode: "sdk-mp-result-retrieval-failed"),
+            Connection(WorkerConnectionState.Connected),
+            "sdk-mp-result-retrieval-failed",
+            Generation: 7);
+
+        var exception = Assert.Throws<RpcException>(() =>
+            GrpcOperationOutcomeMapper.RequireSuccess(
+                outcome,
+                OperationId,
+                Outputs,
+                callerDeadlineExceeded: false));
+        var error = Error(exception);
+
+        Assert.Equal(StatusCode.Internal, exception.StatusCode);
+        Assert.Equal(OperationFailureKind.MpResultRetrievalFailure, error.Kind);
+        Assert.Equal(MpExecutionState.ResultUnavailable, error.MpExecution.State);
+        Assert.False(error.MpExecution.HasMpResultCode);
+        Assert.Equal(
+            OutputRetrievalState.NotAttempted,
+            Assert.Single(error.MpExecution.OutputRetrievals).State);
     }
 
     [Fact]
@@ -236,7 +273,7 @@ public sealed class GrpcOperationOutcomeMapperTests
         Assert.Same(output, Assert.Single(result.Execution.OutputValues));
         Assert.Equal(MpExecutionState.Succeeded, result.Details.State);
         Assert.True(result.Details.HasMpResultCode);
-        Assert.Equal(42, result.Details.MpResultCode);
+        Assert.Equal(2, result.Details.MpResultCode);
         Assert.Equal(
             OutputRetrievalState.Retrieved,
             Assert.Single(result.Details.OutputRetrievals).State);
@@ -271,8 +308,9 @@ public sealed class GrpcOperationOutcomeMapperTests
             WorkerExecutionStatus.Completed,
             new WorkerMpExecutionResult(
                 executeStepReturned,
-                mpSucceeded,
-                MpResultCode: 42,
+                MpResultRetrieved: executeStepReturned,
+                MpSucceeded: executeStepReturned && mpSucceeded,
+                MpResultCode: executeStepReturned ? (mpSucceeded ? 2 : 3) : null,
                 DurationMilliseconds: 5,
                 outputs,
                 diagnosticCode),

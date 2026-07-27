@@ -210,13 +210,13 @@ internal sealed class ScriptedSdkPlan
             return execution.Kind == ScriptedExecutionKind.MpFailure
                 ? new SdkExecutionResult(
                     ExecuteStepReturned: true,
-                    new SdkMpResult(false, 42, "scripted-mp-failure"),
+                    new SdkMpResult(true, false, 3, "scripted-mp-failure"),
                     TimeSpan.FromMilliseconds(7),
                     OutputValues: [],
                     "scripted-mp-failure")
                 : new SdkExecutionResult(
                     ExecuteStepReturned: true,
-                    new SdkMpResult(true, 0, null),
+                    new SdkMpResult(true, true, 2, null),
                     TimeSpan.FromMilliseconds(5),
                     OutputValues: [],
                     DiagnosticCode: null);
