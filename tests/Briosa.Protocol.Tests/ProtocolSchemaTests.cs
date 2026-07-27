@@ -87,6 +87,60 @@ public sealed partial class ProtocolSchemaTests
     }
 
     [Fact]
+    public void ContainerValuesRoundTripWithoutComShapes()
+    {
+        var world = new TargetProtocol.WorldTransform
+        {
+            Transform = new TargetProtocol.Transform
+            {
+                Values = { Enumerable.Range(0, 16).Select(value => (double)value) }
+            },
+            ScaleFactor = 0
+        };
+        var file = new TargetProtocol.FileReference
+        {
+            Path = "",
+            EmbeddedFile = false
+        };
+        var font = new TargetProtocol.Font
+        {
+            FontName = "Segoe UI",
+            Size = 255,
+            Color = new TargetProtocol.RgbColor
+            {
+                Red = 0,
+                Green = 127,
+                Blue = 255
+            }
+        };
+
+        var worldRoundTrip = TargetProtocol.WorldTransform.Parser.ParseFrom(
+            world.ToByteArray());
+        var fileRoundTrip = TargetProtocol.FileReference.Parser.ParseFrom(
+            file.ToByteArray());
+        var fontRoundTrip = TargetProtocol.Font.Parser.ParseFrom(
+            font.ToByteArray());
+        var emptyArrayRoundTrip = TargetProtocol.DoubleArray.Parser.ParseFrom(
+            new TargetProtocol.DoubleArray().ToByteArray());
+
+        Assert.Equal(16, worldRoundTrip.Transform.Values.Count);
+        Assert.Equal(15d, worldRoundTrip.Transform.Values[15]);
+        Assert.True(worldRoundTrip.HasScaleFactor);
+        Assert.Equal(0d, worldRoundTrip.ScaleFactor);
+        Assert.True(fileRoundTrip.HasPath);
+        Assert.Equal("", fileRoundTrip.Path);
+        Assert.True(fileRoundTrip.HasEmbeddedFile);
+        Assert.False(fileRoundTrip.EmbeddedFile);
+        Assert.True(fontRoundTrip.HasSize);
+        Assert.Equal(255u, fontRoundTrip.Size);
+        Assert.Equal(255u, fontRoundTrip.Color.Blue);
+        Assert.Empty(emptyArrayRoundTrip.Values);
+        Assert.Equal(2, (int)TargetProtocol.AngularUnit.DegreesMinutesSeconds);
+        Assert.Equal(6, (int)TargetProtocol.DistanceUnit.UsSurveyFeet);
+        Assert.Equal(2, (int)TargetProtocol.TemperatureUnit.Celsius);
+    }
+
+    [Fact]
     public void CollectionObjectPreservesAllRequiredComponents()
     {
         var value = new TargetProtocol.CollectionObjectName

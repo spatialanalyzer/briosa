@@ -20,7 +20,7 @@
   },
   "review": {
     "path": "review.json",
-    "sha256": "90489c3ac65bebbf0f4f2d36c478097051b7eef8dc68651a77deb4b540531d94"
+    "sha256": "b52a6b198bc6e8beccf8bcd47c17c7150f02447fd214b03234bc2a0b137d30e2"
   },
   "value_families": [
     {
@@ -31,7 +31,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "SetAngularUnitsArg"
       ]
@@ -435,7 +435,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "SetDistanceUnitsArg"
       ]
@@ -449,7 +449,7 @@
         "getter",
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "GetDoubleArrayArg",
         "SetDoubleArrayArg"
@@ -542,7 +542,7 @@
         "getter",
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "GetEditTextArg",
         "SetEditTextArg"
@@ -596,7 +596,7 @@
         "getter",
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "GetFilePathArg",
         "SetFilePathArg"
@@ -666,7 +666,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "SetFontTypeArg"
       ]
@@ -1141,7 +1141,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "SetColorArg"
       ]
@@ -1314,7 +1314,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "SetTemperatureUnitsArg"
       ]
@@ -1358,7 +1358,7 @@
         "getter",
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "GetTransformArg",
         "SetTransformArg"
@@ -1526,7 +1526,7 @@
         "getter",
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "GetWorldTransformArg",
         "SetWorldTransformArg"
@@ -1647,7 +1647,8 @@
       "rationale": "The binding is observed only on commands intentionally excluded from Briosa.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -1769,7 +1770,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -1813,7 +1815,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -1857,7 +1860,8 @@
       "rationale": "The method is exposed by the exact-target interop API but was not observed in the extracted command evidence.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -1901,7 +1905,8 @@
       "rationale": "The method is exposed by the exact-target interop API but was not observed in the extracted command evidence.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -1951,7 +1956,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -1995,7 +2001,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -2045,7 +2052,8 @@
       "rationale": "The binding is observed only on commands intentionally excluded from Briosa.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -2095,7 +2103,8 @@
       "rationale": "The method is exposed by the exact-target interop API but was not observed in the extracted command evidence.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -2139,7 +2148,8 @@
       "rationale": "The method is exposed by the exact-target interop API but was not observed in the extracted command evidence.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -2183,7 +2193,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -2233,7 +2244,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -2277,7 +2289,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -2321,7 +2334,8 @@
       "rationale": "The binding is observed only on commands intentionally excluded from Briosa.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -2365,7 +2379,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -2376,11 +2391,11 @@
       "registry_status": "usable",
       "semantic_value_family": "double_array",
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -2415,7 +2430,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -2426,11 +2442,11 @@
       "registry_status": "usable",
       "semantic_value_family": "edit_text",
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -2459,7 +2475,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -2470,11 +2487,11 @@
       "registry_status": "usable",
       "semantic_value_family": "file_reference",
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -2509,7 +2526,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -2571,7 +2589,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -2615,7 +2634,8 @@
       "rationale": "The method is exposed by the exact-target interop API but was not observed in the extracted command evidence.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -2659,7 +2679,8 @@
       "rationale": "The method is exposed by the exact-target interop API but was not observed in the extracted command evidence.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -2703,7 +2724,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -2747,7 +2769,8 @@
       "rationale": "The method is exposed by the exact-target interop API but was not observed in the extracted command evidence.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -2791,7 +2814,8 @@
       "rationale": "The method is exposed by the exact-target interop API but was not observed in the extracted command evidence.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -2847,7 +2871,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -2891,7 +2916,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -2941,7 +2967,8 @@
       "rationale": "The binding is observed only on commands intentionally excluded from Briosa.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -2997,7 +3024,8 @@
       "rationale": "The binding is observed only on commands intentionally excluded from Briosa.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -3041,7 +3069,8 @@
       "rationale": "The method is exposed by the exact-target interop API but was not observed in the extracted command evidence.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -3069,7 +3098,8 @@
       "rationale": "The binding is emitted by exact-target View SDK Code but is absent from the committed exact-target interop API.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": [
         "https://github.com/spatialanalyzer/briosa/issues/79"
@@ -3115,7 +3145,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -3159,7 +3190,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -3221,7 +3253,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -3355,7 +3388,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -3366,11 +3400,11 @@
       "registry_status": "usable",
       "semantic_value_family": "transform",
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -3399,7 +3433,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -3455,7 +3490,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -3499,7 +3535,8 @@
       "rationale": "The method is exposed by the exact-target interop API but was not observed in the extracted command evidence.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -3543,7 +3580,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -3587,7 +3625,8 @@
       "rationale": "The method is exposed by the exact-target interop API but was not observed in the extracted command evidence.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -3598,11 +3637,11 @@
       "registry_status": "usable",
       "semantic_value_family": "world_transform",
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -3637,7 +3676,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -3648,11 +3688,11 @@
       "registry_status": "usable",
       "semantic_value_family": "angular_unit",
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -3681,7 +3721,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -3725,7 +3766,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -3829,7 +3871,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -3873,7 +3916,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -3995,7 +4039,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -4039,7 +4084,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -4083,7 +4129,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -4127,7 +4174,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -4171,7 +4219,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -4215,7 +4264,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -4259,7 +4309,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -4287,7 +4338,8 @@
       "rationale": "The binding is emitted by exact-target View SDK Code but is absent from the committed exact-target interop API.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": [
         "https://github.com/spatialanalyzer/briosa/issues/79"
@@ -4351,7 +4403,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -4401,7 +4454,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -4445,7 +4499,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -4495,7 +4550,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -4545,7 +4601,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -4589,7 +4646,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -4633,7 +4691,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -4683,7 +4742,8 @@
       "rationale": "The method is exposed by the exact-target interop API but was not observed in the extracted command evidence.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -4739,7 +4799,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -4783,7 +4844,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -4827,7 +4889,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -4871,7 +4934,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -4915,7 +4979,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -4926,11 +4991,11 @@
       "registry_status": "usable",
       "semantic_value_family": "rgb_color",
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -4971,7 +5036,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -5015,7 +5081,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -5167,7 +5234,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -5211,7 +5279,8 @@
       "rationale": "The binding is observed only on commands intentionally excluded from Briosa.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -5255,7 +5324,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -5299,7 +5369,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -5343,7 +5414,8 @@
       "rationale": "The binding is observed only on commands intentionally excluded from Briosa.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -5354,11 +5426,11 @@
       "registry_status": "usable",
       "semantic_value_family": "distance_unit",
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -5387,7 +5459,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -5431,7 +5504,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -5442,11 +5516,11 @@
       "registry_status": "usable",
       "semantic_value_family": "double_array",
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -5481,7 +5555,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -5525,7 +5600,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -5569,7 +5645,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -5613,7 +5690,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -5657,7 +5735,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -5701,7 +5780,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -5745,7 +5825,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -5756,11 +5837,11 @@
       "registry_status": "usable",
       "semantic_value_family": "edit_text",
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -5789,7 +5870,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -5833,7 +5915,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -5877,7 +5960,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -5921,7 +6005,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -5932,11 +6017,11 @@
       "registry_status": "usable",
       "semantic_value_family": "file_reference",
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -5971,7 +6056,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -6033,7 +6119,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -6113,7 +6200,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -6157,7 +6245,8 @@
       "rationale": "The binding is observed only on commands intentionally excluded from Briosa.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -6168,11 +6257,11 @@
       "registry_status": "usable",
       "semantic_value_family": "font",
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -6225,7 +6314,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -6269,7 +6359,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -6313,7 +6404,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -6357,7 +6449,8 @@
       "rationale": "The method is exposed by the exact-target interop API but was not observed in the extracted command evidence.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -6401,7 +6494,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -6445,7 +6539,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -6473,7 +6568,8 @@
       "rationale": "The binding is emitted by exact-target View SDK Code but is absent from the committed exact-target interop API.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": [
         "https://github.com/spatialanalyzer/briosa/issues/79"
@@ -6519,7 +6615,8 @@
       "rationale": "The binding is observed only on commands intentionally excluded from Briosa.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -6563,7 +6660,8 @@
       "rationale": "The binding is observed only on commands intentionally excluded from Briosa.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -6591,7 +6689,8 @@
       "rationale": "The binding is emitted by exact-target View SDK Code but is absent from the committed exact-target interop API.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": [
         "https://github.com/spatialanalyzer/briosa/issues/79"
@@ -6621,7 +6720,8 @@
       "rationale": "The binding is emitted by exact-target View SDK Code but is absent from the committed exact-target interop API.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": [
         "https://github.com/spatialanalyzer/briosa/issues/79"
@@ -6667,7 +6767,8 @@
       "rationale": "The binding is observed only on commands intentionally excluded from Briosa.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -6711,7 +6812,8 @@
       "rationale": "The binding is observed only on commands intentionally excluded from Briosa.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -6755,7 +6857,8 @@
       "rationale": "The binding is observed only on commands intentionally excluded from Briosa.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -6799,7 +6902,8 @@
       "rationale": "The binding is observed only on commands intentionally excluded from Briosa.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -6827,7 +6931,8 @@
       "rationale": "The binding is emitted by exact-target View SDK Code but is absent from the committed exact-target interop API.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": [
         "https://github.com/spatialanalyzer/briosa/issues/79"
@@ -6873,7 +6978,8 @@
       "rationale": "The binding is observed only on commands intentionally excluded from Briosa.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -6917,7 +7023,8 @@
       "rationale": "The binding is observed only on commands intentionally excluded from Briosa.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -6961,7 +7068,8 @@
       "rationale": "The binding is observed only on commands intentionally excluded from Briosa.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -7005,7 +7113,8 @@
       "rationale": "The method is exposed by the exact-target interop API but was not observed in the extracted command evidence.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -7049,7 +7158,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -7093,7 +7203,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -7137,7 +7248,8 @@
       "rationale": "The method is exposed by the exact-target interop API but was not observed in the extracted command evidence.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -7247,7 +7359,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -7291,7 +7404,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -7347,7 +7461,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -7391,7 +7506,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -7465,7 +7581,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -7509,7 +7626,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -7553,7 +7671,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -7603,7 +7722,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -7647,7 +7767,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -7691,7 +7812,8 @@
       "rationale": "The method is exposed by the exact-target interop API but was not observed in the extracted command evidence.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -7747,7 +7869,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -7791,7 +7914,8 @@
       "rationale": "The binding is observed only on commands intentionally excluded from Briosa.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -7835,7 +7959,8 @@
       "rationale": "The binding is observed only on commands intentionally excluded from Briosa.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -7879,7 +8004,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -7923,7 +8049,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -7967,7 +8094,8 @@
       "rationale": "The binding is observed only on commands intentionally excluded from Briosa.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -8011,7 +8139,8 @@
       "rationale": "The binding is observed only on commands intentionally excluded from Briosa.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -8055,7 +8184,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -8099,7 +8229,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -8143,7 +8274,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -8187,7 +8319,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -8231,7 +8364,8 @@
       "rationale": "The binding is observed only on commands intentionally excluded from Briosa.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -8275,7 +8409,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -8286,11 +8421,11 @@
       "registry_status": "usable",
       "semantic_value_family": "temperature_unit",
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -8319,7 +8454,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -8381,7 +8517,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -8515,7 +8652,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -8526,11 +8664,11 @@
       "registry_status": "usable",
       "semantic_value_family": "transform",
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -8559,7 +8697,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -8603,7 +8742,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -8647,7 +8787,8 @@
       "rationale": "The binding is observed only on commands intentionally excluded from Briosa.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -8709,7 +8850,8 @@
       "rationale": "The binding is observed only on commands intentionally excluded from Briosa.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -8759,7 +8901,8 @@
       "rationale": "The method is exposed by the exact-target interop API but was not observed in the extracted command evidence.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -8815,7 +8958,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -8859,7 +9003,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -8903,7 +9048,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -8947,7 +9093,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -8991,7 +9138,8 @@
       "rationale": "The binding is observed only on commands intentionally excluded from Briosa.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -9035,7 +9183,8 @@
       "rationale": "The binding is observed only on commands intentionally excluded from Briosa.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -9046,11 +9195,11 @@
       "registry_status": "usable",
       "semantic_value_family": "world_transform",
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -9085,7 +9234,8 @@
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     },
@@ -9129,7 +9279,8 @@
       "rationale": "The binding is observed only on commands intentionally excluded from Briosa.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
-        "https://github.com/spatialanalyzer/briosa/issues/55"
+        "https://github.com/spatialanalyzer/briosa/issues/55",
+        "https://github.com/spatialanalyzer/briosa/issues/56"
       ],
       "blocker_references": []
     }

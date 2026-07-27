@@ -28,6 +28,10 @@ public sealed class CommandCatalogInputGenerationTests
             {
                 syntheticArguments.Add(argument?.DeepClone());
             }
+            foreach (var argument in JsonNode.Parse(ContainerValueArguments)!.AsArray())
+            {
+                syntheticArguments.Add(argument?.DeepClone());
+            }
 
             File.WriteAllText(
                 Path.Combine(targetRoot, "operations", "synthetic.all_types.json"),
@@ -86,6 +90,22 @@ public sealed class CommandCatalogInputGenerationTests
             Assert.Contains("new TargetProtocol.VectorNameList", binding, StringComparison.Ordinal);
             Assert.Contains("!item.HasName", binding, StringComparison.Ordinal);
             Assert.Contains("Name = value.VectorName", binding, StringComparison.Ordinal);
+            Assert.Contains("SetDoubleArrayArg", binding, StringComparison.Ordinal);
+            Assert.Contains("SetEditTextArg", binding, StringComparison.Ordinal);
+            Assert.Contains("SetTransformArg", binding, StringComparison.Ordinal);
+            Assert.Contains("SetWorldTransformArg", binding, StringComparison.Ordinal);
+            Assert.Contains("SetColorArg", binding, StringComparison.Ordinal);
+            Assert.Contains("SetFilePathArg", binding, StringComparison.Ordinal);
+            Assert.Contains("SetAngularUnitsArg", binding, StringComparison.Ordinal);
+            Assert.Contains("SetDistanceUnitsArg", binding, StringComparison.Ordinal);
+            Assert.Contains("SetTemperatureUnitsArg", binding, StringComparison.Ordinal);
+            Assert.Contains("SetFontTypeArg", binding, StringComparison.Ordinal);
+            Assert.Contains("Values.Count != 16", binding, StringComparison.Ordinal);
+            Assert.Contains("Red > byte.MaxValue", binding, StringComparison.Ordinal);
+            Assert.Contains("WorkerMpValueKind.WorldTransform", binding, StringComparison.Ordinal);
+            Assert.Contains("new TargetProtocol.DoubleArray", binding, StringComparison.Ordinal);
+            Assert.Contains("new TargetProtocol.WorldTransform", binding, StringComparison.Ordinal);
+            Assert.Contains("new TargetProtocol.FileReference", binding, StringComparison.Ordinal);
 
             var coverage = File.ReadAllText(Path.Combine(
                 outputRoot,
@@ -161,6 +181,20 @@ public sealed class CommandCatalogInputGenerationTests
           { "argument_id": "vector_group", "ordinal": 24, "mp_name": "Vector Group Name", "direction": "input", "result_only": "no", "semantic_type": "vector_group_name", "data_classification": "object_identifier", "input": { "presence": "required", "omission_behavior": "reject_request", "default": { "status": "none" } }, "sdk_binding": { "status": "available", "setter": "SetVectorGroupNameArg", "getter": null }, "documentation": "Vector group name." },
           { "argument_id": "vectors", "ordinal": 25, "mp_name": "Vectors", "direction": "input_output", "result_only": "no", "semantic_type": "vector_name_list", "data_classification": "object_identifier", "input": { "presence": "required", "omission_behavior": "reject_request", "default": { "status": "none" } }, "sdk_binding": { "status": "available", "setter": "SetVectorNameRefListArg", "getter": "GetVectorNameRefListArg" }, "documentation": "Vector names." },
           { "argument_id": "view", "ordinal": 26, "mp_name": "View", "direction": "input", "result_only": "no", "semantic_type": "view_name", "data_classification": "object_identifier", "input": { "presence": "required", "omission_behavior": "reject_request", "default": { "status": "none" } }, "sdk_binding": { "status": "available", "setter": "SetViewNameArg", "getter": null }, "documentation": "View name." }
+        ]
+        """;
+    private const string ContainerValueArguments = """
+        [
+          { "argument_id": "array", "ordinal": 27, "mp_name": "Array", "direction": "input_output", "result_only": "no", "semantic_type": "double_array", "data_classification": "measurement", "input": { "presence": "required", "omission_behavior": "reject_request", "default": { "status": "none" } }, "sdk_binding": { "status": "available", "setter": "SetDoubleArrayArg", "getter": "GetDoubleArrayArg" }, "documentation": "Double array." },
+          { "argument_id": "edit", "ordinal": 28, "mp_name": "Edit", "direction": "input_output", "result_only": "no", "semantic_type": "edit_text", "data_classification": "proprietary", "input": { "presence": "required", "omission_behavior": "reject_request", "default": { "status": "none" } }, "sdk_binding": { "status": "available", "setter": "SetEditTextArg", "getter": "GetEditTextArg" }, "documentation": "Edit text lines." },
+          { "argument_id": "transform", "ordinal": 29, "mp_name": "Transform", "direction": "input_output", "result_only": "no", "semantic_type": "transform", "data_classification": "geometry", "input": { "presence": "required", "omission_behavior": "reject_request", "default": { "status": "none" } }, "sdk_binding": { "status": "available", "setter": "SetTransformArg", "getter": "GetTransformArg" }, "documentation": "Affine transform." },
+          { "argument_id": "world_transform", "ordinal": 30, "mp_name": "World Transform", "direction": "input_output", "result_only": "no", "semantic_type": "world_transform", "data_classification": "geometry", "input": { "presence": "required", "omission_behavior": "reject_request", "default": { "status": "none" } }, "sdk_binding": { "status": "available", "setter": "SetWorldTransformArg", "getter": "GetWorldTransformArg" }, "documentation": "World transform." },
+          { "argument_id": "color", "ordinal": 31, "mp_name": "Color", "direction": "input", "result_only": "no", "semantic_type": "rgb_color", "data_classification": "non_sensitive", "input": { "presence": "required", "omission_behavior": "reject_request", "default": { "status": "none" } }, "sdk_binding": { "status": "available", "setter": "SetColorArg", "getter": null }, "documentation": "RGB color." },
+          { "argument_id": "file", "ordinal": 32, "mp_name": "File", "direction": "input_output", "result_only": "no", "semantic_type": "file_reference", "data_classification": "path", "input": { "presence": "required", "omission_behavior": "reject_request", "default": { "status": "none" } }, "sdk_binding": { "status": "available", "setter": "SetFilePathArg", "getter": "GetFilePathArg" }, "documentation": "File reference." },
+          { "argument_id": "angular_unit", "ordinal": 33, "mp_name": "Angular Unit", "direction": "input", "result_only": "no", "semantic_type": "angular_unit", "data_classification": "measurement", "input": { "presence": "required", "omission_behavior": "reject_request", "default": { "status": "none" } }, "sdk_binding": { "status": "available", "setter": "SetAngularUnitsArg", "getter": null }, "documentation": "Angular unit." },
+          { "argument_id": "distance_unit", "ordinal": 34, "mp_name": "Distance Unit", "direction": "input", "result_only": "no", "semantic_type": "distance_unit", "data_classification": "measurement", "input": { "presence": "required", "omission_behavior": "reject_request", "default": { "status": "none" } }, "sdk_binding": { "status": "available", "setter": "SetDistanceUnitsArg", "getter": null }, "documentation": "Distance unit." },
+          { "argument_id": "temperature_unit", "ordinal": 35, "mp_name": "Temperature Unit", "direction": "input", "result_only": "no", "semantic_type": "temperature_unit", "data_classification": "measurement", "input": { "presence": "required", "omission_behavior": "reject_request", "default": { "status": "none" } }, "sdk_binding": { "status": "available", "setter": "SetTemperatureUnitsArg", "getter": null }, "documentation": "Temperature unit." },
+          { "argument_id": "font", "ordinal": 36, "mp_name": "Font", "direction": "input", "result_only": "no", "semantic_type": "font", "data_classification": "non_sensitive", "input": { "presence": "required", "omission_behavior": "reject_request", "default": { "status": "none" } }, "sdk_binding": { "status": "available", "setter": "SetFontTypeArg", "getter": null }, "documentation": "Font." }
         ]
         """;
     private const string SyntheticOperation = """

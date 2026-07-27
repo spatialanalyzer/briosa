@@ -4,6 +4,9 @@ using Briosa.Worker.Sdk;
 
 namespace Briosa.Worker.Tests;
 
+// These tests intentionally exercise the exact COM rectangular-array contract.
+#pragma warning disable CA1814
+
 public sealed partial class SpatialAnalyzerSdkAdapterTests
 {
     [Fact]
@@ -293,6 +296,158 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         Assert.Equal("sdk-argument-rejected", result.DiagnosticCode);
         Assert.DoesNotContain(calls.Events, value => value.StartsWith("SetStringArg", StringComparison.Ordinal));
     }
+    [Fact]
+    public void ContainerValueFamiliesUseExactSdkBindingsAndRoundTripOutputs()
+    {
+        using var calls = new RecordingSdkCalls();
+        using var adapter = new SpatialAnalyzerSdkAdapter(calls);
+        var transform = Enumerable.Range(0, 16).Select(value => (double)value).ToArray();
+        var command = new SdkCommand(
+            "container-values",
+            "Container Values",
+            [
+                new("Array", SdkValueKind.DoubleArray,
+                    DoubleArrayValue: new([]),
+                    SdkBinding: "SetDoubleArrayArg"),
+                new("Edit", SdkValueKind.EditText,
+                    StringListValue: new([]),
+                    SdkBinding: "SetEditTextArg"),
+                new("Transform", SdkValueKind.Transform,
+                    TransformValue: new(transform),
+                    SdkBinding: "SetTransformArg"),
+                new("World", SdkValueKind.WorldTransform,
+                    WorldTransformValue: new(new(transform), 0),
+                    SdkBinding: "SetWorldTransformArg"),
+                new("Color", SdkValueKind.RgbColor,
+                    RgbColorValue: new(0, 127, 255),
+                    SdkBinding: "SetColorArg"),
+                new("File", SdkValueKind.FileReference,
+                    FileReferenceValue: new("", false),
+                    SdkBinding: "SetFilePathArg"),
+                new("Angle", SdkValueKind.AngularUnit,
+                    AngularUnitValue: SdkAngularUnitValue.DegreesMinutesSeconds,
+                    SdkBinding: "SetAngularUnitsArg"),
+                new("Distance", SdkValueKind.DistanceUnit,
+                    DistanceUnitValue: SdkDistanceUnitValue.UsSurveyFeet,
+                    SdkBinding: "SetDistanceUnitsArg"),
+                new("Temperature", SdkValueKind.TemperatureUnit,
+                    TemperatureUnitValue: SdkTemperatureUnitValue.Celsius,
+                    SdkBinding: "SetTemperatureUnitsArg"),
+                new("Font", SdkValueKind.Font,
+                    FontValue: new("Segoe UI", 12, new(10, 20, 30)),
+                    SdkBinding: "SetFontTypeArg")
+            ],
+            [
+                new("Array Result", SdkValueKind.DoubleArray, "GetDoubleArrayArg"),
+                new("Edit Result", SdkValueKind.EditText, "GetEditTextArg"),
+                new("Transform Result", SdkValueKind.Transform, "GetTransformArg"),
+                new("World Result", SdkValueKind.WorldTransform, "GetWorldTransformArg"),
+                new("File Result", SdkValueKind.FileReference, "GetFilePathArg")
+            ]);
+
+        var result = adapter.Execute(command);
+
+        Assert.True(result.MpResult.Succeeded);
+        Assert.All(result.OutputValues, output => Assert.True(output.Retrieved));
+        Assert.Empty(Assert.IsType<double[]>(calls.ContainerArguments["Array"]));
+        Assert.Empty(Assert.IsType<object[]>(calls.ContainerArguments["Edit"]));
+        var transformArgument = Assert.IsType<double[,]>(calls.ContainerArguments["Transform"]);
+        Assert.Equal(15d, transformArgument[3, 3]);
+        Assert.Equal(0, calls.ScaleArguments["World"]);
+        Assert.Equal(((byte)0, (byte)127, byte.MaxValue), calls.ColorArguments["Color"]);
+        Assert.Equal(("", false), calls.FileArguments["File"]);
+        Assert.Equal("Deg:Min:Sec", calls.StringArguments["Angle"]);
+        Assert.Equal("US Survey Feet", calls.StringArguments["Distance"]);
+        Assert.Equal("Celsius", calls.StringArguments["Temperature"]);
+        Assert.Equal(("Segoe UI", (byte)12, (byte)10, (byte)20, (byte)30), calls.FontArgument);
+        Assert.Equal([1d, 2d, 3d], result.OutputValues[0].DoubleArrayValue!.Values);
+        Assert.Equal(["A", "", "C"], result.OutputValues[1].StringListValue!.Values);
+        Assert.Equal(15d, result.OutputValues[2].TransformValue!.Values[15]);
+        Assert.Equal(2.5, result.OutputValues[3].WorldTransformValue!.ScaleFactor);
+        Assert.Equal(@"C:\sensitive\model.xit", result.OutputValues[4].FileReferenceValue!.Path);
+        Assert.True(result.OutputValues[4].FileReferenceValue!.EmbeddedFile);
+        Assert.True(calls.ContainerGettersReceivedVariantWrapper);
+    }
+
+    [Theory]
+    [InlineData("DoubleArray", "GetDoubleArrayArg")]
+    [InlineData("EditText", "GetEditTextArg")]
+    [InlineData("Transform", "GetTransformArg")]
+    [InlineData("WorldTransform", "GetWorldTransformArg")]
+    public void MalformedContainerOutputIsReportedAsRetrievalFailure(
+        string kindName,
+        string binding)
+    {
+        var kind = Enum.Parse<SdkValueKind>(kindName);
+        using var calls = new RecordingSdkCalls { MalformedOutputName = "Result" };
+        using var adapter = new SpatialAnalyzerSdkAdapter(calls);
+        var command = new SdkCommand(
+            "malformed-container",
+            "Malformed Container",
+            [],
+            [new SdkOutputArgument("Result", kind, binding)]);
+
+        var result = adapter.Execute(command);
+
+        var output = Assert.Single(result.OutputValues);
+        Assert.False(output.Retrieved);
+        Assert.Equal("sdk-output-retrieval-failed", result.DiagnosticCode);
+    }
+
+    [Theory]
+    [InlineData("DoubleArray", "GetDoubleArrayArg")]
+    [InlineData("EditText", "GetEditTextArg")]
+    [InlineData("Transform", "GetTransformArg")]
+    [InlineData("WorldTransform", "GetWorldTransformArg")]
+    [InlineData("FileReference", "GetFilePathArg")]
+    public void ContainerGetterFailureDoesNotExposeDefaultLikeValues(
+        string kindName,
+        string binding)
+    {
+        using var calls = new RecordingSdkCalls { FailedOutputName = "Result" };
+        using var adapter = new SpatialAnalyzerSdkAdapter(calls);
+        var command = new SdkCommand(
+            "failed-container-getter",
+            "Failed Container Getter",
+            [],
+            [new SdkOutputArgument(
+                "Result",
+                Enum.Parse<SdkValueKind>(kindName),
+                binding)]);
+
+        var result = adapter.Execute(command);
+
+        var output = Assert.Single(result.OutputValues);
+        Assert.False(output.Retrieved);
+        Assert.Null(output.DoubleArrayValue);
+        Assert.Null(output.StringListValue);
+        Assert.Null(output.TransformValue);
+        Assert.Null(output.WorldTransformValue);
+        Assert.Null(output.FileReferenceValue);
+        Assert.Equal("sdk-output-retrieval-failed", result.DiagnosticCode);
+    }
+
+    [Fact]
+    public void TransformWithWrongDimensionsIsRejectedBeforeExecution()
+    {
+        using var calls = new RecordingSdkCalls();
+        using var adapter = new SpatialAnalyzerSdkAdapter(calls);
+        var command = new SdkCommand(
+            "bad-transform",
+            "Bad Transform",
+            [new SdkInputArgument(
+                "Transform",
+                SdkValueKind.Transform,
+                TransformValue: new([1d, 2d]),
+                SdkBinding: "SetTransformArg")],
+            []);
+
+        var result = adapter.Execute(command);
+
+        Assert.False(result.ExecuteStepReturned);
+        Assert.Equal("sdk-argument-rejected", result.DiagnosticCode);
+        Assert.DoesNotContain("ExecuteStep", calls.Events);
+    }
     private sealed class RecordingSdkCalls : ISpatialAnalyzerSdkCalls
     {
         public List<string> Events { get; } = [];
@@ -304,6 +459,20 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         public int MpResultCode { get; init; } = 2;
 
         public bool ReferenceGettersReceivedVariantWrapper { get; private set; } = true;
+
+        public bool ContainerGettersReceivedVariantWrapper { get; private set; } = true;
+
+        public Dictionary<string, object> ContainerArguments { get; } = [];
+
+        public Dictionary<string, string> StringArguments { get; } = [];
+
+        public Dictionary<string, (byte Red, byte Green, byte Blue)> ColorArguments { get; } = [];
+
+        public Dictionary<string, (string Path, bool Embedded)> FileArguments { get; } = [];
+
+        public Dictionary<string, double> ScaleArguments { get; } = [];
+
+        public (string Name, byte Size, byte Red, byte Green, byte Blue)? FontArgument { get; private set; }
 
         public string? FailedOutputName { get; init; }
 
@@ -412,6 +581,69 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             bool useLowMagnitude,
             double lowMagnitude) =>
             RecordSetter("SetToleranceVectorOptionsArg", name);
+
+        public bool SetDoubleArrayArg(string name, int arraySize, ref object values)
+        {
+            var recorded = Unwrap(values);
+            Assert.Equal(arraySize, Assert.IsType<double[]>(recorded).Length);
+            ContainerArguments[name] = recorded;
+            return RecordSetter("SetDoubleArrayArg", name);
+        }
+
+        public bool SetEditTextArg(string name, ref object values)
+        {
+            ContainerArguments[name] = Unwrap(values);
+            return RecordSetter("SetEditTextArg", name);
+        }
+
+        public bool SetTransformArg(string name, ref object transform)
+        {
+            ContainerArguments[name] = Unwrap(transform);
+            return RecordSetter("SetTransformArg", name);
+        }
+
+        public bool SetWorldTransformArg(
+            string name,
+            ref object transform,
+            double scaleFactor)
+        {
+            ContainerArguments[name] = Unwrap(transform);
+            ScaleArguments[name] = scaleFactor;
+            return RecordSetter("SetWorldTransformArg", name);
+        }
+
+        public bool SetColorArg(string name, byte red, byte green, byte blue)
+        {
+            ColorArguments[name] = (red, green, blue);
+            return RecordSetter("SetColorArg", name);
+        }
+
+        public bool SetFilePathArg(string name, string path, bool embeddedFile)
+        {
+            FileArguments[name] = (path, embeddedFile);
+            return RecordSetter("SetFilePathArg", name);
+        }
+
+        public bool SetAngularUnitsArg(string name, string angularUnits) =>
+            RecordStringSetter("SetAngularUnitsArg", name, angularUnits);
+
+        public bool SetDistanceUnitsArg(string name, string distanceUnits) =>
+            RecordStringSetter("SetDistanceUnitsArg", name, distanceUnits);
+
+        public bool SetTemperatureUnitsArg(string name, string temperatureUnits) =>
+            RecordStringSetter("SetTemperatureUnitsArg", name, temperatureUnits);
+
+        public bool SetFontTypeArg(
+            string name,
+            string fontName,
+            byte fontSize,
+            byte red,
+            byte green,
+            byte blue)
+        {
+            FontArgument = (fontName, fontSize, red, green, blue);
+            return RecordSetter("SetFontTypeArg", name);
+        }
 
         public bool ExecuteStep()
         {
@@ -573,6 +805,65 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             return true;
         }
 
+        public bool GetDoubleArrayArg(
+            string name,
+            ref int arraySize,
+            ref object values)
+        {
+            ContainerGettersReceivedVariantWrapper &= values is VariantWrapper;
+            Events.Add($"GetDoubleArrayArg:{name}");
+            values = name == MalformedOutputName
+                ? new double[] { 1, 2 }
+                : new double[] { 1, 2, 3 };
+            arraySize = 3;
+            return name != FailedOutputName;
+        }
+
+        public bool GetEditTextArg(string name, ref object values)
+        {
+            ContainerGettersReceivedVariantWrapper &= values is VariantWrapper;
+            Events.Add($"GetEditTextArg:{name}");
+            values = name == MalformedOutputName
+                ? new object[] { "A", 2 }
+                : new object[] { "A", "", "C" };
+            return name != FailedOutputName;
+        }
+
+        public bool GetTransformArg(string name, ref object transform)
+        {
+            ContainerGettersReceivedVariantWrapper &= transform is VariantWrapper;
+            Events.Add($"GetTransformArg:{name}");
+            transform = name == MalformedOutputName
+                ? new double[3, 4]
+                : CreateMatrix();
+            return name != FailedOutputName;
+        }
+
+        public bool GetWorldTransformArg(
+            string name,
+            ref object transform,
+            ref double scaleFactor)
+        {
+            ContainerGettersReceivedVariantWrapper &= transform is VariantWrapper;
+            Events.Add($"GetWorldTransformArg:{name}");
+            transform = name == MalformedOutputName
+                ? new double[4, 3]
+                : CreateMatrix();
+            scaleFactor = 2.5;
+            return name != FailedOutputName;
+        }
+
+        public bool GetFilePathArg(
+            string name,
+            ref string path,
+            ref bool embeddedFile)
+        {
+            Events.Add($"GetFilePathArg:{name}");
+            path = @"C:\sensitive\model.xit";
+            embeddedFile = true;
+            return name != FailedOutputName;
+        }
+
         public void Dispose()
         {
         }
@@ -608,6 +899,26 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             values = result.Cast<object>().ToArray();
             return name != FailedOutputName;
         }
+        private bool RecordStringSetter(string method, string name, string value)
+        {
+            StringArguments[name] = value;
+            return RecordSetter(method, name);
+        }
+
+        private static object Unwrap(object value) =>
+            value is VariantWrapper wrapper ? wrapper.WrappedObject! : value;
+
+        private static double[,] CreateMatrix()
+        {
+            var matrix = new double[4, 4];
+            for (var index = 0; index < 16; index++)
+            {
+                matrix[index / 4, index % 4] = index;
+            }
+
+            return matrix;
+        }
+
         private bool RecordSetter(string method, string name)
         {
             Events.Add($"{method}:{name}");
@@ -615,3 +926,4 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         }
     }
 }
+#pragma warning restore CA1814

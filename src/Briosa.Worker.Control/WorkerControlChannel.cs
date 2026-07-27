@@ -14,6 +14,9 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
             new JsonStringEnumConverter<WorkerControlMessageKind>(JsonNamingPolicy.CamelCase),
             new JsonStringEnumConverter<WorkerConnectionState>(JsonNamingPolicy.CamelCase),
             new JsonStringEnumConverter<WorkerMpValueKind>(JsonNamingPolicy.CamelCase),
+            new JsonStringEnumConverter<WorkerAngularUnitValue>(JsonNamingPolicy.CamelCase),
+            new JsonStringEnumConverter<WorkerDistanceUnitValue>(JsonNamingPolicy.CamelCase),
+            new JsonStringEnumConverter<WorkerTemperatureUnitValue>(JsonNamingPolicy.CamelCase),
             new JsonStringEnumConverter<WorkerExecutionResponseStatus>(JsonNamingPolicy.CamelCase)
         }
     };
@@ -168,6 +171,19 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
             WorkerMpValueKind.Logical => argument.BooleanValue.HasValue,
             WorkerMpValueKind.WholeNumber => argument.IntegerValue.HasValue,
             WorkerMpValueKind.FloatingPoint => argument.DoubleValue.HasValue,
+            WorkerMpValueKind.DoubleArray => IsValid(argument.DoubleArrayValue),
+            WorkerMpValueKind.EditText => IsValid(argument.StringListValue),
+            WorkerMpValueKind.Transform => IsValid(argument.TransformValue),
+            WorkerMpValueKind.WorldTransform => IsValid(argument.WorldTransformValue),
+            WorkerMpValueKind.RgbColor => argument.RgbColorValue is not null,
+            WorkerMpValueKind.FileReference => IsValid(argument.FileReferenceValue),
+            WorkerMpValueKind.AngularUnit =>
+                IsValid(argument.AngularUnitValue, WorkerAngularUnitValue.Unspecified),
+            WorkerMpValueKind.DistanceUnit =>
+                IsValid(argument.DistanceUnitValue, WorkerDistanceUnitValue.Unspecified),
+            WorkerMpValueKind.TemperatureUnit =>
+                IsValid(argument.TemperatureUnitValue, WorkerTemperatureUnitValue.Unspecified),
+            WorkerMpValueKind.Font => IsValid(argument.FontValue),
             WorkerMpValueKind.Text or
             WorkerMpValueKind.ChartName or
             WorkerMpValueKind.CloudName or
@@ -208,6 +224,11 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
             WorkerMpValueKind.Logical => output.BooleanValue.HasValue,
             WorkerMpValueKind.WholeNumber => output.IntegerValue.HasValue,
             WorkerMpValueKind.FloatingPoint => output.DoubleValue.HasValue,
+            WorkerMpValueKind.DoubleArray => IsValid(output.DoubleArrayValue),
+            WorkerMpValueKind.EditText => IsValid(output.StringListValue),
+            WorkerMpValueKind.Transform => IsValid(output.TransformValue),
+            WorkerMpValueKind.WorldTransform => IsValid(output.WorldTransformValue),
+            WorkerMpValueKind.FileReference => IsValid(output.FileReferenceValue),
             WorkerMpValueKind.Text or
             WorkerMpValueKind.ChartName or
             WorkerMpValueKind.CloudName or
@@ -288,6 +309,29 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
 
     private static bool IsValid(WorkerStringListValue? value) =>
         value?.Values is not null && value.Values.All(item => item is not null);
+
+    private static bool IsValid(WorkerDoubleArrayValue? value) =>
+        value?.Values is not null;
+
+    private static bool IsValid(WorkerTransformValue? value) =>
+        value?.Values is { Count: 16 };
+
+    private static bool IsValid(WorkerWorldTransformValue? value) =>
+        value is not null && IsValid(value.Transform);
+
+    private static bool IsValid(WorkerFileReferenceValue? value) =>
+        value?.Path is not null;
+
+    private static bool IsValid(WorkerFontValue? value) =>
+        value is not null &&
+        value.FontName is not null &&
+        value.Color is not null;
+
+    private static bool IsValid<T>(T? value, T unspecified)
+        where T : struct, Enum =>
+        value.HasValue &&
+        !EqualityComparer<T>.Default.Equals(value.Value, unspecified) &&
+        Enum.IsDefined(value.Value);
 
     private static bool IsValid(WorkerVectorNameListValue? value) =>
         value?.Values is not null && value.Values.All(IsValid);

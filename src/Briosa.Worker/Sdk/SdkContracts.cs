@@ -69,6 +69,16 @@ internal enum SdkValueKind
     WholeNumber,
     FloatingPoint,
     Text,
+    DoubleArray,
+    EditText,
+    Transform,
+    WorldTransform,
+    RgbColor,
+    FileReference,
+    AngularUnit,
+    DistanceUnit,
+    TemperatureUnit,
+    Font,
     PointName,
     Vector,
     ToleranceVectorOptions,
@@ -89,6 +99,37 @@ internal enum SdkValueKind
     VectorGroupName,
     VectorNameList,
     ViewName
+}
+
+internal enum SdkAngularUnitValue
+{
+    Unspecified,
+    Degrees,
+    DegreesMinutesSeconds,
+    Radians,
+    Milliradians,
+    GonsGrad,
+    Mils,
+    Arcseconds,
+    DegreesMinutes
+}
+
+internal enum SdkDistanceUnitValue
+{
+    Unspecified,
+    Meters,
+    Centimeters,
+    Millimeters,
+    Feet,
+    Inches,
+    UsSurveyFeet
+}
+
+internal enum SdkTemperatureUnitValue
+{
+    Unspecified,
+    Fahrenheit,
+    Celsius
 }
 
 internal sealed record SdkPointNameValue(
@@ -138,6 +179,23 @@ internal sealed record SdkPointNameListValue(IReadOnlyList<SdkPointNameValue> Va
 
 internal sealed record SdkStringListValue(IReadOnlyList<string> Values);
 
+internal sealed record SdkDoubleArrayValue(IReadOnlyList<double> Values);
+
+internal sealed record SdkTransformValue(IReadOnlyList<double> Values);
+
+internal sealed record SdkWorldTransformValue(
+    SdkTransformValue Transform,
+    double ScaleFactor);
+
+internal sealed record SdkRgbColorValue(byte Red, byte Green, byte Blue);
+
+internal sealed record SdkFileReferenceValue(string Path, bool EmbeddedFile);
+
+internal sealed record SdkFontValue(
+    string FontName,
+    byte Size,
+    SdkRgbColorValue Color);
+
 internal sealed record SdkVectorNameListValue(IReadOnlyList<SdkVectorNameValue> Values);
 internal sealed record SdkVectorValue(double X, double Y, double Z);
 
@@ -174,6 +232,15 @@ internal sealed record SdkInputArgument(
     SdkPointNameListValue? PointNameListValue = null,
     SdkStringListValue? StringListValue = null,
     SdkVectorNameListValue? VectorNameListValue = null,
+    SdkDoubleArrayValue? DoubleArrayValue = null,
+    SdkTransformValue? TransformValue = null,
+    SdkWorldTransformValue? WorldTransformValue = null,
+    SdkRgbColorValue? RgbColorValue = null,
+    SdkFileReferenceValue? FileReferenceValue = null,
+    SdkAngularUnitValue? AngularUnitValue = null,
+    SdkDistanceUnitValue? DistanceUnitValue = null,
+    SdkTemperatureUnitValue? TemperatureUnitValue = null,
+    SdkFontValue? FontValue = null,
     string? SdkBinding = null);
 internal sealed record SdkOutputArgument(
     string Name,
@@ -201,7 +268,11 @@ internal sealed record SdkOutputValue(
     SdkCollectionVectorGroupNameListValue? CollectionVectorGroupNameListValue = null,
     SdkPointNameListValue? PointNameListValue = null,
     SdkStringListValue? StringListValue = null,
-    SdkVectorNameListValue? VectorNameListValue = null);
+    SdkVectorNameListValue? VectorNameListValue = null,
+    SdkDoubleArrayValue? DoubleArrayValue = null,
+    SdkTransformValue? TransformValue = null,
+    SdkWorldTransformValue? WorldTransformValue = null,
+    SdkFileReferenceValue? FileReferenceValue = null);
 internal sealed class SdkCommand
 {
     public SdkCommand(string operationId)

@@ -84,6 +84,32 @@ internal interface ISpatialAnalyzerSdkCalls : IDisposable
         bool useLowMagnitude,
         double lowMagnitude);
 
+    bool SetDoubleArrayArg(string name, int arraySize, ref object values);
+
+    bool SetEditTextArg(string name, ref object values);
+
+    bool SetTransformArg(string name, ref object transform);
+
+    bool SetWorldTransformArg(string name, ref object transform, double scaleFactor);
+
+    bool SetColorArg(string name, byte red, byte green, byte blue);
+
+    bool SetFilePathArg(string name, string path, bool embeddedFile);
+
+    bool SetAngularUnitsArg(string name, string angularUnits);
+
+    bool SetDistanceUnitsArg(string name, string distanceUnits);
+
+    bool SetTemperatureUnitsArg(string name, string temperatureUnits);
+
+    bool SetFontTypeArg(
+        string name,
+        string fontName,
+        byte fontSize,
+        byte red,
+        byte green,
+        byte blue);
+
     bool ExecuteStep();
 
     bool GetMPStepResult(ref int resultCode);
@@ -143,4 +169,14 @@ internal interface ISpatialAnalyzerSdkCalls : IDisposable
         ref double lowZ,
         ref bool useLowMagnitude,
         ref double lowMagnitude);
+
+    bool GetDoubleArrayArg(string name, ref int arraySize, ref object values);
+
+    bool GetEditTextArg(string name, ref object values);
+
+    bool GetTransformArg(string name, ref object transform);
+
+    bool GetWorldTransformArg(string name, ref object transform, ref double scaleFactor);
+
+    bool GetFilePathArg(string name, ref string path, ref bool embeddedFile);
 }

@@ -34,7 +34,7 @@ public sealed class BindingRegistryCoverageTests
             .ToArray();
 
         Assert.Equal(workerSeam, registered);
-        Assert.Equal(39, registered.Length);
+        Assert.Equal(54, registered.Length);
 
         using var registry = JsonDocument.Parse(File.ReadAllText(Path.Combine(
             root,
@@ -52,6 +52,7 @@ public sealed class BindingRegistryCoverageTests
             .ToArray();
         Assert.Equal(
             [
+                "angular_unit",
                 "chart_name",
                 "cloud_name",
                 "collection_group_name_list",
@@ -63,19 +64,28 @@ public sealed class BindingRegistryCoverageTests
                 "collection_object_name_list",
                 "collection_vector_group_name",
                 "collection_vector_group_name_list",
+                "distance_unit",
+                "double_array",
+                "edit_text",
+                "file_reference",
                 "floating_point",
+                "font",
                 "frame_name",
                 "logical",
                 "point_name",
                 "point_name_list",
+                "rgb_color",
                 "string",
                 "string_list",
+                "temperature_unit",
                 "tolerance_vector_options",
+                "transform",
                 "vector3",
                 "vector_group_name",
                 "vector_name_list",
                 "view_name",
-                "whole_number"
+                "whole_number",
+                "world_transform"
             ],
             implementedFamilies);
         Assert.Equal(implementedFamilies.Length, Enum.GetValues<SdkValueKind>().Length);
