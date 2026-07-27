@@ -29,6 +29,7 @@ Keep public protocol design in `briosa`; do not let a client repository become t
 - SA 2026.1.0529.7 was observed listening on TCP 901, 902, and 903, with SDK traffic observed on 902. Treat these observations as evidence, not as a vendor-guaranteed protocol contract.
 - Multiple SDK clients may report successful connections, but concurrent MP execution is unsafe. Experiments showed the first connected client owning execution while a second client could block indefinitely in `ExecuteStep`.
 - A successful `ExecuteStep` return value does not prove that the MP command succeeded. Call `GetMPStepResult` only after `ExecuteStep` returns true. Its Boolean reports whether the result was retrieved; MP result code `2` is the success state. Preserve retrieval state and the raw MP code separately.
+- For SDK methods taking a `ref object` list, marshal the CLR array through `System.Runtime.InteropServices.VariantWrapper`. A live SA 2026.1.0529.7 probe observed `DISP_E_TYPEMISMATCH` for a bare `object[]` on both `GetStringRefListArg` and `SetStringRefListArg`; the wrapped forms succeeded.
 - SA 2026.1.0529.7 exposed 1,295 structured MP command documents in 24 categories during initial exploration. This is candidate metadata, not automatically the supported Briosa API.
 
 See the [Discussion #1 findings](https://github.com/spatialanalyzer/community/discussions/1#discussioncomment-17706394) before changing connection, concurrency, timeout, or process-lifecycle assumptions.
