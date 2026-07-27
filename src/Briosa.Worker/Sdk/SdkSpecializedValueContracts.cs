@@ -5,7 +5,7 @@ internal interface ISdkSpecializedEnumValue;
 internal sealed record SdkSpecializedEnumValue<T>(T Value) : ISdkSpecializedEnumValue
     where T : struct, Enum;
 
-internal enum SdkAsciiFileFormatValue
+internal enum SdkAsciiImportFileFormatValue
 {
     Xyz,
     XyzOffsetOffset2,
@@ -53,6 +53,18 @@ internal enum SdkAsciiFileFormatValue
     PlaneNameXyzDxDyDzPlaneSize
 }
 
+internal enum SdkAsciiFrameSetFormatValue
+{
+    FrameNameXyzRxRyRzTimestamp,
+    FrameNameXyzEulerXyzTimestamp,
+    FrameNameXyzEulerZyxTimestamp,
+    FrameNameXyzEulerZyzTimestamp,
+    FrameNameXyzEulerZxzTimestamp,
+    FrameNameTransformationMatrixTimestamp,
+    TransformationMatrixTimestamp,
+    FrameNameXyzQuaternionTimestamp
+}
+
 internal enum SdkAxisIdentifierValue
 {
     PositiveX,
@@ -60,11 +72,10 @@ internal enum SdkAxisIdentifierValue
     PositiveY,
     NegativeY,
     PositiveZ,
-    NegativeZ,
-    X,
-    Y,
-    Z
+    NegativeZ
 }
+
+internal enum SdkWcfAxisIdentifierValue { X, Y, Z }
 
 internal enum SdkBaseColorTypeValue { Red, Green, Blue }
 internal enum SdkBaseMidColorTypeValue { Red, Green, Gray, Blue }
@@ -73,7 +84,7 @@ internal enum SdkCollimationBaselineTypeValue { DeterminedByValue, DeterminedFro
 internal enum SdkCollimationTypeValue { FullCollimation, NoTiltCollimation }
 internal enum SdkColorRangeMethodValue { SingleColor, Continuous, TolerancedContinuous, TolerancedGoNoGo, TolerancedGoNoGoWithWarning, DiscreteColors }
 internal enum SdkCoordinateSystemTypeValue { Cartesian, Cylindric, Polar }
-internal enum SdkDatasetTypeValue { X, Y, Z, Magnitude }
+internal enum SdkVectorComponentValue { X, Y, Z, Magnitude }
 internal enum SdkDynamicCircleModeValue { CylinderPlaneHoldPlaneNormal, CylinderPlaneHoldCylinderAxis, ConePlaneHoldPlaneNormal, ConePlaneHoldConeAxis, SpherePlaneIntersection, TwoConesIntersection, ConeCylinderIntersection }
 internal enum SdkDynamicEllipseModeValue { CylinderPlaneIntersection, ConePlaneIntersection }
 internal enum SdkDynamicLineModeValue { ConeAxis, CylinderAxis, IntersectionOfTwoPlanes, BisectTwoLines, SlotCenterlineAlongLength }
@@ -285,11 +296,13 @@ internal enum SdkObjectTypeValue
     BSpline,
     Circle,
     Cloud,
+    EnhancedCloud,
+    ScanStripeCloud,
     CrossSectionCloud,
+    Cone,
     Cylinder,
     Datum,
     Ellipse,
-    EnhancedCloud,
     Frame,
     FrameSet,
     Line,
@@ -299,7 +312,6 @@ internal enum SdkObjectTypeValue
     PointGroup,
     PointSet,
     PolySurface,
-    ScanStripeCloud,
     ScanStripeMesh,
     Slot,
     Sphere,
@@ -321,8 +333,7 @@ internal enum SdkTargetComputationMethodValue { UseMostRecentShotFromEachFace, U
 internal enum SdkTranslucencyTypeValue { Solid, Translucent, Wireframe }
 
 internal enum SdkCloudThinningModeValue { None, Random, NthPoint }
-internal enum SdkProjectionTypeValue { TargetToOffsetObjectVectors, OffsetObjectToTargetVectors, ProbeToObjectVectors, ObjectToProbeVectors, PointsOnProbeSurface, PointsOnOffsetObject, PointsOnObject }
-internal enum SdkReportDetailsFormatValue { None, Single, MultiHorizontal, MultiVertical }
+
 internal enum SdkReportOutputTypeValue { None, SaReport, SaDocument, Pdf, Rtf }
 internal enum SdkReportViewTypeValue { None, CurrentView, CalloutView }
 
@@ -379,31 +390,15 @@ internal sealed record SdkFitDegreeOfFreedomOptionsValue(
     bool AllowRz,
     bool RotateAboutCentroid);
 
-internal sealed record SdkPointDeltaReportOptionsValue(
-    SdkCoordinateSystemTypeValue CoordinateSystem,
-    SdkReportDetailsFormatValue DetailsFormat,
-    bool ShowPointA,
-    bool ShowPointB,
-    bool ShowDelta,
-    bool ShowMagnitude,
-    bool ShowComponent1,
-    bool ShowComponent2,
-    bool ShowComponent3,
-    bool SortPointNames,
-    bool ShowToleranceFields,
-    bool ColorizeInToleranceFields);
 
-internal sealed record SdkProjectionOptionsValue(
-    SdkProjectionTypeValue ProjectionType,
-    bool IgnoreEdgeProjections,
-    bool OverrideTargetOffsets,
-    double OverrideTargetOffsetsValue,
-    bool AddExtraMaterialThickness,
-    double ExtraMaterialThicknessValue);
+internal sealed record SdkEmbeddedReportFileValue(
+    string CollectionName,
+    string FileName);
 
 internal sealed record SdkReportOutputOptionsValue(
     SdkReportOutputTypeValue OutputType,
-    string PathOrEmbeddedName);
+    string? ExternalPath,
+    SdkEmbeddedReportFileValue? EmbeddedFile);
 
 internal sealed record SdkReportViewOptionsValue(
     SdkReportViewTypeValue ViewType,

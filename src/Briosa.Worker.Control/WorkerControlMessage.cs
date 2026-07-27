@@ -2,7 +2,7 @@ namespace Briosa.Worker.Control;
 
 public static class WorkerControlProtocol
 {
-    public const int CurrentVersion = 8;
+    public const int CurrentVersion = 9;
 
     public const int MaximumMessageBytes = 64 * 1024;
 }
@@ -35,9 +35,11 @@ public enum WorkerMpValueKind
     DistanceUnit,
     TemperatureUnit,
     Font,
-    AsciiFileFormat,
+    AsciiImportFileFormat,
+    AsciiFrameSetFormat,
     AutoFilterProximitySettings,
     AxisIdentifier,
+    WcfAxisIdentifier,
     BaseColorType,
     BaseMidColorType,
     ChartType,
@@ -47,7 +49,7 @@ public enum WorkerMpValueKind
     ColorRangeMethod,
     ColorizationOptions,
     CoordinateSystemType,
-    DatasetType,
+    VectorComponent,
     DynamicCircleMode,
     DynamicEllipseMode,
     DynamicLineMode,
@@ -63,9 +65,7 @@ public enum WorkerMpValueKind
     InstrumentType,
     ObjectType,
     OffsetDirectionType,
-    PointDeltaReportOptions,
     PointFilterInputType,
-    ProjectionOptions,
     RelationshipWeightingMode,
     RenderModeType,
     ReportOutputOptions,
@@ -272,8 +272,6 @@ public sealed record WorkerMpInputArgument(
     WorkerColorizationOptionsValue? ColorizationOptionsValue = null,
     WorkerFitConstraintScalarOptionsValue? FitConstraintScalarOptionsValue = null,
     WorkerFitDegreeOfFreedomOptionsValue? FitDegreeOfFreedomOptionsValue = null,
-    WorkerPointDeltaReportOptionsValue? PointDeltaReportOptionsValue = null,
-    WorkerProjectionOptionsValue? ProjectionOptionsValue = null,
     WorkerReportOutputOptionsValue? ReportOutputOptionsValue = null,
     WorkerReportViewOptionsValue? ReportViewOptionsValue = null,
     WorkerToleranceScalarOptionsValue? ToleranceScalarOptionsValue = null,

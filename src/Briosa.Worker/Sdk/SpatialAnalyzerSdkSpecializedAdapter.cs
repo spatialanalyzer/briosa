@@ -9,9 +9,13 @@ internal sealed partial class SpatialAnalyzerSdkAdapter
         SdkInputArgument argument) =>
         argument.Kind switch
         {
-            SdkValueKind.AsciiFileFormat when EnumValue<SdkAsciiFileFormatValue>(argument) is { } value =>
+            SdkValueKind.AsciiImportFileFormat when EnumValue<SdkAsciiImportFileFormatValue>(argument) is { } value =>
+                sdk.SetAsciiFileFormatArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
+            SdkValueKind.AsciiFrameSetFormat when EnumValue<SdkAsciiFrameSetFormatValue>(argument) is { } value =>
                 sdk.SetAsciiFileFormatArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
             SdkValueKind.AxisIdentifier when EnumValue<SdkAxisIdentifierValue>(argument) is { } value =>
+                sdk.SetAxisNameArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
+            SdkValueKind.WcfAxisIdentifier when EnumValue<SdkWcfAxisIdentifierValue>(argument) is { } value =>
                 sdk.SetAxisNameArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
             SdkValueKind.BaseColorType when EnumValue<SdkBaseColorTypeValue>(argument) is { } value =>
                 sdk.SetBaseColorTypeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
@@ -27,7 +31,7 @@ internal sealed partial class SpatialAnalyzerSdkAdapter
                 sdk.SetColorRangeMethodArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
             SdkValueKind.CoordinateSystemType when EnumValue<SdkCoordinateSystemTypeValue>(argument) is { } value =>
                 sdk.SetCoordinateSystemTypeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.DatasetType when EnumValue<SdkDatasetTypeValue>(argument) is { } value =>
+            SdkValueKind.VectorComponent when EnumValue<SdkVectorComponentValue>(argument) is { } value =>
                 sdk.SetDatasetTypeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
             SdkValueKind.DynamicCircleMode when EnumValue<SdkDynamicCircleModeValue>(argument) is { } value =>
                 sdk.SetDynamicCircleModeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
@@ -103,22 +107,14 @@ internal sealed partial class SpatialAnalyzerSdkAdapter
                     value.AllowRy,
                     value.AllowRz,
                     value.RotateAboutCentroid),
-            SdkValueKind.PointDeltaReportOptions when argument.PointDeltaReportOptionsValue is { } value =>
-                SetPointDeltaReportOptions(sdk, argument.Name, value),
-            SdkValueKind.ProjectionOptions when argument.ProjectionOptionsValue is { } value =>
-                sdk.SetProjectionOptionsArg(
-                    argument.Name,
-                    SdkSpecializedValueCodec.ToSdkString(value.ProjectionType),
-                    value.IgnoreEdgeProjections,
-                    value.OverrideTargetOffsets,
-                    value.OverrideTargetOffsetsValue,
-                    value.AddExtraMaterialThickness,
-                    value.ExtraMaterialThicknessValue),
-            SdkValueKind.ReportOutputOptions when argument.ReportOutputOptionsValue is { } value =>
+
+            SdkValueKind.ReportOutputOptions
+                when argument.ReportOutputOptionsValue is { } value &&
+                     ReportDestination(value) is { } destination =>
                 sdk.SetReportOutputOptionsArg(
                     argument.Name,
                     SdkSpecializedValueCodec.ToSdkString(value.OutputType),
-                    value.PathOrEmbeddedName),
+                    destination),
             SdkValueKind.ReportViewOptions when argument.ReportViewOptionsValue is { } value =>
                 sdk.SetReportViewOptionsArg(
                     argument.Name,
@@ -147,9 +143,11 @@ internal sealed partial class SpatialAnalyzerSdkAdapter
 
     private static string SpecializedExpectedSetter(SdkValueKind kind) => kind switch
     {
-        SdkValueKind.AsciiFileFormat => "SetAsciiFileFormatArg",
+        SdkValueKind.AsciiImportFileFormat => "SetAsciiFileFormatArg",
+        SdkValueKind.AsciiFrameSetFormat => "SetAsciiFileFormatArg",
         SdkValueKind.AutoFilterProximitySettings => "SetAutoFilterProximitySettingsArg",
         SdkValueKind.AxisIdentifier => "SetAxisNameArg",
+        SdkValueKind.WcfAxisIdentifier => "SetAxisNameArg",
         SdkValueKind.BaseColorType => "SetBaseColorTypeArg",
         SdkValueKind.BaseMidColorType => "SetBaseMidColorTypeArg",
         SdkValueKind.ChartType => "SetChartTypeArg",
@@ -159,7 +157,7 @@ internal sealed partial class SpatialAnalyzerSdkAdapter
         SdkValueKind.ColorRangeMethod => "SetColorRangeMethodArg",
         SdkValueKind.ColorizationOptions => "SetColorizationOptionsArg",
         SdkValueKind.CoordinateSystemType => "SetCoordinateSystemTypeArg",
-        SdkValueKind.DatasetType => "SetDatasetTypeArg",
+        SdkValueKind.VectorComponent => "SetDatasetTypeArg",
         SdkValueKind.DynamicCircleMode => "SetDynamicCircleModeArg",
         SdkValueKind.DynamicEllipseMode => "SetDynamicEllipseModeArg",
         SdkValueKind.DynamicLineMode => "SetDynamicLineModeArg",
@@ -175,9 +173,9 @@ internal sealed partial class SpatialAnalyzerSdkAdapter
         SdkValueKind.InstrumentType => "SetInstTypeNameArg",
         SdkValueKind.ObjectType => "SetObjectTypeArg",
         SdkValueKind.OffsetDirectionType => "SetOffsetDirectionTypeArg",
-        SdkValueKind.PointDeltaReportOptions => "SetPointDeltaReportOptionsArg",
+
         SdkValueKind.PointFilterInputType => "SetPointFilterInputTypeArg",
-        SdkValueKind.ProjectionOptions => "SetProjectionOptionsArg",
+
         SdkValueKind.RelationshipWeightingMode => "SetRelWeightingModeArg",
         SdkValueKind.RenderModeType => "SetRenderModeTypeArg",
         SdkValueKind.ReportOutputOptions => "SetReportOutputOptionsArg",
@@ -250,25 +248,17 @@ internal sealed partial class SpatialAnalyzerSdkAdapter
             value.HighTolerance,
             value.LowTolerance);
 
-    private static bool SetPointDeltaReportOptions(
-        ISpatialAnalyzerSdkCalls sdk,
-        string name,
-        SdkPointDeltaReportOptionsValue value) =>
-        sdk.SetPointDeltaReportOptionsArg(
-            name,
-            SdkSpecializedValueCodec.ToSdkString(value.CoordinateSystem),
-            SdkSpecializedValueCodec.ToSdkString(value.DetailsFormat),
-            value.ShowPointA,
-            value.ShowPointB,
-            value.ShowDelta,
-            value.ShowMagnitude,
-            value.ShowComponent1,
-            value.ShowComponent2,
-            value.ShowComponent3,
-            value.SortPointNames,
-            value.ShowToleranceFields,
-            value.ColorizeInToleranceFields);
 
+    private static string? ReportDestination(SdkReportOutputOptionsValue value)
+    {
+        if ((value.ExternalPath is not null) == (value.EmbeddedFile is not null))
+        {
+            return null;
+        }
+
+        return value.ExternalPath ??
+            $"{value.EmbeddedFile!.CollectionName}::{value.EmbeddedFile.FileName}";
+    }
     private static SdkOutputValue GetFitConstraintScalarOptions(
         ISpatialAnalyzerSdkCalls sdk,
         SdkOutputArgument argument)

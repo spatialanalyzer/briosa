@@ -57,31 +57,14 @@ public sealed record WorkerFitDegreeOfFreedomOptionsValue(
     bool AllowRz,
     bool RotateAboutCentroid);
 
-public sealed record WorkerPointDeltaReportOptionsValue(
-    int CoordinateSystem,
-    int DetailsFormat,
-    bool ShowPointA,
-    bool ShowPointB,
-    bool ShowDelta,
-    bool ShowMagnitude,
-    bool ShowComponent1,
-    bool ShowComponent2,
-    bool ShowComponent3,
-    bool SortPointNames,
-    bool ShowToleranceFields,
-    bool ColorizeInToleranceFields);
-
-public sealed record WorkerProjectionOptionsValue(
-    int ProjectionType,
-    bool IgnoreEdgeProjections,
-    bool OverrideTargetOffsets,
-    double OverrideTargetOffsetsValue,
-    bool AddExtraMaterialThickness,
-    double ExtraMaterialThicknessValue);
+public sealed record WorkerEmbeddedReportFileValue(
+    string CollectionName,
+    string FileName);
 
 public sealed record WorkerReportOutputOptionsValue(
     int OutputType,
-    string PathOrEmbeddedName);
+    string? ExternalPath,
+    WorkerEmbeddedReportFileValue? EmbeddedFile);
 
 public sealed record WorkerReportViewOptionsValue(
     int ViewType,

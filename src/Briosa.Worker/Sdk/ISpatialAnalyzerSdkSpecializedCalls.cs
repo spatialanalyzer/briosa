@@ -96,30 +96,6 @@ internal partial interface ISpatialAnalyzerSdkCalls
         bool allowRz,
         bool rotateAboutCentroid);
 
-    bool SetPointDeltaReportOptionsArg(
-        string name,
-        string coordinateSystem,
-        string detailsFormat,
-        bool showPointA,
-        bool showPointB,
-        bool showDelta,
-        bool showMagnitude,
-        bool showComponent1,
-        bool showComponent2,
-        bool showComponent3,
-        bool sortPointNames,
-        bool showToleranceFields,
-        bool colorizeInToleranceFields);
-
-    bool SetProjectionOptionsArg(
-        string name,
-        string projectionType,
-        bool ignoreEdgeProjections,
-        bool overrideTargetOffsets,
-        double overrideTargetOffsetsValue,
-        bool addExtraMaterialThickness,
-        double extraMaterialThicknessValue);
-
     bool SetReportOutputOptionsArg(string name, string outputType, string pathOrEmbeddedName);
     bool SetReportViewOptionsArg(
         string name,

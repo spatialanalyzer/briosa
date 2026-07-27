@@ -34,7 +34,7 @@ public sealed class BindingRegistryCoverageTests
             .ToArray();
 
         Assert.Equal(workerSeam, registered);
-        Assert.Equal(99, registered.Length);
+        Assert.Equal(97, registered.Length);
 
         using var registry = JsonDocument.Parse(File.ReadAllText(Path.Combine(
             root,
@@ -53,7 +53,8 @@ public sealed class BindingRegistryCoverageTests
         Assert.Equal(
             [
                 "angular_unit",
-                "ascii_file_format",
+                "ascii_frame_set_format",
+                "ascii_import_file_format",
                 "auto_filter_proximity_settings",
                 "axis_identifier",
                 "base_color_type",
@@ -76,7 +77,6 @@ public sealed class BindingRegistryCoverageTests
                 "color_range_method",
                 "colorization_options",
                 "coordinate_system_type",
-                "dataset_type",
                 "distance_unit",
                 "double_array",
                 "dynamic_circle_mode",
@@ -100,11 +100,9 @@ public sealed class BindingRegistryCoverageTests
                 "logical",
                 "object_type",
                 "offset_direction_type",
-                "point_delta_report_options",
                 "point_filter_input_type",
                 "point_name",
                 "point_name_list",
-                "projection_options",
                 "relationship_weighting_mode",
                 "render_mode_type",
                 "report_output_options",
@@ -124,9 +122,11 @@ public sealed class BindingRegistryCoverageTests
                 "transform",
                 "translucency_type",
                 "vector3",
+                "vector_component",
                 "vector_group_name",
                 "vector_name_list",
                 "view_name",
+                "wcf_axis_identifier",
                 "whole_number",
                 "world_transform"
             ],

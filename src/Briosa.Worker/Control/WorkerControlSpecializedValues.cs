@@ -11,8 +11,10 @@ internal static partial class WorkerControlHost
             ? null
             : argument.Kind switch
             {
-                WorkerMpValueKind.AsciiFileFormat => ToSdkEnum<SdkAsciiFileFormatValue>(argument.SpecializedEnumValue),
+                WorkerMpValueKind.AsciiImportFileFormat => ToSdkEnum<SdkAsciiImportFileFormatValue>(argument.SpecializedEnumValue),
+                WorkerMpValueKind.AsciiFrameSetFormat => ToSdkEnum<SdkAsciiFrameSetFormatValue>(argument.SpecializedEnumValue),
                 WorkerMpValueKind.AxisIdentifier => ToSdkEnum<SdkAxisIdentifierValue>(argument.SpecializedEnumValue),
+                WorkerMpValueKind.WcfAxisIdentifier => ToSdkEnum<SdkWcfAxisIdentifierValue>(argument.SpecializedEnumValue),
                 WorkerMpValueKind.BaseColorType => ToSdkEnum<SdkBaseColorTypeValue>(argument.SpecializedEnumValue),
                 WorkerMpValueKind.BaseMidColorType => ToSdkEnum<SdkBaseMidColorTypeValue>(argument.SpecializedEnumValue),
                 WorkerMpValueKind.ChartType => ToSdkEnum<SdkChartTypeValue>(argument.SpecializedEnumValue),
@@ -20,7 +22,7 @@ internal static partial class WorkerControlHost
                 WorkerMpValueKind.CollimationType => ToSdkEnum<SdkCollimationTypeValue>(argument.SpecializedEnumValue),
                 WorkerMpValueKind.ColorRangeMethod => ToSdkEnum<SdkColorRangeMethodValue>(argument.SpecializedEnumValue),
                 WorkerMpValueKind.CoordinateSystemType => ToSdkEnum<SdkCoordinateSystemTypeValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.DatasetType => ToSdkEnum<SdkDatasetTypeValue>(argument.SpecializedEnumValue),
+                WorkerMpValueKind.VectorComponent => ToSdkEnum<SdkVectorComponentValue>(argument.SpecializedEnumValue),
                 WorkerMpValueKind.DynamicCircleMode => ToSdkEnum<SdkDynamicCircleModeValue>(argument.SpecializedEnumValue),
                 WorkerMpValueKind.DynamicEllipseMode => ToSdkEnum<SdkDynamicEllipseModeValue>(argument.SpecializedEnumValue),
                 WorkerMpValueKind.DynamicLineMode => ToSdkEnum<SdkDynamicLineModeValue>(argument.SpecializedEnumValue),
@@ -67,9 +69,11 @@ internal static partial class WorkerControlHost
     private static SdkValueKind ToSdkSpecializedValueKind(WorkerMpValueKind kind) =>
         kind switch
         {
-            WorkerMpValueKind.AsciiFileFormat => SdkValueKind.AsciiFileFormat,
+            WorkerMpValueKind.AsciiImportFileFormat => SdkValueKind.AsciiImportFileFormat,
+            WorkerMpValueKind.AsciiFrameSetFormat => SdkValueKind.AsciiFrameSetFormat,
             WorkerMpValueKind.AutoFilterProximitySettings => SdkValueKind.AutoFilterProximitySettings,
             WorkerMpValueKind.AxisIdentifier => SdkValueKind.AxisIdentifier,
+            WorkerMpValueKind.WcfAxisIdentifier => SdkValueKind.WcfAxisIdentifier,
             WorkerMpValueKind.BaseColorType => SdkValueKind.BaseColorType,
             WorkerMpValueKind.BaseMidColorType => SdkValueKind.BaseMidColorType,
             WorkerMpValueKind.ChartType => SdkValueKind.ChartType,
@@ -79,7 +83,7 @@ internal static partial class WorkerControlHost
             WorkerMpValueKind.ColorRangeMethod => SdkValueKind.ColorRangeMethod,
             WorkerMpValueKind.ColorizationOptions => SdkValueKind.ColorizationOptions,
             WorkerMpValueKind.CoordinateSystemType => SdkValueKind.CoordinateSystemType,
-            WorkerMpValueKind.DatasetType => SdkValueKind.DatasetType,
+            WorkerMpValueKind.VectorComponent => SdkValueKind.VectorComponent,
             WorkerMpValueKind.DynamicCircleMode => SdkValueKind.DynamicCircleMode,
             WorkerMpValueKind.DynamicEllipseMode => SdkValueKind.DynamicEllipseMode,
             WorkerMpValueKind.DynamicLineMode => SdkValueKind.DynamicLineMode,
@@ -95,9 +99,7 @@ internal static partial class WorkerControlHost
             WorkerMpValueKind.InstrumentType => SdkValueKind.InstrumentType,
             WorkerMpValueKind.ObjectType => SdkValueKind.ObjectType,
             WorkerMpValueKind.OffsetDirectionType => SdkValueKind.OffsetDirectionType,
-            WorkerMpValueKind.PointDeltaReportOptions => SdkValueKind.PointDeltaReportOptions,
             WorkerMpValueKind.PointFilterInputType => SdkValueKind.PointFilterInputType,
-            WorkerMpValueKind.ProjectionOptions => SdkValueKind.ProjectionOptions,
             WorkerMpValueKind.RelationshipWeightingMode => SdkValueKind.RelationshipWeightingMode,
             WorkerMpValueKind.RenderModeType => SdkValueKind.RenderModeType,
             WorkerMpValueKind.ReportOutputOptions => SdkValueKind.ReportOutputOptions,
@@ -116,9 +118,11 @@ internal static partial class WorkerControlHost
     private static WorkerMpValueKind ToControlSpecializedValueKind(SdkValueKind kind) =>
         kind switch
         {
-            SdkValueKind.AsciiFileFormat => WorkerMpValueKind.AsciiFileFormat,
+            SdkValueKind.AsciiImportFileFormat => WorkerMpValueKind.AsciiImportFileFormat,
+            SdkValueKind.AsciiFrameSetFormat => WorkerMpValueKind.AsciiFrameSetFormat,
             SdkValueKind.AutoFilterProximitySettings => WorkerMpValueKind.AutoFilterProximitySettings,
             SdkValueKind.AxisIdentifier => WorkerMpValueKind.AxisIdentifier,
+            SdkValueKind.WcfAxisIdentifier => WorkerMpValueKind.WcfAxisIdentifier,
             SdkValueKind.BaseColorType => WorkerMpValueKind.BaseColorType,
             SdkValueKind.BaseMidColorType => WorkerMpValueKind.BaseMidColorType,
             SdkValueKind.ChartType => WorkerMpValueKind.ChartType,
@@ -128,7 +132,7 @@ internal static partial class WorkerControlHost
             SdkValueKind.ColorRangeMethod => WorkerMpValueKind.ColorRangeMethod,
             SdkValueKind.ColorizationOptions => WorkerMpValueKind.ColorizationOptions,
             SdkValueKind.CoordinateSystemType => WorkerMpValueKind.CoordinateSystemType,
-            SdkValueKind.DatasetType => WorkerMpValueKind.DatasetType,
+            SdkValueKind.VectorComponent => WorkerMpValueKind.VectorComponent,
             SdkValueKind.DynamicCircleMode => WorkerMpValueKind.DynamicCircleMode,
             SdkValueKind.DynamicEllipseMode => WorkerMpValueKind.DynamicEllipseMode,
             SdkValueKind.DynamicLineMode => WorkerMpValueKind.DynamicLineMode,
@@ -144,9 +148,7 @@ internal static partial class WorkerControlHost
             SdkValueKind.InstrumentType => WorkerMpValueKind.InstrumentType,
             SdkValueKind.ObjectType => WorkerMpValueKind.ObjectType,
             SdkValueKind.OffsetDirectionType => WorkerMpValueKind.OffsetDirectionType,
-            SdkValueKind.PointDeltaReportOptions => WorkerMpValueKind.PointDeltaReportOptions,
             SdkValueKind.PointFilterInputType => WorkerMpValueKind.PointFilterInputType,
-            SdkValueKind.ProjectionOptions => WorkerMpValueKind.ProjectionOptions,
             SdkValueKind.RelationshipWeightingMode => WorkerMpValueKind.RelationshipWeightingMode,
             SdkValueKind.RenderModeType => WorkerMpValueKind.RenderModeType,
             SdkValueKind.ReportOutputOptions => WorkerMpValueKind.ReportOutputOptions,
@@ -224,41 +226,17 @@ internal static partial class WorkerControlHost
             ? null
             : new(value.AllowX, value.AllowY, value.AllowZ, value.AllowRx, value.AllowRy, value.AllowRz, value.RotateAboutCentroid);
 
-    private static SdkPointDeltaReportOptionsValue? ToSdkPointDeltaReport(
-        WorkerPointDeltaReportOptionsValue? value) =>
-        value is null
-            ? null
-            : new(
-                ToSdkEnumValue<SdkCoordinateSystemTypeValue>(value.CoordinateSystem),
-                ToSdkEnumValue<SdkReportDetailsFormatValue>(value.DetailsFormat),
-                value.ShowPointA,
-                value.ShowPointB,
-                value.ShowDelta,
-                value.ShowMagnitude,
-                value.ShowComponent1,
-                value.ShowComponent2,
-                value.ShowComponent3,
-                value.SortPointNames,
-                value.ShowToleranceFields,
-                value.ColorizeInToleranceFields);
-
-    private static SdkProjectionOptionsValue? ToSdkProjection(
-        WorkerProjectionOptionsValue? value) =>
-        value is null
-            ? null
-            : new(
-                ToSdkEnumValue<SdkProjectionTypeValue>(value.ProjectionType),
-                value.IgnoreEdgeProjections,
-                value.OverrideTargetOffsets,
-                value.OverrideTargetOffsetsValue,
-                value.AddExtraMaterialThickness,
-                value.ExtraMaterialThicknessValue);
 
     private static SdkReportOutputOptionsValue? ToSdkReportOutput(
         WorkerReportOutputOptionsValue? value) =>
         value is null
             ? null
-            : new(ToSdkEnumValue<SdkReportOutputTypeValue>(value.OutputType), value.PathOrEmbeddedName);
+            : new(
+                ToSdkEnumValue<SdkReportOutputTypeValue>(value.OutputType),
+                value.ExternalPath,
+                value.EmbeddedFile is null
+                    ? null
+                    : new(value.EmbeddedFile.CollectionName, value.EmbeddedFile.FileName));
 
     private static SdkReportViewOptionsValue? ToSdkReportView(
         WorkerReportViewOptionsValue? value) =>

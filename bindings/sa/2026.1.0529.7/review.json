@@ -11,8 +11,76 @@
   "missing_interop_blocker": "https://github.com/spatialanalyzer/briosa/issues/79",
   "semantic_blockers": {
     "GetBSPlineFitOptionsArg": "https://github.com/spatialanalyzer/briosa/issues/79",
-    "SetBSplineFitOptionsArg": "https://github.com/spatialanalyzer/briosa/issues/79"
+    "SetBSplineFitOptionsArg": "https://github.com/spatialanalyzer/briosa/issues/79",
+    "SetPointDeltaReportOptionsArg": "https://github.com/spatialanalyzer/briosa/issues/79",
+    "SetProjectionOptionsArg": "https://github.com/spatialanalyzer/briosa/issues/79"
   },
+  "binding_family_overrides": {
+    "SetAsciiFileFormatArg": [
+      "ascii_frame_set_format",
+      "ascii_import_file_format"
+    ],
+    "SetAxisNameArg": [
+      "axis_identifier",
+      "wcf_axis_identifier"
+    ]
+  },
+  "argument_family_assignments": [
+    {
+      "method": "SetAsciiFileFormatArg",
+      "inventory_key": "documentation:FileOperations/FileExport/ExportASCIIFrameSet.htm",
+      "argument_ordinal": 3,
+      "family_id": "ascii_frame_set_format"
+    },
+    {
+      "method": "SetAsciiFileFormatArg",
+      "inventory_key": "documentation:FileOperations/FileImport/ImportASCIIPredefinedFormats.htm",
+      "argument_ordinal": 1,
+      "family_id": "ascii_import_file_format"
+    },
+    {
+      "method": "SetAsciiFileFormatArg",
+      "inventory_key": "documentation:FileOperations/FileImport/ImportASCIIPredefinedFrame.htm",
+      "argument_ordinal": 1,
+      "family_id": "ascii_frame_set_format"
+    },
+    {
+      "method": "SetAxisNameArg",
+      "inventory_key": "documentation:ConstructionOperations/Frames/ConstructFrame-KnownOrigin.htm",
+      "argument_ordinal": 3,
+      "family_id": "axis_identifier"
+    },
+    {
+      "method": "SetAxisNameArg",
+      "inventory_key": "documentation:ConstructionOperations/Frames/ConstructFrame-KnownOrigin.htm",
+      "argument_ordinal": 5,
+      "family_id": "axis_identifier"
+    },
+    {
+      "method": "SetAxisNameArg",
+      "inventory_key": "documentation:ConstructionOperations/Frames/ConstructFrame-atPoint-with.htm",
+      "argument_ordinal": 1,
+      "family_id": "axis_identifier"
+    },
+    {
+      "method": "SetAxisNameArg",
+      "inventory_key": "documentation:ConstructionOperations/Frames/ConstructFrameCopyAndMake.htm",
+      "argument_ordinal": 2,
+      "family_id": "wcf_axis_identifier"
+    },
+    {
+      "method": "SetAxisNameArg",
+      "inventory_key": "documentation:ConstructionOperations/PointsandGroups/ConstructPointsatProjectiononSurfaces-Parallel.htm",
+      "argument_ordinal": 5,
+      "family_id": "wcf_axis_identifier"
+    },
+    {
+      "method": "SetAxisNameArg",
+      "inventory_key": "documentation:ConstructionOperations/PointsandGroups/ConstructPointsatProjectiononSurfaces-Radial.htm",
+      "argument_ordinal": 5,
+      "family_id": "wcf_axis_identifier"
+    }
+  ],
   "implemented_coverage": {
     "protocol": [
       "GetBoolArg", "GetColInstIdArg",
@@ -51,9 +119,9 @@
       "SetFrameNameArg", "SetGeometryTypeArg",
       "SetInstTypeNameArg", "SetIntegerArg",
       "SetObjectTypeArg", "SetOffsetDirectionTypeArg",
-      "SetPointDeltaReportOptionsArg", "SetPointFilterInputTypeArg",
+      "SetPointFilterInputTypeArg",
       "SetPointNameArg", "SetPointNameRefListArg",
-      "SetProjectionOptionsArg", "SetRelWeightingModeArg",
+      "SetRelWeightingModeArg",
       "SetRenderModeTypeArg", "SetReportOutputOptionsArg",
       "SetReportPageSettingsArg", "SetReportViewOptionsArg",
       "SetSaturationLimitTypeArg", "SetShowUsmnDialogTypeArg",
@@ -103,9 +171,9 @@
       "SetFrameNameArg", "SetGeometryTypeArg",
       "SetInstTypeNameArg", "SetIntegerArg",
       "SetObjectTypeArg", "SetOffsetDirectionTypeArg",
-      "SetPointDeltaReportOptionsArg", "SetPointFilterInputTypeArg",
+      "SetPointFilterInputTypeArg",
       "SetPointNameArg", "SetPointNameRefListArg",
-      "SetProjectionOptionsArg", "SetRelWeightingModeArg",
+      "SetRelWeightingModeArg",
       "SetRenderModeTypeArg", "SetReportOutputOptionsArg",
       "SetReportPageSettingsArg", "SetReportViewOptionsArg",
       "SetSaturationLimitTypeArg", "SetShowUsmnDialogTypeArg",
@@ -155,9 +223,9 @@
       "SetFrameNameArg", "SetGeometryTypeArg",
       "SetInstTypeNameArg", "SetIntegerArg",
       "SetObjectTypeArg", "SetOffsetDirectionTypeArg",
-      "SetPointDeltaReportOptionsArg", "SetPointFilterInputTypeArg",
+      "SetPointFilterInputTypeArg",
       "SetPointNameArg", "SetPointNameRefListArg",
-      "SetProjectionOptionsArg", "SetRelWeightingModeArg",
+      "SetRelWeightingModeArg",
       "SetRenderModeTypeArg", "SetReportOutputOptionsArg",
       "SetReportPageSettingsArg", "SetReportViewOptionsArg",
       "SetSaturationLimitTypeArg", "SetShowUsmnDialogTypeArg",
@@ -207,9 +275,9 @@
       "SetFrameNameArg", "SetGeometryTypeArg",
       "SetInstTypeNameArg", "SetIntegerArg",
       "SetObjectTypeArg", "SetOffsetDirectionTypeArg",
-      "SetPointDeltaReportOptionsArg", "SetPointFilterInputTypeArg",
+      "SetPointFilterInputTypeArg",
       "SetPointNameArg", "SetPointNameRefListArg",
-      "SetProjectionOptionsArg", "SetRelWeightingModeArg",
+      "SetRelWeightingModeArg",
       "SetRenderModeTypeArg", "SetReportOutputOptionsArg",
       "SetReportPageSettingsArg", "SetReportViewOptionsArg",
       "SetSaturationLimitTypeArg", "SetShowUsmnDialogTypeArg",
@@ -259,9 +327,9 @@
       "SetFrameNameArg", "SetGeometryTypeArg",
       "SetInstTypeNameArg", "SetIntegerArg",
       "SetObjectTypeArg", "SetOffsetDirectionTypeArg",
-      "SetPointDeltaReportOptionsArg", "SetPointFilterInputTypeArg",
+      "SetPointFilterInputTypeArg",
       "SetPointNameArg", "SetPointNameRefListArg",
-      "SetProjectionOptionsArg", "SetRelWeightingModeArg",
+      "SetRelWeightingModeArg",
       "SetRenderModeTypeArg", "SetReportOutputOptionsArg",
       "SetReportPageSettingsArg", "SetReportViewOptionsArg",
       "SetSaturationLimitTypeArg", "SetShowUsmnDialogTypeArg",
@@ -277,9 +345,11 @@
   },
   "families": {
     "AngularUnits": { "family_id": "angular_unit", "shape": "enum", "public_type_target": "AngularUnit", "worker_type_target": "SdkAngularUnitValue" },
-    "AsciiFileFormat": { "family_id": "ascii_file_format", "shape": "enum", "public_type_target": "AsciiFileFormat", "worker_type_target": "SdkAsciiFileFormatValue" },
+    "AsciiFileFormat": { "family_id": "ascii_import_file_format", "shape": "enum", "public_type_target": "AsciiImportFileFormat", "worker_type_target": "SdkAsciiImportFileFormatValue" },
+    "AsciiFrameSetFormat": { "family_id": "ascii_frame_set_format", "shape": "enum", "public_type_target": "AsciiFrameSetFormat", "worker_type_target": "SdkAsciiFrameSetFormatValue" },
     "AutoFilterProximitySettings": { "family_id": "auto_filter_proximity_settings", "shape": "structured", "public_type_target": "AutoFilterProximitySettings", "worker_type_target": "SdkAutoFilterProximitySettingsValue" },
     "AxisName": { "family_id": "axis_identifier", "shape": "enum", "public_type_target": "AxisIdentifier", "worker_type_target": "SdkAxisIdentifierValue" },
+    "WcfAxisIdentifier": { "family_id": "wcf_axis_identifier", "shape": "enum", "public_type_target": "WcfAxisIdentifier", "worker_type_target": "SdkWcfAxisIdentifierValue" },
     "BSplineFitOptions": { "family_id": "b_spline_fit_options", "shape": "structured", "public_type_target": "BSplineFitOptions", "worker_type_target": "SdkBSplineFitOptionsValue" },
     "BaseColorType": { "family_id": "base_color_type", "shape": "enum", "public_type_target": "BaseColorType", "worker_type_target": "SdkBaseColorTypeValue" },
     "BaseMidColorType": { "family_id": "base_mid_color_type", "shape": "enum", "public_type_target": "BaseMidColorType", "worker_type_target": "SdkBaseMidColorTypeValue" },
@@ -305,7 +375,7 @@
     "ColVectorGroupName": { "family_id": "collection_vector_group_name", "shape": "identifier", "public_type_target": "CollectionVectorGroupName", "worker_type_target": "SdkCollectionVectorGroupNameValue" },
     "CompTechnique": { "family_id": "computation_technique", "shape": "enum", "public_type_target": "ComputationTechnique", "worker_type_target": "SdkComputationTechniqueValue" },
     "CoordinateSystemType": { "family_id": "coordinate_system_type", "shape": "enum", "public_type_target": "CoordinateSystemType", "worker_type_target": "SdkCoordinateSystemTypeValue" },
-    "DatasetType": { "family_id": "dataset_type", "shape": "enum", "public_type_target": "DatasetType", "worker_type_target": "SdkDatasetTypeValue" },
+    "DatasetType": { "family_id": "vector_component", "shape": "enum", "public_type_target": "VectorComponent", "worker_type_target": "SdkVectorComponentValue" },
     "DegreeOfFreedom": { "family_id": "degree_of_freedom", "shape": "enum", "public_type_target": "DegreeOfFreedom", "worker_type_target": "SdkDegreeOfFreedomValue" },
     "DistanceUnits": { "family_id": "distance_unit", "shape": "enum", "public_type_target": "DistanceUnit", "worker_type_target": "SdkDistanceUnitValue" },
     "Double": { "family_id": "floating_point", "shape": "scalar", "public_type_target": "double", "worker_type_target": "double" },

@@ -6,8 +6,10 @@ internal static class SpecializedValueMappings
 {
     private static readonly HashSet<string> EnumTypes =
     [
-        "ascii_file_format",
+        "ascii_frame_set_format",
+        "ascii_import_file_format",
         "axis_identifier",
+        "wcf_axis_identifier",
         "base_color_type",
         "base_mid_color_type",
         "chart_type",
@@ -15,7 +17,7 @@ internal static class SpecializedValueMappings
         "collimation_type",
         "color_range_method",
         "coordinate_system_type",
-        "dataset_type",
+        "vector_component",
         "dynamic_circle_mode",
         "dynamic_ellipse_mode",
         "dynamic_line_mode",
@@ -48,8 +50,7 @@ internal static class SpecializedValueMappings
         "colorization_options",
         "fit_constraint_scalar_options",
         "fit_degree_of_freedom_options",
-        "point_delta_report_options",
-        "projection_options",
+
         "report_output_options",
         "report_view_options",
         "tolerance_scalar_options"
@@ -96,12 +97,8 @@ internal static class SpecializedValueMappings
                 $"FitConstraintScalarOptionsValue: new(new({value}.High.Enabled, {value}.High.Value), new({value}.Low.Enabled, {value}.Low.Value)))",
             "fit_degree_of_freedom_options" => prefix +
                 $"FitDegreeOfFreedomOptionsValue: new({value}.AllowX, {value}.AllowY, {value}.AllowZ, {value}.AllowRx, {value}.AllowRy, {value}.AllowRz, {value}.RotateAboutCentroid))",
-            "point_delta_report_options" => prefix +
-                $"PointDeltaReportOptionsValue: new((int){value}.CoordinateSystem - 1, (int){value}.DetailsFormat - 1, {value}.ShowPointA, {value}.ShowPointB, {value}.ShowDelta, {value}.ShowMagnitude, {value}.ShowComponent1, {value}.ShowComponent2, {value}.ShowComponent3, {value}.SortPointNames, {value}.ShowToleranceFields, {value}.ColorizeInToleranceFields))",
-            "projection_options" => prefix +
-                $"ProjectionOptionsValue: new((int){value}.ProjectionType - 1, {value}.IgnoreEdgeProjections, {value}.OverrideTargetOffsets, {value}.OverrideTargetOffsetsValue, {value}.AddExtraMaterialThickness, {value}.ExtraMaterialThicknessValue))",
             "report_output_options" => prefix +
-                $"ReportOutputOptionsValue: new((int){value}.OutputType - 1, {value}.PathOrEmbeddedName))",
+                $"ReportOutputOptionsValue: new((int){value}.OutputType - 1, {value}.DestinationCase == TargetProtocol.ReportOutputOptions.DestinationOneofCase.ExternalPath ? {value}.ExternalPath : null, {value}.DestinationCase == TargetProtocol.ReportOutputOptions.DestinationOneofCase.EmbeddedFile ? new({value}.EmbeddedFile.CollectionName, {value}.EmbeddedFile.FileName) : null))",
             "report_view_options" => prefix +
                 $"ReportViewOptionsValue: new((int){value}.ViewType - 1, {value}.CollectionName, {value}.CalloutName))",
             "tolerance_scalar_options" => prefix +
@@ -134,17 +131,12 @@ internal static class SpecializedValueMappings
             "fit_constraint_scalar_options" => MissingScalarLimits(value),
             "fit_degree_of_freedom_options" => Missing(value,
                 "AllowX", "AllowY", "AllowZ", "AllowRx", "AllowRy", "AllowRz", "RotateAboutCentroid"),
-            "point_delta_report_options" => Missing(value,
-                "CoordinateSystem", "DetailsFormat", "ShowPointA", "ShowPointB", "ShowDelta",
-                "ShowMagnitude", "ShowComponent1", "ShowComponent2", "ShowComponent3",
-                "SortPointNames", "ShowToleranceFields", "ColorizeInToleranceFields") +
-                " || " + InvalidEnums(value, "CoordinateSystem", "DetailsFormat"),
-            "projection_options" => Missing(value,
-                "ProjectionType", "IgnoreEdgeProjections", "OverrideTargetOffsets",
-                "OverrideTargetOffsetsValue", "AddExtraMaterialThickness", "ExtraMaterialThicknessValue") +
-                " || " + InvalidEnums(value, "ProjectionType"),
-            "report_output_options" => Missing(value, "OutputType", "PathOrEmbeddedName") +
-                " || " + InvalidEnums(value, "OutputType"),
+            "report_output_options" => Missing(value, "OutputType") +
+                " || " + InvalidEnums(value, "OutputType") +
+                $" || {value}.DestinationCase == TargetProtocol.ReportOutputOptions.DestinationOneofCase.None" +
+                $" || ({value}.DestinationCase == TargetProtocol.ReportOutputOptions.DestinationOneofCase.EmbeddedFile" +
+                $" && ({value}.EmbeddedFile is null || !{value}.EmbeddedFile.HasCollectionName" +
+                $" || !{value}.EmbeddedFile.HasFileName))",
             "report_view_options" => Missing(value, "ViewType", "CollectionName", "CalloutName") +
                 " || " + InvalidEnums(value, "ViewType"),
             "tolerance_scalar_options" => MissingScalarLimits(value),

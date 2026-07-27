@@ -2,7 +2,7 @@
 
 The `bindings` tree is the exact-release bridge between extracted MP argument evidence, the committed SpatialAnalyzer interop API, and Briosa's public/private value model. It does not approve MP operations. Command dispositions and the supported-command catalog remain the only path to a public RPC.
 
-For SA `2026.1.0529.7`, the registry reconciles 105 inventory-observed setters and 29 inventory-observed getters with 106 setters and 39 getters exposed by the committed interop assembly. The union contains 151 exact method names grouped into 111 semantic value families.
+For SA `2026.1.0529.7`, the registry reconciles 105 inventory-observed setters and 29 inventory-observed getters with 106 setters and 39 getters exposed by the committed interop assembly. The union contains 151 exact method names grouped into 113 semantic value families.
 
 ## Source and generated files
 
@@ -14,6 +14,7 @@ Each exact target contains:
 
 Edit only `review.json`. Never hand-edit `registry.json` or `report.md`.
 
+A specialized SDK method can also serve more than one semantic domain. `binding_family_overrides` declares the complete allowed family set, and `argument_family_assignments` assigns every exact inventory command/ordinal observation to one of those families. Registry synchronization fails if an observation is unassigned, an assignment is stale, or an override omits the method's default family. Generated bindings therefore expose `semantic_value_families` as an array rather than collapsing the evidence to one label.
 The review deliberately keeps specialized SDK methods distinct even when their CLR representation is the same. For example, `SetAngularUnitsArg` maps to `angular_unit`, while `SetStringArg` maps to the primitive `string` family. Structured setters and getters share a family only when their exact semantic shape matches; method-name similarity alone is insufficient.
 
 `public_type_target` and `worker_type_target` are implementation targets for issues that build the value families. They do not claim that the corresponding type already exists. Generated `implementation_status` distinguishes `implemented`, `planned`, `blocked`, and `not_required` families. Per-binding coverage reports protocol, worker, adapter, fake, and generator status independently so partial implementations cannot appear complete.
@@ -30,7 +31,7 @@ The review deliberately keeps specialized SDK methods distinct even when their C
 
 Mixed-use methods remain `usable` when at least one non-excluded command observes them. Product-scope exclusion is command-specific and must not disable a shared binding needed by another command.
 
-The first exact-target review found six `blocked_missing_interop` methods. Issue #53 isolated their affected commands, and focused Hexagon issue #79 now owns the remaining exact-target clarification. Issue #57 also records the B-spline getter and setter as `blocked_semantics` because the exact release does not provide a verified `Sort Method` encoding. A generated sample call is not evidence that Briosa may substitute a generic SDK method.
+The first exact-target review found six `blocked_missing_interop` methods. Issue #53 isolated their affected commands, and focused Hexagon issue #79 now owns the remaining exact-target clarification. Issue #57 records the B-spline getter/setter, projection-options setter, and point-delta-report-options setter as `blocked_semantics` because the exact release does not provide verified encodings or complete choice lists. A generated sample call is not evidence that Briosa may substitute a generic SDK method.
 
 ## Workflow
 

@@ -2,52 +2,65 @@ namespace Briosa.Worker.Sdk;
 
 internal static class SdkSpecializedValueCodec
 {
-    public static string ToSdkString(SdkAsciiFileFormatValue value) => value switch
+    public static string ToSdkString(SdkAsciiImportFileFormatValue value) => value switch
     {
-        SdkAsciiFileFormatValue.Xyz => "X Y Z",
-        SdkAsciiFileFormatValue.XyzOffsetOffset2 => "X Y Z Offset [Offset2]",
-        SdkAsciiFileFormatValue.XyzNotes => "X Y Z [Notes]",
-        SdkAsciiFileFormatValue.RadiusThetaPhi => "Radius Theta Phi (polar or spheric)",
-        SdkAsciiFileFormatValue.RadiusThetaZ => "Radius Theta Z (cylindric)",
-        SdkAsciiFileFormatValue.PointNameXyz => "PointName X Y Z",
-        SdkAsciiFileFormatValue.PointNameXyzNotes => "PointName X Y Z [Notes]",
-        SdkAsciiFileFormatValue.PointNameXyzOffsetOffset2 => "PointName X Y Z Offset [Offset2]",
-        SdkAsciiFileFormatValue.PointNameXyzUxUyUz => "PointName X Y Z Ux Uy Uz (1 sigma)",
-        SdkAsciiFileFormatValue.PointNameXyzTxTyTzTd => "PointName X Y Z Tx Ty Tz Td (Point Tolerance)",
-        SdkAsciiFileFormatValue.PointNameXyzWxWyWzWmag => "PointName X Y Z Wx Wy Wz [Wmag]",
-        SdkAsciiFileFormatValue.PointNameXyzHighLowTolerance => "PointName X Y Z THx TLx THy TLy THz TLz THd TLd (Point Tolerance)",
-        SdkAsciiFileFormatValue.PointNameXyzTxTyTzTdWxWyWz => "PointName X Y Z Tx Ty Tz Td Wx Wy Wz",
-        SdkAsciiFileFormatValue.PointNameXyzWxWyWzTxTyTzTd => "PointName X Y Z Wx Wy Wz Tx Ty Tz [Td]",
-        SdkAsciiFileFormatValue.PointNameXyzHighLowToleranceWxWyWz => "PointName X Y Z THx TLx THy TLy THz TLz THd TLd Wx Wy Wz",
-        SdkAsciiFileFormatValue.PointNameXyzWxWyWzHighLowTolerance => "PointName X Y Z Wx Wy Wz THx TLx THy TLy THz TLz [THd TLd]",
-        SdkAsciiFileFormatValue.PointNameRadiusThetaPhi => "PointName Radius Theta Phi (polar or spheric)",
-        SdkAsciiFileFormatValue.PointNameRadiusThetaZ => "PointName Radius Theta Z (cylindric)",
-        SdkAsciiFileFormatValue.PointNameXyzGroupName => "PointName X Y Z GroupName",
-        SdkAsciiFileFormatValue.PointNameYxzGroupName => "PointName Y X Z GroupName",
-        SdkAsciiFileFormatValue.GroupNamePointNameXyz => "GroupName PointName X Y Z",
-        SdkAsciiFileFormatValue.GroupNamePointNameXyzOffsetOffset2 => "GroupName PointName X Y Z Offset [Offset2]",
-        SdkAsciiFileFormatValue.GroupNamePointNameXyzNotes => "GroupName PointName X Y Z [Notes]",
-        SdkAsciiFileFormatValue.GroupNamePointNameXyzUxUyUz => "GroupName PointName X Y Z Ux Uy Uz (1 sigma)",
-        SdkAsciiFileFormatValue.GroupNamePointNameRadiusThetaPhi => "GroupName PointName Radius Theta Phi",
-        SdkAsciiFileFormatValue.GroupNamePointNameRadiusThetaZ => "GroupName PointName Radius Theta Z",
-        SdkAsciiFileFormatValue.CollectionGroupPointXyz => "Collection Group Point X Y Z",
-        SdkAsciiFileFormatValue.CollectionGroupPointXyzNotes => "Collection Group Point X Y Z [Notes]",
-        SdkAsciiFileFormatValue.CollectionGroupPointRadiusThetaPhi => "Collection Group Point Radius Theta Phi",
-        SdkAsciiFileFormatValue.CollectionGroupPointRadiusThetaZ => "Collection Group Point Radius Theta Z",
-        SdkAsciiFileFormatValue.XyzIjk => "X Y Z I J K (Planes or Vectors)",
-        SdkAsciiFileFormatValue.VectorNameXyzIjk => "VectorName X Y Z I J K",
-        SdkAsciiFileFormatValue.VectorNameXyzDxDyDzSignedMagnitude => "VectorName X Y Z dX dY dZ [SignedMag]",
-        SdkAsciiFileFormatValue.VectorGroupNameVectorNameXyzIjk => "VectorGroupName VectorName X Y Z I J K",
-        SdkAsciiFileFormatValue.VectorGroupNameVectorNameXyzDxDyDzSignedMagnitude => "VectorGroupName VectorName X Y Z dX dY dZ [SignedMag]",
-        SdkAsciiFileFormatValue.FrameNameXyzRxRyRzTimestamp => "FrameName X Y Z  Rx Ry Rz [Timestamp]",
-        SdkAsciiFileFormatValue.FrameNameXyzEulerXyzTimestamp => "FrameName X Y Z  Euler XYZ [Timestamp]",
-        SdkAsciiFileFormatValue.FrameNameXyzEulerZyxTimestamp => "FrameName X Y Z  Euler ZYX [Timestamp]",
-        SdkAsciiFileFormatValue.FrameNameXyzEulerZyzTimestamp => "FrameName X Y Z  Euler ZYZ [Timestamp]",
-        SdkAsciiFileFormatValue.FrameNameXyzEulerZxzTimestamp => "FrameName X Y Z  Euler ZXZ [Timestamp]",
-        SdkAsciiFileFormatValue.FrameNameTransformationMatrixTimestamp => "FrameName Transformation Matrix (4x4) [Timestamp]",
-        SdkAsciiFileFormatValue.TransformationMatrixTimestamp => "Transformation Matrix (4x4) [Timestamp]",
-        SdkAsciiFileFormatValue.FrameNameXyzQuaternionTimestamp => "FrameName X Y Z  e1 e2 e3 e4 [Timestamp]",
-        SdkAsciiFileFormatValue.PlaneNameXyzDxDyDzPlaneSize => "PlaneName X Y Z dX dY dZ [PlaneSize]",
+        SdkAsciiImportFileFormatValue.Xyz => "X Y Z",
+        SdkAsciiImportFileFormatValue.XyzOffsetOffset2 => "X Y Z Offset [Offset2]",
+        SdkAsciiImportFileFormatValue.XyzNotes => "X Y Z [Notes]",
+        SdkAsciiImportFileFormatValue.RadiusThetaPhi => "Radius Theta Phi (polar or spheric)",
+        SdkAsciiImportFileFormatValue.RadiusThetaZ => "Radius Theta Z (cylindric)",
+        SdkAsciiImportFileFormatValue.PointNameXyz => "PointName X Y Z",
+        SdkAsciiImportFileFormatValue.PointNameXyzNotes => "PointName X Y Z [Notes]",
+        SdkAsciiImportFileFormatValue.PointNameXyzOffsetOffset2 => "PointName X Y Z Offset [Offset2]",
+        SdkAsciiImportFileFormatValue.PointNameXyzUxUyUz => "PointName X Y Z Ux Uy Uz (1 sigma)",
+        SdkAsciiImportFileFormatValue.PointNameXyzTxTyTzTd => "PointName X Y Z Tx Ty Tz Td (Point Tolerance)",
+        SdkAsciiImportFileFormatValue.PointNameXyzWxWyWzWmag => "PointName X Y Z Wx Wy Wz [Wmag]",
+        SdkAsciiImportFileFormatValue.PointNameXyzHighLowTolerance => "PointName X Y Z THx TLx THy TLy THz TLz THd TLd (Point Tolerance)",
+        SdkAsciiImportFileFormatValue.PointNameXyzTxTyTzTdWxWyWz => "PointName X Y Z Tx Ty Tz Td Wx Wy Wz",
+        SdkAsciiImportFileFormatValue.PointNameXyzWxWyWzTxTyTzTd => "PointName X Y Z Wx Wy Wz Tx Ty Tz [Td]",
+        SdkAsciiImportFileFormatValue.PointNameXyzHighLowToleranceWxWyWz => "PointName X Y Z THx TLx THy TLy THz TLz THd TLd Wx Wy Wz",
+        SdkAsciiImportFileFormatValue.PointNameXyzWxWyWzHighLowTolerance => "PointName X Y Z Wx Wy Wz THx TLx THy TLy THz TLz [THd TLd]",
+        SdkAsciiImportFileFormatValue.PointNameRadiusThetaPhi => "PointName Radius Theta Phi (polar or spheric)",
+        SdkAsciiImportFileFormatValue.PointNameRadiusThetaZ => "PointName Radius Theta Z (cylindric)",
+        SdkAsciiImportFileFormatValue.PointNameXyzGroupName => "PointName X Y Z GroupName",
+        SdkAsciiImportFileFormatValue.PointNameYxzGroupName => "PointName Y X Z GroupName",
+        SdkAsciiImportFileFormatValue.GroupNamePointNameXyz => "GroupName PointName X Y Z",
+        SdkAsciiImportFileFormatValue.GroupNamePointNameXyzOffsetOffset2 => "GroupName PointName X Y Z Offset [Offset2]",
+        SdkAsciiImportFileFormatValue.GroupNamePointNameXyzNotes => "GroupName PointName X Y Z [Notes]",
+        SdkAsciiImportFileFormatValue.GroupNamePointNameXyzUxUyUz => "GroupName PointName X Y Z Ux Uy Uz (1 sigma)",
+        SdkAsciiImportFileFormatValue.GroupNamePointNameRadiusThetaPhi => "GroupName PointName Radius Theta Phi",
+        SdkAsciiImportFileFormatValue.GroupNamePointNameRadiusThetaZ => "GroupName PointName Radius Theta Z",
+        SdkAsciiImportFileFormatValue.CollectionGroupPointXyz => "Collection Group Point X Y Z",
+        SdkAsciiImportFileFormatValue.CollectionGroupPointXyzNotes => "Collection Group Point X Y Z [Notes]",
+        SdkAsciiImportFileFormatValue.CollectionGroupPointRadiusThetaPhi => "Collection Group Point Radius Theta Phi",
+        SdkAsciiImportFileFormatValue.CollectionGroupPointRadiusThetaZ => "Collection Group Point Radius Theta Z",
+        SdkAsciiImportFileFormatValue.XyzIjk => "X Y Z I J K (Planes or Vectors)",
+        SdkAsciiImportFileFormatValue.VectorNameXyzIjk => "VectorName X Y Z I J K",
+        SdkAsciiImportFileFormatValue.VectorNameXyzDxDyDzSignedMagnitude => "VectorName X Y Z dX dY dZ [SignedMag]",
+        SdkAsciiImportFileFormatValue.VectorGroupNameVectorNameXyzIjk => "VectorGroupName VectorName X Y Z I J K",
+        SdkAsciiImportFileFormatValue.VectorGroupNameVectorNameXyzDxDyDzSignedMagnitude => "VectorGroupName VectorName X Y Z dX dY dZ [SignedMag]",
+        SdkAsciiImportFileFormatValue.FrameNameXyzRxRyRzTimestamp => "FrameName X Y Z  Rx Ry Rz [Timestamp]",
+        SdkAsciiImportFileFormatValue.FrameNameXyzEulerXyzTimestamp => "FrameName X Y Z  Euler XYZ [Timestamp]",
+        SdkAsciiImportFileFormatValue.FrameNameXyzEulerZyxTimestamp => "FrameName X Y Z  Euler ZYX [Timestamp]",
+        SdkAsciiImportFileFormatValue.FrameNameXyzEulerZyzTimestamp => "FrameName X Y Z  Euler ZYZ [Timestamp]",
+        SdkAsciiImportFileFormatValue.FrameNameXyzEulerZxzTimestamp => "FrameName X Y Z  Euler ZXZ [Timestamp]",
+        SdkAsciiImportFileFormatValue.FrameNameTransformationMatrixTimestamp => "FrameName Transformation Matrix (4x4) [Timestamp]",
+        SdkAsciiImportFileFormatValue.TransformationMatrixTimestamp => "Transformation Matrix (4x4) [Timestamp]",
+        SdkAsciiImportFileFormatValue.FrameNameXyzQuaternionTimestamp => "FrameName X Y Z  e1 e2 e3 e4 [Timestamp]",
+        SdkAsciiImportFileFormatValue.PlaneNameXyzDxDyDzPlaneSize => "PlaneName X Y Z dX dY dZ [PlaneSize]",
+        _ => throw Unknown(value)
+    };
+
+    public static string ToSdkString(SdkAsciiFrameSetFormatValue value) => value switch
+    {
+        SdkAsciiFrameSetFormatValue.FrameNameXyzRxRyRzTimestamp => "FrameName X Y Z  Rx Ry Rz [Timestamp]",
+        SdkAsciiFrameSetFormatValue.FrameNameXyzEulerXyzTimestamp => "FrameName X Y Z  Euler XYZ [Timestamp]",
+        SdkAsciiFrameSetFormatValue.FrameNameXyzEulerZyxTimestamp => "FrameName X Y Z  Euler ZYX [Timestamp]",
+        SdkAsciiFrameSetFormatValue.FrameNameXyzEulerZyzTimestamp => "FrameName X Y Z  Euler ZYZ [Timestamp]",
+        SdkAsciiFrameSetFormatValue.FrameNameXyzEulerZxzTimestamp => "FrameName X Y Z  Euler ZXZ [Timestamp]",
+        SdkAsciiFrameSetFormatValue.FrameNameTransformationMatrixTimestamp => "FrameName Transformation Matrix (4x4) [Timestamp]",
+        SdkAsciiFrameSetFormatValue.TransformationMatrixTimestamp => "Transformation Matrix (4x4) [Timestamp]",
+        SdkAsciiFrameSetFormatValue.FrameNameXyzQuaternionTimestamp => "FrameName X Y Z  e1 e2 e3 e4 [Timestamp]",
         _ => throw Unknown(value)
     };
 
@@ -59,9 +72,14 @@ internal static class SdkSpecializedValueCodec
         SdkAxisIdentifierValue.NegativeY => "-Y Axis",
         SdkAxisIdentifierValue.PositiveZ => "+Z Axis",
         SdkAxisIdentifierValue.NegativeZ => "-Z Axis",
-        SdkAxisIdentifierValue.X => "X Axis",
-        SdkAxisIdentifierValue.Y => "Y Axis",
-        SdkAxisIdentifierValue.Z => "Z Axis",
+        _ => throw Unknown(value)
+    };
+
+    public static string ToSdkString(SdkWcfAxisIdentifierValue value) => value switch
+    {
+        SdkWcfAxisIdentifierValue.X => "X Axis",
+        SdkWcfAxisIdentifierValue.Y => "Y Axis",
+        SdkWcfAxisIdentifierValue.Z => "Z Axis",
         _ => throw Unknown(value)
     };
 
@@ -72,7 +90,7 @@ internal static class SdkSpecializedValueCodec
     public static string ToSdkString(SdkCollimationTypeValue value) => value switch { SdkCollimationTypeValue.FullCollimation => "Full Collimation", SdkCollimationTypeValue.NoTiltCollimation => "No-Tilt Collimation", _ => throw Unknown(value) };
     public static string ToSdkString(SdkColorRangeMethodValue value) => value switch { SdkColorRangeMethodValue.SingleColor => "Single Color", SdkColorRangeMethodValue.Continuous => "Continuous", SdkColorRangeMethodValue.TolerancedContinuous => "Toleranced (Continuous)", SdkColorRangeMethodValue.TolerancedGoNoGo => "Toleranced (Go / No-Go)", SdkColorRangeMethodValue.TolerancedGoNoGoWithWarning => "Toleranced (Go / No-Go With Warning)", SdkColorRangeMethodValue.DiscreteColors => "Discrete Colors", _ => throw Unknown(value) };
     public static string ToSdkString(SdkCoordinateSystemTypeValue value) => value switch { SdkCoordinateSystemTypeValue.Cartesian => "Cartesian", SdkCoordinateSystemTypeValue.Cylindric => "Cylindric", SdkCoordinateSystemTypeValue.Polar => "Polar", _ => throw Unknown(value) };
-    public static string ToSdkString(SdkDatasetTypeValue value) => value switch { SdkDatasetTypeValue.X => "X", SdkDatasetTypeValue.Y => "Y", SdkDatasetTypeValue.Z => "Z", SdkDatasetTypeValue.Magnitude => "Magnitude", _ => throw Unknown(value) };
+    public static string ToSdkString(SdkVectorComponentValue value) => value switch { SdkVectorComponentValue.X => "X", SdkVectorComponentValue.Y => "Y", SdkVectorComponentValue.Z => "Z", SdkVectorComponentValue.Magnitude => "Magnitude", _ => throw Unknown(value) };
     public static string ToSdkString(SdkDynamicCircleModeValue value) => value switch { SdkDynamicCircleModeValue.CylinderPlaneHoldPlaneNormal => "Cylinder and Plane Intersection - Hold Plane Normal", SdkDynamicCircleModeValue.CylinderPlaneHoldCylinderAxis => "Cylinder and Plane Intersection - Hold Cylinder Axis", SdkDynamicCircleModeValue.ConePlaneHoldPlaneNormal => "Cone and Plane Intersection - Hold Plane Normal", SdkDynamicCircleModeValue.ConePlaneHoldConeAxis => "Cone and Plane Intersection - Hold Cone Axis", SdkDynamicCircleModeValue.SpherePlaneIntersection => "Sphere and Plane Intersection", SdkDynamicCircleModeValue.TwoConesIntersection => "Two Cones Intersection", SdkDynamicCircleModeValue.ConeCylinderIntersection => "Cone and Cylinder Intersection", _ => throw Unknown(value) };
     public static string ToSdkString(SdkDynamicEllipseModeValue value) => value switch { SdkDynamicEllipseModeValue.CylinderPlaneIntersection => "Cylinder and Plane Intersection", SdkDynamicEllipseModeValue.ConePlaneIntersection => "Cone and Plane Intersection", _ => throw Unknown(value) };
     public static string ToSdkString(SdkDynamicLineModeValue value) => value switch { SdkDynamicLineModeValue.ConeAxis => "Cone Axis", SdkDynamicLineModeValue.CylinderAxis => "Cylinder Axis", SdkDynamicLineModeValue.IntersectionOfTwoPlanes => "Intersection of Two Planes", SdkDynamicLineModeValue.BisectTwoLines => "Bisect Two Lines", SdkDynamicLineModeValue.SlotCenterlineAlongLength => "Slot Centerline Along Length", _ => throw Unknown(value) };
@@ -285,11 +303,13 @@ internal static class SdkSpecializedValueCodec
         SdkObjectTypeValue.BSpline => "B-Spline",
         SdkObjectTypeValue.Circle => "Circle",
         SdkObjectTypeValue.Cloud => "Cloud",
+        SdkObjectTypeValue.EnhancedCloud => "Enhanced Cloud",
+        SdkObjectTypeValue.ScanStripeCloud => "Scan Stripe Cloud",
         SdkObjectTypeValue.CrossSectionCloud => "Cross Section Cloud",
+        SdkObjectTypeValue.Cone => "Cone",
         SdkObjectTypeValue.Cylinder => "Cylinder",
         SdkObjectTypeValue.Datum => "Datum",
         SdkObjectTypeValue.Ellipse => "Ellipse",
-        SdkObjectTypeValue.EnhancedCloud => "Enhanced Cloud",
         SdkObjectTypeValue.Frame => "Frame",
         SdkObjectTypeValue.FrameSet => "Frame Set",
         SdkObjectTypeValue.Line => "Line",
@@ -299,7 +319,6 @@ internal static class SdkSpecializedValueCodec
         SdkObjectTypeValue.PointGroup => "Point Group",
         SdkObjectTypeValue.PointSet => "Point Set",
         SdkObjectTypeValue.PolySurface => "Poly Surface",
-        SdkObjectTypeValue.ScanStripeCloud => "Scan Stripe Cloud",
         SdkObjectTypeValue.ScanStripeMesh => "Scan Stripe Mesh",
         SdkObjectTypeValue.Slot => "Slot",
         SdkObjectTypeValue.Sphere => "Sphere",
@@ -321,8 +340,7 @@ internal static class SdkSpecializedValueCodec
     public static string ToSdkString(SdkTargetComputationMethodValue value) => value switch { SdkTargetComputationMethodValue.UseMostRecentShotFromEachFace => "Use most recent shot from each face", SdkTargetComputationMethodValue.UseOnlyMostRecentShot => "Use only most recent shot", SdkTargetComputationMethodValue.DoNotChangePriorMeasurements => "Do not change prior measurements at all", SdkTargetComputationMethodValue.ForceNewPointForEachMeasurement => "Force a new point for each measurement", SdkTargetComputationMethodValue.RemoveAllPriorShots => "Remove all prior shots", SdkTargetComputationMethodValue.DeactivateAllPriorShots => "Deactivate all prior shots", _ => throw Unknown(value) };
     public static string ToSdkString(SdkTranslucencyTypeValue value) => value switch { SdkTranslucencyTypeValue.Solid => "Solid", SdkTranslucencyTypeValue.Translucent => "Translucent", SdkTranslucencyTypeValue.Wireframe => "Wireframe", _ => throw Unknown(value) };
     public static string ToSdkString(SdkCloudThinningModeValue value) => value switch { SdkCloudThinningModeValue.None => "None", SdkCloudThinningModeValue.Random => "Random", SdkCloudThinningModeValue.NthPoint => "Nth Point", _ => throw Unknown(value) };
-    public static string ToSdkString(SdkProjectionTypeValue value) => value switch { SdkProjectionTypeValue.TargetToOffsetObjectVectors => "Target To Offset Object Vectors", SdkProjectionTypeValue.OffsetObjectToTargetVectors => "Offset Object To Target Vectors", SdkProjectionTypeValue.ProbeToObjectVectors => "Probe To Object Vectors", SdkProjectionTypeValue.ObjectToProbeVectors => "Object To Probe Vectors", SdkProjectionTypeValue.PointsOnProbeSurface => "Points on Probe Surface", SdkProjectionTypeValue.PointsOnOffsetObject => "Points on Offset Object", SdkProjectionTypeValue.PointsOnObject => "Points on Object", _ => throw Unknown(value) };
-    public static string ToSdkString(SdkReportDetailsFormatValue value) => value switch { SdkReportDetailsFormatValue.None => "None", SdkReportDetailsFormatValue.Single => "Single", SdkReportDetailsFormatValue.MultiHorizontal => "Multi Horiz", SdkReportDetailsFormatValue.MultiVertical => "Multi Vert", _ => throw Unknown(value) };
+
     public static string ToSdkString(SdkReportOutputTypeValue value) => value switch { SdkReportOutputTypeValue.None => "None", SdkReportOutputTypeValue.SaReport => "SAReport", SdkReportOutputTypeValue.SaDocument => "SADoc", SdkReportOutputTypeValue.Pdf => "PDF", SdkReportOutputTypeValue.Rtf => "RTF", _ => throw Unknown(value) };
     public static string ToSdkString(SdkReportViewTypeValue value) => value switch { SdkReportViewTypeValue.None => "None", SdkReportViewTypeValue.CurrentView => "Current View", SdkReportViewTypeValue.CalloutView => "Callout View", _ => throw Unknown(value) };
 

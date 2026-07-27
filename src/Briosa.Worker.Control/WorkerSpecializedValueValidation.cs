@@ -5,8 +5,10 @@ internal static class WorkerSpecializedValueValidation
     public static bool HasInputValueForKind(WorkerMpInputArgument argument) =>
         argument.Kind switch
         {
-            WorkerMpValueKind.AsciiFileFormat => IsEnum(argument, 44),
-            WorkerMpValueKind.AxisIdentifier => IsEnum(argument, 9),
+            WorkerMpValueKind.AsciiImportFileFormat => IsEnum(argument, 44),
+            WorkerMpValueKind.AsciiFrameSetFormat => IsEnum(argument, 8),
+            WorkerMpValueKind.AxisIdentifier => IsEnum(argument, 6),
+            WorkerMpValueKind.WcfAxisIdentifier => IsEnum(argument, 3),
             WorkerMpValueKind.BaseColorType => IsEnum(argument, 3),
             WorkerMpValueKind.BaseMidColorType => IsEnum(argument, 4),
             WorkerMpValueKind.ChartType => IsEnum(argument, 3),
@@ -14,7 +16,7 @@ internal static class WorkerSpecializedValueValidation
             WorkerMpValueKind.CollimationType => IsEnum(argument, 2),
             WorkerMpValueKind.ColorRangeMethod => IsEnum(argument, 6),
             WorkerMpValueKind.CoordinateSystemType => IsEnum(argument, 3),
-            WorkerMpValueKind.DatasetType => IsEnum(argument, 4),
+            WorkerMpValueKind.VectorComponent => IsEnum(argument, 4),
             WorkerMpValueKind.DynamicCircleMode => IsEnum(argument, 7),
             WorkerMpValueKind.DynamicEllipseMode => IsEnum(argument, 2),
             WorkerMpValueKind.DynamicLineMode => IsEnum(argument, 5),
@@ -26,7 +28,7 @@ internal static class WorkerSpecializedValueValidation
             WorkerMpValueKind.ExportVectorNameFormat => IsEnum(argument, 4),
             WorkerMpValueKind.GeometryType => IsEnum(argument, 10),
             WorkerMpValueKind.InstrumentType => IsEnum(argument, 190),
-            WorkerMpValueKind.ObjectType => IsEnum(argument, 25),
+            WorkerMpValueKind.ObjectType => IsEnum(argument, 26),
             WorkerMpValueKind.OffsetDirectionType => IsEnum(argument, 3),
             WorkerMpValueKind.PointFilterInputType => IsEnum(argument, 3),
             WorkerMpValueKind.RelationshipWeightingMode => IsEnum(argument, 5),
@@ -48,10 +50,7 @@ internal static class WorkerSpecializedValueValidation
                 IsValid(argument.FitConstraintScalarOptionsValue),
             WorkerMpValueKind.FitDegreeOfFreedomOptions =>
                 argument.FitDegreeOfFreedomOptionsValue is not null,
-            WorkerMpValueKind.PointDeltaReportOptions =>
-                IsValid(argument.PointDeltaReportOptionsValue),
-            WorkerMpValueKind.ProjectionOptions =>
-                IsValid(argument.ProjectionOptionsValue),
+
             WorkerMpValueKind.ReportOutputOptions =>
                 IsValid(argument.ReportOutputOptionsValue),
             WorkerMpValueKind.ReportViewOptions =>
@@ -94,18 +93,14 @@ internal static class WorkerSpecializedValueValidation
     private static bool IsValid(WorkerFitConstraintScalarOptionsValue? value) =>
         value is { High: not null, Low: not null };
 
-    private static bool IsValid(WorkerPointDeltaReportOptionsValue? value) =>
-        value is not null &&
-        IsEnumValue(value.CoordinateSystem, 3) &&
-        IsEnumValue(value.DetailsFormat, 4);
-
-    private static bool IsValid(WorkerProjectionOptionsValue? value) =>
-        value is not null && IsEnumValue(value.ProjectionType, 7);
 
     private static bool IsValid(WorkerReportOutputOptionsValue? value) =>
         value is not null &&
         IsEnumValue(value.OutputType, 5) &&
-        value.PathOrEmbeddedName is not null;
+        (value.ExternalPath is not null) != (value.EmbeddedFile is not null) &&
+        (value.EmbeddedFile is null ||
+            value.EmbeddedFile.CollectionName is not null &&
+            value.EmbeddedFile.FileName is not null);
 
     private static bool IsValid(WorkerReportViewOptionsValue? value) =>
         value is not null &&

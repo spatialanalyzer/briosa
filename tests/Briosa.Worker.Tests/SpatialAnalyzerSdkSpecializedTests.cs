@@ -8,8 +8,10 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
     public static TheoryData<object, object, string, string>
         SpecializedEnumCases => new()
         {
-            { SdkValueKind.AsciiFileFormat, new SdkSpecializedEnumValue<SdkAsciiFileFormatValue>(SdkAsciiFileFormatValue.Xyz), "SetAsciiFileFormatArg", "X Y Z" },
+            { SdkValueKind.AsciiImportFileFormat, new SdkSpecializedEnumValue<SdkAsciiImportFileFormatValue>(SdkAsciiImportFileFormatValue.Xyz), "SetAsciiFileFormatArg", "X Y Z" },
+            { SdkValueKind.AsciiFrameSetFormat, new SdkSpecializedEnumValue<SdkAsciiFrameSetFormatValue>(SdkAsciiFrameSetFormatValue.FrameNameXyzEulerZyxTimestamp), "SetAsciiFileFormatArg", "FrameName X Y Z  Euler ZYX [Timestamp]" },
             { SdkValueKind.AxisIdentifier, new SdkSpecializedEnumValue<SdkAxisIdentifierValue>(SdkAxisIdentifierValue.PositiveX), "SetAxisNameArg", "+X Axis" },
+            { SdkValueKind.WcfAxisIdentifier, new SdkSpecializedEnumValue<SdkWcfAxisIdentifierValue>(SdkWcfAxisIdentifierValue.X), "SetAxisNameArg", "X Axis" },
             { SdkValueKind.BaseColorType, new SdkSpecializedEnumValue<SdkBaseColorTypeValue>(SdkBaseColorTypeValue.Red), "SetBaseColorTypeArg", "Red" },
             { SdkValueKind.BaseMidColorType, new SdkSpecializedEnumValue<SdkBaseMidColorTypeValue>(SdkBaseMidColorTypeValue.Gray), "SetBaseMidColorTypeArg", "Gray" },
             { SdkValueKind.ChartType, new SdkSpecializedEnumValue<SdkChartTypeValue>(SdkChartTypeValue.RunChart), "SetChartTypeArg", "Run Chart" },
@@ -17,7 +19,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             { SdkValueKind.CollimationType, new SdkSpecializedEnumValue<SdkCollimationTypeValue>(SdkCollimationTypeValue.FullCollimation), "SetCollimationTypeArg", "Full Collimation" },
             { SdkValueKind.ColorRangeMethod, new SdkSpecializedEnumValue<SdkColorRangeMethodValue>(SdkColorRangeMethodValue.SingleColor), "SetColorRangeMethodArg", "Single Color" },
             { SdkValueKind.CoordinateSystemType, new SdkSpecializedEnumValue<SdkCoordinateSystemTypeValue>(SdkCoordinateSystemTypeValue.Cartesian), "SetCoordinateSystemTypeArg", "Cartesian" },
-            { SdkValueKind.DatasetType, new SdkSpecializedEnumValue<SdkDatasetTypeValue>(SdkDatasetTypeValue.X), "SetDatasetTypeArg", "X" },
+            { SdkValueKind.VectorComponent, new SdkSpecializedEnumValue<SdkVectorComponentValue>(SdkVectorComponentValue.X), "SetDatasetTypeArg", "X" },
             { SdkValueKind.DynamicCircleMode, new SdkSpecializedEnumValue<SdkDynamicCircleModeValue>(SdkDynamicCircleModeValue.TwoConesIntersection), "SetDynamicCircleModeArg", "Two Cones Intersection" },
             { SdkValueKind.DynamicEllipseMode, new SdkSpecializedEnumValue<SdkDynamicEllipseModeValue>(SdkDynamicEllipseModeValue.CylinderPlaneIntersection), "SetDynamicEllipseModeArg", "Cylinder and Plane Intersection" },
             { SdkValueKind.DynamicLineMode, new SdkSpecializedEnumValue<SdkDynamicLineModeValue>(SdkDynamicLineModeValue.ConeAxis), "SetDynamicLineModeArg", "Cone Axis" },
@@ -29,7 +31,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             { SdkValueKind.ExportVectorNameFormat, new SdkSpecializedEnumValue<SdkExportVectorNameFormatValue>(SdkExportVectorNameFormatValue.Vector), "SetExportVectorNameFormatArg", "Vector" },
             { SdkValueKind.GeometryType, new SdkSpecializedEnumValue<SdkGeometryTypeValue>(SdkGeometryTypeValue.Line), "SetGeometryTypeArg", "Line" },
             { SdkValueKind.InstrumentType, new SdkSpecializedEnumValue<SdkInstrumentTypeValue>(SdkInstrumentTypeValue.CreaformVxElements), "SetInstTypeNameArg", "Creaform VXelements" },
-            { SdkValueKind.ObjectType, new SdkSpecializedEnumValue<SdkObjectTypeValue>(SdkObjectTypeValue.BSpline), "SetObjectTypeArg", "B-Spline" },
+            { SdkValueKind.ObjectType, new SdkSpecializedEnumValue<SdkObjectTypeValue>(SdkObjectTypeValue.Cone), "SetObjectTypeArg", "Cone" },
             { SdkValueKind.OffsetDirectionType, new SdkSpecializedEnumValue<SdkOffsetDirectionTypeValue>(SdkOffsetDirectionTypeValue.PositiveOnly), "SetOffsetDirectionTypeArg", "Positive only" },
             { SdkValueKind.PointFilterInputType, new SdkSpecializedEnumValue<SdkPointFilterInputTypeValue>(SdkPointFilterInputTypeValue.CardinalPoints), "SetPointFilterInputTypeArg", "Cardinal Points" },
             { SdkValueKind.RelationshipWeightingMode, new SdkSpecializedEnumValue<SdkRelationshipWeightingModeValue>(SdkRelationshipWeightingModeValue.ResetAllWeights), "SetRelWeightingModeArg", "Reset All weights to 1.0" },
@@ -89,7 +91,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             }
         }
 
-        Assert.Equal(414, mappedValueCount);
+        Assert.Equal(412, mappedValueCount);
     }
 
     [Fact]
@@ -118,9 +120,8 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
                 new("Color", SdkValueKind.ColorizationOptions, ColorizationOptionsValue: new(SdkColorRangeMethodValue.DiscreteColors, SdkBaseColorTypeValue.Red, SdkBaseMidColorTypeValue.Gray, SdkBaseColorTypeValue.Blue, true, false, true, 2, 3, false, 4, true, false, true, false, 5, -5, 1, -1), SdkBinding: "SetColorizationOptionsArg"),
                 new("Constraint", SdkValueKind.FitConstraintScalarOptions, FitConstraintScalarOptionsValue: new(high, low), SdkBinding: "SetFitConstraintScalarOptionsArg"),
                 new("Dof", SdkValueKind.FitDegreeOfFreedomOptions, FitDegreeOfFreedomOptionsValue: new(true, false, true, false, true, false, true), SdkBinding: "SetFitDofOptionsArg"),
-                new("Delta", SdkValueKind.PointDeltaReportOptions, PointDeltaReportOptionsValue: new(SdkCoordinateSystemTypeValue.Cartesian, SdkReportDetailsFormatValue.MultiHorizontal, true, true, true, true, true, true, true, false, true, false), SdkBinding: "SetPointDeltaReportOptionsArg"),
-                new("Projection", SdkValueKind.ProjectionOptions, ProjectionOptionsValue: new(SdkProjectionTypeValue.PointsOnObject, true, false, 0, true, 0.5), SdkBinding: "SetProjectionOptionsArg"),
-                new("Output", SdkValueKind.ReportOutputOptions, ReportOutputOptionsValue: new(SdkReportOutputTypeValue.Pdf, "report.pdf"), SdkBinding: "SetReportOutputOptionsArg"),
+                new("Output", SdkValueKind.ReportOutputOptions, ReportOutputOptionsValue: new(SdkReportOutputTypeValue.Pdf, "report.pdf", null), SdkBinding: "SetReportOutputOptionsArg"),
+                new("Embedded Output", SdkValueKind.ReportOutputOptions, ReportOutputOptionsValue: new(SdkReportOutputTypeValue.SaReport, null, new("Collection", "Report")), SdkBinding: "SetReportOutputOptionsArg"),
                 new("View", SdkValueKind.ReportViewOptions, ReportViewOptionsValue: new(SdkReportViewTypeValue.CalloutView, "Collection", "Callout"), SdkBinding: "SetReportViewOptionsArg"),
                 new("Tolerance", SdkValueKind.ToleranceScalarOptions, ToleranceScalarOptionsValue: new(high, low), SdkBinding: "SetToleranceScalarOptionsArg")
             ],
@@ -132,10 +133,13 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         var result = adapter.Execute(command);
 
         Assert.True(result.MpResult.Succeeded);
-        Assert.Equal(10, calls.SpecializedArguments.Count);
+        Assert.Equal(9, calls.SpecializedArguments.Count);
         Assert.Equal([0, 1, 2], calls.SpecializedArguments["Auto"][6..9]);
         Assert.Equal("Nth Point", calls.SpecializedArguments["Thin"][0]);
         Assert.Equal("PDF", calls.SpecializedArguments["Output"][0]);
+        Assert.Equal("report.pdf", calls.SpecializedArguments["Output"][1]);
+        Assert.Equal("SAReport", calls.SpecializedArguments["Embedded Output"][0]);
+        Assert.Equal("Collection::Report", calls.SpecializedArguments["Embedded Output"][1]);
         Assert.All(result.OutputValues, output => Assert.True(output.Retrieved));
         Assert.Equal(1.25, result.OutputValues[0].FitConstraintScalarOptionsValue!.High.Value);
         Assert.Equal(-2.5, result.OutputValues[1].ToleranceScalarOptionsValue!.Low.Value);

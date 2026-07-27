@@ -55,12 +55,6 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         public bool SetFitDofOptionsArg(string name, bool x, bool y, bool z, bool rx, bool ry, bool rz, bool centroid) =>
             RecordSpecialized(nameof(SetFitDofOptionsArg), name, x, y, z, rx, ry, rz, centroid);
 
-        public bool SetPointDeltaReportOptionsArg(string name, string coordinateSystem, string format, bool pointA, bool pointB, bool delta, bool magnitude, bool component1, bool component2, bool component3, bool sort, bool tolerances, bool colorize) =>
-            RecordSpecialized(nameof(SetPointDeltaReportOptionsArg), name, coordinateSystem, format, pointA, pointB, delta, magnitude, component1, component2, component3, sort, tolerances, colorize);
-
-        public bool SetProjectionOptionsArg(string name, string type, bool ignoreEdges, bool overrideOffsets, double offset, bool addThickness, double thickness) =>
-            RecordSpecialized(nameof(SetProjectionOptionsArg), name, type, ignoreEdges, overrideOffsets, offset, addThickness, thickness);
-
         public bool SetReportOutputOptionsArg(string name, string type, string path) =>
             RecordSpecialized(nameof(SetReportOutputOptionsArg), name, type, path);
 

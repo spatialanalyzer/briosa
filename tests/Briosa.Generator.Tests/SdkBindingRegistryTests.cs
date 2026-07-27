@@ -23,7 +23,7 @@ public sealed class SdkBindingRegistryTests
 
         Assert.True(result.IsValid, string.Join(Environment.NewLine, result.Errors));
         Assert.Equal(151, result.BindingCount);
-        Assert.Equal(111, result.ValueFamilyCount);
+        Assert.Equal(113, result.ValueFamilyCount);
     }
 
     [Fact]
@@ -94,20 +94,25 @@ public sealed class SdkBindingRegistryTests
             binding => binding.Method,
             StringComparer.Ordinal);
 
-        Assert.Equal("angular_unit", bindings["SetAngularUnitsArg"].SemanticValueFamily);
-        Assert.Equal("string", bindings["SetStringArg"].SemanticValueFamily);
-        Assert.Equal("double_array", bindings["SetDoubleArrayArg"].SemanticValueFamily);
-        Assert.Equal("edit_text", bindings["SetEditTextArg"].SemanticValueFamily);
-        Assert.Equal("string_list", bindings["SetStringRefListArg"].SemanticValueFamily);
-        Assert.Equal("transform", bindings["SetTransformArg"].SemanticValueFamily);
-        Assert.Equal("world_transform", bindings["SetWorldTransformArg"].SemanticValueFamily);
-        Assert.Equal("file_reference", bindings["SetFilePathArg"].SemanticValueFamily);
+        Assert.Equal(
+            ["ascii_frame_set_format", "ascii_import_file_format"],
+            bindings["SetAsciiFileFormatArg"].SemanticValueFamilies);
+        Assert.Equal(
+            ["axis_identifier", "wcf_axis_identifier"],
+            bindings["SetAxisNameArg"].SemanticValueFamilies); Assert.Equal("angular_unit", Family(bindings["SetAngularUnitsArg"]));
+        Assert.Equal("string", Family(bindings["SetStringArg"]));
+        Assert.Equal("double_array", Family(bindings["SetDoubleArrayArg"]));
+        Assert.Equal("edit_text", Family(bindings["SetEditTextArg"]));
+        Assert.Equal("string_list", Family(bindings["SetStringRefListArg"]));
+        Assert.Equal("transform", Family(bindings["SetTransformArg"]));
+        Assert.Equal("world_transform", Family(bindings["SetWorldTransformArg"]));
+        Assert.Equal("file_reference", Family(bindings["SetFilePathArg"]));
         Assert.Equal(
             "b_spline_fit_options",
-            bindings["GetBSPlineFitOptionsArg"].SemanticValueFamily);
+            Family(bindings["GetBSPlineFitOptionsArg"]));
         Assert.Equal(
-            bindings["GetBSPlineFitOptionsArg"].SemanticValueFamily,
-            bindings["SetBSplineFitOptionsArg"].SemanticValueFamily);
+            Family(bindings["GetBSPlineFitOptionsArg"]),
+            Family(bindings["SetBSplineFitOptionsArg"]));
         Assert.All(
             new[] { bindings["GetBSPlineFitOptionsArg"], bindings["SetBSplineFitOptionsArg"] },
             binding =>
@@ -119,24 +124,24 @@ public sealed class SdkBindingRegistryTests
                     binding.BlockerReferences);
             });
         Assert.Equal(
-            bindings["GetCollectionObjectNameArg"].SemanticValueFamily,
-            bindings["SetCollectionObjectNameArg2"].SemanticValueFamily);
+            Family(bindings["GetCollectionObjectNameArg"]),
+            Family(bindings["SetCollectionObjectNameArg2"]));
 
-        Assert.Equal(99, registry.Bindings.Count(binding =>
+        Assert.Equal(97, registry.Bindings.Count(binding =>
             binding.Coverage.Protocol == "implemented"));
-        Assert.Equal(99, registry.Bindings.Count(binding =>
+        Assert.Equal(97, registry.Bindings.Count(binding =>
             binding.Coverage.Worker == "implemented"));
-        Assert.Equal(99, registry.Bindings.Count(binding =>
+        Assert.Equal(97, registry.Bindings.Count(binding =>
             binding.Coverage.Adapter == "implemented"));
-        Assert.Equal(99, registry.Bindings.Count(binding =>
+        Assert.Equal(97, registry.Bindings.Count(binding =>
             binding.Coverage.Fake == "implemented"));
-        Assert.Equal(99, registry.Bindings.Count(binding =>
+        Assert.Equal(97, registry.Bindings.Count(binding =>
             binding.Coverage.Generator == "implemented"));
         Assert.Equal(77, registry.ValueFamilies.Count(family =>
             family.ImplementationStatus == "implemented"));
         Assert.All(
             registry.Bindings.Where(binding => binding.RegistryStatus == "usable"),
-            binding => Assert.NotEqual("unknown", binding.SemanticValueFamily));
+            binding => Assert.DoesNotContain("unknown", binding.SemanticValueFamilies));
 
         var families = registry.ValueFamilies.ToDictionary(
             family => family.FamilyId,
@@ -145,17 +150,19 @@ public sealed class SdkBindingRegistryTests
             registry.Bindings.Where(binding =>
                 binding.InteropSignature?.Parameters.Any(parameter =>
                     parameter.ClrType == "object") == true),
-            binding => Assert.NotEqual(
-                "scalar",
-                families[binding.SemanticValueFamily].Shape));
+            binding => Assert.All(
+                binding.SemanticValueFamilies,
+                family => Assert.NotEqual("scalar", families[family].Shape)));
         Assert.All(
             registry.Bindings.Where(binding =>
                 binding.Method is not "GetStringArg" and not "SetStringArg" &&
                 binding.InteropSignature?.Parameters.Skip(1).All(parameter =>
                     parameter.ClrType == "string") == true),
-            binding => Assert.NotEqual("string", binding.SemanticValueFamily));
+            binding => Assert.DoesNotContain("string", binding.SemanticValueFamilies));
     }
 
+    private static string Family(SdkBindingRegistryEntry binding) =>
+        Assert.Single(binding.SemanticValueFamilies);
     private static (
         string Inventory,
         string Dispositions,

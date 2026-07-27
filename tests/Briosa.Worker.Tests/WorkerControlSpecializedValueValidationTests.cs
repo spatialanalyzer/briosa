@@ -66,6 +66,63 @@ public sealed class WorkerControlSpecializedValueValidationTests
         AssertRejected(message);
     }
 
+    [Theory]
+    [InlineData(WorkerMpValueKind.AsciiImportFileFormat, 43, 44)]
+    [InlineData(WorkerMpValueKind.AsciiFrameSetFormat, 7, 8)]
+    [InlineData(WorkerMpValueKind.AxisIdentifier, 5, 6)]
+    [InlineData(WorkerMpValueKind.WcfAxisIdentifier, 2, 3)]
+    [InlineData(WorkerMpValueKind.VectorComponent, 3, 4)]
+    [InlineData(WorkerMpValueKind.ObjectType, 25, 26)]
+    public void ExactEnumDomainBoundariesAreEnforced(
+        WorkerMpValueKind kind,
+        int maximumValidValue,
+        int firstInvalidValue)
+    {
+        var valid = CreateSingleInput(new(
+            "Value",
+            kind,
+            SpecializedEnumValue: new(maximumValidValue)));
+        var invalid = CreateSingleInput(new(
+            "Value",
+            kind,
+            SpecializedEnumValue: new(firstInvalidValue)));
+
+        using var stream = new MemoryStream();
+        using var channel = new WorkerControlChannel(stream, leaveOpen: true);
+        channel.Send(valid);
+
+        Assert.True(stream.Length > 0);
+        AssertRejected(invalid);
+    }
+
+    [Fact]
+    public void ReportOutputRequiresExactlyOneTypedDestination()
+    {
+        var external = CreateSingleInput(new(
+            "Output",
+            WorkerMpValueKind.ReportOutputOptions,
+            ReportOutputOptionsValue: new(3, "report.pdf", null)));
+        var embedded = CreateSingleInput(new(
+            "Output",
+            WorkerMpValueKind.ReportOutputOptions,
+            ReportOutputOptionsValue: new(1, null, new("", "Report"))));
+        var neither = CreateSingleInput(new(
+            "Output",
+            WorkerMpValueKind.ReportOutputOptions,
+            ReportOutputOptionsValue: new(0, null, null)));
+        var both = CreateSingleInput(new(
+            "Output",
+            WorkerMpValueKind.ReportOutputOptions,
+            ReportOutputOptionsValue: new(0, "report.sar", new("Collection", "Report"))));
+
+        using var stream = new MemoryStream();
+        using var channel = new WorkerControlChannel(stream, leaveOpen: true);
+        channel.Send(external);
+        channel.Send(embedded);
+
+        AssertRejected(neither);
+        AssertRejected(both);
+    }
     [Fact]
     public void MissingSpecializedStructureComponentIsRejectedBeforeTransport()
     {

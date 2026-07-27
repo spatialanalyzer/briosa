@@ -5,7 +5,7 @@ This deterministic report reconciles extracted View SDK Code evidence with the c
 ## Coverage
 
 - Binding methods: 151
-- Semantic value families: 111
+- Semantic value families: 113
 - Inventory-observed setters: 105
 - Inventory-observed getters: 29
 - Interop-exposed setters: 106
@@ -24,56 +24,56 @@ This deterministic report reconciles extracted View SDK Code evidence with the c
 | Value | Count |
 | --- | ---: |
 | `blocked_missing_interop` | 6 |
-| `blocked_semantics` | 2 |
+| `blocked_semantics` | 4 |
 | `excluded_only` | 27 |
 | `unobserved_interop` | 17 |
-| `usable` | 99 |
+| `usable` | 97 |
 
 ## Protocol coverage
 
 | Value | Count |
 | --- | ---: |
-| `blocked` | 8 |
-| `implemented` | 99 |
+| `blocked` | 10 |
+| `implemented` | 97 |
 | `not_required` | 44 |
 
 ## Worker coverage
 
 | Value | Count |
 | --- | ---: |
-| `blocked` | 8 |
-| `implemented` | 99 |
+| `blocked` | 10 |
+| `implemented` | 97 |
 | `not_required` | 44 |
 
 ## Adapter coverage
 
 | Value | Count |
 | --- | ---: |
-| `blocked` | 8 |
-| `implemented` | 99 |
+| `blocked` | 10 |
+| `implemented` | 97 |
 | `not_required` | 44 |
 
 ## Fake coverage
 
 | Value | Count |
 | --- | ---: |
-| `blocked` | 8 |
-| `implemented` | 99 |
+| `blocked` | 10 |
+| `implemented` | 97 |
 | `not_required` | 44 |
 
 ## Generator coverage
 
 | Value | Count |
 | --- | ---: |
-| `blocked` | 8 |
-| `implemented` | 99 |
+| `blocked` | 10 |
+| `implemented` | 97 |
 | `not_required` | 44 |
 
 ## Value-family implementation status
 
 | Value | Count |
 | --- | ---: |
-| `blocked` | 7 |
+| `blocked` | 9 |
 | `implemented` | 77 |
 | `not_required` | 27 |
 
@@ -82,7 +82,8 @@ This deterministic report reconciles extracted View SDK Code evidence with the c
 | Family | Shape | Directions | Public target | Worker target | Implementation | Bindings |
 | --- | --- | --- | --- | --- | --- | --- |
 | `angular_unit` | `enum` | setter | `AngularUnit` | `SdkAngularUnitValue` | `implemented` | SetAngularUnitsArg |
-| `ascii_file_format` | `enum` | setter | `AsciiFileFormat` | `SdkAsciiFileFormatValue` | `implemented` | SetAsciiFileFormatArg |
+| `ascii_frame_set_format` | `enum` | setter | `AsciiFrameSetFormat` | `SdkAsciiFrameSetFormatValue` | `implemented` | SetAsciiFileFormatArg |
+| `ascii_import_file_format` | `enum` | setter | `AsciiImportFileFormat` | `SdkAsciiImportFileFormatValue` | `implemented` | SetAsciiFileFormatArg |
 | `auto_filter_proximity_settings` | `structured` | getter, setter | `AutoFilterProximitySettings` | `SdkAutoFilterProximitySettingsValue` | `implemented` | GetAutoFilterProximitySettingsArg, SetAutoFilterProximitySettingsArg |
 | `axis_identifier` | `enum` | setter | `AxisIdentifier` | `SdkAxisIdentifierValue` | `implemented` | SetAxisNameArg |
 | `b_spline_fit_options` | `structured` | getter, setter | `BSplineFitOptions` | `SdkBSplineFitOptionsValue` | `blocked` | GetBSPlineFitOptionsArg, SetBSplineFitOptionsArg |
@@ -108,7 +109,6 @@ This deterministic report reconciles extracted View SDK Code evidence with the c
 | `colorization_options` | `structured` | setter | `ColorizationOptions` | `SdkColorizationOptionsValue` | `implemented` | SetColorizationOptionsArg |
 | `computation_technique` | `enum` | setter | `ComputationTechnique` | `SdkComputationTechniqueValue` | `not_required` | SetCompTechniqueArg |
 | `coordinate_system_type` | `enum` | setter | `CoordinateSystemType` | `SdkCoordinateSystemTypeValue` | `implemented` | SetCoordinateSystemTypeArg |
-| `dataset_type` | `enum` | setter | `DatasetType` | `SdkDatasetTypeValue` | `implemented` | SetDatasetTypeArg |
 | `degree_of_freedom` | `enum` | setter | `DegreeOfFreedom` | `SdkDegreeOfFreedomValue` | `not_required` | SetDegreeOfFreedomArg |
 | `distance_unit` | `enum` | setter | `DistanceUnit` | `SdkDistanceUnitValue` | `implemented` | SetDistanceUnitsArg |
 | `double_array` | `array` | getter, setter | `DoubleArray` | `SdkDoubleArrayValue` | `implemented` | GetDoubleArrayArg, SetDoubleArrayArg |
@@ -150,11 +150,11 @@ This deterministic report reconciles extracted View SDK Code evidence with the c
 | `object_type` | `enum` | setter | `ObjectType` | `SdkObjectTypeValue` | `implemented` | SetObjectTypeArg |
 | `offset_direction_type` | `enum` | setter | `OffsetDirectionType` | `SdkOffsetDirectionTypeValue` | `implemented` | SetOffsetDirectionTypeArg |
 | `perimeter_name` | `identifier` | getter, setter | `string` | `string` | `not_required` | GetPerimeterNameArg, SetPerimeterNameArg |
-| `point_delta_report_options` | `structured` | setter | `PointDeltaReportOptions` | `SdkPointDeltaReportOptionsValue` | `implemented` | SetPointDeltaReportOptionsArg |
+| `point_delta_report_options` | `structured` | setter | `PointDeltaReportOptions` | `SdkPointDeltaReportOptionsValue` | `blocked` | SetPointDeltaReportOptionsArg |
 | `point_filter_input_type` | `enum` | setter | `PointFilterInputType` | `SdkPointFilterInputTypeValue` | `implemented` | SetPointFilterInputTypeArg |
 | `point_name` | `identifier` | getter, setter | `PointName` | `SdkPointNameValue` | `implemented` | GetPointNameArg, SetPointNameArg |
 | `point_name_list` | `reference_list` | getter, setter | `PointNameList` | `SdkPointNameListValue` | `implemented` | GetPointNameRefListArg, SetPointNameRefListArg |
-| `projection_options` | `structured` | setter | `ProjectionOptions` | `SdkProjectionOptionsValue` | `implemented` | SetProjectionOptionsArg |
+| `projection_options` | `structured` | setter | `ProjectionOptions` | `SdkProjectionOptionsValue` | `blocked` | SetProjectionOptionsArg |
 | `relationship_weighting_mode` | `enum` | setter | `RelationshipWeightingMode` | `SdkRelationshipWeightingModeValue` | `implemented` | SetRelWeightingModeArg |
 | `render_mode_type` | `enum` | setter | `RenderModeType` | `SdkRenderModeTypeValue` | `implemented` | SetRenderModeTypeArg |
 | `report_output_options` | `structured` | getter, setter | `ReportOutputOptions` | `SdkReportOutputOptionsValue` | `implemented` | GetReportOutputOptionsArg, SetReportOutputOptionsArg |
@@ -184,9 +184,11 @@ This deterministic report reconciles extracted View SDK Code evidence with the c
 | `udp_transmit_settings` | `structured` | setter | `UdpTransmitSettings` | `SdkUdpTransmitSettingsValue` | `not_required` | SetUdpTransmitSettingsArg |
 | `user_summary_info_files` | `structured` | setter | `UserSummaryInfoFiles` | `SdkUserSummaryInfoFilesValue` | `not_required` | SetUserSummaryInfoFilesArg |
 | `vector3` | `structured` | getter, setter | `Vector3` | `SdkVectorValue` | `implemented` | GetVectorArg, SetVectorArg |
+| `vector_component` | `enum` | setter | `VectorComponent` | `SdkVectorComponentValue` | `implemented` | SetDatasetTypeArg |
 | `vector_group_name` | `identifier` | getter, setter | `string` | `string` | `implemented` | GetVectorGroupNameArg, SetVectorGroupNameArg |
 | `vector_name_list` | `reference_list` | getter, setter | `VectorNameList` | `SdkVectorNameListValue` | `implemented` | GetVectorNameRefListArg, SetVectorNameRefListArg |
 | `view_name` | `identifier` | getter, setter | `string` | `string` | `implemented` | GetViewNameArg, SetViewNameArg |
+| `wcf_axis_identifier` | `enum` | setter | `WcfAxisIdentifier` | `SdkWcfAxisIdentifierValue` | `implemented` | SetAxisNameArg |
 | `whole_number` | `scalar` | getter, setter | `int32` | `int` | `implemented` | GetIntegerArg, SetIntegerArg |
 | `window_state` | `enum` | setter | `WindowState` | `SdkWindowStateValue` | `not_required` | SetWindowStateArg |
 | `workbook_address_mode_type` | `enum` | setter | `WorkbookAddressModeType` | `SdkWorkbookAddressModeTypeValue` | `not_required` | SetWorkbookAddressModeTypeArg |
@@ -238,9 +240,9 @@ This deterministic report reconciles extracted View SDK Code evidence with the c
 | `GetViewNameArg` | `getter` | `interop_only` | `unobserved_interop` | `view_name` | `not_required` | `not_required` | `not_required` | `not_required` | `not_required` | 0 | 0 | 0 | boolean (value string argName, ref string viewName) |  |
 | `GetWorldTransformArg` | `getter` | `inventory_and_interop` | `usable` | `world_transform` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 7 | 1 | 6 | boolean (value string argName, ref object transform, ref double scaleFactor) |  |
 | `SetAngularUnitsArg` | `setter` | `inventory_and_interop` | `usable` | `angular_unit` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 7 | 4 | 3 | boolean (value string argName, value string angularUnits) |  |
-| `SetAsciiFileFormatArg` | `setter` | `inventory_and_interop` | `usable` | `ascii_file_format` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 3 | 0 | 3 | boolean (value string argName, value string asciiFileFormat) |  |
+| `SetAsciiFileFormatArg` | `setter` | `inventory_and_interop` | `usable` | `ascii_frame_set_format, ascii_import_file_format` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 3 | 0 | 3 | boolean (value string argName, value string asciiFileFormat) |  |
 | `SetAutoFilterProximitySettingsArg` | `setter` | `inventory_and_interop` | `usable` | `auto_filter_proximity_settings` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 3 | 0 | 3 | boolean (value string argName, value double sip, value double eep, value double pip, value double pep, value double rip, value double gt, value int32 spm, value int32 ppm, value int32 rpm, value boolean pp, value boolean apb) |  |
-| `SetAxisNameArg` | `setter` | `inventory_and_interop` | `usable` | `axis_identifier` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 5 | 0 | 5 | boolean (value string argName, value string axisName) |  |
+| `SetAxisNameArg` | `setter` | `inventory_and_interop` | `usable` | `axis_identifier, wcf_axis_identifier` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 5 | 0 | 5 | boolean (value string argName, value string axisName) |  |
 | `SetBSplineFitOptionsArg` | `setter` | `inventory_and_interop` | `blocked_semantics` | `b_spline_fit_options` | `blocked` | `blocked` | `blocked` | `blocked` | `blocked` | 3 | 0 | 3 | boolean (value string argName, value boolean bFit, value boolean bOpen, value int32 sortMethod, value int32 terminateMethod, value int32 degree, value double terminateLength, value double terminateAvgMultiplier, value int32 numFitCPs, value boolean uniqueCheck, value double uniqueThreshold, value double extension, value boolean useGlobalTessellationOptions, value double maxChordalDeviation, value double maxTrimEdgeAngle) | https://github.com/spatialanalyzer/briosa/issues/79 |
 | `SetBaseColorTypeArg` | `setter` | `inventory_and_interop` | `usable` | `base_color_type` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 1 | 0 | 1 | boolean (value string argName, value string baseColorType) |  |
 | `SetBaseMidColorTypeArg` | `setter` | `inventory_and_interop` | `usable` | `base_mid_color_type` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 1 | 0 | 1 | boolean (value string argName, value string baseMidColorType) |  |
@@ -267,7 +269,7 @@ This deterministic report reconciles extracted View SDK Code evidence with the c
 | `SetColorizationOptionsArg` | `setter` | `inventory_and_interop` | `usable` | `colorization_options` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 7 | 0 | 7 | boolean (value string argName, value string colorRangeMethod, value string baseHighColor, value string baseMidColor, value string baseLowColor, value boolean bDrawTubes, value boolean bDrawArrowheads, value boolean bIndicateValues, value double vectorMagnification, value int32 vectorWidth, value boolean bDrawBlotches, value double blotchSize, value boolean bShowOutOfToleranceOnly, value boolean bShowColorBarInView, value boolean bShowColorBarPercentages, value boolean bShowColorBarFractions, value double highSaturationLimit, value double lowSaturationLimit, value double highTolerance, value double lowTolerance) |  |
 | `SetCompTechniqueArg` | `setter` | `inventory_and_interop` | `excluded_only` | `computation_technique` | `not_required` | `not_required` | `not_required` | `not_required` | `not_required` | 3 | 3 | 0 | boolean (value string argName, value string compTech) |  |
 | `SetCoordinateSystemTypeArg` | `setter` | `inventory_and_interop` | `usable` | `coordinate_system_type` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 7 | 1 | 6 | boolean (value string argName, value string coordSystemType) |  |
-| `SetDatasetTypeArg` | `setter` | `inventory_and_interop` | `usable` | `dataset_type` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 1 | 0 | 1 | boolean (value string argName, value string datasetType) |  |
+| `SetDatasetTypeArg` | `setter` | `inventory_and_interop` | `usable` | `vector_component` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 1 | 0 | 1 | boolean (value string argName, value string datasetType) |  |
 | `SetDegreeOfFreedomArg` | `setter` | `inventory_and_interop` | `excluded_only` | `degree_of_freedom` | `not_required` | `not_required` | `not_required` | `not_required` | `not_required` | 1 | 1 | 0 | boolean (value string argName, value string degOfFreedom) |  |
 | `SetDistanceUnitsArg` | `setter` | `inventory_and_interop` | `usable` | `distance_unit` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 6 | 1 | 5 | boolean (value string argName, value string distanceUnits) |  |
 | `SetDoubleArg` | `setter` | `inventory_and_interop` | `usable` | `floating_point` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 226 | 53 | 173 | boolean (value string argName, value double value) |  |
@@ -309,11 +311,11 @@ This deterministic report reconciles extracted View SDK Code evidence with the c
 | `SetObjectTypeArg` | `setter` | `inventory_and_interop` | `usable` | `object_type` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 9 | 3 | 6 | boolean (value string argName, value string objectType) |  |
 | `SetOffsetDirectionTypeArg` | `setter` | `inventory_and_interop` | `usable` | `offset_direction_type` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 4 | 1 | 3 | boolean (value string argName, value string offsetDirType) |  |
 | `SetPerimeterNameArg` | `setter` | `interop_only` | `unobserved_interop` | `perimeter_name` | `not_required` | `not_required` | `not_required` | `not_required` | `not_required` | 0 | 0 | 0 | boolean (value string argName, value string perimeterName) |  |
-| `SetPointDeltaReportOptionsArg` | `setter` | `inventory_and_interop` | `usable` | `point_delta_report_options` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 2 | 0 | 2 | boolean (value string argName, value string coordSys, value string detailsFormat, value boolean bShowA, value boolean bShowB, value boolean bShowDelta, value boolean bShowMag, value boolean bShowComponent1, value boolean bShowComponent2, value boolean bShowComponent3, value boolean bSortPointNames, value boolean bShowToleranceFields, value boolean bColorizeInToleranceFields) |  |
+| `SetPointDeltaReportOptionsArg` | `setter` | `inventory_and_interop` | `blocked_semantics` | `point_delta_report_options` | `blocked` | `blocked` | `blocked` | `blocked` | `blocked` | 2 | 0 | 2 | boolean (value string argName, value string coordSys, value string detailsFormat, value boolean bShowA, value boolean bShowB, value boolean bShowDelta, value boolean bShowMag, value boolean bShowComponent1, value boolean bShowComponent2, value boolean bShowComponent3, value boolean bSortPointNames, value boolean bShowToleranceFields, value boolean bColorizeInToleranceFields) | https://github.com/spatialanalyzer/briosa/issues/79 |
 | `SetPointFilterInputTypeArg` | `setter` | `inventory_and_interop` | `usable` | `point_filter_input_type` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 1 | 0 | 1 | boolean (value string argName, value string pointsInputType) |  |
 | `SetPointNameArg` | `setter` | `inventory_and_interop` | `usable` | `point_name` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 97 | 8 | 89 | boolean (value string argName, value string collectionName, value string groupName, value string targetName) |  |
 | `SetPointNameRefListArg` | `setter` | `inventory_and_interop` | `usable` | `point_name_list` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 57 | 8 | 49 | boolean (value string argName, ref object pointNameList) |  |
-| `SetProjectionOptionsArg` | `setter` | `inventory_and_interop` | `usable` | `projection_options` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 10 | 2 | 8 | boolean (value string argName, value string projectionType, value boolean bIgnoreEdgeProjections, value boolean bOverrideTargetOffsets, value double overrideTargetOffsetsValue, value boolean bAddExtraMaterialThickness, value double extraMaterialThicknessValue) |  |
+| `SetProjectionOptionsArg` | `setter` | `inventory_and_interop` | `blocked_semantics` | `projection_options` | `blocked` | `blocked` | `blocked` | `blocked` | `blocked` | 10 | 2 | 8 | boolean (value string argName, value string projectionType, value boolean bIgnoreEdgeProjections, value boolean bOverrideTargetOffsets, value double overrideTargetOffsetsValue, value boolean bAddExtraMaterialThickness, value double extraMaterialThicknessValue) | https://github.com/spatialanalyzer/briosa/issues/79 |
 | `SetRelWeightingModeArg` | `setter` | `inventory_and_interop` | `usable` | `relationship_weighting_mode` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 1 | 0 | 1 | boolean (value string argName, value string type) |  |
 | `SetRenderModeTypeArg` | `setter` | `inventory_and_interop` | `usable` | `render_mode_type` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 2 | 0 | 2 | boolean (value string argName, value string renderModeType) |  |
 | `SetReportOutputOptionsArg` | `setter` | `inventory_and_interop` | `usable` | `report_output_options` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 2 | 0 | 2 | boolean (value string argName, value string outputType, value string pathOrEmbeddedName) |  |

@@ -236,8 +236,6 @@ internal static partial class WorkerControlHost
             ColorizationOptionsValue: ToSdkColorization(argument.ColorizationOptionsValue),
             FitConstraintScalarOptionsValue: ToSdkFitConstraintScalar(argument.FitConstraintScalarOptionsValue),
             FitDegreeOfFreedomOptionsValue: ToSdkFitDegreeOfFreedom(argument.FitDegreeOfFreedomOptionsValue),
-            PointDeltaReportOptionsValue: ToSdkPointDeltaReport(argument.PointDeltaReportOptionsValue),
-            ProjectionOptionsValue: ToSdkProjection(argument.ProjectionOptionsValue),
             ReportOutputOptionsValue: ToSdkReportOutput(argument.ReportOutputOptionsValue),
             ReportViewOptionsValue: ToSdkReportView(argument.ReportViewOptionsValue),
             ToleranceScalarOptionsValue: ToSdkToleranceScalar(argument.ToleranceScalarOptionsValue),

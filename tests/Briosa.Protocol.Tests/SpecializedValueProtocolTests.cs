@@ -13,7 +13,13 @@ public sealed class SpecializedValueProtocolTests
         Assert.Equal(5, (int)TargetProtocol.InstrumentType.CreaformVxElements);
         Assert.Equal(108, (int)TargetProtocol.InstrumentType.FaroVantage);
         Assert.Equal(191, Enum.GetValues<TargetProtocol.InstrumentType>().Length);
-        Assert.Equal(25, (int)TargetProtocol.ObjectType.VectorGroup);
+        Assert.Equal(8, (int)TargetProtocol.ObjectType.Cone);
+        Assert.Equal(26, (int)TargetProtocol.ObjectType.VectorGroup);
+        Assert.Equal(45, Enum.GetValues<TargetProtocol.AsciiImportFileFormat>().Length);
+        Assert.Equal(9, Enum.GetValues<TargetProtocol.AsciiFrameSetFormat>().Length);
+        Assert.Equal(7, Enum.GetValues<TargetProtocol.AxisIdentifier>().Length);
+        Assert.Equal(4, Enum.GetValues<TargetProtocol.WcfAxisIdentifier>().Length);
+        Assert.Equal(5, Enum.GetValues<TargetProtocol.VectorComponent>().Length);
     }
 
     [Fact]
@@ -44,7 +50,40 @@ public sealed class SpecializedValueProtocolTests
     }
 
     [Fact]
-    public void UnresolvedBSplineShapeIsNotPublished()
+    public void ReportOutputDestinationPreservesExternalAndEmbeddedStructure()
+    {
+        var external = new TargetProtocol.ReportOutputOptions
+        {
+            OutputType = TargetProtocol.ReportOutputType.Pdf,
+            ExternalPath = "report.pdf"
+        };
+        var embedded = new TargetProtocol.ReportOutputOptions
+        {
+            OutputType = TargetProtocol.ReportOutputType.SaReport,
+            EmbeddedFile = new TargetProtocol.EmbeddedReportFile
+            {
+                CollectionName = "Collection",
+                FileName = "Report"
+            }
+        };
+
+        var externalRoundTrip = TargetProtocol.ReportOutputOptions.Parser.ParseFrom(
+            external.ToByteArray());
+        var embeddedRoundTrip = TargetProtocol.ReportOutputOptions.Parser.ParseFrom(
+            embedded.ToByteArray());
+
+        Assert.Equal(
+            TargetProtocol.ReportOutputOptions.DestinationOneofCase.ExternalPath,
+            externalRoundTrip.DestinationCase);
+        Assert.Equal("report.pdf", externalRoundTrip.ExternalPath);
+        Assert.Equal(
+            TargetProtocol.ReportOutputOptions.DestinationOneofCase.EmbeddedFile,
+            embeddedRoundTrip.DestinationCase);
+        Assert.True(embeddedRoundTrip.EmbeddedFile.HasCollectionName);
+        Assert.Equal("Report", embeddedRoundTrip.EmbeddedFile.FileName);
+    }
+    [Fact]
+    public void UnresolvedSpecializedShapesAreNotPublished()
     {
         var root = FindRepositoryRoot();
         var schema = File.ReadAllText(Path.Combine(
@@ -57,6 +96,10 @@ public sealed class SpecializedValueProtocolTests
             "specialized_values.proto"));
 
         Assert.DoesNotContain("BSplineFitOptions", schema, StringComparison.Ordinal);
+        Assert.DoesNotContain("ProjectionType", schema, StringComparison.Ordinal);
+        Assert.DoesNotContain("ProjectionOptions", schema, StringComparison.Ordinal);
+        Assert.DoesNotContain("ReportDetailsFormat", schema, StringComparison.Ordinal);
+        Assert.DoesNotContain("PointDeltaReportOptions", schema, StringComparison.Ordinal);
     }
 
     private static string FindRepositoryRoot()

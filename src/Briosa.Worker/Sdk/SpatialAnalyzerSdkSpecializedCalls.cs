@@ -186,52 +186,6 @@ internal sealed partial class SpatialAnalyzerSdkAdapter
                 allowRz,
                 rotateAboutCentroid);
 
-        public bool SetPointDeltaReportOptionsArg(
-            string name,
-            string coordinateSystem,
-            string detailsFormat,
-            bool showPointA,
-            bool showPointB,
-            bool showDelta,
-            bool showMagnitude,
-            bool showComponent1,
-            bool showComponent2,
-            bool showComponent3,
-            bool sortPointNames,
-            bool showToleranceFields,
-            bool colorizeInToleranceFields) =>
-            Sdk.SetPointDeltaReportOptionsArg(
-                name,
-                coordinateSystem,
-                detailsFormat,
-                showPointA,
-                showPointB,
-                showDelta,
-                showMagnitude,
-                showComponent1,
-                showComponent2,
-                showComponent3,
-                sortPointNames,
-                showToleranceFields,
-                colorizeInToleranceFields);
-
-        public bool SetProjectionOptionsArg(
-            string name,
-            string projectionType,
-            bool ignoreEdgeProjections,
-            bool overrideTargetOffsets,
-            double overrideTargetOffsetsValue,
-            bool addExtraMaterialThickness,
-            double extraMaterialThicknessValue) =>
-            Sdk.SetProjectionOptionsArg(
-                name,
-                projectionType,
-                ignoreEdgeProjections,
-                overrideTargetOffsets,
-                overrideTargetOffsetsValue,
-                addExtraMaterialThickness,
-                extraMaterialThicknessValue);
-
         public bool SetReportOutputOptionsArg(
             string name,
             string outputType,
