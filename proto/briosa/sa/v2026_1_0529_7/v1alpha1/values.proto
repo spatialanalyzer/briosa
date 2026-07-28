@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-import "briosa/sa/v2026_1_0529_7/v1alpha1/specialized_values.proto";
-
 package briosa.sa.v2026_1_0529_7.v1alpha1;
+
+import "briosa/sa/v2026_1_0529_7/v1alpha1/specialized_values.proto";
 
 option csharp_namespace = "Briosa.Sa.V2026_1_0529_7.V1Alpha1";
 
@@ -33,7 +33,10 @@ message CollectionMachineId {
 message CollectionObjectName {
   optional string collection_name = 1;
   optional string object_name = 2;
-  optional ObjectType object_type = 3;
+  // Retained only for v1alpha1 wire/source compatibility. Generated operations
+  // never accept or populate this untyped field.
+  optional string object_type = 3 [deprecated = true];
+  optional ObjectType exact_object_type = 4;
 }
 
 // Identifies any named collection item, including non-geometric entities such

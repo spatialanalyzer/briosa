@@ -414,7 +414,7 @@ internal static class CommandCatalogArtifactGenerator
         $"!{value}.HasCollectionName || !{value}.HasItemName || !{value}.HasItemType || {value}.ItemType == TargetProtocol.ItemType.Unspecified || !Enum.IsDefined({value}.ItemType)";
 
     private static string MissingCollectionObjectNameComponents(string value) =>
-        $"!{value}.HasCollectionName || !{value}.HasObjectName || !{value}.HasObjectType || {value}.ObjectType == TargetProtocol.ObjectType.Unspecified || !Enum.IsDefined({value}.ObjectType)";
+        $"!{value}.HasCollectionName || !{value}.HasObjectName || !{value}.HasExactObjectType || {value}.ExactObjectType == TargetProtocol.ObjectType.Unspecified || !Enum.IsDefined({value}.ExactObjectType)";
     private static string CreateInputExpression(CommandCatalogArgument input, string valueExpression)
     {
         var name = ToPascalCase(input.ArgumentId);
@@ -466,9 +466,9 @@ internal static class CommandCatalogArtifactGenerator
             "collection_item_name_list" => prefix +
                 $"CollectionItemNameListValue: new([.. {valueExpression}.Values.Select(value => new WorkerCollectionItemNameValue(value.CollectionName, value.ItemName, (WorkerItemTypeValue)(int)value.ItemType))]))",
             "collection_object_name" => prefix +
-                $"CollectionObjectNameValue: new({valueExpression}.CollectionName, {valueExpression}.ObjectName, (WorkerObjectTypeValue)(int){valueExpression}.ObjectType))",
+                $"CollectionObjectNameValue: new({valueExpression}.CollectionName, {valueExpression}.ObjectName, (WorkerObjectTypeValue)(int){valueExpression}.ExactObjectType))",
             "collection_object_name_list" => prefix +
-                $"CollectionObjectNameListValue: new([.. {valueExpression}.Values.Select(value => new WorkerCollectionObjectNameValue(value.CollectionName, value.ObjectName, (WorkerObjectTypeValue)(int)value.ObjectType))]))",
+                $"CollectionObjectNameListValue: new([.. {valueExpression}.Values.Select(value => new WorkerCollectionObjectNameValue(value.CollectionName, value.ObjectName, (WorkerObjectTypeValue)(int)value.ExactObjectType))]))",
             "collection_group_name_list" => prefix +
                 $"CollectionGroupNameListValue: new([.. {valueExpression}.Values.Select(value => new WorkerCollectionGroupNameValue(value.CollectionName, value.GroupName))]))",
             "collection_vector_group_name" => prefix +
@@ -551,9 +551,9 @@ internal static class CommandCatalogArtifactGenerator
             "collection_item_name_list" =>
                 $"new TargetProtocol.CollectionItemNameList {{ Values = {{ {variable}.CollectionItemNameListValue!.Values.Select(value => new TargetProtocol.CollectionItemName {{ CollectionName = value.CollectionName, ItemName = value.ItemName, ItemType = (TargetProtocol.ItemType)(int)value.ItemType }}) }} }}",
             "collection_object_name" =>
-                $"new TargetProtocol.CollectionObjectName {{ CollectionName = {variable}.CollectionObjectNameValue!.CollectionName, ObjectName = {variable}.CollectionObjectNameValue.ObjectName, ObjectType = (TargetProtocol.ObjectType)(int){variable}.CollectionObjectNameValue.ObjectType }}",
+                $"new TargetProtocol.CollectionObjectName {{ CollectionName = {variable}.CollectionObjectNameValue!.CollectionName, ObjectName = {variable}.CollectionObjectNameValue.ObjectName, ExactObjectType = (TargetProtocol.ObjectType)(int){variable}.CollectionObjectNameValue.ObjectType }}",
             "collection_object_name_list" =>
-                $"new TargetProtocol.CollectionObjectNameList {{ Values = {{ {variable}.CollectionObjectNameListValue!.Values.Select(value => new TargetProtocol.CollectionObjectName {{ CollectionName = value.CollectionName, ObjectName = value.ObjectName, ObjectType = (TargetProtocol.ObjectType)(int)value.ObjectType }}) }} }}",
+                $"new TargetProtocol.CollectionObjectNameList {{ Values = {{ {variable}.CollectionObjectNameListValue!.Values.Select(value => new TargetProtocol.CollectionObjectName {{ CollectionName = value.CollectionName, ObjectName = value.ObjectName, ExactObjectType = (TargetProtocol.ObjectType)(int)value.ObjectType }}) }} }}",
             "collection_group_name_list" =>
                 $"new TargetProtocol.CollectionGroupNameList {{ Values = {{ {variable}.CollectionGroupNameListValue!.Values.Select(value => new TargetProtocol.CollectionGroupName {{ CollectionName = value.CollectionName, GroupName = value.GroupName }}) }} }}",
             "collection_vector_group_name" =>
