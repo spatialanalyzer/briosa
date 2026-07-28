@@ -13,6 +13,7 @@ $ErrorActionPreference = "Stop"
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $artifactScript = Join-Path $PSScriptRoot "New-ProtocolArtifact.ps1"
+$deterministicZipScript = Join-Path $PSScriptRoot "New-DeterministicZip.ps1"
 $coveragePath = Join-Path $repositoryRoot "generated\catalog\sa\2026.1.0529.7\coverage.json"
 $temporaryBase = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
 $temporaryRoot = Join-Path $temporaryBase "briosa-protocol-test-$([Guid]::NewGuid().ToString('N'))"
@@ -72,6 +73,31 @@ try {
     Assert-Condition `
         -Condition ($firstHash -eq $secondHash) `
         -Message "Two protocol artifact builds produced different SHA-256 hashes."
+
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    $zipArchive = [IO.Compression.ZipFile]::OpenRead($firstZip)
+    try {
+        [string[]]$entryNames = @($zipArchive.Entries.FullName)
+        [string[]]$sortedEntryNames = @($entryNames)
+        [Array]::Sort($sortedEntryNames, [StringComparer]::Ordinal)
+        Assert-Condition `
+            -Condition (-not (Compare-Object $entryNames $sortedEntryNames -SyncWindow 0)) `
+            -Message "Protocol ZIP entries are not in ordinal path order."
+        foreach ($entry in $zipArchive.Entries) {
+            Assert-Condition `
+                -Condition ($entry.CompressedLength -eq $entry.Length) `
+                -Message "Protocol ZIP entries must use the stored representation."
+            Assert-Condition `
+                -Condition ($entry.LastWriteTime.Year -eq 1980 -and
+                    $entry.LastWriteTime.Month -eq 1 -and
+                    $entry.LastWriteTime.Day -eq 1 -and
+                    $entry.LastWriteTime.TimeOfDay -eq [TimeSpan]::Zero) `
+                -Message "A protocol ZIP entry does not use the fixed timestamp."
+        }
+    }
+    finally {
+        $zipArchive.Dispose()
+    }
 
     $externalChecksumPath = "$firstZip.sha256"
     $externalChecksum = Get-Content -LiteralPath $externalChecksumPath -Raw
@@ -200,7 +226,31 @@ try {
     $provenanceHash = (Get-FileHash -LiteralPath $externalProvenancePath -Algorithm SHA256).Hash
     Assert-Condition -Condition ($manifestHash -eq $provenanceHash) -Message "The external protocol provenance manifest does not match the archive."
 
-    Write-Host "Protocol artifact reproducibility, descriptors, manifests, checksums, and fixtures passed."
+    $windowsPowerShell = Get-Command -Name "powershell.exe" -CommandType Application -ErrorAction SilentlyContinue
+    if ($null -ne $windowsPowerShell) {
+        $windowsPowerShellZip = Join-Path $temporaryRoot "windows-powershell.zip"
+        & $windowsPowerShell.Source `
+            -NoLogo `
+            -NoProfile `
+            -NonInteractive `
+            -ExecutionPolicy Bypass `
+            -File $deterministicZipScript `
+            -Source $bundleRoot `
+            -Destination $windowsPowerShellZip `
+            -RootName $artifactBase
+        Assert-Condition `
+            -Condition ($LASTEXITCODE -eq 0) `
+            -Message "Windows PowerShell could not rebuild the deterministic protocol ZIP."
+
+        $windowsPowerShellHash = (Get-FileHash `
+            -LiteralPath $windowsPowerShellZip `
+            -Algorithm SHA256).Hash
+        Assert-Condition `
+            -Condition ($firstHash -eq $windowsPowerShellHash) `
+            -Message "PowerShell runtimes produced different protocol ZIP SHA-256 hashes."
+    }
+
+    Write-Host "Protocol artifact cross-runtime reproducibility, descriptors, manifests, checksums, and fixtures passed."
 }
 finally {
     $resolvedTemporaryRoot = [IO.Path]::GetFullPath($temporaryRoot)

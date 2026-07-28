@@ -22,6 +22,8 @@ The archive contains one top-level directory with:
 
 Verify the adjacent ZIP checksum before extraction, then verify `files.sha256`. A client release records the ZIP hash plus the manifest's protocol schema hash, descriptor hash, exact target, protocol packages, catalog ID/revision, and conformance fixture IDs.
 
+Archive entries use a stored, uncompressed representation with ordinal path ordering and a fixed timestamp. This is intentional: Deflate output can change between PowerShell/.NET runtime implementations even when every input byte is identical. The stored representation makes the outer ZIP checksum portable across supported Windows build environments while the manifest and `files.sha256` continue to protect every bundled file.
+
 ## Generate a client
 
 Use either the `.proto` tree or descriptor set as supported by the language generator. Generate repetitive messages, services, and transport stubs. Keep hand-written code limited to idiomatic adapters and package integration.
@@ -51,5 +53,7 @@ Buf 1.72.0 and the repository's .NET SDK are the only protocol-artifact build pr
 ./eng/New-ProtocolArtifact.ps1 -Version 0.2.0-test
 ./eng/Test-ProtocolArtifact.ps1 -Version 0.2.0-test
 ```
+
+The test builds twice in the current PowerShell runtime and, when Windows PowerShell is available, rebuilds the identical bundle there and requires the same outer ZIP SHA-256.
 
 See [ADR 0020](../architecture/0020-protocol-artifacts-and-client-conformance.md) for the authoritative decision.

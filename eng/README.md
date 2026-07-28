@@ -80,7 +80,7 @@ Build and verify the runtime-neutral protocol artifact with:
 ./eng/Test-ProtocolArtifact.ps1 -Version 0.2.0-test
 ```
 
-The test performs two byte-reproducible builds, rebuilds the descriptor set from the bundled sources, checks all manifest and checksum identities, and validates the shared fixture sets.
+The test performs two byte-reproducible builds, requires the same stored-entry ZIP bytes from Windows PowerShell when it is available, rebuilds the descriptor set from the bundled sources, checks all manifest and checksum identities, and validates the shared fixture sets.
 
 Run portable packaged-host success and failure scenarios without SpatialAnalyzer:
 

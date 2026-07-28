@@ -16,6 +16,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
+$deterministicZipScript = Join-Path $PSScriptRoot "New-DeterministicZip.ps1"
 $coveragePath = Join-Path $repositoryRoot "generated\catalog\sa\2026.1.0529.7\coverage.json"
 $protoRoot = Join-Path $repositoryRoot "proto"
 $conformanceRoot = Join-Path $repositoryRoot "conformance"
@@ -91,62 +92,6 @@ function Get-AggregateFingerprint {
     $bytes = [Text.Encoding]::UTF8.GetBytes($canonical)
     return [Convert]::ToHexString(
         [Security.Cryptography.SHA256]::HashData($bytes)).ToLowerInvariant()
-}
-
-function New-DeterministicZip {
-    param(
-        [Parameter(Mandatory)][string]$Source,
-        [Parameter(Mandatory)][string]$Destination,
-        [Parameter(Mandatory)][string]$RootName
-    )
-
-    Add-Type -AssemblyName System.IO.Compression
-    $stream = [IO.File]::Create($Destination)
-    try {
-        $archive = [IO.Compression.ZipArchive]::new(
-            $stream,
-            [IO.Compression.ZipArchiveMode]::Create,
-            $false)
-        try {
-            $fixedTimestamp = [DateTimeOffset]::new(
-                1980,
-                1,
-                1,
-                0,
-                0,
-                0,
-                [TimeSpan]::Zero)
-            foreach ($file in Get-ChildItem -LiteralPath $Source -File -Recurse |
-                Sort-Object { [IO.Path]::GetRelativePath($Source, $_.FullName) }) {
-                $relativePath = ([IO.Path]::GetRelativePath(
-                    $Source,
-                    $file.FullName)).Replace('\', '/')
-                $entry = $archive.CreateEntry(
-                    "$RootName/$relativePath",
-                    [IO.Compression.CompressionLevel]::Optimal)
-                $entry.LastWriteTime = $fixedTimestamp
-                $input = [IO.File]::OpenRead($file.FullName)
-                try {
-                    $output = $entry.Open()
-                    try {
-                        $input.CopyTo($output)
-                    }
-                    finally {
-                        $output.Dispose()
-                    }
-                }
-                finally {
-                    $input.Dispose()
-                }
-            }
-        }
-        finally {
-            $archive.Dispose()
-        }
-    }
-    finally {
-        $stream.Dispose()
-    }
 }
 
 if ([string]::IsNullOrWhiteSpace($SourceRevision)) {
@@ -270,7 +215,7 @@ try {
         }
     }
 
-    New-DeterministicZip `
+    & $deterministicZipScript `
         -Source $bundleRoot `
         -Destination $zipPath `
         -RootName $artifactBase
