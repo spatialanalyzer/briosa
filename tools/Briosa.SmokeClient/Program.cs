@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Briosa.Core.V1Alpha1;
 using Grpc.Core;
 using Grpc.Net.Client;
@@ -49,7 +50,7 @@ internal static class SmokeClientProgram
             ValidateIdentity(
                 serverInfo,
                 capabilities,
-                expectOperation: options.Scenario != SmokeScenario.PolicyDenied);
+                options.ExpectOperation);
             var outcome = await ExecuteScenario(
                     options,
                     channel,
@@ -178,6 +179,8 @@ internal static class SmokeClientProgram
             .ConfigureAwait(false);
         return new ScenarioOutcome(
             OperationSucceeded: true,
+            StatusCode.OK,
+            TypedErrorObserved: false,
             FailureKind: null,
             RecoverySucceeded: false);
     }
@@ -208,6 +211,8 @@ internal static class SmokeClientProgram
 
         return new ScenarioOutcome(
             OperationSucceeded: false,
+            StatusCode.Unavailable,
+            TypedErrorObserved: true,
             error.Kind.ToString(),
             RecoverySucceeded: false);
     }
@@ -237,6 +242,8 @@ internal static class SmokeClientProgram
 
         return new ScenarioOutcome(
             OperationSucceeded: false,
+            StatusCode.PermissionDenied,
+            TypedErrorObserved: true,
             error.Kind.ToString(),
             RecoverySucceeded: false);
     }
@@ -267,6 +274,8 @@ internal static class SmokeClientProgram
 
         return new ScenarioOutcome(
             OperationSucceeded: false,
+            expectedStatus,
+            TypedErrorObserved: true,
             error.Kind.ToString(),
             RecoverySucceeded: false);
     }
@@ -313,7 +322,9 @@ internal static class SmokeClientProgram
             .ConfigureAwait(false);
         return new ScenarioOutcome(
             OperationSucceeded: false,
-            expectedStatus.ToString(),
+            expectedStatus,
+            TypedErrorObserved: false,
+            FailureKind: null,
             RecoverySucceeded: true);
     }
 
@@ -343,6 +354,8 @@ internal static class SmokeClientProgram
             .ConfigureAwait(false);
         return new ScenarioOutcome(
             OperationSucceeded: false,
+            StatusCode.Unavailable,
+            TypedErrorObserved: true,
             error.Kind.ToString(),
             RecoverySucceeded: true);
     }
@@ -382,6 +395,8 @@ internal static class SmokeClientProgram
 
         return new ScenarioOutcome(
             OperationSucceeded: false,
+            StatusCode.Unimplemented,
+            TypedErrorObserved: false,
             OperationFailureKind.Unsupported.ToString(),
             RecoverySucceeded: false);
     }
@@ -462,11 +477,17 @@ internal static class SmokeClientProgram
                 spatial_analyzer_connection_state =
                     serverInfo.SpatialAnalyzerConnectionState.ToString(),
                 ready_for_mp = serverInfo.ReadyForMp,
+                grpc_status = ToCanonicalStatusName(outcome.GrpcStatus),
                 operation_succeeded = outcome.OperationSucceeded,
+                typed_error_observed = outcome.TypedErrorObserved,
                 failure_kind = outcome.FailureKind,
                 recovery_succeeded = outcome.RecoverySucceeded
             },
             JsonOptions));
+
+    private static string ToCanonicalStatusName(StatusCode status) =>
+        Regex.Replace(status.ToString(), "([a-z0-9])([A-Z])", "$1_$2")
+            .ToUpperInvariant();
 
     private static void WriteFailure(SmokeOptions? options, string diagnosticCode) =>
         Console.Error.WriteLine(JsonSerializer.Serialize(
@@ -496,6 +517,7 @@ internal static class SmokeClientProgram
         Uri Address,
         SmokeScenario Scenario,
         string ScenarioName,
+        bool ExpectOperation,
         TimeSpan Timeout)
     {
         public static SmokeOptions Parse(string[] arguments)
@@ -533,11 +555,46 @@ internal static class SmokeClientProgram
                 throw new SmokeFailureException("smoke-timeout-out-of-range");
             }
 
+            var fixturePath = GetArgument(arguments, "--fixture");
+            var expectOperation = fixturePath is null
+                ? scenario != SmokeScenario.PolicyDenied
+                : ReadExpectedOperationAdvertisement(fixturePath, scenarioName);
+
             return new SmokeOptions(
                 address,
                 scenario,
                 scenarioName,
+                expectOperation,
                 TimeSpan.FromSeconds(timeoutSeconds));
+        }
+
+        private static bool ReadExpectedOperationAdvertisement(
+            string fixturePath,
+            string scenarioName)
+        {
+            using var document = JsonDocument.Parse(File.ReadAllText(fixturePath));
+            var root = document.RootElement;
+            if (root.GetProperty("schema_version").GetInt32() != 1 ||
+                root.GetProperty("fixture_set_id").GetString() !=
+                    "briosa.client.live.v1" ||
+                root.GetProperty("error_trailer").GetString() != ErrorTrailerName ||
+                root.GetProperty("operation_id").GetString() !=
+                    "file_operations.get_working_directory")
+            {
+                throw new SmokeFailureException("conformance-fixture-identity-mismatch");
+            }
+
+            foreach (var scenario in root.GetProperty("scenarios").EnumerateArray())
+            {
+                if (scenario.GetProperty("id").GetString() == scenarioName)
+                {
+                    return scenario.GetProperty("expected")
+                        .GetProperty("operation_advertised")
+                        .GetBoolean();
+                }
+            }
+
+            throw new SmokeFailureException("conformance-scenario-missing");
         }
 
         private static string? GetArgument(string[] arguments, string name)
@@ -551,6 +608,8 @@ internal static class SmokeClientProgram
 
     private sealed record ScenarioOutcome(
         bool OperationSucceeded,
+        StatusCode GrpcStatus,
+        bool TypedErrorObserved,
         string? FailureKind,
         bool RecoverySucceeded);
 

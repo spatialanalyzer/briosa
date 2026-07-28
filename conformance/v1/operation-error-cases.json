@@ -1,0 +1,149 @@
+{
+  "$schema": "../schemas/v1/operation-error-cases.schema.json",
+  "schema_version": 1,
+  "fixture_set_id": "briosa.client.operation-errors.v1",
+  "error_trailer": "briosa-operation-error-bin",
+  "cases": [
+    {
+      "id": "spatial-analyzer-unavailable-not-started",
+      "grpc_status": "UNAVAILABLE",
+      "operation_error": {
+        "operation_id": "file_operations.get_working_directory",
+        "kind": "OPERATION_FAILURE_KIND_SPATIAL_ANALYZER_UNAVAILABLE",
+        "diagnostic_code": "sdk-connection-not-ready",
+        "execution_disposition": "EXECUTION_DISPOSITION_NOT_STARTED",
+        "recovery_guidance": "RECOVERY_GUIDANCE_WAIT_FOR_READINESS",
+        "replay_guidance": "REPLAY_GUIDANCE_MAY_REPLAY",
+        "replay_safety": "REPLAY_SAFETY_SAFE",
+        "mp_execution": null
+      },
+      "client_behavior": {
+        "automatic_replay": false,
+        "wait_for_readiness": true,
+        "reconciliation_required": false
+      }
+    },
+    {
+      "id": "policy-denied",
+      "grpc_status": "PERMISSION_DENIED",
+      "operation_error": {
+        "operation_id": "file_operations.get_working_directory",
+        "kind": "OPERATION_FAILURE_KIND_POLICY_DENIED",
+        "diagnostic_code": "operation-policy-denied",
+        "execution_disposition": "EXECUTION_DISPOSITION_NOT_STARTED",
+        "recovery_guidance": "RECOVERY_GUIDANCE_NONE",
+        "replay_guidance": "REPLAY_GUIDANCE_DO_NOT_REPLAY",
+        "replay_safety": "REPLAY_SAFETY_SAFE",
+        "mp_execution": null
+      },
+      "client_behavior": {
+        "automatic_replay": false,
+        "wait_for_readiness": false,
+        "reconciliation_required": false
+      }
+    },
+    {
+      "id": "safe-watchdog-ambiguous",
+      "grpc_status": "UNAVAILABLE",
+      "operation_error": {
+        "operation_id": "file_operations.get_working_directory",
+        "kind": "OPERATION_FAILURE_KIND_WORKER_WATCHDOG_TIMEOUT",
+        "diagnostic_code": "worker-execution-watchdog-timeout",
+        "execution_disposition": "EXECUTION_DISPOSITION_STARTED_OUTCOME_UNKNOWN",
+        "recovery_guidance": "RECOVERY_GUIDANCE_WORKER_REPLACEMENT",
+        "replay_guidance": "REPLAY_GUIDANCE_MAY_REPLAY",
+        "replay_safety": "REPLAY_SAFETY_SAFE",
+        "mp_execution": null
+      },
+      "client_behavior": {
+        "automatic_replay": false,
+        "wait_for_readiness": true,
+        "reconciliation_required": false
+      }
+    },
+    {
+      "id": "unsafe-watchdog-ambiguous",
+      "grpc_status": "UNAVAILABLE",
+      "operation_error": {
+        "operation_id": "conformance.mutating_operation",
+        "kind": "OPERATION_FAILURE_KIND_WORKER_WATCHDOG_TIMEOUT",
+        "diagnostic_code": "worker-execution-watchdog-timeout",
+        "execution_disposition": "EXECUTION_DISPOSITION_STARTED_OUTCOME_UNKNOWN",
+        "recovery_guidance": "RECOVERY_GUIDANCE_WORKER_REPLACEMENT",
+        "replay_guidance": "REPLAY_GUIDANCE_RECONCILE_BEFORE_REPLAY",
+        "replay_safety": "REPLAY_SAFETY_UNSAFE",
+        "mp_execution": null
+      },
+      "client_behavior": {
+        "automatic_replay": false,
+        "wait_for_readiness": true,
+        "reconciliation_required": true
+      }
+    },
+    {
+      "id": "unknown-worker-failure-ambiguous",
+      "grpc_status": "UNAVAILABLE",
+      "operation_error": {
+        "operation_id": "conformance.unknown_operation",
+        "kind": "OPERATION_FAILURE_KIND_WORKER_FAILURE",
+        "diagnostic_code": "worker-execution-control-failed",
+        "execution_disposition": "EXECUTION_DISPOSITION_STARTED_OUTCOME_UNKNOWN",
+        "recovery_guidance": "RECOVERY_GUIDANCE_WORKER_REPLACEMENT",
+        "replay_guidance": "REPLAY_GUIDANCE_RECONCILE_BEFORE_REPLAY",
+        "replay_safety": "REPLAY_SAFETY_UNKNOWN",
+        "mp_execution": null
+      },
+      "client_behavior": {
+        "automatic_replay": false,
+        "wait_for_readiness": true,
+        "reconciliation_required": true
+      }
+    },
+    {
+      "id": "mp-failure-completed",
+      "grpc_status": "FAILED_PRECONDITION",
+      "operation_error": {
+        "operation_id": "file_operations.get_working_directory",
+        "kind": "OPERATION_FAILURE_KIND_MP_FAILURE",
+        "diagnostic_code": "mp-command-failed",
+        "execution_disposition": "EXECUTION_DISPOSITION_COMPLETED",
+        "recovery_guidance": "RECOVERY_GUIDANCE_NONE",
+        "replay_guidance": "REPLAY_GUIDANCE_DO_NOT_REPLAY",
+        "replay_safety": "REPLAY_SAFETY_SAFE",
+        "mp_execution": {
+          "state": "MP_EXECUTION_STATE_FAILED",
+          "mp_result_code_present": true,
+          "output_retrieval_state": "OUTPUT_RETRIEVAL_STATE_NOT_ATTEMPTED"
+        }
+      },
+      "client_behavior": {
+        "automatic_replay": false,
+        "wait_for_readiness": false,
+        "reconciliation_required": false
+      }
+    },
+    {
+      "id": "output-retrieval-failure-completed",
+      "grpc_status": "DATA_LOSS",
+      "operation_error": {
+        "operation_id": "file_operations.get_working_directory",
+        "kind": "OPERATION_FAILURE_KIND_OUTPUT_RETRIEVAL_FAILURE",
+        "diagnostic_code": "sdk-output-retrieval-failed",
+        "execution_disposition": "EXECUTION_DISPOSITION_COMPLETED",
+        "recovery_guidance": "RECOVERY_GUIDANCE_NONE",
+        "replay_guidance": "REPLAY_GUIDANCE_DO_NOT_REPLAY",
+        "replay_safety": "REPLAY_SAFETY_SAFE",
+        "mp_execution": {
+          "state": "MP_EXECUTION_STATE_SUCCEEDED",
+          "mp_result_code_present": true,
+          "output_retrieval_state": "OUTPUT_RETRIEVAL_STATE_FAILED"
+        }
+      },
+      "client_behavior": {
+        "automatic_replay": false,
+        "wait_for_readiness": false,
+        "reconciliation_required": false
+      }
+    }
+  ]
+}

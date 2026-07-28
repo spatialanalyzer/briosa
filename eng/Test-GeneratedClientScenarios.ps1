@@ -5,6 +5,8 @@ param(
 
     [string]$Configuration = "Release",
 
+    [string]$FixturePath = "conformance\v1\live-scenarios.json",
+
     [switch]$NoBuild
 )
 
@@ -17,6 +19,7 @@ if (-not $IsWindows -or -not [Environment]::Is64BitProcess) {
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $resolvedPackage = [IO.Path]::GetFullPath($PackagePath, $repositoryRoot)
+$resolvedFixture = [IO.Path]::GetFullPath($FixturePath, $repositoryRoot)
 $smokeClientProject = Join-Path $repositoryRoot "tools\Briosa.SmokeClient\Briosa.SmokeClient.csproj"
 $smokeWorkerProject = Join-Path $repositoryRoot "tests\Briosa.SmokeWorker\Briosa.SmokeWorker.csproj"
 $smokeClientDll = Join-Path $repositoryRoot "tools\Briosa.SmokeClient\bin\$Configuration\net10.0\Briosa.SmokeClient.dll"
@@ -76,6 +79,20 @@ function Wait-ForListener {
     return $false
 }
 
+function Convert-ProtocolEnumNameToPascalCase {
+    param([Parameter(Mandatory)][string]$Value)
+
+    $prefix = "OPERATION_FAILURE_KIND_"
+    if (-not $Value.StartsWith($prefix, [StringComparison]::Ordinal)) {
+        throw "Unsupported conformance enum name '$Value'."
+    }
+
+    return (($Value.Substring($prefix.Length).Split('_') | ForEach-Object {
+        $_.Substring(0, 1).ToUpperInvariant() +
+            $_.Substring(1).ToLowerInvariant()
+    }) -join '')
+}
+
 function Start-ScenarioServer {
     param(
         [Parameter(Mandatory)][string]$ServerExecutable,
@@ -133,6 +150,16 @@ function Start-ScenarioServer {
 if (-not (Test-Path -LiteralPath $resolvedPackage -PathType Leaf)) {
     throw "The package archive does not exist."
 }
+if (-not (Test-Path -LiteralPath $resolvedFixture -PathType Leaf)) {
+    throw "The client conformance fixture does not exist."
+}
+
+$fixture = Get-Content -LiteralPath $resolvedFixture -Raw | ConvertFrom-Json
+if ($fixture.schema_version -ne 1 -or
+    $fixture.fixture_set_id -ne "briosa.client.live.v1" -or
+    $fixture.error_trailer -ne "briosa-operation-error-bin") {
+    throw "The client conformance fixture identity is unsupported."
+}
 
 [IO.Directory]::CreateDirectory($temporaryRoot) | Out-Null
 try {
@@ -168,17 +195,15 @@ try {
         throw "The package does not contain Briosa.Server.exe."
     }
 
-    $scenarios = @(
-        [pscustomobject]@{ Worker = "ready"; Client = "ready"; Watchdog = $null },
-        [pscustomobject]@{ Worker = "disconnected"; Client = "unavailable"; Watchdog = $null },
-        [pscustomobject]@{ Worker = "ready"; Client = "policy-denied"; Watchdog = $null },
-        [pscustomobject]@{ Worker = "mp-failure"; Client = "mp-failure"; Watchdog = $null },
-        [pscustomobject]@{ Worker = "output-failure"; Client = "output-failure"; Watchdog = $null },
-        [pscustomobject]@{ Worker = "delay-first-execute"; Client = "deadline"; Watchdog = $null },
-        [pscustomobject]@{ Worker = "delay-first-execute"; Client = "cancellation"; Watchdog = $null },
-        [pscustomobject]@{ Worker = "hang-first-execute"; Client = "watchdog-recovery"; Watchdog = "00:00:00.250" },
-        [pscustomobject]@{ Worker = "ready"; Client = "unsupported-version"; Watchdog = $null }
-    )
+    $scenarios = @($fixture.scenarios | ForEach-Object {
+        [pscustomobject]@{
+            Worker = $_.worker_scenario
+            Client = $_.id
+            Watchdog = $_.watchdog_timeout
+            DenyOperation = $_.deny_operation
+            Expected = $_.expected
+        }
+    })
 
     foreach ($scenario in $scenarios) {
         $serverProcess = $null
@@ -201,7 +226,7 @@ try {
                 StandardOutput = $standardOutput
                 StandardError = $standardError
                 WatchdogTimeout = $scenario.Watchdog
-                DenyOperation = $scenario.Client -eq "policy-denied"
+                DenyOperation = $scenario.DenyOperation
             }
             $serverProcess = Start-ScenarioServer @serverArguments
             if (-not (Wait-ForListener -Process $serverProcess -Port $port)) {
@@ -226,6 +251,7 @@ try {
                 $smokeClientDll,
                 "--address", "http://127.0.0.1:$port",
                 "--scenario", $scenario.Client,
+                "--fixture", $resolvedFixture,
                 "--timeout-seconds", "15")
             $clientOutput = @(
                 & dotnet @clientArguments 2>&1 |
@@ -238,6 +264,24 @@ try {
                 ConvertFrom-Json
             if (-not $report.success) {
                 throw "The generated client did not report success."
+            }
+
+            if ($report.ready_for_mp -ne $scenario.Expected.ready_for_mp -or
+                $report.grpc_status -ne $scenario.Expected.grpc_status -or
+                $report.operation_succeeded -ne $scenario.Expected.operation_succeeded -or
+                $report.typed_error_observed -ne $scenario.Expected.typed_error_required -or
+                $report.recovery_succeeded -ne $scenario.Expected.recovery_succeeded) {
+                throw "The generated client report does not match fixture '$($scenario.Client)'."
+            }
+
+            $expectedFailureKinds = @($scenario.Expected.failure_kinds | ForEach-Object {
+                Convert-ProtocolEnumNameToPascalCase $_
+            })
+            if (($expectedFailureKinds.Count -eq 0 -and
+                    $null -ne $report.failure_kind) -or
+                ($expectedFailureKinds.Count -gt 0 -and
+                    $report.failure_kind -notin $expectedFailureKinds)) {
+                throw "The generated client failure kind does not match fixture '$($scenario.Client)'."
             }
 
             Write-Host "Passed generated-client scenario: $($scenario.Client)"
