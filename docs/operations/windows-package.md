@@ -13,7 +13,7 @@ briosa-<briosa-version>-sa-2026.1.0529.7-win-x64.zip
 - A valid SpatialAnalyzer license appropriate for the operations you perform.
 - SpatialAnalyzer running before Briosa can become ready for MP execution.
 
-SpatialAnalyzer, its installer, SDK executable, original type library, license material, and vendor documentation are not included. Briosa can start and report liveness without SpatialAnalyzer, but readiness remains not serving until its worker connects.
+SpatialAnalyzer, its installer, SDK executable, original type library, license material, and vendor documentation are not included. Briosa can start and report liveness without SpatialAnalyzer, but readiness remains not serving until its worker connects and completes the bounded execution-channel probe.
 
 ## Verify and extract
 
@@ -46,6 +46,8 @@ LAN, Internet, reverse-proxy, tunnel, shared-host, and other remotely reachable 
 The worker execution watchdog defaults to 30 seconds. Set `Briosa__Worker__ExecutionWatchdogTimeout` to a positive .NET `TimeSpan` no greater than ten minutes only when deployment evidence justifies an override. A client deadline or cancellation stops that caller from waiting; it does not claim to cancel synchronous COM work already in flight.
 
 Use standard gRPC health checks named `briosa.liveness` and `briosa.readiness`. See `HEALTH-AND-DISCOVERY.md` for discovery and response semantics.
+
+If startup reports `OPERATOR_RECOVERY_REQUIRED`, do not repeatedly restart Briosa. Close affected SDK clients, establish a clean SpatialAnalyzer instance that owns the SDK ports, and then restart Briosa once to perform the explicit recovery cycle.
 
 ## Provenance
 

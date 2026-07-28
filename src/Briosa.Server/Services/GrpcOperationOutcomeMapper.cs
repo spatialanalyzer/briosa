@@ -415,6 +415,10 @@ internal static class GrpcOperationOutcomeMapper
 
     private static bool IsSpatialAnalyzerUnavailable(WorkerExecutionOutcome outcome) =>
         outcome.Connection is { State: not WorkerConnectionState.Connected } ||
+        outcome.Connection is
+        {
+            ExecutionReadinessState: not WorkerExecutionReadinessState.ExecutionReady
+        } ||
         outcome.DiagnosticCode.StartsWith("sdk-connection-", StringComparison.Ordinal);
 
     private static string NormalizeDiagnosticCode(string? value, string fallback) =>

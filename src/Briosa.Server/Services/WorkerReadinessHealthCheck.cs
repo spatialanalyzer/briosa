@@ -26,5 +26,9 @@ internal sealed class WorkerReadinessHealthCheck(IWorkerStatusProvider statusPro
 
     internal static bool IsReady(WorkerLifecycleSnapshot snapshot) =>
         snapshot.State == WorkerLifecycleState.Ready &&
-        snapshot.Connection?.State == WorkerConnectionState.Connected;
+        snapshot.Connection is
+        {
+            State: WorkerConnectionState.Connected,
+            ExecutionReadinessState: WorkerExecutionReadinessState.ExecutionReady
+        };
 }

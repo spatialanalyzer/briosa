@@ -20,6 +20,15 @@ internal enum SdkConnectionState
     Stopping
 }
 
+internal enum SdkExecutionReadinessState
+{
+    Unverified,
+    Verifying,
+    ExecutionReady,
+    CompetingClientSuspected,
+    OperatorRecoveryRequired
+}
+
 internal sealed record SdkConnectionSnapshot(
     SdkConnectionState State,
     string TargetHost,
@@ -27,11 +36,18 @@ internal sealed record SdkConnectionSnapshot(
     int Attempt,
     int MaximumAttempts,
     string DiagnosticCode,
-    DateTimeOffset TransitionedAt);
+    DateTimeOffset TransitionedAt,
+    SdkExecutionReadinessState ExecutionReadinessState =
+        SdkExecutionReadinessState.Unverified);
 
 internal sealed class SdkConnectionPolicy
 {
-    public SdkConnectionPolicy(int maximumAttempts, TimeSpan retryDelay)
+    private readonly HashSet<int> _transientStatusCodes;
+
+    public SdkConnectionPolicy(
+        int maximumAttempts,
+        TimeSpan retryDelay,
+        IEnumerable<int>? transientStatusCodes = null)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(maximumAttempts, 1);
         if (retryDelay < TimeSpan.Zero)
@@ -44,11 +60,17 @@ internal sealed class SdkConnectionPolicy
 
         MaximumAttempts = maximumAttempts;
         RetryDelay = retryDelay;
+        _transientStatusCodes = transientStatusCodes?.ToHashSet() ?? [];
     }
 
     public int MaximumAttempts { get; }
 
     public TimeSpan RetryDelay { get; }
+
+    public bool ShouldRetry(SdkConnectionResult result) =>
+        result.Status == SdkConnectionStatus.Unavailable &&
+        result.StatusCode is { } statusCode &&
+        _transientStatusCodes.Contains(statusCode);
 }
 
 internal enum SdkRequestStatus

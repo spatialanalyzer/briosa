@@ -6,7 +6,9 @@ namespace Briosa.Worker.Testing;
 internal enum ScriptedExecutionKind
 {
     Success,
+    ExecuteRejected,
     MpFailure,
+    MalformedOutput,
     Delay,
     Hang,
     Crash
@@ -31,7 +33,13 @@ internal sealed record ScriptedExecution(
 {
     public static ScriptedExecution Success() => new(ScriptedExecutionKind.Success);
 
+    public static ScriptedExecution ExecuteRejected() =>
+        new(ScriptedExecutionKind.ExecuteRejected);
+
     public static ScriptedExecution MpFailure() => new(ScriptedExecutionKind.MpFailure);
+
+    public static ScriptedExecution MalformedOutput() =>
+        new(ScriptedExecutionKind.MalformedOutput);
 
     public static ScriptedExecution Delay(ManualResetEventSlim gate) =>
         new(ScriptedExecutionKind.Delay, gate ?? throw new ArgumentNullException(nameof(gate)));
@@ -207,19 +215,33 @@ internal sealed class ScriptedSdkPlan
             }
 
             plan.Record(command, ScriptedCallPhase.Completed, execution.Kind);
-            return execution.Kind == ScriptedExecutionKind.MpFailure
-                ? new SdkExecutionResult(
+            return execution.Kind switch
+            {
+                ScriptedExecutionKind.ExecuteRejected => new SdkExecutionResult(
+                    ExecuteStepReturned: false,
+                    new SdkMpResult(false, false, null, "scripted-execute-rejected"),
+                    TimeSpan.FromMilliseconds(3),
+                    OutputValues: [],
+                    "scripted-execute-rejected"),
+                ScriptedExecutionKind.MpFailure => new SdkExecutionResult(
                     ExecuteStepReturned: true,
                     new SdkMpResult(true, false, 3, "scripted-mp-failure"),
                     TimeSpan.FromMilliseconds(7),
                     OutputValues: [],
-                    "scripted-mp-failure")
-                : new SdkExecutionResult(
+                    "scripted-mp-failure"),
+                ScriptedExecutionKind.MalformedOutput => new SdkExecutionResult(
                     ExecuteStepReturned: true,
                     new SdkMpResult(true, true, 2, null),
                     TimeSpan.FromMilliseconds(5),
                     OutputValues: [],
-                    DiagnosticCode: null);
+                    DiagnosticCode: null),
+                _ => new SdkExecutionResult(
+                    ExecuteStepReturned: true,
+                    new SdkMpResult(true, true, 2, null),
+                    TimeSpan.FromMilliseconds(5),
+                    [.. command.OutputArguments.Select(CreateOutputValue)],
+                    DiagnosticCode: null)
+            };
         }
 
         public void Dispose()
@@ -240,4 +262,13 @@ internal sealed class ScriptedSdkPlan
         var sequence = Interlocked.Increment(ref _eventSequence);
         _events.Enqueue(new ScriptedCallEvent(sequence, command.OperationId, phase, behavior));
     }
+
+    private static SdkOutputValue CreateOutputValue(SdkOutputArgument output) =>
+        output.Kind == SdkValueKind.Text
+            ? new SdkOutputValue(
+                output.Name,
+                output.Kind,
+                Retrieved: true,
+                StringValue: "scripted-output")
+            : new SdkOutputValue(output.Name, output.Kind, Retrieved: false);
 }
