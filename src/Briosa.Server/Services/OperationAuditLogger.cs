@@ -4,6 +4,7 @@ using Briosa.Server.Workers;
 namespace Briosa.Server.Services;
 
 internal sealed record OperationAuditSummary(
+    string ExecutionDisposition,
     string MpOutcome,
     string OutputRetrievalOutcome,
     long? SdkDurationMilliseconds,
@@ -15,7 +16,11 @@ internal sealed record OperationAuditSummary(
         if (execution is null)
         {
             return new OperationAuditSummary(
-                "not_started",
+                FormatExecutionDisposition(outcome?.ExecutionDisposition),
+                outcome?.ExecutionDisposition ==
+                    WorkerExecutionDisposition.StartedOutcomeUnknown
+                        ? "outcome_unknown"
+                        : "not_started",
                 "not_attempted",
                 SdkDurationMilliseconds: null,
                 MpResultCode: null);
@@ -24,7 +29,10 @@ internal sealed record OperationAuditSummary(
         if (!execution.ExecuteStepReturned)
         {
             return new OperationAuditSummary(
-                "execute_step_rejected",
+                FormatExecutionDisposition(outcome?.ExecutionDisposition),
+                execution.DiagnosticCode == "sdk-argument-rejected"
+                    ? "argument_rejected"
+                    : "execute_step_rejected",
                 "not_attempted",
                 execution.DurationMilliseconds,
                 execution.MpResultCode);
@@ -33,6 +41,7 @@ internal sealed record OperationAuditSummary(
         if (!execution.MpResultRetrieved)
         {
             return new OperationAuditSummary(
+                FormatExecutionDisposition(outcome?.ExecutionDisposition),
                 "result_unavailable",
                 "not_attempted",
                 execution.DurationMilliseconds,
@@ -42,6 +51,7 @@ internal sealed record OperationAuditSummary(
         if (!execution.MpSucceeded)
         {
             return new OperationAuditSummary(
+                FormatExecutionDisposition(outcome?.ExecutionDisposition),
                 "failed",
                 "not_attempted",
                 execution.DurationMilliseconds,
@@ -49,6 +59,7 @@ internal sealed record OperationAuditSummary(
         }
 
         return new OperationAuditSummary(
+            FormatExecutionDisposition(outcome?.ExecutionDisposition),
             "succeeded",
             execution.OutputValues.All(output => output.Retrieved)
                 ? "retrieved"
@@ -56,6 +67,16 @@ internal sealed record OperationAuditSummary(
             execution.DurationMilliseconds,
             execution.MpResultCode);
     }
+
+    private static string FormatExecutionDisposition(
+        WorkerExecutionDisposition? disposition) =>
+        disposition switch
+        {
+            WorkerExecutionDisposition.NotStarted => "not_started",
+            WorkerExecutionDisposition.StartedOutcomeUnknown => "started_outcome_unknown",
+            WorkerExecutionDisposition.Completed => "completed",
+            _ => "unspecified"
+        };
 }
 
 internal sealed partial class OperationAuditLogger(ILogger<OperationAuditLogger> logger)
@@ -139,6 +160,7 @@ internal sealed partial class OperationAuditLogger(ILogger<OperationAuditLogger>
             generation,
             requestDurationMilliseconds,
             summary.SdkDurationMilliseconds,
+            summary.ExecutionDisposition,
             summary.MpOutcome,
             summary.OutputRetrievalOutcome,
             summary.MpResultCode);
@@ -157,6 +179,7 @@ internal sealed partial class OperationAuditLogger(ILogger<OperationAuditLogger>
             generation,
             requestDurationMilliseconds,
             summary.SdkDurationMilliseconds,
+            summary.ExecutionDisposition,
             summary.MpOutcome,
             summary.OutputRetrievalOutcome,
             summary.MpResultCode,
@@ -216,13 +239,14 @@ internal sealed partial class OperationAuditLogger(ILogger<OperationAuditLogger>
     [LoggerMessage(
         EventId = 2004,
         Level = LogLevel.Information,
-        Message = "Request {CorrelationId} completed operation {OperationId} on worker generation {Generation} in {RequestDurationMilliseconds} ms; SDK duration {SdkDurationMilliseconds} ms, MP outcome {MpOutcome}, output retrieval {OutputRetrievalOutcome}, MP result {MpResultCode}.")]
+        Message = "Request {CorrelationId} completed operation {OperationId} on worker generation {Generation} in {RequestDurationMilliseconds} ms; SDK duration {SdkDurationMilliseconds} ms, execution disposition {ExecutionDisposition}, MP outcome {MpOutcome}, output retrieval {OutputRetrievalOutcome}, MP result {MpResultCode}.")]
     private partial void LogOperationCompleted(
         Guid correlationId,
         string operationId,
         int generation,
         long requestDurationMilliseconds,
         long? sdkDurationMilliseconds,
+        string executionDisposition,
         string mpOutcome,
         string outputRetrievalOutcome,
         int? mpResultCode);
@@ -230,13 +254,14 @@ internal sealed partial class OperationAuditLogger(ILogger<OperationAuditLogger>
     [LoggerMessage(
         EventId = 2005,
         Level = LogLevel.Warning,
-        Message = "Request {CorrelationId} failed operation {OperationId} on worker generation {Generation} in {RequestDurationMilliseconds} ms; SDK duration {SdkDurationMilliseconds} ms, MP outcome {MpOutcome}, output retrieval {OutputRetrievalOutcome}, MP result {MpResultCode}, gRPC status {GrpcStatus}, diagnostic {DiagnosticCode}.")]
+        Message = "Request {CorrelationId} failed operation {OperationId} on worker generation {Generation} in {RequestDurationMilliseconds} ms; SDK duration {SdkDurationMilliseconds} ms, execution disposition {ExecutionDisposition}, MP outcome {MpOutcome}, output retrieval {OutputRetrievalOutcome}, MP result {MpResultCode}, gRPC status {GrpcStatus}, diagnostic {DiagnosticCode}.")]
     private partial void LogOperationFailed(
         Guid correlationId,
         string operationId,
         int generation,
         long requestDurationMilliseconds,
         long? sdkDurationMilliseconds,
+        string executionDisposition,
         string mpOutcome,
         string outputRetrievalOutcome,
         int? mpResultCode,

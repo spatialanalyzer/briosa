@@ -44,14 +44,14 @@ Mutating operations default to `Unknown`. A read-only label alone is not enough 
 | Retrieved MP success or failure result | `Completed` | Do not infer replay from success/failure alone |
 | Output getter failed after MP success | `Completed` | Do not replay the command to recover a missing output |
 
-The operation error contract separates:
+The operation error contract exposes the exact enum fields:
 
-- execution disposition;
-- worker recovery/readiness action;
-- replay guidance; and
-- exact-target catalog replay classification.
+- `execution_disposition`: `NOT_STARTED`, `STARTED_OUTCOME_UNKNOWN`, or `COMPLETED`;
+- `recovery_guidance`: `NONE`, `WAIT_FOR_READINESS`, `WORKER_REPLACEMENT`, or `OPERATOR_INTERVENTION_REQUIRED`;
+- `replay_guidance`: `DO_NOT_REPLAY`, `MAY_REPLAY`, or `RECONCILE_BEFORE_REPLAY`; and
+- `replay_safety`: the exact-target catalog classification `SAFE`, `UNSAFE`, or `UNKNOWN`.
 
-`RETRY_AFTER_WORKER_REPLACEMENT` is removed or deprecated before any mutating operation is promoted. Replacement may be recommended as an operator recovery action, but it is never automatic replay guidance. Only a proven `NotStarted` operation, or an exact-target operation classified `Safe`, may receive automatic retry guidance.
+The former `retry_guidance` field and `RETRY_AFTER_WORKER_REPLACEMENT` value are removed and their field number is reserved before any mutating operation is promoted. Replacement may be recommended as an operator recovery action, but it is never automatic replay guidance. Only a proven `NotStarted` operation, or an exact-target operation classified `Safe`, may receive `MAY_REPLAY`.
 
 A worker generation is included in uncertain-completion diagnostics so an operator can correlate recovery without exposing arguments or values. Briosa does not claim exactly-once execution across a synchronous COM boundary.
 

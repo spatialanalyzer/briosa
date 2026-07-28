@@ -12,6 +12,8 @@ The production supervisor bounds the probe with its process watchdog. A probe ha
 
 Cancellation can stop a caller from entering the owner or waiting through a retry delay, but it does not claim to cancel a synchronous SDK call that has already started. The production watchdog recovers availability by replacing the worker process. It does not prove whether an in-flight command completed or make replay safe; [ADR 0018](../architecture/0018-uncertain-completion-and-replay.md) defines the required execution disposition and replay contract.
 
+Process-level scenarios distinguish cancellation before enqueue (`NotStarted`) from cancellation after enqueue (`StartedOutcomeUnknown`). They also simulate a hang after execution starts, a completed command followed by worker exit before the response, and a response that is lost until the watchdog replaces the worker. Each ambiguous case retains the original worker generation and remains uncertain after the replacement reports ready.
+
 ## Scripted behaviors
 
 The reusable `Briosa.Worker.Testing` assembly provides deterministic scripts for:

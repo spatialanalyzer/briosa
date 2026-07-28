@@ -66,6 +66,18 @@ public sealed class DiscoveryProtocolTests
     }
 
     [Fact]
+    public void CapabilityReportsReviewedReplaySafety()
+    {
+        var capability = new OperationCapability
+        {
+            OperationId = "file_operations.get_working_directory",
+            ReplaySafety = ReplaySafety.Safe
+        };
+
+        Assert.Equal(ReplaySafety.Safe, capability.ReplaySafety);
+    }
+
+    [Fact]
     public void DiscoveryMessagesCannotExposeSensitiveOperationalDetails()
     {
         var fieldNames = GetServerInfoResponse.Descriptor.Fields.InFieldNumberOrder()

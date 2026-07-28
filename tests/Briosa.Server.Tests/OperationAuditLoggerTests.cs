@@ -21,6 +21,7 @@ public sealed class OperationAuditLoggerTests
         var operation = Assert.Single(TargetCatalogMetadata.Operations);
         var outcome = new WorkerExecutionOutcome(
             WorkerExecutionStatus.Completed,
+            WorkerExecutionDisposition.Completed,
             new WorkerMpExecutionResult(
                 ExecuteStepReturned: true,
                 MpResultRetrieved: true,
@@ -54,9 +55,26 @@ public sealed class OperationAuditLoggerTests
         Assert.Contains(correlationId.ToString(), start.Message, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("local-unauthenticated", start.Message, StringComparison.Ordinal);
         Assert.Contains(operation.FullyQualifiedMethod, start.Message, StringComparison.Ordinal);
+        Assert.Contains("completed", completed.Message, StringComparison.Ordinal);
         Assert.Contains("succeeded", completed.Message, StringComparison.Ordinal);
         Assert.Contains("retrieved", completed.Message, StringComparison.Ordinal);
         Assert.DoesNotContain(SensitivePath, sink.AllText, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void AmbiguousTransportFailureIsNotLoggedAsNotStarted()
+    {
+        var summary = OperationAuditSummary.Create(new WorkerExecutionOutcome(
+            WorkerExecutionStatus.WorkerFailure,
+            WorkerExecutionDisposition.StartedOutcomeUnknown,
+            Execution: null,
+            Connection: null,
+            "worker-execution-control-failed",
+            Generation: 5));
+
+        Assert.Equal("started_outcome_unknown", summary.ExecutionDisposition);
+        Assert.Equal("outcome_unknown", summary.MpOutcome);
+        Assert.Equal("not_attempted", summary.OutputRetrievalOutcome);
     }
 
     [Fact]
@@ -66,6 +84,7 @@ public sealed class OperationAuditLoggerTests
         var audit = new OperationAuditLogger(sink);
         var outcome = new WorkerExecutionOutcome(
             WorkerExecutionStatus.Completed,
+            WorkerExecutionDisposition.Completed,
             new WorkerMpExecutionResult(
                 ExecuteStepReturned: true,
                 MpResultRetrieved: true,

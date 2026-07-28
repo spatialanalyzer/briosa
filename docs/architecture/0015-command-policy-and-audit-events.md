@@ -18,7 +18,7 @@ The v0.1 endpoint is loopback-only and unauthenticated. Briosa therefore cannot 
 - The generated binding must supply the catalog operation ID and exact MP step. A missing operation is unsupported; a step mismatch is a binding error. Both are rejected before the worker and SDK.
 - Operations with an `unknown` effect or risk flag are denied until reviewed. Catalog arguments require an explicit data classification such as `path`, `geometry`, `measurement`, `credential`, `proprietary`, or `unknown`.
 - Discovery lists only operations enabled by the runtime policy.
-- Policy denial returns gRPC `PERMISSION_DENIED` with the typed `POLICY_DENIED` failure kind and no-retry guidance. Unsupported or mismatched bindings return `UNIMPLEMENTED`.
+- Policy denial returns gRPC `PERMISSION_DENIED` with the typed `POLICY_DENIED` failure kind, `NOT_STARTED`, and `DO_NOT_REPLAY`. Unsupported or mismatched bindings return `UNIMPLEMENTED` with the same fail-closed execution disposition.
 - One correlation identifier follows a request through host audit events, the policy decision, worker-control messages, and the worker outcome.
 - Stable audit events record actor category, endpoint, operation ID, effect, risk flags, worker generation, request and SDK timing, MP outcome, output-retrieval outcome, MP result code, gRPC status, and curated diagnostic code as applicable.
 - Audit logger APIs do not accept request arguments or returned values. Paths, geometry, identifiers, measurements, credentials, license data, proprietary data, peer details, target hosts, process IDs, and raw exceptions are not audit fields. Enabling debug or trace logging does not relax this rule.

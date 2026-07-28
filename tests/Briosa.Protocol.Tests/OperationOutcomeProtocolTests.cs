@@ -57,7 +57,10 @@ public sealed partial class ProtocolSchemaTests
             OperationId = "file_operations.get_working_directory",
             Kind = OperationFailureKind.OutputRetrievalFailure,
             DiagnosticCode = "sdk-output-retrieval-failed",
-            RetryGuidance = RetryGuidance.DoNotRetry,
+            ExecutionDisposition = ExecutionDisposition.Completed,
+            RecoveryGuidance = RecoveryGuidance.None,
+            ReplayGuidance = ReplayGuidance.DoNotReplay,
+            ReplaySafety = ReplaySafety.Safe,
             WorkerGeneration = 2,
             MpExecution = new MpExecutionDetails
             {

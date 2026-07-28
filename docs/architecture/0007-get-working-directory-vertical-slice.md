@@ -33,7 +33,7 @@ The vertical slice originally used the deliberately small mapping below. ADR 000
 | Worker unavailable, crashed, or watchdog expired | `Unavailable` | Curated worker diagnostic |
 | Caller stopped waiting | `Cancelled` | `client-wait-cancelled` |
 
-A worker watchdog expiration is not reported as the caller's gRPC deadline. ADR 0008 defines the complete cross-operation mapping, retry guidance, caller-deadline behavior, and shared typed error details.
+A worker watchdog expiration is not reported as the caller's gRPC deadline. ADR 0008 defines the complete cross-operation mapping, execution disposition, recovery and replay guidance, caller-deadline behavior, and shared typed error details.
 
 ## Generation boundary
 

@@ -226,7 +226,10 @@ internal static class SmokeClientProgram
                 cancellationToken)
             .ConfigureAwait(false);
         if (error.Kind != OperationFailureKind.PolicyDenied ||
-            error.RetryGuidance != RetryGuidance.DoNotRetry ||
+            error.ExecutionDisposition != ExecutionDisposition.NotStarted ||
+            error.RecoveryGuidance != RecoveryGuidance.None ||
+            error.ReplayGuidance != ReplayGuidance.DoNotReplay ||
+            error.ReplaySafety != ReplaySafety.Safe ||
             error.MpExecution is not null)
         {
             throw new SmokeFailureException("unexpected-policy-denial-shape");
@@ -328,7 +331,10 @@ internal static class SmokeClientProgram
                 cancellationToken)
             .ConfigureAwait(false);
         if (error.Kind != OperationFailureKind.WorkerWatchdogTimeout ||
-            error.RetryGuidance != RetryGuidance.RetryAfterWorkerReplacement)
+            error.ExecutionDisposition != ExecutionDisposition.StartedOutcomeUnknown ||
+            error.RecoveryGuidance != RecoveryGuidance.WorkerReplacement ||
+            error.ReplayGuidance != ReplayGuidance.MayReplay ||
+            error.ReplaySafety != ReplaySafety.Safe)
         {
             throw new SmokeFailureException("unexpected-watchdog-failure-shape");
         }

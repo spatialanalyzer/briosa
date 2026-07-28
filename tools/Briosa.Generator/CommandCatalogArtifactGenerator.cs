@@ -24,6 +24,7 @@ internal static class CommandCatalogArtifactGenerator
         builder.AppendLine("using Briosa.Server.Security;");
         builder.AppendLine("using Briosa.Server.Services;");
         builder.AppendLine("using Briosa.Worker.Control;");
+        builder.AppendLine("using CoreProtocol = global::Briosa.Core.V1Alpha1;");
         builder.Append("using TargetProtocol = global::").Append(targetNamespace).AppendLine(";");
         builder.AppendLine();
         builder.Append("namespace ").Append(generatedNamespace).AppendLine(";");
@@ -51,6 +52,16 @@ internal static class CommandCatalogArtifactGenerator
             .Append(manifest.CatalogRevision).AppendLine("`.");
         builder.AppendLine();
         builder.AppendLine("Only explicitly reviewed Briosa operations are listed here. This is not the installed SpatialAnalyzer MP catalog.");
+        builder.AppendLine();
+        builder.AppendLine("## Execution and replay contract");
+        builder.AppendLine();
+        builder.AppendLine("Every non-OK operation returns typed, value-free execution disposition, worker recovery guidance, replay guidance, and the exact-target replay-safety classification.");
+        builder.AppendLine();
+        builder.AppendLine("- `not_started`: Briosa proved SDK command execution did not begin. A replay is offered only when the failure is recoverable.");
+        builder.AppendLine("- `started_outcome_unknown`: the command may have affected SpatialAnalyzer. `unsafe` and `unknown` operations require reconciliation before replay.");
+        builder.AppendLine("- `completed`: Briosa obtained a terminal MP result. Output-retrieval failure does not make replay safe.");
+        builder.AppendLine();
+        builder.AppendLine("Worker replacement restores availability; it does not change an operation's execution disposition or authorize replay.");
 
         foreach (var operation in operations)
         {
@@ -64,6 +75,8 @@ internal static class CommandCatalogArtifactGenerator
             builder.Append("- Exact MP step: `").Append(operation.MpStep).AppendLine("`");
             builder.Append("- Stability: `").Append(operation.Stability).AppendLine("`");
             builder.Append("- Effect: `").Append(operation.Risk.Effect).AppendLine("`");
+            builder.Append("- Replay safety: `").Append(operation.Risk.ReplaySafety)
+                .AppendLine("`");
             builder.Append("- Risk flags: ")
                 .AppendLine(operation.Risk.Flags.Count == 0
                     ? "none"
@@ -94,6 +107,8 @@ internal static class CommandCatalogArtifactGenerator
                 rpc = operation.Protocol.Rpc,
                 request = operation.Protocol.Request,
                 result = operation.Protocol.Result,
+                effect = operation.Risk.Effect,
+                replay_safety = operation.Risk.ReplaySafety,
                 generated = new
                 {
                     protocol = true,
@@ -158,7 +173,9 @@ internal static class CommandCatalogArtifactGenerator
                 .Append("\", \"/").Append(EscapeCSharp(service)).Append('/')
                 .Append(EscapeCSharp(operation.Protocol.Rpc))
                 .Append("\", \"").Append(EscapeCSharp(operation.Risk.Effect))
-                .Append("\", [")
+                .Append("\", CoreProtocol.ReplaySafety.")
+                .Append(ToPascalCase(operation.Risk.ReplaySafety))
+                .Append(", [")
                 .Append(string.Join(", ", operation.Risk.Flags.Select(flag =>
                     $"\"{EscapeCSharp(flag)}\"")))
                 .AppendLine("]),");

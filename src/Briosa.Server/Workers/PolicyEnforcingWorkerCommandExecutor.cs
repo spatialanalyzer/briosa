@@ -55,6 +55,7 @@ internal sealed class PolicyEnforcingWorkerCommandExecutor(
         Guid correlationId) =>
         new(
             status,
+            WorkerExecutionDisposition.NotStarted,
             Execution: null,
             _supervisor.Current.Connection,
             diagnosticCode,

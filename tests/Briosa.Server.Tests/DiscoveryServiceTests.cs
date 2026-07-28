@@ -121,7 +121,7 @@ public sealed class DiscoveryServiceTests
             .CreateCapabilities();
 
         Assert.Equal("briosa.sa.2026.1.0529.7", response.CatalogId);
-        Assert.Equal("3", response.CatalogRevision);
+        Assert.Equal("4", response.CatalogRevision);
         Assert.Equal("2026.1.0529.7", response.SpatialAnalyzerTarget);
         Assert.Equal(
             "briosa.sa.v2026_1_0529_7.v1alpha1",
@@ -136,6 +136,7 @@ public sealed class DiscoveryServiceTests
             "/briosa.sa.v2026_1_0529_7.v1alpha1.FileOperations/GetWorkingDirectory",
             operation.FullyQualifiedMethod);
         Assert.Equal(OperationEffect.ReadOnly, operation.Effect);
+        Assert.Equal(ReplaySafety.Safe, operation.ReplaySafety);
     }
 
     [Fact]
@@ -163,7 +164,7 @@ public sealed class DiscoveryServiceTests
         Assert.Equal(
             "briosa.sa.v2026_1_0529_7.v1alpha1",
             coordinates.TargetProtocolPackage);
-        Assert.Equal("3", coordinates.CatalogRevision);
+        Assert.Equal("4", coordinates.CatalogRevision);
         Assert.Equal(
             AssemblyServerBuildIdentityProvider.InteropFingerprint,
             coordinates.InteropFingerprint);

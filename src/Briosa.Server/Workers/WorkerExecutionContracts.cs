@@ -13,8 +13,16 @@ internal enum WorkerExecutionStatus
     WorkerFailure
 }
 
+internal enum WorkerExecutionDisposition
+{
+    NotStarted,
+    StartedOutcomeUnknown,
+    Completed
+}
+
 internal sealed record WorkerExecutionOutcome(
     WorkerExecutionStatus Status,
+    WorkerExecutionDisposition ExecutionDisposition,
     WorkerMpExecutionResult? Execution,
     WorkerConnectionSnapshot? Connection,
     string DiagnosticCode,

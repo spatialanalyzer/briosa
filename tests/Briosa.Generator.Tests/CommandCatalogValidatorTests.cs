@@ -29,6 +29,7 @@ public sealed class CommandCatalogValidatorTests
         var argument = operation["arguments"]!.AsArray().Single()!.AsObject();
 
         Assert.Equal("Get Working Directory", operation["mp_step"]!.GetValue<string>());
+        Assert.Equal("safe", operation["risk"]!["replay_safety"]!.GetValue<string>());
         Assert.Equal("Directory", argument["mp_name"]!.GetValue<string>());
         Assert.Equal("output", argument["direction"]!.GetValue<string>());
         Assert.Equal("yes", argument["result_only"]!.GetValue<string>());
@@ -38,6 +39,23 @@ public sealed class CommandCatalogValidatorTests
         Assert.Equal(
             "GetStringArg",
             argument["sdk_binding"]!["getter"]!.GetValue<string>());
+    }
+
+    [Fact]
+    public void MutatingOperationRequiresReviewedReplaySafety()
+    {
+        using var fixture = CatalogFixture.Create();
+        fixture.EditOperation(operation =>
+        {
+            operation["risk"]!["effect"] = "mutating";
+            operation["risk"]!.AsObject().Remove("replay_safety");
+        });
+
+        var result = CommandCatalogValidator.ValidateDirectory(fixture.Root);
+
+        Assert.Contains(
+            result.Errors,
+            error => error.Contains("replay_safety", StringComparison.Ordinal));
     }
 
     [Fact]

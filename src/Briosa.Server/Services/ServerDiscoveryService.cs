@@ -75,7 +75,8 @@ internal sealed class ServerDiscoveryService(
                     "read_only" => CoreProtocol.OperationEffect.ReadOnly,
                     "mutating" => CoreProtocol.OperationEffect.Mutating,
                     _ => CoreProtocol.OperationEffect.Unknown
-                }
+                },
+                ReplaySafety = operation.ReplaySafety
             }));
         return response;
     }

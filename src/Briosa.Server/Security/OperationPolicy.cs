@@ -108,6 +108,7 @@ internal sealed class OperationPolicy
         }
 
         if (string.Equals(operation.Effect, "unknown", StringComparison.Ordinal) ||
+            operation.ReplaySafety == Briosa.Core.V1Alpha1.ReplaySafety.Unspecified ||
             operation.RiskFlags.Contains("unknown", StringComparer.Ordinal))
         {
             return new OperationPolicyDecision(

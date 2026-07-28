@@ -29,31 +29,32 @@ Non-OK calls use canonical gRPC status codes and include exactly one Briosa-spec
 
 - stable Briosa operation identity;
 - failure kind and curated diagnostic code;
-- retry guidance;
+- execution disposition (`NotStarted`, `StartedOutcomeUnknown`, or `Completed`);
+- worker recovery guidance, kept independent from replay;
+- replay guidance and the exact-target catalog replay-safety classification;
 - worker generation;
 - MP and output-retrieval details when execution reached that boundary.
 
 It contains no raw command arguments or returned output values. gRPC status text is similarly generic and value-free.
 
-## Status and retry matrix
+## Status, execution, recovery, and replay matrix
 
-| Condition | gRPC status | Failure kind | Retry guidance |
-| --- | --- | --- | --- |
-| Invalid request or catalog validation | `InvalidArgument` | `VALIDATION` | `DO_NOT_RETRY` unchanged |
-| Unsupported operation or exact SA target | `Unimplemented` | `UNSUPPORTED` | `DO_NOT_RETRY` unchanged |
-| SA connection not ready | `Unavailable` | `SPATIAL_ANALYZER_UNAVAILABLE` | `RETRY_AFTER_READINESS` |
-| Worker not ready | `Unavailable` | `WORKER_UNAVAILABLE` | `RETRY_AFTER_READINESS` |
-| Caller cancellation | `Cancelled` | `CALLER_CANCELLED` | `CALLER_CONTROLLED` |
-| Caller deadline elapsed | `DeadlineExceeded` | `CALLER_DEADLINE_EXCEEDED` | `CALLER_CONTROLLED` |
-| Independent worker watchdog elapsed | `Unavailable` | `WORKER_WATCHDOG_TIMEOUT` | `RETRY_AFTER_WORKER_REPLACEMENT` |
-| Worker crash or control failure | `Unavailable` | `WORKER_FAILURE` | `RETRY_AFTER_WORKER_REPLACEMENT` |
-| `ExecuteStep` rejected | `FailedPrecondition` | `EXECUTE_STEP_REJECTED` | `DO_NOT_RETRY` unchanged |
-| `GetMPStepResult` failed to retrieve a result | `Internal` | `MP_RESULT_RETRIEVAL_FAILURE` | `DO_NOT_RETRY` automatically |
-| Retrieved MP result code was not `2` | `FailedPrecondition` | `MP_FAILURE` | `DO_NOT_RETRY` unchanged |
-| Requested output getter failed | `DataLoss` | `OUTPUT_RETRIEVAL_FAILURE` | `DO_NOT_RETRY` automatically |
-| Invalid worker or result shape | `Internal` | `INTERNAL` | `DO_NOT_RETRY` automatically |
+| Condition | gRPC status / failure kind | Execution disposition | Recovery guidance | Replay guidance |
+| --- | --- | --- | --- | --- |
+| Invalid request, unsupported operation, or policy denial | canonical request status / matching kind | `NOT_STARTED` | `NONE` | `DO_NOT_REPLAY` unchanged |
+| SA or worker unavailable before enqueue or SDK execution | `Unavailable` / availability kind | `NOT_STARTED` | `WAIT_FOR_READINESS` | `MAY_REPLAY` after readiness |
+| Caller cancellation or deadline before enqueue | caller status / caller kind | `NOT_STARTED` | `NONE` | `MAY_REPLAY` |
+| Caller cancellation or deadline after enqueue | caller status / caller kind | `STARTED_OUTCOME_UNKNOWN` | `NONE` | `MAY_REPLAY` only for catalog `SAFE`; otherwise reconcile |
+| SDK argument setter rejected before `ExecuteStep` | `FailedPrecondition` / `SDK_ARGUMENT_REJECTED` | `NOT_STARTED` | `NONE` | `DO_NOT_REPLAY` unchanged |
+| `ExecuteStep` rejected | `FailedPrecondition` / `EXECUTE_STEP_REJECTED` | `STARTED_OUTCOME_UNKNOWN` | `NONE` | `MAY_REPLAY` only for catalog `SAFE`; otherwise reconcile |
+| Independent worker watchdog elapsed | `Unavailable` / `WORKER_WATCHDOG_TIMEOUT` | `STARTED_OUTCOME_UNKNOWN` | `WORKER_REPLACEMENT` | `MAY_REPLAY` only for catalog `SAFE`; otherwise reconcile |
+| Worker crash or control response loss | `Unavailable` / `WORKER_FAILURE` | `STARTED_OUTCOME_UNKNOWN` | `WORKER_REPLACEMENT` | `MAY_REPLAY` only for catalog `SAFE`; otherwise reconcile |
+| `GetMPStepResult` failed to retrieve a result | `Internal` / `MP_RESULT_RETRIEVAL_FAILURE` | `STARTED_OUTCOME_UNKNOWN` | `NONE` | `RECONCILE_BEFORE_REPLAY` |
+| Retrieved MP result code was not `2` | `FailedPrecondition` / `MP_FAILURE` | `COMPLETED` | `NONE` | `DO_NOT_REPLAY` unchanged |
+| Requested output getter failed | `DataLoss` / `OUTPUT_RETRIEVAL_FAILURE` | `COMPLETED` | `NONE` | `DO_NOT_REPLAY` to recover output |
+| Invalid result shape after a terminal MP result | `Internal` / `INTERNAL` | `COMPLETED` | `NONE` | `DO_NOT_REPLAY` |
 
-Retry guidance is intentionally conservative. It does not claim that a mutating MP operation is idempotent. Command-risk and idempotency policy remain separate catalog and operational concerns.
+Missing or unspecified execution disposition is never treated as `NOT_STARTED`. Catalog replay safety is separately reviewed as `SAFE`, `UNSAFE`, or `UNKNOWN`; `UNKNOWN` is handled like `UNSAFE` for automatic behavior.
 
 ## Deadlines and worker watchdogs
 
@@ -78,6 +79,8 @@ Portable tests verify every matrix row without SpatialAnalyzer. They also verify
 - MP failure retains its numeric result and marks getters `NOT_ATTEMPTED`;
 - getter failure is `DataLoss` with `FAILED` retrieval and no returned value in metadata;
 - caller deadline and worker watchdog produce different statuses and failure kinds;
+- pre-enqueue cancellation is `NOT_STARTED`, while post-enqueue cancellation is uncertain;
+- worker replacement guidance never becomes replay guidance for `UNSAFE` or `UNKNOWN` operations;
 - malformed output shapes fail as `Internal`;
 - catalog regeneration adds shared execution details deterministically without renumbering operation fields.
 - non-OK calls carry only the typed `OperationError` trailer;
