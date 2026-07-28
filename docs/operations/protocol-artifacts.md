@@ -45,15 +45,32 @@ The Briosa version selects a release. The exact SA target, target protocol packa
 
 Regeneration is an explicit dependency update. Download the chosen release artifact, verify its checksum, regenerate, run all shared fixtures, and update the recorded coordinates atomically. CI fails when recorded hashes or coordinates differ from the artifact; it must never regenerate from a moving `main` branch.
 
-## Build locally
+## Build prerequisites and entrypoints
 
-Buf 1.72.0 and the repository's .NET SDK are the only protocol-artifact build prerequisites:
+Build from the repository root with PowerShell 7 and Buf 1.72.0. Git is required only when `-SourceRevision` is omitted; the script then records the current `HEAD`. The protocol artifact scripts do not install, launch, or connect to SpatialAnalyzer and require neither an SA license nor proprietary SDK binaries. The repository's .NET SDK remains necessary for the wider build and client-conformance workflow, but the protocol ZIP producer itself invokes Buf rather than `dotnet`.
+
+Create one artifact and its sidecars with explicit release coordinates:
 
 ```powershell
-./eng/New-ProtocolArtifact.ps1 -Version 0.2.0-test
-./eng/Test-ProtocolArtifact.ps1 -Version 0.2.0-test
+$sourceRevision = (git rev-parse HEAD).Trim()
+./eng/New-ProtocolArtifact.ps1 `
+  -Version 0.2.0-test `
+  -SourceRevision $sourceRevision `
+  -OutputDirectory artifacts/protocol-test `
+  -BufPath buf
 ```
 
-The test builds twice in the current PowerShell runtime and, when Windows PowerShell is available, rebuilds the identical bundle there and requires the same outer ZIP SHA-256.
+The output directory receives the protocol ZIP, its adjacent `.zip.sha256`, and an external `.provenance.json` copy of the bundled manifest. `-OutputDirectory` defaults to `artifacts`, `-BufPath` defaults to `buf` on `PATH`, and `-SourceRevision` defaults to the current Git commit for local builds.
+
+Verify the full publication contract with:
+
+```powershell
+./eng/Test-ProtocolArtifact.ps1 `
+  -Version 0.2.0-test `
+  -OutputDirectory artifacts/protocol-test `
+  -BufPath buf
+```
+
+The test builds twice in the current PowerShell runtime; verifies the canonical stored representation, ordinal entry order, fixed timestamps, descriptor reconstruction, manifests, checksums, provenance, and fixture coverage; and, when Windows PowerShell is available, rebuilds the identical bundle there and requires the same outer ZIP SHA-256. `eng/New-DeterministicZip.ps1` is the producer's internal canonical-container helper and is not a substitute release entrypoint.
 
 See [ADR 0020](../architecture/0020-protocol-artifacts-and-client-conformance.md) for the authoritative decision.

@@ -1,6 +1,6 @@
 # Engineering scripts
 
-Run the scripts in this directory from the repository root. Interop generation requires Visual Studio Developer PowerShell; verification requires only the documented .NET SDK.
+Run the scripts in this directory from the repository root. Most scripts require PowerShell 7 and the repository's documented .NET SDK. Protocol schema and artifact work also requires Buf 1.72.0. Interop generation requires Visual Studio Developer PowerShell. The licensed-SA scripts are the only scripts in this directory that may connect to SpatialAnalyzer; follow their explicit opt-in guidance.
 
 ## Protocol verification
 
@@ -72,15 +72,41 @@ dotnet run --project tools/Briosa.Generator -c Release -- binding-registry-sync 
 
 See [the SDK binding registry guide](../docs/development/sdk-binding-registry.md) before changing semantic-family mappings or adapter coverage.
 
-## Generated-client smoke tests
+## Protocol artifact production and verification
 
-Build and verify the runtime-neutral protocol artifact with:
+`New-ProtocolArtifact.ps1` is the release-asset producer for the protobuf, descriptor, exact-target catalog identity, and shared client-conformance fixtures. A release build should supply the exact semantic version and source commit explicitly:
 
 ```powershell
-./eng/Test-ProtocolArtifact.ps1 -Version 0.2.0-test
+$sourceRevision = (git rev-parse HEAD).Trim()
+./eng/New-ProtocolArtifact.ps1 `
+  -Version 0.2.0-test `
+  -SourceRevision $sourceRevision `
+  -OutputDirectory artifacts/protocol-test `
+  -BufPath buf
 ```
 
-The test performs two byte-reproducible builds, requires the same stored-entry ZIP bytes from Windows PowerShell when it is available, rebuilds the descriptor set from the bundled sources, checks all manifest and checksum identities, and validates the shared fixture sets.
+`-SourceRevision` defaults to the current Git `HEAD` for local builds. `-OutputDirectory` defaults to `artifacts`, and `-BufPath` defaults to the `buf` executable on `PATH`. The producer writes three files whose base name also includes the exact SpatialAnalyzer target and catalog revision:
+
+- `*.zip`, the runtime-neutral client generation bundle;
+- `*.zip.sha256`, the checksum for the exact ZIP bytes; and
+- `*.provenance.json`, a copy of the archive manifest for inspection before extraction.
+
+`New-DeterministicZip.ps1` is an internal producer building block, not a separate release entrypoint. It writes canonical ZIP32 stored entries with ordinal paths, UTF-8 names, fixed headers and timestamps, and CRC-32 values. Do not replace it with `Compress-Archive` or `ZipArchive`: those APIs can choose different container bytes across PowerShell/.NET runtime implementations. The helper intentionally rejects ZIP64-sized inputs, an existing destination, and a destination inside the source tree.
+
+Build and verify the complete artifact contract with:
+
+```powershell
+./eng/Test-ProtocolArtifact.ps1 `
+  -Version 0.2.0-test `
+  -OutputDirectory artifacts/protocol-test `
+  -BufPath buf
+```
+
+The test performs two byte-reproducible builds; verifies stored entries, ordinal ordering, fixed timestamps, the external checksum, manifest, internal file checksums, provenance, descriptor reconstruction, and fixture coverage; and requires the same ZIP bytes from Windows PowerShell when it is available. Temporary verification files are removed, while the requested output directory retains the first verified ZIP and its two sidecars.
+
+No protocol artifact command installs, launches, or connects to SpatialAnalyzer, and none requires an SA license or proprietary SDK binary. CI runs this verification in `.github/workflows/ci.yml`; `.github/workflows/release.yml` publishes the verified files together with the Windows package. See the [protocol artifact operator guide](../docs/operations/protocol-artifacts.md) and [ADR 0020](../docs/architecture/0020-protocol-artifacts-and-client-conformance.md) for contents, client consumption, version coordinates, and release policy.
+
+## Generated-client smoke tests
 
 Run portable packaged-host success and failure scenarios without SpatialAnalyzer:
 
