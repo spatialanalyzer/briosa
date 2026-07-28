@@ -251,6 +251,8 @@ internal static class CommandCatalogGenerator
             "collection_instrument_id" or
             "collection_instrument_id_list" or
             "collection_machine_id" or
+            "collection_item_name" or
+            "collection_item_name_list" or
             "collection_object_name" or
             "collection_object_name_list" or
             "collection_vector_group_name" or
@@ -290,6 +292,8 @@ internal static class CommandCatalogGenerator
             "collection_instrument_id" => "CollectionInstrumentId",
             "collection_instrument_id_list" => "CollectionInstrumentIdList",
             "collection_machine_id" => "CollectionMachineId",
+            "collection_item_name" => "CollectionItemName",
+            "collection_item_name_list" => "CollectionItemNameList",
             "collection_object_name" => "CollectionObjectName",
             "collection_object_name_list" => "CollectionObjectNameList",
             "collection_vector_group_name" => "CollectionVectorGroupName",

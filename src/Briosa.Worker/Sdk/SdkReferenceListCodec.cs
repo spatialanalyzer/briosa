@@ -21,7 +21,10 @@ internal static class SdkReferenceListCodec
         Join(value.CollectionName, value.GroupName);
 
     public static string Format(SdkCollectionObjectNameValue value) =>
-        Join(value.CollectionName, value.ObjectName, value.ObjectType);
+        Join(value.CollectionName, value.ObjectName, SdkSpecializedValueCodec.ToSdkString(value.ObjectType));
+
+    public static string Format(SdkCollectionItemNameValue value) =>
+        Join(value.CollectionName, value.ItemName, SdkSpecializedValueCodec.ToSdkString(value.ItemType));
 
     public static string Format(SdkCollectionVectorGroupNameValue value) =>
         Join(value.CollectionName, value.VectorGroupName);
@@ -47,8 +50,20 @@ internal static class SdkReferenceListCodec
     public static bool TryParseObjectNames(
         object value,
         out SdkCollectionObjectNameListValue? result) =>
-        TryParseList<SdkCollectionObjectNameValue, SdkCollectionObjectNameListValue>(value, TryParseObjectNameReference, values =>
-            new SdkCollectionObjectNameListValue(values), out result);
+        TryParseList<SdkCollectionObjectNameValue, SdkCollectionObjectNameListValue>(
+            value,
+            TryParseObjectNameReference,
+            values => new SdkCollectionObjectNameListValue(values),
+            out result);
+
+    public static bool TryParseItemNames(
+        object value,
+        out SdkCollectionItemNameListValue? result) =>
+        TryParseList<SdkCollectionItemNameValue, SdkCollectionItemNameListValue>(
+            value,
+            TryParseItemNameReference,
+            values => new SdkCollectionItemNameListValue(values),
+            out result);
 
     public static bool TryParseObjectNameResult(
         string collectionName,
@@ -56,9 +71,27 @@ internal static class SdkReferenceListCodec
         out SdkCollectionObjectNameValue? result)
     {
         var parts = value.Split(',', StringSplitOptions.None);
-        if (parts.Length >= 2)
+        if (parts.Length >= 2 &&
+            SdkSpecializedValueCodec.TryParseObjectType(parts[1], out var objectType))
         {
-            result = new SdkCollectionObjectNameValue(collectionName, parts[0], parts[1]);
+            result = new SdkCollectionObjectNameValue(collectionName, parts[0], objectType);
+            return true;
+        }
+
+        result = null;
+        return false;
+    }
+
+    public static bool TryParseItemNameResult(
+        string collectionName,
+        string value,
+        out SdkCollectionItemNameValue? result)
+    {
+        var parts = value.Split(',', StringSplitOptions.None);
+        if (parts.Length >= 2 &&
+            SdkSpecializedValueCodec.TryParseItemType(parts[1], out var itemType))
+        {
+            result = new SdkCollectionItemNameValue(collectionName, parts[0], itemType);
             return true;
         }
 
@@ -143,12 +176,30 @@ internal static class SdkReferenceListCodec
         out SdkCollectionObjectNameValue result)
     {
         var parts = value.Split(Separator, StringSplitOptions.None);
-        if (parts.Length == 3)
+        if (parts.Length == 3 &&
+            SdkSpecializedValueCodec.TryParseObjectType(
+                parts[2].Split(',', 2, StringSplitOptions.None)[0],
+                out var objectType))
         {
-            result = new SdkCollectionObjectNameValue(
-                parts[0],
-                parts[1],
-                parts[2].Split(',', 2, StringSplitOptions.None)[0]);
+            result = new SdkCollectionObjectNameValue(parts[0], parts[1], objectType);
+            return true;
+        }
+
+        result = null!;
+        return false;
+    }
+
+    private static bool TryParseItemNameReference(
+        string value,
+        out SdkCollectionItemNameValue result)
+    {
+        var parts = value.Split(Separator, StringSplitOptions.None);
+        if (parts.Length == 3 &&
+            SdkSpecializedValueCodec.TryParseItemType(
+                parts[2].Split(',', 2, StringSplitOptions.None)[0],
+                out var itemType))
+        {
+            result = new SdkCollectionItemNameValue(parts[0], parts[1], itemType);
             return true;
         }
 

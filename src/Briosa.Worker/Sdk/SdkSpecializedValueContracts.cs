@@ -320,6 +320,52 @@ internal enum SdkObjectTypeValue
     VectorGroup
 }
 
+internal enum SdkItemTypeValue
+{
+    Any,
+    Alignment,
+    Annotation,
+    BSpline,
+    CalibrationApplianceNode,
+    CalloutView,
+    Chart,
+    Circle,
+    Cloud,
+    EnhancedCloud,
+    ScanStripeCloud,
+    CrossSectionCloud,
+    Cone,
+    Cylinder,
+    Datum,
+    Dimension,
+    Ellipse,
+    Event,
+    FeatureCheck,
+    Frame,
+    FrameSet,
+    Line,
+    Paraboloid,
+    Perimeter,
+    Picture,
+    Plane,
+    PointGroup,
+    PointSet,
+    PolySurface,
+    Relationship,
+    SaDoc,
+    SaReport,
+    SaReportTemplate,
+    ScaleBar,
+    ScanStripeMesh,
+    Slot,
+    Sphere,
+    Surface,
+    Table,
+    TcpFixture,
+    Torus,
+    VectorGroup
+}
+
 internal enum SdkOffsetDirectionTypeValue { Both, PositiveOnly, NegativeOnly }
 internal enum SdkPointFilterInputTypeValue { CardinalPoints, InputPoints, NominalCardinalPoints }
 internal enum SdkRelationshipWeightingModeValue { NormalizeEquationCount, NormalizeEquationCountAndToleranceWidth, ResetAllWeights, NormalizeSquareRootEquationCount, NormalizeSquareRootAndToleranceWidth }

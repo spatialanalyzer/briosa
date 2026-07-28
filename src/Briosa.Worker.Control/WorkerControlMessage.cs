@@ -88,6 +88,8 @@ public enum WorkerMpValueKind
     CollectionInstrumentIdList,
     CollectionMachineId,
     CollectionName,
+    CollectionItemName,
+    CollectionItemNameList,
     CollectionObjectName,
     CollectionObjectNameList,
     CollectionVectorGroupName,
@@ -131,6 +133,84 @@ public enum WorkerTemperatureUnitValue
     Celsius
 }
 
+public enum WorkerObjectTypeValue
+{
+    Unspecified,
+    Any,
+    BSpline,
+    Circle,
+    Cloud,
+    EnhancedCloud,
+    ScanStripeCloud,
+    CrossSectionCloud,
+    Cone,
+    Cylinder,
+    Datum,
+    Ellipse,
+    Frame,
+    FrameSet,
+    Line,
+    Paraboloid,
+    Perimeter,
+    Plane,
+    PointGroup,
+    PointSet,
+    PolySurface,
+    ScanStripeMesh,
+    Slot,
+    Sphere,
+    Surface,
+    Torus,
+    VectorGroup
+}
+
+public enum WorkerItemTypeValue
+{
+    Unspecified,
+    Any,
+    Alignment,
+    Annotation,
+    BSpline,
+    CalibrationApplianceNode,
+    CalloutView,
+    Chart,
+    Circle,
+    Cloud,
+    EnhancedCloud,
+    ScanStripeCloud,
+    CrossSectionCloud,
+    Cone,
+    Cylinder,
+    Datum,
+    Dimension,
+    Ellipse,
+    Event,
+    FeatureCheck,
+    Frame,
+    FrameSet,
+    Line,
+    Paraboloid,
+    Perimeter,
+    Picture,
+    Plane,
+    PointGroup,
+    PointSet,
+    PolySurface,
+    Relationship,
+    SaDoc,
+    SaReport,
+    SaReportTemplate,
+    ScaleBar,
+    ScanStripeMesh,
+    Slot,
+    Sphere,
+    Surface,
+    Table,
+    TcpFixture,
+    Torus,
+    VectorGroup
+}
+
 public enum WorkerExecutionResponseStatus
 {
     Completed,
@@ -171,7 +251,12 @@ public sealed record WorkerCollectionMachineIdValue(
 public sealed record WorkerCollectionObjectNameValue(
     string CollectionName,
     string ObjectName,
-    string ObjectType);
+    WorkerObjectTypeValue ObjectType);
+
+public sealed record WorkerCollectionItemNameValue(
+    string CollectionName,
+    string ItemName,
+    WorkerItemTypeValue ItemType);
 
 public sealed record WorkerCollectionGroupNameValue(
     string CollectionName,
@@ -194,6 +279,9 @@ public sealed record WorkerCollectionGroupNameListValue(
 
 public sealed record WorkerCollectionObjectNameListValue(
     IReadOnlyList<WorkerCollectionObjectNameValue> Values);
+
+public sealed record WorkerCollectionItemNameListValue(
+    IReadOnlyList<WorkerCollectionItemNameValue> Values);
 
 public sealed record WorkerCollectionVectorGroupNameListValue(
     IReadOnlyList<WorkerCollectionVectorGroupNameValue> Values);
@@ -249,6 +337,8 @@ public sealed record WorkerMpInputArgument(
     WorkerCollectionInstrumentIdValue? CollectionInstrumentIdValue = null,
     WorkerCollectionInstrumentIdListValue? CollectionInstrumentIdListValue = null,
     WorkerCollectionMachineIdValue? CollectionMachineIdValue = null,
+    WorkerCollectionItemNameValue? CollectionItemNameValue = null,
+    WorkerCollectionItemNameListValue? CollectionItemNameListValue = null,
     WorkerCollectionObjectNameValue? CollectionObjectNameValue = null,
     WorkerCollectionObjectNameListValue? CollectionObjectNameListValue = null,
     WorkerCollectionGroupNameListValue? CollectionGroupNameListValue = null,
@@ -295,6 +385,8 @@ public sealed record WorkerMpOutputValue(
     WorkerCollectionInstrumentIdValue? CollectionInstrumentIdValue = null,
     WorkerCollectionInstrumentIdListValue? CollectionInstrumentIdListValue = null,
     WorkerCollectionMachineIdValue? CollectionMachineIdValue = null,
+    WorkerCollectionItemNameValue? CollectionItemNameValue = null,
+    WorkerCollectionItemNameListValue? CollectionItemNameListValue = null,
     WorkerCollectionObjectNameValue? CollectionObjectNameValue = null,
     WorkerCollectionObjectNameListValue? CollectionObjectNameListValue = null,
     WorkerCollectionGroupNameListValue? CollectionGroupNameListValue = null,

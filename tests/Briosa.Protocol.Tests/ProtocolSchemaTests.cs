@@ -48,7 +48,7 @@ public sealed partial class ProtocolSchemaTests
         {
             CollectionName = "Collection",
             ObjectName = "Object",
-            ObjectType = "Point Group"
+            ObjectType = TargetProtocol.ObjectType.PointGroup
         });
         var points = new TargetProtocol.PointNameList();
         points.Values.Add(new TargetProtocol.PointName
@@ -80,7 +80,7 @@ public sealed partial class ProtocolSchemaTests
         var emptyRoundTrip = TargetProtocol.StringList.Parser.ParseFrom(
             new TargetProtocol.StringList().ToByteArray());
 
-        Assert.Equal("Point Group", Assert.Single(objectRoundTrip.Values).ObjectType);
+        Assert.Equal(TargetProtocol.ObjectType.PointGroup, Assert.Single(objectRoundTrip.Values).ObjectType);
         Assert.Equal(["Point A", ""], pointRoundTrip.Values.Select(value => value.TargetName));
         Assert.Equal("Vector A", Assert.Single(vectorRoundTrip.Values).Name);
         Assert.Empty(emptyRoundTrip.Values);
@@ -147,7 +147,7 @@ public sealed partial class ProtocolSchemaTests
         {
             CollectionName = "Collection",
             ObjectName = "Object",
-            ObjectType = "Point Group"
+            ObjectType = TargetProtocol.ObjectType.PointGroup
         };
 
         var roundTrip = TargetProtocol.CollectionObjectName.Parser.ParseFrom(value.ToByteArray());
@@ -155,7 +155,7 @@ public sealed partial class ProtocolSchemaTests
         Assert.True(roundTrip.HasCollectionName);
         Assert.True(roundTrip.HasObjectName);
         Assert.True(roundTrip.HasObjectType);
-        Assert.Equal("Point Group", roundTrip.ObjectType);
+        Assert.Equal(TargetProtocol.ObjectType.PointGroup, roundTrip.ObjectType);
         Assert.NotEqual(
             TargetProtocol.CollectionInstrumentId.Descriptor.FullName,
             TargetProtocol.CollectionMachineId.Descriptor.FullName);

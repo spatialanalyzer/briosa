@@ -6,6 +6,8 @@ The disposition ledger stores the reviewed executable shape of every approved ca
 
 For a reviewed candidate, the single exact-target View SDK Code occurrence determines the executable MP step, SDK argument name, observed call order, setter/getter binding, and direction. A setter and getter for the same argument resolve to `input_output`; a setter alone resolves to `input`; and a getter alone resolves to `output`. The inventory retains conflicting documentation evidence unchanged.
 
+Semantic family and SDK method are also separate decisions. When one exact SDK method serves multiple domains, reviewers select the family from the command argument's exact-release evidence and record that assignment explicitly; the generator must not infer the public type from the method name. Collection object versus collection item assignments follow [ADR 0016](../architecture/0016-command-argument-semantic-families.md).
+
 Input presence, SDK omission, and Briosa convenience defaults are separate decisions:
 
 - an input explicitly described as optional by the command text or installed documentation is optional and omits its SDK setter when absent;

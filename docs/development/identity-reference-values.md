@@ -9,11 +9,11 @@ Structurally different references remain different types even when their primiti
 Composite public values cover:
 
 - collection/instrument and collection/machine identifiers;
-- collection/object, collection/group, and collection/vector-group names;
+- collection/object and collection/item names as distinct exact-target types, plus collection/group and collection/vector-group names;
 - point and vector names;
 - ordered lists of the supported composite references and strings.
 
-Every scalar component uses protobuf explicit presence. A collection-object value requires `object_type`: `SetCollectionObjectNameArg2` accepts it explicitly, while `GetCollectionObjectNameArg` returns it in the comma-delimited object payload alongside the object name. The adapter decodes that SDK representation before the value crosses the worker boundary. Empty lists are valid and list order is preserved.
+Every scalar component uses protobuf explicit presence. A collection-object value requires the exact 26-choice `ObjectType`; a collection-item value requires the broader exact 42-choice `ItemType`. `SetCollectionObjectNameArg2` accepts either selected type literal explicitly, while `GetCollectionObjectNameArg` returns a type literal in the comma-delimited payload alongside the name. The catalog-selected family controls which exact enum parses that literal. Unknown and out-of-family values make retrieval fail rather than becoming raw strings. Empty lists are valid and list order is preserved.
 
 ## Exact SDK boundary
 

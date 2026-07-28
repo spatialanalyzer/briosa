@@ -67,6 +67,8 @@ Documentation pages are command candidates when they contain a command heading a
 
 Each SDK step is split at `SetStep`, with setters collected before `ExecuteStep` and getters collected afterward. `NOT_SUPPORTED` is preserved as unavailable binding evidence. Generated sample values are deliberately not treated as defaults.
 
+An SDK method name is binding evidence, not a complete semantic type. A method may carry different command-argument families; exact family assignment is a later reviewed fact and must retain the inventory key and argument identity.
+
 The matcher uses exact command and argument names first. It may pair uniquely normalized names to account for typography, punctuation, spacing, or capitalization differences, but it retains both exact source strings and emits `mp_step_text_difference` or `argument_name_text_difference`. Ambiguous normalized matches are not guessed.
 
 The overall MP outcome is represented separately from return arguments. A returned-status documentation section establishes only that the outcome is documented; it does not convert the status into an output argument.

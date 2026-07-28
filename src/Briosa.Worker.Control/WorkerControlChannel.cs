@@ -201,6 +201,10 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
                 IsValid(argument.CollectionInstrumentIdListValue),
             WorkerMpValueKind.CollectionMachineId =>
                 IsValid(argument.CollectionMachineIdValue),
+            WorkerMpValueKind.CollectionItemName =>
+                IsValid(argument.CollectionItemNameValue),
+            WorkerMpValueKind.CollectionItemNameList =>
+                IsValid(argument.CollectionItemNameListValue),
             WorkerMpValueKind.CollectionObjectName =>
                 IsValid(argument.CollectionObjectNameValue),
             WorkerMpValueKind.CollectionObjectNameList =>
@@ -246,6 +250,10 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
                 IsValid(output.CollectionInstrumentIdListValue),
             WorkerMpValueKind.CollectionMachineId =>
                 IsValid(output.CollectionMachineIdValue),
+            WorkerMpValueKind.CollectionItemName =>
+                IsValid(output.CollectionItemNameValue),
+            WorkerMpValueKind.CollectionItemNameList =>
+                IsValid(output.CollectionItemNameListValue),
             WorkerMpValueKind.CollectionObjectName =>
                 IsValid(output.CollectionObjectNameValue),
             WorkerMpValueKind.CollectionObjectNameList =>
@@ -274,11 +282,19 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
     private static bool IsValid(WorkerCollectionMachineIdValue? value) =>
         value is not null && value.CollectionName is not null;
 
+    private static bool IsValid(WorkerCollectionItemNameValue? value) =>
+        value is not null &&
+        value.CollectionName is not null &&
+        value.ItemName is not null &&
+        value.ItemType is not WorkerItemTypeValue.Unspecified &&
+        Enum.IsDefined(value.ItemType);
+
     private static bool IsValid(WorkerCollectionObjectNameValue? value) =>
         value is not null &&
         value.CollectionName is not null &&
         value.ObjectName is not null &&
-        value.ObjectType is not null;
+        value.ObjectType is not WorkerObjectTypeValue.Unspecified &&
+        Enum.IsDefined(value.ObjectType);
 
     private static bool IsValid(WorkerCollectionGroupNameValue? value) =>
         value is not null && value.CollectionName is not null && value.GroupName is not null;
@@ -296,6 +312,9 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
         value?.Values is not null && value.Values.All(IsValid);
 
     private static bool IsValid(WorkerCollectionGroupNameListValue? value) =>
+        value?.Values is not null && value.Values.All(IsValid);
+
+    private static bool IsValid(WorkerCollectionItemNameListValue? value) =>
         value?.Values is not null && value.Values.All(IsValid);
 
     private static bool IsValid(WorkerCollectionObjectNameListValue? value) =>
