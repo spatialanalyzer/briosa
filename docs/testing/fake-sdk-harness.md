@@ -6,9 +6,9 @@ The portable worker tests use a scripted adapter instead of installing, starting
 
 `ISpatialAnalyzerSdk` is an internal, synchronous worker-boundary contract. It uses Briosa-owned command and outcome types and exposes no COM types. `SerializedSdkExecutor` creates and disposes one adapter on a dedicated STA thread and sends all connection and command work through a single-consumer queue.
 
-`SdkConnectionManager` owns at most one active executor, models connection transitions, applies a bounded attempt policy, and returns `sdk-connection-not-ready` without entering the adapter unless its state is `Connected`. Concurrent connection callers share the same owner rather than creating additional SDK clients.
+`SdkConnectionManager` owns at most one active executor, models connection transitions, applies a bounded attempt policy, and returns `sdk-connection-not-ready` without entering the adapter unless its state is `Connected`. Concurrent connection callers share the same owner rather than creating additional SDK clients. This is the implemented v0.1 attachment contract; [ADR 0017](../architecture/0017-execution-channel-readiness.md) and issue [#91](https://github.com/spatialanalyzer/briosa/issues/91) require an additional bounded execution probe and quarantine states before the v0.2 surface treats the connection as ready.
 
-Cancellation can stop a caller from entering the owner or waiting through a retry delay, but it does not claim to cancel a synchronous SDK call that has already started. The production watchdog recovers from an unresponsive call by replacing the worker process.
+Cancellation can stop a caller from entering the owner or waiting through a retry delay, but it does not claim to cancel a synchronous SDK call that has already started. The production watchdog recovers availability by replacing the worker process. It does not prove whether an in-flight command completed or make replay safe; [ADR 0018](../architecture/0018-uncertain-completion-and-replay.md) defines the required execution disposition and replay contract.
 
 ## Scripted behaviors
 

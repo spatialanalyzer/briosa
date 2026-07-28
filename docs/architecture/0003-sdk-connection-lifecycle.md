@@ -2,6 +2,7 @@
 
 - Status: Accepted for the v0.1 vertical slice
 - Date: 2026-07-21
+- Amended by: [ADR 0017](0017-execution-channel-readiness.md)
 
 ## Context
 

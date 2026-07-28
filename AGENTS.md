@@ -27,11 +27,14 @@ Keep public protocol design in `briosa`; do not let a client repository become t
 - SpatialAnalyzer must already be running for `ConnectEx(host, statusCode)` to connect. Use `localhost` for the local application; a reachable remote hostname or IP may also connect.
 - When several SpatialAnalyzer instances are open, only the first eligible instance owns the SDK communication ports. Closing it does not transfer ownership to an already-open instance; a newly opened instance must acquire the ports.
 - SA 2026.1.0529.7 was observed listening on TCP 901, 902, and 903, with SDK traffic observed on 902. Treat these observations as evidence, not as a vendor-guaranteed protocol contract.
-- Multiple SDK clients may report successful connections, but concurrent MP execution is unsafe. Experiments showed the first connected client owning execution while a second client could block indefinitely in `ExecuteStep`.
+- Multiple SDK clients may report successful connections, but concurrent MP execution is unsafe. Experiments showed the first connected client owning execution while a second client could block indefinitely in `ExecuteStep`. `ConnectEx` success is attachment evidence, not proof of execution readiness; see ADR 0017.
+- COM activation can resolve to the SDK engine currently registered on the machine independently from the connected SpatialAnalyzer application version. Preserve the configured target, activated SDK version, and connected SA version as separate claims and fail closed on a verified mismatch.
 - A successful `ExecuteStep` return value does not prove that the MP command succeeded. Call `GetMPStepResult` only after `ExecuteStep` returns true. Its Boolean reports whether the result was retrieved; MP result code `2` is the success state. Preserve retrieval state and the raw MP code separately.
+- A timeout, cancellation, worker crash, or lost response after enqueue may leave command completion unknown. Worker replacement restores availability; it does not make replay safe. Never automatically retry an ambiguously completed command without reviewed exact-operation replay evidence; see ADR 0018.
+- Serializing each MP sequence prevents COM interleaving but does not isolate application-global state across several RPCs. The initial service is single-tenant per worker/SA target, and exclusive multi-call workflows remain blocked until an explicit lease contract exists; see ADR 0019.
 - For SDK methods taking a `ref object` list, marshal the CLR array through `System.Runtime.InteropServices.VariantWrapper`. A live SA 2026.1.0529.7 probe observed `DISP_E_TYPEMISMATCH` for a bare `object[]` on both `GetStringRefListArg` and `SetStringRefListArg`; the wrapped forms succeeded.
 - SDK method names do not uniquely determine MP argument semantics. In SA 2026.1.0529.7, the collection-object-named scalar/list calls carry both the 26-choice object domain and the broader 42-choice item domain. Select the family per exact command argument and fail closed on unknown returned type literals; see ADR 0016.
-- SA 2026.1.0529.7 exposed 1,295 structured MP command documents in 24 categories during initial exploration. This is candidate metadata, not automatically the supported Briosa API.
+- The deterministic SA 2026.1.0529.7 inventory currently combines 1,302 structured command documents and 1,360 View SDK Code observations into 1,412 commands. All 1,412 have reviewed dispositions, but inventory membership is not automatically the supported Briosa API.
 
 See the [Discussion #1 findings](https://github.com/spatialanalyzer/community/discussions/1#discussioncomment-17706394) before changing connection, concurrency, timeout, or process-lifecycle assumptions.
 
@@ -49,6 +52,9 @@ Unless an accepted design decision explicitly changes them, preserve these const
 8. Real-SA integration tests require a separately licensed, protected Windows environment. Never expose such a runner or its secrets to untrusted pull-request code.
 9. Bind public services to loopback by default until remote authentication, transport security, authorization, and command-risk policies are established.
 10. Log operation identity, timing, connection state, and outcomes, but do not log geometry, paths, credentials, proprietary data, or raw arguments by default.
+11. Do not report MP readiness from `ConnectEx` alone. Readiness requires a bounded execution-channel proof for the current worker generation and fail-closed exact-target identity policy.
+12. Preserve whether execution definitely did not start, may have started with an unknown outcome, or completed. Recovery guidance and replay safety are independent decisions.
+13. Treat the initial worker/SA target as single-tenant. Do not describe queue serialization as cross-client workflow isolation or expose an exclusive multi-call workflow without an accepted lease/session design.
 
 ## Interop and intellectual-property boundary
 
@@ -72,7 +78,7 @@ Unless an accepted design decision explicitly changes them, preserve these const
 ## Design and implementation expectations
 
 - Favor explicit state machines and typed outcomes over booleans, ambient state, or exception-only control flow.
-- Separate transport status, worker/connection availability, and MP command results.
+- Separate transport status, worker/connection availability, execution disposition, replay safety, and MP command results.
 - Make process ownership, COM lifetime, queueing, timeouts, retries, and cleanup observable and testable.
 - Prefer generated code only for repetitive catalog-derived surfaces. Keep policy, orchestration, security decisions, and exceptional behavior in reviewed hand-written code.
 - Never hand-edit generated artifacts. Change the catalog, schema, template, or generator and regenerate.
