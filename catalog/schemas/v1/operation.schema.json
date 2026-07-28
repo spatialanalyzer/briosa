@@ -11,6 +11,7 @@
     "category",
     "protocol",
     "stability",
+    "execution_scope",
     "risk",
     "documentation",
     "arguments",
@@ -61,6 +62,15 @@
         "experimental",
         "stable",
         "deprecated"
+      ]
+    },
+    "execution_scope": {
+      "enum": [
+        "self_contained",
+        "global_state_read",
+        "global_state_mutation",
+        "exclusive_workflow",
+        "unknown"
       ]
     },
     "deprecation": {
@@ -127,10 +137,15 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "summary"
+        "summary",
+        "isolation"
       ],
       "properties": {
         "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "isolation": {
           "type": "string",
           "minLength": 1
         }

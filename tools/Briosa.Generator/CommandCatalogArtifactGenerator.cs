@@ -74,6 +74,9 @@ internal static class CommandCatalogArtifactGenerator
             builder.Append("- Briosa operation: `").Append(operation.OperationId).AppendLine("`");
             builder.Append("- Exact MP step: `").Append(operation.MpStep).AppendLine("`");
             builder.Append("- Stability: `").Append(operation.Stability).AppendLine("`");
+            builder.Append("- Execution scope: `").Append(operation.ExecutionScope)
+                .AppendLine("`");
+            builder.Append("- Isolation review: ").AppendLine(operation.Documentation.Isolation);
             builder.Append("- Effect: `").Append(operation.Risk.Effect).AppendLine("`");
             builder.Append("- Replay safety: `").Append(operation.Risk.ReplaySafety)
                 .AppendLine("`");
@@ -108,6 +111,8 @@ internal static class CommandCatalogArtifactGenerator
                 request = operation.Protocol.Request,
                 result = operation.Protocol.Result,
                 effect = operation.Risk.Effect,
+                execution_scope = operation.ExecutionScope,
+                isolation_review = operation.Documentation.Isolation,
                 replay_safety = operation.Risk.ReplaySafety,
                 generated = new
                 {
@@ -173,7 +178,9 @@ internal static class CommandCatalogArtifactGenerator
                 .Append("\", \"/").Append(EscapeCSharp(service)).Append('/')
                 .Append(EscapeCSharp(operation.Protocol.Rpc))
                 .Append("\", \"").Append(EscapeCSharp(operation.Risk.Effect))
-                .Append("\", CoreProtocol.ReplaySafety.")
+                .Append("\", CoreProtocol.OperationExecutionScope.")
+                .Append(ToPascalCase(operation.ExecutionScope))
+                .Append(", CoreProtocol.ReplaySafety.")
                 .Append(ToPascalCase(operation.Risk.ReplaySafety))
                 .Append(", [")
                 .Append(string.Join(", ", operation.Risk.Flags.Select(flag =>

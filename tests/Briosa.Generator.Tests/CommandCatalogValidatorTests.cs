@@ -29,6 +29,7 @@ public sealed class CommandCatalogValidatorTests
         var argument = operation["arguments"]!.AsArray().Single()!.AsObject();
 
         Assert.Equal("Get Working Directory", operation["mp_step"]!.GetValue<string>());
+        Assert.Equal("global_state_read", operation["execution_scope"]!.GetValue<string>());
         Assert.Equal("safe", operation["risk"]!["replay_safety"]!.GetValue<string>());
         Assert.Equal("Directory", argument["mp_name"]!.GetValue<string>());
         Assert.Equal("output", argument["direction"]!.GetValue<string>());
@@ -39,6 +40,33 @@ public sealed class CommandCatalogValidatorTests
         Assert.Equal(
             "GetStringArg",
             argument["sdk_binding"]!["getter"]!.GetValue<string>());
+    }
+
+    [Fact]
+    public void UnknownExecutionScopeFailsReleaseValidation()
+    {
+        using var fixture = CatalogFixture.Create();
+        fixture.EditOperation(operation => operation["execution_scope"] = "unknown");
+
+        var result = CommandCatalogValidator.ValidateDirectory(fixture.Root);
+
+        Assert.Contains(
+            result.Errors,
+            error => error.Contains("unknown execution_scope", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void MissingIsolationReviewFailsReleaseValidation()
+    {
+        using var fixture = CatalogFixture.Create();
+        fixture.EditOperation(operation =>
+            operation["documentation"]!.AsObject().Remove("isolation"));
+
+        var result = CommandCatalogValidator.ValidateDirectory(fixture.Root);
+
+        Assert.Contains(
+            result.Errors,
+            error => error.Contains("isolation", StringComparison.Ordinal));
     }
 
     [Fact]

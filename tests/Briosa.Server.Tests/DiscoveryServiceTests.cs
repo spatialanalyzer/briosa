@@ -83,6 +83,7 @@ public sealed class DiscoveryServiceTests
             SpatialAnalyzerExecutionReadinessState.ExecutionReady,
             response.SpatialAnalyzerExecutionReadinessState);
         Assert.True(response.ReadyForMp);
+        Assert.Equal(TargetIsolationMode.SingleTenant, response.TargetIsolationMode);
         Assert.False(response.HasConnectedSpatialAnalyzerVersion);
         Assert.Equal(
             ConnectedSpatialAnalyzerVersionState.Unavailable,
@@ -121,7 +122,7 @@ public sealed class DiscoveryServiceTests
             .CreateCapabilities();
 
         Assert.Equal("briosa.sa.2026.1.0529.7", response.CatalogId);
-        Assert.Equal("4", response.CatalogRevision);
+        Assert.Equal("5", response.CatalogRevision);
         Assert.Equal("2026.1.0529.7", response.SpatialAnalyzerTarget);
         Assert.Equal(
             "briosa.sa.v2026_1_0529_7.v1alpha1",
@@ -136,6 +137,9 @@ public sealed class DiscoveryServiceTests
             "/briosa.sa.v2026_1_0529_7.v1alpha1.FileOperations/GetWorkingDirectory",
             operation.FullyQualifiedMethod);
         Assert.Equal(OperationEffect.ReadOnly, operation.Effect);
+        Assert.Equal(
+            OperationExecutionScope.GlobalStateRead,
+            operation.ExecutionScope);
         Assert.Equal(ReplaySafety.Safe, operation.ReplaySafety);
     }
 
@@ -164,7 +168,7 @@ public sealed class DiscoveryServiceTests
         Assert.Equal(
             "briosa.sa.v2026_1_0529_7.v1alpha1",
             coordinates.TargetProtocolPackage);
-        Assert.Equal("4", coordinates.CatalogRevision);
+        Assert.Equal("5", coordinates.CatalogRevision);
         Assert.Equal(
             AssemblyServerBuildIdentityProvider.InteropFingerprint,
             coordinates.InteropFingerprint);

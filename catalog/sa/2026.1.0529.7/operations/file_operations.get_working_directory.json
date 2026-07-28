@@ -10,6 +10,7 @@
     "result": "GetWorkingDirectoryResult"
   },
   "stability": "experimental",
+  "execution_scope": "global_state_read",
   "risk": {
     "effect": "read_only",
     "replay_safety": "safe",
@@ -18,7 +19,8 @@
     ]
   },
   "documentation": {
-    "summary": "Returns the directory SpatialAnalyzer uses to resolve measurement-plan-relative paths."
+    "summary": "Returns the directory SpatialAnalyzer uses to resolve measurement-plan-relative paths.",
+    "isolation": "Reads SpatialAnalyzer's application-global working directory; callers sharing one target must coordinate any operation that can change it."
   },
   "arguments": [
     {

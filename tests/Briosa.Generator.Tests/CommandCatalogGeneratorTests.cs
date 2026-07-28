@@ -72,6 +72,10 @@ public sealed class CommandCatalogGeneratorTests
             Assert.Contains("TargetCatalogMetadata", binding, StringComparison.Ordinal);
             Assert.Contains("CatalogId = \"briosa.sa.2026.1.0529.7\"", binding, StringComparison.Ordinal);
             Assert.Contains("CoreProtocol.ReplaySafety.Safe", binding, StringComparison.Ordinal);
+            Assert.Contains(
+                "CoreProtocol.OperationExecutionScope.GlobalStateRead",
+                binding,
+                StringComparison.Ordinal);
             Assert.Contains("/briosa.sa.v2026_1_0529_7.v1alpha1.FileOperations/GetWorkingDirectory", binding, StringComparison.Ordinal);
             Assert.Contains("OutputContracts", binding, StringComparison.Ordinal);
             Assert.Contains("CreateResult(SuccessfulOperationExecution completed)", binding, StringComparison.Ordinal);
@@ -103,6 +107,10 @@ public sealed class CommandCatalogGeneratorTests
                 "2026.1.0529.7",
                 "operations.md"));
             Assert.Contains("Replay safety: `safe`", documentation, StringComparison.Ordinal);
+            Assert.Contains(
+                "Execution scope: `global_state_read`",
+                documentation,
+                StringComparison.Ordinal);
         }
         finally
         {

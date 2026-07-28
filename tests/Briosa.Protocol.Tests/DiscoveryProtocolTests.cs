@@ -78,6 +78,24 @@ public sealed class DiscoveryProtocolTests
     }
 
     [Fact]
+    public void DiscoveryReportsTargetIsolationAndOperationExecutionScope()
+    {
+        var server = new GetServerInfoResponse
+        {
+            TargetIsolationMode = TargetIsolationMode.SingleTenant
+        };
+        var capability = new OperationCapability
+        {
+            ExecutionScope = OperationExecutionScope.GlobalStateRead
+        };
+
+        Assert.Equal(TargetIsolationMode.SingleTenant, server.TargetIsolationMode);
+        Assert.Equal(
+            OperationExecutionScope.GlobalStateRead,
+            capability.ExecutionScope);
+    }
+
+    [Fact]
     public void DiscoveryMessagesCannotExposeSensitiveOperationalDetails()
     {
         var fieldNames = GetServerInfoResponse.Descriptor.Fields.InFieldNumberOrder()

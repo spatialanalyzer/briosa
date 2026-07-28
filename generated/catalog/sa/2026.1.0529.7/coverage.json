@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "catalog_id": "briosa.sa.2026.1.0529.7",
-  "catalog_revision": "4",
+  "catalog_revision": "5",
   "spatial_analyzer_target": "2026.1.0529.7",
   "target_protocol_package": "briosa.sa.v2026_1_0529_7.v1alpha1",
   "operations": [
@@ -13,6 +13,8 @@
       "request": "GetWorkingDirectoryRequest",
       "result": "GetWorkingDirectoryResult",
       "effect": "read_only",
+      "execution_scope": "global_state_read",
+      "isolation_review": "Reads SpatialAnalyzer\u0027s application-global working directory; callers sharing one target must coordinate any operation that can change it.",
       "replay_safety": "safe",
       "generated": {
         "protocol": true,

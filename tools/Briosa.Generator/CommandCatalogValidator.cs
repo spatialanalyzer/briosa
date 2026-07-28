@@ -240,6 +240,11 @@ internal static partial class CommandCatalogValidator
         {
             errors.Add($"{displayPath}: supported operations cannot retain unknown risk metadata.");
         }
+        if (string.Equals(operation.ExecutionScope, "unknown", StringComparison.Ordinal))
+        {
+            errors.Add(
+                $"{displayPath}: supported operations cannot retain unknown execution_scope metadata.");
+        }
         RequireSorted(operation.Risk.Flags, displayPath, "risk.flags", errors);
 
         var argumentIds = new HashSet<string>(StringComparer.Ordinal);

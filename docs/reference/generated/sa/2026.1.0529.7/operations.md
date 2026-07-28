@@ -2,7 +2,7 @@
 <!-- Generated from the reviewed Briosa command catalog. Do not edit by hand. -->
 # SpatialAnalyzer 2026.1.0529.7 operation reference
 
-Catalog `briosa.sa.2026.1.0529.7` revision `4`.
+Catalog `briosa.sa.2026.1.0529.7` revision `5`.
 
 Only explicitly reviewed Briosa operations are listed here. This is not the installed SpatialAnalyzer MP catalog.
 
@@ -23,6 +23,8 @@ Returns the directory SpatialAnalyzer uses to resolve measurement-plan-relative 
 - Briosa operation: `file_operations.get_working_directory`
 - Exact MP step: `Get Working Directory`
 - Stability: `experimental`
+- Execution scope: `global_state_read`
+- Isolation review: Reads SpatialAnalyzer's application-global working directory; callers sharing one target must coordinate any operation that can change it.
 - Effect: `read_only`
 - Replay safety: `safe`
 - Risk flags: `filesystem_metadata`

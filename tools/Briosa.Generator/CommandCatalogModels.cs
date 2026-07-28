@@ -67,6 +67,9 @@ internal sealed class CommandCatalogOperation
     [JsonRequired]
     public required string Stability { get; init; }
 
+    [JsonRequired]
+    public required string ExecutionScope { get; init; }
+
     public CommandCatalogDeprecation? Deprecation { get; init; }
 
     [JsonRequired]
@@ -121,6 +124,9 @@ internal sealed class CommandCatalogDocumentation
 {
     [JsonRequired]
     public required string Summary { get; init; }
+
+    [JsonRequired]
+    public required string Isolation { get; init; }
 }
 
 internal sealed class CommandCatalogArgument

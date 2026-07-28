@@ -1,3 +1,4 @@
+using Briosa.Core.V1Alpha1;
 using Briosa.Server.Generated.Sa.V2026_1_0529_7.V1Alpha1;
 using Briosa.Server.Security;
 using Briosa.Server.Services;
@@ -69,6 +70,55 @@ public sealed class OperationPolicyTests
         Assert.Contains("unsupported operation ID", exception.Message, StringComparison.Ordinal);
     }
 
+    [Theory]
+    [InlineData(OperationExecutionScope.Unspecified, "operation-isolation-unreviewed")]
+    [InlineData(OperationExecutionScope.Unknown, "operation-isolation-unreviewed")]
+    [InlineData(OperationExecutionScope.ExclusiveWorkflow, "operation-isolation-unsupported")]
+    public void UnsupportedIsolationScopesFailClosed(
+        OperationExecutionScope executionScope,
+        string diagnosticCode)
+    {
+        var operation = Assert.Single(TargetCatalogMetadata.Operations) with
+        {
+            ExecutionScope = executionScope
+        };
+        var policy = CreatePolicy(allow: [OperationId], operations: [operation]);
+
+        var decision = policy.Evaluate(Command());
+
+        Assert.Equal(OperationPolicyDecisionKind.Denied, decision.Kind);
+        Assert.Equal(diagnosticCode, decision.DiagnosticCode);
+        Assert.Empty(policy.AllowedOperations);
+    }
+
+    [Fact]
+    public async Task CompetingOrdinaryCallersCannotEnterAnExclusiveWorkflow()
+    {
+        var factory = new CountingProcessFactory();
+        var supervisor = new WorkerProcessSupervisor(factory, RestartPolicy());
+        await using var configuredSupervisor = supervisor.ConfigureAwait(true);
+        var operation = Assert.Single(TargetCatalogMetadata.Operations) with
+        {
+            ExecutionScope = OperationExecutionScope.ExclusiveWorkflow
+        };
+        var executor = new PolicyEnforcingWorkerCommandExecutor(
+            supervisor,
+            CreatePolicy(allow: [OperationId], operations: [operation]),
+            new OperationAuditLogger(NullLogger<OperationAuditLogger>.Instance));
+
+        var outcomes = await Task.WhenAll(
+            executor.ExecuteAsync(Command(), Guid.NewGuid()),
+            executor.ExecuteAsync(Command(), Guid.NewGuid())).ConfigureAwait(true);
+
+        Assert.All(outcomes, outcome =>
+        {
+            Assert.Equal(WorkerExecutionStatus.PolicyDenied, outcome.Status);
+            Assert.Equal("operation-isolation-unsupported", outcome.DiagnosticCode);
+            Assert.Equal(WorkerExecutionDisposition.NotStarted, outcome.ExecutionDisposition);
+        });
+        Assert.Equal(0, factory.StartCount);
+    }
+
     [Fact]
     public async Task RejectionOccursBeforeTheWorkerSupervisorIsStarted()
     {
@@ -92,14 +142,15 @@ public sealed class OperationPolicyTests
 
     private static OperationPolicy CreatePolicy(
         IReadOnlyList<string>? allow = null,
-        IReadOnlyList<string>? deny = null)
+        IReadOnlyList<string>? deny = null,
+        IReadOnlyList<CatalogOperationDescriptor>? operations = null)
     {
         var values = new Dictionary<string, string?>(StringComparer.Ordinal);
         Add(values, OperationPolicy.AllowKey, allow);
         Add(values, OperationPolicy.DenyKey, deny);
         return OperationPolicy.Create(
             new ConfigurationBuilder().AddInMemoryCollection(values).Build(),
-            TargetCatalogMetadata.Operations);
+            operations ?? TargetCatalogMetadata.Operations);
     }
 
     private static void Add(

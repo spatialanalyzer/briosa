@@ -25,6 +25,8 @@ internal sealed class OperationPolicy
     private readonly FrozenSet<string> _allow;
     private readonly FrozenSet<string> _deny;
     private readonly FrozenDictionary<string, CatalogOperationDescriptor> _operations;
+    private readonly Briosa.Core.V1Alpha1.TargetIsolationMode _targetIsolationMode =
+        Briosa.Core.V1Alpha1.TargetIsolationMode.SingleTenant;
 
     private OperationPolicy(
         IReadOnlyList<CatalogOperationDescriptor> operations,
@@ -38,13 +40,17 @@ internal sealed class OperationPolicy
         _deny = deny.ToFrozenSet(StringComparer.Ordinal);
         AllowedOperations = operations
             .Where(operation => _allow.Contains(operation.OperationId) &&
-                !_deny.Contains(operation.OperationId))
+                !_deny.Contains(operation.OperationId) &&
+                IsExecutionScopeSupported(operation.ExecutionScope))
             .OrderBy(operation => operation.OperationId, StringComparer.Ordinal)
             .ToArray();
         Fingerprint = CreateFingerprint(allow, deny);
     }
 
     public IReadOnlyList<CatalogOperationDescriptor> AllowedOperations { get; }
+
+    public Briosa.Core.V1Alpha1.TargetIsolationMode TargetIsolationMode =>
+        _targetIsolationMode;
 
     public int AllowCount => _allow.Count;
 
@@ -117,6 +123,24 @@ internal sealed class OperationPolicy
                 operation);
         }
 
+        if (operation.ExecutionScope is
+            Briosa.Core.V1Alpha1.OperationExecutionScope.Unspecified or
+            Briosa.Core.V1Alpha1.OperationExecutionScope.Unknown)
+        {
+            return new OperationPolicyDecision(
+                OperationPolicyDecisionKind.Denied,
+                "operation-isolation-unreviewed",
+                operation);
+        }
+
+        if (!IsExecutionScopeSupported(operation.ExecutionScope))
+        {
+            return new OperationPolicyDecision(
+                OperationPolicyDecisionKind.Denied,
+                "operation-isolation-unsupported",
+                operation);
+        }
+
         if (_deny.Contains(operation.OperationId) || !_allow.Contains(operation.OperationId))
         {
             return new OperationPolicyDecision(
@@ -130,6 +154,13 @@ internal sealed class OperationPolicy
             "operation-policy-allowed",
             operation);
     }
+
+    private static bool IsExecutionScopeSupported(
+        Briosa.Core.V1Alpha1.OperationExecutionScope executionScope) =>
+        executionScope is
+            Briosa.Core.V1Alpha1.OperationExecutionScope.SelfContained or
+            Briosa.Core.V1Alpha1.OperationExecutionScope.GlobalStateRead or
+            Briosa.Core.V1Alpha1.OperationExecutionScope.GlobalStateMutation;
 
     private static string[] ReadOperationIds(IConfiguration configuration, string key)
     {
