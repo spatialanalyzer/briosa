@@ -55,6 +55,7 @@ public sealed class OperationAuditLoggerTests
         Assert.Contains(correlationId.ToString(), start.Message, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("local-unauthenticated", start.Message, StringComparison.Ordinal);
         Assert.Contains(operation.FullyQualifiedMethod, start.Message, StringComparison.Ordinal);
+        Assert.Contains("GlobalStateRead", start.Message, StringComparison.Ordinal);
         Assert.Contains("completed", completed.Message, StringComparison.Ordinal);
         Assert.Contains("succeeded", completed.Message, StringComparison.Ordinal);
         Assert.Contains("retrieved", completed.Message, StringComparison.Ordinal);

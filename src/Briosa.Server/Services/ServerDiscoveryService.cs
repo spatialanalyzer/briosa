@@ -49,6 +49,7 @@ internal sealed class ServerDiscoveryService(
             SpatialAnalyzerExecutionReadinessState =
                 ToProtocolState(snapshot.Connection?.ExecutionReadinessState),
             ReadyForMp = WorkerReadinessHealthCheck.IsReady(snapshot),
+            TargetIsolationMode = _operationPolicy.TargetIsolationMode,
             ConnectedSpatialAnalyzerVersionState =
                 CoreProtocol.ConnectedSpatialAnalyzerVersionState.Unavailable
         };
@@ -76,6 +77,7 @@ internal sealed class ServerDiscoveryService(
                     "mutating" => CoreProtocol.OperationEffect.Mutating,
                     _ => CoreProtocol.OperationEffect.Unknown
                 },
+                ExecutionScope = operation.ExecutionScope,
                 ReplaySafety = operation.ReplaySafety
             }));
         return response;

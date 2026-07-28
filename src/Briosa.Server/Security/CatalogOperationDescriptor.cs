@@ -9,5 +9,6 @@ internal sealed record CatalogOperationDescriptor(
     string Rpc,
     string FullyQualifiedMethod,
     string Effect,
+    OperationExecutionScope ExecutionScope,
     ReplaySafety ReplaySafety,
     IReadOnlyList<string> RiskFlags);

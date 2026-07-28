@@ -29,7 +29,7 @@ $env:Briosa__Security__Operations__Deny__0 = 'file_operations.get_working_direct
 ./Briosa.Server.exe
 ```
 
-The denylist overrides the allowlist. Omitting the allowlist denies every operation. Unknown, empty, duplicate, or non-array values fail startup instead of being ignored. Restart the server after changing policy; policy is not reloaded in place.
+The denylist overrides the allowlist. Omitting the allowlist denies every operation. Unknown, empty, duplicate, or non-array values fail startup instead of being ignored. Restart the server after changing policy; policy is not reloaded in place. An allowlist cannot enable an operation with unknown isolation metadata or an `exclusive_workflow` scope while the target is `single_tenant`.
 
 `DiscoveryService/ListCapabilities` reports the intersection of the generated catalog and the runtime allowlist after deny rules. It is the correct way for a client to learn what this server instance currently exposes.
 
@@ -37,11 +37,11 @@ The denylist overrides the allowlist. Omitting the allowlist denies every operat
 
 The operation event sequence is normally:
 
-1. `2001` request received;
+1. `2001` request received, including reviewed execution scope;
 2. `2002` policy allowed or `2003` policy rejected; and
 3. `2004` operation completed or `2005` operation failed.
 
-All request events carry the same correlation ID. Worker lifecycle event `1201` identifies generation changes and value-free connection state. Event `2000` records allow/deny counts and a SHA-256 fingerprint of the effective policy without listing operation IDs.
+All request events carry the same correlation ID. Worker lifecycle event `1201` identifies generation changes and value-free connection state. Event `2000` records the target-isolation mode, allow/deny counts, and a SHA-256 fingerprint of the effective policy without listing operation IDs.
 
 The actor category is `local-unauthenticated` for the supported loopback deployment. It is not a user or service identity. A non-loopback peer is recorded only as `unverified-unauthenticated`; such public binding remains unsupported and is rejected by endpoint configuration.
 

@@ -28,6 +28,16 @@ message GetServerInfoResponse {
   optional string connected_spatial_analyzer_version = 5;
   ConnectedSpatialAnalyzerVersionState connected_spatial_analyzer_version_state = 6;
   SpatialAnalyzerExecutionReadinessState spatial_analyzer_execution_readiness_state = 7;
+  TargetIsolationMode target_isolation_mode = 8;
+}
+
+// Describes how callers may share one worker/SpatialAnalyzer target.
+enum TargetIsolationMode {
+  TARGET_ISOLATION_MODE_UNSPECIFIED = 0;
+  // One mutually trusting application or coordinated application group owns the target.
+  TARGET_ISOLATION_MODE_SINGLE_TENANT = 1;
+  // Exclusive multi-RPC workflows are isolated by generation-bound leases.
+  TARGET_ISOLATION_MODE_LEASE_ISOLATED = 2;
 }
 
 enum WorkerRuntimeState {
@@ -80,6 +90,17 @@ message OperationCapability {
   string fully_qualified_method = 4;
   OperationEffect effect = 5;
   ReplaySafety replay_safety = 6;
+  OperationExecutionScope execution_scope = 7;
+}
+
+// Classifies an operation's dependency on SpatialAnalyzer application-global state.
+enum OperationExecutionScope {
+  OPERATION_EXECUTION_SCOPE_UNSPECIFIED = 0;
+  OPERATION_EXECUTION_SCOPE_SELF_CONTAINED = 1;
+  OPERATION_EXECUTION_SCOPE_GLOBAL_STATE_READ = 2;
+  OPERATION_EXECUTION_SCOPE_GLOBAL_STATE_MUTATION = 3;
+  OPERATION_EXECUTION_SCOPE_EXCLUSIVE_WORKFLOW = 4;
+  OPERATION_EXECUTION_SCOPE_UNKNOWN = 5;
 }
 
 enum OperationEffect {

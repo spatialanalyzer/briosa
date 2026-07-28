@@ -12,13 +12,13 @@ namespace Briosa.Server.Generated.Sa.V2026_1_0529_7.V1Alpha1;
 internal static class TargetCatalogMetadata
 {
     public const string CatalogId = "briosa.sa.2026.1.0529.7";
-    public const string CatalogRevision = "4";
+    public const string CatalogRevision = "5";
     public const string SpatialAnalyzerTarget = "2026.1.0529.7";
     public const string TargetProtocolPackage = "briosa.sa.v2026_1_0529_7.v1alpha1";
 
     public static IReadOnlyList<CatalogOperationDescriptor> Operations { get; } =
         [
-            new("file_operations.get_working_directory", "Get Working Directory", "briosa.sa.v2026_1_0529_7.v1alpha1.FileOperations", "GetWorkingDirectory", "/briosa.sa.v2026_1_0529_7.v1alpha1.FileOperations/GetWorkingDirectory", "read_only", CoreProtocol.ReplaySafety.Safe, ["filesystem_metadata"]),
+            new("file_operations.get_working_directory", "Get Working Directory", "briosa.sa.v2026_1_0529_7.v1alpha1.FileOperations", "GetWorkingDirectory", "/briosa.sa.v2026_1_0529_7.v1alpha1.FileOperations/GetWorkingDirectory", "read_only", CoreProtocol.OperationExecutionScope.GlobalStateRead, CoreProtocol.ReplaySafety.Safe, ["filesystem_metadata"]),
         ];
 }
 

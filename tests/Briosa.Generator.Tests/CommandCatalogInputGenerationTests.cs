@@ -240,8 +240,9 @@ public sealed class CommandCatalogInputGenerationTests
             "result": "AllTypesResult"
           },
           "stability": "experimental",
+          "execution_scope": "self_contained",
           "risk": { "effect": "read_only", "replay_safety": "safe", "flags": [] },
-          "documentation": { "summary": "Exercises generator mappings." },
+          "documentation": { "summary": "Exercises generator mappings.", "isolation": "All inputs and outputs are contained in one synthetic command." },
           "arguments": [
             { "argument_id": "enabled", "ordinal": 0, "mp_name": "Enabled", "direction": "input", "result_only": "no", "semantic_type": "logical", "data_classification": "proprietary", "input": { "presence": "required", "omission_behavior": "reject_request", "default": { "status": "none" } }, "sdk_binding": { "status": "available", "setter": "SetBoolArg", "getter": null }, "documentation": "Required logical input." },
             { "argument_id": "optional_count", "ordinal": 1, "mp_name": "Optional Count", "direction": "input", "result_only": "no", "semantic_type": "whole_number", "data_classification": "proprietary", "input": { "presence": "optional", "omission_behavior": "omit_sdk_setter", "default": { "status": "none" } }, "sdk_binding": { "status": "available", "setter": "SetIntegerArg", "getter": null }, "documentation": "Optional integer input." },
