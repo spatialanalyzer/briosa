@@ -48,7 +48,7 @@ See the [command policy and auditing guide](docs/operations/command-policy-and-a
 
 Briosa separates the stable `briosa.core.v1alpha1` package from MP contracts generated for one exact SpatialAnalyzer release, beginning with `briosa.sa.v2026_1_0529_7.v1alpha1`. Target packages are independent, version-faithful APIs; matching command shapes never imply matching semantics across SA releases.
 
-Install Buf 1.72.0 and run `./eng/Verify-Protocol.ps1` to check formatting, lint rules, and compatibility with the current `main` baseline. The .NET build compiles the reviewed protobuf sources directly.
+Install Buf 1.72.0 and run `./eng/Verify-Protocol.ps1` to check formatting, lint rules, and schema compilation. Once Briosa has a public release baseline, pass its explicit Git ref with `-AgainstRef`; the evolving unreleased `main` branch is intentionally not treated as a compatibility baseline. The .NET build compiles the reviewed protobuf sources directly.
 
 See [the exact-SA-target protocol decision](docs/architecture/0005-exact-sa-target-protocols.md) for package layout, version coordinates, compatibility, presence, target isolation, and review rules.
 

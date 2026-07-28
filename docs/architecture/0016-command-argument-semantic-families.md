@@ -20,7 +20,6 @@ A semantic value family belongs to an exact command argument, not to an SDK meth
 For SA 2026.1.0529.7:
 
 - `CollectionObjectName` contains a collection name, object name, and the exact `ObjectType` enum.
-  The pre-existing field 3 string is retained as deprecated v1alpha1 compatibility data only; generated operations require and populate the typed `exact_object_type` field 4.
 - `CollectionItemName` contains a collection name, item name, and the exact `ItemType` enum.
 - scalar and reference-list forms remain distinct public and worker value kinds;
 - both families may dispatch through the same exact composite SDK methods;

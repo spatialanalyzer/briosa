@@ -33,10 +33,7 @@ message CollectionMachineId {
 message CollectionObjectName {
   optional string collection_name = 1;
   optional string object_name = 2;
-  // Retained only for v1alpha1 wire/source compatibility. Generated operations
-  // never accept or populate this untyped field.
-  optional string object_type = 3 [deprecated = true];
-  optional ObjectType exact_object_type = 4;
+  optional ObjectType object_type = 3;
 }
 
 // Identifies any named collection item, including non-geometric entities such

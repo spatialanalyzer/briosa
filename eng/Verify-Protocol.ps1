@@ -1,8 +1,7 @@
 [CmdletBinding()]
 param(
     [string]$BufPath = "buf",
-    [string]$AgainstRef = "origin/main",
-    [switch]$SkipBreaking
+    [string]$AgainstRef
 )
 
 Set-StrictMode -Version Latest
@@ -58,7 +57,7 @@ try {
     Invoke-BufCommand -CommandArguments @("lint")
     Invoke-BufCommand -CommandArguments @("build")
 
-    if (-not $SkipBreaking) {
+    if (-not [string]::IsNullOrWhiteSpace($AgainstRef)) {
         $baselinePath = & git ls-tree -d --name-only $AgainstRef -- proto
         if ($LASTEXITCODE -ne 0) {
             throw "Could not inspect protobuf baseline at $AgainstRef."
@@ -74,7 +73,7 @@ try {
             )
         }
         else {
-            Write-Host "No protobuf baseline exists at $AgainstRef; skipping the initial breaking comparison."
+            Write-Host "No protobuf baseline exists at $AgainstRef; skipping the breaking comparison."
         }
     }
 }

@@ -80,7 +80,7 @@ Portable tests verify every matrix row without SpatialAnalyzer. They also verify
 - malformed output shapes fail as `Internal`;
 - catalog regeneration adds shared execution details deterministically without renumbering operation fields.
 
-Buf formatting, linting, schema compilation, and FILE-level comparison against `origin/main` remain ordinary CI checks. Catalog-artifact verification regenerates checked-in operation contracts and fails on drift.
+Buf formatting, linting, and schema compilation remain ordinary CI checks. Once Briosa has a public release, FILE-level compatibility is checked against that explicit release baseline rather than the evolving `main` branch. Catalog-artifact verification regenerates checked-in operation contracts and fails on drift.
 
 ## Consequences
 

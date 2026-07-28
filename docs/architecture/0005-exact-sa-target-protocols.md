@@ -73,12 +73,19 @@ Proto3 scalar fields use explicit presence when absence must remain distinguisha
 
 ## Compatibility and validation
 
-Buf validates formatting and lint rules and applies the strict `FILE` breaking policy.
+Buf always validates formatting, lint rules, and schema compilation. Briosa is
+currently unreleased, so the evolving `main` branch is not a published API
+baseline and ordinary pull requests may make reviewed breaking schema
+corrections.
+
+Beginning with the first public release, compatibility validation must compare
+against an explicit released ref and apply Buf's strict `FILE` breaking policy.
+The release baseline must never be inferred from `main`.
 
 - Core files are compared with the prior core baseline.
 - A target file is compared only with the prior file in the same exact target and package line.
 - Adding a different exact-target package creates an independent API rather than replacing an existing target.
-- Published field numbers, names, and meanings are immutable within a package line. Removed field numbers and names must be reserved.
+- After a package line is publicly released, its field numbers, names, and meanings are immutable. Removed field numbers and names must be reserved.
 - A semantic correction that changes a published meaning requires a new target package version even if the wire type is unchanged.
 - Core schemas may not import target schemas. One target may not import another target. Target schemas may import the core package or files from their own exact target.
 - Ordinary validation requires neither SpatialAnalyzer nor proprietary binaries.

@@ -96,7 +96,7 @@ public sealed class CommandCatalogInputGenerationTests
             Assert.Contains("new TargetProtocol.CollectionObjectNameList", binding, StringComparison.Ordinal);
             Assert.Contains("WorkerMpValueKind.CollectionItemName", binding, StringComparison.Ordinal);
             Assert.Contains("new WorkerCollectionItemNameValue", binding, StringComparison.Ordinal);
-            Assert.Contains("(WorkerObjectTypeValue)(int)request.Object.ExactObjectType", binding, StringComparison.Ordinal);
+            Assert.Contains("(WorkerObjectTypeValue)(int)request.Object.ObjectType", binding, StringComparison.Ordinal);
             Assert.Contains("new TargetProtocol.CollectionItemNameList", binding, StringComparison.Ordinal);
             Assert.Contains("(TargetProtocol.ItemType)(int)value.ItemType", binding, StringComparison.Ordinal);
             Assert.Contains("ItemType == TargetProtocol.ItemType.Unspecified", binding, StringComparison.Ordinal);
