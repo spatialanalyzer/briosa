@@ -24,9 +24,10 @@
     "summary": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["corroborated_default_count", "needs_review_count", "no_candidate_count"],
+      "required": ["corroborated_default_count", "reviewed_no_default_count", "needs_review_count", "no_candidate_count"],
       "properties": {
         "corroborated_default_count": { "type": "integer", "minimum": 0 },
+        "reviewed_no_default_count": { "type": "integer", "minimum": 0 },
         "needs_review_count": { "type": "integer", "minimum": 0 },
         "no_candidate_count": { "type": "integer", "minimum": 0 }
       }

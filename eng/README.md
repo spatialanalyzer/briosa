@@ -86,6 +86,8 @@ Regenerate the reviewed binding assignments, issue #82 default-review queue, man
 ./eng/Sync-ValueFamilyEvidence.ps1
 ```
 
+`Review-CommandDefaults.ps1` recalculates default candidates from the pinned ObjectiveSA source and committed exact-target evidence. Issue #82 resolutions use `reviewed_no_default`: candidate evidence and reasons remain auditable while the input stays required and omission remains `reject_request`. The script accepts the reviewed proposal through `-DecisionProposalPath` for initial application and preserves an existing resolution only while its recalculated candidates match exactly. Run disposition synchronization before value-family synchronization after any accepted decision change.
+
 On a maintainer machine containing the pinned ObjectiveSA checkout and installed exact-target `Instrument.lst`, use `New-ValueFamilyEvidence.ps1` to rebuild the candidate source catalog. Raw vendor evidence remains local. See [the value-family evidence guide](../docs/development/value-family-evidence.md) for the exact paths, fingerprints, conflict policy, and review workflow.
 
 ## Protocol artifact production and verification
