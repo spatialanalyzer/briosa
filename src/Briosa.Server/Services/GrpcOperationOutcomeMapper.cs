@@ -17,9 +17,29 @@ internal sealed record SuccessfulOperationExecution(
 
 internal static class GrpcOperationOutcomeMapper
 {
-    public const string DiagnosticTrailerName = "briosa-diagnostic-code";
     public const string ErrorTrailerName = "briosa-operation-error-bin";
-    public const string MpResultTrailerName = "briosa-mp-result-code";
+
+    public static string GetDiagnosticCode(RpcException exception)
+    {
+        ArgumentNullException.ThrowIfNull(exception);
+
+        var trailer = exception.Trailers.FirstOrDefault(entry => entry.Key == ErrorTrailerName);
+        if (trailer is null)
+        {
+            return "grpc-operation-failed";
+        }
+
+        try
+        {
+            return NormalizeDiagnosticCode(
+                OperationError.Parser.ParseFrom(trailer.ValueBytes).DiagnosticCode,
+                "grpc-operation-failed");
+        }
+        catch (InvalidProtocolBufferException)
+        {
+            return "grpc-operation-failed";
+        }
+    }
 
     public static SuccessfulOperationExecution RequireSuccess(
         WorkerExecutionOutcome outcome,
@@ -279,16 +299,8 @@ internal static class GrpcOperationOutcomeMapper
         };
         var trailers = new Metadata
         {
-            { DiagnosticTrailerName, diagnosticCode },
             { ErrorTrailerName, error.ToByteArray() }
         };
-        if (mpExecution is not null && mpExecution.HasMpResultCode)
-        {
-            trailers.Add(
-                MpResultTrailerName,
-                mpExecution.MpResultCode.ToString(
-                    System.Globalization.CultureInfo.InvariantCulture));
-        }
 
         return new RpcException(new Status(statusCode, detail), trailers);
     }

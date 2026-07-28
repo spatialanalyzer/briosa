@@ -11,7 +11,7 @@ namespace Briosa.Server.Generated.Sa.V2026_1_0529_7.V1Alpha1;
 internal static class TargetCatalogMetadata
 {
     public const string CatalogId = "briosa.sa.2026.1.0529.7";
-    public const string CatalogRevision = "2";
+    public const string CatalogRevision = "3";
     public const string SpatialAnalyzerTarget = "2026.1.0529.7";
     public const string TargetProtocolPackage = "briosa.sa.v2026_1_0529_7.v1alpha1";
 

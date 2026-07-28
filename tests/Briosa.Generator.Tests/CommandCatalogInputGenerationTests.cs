@@ -240,7 +240,6 @@ public sealed class CommandCatalogInputGenerationTests
             "result": "AllTypesResult"
           },
           "stability": "experimental",
-          "deprecation": { "status": "active" },
           "risk": { "effect": "read_only", "flags": [] },
           "documentation": { "summary": "Exercises generator mappings." },
           "arguments": [

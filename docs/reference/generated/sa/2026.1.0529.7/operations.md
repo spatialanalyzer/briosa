@@ -2,7 +2,7 @@
 <!-- Generated from the reviewed Briosa command catalog. Do not edit by hand. -->
 # SpatialAnalyzer 2026.1.0529.7 operation reference
 
-Catalog `briosa.sa.2026.1.0529.7` revision `2`.
+Catalog `briosa.sa.2026.1.0529.7` revision `3`.
 
 Only explicitly reviewed Briosa operations are listed here. This is not the installed SpatialAnalyzer MP catalog.
 

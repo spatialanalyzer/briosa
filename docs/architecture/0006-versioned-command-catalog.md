@@ -109,7 +109,7 @@ The supported catalog is not a goal to expose every MP command. MP control-flow 
 
 Every supported operation records whether it is read-only or mutating and any relevant risk flags, including filesystem, network, external-process, device-control, interactive, long-running, or sensitive-data behavior. Each argument records an explicit data classification. Unknown risk is denied until reviewed. The runtime exact-ID allow/deny policy consumes these facts without changing command semantics; see [ADR 0015](0015-command-policy-and-audit-events.md).
 
-Stability and deprecation describe Briosa's public API lifecycle. Vendor availability or deprecation is separate evidence and must not be inferred from Briosa status.
+`stability` is the single source of truth for Briosa's public API lifecycle. Active operations carry no placeholder deprecation object. An operation whose stability is `deprecated` must add deprecation details with a reason and may identify a replacement operation. Vendor availability or deprecation is separate evidence and must not be inferred from Briosa status.
 
 ## Initial operation
 
