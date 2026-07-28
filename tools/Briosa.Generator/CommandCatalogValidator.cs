@@ -224,16 +224,15 @@ internal static partial class CommandCatalogValidator
                 errors);
         }
 
-        var isDeprecated = string.Equals(operation.Deprecation.Status, "deprecated", StringComparison.Ordinal);
-        if (isDeprecated != string.Equals(operation.Stability, "deprecated", StringComparison.Ordinal))
+        var isDeprecated = string.Equals(operation.Stability, "deprecated", StringComparison.Ordinal);
+        if (isDeprecated && operation.Deprecation is null)
+        {
+            errors.Add($"{displayPath}: deprecated operations require deprecation details.");
+        }
+        else if (!isDeprecated && operation.Deprecation is not null)
         {
             errors.Add(
-                $"{displayPath}: stability and deprecation.status must agree on deprecation.");
-        }
-
-        if (isDeprecated && string.IsNullOrWhiteSpace(operation.Deprecation.Reason))
-        {
-            errors.Add($"{displayPath}: deprecated operations require a deprecation reason.");
+                $"{displayPath}: only deprecated operations may include deprecation details.");
         }
 
         if (string.Equals(operation.Risk.Effect, "unknown", StringComparison.Ordinal) ||

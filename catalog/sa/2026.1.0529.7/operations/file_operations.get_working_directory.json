@@ -10,9 +10,6 @@
     "result": "GetWorkingDirectoryResult"
   },
   "stability": "experimental",
-  "deprecation": {
-    "status": "active"
-  },
   "risk": {
     "effect": "read_only",
     "flags": [

@@ -70,10 +70,11 @@ public sealed class GetWorkingDirectoryServiceTests
                 new TargetProtocol.GetWorkingDirectoryRequest()));
 
         Assert.Equal(StatusCode.FailedPrecondition, exception.StatusCode);
-        Assert.Equal(
-            "mp-command-failed",
-            Trailer(exception, "briosa-diagnostic-code"));
-        Assert.Equal("3", Trailer(exception, "briosa-mp-result-code"));
+        var error = ErrorDetail(exception);
+        Assert.Equal("mp-command-failed", error.DiagnosticCode);
+        Assert.NotNull(error.MpExecution);
+        Assert.True(error.MpExecution.HasMpResultCode);
+        Assert.Equal(3, error.MpExecution.MpResultCode);
         Assert.Empty(executor.Command!.InputArguments);
     }
 
@@ -95,7 +96,7 @@ public sealed class GetWorkingDirectoryServiceTests
         Assert.Equal(StatusCode.DataLoss, exception.StatusCode);
         Assert.Equal(
             "sdk-output-retrieval-failed",
-            Trailer(exception, "briosa-diagnostic-code"));
+            ErrorDetail(exception).DiagnosticCode);
     }
 
     [Fact]
@@ -162,7 +163,26 @@ public sealed class GetWorkingDirectoryServiceTests
         Assert.Equal(StatusCode.Unavailable, exception.StatusCode);
         Assert.Equal(
             "worker-watchdog-timeout",
-            Trailer(exception, "briosa-diagnostic-code"));
+            ErrorDetail(exception).DiagnosticCode);
+    }
+
+    [Fact]
+    public void TypedDiagnosticReaderFailsClosedForMissingOrMalformedDetails()
+    {
+        var missing = new RpcException(
+            new Status(StatusCode.Internal, "missing"),
+            new Metadata());
+        var malformed = new RpcException(
+            new Status(StatusCode.Internal, "malformed"),
+            new Metadata
+            {
+                { GrpcOperationOutcomeMapper.ErrorTrailerName, new byte[] { 0xff } }
+            });
+
+        Assert.Equal("grpc-operation-failed", GrpcOperationOutcomeMapper.GetDiagnosticCode(missing));
+        Assert.Equal(
+            "grpc-operation-failed",
+            GrpcOperationOutcomeMapper.GetDiagnosticCode(malformed));
     }
 
     private static TargetProtocol.FileOperations.FileOperationsClient CreateClient(
@@ -194,13 +214,12 @@ public sealed class GetWorkingDirectoryServiceTests
             diagnosticCode ?? "completed",
             Generation: 2);
 
-    private static string Trailer(RpcException exception, string key) =>
-        exception.Trailers.Single(entry => entry.Key == key).Value;
-
-    private static OperationError ErrorDetail(RpcException exception) =>
-        OperationError.Parser.ParseFrom(
-            exception.Trailers.Single(entry =>
-                entry.Key == GrpcOperationOutcomeMapper.ErrorTrailerName).ValueBytes);
+    private static OperationError ErrorDetail(RpcException exception)
+    {
+        var trailer = Assert.Single(exception.Trailers);
+        Assert.Equal(GrpcOperationOutcomeMapper.ErrorTrailerName, trailer.Key);
+        return OperationError.Parser.ParseFrom(trailer.ValueBytes);
+    }
 
     private sealed class RecordingExecutor(WorkerExecutionOutcome outcome) : IWorkerCommandExecutor
     {

@@ -153,6 +153,59 @@ public sealed class CommandCatalogValidatorTests
     }
 
     [Fact]
+    public void DeprecatedOperationRequiresDetails()
+    {
+        using var fixture = CatalogFixture.Create();
+        fixture.EditOperation(operation => operation["stability"] = "deprecated");
+
+        var result = CommandCatalogValidator.ValidateDirectory(fixture.Root);
+
+        Assert.Contains(
+            result.Errors,
+            error => error.Contains(
+                "deprecated operations require deprecation details",
+                StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void ActiveOperationCannotCarryDeprecationDetails()
+    {
+        using var fixture = CatalogFixture.Create();
+        fixture.EditOperation(operation =>
+            operation["deprecation"] = new JsonObject
+            {
+                ["reason"] = "Use a replacement."
+            });
+
+        var result = CommandCatalogValidator.ValidateDirectory(fixture.Root);
+
+        Assert.Contains(
+            result.Errors,
+            error => error.Contains(
+                "only deprecated operations may include deprecation details",
+                StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void DeprecatedOperationAcceptsReasonAndReplacement()
+    {
+        using var fixture = CatalogFixture.Create();
+        fixture.EditOperation(operation =>
+        {
+            operation["stability"] = "deprecated";
+            operation["deprecation"] = new JsonObject
+            {
+                ["reason"] = "Use the replacement operation.",
+                ["replacement_operation_id"] = "file_operations.replacement"
+            };
+        });
+
+        var result = CommandCatalogValidator.ValidateDirectory(fixture.Root);
+
+        Assert.True(result.IsValid, string.Join(Environment.NewLine, result.Errors));
+    }
+
+    [Fact]
     public void DuplicateMpStepNamesAreAllowedForDistinctOperations()
     {
         using var fixture = CatalogFixture.Create();

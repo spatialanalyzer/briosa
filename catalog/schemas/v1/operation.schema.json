@@ -11,7 +11,6 @@
     "category",
     "protocol",
     "stability",
-    "deprecation",
     "risk",
     "documentation",
     "arguments",
@@ -68,15 +67,9 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "status"
+        "reason"
       ],
       "properties": {
-        "status": {
-          "enum": [
-            "active",
-            "deprecated"
-          ]
-        },
         "reason": {
           "type": "string",
           "minLength": 1

@@ -22,7 +22,7 @@ The stable core package defines release-independent outcome types in `operation_
 - MP rejection, MP-result retrieval failure, or a retrieved non-success result marks every requested output `NOT_ATTEMPTED`, matching the executor rule that getters run only after result code `2`.
 - `RESULT_UNAVAILABLE` with `MP_RESULT_RETRIEVAL_FAILURE` represents a false `GetMPStepResult` Boolean and carries no numeric result code. `FAILED` with `MP_FAILURE` means the getter succeeded but returned a code other than `2`; the raw code is retained.
 
-Non-OK calls use canonical gRPC status codes and include a serialized `OperationError` in the binary metadata entry `briosa-operation-error-bin`. The typed detail is the language-neutral source of truth. The existing `briosa-diagnostic-code` and numeric `briosa-mp-result-code` metadata entries remain as compact operational conveniences.
+Non-OK calls use canonical gRPC status codes and include exactly one Briosa-specific metadata entry: a serialized `OperationError` in `briosa-operation-error-bin`. The typed detail is the language-neutral error contract. Diagnostic and MP-result codes are carried inside that message rather than duplicated in scalar trailers.
 
 `OperationError` contains only:
 
@@ -79,6 +79,7 @@ Portable tests verify every matrix row without SpatialAnalyzer. They also verify
 - caller deadline and worker watchdog produce different statuses and failure kinds;
 - malformed output shapes fail as `Internal`;
 - catalog regeneration adds shared execution details deterministically without renumbering operation fields.
+- non-OK calls carry only the typed `OperationError` trailer;
 
 Buf formatting, linting, and schema compilation remain ordinary CI checks. Once Briosa has a public release, FILE-level compatibility is checked against that explicit release baseline rather than the evolving `main` branch. Catalog-artifact verification regenerates checked-in operation contracts and fails on drift.
 
@@ -88,4 +89,4 @@ Buf formatting, linting, and schema compilation remain ordinary CI checks. Once 
 - Operation values remain exact-target and strongly typed while outcome mechanics remain stable core concepts.
 - Successful default-like values cannot be confused with retrieval failure.
 - Public failure metadata is safe for default diagnostics because it excludes raw values.
-- Adding the execution field is wire-compatible with the existing vertical-slice result because `directory = 1` is preserved.
+- The high execution field number keeps shared execution metadata separate from ordinary catalog-derived result fields.

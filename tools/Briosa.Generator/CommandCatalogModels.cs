@@ -67,8 +67,7 @@ internal sealed class CommandCatalogOperation
     [JsonRequired]
     public required string Stability { get; init; }
 
-    [JsonRequired]
-    public required CommandCatalogDeprecation Deprecation { get; init; }
+    public CommandCatalogDeprecation? Deprecation { get; init; }
 
     [JsonRequired]
     public required CommandCatalogRisk Risk { get; init; }
@@ -101,9 +100,7 @@ internal sealed class CommandCatalogProtocolNames
 internal sealed class CommandCatalogDeprecation
 {
     [JsonRequired]
-    public required string Status { get; init; }
-
-    public string? Reason { get; init; }
+    public required string Reason { get; init; }
 
     public string? ReplacementOperationId { get; init; }
 }

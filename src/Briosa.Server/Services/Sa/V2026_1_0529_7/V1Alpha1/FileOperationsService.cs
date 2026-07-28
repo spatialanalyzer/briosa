@@ -81,10 +81,7 @@ internal sealed class FileOperationsService(
         }
         catch (RpcException exception)
         {
-            var diagnosticCode = exception.Trailers
-                .FirstOrDefault(entry =>
-                    entry.Key == GrpcOperationOutcomeMapper.DiagnosticTrailerName)
-                ?.Value ?? "grpc-operation-failed";
+            var diagnosticCode = GrpcOperationOutcomeMapper.GetDiagnosticCode(exception);
             _auditLogger.OperationFailed(
                 EffectiveCorrelationId(outcome, effectiveCorrelationId),
                 command.OperationId,
