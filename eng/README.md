@@ -72,6 +72,14 @@ dotnet run --project tools/Briosa.Generator -c Release -- binding-registry-sync 
 
 See [the SDK binding registry guide](../docs/development/sdk-binding-registry.md) before changing semantic-family mappings or adapter coverage.
 
+The binding verifier is paired with `BindingFamilyAdapterCompletenessTests` in the ordinary worker test suite. Those evidence-driven tests require all five implemented-coverage sets to equal the usable registry, expand every method/family row, round-trip every implemented private value kind through `WorkerControlChannel`, and exercise the real adapter against a dispatch fake on the owned STA. Setter rejection, MP-result suppression, getter failure, exact method identity, `VariantWrapper` list marshalling, every reviewed enum literal, and shared collection object/item decoding are part of the gate. Run the focused contract with:
+
+```powershell
+dotnet test tests/Briosa.Worker.Tests/Briosa.Worker.Tests.csproj -c Release --filter FullyQualifiedName~BindingFamilyAdapterCompletenessTests
+```
+
+This is a vendor-independent ordinary-runner test. It never activates or connects to SpatialAnalyzer.
+
 ## Value-family evidence verification
 
 `Verify-ValueFamilyEvidence.ps1` validates the exact-target evidence catalog, source fingerprints, public/worker enum and structured definitions, exact SDK literal mappings, and every multi-domain method assignment. It also synchronizes twice into clean temporary directories and rejects nondeterministic or stale generated artifacts:

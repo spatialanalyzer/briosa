@@ -72,7 +72,7 @@ Run `./eng/Verify-Catalog.ps1` to validate JSON structure, target and path ident
 
 Run `./eng/Verify-Disposition.ps1` to validate complete inventory coverage, evidence identity, review-state semantics, deterministic category shards, and the generated disposition report. New and changed commands fail closed until reviewed.
 
-Run `./eng/Verify-BindingRegistry.ps1` to reconcile every inventory-observed SDK setter/getter with the committed exact-target interop API, reviewed semantic value family, public/private type targets, and protocol/worker/adapter/fake/generator coverage. Inventory-only methods remain explicitly blocked.
+Run `./eng/Verify-BindingRegistry.ps1` to reconcile every inventory-observed SDK setter/getter with the committed exact-target interop API, reviewed semantic value family, public/private type targets, and protocol/worker/adapter/fake/generator coverage. The worker test suite then table-drives every usable method/family row through the private control protocol and exact adapter seam, including negative paths. Inventory-only methods remain explicitly blocked. See the [SA 2026.1.0529.7 completeness reference](docs/reference/sa/2026.1.0529.7/binding-family-completeness.md).
 
 Run `./eng/Verify-ValueFamilyEvidence.ps1` to validate the exact-target enum literals, structured fields, source fingerprints, and all multi-domain SDK-method assignments, and to reject stale or nondeterministic generated evidence artifacts. See the [value-family evidence guide](docs/development/value-family-evidence.md) before changing these mappings.
 
