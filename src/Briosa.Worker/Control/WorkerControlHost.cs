@@ -6,8 +6,7 @@ namespace Briosa.Worker.Control;
 
 internal static partial class WorkerControlHost
 {
-    private const int MaximumConnectionAttempts = 3;
-    private static readonly TimeSpan ConnectionRetryDelay = TimeSpan.FromSeconds(1);
+    private const int MaximumConnectionAttempts = 1;
 
     public static int Run(
         string pipeName,
@@ -43,7 +42,7 @@ internal static partial class WorkerControlHost
     {
         var connectionOwner = new SdkConnectionManager(
             targetHost,
-            new SdkConnectionPolicy(MaximumConnectionAttempts, ConnectionRetryDelay),
+            new SdkConnectionPolicy(MaximumConnectionAttempts, TimeSpan.Zero),
             disableSdkActivation
                 ? static () => throw new InvalidOperationException(
                     "SDK activation is disabled for this worker smoke test.")
@@ -73,6 +72,9 @@ internal static partial class WorkerControlHost
                         break;
                     case WorkerControlMessageKind.Execute:
                         channel.Send(Execute(connectionOwner, message));
+                        break;
+                    case WorkerControlMessageKind.VerifyExecution:
+                        channel.Send(VerifyExecution(connectionOwner, message));
                         break;
                     case WorkerControlMessageKind.Stop:
                         connectionOwner.DisposeAsync().AsTask().GetAwaiter().GetResult();
@@ -115,6 +117,17 @@ internal static partial class WorkerControlHost
             ToControlSnapshot(request.Connection),
             request.DiagnosticCode);
         return WorkerControlMessage.ExecutionResult(message.CorrelationId, response);
+    }
+
+    private static WorkerControlMessage VerifyExecution(
+        SdkConnectionManager connectionOwner,
+        WorkerControlMessage message)
+    {
+        var connection = connectionOwner.VerifyExecutionAsync()
+            .GetAwaiter().GetResult();
+        return WorkerControlMessage.ExecutionVerificationResult(
+            message.CorrelationId,
+            ToControlSnapshot(connection));
     }
 
     private static SdkCommand ToSdkCommand(WorkerMpCommand command) =>
@@ -528,7 +541,20 @@ internal static partial class WorkerControlHost
                 SdkConnectionState.Stopping => WorkerConnectionState.Stopping,
                 _ => throw new UnreachableException()
             },
-            connection.TargetHost,
+            connection.ExecutionReadinessState switch
+            {
+                SdkExecutionReadinessState.Unverified =>
+                    WorkerExecutionReadinessState.Unverified,
+                SdkExecutionReadinessState.Verifying =>
+                    WorkerExecutionReadinessState.Verifying,
+                SdkExecutionReadinessState.ExecutionReady =>
+                    WorkerExecutionReadinessState.ExecutionReady,
+                SdkExecutionReadinessState.CompetingClientSuspected =>
+                    WorkerExecutionReadinessState.CompetingClientSuspected,
+                SdkExecutionReadinessState.OperatorRecoveryRequired =>
+                    WorkerExecutionReadinessState.OperatorRecoveryRequired,
+                _ => throw new UnreachableException()
+            },
             connection.StatusCode,
             connection.Attempt,
             connection.MaximumAttempts,

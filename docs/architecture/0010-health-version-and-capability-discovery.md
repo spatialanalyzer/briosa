@@ -18,11 +18,13 @@ Briosa exposes the standard `grpc.health.v1.Health` protocol through `Grpc.AspNe
 - `briosa.liveness` is healthy while the public host can serve requests. It does not depend on the worker or SpatialAnalyzer.
 - `briosa.readiness` is healthy only when the supervisor state is `Ready` and its current SDK connection state is `Connected`.
 
+[ADR 0017](0017-execution-channel-readiness.md) adds the required execution-channel condition: `Connected` is attachment evidence only, and readiness also requires the current worker generation to be `ExecutionReady`.
+
 The empty health-service name retains the standard aggregate behavior. Clients and deployment probes use the explicit names when they need a precise liveness/readiness distinction.
 
 The stable core package adds `DiscoveryService`:
 
-- `GetServerInfo` returns `VersionCoordinates`, safe worker/connection enums, readiness, and an optional connected-SA version with an explicit verification state.
+- `GetServerInfo` returns `VersionCoordinates`, safe worker/connection/execution-readiness enums, readiness, and an optional connected-SA version with an explicit verification state.
 - `ListCapabilities` returns catalog identity and only the operations in the reviewed exact-target allowlist.
 
 The configured exact SA target is always reported. The connected-SA version remains absent with state `UNAVAILABLE` until a separately reviewed runtime mechanism can establish it. Future support may report a verified match or mismatch without changing existing field meanings.
@@ -40,7 +42,7 @@ Health and discovery remain bound by the server's existing loopback default. Rem
 Portable tests verify:
 
 - liveness naming is independent of worker state;
-- readiness requires both worker readiness and a connected SDK snapshot;
+- readiness requires worker readiness, a connected SDK snapshot, and successful execution verification for the current generation;
 - connected-version absence is distinct from its verification state;
 - capability discovery exactly reflects generated catalog metadata; and
 - protocol descriptors contain no prohibited operational or license fields.

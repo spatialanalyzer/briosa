@@ -321,7 +321,9 @@ public sealed class GrpcOperationOutcomeMapperTests
     private static WorkerConnectionSnapshot Connection(WorkerConnectionState state) =>
         new(
             state,
-            "localhost",
+            state == WorkerConnectionState.Connected
+                ? WorkerExecutionReadinessState.ExecutionReady
+                : WorkerExecutionReadinessState.Unverified,
             StatusCode: state == WorkerConnectionState.Connected ? 0 : -1,
             Attempt: 1,
             MaximumAttempts: 3,

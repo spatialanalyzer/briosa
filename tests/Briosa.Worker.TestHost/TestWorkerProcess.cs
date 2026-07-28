@@ -43,13 +43,36 @@ internal static class TestWorkerProcess
             channel.Send(
                 WorkerControlMessage.Ready(
                     Environment.ProcessId,
-                    ConnectionSnapshot()));
+                    ConnectionSnapshot(WorkerExecutionReadinessState.Unverified)));
 
             while (true)
             {
                 var message = channel.Receive();
                 switch (message.Kind)
                 {
+                    case WorkerControlMessageKind.VerifyExecution:
+                        if (options.Scenario == TestWorkerScenario.HangOnVerify)
+                        {
+                            Thread.Sleep(Timeout.Infinite);
+                        }
+
+                        if (options.Scenario == TestWorkerScenario.CrashOnVerify)
+                        {
+                            Environment.Exit(44);
+                        }
+
+                        var verificationFailed =
+                            options.Scenario == TestWorkerScenario.RejectVerify;
+                        channel.Send(WorkerControlMessage.ExecutionVerificationResult(
+                            message.CorrelationId,
+                            ConnectionSnapshot(
+                                verificationFailed
+                                    ? WorkerExecutionReadinessState.OperatorRecoveryRequired
+                                    : WorkerExecutionReadinessState.ExecutionReady,
+                                verificationFailed
+                                    ? "execution-readiness-probe-mp-failed"
+                                    : "execution-readiness-verified")));
+                        break;
                     case WorkerControlMessageKind.Ping:
                         if (options.Scenario == TestWorkerScenario.HangOnPing)
                         {
@@ -136,7 +159,7 @@ internal static class TestWorkerProcess
                     ? [.. command.OutputArguments.Select(CreateOutputValue)]
                     : [],
                 mpSucceeded ? null : "scripted-mp-failure"),
-            ConnectionSnapshot(),
+            ConnectionSnapshot(WorkerExecutionReadinessState.ExecutionReady),
             DiagnosticCode: null);
 
     private static WorkerMpOutputValue CreateOutputValue(WorkerMpOutputArgument output) =>
@@ -294,14 +317,16 @@ internal static class TestWorkerProcess
             new WorkerToleranceLimit(Enabled: false, Value: -3),
             new WorkerToleranceLimit(Enabled: false, Value: -4));
 
-    private static WorkerConnectionSnapshot ConnectionSnapshot() =>
+    private static WorkerConnectionSnapshot ConnectionSnapshot(
+        WorkerExecutionReadinessState readinessState,
+        string diagnosticCode = "connect-ex-connected") =>
         new(
             WorkerConnectionState.Connected,
-            "localhost",
+            readinessState,
             StatusCode: 0,
             Attempt: 1,
             MaximumAttempts: 1,
-            "connect-ex-connected",
+            diagnosticCode,
             DateTimeOffset.UtcNow);
 
     private static void WriteRecord(string? path, LifecycleRecord record)
@@ -330,7 +355,10 @@ internal enum TestWorkerScenario
     MpFailure,
     DelayFirstExecute,
     HangOnExecute,
-    CrashOnExecute
+    CrashOnExecute,
+    HangOnVerify,
+    CrashOnVerify,
+    RejectVerify
 }
 
 internal sealed record TestWorkerOptions(
@@ -365,6 +393,9 @@ internal sealed record TestWorkerOptions(
             "delay-first-execute" => TestWorkerScenario.DelayFirstExecute,
             "hang-on-execute" => TestWorkerScenario.HangOnExecute,
             "crash-on-execute" => TestWorkerScenario.CrashOnExecute,
+            "hang-on-verify" => TestWorkerScenario.HangOnVerify,
+            "crash-on-verify" => TestWorkerScenario.CrashOnVerify,
+            "reject-verify" => TestWorkerScenario.RejectVerify,
             _ => throw new ArgumentOutOfRangeException(
                 nameof(value),
                 value,

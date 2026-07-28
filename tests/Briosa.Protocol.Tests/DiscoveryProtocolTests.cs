@@ -46,6 +46,26 @@ public sealed class DiscoveryProtocolTests
     }
 
     [Fact]
+    public void AttachmentAndExecutionReadinessAreIndependentStates()
+    {
+        var response = new GetServerInfoResponse
+        {
+            SpatialAnalyzerConnectionState = SpatialAnalyzerConnectionState.Connected,
+            SpatialAnalyzerExecutionReadinessState =
+                SpatialAnalyzerExecutionReadinessState.Unverified,
+            ReadyForMp = false
+        };
+
+        Assert.Equal(
+            SpatialAnalyzerConnectionState.Connected,
+            response.SpatialAnalyzerConnectionState);
+        Assert.Equal(
+            SpatialAnalyzerExecutionReadinessState.Unverified,
+            response.SpatialAnalyzerExecutionReadinessState);
+        Assert.False(response.ReadyForMp);
+    }
+
+    [Fact]
     public void DiscoveryMessagesCannotExposeSensitiveOperationalDetails()
     {
         var fieldNames = GetServerInfoResponse.Descriptor.Fields.InFieldNumberOrder()

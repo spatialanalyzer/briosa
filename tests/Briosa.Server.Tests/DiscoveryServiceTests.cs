@@ -15,7 +15,7 @@ namespace Briosa.Server.Tests;
 public sealed class DiscoveryServiceTests
 {
     [Fact]
-    public async Task LivenessIsIndependentWhileReadinessRequiresConnectedSdk()
+    public async Task LivenessIsIndependentWhileReadinessRequiresVerifiedExecution()
     {
         var statusProvider = new FakeWorkerStatusProvider(Snapshot(
             WorkerLifecycleState.Ready,
@@ -39,6 +39,12 @@ public sealed class DiscoveryServiceTests
         statusProvider.Current = Snapshot(
             WorkerLifecycleState.Ready,
             WorkerConnectionState.Connected);
+        var connectedButUnverified = await health.CheckHealthAsync(registration =>
+            registration.Name == WorkerReadinessHealthCheck.ReadinessServiceName);
+        statusProvider.Current = Snapshot(
+            WorkerLifecycleState.Ready,
+            WorkerConnectionState.Connected,
+            WorkerExecutionReadinessState.ExecutionReady);
         var ready = await health.CheckHealthAsync(registration =>
             registration.Name == WorkerReadinessHealthCheck.ReadinessServiceName);
 
@@ -47,6 +53,7 @@ public sealed class DiscoveryServiceTests
             mappings);
         Assert.Equal(HealthStatus.Healthy, liveness.Status);
         Assert.Equal(HealthStatus.Unhealthy, notReady.Status);
+        Assert.Equal(HealthStatus.Unhealthy, connectedButUnverified.Status);
         Assert.Equal(HealthStatus.Healthy, ready.Status);
         Assert.Equal("briosa.liveness", WorkerReadinessHealthCheck.LivenessServiceName);
         Assert.Equal("briosa.readiness", WorkerReadinessHealthCheck.ReadinessServiceName);
@@ -58,7 +65,8 @@ public sealed class DiscoveryServiceTests
         var service = new ServerDiscoveryService(
             new FakeWorkerStatusProvider(Snapshot(
                 WorkerLifecycleState.Ready,
-                WorkerConnectionState.Connected)),
+                WorkerConnectionState.Connected,
+                WorkerExecutionReadinessState.ExecutionReady)),
             new FakeBuildIdentityProvider(),
             CreatePolicy());
 
@@ -71,11 +79,36 @@ public sealed class DiscoveryServiceTests
         Assert.Equal(
             SpatialAnalyzerConnectionState.Connected,
             response.SpatialAnalyzerConnectionState);
+        Assert.Equal(
+            SpatialAnalyzerExecutionReadinessState.ExecutionReady,
+            response.SpatialAnalyzerExecutionReadinessState);
         Assert.True(response.ReadyForMp);
         Assert.False(response.HasConnectedSpatialAnalyzerVersion);
         Assert.Equal(
             ConnectedSpatialAnalyzerVersionState.Unavailable,
             response.ConnectedSpatialAnalyzerVersionState);
+    }
+
+    [Fact]
+    public void ServerInfoSeparatesConfiguredTargetAttachmentAndExecutionVerification()
+    {
+        var response = new ServerDiscoveryService(
+            new FakeWorkerStatusProvider(Snapshot(
+                WorkerLifecycleState.Ready,
+                WorkerConnectionState.Connected,
+                WorkerExecutionReadinessState.Unverified)),
+            new FakeBuildIdentityProvider(),
+            CreatePolicy())
+            .CreateServerInfo();
+
+        Assert.Equal("2026.1.0529.7", response.Version.SpatialAnalyzerTarget);
+        Assert.Equal(
+            SpatialAnalyzerConnectionState.Connected,
+            response.SpatialAnalyzerConnectionState);
+        Assert.Equal(
+            SpatialAnalyzerExecutionReadinessState.Unverified,
+            response.SpatialAnalyzerExecutionReadinessState);
+        Assert.False(response.ReadyForMp);
     }
 
     [Fact]
@@ -153,7 +186,9 @@ public sealed class DiscoveryServiceTests
     }
     private static WorkerLifecycleSnapshot Snapshot(
         WorkerLifecycleState workerState,
-        WorkerConnectionState? connectionState) =>
+        WorkerConnectionState? connectionState,
+        WorkerExecutionReadinessState executionReadinessState =
+            WorkerExecutionReadinessState.Unverified) =>
         new(
             workerState,
             Generation: 2,
@@ -165,7 +200,7 @@ public sealed class DiscoveryServiceTests
                 ? null
                 : new WorkerConnectionSnapshot(
                     connectionState.Value,
-                    "sensitive-hostname",
+                    executionReadinessState,
                     StatusCode: 42,
                     Attempt: 1,
                     MaximumAttempts: 3,

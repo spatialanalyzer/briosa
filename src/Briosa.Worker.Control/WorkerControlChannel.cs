@@ -13,6 +13,7 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
         {
             new JsonStringEnumConverter<WorkerControlMessageKind>(JsonNamingPolicy.CamelCase),
             new JsonStringEnumConverter<WorkerConnectionState>(JsonNamingPolicy.CamelCase),
+            new JsonStringEnumConverter<WorkerExecutionReadinessState>(JsonNamingPolicy.CamelCase),
             new JsonStringEnumConverter<WorkerMpValueKind>(JsonNamingPolicy.CamelCase),
             new JsonStringEnumConverter<WorkerAngularUnitValue>(JsonNamingPolicy.CamelCase),
             new JsonStringEnumConverter<WorkerDistanceUnitValue>(JsonNamingPolicy.CamelCase),
@@ -130,6 +131,11 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
                 "A worker ready message requires a process identifier and connection snapshot.");
         }
 
+        if (message.Connection is not null)
+        {
+            ValidateConnection(message.Connection);
+        }
+
         if (message.Kind == WorkerControlMessageKind.Execute)
         {
             ValidateCommand(message.Command);
@@ -138,6 +144,33 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
         if (message.Kind == WorkerControlMessageKind.ExecutionResult)
         {
             ValidateExecutionResponse(message.ExecutionResponse);
+        }
+
+        if (message.Kind == WorkerControlMessageKind.ExecutionVerificationResult &&
+            (message.Connection is null ||
+                message.Connection.State != WorkerConnectionState.Connected ||
+                message.Connection.ExecutionReadinessState is not
+                    (WorkerExecutionReadinessState.ExecutionReady or
+                        WorkerExecutionReadinessState.OperatorRecoveryRequired)))
+        {
+            throw new InvalidDataException(
+                "An execution-verification result requires a connection snapshot.");
+        }
+    }
+
+    private static void ValidateConnection(WorkerConnectionSnapshot connection)
+    {
+        if (!Enum.IsDefined(connection.State) ||
+            !Enum.IsDefined(connection.ExecutionReadinessState) ||
+            connection.Attempt < 0 ||
+            connection.MaximumAttempts < 1 ||
+            connection.Attempt > connection.MaximumAttempts ||
+            string.IsNullOrWhiteSpace(connection.DiagnosticCode) ||
+            connection.State != WorkerConnectionState.Connected &&
+            connection.ExecutionReadinessState != WorkerExecutionReadinessState.Unverified)
+        {
+            throw new InvalidDataException(
+                "The worker connection snapshot has an invalid state or shape.");
         }
     }
 
@@ -392,5 +425,7 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
             throw new InvalidDataException(
                 "The worker execution-result message has an invalid response shape.");
         }
+
+        ValidateConnection(response.Connection);
     }
 }

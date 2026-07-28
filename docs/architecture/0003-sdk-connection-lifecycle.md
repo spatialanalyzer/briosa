@@ -22,9 +22,11 @@ Each worker owns one `SdkConnectionManager` with an immutable target host.
 - Work is accepted only while the manager is `Connected`. Every other state returns the typed `Unavailable` outcome and stable diagnostic code `sdk-connection-not-ready`.
 - Worker control protocol version 2 includes the connection snapshot in the process-ready envelope. A worker can therefore be control-ready while its SDK connection is faulted; these conditions are not conflated.
 
+[ADR 0017](0017-execution-channel-readiness.md) supersedes the three-attempt and connected-admission details above. Production now makes one attempt until exact status codes receive a reviewed transient classification, preserves `Connected` as attachment state, and requires the separate execution-verification state to be `ExecutionReady` before admitting ordinary work.
+
 ## Diagnostics and data handling
 
-Connection snapshots contain only state, configured target host, `ConnectEx` status code, attempt counters, transition time, and a curated diagnostic code. Exception messages and SDK implementation details do not cross the worker boundary or enter default logs.
+The worker-internal owner retains its configured target host, but the host-facing connection snapshot contains only attachment and execution-readiness states, `ConnectEx` status code, attempt counters, transition time, and a curated diagnostic code. The hostname, probe output, exception messages, and SDK implementation details do not cross the worker boundary or enter default logs.
 
 ## Testing
 

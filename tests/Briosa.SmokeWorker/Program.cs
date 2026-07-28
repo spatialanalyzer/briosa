@@ -33,7 +33,9 @@ internal static class SmokeWorkerProgram
             using var channel = new WorkerControlChannel(pipe, leaveOpen: true);
             channel.Send(WorkerControlMessage.Ready(
                 Environment.ProcessId,
-                ConnectionSnapshot(options.Scenario)));
+                ConnectionSnapshot(
+                    options.Scenario,
+                    WorkerExecutionReadinessState.Unverified)));
             var executionCount = 0;
 
             while (true)
@@ -41,6 +43,15 @@ internal static class SmokeWorkerProgram
                 var message = channel.Receive();
                 switch (message.Kind)
                 {
+                    case WorkerControlMessageKind.VerifyExecution:
+                        channel.Send(WorkerControlMessage.ExecutionVerificationResult(
+                            message.CorrelationId,
+                            ConnectionSnapshot(
+                                options.Scenario,
+                                options.Scenario == SmokeWorkerScenario.Disconnected
+                                    ? WorkerExecutionReadinessState.Unverified
+                                    : WorkerExecutionReadinessState.ExecutionReady)));
+                        break;
                     case WorkerControlMessageKind.Ping:
                         channel.Send(WorkerControlMessage.Pong(message.CorrelationId));
                         break;
@@ -75,7 +86,9 @@ internal static class SmokeWorkerProgram
                 new WorkerExecutionResponse(
                     WorkerExecutionResponseStatus.Unavailable,
                     Execution: null,
-                    ConnectionSnapshot(options.Scenario),
+                    ConnectionSnapshot(
+                        options.Scenario,
+                        WorkerExecutionReadinessState.Unverified),
                     "sdk-connection-not-ready")));
             return;
         }
@@ -120,17 +133,20 @@ internal static class SmokeWorkerProgram
                     DurationMilliseconds: 5,
                     outputs,
                     diagnosticCode),
-                ConnectionSnapshot(options.Scenario),
+                ConnectionSnapshot(
+                    options.Scenario,
+                    WorkerExecutionReadinessState.ExecutionReady),
                 DiagnosticCode: null)));
     }
 
     private static WorkerConnectionSnapshot ConnectionSnapshot(
-        SmokeWorkerScenario scenario)
+        SmokeWorkerScenario scenario,
+        WorkerExecutionReadinessState readinessState)
     {
         var connected = scenario != SmokeWorkerScenario.Disconnected;
         return new WorkerConnectionSnapshot(
             connected ? WorkerConnectionState.Connected : WorkerConnectionState.Faulted,
-            "localhost",
+            readinessState,
             StatusCode: connected ? 0 : -1,
             Attempt: 1,
             MaximumAttempts: 1,

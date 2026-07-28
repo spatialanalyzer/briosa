@@ -46,6 +46,8 @@ internal sealed class ServerDiscoveryService(
             Version = _buildIdentity.CreateVersionCoordinates(),
             WorkerState = ToProtocolState(snapshot.State),
             SpatialAnalyzerConnectionState = ToProtocolState(snapshot.Connection?.State),
+            SpatialAnalyzerExecutionReadinessState =
+                ToProtocolState(snapshot.Connection?.ExecutionReadinessState),
             ReadyForMp = WorkerReadinessHealthCheck.IsReady(snapshot),
             ConnectedSpatialAnalyzerVersionState =
                 CoreProtocol.ConnectedSpatialAnalyzerVersionState.Unavailable
@@ -104,5 +106,22 @@ internal sealed class ServerDiscoveryService(
             WorkerConnectionState.Stopping =>
                 CoreProtocol.SpatialAnalyzerConnectionState.Stopping,
             _ => CoreProtocol.SpatialAnalyzerConnectionState.Unspecified
+        };
+
+    private static CoreProtocol.SpatialAnalyzerExecutionReadinessState ToProtocolState(
+        WorkerExecutionReadinessState? state) =>
+        state switch
+        {
+            WorkerExecutionReadinessState.Unverified =>
+                CoreProtocol.SpatialAnalyzerExecutionReadinessState.Unverified,
+            WorkerExecutionReadinessState.Verifying =>
+                CoreProtocol.SpatialAnalyzerExecutionReadinessState.Verifying,
+            WorkerExecutionReadinessState.ExecutionReady =>
+                CoreProtocol.SpatialAnalyzerExecutionReadinessState.ExecutionReady,
+            WorkerExecutionReadinessState.CompetingClientSuspected =>
+                CoreProtocol.SpatialAnalyzerExecutionReadinessState.CompetingClientSuspected,
+            WorkerExecutionReadinessState.OperatorRecoveryRequired =>
+                CoreProtocol.SpatialAnalyzerExecutionReadinessState.OperatorRecoveryRequired,
+            _ => CoreProtocol.SpatialAnalyzerExecutionReadinessState.Unspecified
         };
 }

@@ -9,6 +9,20 @@ namespace Briosa.Worker.Sdk;
 internal sealed class SdkConnectionManager : IAsyncDisposable
 {
     internal const string NotReadyDiagnosticCode = "sdk-connection-not-ready";
+    internal const string VerificationOperationId =
+        "file_operations.get_working_directory";
+    internal const string VerificationStepName = "Get Working Directory";
+    internal const string VerificationOutputName = "Directory";
+    internal const string VerificationOutputBinding = "GetStringArg";
+
+    private static readonly SdkCommand VerificationCommand = new(
+        VerificationOperationId,
+        VerificationStepName,
+        inputArguments: [],
+        [new SdkOutputArgument(
+            VerificationOutputName,
+            SdkValueKind.Text,
+            VerificationOutputBinding)]);
 
     [SuppressMessage(
         "Usage",
@@ -131,18 +145,20 @@ internal sealed class SdkConnectionManager : IAsyncDisposable
                         SdkConnectionState.Connected,
                         result.StatusCode,
                         attempt,
-                        result.DiagnosticCode ?? "connect-ex-connected");
+                        result.DiagnosticCode ?? "connect-ex-connected",
+                        SdkExecutionReadinessState.Unverified);
                     return Current;
                 }
 
                 var failureCode = result.DiagnosticCode ?? "connect-ex-unavailable";
-                if (attempt == _policy.MaximumAttempts)
+                if (attempt == _policy.MaximumAttempts || !_policy.ShouldRetry(result))
                 {
                     Transition(
                         SdkConnectionState.Faulted,
                         result.StatusCode,
                         attempt,
-                        failureCode);
+                        failureCode,
+                        SdkExecutionReadinessState.Unverified);
                     return Current;
                 }
 
@@ -177,13 +193,82 @@ internal sealed class SdkConnectionManager : IAsyncDisposable
         }
     }
 
+    [SuppressMessage(
+        "Design",
+        "CA1031:Do not catch general exception types",
+        Justification = "A completed adapter failure is converted into a fail-closed verification outcome; process loss is supervised outside the worker.")]
+    public async Task<SdkConnectionSnapshot> VerifyExecutionAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var observed = Current;
+        if (observed.State != SdkConnectionState.Connected ||
+            observed.ExecutionReadinessState is
+                SdkExecutionReadinessState.ExecutionReady or
+                SdkExecutionReadinessState.OperatorRecoveryRequired)
+        {
+            return observed;
+        }
+
+        await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            observed = Current;
+            var executor = _executor;
+            if (executor is null)
+            {
+                return observed;
+            }
+
+            Transition(
+                SdkConnectionState.Connected,
+                observed.StatusCode,
+                observed.Attempt,
+                "execution-readiness-probe-started",
+                SdkExecutionReadinessState.Verifying);
+
+            SdkExecutionResult execution;
+            try
+            {
+                execution = await executor.ExecuteAsync(
+                    VerificationCommand,
+                    CancellationToken.None).ConfigureAwait(false);
+            }
+            catch (Exception)
+            {
+                Transition(
+                    SdkConnectionState.Connected,
+                    observed.StatusCode,
+                    observed.Attempt,
+                    "execution-readiness-probe-failed",
+                    SdkExecutionReadinessState.OperatorRecoveryRequired);
+                return Current;
+            }
+
+            var diagnosticCode = ClassifyVerification(execution);
+            Transition(
+                SdkConnectionState.Connected,
+                observed.StatusCode,
+                observed.Attempt,
+                diagnosticCode,
+                diagnosticCode == "execution-readiness-verified"
+                    ? SdkExecutionReadinessState.ExecutionReady
+                    : SdkExecutionReadinessState.OperatorRecoveryRequired);
+            return Current;
+        }
+        finally
+        {
+            _gate.Release();
+        }
+    }
+
     public async Task<SdkRequestResult> ExecuteAsync(
         SdkCommand command,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
         var observed = Current;
-        if (observed.State != SdkConnectionState.Connected)
+        if (observed.State != SdkConnectionState.Connected ||
+            observed.ExecutionReadinessState != SdkExecutionReadinessState.ExecutionReady)
         {
             return Unavailable(observed);
         }
@@ -256,7 +341,8 @@ internal sealed class SdkConnectionManager : IAsyncDisposable
         SdkConnectionState state,
         int? statusCode,
         int attempt,
-        string diagnosticCode)
+        string diagnosticCode,
+        SdkExecutionReadinessState? executionReadinessState = null)
     {
         var snapshot = new SdkConnectionSnapshot(
             state,
@@ -265,11 +351,40 @@ internal sealed class SdkConnectionManager : IAsyncDisposable
             attempt,
             _policy.MaximumAttempts,
             diagnosticCode,
-            _timeProvider.GetUtcNow());
+            _timeProvider.GetUtcNow(),
+            executionReadinessState ?? Current.ExecutionReadinessState);
         lock (_historyLock)
         {
             _current = snapshot;
             _history.Add(snapshot);
         }
+    }
+
+    private static string ClassifyVerification(SdkExecutionResult execution)
+    {
+        if (!execution.ExecuteStepReturned)
+        {
+            return "execution-readiness-probe-rejected";
+        }
+
+        if (!execution.MpResult.Retrieved ||
+            !execution.MpResult.Succeeded ||
+            execution.MpResult.ResultCode != 2)
+        {
+            return "execution-readiness-probe-mp-failed";
+        }
+
+        var output = execution.OutputValues.Count == 1
+            ? execution.OutputValues[0]
+            : null;
+        return output is
+        {
+            Name: VerificationOutputName,
+            Kind: SdkValueKind.Text,
+            Retrieved: true,
+            StringValue: not null
+        }
+                ? "execution-readiness-verified"
+                : "execution-readiness-probe-output-invalid";
     }
 }

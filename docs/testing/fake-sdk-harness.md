@@ -1,12 +1,14 @@
 # Fake SDK and contract-test harness
 
-The portable worker tests use a scripted adapter instead of installing, starting, or licensing SpatialAnalyzer. The harness exists to verify Briosa''s own worker contracts: lifecycle ownership, STA affinity, serialization, result-only argument retrieval, result preservation, and recovery policy seams.
+The portable worker tests use a scripted adapter instead of installing, starting, or licensing SpatialAnalyzer. The harness exists to verify Briosa's own worker contracts: lifecycle ownership, STA affinity, serialization, result-only argument retrieval, result preservation, and recovery policy seams.
 
 ## Boundary under test
 
 `ISpatialAnalyzerSdk` is an internal, synchronous worker-boundary contract. It uses Briosa-owned command and outcome types and exposes no COM types. `SerializedSdkExecutor` creates and disposes one adapter on a dedicated STA thread and sends all connection and command work through a single-consumer queue.
 
-`SdkConnectionManager` owns at most one active executor, models connection transitions, applies a bounded attempt policy, and returns `sdk-connection-not-ready` without entering the adapter unless its state is `Connected`. Concurrent connection callers share the same owner rather than creating additional SDK clients. This is the implemented v0.1 attachment contract; [ADR 0017](../architecture/0017-execution-channel-readiness.md) and issue [#91](https://github.com/spatialanalyzer/briosa/issues/91) require an additional bounded execution probe and quarantine states before the v0.2 surface treats the connection as ready.
+`SdkConnectionManager` owns at most one active executor and models SDK attachment independently from execution verification. A successful `ConnectEx` remains `Unverified`; ordinary commands return `sdk-connection-not-ready` without entering the adapter until the dedicated Get Working Directory probe succeeds on the same STA. The probe result path is discarded before the worker replies. Unknown connection statuses and activation failures are not retried; only status codes in an explicit reviewed transient set can consume a larger attempt budget.
+
+The production supervisor bounds the probe with its process watchdog. A probe hang, cancellation, crash, or lost response terminates the worker, records competing-client suspicion, and ends in operator-required recovery without automatically launching another generation. Portable process tests exercise explicit recovery after that quarantine.
 
 Cancellation can stop a caller from entering the owner or waiting through a retry delay, but it does not claim to cancel a synchronous SDK call that has already started. The production watchdog recovers availability by replacing the worker process. It does not prove whether an in-flight command completed or make replay safe; [ADR 0018](../architecture/0018-uncertain-completion-and-replay.md) defines the required execution disposition and replay contract.
 
@@ -16,15 +18,17 @@ The reusable `Briosa.Worker.Testing` assembly provides deterministic scripts for
 
 | Behavior | Contract exercised |
 | --- | --- |
-| Success | Connected execution, a successful MP result, and typed result-only arguments |
+| Success | Attached-but-unverified, successful redacted verification, connected execution, a successful MP result, and typed result-only arguments |
+| Probe rejection | `ExecuteStep` rejection fails closed before ordinary commands are admitted |
+| Malformed probe output | MP success without the exact expected output shape requires operator recovery |
 | MP-result retrieval failure | `GetMPStepResult` may return false, leaving no trustworthy numeric result |
 | MP failure | `ExecuteStep` may return true while a retrieved MP result code other than `2` reports failure |
 | Connection failure | `ConnectEx` availability and status remain distinct from command outcomes |
 | Delayed connection | Connecting state rejects work while concurrent callers share one adapter |
-| Bounded reconnect | Attempt exhaustion faults deterministically; a new explicit cycle has the same bound |
+| Status-aware reconnect | Unknown statuses fail closed after one attempt; only reviewed transient statuses consume the configured bound |
 | Delay | A blocked command keeps later commands from entering the adapter |
-| Hang | The watchdog reports a timeout and the supervisor seam replaces the worker |
-| Crash | Abrupt worker loss is reported separately and followed by replacement |
+| Hang | Ordinary execution uses replacement policy; a verification hang quarantines without reconnecting |
+| Crash | Ordinary execution uses replacement policy; loss during verification requires explicit recovery |
 
 The watchdog and supervisor types in this test-support assembly remain lightweight harness seams. `Briosa.Server.Tests` exercises the production process queue, private execution transport, mixed output-value round trips, caller cancellation, watchdog, crash recovery, and MP-result preservation described in [ADR 0004](../architecture/0004-mp-execution-pipeline.md).
 

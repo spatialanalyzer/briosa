@@ -2,7 +2,7 @@ namespace Briosa.Worker.Control;
 
 public static class WorkerControlProtocol
 {
-    public const int CurrentVersion = 9;
+    public const int CurrentVersion = 10;
 
     public const int MaximumMessageBytes = 64 * 1024;
 }
@@ -16,7 +16,9 @@ public enum WorkerControlMessageKind
     Stop,
     Stopped,
     Execute,
-    ExecutionResult
+    ExecutionResult,
+    VerifyExecution,
+    ExecutionVerificationResult
 }
 
 public enum WorkerMpValueKind
@@ -226,9 +228,18 @@ public enum WorkerConnectionState
     Stopping
 }
 
+public enum WorkerExecutionReadinessState
+{
+    Unverified,
+    Verifying,
+    ExecutionReady,
+    CompetingClientSuspected,
+    OperatorRecoveryRequired
+}
+
 public sealed record WorkerConnectionSnapshot(
     WorkerConnectionState State,
-    string TargetHost,
+    WorkerExecutionReadinessState ExecutionReadinessState,
     int? StatusCode,
     int Attempt,
     int MaximumAttempts,
@@ -453,6 +464,21 @@ public sealed record WorkerControlMessage(
 
     public static WorkerControlMessage Stopped(Guid correlationId) =>
         new(WorkerControlProtocol.CurrentVersion, WorkerControlMessageKind.Stopped, correlationId);
+
+    public static WorkerControlMessage VerifyExecution(Guid correlationId) =>
+        new(
+            WorkerControlProtocol.CurrentVersion,
+            WorkerControlMessageKind.VerifyExecution,
+            correlationId);
+
+    public static WorkerControlMessage ExecutionVerificationResult(
+        Guid correlationId,
+        WorkerConnectionSnapshot connection) =>
+        new(
+            WorkerControlProtocol.CurrentVersion,
+            WorkerControlMessageKind.ExecutionVerificationResult,
+            correlationId,
+            Connection: connection ?? throw new ArgumentNullException(nameof(connection)));
 
     public static WorkerControlMessage Execute(Guid correlationId, WorkerMpCommand command) =>
         new(

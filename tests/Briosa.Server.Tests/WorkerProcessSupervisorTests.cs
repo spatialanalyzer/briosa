@@ -24,7 +24,9 @@ public sealed class WorkerProcessSupervisorTests
             Assert.Equal(WorkerLifecycleState.Ready, ready.State);
             Assert.True(ready.ProcessId > 0);
             Assert.Equal(WorkerConnectionState.Connected, ready.Connection!.State);
-            Assert.Equal("localhost", ready.Connection.TargetHost);
+            Assert.Equal(
+                WorkerExecutionReadinessState.ExecutionReady,
+                ready.Connection.ExecutionReadinessState);
             Assert.Equal(0, ready.Connection.StatusCode);
             Assert.Equal(WorkerLifecycleState.Stopped, supervisor.Current.State);
             Assert.Equal(WorkerTerminationKind.Graceful, supervisor.Current.LastTermination);
@@ -98,6 +100,128 @@ public sealed class WorkerProcessSupervisorTests
     }
 
     [Fact]
+    public async Task ExplicitRecoveryReplacesRuntimeLoopsAfterReplacementProbeQuarantine()
+    {
+        await using var supervisor = CreateSupervisor(
+            generation => CreateLaunch(generation switch
+            {
+                1 => "crash-on-ping",
+                2 => "hang-on-verify",
+                _ => "normal"
+            }),
+            CreatePolicy(),
+            CreateExecutionPolicy(TimeSpan.FromMilliseconds(150)));
+
+        Assert.True(await supervisor.StartAsync());
+        var quarantined = await WaitFor(
+            supervisor,
+            snapshot => snapshot.Generation == 2 &&
+                snapshot.Connection?.ExecutionReadinessState ==
+                    WorkerExecutionReadinessState.OperatorRecoveryRequired);
+
+        Assert.Equal(1, quarantined.RestartCount);
+        Assert.True(await supervisor.RecoverExecutionAsync());
+        var completed = await supervisor.ExecuteAsync(CreateCommand("after-recovery"));
+
+        Assert.Equal(3, supervisor.Current.Generation);
+        Assert.Equal(WorkerExecutionStatus.Completed, completed.Status);
+        Assert.Equal(3, completed.Generation);
+    }
+
+    [Theory]
+    [InlineData(
+        "hang-on-verify",
+        "Forced",
+        "execution-readiness-probe-timeout")]
+    [InlineData(
+        "crash-on-verify",
+        "Crash",
+        "execution-readiness-worker-exited")]
+    public async Task AmbiguousVerificationQuarantinesWithoutAutomaticRestart(
+        string firstScenario,
+        string expectedTermination,
+        string expectedDiagnosticCode)
+    {
+        await using var supervisor = CreateSupervisor(
+            generation => CreateLaunch(generation == 1 ? firstScenario : "normal"),
+            CreatePolicy(heartbeatInterval: TimeSpan.FromSeconds(10)),
+            CreateExecutionPolicy(TimeSpan.FromMilliseconds(150)));
+
+        Assert.False(await supervisor.StartAsync());
+        await Task.Delay(TimeSpan.FromMilliseconds(250));
+
+        Assert.Equal(1, supervisor.Current.Generation);
+        Assert.Equal(0, supervisor.Current.RestartCount);
+        Assert.Equal(WorkerLifecycleState.Degraded, supervisor.Current.State);
+        Assert.Equal(
+            Enum.Parse<WorkerTerminationKind>(expectedTermination),
+            supervisor.Current.LastTermination);
+        Assert.Equal(expectedDiagnosticCode, supervisor.Current.DiagnosticCode);
+        Assert.Equal(
+            WorkerExecutionReadinessState.OperatorRecoveryRequired,
+            supervisor.Current.Connection!.ExecutionReadinessState);
+        Assert.Contains(
+            supervisor.History,
+            snapshot => snapshot.Connection?.ExecutionReadinessState ==
+                WorkerExecutionReadinessState.CompetingClientSuspected);
+        Assert.Equal(
+            1,
+            supervisor.History.Count(snapshot =>
+                snapshot.DiagnosticCode == "worker-starting"));
+
+        Assert.True(await supervisor.RecoverExecutionAsync());
+        Assert.Equal(2, supervisor.Current.Generation);
+        Assert.Equal(
+            WorkerExecutionReadinessState.ExecutionReady,
+            supervisor.Current.Connection!.ExecutionReadinessState);
+    }
+
+    [Fact]
+    public async Task CompletedVerificationFailureRequiresExplicitRecoveryWithoutCompetingClaim()
+    {
+        await using var supervisor = CreateSupervisor(
+            generation => CreateLaunch(generation == 1 ? "reject-verify" : "normal"),
+            CreatePolicy(heartbeatInterval: TimeSpan.FromSeconds(10)));
+
+        Assert.False(await supervisor.StartAsync());
+
+        Assert.Equal(1, supervisor.Current.Generation);
+        Assert.Equal("execution-readiness-probe-mp-failed", supervisor.Current.DiagnosticCode);
+        Assert.Equal(
+            WorkerExecutionReadinessState.OperatorRecoveryRequired,
+            supervisor.Current.Connection!.ExecutionReadinessState);
+        Assert.DoesNotContain(
+            supervisor.History,
+            snapshot => snapshot.Connection?.ExecutionReadinessState ==
+                WorkerExecutionReadinessState.CompetingClientSuspected);
+        Assert.True(await supervisor.RecoverExecutionAsync());
+    }
+
+    [Fact]
+    public async Task CancellationDuringVerificationStillQuarantinesAmbiguousOwnership()
+    {
+        await using var supervisor = CreateSupervisor(
+            _ => CreateLaunch("hang-on-verify"),
+            CreatePolicy(heartbeatInterval: TimeSpan.FromSeconds(10)),
+            CreateExecutionPolicy(TimeSpan.FromSeconds(5)));
+        using var cancellation = new CancellationTokenSource();
+
+        var starting = supervisor.StartAsync(cancellation.Token);
+        _ = await WaitFor(
+            supervisor,
+            snapshot => snapshot.Connection?.ExecutionReadinessState ==
+                WorkerExecutionReadinessState.Verifying);
+        await cancellation.CancelAsync();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(
+            () => starting);
+
+        Assert.Equal("execution-readiness-probe-cancelled", supervisor.Current.DiagnosticCode);
+        Assert.Equal(
+            WorkerExecutionReadinessState.OperatorRecoveryRequired,
+            supervisor.Current.Connection!.ExecutionReadinessState);
+    }
+
+    [Fact]
     public async Task RestartBudgetStopsAnInfiniteCrashLoop()
     {
         await using var supervisor = CreateSupervisor(
@@ -115,7 +239,7 @@ public sealed class WorkerProcessSupervisorTests
         Assert.Equal(
             3,
             supervisor.History.Count(
-                snapshot => snapshot.State == WorkerLifecycleState.Starting));
+                snapshot => snapshot.DiagnosticCode == "worker-starting"));
 
         await supervisor.StopAsync();
         Assert.Equal(WorkerLifecycleState.Stopped, supervisor.Current.State);
@@ -358,7 +482,9 @@ public sealed class WorkerProcessSupervisorTests
         Assert.True(await supervisor.StartAsync());
         Assert.Equal(WorkerLifecycleState.Ready, supervisor.Current.State);
         Assert.Equal(WorkerConnectionState.Faulted, supervisor.Current.Connection!.State);
-        Assert.Equal("sa-lab", supervisor.Current.Connection.TargetHost);
+        Assert.Equal(
+            WorkerExecutionReadinessState.Unverified,
+            supervisor.Current.Connection.ExecutionReadinessState);
         Assert.Null(supervisor.Current.Connection.StatusCode);
         Assert.Equal(
             "sdk-client-activation-failed",

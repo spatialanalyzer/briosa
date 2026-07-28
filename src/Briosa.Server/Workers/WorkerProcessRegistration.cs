@@ -112,7 +112,9 @@ internal sealed partial class WorkerSupervisorHostedService(
         }
 
         var connection = _supervisor.Current.Connection!;
-        if (connection.State == WorkerConnectionState.Connected)
+        if (connection.State == WorkerConnectionState.Connected &&
+            connection.ExecutionReadinessState ==
+                WorkerExecutionReadinessState.ExecutionReady)
         {
             LogWorkerReady(
                 _supervisor.Current.Generation,
@@ -123,6 +125,7 @@ internal sealed partial class WorkerSupervisorHostedService(
             LogWorkerReadyWithoutSdk(
                 _supervisor.Current.Generation,
                 connection.State,
+                connection.ExecutionReadinessState,
                 connection.StatusCode,
                 connection.DiagnosticCode);
         }
@@ -146,10 +149,11 @@ internal sealed partial class WorkerSupervisorHostedService(
     [LoggerMessage(
         EventId = 1003,
         Level = LogLevel.Warning,
-        Message = "Briosa worker generation {Generation} is control-ready but its SDK connection is {ConnectionState}; ConnectEx status {StatusCode}, diagnostic {DiagnosticCode}.")]
+        Message = "Briosa worker generation {Generation} is control-ready but its SDK connection is {ConnectionState} with execution readiness {ExecutionReadinessState}; ConnectEx status {StatusCode}, diagnostic {DiagnosticCode}.")]
     private partial void LogWorkerReadyWithoutSdk(
         int generation,
         WorkerConnectionState connectionState,
+        WorkerExecutionReadinessState executionReadinessState,
         int? statusCode,
         string diagnosticCode);
 }
