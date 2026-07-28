@@ -1,6 +1,6 @@
 # Generated-client smoke testing
 
-Issue #18 validates the v0.1 vertical slice through a separate process that uses the generated .NET gRPC client. The smoke client crosses the packaged server's real loopback HTTP/2 boundary; it does not call server services in memory.
+Issue #18 validates the v0.1 vertical slice through a separate process that uses the generated .NET gRPC client. Issue #94 promotes its scenario matrix into the language-neutral `briosa.client.live.v1` fixture set consumed by every supported client. The smoke client crosses the packaged server's real loopback HTTP/2 boundary; it does not call server services in memory.
 
 The probe reports only compatibility coordinates, state enums, booleans, and stable failure classifications. It intentionally does not print the working directory or any other returned SpatialAnalyzer value.
 
@@ -17,7 +17,7 @@ Build a package and run all generated-client scenarios on an ordinary Windows x6
   -PackagePath artifacts/generated-client/briosa-0.1.0-test-sa-2026.1.0529.7-win-x64.zip
 ```
 
-These tests substitute the separate `Briosa.SmokeWorker.exe` process for the real SDK worker. They require neither SpatialAnalyzer nor a license and cover:
+These tests load `conformance/v1/live-scenarios.json` and substitute the separate `Briosa.SmokeWorker.exe` process for the real SDK worker. They require neither SpatialAnalyzer nor a license and cover:
 
 | Client scenario | Expected public behavior |
 | --- | --- |
@@ -32,6 +32,8 @@ These tests substitute the separate `Briosa.SmokeWorker.exe` process for the rea
 | Unsupported version | An RPC for an unavailable exact-target service returns `Unimplemented` |
 
 The fake worker's results, codes, delays, failures, and hangs are invented Briosa test inputs. They are not a SpatialAnalyzer emulator.
+
+`conformance/v1/operation-error-cases.json` adds value-free unsafe and unknown replay cases that the initial read-only live operation cannot produce. Client libraries use those cases to verify typed error adapters and must never authorize automatic replay.
 
 Adapter tests separately prove that a failed MP suppresses all result-only SDK getters and that a successful MP followed by a failed getter is preserved. Policy tests prove fail-closed configuration and rejection before worker startup. Error-mapper tests cover validation, policy denial, unsupported operation, disconnected SA, unavailable worker, cancellation, deadline, watchdog, worker failure, rejected `ExecuteStep`, MP failure, getter failure, and malformed result shapes.
 

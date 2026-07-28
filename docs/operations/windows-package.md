@@ -77,4 +77,4 @@ Run `./eng/Test-WindowsPackage.ps1 -Version 0.1.0-test` to build twice and verif
 
 ## Release production
 
-Pushing a tag such as `v0.1.0` runs the verified package build and publishes its ZIP, checksum, and provenance manifest to the corresponding GitHub Release. Manually dispatching the release workflow performs the same build and retains a workflow artifact, but never creates a GitHub Release.
+Pushing a tag such as `v0.1.0` runs the verified package build and publishes its ZIP, checksum, and provenance manifest to the corresponding GitHub Release. The same release also publishes the runtime-neutral protocol ZIP, checksum, and provenance manifest described in the [protocol artifact guide](protocol-artifacts.md). Manually dispatching the release workflow performs both verified builds and retains one workflow artifact containing all release assets, but never creates a GitHub Release.

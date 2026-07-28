@@ -74,6 +74,14 @@ See [the SDK binding registry guide](../docs/development/sdk-binding-registry.md
 
 ## Generated-client smoke tests
 
+Build and verify the runtime-neutral protocol artifact with:
+
+```powershell
+./eng/Test-ProtocolArtifact.ps1 -Version 0.2.0-test
+```
+
+The test performs two byte-reproducible builds, rebuilds the descriptor set from the bundled sources, checks all manifest and checksum identities, and validates the shared fixture sets.
+
 Run portable packaged-host success and failure scenarios without SpatialAnalyzer:
 
 ```powershell
