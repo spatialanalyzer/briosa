@@ -35,11 +35,11 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 | `not_applicable` | 683 |
 
 - Resolved arguments: 2508
-- Required inputs: 1756
-- Optional inputs: 250
+- Required inputs: 1521
+- Optional inputs: 485
 - Omitted SDK setters: 64
-- Reviewed catalog defaults: 186
-- Proposed defaults needing review: 536
+- Reviewed catalog defaults: 421
+- Proposed defaults needing review: 314
 - A generated SA 2026 VB value remains inactive review evidence unless a matching ObjectiveSA prior-release default corroborates it without an exact-target conflict.
 
 ## Categories
@@ -298,8 +298,6 @@ These values are evidence-backed proposals only. Their inputs continue to reject
 | AnalysisOperations / RelationshipAttributes | Enable/Disable Relationships for Optimization | Enable? | sa_2026_generated_vb=false |
 | AnalysisOperations / RelationshipAttributes | Set Geom Relationship Criteria | Show in Report | sa_2026_generated_vb=true |
 | AnalysisOperations / RelationshipAttributes | Set Geom Relationship Criteria | Tolerance Options | sa_2026_generated_vb=[false,0.0,false,0.0] |
-| AnalysisOperations / RelationshipAttributes | Set Geom Relationship Criteria | Optimization: Delta Weight | sa_2026_generated_vb=0.0 |
-| AnalysisOperations / RelationshipAttributes | Set Geom Relationship Criteria | Optimization: Out of Tolerance Weight | sa_2026_generated_vb=0.0 |
 | AnalysisOperations / RelationshipAttributes | Set Geom Relationship Nominal Geometry | Compare To Nominal? | sa_2026_generated_vb=true |
 | AnalysisOperations / RelationshipAttributes | Set Geom Relationship Nominal Avg Point | Compare To Nominal? | sa_2026_generated_vb=true |
 | AnalysisOperations / RelationshipAttributes | Set Geom Relationship Projection Plane | Project to Plane? | sa_2026_generated_vb=true |
@@ -310,7 +308,6 @@ These values are evidence-backed proposals only. Their inputs continue to reject
 | AnalysisOperations / RelationshipAttributes | Set Relationship Position Fit Constraints (Vector Type) | Position Vector Constraint | sa_2026_generated_vb=[true,0.0,true,0.0,true,0.0,false,0.0,true,0.0,true,0.0,true,0.0,false,0.0] |
 | AnalysisOperations / RelationshipAttributes | Set Relationship Projection Options | Projection Options | sa_2026_generated_vb=["Object To Probe Vectors",false,false,0.0,false,0.0] |
 | AnalysisOperations / RelationshipAttributes | Set Relationship Tolerance (Vector Type) | Vector Tolerance | sa_2026_generated_vb=[false,0.0,false,0.0,false,0.0,false,0.0,false,0.0,false,0.0,false,0.0,false,0.0] |
-| AnalysisOperations / RelationshipAttributes | Set Relationship Weights Normalized | Pick Weighting Mode | sa_2026_generated_vb="Normalize on equation count" |
 | AnalysisOperations / RelationshipAttributesScalarTypes | Set Object to Object Direction Relationship Fit Constraints | Angle Between Vectors Fit Constraints | sa_2026_generated_vb=[true,0.0,true,0.0] |
 | AnalysisOperations / RelationshipAttributesScalarTypes | Set Object to Object Direction Relationship Fit Constraints | Mutual Perpendicular Length Fit Constraints | sa_2026_generated_vb=[true,0.0,true,0.0] |
 | AnalysisOperations / RelationshipAttributesScalarTypes | Set Relationship Fit Constraints (Scalar Type) | Fit Constraint Options | sa_2026_generated_vb=[true,0.0,true,0.0] |
@@ -332,20 +329,8 @@ These values are evidence-backed proposals only. Their inputs continue to reject
 | AnalysisOperations | Temperature Compensate a group | Initial Temperature (F) | sa_2026_generated_vb=0.0 |
 | AnalysisOperations | Temperature Compensate a group | Final Temperature (F) | sa_2026_generated_vb=0.0 |
 | AnalysisOperations | Translate Objects by Delta | Delta Translation | sa_2026_generated_vb=[0.0,0.0,0.0] |
-| CloudMeshOps / CloudFilters | Filter Clouds to BSplines | Minimum Proximity | sa_2026_generated_vb=0.0 |
-| CloudMeshOps / CloudFilters | Filter Clouds to BSplines | Maximum Proximity | sa_2026_generated_vb=0.0 |
-| CloudMeshOps / CloudFilters | Filter Clouds to BSplines | Output Type | sa_2026_generated_vb="Points" |
-| CloudMeshOps / CloudFilters | Filter Clouds to Group | Proximity (0 for Closest Point only) | sa_2026_generated_vb=0.0 |
-| CloudMeshOps / CloudFilters | Filter Clouds to Group | Maximum Number of Points (0 for Unlimited) | sa_2026_generated_vb=0 |
-| CloudMeshOps / CloudFilters | Filter Clouds to Group | Output Type | sa_2026_generated_vb="Points" |
-| CloudMeshOps / CloudFilters | Filter Clouds to Line Segment | Minimum Proximity | sa_2026_generated_vb=0.0 |
-| CloudMeshOps / CloudFilters | Filter Clouds to Line Segment | Maximum Proximity | sa_2026_generated_vb=0.0 |
-| CloudMeshOps / CloudFilters | Filter Clouds to Line Segment | Output Type | sa_2026_generated_vb="Points" |
-| CloudMeshOps / CloudFilters | Filter Clouds to Plane | Proximity | sa_2026_generated_vb=0.0 |
-| CloudMeshOps / CloudFilters | Filter Clouds to Surface | Low Proximity | sa_2026_generated_vb=0.0 |
-| CloudMeshOps / CloudFilters | Filter Clouds to Surface | High Proximity | sa_2026_generated_vb=0.0 |
-| CloudMeshOps / CloudFilters | Filter Clouds to Surface | Skip Factor | sa_2026_generated_vb=0 |
-| CloudMeshOps / CloudFilters | Filter Clouds to Surface | Output Type | sa_2026_generated_vb="Points" |
+| CloudMeshOps / CloudFilters | Filter Clouds to Plane | Allowable Offset Dir | objectivesa_prior_release="Both" |
+| CloudMeshOps / CloudFilters | Filter Clouds to Plane | Output Type | objectivesa_prior_release="Points" |
 | CloudMeshOps / CloudFilters | Filter Clouds to Vector Groups - Resolve Clouds | Radial Cutoff | sa_2026_generated_vb=0.1 |
 | CloudMeshOps / CloudFilters | Filter Clouds to Vector Groups - Resolve Clouds | Lower Cutoff | sa_2026_generated_vb=-0.1 |
 | CloudMeshOps / CloudFilters | Filter Clouds to Vector Groups - Resolve Clouds | Upper Cutoff | sa_2026_generated_vb=0.1 |
@@ -382,40 +367,18 @@ These values are evidence-backed proposals only. Their inputs continue to reject
 | ConstructionOperations / Cylinders | Construct Cylinder From End Points | Cylinder End Point A (in working coordinates) | sa_2026_generated_vb=[0.0,0.0,0.0] |
 | ConstructionOperations / Cylinders | Construct Cylinder From End Points | Cylinder End Point B (in working coordinates) | sa_2026_generated_vb=[0.0,0.0,0.0] |
 | ConstructionOperations / Cylinders | Construct Cylinder From End Points | Cylinder Diameter | sa_2026_generated_vb=0.0 |
-| ConstructionOperations / Folders | Delete Folders by Wildcard | Case Sensitive Search | sa_2026_generated_vb=true |
-| ConstructionOperations / Folders | Delete Folders by Wildcard | Allow Deleting all Folders | sa_2026_generated_vb=false |
 | ConstructionOperations / Frames | Construct Frame, Known Origin, Object Direction, Object Direction | Known Point Value in New Frame | sa_2026_generated_vb=[0.0,0.0,0.0] |
 | ConstructionOperations / Frames | Construct Frame, 3 Planes | X Value on PLane | sa_2026_generated_vb=0.0 |
 | ConstructionOperations / Frames | Construct Frame, 3 Planes | Y Value on PLane | sa_2026_generated_vb=0.0 |
 | ConstructionOperations / Frames | Construct Frame, 3 Planes | Z Value on Plane | sa_2026_generated_vb=0.0 |
-| ConstructionOperations / Frames | Construct Mirror Cube Frame | Use Current Measurements Marked as Mirror Shots | sa_2026_generated_vb=true |
-| ConstructionOperations / Frames | Construct Mirror Cube Frame | Nominal Cube Face Angle | sa_2026_generated_vb=90.0 |
 | ConstructionOperations / Lines | Construct Line 2 Points (Vector Notation) | First Vector | sa_2026_generated_vb=[0.0,0.0,0.0] |
 | ConstructionOperations / Lines | Construct Line 2 Points (Vector Notation) | Second Vector | sa_2026_generated_vb=[0.0,0.0,0.0] |
 | ConstructionOperations / Lines | Construct Line From Instrument Shot | Observation Index | sa_2026_generated_vb=0 |
 | ConstructionOperations / Lines | Construct Line Normal to Object | Line Length | sa_2026_generated_vb=1.0 |
-| ConstructionOperations / OtherMPTypes | Add Collection Instruments to a Ref List - WildCard Selection | Collection Wildcard Criteria | sa_2026_generated_vb="*" |
-| ConstructionOperations / OtherMPTypes | Add Collection Instruments to a Ref List - WildCard Selection | Instrument Wildcard Criteria | sa_2026_generated_vb="*" |
-| ConstructionOperations / OtherMPTypes | Make a Collection Object Name - Ensure Unique | Use Number Suffix? | sa_2026_generated_vb=false |
 | ConstructionOperations / OtherMPTypes | Make a Collection Object Name Ref List - By Type and Color | Object Type | sa_2026_generated_vb="Any" |
 | ConstructionOperations / OtherMPTypes | Make a Collection Object Name Ref List - By Type and Color | Object Color | sa_2026_generated_vb=[255,0,0] |
-| ConstructionOperations / OtherMPTypes | Make a Collection Object Name Ref List - By Type | Object Type | sa_2026_generated_vb="Any" |
-| ConstructionOperations / OtherMPTypes | Make a Collection Object Name Reference List - WildCard Selection | Collection Wildcard Criteria | sa_2026_generated_vb="*" |
-| ConstructionOperations / OtherMPTypes | Make a Collection Object Name Reference List - WildCard Selection | Object Wildcard Criteria | sa_2026_generated_vb="*" |
-| ConstructionOperations / OtherMPTypes | Make a Collection Object Name Reference List - WildCard Selection | Object Type | sa_2026_generated_vb="Any" |
-| ConstructionOperations / OtherMPTypes | Make a Point Name - Ensure Unique | Use Number Suffix? | sa_2026_generated_vb=false |
-| ConstructionOperations / OtherMPTypes | Make a Point Name Ref List - Wildcard Select | Collection Wildcard Criteria | sa_2026_generated_vb="*" |
-| ConstructionOperations / OtherMPTypes | Make a Point Name Ref List - Wildcard Select | Group Name Wildcard Criteria | sa_2026_generated_vb="*" |
-| ConstructionOperations / OtherMPTypes | Make a Point Name Ref List - Wildcard Select | Point Name Wildcard Criteria | sa_2026_generated_vb="*" |
-| ConstructionOperations / OtherMPTypes | Make an Event Reference List-Wildcard Selection | Collection Wildcard Criteria | sa_2026_generated_vb="*" |
-| ConstructionOperations / OtherMPTypes | Make an Event Reference List-Wildcard Selection | Event Wildcard Criteria | sa_2026_generated_vb="*" |
-| ConstructionOperations / Perimeters | Construct Perimeter From Points | Open Perimeter? | sa_2026_generated_vb=false |
-| ConstructionOperations / Planes | Construct Plane, Normal to Object, Through Point | Plane Edge Dimension | sa_2026_generated_vb=0.0 |
 | ConstructionOperations / Planes | Construct Plane | Plane Center (in working coordinates) | sa_2026_generated_vb=[0.0,0.0,0.0] |
 | ConstructionOperations / Planes | Construct Plane | Plane Normal (in working coordinates) | sa_2026_generated_vb=[0.0,0.0,0.0] |
-| ConstructionOperations / Planes | Construct Plane | Plane Edge Dimension | sa_2026_generated_vb=0.0 |
-| ConstructionOperations / Planes | Shift Plane | Shift Along Normal | sa_2026_generated_vb=0.0 |
-| ConstructionOperations / Planes | Shift Plane | Grow Bounds by Factor | sa_2026_generated_vb=0.0 |
 | ConstructionOperations / PointClouds | Construct Cross Section Cloud | Cylindrical Cross Section Mode? | sa_2026_generated_vb=false |
 | ConstructionOperations / PointClouds | Construct Cross Section Cloud | Start Distance | sa_2026_generated_vb=0.0 |
 | ConstructionOperations / PointClouds | Construct Cross Section Cloud | Section Spacing | sa_2026_generated_vb=0.0 |
@@ -425,37 +388,13 @@ These values are evidence-backed proposals only. Their inputs continue to reject
 | ConstructionOperations / PointClouds | Construct Cross Section Cloud | Radius Limit | sa_2026_generated_vb=0.0 |
 | ConstructionOperations / PointClouds | Construct Cross Section Cloud | Project to Reference Surface | sa_2026_generated_vb=false |
 | ConstructionOperations / PointClouds | Construct Cross Section Cloud | Cloud Thinning Settings | sa_2026_generated_vb=["Nth Point",5,100,20000] |
-| ConstructionOperations / PointClouds | Construct Cross Section Cloud | Update Existing Cloud | sa_2026_generated_vb=false |
-| ConstructionOperations / PointClouds | Construct Point Cloud Limiting Probing Directions | Acceptance Angle | sa_2026_generated_vb=30.0 |
-| ConstructionOperations / PointClouds | Construct Point Cloud Limiting Probing Directions | Hide Source Cloud | sa_2026_generated_vb=false |
-| ConstructionOperations / PointClouds | Construct Point Clouds from Existing Clouds - Uniform Spacing | Desired Point Spacing | sa_2026_generated_vb=0.02 |
-| ConstructionOperations / PointClouds | Construct Point Clouds from Existing Clouds - Uniform Spacing | Minimum Points Per Output Point | sa_2026_generated_vb=3 |
-| ConstructionOperations / PointClouds | Extract Sphere Centers from Point Cloud | Desired Diameter | sa_2026_generated_vb=0.0 |
-| ConstructionOperations / PointClouds | Extract Sphere Centers from Point Cloud | Extraction Tolerance | sa_2026_generated_vb=0.0 |
-| ConstructionOperations / PointClouds | Extract Sphere Centers from Point Cloud | Minimum Point Count | sa_2026_generated_vb=50 |
-| ConstructionOperations / PointsandGroups | Average a set of Groups | RMS Tolerance (0.0 for none) | sa_2026_generated_vb=0.0 |
-| ConstructionOperations / PointsandGroups | Average a set of Groups | Maximum Absolute Tolerance (0.0 for none) | sa_2026_generated_vb=0.0 |
-| ConstructionOperations / PointsandGroups | Average a set of Groups | Maximum Average Tolerance (0.0 for none) | sa_2026_generated_vb=0.0 |
+| ConstructionOperations / PointClouds | Construct Point Clouds from Existing Clouds - Uniform Spacing | Desired Point Spacing | objectivesa_prior_release=0.2; sa_2026_generated_vb=0.02 |
 | ConstructionOperations / PointsandGroups | Construct a Point in Working Coordinates | Working Coordinates | sa_2026_generated_vb=[0.0,0.0,0.0] |
 | ConstructionOperations / PointsandGroups | Construct Point at Intersection of B-Spline and Surfaces | Approximation Tolerance | sa_2026_generated_vb=0.001 |
 | ConstructionOperations / PointsandGroups | Construct Point From Survey Target Center | Survey Target Type | sa_2026_generated_vb="Triangle" |
 | ConstructionOperations / PointsandGroups | Construct Point From Survey Target Center | Search Diameter | sa_2026_generated_vb=0.0 |
-| ConstructionOperations / PointsandGroups | Construct Point Group from Point Cloud | Point Prefix | sa_2026_generated_vb="pt" |
-| ConstructionOperations / PointsandGroups | Construct Point Group from Point Cloud | Starting Point Number | sa_2026_generated_vb=0 |
-| ConstructionOperations / PointsandGroups | Construct Point Group from Point Cloud | Point Offset | sa_2026_generated_vb=0.0 |
-| ConstructionOperations / PointsandGroups | Construct Point Group from Point Cloud | Sub-Sampling? | sa_2026_generated_vb=false |
-| ConstructionOperations / PointsandGroups | Construct Point Group from Point Cloud | Sub-Sampling Distance | sa_2026_generated_vb=0.5 |
-| ConstructionOperations / PointsandGroups | Construct Point Group from Point Cloud | Show Progress? | sa_2026_generated_vb=false |
 | ConstructionOperations / PointsandGroups | Construct Points Auto-Correspond 2 groups Inter-Point Distance | Auto-correspond same-point tolerance | sa_2026_generated_vb=0.1 |
 | ConstructionOperations / PointsandGroups | Construct Points Auto-Correspond 2 groups Proximity | Auto-correspond same-point tolerance | sa_2026_generated_vb=0.25 |
-| ConstructionOperations / PointsandGroups | Construct Points Cylindrically Shifted | Radial Shift | sa_2026_generated_vb=0.0 |
-| ConstructionOperations / PointsandGroups | Construct Points Cylindrically Shifted | Theta Shift (degrees) | sa_2026_generated_vb=0.0 |
-| ConstructionOperations / PointsandGroups | Construct Points Cylindrically Shifted | Planar Shift | sa_2026_generated_vb=0.0 |
-| ConstructionOperations / PointsandGroups | Construct Points From Surfaces On UV Grid | UV Point Group Base Name | sa_2026_generated_vb="UV Points" |
-| ConstructionOperations / PointsandGroups | Construct Points From Surfaces On UV Grid | Make Each Line Separate Group? | sa_2026_generated_vb=false |
-| ConstructionOperations / PointsandGroups | Construct Points From Surfaces On UV Grid | Number of U Grids | sa_2026_generated_vb=5 |
-| ConstructionOperations / PointsandGroups | Construct Points From Surfaces On UV Grid | Number of V Grids | sa_2026_generated_vb=5 |
-| ConstructionOperations / PointsandGroups | Construct Points From Surfaces On UV Grid | Edge Point Mode | sa_2026_generated_vb="Include Edges" |
 | ConstructionOperations / PointsandGroups | Construct Points Layout on Grid | Point Prefix | sa_2026_generated_vb="p" |
 | ConstructionOperations / PointsandGroups | Construct Points Layout on Grid | X Min | sa_2026_generated_vb=0.0 |
 | ConstructionOperations / PointsandGroups | Construct Points Layout on Grid | X Max | sa_2026_generated_vb=100.0 |
@@ -470,39 +409,22 @@ These values are evidence-backed proposals only. Their inputs continue to reject
 | ConstructionOperations / PointsandGroups | Construct Points Shifted in Working Frame | Shift Vector | sa_2026_generated_vb=[0.0,0.0,0.0] |
 | ConstructionOperations / PointsandGroups | Construct Points Spaced at a Distance on Curves | Distance Between Points | sa_2026_generated_vb=0.5 |
 | ConstructionOperations / PointsandGroups | Construct Points Subset with Greatest Spacing | Subset Size | sa_2026_generated_vb=10 |
-| ConstructionOperations / PointsandGroups | Construct Points WildCard Selection | Include prior complete name | sa_2026_generated_vb=false |
 | ConstructionOperations / PointsandGroups | Create Hidden Point | Hidden Point Rod Index | sa_2026_generated_vb=0 |
 | ConstructionOperations / PointsandGroups | Create Hidden Point | Overwrite existing point? | sa_2026_generated_vb=false |
-| ConstructionOperations / PointsandGroups | Create Hidden Point Rod | A to B (Target to Target) Distance | sa_2026_generated_vb=0.0 |
-| ConstructionOperations / PointsandGroups | Create Hidden Point Rod | A to C (Target to Tip) Distance | sa_2026_generated_vb=0.0 |
-| ConstructionOperations / PointsandGroups | Create Hidden Point Rod | A to B Inter-point Tolerance (0.0 for none) | sa_2026_generated_vb=0.0 |
 | ConstructionOperations / PointsandGroups | Delete Hidden point Rod | Hidden Point Rod Index | sa_2026_generated_vb=0 |
-| ConstructionOperations / PointsandGroups | Get Gradient At Projected Point On Surface | Generate output vector lines? | sa_2026_generated_vb=false |
 | ConstructionOperations / PointsandGroups | Transform Points by Delta (About Working Frame) | Delta In Working Coordinates | sa_2026_generated_vb=[0.0,0.0,0.0] |
 | ConstructionOperations / Spheres | Construct Sphere | Sphere Center (in working coordinates) | sa_2026_generated_vb=[0.0,0.0,0.0] |
 | ConstructionOperations / Spheres | Construct Sphere | Sphere Radius | sa_2026_generated_vb=0.0 |
-| ConstructionOperations / Surfaces | Construct Surface by offsetting a surface | Surface offset | sa_2026_generated_vb=0.0 |
-| ConstructionOperations / Surfaces | Construct Surface by offsetting a surface | Hide original surface? | sa_2026_generated_vb=true |
-| ConstructionOperations / Surfaces | Construct Surface From a Collection of Surfaces | Hide Original Surfaces? | sa_2026_generated_vb=true |
-| ConstructionOperations / Surfaces | Construct Surface From a Collection of Surfaces | Delete Original Surfaces? | sa_2026_generated_vb=false |
-| ConstructionOperations / Surfaces | Construct Surface From a Collection of Surfaces | Enable Sewing Tolerance? | sa_2026_generated_vb=false |
-| ConstructionOperations / Surfaces | Construct Surface From a Collection of Surfaces | Sewing Tolerance | sa_2026_generated_vb=-1.0 |
-| ConstructionOperations / VectorGroups | Construct a Vector Group - Group to Group Compare | RMS Deviation Tolerance (0.0 for none) | sa_2026_generated_vb=0.0 |
-| ConstructionOperations / VectorGroups | Construct a Vector Group - Group to Group Compare | Max Absolute Deviation Tolerance (0.0 for none) | sa_2026_generated_vb=0.0 |
-| ConstructionOperations / VectorGroups | Construct a Vector Group - Group to Group Compare | Average Deviation Tolerance (0.0 for none) | sa_2026_generated_vb=0.0 |
 | ConstructionOperations / VectorGroups | Construct a Vector in Working Coordinates (Begin/Delta) | 'Begin' in Working Coordinates | sa_2026_generated_vb=[0.0,0.0,0.0] |
 | ConstructionOperations / VectorGroups | Construct a Vector in Working Coordinates (Begin/Delta) | 'Delta' in Working Coordinates | sa_2026_generated_vb=[0.0,0.0,0.0] |
-| ConstructionOperations / VectorGroups | Construct a Vector in Working Coordinates (Begin/Delta) | Is Magnitude Negative | sa_2026_generated_vb=false |
 | ConstructionOperations / VectorGroups | Construct a Vector in Working Coordinates (Begin/Direction/Mag.) | 'Begin' in Working Coordinates | sa_2026_generated_vb=[0.0,0.0,0.0] |
 | ConstructionOperations / VectorGroups | Construct a Vector in Working Coordinates (Begin/Direction/Mag.) | 'Direction' in Working Coordinates | sa_2026_generated_vb=[0.0,0.0,0.0] |
 | ConstructionOperations / VectorGroups | Construct a Vector in Working Coordinates (Begin/Direction/Mag.) | Signed Magnitude | sa_2026_generated_vb=0.0 |
 | Events | Get i-th Event From Event Ref List | Event Index | sa_2026_generated_vb=0 |
 | FileOperations / QDASFileExport | Get QDAS Catalog Entry Identifier | Font | sa_2026_generated_vb=["MS Shell Dlg",8,0,0,0] |
 | GDT | Feature Inspection Auto Filter | Feature Check Name List | objectivesa_prior_release=null |
-| GDT / GDTConstruct | Make a Feature Check Reference List - WildCard Selection | Collection Wildcard Criteria | sa_2026_generated_vb="*" |
-| GDT / GDTConstruct | Make a Feature Check Reference List - WildCard Selection | Feature Check Wildcard Criteria | sa_2026_generated_vb="*" |
-| GDT / GDTConstruct | Make GD&T Datum Annotation | Is Slot? | sa_2026_generated_vb=false |
-| GDT / GDTConstruct | Make GD&T Datum Annotation | Force Surface Feature? | sa_2026_generated_vb=false |
+| GDT / GDTConstruct | Make GD&T Datum Annotation | Auxiliary Object | objectivesa_prior_release=null |
+| GDT / GDTConstruct | Make GD&T Datum Annotation | Auxiliary Geometry Relationship | objectivesa_prior_release=null |
 | GDT | Set GD&T Extended Options | Use Extended Options | sa_2026_generated_vb=true |
 | GDT | Set GD&T Extended Options | Circle Extended Options | sa_2026_generated_vb="Least Squares" |
 | GDT | Set GD&T Extended Options | Cone Extended Options | sa_2026_generated_vb="Least Squares" |
@@ -520,88 +442,27 @@ These values are evidence-backed proposals only. Their inputs continue to reject
 | InstrumentOperations / APILadar | Set LADAR Auto Meas Sphere | Send Sphere? | sa_2026_generated_vb=false |
 | InstrumentOperations / APILadar | Set LADAR Auto Meas Sphere | Send Measured Cloud? | sa_2026_generated_vb=false |
 | InstrumentOperations | Add Nominal Point to TCP Fixture | Nominal Point Location | sa_2026_generated_vb=[0.0,0.0,0.0] |
-| InstrumentOperations | Add Nominal Point to TCP Fixture | Var XX | sa_2026_generated_vb=0.0 |
-| InstrumentOperations | Add Nominal Point to TCP Fixture | Var YY | sa_2026_generated_vb=0.0 |
-| InstrumentOperations | Add Nominal Point to TCP Fixture | Var ZZ | sa_2026_generated_vb=0.0 |
-| InstrumentOperations | Add Nominal Point to TCP Fixture | CoVar XY | sa_2026_generated_vb=0.0 |
-| InstrumentOperations | Add Nominal Point to TCP Fixture | CoVar XZ | sa_2026_generated_vb=0.0 |
-| InstrumentOperations | Add Nominal Point to TCP Fixture | CoVar YZ | sa_2026_generated_vb=0.0 |
-| InstrumentOperations / AdvancedInstrumentOperations | Set Instrument Axes | Number of Steps | sa_2026_generated_vb=0 |
-| InstrumentOperations | Auto-Correspond with Proximity Trigger | Point distance threshold | sa_2026_generated_vb=0.5 |
-| InstrumentOperations | Auto-Correspond with Proximity Trigger | Vector axis threshold | sa_2026_generated_vb=0.25 |
-| InstrumentOperations | Auto-Correspond with Proximity Trigger | Project results to nominal vector | sa_2026_generated_vb=false |
-| InstrumentOperations | Auto-Correspond with Proximity Trigger | Warbler ramp start zone distance | sa_2026_generated_vb=12.0 |
-| InstrumentOperations | Auto-Correspond with Proximity Trigger | Show Watch window on startup | sa_2026_generated_vb=false |
-| InstrumentOperations | Auto-Correspond with Proximity Trigger | Make unmeasured group when done | sa_2026_generated_vb=false |
-| InstrumentOperations | Auto-Correspond with Proximity Trigger | Measure each point only once | sa_2026_generated_vb=false |
-| InstrumentOperations | Auto-Measure Batch of Features | Wait for Complete | sa_2026_generated_vb=true |
-| InstrumentOperations | Auto Measure Points | Force use of existing group? | sa_2026_generated_vb=false |
-| InstrumentOperations | Auto Measure Points | Show complete dialog? | sa_2026_generated_vb=false |
-| InstrumentOperations | Auto Measure Points | Wait for Completion? | sa_2026_generated_vb=true |
-| InstrumentOperations | Auto Measure Points | Auto Start? | sa_2026_generated_vb=false |
-| InstrumentOperations | Auto-Measure Specified Geometry | Wait for Complete | sa_2026_generated_vb=false |
-| InstrumentOperations | Auto-Measure Vectors | Project Point to Vector | sa_2026_generated_vb=false |
-| InstrumentOperations | Auto-Measure Vectors | Angle Tolerance | sa_2026_generated_vb=0.0 |
-| InstrumentOperations | Auto-Measure Vectors | High Tolerance | sa_2026_generated_vb=0.0 |
-| InstrumentOperations | Auto-Measure Vectors | Low Tolerance | sa_2026_generated_vb=0.0 |
-| InstrumentOperations | Compute CTE Scale Factor | Material CTE (1/Deg F) | sa_2026_generated_vb=0.0 |
-| InstrumentOperations | Compute CTE Scale Factor | Initial Temperature (F) | sa_2026_generated_vb=0.0 |
-| InstrumentOperations | Compute CTE Scale Factor | Final Temperature (F) | sa_2026_generated_vb=0.0 |
-| InstrumentOperations | Configure and Measure | Measure Immediately | sa_2026_generated_vb=false |
-| InstrumentOperations | Configure and Measure | Wait for Completion | sa_2026_generated_vb=true |
-| InstrumentOperations | Configure and Measure | Timeout in Seconds | sa_2026_generated_vb=0.0 |
-| InstrumentOperations | Delete Instrument | Prompt user to confirm? | sa_2026_generated_vb=true |
-| InstrumentOperations | Delete Instrument | Keep resulting points? | sa_2026_generated_vb=true |
-| InstrumentOperations | Delete Measurement Observation | Observation index | sa_2026_generated_vb=0 |
-| InstrumentOperations | Delete Measurement Observation | Delete point if no measurements remain? | sa_2026_generated_vb=false |
-| InstrumentOperations | Delete Measurements | Delete point if no measurements remain? | sa_2026_generated_vb=false |
+| InstrumentOperations | Auto-Correspond with Proximity Trigger | Vector Group to make while Measuring (blank means ignore) | objectivesa_prior_release=null |
 | InstrumentOperations | Get Current Instrument Position Update | Reporting Frame | sa_2026_generated_vb="Instrument Base" |
-| InstrumentOperations | Get Current Instrument Position Update | Polar Coordinates? | sa_2026_generated_vb=false |
 | InstrumentOperations | Get Observation Info | Observation Index | sa_2026_generated_vb=0 |
-| InstrumentOperations | Initiate Servo-Guide | Tolerance | sa_2026_generated_vb=0.0 |
-| InstrumentOperations | Jump Instrument to New Location | Hide the Previous Instrument? | sa_2026_generated_vb=false |
-| InstrumentOperations | Locate Instrument (Group to Surface Quick Fit) | RMS Tolerance (0.0 for none) | sa_2026_generated_vb=0.0 |
-| InstrumentOperations | Locate Instrument (Group to Surface Quick Fit) | Maximum Absolute Tolerance (0.0 for none) | sa_2026_generated_vb=0.0 |
-| InstrumentOperations | Locate Instruments (USMN) | Move In Working Frame (TRUE) or Instrument Frame (FALSE) | sa_2026_generated_vb=false |
-| InstrumentOperations | Locate Instruments (USMN) | AutoReject Outliers and Resolve | sa_2026_generated_vb=false |
-| InstrumentOperations | Locate Instruments (USMN) | Max Acceptable RMS Error Value (0.0 for none) | sa_2026_generated_vb=0.0 |
-| InstrumentOperations | Locate Instruments (USMN) | Max Acceptable Error Value (0.0 for none) | sa_2026_generated_vb=0.0 |
-| InstrumentOperations | Locate Instruments (USMN) | Exclude Points Measured By Only One Instrument | sa_2026_generated_vb=false |
+| InstrumentOperations | Locate Instruments (USMN) | Show USMN Dialog | objectivesa_prior_release="On Tolerance Violation" |
+| InstrumentOperations | Locate Instruments (USMN) | Groups to be Excluded | objectivesa_prior_release=null |
 | InstrumentOperations | Move Measurement Observation | Observation index | sa_2026_generated_vb=0 |
 | InstrumentOperations | Move Measurement Observation | Delete point if no measurements remain? | sa_2026_generated_vb=false |
-| InstrumentOperations | Move Measurement Observation | Force observation to be active? | sa_2026_generated_vb=true |
 | InstrumentOperations / NikonMetrologyLaserRadar / CloudViewerOperations | Set Filter | Filter Value | sa_2026_generated_vb=0 |
 | InstrumentOperations / NikonMetrologyLaserRadar | LR APDIS Perform MCM Calibration | Use Matte Tooling Ball? | sa_2026_generated_vb=true |
 | InstrumentOperations / NikonMetrologyLaserRadar | LR Hardware Connect | Port | sa_2026_generated_vb=0 |
 | InstrumentOperations / NikonMetrologyLaserRadar | LR Self Test - LO Sep | Region (1=Region12,2=Region23,3=Region34) | sa_2026_generated_vb=0 |
 | InstrumentOperations / NikonMetrologyLaserRadar | LR Self Test - LO Sep | Num Range Measurements | sa_2026_generated_vb=0 |
-| InstrumentOperations / NikonMetrologyLaserRadar | LR Set Red Laser Intensity | Intensity (0-100) | sa_2026_generated_vb=0 |
-| InstrumentOperations | Quick Align | Align to Individual Faces Only (not Entire Surface) | sa_2026_generated_vb=false |
 | InstrumentOperations | Scan CAD Faces | Enable exclusions? | sa_2026_generated_vb=true |
 | InstrumentOperations | Scan CAD Faces | Wait for Completion | sa_2026_generated_vb=true |
-| InstrumentOperations | Scan within Perimeter | Wait for Completion | sa_2026_generated_vb=true |
-| InstrumentOperations | Set (absolute) Instrument Scale Factor (CAUTION!) | Scale Factor | sa_2026_generated_vb=0.0 |
 | InstrumentOperations | Set Instrument Interface Response Timeout | Timeout (secs) | sa_2026_generated_vb=0.0 |
-| InstrumentOperations | Set Instrument Transform | Number of Steps | sa_2026_generated_vb=0 |
-| InstrumentOperations | Set Instrument Weather Setting | Temperature (F) | sa_2026_generated_vb=0.0 |
-| InstrumentOperations | Set Instrument Weather Setting | Pressure (mmHg) | sa_2026_generated_vb=0.0 |
-| InstrumentOperations | Set Instrument Weather Setting | Humidity (%Rel) | sa_2026_generated_vb=0.0 |
-| InstrumentOperations | Set Instrument Weather Setting | Set Automatically? (Ignore above values) | sa_2026_generated_vb=false |
 | InstrumentOperations | Set Observation Status | Observation Index | sa_2026_generated_vb=0 |
 | InstrumentOperations | Set Observation Status | Active? | sa_2026_generated_vb=false |
 | InstrumentOperations | Set Probe Offset Frame Offline (Select Previously Measured Frame) | Face ID  | sa_2026_generated_vb=0 |
 | InstrumentOperations | Set Target Computation Options | Target Computation Method | sa_2026_generated_vb="Use most recent shot from each face" |
-| InstrumentOperations | Set Target Computation Options | Ignore Distance Measurements | sa_2026_generated_vb=false |
-| InstrumentOperations | Set (multiply) Instrument Scale Factor (CAUTION!) | Scale Factor | sa_2026_generated_vb=0.0 |
 | InstrumentOperations | Start Instrument Interface | Initialize at Startup | sa_2026_generated_vb=false |
-| InstrumentOperations | Start Instrument Interface | Interface Type (0=default) | sa_2026_generated_vb=0 |
-| InstrumentOperations | Start Instrument Interface | Run in Simulation | sa_2026_generated_vb=false |
-| InstrumentOperations | Start Instrument Interface | Allow Start w/o Init Requirements | sa_2026_generated_vb=false |
-| InstrumentOperations | Transform Instrument by Delta | Apply Scale from Transform to Instrument | sa_2026_generated_vb=false |
-| InstrumentOperations | Transform Instrument - Frame To Frame | Number of Steps | sa_2026_generated_vb=0 |
-| InstrumentOperations | Transform Multiple Instruments by Delta | Apply Scale from Transform to Instrument | sa_2026_generated_vb=false |
 | RelationshipOperations | Auto Filter Clouds to Nominal Geometry 2D | Cloud Thinning Settings | sa_2026_generated_vb=["Nth Point",5,100,20000] |
-| RelationshipOperations | Auto Filter Clouds to Nominal Geometry 2D | Geometry Extraction Tolerance | sa_2026_generated_vb=0.01 |
 | RelationshipOperations | Auto Filter Clouds to Nominal Geometry 2D | Use Feature Specific Filter Settings? | sa_2026_generated_vb=false |
 | RelationshipOperations | Auto Filter Clouds to Nominal Geometry 3D | Cloud Thinning Settings | sa_2026_generated_vb=["Nth Point",5,100,20000] |
 | RelationshipOperations | Auto Filter Clouds to Nominal Geometry 3D | Use Feature Specific Filter Settings? | sa_2026_generated_vb=false |
@@ -612,8 +473,6 @@ These values are evidence-backed proposals only. Their inputs continue to reject
 | RelationshipOperations | Extract Geometry From Point Clouds | Tolerance | sa_2026_generated_vb=0.1 |
 | RelationshipOperations | Extract Geometry From Point Clouds | Reverse Normal | sa_2026_generated_vb=false |
 | RelationshipOperations | Extract Geometry From Point Clouds | Planar Point Count | sa_2026_generated_vb=1000 |
-| RelationshipOperations | Filter Geometry Relationship Outlier Cloud Points | Sigma Threshold | sa_2026_generated_vb=3.0 |
-| RelationshipOperations | Filter Geometry Relationship Outlier Cloud Points | Modify Existing Input Clouds | sa_2026_generated_vb=false |
 | RelationshipOperations | Get i-th Relationship From Relationship Ref List | Relationship Index | sa_2026_generated_vb=0 |
 | RelationshipOperations | Make Dynamic Circle Relationship | Construction Mode | sa_2026_generated_vb="Cylinder and Plane Intersection - Hold Plane Normal" |
 | RelationshipOperations | Make Dynamic Ellipse Relationship | Construction Mode | sa_2026_generated_vb="Cylinder and Plane Intersection" |
@@ -628,14 +487,6 @@ These values are evidence-backed proposals only. Their inputs continue to reject
 | RelationshipOperations | Make Point to Point Relationship | Tolerance | objectivesa_prior_release=null; sa_2026_generated_vb=[false,0.0,false,0.0,false,0.0,false,0.0,false,0.0,false,0.0,false,0.0,false,0.0] |
 | RelationshipOperations | Make Point to Point Relationship | Constraint | objectivesa_prior_release=null; sa_2026_generated_vb=[true,0.0,true,0.0,true,0.0,false,0.0,true,0.0,true,0.0,true,0.0,false,0.0] |
 | RelationshipOperations | Make Points to Objects Relationship | Projection Options | sa_2026_generated_vb=["Object To Probe Vectors",false,false,0.0,false,0.0] |
-| ReportingOperations | Add Item to SA Report at Location | Page Number | sa_2026_generated_vb=0 |
-| ReportingOperations | Add Item to SA Report at Location | Horizontal Location | sa_2026_generated_vb=1.0 |
-| ReportingOperations | Add Item to SA Report at Location | Vertical Location | sa_2026_generated_vb=1.0 |
-| ReportingOperations | Add Item to SA Report at Location | Show Report? | sa_2026_generated_vb=false |
-| ReportingOperations | Append Items to SA Report | Show Report? | sa_2026_generated_vb=false |
-| ReportingOperations | Append Items to SA Report | Begin On New Page? | sa_2026_generated_vb=false |
-| ReportingOperations | Combine SA Reports | Show Report? | sa_2026_generated_vb=false |
-| ReportingOperations | Create Chart from Vector Group | Show Interface? | sa_2026_generated_vb=false |
 | ReportingOperations / CustomReportTables | Add Custom Table to SA Report | Show Report? | sa_2026_generated_vb=false |
 | ReportingOperations / CustomReportTables | Get Custom Table Cell Double | Row | sa_2026_generated_vb=0 |
 | ReportingOperations / CustomReportTables | Get Custom Table Cell Double | Column | sa_2026_generated_vb=0 |
@@ -649,30 +500,7 @@ These values are evidence-backed proposals only. Their inputs continue to reject
 | ReportingOperations / CustomReportTables | Set Custom Table Cell Font | Row | sa_2026_generated_vb=0 |
 | ReportingOperations / CustomReportTables | Set Custom Table Cell Font | Column | sa_2026_generated_vb=0 |
 | ReportingOperations / CustomReportTables | Set Custom Table Cell Font | Font | sa_2026_generated_vb=["MS Shell Dlg",8,0,0,0] |
-| ReportingOperations | Quick Report | Open Report? | sa_2026_generated_vb=true |
-| ReportingOperations | Rename Picture | Overwrite if exists? | sa_2026_generated_vb=false |
-| ReportingOperations / ReportBar | Add Charts to Report Bar | Clear Existing? | sa_2026_generated_vb=false |
-| ReportingOperations / ReportBar | Add Custom Tables to Report Bar | Clear Existing? | sa_2026_generated_vb=false |
-| ReportingOperations / ReportBar | Add Datums to Report Bar | Clear Existing? | sa_2026_generated_vb=false |
-| ReportingOperations / ReportBar | Add Events to Report Bar | Clear Existing? | sa_2026_generated_vb=false |
-| ReportingOperations / ReportBar | Add Feature Checks to Report Bar | Clear Existing? | sa_2026_generated_vb=false |
-| ReportingOperations / ReportBar | Add Objects to Report Bar | Clear Existing? | sa_2026_generated_vb=true |
-| ReportingOperations / ReportBar | Add Pictures to Report Bar | Clear Existing? | sa_2026_generated_vb=false |
-| ReportingOperations / ReportBar | Add Relationships to Report Bar | Clear Existing? | sa_2026_generated_vb=false |
 | ReportingOperations / ReportBar | Set Report Bar Visibility | Show Report Bar? | sa_2026_generated_vb=false |
-| ReportingOperations | Set Point Group Report Options | Coordinate System | sa_2026_generated_vb="Cartesian" |
-| ReportingOperations | Set Point Group Report Options | Show X Component | sa_2026_generated_vb=true |
-| ReportingOperations | Set Point Group Report Options | Show Y Component | sa_2026_generated_vb=true |
-| ReportingOperations | Set Point Group Report Options | Show Z Component | sa_2026_generated_vb=true |
-| ReportingOperations | Set Point Group Report Options | Show Offsets | sa_2026_generated_vb=false |
-| ReportingOperations | Set Point Group Report Options | Show Uncertainty | sa_2026_generated_vb=true |
-| ReportingOperations | Set Point Group Report Options | Show Notes | sa_2026_generated_vb=false |
-| ReportingOperations | Set Point Group Report Options | Show Measurements | sa_2026_generated_vb=false |
-| ReportingOperations | Set Point Group Report Options | Show Measurement Details | sa_2026_generated_vb=false |
-| ReportingOperations | Set Point Group Report Options | Show PointingError/Worst Angle | sa_2026_generated_vb=false |
-| ReportingOperations | Set Point Group Report Options | Sort by Point Names | sa_2026_generated_vb=true |
-| ReportingOperations | Set Point Group Report Options | Make Default | sa_2026_generated_vb=false |
-| ReportingOperations | Set Point Group Report Options | Apply to All | sa_2026_generated_vb=false |
 | ReportingOperations | Set Relationship Report Options | Report Options | sa_2026_generated_vb=["Cartesian","Single",true,true,true,true,true,true,true,false,true,true] |
 | ReportingOperations | Set Report Tag Value From Double | Tag Value | sa_2026_generated_vb=0.0 |
 | ReportingOperations | Set Report Tag Value From Integer | Tag Value | sa_2026_generated_vb=0 |
@@ -680,54 +508,28 @@ These values are evidence-backed proposals only. Their inputs continue to reject
 | ReportingOperations | Set Vector Group Report Options | Report Options | sa_2026_generated_vb=["Cartesian","Single",true,true,true,true,true,true,true,false,true,true] |
 | RobotOperations | Get Calibration Appliance Integer Value | Index Offset | sa_2026_generated_vb=0 |
 | RobotOperations | Get Calibration Appliance Real Value | Index Offset | sa_2026_generated_vb=0 |
-| RobotOperations | Move Robot/Machine through Path | Use SA Kinematics | sa_2026_generated_vb=true |
-| RobotOperations | Move Robot/Machine through Path | Linear Segments | sa_2026_generated_vb=false |
-| RobotOperations | Move Robot/Machine through Path | Acknowledge Arrival | sa_2026_generated_vb=true |
-| RobotOperations | Move Robot/Machine to Frame | Use SA Kinematics | sa_2026_generated_vb=false |
-| RobotOperations | Move Robot/Machine to Frame | Acknowledge Arrival | sa_2026_generated_vb=false |
-| RobotOperations | Move Robot/Machine to Joint Pose (6DOF) | Joint 1 | sa_2026_generated_vb=0.0 |
-| RobotOperations | Move Robot/Machine to Joint Pose (6DOF) | Joint 2 | sa_2026_generated_vb=0.0 |
-| RobotOperations | Move Robot/Machine to Joint Pose (6DOF) | Joint 3 | sa_2026_generated_vb=0.0 |
-| RobotOperations | Move Robot/Machine to Joint Pose (6DOF) | Joint 4 | sa_2026_generated_vb=0.0 |
-| RobotOperations | Move Robot/Machine to Joint Pose (6DOF) | Joint 5 | sa_2026_generated_vb=0.0 |
-| RobotOperations | Move Robot/Machine to Joint Pose (6DOF) | Joint 6 | sa_2026_generated_vb=0.0 |
-| RobotOperations | Move Robot/Machine to Named Destination | Acknowledge Arrival | sa_2026_generated_vb=false |
 | RobotOperations | Perform Robot Calibration (Alternate) | Set Current Base as Nominal? | sa_2026_generated_vb=false |
-| RobotOperations | Perform Robot Calibration (Alternate) | Show Interface | sa_2026_generated_vb=false |
-| RobotOperations | Perform Robot Calibration (Alternate) | Allowed Outlier Rejection Count | sa_2026_generated_vb=0 |
-| RobotOperations | Perform Robot Calibration (Alternate) | Allowable Maximum Error | sa_2026_generated_vb=0.0 |
-| RobotOperations | Perform Robot Calibration (Alternate) | Allowable Average Error | sa_2026_generated_vb=0.0 |
 | RobotOperations | Set Calibration Appliance Integer Value | Index Offset | sa_2026_generated_vb=0 |
 | RobotOperations | Set Calibration Appliance Integer Value | Integer Value | sa_2026_generated_vb=0 |
 | RobotOperations | Set Robot/Machine Parameter | Parameter Value | sa_2026_generated_vb=0.0 |
 | RobotOperations | Set Calibration Appliance Real Value | Index Offset | sa_2026_generated_vb=0 |
 | RobotOperations | Set Calibration Appliance Real Value | Real Value | sa_2026_generated_vb=0.0 |
-| RobotOperations | Start Robot/Machine Interface | Interface Type | sa_2026_generated_vb=0 |
-| RobotOperations | Start Robot/Machine Interface | Run in Simulation | sa_2026_generated_vb=false |
-| RobotOperations | Start/Stop Robot Calibration Trapping | Start Trapping (FALSE = Stop) | sa_2026_generated_vb=false |
 | ScaleBars | Scale Bar Check | Current Temperature (F) | sa_2026_generated_vb=0.0 |
 | ScaleBars | Scale Bar Check | Length of Bar at 68F | sa_2026_generated_vb=0.0 |
 | ScaleBars | Scale Bar Check | Material CTE (PPM/F) | sa_2026_generated_vb=0.0 |
 | ScaleBars | Scale Bar Check | Tolerance | sa_2026_generated_vb=0.0 |
-| UtilityOperations / Folders | Get Folders by Wildcard | Case Sensitive Search | sa_2026_generated_vb=true |
-| UtilityOperations / Folders | Set Folder Notes | Append? (FALSE = Overwrite) | sa_2026_generated_vb=true |
 | UtilityOperations / Network | Set Wild Card Asterisk Mode | Auto Wrap Search String? | sa_2026_generated_vb=true |
-| UtilityOperations / Notes | Set Collection Notes | Append? (FALSE = Overwrite) | sa_2026_generated_vb=true |
-| UtilityOperations / Notes | Set Object Notes | Append? (FALSE = Overwrite) | sa_2026_generated_vb=true |
-| UtilityOperations / Notes | Set Point Notes | Append? (FALSE = Overwrite) | sa_2026_generated_vb=true |
-| UtilityOperations / Units | Lock Imported Items | Lock Items? | sa_2026_generated_vb=false |
-| UtilityOperations / Units | Lock/Unlock Selected Items | Lock Items? | sa_2026_generated_vb=false |
 | UtilityOperations / Units | Scale Objects | Scale Factor | sa_2026_generated_vb=0.0 |
 | UtilityOperations / Units | Set Angular Representation | 0-360, (FALSE = +/-180) | sa_2026_generated_vb=false |
 | UtilityOperations / Units | Set Auto Event Creation | Active? | sa_2026_generated_vb=false |
 | UtilityOperations / Units | Set Automatic Backup State | Auto Job File Restore Points Active? | sa_2026_generated_vb=true |
 | UtilityOperations / Units | Set Automatic Backup State | Auto Measurements Backup Active? | sa_2026_generated_vb=true |
 | UtilityOperations / Units | Set Automatic Relationship Construction State | Active? | sa_2026_generated_vb=false |
-| UtilityOperations / Units | Set Decimal Digits for Display | Length | sa_2026_generated_vb=0 |
-| UtilityOperations / Units | Set Decimal Digits for Display | Angle | sa_2026_generated_vb=0 |
-| UtilityOperations / Units | Set Decimal Digits for Display | Scale | sa_2026_generated_vb=0 |
-| UtilityOperations / Units | Set Decimal Digits for Display | Unit Vector | sa_2026_generated_vb=0 |
-| UtilityOperations / Units | Set Decimal Digits for Display | Weight | sa_2026_generated_vb=0 |
+| UtilityOperations / Units | Set Decimal Digits for Display | Length | objectivesa_prior_release=6; sa_2026_generated_vb=0 |
+| UtilityOperations / Units | Set Decimal Digits for Display | Angle | objectivesa_prior_release=6; sa_2026_generated_vb=0 |
+| UtilityOperations / Units | Set Decimal Digits for Display | Scale | objectivesa_prior_release=6; sa_2026_generated_vb=0 |
+| UtilityOperations / Units | Set Decimal Digits for Display | Unit Vector | objectivesa_prior_release=6; sa_2026_generated_vb=0 |
+| UtilityOperations / Units | Set Decimal Digits for Display | Weight | objectivesa_prior_release=6; sa_2026_generated_vb=0 |
 | UtilityOperations / Units | Set View Idle Update Frequency | Idle Count | sa_2026_generated_vb=0 |
 | Vector Operations | Auto-Range and Set Vector Group Colorization (All) | Treat Individually? | sa_2026_generated_vb=false |
 | Vector Operations | Auto-Range and Set Vector Group Colorization (All) | Colorization Options (Uses Mode Only) | sa_2026_generated_vb=["Continuous","Blue","Green","Red",false,true,false,100.0,1,false,0.1,false,false,true,false,0.5,-0.5,0.03,-0.03] |
@@ -737,19 +539,9 @@ These values are evidence-backed proposals only. Their inputs continue to reject
 | Vector Operations | Get i-th Vector From Vector Group | Vector Index | sa_2026_generated_vb=0 |
 | Vector Operations | Set Vector Group Colorization Options (All) | Colorization Options | sa_2026_generated_vb=["Continuous","Blue","Green","Red",false,true,false,100.0,1,false,0.1,false,false,true,false,0.5,-0.5,0.03,-0.03] |
 | Vector Operations | Set Vector Group Colorization Options (Selected) | Colorization Options | sa_2026_generated_vb=["Continuous","Blue","Green","Red",false,true,false,100.0,1,false,0.1,false,false,true,false,0.5,-0.5,0.03,-0.03] |
-| ViewControl | Center Graphics About Object(s) | Object Type | sa_2026_generated_vb="Any" |
-| ViewControl | Center Graphics About Object(s) | Collection Wildcard Criteria | sa_2026_generated_vb="*" |
-| ViewControl | Center Graphics About Object(s) | Object Wildcard Criteria | sa_2026_generated_vb="*" |
 | ViewControl / Colors | Set Object(s) Color | New Working Color Name | sa_2026_generated_vb=[255,0,0] |
-| ViewControl / Colors | Set Object(s) Color | Auto Increment | sa_2026_generated_vb=false |
 | ViewControl / Colors | Set Working Color | New Working Color Name | sa_2026_generated_vb=[255,0,0] |
 | ViewControl / Colors | Set Working Color Auto Increment | Auto Increment | sa_2026_generated_vb=false |
-| ViewControl / HideShowOperations | Show/Hide Annotations for Datums | Show? | sa_2026_generated_vb=false |
-| ViewControl / HideShowOperations | Show/Hide Annotations for Datums | Highlight? | sa_2026_generated_vb=false |
-| ViewControl / HideShowOperations | Show/Hide Annotations for Datums | Set Inspection View? | sa_2026_generated_vb=false |
-| ViewControl / HideShowOperations | Show/Hide Annotations for Feature Checks | Show? | sa_2026_generated_vb=false |
-| ViewControl / HideShowOperations | Show/Hide Annotations for Feature Checks | Highlight? | sa_2026_generated_vb=false |
-| ViewControl / HideShowOperations | Show/Hide Annotations for Feature Checks | Set Inspection View? | sa_2026_generated_vb=false |
 | ViewControl / HideShowOperations | Show/Hide Callout View | Show Callout View? | sa_2026_generated_vb=true |
 | ViewControl / HideShowOperations | Show/Hide Instrument Probe Tip | Show Instrument Probe Tip? | sa_2026_generated_vb=false |
 | ViewControl / HideShowOperations | Show/Hide Instruments | Show Instruments? | sa_2026_generated_vb=false |
@@ -759,30 +551,19 @@ These values are evidence-backed proposals only. Their inputs continue to reject
 | ViewControl / HideShowOperations | Show/Hide by Object Type | Object Type To Show / Hide | sa_2026_generated_vb="Any" |
 | ViewControl / HideShowOperations | Show/Hide by Object Type | Hide? (Show = FALSE) | sa_2026_generated_vb=true |
 | ViewControl / HideShowOperations | Show Items in Tree | Collapse all other Items? | sa_2026_generated_vb=true |
-| ViewControl / HideShowOperations | Show by Object Type | All Collections? | sa_2026_generated_vb=false |
+| ViewControl / HideShowOperations | Show Items in Tree | Points | objectivesa_prior_release=null |
+| ViewControl / HideShowOperations | Show Items in Tree | Objects | objectivesa_prior_release=null |
+| ViewControl / HideShowOperations | Show Items in Tree | Instruments | objectivesa_prior_release=null |
+| ViewControl / HideShowOperations | Show Items in Tree | Feature Checks | objectivesa_prior_release=null |
+| ViewControl / HideShowOperations | Show Items in Tree | Datums | objectivesa_prior_release=null |
+| ViewControl / HideShowOperations | Show Items in Tree | Collections | objectivesa_prior_release=null |
 | ViewControl / HighlightOperations | Highlight Objects | HighLight Objects? | sa_2026_generated_vb=false |
 | ViewControl / HighlightOperations | Highlight Point | Show Point? | sa_2026_generated_vb=false |
-| ViewControl / PointofView | Define Point of View | Rotation (x) | sa_2026_generated_vb=0.0 |
-| ViewControl / PointofView | Define Point of View | Rotation (y) | sa_2026_generated_vb=0.0 |
-| ViewControl / PointofView | Define Point of View | Rotation (z) | sa_2026_generated_vb=0.0 |
-| ViewControl / PointofView | Define Point of View | Restore Zoom Settings? | sa_2026_generated_vb=false |
-| ViewControl / PointofView | Define Point of View | Scale Factor | sa_2026_generated_vb=1.0 |
-| ViewControl / PointofView | Define Point of View | Origin (x) | sa_2026_generated_vb=0.0 |
-| ViewControl / PointofView | Define Point of View | Origin (y) | sa_2026_generated_vb=0.0 |
-| ViewControl / PointofView | Define Point of View | Restore Render Mode? | sa_2026_generated_vb=false |
-| ViewControl / PointofView | Define Point of View | Rendering Mode | sa_2026_generated_vb="Wireframe" |
-| ViewControl / PointofView | Save Point of View | Restore Zoom Settings? | sa_2026_generated_vb=true |
-| ViewControl | Set Object(s) Translucency | Opacity Value | sa_2026_generated_vb=0.0 |
 | ViewControl | Set Target Labels Use Full Names | Use Full Names? | sa_2026_generated_vb=false |
 | ViewControl | Set View Clipping Plane | Remove Clipping Plane? | sa_2026_generated_vb=false |
-| InstrumentOperations | Construct Mirror from Two Points | Send Mirror to Instrument? | sa_2026_generated_vb=true |
 | InstrumentOperations | Set Inspection Verification Mode | Enable Verification? | sa_2026_generated_vb=false |
 | InstrumentOperations | Set WRTL Channel | Channel | sa_2026_generated_vb=0 |
 | InstrumentOperations | Enable/Disable Frame Set Scan Mode (By Instrument) | Enable Frame Set Scan Mode | sa_2026_generated_vb=true |
-| InstrumentOperations | Multi Measurement Initiate | Wait for Completion | sa_2026_generated_vb=false |
-| InstrumentOperations | Set XYZ Instrument Uncertainties | X Uncertainty | sa_2026_generated_vb=0.0005 |
-| InstrumentOperations | Set XYZ Instrument Uncertainties | Y Uncertainty | sa_2026_generated_vb=0.0005 |
-| InstrumentOperations | Set XYZ Instrument Uncertainties | Z Uncertainty) | sa_2026_generated_vb=0.0005 |
 | InstrumentOperations / APILADAR | Set LADAR FeatureMeas Sphere | Scan Line Spacing | sa_2026_generated_vb=0.05 |
 | InstrumentOperations / APILADAR | Set LADAR FeatureMeas Circle | Scan Line Spacing | sa_2026_generated_vb=0.05 |
 | InstrumentOperations / APILADAR | Set LADAR FeatureMeas Circle | Width of Extra Area Around Scan | sa_2026_generated_vb=0.0 |
@@ -794,11 +575,9 @@ These values are evidence-backed proposals only. Their inputs continue to reject
 | RelationshipOperations | Make Cloud to Swatch Relationship | Maximum Radial Offset | sa_2026_generated_vb=0.125 |
 | RelationshipOperations | Make Cloud to Swatch Relationship | Minimum Axial Offset | sa_2026_generated_vb=-0.125 |
 | RelationshipOperations | Make Cloud to Swatch Relationship | Maximum Axial Offset | sa_2026_generated_vb=0.125 |
-| RelationshipOperations / RelationshipAttributes | Get Geom Relationship Criteria Name List | Include All Criteria? | sa_2026_generated_vb=false |
 | RelationshipOperations / RelationshipAttributesScalarTypes | Set Object to Object Direction Relationship Tolerances | Angle Between Vectors Tolerances | sa_2026_generated_vb=[false,0.0,false,0.0] |
 | RelationshipOperations / RelationshipAttributesScalarTypes | Set Object to Object Direction Relationship Tolerances | Mutual Perpendicular Length Tolerances | sa_2026_generated_vb=[false,0.0,false,0.0] |
-| RobotCalibrationApplianceNodeOperations | Set Calibration Appliance Node Calibration Appliance IP Address | Calibration Appliance IP Address | sa_2026_generated_vb="0.0.0.0" |
-| RobotCalibrationApplianceNodeOperations | Set Calibration Appliance Node Trapping Node ID | Trapping Node ID | sa_2026_generated_vb=0 |
+| RobotCalibrationApplianceNodeOperations | Set Calibration Appliance Node Calibration Appliance IP Address | Calibration Appliance IP Address | objectivesa_prior_release="127.0.0.1"; sa_2026_generated_vb="0.0.0.0" |
 | RobotCalibrationApplianceNodeOperations | Enable/Disable Calibration Appliance Node Trap Manager | Enable(TRUE), Disable(FALSE)? | sa_2026_generated_vb=true |
 | RobotCalibrationApplianceNodeOperations | Set Calibration Appliance Node Integer Value | Index Offset | sa_2026_generated_vb=0 |
 | RobotCalibrationApplianceNodeOperations | Set Calibration Appliance Node Integer Value | Integer Value | sa_2026_generated_vb=0 |
@@ -810,7 +589,6 @@ These values are evidence-backed proposals only. Their inputs continue to reject
 | RobotCalibrationApplianceNodeOperations | Connect/Disconnect Calibration Appliance Node | Connect(TRUE) or Disconnect(FALSE)? | sa_2026_generated_vb=true |
 | RobotCalibrationApplianceNodeOperations | Enable/Disable Calibration Appliance Node Instrument Auto Point | Enable Instrument Auto Point? | sa_2026_generated_vb=true |
 | RobotCalibrationApplianceNodeOperations | Set Calibration Appliance Node Instrument Dwell Time | Measurement Dwell Time (Seconds) | sa_2026_generated_vb=0.0 |
-| RobotOperations | Set Robot/Machine Base Transform | Number of Steps | sa_2026_generated_vb=0 |
 | ViewControl / HideShowOperations | Show / Hide Dimension | Show Dimension? | sa_2026_generated_vb=true |
 
 ## Reviewed intentional exclusions

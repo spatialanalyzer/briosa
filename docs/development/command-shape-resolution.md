@@ -23,13 +23,14 @@ Run the local evidence review with:
 ```powershell
 ./eng/Review-CommandDefaults.ps1 `
   -ObjectiveSARoot C:\git\ObjectiveSA `
-  -SdkCodeRoot C:\path\to\2026.1.0529.7 `
   -InventoryPath inventory\sa\2026.1.0529.7\inventory.json `
   -DispositionDirectory disposition\sa\2026.1.0529.7 `
   -Apply
 ```
 
-ObjectiveSA and raw View SDK Code remain local evidence and are not copied into the repository. The committed ledger retains only curated values, source classes, and review state. `report.md` publishes the deterministic pending-default queue; issue [#82](https://github.com/spatialanalyzer/briosa/issues/82) owns its command-by-command maintainer review.
+The current ObjectiveSA layout colocates interfaces and implementations below `ObjectiveSA/Methods`; the importer also accepts the legacy split layout. The optional `-SdkCodeRoot` may be supplied when recalculating from raw View SDK Code. When it is omitted, the importer reuses the exact-target candidates already committed to the disposition ledger, making the issue #82 queue reproducible without retaining vendor source.
+
+ObjectiveSA and raw View SDK Code remain local evidence and are not copied into the repository. The committed ledger retains only curated values, source classes, and review state. Run `./eng/Sync-ValueFamilyEvidence.ps1` after disposition synchronization to regenerate `generated/values/sa/2026.1.0529.7/default-review-queue.json`; issue [#82](https://github.com/spatialanalyzer/briosa/issues/82) owns its command-by-command maintainer review. See the [exact-target value-family evidence guide](value-family-evidence.md) for pinned provenance, fingerprints, counts, and drift checks.
 
 ## Direction-finding audit
 

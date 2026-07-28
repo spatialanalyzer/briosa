@@ -390,16 +390,22 @@ internal static partial class SdkBindingRegistry
         Dictionary<string, List<SdkBindingObservation>> observations)
     {
         var bindingsByMethod = bindings.ToDictionary(binding => binding.Method, StringComparer.Ordinal);
-        var assignments = new Dictionary<(string Method, string InventoryKey, int Ordinal), string>();
+        var assignments = new Dictionary<
+            (string Method, string InventoryKey, int SdkOrder),
+            SdkBindingArgumentFamilyAssignment>();
         foreach (var assignment in review.ArgumentFamilyAssignments)
         {
-            var key = (assignment.Method, assignment.InventoryKey, assignment.ArgumentOrdinal);
-            if (!assignments.TryAdd(key, assignment.FamilyId))
+            var key = (assignment.Method, assignment.InventoryKey, assignment.SdkOrder);
+            if (!assignments.TryAdd(key, assignment))
             {
                 throw new InvalidDataException(
                     $"Duplicate argument family assignment for '{assignment.Method}', " +
-                    $"'{assignment.InventoryKey}', ordinal {assignment.ArgumentOrdinal}.");
+                    $"'{assignment.InventoryKey}', SDK order {assignment.SdkOrder}.");
             }
+
+            RequireSortedUnique(
+                assignment.DocumentedOrdinals,
+                $"argument_family_assignments.{assignment.Method}.documented_ordinals");
 
             if (!bindingsByMethod.TryGetValue(assignment.Method, out var binding) ||
                 binding.SemanticValueFamilies.Count < 2)
@@ -417,7 +423,7 @@ internal static partial class SdkBindingRegistry
             }
         }
 
-        var observedKeys = new HashSet<(string Method, string InventoryKey, int Ordinal)>();
+        var observedKeys = new HashSet<(string Method, string InventoryKey, int SdkOrder)>();
         foreach (var binding in bindings.Where(binding => binding.SemanticValueFamilies.Count > 1))
         {
             var methodObservations = observations.TryGetValue(binding.Method, out var observed)
@@ -429,22 +435,36 @@ internal static partial class SdkBindingRegistry
                     $"Binding family override '{binding.Method}' has no exact inventory usage.");
             }
 
-            foreach (var observation in methodObservations)
+            foreach (var group in methodObservations.GroupBy(observation =>
+                         (observation.InventoryKey, observation.SdkOrder)))
             {
-                if (observation.Ordinal is not int ordinal)
+                if (group.Key.SdkOrder is not int sdkOrder)
                 {
                     throw new InvalidDataException(
-                        $"Binding '{binding.Method}' has an unnumbered exact observation that cannot " +
+                        $"Binding '{binding.Method}' has an exact observation without SDK order that cannot " +
                         "be assigned safely.");
                 }
 
-                var key = (binding.Method, observation.InventoryKey, ordinal);
+                var key = (binding.Method, group.Key.InventoryKey, sdkOrder);
                 observedKeys.Add(key);
-                if (!assignments.ContainsKey(key))
+                if (!assignments.TryGetValue(key, out var assignment))
                 {
                     throw new InvalidDataException(
                         $"Binding '{binding.Method}' requires an exact family assignment for " +
-                        $"'{observation.InventoryKey}', ordinal {ordinal}.");
+                        $"'{group.Key.InventoryKey}', SDK order {sdkOrder}.");
+                }
+
+                var documentedOrdinals = group
+                    .Where(observation => observation.Ordinal is not null)
+                    .Select(observation => observation.Ordinal!.Value)
+                    .Distinct()
+                    .Order()
+                    .ToArray();
+                if (!assignment.DocumentedOrdinals.SequenceEqual(documentedOrdinals))
+                {
+                    throw new InvalidDataException(
+                        $"Argument family assignment for '{binding.Method}', " +
+                        $"'{group.Key.InventoryKey}', SDK order {sdkOrder} has stale documented ordinals.");
                 }
             }
         }
@@ -591,6 +611,7 @@ internal static partial class SdkBindingRegistry
         observations.Add(new SdkBindingObservation(
             inventoryKey,
             argument.Ordinal,
+            argument.SdkOrder,
             argument.MpName,
             direction));
     }
@@ -601,12 +622,14 @@ internal static partial class SdkBindingRegistry
     {
         var lines = observations
             .OrderBy(item => item.InventoryKey, StringComparer.Ordinal)
+            .ThenBy(item => item.SdkOrder)
             .ThenBy(item => item.Ordinal)
             .ThenBy(item => item.Direction, StringComparer.Ordinal)
             .ThenBy(item => item.MpName, StringComparer.Ordinal)
             .Select(item => string.Join(
                 '|',
                 item.InventoryKey,
+                item.SdkOrder?.ToString(CultureInfo.InvariantCulture) ?? string.Empty,
                 item.Ordinal?.ToString(CultureInfo.InvariantCulture) ?? string.Empty,
                 item.Direction,
                 item.MpName))
@@ -1073,6 +1096,16 @@ internal static partial class SdkBindingRegistry
         }
     }
 
+    private static void RequireSortedUnique(IReadOnlyList<int> values, string field)
+    {
+        var expected = values.Distinct().Order().ToArray();
+        if (!values.SequenceEqual(expected))
+        {
+            throw new InvalidDataException(
+                $"review.json {field} must contain unique numerically sorted values.");
+        }
+    }
+
     private static bool IsWithin(string path, string directory)
     {
         var fullPath = Path.GetFullPath(path);
@@ -1120,6 +1153,7 @@ internal sealed record SdkBindingRegistryBuild(
 internal sealed record SdkBindingObservation(
     string InventoryKey,
     int? Ordinal,
+    int? SdkOrder,
     string MpName,
     string Direction);
 
@@ -1167,7 +1201,10 @@ internal sealed class SdkBindingArgumentFamilyAssignment
     public required string InventoryKey { get; init; }
 
     [JsonRequired]
-    public required int ArgumentOrdinal { get; init; }
+    public required int SdkOrder { get; init; }
+
+    [JsonRequired]
+    public required List<int> DocumentedOrdinals { get; init; }
 
     [JsonRequired]
     public required string FamilyId { get; init; }

@@ -66,6 +66,8 @@ public sealed class BindingRegistryCoverageTests
                 "collection_group_name_list",
                 "collection_instrument_id",
                 "collection_instrument_id_list",
+                "collection_item_name",
+                "collection_item_name_list",
                 "collection_machine_id",
                 "collection_name",
                 "collection_object_name",
@@ -131,10 +133,7 @@ public sealed class BindingRegistryCoverageTests
                 "world_transform"
             ],
             implementedFamilies);
-        // Collection item scalar/list values are implemented at the runtime boundary first.
-        // Their exact shared-method command assignments are tracked by #87 and must be
-        // completed before either family is used by a generated catalog operation.
-        Assert.Equal(implementedFamilies.Length + 2, Enum.GetValues<SdkValueKind>().Length);
+        Assert.Equal(implementedFamilies.Length, Enum.GetValues<SdkValueKind>().Length);
         Assert.Contains(SdkValueKind.CollectionItemName, Enum.GetValues<SdkValueKind>());
         Assert.Contains(SdkValueKind.CollectionItemNameList, Enum.GetValues<SdkValueKind>());
     }

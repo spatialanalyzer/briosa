@@ -23,7 +23,7 @@ public sealed class SdkBindingRegistryTests
 
         Assert.True(result.IsValid, string.Join(Environment.NewLine, result.Errors));
         Assert.Equal(151, result.BindingCount);
-        Assert.Equal(113, result.ValueFamilyCount);
+        Assert.Equal(115, result.ValueFamilyCount);
     }
 
     [Fact]
@@ -99,7 +99,20 @@ public sealed class SdkBindingRegistryTests
             bindings["SetAsciiFileFormatArg"].SemanticValueFamilies);
         Assert.Equal(
             ["axis_identifier", "wcf_axis_identifier"],
-            bindings["SetAxisNameArg"].SemanticValueFamilies); Assert.Equal("angular_unit", Family(bindings["SetAngularUnitsArg"]));
+            bindings["SetAxisNameArg"].SemanticValueFamilies);
+        Assert.Equal(
+            ["collection_item_name", "collection_object_name"],
+            bindings["GetCollectionObjectNameArg"].SemanticValueFamilies);
+        Assert.Equal(
+            ["collection_item_name", "collection_object_name"],
+            bindings["SetCollectionObjectNameArg2"].SemanticValueFamilies);
+        Assert.Equal(
+            ["collection_item_name_list", "collection_object_name_list"],
+            bindings["GetCollectionObjectNameRefListArg"].SemanticValueFamilies);
+        Assert.Equal(
+            ["collection_item_name_list", "collection_object_name_list"],
+            bindings["SetCollectionObjectNameRefListArg"].SemanticValueFamilies);
+        Assert.Equal("angular_unit", Family(bindings["SetAngularUnitsArg"]));
         Assert.Equal("string", Family(bindings["SetStringArg"]));
         Assert.Equal("double_array", Family(bindings["SetDoubleArrayArg"]));
         Assert.Equal("edit_text", Family(bindings["SetEditTextArg"]));
@@ -123,10 +136,6 @@ public sealed class SdkBindingRegistryTests
                     ["https://github.com/spatialanalyzer/briosa/issues/79"],
                     binding.BlockerReferences);
             });
-        Assert.Equal(
-            Family(bindings["GetCollectionObjectNameArg"]),
-            Family(bindings["SetCollectionObjectNameArg2"]));
-
         Assert.Equal(97, registry.Bindings.Count(binding =>
             binding.Coverage.Protocol == "implemented"));
         Assert.Equal(97, registry.Bindings.Count(binding =>
@@ -137,7 +146,7 @@ public sealed class SdkBindingRegistryTests
             binding.Coverage.Fake == "implemented"));
         Assert.Equal(97, registry.Bindings.Count(binding =>
             binding.Coverage.Generator == "implemented"));
-        Assert.Equal(77, registry.ValueFamilies.Count(family =>
+        Assert.Equal(79, registry.ValueFamilies.Count(family =>
             family.ImplementationStatus == "implemented"));
         Assert.All(
             registry.Bindings.Where(binding => binding.RegistryStatus == "usable"),
@@ -159,6 +168,44 @@ public sealed class SdkBindingRegistryTests
                 binding.InteropSignature?.Parameters.Skip(1).All(parameter =>
                     parameter.ClrType == "string") == true),
             binding => Assert.DoesNotContain("string", binding.SemanticValueFamilies));
+    }
+
+    [Fact]
+    public void ReviewAssignsEverySharedMethodObservationByExactSdkOrder()
+    {
+        var paths = RegistryPaths();
+        using var review = JsonDocument.Parse(
+            File.ReadAllText(Path.Combine(paths.Registry, "review.json")));
+        var assignments = review.RootElement
+            .GetProperty("argument_family_assignments")
+            .EnumerateArray()
+            .ToArray();
+
+        Assert.Equal(995, assignments.Length);
+        Assert.All(
+            assignments,
+            assignment =>
+            {
+                Assert.True(assignment.GetProperty("sdk_order").GetInt32() >= 0);
+                Assert.NotEqual(
+                    JsonValueKind.Undefined,
+                    assignment.GetProperty("documented_ordinals").ValueKind);
+            });
+
+        Assert.Equal(
+            [
+                "GetCollectionObjectNameArg",
+                "GetCollectionObjectNameRefListArg",
+                "SetAsciiFileFormatArg",
+                "SetAxisNameArg",
+                "SetCollectionObjectNameArg2",
+                "SetCollectionObjectNameRefListArg"
+            ],
+            assignments
+                .Select(assignment => assignment.GetProperty("method").GetString()!)
+                .Distinct(StringComparer.Ordinal)
+                .OrderBy(method => method, StringComparer.Ordinal)
+                .ToArray());
     }
 
     private static string Family(SdkBindingRegistryEntry binding) =>

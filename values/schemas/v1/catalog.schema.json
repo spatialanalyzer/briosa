@@ -1,0 +1,222 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://spatialanalyzer.github.io/briosa/values/schemas/v1/catalog.schema.json",
+  "title": "Briosa exact-target value-family evidence catalog",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schema_version",
+    "spatial_analyzer_target",
+    "conflict_policy",
+    "sources",
+    "tracked_inputs",
+    "shared_methods",
+    "families",
+    "enum_types",
+    "structured_types",
+    "command_assignments"
+  ],
+  "properties": {
+    "$schema": { "const": "../../schemas/v1/catalog.schema.json" },
+    "schema_version": { "const": 1 },
+    "spatial_analyzer_target": { "type": "string", "pattern": "^[0-9]+(?:\\.[0-9]+){3}$" },
+    "conflict_policy": { "type": "string", "minLength": 1 },
+    "sources": {
+      "type": "array",
+      "minItems": 5,
+      "uniqueItems": true,
+      "items": { "$ref": "#/definitions/source" }
+    },
+    "tracked_inputs": {
+      "type": "array",
+      "minItems": 2,
+      "uniqueItems": true,
+      "items": { "$ref": "#/definitions/tracked_input" }
+    },
+    "shared_methods": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/definitions/shared_method" }
+    },
+    "families": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/definitions/family" }
+    },
+    "enum_types": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/definitions/enum_type" }
+    },
+    "structured_types": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/definitions/structured_type" }
+    },
+    "command_assignments": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/definitions/command_assignment" }
+    }
+  },
+  "definitions": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "identifier": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+    "binding_method": { "type": "string", "pattern": "^(?:Set|Get)[A-Za-z0-9]+Arg[0-9]*$" },
+    "source_id": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+    "source_ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/definitions/source_id" }
+    },
+    "source": {
+      "type": "object",
+      "required": ["source_id", "kind", "sha256", "source_material_committed"],
+      "properties": {
+        "source_id": { "$ref": "#/definitions/source_id" },
+        "kind": { "type": "string", "minLength": 1 },
+        "sha256": { "$ref": "#/definitions/sha256" },
+        "source_material_committed": { "type": "boolean" },
+        "record_count": { "type": "integer", "minimum": 0 },
+        "selection_rule": { "type": "string", "minLength": 1 },
+        "selected_count": { "type": "integer", "minimum": 0 },
+        "excluded_count": { "type": "integer", "minimum": 0 },
+        "selected_sha256": { "$ref": "#/definitions/sha256" },
+        "repository_url": { "type": "string", "pattern": "^https://github\\.com/spatialanalyzer/ObjectiveSA$" },
+        "commit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+        "declared_version": { "type": "string", "minLength": 1 },
+        "source_layout": { "type": "string", "minLength": 1 },
+        "file_count": { "type": "integer", "minimum": 1 }
+      },
+      "additionalProperties": false
+    },
+    "tracked_input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "sha256": { "$ref": "#/definitions/sha256" }
+      }
+    },
+    "shared_method": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["method", "families"],
+      "properties": {
+        "method": { "$ref": "#/definitions/binding_method" },
+        "families": {
+          "type": "array",
+          "minItems": 2,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/identifier" }
+        }
+      }
+    },
+    "family": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["family_id", "shape", "public_type_target", "worker_type_target", "implementation_status", "binding_methods", "evidence_source_ids"],
+      "properties": {
+        "family_id": { "$ref": "#/definitions/identifier" },
+        "shape": { "enum": ["array", "enum", "identifier", "path", "reference_list", "scalar", "structured", "transform"] },
+        "public_type_target": { "type": "string", "minLength": 1 },
+        "worker_type_target": { "type": "string", "minLength": 1 },
+        "implementation_status": { "enum": ["blocked", "implemented", "not_required", "planned"] },
+        "binding_methods": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/binding_method" }
+        },
+        "evidence_source_ids": { "$ref": "#/definitions/source_ids" }
+      }
+    },
+    "enum_type": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["public_type", "worker_type", "members"],
+      "properties": {
+        "public_type": { "type": "string", "pattern": "^[A-Z][A-Za-z0-9]*$" },
+        "worker_type": { "type": "string", "pattern": "^Sdk[A-Z][A-Za-z0-9]*Value$" },
+        "members": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/enum_member" }
+        }
+      }
+    },
+    "enum_member": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["public_symbol", "public_number", "worker_symbol", "sdk_literal", "evidence_source_ids"],
+      "properties": {
+        "public_symbol": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*$" },
+        "public_number": { "type": "integer", "minimum": 1 },
+        "worker_symbol": { "type": "string", "pattern": "^[A-Z][A-Za-z0-9]*$" },
+        "sdk_literal": { "type": "string" },
+        "evidence_source_ids": { "$ref": "#/definitions/source_ids" }
+      }
+    },
+    "structured_type": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["public_type", "worker_type", "public_fields", "worker_fields", "evidence_source_ids"],
+      "properties": {
+        "public_type": { "type": "string", "pattern": "^[A-Z][A-Za-z0-9]*$" },
+        "worker_type": { "type": "string", "pattern": "^Sdk[A-Z][A-Za-z0-9]*(?:Value|Limit)$" },
+        "public_fields": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/proto_field" }
+        },
+        "worker_fields": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[A-Z][A-Za-z0-9]*$" }
+        },
+        "evidence_source_ids": { "$ref": "#/definitions/source_ids" }
+      }
+    },
+    "proto_field": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "number", "type", "cardinality"],
+      "properties": {
+        "name": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+        "number": { "type": "integer", "minimum": 1 },
+        "type": { "type": "string", "minLength": 1 },
+        "cardinality": { "enum": ["optional", "repeated", "singular"] }
+      }
+    },
+    "command_assignment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["method", "inventory_key", "sdk_order", "documented_ordinals", "family_id", "mp_name", "documented_type", "evidence_source_ids"],
+      "properties": {
+        "method": { "$ref": "#/definitions/binding_method" },
+        "inventory_key": { "type": "string", "minLength": 1 },
+        "sdk_order": { "type": "integer", "minimum": 0 },
+        "documented_ordinals": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "integer", "minimum": 0 }
+        },
+        "family_id": { "$ref": "#/definitions/identifier" },
+        "mp_name": { "type": "string", "minLength": 1 },
+        "documented_type": { "type": "string", "minLength": 1 },
+        "evidence_source_ids": { "$ref": "#/definitions/source_ids" }
+      }
+    }
+  }
+}

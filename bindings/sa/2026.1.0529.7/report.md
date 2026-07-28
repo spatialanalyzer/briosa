@@ -5,7 +5,7 @@ This deterministic report reconciles extracted View SDK Code evidence with the c
 ## Coverage
 
 - Binding methods: 151
-- Semantic value families: 113
+- Semantic value families: 115
 - Inventory-observed setters: 105
 - Inventory-observed getters: 29
 - Interop-exposed setters: 106
@@ -74,7 +74,7 @@ This deterministic report reconciles extracted View SDK Code evidence with the c
 | Value | Count |
 | --- | ---: |
 | `blocked` | 9 |
-| `implemented` | 77 |
+| `implemented` | 79 |
 | `not_required` | 27 |
 
 ## Semantic value families
@@ -97,6 +97,8 @@ This deterministic report reconciles extracted View SDK Code evidence with the c
 | `collection_group_name_list` | `reference_list` | getter, setter | `CollectionGroupNameList` | `SdkCollectionGroupNameListValue` | `implemented` | GetCollectionGroupNameRefListArg, SetCollectionGroupNameRefListArg |
 | `collection_instrument_id` | `identifier` | getter, setter | `CollectionInstrumentId` | `SdkCollectionInstrumentIdValue` | `implemented` | GetColInstIdArg, SetColInstIdArg |
 | `collection_instrument_id_list` | `reference_list` | getter, setter | `CollectionInstrumentIdList` | `SdkCollectionInstrumentIdListValue` | `implemented` | GetColInstIdRefListArg, SetColInstIdRefListArg |
+| `collection_item_name` | `identifier` | getter, setter | `CollectionItemName` | `SdkCollectionItemNameValue` | `implemented` | GetCollectionObjectNameArg, SetCollectionObjectNameArg2 |
+| `collection_item_name_list` | `reference_list` | getter, setter | `CollectionItemNameList` | `SdkCollectionItemNameListValue` | `implemented` | GetCollectionObjectNameRefListArg, SetCollectionObjectNameRefListArg |
 | `collection_machine_id` | `identifier` | getter, setter | `CollectionMachineId` | `SdkCollectionMachineIdValue` | `implemented` | GetColMachineIdArg, SetColMachineIdArg |
 | `collection_name` | `identifier` | getter, setter | `string` | `string` | `implemented` | GetCollectionNameArg, SetCollectionNameArg |
 | `collection_object_name` | `identifier` | getter, setter | `CollectionObjectName` | `SdkCollectionObjectNameValue` | `implemented` | GetCollectionObjectNameArg, SetCollectionObjectNameArg, SetCollectionObjectNameArg2 |
@@ -210,8 +212,8 @@ This deterministic report reconciles extracted View SDK Code evidence with the c
 | `GetColVectorGroupNameArg` | `getter` | `interop_only` | `unobserved_interop` | `collection_vector_group_name` | `not_required` | `not_required` | `not_required` | `not_required` | `not_required` | 0 | 0 | 0 | boolean (value string argName, ref string collectionName, ref string vectorGroupName) |  |
 | `GetCollectionGroupNameRefListArg` | `getter` | `interop_only` | `unobserved_interop` | `collection_group_name_list` | `not_required` | `not_required` | `not_required` | `not_required` | `not_required` | 0 | 0 | 0 | boolean (value string argName, ref object colGroupNameList) |  |
 | `GetCollectionNameArg` | `getter` | `inventory_and_interop` | `usable` | `collection_name` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 3 | 2 | 1 | boolean (value string argName, ref string collectionName) |  |
-| `GetCollectionObjectNameArg` | `getter` | `inventory_and_interop` | `usable` | `collection_object_name` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 37 | 19 | 18 | boolean (value string argName, ref string collectionName, ref string objectName) |  |
-| `GetCollectionObjectNameRefListArg` | `getter` | `inventory_and_interop` | `usable` | `collection_object_name_list` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 44 | 11 | 33 | boolean (value string argName, ref object objectNameList) |  |
+| `GetCollectionObjectNameArg` | `getter` | `inventory_and_interop` | `usable` | `collection_item_name, collection_object_name` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 37 | 19 | 18 | boolean (value string argName, ref string collectionName, ref string objectName) |  |
+| `GetCollectionObjectNameRefListArg` | `getter` | `inventory_and_interop` | `usable` | `collection_item_name_list, collection_object_name_list` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 44 | 11 | 33 | boolean (value string argName, ref object objectNameList) |  |
 | `GetCollectionVectorGroupNameRefListArg` | `getter` | `inventory_and_interop` | `excluded_only` | `collection_vector_group_name_list` | `not_required` | `not_required` | `not_required` | `not_required` | `not_required` | 1 | 1 | 0 | boolean (value string argName, ref object colVectorGrpNameList) |  |
 | `GetDoubleArg` | `getter` | `inventory_and_interop` | `usable` | `floating_point` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 147 | 42 | 105 | boolean (value string argName, ref double value) |  |
 | `GetDoubleArrayArg` | `getter` | `inventory_and_interop` | `usable` | `double_array` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 7 | 1 | 6 | boolean (value string argName, ref int32 arraySize, ref object arrayIn) |  |
@@ -259,8 +261,8 @@ This deterministic report reconciles extracted View SDK Code evidence with the c
 | `SetCollectionGroupNameRefListArg` | `setter` | `inventory_and_interop` | `usable` | `collection_group_name_list` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 1 | 0 | 1 | boolean (value string argName, ref object groupNameList) |  |
 | `SetCollectionNameArg` | `setter` | `inventory_and_interop` | `usable` | `collection_name` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 36 | 6 | 30 | boolean (value string argName, value string collectionName) |  |
 | `SetCollectionObjectNameArg` | `setter` | `interop_only` | `unobserved_interop` | `collection_object_name` | `not_required` | `not_required` | `not_required` | `not_required` | `not_required` | 0 | 0 | 0 | boolean (value string argName, value string collectionName, value string objectName) |  |
-| `SetCollectionObjectNameArg2` | `setter` | `inventory_and_interop` | `usable` | `collection_object_name` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 480 | 24 | 456 | boolean (value string argName, value string collectionName, value string objectName, value string objectType) |  |
-| `SetCollectionObjectNameRefListArg` | `setter` | `inventory_and_interop` | `usable` | `collection_object_name_list` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 187 | 34 | 153 | boolean (value string argName, ref object objectNameList) |  |
+| `SetCollectionObjectNameArg2` | `setter` | `inventory_and_interop` | `usable` | `collection_item_name, collection_object_name` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 480 | 24 | 456 | boolean (value string argName, value string collectionName, value string objectName, value string objectType) |  |
+| `SetCollectionObjectNameRefListArg` | `setter` | `inventory_and_interop` | `usable` | `collection_item_name_list, collection_object_name_list` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 187 | 34 | 153 | boolean (value string argName, ref object objectNameList) |  |
 | `SetCollectionVectorGroupNameRefListArg` | `setter` | `inventory_and_interop` | `usable` | `collection_vector_group_name_list` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 5 | 1 | 4 | boolean (value string argName, ref object colVectorGrpNameList) |  |
 | `SetCollimationBaselineTypeArg` | `setter` | `inventory_and_interop` | `usable` | `collimation_baseline_type` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 1 | 0 | 1 | boolean (value string argName, value string mode) |  |
 | `SetCollimationTypeArg` | `setter` | `inventory_and_interop` | `usable` | `collimation_type` | `implemented` | `implemented` | `implemented` | `implemented` | `implemented` | 1 | 0 | 1 | boolean (value string argName, value string mode) |  |
