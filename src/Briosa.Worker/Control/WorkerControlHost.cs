@@ -4,7 +4,7 @@ using Briosa.Worker.Sdk;
 
 namespace Briosa.Worker.Control;
 
-internal static class WorkerControlHost
+internal static partial class WorkerControlHost
 {
     private const int MaximumConnectionAttempts = 3;
     private static readonly TimeSpan ConnectionRetryDelay = TimeSpan.FromSeconds(1);
@@ -230,6 +230,15 @@ internal static class WorkerControlHost
                         argument.FontValue.Color.Red,
                         argument.FontValue.Color.Green,
                         argument.FontValue.Color.Blue)),
+            SpecializedEnumValue: ToSdkSpecializedEnum(argument),
+            AutoFilterProximitySettingsValue: ToSdkAutoFilter(argument.AutoFilterProximitySettingsValue),
+            CloudThinningOptionsValue: ToSdkCloudThinning(argument.CloudThinningOptionsValue),
+            ColorizationOptionsValue: ToSdkColorization(argument.ColorizationOptionsValue),
+            FitConstraintScalarOptionsValue: ToSdkFitConstraintScalar(argument.FitConstraintScalarOptionsValue),
+            FitDegreeOfFreedomOptionsValue: ToSdkFitDegreeOfFreedom(argument.FitDegreeOfFreedomOptionsValue),
+            ReportOutputOptionsValue: ToSdkReportOutput(argument.ReportOutputOptionsValue),
+            ReportViewOptionsValue: ToSdkReportView(argument.ReportViewOptionsValue),
+            ToleranceScalarOptionsValue: ToSdkToleranceScalar(argument.ToleranceScalarOptionsValue),
             SdkBinding: argument.SdkBinding);
     private static SdkOutputArgument ToSdkOutputArgument(WorkerMpOutputArgument argument) =>
         new(argument.Name, ToSdkValueKind(argument.Kind), argument.SdkBinding);
@@ -271,7 +280,7 @@ internal static class WorkerControlHost
             WorkerMpValueKind.VectorGroupName => SdkValueKind.VectorGroupName,
             WorkerMpValueKind.VectorNameList => SdkValueKind.VectorNameList,
             WorkerMpValueKind.ViewName => SdkValueKind.ViewName,
-            _ => throw new UnreachableException()
+            _ => ToSdkSpecializedValueKind(kind)
         };
 
     private static SdkPointNameValue ToSdkPointName(WorkerPointNameValue value) =>
@@ -395,7 +404,9 @@ internal static class WorkerControlHost
                 ? null
                 : new WorkerFileReferenceValue(
                     output.FileReferenceValue.Path,
-                    output.FileReferenceValue.EmbeddedFile));
+                    output.FileReferenceValue.EmbeddedFile),
+            FitConstraintScalarOptionsValue: ToControlFitConstraintScalar(output.FitConstraintScalarOptionsValue),
+            ToleranceScalarOptionsValue: ToControlToleranceScalar(output.ToleranceScalarOptionsValue));
     private static WorkerMpValueKind ToControlValueKind(SdkValueKind kind) =>
         kind switch
         {
@@ -433,7 +444,7 @@ internal static class WorkerControlHost
             SdkValueKind.VectorGroupName => WorkerMpValueKind.VectorGroupName,
             SdkValueKind.VectorNameList => WorkerMpValueKind.VectorNameList,
             SdkValueKind.ViewName => WorkerMpValueKind.ViewName,
-            _ => throw new UnreachableException()
+            _ => ToControlSpecializedValueKind(kind)
         };
 
     private static WorkerPointNameValue ToControlPointName(SdkPointNameValue value) =>

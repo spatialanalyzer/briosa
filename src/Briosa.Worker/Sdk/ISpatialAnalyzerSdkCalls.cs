@@ -3,7 +3,7 @@ namespace Briosa.Worker.Sdk;
 /// <summary>
 /// Minimal synchronous call surface used to test the production MP sequence without COM activation.
 /// </summary>
-internal interface ISpatialAnalyzerSdkCalls : IDisposable
+internal partial interface ISpatialAnalyzerSdkCalls : IDisposable
 {
     bool ConnectEx(string host, ref int statusCode);
 

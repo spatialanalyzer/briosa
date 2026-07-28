@@ -163,7 +163,7 @@
         "direction",
         "source_status",
         "registry_status",
-        "semantic_value_family",
+        "semantic_value_families",
         "coverage",
         "interop_signature",
         "inventory_usage",
@@ -191,14 +191,20 @@
         "registry_status": {
           "enum": [
             "blocked_missing_interop",
+            "blocked_semantics",
             "excluded_only",
             "unobserved_interop",
             "usable"
           ]
         },
-        "semantic_value_family": {
-          "type": "string",
-          "pattern": "^[a-z][a-z0-9_]*$"
+        "semantic_value_families": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          }
         },
         "coverage": {
           "$ref": "#/definitions/coverage"

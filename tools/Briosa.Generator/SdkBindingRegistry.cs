@@ -179,13 +179,15 @@ internal static partial class SdkBindingRegistry
                     ? "inventory_and_interop"
                     : "interop_only"
                 : "inventory_only";
-            var registryStatus = sourceStatus switch
-            {
-                "inventory_only" => "blocked_missing_interop",
-                "interop_only" => "unobserved_interop",
-                _ when remainingCommandCount == 0 => "excluded_only",
-                _ => "usable"
-            };
+            var registryStatus = review.SemanticBlockers.ContainsKey(methodName)
+                ? "blocked_semantics"
+                : sourceStatus switch
+                {
+                    "inventory_only" => "blocked_missing_interop",
+                    "interop_only" => "unobserved_interop",
+                    _ when remainingCommandCount == 0 => "excluded_only",
+                    _ => "usable"
+                };
             var core = SemanticCore(methodName);
             if (!review.Families.TryGetValue(core, out var familyReview))
             {
@@ -193,6 +195,11 @@ internal static partial class SdkBindingRegistry
                     $"review.json has no semantic family for binding core '{core}' " +
                     $"used by '{methodName}'.");
             }
+            var semanticValueFamilies = review.BindingFamilyOverrides.TryGetValue(
+                methodName,
+                out var familyOverrides)
+                ? familyOverrides
+                : [familyReview.FamilyId];
 
             bindings.Add(new SdkBindingRegistryEntry
             {
@@ -202,16 +209,43 @@ internal static partial class SdkBindingRegistry
                     : "getter",
                 SourceStatus = sourceStatus,
                 RegistryStatus = registryStatus,
-                SemanticValueFamily = familyReview.FamilyId,
+                SemanticValueFamilies = [.. semanticValueFamilies],
                 Coverage = CreateCoverage(review, methodName, registryStatus),
                 InteropSignature = signature,
                 InventoryUsage = CreateUsage(methodObservations, excludedCommandCount),
                 Rationale = Rationale(registryStatus),
                 DecisionReferences = [.. review.DecisionReferences],
-                BlockerReferences = registryStatus == "blocked_missing_interop"
-                    ? [review.MissingInteropBlocker]
-                    : []
+                BlockerReferences = registryStatus switch
+                {
+                    "blocked_missing_interop" => [review.MissingInteropBlocker],
+                    "blocked_semantics" => [review.SemanticBlockers[methodName]],
+                    _ => []
+                }
             });
+        }
+
+        ValidateArgumentFamilyAssignments(review, bindings, observations);
+
+        var unknownSemanticBlockers = review.SemanticBlockers.Keys
+            .Except(methodNames, StringComparer.Ordinal)
+            .OrderBy(method => method, StringComparer.Ordinal)
+            .ToArray();
+        if (unknownSemanticBlockers.Length > 0)
+        {
+            throw new InvalidDataException(
+                "review.json semantic_blockers contains unknown method(s): " +
+                string.Join(", ", unknownSemanticBlockers));
+
+        }
+        var unknownFamilyOverrides = review.BindingFamilyOverrides.Keys
+            .Except(methodNames, StringComparer.Ordinal)
+            .OrderBy(method => method, StringComparer.Ordinal)
+            .ToArray();
+        if (unknownFamilyOverrides.Length > 0)
+        {
+            throw new InvalidDataException(
+                "review.json binding_family_overrides contains unknown method(s): " +
+                string.Join(", ", unknownFamilyOverrides));
         }
 
         ValidateImplementedCoverage(review, bindings);
@@ -260,6 +294,15 @@ internal static partial class SdkBindingRegistry
         {
             throw new InvalidDataException(
                 "review.json requires canonical spatialanalyzer GitHub issue or PR decision references.");
+        }
+
+        if (review.SemanticBlockers.Any(pair =>
+                !BindingMethod().IsMatch(pair.Key) ||
+                !DecisionReference().IsMatch(pair.Value)))
+        {
+            throw new InvalidDataException(
+                "review.json semantic_blockers requires binding method keys and canonical " +
+                "spatialanalyzer GitHub issue or PR references.");
         }
 
         if (!DecisionReference().IsMatch(review.MissingInteropBlocker))
@@ -311,6 +354,110 @@ internal static partial class SdkBindingRegistry
             }
         }
 
+
+        foreach (var pair in review.BindingFamilyOverrides)
+        {
+            RequireSortedUnique(pair.Value, $"binding_family_overrides.{pair.Key}");
+            if (!BindingMethod().IsMatch(pair.Key))
+            {
+                throw new InvalidDataException(
+                    $"review.json binding_family_overrides has invalid method '{pair.Key}'.");
+            }
+
+            var core = SemanticCore(pair.Key);
+            if (!review.Families.TryGetValue(core, out var defaultFamily) ||
+                !pair.Value.Contains(defaultFamily.FamilyId, StringComparer.Ordinal))
+            {
+                throw new InvalidDataException(
+                    $"Binding family override '{pair.Key}' must include its default family.");
+            }
+
+            var unknownFamilies = pair.Value
+                .Where(familyId => !familyIds.Contains(familyId))
+                .ToArray();
+            if (unknownFamilies.Length > 0)
+            {
+                throw new InvalidDataException(
+                    $"Binding family override '{pair.Key}' references unknown family id(s): " +
+                    string.Join(", ", unknownFamilies));
+            }
+        }
+    }
+
+    private static void ValidateArgumentFamilyAssignments(
+        SdkBindingReview review,
+        IReadOnlyList<SdkBindingRegistryEntry> bindings,
+        Dictionary<string, List<SdkBindingObservation>> observations)
+    {
+        var bindingsByMethod = bindings.ToDictionary(binding => binding.Method, StringComparer.Ordinal);
+        var assignments = new Dictionary<(string Method, string InventoryKey, int Ordinal), string>();
+        foreach (var assignment in review.ArgumentFamilyAssignments)
+        {
+            var key = (assignment.Method, assignment.InventoryKey, assignment.ArgumentOrdinal);
+            if (!assignments.TryAdd(key, assignment.FamilyId))
+            {
+                throw new InvalidDataException(
+                    $"Duplicate argument family assignment for '{assignment.Method}', " +
+                    $"'{assignment.InventoryKey}', ordinal {assignment.ArgumentOrdinal}.");
+            }
+
+            if (!bindingsByMethod.TryGetValue(assignment.Method, out var binding) ||
+                binding.SemanticValueFamilies.Count < 2)
+            {
+                throw new InvalidDataException(
+                    $"Argument family assignment references non-overridden binding " +
+                    $"'{assignment.Method}'.");
+            }
+
+            if (!binding.SemanticValueFamilies.Contains(assignment.FamilyId, StringComparer.Ordinal))
+            {
+                throw new InvalidDataException(
+                    $"Argument family assignment for '{assignment.Method}' uses disallowed family " +
+                    $"'{assignment.FamilyId}'.");
+            }
+        }
+
+        var observedKeys = new HashSet<(string Method, string InventoryKey, int Ordinal)>();
+        foreach (var binding in bindings.Where(binding => binding.SemanticValueFamilies.Count > 1))
+        {
+            var methodObservations = observations.TryGetValue(binding.Method, out var observed)
+                ? observed
+                : [];
+            if (methodObservations.Count == 0)
+            {
+                throw new InvalidDataException(
+                    $"Binding family override '{binding.Method}' has no exact inventory usage.");
+            }
+
+            foreach (var observation in methodObservations)
+            {
+                if (observation.Ordinal is not int ordinal)
+                {
+                    throw new InvalidDataException(
+                        $"Binding '{binding.Method}' has an unnumbered exact observation that cannot " +
+                        "be assigned safely.");
+                }
+
+                var key = (binding.Method, observation.InventoryKey, ordinal);
+                observedKeys.Add(key);
+                if (!assignments.ContainsKey(key))
+                {
+                    throw new InvalidDataException(
+                        $"Binding '{binding.Method}' requires an exact family assignment for " +
+                        $"'{observation.InventoryKey}', ordinal {ordinal}.");
+                }
+            }
+        }
+
+        var unknownAssignments = assignments.Keys
+            .Where(key => !observedKeys.Contains(key))
+            .ToArray();
+        if (unknownAssignments.Length > 0)
+        {
+            throw new InvalidDataException(
+                "review.json argument_family_assignments contains assignments not present in the " +
+                "exact inventory.");
+        }
     }
 
     private static Dictionary<string, CommandDispositionEntry> ReadDispositions(
@@ -548,7 +695,7 @@ internal static partial class SdkBindingRegistry
         string method) =>
         registryStatus switch
         {
-            "blocked_missing_interop" => "blocked",
+            "blocked_missing_interop" or "blocked_semantics" => "blocked",
             "excluded_only" or "unobserved_interop" => "not_required",
             _ when implementedMethods.Contains(method, StringComparer.Ordinal) => "implemented",
             _ => "planned"
@@ -597,14 +744,15 @@ internal static partial class SdkBindingRegistry
         IReadOnlyList<SdkBindingRegistryEntry> bindings)
     {
         var bindingsByFamily = bindings
-            .GroupBy(binding => binding.SemanticValueFamily, StringComparer.Ordinal)
+            .SelectMany(binding => binding.SemanticValueFamilies.Select(family => (family, binding)))
+            .GroupBy(item => item.family, item => item.binding, StringComparer.Ordinal)
             .ToDictionary(group => group.Key, group => group.ToArray(), StringComparer.Ordinal);
-        var actualCores = bindings
-            .Select(binding => SemanticCore(binding.Method))
+        var actualFamilyIds = bindings
+            .SelectMany(binding => binding.SemanticValueFamilies)
             .Distinct(StringComparer.Ordinal)
             .ToHashSet(StringComparer.Ordinal);
         var unusedCores = review.Families.Keys
-            .Where(core => !actualCores.Contains(core))
+            .Where(core => !actualFamilyIds.Contains(review.Families[core].FamilyId))
             .OrderBy(core => core, StringComparer.Ordinal)
             .ToArray();
         if (unusedCores.Length > 0)
@@ -633,10 +781,8 @@ internal static partial class SdkBindingRegistry
                     ? usable.All(IsFullyImplemented)
                         ? "implemented"
                         : "planned"
-                    : familyBindings.Any(binding => string.Equals(
-                        binding.RegistryStatus,
-                        "blocked_missing_interop",
-                        StringComparison.Ordinal))
+                    : familyBindings.Any(binding =>
+                        binding.RegistryStatus is "blocked_missing_interop" or "blocked_semantics")
                         ? "blocked"
                         : "not_required";
                 return new SdkBindingValueFamily
@@ -686,6 +832,9 @@ internal static partial class SdkBindingRegistry
         "blocked_missing_interop" =>
             "The binding is emitted by exact-target View SDK Code but is absent from the " +
             "committed exact-target interop API.",
+        "blocked_semantics" =>
+            "The exact interop signature is present, but unresolved release-specific semantics " +
+            "prevent a safe public and worker mapping.",
         "unobserved_interop" =>
             "The method is exposed by the exact-target interop API but was not observed in " +
             "the extracted command evidence.",
@@ -782,7 +931,8 @@ internal static partial class SdkBindingRegistry
             builder.AppendLine(
                 CultureInfo.InvariantCulture,
                 $"| `{binding.Method}` | `{binding.Direction}` | `{binding.SourceStatus}` | " +
-                $"`{binding.RegistryStatus}` | `{binding.SemanticValueFamily}` | " +
+                $"`{binding.RegistryStatus}` | " +
+                $"`{string.Join(", ", binding.SemanticValueFamilies)}` | " +
                 $"`{binding.Coverage.Protocol}` | `{binding.Coverage.Worker}` | " +
                 $"`{binding.Coverage.Adapter}` | `{binding.Coverage.Fake}` | " +
                 $"`{binding.Coverage.Generator}` | {binding.InventoryUsage.CommandCount} | " +
@@ -992,12 +1142,36 @@ internal sealed class SdkBindingReview
     public required string MissingInteropBlocker { get; init; }
 
     [JsonRequired]
+    public required Dictionary<string, string> SemanticBlockers { get; init; }
+    [JsonRequired]
+    public required Dictionary<string, List<string>> BindingFamilyOverrides { get; init; }
+
+    [JsonRequired]
+    public required List<SdkBindingArgumentFamilyAssignment> ArgumentFamilyAssignments { get; init; }
+
+
+    [JsonRequired]
     public required SdkBindingCoverageReview ImplementedCoverage { get; init; }
 
     [JsonRequired]
     public required Dictionary<string, SdkBindingFamilyReview> Families { get; init; }
 }
 
+
+internal sealed class SdkBindingArgumentFamilyAssignment
+{
+    [JsonRequired]
+    public required string Method { get; init; }
+
+    [JsonRequired]
+    public required string InventoryKey { get; init; }
+
+    [JsonRequired]
+    public required int ArgumentOrdinal { get; init; }
+
+    [JsonRequired]
+    public required string FamilyId { get; init; }
+}
 internal sealed class SdkBindingFamilyReview
 {
     [JsonRequired]
@@ -1113,7 +1287,7 @@ internal sealed class SdkBindingRegistryEntry
     public required string RegistryStatus { get; init; }
 
     [JsonRequired]
-    public required string SemanticValueFamily { get; init; }
+    public required List<string> SemanticValueFamilies { get; init; }
 
     [JsonRequired]
     public required SdkBindingCoverage Coverage { get; init; }

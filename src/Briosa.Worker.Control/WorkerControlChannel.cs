@@ -214,7 +214,7 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
             WorkerMpValueKind.PointNameList => IsValid(argument.PointNameListValue),
             WorkerMpValueKind.StringList => IsValid(argument.StringListValue),
             WorkerMpValueKind.VectorNameList => IsValid(argument.VectorNameListValue),
-            _ => false
+            _ => WorkerSpecializedValueValidation.HasInputValueForKind(argument)
         };
 
     private static bool HasOutputValueForKind(WorkerMpOutputValue output) =>
@@ -259,7 +259,7 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
             WorkerMpValueKind.PointNameList => IsValid(output.PointNameListValue),
             WorkerMpValueKind.StringList => IsValid(output.StringListValue),
             WorkerMpValueKind.VectorNameList => IsValid(output.VectorNameListValue),
-            _ => false
+            _ => WorkerSpecializedValueValidation.HasOutputValueForKind(output)
         };
 
     private static bool IsValid(WorkerPointNameValue? value) =>

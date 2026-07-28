@@ -10,6 +10,9 @@
     "spatial_analyzer_target",
     "decision_references",
     "missing_interop_blocker",
+    "semantic_blockers",
+    "binding_family_overrides",
+    "argument_family_assignments",
     "implemented_coverage",
     "families"
   ],
@@ -30,6 +33,36 @@
     "missing_interop_blocker": {
       "$ref": "#/definitions/reference"
     },
+    "semantic_blockers": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/definitions/binding_method"
+      },
+      "additionalProperties": {
+        "$ref": "#/definitions/reference"
+    "binding_family_overrides": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/definitions/binding_method"
+      },
+      "additionalProperties": {
+        "type": "array",
+        "minItems": 2,
+        "uniqueItems": true,
+        "items": {
+          "$ref": "#/definitions/family_id"
+        }
+      }
+    },
+    "argument_family_assignments": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/definitions/argument_family_assignment"
+      }
+    },
+      }
+    },
     "implemented_coverage": {
       "$ref": "#/definitions/implemented_coverage"
     },
@@ -45,6 +78,36 @@
     "binding_method": {
       "type": "string",
       "pattern": "^(?:Set|Get)[A-Za-z0-9]+Arg[0-9]*$"
+    },
+    "family_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$"
+    },
+    "argument_family_assignment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "method",
+        "inventory_key",
+        "argument_ordinal",
+        "family_id"
+      ],
+      "properties": {
+        "method": {
+          "$ref": "#/definitions/binding_method"
+        },
+        "inventory_key": {
+          "type": "string",
+          "minLength": 1
+        },
+        "argument_ordinal": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "family_id": {
+          "$ref": "#/definitions/family_id"
+        }
+      }
     },
     "reference": {
       "type": "string",
@@ -104,8 +167,7 @@
       ],
       "properties": {
         "family_id": {
-          "type": "string",
-          "pattern": "^[a-z][a-z0-9_]*$"
+          "$ref": "#/definitions/family_id"
         },
         "shape": {
           "enum": [

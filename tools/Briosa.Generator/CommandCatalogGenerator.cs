@@ -95,12 +95,25 @@ internal static class CommandCatalogGenerator
         builder.Append("package ").Append(manifest.TargetProtocolPackage).AppendLine(";");
         builder.AppendLine();
         builder.AppendLine("import \"briosa/core/v1alpha1/operation_outcomes.proto\";");
-        if (operations.SelectMany(operation => operation.Arguments)
-            .Any(argument => IsMessageType(argument.SemanticType)))
+        var semanticTypes = operations
+            .SelectMany(operation => operation.Arguments)
+            .Select(argument => argument.SemanticType)
+            .ToArray();
+        var targetPath = manifest.TargetProtocolPackage.Replace('.', '/');
+        if (semanticTypes.Any(semanticType =>
+                IsMessageType(semanticType) &&
+                !SpecializedValueMappings.IsStructured(semanticType)))
         {
             builder.Append("import \"")
-                .Append(manifest.TargetProtocolPackage.Replace('.', '/'))
+                .Append(targetPath)
                 .AppendLine("/values.proto\";");
+        }
+
+        if (semanticTypes.Any(SpecializedValueMappings.IsSupported))
+        {
+            builder.Append("import \"")
+                .Append(targetPath)
+                .AppendLine("/specialized_values.proto\";");
         }
 
         builder.AppendLine();
@@ -244,7 +257,8 @@ internal static class CommandCatalogGenerator
             "collection_vector_group_name_list" or
             "point_name_list" or
             "string_list" or
-            "vector_name_list";
+            "vector_name_list" ||
+        SpecializedValueMappings.IsStructured(semanticType);
 
     private static string ToProtoType(string semanticType) =>
         semanticType switch
@@ -283,8 +297,7 @@ internal static class CommandCatalogGenerator
             "point_name_list" => "PointNameList",
             "string_list" => "StringList",
             "vector_name_list" => "VectorNameList",
-            _ => throw new NotSupportedException(
-                $"Semantic type '{semanticType}' has no protobuf mapping.")
+            _ => SpecializedValueMappings.ToTypeName(semanticType)
         };
 
     private static string ToCSharpNamespace(string package)

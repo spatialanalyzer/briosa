@@ -20,7 +20,7 @@
   },
   "review": {
     "path": "review.json",
-    "sha256": "b52a6b198bc6e8beccf8bcd47c17c7150f02447fd214b03234bc2a0b137d30e2"
+    "sha256": "5035510706e6f9673837bfc634818a99b25500e51a8319050725203f611dbc19"
   },
   "value_families": [
     {
@@ -37,14 +37,27 @@
       ]
     },
     {
-      "family_id": "ascii_file_format",
+      "family_id": "ascii_frame_set_format",
       "shape": "enum",
-      "public_type_target": "AsciiFileFormat",
-      "worker_type_target": "SdkAsciiFileFormatValue",
+      "public_type_target": "AsciiFrameSetFormat",
+      "worker_type_target": "SdkAsciiFrameSetFormatValue",
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
+      "binding_methods": [
+        "SetAsciiFileFormatArg"
+      ]
+    },
+    {
+      "family_id": "ascii_import_file_format",
+      "shape": "enum",
+      "public_type_target": "AsciiImportFileFormat",
+      "worker_type_target": "SdkAsciiImportFileFormatValue",
+      "direction_support": [
+        "setter"
+      ],
+      "implementation_status": "implemented",
       "binding_methods": [
         "SetAsciiFileFormatArg"
       ]
@@ -58,7 +71,7 @@
         "getter",
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "GetAutoFilterProximitySettingsArg",
         "SetAutoFilterProximitySettingsArg"
@@ -72,7 +85,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "SetAxisNameArg"
       ]
@@ -86,7 +99,7 @@
         "getter",
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "blocked",
       "binding_methods": [
         "GetBSPlineFitOptionsArg",
         "SetBSplineFitOptionsArg"
@@ -100,7 +113,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "SetBaseColorTypeArg"
       ]
@@ -113,7 +126,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "SetBaseMidColorTypeArg"
       ]
@@ -141,7 +154,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "SetChartTypeArg"
       ]
@@ -182,7 +195,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "SetCloudThinningOptionsArg"
       ]
@@ -331,7 +344,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "SetCollimationBaselineTypeArg"
       ]
@@ -344,7 +357,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "SetCollimationTypeArg"
       ]
@@ -357,7 +370,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "SetColorRangeMethodArg"
       ]
@@ -370,7 +383,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "SetColorizationOptionsArg"
       ]
@@ -396,22 +409,9 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "SetCoordinateSystemTypeArg"
-      ]
-    },
-    {
-      "family_id": "dataset_type",
-      "shape": "enum",
-      "public_type_target": "DatasetType",
-      "worker_type_target": "SdkDatasetTypeValue",
-      "direction_support": [
-        "setter"
-      ],
-      "implementation_status": "planned",
-      "binding_methods": [
-        "SetDatasetTypeArg"
       ]
     },
     {
@@ -463,7 +463,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "SetDynamicCircleModeArg"
       ]
@@ -476,7 +476,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "SetDynamicEllipseModeArg"
       ]
@@ -489,7 +489,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "SetDynamicLineModeArg"
       ]
@@ -502,7 +502,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "SetDynamicPlaneModeArg"
       ]
@@ -515,7 +515,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "SetDynamicPointModeArg"
       ]
@@ -528,7 +528,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "SetEdgeModeArg"
       ]
@@ -556,7 +556,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "SetExportDataDelimeterTypeArg"
       ]
@@ -569,7 +569,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "SetExportTargetNameFormatArg"
       ]
@@ -582,7 +582,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "SetExportVectorNameFormatArg"
       ]
@@ -611,7 +611,7 @@
         "getter",
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "GetFitConstraintScalarOptionsArg",
         "SetFitConstraintScalarOptionsArg"
@@ -625,7 +625,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "SetFitDofOptionsArg"
       ]
@@ -720,7 +720,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "SetGeometryTypeArg"
       ]
@@ -748,7 +748,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "SetInstTypeNameArg"
       ]
@@ -934,7 +934,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "SetObjectTypeArg"
       ]
@@ -947,7 +947,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "SetOffsetDirectionTypeArg"
       ]
@@ -975,7 +975,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "blocked",
       "binding_methods": [
         "SetPointDeltaReportOptionsArg"
       ]
@@ -988,7 +988,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "SetPointFilterInputTypeArg"
       ]
@@ -1031,7 +1031,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "blocked",
       "binding_methods": [
         "SetProjectionOptionsArg"
       ]
@@ -1044,7 +1044,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "SetRelWeightingModeArg"
       ]
@@ -1057,7 +1057,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "SetRenderModeTypeArg"
       ]
@@ -1071,7 +1071,7 @@
         "getter",
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "GetReportOutputOptionsArg",
         "SetReportOutputOptionsArg"
@@ -1085,7 +1085,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "SetReportPageSettingsArg"
       ]
@@ -1112,7 +1112,7 @@
         "getter",
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "GetReportViewOptionsArg",
         "SetReportViewOptionsArg"
@@ -1167,7 +1167,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "SetSaturationLimitTypeArg"
       ]
@@ -1180,7 +1180,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "SetShowUsmnDialogTypeArg"
       ]
@@ -1262,7 +1262,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "SetSurfaceAnalysisModeArg"
       ]
@@ -1275,7 +1275,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "SetSurfDissectModeTypeArg"
       ]
@@ -1301,7 +1301,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "SetTargetComputationMethodArg"
       ]
@@ -1328,7 +1328,7 @@
         "getter",
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "GetToleranceScalarOptionsArg",
         "SetToleranceScalarOptionsArg"
@@ -1372,7 +1372,7 @@
       "direction_support": [
         "setter"
       ],
-      "implementation_status": "planned",
+      "implementation_status": "implemented",
       "binding_methods": [
         "SetTranslucencyTypeArg"
       ]
@@ -1432,6 +1432,19 @@
       ]
     },
     {
+      "family_id": "vector_component",
+      "shape": "enum",
+      "public_type_target": "VectorComponent",
+      "worker_type_target": "SdkVectorComponentValue",
+      "direction_support": [
+        "setter"
+      ],
+      "implementation_status": "implemented",
+      "binding_methods": [
+        "SetDatasetTypeArg"
+      ]
+    },
+    {
       "family_id": "vector_group_name",
       "shape": "identifier",
       "public_type_target": "string",
@@ -1474,6 +1487,19 @@
       "binding_methods": [
         "GetViewNameArg",
         "SetViewNameArg"
+      ]
+    },
+    {
+      "family_id": "wcf_axis_identifier",
+      "shape": "enum",
+      "public_type_target": "WcfAxisIdentifier",
+      "worker_type_target": "SdkWcfAxisIdentifierValue",
+      "direction_support": [
+        "setter"
+      ],
+      "implementation_status": "implemented",
+      "binding_methods": [
+        "SetAxisNameArg"
       ]
     },
     {
@@ -1552,7 +1578,9 @@
       "direction": "getter",
       "source_status": "inventory_and_interop",
       "registry_status": "excluded_only",
-      "semantic_value_family": "auto_filter_proximity_settings",
+      "semantic_value_families": [
+        "auto_filter_proximity_settings"
+      ],
       "coverage": {
         "protocol": "not_required",
         "worker": "not_required",
@@ -1648,7 +1676,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -1656,14 +1685,16 @@
       "method": "GetBSPlineFitOptionsArg",
       "direction": "getter",
       "source_status": "inventory_and_interop",
-      "registry_status": "usable",
-      "semantic_value_family": "b_spline_fit_options",
+      "registry_status": "blocked_semantics",
+      "semantic_value_families": [
+        "b_spline_fit_options"
+      ],
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "blocked",
+        "worker": "blocked",
+        "adapter": "blocked",
+        "fake": "blocked",
+        "generator": "blocked"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -1767,20 +1798,25 @@
         "remaining_command_count": 1,
         "sha256": "afb8a141f6a81b17ab69541068113c1285e5079365c6ef380317cebad30bb255"
       },
-      "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
+      "rationale": "The exact interop signature is present, but unresolved release-specific semantics prevent a safe public and worker mapping.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
-      "blocker_references": []
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/79"
+      ]
     },
     {
       "method": "GetBoolArg",
       "direction": "getter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "logical",
+      "semantic_value_families": [
+        "logical"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -1816,7 +1852,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -1825,7 +1862,9 @@
       "direction": "getter",
       "source_status": "interop_only",
       "registry_status": "unobserved_interop",
-      "semantic_value_family": "chart_name",
+      "semantic_value_families": [
+        "chart_name"
+      ],
       "coverage": {
         "protocol": "not_required",
         "worker": "not_required",
@@ -1861,7 +1900,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -1870,7 +1910,9 @@
       "direction": "getter",
       "source_status": "interop_only",
       "registry_status": "unobserved_interop",
-      "semantic_value_family": "cloud_name",
+      "semantic_value_families": [
+        "cloud_name"
+      ],
       "coverage": {
         "protocol": "not_required",
         "worker": "not_required",
@@ -1906,7 +1948,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -1915,7 +1958,9 @@
       "direction": "getter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "collection_instrument_id",
+      "semantic_value_families": [
+        "collection_instrument_id"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -1957,7 +2002,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -1966,7 +2012,9 @@
       "direction": "getter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "collection_instrument_id_list",
+      "semantic_value_families": [
+        "collection_instrument_id_list"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -2002,7 +2050,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -2011,7 +2060,9 @@
       "direction": "getter",
       "source_status": "inventory_and_interop",
       "registry_status": "excluded_only",
-      "semantic_value_family": "collection_machine_id",
+      "semantic_value_families": [
+        "collection_machine_id"
+      ],
       "coverage": {
         "protocol": "not_required",
         "worker": "not_required",
@@ -2053,7 +2104,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -2062,7 +2114,9 @@
       "direction": "getter",
       "source_status": "interop_only",
       "registry_status": "unobserved_interop",
-      "semantic_value_family": "collection_vector_group_name",
+      "semantic_value_families": [
+        "collection_vector_group_name"
+      ],
       "coverage": {
         "protocol": "not_required",
         "worker": "not_required",
@@ -2104,7 +2158,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -2113,7 +2168,9 @@
       "direction": "getter",
       "source_status": "interop_only",
       "registry_status": "unobserved_interop",
-      "semantic_value_family": "collection_group_name_list",
+      "semantic_value_families": [
+        "collection_group_name_list"
+      ],
       "coverage": {
         "protocol": "not_required",
         "worker": "not_required",
@@ -2149,7 +2206,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -2158,7 +2216,9 @@
       "direction": "getter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "collection_name",
+      "semantic_value_families": [
+        "collection_name"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -2194,7 +2254,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -2203,7 +2264,9 @@
       "direction": "getter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "collection_object_name",
+      "semantic_value_families": [
+        "collection_object_name"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -2245,7 +2308,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -2254,7 +2318,9 @@
       "direction": "getter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "collection_object_name_list",
+      "semantic_value_families": [
+        "collection_object_name_list"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -2290,7 +2356,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -2299,7 +2366,9 @@
       "direction": "getter",
       "source_status": "inventory_and_interop",
       "registry_status": "excluded_only",
-      "semantic_value_family": "collection_vector_group_name_list",
+      "semantic_value_families": [
+        "collection_vector_group_name_list"
+      ],
       "coverage": {
         "protocol": "not_required",
         "worker": "not_required",
@@ -2335,7 +2404,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -2344,7 +2414,9 @@
       "direction": "getter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "floating_point",
+      "semantic_value_families": [
+        "floating_point"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -2380,7 +2452,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -2389,7 +2462,9 @@
       "direction": "getter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "double_array",
+      "semantic_value_families": [
+        "double_array"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -2431,7 +2506,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -2440,7 +2516,9 @@
       "direction": "getter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "edit_text",
+      "semantic_value_families": [
+        "edit_text"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -2476,7 +2554,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -2485,7 +2564,9 @@
       "direction": "getter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "file_reference",
+      "semantic_value_families": [
+        "file_reference"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -2527,7 +2608,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -2536,13 +2618,15 @@
       "direction": "getter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "fit_constraint_scalar_options",
+      "semantic_value_families": [
+        "fit_constraint_scalar_options"
+      ],
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -2590,7 +2674,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -2599,7 +2684,9 @@
       "direction": "getter",
       "source_status": "interop_only",
       "registry_status": "unobserved_interop",
-      "semantic_value_family": "frame_name",
+      "semantic_value_families": [
+        "frame_name"
+      ],
       "coverage": {
         "protocol": "not_required",
         "worker": "not_required",
@@ -2635,7 +2722,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -2644,7 +2732,9 @@
       "direction": "getter",
       "source_status": "interop_only",
       "registry_status": "unobserved_interop",
-      "semantic_value_family": "instrument_id",
+      "semantic_value_families": [
+        "instrument_id"
+      ],
       "coverage": {
         "protocol": "not_required",
         "worker": "not_required",
@@ -2680,7 +2770,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -2689,7 +2780,9 @@
       "direction": "getter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "whole_number",
+      "semantic_value_families": [
+        "whole_number"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -2725,7 +2818,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -2734,7 +2828,9 @@
       "direction": "getter",
       "source_status": "interop_only",
       "registry_status": "unobserved_interop",
-      "semantic_value_family": "object_name",
+      "semantic_value_families": [
+        "object_name"
+      ],
       "coverage": {
         "protocol": "not_required",
         "worker": "not_required",
@@ -2770,7 +2866,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -2779,7 +2876,9 @@
       "direction": "getter",
       "source_status": "interop_only",
       "registry_status": "unobserved_interop",
-      "semantic_value_family": "perimeter_name",
+      "semantic_value_families": [
+        "perimeter_name"
+      ],
       "coverage": {
         "protocol": "not_required",
         "worker": "not_required",
@@ -2815,7 +2914,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -2824,7 +2924,9 @@
       "direction": "getter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "point_name",
+      "semantic_value_families": [
+        "point_name"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -2872,7 +2974,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -2881,7 +2984,9 @@
       "direction": "getter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "point_name_list",
+      "semantic_value_families": [
+        "point_name_list"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -2917,7 +3022,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -2926,7 +3032,9 @@
       "direction": "getter",
       "source_status": "inventory_and_interop",
       "registry_status": "excluded_only",
-      "semantic_value_family": "report_output_options",
+      "semantic_value_families": [
+        "report_output_options"
+      ],
       "coverage": {
         "protocol": "not_required",
         "worker": "not_required",
@@ -2968,7 +3076,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -2977,7 +3086,9 @@
       "direction": "getter",
       "source_status": "inventory_and_interop",
       "registry_status": "excluded_only",
-      "semantic_value_family": "report_view_options",
+      "semantic_value_families": [
+        "report_view_options"
+      ],
       "coverage": {
         "protocol": "not_required",
         "worker": "not_required",
@@ -3025,7 +3136,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -3034,7 +3146,9 @@
       "direction": "getter",
       "source_status": "interop_only",
       "registry_status": "unobserved_interop",
-      "semantic_value_family": "result_object_name",
+      "semantic_value_families": [
+        "result_object_name"
+      ],
       "coverage": {
         "protocol": "not_required",
         "worker": "not_required",
@@ -3070,7 +3184,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -3079,7 +3194,9 @@
       "direction": "getter",
       "source_status": "inventory_only",
       "registry_status": "blocked_missing_interop",
-      "semantic_value_family": "sigmoidal_gap_constraint_options",
+      "semantic_value_families": [
+        "sigmoidal_gap_constraint_options"
+      ],
       "coverage": {
         "protocol": "blocked",
         "worker": "blocked",
@@ -3099,7 +3216,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": [
         "https://github.com/spatialanalyzer/briosa/issues/79"
@@ -3110,7 +3228,9 @@
       "direction": "getter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "string",
+      "semantic_value_families": [
+        "string"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -3146,7 +3266,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -3155,7 +3276,9 @@
       "direction": "getter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "string_list",
+      "semantic_value_families": [
+        "string_list"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -3191,7 +3314,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -3200,13 +3324,15 @@
       "direction": "getter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "tolerance_scalar_options",
+      "semantic_value_families": [
+        "tolerance_scalar_options"
+      ],
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -3254,7 +3380,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -3263,7 +3390,9 @@
       "direction": "getter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "tolerance_vector_options",
+      "semantic_value_families": [
+        "tolerance_vector_options"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -3389,7 +3518,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -3398,7 +3528,9 @@
       "direction": "getter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "transform",
+      "semantic_value_families": [
+        "transform"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -3434,7 +3566,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -3443,7 +3576,9 @@
       "direction": "getter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "vector3",
+      "semantic_value_families": [
+        "vector3"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -3491,7 +3626,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -3500,7 +3636,9 @@
       "direction": "getter",
       "source_status": "interop_only",
       "registry_status": "unobserved_interop",
-      "semantic_value_family": "vector_group_name",
+      "semantic_value_families": [
+        "vector_group_name"
+      ],
       "coverage": {
         "protocol": "not_required",
         "worker": "not_required",
@@ -3536,7 +3674,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -3545,7 +3684,9 @@
       "direction": "getter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "vector_name_list",
+      "semantic_value_families": [
+        "vector_name_list"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -3581,7 +3722,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -3590,7 +3732,9 @@
       "direction": "getter",
       "source_status": "interop_only",
       "registry_status": "unobserved_interop",
-      "semantic_value_family": "view_name",
+      "semantic_value_families": [
+        "view_name"
+      ],
       "coverage": {
         "protocol": "not_required",
         "worker": "not_required",
@@ -3626,7 +3770,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -3635,7 +3780,9 @@
       "direction": "getter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "world_transform",
+      "semantic_value_families": [
+        "world_transform"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -3677,7 +3824,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -3686,7 +3834,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "angular_unit",
+      "semantic_value_families": [
+        "angular_unit"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -3722,7 +3872,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -3731,13 +3882,16 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "ascii_file_format",
+      "semantic_value_families": [
+        "ascii_frame_set_format",
+        "ascii_import_file_format"
+      ],
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -3767,7 +3921,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -3776,13 +3931,15 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "auto_filter_proximity_settings",
+      "semantic_value_families": [
+        "auto_filter_proximity_settings"
+      ],
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -3872,7 +4029,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -3881,13 +4039,16 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "axis_identifier",
+      "semantic_value_families": [
+        "axis_identifier",
+        "wcf_axis_identifier"
+      ],
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -3917,7 +4078,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -3925,14 +4087,16 @@
       "method": "SetBSplineFitOptionsArg",
       "direction": "setter",
       "source_status": "inventory_and_interop",
-      "registry_status": "usable",
-      "semantic_value_family": "b_spline_fit_options",
+      "registry_status": "blocked_semantics",
+      "semantic_value_families": [
+        "b_spline_fit_options"
+      ],
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "blocked",
+        "worker": "blocked",
+        "adapter": "blocked",
+        "fake": "blocked",
+        "generator": "blocked"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -4036,26 +4200,31 @@
         "remaining_command_count": 3,
         "sha256": "650e7beec47b243be36a3401c3a8f612766bf2c8fa92a2af1abe98b5f2f26239"
       },
-      "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
+      "rationale": "The exact interop signature is present, but unresolved release-specific semantics prevent a safe public and worker mapping.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
-      "blocker_references": []
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/79"
+      ]
     },
     {
       "method": "SetBaseColorTypeArg",
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "base_color_type",
+      "semantic_value_families": [
+        "base_color_type"
+      ],
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -4085,7 +4254,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -4094,13 +4264,15 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "base_mid_color_type",
+      "semantic_value_families": [
+        "base_mid_color_type"
+      ],
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -4130,7 +4302,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -4139,7 +4312,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "logical",
+      "semantic_value_families": [
+        "logical"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -4175,7 +4350,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -4184,7 +4360,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "chart_name",
+      "semantic_value_families": [
+        "chart_name"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -4220,7 +4398,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -4229,13 +4408,15 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "chart_type",
+      "semantic_value_families": [
+        "chart_type"
+      ],
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -4265,7 +4446,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -4274,7 +4456,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "cloud_name",
+      "semantic_value_families": [
+        "cloud_name"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -4310,7 +4494,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -4319,7 +4504,9 @@
       "direction": "setter",
       "source_status": "inventory_only",
       "registry_status": "blocked_missing_interop",
-      "semantic_value_family": "cloud_thinning_mode",
+      "semantic_value_families": [
+        "cloud_thinning_mode"
+      ],
       "coverage": {
         "protocol": "blocked",
         "worker": "blocked",
@@ -4339,7 +4526,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": [
         "https://github.com/spatialanalyzer/briosa/issues/79"
@@ -4350,13 +4538,15 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "cloud_thinning_options",
+      "semantic_value_families": [
+        "cloud_thinning_options"
+      ],
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -4404,7 +4594,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -4413,7 +4604,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "collection_instrument_id",
+      "semantic_value_families": [
+        "collection_instrument_id"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -4455,7 +4648,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -4464,7 +4658,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "collection_instrument_id_list",
+      "semantic_value_families": [
+        "collection_instrument_id_list"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -4500,7 +4696,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -4509,7 +4706,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "collection_machine_id",
+      "semantic_value_families": [
+        "collection_machine_id"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -4551,7 +4750,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -4560,7 +4760,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "collection_vector_group_name",
+      "semantic_value_families": [
+        "collection_vector_group_name"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -4602,7 +4804,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -4611,7 +4814,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "collection_group_name_list",
+      "semantic_value_families": [
+        "collection_group_name_list"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -4647,7 +4852,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -4656,7 +4862,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "collection_name",
+      "semantic_value_families": [
+        "collection_name"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -4692,7 +4900,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -4701,7 +4910,9 @@
       "direction": "setter",
       "source_status": "interop_only",
       "registry_status": "unobserved_interop",
-      "semantic_value_family": "collection_object_name",
+      "semantic_value_families": [
+        "collection_object_name"
+      ],
       "coverage": {
         "protocol": "not_required",
         "worker": "not_required",
@@ -4743,7 +4954,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -4752,7 +4964,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "collection_object_name",
+      "semantic_value_families": [
+        "collection_object_name"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -4800,7 +5014,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -4809,7 +5024,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "collection_object_name_list",
+      "semantic_value_families": [
+        "collection_object_name_list"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -4845,7 +5062,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -4854,7 +5072,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "collection_vector_group_name_list",
+      "semantic_value_families": [
+        "collection_vector_group_name_list"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -4890,7 +5110,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -4899,13 +5120,15 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "collimation_baseline_type",
+      "semantic_value_families": [
+        "collimation_baseline_type"
+      ],
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -4935,7 +5158,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -4944,13 +5168,15 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "collimation_type",
+      "semantic_value_families": [
+        "collimation_type"
+      ],
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -4980,7 +5206,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -4989,7 +5216,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "rgb_color",
+      "semantic_value_families": [
+        "rgb_color"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -5037,7 +5266,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -5046,13 +5276,15 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "color_range_method",
+      "semantic_value_families": [
+        "color_range_method"
+      ],
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -5082,7 +5314,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -5091,13 +5324,15 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "colorization_options",
+      "semantic_value_families": [
+        "colorization_options"
+      ],
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -5235,7 +5470,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -5244,7 +5480,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "excluded_only",
-      "semantic_value_family": "computation_technique",
+      "semantic_value_families": [
+        "computation_technique"
+      ],
       "coverage": {
         "protocol": "not_required",
         "worker": "not_required",
@@ -5280,7 +5518,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -5289,13 +5528,15 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "coordinate_system_type",
+      "semantic_value_families": [
+        "coordinate_system_type"
+      ],
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -5325,7 +5566,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -5334,13 +5576,15 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "dataset_type",
+      "semantic_value_families": [
+        "vector_component"
+      ],
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -5370,7 +5614,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -5379,7 +5624,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "excluded_only",
-      "semantic_value_family": "degree_of_freedom",
+      "semantic_value_families": [
+        "degree_of_freedom"
+      ],
       "coverage": {
         "protocol": "not_required",
         "worker": "not_required",
@@ -5415,7 +5662,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -5424,7 +5672,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "distance_unit",
+      "semantic_value_families": [
+        "distance_unit"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -5460,7 +5710,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -5469,7 +5720,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "floating_point",
+      "semantic_value_families": [
+        "floating_point"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -5505,7 +5758,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -5514,7 +5768,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "double_array",
+      "semantic_value_families": [
+        "double_array"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -5556,7 +5812,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -5565,13 +5822,15 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "dynamic_circle_mode",
+      "semantic_value_families": [
+        "dynamic_circle_mode"
+      ],
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -5601,7 +5860,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -5610,13 +5870,15 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "dynamic_ellipse_mode",
+      "semantic_value_families": [
+        "dynamic_ellipse_mode"
+      ],
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -5646,7 +5908,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -5655,13 +5918,15 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "dynamic_line_mode",
+      "semantic_value_families": [
+        "dynamic_line_mode"
+      ],
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -5691,7 +5956,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -5700,13 +5966,15 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "dynamic_plane_mode",
+      "semantic_value_families": [
+        "dynamic_plane_mode"
+      ],
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -5736,7 +6004,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -5745,13 +6014,15 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "dynamic_point_mode",
+      "semantic_value_families": [
+        "dynamic_point_mode"
+      ],
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -5781,7 +6052,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -5790,13 +6062,15 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "edge_mode",
+      "semantic_value_families": [
+        "edge_mode"
+      ],
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -5826,7 +6100,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -5835,7 +6110,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "edit_text",
+      "semantic_value_families": [
+        "edit_text"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -5871,7 +6148,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -5880,13 +6158,15 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "export_data_delimiter_type",
+      "semantic_value_families": [
+        "export_data_delimiter_type"
+      ],
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -5916,7 +6196,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -5925,13 +6206,15 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "export_target_name_format",
+      "semantic_value_families": [
+        "export_target_name_format"
+      ],
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -5961,7 +6244,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -5970,13 +6254,15 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "export_vector_name_format",
+      "semantic_value_families": [
+        "export_vector_name_format"
+      ],
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -6006,7 +6292,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -6015,7 +6302,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "file_reference",
+      "semantic_value_families": [
+        "file_reference"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -6057,7 +6346,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -6066,13 +6356,15 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "fit_constraint_scalar_options",
+      "semantic_value_families": [
+        "fit_constraint_scalar_options"
+      ],
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -6120,7 +6412,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -6129,13 +6422,15 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "fit_degree_of_freedom_options",
+      "semantic_value_families": [
+        "fit_degree_of_freedom_options"
+      ],
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -6201,7 +6496,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -6210,7 +6506,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "excluded_only",
-      "semantic_value_family": "fit_method",
+      "semantic_value_families": [
+        "fit_method"
+      ],
       "coverage": {
         "protocol": "not_required",
         "worker": "not_required",
@@ -6246,7 +6544,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -6255,7 +6554,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "font",
+      "semantic_value_families": [
+        "font"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -6315,7 +6616,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -6324,7 +6626,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "frame_name",
+      "semantic_value_families": [
+        "frame_name"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -6360,7 +6664,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -6369,13 +6674,15 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "geometry_type",
+      "semantic_value_families": [
+        "geometry_type"
+      ],
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -6405,7 +6712,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -6414,7 +6722,9 @@
       "direction": "setter",
       "source_status": "interop_only",
       "registry_status": "unobserved_interop",
-      "semantic_value_family": "instrument_id",
+      "semantic_value_families": [
+        "instrument_id"
+      ],
       "coverage": {
         "protocol": "not_required",
         "worker": "not_required",
@@ -6450,7 +6760,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -6459,13 +6770,15 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "instrument_type",
+      "semantic_value_families": [
+        "instrument_type"
+      ],
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -6495,7 +6808,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -6504,7 +6818,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "whole_number",
+      "semantic_value_families": [
+        "whole_number"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -6540,7 +6856,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -6549,7 +6866,9 @@
       "direction": "setter",
       "source_status": "inventory_only",
       "registry_status": "blocked_missing_interop",
-      "semantic_value_family": "item_type",
+      "semantic_value_families": [
+        "item_type"
+      ],
       "coverage": {
         "protocol": "blocked",
         "worker": "blocked",
@@ -6569,7 +6888,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": [
         "https://github.com/spatialanalyzer/briosa/issues/79"
@@ -6580,7 +6900,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "excluded_only",
-      "semantic_value_family": "logarithmic_function",
+      "semantic_value_families": [
+        "logarithmic_function"
+      ],
       "coverage": {
         "protocol": "not_required",
         "worker": "not_required",
@@ -6616,7 +6938,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -6625,7 +6948,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "excluded_only",
-      "semantic_value_family": "mp_dialog_interaction_mode",
+      "semantic_value_families": [
+        "mp_dialog_interaction_mode"
+      ],
       "coverage": {
         "protocol": "not_required",
         "worker": "not_required",
@@ -6661,7 +6986,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -6670,7 +6996,9 @@
       "direction": "setter",
       "source_status": "inventory_only",
       "registry_status": "blocked_missing_interop",
-      "semantic_value_family": "gdt_check_validator_type",
+      "semantic_value_families": [
+        "gdt_check_validator_type"
+      ],
       "coverage": {
         "protocol": "blocked",
         "worker": "blocked",
@@ -6690,7 +7018,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": [
         "https://github.com/spatialanalyzer/briosa/issues/79"
@@ -6701,7 +7030,9 @@
       "direction": "setter",
       "source_status": "inventory_only",
       "registry_status": "blocked_missing_interop",
-      "semantic_value_family": "gdt_distance_between_mode",
+      "semantic_value_families": [
+        "gdt_distance_between_mode"
+      ],
       "coverage": {
         "protocol": "blocked",
         "worker": "blocked",
@@ -6721,7 +7052,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": [
         "https://github.com/spatialanalyzer/briosa/issues/79"
@@ -6732,7 +7064,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "excluded_only",
-      "semantic_value_family": "mp_interaction_mode",
+      "semantic_value_families": [
+        "mp_interaction_mode"
+      ],
       "coverage": {
         "protocol": "not_required",
         "worker": "not_required",
@@ -6768,7 +7102,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -6777,7 +7112,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "excluded_only",
-      "semantic_value_family": "math_operation",
+      "semantic_value_families": [
+        "math_operation"
+      ],
       "coverage": {
         "protocol": "not_required",
         "worker": "not_required",
@@ -6813,7 +7150,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -6822,7 +7160,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "excluded_only",
-      "semantic_value_family": "measured_side_for_planar_offset",
+      "semantic_value_families": [
+        "measured_side_for_planar_offset"
+      ],
       "coverage": {
         "protocol": "not_required",
         "worker": "not_required",
@@ -6858,7 +7198,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -6867,7 +7208,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "excluded_only",
-      "semantic_value_family": "measured_side_for_radial_offset",
+      "semantic_value_families": [
+        "measured_side_for_radial_offset"
+      ],
       "coverage": {
         "protocol": "not_required",
         "worker": "not_required",
@@ -6903,7 +7246,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -6912,7 +7256,9 @@
       "direction": "setter",
       "source_status": "inventory_only",
       "registry_status": "blocked_missing_interop",
-      "semantic_value_family": "mesh_orientation_type",
+      "semantic_value_families": [
+        "mesh_orientation_type"
+      ],
       "coverage": {
         "protocol": "blocked",
         "worker": "blocked",
@@ -6932,7 +7278,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": [
         "https://github.com/spatialanalyzer/briosa/issues/79"
@@ -6943,7 +7290,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "excluded_only",
-      "semantic_value_family": "move_direction_type",
+      "semantic_value_families": [
+        "move_direction_type"
+      ],
       "coverage": {
         "protocol": "not_required",
         "worker": "not_required",
@@ -6979,7 +7328,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -6988,7 +7338,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "excluded_only",
-      "semantic_value_family": "normal_direction",
+      "semantic_value_families": [
+        "normal_direction"
+      ],
       "coverage": {
         "protocol": "not_required",
         "worker": "not_required",
@@ -7024,7 +7376,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -7033,7 +7386,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "excluded_only",
-      "semantic_value_family": "numeric_comparison_type",
+      "semantic_value_families": [
+        "numeric_comparison_type"
+      ],
       "coverage": {
         "protocol": "not_required",
         "worker": "not_required",
@@ -7069,7 +7424,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -7078,7 +7434,9 @@
       "direction": "setter",
       "source_status": "interop_only",
       "registry_status": "unobserved_interop",
-      "semantic_value_family": "object_name",
+      "semantic_value_families": [
+        "object_name"
+      ],
       "coverage": {
         "protocol": "not_required",
         "worker": "not_required",
@@ -7114,7 +7472,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -7123,13 +7482,15 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "object_type",
+      "semantic_value_families": [
+        "object_type"
+      ],
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -7159,7 +7520,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -7168,13 +7530,15 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "offset_direction_type",
+      "semantic_value_families": [
+        "offset_direction_type"
+      ],
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -7204,7 +7568,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -7213,7 +7578,9 @@
       "direction": "setter",
       "source_status": "interop_only",
       "registry_status": "unobserved_interop",
-      "semantic_value_family": "perimeter_name",
+      "semantic_value_families": [
+        "perimeter_name"
+      ],
       "coverage": {
         "protocol": "not_required",
         "worker": "not_required",
@@ -7249,7 +7616,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -7257,14 +7625,16 @@
       "method": "SetPointDeltaReportOptionsArg",
       "direction": "setter",
       "source_status": "inventory_and_interop",
-      "registry_status": "usable",
-      "semantic_value_family": "point_delta_report_options",
+      "registry_status": "blocked_semantics",
+      "semantic_value_families": [
+        "point_delta_report_options"
+      ],
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "blocked",
+        "worker": "blocked",
+        "adapter": "blocked",
+        "fake": "blocked",
+        "generator": "blocked"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -7356,26 +7726,31 @@
         "remaining_command_count": 2,
         "sha256": "350e3099b34d2b81cc2f6276277cb120aa3408562507f5ff92e9e5b003d7b120"
       },
-      "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
+      "rationale": "The exact interop signature is present, but unresolved release-specific semantics prevent a safe public and worker mapping.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
-      "blocker_references": []
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/79"
+      ]
     },
     {
       "method": "SetPointFilterInputTypeArg",
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "point_filter_input_type",
+      "semantic_value_families": [
+        "point_filter_input_type"
+      ],
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -7405,7 +7780,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -7414,7 +7790,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "point_name",
+      "semantic_value_families": [
+        "point_name"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -7462,7 +7840,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -7471,7 +7850,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "point_name_list",
+      "semantic_value_families": [
+        "point_name_list"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -7507,7 +7888,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -7515,14 +7897,16 @@
       "method": "SetProjectionOptionsArg",
       "direction": "setter",
       "source_status": "inventory_and_interop",
-      "registry_status": "usable",
-      "semantic_value_family": "projection_options",
+      "registry_status": "blocked_semantics",
+      "semantic_value_families": [
+        "projection_options"
+      ],
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "blocked",
+        "worker": "blocked",
+        "adapter": "blocked",
+        "fake": "blocked",
+        "generator": "blocked"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -7578,26 +7962,31 @@
         "remaining_command_count": 8,
         "sha256": "34e391dd33d2e28e4d643ea255ce809583002be9c5243fcf9827ef15a4cb648b"
       },
-      "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
+      "rationale": "The exact interop signature is present, but unresolved release-specific semantics prevent a safe public and worker mapping.",
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
-      "blocker_references": []
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/79"
+      ]
     },
     {
       "method": "SetRelWeightingModeArg",
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "relationship_weighting_mode",
+      "semantic_value_families": [
+        "relationship_weighting_mode"
+      ],
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -7627,7 +8016,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -7636,13 +8026,15 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "render_mode_type",
+      "semantic_value_families": [
+        "render_mode_type"
+      ],
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -7672,7 +8064,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -7681,13 +8074,15 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "report_output_options",
+      "semantic_value_families": [
+        "report_output_options"
+      ],
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -7723,7 +8118,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -7732,13 +8128,15 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "report_page_orientation",
+      "semantic_value_families": [
+        "report_page_orientation"
+      ],
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -7768,7 +8166,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -7777,7 +8176,9 @@
       "direction": "setter",
       "source_status": "interop_only",
       "registry_status": "unobserved_interop",
-      "semantic_value_family": "report_type",
+      "semantic_value_families": [
+        "report_type"
+      ],
       "coverage": {
         "protocol": "not_required",
         "worker": "not_required",
@@ -7813,7 +8214,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -7822,13 +8224,15 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "report_view_options",
+      "semantic_value_families": [
+        "report_view_options"
+      ],
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -7870,7 +8274,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -7879,7 +8284,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "excluded_only",
-      "semantic_value_family": "result_object_name",
+      "semantic_value_families": [
+        "result_object_name"
+      ],
       "coverage": {
         "protocol": "not_required",
         "worker": "not_required",
@@ -7915,7 +8322,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -7924,7 +8332,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "excluded_only",
-      "semantic_value_family": "sa_interaction_mode",
+      "semantic_value_families": [
+        "sa_interaction_mode"
+      ],
       "coverage": {
         "protocol": "not_required",
         "worker": "not_required",
@@ -7960,7 +8370,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -7969,13 +8380,15 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "saturation_limit_type",
+      "semantic_value_families": [
+        "saturation_limit_type"
+      ],
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -8005,7 +8418,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -8014,13 +8428,15 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "show_usmn_dialog_type",
+      "semantic_value_families": [
+        "show_usmn_dialog_type"
+      ],
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -8050,7 +8466,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -8059,7 +8476,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "excluded_only",
-      "semantic_value_family": "slot_type",
+      "semantic_value_families": [
+        "slot_type"
+      ],
       "coverage": {
         "protocol": "not_required",
         "worker": "not_required",
@@ -8095,7 +8514,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -8104,7 +8524,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "excluded_only",
-      "semantic_value_family": "sphere_fit_computation_mode",
+      "semantic_value_families": [
+        "sphere_fit_computation_mode"
+      ],
       "coverage": {
         "protocol": "not_required",
         "worker": "not_required",
@@ -8140,7 +8562,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -8149,7 +8572,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "string",
+      "semantic_value_families": [
+        "string"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -8185,7 +8610,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -8194,7 +8620,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "string_list",
+      "semantic_value_families": [
+        "string_list"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -8230,7 +8658,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -8239,13 +8668,15 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "surface_dissection_mode_type",
+      "semantic_value_families": [
+        "surface_dissection_mode_type"
+      ],
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -8275,7 +8706,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -8284,13 +8716,15 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "surface_analysis_mode",
+      "semantic_value_families": [
+        "surface_analysis_mode"
+      ],
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -8320,7 +8754,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -8329,7 +8764,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "excluded_only",
-      "semantic_value_family": "system_string",
+      "semantic_value_families": [
+        "system_string"
+      ],
       "coverage": {
         "protocol": "not_required",
         "worker": "not_required",
@@ -8365,7 +8802,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -8374,13 +8812,15 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "target_computation_method",
+      "semantic_value_families": [
+        "target_computation_method"
+      ],
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -8410,7 +8850,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -8419,7 +8860,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "temperature_unit",
+      "semantic_value_families": [
+        "temperature_unit"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -8455,7 +8898,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -8464,13 +8908,15 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "tolerance_scalar_options",
+      "semantic_value_families": [
+        "tolerance_scalar_options"
+      ],
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -8518,7 +8964,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -8527,7 +8974,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "tolerance_vector_options",
+      "semantic_value_families": [
+        "tolerance_vector_options"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -8653,7 +9102,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -8662,7 +9112,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "transform",
+      "semantic_value_families": [
+        "transform"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -8698,7 +9150,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -8707,13 +9160,15 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "translucency_type",
+      "semantic_value_families": [
+        "translucency_type"
+      ],
       "coverage": {
-        "protocol": "planned",
-        "worker": "planned",
-        "adapter": "planned",
-        "fake": "planned",
-        "generator": "planned"
+        "protocol": "implemented",
+        "worker": "implemented",
+        "adapter": "implemented",
+        "fake": "implemented",
+        "generator": "implemented"
       },
       "interop_signature": {
         "return_type": "boolean",
@@ -8743,7 +9198,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -8752,7 +9208,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "excluded_only",
-      "semantic_value_family": "trigonometric_function",
+      "semantic_value_families": [
+        "trigonometric_function"
+      ],
       "coverage": {
         "protocol": "not_required",
         "worker": "not_required",
@@ -8788,7 +9246,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -8797,7 +9256,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "excluded_only",
-      "semantic_value_family": "udp_transmit_settings",
+      "semantic_value_families": [
+        "udp_transmit_settings"
+      ],
       "coverage": {
         "protocol": "not_required",
         "worker": "not_required",
@@ -8851,7 +9312,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -8860,7 +9322,9 @@
       "direction": "setter",
       "source_status": "interop_only",
       "registry_status": "unobserved_interop",
-      "semantic_value_family": "user_summary_info_files",
+      "semantic_value_families": [
+        "user_summary_info_files"
+      ],
       "coverage": {
         "protocol": "not_required",
         "worker": "not_required",
@@ -8902,7 +9366,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -8911,7 +9376,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "vector3",
+      "semantic_value_families": [
+        "vector3"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -8959,7 +9426,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -8968,7 +9436,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "vector_group_name",
+      "semantic_value_families": [
+        "vector_group_name"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -9004,7 +9474,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -9013,7 +9484,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "vector_name_list",
+      "semantic_value_families": [
+        "vector_name_list"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -9049,7 +9522,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -9058,7 +9532,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "view_name",
+      "semantic_value_families": [
+        "view_name"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -9094,7 +9570,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -9103,7 +9580,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "excluded_only",
-      "semantic_value_family": "window_state",
+      "semantic_value_families": [
+        "window_state"
+      ],
       "coverage": {
         "protocol": "not_required",
         "worker": "not_required",
@@ -9139,7 +9618,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -9148,7 +9628,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "excluded_only",
-      "semantic_value_family": "workbook_address_mode_type",
+      "semantic_value_families": [
+        "workbook_address_mode_type"
+      ],
       "coverage": {
         "protocol": "not_required",
         "worker": "not_required",
@@ -9184,7 +9666,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -9193,7 +9676,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "usable",
-      "semantic_value_family": "world_transform",
+      "semantic_value_families": [
+        "world_transform"
+      ],
       "coverage": {
         "protocol": "implemented",
         "worker": "implemented",
@@ -9235,7 +9720,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     },
@@ -9244,7 +9730,9 @@
       "direction": "setter",
       "source_status": "inventory_and_interop",
       "registry_status": "excluded_only",
-      "semantic_value_family": "write_mode_type",
+      "semantic_value_families": [
+        "write_mode_type"
+      ],
       "coverage": {
         "protocol": "not_required",
         "worker": "not_required",
@@ -9280,7 +9768,8 @@
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/54",
         "https://github.com/spatialanalyzer/briosa/issues/55",
-        "https://github.com/spatialanalyzer/briosa/issues/56"
+        "https://github.com/spatialanalyzer/briosa/issues/56",
+        "https://github.com/spatialanalyzer/briosa/issues/57"
       ],
       "blocker_references": []
     }
