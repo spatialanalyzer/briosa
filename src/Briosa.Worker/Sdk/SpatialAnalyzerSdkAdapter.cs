@@ -173,13 +173,23 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
             SdkValueKind.CollectionMachineId
                 when argument.CollectionMachineIdValue is { } value =>
                 sdk.SetColMachineIdArg(argument.Name, value.CollectionName, value.MachineId),
+            SdkValueKind.CollectionItemName
+                when argument.CollectionItemNameValue is { } value =>
+                sdk.SetCollectionObjectNameArg2(
+                    argument.Name,
+                    value.CollectionName,
+                    value.ItemName,
+                    SdkSpecializedValueCodec.ToSdkString(value.ItemType)),
+            SdkValueKind.CollectionItemNameList
+                when argument.CollectionItemNameListValue is { } value =>
+                SetCollectionItemNameList(sdk, argument.Name, value),
             SdkValueKind.CollectionObjectName
-                when argument.CollectionObjectNameValue is { ObjectType: not null } value =>
+                when argument.CollectionObjectNameValue is { } value =>
                 sdk.SetCollectionObjectNameArg2(
                     argument.Name,
                     value.CollectionName,
                     value.ObjectName,
-                    value.ObjectType),
+                    SdkSpecializedValueCodec.ToSdkString(value.ObjectType)),
             SdkValueKind.CollectionObjectNameList
                 when argument.CollectionObjectNameListValue is { } value =>
                 SetCollectionObjectNameList(sdk, argument.Name, value),
@@ -231,6 +241,10 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
                 SdkValueKind.CollectionName => GetNamedString(
                     sdk.GetCollectionNameArg,
                     argument),
+                SdkValueKind.CollectionItemName =>
+                    GetCollectionItemName(sdk, argument),
+                SdkValueKind.CollectionItemNameList =>
+                    GetCollectionItemNameList(sdk, argument),
                 SdkValueKind.CollectionObjectName =>
                     GetCollectionObjectName(sdk, argument),
                 SdkValueKind.CollectionObjectNameList =>
@@ -571,6 +585,14 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
             value.Values.Select(SdkReferenceListCodec.Format),
             (ref object values) => sdk.SetCollectionGroupNameRefListArg(name, ref values));
 
+    private static bool SetCollectionItemNameList(
+        ISpatialAnalyzerSdkCalls sdk,
+        string name,
+        SdkCollectionItemNameListValue value) =>
+        SetReferenceList(
+            value.Values.Select(SdkReferenceListCodec.Format),
+            (ref object values) => sdk.SetCollectionObjectNameRefListArg(name, ref values));
+
     private static bool SetCollectionObjectNameList(
         ISpatialAnalyzerSdkCalls sdk,
         string name,
@@ -645,6 +667,29 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
                 : null);
     }
 
+    private static SdkOutputValue GetCollectionItemName(
+        ISpatialAnalyzerSdkCalls sdk,
+        SdkOutputArgument argument)
+    {
+        var collectionName = string.Empty;
+        var itemName = string.Empty;
+        var retrieved = sdk.GetCollectionObjectNameArg(
+            argument.Name,
+            ref collectionName,
+            ref itemName);
+        SdkCollectionItemNameValue? parsed = null;
+        retrieved = retrieved &&
+            SdkReferenceListCodec.TryParseItemNameResult(
+                collectionName,
+                itemName,
+                out parsed);
+        return new SdkOutputValue(
+            argument.Name,
+            argument.Kind,
+            retrieved,
+            CollectionItemNameValue: retrieved ? parsed : null);
+    }
+
     private static SdkOutputValue GetCollectionObjectName(
         ISpatialAnalyzerSdkCalls sdk,
         SdkOutputArgument argument)
@@ -693,6 +738,19 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
                 kind,
                 true,
                 CollectionInstrumentIdListValue: value));
+
+    private static SdkOutputValue GetCollectionItemNameList(
+        ISpatialAnalyzerSdkCalls sdk,
+        SdkOutputArgument argument) =>
+        GetReferenceList<SdkCollectionItemNameListValue>(
+            argument,
+            sdk.GetCollectionObjectNameRefListArg,
+            SdkReferenceListCodec.TryParseItemNames,
+            (name, kind, value) => new SdkOutputValue(
+                name,
+                kind,
+                true,
+                CollectionItemNameListValue: value));
 
     private static SdkOutputValue GetCollectionObjectNameList(
         ISpatialAnalyzerSdkCalls sdk,
@@ -799,6 +857,8 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
             SdkValueKind.CollectionInstrumentIdList => "SetColInstIdRefListArg",
             SdkValueKind.CollectionMachineId => "SetColMachineIdArg",
             SdkValueKind.CollectionName => "SetCollectionNameArg",
+            SdkValueKind.CollectionItemName => "SetCollectionObjectNameArg2",
+            SdkValueKind.CollectionItemNameList => "SetCollectionObjectNameRefListArg",
             SdkValueKind.CollectionObjectName => "SetCollectionObjectNameArg2",
             SdkValueKind.CollectionObjectNameList => "SetCollectionObjectNameRefListArg",
             SdkValueKind.CollectionVectorGroupName => "SetColVectorGroupNameArg",
@@ -839,6 +899,8 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
             SdkValueKind.CollectionInstrumentIdList => "GetColInstIdRefListArg",
             SdkValueKind.CollectionMachineId => "GetColMachineIdArg",
             SdkValueKind.CollectionName => "GetCollectionNameArg",
+            SdkValueKind.CollectionItemName => "GetCollectionObjectNameArg",
+            SdkValueKind.CollectionItemNameList => "GetCollectionObjectNameRefListArg",
             SdkValueKind.CollectionObjectName => "GetCollectionObjectNameArg",
             SdkValueKind.CollectionObjectNameList => "GetCollectionObjectNameRefListArg",
             SdkValueKind.CollectionVectorGroupName => "GetColVectorGroupNameArg",

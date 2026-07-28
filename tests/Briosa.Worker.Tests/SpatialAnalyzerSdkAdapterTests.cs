@@ -171,8 +171,10 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
                 new("Machine", SdkValueKind.CollectionMachineId, CollectionMachineIdValue: new("Collection", 4), SdkBinding: "SetColMachineIdArg"),
                 new("Groups", SdkValueKind.CollectionGroupNameList, CollectionGroupNameListValue: new([new("Collection", "Group")]), SdkBinding: "SetCollectionGroupNameRefListArg"),
                 new("Collection", SdkValueKind.CollectionName, StringValue: "Collection", SdkBinding: "SetCollectionNameArg"),
-                new("Object", SdkValueKind.CollectionObjectName, CollectionObjectNameValue: new("Collection", "Object", "Point Group"), SdkBinding: "SetCollectionObjectNameArg2"),
-                new("Objects", SdkValueKind.CollectionObjectNameList, CollectionObjectNameListValue: new([new("Collection", "Object", "Point Group")]), SdkBinding: "SetCollectionObjectNameRefListArg"),
+                new("Item", SdkValueKind.CollectionItemName, CollectionItemNameValue: new("Collection", "Picture", SdkItemTypeValue.Picture), SdkBinding: "SetCollectionObjectNameArg2"),
+                new("Items", SdkValueKind.CollectionItemNameList, CollectionItemNameListValue: new([new("Collection", "Report", SdkItemTypeValue.SaReport)]), SdkBinding: "SetCollectionObjectNameRefListArg"),
+                new("Object", SdkValueKind.CollectionObjectName, CollectionObjectNameValue: new("Collection", "Object", SdkObjectTypeValue.PointGroup), SdkBinding: "SetCollectionObjectNameArg2"),
+                new("Objects", SdkValueKind.CollectionObjectNameList, CollectionObjectNameListValue: new([new("Collection", "Object", SdkObjectTypeValue.PointGroup)]), SdkBinding: "SetCollectionObjectNameRefListArg"),
                 new("Vector Group", SdkValueKind.CollectionVectorGroupName, CollectionVectorGroupNameValue: new("Collection", "Vectors"), SdkBinding: "SetColVectorGroupNameArg"),
                 new("Vector Groups", SdkValueKind.CollectionVectorGroupNameList, CollectionVectorGroupNameListValue: new([new("Collection", "Vectors")]), SdkBinding: "SetCollectionVectorGroupNameRefListArg"),
                 new("Frame", SdkValueKind.FrameName, StringValue: "Frame A", SdkBinding: "SetFrameNameArg"),
@@ -186,6 +188,8 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
                 new("Instrument Result", SdkValueKind.CollectionInstrumentId, "GetColInstIdArg"),
                 new("Instrument Results", SdkValueKind.CollectionInstrumentIdList, "GetColInstIdRefListArg"),
                 new("Collection Result", SdkValueKind.CollectionName, "GetCollectionNameArg"),
+                new("Item Result", SdkValueKind.CollectionItemName, "GetCollectionObjectNameArg"),
+                new("Item Results", SdkValueKind.CollectionItemNameList, "GetCollectionObjectNameRefListArg"),
                 new("Object Result", SdkValueKind.CollectionObjectName, "GetCollectionObjectNameArg"),
                 new("Object Results", SdkValueKind.CollectionObjectNameList, "GetCollectionObjectNameRefListArg"),
                 new("Point Results", SdkValueKind.PointNameList, "GetPointNameRefListArg"),
@@ -199,16 +203,23 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         Assert.All(result.OutputValues, output => Assert.True(output.Retrieved));
         Assert.Equal(17, result.OutputValues[0].CollectionInstrumentIdValue!.InstrumentId);
         Assert.Equal(2, result.OutputValues[1].CollectionInstrumentIdListValue!.Values.Count);
+        Assert.Equal(SdkItemTypeValue.Picture, result.OutputValues[3].CollectionItemNameValue!.ItemType);
+        Assert.Equal(SdkItemTypeValue.SaReport, result.OutputValues[4].CollectionItemNameListValue!.Values[0].ItemType);
         Assert.Equal(
-            "Point Group",
-            result.OutputValues[3].CollectionObjectNameValue!.ObjectType);
-        Assert.Equal("Point Group", result.OutputValues[4].CollectionObjectNameListValue!.Values[0].ObjectType);
-        Assert.Equal("Point B", result.OutputValues[5].PointNameListValue!.Values[1].TargetName);
-        Assert.Equal(["A", "B"], result.OutputValues[6].StringListValue!.Values);
-        Assert.Equal("Vector A", result.OutputValues[7].VectorNameListValue!.Values[0].VectorName);
+            SdkObjectTypeValue.PointGroup,
+            result.OutputValues[5].CollectionObjectNameValue!.ObjectType);
+        Assert.Equal(SdkObjectTypeValue.PointGroup, result.OutputValues[6].CollectionObjectNameListValue!.Values[0].ObjectType);
+        Assert.Equal("Point B", result.OutputValues[7].PointNameListValue!.Values[1].TargetName);
+        Assert.Equal(["A", "B"], result.OutputValues[8].StringListValue!.Values);
+        Assert.Equal("Vector A", result.OutputValues[9].VectorNameListValue!.Values[0].VectorName);
+        Assert.Equal("Picture", calls.StringArguments["Item"]);
+        Assert.Equal("Point Group", calls.StringArguments["Object"]);
+        Assert.Equal(["Collection::Report::SA Report"], calls.ReferenceArguments["Items"]);
         Assert.Equal(["Collection::17"], calls.ReferenceArguments["Instruments"]);
         Assert.Equal(["Collection::Group::Point"], calls.ReferenceArguments["Points"]);
+        Assert.Contains("SetCollectionObjectNameArg2:Item", calls.Events);
         Assert.Contains("SetCollectionObjectNameArg2:Object", calls.Events);
+        Assert.Contains("GetCollectionObjectNameArg:Item Result", calls.Events);
         Assert.Contains("GetCollectionObjectNameArg:Object Result", calls.Events);
         Assert.True(calls.ReferenceGettersReceivedVariantWrapper);
     }
@@ -251,6 +262,28 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         var output = Assert.Single(result.OutputValues);
         Assert.False(output.Retrieved);
         Assert.Null(output.CollectionObjectNameValue);
+        Assert.Equal("sdk-output-retrieval-failed", result.DiagnosticCode);
+    }
+
+    [Fact]
+    public void UnknownCollectionObjectOrItemTypesFailClosed()
+    {
+        using var calls = new RecordingSdkCalls();
+        using var adapter = new SpatialAnalyzerSdkAdapter(calls);
+        var command = new SdkCommand(
+            "unknown-collection-types",
+            "Unknown Collection Types",
+            [],
+            [
+                new("Unknown Item", SdkValueKind.CollectionItemName, "GetCollectionObjectNameArg"),
+                new("Unknown Items", SdkValueKind.CollectionItemNameList, "GetCollectionObjectNameRefListArg"),
+                new("Unknown Object", SdkValueKind.CollectionObjectName, "GetCollectionObjectNameArg"),
+                new("Unknown Objects", SdkValueKind.CollectionObjectNameList, "GetCollectionObjectNameRefListArg")
+            ]);
+
+        var result = adapter.Execute(command);
+
+        Assert.All(result.OutputValues, output => Assert.False(output.Retrieved));
         Assert.Equal("sdk-output-retrieval-failed", result.DiagnosticCode);
     }
 
@@ -528,7 +561,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             string collectionName,
             string objectName,
             string objectType) =>
-            RecordSetter("SetCollectionObjectNameArg2", name);
+            RecordStringSetter("SetCollectionObjectNameArg2", name, objectType);
 
         public bool SetCollectionObjectNameRefListArg(string name, ref object values) =>
             RecordReferenceSetter("SetCollectionObjectNameRefListArg", name, values);
@@ -735,13 +768,21 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             collectionName = "Collection";
             objectName = name == MalformedOutputName
                 ? "Object"
-                : "Object,Point Group,";
+                : name.Contains("Unknown", StringComparison.Ordinal)
+                    ? "Object,Future Type,"
+                    : name.Contains("Item", StringComparison.Ordinal)
+                        ? "Picture,Picture,"
+                        : "Object,Point Group,";
             return true;
         }
 
         public bool GetCollectionObjectNameRefListArg(string name, ref object values) =>
             ReturnReferenceList(name, "GetCollectionObjectNameRefListArg", ref values,
-                "Collection::Object::Point Group,");
+                name.Contains("Unknown", StringComparison.Ordinal)
+                    ? "Collection::Object::Future Type,"
+                    : name.Contains("Item", StringComparison.Ordinal)
+                        ? "Collection::Report::SA Report,"
+                        : "Collection::Object::Point Group,");
 
         public bool GetPointNameRefListArg(string name, ref object values) =>
             ReturnReferenceList(name, "GetPointNameRefListArg", ref values,

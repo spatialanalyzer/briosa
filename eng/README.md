@@ -4,10 +4,18 @@ Run the scripts in this directory from the repository root. Interop generation r
 
 ## Protocol verification
 
-`Verify-Protocol.ps1` requires Buf 1.72.0. It verifies canonical formatting, lint rules, schema compilation, and FILE-level compatibility against `origin/main` when that ref contains a protobuf baseline:
+`Verify-Protocol.ps1` requires Buf 1.72.0. It verifies canonical formatting, lint rules, and schema compilation:
 
 ```powershell
 ./eng/Verify-Protocol.ps1
+```
+
+Briosa is currently unreleased, so ordinary validation does not treat `main`
+as a published compatibility baseline. After the first public release, run the
+strict FILE-level comparison against its explicit Git ref:
+
+```powershell
+./eng/Verify-Protocol.ps1 -AgainstRef <released-ref>
 ```
 
 ## Command catalog verification

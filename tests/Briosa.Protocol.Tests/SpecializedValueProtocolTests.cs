@@ -15,6 +15,11 @@ public sealed class SpecializedValueProtocolTests
         Assert.Equal(191, Enum.GetValues<TargetProtocol.InstrumentType>().Length);
         Assert.Equal(8, (int)TargetProtocol.ObjectType.Cone);
         Assert.Equal(26, (int)TargetProtocol.ObjectType.VectorGroup);
+        Assert.Equal(27, Enum.GetValues<TargetProtocol.ObjectType>().Length);
+        Assert.Equal(3, (int)TargetProtocol.ItemType.Annotation);
+        Assert.Equal(25, (int)TargetProtocol.ItemType.Picture);
+        Assert.Equal(42, (int)TargetProtocol.ItemType.VectorGroup);
+        Assert.Equal(43, Enum.GetValues<TargetProtocol.ItemType>().Length);
         Assert.Equal(45, Enum.GetValues<TargetProtocol.AsciiImportFileFormat>().Length);
         Assert.Equal(9, Enum.GetValues<TargetProtocol.AsciiFrameSetFormat>().Length);
         Assert.Equal(7, Enum.GetValues<TargetProtocol.AxisIdentifier>().Length);

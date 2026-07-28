@@ -199,6 +199,23 @@ internal static class TestWorkerProcess
                     Retrieved: true,
                     CollectionMachineIdValue:
                         new WorkerCollectionMachineIdValue("Collection", 18)),
+            WorkerMpValueKind.CollectionItemName =>
+                new(
+                    output.Name,
+                    output.Kind,
+                    Retrieved: true,
+                    CollectionItemNameValue:
+                        new WorkerCollectionItemNameValue(
+                            "Collection", "Picture", WorkerItemTypeValue.Picture)),
+            WorkerMpValueKind.CollectionItemNameList =>
+                new(
+                    output.Name,
+                    output.Kind,
+                    Retrieved: true,
+                    CollectionItemNameListValue:
+                        new WorkerCollectionItemNameListValue(
+                            [new WorkerCollectionItemNameValue(
+                                "Collection", "Report", WorkerItemTypeValue.SaReport)])),
             WorkerMpValueKind.CollectionObjectName =>
                 new(
                     output.Name,
@@ -206,7 +223,7 @@ internal static class TestWorkerProcess
                     Retrieved: true,
                     CollectionObjectNameValue:
                         new WorkerCollectionObjectNameValue(
-                            "Collection", "Object", "Point Group")),
+                            "Collection", "Object", WorkerObjectTypeValue.PointGroup)),
             WorkerMpValueKind.CollectionObjectNameList =>
                 new(
                     output.Name,
@@ -215,7 +232,7 @@ internal static class TestWorkerProcess
                     CollectionObjectNameListValue:
                         new WorkerCollectionObjectNameListValue(
                             [new WorkerCollectionObjectNameValue(
-                                "Collection", "Object", "Point Group")])),
+                                "Collection", "Object", WorkerObjectTypeValue.PointGroup)])),
             WorkerMpValueKind.CollectionGroupNameList =>
                 new(
                     output.Name,

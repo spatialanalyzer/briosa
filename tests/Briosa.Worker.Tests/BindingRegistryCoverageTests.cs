@@ -131,7 +131,12 @@ public sealed class BindingRegistryCoverageTests
                 "world_transform"
             ],
             implementedFamilies);
-        Assert.Equal(implementedFamilies.Length, Enum.GetValues<SdkValueKind>().Length);
+        // Collection item scalar/list values are implemented at the runtime boundary first.
+        // Their exact shared-method command assignments are tracked by #87 and must be
+        // completed before either family is used by a generated catalog operation.
+        Assert.Equal(implementedFamilies.Length + 2, Enum.GetValues<SdkValueKind>().Length);
+        Assert.Contains(SdkValueKind.CollectionItemName, Enum.GetValues<SdkValueKind>());
+        Assert.Contains(SdkValueKind.CollectionItemNameList, Enum.GetValues<SdkValueKind>());
     }
 
     private static DirectoryInfo FindRepositoryRoot()

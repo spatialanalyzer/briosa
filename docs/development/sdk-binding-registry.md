@@ -15,6 +15,9 @@ Each exact target contains:
 Edit only `review.json`. Never hand-edit `registry.json` or `report.md`.
 
 A specialized SDK method can also serve more than one semantic domain. `binding_family_overrides` declares the complete allowed family set, and `argument_family_assignments` assigns every exact inventory command/ordinal observation to one of those families. Registry synchronization fails if an observation is unassigned, an assignment is stale, or an override omits the method's default family. Generated bindings therefore expose `semantic_value_families` as an array rather than collapsing the evidence to one label.
+
+This rule applies to structured identifiers as well as enums. The four collection-object-named scalar/list methods can carry either `CollectionObjectName` or the broader `CollectionItemName`. ADR 0016 defines the runtime model; issue #87 must provide exact command-argument assignments before either shared-method override enters the generated registry. Until then, the item scalar/list kinds are runtime-complete but intentionally unavailable to catalog-generated operations.
+
 The review deliberately keeps specialized SDK methods distinct even when their CLR representation is the same. For example, `SetAngularUnitsArg` maps to `angular_unit`, while `SetStringArg` maps to the primitive `string` family. Structured setters and getters share a family only when their exact semantic shape matches; method-name similarity alone is insufficient.
 
 `public_type_target` and `worker_type_target` are implementation targets for issues that build the value families. They do not claim that the corresponding type already exists. Generated `implementation_status` distinguishes `implemented`, `planned`, `blocked`, and `not_required` families. Per-binding coverage reports protocol, worker, adapter, fake, and generator status independently so partial implementations cannot appear complete.

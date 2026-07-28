@@ -91,7 +91,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             }
         }
 
-        Assert.Equal(412, mappedValueCount);
+        Assert.Equal(454, mappedValueCount);
     }
 
     [Fact]

@@ -379,6 +379,7 @@ internal static class CommandCatalogArtifactGenerator
                 $"!{value}.HasCollectionName || !{value}.HasInstrumentId",
             "collection_machine_id" =>
                 $"!{value}.HasCollectionName || !{value}.HasMachineId",
+            "collection_item_name" => MissingCollectionItemNameComponents(value),
             "collection_object_name" => MissingCollectionObjectNameComponents(value),
             "collection_vector_group_name" =>
                 $"!{value}.HasCollectionName || !{value}.HasVectorGroupName",
@@ -386,8 +387,10 @@ internal static class CommandCatalogArtifactGenerator
                 $"{value}.Values.Any(item => !item.HasCollectionName || !item.HasInstrumentId)",
             "collection_group_name_list" =>
                 $"{value}.Values.Any(item => !item.HasCollectionName || !item.HasGroupName)",
+            "collection_item_name_list" =>
+                $"{value}.Values.Any(item => {MissingCollectionItemNameComponents("item")})",
             "collection_object_name_list" =>
-                $"{value}.Values.Any(item => !item.HasCollectionName || !item.HasObjectName || !item.HasObjectType)",
+                $"{value}.Values.Any(item => {MissingCollectionObjectNameComponents("item")})",
             "collection_vector_group_name_list" =>
                 $"{value}.Values.Any(item => !item.HasCollectionName || !item.HasVectorGroupName)",
             "point_name_list" =>
@@ -407,8 +410,11 @@ internal static class CommandCatalogArtifactGenerator
     private static string MissingPointNameComponents(string value) =>
         $"!{value}.HasCollectionName || !{value}.HasGroupName || !{value}.HasTargetName";
 
+    private static string MissingCollectionItemNameComponents(string value) =>
+        $"!{value}.HasCollectionName || !{value}.HasItemName || !{value}.HasItemType || {value}.ItemType == TargetProtocol.ItemType.Unspecified || !Enum.IsDefined({value}.ItemType)";
+
     private static string MissingCollectionObjectNameComponents(string value) =>
-        $"!{value}.HasCollectionName || !{value}.HasObjectName || !{value}.HasObjectType";
+        $"!{value}.HasCollectionName || !{value}.HasObjectName || !{value}.HasObjectType || {value}.ObjectType == TargetProtocol.ObjectType.Unspecified || !Enum.IsDefined({value}.ObjectType)";
     private static string CreateInputExpression(CommandCatalogArgument input, string valueExpression)
     {
         var name = ToPascalCase(input.ArgumentId);
@@ -455,10 +461,14 @@ internal static class CommandCatalogArtifactGenerator
                 $"CollectionInstrumentIdListValue: new([.. {valueExpression}.Values.Select(value => new WorkerCollectionInstrumentIdValue(value.CollectionName, value.InstrumentId))]))",
             "collection_machine_id" => prefix +
                 $"CollectionMachineIdValue: new({valueExpression}.CollectionName, {valueExpression}.MachineId))",
+            "collection_item_name" => prefix +
+                $"CollectionItemNameValue: new({valueExpression}.CollectionName, {valueExpression}.ItemName, (WorkerItemTypeValue)(int){valueExpression}.ItemType))",
+            "collection_item_name_list" => prefix +
+                $"CollectionItemNameListValue: new([.. {valueExpression}.Values.Select(value => new WorkerCollectionItemNameValue(value.CollectionName, value.ItemName, (WorkerItemTypeValue)(int)value.ItemType))]))",
             "collection_object_name" => prefix +
-                $"CollectionObjectNameValue: new({valueExpression}.CollectionName, {valueExpression}.ObjectName, {valueExpression}.ObjectType))",
+                $"CollectionObjectNameValue: new({valueExpression}.CollectionName, {valueExpression}.ObjectName, (WorkerObjectTypeValue)(int){valueExpression}.ObjectType))",
             "collection_object_name_list" => prefix +
-                $"CollectionObjectNameListValue: new([.. {valueExpression}.Values.Select(value => new WorkerCollectionObjectNameValue(value.CollectionName, value.ObjectName, value.ObjectType))]))",
+                $"CollectionObjectNameListValue: new([.. {valueExpression}.Values.Select(value => new WorkerCollectionObjectNameValue(value.CollectionName, value.ObjectName, (WorkerObjectTypeValue)(int)value.ObjectType))]))",
             "collection_group_name_list" => prefix +
                 $"CollectionGroupNameListValue: new([.. {valueExpression}.Values.Select(value => new WorkerCollectionGroupNameValue(value.CollectionName, value.GroupName))]))",
             "collection_vector_group_name" => prefix +
@@ -536,10 +546,14 @@ internal static class CommandCatalogArtifactGenerator
                 $"new TargetProtocol.CollectionInstrumentIdList {{ Values = {{ {variable}.CollectionInstrumentIdListValue!.Values.Select(value => new TargetProtocol.CollectionInstrumentId {{ CollectionName = value.CollectionName, InstrumentId = value.InstrumentId }}) }} }}",
             "collection_machine_id" =>
                 $"new TargetProtocol.CollectionMachineId {{ CollectionName = {variable}.CollectionMachineIdValue!.CollectionName, MachineId = {variable}.CollectionMachineIdValue.MachineId }}",
+            "collection_item_name" =>
+                $"new TargetProtocol.CollectionItemName {{ CollectionName = {variable}.CollectionItemNameValue!.CollectionName, ItemName = {variable}.CollectionItemNameValue.ItemName, ItemType = (TargetProtocol.ItemType)(int){variable}.CollectionItemNameValue.ItemType }}",
+            "collection_item_name_list" =>
+                $"new TargetProtocol.CollectionItemNameList {{ Values = {{ {variable}.CollectionItemNameListValue!.Values.Select(value => new TargetProtocol.CollectionItemName {{ CollectionName = value.CollectionName, ItemName = value.ItemName, ItemType = (TargetProtocol.ItemType)(int)value.ItemType }}) }} }}",
             "collection_object_name" =>
-                $"new TargetProtocol.CollectionObjectName {{ CollectionName = {variable}.CollectionObjectNameValue!.CollectionName, ObjectName = {variable}.CollectionObjectNameValue.ObjectName, ObjectType = {variable}.CollectionObjectNameValue.ObjectType }}",
+                $"new TargetProtocol.CollectionObjectName {{ CollectionName = {variable}.CollectionObjectNameValue!.CollectionName, ObjectName = {variable}.CollectionObjectNameValue.ObjectName, ObjectType = (TargetProtocol.ObjectType)(int){variable}.CollectionObjectNameValue.ObjectType }}",
             "collection_object_name_list" =>
-                $"new TargetProtocol.CollectionObjectNameList {{ Values = {{ {variable}.CollectionObjectNameListValue!.Values.Select(value => new TargetProtocol.CollectionObjectName {{ CollectionName = value.CollectionName, ObjectName = value.ObjectName, ObjectType = value.ObjectType }}) }} }}",
+                $"new TargetProtocol.CollectionObjectNameList {{ Values = {{ {variable}.CollectionObjectNameListValue!.Values.Select(value => new TargetProtocol.CollectionObjectName {{ CollectionName = value.CollectionName, ObjectName = value.ObjectName, ObjectType = (TargetProtocol.ObjectType)(int)value.ObjectType }}) }} }}",
             "collection_group_name_list" =>
                 $"new TargetProtocol.CollectionGroupNameList {{ Values = {{ {variable}.CollectionGroupNameListValue!.Values.Select(value => new TargetProtocol.CollectionGroupName {{ CollectionName = value.CollectionName, GroupName = value.GroupName }}) }} }}",
             "collection_vector_group_name" =>
@@ -626,6 +640,8 @@ internal static class CommandCatalogArtifactGenerator
             "collection_instrument_id" or
             "collection_instrument_id_list" or
             "collection_machine_id" or
+            "collection_item_name" or
+            "collection_item_name_list" or
             "collection_object_name" or
             "collection_object_name_list" or
             "collection_vector_group_name" or
@@ -676,6 +692,8 @@ internal static class CommandCatalogArtifactGenerator
             "collection_instrument_id_list" => "CollectionInstrumentIdList",
             "collection_machine_id" => "CollectionMachineId",
             "collection_name" => "CollectionName",
+            "collection_item_name" => "CollectionItemName",
+            "collection_item_name_list" => "CollectionItemNameList",
             "collection_object_name" => "CollectionObjectName",
             "collection_object_name_list" => "CollectionObjectNameList",
             "collection_vector_group_name" => "CollectionVectorGroupName",

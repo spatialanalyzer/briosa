@@ -36,6 +36,11 @@ public sealed class CommandCatalogInputGenerationTests
             {
                 syntheticArguments.Add(argument?.DeepClone());
             }
+            syntheticOperation["arguments"] = new JsonArray(
+                syntheticArguments
+                    .OrderBy(argument => argument!["ordinal"]!.GetValue<int>())
+                    .Select(argument => argument!.DeepClone())
+                    .ToArray());
 
             File.WriteAllText(
                 Path.Combine(targetRoot, "operations", "synthetic.all_types.json"),
@@ -89,6 +94,12 @@ public sealed class CommandCatalogInputGenerationTests
             Assert.Contains("WorkerMpValueKind.CollectionMachineId", binding, StringComparison.Ordinal);
             Assert.Contains("new TargetProtocol.CollectionInstrumentIdList", binding, StringComparison.Ordinal);
             Assert.Contains("new TargetProtocol.CollectionObjectNameList", binding, StringComparison.Ordinal);
+            Assert.Contains("WorkerMpValueKind.CollectionItemName", binding, StringComparison.Ordinal);
+            Assert.Contains("new WorkerCollectionItemNameValue", binding, StringComparison.Ordinal);
+            Assert.Contains("(WorkerObjectTypeValue)(int)request.Object.ObjectType", binding, StringComparison.Ordinal);
+            Assert.Contains("new TargetProtocol.CollectionItemNameList", binding, StringComparison.Ordinal);
+            Assert.Contains("(TargetProtocol.ItemType)(int)value.ItemType", binding, StringComparison.Ordinal);
+            Assert.Contains("ItemType == TargetProtocol.ItemType.Unspecified", binding, StringComparison.Ordinal);
             Assert.Contains("new TargetProtocol.PointNameList", binding, StringComparison.Ordinal);
             Assert.Contains("new TargetProtocol.StringList", binding, StringComparison.Ordinal);
             Assert.Contains("new TargetProtocol.VectorNameList", binding, StringComparison.Ordinal);
@@ -191,7 +202,9 @@ public sealed class CommandCatalogInputGenerationTests
           { "argument_id": "strings", "ordinal": 23, "mp_name": "Strings", "direction": "input_output", "result_only": "no", "semantic_type": "string_list", "data_classification": "proprietary", "input": { "presence": "required", "omission_behavior": "reject_request", "default": { "status": "none" } }, "sdk_binding": { "status": "available", "setter": "SetStringRefListArg", "getter": "GetStringRefListArg" }, "documentation": "Strings." },
           { "argument_id": "vector_group", "ordinal": 24, "mp_name": "Vector Group Name", "direction": "input", "result_only": "no", "semantic_type": "vector_group_name", "data_classification": "object_identifier", "input": { "presence": "required", "omission_behavior": "reject_request", "default": { "status": "none" } }, "sdk_binding": { "status": "available", "setter": "SetVectorGroupNameArg", "getter": null }, "documentation": "Vector group name." },
           { "argument_id": "vectors", "ordinal": 25, "mp_name": "Vectors", "direction": "input_output", "result_only": "no", "semantic_type": "vector_name_list", "data_classification": "object_identifier", "input": { "presence": "required", "omission_behavior": "reject_request", "default": { "status": "none" } }, "sdk_binding": { "status": "available", "setter": "SetVectorNameRefListArg", "getter": "GetVectorNameRefListArg" }, "documentation": "Vector names." },
-          { "argument_id": "view", "ordinal": 26, "mp_name": "View", "direction": "input", "result_only": "no", "semantic_type": "view_name", "data_classification": "object_identifier", "input": { "presence": "required", "omission_behavior": "reject_request", "default": { "status": "none" } }, "sdk_binding": { "status": "available", "setter": "SetViewNameArg", "getter": null }, "documentation": "View name." }
+          { "argument_id": "view", "ordinal": 26, "mp_name": "View", "direction": "input", "result_only": "no", "semantic_type": "view_name", "data_classification": "object_identifier", "input": { "presence": "required", "omission_behavior": "reject_request", "default": { "status": "none" } }, "sdk_binding": { "status": "available", "setter": "SetViewNameArg", "getter": null }, "documentation": "View name." },
+          { "argument_id": "item", "ordinal": 100, "mp_name": "Item", "direction": "input_output", "result_only": "no", "semantic_type": "collection_item_name", "data_classification": "object_identifier", "input": { "presence": "required", "omission_behavior": "reject_request", "default": { "status": "none" } }, "sdk_binding": { "status": "available", "setter": "SetCollectionObjectNameArg2", "getter": "GetCollectionObjectNameArg" }, "documentation": "Collection item name." },
+          { "argument_id": "items", "ordinal": 101, "mp_name": "Items", "direction": "input_output", "result_only": "no", "semantic_type": "collection_item_name_list", "data_classification": "object_identifier", "input": { "presence": "required", "omission_behavior": "reject_request", "default": { "status": "none" } }, "sdk_binding": { "status": "available", "setter": "SetCollectionObjectNameRefListArg", "getter": "GetCollectionObjectNameRefListArg" }, "documentation": "Collection item names." }
         ]
         """;
     private const string ContainerValueArguments = """

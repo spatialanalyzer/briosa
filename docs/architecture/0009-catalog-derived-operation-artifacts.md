@@ -3,6 +3,7 @@
 - Status: Accepted for the v0.1 vertical slice
 - Date: 2026-07-22
 - Issue: [#16](https://github.com/spatialanalyzer/briosa/issues/16)
+- Amended by: [ADR 0016](0016-command-argument-semantic-families.md)
 
 ## Context
 

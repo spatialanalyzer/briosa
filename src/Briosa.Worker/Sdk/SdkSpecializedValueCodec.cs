@@ -328,6 +328,59 @@ internal static class SdkSpecializedValueCodec
         _ => throw Unknown(value)
     };
 
+    public static string ToSdkString(SdkItemTypeValue value) => value switch
+    {
+        SdkItemTypeValue.Any => "Any",
+        SdkItemTypeValue.Alignment => "Alignment",
+        SdkItemTypeValue.Annotation => "Annotation",
+        SdkItemTypeValue.BSpline => "B-Spline",
+        SdkItemTypeValue.CalibrationApplianceNode => "Calibration Appliance Node",
+        SdkItemTypeValue.CalloutView => "Callout View",
+        SdkItemTypeValue.Chart => "Chart",
+        SdkItemTypeValue.Circle => "Circle",
+        SdkItemTypeValue.Cloud => "Cloud",
+        SdkItemTypeValue.EnhancedCloud => "Enhanced Cloud",
+        SdkItemTypeValue.ScanStripeCloud => "Scan Stripe Cloud",
+        SdkItemTypeValue.CrossSectionCloud => "Cross Section Cloud",
+        SdkItemTypeValue.Cone => "Cone",
+        SdkItemTypeValue.Cylinder => "Cylinder",
+        SdkItemTypeValue.Datum => "Datum",
+        SdkItemTypeValue.Dimension => "Dimension",
+        SdkItemTypeValue.Ellipse => "Ellipse",
+        SdkItemTypeValue.Event => "Event",
+        SdkItemTypeValue.FeatureCheck => "Feature Check",
+        SdkItemTypeValue.Frame => "Frame",
+        SdkItemTypeValue.FrameSet => "Frame Set",
+        SdkItemTypeValue.Line => "Line",
+        SdkItemTypeValue.Paraboloid => "Paraboloid",
+        SdkItemTypeValue.Perimeter => "Perimeter",
+        SdkItemTypeValue.Picture => "Picture",
+        SdkItemTypeValue.Plane => "Plane",
+        SdkItemTypeValue.PointGroup => "Point Group",
+        SdkItemTypeValue.PointSet => "Point Set",
+        SdkItemTypeValue.PolySurface => "Poly Surface",
+        SdkItemTypeValue.Relationship => "Relationship",
+        SdkItemTypeValue.SaDoc => "SA Doc",
+        SdkItemTypeValue.SaReport => "SA Report",
+        SdkItemTypeValue.SaReportTemplate => "SA Report Template",
+        SdkItemTypeValue.ScaleBar => "Scale Bar",
+        SdkItemTypeValue.ScanStripeMesh => "Scan Stripe Mesh",
+        SdkItemTypeValue.Slot => "Slot",
+        SdkItemTypeValue.Sphere => "Sphere",
+        SdkItemTypeValue.Surface => "Surface",
+        SdkItemTypeValue.Table => "Table",
+        SdkItemTypeValue.TcpFixture => "TCP Fixture",
+        SdkItemTypeValue.Torus => "Torus",
+        SdkItemTypeValue.VectorGroup => "Vector Group",
+        _ => throw Unknown(value)
+    };
+
+    public static bool TryParseObjectType(string value, out SdkObjectTypeValue result) =>
+        TryParse(value, ToSdkString, out result);
+
+    public static bool TryParseItemType(string value, out SdkItemTypeValue result) =>
+        TryParse(value, ToSdkString, out result);
+
     public static string ToSdkString(SdkOffsetDirectionTypeValue value) => value switch { SdkOffsetDirectionTypeValue.Both => "Both", SdkOffsetDirectionTypeValue.PositiveOnly => "Positive only", SdkOffsetDirectionTypeValue.NegativeOnly => "Negative only", _ => throw Unknown(value) };
     public static string ToSdkString(SdkPointFilterInputTypeValue value) => value switch { SdkPointFilterInputTypeValue.CardinalPoints => "Cardinal Points", SdkPointFilterInputTypeValue.InputPoints => "Input Points", SdkPointFilterInputTypeValue.NominalCardinalPoints => "Nominal Cardinal Points", _ => throw Unknown(value) };
     public static string ToSdkString(SdkRelationshipWeightingModeValue value) => value switch { SdkRelationshipWeightingModeValue.NormalizeEquationCount => "Normalize on equation count", SdkRelationshipWeightingModeValue.NormalizeEquationCountAndToleranceWidth => "Normalize on equation count AND tolerance width", SdkRelationshipWeightingModeValue.ResetAllWeights => "Reset All weights to 1.0", SdkRelationshipWeightingModeValue.NormalizeSquareRootEquationCount => "Normalize on square root of equation count", SdkRelationshipWeightingModeValue.NormalizeSquareRootAndToleranceWidth => "Normalize on square root AND tolerance width", _ => throw Unknown(value) };
@@ -351,6 +404,25 @@ internal static class SdkSpecializedValueCodec
         SdkOffsetDirectionTypeValue.NegativeOnly => 2,
         _ => throw Unknown(value)
     };
+
+    private static bool TryParse<TValue>(
+        string value,
+        Func<TValue, string> format,
+        out TValue result)
+        where TValue : struct, Enum
+    {
+        foreach (var candidate in Enum.GetValues<TValue>())
+        {
+            if (string.Equals(value, format(candidate), StringComparison.Ordinal))
+            {
+                result = candidate;
+                return true;
+            }
+        }
+
+        result = default;
+        return false;
+    }
 
     private static ArgumentOutOfRangeException Unknown<T>(T value) where T : struct, Enum =>
         new(nameof(value), value, $"Unknown {typeof(T).Name} value.");

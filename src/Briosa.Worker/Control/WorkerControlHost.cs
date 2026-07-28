@@ -156,6 +156,14 @@ internal static partial class WorkerControlHost
                 : new SdkCollectionMachineIdValue(
                     argument.CollectionMachineIdValue.CollectionName,
                     argument.CollectionMachineIdValue.MachineId),
+            CollectionItemNameValue: argument.CollectionItemNameValue is null
+                ? null
+                : ToSdkCollectionItemName(argument.CollectionItemNameValue),
+            CollectionItemNameListValue: argument.CollectionItemNameListValue is null
+                ? null
+                : new SdkCollectionItemNameListValue(
+                    [.. argument.CollectionItemNameListValue.Values.Select(
+                        ToSdkCollectionItemName)]),
             CollectionObjectNameValue: argument.CollectionObjectNameValue is null
                 ? null
                 : ToSdkCollectionObjectName(argument.CollectionObjectNameValue),
@@ -270,6 +278,8 @@ internal static partial class WorkerControlHost
             WorkerMpValueKind.CollectionInstrumentIdList => SdkValueKind.CollectionInstrumentIdList,
             WorkerMpValueKind.CollectionMachineId => SdkValueKind.CollectionMachineId,
             WorkerMpValueKind.CollectionName => SdkValueKind.CollectionName,
+            WorkerMpValueKind.CollectionItemName => SdkValueKind.CollectionItemName,
+            WorkerMpValueKind.CollectionItemNameList => SdkValueKind.CollectionItemNameList,
             WorkerMpValueKind.CollectionObjectName => SdkValueKind.CollectionObjectName,
             WorkerMpValueKind.CollectionObjectNameList => SdkValueKind.CollectionObjectNameList,
             WorkerMpValueKind.CollectionVectorGroupName => SdkValueKind.CollectionVectorGroupName,
@@ -290,9 +300,19 @@ internal static partial class WorkerControlHost
         WorkerCollectionInstrumentIdValue value) =>
         new(value.CollectionName, value.InstrumentId);
 
+    private static SdkCollectionItemNameValue ToSdkCollectionItemName(
+        WorkerCollectionItemNameValue value) =>
+        new(
+            value.CollectionName,
+            value.ItemName,
+            (SdkItemTypeValue)((int)value.ItemType - 1));
+
     private static SdkCollectionObjectNameValue ToSdkCollectionObjectName(
         WorkerCollectionObjectNameValue value) =>
-        new(value.CollectionName, value.ObjectName, value.ObjectType);
+        new(
+            value.CollectionName,
+            value.ObjectName,
+            (SdkObjectTypeValue)((int)value.ObjectType - 1));
 
     private static SdkCollectionVectorGroupNameValue ToSdkCollectionVectorGroupName(
         WorkerCollectionVectorGroupNameValue value) =>
@@ -355,6 +375,14 @@ internal static partial class WorkerControlHost
                 : new WorkerCollectionMachineIdValue(
                     output.CollectionMachineIdValue.CollectionName,
                     output.CollectionMachineIdValue.MachineId),
+            CollectionItemNameValue: output.CollectionItemNameValue is null
+                ? null
+                : ToControlCollectionItemName(output.CollectionItemNameValue),
+            CollectionItemNameListValue: output.CollectionItemNameListValue is null
+                ? null
+                : new WorkerCollectionItemNameListValue(
+                    [.. output.CollectionItemNameListValue.Values.Select(
+                        ToControlCollectionItemName)]),
             CollectionObjectNameValue: output.CollectionObjectNameValue is null
                 ? null
                 : ToControlCollectionObjectName(output.CollectionObjectNameValue),
@@ -434,6 +462,8 @@ internal static partial class WorkerControlHost
             SdkValueKind.CollectionInstrumentIdList => WorkerMpValueKind.CollectionInstrumentIdList,
             SdkValueKind.CollectionMachineId => WorkerMpValueKind.CollectionMachineId,
             SdkValueKind.CollectionName => WorkerMpValueKind.CollectionName,
+            SdkValueKind.CollectionItemName => WorkerMpValueKind.CollectionItemName,
+            SdkValueKind.CollectionItemNameList => WorkerMpValueKind.CollectionItemNameList,
             SdkValueKind.CollectionObjectName => WorkerMpValueKind.CollectionObjectName,
             SdkValueKind.CollectionObjectNameList => WorkerMpValueKind.CollectionObjectNameList,
             SdkValueKind.CollectionVectorGroupName => WorkerMpValueKind.CollectionVectorGroupName,
@@ -454,9 +484,19 @@ internal static partial class WorkerControlHost
         SdkCollectionInstrumentIdValue value) =>
         new(value.CollectionName, value.InstrumentId);
 
+    private static WorkerCollectionItemNameValue ToControlCollectionItemName(
+        SdkCollectionItemNameValue value) =>
+        new(
+            value.CollectionName,
+            value.ItemName,
+            (WorkerItemTypeValue)((int)value.ItemType + 1));
+
     private static WorkerCollectionObjectNameValue ToControlCollectionObjectName(
         SdkCollectionObjectNameValue value) =>
-        new(value.CollectionName, value.ObjectName, value.ObjectType);
+        new(
+            value.CollectionName,
+            value.ObjectName,
+            (WorkerObjectTypeValue)((int)value.ObjectType + 1));
 
     private static WorkerCollectionVectorGroupNameValue ToControlCollectionVectorGroupName(
         SdkCollectionVectorGroupNameValue value) =>

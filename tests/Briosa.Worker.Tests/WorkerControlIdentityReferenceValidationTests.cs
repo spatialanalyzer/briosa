@@ -22,7 +22,36 @@ public sealed class WorkerControlIdentityReferenceValidationTests
                             new WorkerCollectionObjectNameValue(
                                 "Collection",
                                 "Object",
-                                ObjectType: null!),
+                                WorkerObjectTypeValue.Unspecified),
+                        SdkBinding: "SetCollectionObjectNameArg2")
+                ],
+                []));
+
+        Assert.Throws<InvalidDataException>(() => channel.Send(message));
+        Assert.Equal(0, stream.Length);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(43)]
+    public void InvalidCollectionItemTypeIsRejectedBeforeTransport(int rawValue)
+    {
+        using var stream = new MemoryStream();
+        using var channel = new WorkerControlChannel(stream, leaveOpen: true);
+        var message = WorkerControlMessage.Execute(
+            Guid.NewGuid(),
+            new WorkerMpCommand(
+                "invalid-item",
+                "Invalid Item",
+                [
+                    new WorkerMpInputArgument(
+                        "Item",
+                        WorkerMpValueKind.CollectionItemName,
+                        CollectionItemNameValue:
+                            new WorkerCollectionItemNameValue(
+                                "Collection",
+                                "Item",
+                                (WorkerItemTypeValue)rawValue),
                         SdkBinding: "SetCollectionObjectNameArg2")
                 ],
                 []));

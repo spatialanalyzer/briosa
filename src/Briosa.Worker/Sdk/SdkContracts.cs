@@ -132,6 +132,8 @@ internal enum SdkValueKind
     CollectionInstrumentIdList,
     CollectionMachineId,
     CollectionName,
+    CollectionItemName,
+    CollectionItemNameList,
     CollectionObjectName,
     CollectionObjectNameList,
     CollectionVectorGroupName,
@@ -191,7 +193,12 @@ internal sealed record SdkCollectionMachineIdValue(
 internal sealed record SdkCollectionObjectNameValue(
     string CollectionName,
     string ObjectName,
-    string ObjectType);
+    SdkObjectTypeValue ObjectType);
+
+internal sealed record SdkCollectionItemNameValue(
+    string CollectionName,
+    string ItemName,
+    SdkItemTypeValue ItemType);
 
 internal sealed record SdkCollectionGroupNameValue(
     string CollectionName,
@@ -214,6 +221,9 @@ internal sealed record SdkCollectionGroupNameListValue(
 
 internal sealed record SdkCollectionObjectNameListValue(
     IReadOnlyList<SdkCollectionObjectNameValue> Values);
+
+internal sealed record SdkCollectionItemNameListValue(
+    IReadOnlyList<SdkCollectionItemNameValue> Values);
 
 internal sealed record SdkCollectionVectorGroupNameListValue(
     IReadOnlyList<SdkCollectionVectorGroupNameValue> Values);
@@ -267,6 +277,8 @@ internal sealed record SdkInputArgument(
     SdkCollectionInstrumentIdValue? CollectionInstrumentIdValue = null,
     SdkCollectionInstrumentIdListValue? CollectionInstrumentIdListValue = null,
     SdkCollectionMachineIdValue? CollectionMachineIdValue = null,
+    SdkCollectionItemNameValue? CollectionItemNameValue = null,
+    SdkCollectionItemNameListValue? CollectionItemNameListValue = null,
     SdkCollectionObjectNameValue? CollectionObjectNameValue = null,
     SdkCollectionObjectNameListValue? CollectionObjectNameListValue = null,
     SdkCollectionGroupNameListValue? CollectionGroupNameListValue = null,
@@ -313,6 +325,8 @@ internal sealed record SdkOutputValue(
     SdkCollectionInstrumentIdValue? CollectionInstrumentIdValue = null,
     SdkCollectionInstrumentIdListValue? CollectionInstrumentIdListValue = null,
     SdkCollectionMachineIdValue? CollectionMachineIdValue = null,
+    SdkCollectionItemNameValue? CollectionItemNameValue = null,
+    SdkCollectionItemNameListValue? CollectionItemNameListValue = null,
     SdkCollectionObjectNameValue? CollectionObjectNameValue = null,
     SdkCollectionObjectNameListValue? CollectionObjectNameListValue = null,
     SdkCollectionGroupNameListValue? CollectionGroupNameListValue = null,

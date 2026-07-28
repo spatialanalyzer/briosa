@@ -290,14 +290,22 @@ public sealed class WorkerProcessSupervisorTests
 
         Assert.Equal(WorkerExecutionStatus.Completed, result.Status);
         var outputs = result.Execution!.OutputValues;
-        Assert.Equal(5, outputs.Count);
+        Assert.Equal(7, outputs.Count);
         Assert.All(outputs, output => Assert.True(output.Retrieved));
         Assert.Equal(
             17,
             outputs.Single(value => value.Kind == WorkerMpValueKind.CollectionInstrumentId)
                 .CollectionInstrumentIdValue!.InstrumentId);
         Assert.Equal(
-            "Point Group",
+            WorkerItemTypeValue.Picture,
+            outputs.Single(value => value.Kind == WorkerMpValueKind.CollectionItemName)
+                .CollectionItemNameValue!.ItemType);
+        Assert.Equal(
+            WorkerItemTypeValue.SaReport,
+            outputs.Single(value => value.Kind == WorkerMpValueKind.CollectionItemNameList)
+                .CollectionItemNameListValue!.Values[0].ItemType);
+        Assert.Equal(
+            WorkerObjectTypeValue.PointGroup,
             outputs.Single(value => value.Kind == WorkerMpValueKind.CollectionObjectName)
                 .CollectionObjectNameValue!.ObjectType);
         Assert.Equal(
@@ -412,12 +420,27 @@ public sealed class WorkerProcessSupervisorTests
             "Identity Reference Pipe",
             [
                 new WorkerMpInputArgument(
+                    "Item",
+                    WorkerMpValueKind.CollectionItemName,
+                    CollectionItemNameValue: new WorkerCollectionItemNameValue(
+                        "Collection",
+                        "Picture",
+                        WorkerItemTypeValue.Picture)),
+                new WorkerMpInputArgument(
+                    "Items",
+                    WorkerMpValueKind.CollectionItemNameList,
+                    CollectionItemNameListValue: new WorkerCollectionItemNameListValue(
+                        [new WorkerCollectionItemNameValue(
+                            "Collection",
+                            "Report",
+                            WorkerItemTypeValue.SaReport)])),
+                new WorkerMpInputArgument(
                     "Object",
                     WorkerMpValueKind.CollectionObjectName,
                     CollectionObjectNameValue: new WorkerCollectionObjectNameValue(
                         "Collection",
                         "Object",
-                        "Point Group")),
+                        WorkerObjectTypeValue.PointGroup)),
                 new WorkerMpInputArgument(
                     "Points",
                     WorkerMpValueKind.PointNameList,
@@ -437,6 +460,12 @@ public sealed class WorkerProcessSupervisorTests
                 new WorkerMpOutputArgument(
                     "Instrument",
                     WorkerMpValueKind.CollectionInstrumentId),
+                new WorkerMpOutputArgument(
+                    "Item",
+                    WorkerMpValueKind.CollectionItemName),
+                new WorkerMpOutputArgument(
+                    "Items",
+                    WorkerMpValueKind.CollectionItemNameList),
                 new WorkerMpOutputArgument(
                     "Object",
                     WorkerMpValueKind.CollectionObjectName),
