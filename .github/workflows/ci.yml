@@ -62,6 +62,10 @@ jobs:
         shell: pwsh
         run: ./eng/Verify-BindingRegistry.ps1 -NoBuild
 
+      - name: Verify value-family evidence
+        shell: pwsh
+        run: ./eng/Verify-ValueFamilyEvidence.ps1
+
       - name: Verify generated catalog artifacts
         shell: pwsh
         run: ./eng/Verify-CatalogArtifacts.ps1 -NoBuild

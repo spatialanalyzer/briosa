@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://spatialanalyzer.github.io/briosa/values/schemas/v1/manifest.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schema_version", "spatial_analyzer_target", "catalog", "binding_review", "default_review_queue", "counts"],
+  "properties": {
+    "$schema": { "const": "../../../../values/schemas/v1/manifest.schema.json" },
+    "schema_version": { "const": 1 },
+    "spatial_analyzer_target": { "type": "string", "pattern": "^[0-9]+(?:\\.[0-9]+){3}$" },
+    "catalog": { "$ref": "#/definitions/reference" },
+    "binding_review": { "$ref": "#/definitions/reference" },
+    "default_review_queue": { "$ref": "#/definitions/reference" },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["family_count", "enum_type_count", "enum_member_count", "structured_type_count", "public_field_count", "worker_field_count", "shared_method_count", "command_assignment_count"],
+      "properties": {
+        "family_count": { "type": "integer", "minimum": 1 },
+        "enum_type_count": { "type": "integer", "minimum": 1 },
+        "enum_member_count": { "type": "integer", "minimum": 1 },
+        "structured_type_count": { "type": "integer", "minimum": 1 },
+        "public_field_count": { "type": "integer", "minimum": 1 },
+        "worker_field_count": { "type": "integer", "minimum": 1 },
+        "shared_method_count": { "type": "integer", "minimum": 1 },
+        "command_assignment_count": { "type": "integer", "minimum": 1 }
+      }
+    }
+  },
+  "definitions": {
+    "reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    }
+  }
+}

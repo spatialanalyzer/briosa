@@ -5357,16 +5357,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": true
-                  }
+                "status": "reviewed",
+                "value": true,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -5382,16 +5380,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": false
-                  }
+                "status": "reviewed",
+                "value": false,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -6826,16 +6822,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": true
-                  }
+                "status": "reviewed",
+                "value": true,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -6851,16 +6845,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": 90.0
-                  }
+                "status": "reviewed",
+                "value": 90.0,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -8036,16 +8028,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": "*"
-                  }
+                "status": "reviewed",
+                "value": "*",
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -8061,16 +8051,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": "*"
-                  }
+                "status": "reviewed",
+                "value": "*",
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -9473,16 +9461,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": false
-                  }
+                "status": "reviewed",
+                "value": false,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -9839,16 +9825,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": "Any"
-                  }
+                "status": "reviewed",
+                "value": "Any",
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -9958,16 +9942,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": "*"
-                  }
+                "status": "reviewed",
+                "value": "*",
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -9983,16 +9965,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": "*"
-                  }
+                "status": "reviewed",
+                "value": "*",
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -10008,16 +9988,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": "Any"
-                  }
+                "status": "reviewed",
+                "value": "Any",
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -10506,16 +10484,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": false
-                  }
+                "status": "reviewed",
+                "value": false,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -10767,16 +10743,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": "*"
-                  }
+                "status": "reviewed",
+                "value": "*",
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -10792,16 +10766,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": "*"
-                  }
+                "status": "reviewed",
+                "value": "*",
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -10817,16 +10789,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": "*"
-                  }
+                "status": "reviewed",
+                "value": "*",
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -11446,16 +11416,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": "*"
-                  }
+                "status": "reviewed",
+                "value": "*",
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -11471,16 +11439,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": "*"
-                  }
+                "status": "reviewed",
+                "value": "*",
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -12107,16 +12073,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": false
-                  }
+                "status": "reviewed",
+                "value": false,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -12268,16 +12232,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": 0.0
-                  }
+                "status": "reviewed",
+                "value": 0.0,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -12414,16 +12376,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": 0.0
-                  }
+                "status": "reviewed",
+                "value": 0.0,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -12584,16 +12544,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": 0.0
-                  }
+                "status": "reviewed",
+                "value": 0.0,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -12609,16 +12567,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": 0.0
-                  }
+                "status": "reviewed",
+                "value": 0.0,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -13090,16 +13046,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": false
-                  }
+                "status": "reviewed",
+                "value": false,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -13197,16 +13151,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": 30.0
-                  }
+                "status": "reviewed",
+                "value": 30.0,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -13240,16 +13192,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": false
-                  }
+                "status": "reviewed",
+                "value": false,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -13426,6 +13376,10 @@
                 "review_status": "needs_review",
                 "candidates": [
                   {
+                    "source": "objectivesa_prior_release",
+                    "value": 0.2
+                  },
+                  {
                     "source": "sa_2026_generated_vb",
                     "value": 0.02
                   }
@@ -13444,16 +13398,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": 3
-                  }
+                "status": "reviewed",
+                "value": 3,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -13692,16 +13644,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": 0.0
-                  }
+                "status": "reviewed",
+                "value": 0.0,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -13717,16 +13667,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": 0.0
-                  }
+                "status": "reviewed",
+                "value": 0.0,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -13742,16 +13690,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": 50
-                  }
+                "status": "reviewed",
+                "value": 50,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -13927,16 +13873,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": 0.0
-                  }
+                "status": "reviewed",
+                "value": 0.0,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -13952,16 +13896,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": 0.0
-                  }
+                "status": "reviewed",
+                "value": 0.0,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -13977,16 +13919,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": 0.0
-                  }
+                "status": "reviewed",
+                "value": 0.0,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -15001,16 +14941,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": "pt"
-                  }
+                "status": "reviewed",
+                "value": "pt",
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -15026,16 +14964,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": 0
-                  }
+                "status": "reviewed",
+                "value": 0,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -15051,16 +14987,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": 0.0
-                  }
+                "status": "reviewed",
+                "value": 0.0,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -15076,16 +15010,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": false
-                  }
+                "status": "reviewed",
+                "value": false,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -15101,16 +15033,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": 0.5
-                  }
+                "status": "reviewed",
+                "value": 0.5,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -15126,16 +15056,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": false
-                  }
+                "status": "reviewed",
+                "value": false,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -15815,16 +15743,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": 0.0
-                  }
+                "status": "reviewed",
+                "value": 0.0,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -15840,16 +15766,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": 0.0
-                  }
+                "status": "reviewed",
+                "value": 0.0,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -15865,16 +15789,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": 0.0
-                  }
+                "status": "reviewed",
+                "value": 0.0,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -15995,16 +15917,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": "UV Points"
-                  }
+                "status": "reviewed",
+                "value": "UV Points",
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -16020,16 +15940,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": false
-                  }
+                "status": "reviewed",
+                "value": false,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -16045,16 +15963,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": 5
-                  }
+                "status": "reviewed",
+                "value": 5,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -16070,16 +15986,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": 5
-                  }
+                "status": "reviewed",
+                "value": 5,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -16095,16 +16009,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": "Include Edges"
-                  }
+                "status": "reviewed",
+                "value": "Include Edges",
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -16996,16 +16908,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": false
-                  }
+                "status": "reviewed",
+                "value": false,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -18421,16 +18331,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": 0.0
-                  }
+                "status": "reviewed",
+                "value": 0.0,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -18446,16 +18354,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": 0.0
-                  }
+                "status": "reviewed",
+                "value": 0.0,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -18471,16 +18377,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": 0.0
-                  }
+                "status": "reviewed",
+                "value": 0.0,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -18655,16 +18559,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": false
-                  }
+                "status": "reviewed",
+                "value": false,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -19873,16 +19775,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": 0.0
-                  }
+                "status": "reviewed",
+                "value": 0.0,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -19898,16 +19798,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": true
-                  }
+                "status": "reviewed",
+                "value": true,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -20049,16 +19947,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": true
-                  }
+                "status": "reviewed",
+                "value": true,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -20074,16 +19970,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": false
-                  }
+                "status": "reviewed",
+                "value": false,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -20099,16 +19993,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": false
-                  }
+                "status": "reviewed",
+                "value": false,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -20124,16 +20016,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": -1.0
-                  }
+                "status": "reviewed",
+                "value": -1.0,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -21136,16 +21026,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": 0.0
-                  }
+                "status": "reviewed",
+                "value": 0.0,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -21161,16 +21049,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": 0.0
-                  }
+                "status": "reviewed",
+                "value": 0.0,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -21186,16 +21072,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": 0.0
-                  }
+                "status": "reviewed",
+                "value": 0.0,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },
@@ -21517,16 +21401,14 @@
             "direction": "input",
             "result_only": "no",
             "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
+              "presence": "optional",
+              "omission_behavior": "set_catalog_default",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
-                "candidates": [
-                  {
-                    "source": "sa_2026_generated_vb",
-                    "value": false
-                  }
+                "status": "reviewed",
+                "value": false,
+                "evidence": [
+                  "objectivesa_prior_release",
+                  "sa_2026_generated_vb"
                 ]
               }
             },

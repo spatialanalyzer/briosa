@@ -72,6 +72,22 @@ dotnet run --project tools/Briosa.Generator -c Release -- binding-registry-sync 
 
 See [the SDK binding registry guide](../docs/development/sdk-binding-registry.md) before changing semantic-family mappings or adapter coverage.
 
+## Value-family evidence verification
+
+`Verify-ValueFamilyEvidence.ps1` validates the exact-target evidence catalog, source fingerprints, public/worker enum and structured definitions, exact SDK literal mappings, and every multi-domain method assignment. It also synchronizes twice into clean temporary directories and rejects nondeterministic or stale generated artifacts:
+
+```powershell
+./eng/Verify-ValueFamilyEvidence.ps1
+```
+
+Regenerate the reviewed binding assignments, issue #82 default-review queue, manifest, and reference report with:
+
+```powershell
+./eng/Sync-ValueFamilyEvidence.ps1
+```
+
+On a maintainer machine containing the pinned ObjectiveSA checkout and installed exact-target `Instrument.lst`, use `New-ValueFamilyEvidence.ps1` to rebuild the candidate source catalog. Raw vendor evidence remains local. See [the value-family evidence guide](../docs/development/value-family-evidence.md) for the exact paths, fingerprints, conflict policy, and review workflow.
+
 ## Protocol artifact production and verification
 
 `New-ProtocolArtifact.ps1` is the release-asset producer for the protobuf, descriptor, exact-target catalog identity, and shared client-conformance fixtures. A release build should supply the exact semantic version and source commit explicitly:

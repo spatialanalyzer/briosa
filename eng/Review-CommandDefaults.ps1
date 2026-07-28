@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)][string]$ObjectiveSARoot,
-    [Parameter(Mandatory)][string]$SdkCodeRoot,
+    [string]$SdkCodeRoot,
     [Parameter(Mandatory)][string]$InventoryPath,
     [Parameter(Mandatory)][string]$DispositionDirectory,
     [switch]$Apply
@@ -130,8 +130,14 @@ function Convert-CSharpDefault {
 function Get-ObjectiveSADefaults {
     param([Parameter(Mandatory)][string]$Root)
 
-    $interfaceRoot = Join-Path $Root "ObjectiveSA\Interfaces\Methods"
     $implementationRoot = Join-Path $Root "ObjectiveSA\Methods"
+    $legacyInterfaceRoot = Join-Path $Root "ObjectiveSA\Interfaces\Methods"
+    $interfaceRoot = if (Test-Path -LiteralPath $legacyInterfaceRoot -PathType Container) {
+        $legacyInterfaceRoot
+    }
+    else {
+        $implementationRoot
+    }
     if (-not (Test-Path -LiteralPath $interfaceRoot -PathType Container) -or
         -not (Test-Path -LiteralPath $implementationRoot -PathType Container)) {
         throw "ObjectiveSA source roots were not found below '$Root'."
@@ -269,6 +275,102 @@ function Get-ObjectiveSADefaults {
     )
 }
 
+function Convert-CommittedCandidate {
+    param([Parameter(Mandatory)]$Value)
+
+    if ($null -eq $Value) {
+        return [pscustomobject]@{ Kind = "null"; Value = $null; Comparable = "null" }
+    }
+
+    if ($Value -is [bool]) {
+        return [pscustomobject]@{
+            Kind = "boolean"
+            Value = $Value
+            Comparable = $Value.ToString().ToLowerInvariant()
+        }
+    }
+
+    if ($Value -is [byte] -or $Value -is [short] -or $Value -is [int] -or
+        $Value -is [long] -or $Value -is [decimal] -or $Value -is [double] -or
+        $Value -is [single]) {
+        $number = [Convert]::ToDouble($Value, [Globalization.CultureInfo]::InvariantCulture)
+        return [pscustomobject]@{
+            Kind = "number"
+            Value = $Value
+            Comparable = $number.ToString("R", [Globalization.CultureInfo]::InvariantCulture)
+        }
+    }
+
+    if ($Value -is [string]) {
+        return [pscustomobject]@{
+            Kind = "string"
+            Value = $Value
+            Comparable = Get-NormalizedIdentifier $Value
+        }
+    }
+
+    return [pscustomobject]@{ Kind = "unparsed"; Value = $Value; Comparable = $null }
+}
+
+function Get-CommittedExactTargetCalls {
+    param([Parameter(Mandatory)][string]$Root)
+
+    $results = [Collections.Generic.List[object]]::new()
+    foreach ($shardPath in Get-ChildItem -LiteralPath (Join-Path $Root "categories") -Filter "*.json" -File) {
+        $shard = Get-Content -Raw -LiteralPath $shardPath.FullName | ConvertFrom-Json -Depth 100
+        foreach ($entry in $shard.entries) {
+            if ($entry.disposition -ne "approved_candidate" -or
+                $entry.command_shape.status -ne "resolved") {
+                continue
+            }
+
+            foreach ($argument in $entry.command_shape.arguments) {
+                if ($null -eq $argument.input) {
+                    continue
+                }
+
+                $candidate = $null
+                if ($argument.input.default.status -eq "reviewed" -and
+                    @($argument.input.default.evidence) -contains "sa_2026_generated_vb") {
+                    $candidate = $argument.input.default.value
+                }
+                elseif ($null -ne $argument.input.default.PSObject.Properties["review_status"] -and
+                    $argument.input.default.review_status -eq "needs_review") {
+                    $candidateEntry = @($argument.input.default.candidates | Where-Object {
+                            $_.source -eq "sa_2026_generated_vb"
+                        }) | Select-Object -First 1
+                    if ($null -ne $candidateEntry) {
+                        $candidate = $candidateEntry.value
+                    }
+                }
+
+                if ($null -eq $candidate -or $argument.sdk_binding.setter -eq "unavailable") {
+                    continue
+                }
+
+                $values = if ($candidate -is [Collections.IEnumerable] -and
+                    $candidate -isnot [string]) {
+                    @($candidate | ForEach-Object { Convert-CommittedCandidate $_ })
+                }
+                else {
+                    @(Convert-CommittedCandidate $candidate)
+                }
+                $results.Add([pscustomobject]@{
+                    Key = "$(Get-NormalizedIdentifier $entry.command_shape.mp_step)|" +
+                        "$(Get-NormalizedIdentifier $argument.mp_name)"
+                    Step = $entry.command_shape.mp_step
+                    Argument = $argument.mp_name
+                    Setter = $argument.sdk_binding.setter
+                    Values = $values
+                    Ambiguous = $false
+                })
+            }
+        }
+    }
+
+    return @($results | Sort-Object Key)
+}
+
 function Get-VbCalls {
     param([Parameter(Mandatory)][string]$Root)
 
@@ -354,7 +456,12 @@ function Test-EquivalentDefaults {
 }
 
 $objectiveDefaults = @(Get-ObjectiveSADefaults -Root $ObjectiveSARoot)
-$vbCalls = @(Get-VbCalls -Root $SdkCodeRoot)
+$vbCalls = if ([string]::IsNullOrWhiteSpace($SdkCodeRoot)) {
+    @(Get-CommittedExactTargetCalls -Root $DispositionDirectory)
+}
+else {
+    @(Get-VbCalls -Root $SdkCodeRoot)
+}
 $objectiveByKey = @{}
 foreach ($entry in $objectiveDefaults) {
     $objectiveByKey[$entry.Key] = $entry
@@ -505,7 +612,7 @@ foreach ($shardPath in Get-ChildItem -LiteralPath (Join-Path $DispositionDirecto
     }
 }
 Write-Host "ObjectiveSA default mappings: $($objectiveDefaults.Count)"
-Write-Host "SA 2026 VB setter samples: $($vbCalls.Count)"
+Write-Host "SA 2026 exact-target setter samples: $($vbCalls.Count)"
 Write-Host "Reviewed defaults: $reviewedCount"
 Write-Host "Defaults needing review: $needsReviewCount"
 Write-Host "Inputs with no default candidate: $noDefaultCount"

@@ -2,7 +2,7 @@
 
 The `bindings` tree is the exact-release bridge between extracted MP argument evidence, the committed SpatialAnalyzer interop API, and Briosa's public/private value model. It does not approve MP operations. Command dispositions and the supported-command catalog remain the only path to a public RPC.
 
-For SA `2026.1.0529.7`, the registry reconciles 105 inventory-observed setters and 29 inventory-observed getters with 106 setters and 39 getters exposed by the committed interop assembly. The union contains 151 exact method names grouped into 113 semantic value families.
+For SA `2026.1.0529.7`, the registry reconciles 105 inventory-observed setters and 29 inventory-observed getters with 106 setters and 39 getters exposed by the committed interop assembly. The union contains 151 exact method names grouped into 115 semantic value families.
 
 ## Source and generated files
 
@@ -14,9 +14,9 @@ Each exact target contains:
 
 Edit only `review.json`. Never hand-edit `registry.json` or `report.md`.
 
-A specialized SDK method can also serve more than one semantic domain. `binding_family_overrides` declares the complete allowed family set, and `argument_family_assignments` assigns every exact inventory command/ordinal observation to one of those families. Registry synchronization fails if an observation is unassigned, an assignment is stale, or an override omits the method's default family. Generated bindings therefore expose `semantic_value_families` as an array rather than collapsing the evidence to one label.
+A specialized SDK method can also serve more than one semantic domain. `binding_family_overrides` declares the complete allowed family set, and `argument_family_assignments` assigns every exact inventory command/SDK-order observation to one of those families. Documentation ordinals remain traceability metadata and may be empty or contain several values. Registry synchronization fails if an observation is unassigned, an assignment is stale, its documented ordinals drift, or an override omits the method's default family. Generated bindings therefore expose `semantic_value_families` as an array rather than collapsing the evidence to one label.
 
-This rule applies to structured identifiers as well as enums. The four collection-object-named scalar/list methods can carry either `CollectionObjectName` or the broader `CollectionItemName`. ADR 0016 defines the runtime model; issue #87 must provide exact command-argument assignments before either shared-method override enters the generated registry. Until then, the item scalar/list kinds are runtime-complete but intentionally unavailable to catalog-generated operations.
+This rule applies to structured identifiers as well as enums. The four collection-object-named scalar/list methods can carry either `CollectionObjectName` or the broader `CollectionItemName`. ADR 0016 defines the runtime model, and the [exact-target value-family evidence catalog](value-family-evidence.md) records all reviewed assignments. Catalog generation must consume those assignments and must not infer object-versus-item semantics from the shared method name.
 
 The review deliberately keeps specialized SDK methods distinct even when their CLR representation is the same. For example, `SetAngularUnitsArg` maps to `angular_unit`, while `SetStringArg` maps to the primitive `string` family. Structured setters and getters share a family only when their exact semantic shape matches; method-name similarity alone is insufficient.
 
@@ -53,6 +53,7 @@ Then verify it exactly as ordinary CI does:
 
 ```powershell
 ./eng/Verify-BindingRegistry.ps1
+./eng/Verify-ValueFamilyEvidence.ps1
 ```
 
 Verification requires only committed repository artifacts and the documented .NET SDK. It does not activate SpatialAnalyzer, connect to an SDK server, require an SA license, or read the local documentation and View SDK Code corpus.

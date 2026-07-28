@@ -88,11 +88,11 @@ public sealed class CommandDispositionLedgerTests
             Assert.Empty(entry.CommandShape.Discrepancies);
             Assert.Contains(issue53, entry.DecisionReferences);
         });
-        Assert.Equal(1756, inputs.Count(input => input.Presence == "required"));
-        Assert.Equal(250, inputs.Count(input => input.Presence == "optional"));
+        Assert.Equal(1521, inputs.Count(input => input.Presence == "required"));
+        Assert.Equal(485, inputs.Count(input => input.Presence == "optional"));
         Assert.Equal(64, inputs.Count(input => input.OmissionBehavior == "omit_sdk_setter"));
-        Assert.Equal(186, inputs.Count(input => input.Default.Status == "reviewed"));
-        Assert.Equal(536, inputs.Count(input => input.Default.ReviewStatus == "needs_review"));
+        Assert.Equal(421, inputs.Count(input => input.Default.Status == "reviewed"));
+        Assert.Equal(314, inputs.Count(input => input.Default.ReviewStatus == "needs_review"));
         Assert.All(
             inputs.Where(input => input.Default.Status == "reviewed"),
             input =>
