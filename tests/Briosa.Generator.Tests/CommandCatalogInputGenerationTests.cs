@@ -240,7 +240,7 @@ public sealed class CommandCatalogInputGenerationTests
             "result": "AllTypesResult"
           },
           "stability": "experimental",
-          "risk": { "effect": "read_only", "flags": [] },
+          "risk": { "effect": "read_only", "replay_safety": "safe", "flags": [] },
           "documentation": { "summary": "Exercises generator mappings." },
           "arguments": [
             { "argument_id": "enabled", "ordinal": 0, "mp_name": "Enabled", "direction": "input", "result_only": "no", "semantic_type": "logical", "data_classification": "proprietary", "input": { "presence": "required", "omission_behavior": "reject_request", "default": { "status": "none" } }, "sdk_binding": { "status": "available", "setter": "SetBoolArg", "getter": null }, "documentation": "Required logical input." },

@@ -2,9 +2,19 @@
 <!-- Generated from the reviewed Briosa command catalog. Do not edit by hand. -->
 # SpatialAnalyzer 2026.1.0529.7 operation reference
 
-Catalog `briosa.sa.2026.1.0529.7` revision `3`.
+Catalog `briosa.sa.2026.1.0529.7` revision `4`.
 
 Only explicitly reviewed Briosa operations are listed here. This is not the installed SpatialAnalyzer MP catalog.
+
+## Execution and replay contract
+
+Every non-OK operation returns typed, value-free execution disposition, worker recovery guidance, replay guidance, and the exact-target replay-safety classification.
+
+- `not_started`: Briosa proved SDK command execution did not begin. A replay is offered only when the failure is recoverable.
+- `started_outcome_unknown`: the command may have affected SpatialAnalyzer. `unsafe` and `unknown` operations require reconciliation before replay.
+- `completed`: Briosa obtained a terminal MP result. Output-retrieval failure does not make replay safe.
+
+Worker replacement restores availability; it does not change an operation's execution disposition or authorize replay.
 
 ## `FileOperations.GetWorkingDirectory`
 
@@ -14,6 +24,7 @@ Returns the directory SpatialAnalyzer uses to resolve measurement-plan-relative 
 - Exact MP step: `Get Working Directory`
 - Stability: `experimental`
 - Effect: `read_only`
+- Replay safety: `safe`
 - Risk flags: `filesystem_metadata`
 
 ### Inputs

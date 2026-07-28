@@ -23,7 +23,7 @@ These tests substitute the separate `Briosa.SmokeWorker.exe` process for the rea
 | --- | --- |
 | Ready | Generated `GetWorkingDirectory` client receives a successful MP/result-retrieval shape |
 | Unavailable | Disconnected SDK state maps to `Unavailable` with a typed availability failure |
-| Policy denied | Runtime deny overrides the packaged allowlist, capability discovery hides the operation, and invocation returns `PermissionDenied` with a typed no-retry policy failure before SDK execution |
+| Policy denied | Runtime deny overrides the packaged allowlist, capability discovery hides the operation, and invocation returns `PermissionDenied` with typed `NOT_STARTED`, no-recovery, and `DO_NOT_REPLAY` policy details before SDK execution |
 | MP failure | MP failure maps to `FailedPrecondition`, preserves the result, and marks output retrieval not attempted |
 | Output failure | A successful MP followed by getter failure maps to `DataLoss` without returning a substitute value |
 | Deadline | An expired client deadline remains distinct and a later call succeeds |

@@ -44,6 +44,7 @@ internal static class GrpcOperationOutcomeMapper
     public static SuccessfulOperationExecution RequireSuccess(
         WorkerExecutionOutcome outcome,
         string operationId,
+        ReplaySafety replaySafety,
         IReadOnlyList<OperationOutputContract> outputs,
         bool callerDeadlineExceeded)
     {
@@ -56,31 +57,50 @@ internal static class GrpcOperationOutcomeMapper
             throw CreateTransportFailure(
                 outcome,
                 operationId,
+                replaySafety,
                 callerDeadlineExceeded);
         }
 
         var execution = outcome.Execution ??
             throw CreateInternalFailure(
                 operationId,
+                replaySafety,
                 outcome.Generation,
+                outcome.ExecutionDisposition,
                 "worker-result-missing");
 
         if (!execution.ExecuteStepReturned)
         {
+            var argumentRejected = execution.DiagnosticCode == "sdk-argument-rejected";
             var details = CreateMpDetails(
                 execution,
                 outputs,
-                MpExecutionState.ExecuteStepRejected,
+                argumentRejected
+                    ? MpExecutionState.ArgumentRejected
+                    : MpExecutionState.ExecuteStepRejected,
                 OutputRetrievalState.NotAttempted);
             throw CreateFailure(
                 StatusCode.FailedPrecondition,
                 operationId,
-                OperationFailureKind.ExecuteStepRejected,
-                NormalizeDiagnosticCode(execution.DiagnosticCode, "execute-step-rejected"),
-                RetryGuidance.DoNotRetry,
+                argumentRejected
+                    ? OperationFailureKind.SdkArgumentRejected
+                    : OperationFailureKind.ExecuteStepRejected,
+                NormalizeDiagnosticCode(
+                    execution.DiagnosticCode,
+                    argumentRejected ? "sdk-argument-rejected" : "execute-step-rejected"),
+                argumentRejected
+                    ? ExecutionDisposition.NotStarted
+                    : ExecutionDisposition.StartedOutcomeUnknown,
+                RecoveryGuidance.None,
+                argumentRejected
+                    ? ReplayGuidance.DoNotReplay
+                    : ReplayAfterAmbiguousCompletion(replaySafety),
+                replaySafety,
                 outcome.Generation,
                 details,
-                "SpatialAnalyzer rejected the MP execution request.");
+                argumentRejected
+                    ? "SpatialAnalyzer rejected an MP input argument before execution."
+                    : "SpatialAnalyzer rejected the MP execution request.");
         }
 
         if (!execution.MpResultRetrieved)
@@ -97,7 +117,10 @@ internal static class GrpcOperationOutcomeMapper
                 NormalizeDiagnosticCode(
                     execution.DiagnosticCode,
                     "sdk-mp-result-retrieval-failed"),
-                RetryGuidance.DoNotRetry,
+                ExecutionDisposition.StartedOutcomeUnknown,
+                RecoveryGuidance.None,
+                ReplayGuidance.ReconcileBeforeReplay,
+                replaySafety,
                 outcome.Generation,
                 details,
                 "SpatialAnalyzer did not return the MP execution result.");
@@ -115,7 +138,10 @@ internal static class GrpcOperationOutcomeMapper
                 operationId,
                 OperationFailureKind.MpFailure,
                 NormalizeDiagnosticCode(execution.DiagnosticCode, "mp-command-failed"),
-                RetryGuidance.DoNotRetry,
+                ExecutionDisposition.Completed,
+                RecoveryGuidance.None,
+                ReplayGuidance.DoNotReplay,
+                replaySafety,
                 outcome.Generation,
                 details,
                 "The SpatialAnalyzer MP command failed.");
@@ -125,7 +151,9 @@ internal static class GrpcOperationOutcomeMapper
         {
             throw CreateInternalFailure(
                 operationId,
+                replaySafety,
                 outcome.Generation,
+                WorkerExecutionDisposition.Completed,
                 "worker-output-shape-invalid");
         }
 
@@ -140,7 +168,10 @@ internal static class GrpcOperationOutcomeMapper
                 NormalizeDiagnosticCode(
                     execution.DiagnosticCode,
                     "sdk-output-retrieval-failed"),
-                RetryGuidance.DoNotRetry,
+                ExecutionDisposition.Completed,
+                RecoveryGuidance.None,
+                ReplayGuidance.DoNotReplay,
+                replaySafety,
                 outcome.Generation,
                 successfulDetails,
                 "SpatialAnalyzer did not return every requested output.");
@@ -152,13 +183,17 @@ internal static class GrpcOperationOutcomeMapper
     public static RpcException CreateValidationFailure(
         string operationId,
         string diagnosticCode,
-        int generation = 0) =>
+        int generation = 0,
+        ReplaySafety replaySafety = ReplaySafety.Unknown) =>
         CreateFailure(
             StatusCode.InvalidArgument,
             operationId,
             OperationFailureKind.Validation,
             NormalizeDiagnosticCode(diagnosticCode, "request-validation-failed"),
-            RetryGuidance.DoNotRetry,
+            ExecutionDisposition.NotStarted,
+            RecoveryGuidance.None,
+            ReplayGuidance.DoNotReplay,
+            replaySafety,
             generation,
             mpExecution: null,
             "The request is invalid.");
@@ -166,13 +201,17 @@ internal static class GrpcOperationOutcomeMapper
     public static RpcException CreateUnsupportedFailure(
         string operationId,
         string diagnosticCode,
-        int generation = 0) =>
+        int generation = 0,
+        ReplaySafety replaySafety = ReplaySafety.Unknown) =>
         CreateFailure(
             StatusCode.Unimplemented,
             operationId,
             OperationFailureKind.Unsupported,
             NormalizeDiagnosticCode(diagnosticCode, "operation-unsupported"),
-            RetryGuidance.DoNotRetry,
+            ExecutionDisposition.NotStarted,
+            RecoveryGuidance.None,
+            ReplayGuidance.DoNotReplay,
+            replaySafety,
             generation,
             mpExecution: null,
             "The operation is not supported by this Briosa target.");
@@ -180,6 +219,7 @@ internal static class GrpcOperationOutcomeMapper
     private static RpcException CreateTransportFailure(
         WorkerExecutionOutcome outcome,
         string operationId,
+        ReplaySafety replaySafety,
         bool callerDeadlineExceeded)
     {
         var diagnosticCode = NormalizeDiagnosticCode(
@@ -192,7 +232,10 @@ internal static class GrpcOperationOutcomeMapper
                 operationId,
                 OperationFailureKind.PolicyDenied,
                 diagnosticCode,
-                RetryGuidance.DoNotRetry,
+                ExecutionDisposition.NotStarted,
+                RecoveryGuidance.None,
+                ReplayGuidance.DoNotReplay,
+                replaySafety,
                 outcome.Generation,
                 mpExecution: null,
                 "The operation is denied by the Briosa operation policy."),
@@ -201,7 +244,10 @@ internal static class GrpcOperationOutcomeMapper
                 operationId,
                 OperationFailureKind.Unsupported,
                 diagnosticCode,
-                RetryGuidance.DoNotRetry,
+                ExecutionDisposition.NotStarted,
+                RecoveryGuidance.None,
+                ReplayGuidance.DoNotReplay,
+                replaySafety,
                 outcome.Generation,
                 mpExecution: null,
                 "The operation is not supported by this Briosa target."),
@@ -210,7 +256,10 @@ internal static class GrpcOperationOutcomeMapper
                 operationId,
                 OperationFailureKind.CallerDeadlineExceeded,
                 diagnosticCode,
-                RetryGuidance.CallerControlled,
+                ToProtocolDisposition(outcome.ExecutionDisposition),
+                RecoveryGuidance.None,
+                ReplayAfterInterruption(outcome.ExecutionDisposition, replaySafety),
+                replaySafety,
                 outcome.Generation,
                 mpExecution: null,
                 "The caller's deadline elapsed while waiting for the operation."),
@@ -219,7 +268,10 @@ internal static class GrpcOperationOutcomeMapper
                 operationId,
                 OperationFailureKind.CallerCancelled,
                 diagnosticCode,
-                RetryGuidance.CallerControlled,
+                ToProtocolDisposition(outcome.ExecutionDisposition),
+                RecoveryGuidance.None,
+                ReplayAfterInterruption(outcome.ExecutionDisposition, replaySafety),
+                replaySafety,
                 outcome.Generation,
                 mpExecution: null,
                 "The caller stopped waiting for the operation."),
@@ -228,7 +280,10 @@ internal static class GrpcOperationOutcomeMapper
                 operationId,
                 OperationFailureKind.WorkerWatchdogTimeout,
                 diagnosticCode,
-                RetryGuidance.RetryAfterWorkerReplacement,
+                ExecutionDisposition.StartedOutcomeUnknown,
+                RecoveryGuidance.WorkerReplacement,
+                ReplayAfterAmbiguousCompletion(replaySafety),
+                replaySafety,
                 outcome.Generation,
                 mpExecution: null,
                 "The SpatialAnalyzer worker is being replaced after a watchdog timeout."),
@@ -237,7 +292,10 @@ internal static class GrpcOperationOutcomeMapper
                 operationId,
                 OperationFailureKind.WorkerFailure,
                 diagnosticCode,
-                RetryGuidance.RetryAfterWorkerReplacement,
+                ExecutionDisposition.StartedOutcomeUnknown,
+                RecoveryGuidance.WorkerReplacement,
+                ReplayAfterAmbiguousCompletion(replaySafety),
+                replaySafety,
                 outcome.Generation,
                 mpExecution: null,
                 "The SpatialAnalyzer worker failed and is being replaced."),
@@ -247,7 +305,10 @@ internal static class GrpcOperationOutcomeMapper
                     operationId,
                     OperationFailureKind.SpatialAnalyzerUnavailable,
                     diagnosticCode,
-                    RetryGuidance.RetryAfterReadiness,
+                    ToProtocolDisposition(outcome.ExecutionDisposition),
+                    RecoveryAfterUnavailable(outcome),
+                    ReplayAfterUnavailable(outcome.ExecutionDisposition, replaySafety),
+                    replaySafety,
                     outcome.Generation,
                     mpExecution: null,
                     "SpatialAnalyzer is not ready for MP execution."),
@@ -256,24 +317,39 @@ internal static class GrpcOperationOutcomeMapper
                 operationId,
                 OperationFailureKind.WorkerUnavailable,
                 diagnosticCode,
-                RetryGuidance.RetryAfterReadiness,
+                ToProtocolDisposition(outcome.ExecutionDisposition),
+                RecoveryAfterUnavailable(outcome),
+                ReplayAfterUnavailable(outcome.ExecutionDisposition, replaySafety),
+                replaySafety,
                 outcome.Generation,
                 mpExecution: null,
                 "The SpatialAnalyzer worker is not ready."),
-            _ => CreateInternalFailure(operationId, outcome.Generation, diagnosticCode)
+            _ => CreateInternalFailure(
+                operationId,
+                replaySafety,
+                outcome.Generation,
+                outcome.ExecutionDisposition,
+                diagnosticCode)
         };
     }
 
     private static RpcException CreateInternalFailure(
         string operationId,
+        ReplaySafety replaySafety,
         int generation,
+        WorkerExecutionDisposition executionDisposition,
         string diagnosticCode) =>
         CreateFailure(
             StatusCode.Internal,
             operationId,
             OperationFailureKind.Internal,
             NormalizeDiagnosticCode(diagnosticCode, "internal-operation-failure"),
-            RetryGuidance.DoNotRetry,
+            ToProtocolDisposition(executionDisposition),
+            RecoveryGuidance.None,
+            executionDisposition == WorkerExecutionDisposition.StartedOutcomeUnknown
+                ? ReplayAfterAmbiguousCompletion(replaySafety)
+                : ReplayGuidance.DoNotReplay,
+            replaySafety,
             generation,
             mpExecution: null,
             "The operation returned an invalid internal result.");
@@ -283,7 +359,10 @@ internal static class GrpcOperationOutcomeMapper
         string operationId,
         OperationFailureKind kind,
         string diagnosticCode,
-        RetryGuidance retryGuidance,
+        ExecutionDisposition executionDisposition,
+        RecoveryGuidance recoveryGuidance,
+        ReplayGuidance replayGuidance,
+        ReplaySafety replaySafety,
         int generation,
         MpExecutionDetails? mpExecution,
         string detail)
@@ -293,7 +372,10 @@ internal static class GrpcOperationOutcomeMapper
             OperationId = operationId,
             Kind = kind,
             DiagnosticCode = diagnosticCode,
-            RetryGuidance = retryGuidance,
+            ExecutionDisposition = executionDisposition,
+            RecoveryGuidance = recoveryGuidance,
+            ReplayGuidance = replayGuidance,
+            ReplaySafety = replaySafety,
             WorkerGeneration = generation,
             MpExecution = mpExecution
         };
@@ -412,6 +494,48 @@ internal static class GrpcOperationOutcomeMapper
             WorkerMpValueKind.VectorNameList => value.VectorNameListValue is not null,
             _ => false
         };
+
+    private static ExecutionDisposition ToProtocolDisposition(
+        WorkerExecutionDisposition disposition) =>
+        disposition switch
+        {
+            WorkerExecutionDisposition.NotStarted => ExecutionDisposition.NotStarted,
+            WorkerExecutionDisposition.StartedOutcomeUnknown =>
+                ExecutionDisposition.StartedOutcomeUnknown,
+            WorkerExecutionDisposition.Completed => ExecutionDisposition.Completed,
+            _ => ExecutionDisposition.Unspecified
+        };
+
+    private static ReplayGuidance ReplayAfterInterruption(
+        WorkerExecutionDisposition disposition,
+        ReplaySafety replaySafety) =>
+        disposition switch
+        {
+            WorkerExecutionDisposition.NotStarted => ReplayGuidance.MayReplay,
+            WorkerExecutionDisposition.StartedOutcomeUnknown =>
+                ReplayAfterAmbiguousCompletion(replaySafety),
+            _ => ReplayGuidance.DoNotReplay
+        };
+
+    private static ReplayGuidance ReplayAfterUnavailable(
+        WorkerExecutionDisposition disposition,
+        ReplaySafety replaySafety) =>
+        disposition == WorkerExecutionDisposition.NotStarted
+            ? ReplayGuidance.MayReplay
+            : ReplayAfterAmbiguousCompletion(replaySafety);
+
+    private static RecoveryGuidance RecoveryAfterUnavailable(
+        WorkerExecutionOutcome outcome) =>
+        outcome.Connection?.ExecutionReadinessState ==
+            WorkerExecutionReadinessState.OperatorRecoveryRequired
+                ? RecoveryGuidance.OperatorInterventionRequired
+                : RecoveryGuidance.WaitForReadiness;
+
+    private static ReplayGuidance ReplayAfterAmbiguousCompletion(
+        ReplaySafety replaySafety) =>
+        replaySafety == ReplaySafety.Safe
+            ? ReplayGuidance.MayReplay
+            : ReplayGuidance.ReconcileBeforeReplay;
 
     private static bool IsSpatialAnalyzerUnavailable(WorkerExecutionOutcome outcome) =>
         outcome.Connection is { State: not WorkerConnectionState.Connected } ||

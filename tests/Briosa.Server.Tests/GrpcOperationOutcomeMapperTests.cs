@@ -16,88 +16,128 @@ public sealed class GrpcOperationOutcomeMapperTests
 
     public static TheoryData<
         int,
+        int,
         bool,
         bool,
+        ReplaySafety,
         StatusCode,
         OperationFailureKind,
-        RetryGuidance> TransportFailures =>
+        ExecutionDisposition,
+        RecoveryGuidance,
+        ReplayGuidance> TransportFailures =>
         new()
         {
             {
                 (int)WorkerExecutionStatus.Unavailable,
+                (int)WorkerExecutionDisposition.NotStarted,
                 false,
                 true,
+                ReplaySafety.Safe,
                 StatusCode.Unavailable,
                 OperationFailureKind.SpatialAnalyzerUnavailable,
-                RetryGuidance.RetryAfterReadiness
+                ExecutionDisposition.NotStarted,
+                RecoveryGuidance.WaitForReadiness,
+                ReplayGuidance.MayReplay
             },
             {
                 (int)WorkerExecutionStatus.Unavailable,
+                (int)WorkerExecutionDisposition.NotStarted,
                 false,
                 false,
+                ReplaySafety.Safe,
                 StatusCode.Unavailable,
                 OperationFailureKind.WorkerUnavailable,
-                RetryGuidance.RetryAfterReadiness
+                ExecutionDisposition.NotStarted,
+                RecoveryGuidance.WaitForReadiness,
+                ReplayGuidance.MayReplay
             },
             {
                 (int)WorkerExecutionStatus.ClientCancelled,
+                (int)WorkerExecutionDisposition.NotStarted,
                 false,
                 false,
+                ReplaySafety.Unknown,
                 StatusCode.Cancelled,
                 OperationFailureKind.CallerCancelled,
-                RetryGuidance.CallerControlled
+                ExecutionDisposition.NotStarted,
+                RecoveryGuidance.None,
+                ReplayGuidance.MayReplay
             },
             {
                 (int)WorkerExecutionStatus.ClientCancelled,
+                (int)WorkerExecutionDisposition.StartedOutcomeUnknown,
                 true,
                 false,
+                ReplaySafety.Unsafe,
                 StatusCode.DeadlineExceeded,
                 OperationFailureKind.CallerDeadlineExceeded,
-                RetryGuidance.CallerControlled
+                ExecutionDisposition.StartedOutcomeUnknown,
+                RecoveryGuidance.None,
+                ReplayGuidance.ReconcileBeforeReplay
             },
             {
                 (int)WorkerExecutionStatus.WatchdogTimeout,
+                (int)WorkerExecutionDisposition.StartedOutcomeUnknown,
                 false,
                 false,
+                ReplaySafety.Unsafe,
                 StatusCode.Unavailable,
                 OperationFailureKind.WorkerWatchdogTimeout,
-                RetryGuidance.RetryAfterWorkerReplacement
+                ExecutionDisposition.StartedOutcomeUnknown,
+                RecoveryGuidance.WorkerReplacement,
+                ReplayGuidance.ReconcileBeforeReplay
+            },
+            {
+                (int)WorkerExecutionStatus.WatchdogTimeout,
+                (int)WorkerExecutionDisposition.StartedOutcomeUnknown,
+                false,
+                false,
+                ReplaySafety.Safe,
+                StatusCode.Unavailable,
+                OperationFailureKind.WorkerWatchdogTimeout,
+                ExecutionDisposition.StartedOutcomeUnknown,
+                RecoveryGuidance.WorkerReplacement,
+                ReplayGuidance.MayReplay
             },
             {
                 (int)WorkerExecutionStatus.WorkerFailure,
+                (int)WorkerExecutionDisposition.StartedOutcomeUnknown,
                 false,
                 false,
+                ReplaySafety.Unknown,
                 StatusCode.Unavailable,
                 OperationFailureKind.WorkerFailure,
-                RetryGuidance.RetryAfterWorkerReplacement
+                ExecutionDisposition.StartedOutcomeUnknown,
+                RecoveryGuidance.WorkerReplacement,
+                ReplayGuidance.ReconcileBeforeReplay
             },
             {
                 (int)WorkerExecutionStatus.PolicyDenied,
+                (int)WorkerExecutionDisposition.NotStarted,
                 false,
                 false,
+                ReplaySafety.Safe,
                 StatusCode.PermissionDenied,
                 OperationFailureKind.PolicyDenied,
-                RetryGuidance.DoNotRetry
-            },
-            {
-                (int)WorkerExecutionStatus.Unsupported,
-                false,
-                false,
-                StatusCode.Unimplemented,
-                OperationFailureKind.Unsupported,
-                RetryGuidance.DoNotRetry
+                ExecutionDisposition.NotStarted,
+                RecoveryGuidance.None,
+                ReplayGuidance.DoNotReplay
             }
         };
 
     [Theory]
     [MemberData(nameof(TransportFailures))]
-    public void TransportFailuresHaveStableStatusKindAndRetryGuidance(
+    public void TransportFailuresSeparateExecutionRecoveryAndReplay(
         int executionStatus,
+        int workerDisposition,
         bool deadlineExceeded,
         bool spatialAnalyzerUnavailable,
+        ReplaySafety replaySafety,
         StatusCode expectedStatus,
         OperationFailureKind expectedKind,
-        RetryGuidance expectedRetryGuidance)
+        ExecutionDisposition expectedDisposition,
+        RecoveryGuidance expectedRecoveryGuidance,
+        ReplayGuidance expectedReplayGuidance)
     {
         var workerExecutionStatus = (WorkerExecutionStatus)executionStatus;
         var connection = spatialAnalyzerUnavailable
@@ -105,6 +145,7 @@ public sealed class GrpcOperationOutcomeMapperTests
             : null;
         var outcome = new WorkerExecutionOutcome(
             workerExecutionStatus,
+            (WorkerExecutionDisposition)workerDisposition,
             Execution: null,
             connection,
             Diagnostic(workerExecutionStatus, spatialAnalyzerUnavailable),
@@ -114,13 +155,17 @@ public sealed class GrpcOperationOutcomeMapperTests
             GrpcOperationOutcomeMapper.RequireSuccess(
                 outcome,
                 OperationId,
+                replaySafety,
                 Outputs,
                 deadlineExceeded));
         var error = Error(exception);
 
         Assert.Equal(expectedStatus, exception.StatusCode);
         Assert.Equal(expectedKind, error.Kind);
-        Assert.Equal(expectedRetryGuidance, error.RetryGuidance);
+        Assert.Equal(expectedDisposition, error.ExecutionDisposition);
+        Assert.Equal(expectedRecoveryGuidance, error.RecoveryGuidance);
+        Assert.Equal(expectedReplayGuidance, error.ReplayGuidance);
+        Assert.Equal(replaySafety, error.ReplaySafety);
         Assert.Equal(OperationId, error.OperationId);
         Assert.True(error.HasWorkerGeneration);
         Assert.Equal(7, error.WorkerGeneration);
@@ -139,20 +184,58 @@ public sealed class GrpcOperationOutcomeMapperTests
 
         Assert.Equal(StatusCode.InvalidArgument, invalid.StatusCode);
         Assert.Equal(OperationFailureKind.Validation, Error(invalid).Kind);
-        Assert.Equal(RetryGuidance.DoNotRetry, Error(invalid).RetryGuidance);
+        Assert.Equal(ExecutionDisposition.NotStarted, Error(invalid).ExecutionDisposition);
+        Assert.Equal(ReplayGuidance.DoNotReplay, Error(invalid).ReplayGuidance);
         Assert.Equal(StatusCode.Unimplemented, unsupported.StatusCode);
         Assert.Equal(OperationFailureKind.Unsupported, Error(unsupported).Kind);
-        Assert.Equal(RetryGuidance.DoNotRetry, Error(unsupported).RetryGuidance);
+        Assert.Equal(ExecutionDisposition.NotStarted, Error(unsupported).ExecutionDisposition);
+        Assert.Equal(ReplayGuidance.DoNotReplay, Error(unsupported).ReplayGuidance);
+    }
+
+    [Fact]
+    public void QuarantinedTargetRequiresOperatorRecoveryWithoutChangingReplayPolicy()
+    {
+        var outcome = new WorkerExecutionOutcome(
+            WorkerExecutionStatus.Unavailable,
+            WorkerExecutionDisposition.NotStarted,
+            Execution: null,
+            new WorkerConnectionSnapshot(
+                WorkerConnectionState.Connected,
+                WorkerExecutionReadinessState.OperatorRecoveryRequired,
+                StatusCode: 0,
+                Attempt: 1,
+                MaximumAttempts: 1,
+                "execution-readiness-operator-recovery-required",
+                DateTimeOffset.UnixEpoch),
+            "execution-readiness-operator-recovery-required",
+            Generation: 7);
+
+        var exception = Assert.Throws<RpcException>(() =>
+            GrpcOperationOutcomeMapper.RequireSuccess(
+                outcome,
+                OperationId,
+                ReplaySafety.Unsafe,
+                Outputs,
+                callerDeadlineExceeded: false));
+        var error = Error(exception);
+
+        Assert.Equal(ExecutionDisposition.NotStarted, error.ExecutionDisposition);
+        Assert.Equal(
+            RecoveryGuidance.OperatorInterventionRequired,
+            error.RecoveryGuidance);
+        Assert.Equal(ReplayGuidance.MayReplay, error.ReplayGuidance);
     }
 
     [Theory]
-    [InlineData(false, true, OperationFailureKind.ExecuteStepRejected, MpExecutionState.ExecuteStepRejected)]
-    [InlineData(true, false, OperationFailureKind.MpFailure, MpExecutionState.Failed)]
+    [InlineData(false, true, OperationFailureKind.ExecuteStepRejected, MpExecutionState.ExecuteStepRejected, ExecutionDisposition.StartedOutcomeUnknown, ReplayGuidance.MayReplay)]
+    [InlineData(true, false, OperationFailureKind.MpFailure, MpExecutionState.Failed, ExecutionDisposition.Completed, ReplayGuidance.DoNotReplay)]
     public void MpFailuresPreserveResultAndMarkOutputsNotAttempted(
         bool executeStepReturned,
         bool mpSucceeded,
         OperationFailureKind expectedKind,
-        MpExecutionState expectedState)
+        MpExecutionState expectedState,
+        ExecutionDisposition expectedDisposition,
+        ReplayGuidance expectedReplayGuidance)
     {
         var outcome = Completed(
             executeStepReturned,
@@ -164,12 +247,15 @@ public sealed class GrpcOperationOutcomeMapperTests
             GrpcOperationOutcomeMapper.RequireSuccess(
                 outcome,
                 OperationId,
+                ReplaySafety.Safe,
                 Outputs,
                 callerDeadlineExceeded: false));
         var error = Error(exception);
 
         Assert.Equal(StatusCode.FailedPrecondition, exception.StatusCode);
         Assert.Equal(expectedKind, error.Kind);
+        Assert.Equal(expectedDisposition, error.ExecutionDisposition);
+        Assert.Equal(expectedReplayGuidance, error.ReplayGuidance);
         Assert.NotNull(error.MpExecution);
         Assert.Equal(expectedState, error.MpExecution.State);
         Assert.Equal(executeStepReturned, error.MpExecution.HasMpResultCode);
@@ -183,10 +269,35 @@ public sealed class GrpcOperationOutcomeMapperTests
     }
 
     [Fact]
+    public void SetterRejectionProvesExecutionDidNotStart()
+    {
+        var outcome = Completed(
+            executeStepReturned: false,
+            mpSucceeded: false,
+            outputs: [],
+            diagnosticCode: "sdk-argument-rejected");
+
+        var exception = Assert.Throws<RpcException>(() =>
+            GrpcOperationOutcomeMapper.RequireSuccess(
+                outcome,
+                OperationId,
+                ReplaySafety.Unsafe,
+                Outputs,
+                callerDeadlineExceeded: false));
+        var error = Error(exception);
+
+        Assert.Equal(OperationFailureKind.SdkArgumentRejected, error.Kind);
+        Assert.Equal(MpExecutionState.ArgumentRejected, error.MpExecution.State);
+        Assert.Equal(ExecutionDisposition.NotStarted, error.ExecutionDisposition);
+        Assert.Equal(ReplayGuidance.DoNotReplay, error.ReplayGuidance);
+    }
+
+    [Fact]
     public void MpResultRetrievalFailureIsExplicitAndHasNoResultCode()
     {
         var outcome = new WorkerExecutionOutcome(
             WorkerExecutionStatus.Completed,
+            WorkerExecutionDisposition.StartedOutcomeUnknown,
             new WorkerMpExecutionResult(
                 ExecuteStepReturned: true,
                 MpResultRetrieved: false,
@@ -203,12 +314,15 @@ public sealed class GrpcOperationOutcomeMapperTests
             GrpcOperationOutcomeMapper.RequireSuccess(
                 outcome,
                 OperationId,
+                ReplaySafety.Safe,
                 Outputs,
                 callerDeadlineExceeded: false));
         var error = Error(exception);
 
         Assert.Equal(StatusCode.Internal, exception.StatusCode);
         Assert.Equal(OperationFailureKind.MpResultRetrievalFailure, error.Kind);
+        Assert.Equal(ExecutionDisposition.StartedOutcomeUnknown, error.ExecutionDisposition);
+        Assert.Equal(ReplayGuidance.ReconcileBeforeReplay, error.ReplayGuidance);
         Assert.Equal(MpExecutionState.ResultUnavailable, error.MpExecution.State);
         Assert.False(error.MpExecution.HasMpResultCode);
         Assert.Equal(
@@ -236,13 +350,15 @@ public sealed class GrpcOperationOutcomeMapperTests
             GrpcOperationOutcomeMapper.RequireSuccess(
                 outcome,
                 OperationId,
+                ReplaySafety.Safe,
                 Outputs,
                 callerDeadlineExceeded: false));
         var error = Error(exception);
 
         Assert.Equal(StatusCode.DataLoss, exception.StatusCode);
         Assert.Equal(OperationFailureKind.OutputRetrievalFailure, error.Kind);
-        Assert.Equal(RetryGuidance.DoNotRetry, error.RetryGuidance);
+        Assert.Equal(ExecutionDisposition.Completed, error.ExecutionDisposition);
+        Assert.Equal(ReplayGuidance.DoNotReplay, error.ReplayGuidance);
         var retrieval = Assert.Single(error.MpExecution.OutputRetrievals);
         Assert.Equal(OutputRetrievalState.Failed, retrieval.State);
         Assert.Equal("sdk-output-retrieval-failed", retrieval.DiagnosticCode);
@@ -267,6 +383,7 @@ public sealed class GrpcOperationOutcomeMapperTests
         var result = GrpcOperationOutcomeMapper.RequireSuccess(
             outcome,
             OperationId,
+            ReplaySafety.Safe,
             Outputs,
             callerDeadlineExceeded: false);
 
@@ -292,6 +409,7 @@ public sealed class GrpcOperationOutcomeMapperTests
             GrpcOperationOutcomeMapper.RequireSuccess(
                 outcome,
                 OperationId,
+                ReplaySafety.Safe,
                 Outputs,
                 callerDeadlineExceeded: false));
 
@@ -306,6 +424,11 @@ public sealed class GrpcOperationOutcomeMapperTests
         string? diagnosticCode) =>
         new(
             WorkerExecutionStatus.Completed,
+            diagnosticCode == "sdk-argument-rejected"
+                ? WorkerExecutionDisposition.NotStarted
+                : executeStepReturned
+                    ? WorkerExecutionDisposition.Completed
+                    : WorkerExecutionDisposition.StartedOutcomeUnknown,
             new WorkerMpExecutionResult(
                 executeStepReturned,
                 MpResultRetrieved: executeStepReturned,

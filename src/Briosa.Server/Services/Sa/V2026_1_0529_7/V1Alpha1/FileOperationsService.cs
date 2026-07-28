@@ -66,6 +66,7 @@ internal sealed class FileOperationsService(
             var completed = GrpcOperationOutcomeMapper.RequireSuccess(
                 outcome,
                 command.OperationId,
+                OperationDescriptor.ReplaySafety,
                 FileOperationsGetWorkingDirectoryBinding.OutputContracts,
                 deadline is not null &&
                 deadline.Value != DateTime.MaxValue &&

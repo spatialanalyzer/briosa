@@ -52,6 +52,7 @@ public sealed class GetWorkingDirectoryServiceTests
     {
         var executor = new RecordingExecutor(new WorkerExecutionOutcome(
             WorkerExecutionStatus.Completed,
+            WorkerExecutionDisposition.Completed,
             new WorkerMpExecutionResult(
                 ExecuteStepReturned: true,
                 MpResultRetrieved: true,
@@ -104,6 +105,7 @@ public sealed class GetWorkingDirectoryServiceTests
     {
         var executor = new RecordingExecutor(new WorkerExecutionOutcome(
             WorkerExecutionStatus.ClientCancelled,
+            WorkerExecutionDisposition.StartedOutcomeUnknown,
             Execution: null,
             Connection: null,
             "client-wait-cancelled",
@@ -126,6 +128,7 @@ public sealed class GetWorkingDirectoryServiceTests
     {
         var executor = new RecordingExecutor(new WorkerExecutionOutcome(
             WorkerExecutionStatus.ClientCancelled,
+            WorkerExecutionDisposition.NotStarted,
             Execution: null,
             Connection: null,
             "client-wait-cancelled",
@@ -150,6 +153,7 @@ public sealed class GetWorkingDirectoryServiceTests
     {
         var executor = new RecordingExecutor(new WorkerExecutionOutcome(
             WorkerExecutionStatus.WatchdogTimeout,
+            WorkerExecutionDisposition.StartedOutcomeUnknown,
             Execution: null,
             Connection: null,
             "worker-watchdog-timeout",
@@ -202,6 +206,7 @@ public sealed class GetWorkingDirectoryServiceTests
         string? diagnosticCode = null) =>
         new(
             WorkerExecutionStatus.Completed,
+            WorkerExecutionDisposition.Completed,
             new WorkerMpExecutionResult(
                 ExecuteStepReturned: true,
                 MpResultRetrieved: true,

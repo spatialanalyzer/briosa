@@ -12,6 +12,7 @@
   "stability": "experimental",
   "risk": {
     "effect": "read_only",
+    "replay_safety": "safe",
     "flags": [
       "filesystem_metadata"
     ]

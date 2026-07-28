@@ -105,14 +105,23 @@ internal static class TestWorkerProcess
                             Thread.Sleep(300);
                         }
 
-                        channel.Send(
-                            WorkerControlMessage.ExecutionResult(
-                                message.CorrelationId,
-                                CompletedExecution(
-                                    message.Command!,
-                                    mpSucceeded:
-                                        options.Scenario != TestWorkerScenario.MpFailure,
-                                    delayed)));
+                        var completed = WorkerControlMessage.ExecutionResult(
+                            message.CorrelationId,
+                            CompletedExecution(
+                                message.Command!,
+                                mpSucceeded: options.Scenario != TestWorkerScenario.MpFailure,
+                                delayed));
+                        if (options.Scenario == TestWorkerScenario.CrashAfterExecute)
+                        {
+                            Environment.Exit(45);
+                        }
+
+                        if (options.Scenario == TestWorkerScenario.DropExecutionResponse)
+                        {
+                            Thread.Sleep(Timeout.Infinite);
+                        }
+
+                        channel.Send(completed);
                         break;
                     case WorkerControlMessageKind.Stop:
                         if (options.Scenario == TestWorkerScenario.IgnoreStop)
@@ -356,6 +365,8 @@ internal enum TestWorkerScenario
     DelayFirstExecute,
     HangOnExecute,
     CrashOnExecute,
+    CrashAfterExecute,
+    DropExecutionResponse,
     HangOnVerify,
     CrashOnVerify,
     RejectVerify
@@ -393,6 +404,8 @@ internal sealed record TestWorkerOptions(
             "delay-first-execute" => TestWorkerScenario.DelayFirstExecute,
             "hang-on-execute" => TestWorkerScenario.HangOnExecute,
             "crash-on-execute" => TestWorkerScenario.CrashOnExecute,
+            "crash-after-execute" => TestWorkerScenario.CrashAfterExecute,
+            "drop-execution-response" => TestWorkerScenario.DropExecutionResponse,
             "hang-on-verify" => TestWorkerScenario.HangOnVerify,
             "crash-on-verify" => TestWorkerScenario.CrashOnVerify,
             "reject-verify" => TestWorkerScenario.RejectVerify,

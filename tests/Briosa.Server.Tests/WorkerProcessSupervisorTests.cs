@@ -289,7 +289,7 @@ public sealed class WorkerProcessSupervisorTests
     }
 
     [Fact]
-    public async Task CallerCancellationStopsWaitingWithoutDesynchronizingThePipe()
+    public async Task CallerCancellationAfterEnqueueIsUnknownWithoutDesynchronizingThePipe()
     {
         await using var supervisor = CreateSupervisor(
             _ => CreateLaunch("delay-first-execute"),
@@ -304,10 +304,32 @@ public sealed class WorkerProcessSupervisorTests
         var next = await supervisor.ExecuteAsync(CreateCommand("after-cancellation"));
 
         Assert.Equal(WorkerExecutionStatus.ClientCancelled, cancelled.Status);
+        Assert.Equal(
+            WorkerExecutionDisposition.StartedOutcomeUnknown,
+            cancelled.ExecutionDisposition);
         Assert.Equal("client-wait-cancelled", cancelled.DiagnosticCode);
         Assert.Equal(WorkerExecutionStatus.Completed, next.Status);
         Assert.Equal(1, next.Generation);
         Assert.Equal(1, supervisor.Current.Generation);
+    }
+
+    [Fact]
+    public async Task CancellationBeforeEnqueueProvesExecutionDidNotStart()
+    {
+        await using var supervisor = CreateSupervisor(
+            _ => CreateLaunch("normal"),
+            CreatePolicy(heartbeatInterval: TimeSpan.FromSeconds(10)));
+
+        Assert.True(await supervisor.StartAsync());
+        using var clientCancellation = new CancellationTokenSource();
+        await clientCancellation.CancelAsync();
+
+        var cancelled = await supervisor.ExecuteAsync(
+            CreateCommand("cancelled-before-enqueue"),
+            clientCancellation.Token);
+
+        Assert.Equal(WorkerExecutionStatus.ClientCancelled, cancelled.Status);
+        Assert.Equal(WorkerExecutionDisposition.NotStarted, cancelled.ExecutionDisposition);
     }
 
     [Fact]
@@ -324,6 +346,9 @@ public sealed class WorkerProcessSupervisorTests
         var recovered = await supervisor.ExecuteAsync(CreateCommand("after-hang"));
 
         Assert.Equal(WorkerExecutionStatus.WatchdogTimeout, timedOut.Status);
+        Assert.Equal(
+            WorkerExecutionDisposition.StartedOutcomeUnknown,
+            timedOut.ExecutionDisposition);
         Assert.Null(timedOut.Execution);
         Assert.Equal(1, timedOut.Generation);
         Assert.Equal(WorkerExecutionStatus.Completed, recovered.Status);
@@ -348,6 +373,9 @@ public sealed class WorkerProcessSupervisorTests
         var recovered = await supervisor.ExecuteAsync(CreateCommand("after-crash"));
 
         Assert.Equal(WorkerExecutionStatus.WorkerFailure, failed.Status);
+        Assert.Equal(
+            WorkerExecutionDisposition.StartedOutcomeUnknown,
+            failed.ExecutionDisposition);
         Assert.Null(failed.Execution);
         Assert.Equal(WorkerExecutionStatus.Completed, recovered.Status);
         Assert.Equal(2, recovered.Generation);
@@ -355,6 +383,33 @@ public sealed class WorkerProcessSupervisorTests
             supervisor.History,
             snapshot => snapshot.State == WorkerLifecycleState.Degraded &&
                 snapshot.LastTermination == WorkerTerminationKind.Crash);
+    }
+
+    [Theory]
+    [InlineData("crash-after-execute", (int)WorkerExecutionStatus.WorkerFailure)]
+    [InlineData("drop-execution-response", (int)WorkerExecutionStatus.WatchdogTimeout)]
+    public async Task CompletionBeforeCrashOrLostResponseRequiresReconciliation(
+        string scenario,
+        int expectedStatus)
+    {
+        await using var supervisor = CreateSupervisor(
+            generation => CreateLaunch(generation == 1 ? scenario : "normal"),
+            CreatePolicy(heartbeatInterval: TimeSpan.FromSeconds(10)),
+            CreateExecutionPolicy(TimeSpan.FromMilliseconds(150)));
+
+        Assert.True(await supervisor.StartAsync());
+        var ambiguous = await supervisor.ExecuteAsync(CreateCommand("ambiguous-completion"));
+        var recovered = await supervisor.ExecuteAsync(CreateCommand("after-ambiguous-completion"));
+
+        Assert.Equal((WorkerExecutionStatus)expectedStatus, ambiguous.Status);
+        Assert.Equal(
+            WorkerExecutionDisposition.StartedOutcomeUnknown,
+            ambiguous.ExecutionDisposition);
+        Assert.Null(ambiguous.Execution);
+        Assert.Equal(1, ambiguous.Generation);
+        Assert.Equal(WorkerExecutionStatus.Completed, recovered.Status);
+        Assert.Equal(WorkerExecutionDisposition.Completed, recovered.ExecutionDisposition);
+        Assert.Equal(2, recovered.Generation);
     }
 
 

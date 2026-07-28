@@ -85,6 +85,7 @@
       "additionalProperties": false,
       "required": [
         "effect",
+        "replay_safety",
         "flags"
       ],
       "properties": {
@@ -92,6 +93,13 @@
           "enum": [
             "read_only",
             "mutating",
+            "unknown"
+          ]
+        },
+        "replay_safety": {
+          "enum": [
+            "safe",
+            "unsafe",
             "unknown"
           ]
         },

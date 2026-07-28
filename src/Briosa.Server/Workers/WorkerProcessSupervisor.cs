@@ -162,7 +162,9 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
             : Guid.NewGuid();
         if (cancellationToken.IsCancellationRequested)
         {
-            return ClientCancelled(effectiveCorrelationId);
+            return ClientCancelled(
+                effectiveCorrelationId,
+                WorkerExecutionDisposition.NotStarted);
         }
 
         var queue = _executionQueue;
@@ -178,7 +180,9 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            return ClientCancelled(effectiveCorrelationId);
+            return ClientCancelled(
+                effectiveCorrelationId,
+                WorkerExecutionDisposition.NotStarted);
         }
         catch (ChannelClosedException)
         {
@@ -191,7 +195,9 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            return ClientCancelled(effectiveCorrelationId);
+            return ClientCancelled(
+                effectiveCorrelationId,
+                WorkerExecutionDisposition.StartedOutcomeUnknown);
         }
     }
 
@@ -311,6 +317,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         CancellationToken cancellationToken)
     {
         var acquired = false;
+        var requestMayHaveStarted = false;
         try
         {
             await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
@@ -326,6 +333,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
             watchdog.CancelAfter(_executionPolicy.WatchdogTimeout);
             try
             {
+                requestMayHaveStarted = true;
                 await worker.SendAsync(
                     WorkerControlMessage.Execute(correlationId, command),
                     watchdog.Token).ConfigureAwait(false);
@@ -352,6 +360,9 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                     executionResponse.Status == WorkerExecutionResponseStatus.Completed
                         ? WorkerExecutionStatus.Completed
                         : WorkerExecutionStatus.Unavailable,
+                    executionResponse.Status == WorkerExecutionResponseStatus.Completed
+                        ? ClassifyExecutionDisposition(executionResponse.Execution!)
+                        : WorkerExecutionDisposition.NotStarted,
                     executionResponse.Execution,
                     executionResponse.Connection,
                     executionResponse.DiagnosticCode ??
@@ -368,6 +379,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                     cancellationToken).ConfigureAwait(false);
                 return new WorkerExecutionOutcome(
                     WorkerExecutionStatus.WatchdogTimeout,
+                    WorkerExecutionDisposition.StartedOutcomeUnknown,
                     Execution: null,
                     Connection: null,
                     "worker-execution-watchdog-timeout",
@@ -383,6 +395,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                     .ConfigureAwait(false);
                 return new WorkerExecutionOutcome(
                     WorkerExecutionStatus.WorkerFailure,
+                    WorkerExecutionDisposition.StartedOutcomeUnknown,
                     Execution: null,
                     Connection: null,
                     diagnosticCode,
@@ -392,7 +405,12 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            return Unavailable("worker-supervisor-stopping", correlationId);
+            return Unavailable(
+                "worker-supervisor-stopping",
+                correlationId,
+                requestMayHaveStarted
+                    ? WorkerExecutionDisposition.StartedOutcomeUnknown
+                    : WorkerExecutionDisposition.NotStarted);
         }
         finally
         {
@@ -403,9 +421,12 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         }
     }
 
-    private WorkerExecutionOutcome ClientCancelled(Guid correlationId) =>
+    private WorkerExecutionOutcome ClientCancelled(
+        Guid correlationId,
+        WorkerExecutionDisposition disposition) =>
         new(
             WorkerExecutionStatus.ClientCancelled,
+            disposition,
             Execution: null,
             Current.Connection,
             "client-wait-cancelled",
@@ -413,9 +434,12 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
             correlationId);
 
     private WorkerExecutionOutcome Unavailable(
-        string diagnosticCode, Guid correlationId) =>
+        string diagnosticCode,
+        Guid correlationId,
+        WorkerExecutionDisposition disposition = WorkerExecutionDisposition.NotStarted) =>
         new(
             WorkerExecutionStatus.Unavailable,
+            disposition,
             Execution: null,
             Current.Connection,
             diagnosticCode,
@@ -891,6 +915,14 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         requested.Zip(returned).All(pair =>
             pair.First.Name == pair.Second.Name &&
             pair.First.Kind == pair.Second.Kind);
+
+    private static WorkerExecutionDisposition ClassifyExecutionDisposition(
+        WorkerMpExecutionResult execution) =>
+        execution.DiagnosticCode == "sdk-argument-rejected"
+            ? WorkerExecutionDisposition.NotStarted
+            : execution.MpResultRetrieved
+                ? WorkerExecutionDisposition.Completed
+                : WorkerExecutionDisposition.StartedOutcomeUnknown;
     private sealed class ExecutionWorkItem(WorkerMpCommand command, Guid correlationId)
     {
         private readonly TaskCompletionSource<WorkerExecutionOutcome> _completion =

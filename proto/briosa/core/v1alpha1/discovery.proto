@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package briosa.core.v1alpha1;
 
+import "briosa/core/v1alpha1/operation_outcomes.proto";
 import "briosa/core/v1alpha1/version_coordinates.proto";
 
 option csharp_namespace = "Briosa.Core.V1Alpha1";
@@ -78,6 +79,7 @@ message OperationCapability {
   string rpc = 3;
   string fully_qualified_method = 4;
   OperationEffect effect = 5;
+  ReplaySafety replay_safety = 6;
 }
 
 enum OperationEffect {

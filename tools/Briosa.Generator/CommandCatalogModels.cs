@@ -111,6 +111,9 @@ internal sealed class CommandCatalogRisk
     public required string Effect { get; init; }
 
     [JsonRequired]
+    public required string ReplaySafety { get; init; }
+
+    [JsonRequired]
     public required List<string> Flags { get; init; }
 }
 
