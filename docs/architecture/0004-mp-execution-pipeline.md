@@ -2,6 +2,7 @@
 
 - Status: Accepted for the v0.1 vertical slice
 - Date: 2026-07-21
+- Amended by: [ADR 0018](0018-uncertain-completion-and-replay.md), [ADR 0019](0019-global-state-workflow-isolation.md)
 
 ## Context
 

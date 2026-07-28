@@ -52,11 +52,11 @@ Install Buf 1.72.0 and run `./eng/Verify-Protocol.ps1` to check formatting, lint
 
 See [the exact-SA-target protocol decision](docs/architecture/0005-exact-sa-target-protocols.md) for package layout, version coordinates, compatibility, presence, target isolation, and review rules.
 
-Successful MP responses pair exact-target typed values with explicit core execution and output-retrieval details. Failed calls use canonical gRPC statuses and carry a value-free typed error in `briosa-operation-error-bin`. See [the MP outcome and error decision](docs/architecture/0008-mp-outcomes-and-grpc-errors.md) for the complete status and retry matrix.
+Successful MP responses pair exact-target typed values with explicit core execution and output-retrieval details. Failed calls use canonical gRPC statuses and carry a value-free typed error in `briosa-operation-error-bin`. See [the MP outcome and error decision](docs/architecture/0008-mp-outcomes-and-grpc-errors.md) and its [uncertain-completion amendment](docs/architecture/0018-uncertain-completion-and-replay.md). Worker recovery and command replay safety are separate; an ambiguously completed call must not be automatically replayed merely because a replacement worker becomes available.
 
 ## Health and discovery
 
-The public host exposes standard gRPC health checks named `briosa.liveness` and `briosa.readiness`. Liveness is independent of SpatialAnalyzer; readiness requires a ready worker with a connected SDK snapshot. The stable core `DiscoveryService` reports safe build coordinates and only operations present in the reviewed exact-target catalog and enabled by runtime policy.
+The public host exposes standard gRPC health checks named `briosa.liveness` and `briosa.readiness`. Liveness is independent of SpatialAnalyzer. The current v0.1 readiness implementation requires a ready worker with a connected SDK snapshot, but `ConnectEx` success alone does not prove ownership of a usable execution channel. Do not use that provisional signal as an execution guarantee. [ADR 0017](docs/architecture/0017-execution-channel-readiness.md) requires a bounded, value-redacted ownership probe before the broader v0.2 command surface may report ready. The stable core `DiscoveryService` reports safe build coordinates and only operations present in the reviewed exact-target catalog and enabled by runtime policy.
 
 See the [health and discovery operator guide](docs/operations/health-and-discovery.md) and [architecture decision](docs/architecture/0010-health-version-and-capability-discovery.md) for service names, response semantics, connected-version verification, and the information boundary.
 
@@ -102,9 +102,11 @@ The gRPC host supervises SpatialAnalyzer automation in a disposable child worker
 
 The host expects `Briosa.Worker.exe` beside the server by default. Development or packaged layouts can set `Briosa__Worker__ExecutablePath` to an explicit worker path. A missing worker degrades SDK readiness without terminating the public host.
 
-Each worker owns one SDK client and reports `Disconnected`, `Connecting`, `Connected`, `Faulted`, or `Stopping` independently from process readiness. The SpatialAnalyzer target defaults to `localhost`; set `Briosa__SpatialAnalyzer__Host` to an explicit hostname or IP address. A connection cycle is bounded to three `ConnectEx` attempts one second apart, and MP work is rejected with a stable unavailable outcome unless the SDK state is `Connected`.
+Each worker owns one SDK client and currently reports `Disconnected`, `Connecting`, `Connected`, `Faulted`, or `Stopping` independently from process readiness. The SpatialAnalyzer target defaults to `localhost`; set `Briosa__SpatialAnalyzer__Host` to an explicit hostname or IP address. The v0.1 connection cycle is bounded to three `ConnectEx` attempts one second apart, and MP work is rejected with a stable unavailable outcome unless the SDK state is `Connected`. ADR 0017 supersedes this admission rule for v0.2: successful attachment becomes unverified until a bounded MP probe succeeds, and failed connection retries become status-aware.
 
-See [the worker process lifecycle decision](docs/architecture/0002-worker-process-lifecycle.md) and [the SDK connection lifecycle decision](docs/architecture/0003-sdk-connection-lifecycle.md), and [the MP execution pipeline decision](docs/architecture/0004-mp-execution-pipeline.md) for protocol, connection ownership, serialization, deadlines, recovery, security, and STA details.
+The queue serializes one complete MP sequence at a time; it does not isolate application-global state across multiple RPCs from different callers. The initial deployment contract is single-tenant per worker/SpatialAnalyzer target. Commands requiring exclusive multi-call ownership remain blocked pending a later lease design; see [ADR 0019](docs/architecture/0019-global-state-workflow-isolation.md).
+
+See [the worker process lifecycle decision](docs/architecture/0002-worker-process-lifecycle.md), [the SDK connection lifecycle decision](docs/architecture/0003-sdk-connection-lifecycle.md), [the execution-readiness amendment](docs/architecture/0017-execution-channel-readiness.md), and [the MP execution pipeline decision](docs/architecture/0004-mp-execution-pipeline.md) for protocol, connection ownership, serialization, deadlines, recovery, security, and STA details.
 
 ## License
 

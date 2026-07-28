@@ -2,6 +2,7 @@
 
 - Status: Accepted for the v0.1 vertical slice
 - Date: 2026-07-22
+- Amended by: [ADR 0018](0018-uncertain-completion-and-replay.md)
 
 ## Context
 
