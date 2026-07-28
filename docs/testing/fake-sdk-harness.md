@@ -38,6 +38,10 @@ The watchdog and supervisor types in this test-support assembly remain lightweig
 
 `SdkContractAssertions` contains adapter-independent checks. Production-adapter tests use an injectable synchronous call surface to verify the exact setter/execution/MP-result/getter order without COM activation. The [generated-client smoke workflow](generated-client-smoke.md) exercises the packaged network boundary with portable fake-worker scenarios and provides an explicit real-SA success check. MP failure, getter failure, hangs, and crashes remain fake-only.
 
+`BindingFamilyAdapterCompletenessTests` adds an evidence-driven dispatch fake for breadth rather than behavioral simulation. It reflects the exact `ISpatialAnalyzerSdkCalls` seam, records every call and apartment state, supplies valid typed outputs for each reviewed getter, and can reject any setter, fail any getter, or return MP failure without a vendor process. Registry and value-family evidence select the cases, so all 103 usable method/family rows run against the production adapter and all 79 implemented private value kinds cross the real JSON worker-control channel. The fake intentionally has no fallback for an unknown getter; a new getter without explicit typed output behavior fails the test.
+
+That completeness contract also runs every one of the 470 reviewed enum members and compares the emitted SDK literal with the exact-target evidence catalog. It checks every structured worker field, all shared-method domains, `VariantWrapper` marshalling, and fail-closed collection object/item decoding. The release-specific scope is listed in the [binding-family completeness reference](../reference/sa/2026.1.0529.7/binding-family-completeness.md).
+
 ## Non-emulation statement
 
 The scripted fake is not an implementation, simulator, or behavioral model of SpatialAnalyzer. It uses the documented MP result codes (`2` for success and `3` for failure), while its diagnostic codes, delays, failures, hangs, and crashes are controlled test inputs. Passing these tests demonstrates Briosa behavior only at the contracts listed above.
