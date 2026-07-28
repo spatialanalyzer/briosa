@@ -22,6 +22,16 @@ The review deliberately keeps specialized SDK methods distinct even when their C
 
 `public_type_target` and `worker_type_target` are implementation targets for issues that build the value families. They do not claim that the corresponding type already exists. Generated `implementation_status` distinguishes `implemented`, `planned`, `blocked`, and `not_required` families. Per-binding coverage reports protocol, worker, adapter, fake, and generator status independently so partial implementations cannot appear complete.
 
+## Mechanical adapter-completeness gate
+
+The SA `2026.1.0529.7` implemented surface contains 97 usable exact methods: 75 setters and 22 getters. Expanding the six shared methods by their reviewed semantic domains produces 103 method/family contract rows: 79 input rows and 24 output rows. `BindingFamilyAdapterCompletenessTests` derives those rows directly from `registry.json` and `catalog.json`; there is no sample-only allowlist.
+
+The gate requires the protocol, worker, adapter, fake, and generator coverage sets in `review.json` to equal the complete usable-method set. Each input row is serialized through `WorkerControlChannel`, converted by the real worker-control mapper, dispatched through the production adapter, and repeated with SDK setter rejection. Each output row covers successful retrieval, MP-failure suppression, getter failure, and response serialization. All adapter calls run through `SerializedSdkExecutor`, and the test asserts exact method identity, full MP call order, STA affinity, and `VariantWrapper` use for every `ref object` boundary.
+
+The same test consumes all 42 evidence enum types and 470 exact SDK literals, all 35 structured worker types and 108 fields, and all 995 shared-method assignments. Collection object and collection item scalar/list domains are executed separately; unknown returned type literals fail closed. Adding an implemented family, usable binding, evidence member, structured field, or new shared-method domain without a complete worker-control and adapter path therefore fails ordinary CI.
+
+This gate uses a vendor-independent dispatch fake. It does not activate SpatialAnalyzer and does not claim to emulate MP behavior. The exact current counts and covered failure modes are summarized in the [release-specific completeness reference](../reference/sa/2026.1.0529.7/binding-family-completeness.md).
+
 ## Binding statuses
 
 | Status | Meaning |
@@ -54,6 +64,8 @@ Then verify it exactly as ordinary CI does:
 ```powershell
 ./eng/Verify-BindingRegistry.ps1
 ./eng/Verify-ValueFamilyEvidence.ps1
+dotnet test tests/Briosa.Worker.Tests/Briosa.Worker.Tests.csproj -c Release `
+  --filter FullyQualifiedName~BindingFamilyAdapterCompletenessTests
 ```
 
 Verification requires only committed repository artifacts and the documented .NET SDK. It does not activate SpatialAnalyzer, connect to an SDK server, require an SA license, or read the local documentation and View SDK Code corpus.

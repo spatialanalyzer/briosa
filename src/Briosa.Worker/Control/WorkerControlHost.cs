@@ -130,7 +130,7 @@ internal static partial class WorkerControlHost
             ToControlSnapshot(connection));
     }
 
-    private static SdkCommand ToSdkCommand(WorkerMpCommand command) =>
+    internal static SdkCommand ToSdkCommand(WorkerMpCommand command) =>
         new(
             command.OperationId,
             command.StepName,
@@ -345,7 +345,7 @@ internal static partial class WorkerControlHost
     private static SdkToleranceLimit ToSdkToleranceLimit(WorkerToleranceLimit value) =>
         new(value.Enabled, value.Value);
 
-    private static WorkerMpExecutionResult ToControlResult(SdkExecutionResult execution) =>
+    internal static WorkerMpExecutionResult ToControlResult(SdkExecutionResult execution) =>
         new(
             execution.ExecuteStepReturned,
             execution.MpResult.Retrieved,
