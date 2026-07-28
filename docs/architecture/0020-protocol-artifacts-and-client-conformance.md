@@ -22,7 +22,7 @@ Every Briosa release publishes one runtime-neutral protocol artifact beside the 
 - an artifact manifest with Briosa version, source revision, exact SA target, protocol packages, catalog identity, content fingerprints, and every included file hash; and
 - Apache-2.0 licensing and a client-consumption guide.
 
-The artifact is named `briosa-protocol-<briosa-version>-sa-<exact-target>-catalog-<revision>.zip`. It is byte-reproducible for the same source, version, and toolchain and has an adjacent SHA-256 file and provenance manifest.
+The artifact is named `briosa-protocol-<briosa-version>-sa-<exact-target>-catalog-<revision>.zip`. It is byte-reproducible for the same source and version across supported Windows builder runtimes and has an adjacent SHA-256 file and provenance manifest. ZIP entries are stored without Deflate compression because compressed bytes are not stable across PowerShell/.NET runtime implementations; ordinal entry ordering, normalized content, a fixed root name, and fixed timestamps define the portable container representation.
 
 Clients generate repetitive transport code from the artifact's sources or descriptor set. A client repository may add idiomatic adapters, packaging, cancellation/deadline integration, and language-specific presence handling, but it does not copy operation policy, catalog facts, error mapping, or compatibility rules. It must record at least the protocol ZIP SHA-256, protocol-schema fingerprint, core and target package names, exact SA target, catalog ID/revision, and fixture-set IDs used by that release.
 
@@ -40,7 +40,7 @@ Each client repository runs a minimal generated Get Working Directory client aga
 
 ## Drift and publication
 
-CI builds the protocol artifact twice and requires identical ZIP hashes. It rebuilds the descriptor set from the bundled source, validates internal and external checksums, verifies fixture identity and required cases, and rejects source/manifest drift. The release workflow publishes protocol and Windows artifacts together from one tag and source revision.
+CI builds the protocol artifact twice and requires identical ZIP hashes. On Windows it also rebuilds the identical bundle through Windows PowerShell and requires the same outer hash as the current PowerShell runtime. It rebuilds the descriptor set from the bundled source, validates internal and external checksums, verifies fixture identity and required cases, and rejects source/manifest drift. The release workflow publishes protocol and Windows artifacts together from one tag and source revision.
 
 A client drift check fails when its recorded artifact checksum or coordinates differ from the downloaded manifest. Updating generated files requires an explicit artifact update; a client cannot silently regenerate from a moving branch or independently edited `.proto` copy.
 

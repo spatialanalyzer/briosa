@@ -78,7 +78,7 @@ For SA `2026.1.0529.7`, see the [intentional-exclusion policy](docs/reference/sa
 
 Run `dotnet run --project tools/Briosa.Generator -c Release -- catalog-generate catalog .` to regenerate exact-target protobuf, server bindings, reference documentation, and coverage manifests. Never edit those artifacts by hand. `./eng/Verify-CatalogArtifacts.ps1` performs a clean generation and fails on content or file-list drift.
 
-Release-aligned client generation uses the deterministic protocol artifact described in [the protocol artifact and conformance guide](docs/operations/protocol-artifacts.md). It packages canonical protobuf sources, a descriptor set, exact catalog identity, and shared value-safe fixtures for all thin-client repositories.
+Release-aligned client generation uses the deterministic protocol artifact described in [the protocol artifact and conformance guide](docs/operations/protocol-artifacts.md). It packages canonical protobuf sources, a descriptor set, exact catalog identity, and shared value-safe fixtures for all thin-client repositories. Produce it with `./eng/New-ProtocolArtifact.ps1` and verify its byte identity, manifests, checksums, descriptor, and fixtures with `./eng/Test-ProtocolArtifact.ps1`; neither command requires SpatialAnalyzer or an SA license.
 
 See [the Get Working Directory vertical-slice decision](docs/architecture/0007-get-working-directory-vertical-slice.md) for the generated and hand-written boundaries, exact SDK sequence, and failure behavior.
 
