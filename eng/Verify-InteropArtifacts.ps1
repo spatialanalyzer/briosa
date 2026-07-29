@@ -61,7 +61,8 @@ try {
     }
 
     $allowedBinary = "interop/SpatialAnalyzer/$SpatialAnalyzerVersion/Briosa.SpatialAnalyzer.Interop.dll"
-    $trackedFiles = git -C $repositoryRoot ls-files
+    $safeRepositoryRoot = $repositoryRoot.Replace('\', '/')
+    $trackedFiles = git -c "safe.directory=$safeRepositoryRoot" -C $repositoryRoot ls-files
     if ($LASTEXITCODE -ne 0) {
         throw 'Unable to enumerate tracked repository files.'
     }

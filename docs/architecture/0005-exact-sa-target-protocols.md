@@ -86,6 +86,13 @@ Beginning with the first public release, compatibility validation must compare
 against an explicit released ref and apply Buf's strict `FILE` breaking policy.
 The release baseline must never be inferred from `main`.
 
+The schema-validated `eng/full-surface-policy.json` is the operational source
+of those baselines. Each entry names an immutable release tag, pins its resolved
+commit, and lists the applicable packages. CI rejects branch refs, tag/commit
+drift, and a break against any configured release. The list remains empty until
+the first public release; changing it requires explicit review rather than an
+inline compatibility bypass.
+
 - Core files are compared with the prior core baseline.
 - A target file is compared only with the prior file in the same exact target and package line.
 - Reviewed categories own stable service/file partitions inside that package; adding a category adds a file rather than moving existing symbols.

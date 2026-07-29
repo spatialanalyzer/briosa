@@ -3,7 +3,9 @@ param(
     [ValidatePattern('^[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?$')]
     [string]$Version = "0.1.0-ci",
 
-    [string]$OutputDirectory = "artifacts\package-smoke"
+    [string]$OutputDirectory = "artifacts\package-smoke",
+
+    [string]$MetricsOutputDirectory = "artifacts\ci-metrics\package-smoke"
 )
 
 Set-StrictMode -Version Latest
@@ -30,7 +32,25 @@ function Assert-Condition {
     }
 }
 
-$sourceRevision = (& git -C $repositoryRoot rev-parse HEAD).Trim()
+function Remove-TemporaryTree {
+    param([Parameter(Mandatory)][string]$Path)
+
+    for ($attempt = 1; $attempt -le 60; $attempt++) {
+        try {
+            Remove-Item -LiteralPath $Path -Recurse -Force -ErrorAction Stop
+            return
+        }
+        catch {
+            if ($attempt -eq 60) {
+                throw
+            }
+            Start-Sleep -Milliseconds 250
+        }
+    }
+}
+
+$safeRepositoryRoot = $repositoryRoot.Replace('\', '/')
+$sourceRevision = (& git -c "safe.directory=$safeRepositoryRoot" -C $repositoryRoot rev-parse HEAD).Trim()
 if ($LASTEXITCODE -ne 0 -or $sourceRevision -notmatch '^[0-9a-fA-F]{40}$') {
     throw "Could not determine a complete source revision."
 }
@@ -127,6 +147,7 @@ try {
             RedirectStandardError = $standardError
             PassThru = $true
         }
+        $startupStopwatch = [Diagnostics.Stopwatch]::StartNew()
         $serverProcess = Start-Process @processArguments
     }
     finally {
@@ -157,12 +178,18 @@ try {
         }
     }
 
+    $startupStopwatch.Stop()
+    & (Join-Path $PSScriptRoot "Measure-CiBudget.ps1") `
+        -Metric startup `
+        -ObservedValue $startupStopwatch.Elapsed.TotalSeconds `
+        -OutputDirectory $MetricsOutputDirectory
     Assert-Condition -Condition $listening -Message "The packaged host did not open its configured loopback endpoint without SpatialAnalyzer."
 
     if (-not $serverProcess.HasExited) {
         Stop-Process -Id $serverProcess.Id -Force
         $serverProcess.WaitForExit()
     }
+    $serverProcess.Dispose()
     $serverProcess = $null
 
     $unsafeStandardOutput = Join-Path $temporaryRoot "unsafe-server.stdout.log"
@@ -187,6 +214,7 @@ try {
     Assert-Condition `
         -Condition ($serverProcess.ExitCode -ne 0) `
         -Message "The packaged host accepted a non-loopback endpoint."
+    $serverProcess.Dispose()
     $serverProcess = $null
     Write-Host "Package reproducibility, checksums, diagnostics, and launch smoke tests passed."
 }
@@ -199,6 +227,6 @@ finally {
     $resolvedTemporaryRoot = [IO.Path]::GetFullPath($temporaryRoot)
     if ($resolvedTemporaryRoot.StartsWith($temporaryBase, [StringComparison]::OrdinalIgnoreCase) -and
         (Test-Path -LiteralPath $resolvedTemporaryRoot)) {
-        Remove-Item -LiteralPath $resolvedTemporaryRoot -Recurse -Force
+        Remove-TemporaryTree -Path $resolvedTemporaryRoot
     }
 }

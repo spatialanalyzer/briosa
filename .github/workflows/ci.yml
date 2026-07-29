@@ -2,7 +2,15 @@ name: CI
 
 on:
   push:
+    branches:
+      - main
   pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -23,15 +31,15 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Verify ordinary CI workflow policy
+        shell: pwsh
+        run: ./eng/Verify-CiWorkflow.ps1
+
       - name: Install Buf
         uses: bufbuild/buf-setup-action@v1.50.0
         with:
           version: 1.72.0
           github_token: ${{ github.token }}
-
-      - name: Verify protobuf schemas
-        shell: pwsh
-        run: ./eng/Verify-Protocol.ps1
 
       - name: Verify licensed runner workflow policy
         shell: pwsh
@@ -45,44 +53,65 @@ jobs:
           cache-dependency-path: '**/packages.lock.json'
 
       - name: Restore locked dependencies
-        run: dotnet restore Briosa.slnx --locked-mode
+        shell: pwsh
+        run: |
+          ./eng/Measure-CiBudget.ps1 `
+            -Metric restore `
+            -Executable dotnet `
+            -ArgumentList @("restore", "Briosa.slnx", "--locked-mode")
 
       - name: Build interop verifier
         run: dotnet build tools/Briosa.Generator/Briosa.Generator.csproj -c Release --no-restore
 
-      - name: Verify command catalog
+      - name: Verify deterministic full surface
         shell: pwsh
-        run: ./eng/Verify-Catalog.ps1 -NoBuild
-
-      - name: Verify command dispositions
-        shell: pwsh
-        run: ./eng/Verify-Disposition.ps1 -NoBuild
-
-      - name: Verify SDK binding registry
-        shell: pwsh
-        run: ./eng/Verify-BindingRegistry.ps1 -NoBuild
-
-      - name: Verify value-family evidence
-        shell: pwsh
-        run: ./eng/Verify-ValueFamilyEvidence.ps1
-
-      - name: Verify catalog review scaffolds
-        shell: pwsh
-        run: ./eng/Verify-CatalogScaffolds.ps1 -NoBuild
-
-      - name: Verify generated catalog artifacts
-        shell: pwsh
-        run: ./eng/Verify-CatalogArtifacts.ps1 -NoBuild
-
-      - name: Verify committed interop metadata
-        shell: pwsh
-        run: ./eng/Verify-InteropArtifacts.ps1 -NoBuild
+        run: |
+          ./eng/Measure-CiBudget.ps1 `
+            -Metric generation `
+            -Executable pwsh `
+            -ArgumentList @(
+              "-NoLogo",
+              "-NoProfile",
+              "-File",
+              "./eng/Verify-FullSurface.ps1",
+              "-NoBuild")
 
       - name: Build solution
-        run: dotnet build Briosa.slnx -c Release --no-restore
+        shell: pwsh
+        run: |
+          ./eng/Measure-CiBudget.ps1 `
+            -Metric compile `
+            -Executable dotnet `
+            -ArgumentList @(
+              "build",
+              "Briosa.slnx",
+              "-c",
+              "Release",
+              "--no-restore")
 
       - name: Run tests
-        run: dotnet test Briosa.slnx -c Release --no-build --no-restore
+        shell: pwsh
+        run: |
+          ./eng/Measure-CiBudget.ps1 `
+            -Metric test `
+            -Executable dotnet `
+            -ArgumentList @(
+              "test",
+              "Briosa.slnx",
+              "-c",
+              "Release",
+              "--no-build",
+              "--no-restore")
+
+      - name: Upload build metrics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: full-surface-build-metrics
+          path: |
+            artifacts/ci-metrics
+            artifacts/full-surface
+          if-no-files-found: warn
 
   package-smoke:
     name: Windows package reproducibility and smoke test
@@ -114,7 +143,18 @@ jobs:
 
       - name: Build twice and verify package
         shell: pwsh
-        run: ./eng/Test-WindowsPackage.ps1 -Version 0.1.0-ci
+        run: |
+          ./eng/Measure-CiBudget.ps1 `
+            -Metric package `
+            -Executable pwsh `
+            -ArgumentList @(
+              "-NoLogo",
+              "-NoProfile",
+              "-File",
+              "./eng/Test-WindowsPackage.ps1",
+              "-Version",
+              "0.1.0-ci") `
+            -OutputDirectory artifacts/ci-metrics/package-smoke
 
       - name: Build twice and verify protocol artifact
         shell: pwsh
@@ -125,3 +165,11 @@ jobs:
         run: >
           ./eng/Test-GeneratedClientScenarios.ps1
           -PackagePath artifacts/package-smoke/briosa-0.1.0-ci-sa-2026.1.0529.7-win-x64.zip
+
+      - name: Upload package metrics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: full-surface-package-metrics
+          path: artifacts/ci-metrics
+          if-no-files-found: warn

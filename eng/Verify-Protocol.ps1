@@ -58,7 +58,11 @@ try {
     Invoke-BufCommand -CommandArguments @("build")
 
     if (-not [string]::IsNullOrWhiteSpace($AgainstRef)) {
-        $baselinePath = & git ls-tree -d --name-only $AgainstRef -- proto
+        $safeRepositoryRoot = $repositoryRoot.Replace('\', '/')
+        $baselinePath = & git `
+            -c "safe.directory=$safeRepositoryRoot" `
+            -C $repositoryRoot `
+            ls-tree -d --name-only $AgainstRef -- proto
         if ($LASTEXITCODE -ne 0) {
             throw "Could not inspect protobuf baseline at $AgainstRef."
         }
