@@ -18,6 +18,7 @@ builder.WebHost.ConfigureKestrel(options =>
         publicEndpoint.Port,
         listenOptions => listenOptions.Protocols = HttpProtocols.Http2));
 builder.Services.AddGrpc();
+builder.Services.AddBriosaDevelopmentGrpcReflection(builder.Environment);
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddWorkerProcessLifecycle(builder.Configuration);
 builder.Services.AddBriosaHealthAndDiscovery();
@@ -31,6 +32,7 @@ app.MapGet("/", () => Results.Text(
 app.MapGrpcHealthChecksService();
 app.MapGrpcService<ServerDiscoveryService>();
 app.MapGeneratedCatalogServices();
+app.MapBriosaDevelopmentGrpcReflection();
 
 app.Run();
 

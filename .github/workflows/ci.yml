@@ -107,6 +107,13 @@ jobs:
               "--no-build",
               "--no-restore")
 
+      - name: Verify development-only gRPC reflection
+        run: >-
+          dotnet test tests/Briosa.Server.Tests/Briosa.Server.Tests.csproj
+          -c Debug
+          --no-restore
+          --filter FullyQualifiedName~DevelopmentGrpcReflectionTests
+
       - name: Measure vendor-independent runtime performance
         shell: pwsh
         run: ./eng/Test-RuntimePerformance.ps1 -NoBuild

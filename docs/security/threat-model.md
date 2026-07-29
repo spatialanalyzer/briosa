@@ -2,7 +2,7 @@
 
 ## Scope and security posture
 
-This threat model covers the v0.1 public gRPC host, disposable SDK worker, SpatialAnalyzer SDK connection, generated `GetWorkingDirectory` operation, packaging, and operator configuration for exact target SA 2026.1.0529.7.
+This threat model covers the v0.1 public gRPC host, development-only gRPC reflection, disposable SDK worker, SpatialAnalyzer SDK connection, generated `GetWorkingDirectory` operation, packaging, and operator configuration for exact target SA 2026.1.0529.7.
 
 The supported v0.1 deployment is one trusted user on one Windows machine. Briosa accepts cleartext HTTP/2 only on an IP loopback address. It provides no client authentication or per-caller authorization. LAN, Internet, reverse-proxy, SSH-tunnel, port-forward, shared-host, container-host-bridge, and other remotely reachable deployments are unsupported.
 
@@ -85,6 +85,7 @@ The successful result path reverses the first four boundaries: SA produces MP re
 | T12 | Remote SDK connection crosses an unknown transport boundary | SDK tampering, eavesdropping, firewall exposure, or licensing violation | Local SDK target remains the default | Issue #23 must resolve ports, transport security, firewall, and licensing before support claims |
 | T13 | Build or package is substituted | Execution of malicious server/worker code | Reproducible package, SHA-256 files, source revision, provenance, protected release workflow | Operators must acquire artifacts through a trusted channel and verify checksums |
 | T14 | Licensed CI runner executes untrusted code | License and machine compromise | Selected-workflow organization runner group, protected environment, trusted-main payload, no checkout on licensed runner | Hardware and license provisioning remain open in issue #20 |
+| T15 | Reflection reveals schemas for operations that policy does not admit | Local capability reconnaissance or mistaken authorization assumptions | Reflection requires a Debug build and `Development`; Release packages exclude its runtime; operation policy, identity, readiness, validation, worker isolation, and audit controls remain unchanged | Any trusted local process can inspect shipped protocol artifacts; reflection is discovery, not authorization |
 
 ## Enforced endpoint configuration
 
@@ -132,5 +133,6 @@ Changing only the listener address, adding a firewall exception, or placing an u
 - Unit tests cover default IPv4 loopback, explicit IPv6 loopback, port validation, non-loopback rejection, hostname rejection, generic URL keys, and Kestrel endpoint rejection.
 - Package tests prove the default listener starts on loopback and a packaged server given `0.0.0.0` exits instead of listening.
 - Portable generated-client scenarios cross the real packaged loopback HTTP/2 endpoint.
+- Debug process tests prove reflection describes mapped services only in `Development`; Release package tests reject the reflection assemblies and dependency entries.
 - Policy and audit tests cover fail-closed configuration, deny precedence, pre-worker rejection, discovery filtering, typed errors, correlation, outcome metadata, and sensitive-value redaction at verbose log levels.
 - Ordinary CI requires no SA installation or license.

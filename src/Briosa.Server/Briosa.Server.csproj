@@ -6,8 +6,8 @@
     <Prefer32Bit>false</Prefer32Bit>
     <Description>Public gRPC host for Briosa.</Description>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <DefineConstants>$(DefineConstants);BRIOSA_DEVELOPMENT_REFLECTION</DefineConstants>
     <UserSecretsId>spatialanalyzer-briosa-development</UserSecretsId>
     <BriosaDevelopmentWorkerOutput>$(MSBuildProjectDirectory)\..\Briosa.Worker\bin\$(Configuration)\$(TargetFramework)\</BriosaDevelopmentWorkerOutput>
   </PropertyGroup>
@@ -24,10 +24,10 @@
     <ProjectReference Include="..\Briosa.Protocol\Briosa.Protocol.csproj" />
     <ProjectReference Include="..\Briosa.Worker.Control\Briosa.Worker.Control.csproj" />
   </ItemGroup>
-
   <ItemGroup Condition="'$(Configuration)' == 'Debug'">
     <ProjectReference Include="..\Briosa.Worker\Briosa.Worker.csproj"
                       ReferenceOutputAssembly="false" />
+    <PackageReference Include="Grpc.AspNetCore.Server.Reflection" />
   </ItemGroup>
 
   <Target Name="CopyDevelopmentWorkerCohort"
@@ -44,5 +44,24 @@
     <Copy SourceFiles="@(_BriosaDevelopmentWorkerFiles)"
           DestinationFiles="@(_BriosaDevelopmentWorkerFiles->'$(TargetDir)%(RecursiveDir)%(Filename)%(Extension)')"
           SkipUnchangedFiles="true" />
+  </Target>
+
+  <Target Name="ExcludeDevelopmentReflectionFromRelease"
+          AfterTargets="ResolvePackageAssets"
+          Condition="'$(Configuration)' != 'Debug'">
+    <ItemGroup>
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
+          Condition="'%(ReferenceCopyLocalPaths.Filename)' == 'Grpc.AspNetCore.Server.Reflection' Or '%(ReferenceCopyLocalPaths.Filename)' == 'Grpc.Reflection'" />
+      <RuntimeCopyLocalItems Remove="@(RuntimeCopyLocalItems)"
+          Condition="'%(RuntimeCopyLocalItems.Filename)' == 'Grpc.AspNetCore.Server.Reflection' Or '%(RuntimeCopyLocalItems.Filename)' == 'Grpc.Reflection'" />
+    </ItemGroup>
+  </Target>
+  <Target Name="ExcludeDevelopmentReflectionFromReleasePublish"
+          AfterTargets="ComputeFilesToPublish"
+          Condition="'$(Configuration)' != 'Debug'">
+    <ItemGroup>
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)"
+          Condition="'%(ResolvedFileToPublish.Filename)' == 'Grpc.AspNetCore.Server.Reflection' Or '%(ResolvedFileToPublish.Filename)' == 'Grpc.Reflection'" />
+    </ItemGroup>
   </Target>
 </Project>

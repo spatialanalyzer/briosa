@@ -8,6 +8,9 @@
     <WorkerTestHostOutput>$(MSBuildProjectDirectory)\..\Briosa.Worker.TestHost\bin\$(Configuration)\net10.0-windows\</WorkerTestHostOutput>
     <WorkerUnderTestOutput>$(MSBuildProjectDirectory)\..\..\src\Briosa.Worker\bin\$(Configuration)\net10.0-windows\</WorkerUnderTestOutput>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <DefineConstants>$(DefineConstants);BRIOSA_DEVELOPMENT_REFLECTION</DefineConstants>
+  </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="coverlet.collector" PrivateAssets="all" />
@@ -15,10 +18,15 @@
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
   </ItemGroup>
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+    <PackageReference Include="Grpc.Net.Client" />
+    <PackageReference Include="Grpc.Reflection" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Briosa.Server\Briosa.Server.csproj" />
     <ProjectReference Include="..\..\src\Briosa.Worker\Briosa.Worker.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\Briosa.SmokeWorker\Briosa.SmokeWorker.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\Briosa.Worker.TestHost\Briosa.Worker.TestHost.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
