@@ -11,6 +11,7 @@ $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $catalogRoot = Join-Path $repositoryRoot "catalog"
 $manifestSchema = Join-Path $catalogRoot "schemas\v1\catalog.schema.json"
 $operationSchema = Join-Path $catalogRoot "schemas\v1\operation.schema.json"
+$releaseMembershipSchema = Join-Path $catalogRoot "schemas\v1\release-membership.schema.json"
 $generatorProject = Join-Path $repositoryRoot "tools\Briosa.Generator\Briosa.Generator.csproj"
 
 function Test-CatalogJson {
@@ -39,6 +40,11 @@ foreach ($manifestPath in $manifests.FullName) {
     foreach ($relativeOperationPath in $manifest.operation_files) {
         $operationPath = Join-Path $targetDirectory $relativeOperationPath
         Test-CatalogJson -DocumentPath $operationPath -SchemaPath $operationSchema
+    }
+
+    foreach ($relativeReleasePath in $manifest.release_membership_files) {
+        $releasePath = Join-Path $targetDirectory $relativeReleasePath
+        Test-CatalogJson -DocumentPath $releasePath -SchemaPath $releaseMembershipSchema
     }
 }
 

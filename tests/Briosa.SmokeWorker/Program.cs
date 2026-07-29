@@ -115,11 +115,7 @@ internal static class SmokeWorkerProgram
         var outputs = !mpSucceeded
             ? []
             : message.Command!.OutputArguments.Select(output =>
-                new WorkerMpOutputValue(
-                    output.Name,
-                    output.Kind,
-                    Retrieved: !outputFailure,
-                    StringValue: outputFailure ? null : "scripted-output"))
+                CreateOutput(output, outputFailure))
                 .ToArray();
         channel.Send(WorkerControlMessage.ExecutionResult(
             message.CorrelationId,
@@ -137,6 +133,33 @@ internal static class SmokeWorkerProgram
                     options.Scenario,
                     WorkerExecutionReadinessState.ExecutionReady),
                 DiagnosticCode: null)));
+    }
+
+    private static WorkerMpOutputValue CreateOutput(
+        WorkerMpOutputArgument output,
+        bool outputFailure)
+    {
+        if (outputFailure)
+        {
+            return new WorkerMpOutputValue(
+                output.Name,
+                output.Kind,
+                Retrieved: false);
+        }
+
+        return output.Kind switch
+        {
+            WorkerMpValueKind.WholeNumber => new WorkerMpOutputValue(
+                output.Name,
+                output.Kind,
+                Retrieved: true,
+                IntegerValue: 3),
+            _ => new WorkerMpOutputValue(
+                output.Name,
+                output.Kind,
+                Retrieved: true,
+                StringValue: "scripted-output")
+        };
     }
 
     private static WorkerConnectionSnapshot ConnectionSnapshot(

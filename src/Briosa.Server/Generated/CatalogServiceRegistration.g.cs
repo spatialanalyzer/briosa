@@ -12,6 +12,7 @@ internal static class CatalogServiceRegistration
         this IEndpointRouteBuilder endpoints)
     {
         ArgumentNullException.ThrowIfNull(endpoints);
+        endpoints.MapGrpcService<global::Briosa.Server.Generated.Sa.V2026_1_0529_7.V1Alpha1.CollectionOperationsService>();
         endpoints.MapGrpcService<global::Briosa.Server.Generated.Sa.V2026_1_0529_7.V1Alpha1.FileOperationsService>();
         return endpoints;
     }

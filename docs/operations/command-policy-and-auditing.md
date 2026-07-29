@@ -1,10 +1,10 @@
 # Command policy and auditing
 
-Briosa has two command-exposure boundaries. The exact-target generated catalog defines every operation the binary can express. Runtime policy can only reduce that set.
+Briosa has two command-exposure boundaries. The exact-target generated catalog defines every operation the binary can express. Runtime policy can only reduce that set. Release membership is delivery metadata between those boundaries; it does not authorize a call.
 
 ## Configure allowed operations
 
-The packaged v0.1 configuration enables only the reviewed vertical-slice operation:
+The packaged configuration enables only the reviewed vertical-slice operation. The initial v0.2 Wave 1 members remain denied until an operator explicitly adds their exact IDs:
 
 ```json
 {
@@ -30,6 +30,8 @@ $env:Briosa__Security__Operations__Deny__0 = 'file_operations.get_working_direct
 ```
 
 The denylist overrides the allowlist. Omitting the allowlist denies every operation. Unknown, empty, duplicate, or non-array values fail startup instead of being ignored. Restart the server after changing policy; policy is not reloaded in place. An allowlist cannot enable an operation with unknown isolation metadata or an `exclusive_workflow` scope while the target is `single_tenant`.
+
+Adding an operation to a catalog release membership does not modify `appsettings.json`, widen an existing allowlist, or make discovery advertise it. Treat membership as a release-completeness assertion only.
 
 `DiscoveryService/ListCapabilities` reports the intersection of the generated catalog and the runtime allowlist after deny rules. It is the correct way for a client to learn what this server instance currently exposes.
 

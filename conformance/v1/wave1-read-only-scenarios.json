@@ -1,0 +1,78 @@
+{
+  "$schema": "../schemas/v1/wave1-read-only-scenarios.schema.json",
+  "schema_version": 1,
+  "fixture_set_id": "briosa.client.wave1-read-only.v1",
+  "error_trailer": "briosa-operation-error-bin",
+  "scenarios": [
+    {
+      "id": "collection-count-mp-failure",
+      "operation_id": "collection_operations.get_collection_count",
+      "worker_scenario": "mp-failure",
+      "watchdog_timeout": null,
+      "deny_operation": false,
+      "expected": {
+        "grpc_status": "FAILED_PRECONDITION",
+        "ready_for_mp": true,
+        "operation_advertised": true,
+        "operation_succeeded": false,
+        "recovery_succeeded": false,
+        "typed_error_required": true,
+        "failure_kinds": [
+          "OPERATION_FAILURE_KIND_MP_FAILURE"
+        ]
+      }
+    },
+    {
+      "id": "collection-count-policy-denied",
+      "operation_id": "collection_operations.get_collection_count",
+      "worker_scenario": "ready",
+      "watchdog_timeout": null,
+      "deny_operation": true,
+      "expected": {
+        "grpc_status": "PERMISSION_DENIED",
+        "ready_for_mp": true,
+        "operation_advertised": false,
+        "operation_succeeded": false,
+        "recovery_succeeded": false,
+        "typed_error_required": true,
+        "failure_kinds": [
+          "OPERATION_FAILURE_KIND_POLICY_DENIED"
+        ]
+      }
+    },
+    {
+      "id": "collection-count-ready",
+      "operation_id": "collection_operations.get_collection_count",
+      "worker_scenario": "ready",
+      "watchdog_timeout": null,
+      "deny_operation": false,
+      "expected": {
+        "grpc_status": "OK",
+        "ready_for_mp": true,
+        "operation_advertised": true,
+        "operation_succeeded": true,
+        "recovery_succeeded": false,
+        "typed_error_required": false,
+        "failure_kinds": []
+      }
+    },
+    {
+      "id": "collection-name-missing-index",
+      "operation_id": "collection_operations.get_collection_name_by_index",
+      "worker_scenario": "ready",
+      "watchdog_timeout": null,
+      "deny_operation": false,
+      "expected": {
+        "grpc_status": "INVALID_ARGUMENT",
+        "ready_for_mp": true,
+        "operation_advertised": true,
+        "operation_succeeded": false,
+        "recovery_succeeded": false,
+        "typed_error_required": true,
+        "failure_kinds": [
+          "OPERATION_FAILURE_KIND_VALIDATION"
+        ]
+      }
+    }
+  ]
+}

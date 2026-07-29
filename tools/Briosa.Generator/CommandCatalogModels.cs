@@ -31,7 +31,41 @@ internal sealed class CommandCatalogManifest
     public required List<CommandCatalogProtocolPartition> ProtocolPartitions { get; init; }
 
     [JsonRequired]
+    public required List<string> ReleaseMembershipFiles { get; init; }
+
+    [JsonRequired]
     public required List<string> OperationFiles { get; init; }
+}
+
+internal sealed class CommandCatalogReleaseMembership
+{
+    [JsonPropertyName("$schema")]
+    [JsonRequired]
+    public required string Schema { get; init; }
+
+    [JsonRequired]
+    public required int SchemaVersion { get; init; }
+
+    [JsonRequired]
+    public required string MembershipId { get; init; }
+
+    [JsonRequired]
+    public required string ReleaseLine { get; init; }
+
+    [JsonRequired]
+    public required string DeliveryWave { get; init; }
+
+    [JsonRequired]
+    public required string CatalogId { get; init; }
+
+    [JsonRequired]
+    public required string SpatialAnalyzerTarget { get; init; }
+
+    [JsonRequired]
+    public required string CatalogRevision { get; init; }
+
+    [JsonRequired]
+    public required List<string> OperationIds { get; init; }
 }
 
 internal sealed class CommandCatalogProtocolPartition

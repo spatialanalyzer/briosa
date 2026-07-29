@@ -572,7 +572,16 @@ public sealed class CommandDispositionLedgerTests
                 ["mp_step"]!.GetValue<string>())
             .ToArray();
 
-        Assert.Equal(["Get Working Directory"], supportedSteps);
+        Assert.Equal(
+            [
+                "Get Number of Collections",
+                "Get i-th Collection Name",
+                "Get Number of Points in Group",
+                "Make a Collection Object Name Ref List from all Groups in a Collection",
+                "Make a Point Name Ref List From a Group",
+                "Get Working Directory"
+            ],
+            supportedSteps);
     }
 
     [Fact]

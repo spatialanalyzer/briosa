@@ -13,14 +13,270 @@ namespace Briosa.Server.Generated.Sa.V2026_1_0529_7.V1Alpha1;
 internal static class TargetCatalogMetadata
 {
     public const string CatalogId = "briosa.sa.2026.1.0529.7";
-    public const string CatalogRevision = "6";
+    public const string CatalogRevision = "7";
     public const string SpatialAnalyzerTarget = "2026.1.0529.7";
     public const string TargetProtocolPackage = "briosa.sa.v2026_1_0529_7.v1alpha1";
 
     public static IReadOnlyList<CatalogOperationDescriptor> Operations { get; } =
         [
+            new("collection_operations.get_collection_count", "Get Number of Collections", "briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations", "GetCollectionCount", "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/GetCollectionCount", "read_only", CoreProtocol.OperationExecutionScope.GlobalStateRead, CoreProtocol.ReplaySafety.Safe, []),
+            new("collection_operations.get_collection_name_by_index", "Get i-th Collection Name", "briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations", "GetCollectionNameByIndex", "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/GetCollectionNameByIndex", "read_only", CoreProtocol.OperationExecutionScope.GlobalStateRead, CoreProtocol.ReplaySafety.Safe, []),
+            new("collection_operations.get_point_count_in_group", "Get Number of Points in Group", "briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations", "GetPointCountInGroup", "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/GetPointCountInGroup", "read_only", CoreProtocol.OperationExecutionScope.GlobalStateRead, CoreProtocol.ReplaySafety.Safe, []),
+            new("collection_operations.list_groups_in_collection", "Make a Collection Object Name Ref List from all Groups in a Collection", "briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations", "ListGroupsInCollection", "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/ListGroupsInCollection", "read_only", CoreProtocol.OperationExecutionScope.GlobalStateRead, CoreProtocol.ReplaySafety.Safe, []),
+            new("collection_operations.list_points_in_group", "Make a Point Name Ref List From a Group", "briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations", "ListPointsInGroup", "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/ListPointsInGroup", "read_only", CoreProtocol.OperationExecutionScope.GlobalStateRead, CoreProtocol.ReplaySafety.Safe, []),
             new("file_operations.get_working_directory", "Get Working Directory", "briosa.sa.v2026_1_0529_7.v1alpha1.FileOperations", "GetWorkingDirectory", "/briosa.sa.v2026_1_0529_7.v1alpha1.FileOperations/GetWorkingDirectory", "read_only", CoreProtocol.OperationExecutionScope.GlobalStateRead, CoreProtocol.ReplaySafety.Safe, ["filesystem_metadata"]),
         ];
+}
+
+[global::System.CodeDom.Compiler.GeneratedCode("Briosa.Generator", "1.0")]
+internal static class CollectionOperationsGetCollectionCountBinding
+{
+    public const string OperationId = "collection_operations.get_collection_count";
+    public const string StepName = "Get Number of Collections";
+    public const string CollectionCountArgumentName = "Total Count";
+    public const string CollectionCountFieldName = "collection_count";
+    public const string CollectionCountGetter = "GetIntegerArg";
+
+    public static IReadOnlyList<OperationOutputContract> OutputContracts { get; } =
+        [
+            new(CollectionCountFieldName, CollectionCountArgumentName, WorkerMpValueKind.WholeNumber),
+        ];
+
+    public static WorkerMpCommand CreateCommand(TargetProtocol.GetCollectionCountRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        List<WorkerMpInputArgument> inputs = [];
+        return new WorkerMpCommand(
+            OperationId,
+            StepName,
+            inputs,
+            [
+                new(CollectionCountArgumentName, WorkerMpValueKind.WholeNumber, CollectionCountGetter),
+            ]);
+    }
+
+    public static TargetProtocol.GetCollectionCountResult CreateResult(SuccessfulOperationExecution completed)
+    {
+        ArgumentNullException.ThrowIfNull(completed);
+        var outputCollectionCount = completed.Execution.OutputValues.Single(value => value.Name == CollectionCountArgumentName && value.Kind == WorkerMpValueKind.WholeNumber);
+        return new TargetProtocol.GetCollectionCountResult
+        {
+            CollectionCount = outputCollectionCount.IntegerValue!.Value,
+            Execution = completed.Details
+        };
+    }
+}
+
+[global::System.CodeDom.Compiler.GeneratedCode("Briosa.Generator", "1.0")]
+internal static class CollectionOperationsGetCollectionNameByIndexBinding
+{
+    public const string OperationId = "collection_operations.get_collection_name_by_index";
+    public const string StepName = "Get i-th Collection Name";
+    public const string CollectionIndexArgumentName = "Collection Index";
+    public const string CollectionIndexFieldName = "collection_index";
+    public const string CollectionIndexSetter = "SetIntegerArg";
+    public const string CollectionNameArgumentName = "Resultant Name";
+    public const string CollectionNameFieldName = "collection_name";
+    public const string CollectionNameGetter = "GetCollectionNameArg";
+
+    public static IReadOnlyList<OperationOutputContract> OutputContracts { get; } =
+        [
+            new(CollectionNameFieldName, CollectionNameArgumentName, WorkerMpValueKind.CollectionName),
+        ];
+
+    public static WorkerMpCommand CreateCommand(TargetProtocol.GetCollectionNameByIndexRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        List<WorkerMpInputArgument> inputs = [];
+        if (request.HasCollectionIndex)
+        {
+            inputs.Add(new WorkerMpInputArgument(CollectionIndexArgumentName, WorkerMpValueKind.WholeNumber, SdkBinding: CollectionIndexSetter, IntegerValue: request.CollectionIndex));
+        }
+        else
+        {
+            throw new ArgumentException("Required request field 'collection_index' is missing.", nameof(request));
+        }
+        return new WorkerMpCommand(
+            OperationId,
+            StepName,
+            inputs,
+            [
+                new(CollectionNameArgumentName, WorkerMpValueKind.CollectionName, CollectionNameGetter),
+            ]);
+    }
+
+    public static TargetProtocol.GetCollectionNameByIndexResult CreateResult(SuccessfulOperationExecution completed)
+    {
+        ArgumentNullException.ThrowIfNull(completed);
+        var outputCollectionName = completed.Execution.OutputValues.Single(value => value.Name == CollectionNameArgumentName && value.Kind == WorkerMpValueKind.CollectionName);
+        return new TargetProtocol.GetCollectionNameByIndexResult
+        {
+            CollectionName = outputCollectionName.StringValue!,
+            Execution = completed.Details
+        };
+    }
+}
+
+[global::System.CodeDom.Compiler.GeneratedCode("Briosa.Generator", "1.0")]
+internal static class CollectionOperationsGetPointCountInGroupBinding
+{
+    public const string OperationId = "collection_operations.get_point_count_in_group";
+    public const string StepName = "Get Number of Points in Group";
+    public const string GroupArgumentName = "Group Name";
+    public const string GroupFieldName = "group";
+    public const string GroupSetter = "SetCollectionObjectNameArg2";
+    public const string PointCountArgumentName = "Total Count";
+    public const string PointCountFieldName = "point_count";
+    public const string PointCountGetter = "GetIntegerArg";
+
+    public static IReadOnlyList<OperationOutputContract> OutputContracts { get; } =
+        [
+            new(PointCountFieldName, PointCountArgumentName, WorkerMpValueKind.WholeNumber),
+        ];
+
+    public static WorkerMpCommand CreateCommand(TargetProtocol.GetPointCountInGroupRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        List<WorkerMpInputArgument> inputs = [];
+        if (request.Group is not null)
+        {
+            if (!request.Group.HasCollectionName || !request.Group.HasObjectName || !request.Group.HasObjectType || request.Group.ObjectType == TargetProtocol.ObjectType.Unspecified || !Enum.IsDefined(request.Group.ObjectType))
+            {
+                throw new ArgumentException("Request field 'group' must contain every exact-target component.", nameof(request));
+            }
+            inputs.Add(new WorkerMpInputArgument(GroupArgumentName, WorkerMpValueKind.CollectionObjectName, SdkBinding: GroupSetter, CollectionObjectNameValue: new(request.Group.CollectionName, request.Group.ObjectName, (WorkerObjectTypeValue)(int)request.Group.ObjectType)));
+        }
+        else
+        {
+            throw new ArgumentException("Required request field 'group' is missing.", nameof(request));
+        }
+        return new WorkerMpCommand(
+            OperationId,
+            StepName,
+            inputs,
+            [
+                new(PointCountArgumentName, WorkerMpValueKind.WholeNumber, PointCountGetter),
+            ]);
+    }
+
+    public static TargetProtocol.GetPointCountInGroupResult CreateResult(SuccessfulOperationExecution completed)
+    {
+        ArgumentNullException.ThrowIfNull(completed);
+        var outputPointCount = completed.Execution.OutputValues.Single(value => value.Name == PointCountArgumentName && value.Kind == WorkerMpValueKind.WholeNumber);
+        return new TargetProtocol.GetPointCountInGroupResult
+        {
+            PointCount = outputPointCount.IntegerValue!.Value,
+            Execution = completed.Details
+        };
+    }
+}
+
+[global::System.CodeDom.Compiler.GeneratedCode("Briosa.Generator", "1.0")]
+internal static class CollectionOperationsListGroupsInCollectionBinding
+{
+    public const string OperationId = "collection_operations.list_groups_in_collection";
+    public const string StepName = "Make a Collection Object Name Ref List from all Groups in a Collection";
+    public const string CollectionNameArgumentName = "Collection Name";
+    public const string CollectionNameFieldName = "collection_name";
+    public const string CollectionNameSetter = "SetCollectionNameArg";
+    public const string GroupsArgumentName = "Collection Object Name List";
+    public const string GroupsFieldName = "groups";
+    public const string GroupsGetter = "GetCollectionObjectNameRefListArg";
+
+    public static IReadOnlyList<OperationOutputContract> OutputContracts { get; } =
+        [
+            new(GroupsFieldName, GroupsArgumentName, WorkerMpValueKind.CollectionObjectNameList),
+        ];
+
+    public static WorkerMpCommand CreateCommand(TargetProtocol.ListGroupsInCollectionRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        List<WorkerMpInputArgument> inputs = [];
+        if (request.HasCollectionName)
+        {
+            inputs.Add(new WorkerMpInputArgument(CollectionNameArgumentName, WorkerMpValueKind.CollectionName, SdkBinding: CollectionNameSetter, StringValue: request.CollectionName));
+        }
+        else
+        {
+            throw new ArgumentException("Required request field 'collection_name' is missing.", nameof(request));
+        }
+        return new WorkerMpCommand(
+            OperationId,
+            StepName,
+            inputs,
+            [
+                new(GroupsArgumentName, WorkerMpValueKind.CollectionObjectNameList, GroupsGetter),
+            ]);
+    }
+
+    public static TargetProtocol.ListGroupsInCollectionResult CreateResult(SuccessfulOperationExecution completed)
+    {
+        ArgumentNullException.ThrowIfNull(completed);
+        var outputGroups = completed.Execution.OutputValues.Single(value => value.Name == GroupsArgumentName && value.Kind == WorkerMpValueKind.CollectionObjectNameList);
+        if (outputGroups.CollectionObjectNameListValue!.Values.Any(item => item.ObjectType == WorkerObjectTypeValue.Unspecified || !Enum.IsDefined(item.ObjectType)))
+        {
+            throw new InvalidOperationException("The worker returned an unknown exact-target enum value.");
+        }
+        return new TargetProtocol.ListGroupsInCollectionResult
+        {
+            Groups = new TargetProtocol.CollectionObjectNameList { Values = { outputGroups.CollectionObjectNameListValue!.Values.Select(value => new TargetProtocol.CollectionObjectName { CollectionName = value.CollectionName, ObjectName = value.ObjectName, ObjectType = (TargetProtocol.ObjectType)(int)value.ObjectType }) } },
+            Execution = completed.Details
+        };
+    }
+}
+
+[global::System.CodeDom.Compiler.GeneratedCode("Briosa.Generator", "1.0")]
+internal static class CollectionOperationsListPointsInGroupBinding
+{
+    public const string OperationId = "collection_operations.list_points_in_group";
+    public const string StepName = "Make a Point Name Ref List From a Group";
+    public const string GroupArgumentName = "Group Name";
+    public const string GroupFieldName = "group";
+    public const string GroupSetter = "SetCollectionObjectNameArg2";
+    public const string PointsArgumentName = "Resultant Point Name List";
+    public const string PointsFieldName = "points";
+    public const string PointsGetter = "GetPointNameRefListArg";
+
+    public static IReadOnlyList<OperationOutputContract> OutputContracts { get; } =
+        [
+            new(PointsFieldName, PointsArgumentName, WorkerMpValueKind.PointNameList),
+        ];
+
+    public static WorkerMpCommand CreateCommand(TargetProtocol.ListPointsInGroupRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        List<WorkerMpInputArgument> inputs = [];
+        if (request.Group is not null)
+        {
+            if (!request.Group.HasCollectionName || !request.Group.HasObjectName || !request.Group.HasObjectType || request.Group.ObjectType == TargetProtocol.ObjectType.Unspecified || !Enum.IsDefined(request.Group.ObjectType))
+            {
+                throw new ArgumentException("Request field 'group' must contain every exact-target component.", nameof(request));
+            }
+            inputs.Add(new WorkerMpInputArgument(GroupArgumentName, WorkerMpValueKind.CollectionObjectName, SdkBinding: GroupSetter, CollectionObjectNameValue: new(request.Group.CollectionName, request.Group.ObjectName, (WorkerObjectTypeValue)(int)request.Group.ObjectType)));
+        }
+        else
+        {
+            throw new ArgumentException("Required request field 'group' is missing.", nameof(request));
+        }
+        return new WorkerMpCommand(
+            OperationId,
+            StepName,
+            inputs,
+            [
+                new(PointsArgumentName, WorkerMpValueKind.PointNameList, PointsGetter),
+            ]);
+    }
+
+    public static TargetProtocol.ListPointsInGroupResult CreateResult(SuccessfulOperationExecution completed)
+    {
+        ArgumentNullException.ThrowIfNull(completed);
+        var outputPoints = completed.Execution.OutputValues.Single(value => value.Name == PointsArgumentName && value.Kind == WorkerMpValueKind.PointNameList);
+        return new TargetProtocol.ListPointsInGroupResult
+        {
+            Points = new TargetProtocol.PointNameList { Values = { outputPoints.PointNameListValue!.Values.Select(value => new TargetProtocol.PointName { CollectionName = value.CollectionName, GroupName = value.GroupName, TargetName = value.TargetName }) } },
+            Execution = completed.Details
+        };
+    }
 }
 
 [global::System.CodeDom.Compiler.GeneratedCode("Briosa.Generator", "1.0")]
@@ -79,6 +335,96 @@ internal static class TargetCatalogConformanceMetadata
         [
             new(
                 TargetCatalogMetadata.Operations.Single(operation =>
+                    operation.OperationId == CollectionOperationsGetCollectionCountBinding.OperationId),
+                typeof(TargetProtocol.GetCollectionCountRequest),
+                typeof(TargetProtocol.GetCollectionCountResult),
+                request => CollectionOperationsGetCollectionCountBinding.CreateCommand((TargetProtocol.GetCollectionCountRequest)request),
+                CollectionOperationsGetCollectionCountBinding.OutputContracts,
+                completed => CollectionOperationsGetCollectionCountBinding.CreateResult(completed),
+                async (executor, request, cancellationToken, deadline) =>
+                    await executor.ExecuteAsync(
+                        (TargetProtocol.GetCollectionCountRequest)request,
+                        TargetCatalogMetadata.Operations.Single(operation =>
+                            operation.OperationId == CollectionOperationsGetCollectionCountBinding.OperationId),
+                        CollectionOperationsGetCollectionCountBinding.CreateCommand,
+                        CollectionOperationsGetCollectionCountBinding.OutputContracts,
+                        CollectionOperationsGetCollectionCountBinding.CreateResult,
+                        cancellationToken,
+                        deadline).ConfigureAwait(false)),
+            new(
+                TargetCatalogMetadata.Operations.Single(operation =>
+                    operation.OperationId == CollectionOperationsGetCollectionNameByIndexBinding.OperationId),
+                typeof(TargetProtocol.GetCollectionNameByIndexRequest),
+                typeof(TargetProtocol.GetCollectionNameByIndexResult),
+                request => CollectionOperationsGetCollectionNameByIndexBinding.CreateCommand((TargetProtocol.GetCollectionNameByIndexRequest)request),
+                CollectionOperationsGetCollectionNameByIndexBinding.OutputContracts,
+                completed => CollectionOperationsGetCollectionNameByIndexBinding.CreateResult(completed),
+                async (executor, request, cancellationToken, deadline) =>
+                    await executor.ExecuteAsync(
+                        (TargetProtocol.GetCollectionNameByIndexRequest)request,
+                        TargetCatalogMetadata.Operations.Single(operation =>
+                            operation.OperationId == CollectionOperationsGetCollectionNameByIndexBinding.OperationId),
+                        CollectionOperationsGetCollectionNameByIndexBinding.CreateCommand,
+                        CollectionOperationsGetCollectionNameByIndexBinding.OutputContracts,
+                        CollectionOperationsGetCollectionNameByIndexBinding.CreateResult,
+                        cancellationToken,
+                        deadline).ConfigureAwait(false)),
+            new(
+                TargetCatalogMetadata.Operations.Single(operation =>
+                    operation.OperationId == CollectionOperationsGetPointCountInGroupBinding.OperationId),
+                typeof(TargetProtocol.GetPointCountInGroupRequest),
+                typeof(TargetProtocol.GetPointCountInGroupResult),
+                request => CollectionOperationsGetPointCountInGroupBinding.CreateCommand((TargetProtocol.GetPointCountInGroupRequest)request),
+                CollectionOperationsGetPointCountInGroupBinding.OutputContracts,
+                completed => CollectionOperationsGetPointCountInGroupBinding.CreateResult(completed),
+                async (executor, request, cancellationToken, deadline) =>
+                    await executor.ExecuteAsync(
+                        (TargetProtocol.GetPointCountInGroupRequest)request,
+                        TargetCatalogMetadata.Operations.Single(operation =>
+                            operation.OperationId == CollectionOperationsGetPointCountInGroupBinding.OperationId),
+                        CollectionOperationsGetPointCountInGroupBinding.CreateCommand,
+                        CollectionOperationsGetPointCountInGroupBinding.OutputContracts,
+                        CollectionOperationsGetPointCountInGroupBinding.CreateResult,
+                        cancellationToken,
+                        deadline).ConfigureAwait(false)),
+            new(
+                TargetCatalogMetadata.Operations.Single(operation =>
+                    operation.OperationId == CollectionOperationsListGroupsInCollectionBinding.OperationId),
+                typeof(TargetProtocol.ListGroupsInCollectionRequest),
+                typeof(TargetProtocol.ListGroupsInCollectionResult),
+                request => CollectionOperationsListGroupsInCollectionBinding.CreateCommand((TargetProtocol.ListGroupsInCollectionRequest)request),
+                CollectionOperationsListGroupsInCollectionBinding.OutputContracts,
+                completed => CollectionOperationsListGroupsInCollectionBinding.CreateResult(completed),
+                async (executor, request, cancellationToken, deadline) =>
+                    await executor.ExecuteAsync(
+                        (TargetProtocol.ListGroupsInCollectionRequest)request,
+                        TargetCatalogMetadata.Operations.Single(operation =>
+                            operation.OperationId == CollectionOperationsListGroupsInCollectionBinding.OperationId),
+                        CollectionOperationsListGroupsInCollectionBinding.CreateCommand,
+                        CollectionOperationsListGroupsInCollectionBinding.OutputContracts,
+                        CollectionOperationsListGroupsInCollectionBinding.CreateResult,
+                        cancellationToken,
+                        deadline).ConfigureAwait(false)),
+            new(
+                TargetCatalogMetadata.Operations.Single(operation =>
+                    operation.OperationId == CollectionOperationsListPointsInGroupBinding.OperationId),
+                typeof(TargetProtocol.ListPointsInGroupRequest),
+                typeof(TargetProtocol.ListPointsInGroupResult),
+                request => CollectionOperationsListPointsInGroupBinding.CreateCommand((TargetProtocol.ListPointsInGroupRequest)request),
+                CollectionOperationsListPointsInGroupBinding.OutputContracts,
+                completed => CollectionOperationsListPointsInGroupBinding.CreateResult(completed),
+                async (executor, request, cancellationToken, deadline) =>
+                    await executor.ExecuteAsync(
+                        (TargetProtocol.ListPointsInGroupRequest)request,
+                        TargetCatalogMetadata.Operations.Single(operation =>
+                            operation.OperationId == CollectionOperationsListPointsInGroupBinding.OperationId),
+                        CollectionOperationsListPointsInGroupBinding.CreateCommand,
+                        CollectionOperationsListPointsInGroupBinding.OutputContracts,
+                        CollectionOperationsListPointsInGroupBinding.CreateResult,
+                        cancellationToken,
+                        deadline).ConfigureAwait(false)),
+            new(
+                TargetCatalogMetadata.Operations.Single(operation =>
                     operation.OperationId == FileOperationsGetWorkingDirectoryBinding.OperationId),
                 typeof(TargetProtocol.GetWorkingDirectoryRequest),
                 typeof(TargetProtocol.GetWorkingDirectoryResult),
@@ -96,6 +442,179 @@ internal static class TargetCatalogConformanceMetadata
                         cancellationToken,
                         deadline).ConfigureAwait(false)),
         ];
+}
+
+[global::System.CodeDom.Compiler.GeneratedCode("Briosa.Generator", "1.0")]
+internal sealed class CollectionOperationsService(CatalogOperationExecutor operationExecutor) :
+    TargetProtocol.CollectionOperations.CollectionOperationsBase
+{
+    private readonly CatalogOperationExecutor _operationExecutor =
+        operationExecutor ?? throw new ArgumentNullException(nameof(operationExecutor));
+
+    private static readonly CatalogOperationDescriptor GetCollectionCountOperation =
+        TargetCatalogMetadata.Operations.Single(operation =>
+            operation.OperationId == CollectionOperationsGetCollectionCountBinding.OperationId);
+
+    [OperationImplementation(CollectionOperationsGetCollectionCountBinding.OperationId)]
+    public override Task<TargetProtocol.GetCollectionCountResult> GetCollectionCount(
+        TargetProtocol.GetCollectionCountRequest request,
+        ServerCallContext context) =>
+        _operationExecutor.ExecuteAsync(
+            request,
+            context,
+            GetCollectionCountOperation,
+            CollectionOperationsGetCollectionCountBinding.CreateCommand,
+            CollectionOperationsGetCollectionCountBinding.OutputContracts,
+            CollectionOperationsGetCollectionCountBinding.CreateResult);
+
+    internal Task<TargetProtocol.GetCollectionCountResult> ExecuteGetCollectionCount(
+        TargetProtocol.GetCollectionCountRequest request,
+        CancellationToken cancellationToken,
+        DateTime? deadline = null,
+        Guid? correlationId = null,
+        string actorCategory = "internal-unattributed") =>
+        _operationExecutor.ExecuteAsync(
+            request,
+            GetCollectionCountOperation,
+            CollectionOperationsGetCollectionCountBinding.CreateCommand,
+            CollectionOperationsGetCollectionCountBinding.OutputContracts,
+            CollectionOperationsGetCollectionCountBinding.CreateResult,
+            cancellationToken,
+            deadline,
+            correlationId,
+            actorCategory);
+
+    private static readonly CatalogOperationDescriptor GetCollectionNameByIndexOperation =
+        TargetCatalogMetadata.Operations.Single(operation =>
+            operation.OperationId == CollectionOperationsGetCollectionNameByIndexBinding.OperationId);
+
+    [OperationImplementation(CollectionOperationsGetCollectionNameByIndexBinding.OperationId)]
+    public override Task<TargetProtocol.GetCollectionNameByIndexResult> GetCollectionNameByIndex(
+        TargetProtocol.GetCollectionNameByIndexRequest request,
+        ServerCallContext context) =>
+        _operationExecutor.ExecuteAsync(
+            request,
+            context,
+            GetCollectionNameByIndexOperation,
+            CollectionOperationsGetCollectionNameByIndexBinding.CreateCommand,
+            CollectionOperationsGetCollectionNameByIndexBinding.OutputContracts,
+            CollectionOperationsGetCollectionNameByIndexBinding.CreateResult);
+
+    internal Task<TargetProtocol.GetCollectionNameByIndexResult> ExecuteGetCollectionNameByIndex(
+        TargetProtocol.GetCollectionNameByIndexRequest request,
+        CancellationToken cancellationToken,
+        DateTime? deadline = null,
+        Guid? correlationId = null,
+        string actorCategory = "internal-unattributed") =>
+        _operationExecutor.ExecuteAsync(
+            request,
+            GetCollectionNameByIndexOperation,
+            CollectionOperationsGetCollectionNameByIndexBinding.CreateCommand,
+            CollectionOperationsGetCollectionNameByIndexBinding.OutputContracts,
+            CollectionOperationsGetCollectionNameByIndexBinding.CreateResult,
+            cancellationToken,
+            deadline,
+            correlationId,
+            actorCategory);
+
+    private static readonly CatalogOperationDescriptor GetPointCountInGroupOperation =
+        TargetCatalogMetadata.Operations.Single(operation =>
+            operation.OperationId == CollectionOperationsGetPointCountInGroupBinding.OperationId);
+
+    [OperationImplementation(CollectionOperationsGetPointCountInGroupBinding.OperationId)]
+    public override Task<TargetProtocol.GetPointCountInGroupResult> GetPointCountInGroup(
+        TargetProtocol.GetPointCountInGroupRequest request,
+        ServerCallContext context) =>
+        _operationExecutor.ExecuteAsync(
+            request,
+            context,
+            GetPointCountInGroupOperation,
+            CollectionOperationsGetPointCountInGroupBinding.CreateCommand,
+            CollectionOperationsGetPointCountInGroupBinding.OutputContracts,
+            CollectionOperationsGetPointCountInGroupBinding.CreateResult);
+
+    internal Task<TargetProtocol.GetPointCountInGroupResult> ExecuteGetPointCountInGroup(
+        TargetProtocol.GetPointCountInGroupRequest request,
+        CancellationToken cancellationToken,
+        DateTime? deadline = null,
+        Guid? correlationId = null,
+        string actorCategory = "internal-unattributed") =>
+        _operationExecutor.ExecuteAsync(
+            request,
+            GetPointCountInGroupOperation,
+            CollectionOperationsGetPointCountInGroupBinding.CreateCommand,
+            CollectionOperationsGetPointCountInGroupBinding.OutputContracts,
+            CollectionOperationsGetPointCountInGroupBinding.CreateResult,
+            cancellationToken,
+            deadline,
+            correlationId,
+            actorCategory);
+
+    private static readonly CatalogOperationDescriptor ListGroupsInCollectionOperation =
+        TargetCatalogMetadata.Operations.Single(operation =>
+            operation.OperationId == CollectionOperationsListGroupsInCollectionBinding.OperationId);
+
+    [OperationImplementation(CollectionOperationsListGroupsInCollectionBinding.OperationId)]
+    public override Task<TargetProtocol.ListGroupsInCollectionResult> ListGroupsInCollection(
+        TargetProtocol.ListGroupsInCollectionRequest request,
+        ServerCallContext context) =>
+        _operationExecutor.ExecuteAsync(
+            request,
+            context,
+            ListGroupsInCollectionOperation,
+            CollectionOperationsListGroupsInCollectionBinding.CreateCommand,
+            CollectionOperationsListGroupsInCollectionBinding.OutputContracts,
+            CollectionOperationsListGroupsInCollectionBinding.CreateResult);
+
+    internal Task<TargetProtocol.ListGroupsInCollectionResult> ExecuteListGroupsInCollection(
+        TargetProtocol.ListGroupsInCollectionRequest request,
+        CancellationToken cancellationToken,
+        DateTime? deadline = null,
+        Guid? correlationId = null,
+        string actorCategory = "internal-unattributed") =>
+        _operationExecutor.ExecuteAsync(
+            request,
+            ListGroupsInCollectionOperation,
+            CollectionOperationsListGroupsInCollectionBinding.CreateCommand,
+            CollectionOperationsListGroupsInCollectionBinding.OutputContracts,
+            CollectionOperationsListGroupsInCollectionBinding.CreateResult,
+            cancellationToken,
+            deadline,
+            correlationId,
+            actorCategory);
+
+    private static readonly CatalogOperationDescriptor ListPointsInGroupOperation =
+        TargetCatalogMetadata.Operations.Single(operation =>
+            operation.OperationId == CollectionOperationsListPointsInGroupBinding.OperationId);
+
+    [OperationImplementation(CollectionOperationsListPointsInGroupBinding.OperationId)]
+    public override Task<TargetProtocol.ListPointsInGroupResult> ListPointsInGroup(
+        TargetProtocol.ListPointsInGroupRequest request,
+        ServerCallContext context) =>
+        _operationExecutor.ExecuteAsync(
+            request,
+            context,
+            ListPointsInGroupOperation,
+            CollectionOperationsListPointsInGroupBinding.CreateCommand,
+            CollectionOperationsListPointsInGroupBinding.OutputContracts,
+            CollectionOperationsListPointsInGroupBinding.CreateResult);
+
+    internal Task<TargetProtocol.ListPointsInGroupResult> ExecuteListPointsInGroup(
+        TargetProtocol.ListPointsInGroupRequest request,
+        CancellationToken cancellationToken,
+        DateTime? deadline = null,
+        Guid? correlationId = null,
+        string actorCategory = "internal-unattributed") =>
+        _operationExecutor.ExecuteAsync(
+            request,
+            ListPointsInGroupOperation,
+            CollectionOperationsListPointsInGroupBinding.CreateCommand,
+            CollectionOperationsListPointsInGroupBinding.OutputContracts,
+            CollectionOperationsListPointsInGroupBinding.CreateResult,
+            cancellationToken,
+            deadline,
+            correlationId,
+            actorCategory);
 }
 
 [global::System.CodeDom.Compiler.GeneratedCode("Briosa.Generator", "1.0")]

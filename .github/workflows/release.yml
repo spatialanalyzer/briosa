@@ -80,9 +80,12 @@ jobs:
 
       - name: Run packaged generated-client scenarios
         shell: pwsh
-        run: >
-          ./eng/Test-GeneratedClientScenarios.ps1
-          -PackagePath "artifacts/release/briosa-${{ steps.version.outputs.value }}-sa-2026.1.0529.7-win-x64.zip"
+        run: |
+          ./eng/Test-GeneratedClientScenarios.ps1 `
+            -PackagePath "artifacts/release/briosa-${{ steps.version.outputs.value }}-sa-2026.1.0529.7-win-x64.zip"
+          ./eng/Test-GeneratedClientScenarios.ps1 `
+            -PackagePath "artifacts/release/briosa-${{ steps.version.outputs.value }}-sa-2026.1.0529.7-win-x64.zip" `
+            -FixturePath conformance/v1/wave1-read-only-scenarios.json
 
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v7

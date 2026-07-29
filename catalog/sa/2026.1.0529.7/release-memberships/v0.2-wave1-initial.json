@@ -1,0 +1,17 @@
+{
+  "$schema": "../../../schemas/v1/release-membership.schema.json",
+  "schema_version": 1,
+  "membership_id": "v0.2-wave1-initial",
+  "release_line": "v0.2",
+  "delivery_wave": "wave_1",
+  "catalog_id": "briosa.sa.2026.1.0529.7",
+  "spatial_analyzer_target": "2026.1.0529.7",
+  "catalog_revision": "7",
+  "operation_ids": [
+    "collection_operations.get_collection_count",
+    "collection_operations.get_collection_name_by_index",
+    "collection_operations.get_point_count_in_group",
+    "collection_operations.list_groups_in_collection",
+    "collection_operations.list_points_in_group"
+  ]
+}

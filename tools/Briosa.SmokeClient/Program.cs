@@ -15,6 +15,10 @@ internal static class SmokeClientProgram
         "briosa.sa.v2026_1_0529_7.v1alpha1";
     private const string ExpectedOperation =
         "/briosa.sa.v2026_1_0529_7.v1alpha1.FileOperations/GetWorkingDirectory";
+    private const string GetCollectionCountOperation =
+        "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/GetCollectionCount";
+    private const string GetCollectionNameByIndexOperation =
+        "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/GetCollectionNameByIndex";
     private const string ErrorTrailerName = "briosa-operation-error-bin";
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -35,6 +39,8 @@ internal static class SmokeClientProgram
             using var channel = GrpcChannel.ForAddress(options.Address);
             var discoveryClient = new DiscoveryService.DiscoveryServiceClient(channel);
             var fileClient = new TargetProtocol.FileOperations.FileOperationsClient(channel);
+            var collectionClient =
+                new TargetProtocol.CollectionOperations.CollectionOperationsClient(channel);
             var deadline = DateTime.UtcNow.Add(options.Timeout);
             var serverInfo = await discoveryClient.GetServerInfoAsync(
                     new GetServerInfoRequest(),
@@ -50,11 +56,13 @@ internal static class SmokeClientProgram
             ValidateIdentity(
                 serverInfo,
                 capabilities,
+                options.ExpectedFullyQualifiedMethod,
                 options.ExpectOperation);
             var outcome = await ExecuteScenario(
                     options,
                     channel,
                     fileClient,
+                    collectionClient,
                     serverInfo,
                     timeout.Token)
                 .ConfigureAwait(false);
@@ -81,6 +89,7 @@ internal static class SmokeClientProgram
     private static void ValidateIdentity(
         GetServerInfoResponse serverInfo,
         ListCapabilitiesResponse capabilities,
+        string expectedFullyQualifiedMethod,
         bool expectOperation)
     {
         if (serverInfo.Version is null ||
@@ -97,7 +106,7 @@ internal static class SmokeClientProgram
         }
 
         var operationAdvertised = capabilities.Operations.Any(operation =>
-            operation.FullyQualifiedMethod == ExpectedOperation);
+            operation.FullyQualifiedMethod == expectedFullyQualifiedMethod);
         if (operationAdvertised != expectOperation)
         {
             throw new SmokeFailureException("operation-policy-capability-mismatch");
@@ -108,6 +117,7 @@ internal static class SmokeClientProgram
         SmokeOptions options,
         GrpcChannel channel,
         TargetProtocol.FileOperations.FileOperationsClient client,
+        TargetProtocol.CollectionOperations.CollectionOperationsClient collectionClient,
         GetServerInfoResponse serverInfo,
         CancellationToken cancellationToken) =>
         options.Scenario switch
@@ -165,6 +175,29 @@ internal static class SmokeClientProgram
                 serverInfo,
                 options.Timeout,
                 cancellationToken).ConfigureAwait(false),
+            SmokeScenario.CollectionCountReady => await ExecuteCollectionCountReady(
+                collectionClient,
+                serverInfo,
+                options.Timeout,
+                cancellationToken).ConfigureAwait(false),
+            SmokeScenario.CollectionNameMissingIndex =>
+                await ExecuteCollectionNameMissingIndex(
+                    collectionClient,
+                    serverInfo,
+                    options.Timeout,
+                    cancellationToken).ConfigureAwait(false),
+            SmokeScenario.CollectionCountPolicyDenied =>
+                await ExecuteCollectionCountPolicyDenied(
+                    collectionClient,
+                    serverInfo,
+                    options.Timeout,
+                    cancellationToken).ConfigureAwait(false),
+            SmokeScenario.CollectionCountMpFailure =>
+                await ExecuteCollectionCountMpFailure(
+                    collectionClient,
+                    serverInfo,
+                    options.Timeout,
+                    cancellationToken).ConfigureAwait(false),
             _ => throw new SmokeFailureException("unsupported-smoke-scenario")
         };
 
@@ -246,6 +279,135 @@ internal static class SmokeClientProgram
             TypedErrorObserved: true,
             error.Kind.ToString(),
             RecoverySucceeded: false);
+    }
+
+    private static async Task<ScenarioOutcome> ExecuteCollectionCountReady(
+        TargetProtocol.CollectionOperations.CollectionOperationsClient client,
+        GetServerInfoResponse serverInfo,
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
+    {
+        RequireReady(serverInfo);
+        var result = await client.GetCollectionCountAsync(
+                new TargetProtocol.GetCollectionCountRequest(),
+                deadline: DateTime.UtcNow.Add(timeout),
+                cancellationToken: cancellationToken)
+            .ResponseAsync.ConfigureAwait(false);
+        if (!result.HasCollectionCount ||
+            result.Execution is null ||
+            result.Execution.State != MpExecutionState.Succeeded ||
+            result.Execution.OutputRetrievals.Count != 1 ||
+            result.Execution.OutputRetrievals[0].State !=
+                OutputRetrievalState.Retrieved)
+        {
+            throw new SmokeFailureException("unexpected-collection-count-success-shape");
+        }
+
+        return new ScenarioOutcome(
+            OperationSucceeded: true,
+            StatusCode.OK,
+            TypedErrorObserved: false,
+            FailureKind: null,
+            RecoverySucceeded: false);
+    }
+
+    private static async Task<ScenarioOutcome> ExecuteCollectionNameMissingIndex(
+        TargetProtocol.CollectionOperations.CollectionOperationsClient client,
+        GetServerInfoResponse serverInfo,
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
+    {
+        RequireReady(serverInfo);
+        OperationError error;
+        try
+        {
+            _ = await client.GetCollectionNameByIndexAsync(
+                    new TargetProtocol.GetCollectionNameByIndexRequest(),
+                    deadline: DateTime.UtcNow.Add(timeout),
+                    cancellationToken: cancellationToken)
+                .ResponseAsync.ConfigureAwait(false);
+            throw new SmokeFailureException("missing-index-unexpectedly-succeeded");
+        }
+        catch (RpcException exception) when (
+            exception.StatusCode == StatusCode.InvalidArgument)
+        {
+            error = ReadOperationError(exception);
+        }
+
+        RequireNotStartedError(error, OperationFailureKind.Validation);
+        return new ScenarioOutcome(
+            OperationSucceeded: false,
+            StatusCode.InvalidArgument,
+            TypedErrorObserved: true,
+            error.Kind.ToString(),
+            RecoverySucceeded: false);
+    }
+
+    private static async Task<ScenarioOutcome> ExecuteCollectionCountPolicyDenied(
+        TargetProtocol.CollectionOperations.CollectionOperationsClient client,
+        GetServerInfoResponse serverInfo,
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
+    {
+        RequireReady(serverInfo);
+        var error = await RequireCollectionCountFailure(
+                client,
+                timeout,
+                StatusCode.PermissionDenied,
+                cancellationToken)
+            .ConfigureAwait(false);
+        RequireNotStartedError(error, OperationFailureKind.PolicyDenied);
+        return new ScenarioOutcome(
+            OperationSucceeded: false,
+            StatusCode.PermissionDenied,
+            TypedErrorObserved: true,
+            error.Kind.ToString(),
+            RecoverySucceeded: false);
+    }
+
+    private static async Task<ScenarioOutcome> ExecuteCollectionCountMpFailure(
+        TargetProtocol.CollectionOperations.CollectionOperationsClient client,
+        GetServerInfoResponse serverInfo,
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
+    {
+        RequireReady(serverInfo);
+        var error = await RequireCollectionCountFailure(
+                client,
+                timeout,
+                StatusCode.FailedPrecondition,
+                cancellationToken)
+            .ConfigureAwait(false);
+        if (error.Kind != OperationFailureKind.MpFailure ||
+            error.MpExecution is null ||
+            error.MpExecution.OutputRetrievals.Count != 1 ||
+            error.MpExecution.OutputRetrievals[0].State !=
+                OutputRetrievalState.NotAttempted)
+        {
+            throw new SmokeFailureException("unexpected-collection-count-mp-failure-shape");
+        }
+
+        return new ScenarioOutcome(
+            OperationSucceeded: false,
+            StatusCode.FailedPrecondition,
+            TypedErrorObserved: true,
+            error.Kind.ToString(),
+            RecoverySucceeded: false);
+    }
+
+    private static void RequireNotStartedError(
+        OperationError error,
+        OperationFailureKind expectedKind)
+    {
+        if (error.Kind != expectedKind ||
+            error.ExecutionDisposition != ExecutionDisposition.NotStarted ||
+            error.RecoveryGuidance != RecoveryGuidance.None ||
+            error.ReplayGuidance != ReplayGuidance.DoNotReplay ||
+            error.ReplaySafety != ReplaySafety.Safe ||
+            error.MpExecution is not null)
+        {
+            throw new SmokeFailureException("unexpected-not-started-error-shape");
+        }
     }
 
     private static async Task<ScenarioOutcome> ExecuteExpectedFailure(
@@ -439,15 +601,41 @@ internal static class SmokeClientProgram
         }
         catch (RpcException exception) when (exception.StatusCode == expectedStatus)
         {
-            var detail = exception.Trailers.SingleOrDefault(
-                entry => entry.Key == ErrorTrailerName);
-            if (detail is null)
-            {
-                throw new SmokeFailureException("operation-error-detail-missing");
-            }
-
-            return OperationError.Parser.ParseFrom(detail.ValueBytes);
+            return ReadOperationError(exception);
         }
+    }
+
+    private static async Task<OperationError> RequireCollectionCountFailure(
+        TargetProtocol.CollectionOperations.CollectionOperationsClient client,
+        TimeSpan timeout,
+        StatusCode expectedStatus,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            _ = await client.GetCollectionCountAsync(
+                    new TargetProtocol.GetCollectionCountRequest(),
+                    deadline: DateTime.UtcNow.Add(timeout),
+                    cancellationToken: cancellationToken)
+                .ResponseAsync.ConfigureAwait(false);
+            throw new SmokeFailureException("operation-unexpectedly-succeeded");
+        }
+        catch (RpcException exception) when (exception.StatusCode == expectedStatus)
+        {
+            return ReadOperationError(exception);
+        }
+    }
+
+    private static OperationError ReadOperationError(RpcException exception)
+    {
+        var detail = exception.Trailers.SingleOrDefault(
+            entry => entry.Key == ErrorTrailerName);
+        if (detail is null)
+        {
+            throw new SmokeFailureException("operation-error-detail-missing");
+        }
+
+        return OperationError.Parser.ParseFrom(detail.ValueBytes);
     }
 
     private static void RequireReady(GetServerInfoResponse serverInfo)
@@ -510,7 +698,11 @@ internal static class SmokeClientProgram
         Cancellation,
         WatchdogRecovery,
         UnsupportedVersion,
-        PolicyDenied
+        PolicyDenied,
+        CollectionCountReady,
+        CollectionNameMissingIndex,
+        CollectionCountPolicyDenied,
+        CollectionCountMpFailure
     }
 
     private sealed record SmokeOptions(
@@ -518,6 +710,7 @@ internal static class SmokeClientProgram
         SmokeScenario Scenario,
         string ScenarioName,
         bool ExpectOperation,
+        string ExpectedFullyQualifiedMethod,
         TimeSpan Timeout)
     {
         public static SmokeOptions Parse(string[] arguments)
@@ -542,6 +735,13 @@ internal static class SmokeClientProgram
                 "watchdog-recovery" => SmokeScenario.WatchdogRecovery,
                 "unsupported-version" => SmokeScenario.UnsupportedVersion,
                 "policy-denied" => SmokeScenario.PolicyDenied,
+                "collection-count-ready" => SmokeScenario.CollectionCountReady,
+                "collection-name-missing-index" =>
+                    SmokeScenario.CollectionNameMissingIndex,
+                "collection-count-policy-denied" =>
+                    SmokeScenario.CollectionCountPolicyDenied,
+                "collection-count-mp-failure" =>
+                    SmokeScenario.CollectionCountMpFailure,
                 _ => throw new SmokeFailureException("unsupported-smoke-scenario")
             };
             var timeoutSecondsText = GetArgument(arguments, "--timeout-seconds");
@@ -556,30 +756,49 @@ internal static class SmokeClientProgram
             }
 
             var fixturePath = GetArgument(arguments, "--fixture");
-            var expectOperation = fixturePath is null
-                ? scenario != SmokeScenario.PolicyDenied
-                : ReadExpectedOperationAdvertisement(fixturePath, scenarioName);
+            var fixtureExpectation = fixturePath is null
+                ? DefaultFixtureExpectation(scenario)
+                : ReadFixtureExpectation(fixturePath, scenarioName);
 
             return new SmokeOptions(
                 address,
                 scenario,
                 scenarioName,
-                expectOperation,
+                fixtureExpectation.OperationAdvertised,
+                fixtureExpectation.FullyQualifiedMethod,
                 TimeSpan.FromSeconds(timeoutSeconds));
         }
 
-        private static bool ReadExpectedOperationAdvertisement(
+        private static FixtureExpectation DefaultFixtureExpectation(
+            SmokeScenario scenario) =>
+            scenario switch
+            {
+                SmokeScenario.CollectionCountReady or
+                SmokeScenario.CollectionCountMpFailure => new(
+                    OperationAdvertised: true,
+                    GetCollectionCountOperation),
+                SmokeScenario.CollectionCountPolicyDenied => new(
+                    OperationAdvertised: false,
+                    GetCollectionCountOperation),
+                SmokeScenario.CollectionNameMissingIndex => new(
+                    OperationAdvertised: true,
+                    GetCollectionNameByIndexOperation),
+                _ => new FixtureExpectation(
+                    scenario != SmokeScenario.PolicyDenied,
+                    ExpectedOperation)
+            };
+
+        private static FixtureExpectation ReadFixtureExpectation(
             string fixturePath,
             string scenarioName)
         {
             using var document = JsonDocument.Parse(File.ReadAllText(fixturePath));
             var root = document.RootElement;
             if (root.GetProperty("schema_version").GetInt32() != 1 ||
-                root.GetProperty("fixture_set_id").GetString() !=
-                    "briosa.client.live.v1" ||
                 root.GetProperty("error_trailer").GetString() != ErrorTrailerName ||
-                root.GetProperty("operation_id").GetString() !=
-                    "file_operations.get_working_directory")
+                root.GetProperty("fixture_set_id").GetString() is not (
+                    "briosa.client.live.v1" or
+                    "briosa.client.wave1-read-only.v1"))
             {
                 throw new SmokeFailureException("conformance-fixture-identity-mismatch");
             }
@@ -588,14 +807,33 @@ internal static class SmokeClientProgram
             {
                 if (scenario.GetProperty("id").GetString() == scenarioName)
                 {
-                    return scenario.GetProperty("expected")
-                        .GetProperty("operation_advertised")
-                        .GetBoolean();
+                    var operationId = scenario.TryGetProperty(
+                        "operation_id",
+                        out var scenarioOperationId)
+                        ? scenarioOperationId.GetString()
+                        : root.GetProperty("operation_id").GetString();
+                    return new FixtureExpectation(
+                        scenario.GetProperty("expected")
+                            .GetProperty("operation_advertised")
+                            .GetBoolean(),
+                        ToFullyQualifiedMethod(operationId));
                 }
             }
 
             throw new SmokeFailureException("conformance-scenario-missing");
         }
+
+        private static string ToFullyQualifiedMethod(string? operationId) =>
+            operationId switch
+            {
+                "file_operations.get_working_directory" => ExpectedOperation,
+                "collection_operations.get_collection_count" =>
+                    GetCollectionCountOperation,
+                "collection_operations.get_collection_name_by_index" =>
+                    GetCollectionNameByIndexOperation,
+                _ => throw new SmokeFailureException(
+                    "conformance-operation-identity-mismatch")
+            };
 
         private static string? GetArgument(string[] arguments, string name)
         {
@@ -605,6 +843,10 @@ internal static class SmokeClientProgram
                 : null;
         }
     }
+
+    private sealed record FixtureExpectation(
+        bool OperationAdvertised,
+        string FullyQualifiedMethod);
 
     private sealed record ScenarioOutcome(
         bool OperationSucceeded,

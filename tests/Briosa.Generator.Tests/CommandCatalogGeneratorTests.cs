@@ -20,6 +20,7 @@ public sealed class CommandCatalogGeneratorTests
 
             Assert.Equal(
                 [
+                    "proto/briosa/sa/v2026_1_0529_7/v1alpha1/collection_operations.proto",
                     "proto/briosa/sa/v2026_1_0529_7/v1alpha1/file_operations.proto",
                     "src/Briosa.Server/Generated/Sa/V2026_1_0529_7/V1Alpha1/Operations.g.cs",
                     "docs/reference/generated/sa/2026.1.0529.7/operations.md",
@@ -116,6 +117,31 @@ public sealed class CommandCatalogGeneratorTests
                 proto,
                 StringComparison.Ordinal);
 
+            var collectionProto = File.ReadAllText(Path.Combine(
+                outputRoot,
+                "proto",
+                "briosa",
+                "sa",
+                "v2026_1_0529_7",
+                "v1alpha1",
+                "collection_operations.proto"));
+            Assert.Contains(
+                "rpc GetCollectionCount(GetCollectionCountRequest) returns (GetCollectionCountResult)",
+                collectionProto,
+                StringComparison.Ordinal);
+            Assert.Contains(
+                "rpc GetCollectionNameByIndex(GetCollectionNameByIndexRequest) returns (GetCollectionNameByIndexResult)",
+                collectionProto,
+                StringComparison.Ordinal);
+            Assert.Contains(
+                "rpc ListGroupsInCollection(ListGroupsInCollectionRequest) returns (ListGroupsInCollectionResult)",
+                collectionProto,
+                StringComparison.Ordinal);
+            Assert.Contains(
+                "rpc ListPointsInGroup(ListPointsInGroupRequest) returns (ListPointsInGroupResult)",
+                collectionProto,
+                StringComparison.Ordinal);
+
             var coverage = File.ReadAllText(Path.Combine(
                 outputRoot,
                 "generated",
@@ -142,6 +168,12 @@ public sealed class CommandCatalogGeneratorTests
             Assert.Contains("\"capability\": true", coverage, StringComparison.Ordinal);
             Assert.Contains("\"portable_conformance\": true", coverage, StringComparison.Ordinal);
             Assert.Contains("\"argument_family_assignment\": true", coverage, StringComparison.Ordinal);
+            Assert.Contains("\"membership_id\": \"v0.2-wave1-initial\"", coverage, StringComparison.Ordinal);
+            Assert.Contains("\"catalog_id\": \"briosa.sa.2026.1.0529.7\"", coverage, StringComparison.Ordinal);
+            Assert.Contains(
+                "\"collection_operations.list_points_in_group\"",
+                coverage,
+                StringComparison.Ordinal);
 
             var documentation = File.ReadAllText(Path.Combine(
                 outputRoot,
@@ -156,6 +188,7 @@ public sealed class CommandCatalogGeneratorTests
                 "Execution scope: `global_state_read`",
                 documentation,
                 StringComparison.Ordinal);
+            Assert.Contains("`v0.2-wave1-initial` (`v0.2`, `wave_1`): 5 operation(s)", documentation, StringComparison.Ordinal);
         }
         finally
         {

@@ -4,7 +4,7 @@ Briosa is an open-source gRPC bridge around the Hexagon SpatialAnalyzer SDK. Spa
 
 ## Current target
 
-The initial vertical slice targets .NET 10 on Windows x64 and SpatialAnalyzer 2026.1.0529.7. Its first public operation is the exact-target `GetWorkingDirectory` RPC.
+The initial vertical slice targets .NET 10 on Windows x64 and SpatialAnalyzer 2026.1.0529.7. Its first public operation is the exact-target `GetWorkingDirectory` RPC. The initial v0.2 Wave 1 subset adds five generated collection-introspection operations; it is a deliberately small promotion from the 101 reviewed Wave 1 candidates, not a claim that the full candidate pool has shipped.
 
 ## Build
 
@@ -39,7 +39,7 @@ See the [public endpoint operator guide](docs/operations/endpoint-security.md), 
 ## Public protocol
 ## Command policy and auditing
 
-The generated exact-target catalog is the maximum command surface. Runtime exact-ID allow and deny lists reduce that surface, with missing allowlists denying all and deny taking precedence. Policy rejection happens before worker or SDK execution, and capability discovery shows only currently allowed operations.
+The generated exact-target catalog is the maximum command surface. Runtime exact-ID allow and deny lists reduce that surface, with missing allowlists denying all and deny taking precedence. Release membership does not enable an operation: the packaged configuration continues to allow only `file_operations.get_working_directory` until an operator explicitly adds another exact ID. Policy rejection happens before worker or SDK execution, and capability discovery shows only currently allowed operations.
 
 Structured events correlate the host, policy decision, worker generation, MP outcome, and output-retrieval outcome without accepting arguments or returned values. Enabling verbose logging does not enable value logging.
 
@@ -64,11 +64,13 @@ See the [health and discovery operator guide](docs/operations/health-and-discove
 
 The `catalog` directory is the reviewed, machine-readable allowlist of MP operations Briosa exposes for each exact SpatialAnalyzer target. It is deliberately separate from the complete installed SA inventory: catalog absence means an operation is not exposed by Briosa, not that SA lacks it.
 
+Machine-readable files under `catalog/sa/<target>/release-memberships` name additive delivery subsets while preserving exact catalog, target, and revision coordinates. They are distinct from the complete catalog and runtime authorization. See the [release-membership guide](docs/development/release-membership.md) for the initial v0.2 Wave 1 subset, validation rules, and promotion workflow.
+
 The `inventory` directory contains deterministic derived facts from locally installed MP documentation and **View SDK Code** exports. It preserves missing and conflicting metadata for review without committing vendor source material or making an operation public. See [the extraction guide](docs/development/mp-command-inventory.md) for inputs, provenance, regeneration, and the intellectual-property boundary.
 
 The `disposition` directory accounts for every exact-target inventory key without making all of them public. Category-sharded decisions record approved candidates, intentional exclusions, SDK-unavailable operations, and named blockers. Evidence fingerprints force command-scoped re-review when extracted facts change, while optional reviewed operation contracts preserve fail-closed constraints and truthful live-validation status into catalog scaffolds. See [the disposition review guide](docs/development/command-dispositions.md) for decision fields, review states, delivery waves, and promotion rules, and the [file-operation contract review](docs/development/file-operation-contracts.md) for issue #80's constrained candidates and remaining blockers.
 
-Run `./eng/Verify-Catalog.ps1` to validate JSON structure, target and path identity, stable category/service/file partitions, fixed protocol filename and package-symbol reservations, unique fully qualified methods and generated symbols, explicit field allocation, distinct inventory/MP/SDK identities, argument direction, reviewed input omission/default behavior, evidence references, risk metadata, and private SDK setter/getter availability. Validation requires neither SpatialAnalyzer nor the local vendor evidence corpus.
+Run `./eng/Verify-Catalog.ps1` to validate JSON structure, target and path identity, stable category/service/file partitions, release-membership coordinates and operation identity, fixed protocol filename and package-symbol reservations, unique fully qualified methods and generated symbols, explicit field allocation, distinct inventory/MP/SDK identities, argument direction, reviewed input omission/default behavior, evidence references, risk metadata, and private SDK setter/getter availability. Validation requires neither SpatialAnalyzer nor the local vendor evidence corpus.
 
 Run `./eng/Verify-Disposition.ps1` to validate complete inventory coverage, evidence identity, review-state semantics, deterministic category shards, and the generated disposition report. New and changed commands fail closed until reviewed.
 
@@ -84,7 +86,7 @@ Run `./eng/Verify-FullSurface.ps1` for the ordinary-CI umbrella gate. It generat
 
 For SA `2026.1.0529.7`, see the [intentional-exclusion policy](docs/reference/sa/2026.1.0529.7/intentional-exclusions.md) and the generated [command-level disposition report](disposition/sa/2026.1.0529.7/report.md).
 
-Run `dotnet run --project tools/Briosa.Generator -c Release -- catalog-generate catalog .` to regenerate category-partitioned exact-target protobuf, request/worker/result bindings, gRPC services and endpoint registration, capability descriptors, reference documentation, and coverage manifests. Never edit those artifacts by hand. Shared policy, error, supervision, and audit behavior stays in `CatalogOperationExecutor` and the other hand-written server seams. `./eng/Verify-CatalogArtifacts.ps1` performs a clean generation and fails on content or file-list drift, including stale category or registration files.
+Run `dotnet run --project tools/Briosa.Generator -c Release -- catalog-generate catalog .` to regenerate category-partitioned exact-target protobuf, request/worker/result bindings, gRPC services and endpoint registration, capability descriptors, reference documentation, and release-tagged coverage manifests. Never edit those artifacts by hand. Shared policy, error, supervision, and audit behavior stays in `CatalogOperationExecutor` and the other hand-written server seams. `./eng/Verify-CatalogArtifacts.ps1` performs a clean generation and fails on content or file-list drift, including stale category or registration files.
 
 Release-aligned client generation uses the deterministic protocol artifact described in [the protocol artifact and conformance guide](docs/operations/protocol-artifacts.md). It packages canonical protobuf sources, a descriptor set, exact catalog identity, and shared value-safe fixtures for all thin-client repositories. Produce it with `./eng/New-ProtocolArtifact.ps1` and verify its byte identity, manifests, checksums, descriptor, and fixtures with `./eng/Test-ProtocolArtifact.ps1`; neither command requires SpatialAnalyzer or an SA license.
 
@@ -104,7 +106,7 @@ The [fake SDK and contract-test harness](docs/testing/fake-sdk-harness.md) verif
 
 Run `./eng/Test-RuntimePerformance.ps1 -NoBuild` after a Release build to record the reviewed fake-worker dispatch, generated request-mapping, catalog-discovery, and retained-memory metrics. Deterministic process tests separately saturate and drain the bounded queue, distinguish pre/post-admission cancellation, wake admission waiters on shutdown, cycle watchdog and crash recovery, cap lifecycle history, and preserve value-free audit correlation. Package checks also budget ZIP size and startup working set. The [runtime performance and soak guide](docs/testing/runtime-performance-and-soak.md) defines the exact samples and explains why the licensed read-only soak remains deferred pending issue #20 and Hexagon licensing guidance.
 
-The [generated-client smoke guide](docs/testing/generated-client-smoke.md) covers portable packaged-host scenarios and the explicit licensed-SA vertical-slice test. Both use a separate generated client process and redact the returned working-directory value.
+The [generated-client smoke guide](docs/testing/generated-client-smoke.md) covers portable packaged-host scenarios for the vertical slice and initial Wave 1 subset, plus the explicit licensed-SA vertical-slice test. They use a separate generated client process and never print returned SpatialAnalyzer values.
 
 The [licensed runner operations guide](docs/operations/licensed-sa-runner.md) defines the dedicated-machine, organization runner-group, protected-environment, trusted-payload, and recovery requirements for real-SA validation. Never attach a repository-level self-hosted runner or a personal workstation to this public repository.
 
