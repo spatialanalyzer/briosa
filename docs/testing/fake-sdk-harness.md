@@ -40,6 +40,8 @@ The watchdog and supervisor types in this test-support assembly remain lightweig
 
 `BindingFamilyAdapterCompletenessTests` adds an evidence-driven dispatch fake for breadth rather than behavioral simulation. It reflects the exact `ISpatialAnalyzerSdkCalls` seam, records every call and apartment state, supplies valid typed outputs for each reviewed getter, and can reject any setter, fail any getter, or return MP failure without a vendor process. Registry and value-family evidence select the cases, so all 103 usable method/family rows run against the production adapter and all 79 implemented private value kinds cross the real JSON worker-control channel. The fake intentionally has no fallback for an unknown getter; a new getter without explicit typed output behavior fails the test.
 
+The server outcome-mapping tests independently read the same binding registry and require an explicit success case for every usable getter family. Each case passes a present default-like or empty value through `RequireSuccess`, which guards the distinction between a retrieved value such as `false`, `0`, an empty string, or an empty list and a missing typed result.
+
 That completeness contract also runs every one of the 470 reviewed enum members and compares the emitted SDK literal with the exact-target evidence catalog. It checks every structured worker field, all shared-method domains, `VariantWrapper` marshalling, and fail-closed collection object/item decoding. The release-specific scope is listed in the [binding-family completeness reference](../reference/sa/2026.1.0529.7/binding-family-completeness.md).
 
 ## Non-emulation statement
