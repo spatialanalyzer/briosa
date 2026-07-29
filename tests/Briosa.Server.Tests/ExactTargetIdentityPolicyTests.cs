@@ -100,9 +100,9 @@ public sealed class ExactTargetIdentityPolicyTests
             .Build();
 
         Assert.Throws<InvalidOperationException>(() =>
-            ExactTargetIdentityPolicy.Create(versionOnly, Target));
+            SpatialAnalyzerIdentityOptions.BindAndValidate(versionOnly));
         Assert.Throws<InvalidOperationException>(() =>
-            ExactTargetIdentityPolicy.Create(referenceOnly, Target));
+            SpatialAnalyzerIdentityOptions.BindAndValidate(referenceOnly));
     }
 
     [Fact]
@@ -136,10 +136,15 @@ public sealed class ExactTargetIdentityPolicyTests
     }
 
     private static ExactTargetIdentityPolicy CreatePolicy(
-        IReadOnlyDictionary<string, string?> values) =>
-        ExactTargetIdentityPolicy.Create(
-            new ConfigurationBuilder().AddInMemoryCollection(values).Build(),
+        IReadOnlyDictionary<string, string?> values)
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(values)
+            .Build();
+        return ExactTargetIdentityPolicy.Create(
+            SpatialAnalyzerIdentityOptions.BindAndValidate(configuration),
             Target);
+    }
 
     private static WorkerRuntimeIdentityEvidence RuntimeVerified(string version) =>
         new(version, WorkerRuntimeIdentityEvidenceSource.RuntimeVerified);

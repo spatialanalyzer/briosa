@@ -7,6 +7,11 @@
     <Description>Public gRPC host for Briosa.</Description>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <UserSecretsId>spatialanalyzer-briosa-development</UserSecretsId>
+    <BriosaDevelopmentWorkerOutput>$(MSBuildProjectDirectory)\..\Briosa.Worker\bin\$(Configuration)\$(TargetFramework)\</BriosaDevelopmentWorkerOutput>
+  </PropertyGroup>
+
   <ItemGroup Condition="'$(SourceRevisionId)' != ''">
     <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
       <_Parameter1>RepositoryCommit</_Parameter1>
@@ -19,4 +24,25 @@
     <ProjectReference Include="..\Briosa.Protocol\Briosa.Protocol.csproj" />
     <ProjectReference Include="..\Briosa.Worker.Control\Briosa.Worker.Control.csproj" />
   </ItemGroup>
+
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+    <ProjectReference Include="..\Briosa.Worker\Briosa.Worker.csproj"
+                      ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <Target Name="CopyDevelopmentWorkerCohort"
+          AfterTargets="Build"
+          Condition="'$(Configuration)' == 'Debug'">
+    <ItemGroup>
+      <_BriosaDevelopmentWorkerFiles Include="$(BriosaDevelopmentWorkerOutput)**\*" />
+      <_BriosaDevelopmentWorkerSettings Include="$(BriosaDevelopmentWorkerOutput)**\appsettings*.json" />
+    </ItemGroup>
+    <Error Condition="!Exists('$(BriosaDevelopmentWorkerOutput)Briosa.Worker.exe')"
+           Text="The Debug Briosa.Worker build output is unavailable for source-host composition." />
+    <Error Condition="'@(_BriosaDevelopmentWorkerSettings)' != ''"
+           Text="Worker appsettings files require explicit review before Debug source-host composition." />
+    <Copy SourceFiles="@(_BriosaDevelopmentWorkerFiles)"
+          DestinationFiles="@(_BriosaDevelopmentWorkerFiles->'$(TargetDir)%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+  </Target>
 </Project>

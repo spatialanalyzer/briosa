@@ -111,7 +111,12 @@ function Start-ScenarioServer {
         "Briosa__Worker__ExecutablePath" = $smokeWorkerExe
         "BRIOSA_TEST_WORKER_SCENARIO" = $WorkerScenario
         "BRIOSA_TEST_WORKER_STATE_PATH" = $StatePath
-        "Briosa__Worker__ExecutionWatchdogTimeout" = $WatchdogTimeout
+        "Briosa__Worker__ExecutionWatchdogTimeout" = $(
+            if ([string]::IsNullOrWhiteSpace($WatchdogTimeout)) {
+                $null
+            } else {
+                $WatchdogTimeout
+            })
         "Briosa__Security__Operations__Allow__0" = $OperationId
         "Briosa__Security__Operations__Deny__0" = $(if ($DenyOperation) { $OperationId } else { $null })
         "Briosa__SpatialAnalyzer__Identity__ActivatedSdk__OperatorAttestation__Version" = "2026.1.0529.7"

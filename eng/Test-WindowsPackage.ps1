@@ -13,12 +13,14 @@ $ErrorActionPreference = "Stop"
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $packageScript = Join-Path $PSScriptRoot "New-WindowsPackage.ps1"
+$workerTestHostProject = Join-Path $repositoryRoot "tests\Briosa.Worker.TestHost\Briosa.Worker.TestHost.csproj"
 $coveragePath = Join-Path $repositoryRoot "generated\catalog\sa\2026.1.0529.7\coverage.json"
 $temporaryBase = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
 $temporaryRoot = Join-Path $temporaryBase "briosa-package-test-$([Guid]::NewGuid().ToString('N'))"
 $firstOutput = [IO.Path]::GetFullPath($OutputDirectory, $repositoryRoot)
 $secondOutput = Join-Path $temporaryRoot "second"
 $extractRoot = Join-Path $temporaryRoot "extracted"
+$workerTestHostOutput = Join-Path $temporaryRoot "worker-test-host"
 $serverProcess = $null
 
 function Assert-Condition {
@@ -49,6 +51,15 @@ function Remove-TemporaryTree {
     }
 }
 
+function Invoke-DotNet {
+    param([Parameter(Mandatory)][string[]]$Arguments)
+
+    & dotnet @Arguments
+    if ($LASTEXITCODE -ne 0) {
+        throw "dotnet $($Arguments -join ' ') failed with exit code $LASTEXITCODE."
+    }
+}
+
 $safeRepositoryRoot = $repositoryRoot.Replace('\', '/')
 $sourceRevision = (& git -c "safe.directory=$safeRepositoryRoot" -C $repositoryRoot rev-parse HEAD).Trim()
 if ($LASTEXITCODE -ne 0 -or $sourceRevision -notmatch '^[0-9a-fA-F]{40}$') {
@@ -63,6 +74,13 @@ $secondZip = Join-Path $secondOutput $zipName
 
 [IO.Directory]::CreateDirectory($temporaryRoot) | Out-Null
 try {
+    Invoke-DotNet @("restore", $workerTestHostProject, "--locked-mode")
+    Invoke-DotNet @(
+        "build", $workerTestHostProject,
+        "-c", "Release",
+        "--no-restore",
+        "-o", $workerTestHostOutput)
+
     $firstBuild = @{
         Version = $Version
         SourceRevision = $sourceRevision
@@ -111,6 +129,32 @@ try {
     Assert-Condition -Condition ($configuration.Briosa.Security.Operations.Allow[0] -eq "file_operations.get_working_directory") -Message "The packaged operation allowlist is incorrect."
     Assert-Condition -Condition ($configuration.Briosa.Security.Operations.Deny.Count -eq 0) -Message "The packaged operation denylist must be empty by default."
 
+    foreach ($requiredFile in @(
+        "Briosa.Server.exe",
+        "Briosa.Worker.exe",
+        "Briosa.Worker.dll",
+        "Briosa.Worker.deps.json",
+        "Briosa.Worker.runtimeconfig.json",
+        "Briosa.Worker.Control.dll",
+        "Briosa.SpatialAnalyzer.Interop.dll")) {
+        Assert-Condition `
+            -Condition (Test-Path -LiteralPath (Join-Path $packageRoot $requiredFile) -PathType Leaf) `
+            -Message "The package is missing required runtime file '$requiredFile'."
+    }
+    Assert-Condition `
+        -Condition (-not (Test-Path -LiteralPath (Join-Path $packageRoot "Properties\launchSettings.json"))) `
+        -Message "The development launch profile must not appear in the package."
+    Assert-Condition `
+        -Condition (-not (Test-Path -LiteralPath (Join-Path $packageRoot "appsettings.Development.json"))) `
+        -Message "Development settings must not appear in the package."
+    $serverAssemblyText = [Text.Encoding]::UTF8.GetString(
+        [IO.File]::ReadAllBytes((Join-Path $packageRoot "Briosa.Server.dll")))
+    Assert-Condition `
+        -Condition (-not $serverAssemblyText.Contains(
+            "spatialanalyzer-briosa-development",
+            [StringComparison]::Ordinal)) `
+        -Message "The Debug user-secrets identity must not appear in the Release server assembly."
+
 
     $checksumRoot = Join-Path $packageRoot "files.sha256"
     foreach ($line in Get-Content -LiteralPath $checksumRoot) {
@@ -140,7 +184,9 @@ try {
     $standardError = Join-Path $temporaryRoot "server.stderr.log"
     $workerVariable = "Briosa__Worker__ExecutablePath"
     $previousWorkerPath = [Environment]::GetEnvironmentVariable($workerVariable)
-    [Environment]::SetEnvironmentVariable($workerVariable, (Join-Path $temporaryRoot "intentionally-missing-worker.exe"))
+    [Environment]::SetEnvironmentVariable(
+        $workerVariable,
+        (Join-Path $workerTestHostOutput "Briosa.Worker.TestHost.exe"))
     try {
         $processArguments = @{
             FilePath = $serverExecutable

@@ -1,4 +1,3 @@
-using System.Globalization;
 using Briosa.Server.Generated.Sa.V2026_1_0529_7.V1Alpha1;
 using Briosa.Server.Security;
 using Briosa.Server.Services;
@@ -16,30 +15,23 @@ internal static class WorkerProcessRegistration
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configuration);
 
-        var configuredPath = configuration["Briosa:Worker:ExecutablePath"];
-        var executablePath = string.IsNullOrWhiteSpace(configuredPath)
-            ? Path.Combine(AppContext.BaseDirectory, "Briosa.Worker.exe")
-            : Path.GetFullPath(configuredPath, AppContext.BaseDirectory);
-        var configuredHost = configuration["Briosa:SpatialAnalyzer:Host"];
-        var targetHost = string.IsNullOrWhiteSpace(configuredHost)
-            ? "localhost"
-            : configuredHost;
-        var executionWatchdogTimeout = ReadTimeout(
-            configuration,
-            "Briosa:Worker:ExecutionWatchdogTimeout",
-            TimeSpan.FromSeconds(30));
+        var workerOptions = WorkerProcessOptions.BindAndValidate(configuration);
+        var spatialAnalyzerOptions =
+            SpatialAnalyzerConnectionOptions.BindAndValidate(configuration);
         var identityPolicy = ExactTargetIdentityPolicy.Create(
-            configuration,
+            spatialAnalyzerOptions.Identity,
             TargetCatalogMetadata.SpatialAnalyzerTarget);
+        services.TryAddSingleton(workerOptions);
+        services.TryAddSingleton(spatialAnalyzerOptions);
         services.TryAddSingleton(identityPolicy);
 
         services.TryAddSingleton(provider =>
         {
             var processFactory = new NamedPipeWorkerProcessFactory(
                 _ => new WorkerProcessLaunch(
-                    executablePath,
-                    ["--sa-host", targetHost],
-                    workingDirectory: Path.GetDirectoryName(executablePath)));
+                    workerOptions.ExecutablePath,
+                    ["--sa-host", spatialAnalyzerOptions.Host],
+                    workingDirectory: Path.GetDirectoryName(workerOptions.ExecutablePath)));
             var policy = new WorkerRestartPolicy(
                 maximumRestarts: 3,
                 restartWindow: TimeSpan.FromMinutes(1),
@@ -49,7 +41,7 @@ internal static class WorkerProcessRegistration
                 shutdownTimeout: TimeSpan.FromSeconds(5),
                 restartDelay: TimeSpan.FromSeconds(1));
             var executionPolicy = new WorkerExecutionPolicy(
-                watchdogTimeout: executionWatchdogTimeout,
+                watchdogTimeout: workerOptions.ExecutionWatchdogTimeout,
                 queueCapacity: 64);
             return new WorkerProcessSupervisor(
                 processFactory,
@@ -74,30 +66,6 @@ internal static class WorkerProcessRegistration
         return services;
     }
 
-    private static TimeSpan ReadTimeout(
-        IConfiguration configuration,
-        string key,
-        TimeSpan defaultValue)
-    {
-        var configured = configuration[key];
-        if (string.IsNullOrWhiteSpace(configured))
-        {
-            return defaultValue;
-        }
-
-        if (!TimeSpan.TryParse(
-                configured,
-                CultureInfo.InvariantCulture,
-                out var value) ||
-            value <= TimeSpan.Zero ||
-            value > TimeSpan.FromMinutes(10))
-        {
-            throw new InvalidOperationException(
-                $"Configuration value '{key}' must be a positive duration no greater than ten minutes.");
-        }
-
-        return value;
-    }
 }
 
 internal sealed partial class WorkerSupervisorHostedService(
