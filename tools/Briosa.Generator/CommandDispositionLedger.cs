@@ -54,6 +54,13 @@ internal static partial class CommandDispositionLedger
         "unknown"
     ];
 
+    private static readonly string[] OperationContractDecisions =
+    [
+        "blocked_pending_exact_target_evidence",
+        "constrained_candidate",
+        "intentional_exclusion"
+    ];
+
     private static readonly JsonSerializerOptions ReadOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
@@ -536,6 +543,7 @@ internal static partial class CommandDispositionLedger
             "data_classifications",
             errors);
         RequireSortedUnique(entry.ValueFamilies, displayPath, "value_families", errors);
+        ValidateOperationContract(entry, displayPath, errors);
 
         if (!Dispositions.Contains(entry.Disposition, StringComparer.Ordinal))
         {
@@ -632,6 +640,105 @@ internal static partial class CommandDispositionLedger
 
         ValidateCommandShape(entry, command, displayPath, errors);
         ValidateReviewState(entry, displayPath, errors);
+    }
+
+    private static void ValidateOperationContract(
+        CommandDispositionEntry entry,
+        string displayPath,
+        List<string> errors)
+    {
+        var contract = entry.OperationContract;
+        if (contract is null)
+        {
+            if (entry.ReasonCodes.Contains(
+                    "operation_contract_reviewed",
+                    StringComparer.Ordinal))
+            {
+                errors.Add(
+                    $"{displayPath}: operation_contract_reviewed requires operation_contract.");
+            }
+
+            return;
+        }
+
+        if (!entry.ReasonCodes.Contains(
+                "operation_contract_reviewed",
+                StringComparer.Ordinal))
+        {
+            errors.Add(
+                $"{displayPath}: operation_contract requires operation_contract_reviewed.");
+        }
+
+        if (!OperationContractDecisions.Contains(contract.Decision, StringComparer.Ordinal))
+        {
+            errors.Add(
+                $"{displayPath}: unknown operation_contract decision '{contract.Decision}'.");
+        }
+
+        RequireSortedUnique(
+            contract.Constraints,
+            displayPath,
+            "operation_contract.constraints",
+            errors);
+        RequireSortedUnique(
+            contract.EvidenceLimitations,
+            displayPath,
+            "operation_contract.evidence_limitations",
+            errors);
+        if (contract.Constraints.Count == 0)
+        {
+            errors.Add(
+                $"{displayPath}: operation_contract requires at least one constraint.");
+        }
+
+        foreach (var code in contract.Constraints.Concat(contract.EvidenceLimitations).Where(
+                     code => !ReasonCode().IsMatch(code)))
+        {
+            errors.Add($"{displayPath}: invalid operation_contract code '{code}'.");
+        }
+
+        var hasNotPerformedLimitation = contract.EvidenceLimitations.Contains(
+            "live_validation_not_performed",
+            StringComparer.Ordinal);
+        if (string.Equals(contract.ValidationStatus, "not_performed", StringComparison.Ordinal))
+        {
+            if (!hasNotPerformedLimitation)
+            {
+                errors.Add(
+                    $"{displayPath}: an unvalidated operation_contract must record " +
+                    "live_validation_not_performed.");
+            }
+        }
+        else if (string.Equals(contract.ValidationStatus, "performed", StringComparison.Ordinal))
+        {
+            if (hasNotPerformedLimitation)
+            {
+                errors.Add(
+                    $"{displayPath}: a validated operation_contract cannot retain " +
+                    "live_validation_not_performed.");
+            }
+        }
+        else
+        {
+            errors.Add(
+                $"{displayPath}: unknown operation_contract validation_status " +
+                $"'{contract.ValidationStatus}'.");
+        }
+
+        var expectedDecision = entry.Disposition switch
+        {
+            "approved_candidate" => "constrained_candidate",
+            "blocked" => "blocked_pending_exact_target_evidence",
+            "intentional_exclusion" => "intentional_exclusion",
+            _ => null
+        };
+        if (expectedDecision is null ||
+            !string.Equals(contract.Decision, expectedDecision, StringComparison.Ordinal))
+        {
+            errors.Add(
+                $"{displayPath}: operation_contract decision '{contract.Decision}' does not " +
+                $"match disposition '{entry.Disposition}'.");
+        }
     }
 
     private static void ValidateReviewState(
@@ -1220,6 +1327,7 @@ internal static partial class CommandDispositionLedger
                 DataClassifications = SortedDistinct(existing.DataClassifications),
                 ValueFamilies = SortedDistinct(existing.ValueFamilies),
                 DeliveryWave = existing.DeliveryWave,
+                OperationContract = existing.OperationContract,
                 CommandShape = existing.CommandShape
             };
         }
@@ -1243,6 +1351,7 @@ internal static partial class CommandDispositionLedger
             DataClassifications = SortedDistinct(existing.DataClassifications),
             ValueFamilies = SortedDistinct(existing.ValueFamilies),
             DeliveryWave = existing.DeliveryWave,
+            OperationContract = existing.OperationContract,
             CommandShape = CreateBlockedShape(
                 "evidence_changed",
                 [],
@@ -1466,6 +1575,7 @@ internal static partial class CommandDispositionLedger
                 .Where(wave => wave is not null)
                 .Cast<string>());
         AppendCommandShapeDiscrepancies(builder, entries);
+        AppendOperationContracts(builder, entries);
         AppendDefaultReviewQueue(builder, entries);
         AppendIntentionalExclusions(builder, entries);
 
@@ -1650,6 +1760,45 @@ internal static partial class CommandDispositionLedger
                 $"`{EscapeMarkdown(resolution.EvidenceState ?? string.Empty)}` | " +
                 $"{EscapeMarkdown(renderedCandidates)} | " +
                 $"{EscapeMarkdown(string.Join(", ", resolution.ReasonCodes ?? []))} |");
+        }
+    }
+
+    private static void AppendOperationContracts(
+        StringBuilder builder,
+        IEnumerable<CommandDispositionEntry> entries)
+    {
+        var contracted = entries
+            .Where(entry => entry.OperationContract is not null)
+            .OrderBy(entry => entry.InventoryKey, StringComparer.Ordinal)
+            .ToArray();
+        builder.AppendLine();
+        builder.AppendLine("## Reviewed operation contracts");
+        builder.AppendLine();
+        if (contracted.Length == 0)
+        {
+            builder.AppendLine("None.");
+            return;
+        }
+
+        builder.AppendLine(
+            "These constraints are disposition evidence for later catalog review. A candidate is " +
+            "not a supported operation. Validation status and remaining evidence limitations are " +
+            "recorded explicitly and must change together after an authorized probe.");
+        builder.AppendLine();
+        builder.AppendLine(
+            "| Category path | MP step | Inventory key | Decision | Validation | Constraints | Evidence limitations |");
+        builder.AppendLine("| --- | --- | --- | --- | --- | --- | --- |");
+        foreach (var entry in contracted)
+        {
+            var contract = entry.OperationContract!;
+            builder.AppendLine(
+                CultureInfo.InvariantCulture,
+                $"| {EscapeMarkdown(string.Join(" / ", entry.CategoryPath))} | " +
+                $"{EscapeMarkdown(entry.MpStep)} | {EscapeMarkdown(entry.InventoryKey)} | " +
+                $"`{EscapeMarkdown(contract.Decision)}` | " +
+                $"`{EscapeMarkdown(contract.ValidationStatus)}` | " +
+                $"{EscapeMarkdown(string.Join(", ", contract.Constraints))} | " +
+                $"{EscapeMarkdown(string.Join(", ", contract.EvidenceLimitations))} |");
         }
     }
 

@@ -14,7 +14,7 @@ Each exact target contains:
 
 When intentional exclusions exist, `report.md` also publishes an exact command-level table with each exclusion's Briosa-authored rationale and decision reference.
 
-The generator owns inventory identity, MP step, category path, evidence references, per-command evidence fingerprint, manifest hashes, shard placement, and the report. Reviewers own disposition, review state, rationale, reason codes, decision references, blocker references, risk assessment, data classifications, value families, delivery wave, and the reviewed `command_shape`. Do not edit `manifest.json` or `report.md` by hand.
+The generator owns inventory identity, MP step, category path, evidence references, per-command evidence fingerprint, manifest hashes, shard placement, and the report. Reviewers own disposition, review state, rationale, reason codes, decision references, blocker references, risk assessment, data classifications, value families, delivery wave, the reviewed `command_shape`, and an optional schema-validated `operation_contract`. Do not edit `manifest.json` or `report.md` by hand.
 
 Reviewers may update decision fields in category shards and then run synchronization. Synchronization preserves reviewed decision fields when the command evidence is unchanged. If the per-command inventory fingerprint changes, it sets the entry to `needs_re_review`, adds `evidence_changed`, and restores the review blocker. This is intentionally command-scoped; unrelated inventory changes do not invalidate already reviewed decisions.
 
@@ -47,6 +47,8 @@ A maintainer-reviewed pull request is sufficient decision approval. Escalate to 
 Use concise Briosa-authored rationale; do not copy vendor documentation prose, SDK source, geometry, paths, or other proprietary content into the ledger. A primitive or structured value may be retained only as curated default-review metadata under the exact-target precedence rules in [Command-shape resolution](command-shape-resolution.md); raw generated code and surrounding vendor text remain local evidence.
 
 Reason codes and value families are stable lowercase identifiers such as `read_only_operation`, `office_integration`, `path`, or `geometry`. Keep lists ordinally sorted and prefer an existing code when it has the same meaning. Risk effects, risk flags, and data classifications reuse the supported-catalog vocabulary. An empty `risk_flags` array means the review found no special command-level risk flag; `unknown` remains an explicit unresolved state. Decision and blocker references must be canonical `https://github.com/spatialanalyzer/.../issues/<number>` or pull-request URLs. Do not record reviewer names, timestamps, workstation paths, or local source locations.
+
+`operation_contract` is used when a disposition depends on fail-closed constraints that later catalog review must not lose. Its decision must agree with the disposition, and its sorted constraint and evidence-limitation codes are preserved in generated review scaffolds. `validation_status: not_performed` must retain `live_validation_not_performed`; after an authorized probe, `performed` must remove that limitation. Candidate status never converts documentation review into runtime conformance. See the [file-operation contract review](file-operation-contracts.md) for the first use of this boundary.
 
 The semantic rules are:
 

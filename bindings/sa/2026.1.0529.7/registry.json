@@ -8,7 +8,7 @@
   },
   "dispositions": {
     "path": "../../../disposition/sa/2026.1.0529.7/manifest.json",
-    "sha256": "eefcce6b2c339d284bbb6856d46e6f68e706d71ea1478a2bab2925f96ee0654b"
+    "sha256": "3608557444bb2efd321d207d78b8ba40ed4a98af00495e4be4fa01d0a6404e46"
   },
   "interop_assembly": {
     "path": "../../../interop/SpatialAnalyzer/2026.1.0529.7/Briosa.SpatialAnalyzer.Interop.dll",

@@ -13,7 +13,7 @@ The scaffold generator reads four committed sources for one exact SpatialAnalyze
 
 It writes only to a separate output directory. The command rejects an output directory that contains, equals, or is contained by the supported `catalog` root. Existing supported catalog operations are traced back to their inventory keys and omitted from the scaffold set.
 
-Every scaffold retains the inventory key, inventory and resolved MP-step claims, category path, delivery wave, evidence and decision references, source fingerprints, reviewed disposition summary, ordered command shape, exact SDK bindings, and resolved semantic family. Multi-domain SDK methods consume the reviewed assignment for the exact method, inventory key, and SDK order. A shared method name is never treated as one semantic domain.
+Every scaffold retains the inventory key, inventory and resolved MP-step claims, category path, delivery wave, evidence and decision references, source fingerprints, reviewed disposition summary, optional reviewed operation constraints and validation status, ordered command shape, exact SDK bindings, and resolved semantic family. Multi-domain SDK methods consume the reviewed assignment for the exact method, inventory key, and SDK order. A shared method name is never treated as one semantic domain.
 
 Public API decisions remain explicit null blockers:
 
@@ -59,7 +59,7 @@ Promote small, risk-ordered subsets rather than copying the complete scaffold se
 1. Confirm that the source fingerprints still match a freshly generated scaffold.
 2. Review the resolved MP step, MP/documented ordinal, and distinct SDK order against the cited evidence.
 3. Carry the exact `inventory_key`, register or reuse one stable category partition, and choose operation, RPC, request, result, argument, and explicit request/result field identities under [ADR 0021](../architecture/0021-exact-target-protobuf-partitions-and-identifiers.md).
-4. Review input presence, omission, and default behavior; a retained candidate or prior disposition value is not automatic public policy.
+4. Review input presence, omission, and default behavior; a retained candidate or prior disposition value is not automatic public policy. Carry every `reviewed_disposition.operation_contract` constraint forward. A `not_performed` contract adds an explicit scaffold blocker and cannot be presented as conformance; update the reviewed disposition through an authorized evidence PR before promotion.
 5. Review effect, replay safety, execution scope, risk flags, data classifications, and isolation guidance under ADRs 0015, 0018, and 0019.
 6. Write original public descriptions and select the exact catalog evidence references. Inventory traceability comes from the first-class `inventory_key`; evidence text no longer acts as an identity parser.
 7. Add the completed operation file to the exact-target catalog manifest and increment the target-local catalog revision.

@@ -116,7 +116,25 @@ internal sealed class CommandDispositionEntry
     [JsonRequired]
     public required string? DeliveryWave { get; init; }
 
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CommandOperationContract? OperationContract { get; init; }
+
     public CommandShapeResolution? CommandShape { get; init; }
+}
+
+internal sealed class CommandOperationContract
+{
+    [JsonRequired]
+    public required string Decision { get; init; }
+
+    [JsonRequired]
+    public required string ValidationStatus { get; init; }
+
+    [JsonRequired]
+    public required List<string> Constraints { get; init; }
+
+    [JsonRequired]
+    public required List<string> EvidenceLimitations { get; init; }
 }
 
 internal sealed class CommandShapeResolution

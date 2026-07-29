@@ -29,9 +29,9 @@ public sealed class CommandCatalogScaffolderTests
 
         Assert.True(first.IsSuccessful, DisplayConflicts(first));
         Assert.True(second.IsSuccessful, DisplayConflicts(second));
-        Assert.Equal(673, first.ApprovedCandidateCount);
+        Assert.Equal(677, first.ApprovedCandidateCount);
         Assert.Equal(1, first.ExistingCatalogOperationCount);
-        Assert.Equal(672, first.ScaffoldCount);
+        Assert.Equal(676, first.ScaffoldCount);
         Assert.Equal(ReadTree(fixture.FirstOutput), ReadTree(fixture.SecondOutput));
         Assert.False(File.Exists(CandidatePath(
             fixture.FirstOutput,
@@ -85,6 +85,23 @@ public sealed class CommandCatalogScaffolderTests
         Assert.Equal(
             "exact_command_assignment",
             Assert.Single(itemArgument.FamilyAssignments).Source);
+
+        var eventExport = ReadScaffold(fixture.FirstOutput, "sdk:EventOperations.txt#4");
+        Assert.NotNull(eventExport.ReviewedDisposition.OperationContract);
+        Assert.Equal(
+            "constrained_candidate",
+            eventExport.ReviewedDisposition.OperationContract.Decision);
+        Assert.Equal(
+            "not_performed",
+            eventExport.ReviewedDisposition.OperationContract.ValidationStatus);
+        Assert.Contains(
+            "live_validation_not_performed",
+            eventExport.ReviewedDisposition.OperationContract.EvidenceLimitations,
+            StringComparer.Ordinal);
+        Assert.Contains(
+            "/reviewed_disposition/operation_contract/validation_status",
+            eventExport.Blockers,
+            StringComparer.Ordinal);
     }
 
     [Fact]
