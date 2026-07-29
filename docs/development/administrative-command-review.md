@@ -6,18 +6,18 @@ Issue [#51](https://github.com/spatialanalyzer/briosa/issues/51) reviews the fin
 
 | Disposition | Commands |
 | --- | ---: |
-| Approved candidate | 213 |
-| Blocked | 40 |
-| Intentional exclusion | 76 |
-| SDK unavailable | 42 |
+| Approved candidate | 218 |
+| Blocked | 7 |
+| Intentional exclusion | 77 |
+| SDK unavailable | 69 |
 
 Approved candidates are assigned to the risk-ordered delivery plan:
 
 | Delivery wave | Commands |
 | --- | ---: |
-| Wave 1: low-risk read-only queries | 34 |
+| Wave 1: low-risk read-only queries | 35 |
 | Wave 2: in-memory SA state mutations | 97 |
-| Wave 3: bounded filesystem and audit operations | 8 |
+| Wave 3: bounded filesystem and audit operations | 12 |
 | Wave 4: interactive or potentially long-running operations | 74 |
 
 Candidate status is not public support. This review does not promote a new operation into the supported catalog.
@@ -28,7 +28,7 @@ Candidate status is not public support. This review does not promote a new opera
 - Generic filesystem manipulation, ODBC access, arbitrary program or PowerShell execution, raw ASCII serialization, DataShare integration, application-chrome control, notifications, and MP runtime control flow remain client-owned intentional exclusions.
 - Briosa does not expose a public command that shuts down the separately installed SpatialAnalyzer application.
 - Operator-driven relationship watch and trapping workflows are excluded. `Relationship Watch Window Template` is additionally excluded because its exact-target shape includes SA-hosted UDP integration.
-- Eleven ambiguous save, merge, PDF, and SDK-only import/export variants remain blocked by issue #53. Their path direction, required presence, overwrite, replacement, or output semantics must be established before they can become candidates.
+- Issue #80 reviewed 11 ambiguous save, merge, PDF, and SDK-only import/export variants: `Save` is intentionally excluded, four have constrained Wave 3 candidate contracts, and six remain blocked on exact-target behavior evidence. See [the file-operation contract review](file-operation-contracts.md); candidate status does not waive its disposable-file conformance prerequisites.
 - An absent exact-target SDK occurrence or explicit unavailable required input produces `sdk_unavailable`. Other direction, ordinal, getter, setter, or semantic conflicts remain command-scoped blockers linked only to issue #53.
 
 ## Filesystem and administrative policy gate

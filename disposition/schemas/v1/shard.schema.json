@@ -198,10 +198,72 @@
             }
           ]
         },
+        "operation_contract": {
+          "$ref": "#/definitions/operation_contract"
+        },
         "command_shape": {
           "$ref": "#/definitions/command_shape"
         }
       }
+    },
+    "operation_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["decision", "validation_status", "constraints", "evidence_limitations"],
+      "properties": {
+        "decision": {
+          "enum": [
+            "blocked_pending_exact_target_evidence",
+            "constrained_candidate",
+            "intentional_exclusion"
+          ]
+        },
+        "validation_status": {
+          "enum": ["not_performed", "performed"]
+        },
+        "constraints": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          }
+        },
+        "evidence_limitations": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "validation_status": { "const": "not_performed" }
+            }
+          },
+          "then": {
+            "properties": {
+              "evidence_limitations": {
+                "contains": { "const": "live_validation_not_performed" }
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "evidence_limitations": {
+                "not": {
+                  "contains": { "const": "live_validation_not_performed" }
+                }
+              }
+            }
+          }
+        }
+      ]
     },
     "command_shape": {
       "type": "object",

@@ -52,10 +52,10 @@ The other nine reviewed commands are `Close JSON File`, `Open JSON File`, `Run A
 
 If an argument has no observed usable setter or getter, the command is `sdk_unavailable`; Briosa does not guess a generic binding. Commands with incomplete exact-target semantics remain `blocked` and carry one or more command-scoped discrepancies. Each discrepancy records the affected inventory argument indexes, a `briosa` or `hexagon` owner, and exactly one GitHub dependency.
 
-The initial reconciliation leaves only two focused dependency groups:
+The reconciliation leaves two focused dependency groups:
 
 - issue #79 owns commands whose documentation/SDK evidence is incomplete or whose generated exact binding is absent from the committed interop API;
-- issue #80 owns 11 save, import/export, merge, and PDF operations whose path, overwrite, append, replacement, or interactive behavior still needs a safe contract.
+- issue #80 reviewed 11 save, import/export, merge, and PDF operations. One is intentionally excluded and four now have constrained Wave 3 candidate contracts; six remain blocked on exact-target collision, overwrite, partial-failure, or interactive behavior. The machine-readable constraints and evidence limitations are documented in [File-operation contracts](file-operation-contracts.md).
 
 The generated disposition report names every blocked command and discrepancy. Changing the inventory fingerprint moves the command back to re-review and discards its resolved shape.
 

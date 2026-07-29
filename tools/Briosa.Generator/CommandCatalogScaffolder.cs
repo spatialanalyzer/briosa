@@ -354,6 +354,15 @@ internal static class CommandCatalogScaffolder
             }
         }
 
+        if (string.Equals(
+                entry.OperationContract?.ValidationStatus,
+                "not_performed",
+                StringComparison.Ordinal))
+        {
+            blockers.Add(
+                "/reviewed_disposition/operation_contract/validation_status");
+        }
+
         if (shape.MpStep is null)
         {
             throw new InvalidDataException(
@@ -388,7 +397,8 @@ internal static class CommandCatalogScaffolder
                 RiskEffect = entry.RiskEffect,
                 RiskFlags = [.. entry.RiskFlags],
                 DataClassifications = [.. entry.DataClassifications],
-                ValueFamilies = [.. entry.ValueFamilies]
+                ValueFamilies = [.. entry.ValueFamilies],
+                OperationContract = entry.OperationContract
             },
             CatalogDraft = new CatalogScaffoldCatalogDraft
             {
@@ -916,6 +926,9 @@ internal sealed class CatalogScaffoldReviewedDisposition
 
     [JsonRequired]
     public required List<string> ValueFamilies { get; init; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CommandOperationContract? OperationContract { get; init; }
 }
 
 internal sealed class CatalogScaffoldCatalogDraft

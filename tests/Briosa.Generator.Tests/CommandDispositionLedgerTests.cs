@@ -50,7 +50,7 @@ public sealed class CommandDispositionLedgerTests
         Assert.Equal(421, summary["corroborated_default_count"]!.GetValue<int>());
         Assert.Equal(314, summary["reviewed_no_default_count"]!.GetValue<int>());
         Assert.Equal(0, summary["needs_review_count"]!.GetValue<int>());
-        Assert.Equal(1271, summary["no_candidate_count"]!.GetValue<int>());
+        Assert.Equal(1308, summary["no_candidate_count"]!.GetValue<int>());
         Assert.Empty(queue["entries"]!.AsArray());
     }
 
@@ -94,8 +94,8 @@ public sealed class CommandDispositionLedgerTests
         Assert.Equal(7, directionDispositions["approved_candidate"]);
         Assert.Equal(8, directionDispositions["intentional_exclusion"]);
         Assert.Equal(1, directionDispositions["sdk_unavailable"]);
-        Assert.Equal(673, candidates.Length);
-        Assert.Equal(56, blocked.Length);
+        Assert.Equal(677, candidates.Length);
+        Assert.Equal(51, blocked.Length);
         Assert.Equal(207, entries.Count(entry => entry.Disposition == "sdk_unavailable"));
         Assert.Equal(
             111,
@@ -109,7 +109,7 @@ public sealed class CommandDispositionLedgerTests
             Assert.Empty(entry.CommandShape.Discrepancies);
             Assert.Contains(issue53, entry.DecisionReferences);
         });
-        Assert.Equal(1521, inputs.Count(input => input.Presence == "required"));
+        Assert.Equal(1558, inputs.Count(input => input.Presence == "required"));
         Assert.Equal(485, inputs.Count(input => input.Presence == "optional"));
         Assert.Equal(64, inputs.Count(input => input.OmissionBehavior == "omit_sdk_setter"));
         Assert.Equal(421, inputs.Count(input => input.Default.Status == "reviewed"));
@@ -152,7 +152,7 @@ public sealed class CommandDispositionLedgerTests
             entry => Assert.Contains(issue82, entry.DecisionReferences));
 
         Assert.Equal(45, blocked.Count(entry => entry.BlockerReferences.SequenceEqual([issue79])));
-        Assert.Equal(11, blocked.Count(entry => entry.BlockerReferences.SequenceEqual([issue80])));
+        Assert.Equal(6, blocked.Count(entry => entry.BlockerReferences.SequenceEqual([issue80])));
         Assert.All(blocked, entry =>
         {
             Assert.Equal("blocked", entry.CommandShape!.Status);
@@ -488,13 +488,13 @@ public sealed class CommandDispositionLedgerTests
             .ToArray();
 
         Assert.Equal(371, reviewed.Length);
-        Assert.Equal(214, reviewed.Count(entry => entry.Disposition == "approved_candidate"));
-        Assert.Equal(12, reviewed.Count(entry => entry.Disposition == "blocked"));
-        Assert.Equal(76, reviewed.Count(entry => entry.Disposition == "intentional_exclusion"));
+        Assert.Equal(218, reviewed.Count(entry => entry.Disposition == "approved_candidate"));
+        Assert.Equal(7, reviewed.Count(entry => entry.Disposition == "blocked"));
+        Assert.Equal(77, reviewed.Count(entry => entry.Disposition == "intentional_exclusion"));
         Assert.Equal(69, reviewed.Count(entry => entry.Disposition == "sdk_unavailable"));
         Assert.Equal(35, reviewed.Count(entry => entry.DeliveryWave == "wave_1"));
         Assert.Equal(97, reviewed.Count(entry => entry.DeliveryWave == "wave_2"));
-        Assert.Equal(8, reviewed.Count(entry => entry.DeliveryWave == "wave_3"));
+        Assert.Equal(12, reviewed.Count(entry => entry.DeliveryWave == "wave_3"));
         Assert.Equal(74, reviewed.Count(entry => entry.DeliveryWave == "wave_4"));
 
         Assert.Equal(1412, entries.Length);
@@ -523,7 +523,7 @@ public sealed class CommandDispositionLedgerTests
             entry => entry.RiskFlags.Contains("external_process", StringComparer.Ordinal) ||
                 entry.RiskFlags.Contains("network_access", StringComparer.Ordinal));
         Assert.Equal(
-            11,
+            6,
             reviewed.Count(entry =>
                 entry.Disposition == "blocked" &&
                 entry.ReasonCodes.Contains("file_semantics_unresolved", StringComparer.Ordinal)));
@@ -532,7 +532,7 @@ public sealed class CommandDispositionLedgerTests
         AssertDisposition(entries, "FileOperations", "Export IGES File - Entire Model", "approved_candidate");
         AssertDisposition(entries, "FileOperations", "Save As", "blocked");
         AssertDisposition(entries, "FileOperations", "Run Powershell Script", "intentional_exclusion");
-        AssertDisposition(entries, "EventOperations", "Export Event Ref List", "blocked");
+        AssertDisposition(entries, "EventOperations", "Export Event Ref List", "approved_candidate");
         AssertDisposition(entries, "ProcessFlowOperations", "Output SA Report to PDF", "blocked");
         AssertDisposition(
             entries,
@@ -573,6 +573,85 @@ public sealed class CommandDispositionLedgerTests
             .ToArray();
 
         Assert.Equal(["Get Working Directory"], supportedSteps);
+    }
+
+    [Fact]
+    public void Issue80RecordsFailClosedFileOperationContractsWithoutClaimingLiveValidation()
+    {
+        const string issue80 = "https://github.com/spatialanalyzer/briosa/issues/80";
+        var entries = ReadCommittedEntries();
+        var reviewed = entries
+            .Where(entry => entry.DecisionReferences.Contains(issue80, StringComparer.Ordinal))
+            .ToArray();
+
+        Assert.Equal(11, reviewed.Length);
+        Assert.Equal(4, reviewed.Count(entry => entry.Disposition == "approved_candidate"));
+        Assert.Equal(6, reviewed.Count(entry => entry.Disposition == "blocked"));
+        Assert.Single(reviewed, entry => entry.Disposition == "intentional_exclusion");
+        Assert.All(reviewed, entry =>
+        {
+            Assert.NotNull(entry.OperationContract);
+            Assert.Equal("not_performed", entry.OperationContract.ValidationStatus);
+            Assert.Contains(
+                "live_validation_not_performed",
+                entry.OperationContract.EvidenceLimitations,
+                StringComparer.Ordinal);
+            Assert.NotEmpty(entry.OperationContract.Constraints);
+        });
+
+        var approvedKeys = reviewed
+            .Where(entry => entry.Disposition == "approved_candidate")
+            .Select(entry => entry.InventoryKey)
+            .OrderBy(key => key, StringComparer.Ordinal)
+            .ToArray();
+        Assert.Equal(
+            [
+                "documentation:FileOperations/XML/MergeMeasurementsintoXML.htm",
+                "sdk:EventOperations.txt#4",
+                "sdk:FileOperations_FileExport.txt#1",
+                "sdk:FileOperations_FileExport.txt#2"
+            ],
+            approvedKeys);
+        Assert.All(
+            reviewed.Where(entry => entry.Disposition == "approved_candidate"),
+            entry =>
+            {
+                Assert.Equal("wave_3", entry.DeliveryWave);
+                Assert.Equal("constrained_candidate", entry.OperationContract!.Decision);
+                Assert.All(
+                    entry.CommandShape!.Arguments.Where(argument => argument.Input is not null),
+                    argument =>
+                    {
+                        Assert.Equal("required", argument.Input!.Presence);
+                        Assert.Equal("reject_request", argument.Input.OmissionBehavior);
+                        Assert.Equal("none", argument.Input.Default.Status);
+                    });
+            });
+
+        var excluded = Assert.Single(
+            reviewed,
+            entry => entry.InventoryKey == "documentation:FileOperations/Save.htm");
+        Assert.Equal("intentional_exclusion", excluded.Disposition);
+        Assert.Contains("interactive_ui", excluded.RiskFlags, StringComparer.Ordinal);
+        Assert.Equal("intentional_exclusion", excluded.OperationContract!.Decision);
+
+        var pdf = Assert.Single(
+            reviewed,
+            entry => entry.InventoryKey ==
+                "documentation:ProcessFlowOperations/OutputSAReportToPDF.htm");
+        Assert.Equal("blocked", pdf.Disposition);
+        Assert.Contains("viewer_launch_prohibited", pdf.OperationContract!.Constraints);
+        Assert.Equal("collection_item_name", pdf.ValueFamilies[0]);
+
+        var eventExport = Assert.Single(
+            reviewed,
+            entry => entry.InventoryKey == "sdk:EventOperations.txt#4");
+        Assert.Equal("collection_item_name_list", eventExport.ValueFamilies[0]);
+        Assert.Contains("append_mode_not_supported", eventExport.OperationContract!.Constraints);
+        Assert.Contains("create_new_mode_not_supported", Assert.Single(
+            reviewed,
+            entry => entry.InventoryKey == "sdk:FileOperations_FileExport.txt#1")
+            .OperationContract!.Constraints);
     }
 
     [Fact]
@@ -718,6 +797,121 @@ public sealed class CommandDispositionLedgerTests
             result.Errors,
             error => error.Contains(
                 "approved candidates require assessed risk, data classification",
+                StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void OperationContractValidationStatusMustMatchItsEvidenceLimitations()
+    {
+        using var fixture = DispositionFixture.Create();
+        CommandDispositionLedger.Sync(fixture.InventoryPath, fixture.TargetDirectory);
+        fixture.MarkEntryReviewedCandidate();
+        fixture.EditEntry(entry => entry["operation_contract"] = new JsonObject
+        {
+            ["decision"] = "constrained_candidate",
+            ["validation_status"] = "not_performed",
+            ["constraints"] = new JsonArray("absolute_external_path_required"),
+            ["evidence_limitations"] = new JsonArray()
+        });
+        fixture.EditEntry(entry => entry["reason_codes"] = new JsonArray(
+            "operation_contract_reviewed",
+            "read_only_operation"));
+
+        var result = CommandDispositionLedger.Validate(
+            fixture.InventoryPath,
+            fixture.TargetDirectory);
+
+        Assert.Contains(
+            result.Errors,
+            error => error.Contains(
+                "must record live_validation_not_performed",
+                StringComparison.Ordinal));
+
+        fixture.EditEntry(entry =>
+        {
+            var contract = entry["operation_contract"]!.AsObject();
+            contract["validation_status"] = "performed";
+            contract["evidence_limitations"] = new JsonArray(
+                "live_validation_not_performed");
+        });
+        result = CommandDispositionLedger.Validate(
+            fixture.InventoryPath,
+            fixture.TargetDirectory);
+        Assert.Contains(
+            result.Errors,
+            error => error.Contains(
+                "cannot retain live_validation_not_performed",
+                StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void PerformedOperationContractMayRemoveThePriorLimitation()
+    {
+        using var fixture = DispositionFixture.Create();
+        CommandDispositionLedger.Sync(fixture.InventoryPath, fixture.TargetDirectory);
+        fixture.MarkEntryReviewedCandidate();
+        fixture.EditEntry(entry => entry["operation_contract"] = new JsonObject
+        {
+            ["decision"] = "constrained_candidate",
+            ["validation_status"] = "performed",
+            ["constraints"] = new JsonArray("absolute_external_path_required"),
+            ["evidence_limitations"] = new JsonArray()
+        });
+        fixture.EditEntry(entry => entry["reason_codes"] = new JsonArray(
+            "operation_contract_reviewed",
+            "read_only_operation"));
+        CommandDispositionLedger.Sync(fixture.InventoryPath, fixture.TargetDirectory);
+
+        var result = CommandDispositionLedger.Validate(
+            fixture.InventoryPath,
+            fixture.TargetDirectory);
+
+        Assert.Empty(result.Errors);
+    }
+
+    [Fact]
+    public void OperationContractAndItsReviewMarkerCannotDriftApart()
+    {
+        using var fixture = DispositionFixture.Create();
+        CommandDispositionLedger.Sync(fixture.InventoryPath, fixture.TargetDirectory);
+        fixture.MarkEntryReviewedCandidate();
+        fixture.EditEntry(entry => entry["reason_codes"] = new JsonArray(
+            "operation_contract_reviewed",
+            "read_only_operation"));
+
+        var result = CommandDispositionLedger.Validate(
+            fixture.InventoryPath,
+            fixture.TargetDirectory);
+        Assert.Contains(
+            result.Errors,
+            error => error.Contains(
+                "operation_contract_reviewed requires operation_contract",
+                StringComparison.Ordinal));
+
+        fixture.EditEntry(entry =>
+        {
+            entry["reason_codes"] = new JsonArray("read_only_operation");
+            entry["operation_contract"] = new JsonObject
+            {
+                ["decision"] = "intentional_exclusion",
+                ["validation_status"] = "not_performed",
+                ["constraints"] = new JsonArray("absolute_external_path_required"),
+                ["evidence_limitations"] = new JsonArray(
+                    "live_validation_not_performed")
+            };
+        });
+        result = CommandDispositionLedger.Validate(
+            fixture.InventoryPath,
+            fixture.TargetDirectory);
+        Assert.Contains(
+            result.Errors,
+            error => error.Contains(
+                "operation_contract requires operation_contract_reviewed",
+                StringComparison.Ordinal));
+        Assert.Contains(
+            result.Errors,
+            error => error.Contains(
+                "does not match disposition 'approved_candidate'",
                 StringComparison.Ordinal));
     }
 

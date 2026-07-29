@@ -12,7 +12,7 @@
   },
   "default_review_queue": {
     "path": "default-review-queue.json",
-    "sha256": "3b035776aa89d26e65f1e2014a4e34cf9cfbf5d11cbe74a340bfc4956ec74eb8"
+    "sha256": "b374c74394191d1e727575c42cbd1c1353ec92ada99ab9c1fc215c4742f88ae7"
   },
   "counts": {
     "family_count": 115,

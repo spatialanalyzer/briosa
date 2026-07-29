@@ -104,6 +104,8 @@ dotnet run --project tools/Briosa.Generator -c Release -- disposition-sync <inve
 
 See [the command disposition review guide](../docs/development/command-dispositions.md) before editing category decisions.
 
+Optional disposition `operation_contract` metadata is also semantic input. Its decision must match the disposition; constraint and evidence-limitation codes must be sorted; and validation status must truthfully distinguish documentation review from an authorized live probe. The generated catalog scaffolds preserve candidate contracts. Issue #80's current entries all remain `not_performed`; see [the file-operation contract review](../docs/development/file-operation-contracts.md).
+
 ## SDK binding registry verification
 
 `Verify-BindingRegistry.ps1` reconciles the inventory-observed setter/getter names, command dispositions, committed exact-target interop signatures, semantic value families, and protocol/worker/adapter/fake/generator coverage. It rejects stale generated artifacts, unknown families, uncovered methods, and sample-only methods that are not blocked explicitly:
