@@ -458,8 +458,26 @@ internal static class PortableConformanceGenerator
 
     private static bool RequiresMalformedShapeCase(
         string familyId,
-        IReadOnlyDictionary<string, ValueFamilyEvidence> families) =>
-        families[familyId].Shape is "structured" or "transform" or "identifier";
+        IReadOnlyDictionary<string, ValueFamilyEvidence> families)
+    {
+        var family = families[familyId];
+        return RequiresMalformedMessageShapeCase(family.Shape, family.PublicType);
+    }
+
+    internal static bool RequiresMalformedMessageShapeCase(
+        string shape,
+        string publicType) =>
+        shape is "structured" or "transform" or "identifier" &&
+        publicType is not (
+            "bool" or
+            "bytes" or
+            "double" or
+            "float" or
+            "int32" or
+            "int64" or
+            "string" or
+            "uint32" or
+            "uint64");
 
     private static bool SupportsPresentDefaultLike(string familyId) =>
         familyId is

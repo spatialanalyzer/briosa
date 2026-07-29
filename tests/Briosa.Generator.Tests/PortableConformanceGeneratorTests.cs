@@ -8,6 +8,23 @@ namespace Briosa.Generator.Tests;
 
 public sealed class PortableConformanceGeneratorTests
 {
+    [Theory]
+    [InlineData("identifier", "string", false)]
+    [InlineData("structured", "CollectionObjectName", true)]
+    [InlineData("transform", "Transform", true)]
+    [InlineData("enum", "ObjectType", false)]
+    public void MalformedShapeCasesApplyOnlyToMessageValuedPublicTypes(
+        string shape,
+        string publicType,
+        bool expected)
+    {
+        Assert.Equal(
+            expected,
+            PortableConformanceGenerator.RequiresMalformedMessageShapeCase(
+                shape,
+                publicType));
+    }
+
     [Fact]
     public void CommittedManifestMatchesDeterministicEvidenceGeneration()
     {
