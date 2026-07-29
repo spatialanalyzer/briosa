@@ -43,6 +43,59 @@ function Assert-FileEqual {
     }
 }
 
+function Get-EvidenceSummary {
+    param([string[]]$SourceIds = @())
+
+    $relativeCatalogPath = [IO.Path]::GetRelativePath(
+        $repositoryRoot,
+        $catalogPath).Replace('\', '/')
+    $parts = [Collections.Generic.List[string]]::new()
+    $parts.Add("$relativeCatalogPath=$(Get-Sha256 $catalogPath)")
+    foreach ($sourceId in @($SourceIds | Sort-Object -Unique)) {
+        $source = @($catalog.sources | Where-Object source_id -CEQ $sourceId)
+        if ($source.Count -eq 1) {
+            $parts.Add("$sourceId=$($source[0].sha256)")
+        }
+    }
+    return $parts -join "; "
+}
+
+function Assert-MemberRecordsEqual {
+    param(
+        [Parameter(Mandatory)][object[]]$Expected,
+        [Parameter(Mandatory)][AllowEmptyCollection()][object[]]$Actual,
+        [Parameter(Mandatory)][string]$Description,
+        [Parameter(Mandatory)][string]$AffectedSurface
+    )
+
+    $expectedByKey = @{}
+    foreach ($record in $Expected) { $expectedByKey[$record.key] = $record }
+    $actualByKey = @{}
+    foreach ($record in $Actual) { $actualByKey[$record.key] = $record }
+    $differences = [Collections.Generic.List[string]]::new()
+    foreach ($key in @($expectedByKey.Keys + $actualByKey.Keys | Sort-Object -Unique)) {
+        $expectedRecord = $expectedByKey[$key]
+        $actualRecord = $actualByKey[$key]
+        $expectedValue = if ($null -eq $expectedRecord) { "missing" } else { $expectedRecord.value }
+        $actualValue = if ($null -eq $actualRecord) { "missing" } else { $actualRecord.value }
+        if ($expectedValue -cne $actualValue) {
+            $sourceIds = if ($null -eq $expectedRecord) {
+                @()
+            }
+            else {
+                @($expectedRecord.evidence_source_ids)
+            }
+            $differences.Add(
+                "member '$key' expected '$expectedValue' but found '$actualValue'. " +
+                "Evidence: $(Get-EvidenceSummary -SourceIds $sourceIds). " +
+                "Affected generated surface: $AffectedSurface")
+        }
+    }
+    if ($differences.Count -ne 0) {
+        throw "$Description member-level drift:`n$($differences -join "`n")"
+    }
+}
+
 function Split-TopLevel {
     param([Parameter(Mandatory)][AllowEmptyString()][string]$Value)
     $parts = [Collections.Generic.List[string]]::new()
@@ -164,6 +217,7 @@ try {
         throw "The accepted issue #82 decisions require 314 reviewed-no-default inputs and an empty pending queue."
     }
     $registry = Get-Content -Raw -LiteralPath (Join-Path $repositoryRoot "bindings\sa\$SpatialAnalyzerTarget\registry.json") | ConvertFrom-Json -Depth 100
+    $bindingReview = Get-Content -Raw -LiteralPath $reviewPath | ConvertFrom-Json -Depth 100
 
     $catalogFamilies = @($catalog.families | Sort-Object family_id | ForEach-Object {
             [ordered]@{
@@ -195,23 +249,131 @@ try {
 
     Assert-JsonEqual @($catalog.enum_types.public_type | Sort-Object) @($proto.Enums.Keys | Sort-Object) "Public enum type inventory"
     foreach ($enumType in $catalog.enum_types) {
-        Assert-JsonEqual @($enumType.members | Select-Object public_symbol, public_number) @($proto.Enums[$enumType.public_type]) "Public enum '$($enumType.public_type)'"
-        Assert-JsonEqual @($enumType.members.worker_symbol) @($worker.Enums[$enumType.worker_type]) "Worker enum '$($enumType.worker_type)'"
+        $expectedPublicMembers = @($enumType.members | ForEach-Object {
+                [pscustomobject]@{
+                    key = $_.public_symbol
+                    value = "$($_.public_number)"
+                    evidence_source_ids = @($_.evidence_source_ids)
+                }
+            })
+        $actualPublicMembers = @($proto.Enums[$enumType.public_type] | ForEach-Object {
+                [pscustomobject]@{
+                    key = $_.public_symbol
+                    value = "$($_.public_number)"
+                    evidence_source_ids = @()
+                }
+            })
+        Assert-MemberRecordsEqual `
+            -Expected $expectedPublicMembers `
+            -Actual $actualPublicMembers `
+            -Description "Public enum '$($enumType.public_type)'" `
+            -AffectedSurface "proto/briosa/sa/$targetToken/v1alpha1"
+
+        $expectedWorkerMembers = @($enumType.members | ForEach-Object {
+                [pscustomobject]@{
+                    key = $_.worker_symbol
+                    value = $_.worker_symbol
+                    evidence_source_ids = @($_.evidence_source_ids)
+                }
+            })
+        $actualWorkerMembers = @($worker.Enums[$enumType.worker_type] | ForEach-Object {
+                [pscustomobject]@{
+                    key = $_
+                    value = $_
+                    evidence_source_ids = @()
+                }
+            })
+        Assert-MemberRecordsEqual `
+            -Expected $expectedWorkerMembers `
+            -Actual $actualWorkerMembers `
+            -Description "Worker enum '$($enumType.worker_type)'" `
+            -AffectedSurface "src/Briosa.Worker/Sdk"
     }
-    $catalogLiteralMap = @{}
-    foreach ($enumType in $catalog.enum_types) {
-        foreach ($member in $enumType.members) { $catalogLiteralMap["$($enumType.worker_type).$($member.worker_symbol)"] = $member.sdk_literal }
-    }
-    Assert-JsonEqual @($catalogLiteralMap.Keys | Sort-Object) @($sdkLiterals.Keys | Sort-Object) "SDK enum literal key inventory"
-    foreach ($key in $catalogLiteralMap.Keys) {
-        if ($catalogLiteralMap[$key] -cne $sdkLiterals[$key]) { throw "SDK literal '$key' differs from the committed evidence catalog." }
-    }
+    $expectedSdkLiterals = @($catalog.enum_types | ForEach-Object {
+            $enumType = $_
+            $enumType.members | ForEach-Object {
+                [pscustomobject]@{
+                    key = "$($enumType.worker_type).$($_.worker_symbol)"
+                    value = $_.sdk_literal
+                    evidence_source_ids = @($_.evidence_source_ids)
+                }
+            }
+        })
+    $actualSdkLiterals = @($sdkLiterals.Keys | ForEach-Object {
+            [pscustomobject]@{
+                key = $_
+                value = $sdkLiterals[$_]
+                evidence_source_ids = @()
+            }
+        })
+    Assert-MemberRecordsEqual `
+        -Expected $expectedSdkLiterals `
+        -Actual $actualSdkLiterals `
+        -Description "SDK enum literals" `
+        -AffectedSurface "src/Briosa.Worker/Sdk"
 
     Assert-JsonEqual @($catalog.structured_types.public_type | Sort-Object) @($proto.Messages.Keys | Sort-Object) "Public structured type inventory"
     foreach ($structuredType in $catalog.structured_types) {
-        Assert-JsonEqual @($structuredType.public_fields) @($proto.Messages[$structuredType.public_type]) "Public fields for '$($structuredType.public_type)'"
-        Assert-JsonEqual @($structuredType.worker_fields) @($worker.Records[$structuredType.worker_type]) "Worker fields for '$($structuredType.worker_type)'"
+        $expectedPublicFields = @($structuredType.public_fields | ForEach-Object {
+                [pscustomobject]@{
+                    key = $_.name
+                    value = "$($_.number)|$($_.type)|$($_.cardinality)"
+                    evidence_source_ids = @($structuredType.evidence_source_ids)
+                }
+            })
+        $actualPublicFields = @($proto.Messages[$structuredType.public_type] | ForEach-Object {
+                [pscustomobject]@{
+                    key = $_.name
+                    value = "$($_.number)|$($_.type)|$($_.cardinality)"
+                    evidence_source_ids = @()
+                }
+            })
+        Assert-MemberRecordsEqual `
+            -Expected $expectedPublicFields `
+            -Actual $actualPublicFields `
+            -Description "Public fields for '$($structuredType.public_type)'" `
+            -AffectedSurface "proto/briosa/sa/$targetToken/v1alpha1"
+
+        $expectedWorkerFields = @($structuredType.worker_fields | ForEach-Object {
+                [pscustomobject]@{
+                    key = $_
+                    value = $_
+                    evidence_source_ids = @($structuredType.evidence_source_ids)
+                }
+            })
+        $actualWorkerFields = @($worker.Records[$structuredType.worker_type] | ForEach-Object {
+                [pscustomobject]@{
+                    key = $_
+                    value = $_
+                    evidence_source_ids = @()
+                }
+            })
+        Assert-MemberRecordsEqual `
+            -Expected $expectedWorkerFields `
+            -Actual $actualWorkerFields `
+            -Description "Worker fields for '$($structuredType.worker_type)'" `
+            -AffectedSurface "src/Briosa.Worker/Sdk"
     }
+
+    $expectedAssignments = @($catalog.command_assignments | ForEach-Object {
+            [pscustomobject]@{
+                key = "$($_.method)|$($_.inventory_key)|$($_.sdk_order)"
+                value = "$($_.family_id)|$(@($_.documented_ordinals) -join ',')"
+                evidence_source_ids = @($_.evidence_source_ids)
+            }
+        })
+    $actualAssignments = @($bindingReview.argument_family_assignments | ForEach-Object {
+            [pscustomobject]@{
+                key = "$($_.method)|$($_.inventory_key)|$($_.sdk_order)"
+                value = "$($_.family_id)|$(@($_.documented_ordinals) -join ',')"
+                evidence_source_ids = @()
+            }
+        })
+    Assert-MemberRecordsEqual `
+        -Expected $expectedAssignments `
+        -Actual $actualAssignments `
+        -Description "Command-argument family assignments" `
+        -AffectedSurface "bindings/sa/$SpatialAnalyzerTarget/review.json"
 
     $first = Invoke-Synchronization (Join-Path $temporaryRoot "first")
     $second = Invoke-Synchronization (Join-Path $temporaryRoot "second")

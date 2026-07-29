@@ -1,0 +1,181 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://spatialanalyzer.github.io/briosa/schemas/eng/full-surface-policy.schema.json",
+  "title": "Briosa full-surface CI policy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schema_version",
+    "targets",
+    "surfaces",
+    "released_protocol_baselines",
+    "sharding",
+    "budgets"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "schemas/full-surface-policy.schema.json"
+    },
+    "schema_version": {
+      "const": 1
+    },
+    "targets": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+$"
+      }
+    },
+    "surfaces": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "evidence_paths",
+          "committed_outputs"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+          },
+          "evidence_paths": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "committed_outputs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "generated_path",
+                "repository_path",
+                "mode"
+              ],
+              "properties": {
+                "generated_path": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "repository_path": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "mode": {
+                  "enum": [
+                    "file",
+                    "tree",
+                    "tree_overlay"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "released_protocol_baselines": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ref",
+          "commit",
+          "packages"
+        ],
+        "properties": {
+          "ref": {
+            "type": "string",
+            "pattern": "^refs/tags/v[0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z.-]+)?$"
+          },
+          "commit": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{40}$"
+          },
+          "packages": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "pattern": "^briosa\\.[a-z0-9_.]+$"
+            }
+          }
+        }
+      }
+    },
+    "sharding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "algorithm",
+        "shard_count"
+      ],
+      "properties": {
+        "algorithm": {
+          "const": "target-then-surface-ordinal-modulo"
+        },
+        "shard_count": {
+          "type": "integer",
+          "enum": [
+            1
+          ]
+        }
+      }
+    },
+    "budgets": {
+      "type": "array",
+      "minItems": 7,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "metric",
+          "unit",
+          "maximum",
+          "review_path"
+        ],
+        "properties": {
+          "metric": {
+            "enum": [
+              "restore",
+              "generation",
+              "compile",
+              "test",
+              "package",
+              "startup",
+              "descriptor-size"
+            ]
+          },
+          "unit": {
+            "enum": [
+              "seconds",
+              "bytes"
+            ]
+          },
+          "maximum": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "review_path": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}

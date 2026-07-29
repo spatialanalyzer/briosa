@@ -5,7 +5,9 @@ param(
 
     [string]$OutputDirectory = "artifacts\protocol-smoke",
 
-    [string]$BufPath = "buf"
+    [string]$BufPath = "buf",
+
+    [string]$MetricsOutputDirectory = "artifacts\ci-metrics\package-smoke"
 )
 
 Set-StrictMode -Version Latest
@@ -44,7 +46,8 @@ function Get-AggregateFingerprint {
         [Security.Cryptography.SHA256]::HashData($bytes)).ToLowerInvariant()
 }
 
-$sourceRevision = (& git -C $repositoryRoot rev-parse HEAD).Trim()
+$safeRepositoryRoot = $repositoryRoot.Replace('\', '/')
+$sourceRevision = (& git -c "safe.directory=$safeRepositoryRoot" -C $repositoryRoot rev-parse HEAD).Trim()
 if ($LASTEXITCODE -ne 0 -or $sourceRevision -notmatch '^[0-9a-fA-F]{40}$') {
     throw "Could not determine a complete source revision."
 }
@@ -194,6 +197,10 @@ try {
     $rebuiltHash = (Get-FileHash -LiteralPath $rebuiltDescriptor -Algorithm SHA256).Hash
     Assert-Condition -Condition ($descriptorHash -eq $rebuiltHash) -Message "The bundled descriptor does not match the bundled sources."
     Assert-Condition -Condition ($manifest.descriptor_set_sha256 -eq $descriptorHash.ToLowerInvariant()) -Message "The descriptor manifest hash is stale."
+    & (Join-Path $PSScriptRoot "Measure-CiBudget.ps1") `
+        -Metric descriptor-size `
+        -ObservedValue ([IO.FileInfo]::new($descriptorPath).Length) `
+        -OutputDirectory $MetricsOutputDirectory
 
     $liveFixturePath = Join-Path $bundleRoot "conformance\v1\live-scenarios.json"
     $liveFixtures = Get-Content -LiteralPath $liveFixturePath -Raw | ConvertFrom-Json

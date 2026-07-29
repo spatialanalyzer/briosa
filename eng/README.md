@@ -2,6 +2,20 @@
 
 Run the scripts in this directory from the repository root. Most scripts require PowerShell 7 and the repository's documented .NET SDK. Protocol schema and artifact work also requires Buf 1.72.0. Interop generation requires Visual Studio Developer PowerShell. The licensed-SA scripts are the only scripts in this directory that may connect to SpatialAnalyzer; follow their explicit opt-in guidance.
 
+## Complete-surface and CI-budget verification
+
+`Verify-FullSurface.ps1` is the ordinary-CI umbrella for disposition, value-family, binding-registry, scaffold, catalog-artifact, and interop validation. It generates every configured surface twice in clean temporary roots, discovers all emitted paths, compares bytes and committed freshness, runs the existing semantic validators, and writes a fingerprinted manifest under `artifacts/full-surface`:
+
+```powershell
+./eng/Verify-FullSurface.ps1
+```
+
+The schema-validated `full-surface-policy.json` owns exact targets, evidence paths, committed-output mappings, explicit released protocol baselines, deterministic sharding, and budgets. The released-baseline list is empty while Briosa is unreleased; `main` is never treated as published. Catalog output discovery is recursive and does not assume a single operation-protocol file or fixed partition names.
+
+`Measure-CiBudget.ps1` measures a command duration or validates an observed size/duration, writes a JSON metric, and fails when the raw value exceeds the reviewed threshold; only display values are rounded. `Test-CiBudgetPolicy.ps1` verifies the exact boundary. CI measures locked restore, full generation, compile, tests, Windows packaging, packaged-host startup, and protocol descriptor size and uploads the reports. Multi-shard execution is fail-closed until CI has a checked matrix. See [the full-surface gate guide](../docs/development/full-surface-gates.md) before changing a baseline, budget, target, mapping, or sharding policy.
+
+`Verify-CiWorkflow.ps1` protects the ordinary workflow trigger and concurrency policy. Feature branches are validated by one `pull_request` run when they target `main`; `push` validation is restricted to `main`, and a newer commit cancels an obsolete run for the same pull request or branch. This avoids running the same Windows jobs for both `push` and `pull_request` on every open branch while retaining post-merge validation of `main`.
+
 ## Protocol verification
 
 `Verify-Protocol.ps1` requires Buf 1.72.0. It verifies canonical formatting, lint rules, and schema compilation:
@@ -11,8 +25,10 @@ Run the scripts in this directory from the repository root. Most scripts require
 ```
 
 Briosa is currently unreleased, so ordinary validation does not treat `main`
-as a published compatibility baseline. After the first public release, run the
-strict FILE-level comparison against its explicit Git ref:
+as a published compatibility baseline. After the first public release, record
+its immutable tag and commit in `full-surface-policy.json`; the full-surface
+gate runs the strict FILE-level comparison against every recorded release.
+For a focused local comparison, run:
 
 ```powershell
 ./eng/Verify-Protocol.ps1 -AgainstRef <released-ref>

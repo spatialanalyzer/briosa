@@ -1,0 +1,142 @@
+{
+  "$schema": "schemas/full-surface-policy.schema.json",
+  "schema_version": 1,
+  "targets": [
+    "2026.1.0529.7"
+  ],
+  "surfaces": [
+    {
+      "id": "disposition",
+      "evidence_paths": [
+        "inventory/sa/{target}/inventory.json",
+        "disposition/sa/{target}/manifest.json"
+      ],
+      "committed_outputs": [
+        {
+          "generated_path": ".",
+          "repository_path": "disposition/sa/{target}",
+          "mode": "tree"
+        }
+      ]
+    },
+    {
+      "id": "value-family",
+      "evidence_paths": [
+        "inventory/sa/{target}/inventory.json",
+        "values/sa/{target}/catalog.json",
+        "bindings/sa/{target}/review.json"
+      ],
+      "committed_outputs": [
+        {
+          "generated_path": "binding-review.json",
+          "repository_path": "bindings/sa/{target}/review.json",
+          "mode": "file"
+        },
+        {
+          "generated_path": "generated",
+          "repository_path": "generated/values/sa/{target}",
+          "mode": "tree"
+        },
+        {
+          "generated_path": "value-families.md",
+          "repository_path": "docs/reference/generated/sa/{target}/value-families.md",
+          "mode": "file"
+        }
+      ]
+    },
+    {
+      "id": "binding-registry",
+      "evidence_paths": [
+        "inventory/sa/{target}/inventory.json",
+        "disposition/sa/{target}/manifest.json",
+        "interop/SpatialAnalyzer/{target}/Briosa.SpatialAnalyzer.Interop.PublicApi.txt",
+        "bindings/sa/{target}/review.json"
+      ],
+      "committed_outputs": [
+        {
+          "generated_path": "registry.json",
+          "repository_path": "bindings/sa/{target}/registry.json",
+          "mode": "file"
+        },
+        {
+          "generated_path": "report.md",
+          "repository_path": "bindings/sa/{target}/report.md",
+          "mode": "file"
+        }
+      ]
+    },
+    {
+      "id": "catalog-scaffolds",
+      "evidence_paths": [
+        "inventory/sa/{target}/inventory.json",
+        "disposition/sa/{target}/manifest.json",
+        "values/sa/{target}/catalog.json",
+        "catalog/sa/{target}/catalog.json"
+      ],
+      "committed_outputs": []
+    },
+    {
+      "id": "catalog-artifacts",
+      "evidence_paths": [
+        "catalog/sa/{target}",
+        "proto"
+      ],
+      "committed_outputs": [
+        {
+          "generated_path": ".",
+          "repository_path": ".",
+          "mode": "tree_overlay"
+        }
+      ]
+    }
+  ],
+  "released_protocol_baselines": [],
+  "sharding": {
+    "algorithm": "target-then-surface-ordinal-modulo",
+    "shard_count": 1
+  },
+  "budgets": [
+    {
+      "metric": "restore",
+      "unit": "seconds",
+      "maximum": 300,
+      "review_path": "docs/development/full-surface-gates.md#ci-budgets"
+    },
+    {
+      "metric": "generation",
+      "unit": "seconds",
+      "maximum": 360,
+      "review_path": "docs/development/full-surface-gates.md#ci-budgets"
+    },
+    {
+      "metric": "compile",
+      "unit": "seconds",
+      "maximum": 300,
+      "review_path": "docs/development/full-surface-gates.md#ci-budgets"
+    },
+    {
+      "metric": "test",
+      "unit": "seconds",
+      "maximum": 600,
+      "review_path": "docs/development/full-surface-gates.md#ci-budgets"
+    },
+    {
+      "metric": "package",
+      "unit": "seconds",
+      "maximum": 900,
+      "review_path": "docs/development/full-surface-gates.md#ci-budgets"
+    },
+    {
+      "metric": "startup",
+      "unit": "seconds",
+      "maximum": 30,
+      "review_path": "docs/development/full-surface-gates.md#ci-budgets"
+    },
+    {
+      "metric": "descriptor-size",
+      "unit": "bytes",
+      "maximum": 4194304,
+      "review_path": "docs/development/full-surface-gates.md#ci-budgets"
+    }
+  ]
+}

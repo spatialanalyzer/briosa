@@ -73,6 +73,8 @@ From a clean repository checkout:
 
 The script uses locked `win-x64` restores, clean self-contained publishes, deterministic ZIP ordering and timestamps, and writes the ZIP, external checksum, and external provenance manifest to `artifacts/`.
 
+Ordinary CI wraps the complete two-build package verification in the reviewed `package` duration budget. `Test-WindowsPackage.ps1` separately measures process start through the first accepted loopback connection against the `startup` budget and writes both machine-readable reports below `artifacts/ci-metrics`. Thresholds and their adjustment evidence are defined in the [full-surface gate guide](../development/full-surface-gates.md); a slow run is not an implicit waiver.
+
 Run `./eng/Test-WindowsPackage.ps1 -Version 0.1.0-test` to build twice and verify identical archive hashes, all checksums, manifest/default configuration, offline diagnostics, and host launch without SpatialAnalyzer.
 
 ## Release production

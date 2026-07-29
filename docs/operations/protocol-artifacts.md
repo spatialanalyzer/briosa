@@ -49,6 +49,8 @@ Regeneration is an explicit dependency update. Download the chosen release artif
 
 Build from the repository root with PowerShell 7 and Buf 1.72.0. Git is required only when `-SourceRevision` is omitted; the script then records the current `HEAD`. The protocol artifact scripts do not install, launch, or connect to SpatialAnalyzer and require neither an SA license nor proprietary SDK binaries. The repository's .NET SDK remains necessary for the wider build and client-conformance workflow, but the protocol ZIP producer itself invokes Buf rather than `dotnet`.
 
+`Test-ProtocolArtifact.ps1` records the verified descriptor-set byte count against the repository-owned `descriptor-size` CI budget. The JSON metric is written below `artifacts/ci-metrics` and uploaded by ordinary CI. See the [full-surface gate guide](../development/full-surface-gates.md) for the threshold and required review evidence before adjustment.
+
 Create one artifact and its sidecars with explicit release coordinates:
 
 ```powershell
