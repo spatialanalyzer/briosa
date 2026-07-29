@@ -462,6 +462,15 @@ internal static class GrpcOperationOutcomeMapper
             WorkerMpValueKind.Logical => value.BooleanValue.HasValue,
             WorkerMpValueKind.WholeNumber => value.IntegerValue.HasValue,
             WorkerMpValueKind.FloatingPoint => value.DoubleValue.HasValue,
+            WorkerMpValueKind.DoubleArray => value.DoubleArrayValue is not null,
+            WorkerMpValueKind.EditText => value.StringListValue is not null,
+            WorkerMpValueKind.Transform => value.TransformValue is not null,
+            WorkerMpValueKind.WorldTransform => value.WorldTransformValue is not null,
+            WorkerMpValueKind.FileReference => value.FileReferenceValue is not null,
+            WorkerMpValueKind.FitConstraintScalarOptions =>
+                value.FitConstraintScalarOptionsValue is not null,
+            WorkerMpValueKind.ToleranceScalarOptions =>
+                value.ToleranceScalarOptionsValue is not null,
             WorkerMpValueKind.Text or
             WorkerMpValueKind.ChartName or
             WorkerMpValueKind.CloudName or
@@ -479,6 +488,10 @@ internal static class GrpcOperationOutcomeMapper
                 value.CollectionInstrumentIdListValue is not null,
             WorkerMpValueKind.CollectionMachineId =>
                 value.CollectionMachineIdValue is not null,
+            WorkerMpValueKind.CollectionItemName =>
+                value.CollectionItemNameValue is not null,
+            WorkerMpValueKind.CollectionItemNameList =>
+                value.CollectionItemNameListValue is not null,
             WorkerMpValueKind.CollectionObjectName =>
                 value.CollectionObjectNameValue is not null,
             WorkerMpValueKind.CollectionObjectNameList =>

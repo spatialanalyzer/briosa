@@ -3,6 +3,7 @@ using Briosa.Server.Services;
 using Briosa.Server.Workers;
 using Briosa.Worker.Control;
 using Grpc.Core;
+using System.Text.Json;
 
 namespace Briosa.Server.Tests;
 
@@ -13,6 +14,149 @@ public sealed class GrpcOperationOutcomeMapperTests
     [
         new("directory", "Directory", WorkerMpValueKind.Text)
     ];
+    private static readonly Dictionary<string, WorkerMpOutputValue> GetterFamilyOutputs =
+        new(StringComparer.Ordinal)
+        {
+            ["collection_instrument_id"] = new(
+                "Output",
+                WorkerMpValueKind.CollectionInstrumentId,
+                Retrieved: true,
+                CollectionInstrumentIdValue: new WorkerCollectionInstrumentIdValue(
+                    string.Empty,
+                    InstrumentId: 0)),
+            ["collection_instrument_id_list"] = new(
+                "Output",
+                WorkerMpValueKind.CollectionInstrumentIdList,
+                Retrieved: true,
+                CollectionInstrumentIdListValue: new WorkerCollectionInstrumentIdListValue([])),
+            ["collection_item_name"] = new(
+                "Output",
+                WorkerMpValueKind.CollectionItemName,
+                Retrieved: true,
+                CollectionItemNameValue: new WorkerCollectionItemNameValue(
+                    string.Empty,
+                    string.Empty,
+                    WorkerItemTypeValue.Any)),
+            ["collection_item_name_list"] = new(
+                "Output",
+                WorkerMpValueKind.CollectionItemNameList,
+                Retrieved: true,
+                CollectionItemNameListValue: new WorkerCollectionItemNameListValue([])),
+            ["collection_name"] = new(
+                "Output",
+                WorkerMpValueKind.CollectionName,
+                Retrieved: true,
+                StringValue: string.Empty),
+            ["collection_object_name"] = new(
+                "Output",
+                WorkerMpValueKind.CollectionObjectName,
+                Retrieved: true,
+                CollectionObjectNameValue: new WorkerCollectionObjectNameValue(
+                    string.Empty,
+                    string.Empty,
+                    WorkerObjectTypeValue.Any)),
+            ["collection_object_name_list"] = new(
+                "Output",
+                WorkerMpValueKind.CollectionObjectNameList,
+                Retrieved: true,
+                CollectionObjectNameListValue: new WorkerCollectionObjectNameListValue([])),
+            ["double_array"] = new(
+                "Output",
+                WorkerMpValueKind.DoubleArray,
+                Retrieved: true,
+                DoubleArrayValue: new WorkerDoubleArrayValue([])),
+            ["edit_text"] = new(
+                "Output",
+                WorkerMpValueKind.EditText,
+                Retrieved: true,
+                StringListValue: new WorkerStringListValue([])),
+            ["file_reference"] = new(
+                "Output",
+                WorkerMpValueKind.FileReference,
+                Retrieved: true,
+                FileReferenceValue: new WorkerFileReferenceValue(
+                    string.Empty,
+                    EmbeddedFile: false)),
+            ["fit_constraint_scalar_options"] = new(
+                "Output",
+                WorkerMpValueKind.FitConstraintScalarOptions,
+                Retrieved: true,
+                FitConstraintScalarOptionsValue: new WorkerFitConstraintScalarOptionsValue(
+                    new WorkerScalarToleranceLimit(Enabled: false, Value: 0),
+                    new WorkerScalarToleranceLimit(Enabled: false, Value: 0))),
+            ["floating_point"] = new(
+                "Output",
+                WorkerMpValueKind.FloatingPoint,
+                Retrieved: true,
+                DoubleValue: 0),
+            ["logical"] = new(
+                "Output",
+                WorkerMpValueKind.Logical,
+                Retrieved: true,
+                BooleanValue: false),
+            ["point_name"] = new(
+                "Output",
+                WorkerMpValueKind.PointName,
+                Retrieved: true,
+                PointNameValue: new WorkerPointNameValue(
+                    string.Empty,
+                    string.Empty,
+                    string.Empty)),
+            ["point_name_list"] = new(
+                "Output",
+                WorkerMpValueKind.PointNameList,
+                Retrieved: true,
+                PointNameListValue: new WorkerPointNameListValue([])),
+            ["string"] = new(
+                "Output",
+                WorkerMpValueKind.Text,
+                Retrieved: true,
+                StringValue: string.Empty),
+            ["string_list"] = new(
+                "Output",
+                WorkerMpValueKind.StringList,
+                Retrieved: true,
+                StringListValue: new WorkerStringListValue([])),
+            ["tolerance_scalar_options"] = new(
+                "Output",
+                WorkerMpValueKind.ToleranceScalarOptions,
+                Retrieved: true,
+                ToleranceScalarOptionsValue: new WorkerToleranceScalarOptionsValue(
+                    new WorkerScalarToleranceLimit(Enabled: false, Value: 0),
+                    new WorkerScalarToleranceLimit(Enabled: false, Value: 0))),
+            ["tolerance_vector_options"] = new(
+                "Output",
+                WorkerMpValueKind.ToleranceVectorOptions,
+                Retrieved: true,
+                ToleranceVectorOptionsValue: CreateDisabledVectorTolerance()),
+            ["transform"] = new(
+                "Output",
+                WorkerMpValueKind.Transform,
+                Retrieved: true,
+                TransformValue: new WorkerTransformValue(new double[16])),
+            ["vector3"] = new(
+                "Output",
+                WorkerMpValueKind.Vector,
+                Retrieved: true,
+                VectorValue: new WorkerVectorValue(X: 0, Y: 0, Z: 0)),
+            ["vector_name_list"] = new(
+                "Output",
+                WorkerMpValueKind.VectorNameList,
+                Retrieved: true,
+                VectorNameListValue: new WorkerVectorNameListValue([])),
+            ["whole_number"] = new(
+                "Output",
+                WorkerMpValueKind.WholeNumber,
+                Retrieved: true,
+                IntegerValue: 0),
+            ["world_transform"] = new(
+                "Output",
+                WorkerMpValueKind.WorldTransform,
+                Retrieved: true,
+                WorldTransformValue: new WorkerWorldTransformValue(
+                    new WorkerTransformValue(new double[16]),
+                    ScaleFactor: 0))
+        };
 
     public static TheoryData<
         int,
@@ -397,6 +541,50 @@ public sealed class GrpcOperationOutcomeMapperTests
     }
 
     [Fact]
+    public void UsableGetterFamiliesPreserveDefaultLikeAndEmptyPresentValues()
+    {
+        foreach (var (familyId, output) in GetterFamilyOutputs)
+        {
+            var outcome = Completed(
+                executeStepReturned: true,
+                mpSucceeded: true,
+                [output],
+                diagnosticCode: null);
+            SuccessfulOperationExecution? result = null;
+
+            var exception = Record.Exception(() =>
+                result = GrpcOperationOutcomeMapper.RequireSuccess(
+                    outcome,
+                    OperationId,
+                    ReplaySafety.Safe,
+                    [new OperationOutputContract("value", output.Name, output.Kind)],
+                    callerDeadlineExceeded: false));
+
+            Assert.True(exception is null, $"Getter family '{familyId}' failed: {exception}");
+            var successful = result ??
+                throw new InvalidOperationException($"Getter family '{familyId}' returned no result.");
+            Assert.Same(output, Assert.Single(successful.Execution.OutputValues));
+            Assert.Equal(MpExecutionState.Succeeded, successful.Details.State);
+            Assert.True(successful.Details.HasMpResultCode);
+            Assert.Equal(2, successful.Details.MpResultCode);
+            Assert.Equal(
+                OutputRetrievalState.Retrieved,
+                Assert.Single(successful.Details.OutputRetrievals).State);
+        }
+    }
+
+    [Fact]
+    public void EveryUsableGetterFamilyHasAServerOutcomeMappingCase()
+    {
+        var coveredFamilies = GetterFamilyOutputs.Keys
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+        var usableGetterFamilies = LoadUsableGetterFamilies();
+
+        Assert.Equal(usableGetterFamilies, coveredFamilies);
+    }
+
+    [Fact]
     public void MissingOutputIsAnInternalShapeFailure()
     {
         var outcome = Completed(
@@ -440,6 +628,55 @@ public sealed class GrpcOperationOutcomeMapperTests
             Connection(WorkerConnectionState.Connected),
             diagnosticCode ?? "completed",
             Generation: 7);
+
+    private static WorkerToleranceVectorOptionsValue CreateDisabledVectorTolerance()
+    {
+        var disabled = new WorkerToleranceLimit(Enabled: false, Value: 0);
+        return new(
+            disabled,
+            disabled,
+            disabled,
+            disabled,
+            disabled,
+            disabled,
+            disabled,
+            disabled);
+    }
+
+    private static string[] LoadUsableGetterFamilies()
+    {
+        var repositoryRoot = FindRepositoryRoot().FullName;
+        using var registry = JsonDocument.Parse(File.ReadAllText(Path.Combine(
+            repositoryRoot,
+            "bindings",
+            "sa",
+            "2026.1.0529.7",
+            "registry.json")));
+
+        return registry.RootElement.GetProperty("bindings")
+            .EnumerateArray()
+            .Where(binding =>
+                binding.GetProperty("registry_status").GetString() == "usable" &&
+                binding.GetProperty("direction").GetString() == "getter")
+            .SelectMany(binding => binding.GetProperty("semantic_value_families")
+                .EnumerateArray())
+            .Select(family => family.GetString()!)
+            .Distinct(StringComparer.Ordinal)
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+    }
+
+    private static DirectoryInfo FindRepositoryRoot()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "Briosa.slnx")))
+        {
+            directory = directory.Parent;
+        }
+
+        return directory ??
+            throw new DirectoryNotFoundException("Could not locate the Briosa repository root.");
+    }
 
     private static WorkerConnectionSnapshot Connection(WorkerConnectionState state) =>
         new(
