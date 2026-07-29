@@ -4,13 +4,23 @@ Run the scripts in this directory from the repository root. Most scripts require
 
 ## Complete-surface and CI-budget verification
 
-`Verify-FullSurface.ps1` is the ordinary-CI umbrella for disposition, value-family, binding-registry, scaffold, catalog-artifact, portable-conformance, and interop validation. It generates every configured surface twice in clean temporary roots, discovers all emitted paths, compares bytes and committed freshness, runs the existing semantic validators, and writes a fingerprinted manifest under `artifacts/full-surface`:
+`Verify-FullSurface.ps1` is the ordinary-CI umbrella for disposition, value-family, binding-registry, scaffold, catalog-artifact, portable-conformance, release-evidence, and interop validation. It generates every configured surface twice in clean temporary roots, discovers all emitted paths, compares bytes and committed freshness, runs the existing semantic validators, and writes a fingerprinted manifest under `artifacts/full-surface`:
 
 ```powershell
 ./eng/Verify-FullSurface.ps1
 ```
 
-The schema-validated `full-surface-policy.json` owns exact targets, evidence paths, committed-output mappings, explicit released protocol baselines, deterministic sharding, and budgets. The released-baseline list is empty while Briosa is unreleased; `main` is never treated as published. Catalog output discovery is recursive and does not assume a single operation-protocol file or fixed partition names.
+The schema-validated `full-surface-policy.json` owns exact targets, evidence paths, committed-output mappings, explicit released protocol baselines, deterministic sharding, and budgets. The released-baseline list is empty while Briosa is unreleased; `main` is never treated as published. Catalog output discovery is recursive and does not assume a single operation-protocol file or fixed partition names. Release evidence enumerates catalog manifests and operation files dynamically, so later delivery waves do not require a second support list.
+
+## Release evidence verification
+
+`Verify-ReleaseEvidence.ps1` schema-checks and regenerates the exact-target support matrix and release audit. It joins all disposition entries to the supported catalog and portable conformance manifest, verifies evidence hashes and one-to-one inventory accounting, generates twice, and rejects stale JSON or Markdown:
+
+```powershell
+./eng/Verify-ReleaseEvidence.ps1
+```
+
+The audit policy below `release/sa/<target>` remains fail-closed for protected conformance and runtime-identity evidence. Ordinary CI verifies that pending state without contacting SpatialAnalyzer. `Assert-ReleaseReady.ps1` repeats the verifier and then fails if any audit criterion is blocked; `.github/workflows/release.yml` runs it before uploading or publishing release assets. See [the release-evidence guide](../docs/development/release-evidence.md).
 
 `Measure-CiBudget.ps1` measures a command duration or validates an observed size, duration, latency, or memory value; it writes a JSON metric and fails when the raw value exceeds the reviewed threshold, while only display values are rounded. `Test-CiBudgetPolicy.ps1` verifies exact and just-over boundaries. CI measures locked restore, full generation, compile, tests, Windows packaging, packaged-host startup, protocol descriptor size, Windows package size, startup working set, fake-worker dispatch, request-mapping and discovery p95, and retained managed memory, then uploads the reports. Multi-shard execution is fail-closed until CI has a checked matrix. See [the full-surface gate guide](../docs/development/full-surface-gates.md) before changing a baseline, budget, target, mapping, or sharding policy.
 

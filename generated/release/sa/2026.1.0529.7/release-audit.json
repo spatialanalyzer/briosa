@@ -1,0 +1,143 @@
+{
+  "$schema": "../../../../release/schemas/v1/release-audit.schema.json",
+  "schema_version": 1,
+  "generated_by": "Briosa.Generator release evidence",
+  "spatial_analyzer_target": "2026.1.0529.7",
+  "master_epic": "https://github.com/spatialanalyzer/briosa/issues/47",
+  "release_ready": false,
+  "evidence_inputs": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256": "5da55e8ef01626bf3bc61b41da59653bfa3d97432823cd1cc6953dc169a12c95"
+    },
+    {
+      "path": ".github/workflows/release.yml",
+      "sha256": "7548eb8fedeca4f00005eaa4be4b45b7e9a562fbbf9c55e4b0ad0b05024284da"
+    },
+    {
+      "path": "docs/architecture/0018-uncertain-completion-and-replay.md",
+      "sha256": "090ab07d9ad9497262fac0293ca8c7c0783daf120f2a191e145f4d1e386b300f"
+    },
+    {
+      "path": "docs/architecture/0019-global-state-workflow-isolation.md",
+      "sha256": "ed80da086f10ae56d8a9d9c7227bd4f451485a41823ca5bd16f1b603083ed841"
+    },
+    {
+      "path": "docs/architecture/0022-runtime-identity-and-attestation.md",
+      "sha256": "868b4c2852e73ecce30783d15e40176cf6c6bad2d60235fc3a1707f8ed9d8a3c"
+    },
+    {
+      "path": "docs/operations/command-policy-and-auditing.md",
+      "sha256": "250eabdeed24d4e1f718330395c7491406d76ab17a0f4dc1a10bad5a1fd5f18e"
+    },
+    {
+      "path": "docs/operations/licensed-sa-runner.md",
+      "sha256": "a7d35e757c8277051dd2db05b0e2585d069c3d48cd9cc6b96c431de7c071ebea"
+    },
+    {
+      "path": "docs/security/threat-model.md",
+      "sha256": "face32fc9d24e674c30813c954aaa2766500248349514dfeb661a99a59cde8b4"
+    },
+    {
+      "path": "docs/testing/portable-conformance.md",
+      "sha256": "54e93c489b045c4777790c0389a1b54e7e398ae15b8c806603dfa2cc4f5c3693"
+    },
+    {
+      "path": "docs/testing/runtime-performance-and-soak.md",
+      "sha256": "2d543ad82fe12d209d9cb49cfd4877ecaeffc1626fd2b496c7d7ecdf5c1f86f6"
+    },
+    {
+      "path": "eng/full-surface-policy.json",
+      "sha256": "bb4fc69d422d3239824b1ef34e3979d06d0cd361250b393424bea6f7ba4903ef"
+    },
+    {
+      "path": "generated/release/sa/2026.1.0529.7/support-matrix.json",
+      "sha256": "4298bc7435b1bb443ab95a2c12435238c6fa11548e7e36845f38b05e5fdd6601"
+    },
+    {
+      "path": "release/sa/2026.1.0529.7/audit-policy.json",
+      "sha256": "003183ead56cc6c67ea19095b3e21181fa722c267677d0ac23673507cd106a03"
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "blocked": 2,
+    "not_applicable": 2
+  },
+  "criteria": [
+    {
+      "criterion_id": "epic-47-portable-conformance",
+      "source": "https://github.com/spatialanalyzer/briosa/issues/47",
+      "description": "Portable tests cover every cataloged operation.",
+      "status": "passed",
+      "evidence": [
+        "generated/release/sa/2026.1.0529.7/support-matrix.json",
+        "generated/conformance/sa/2026.1.0529.7/manifest.json"
+      ],
+      "blocker_references": []
+    },
+    {
+      "criterion_id": "epic-47-protected-runner",
+      "source": "https://github.com/spatialanalyzer/briosa/issues/47",
+      "description": "The protected runner executes the approved real-SA matrix from trusted artifacts.",
+      "status": "blocked",
+      "evidence": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/20",
+        "https://github.com/spatialanalyzer/briosa/issues/69"
+      ]
+    },
+    {
+      "criterion_id": "epic-47-risk-fixtures",
+      "source": "https://github.com/spatialanalyzer/briosa/issues/47",
+      "description": "Mutating and device-related operations have reviewed fixtures and controls.",
+      "status": "not_applicable",
+      "evidence": [],
+      "blocker_references": []
+    },
+    {
+      "criterion_id": "epic-47-performance-and-reproducibility",
+      "source": "https://github.com/spatialanalyzer/briosa/issues/47",
+      "description": "Full-surface budgets and byte-reproducible package gates are configured.",
+      "status": "passed",
+      "evidence": [
+        "eng/full-surface-policy.json",
+        "eng/Test-RuntimePerformance.ps1",
+        "eng/Test-WindowsPackage.ps1",
+        "eng/Test-ProtocolArtifact.ps1",
+        ".github/workflows/release.yml"
+      ],
+      "blocker_references": []
+    },
+    {
+      "criterion_id": "epic-47-support-matrix",
+      "source": "https://github.com/spatialanalyzer/briosa/issues/47",
+      "description": "Every exact-target inventory command has one fail-closed classification.",
+      "status": "passed",
+      "evidence": [
+        "generated/release/sa/2026.1.0529.7/support-matrix.json"
+      ],
+      "blocker_references": []
+    },
+    {
+      "criterion_id": "issue-72-runtime-identity-validation",
+      "source": "https://github.com/spatialanalyzer/briosa/issues/72",
+      "description": "Exact-target runtime identity policy has protected matching and mismatch evidence.",
+      "status": "blocked",
+      "evidence": [],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/70"
+      ]
+    },
+    {
+      "criterion_id": "issue-72-protocol-baselines",
+      "source": "https://github.com/spatialanalyzer/briosa/issues/72",
+      "description": "No immutable protocol baseline is required before the first public release.",
+      "status": "not_applicable",
+      "evidence": [
+        "eng/full-surface-policy.json"
+      ],
+      "blocker_references": []
+    }
+  ]
+}

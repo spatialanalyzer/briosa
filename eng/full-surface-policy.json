@@ -105,6 +105,50 @@
           "mode": "file"
         }
       ]
+    },
+    {
+      "id": "release-evidence",
+      "evidence_paths": [
+        ".github/workflows/ci.yml",
+        ".github/workflows/release.yml",
+        "catalog/sa/{target}",
+        "disposition/sa/{target}/manifest.json",
+        "docs/architecture/0018-uncertain-completion-and-replay.md",
+        "docs/architecture/0019-global-state-workflow-isolation.md",
+        "docs/architecture/0022-runtime-identity-and-attestation.md",
+        "docs/operations/command-policy-and-auditing.md",
+        "docs/operations/licensed-sa-runner.md",
+        "docs/security/threat-model.md",
+        "docs/testing/portable-conformance.md",
+        "docs/testing/runtime-performance-and-soak.md",
+        "eng/full-surface-policy.json",
+        "generated/conformance/sa/{target}/manifest.json",
+        "inventory/sa/{target}/inventory.json",
+        "release/sa/{target}/audit-policy.json",
+        "release/schemas/v1"
+      ],
+      "committed_outputs": [
+        {
+          "generated_path": "docs/reference/generated/sa/{target}/release-audit.md",
+          "repository_path": "docs/reference/generated/sa/{target}/release-audit.md",
+          "mode": "file"
+        },
+        {
+          "generated_path": "docs/reference/generated/sa/{target}/support-matrix.md",
+          "repository_path": "docs/reference/generated/sa/{target}/support-matrix.md",
+          "mode": "file"
+        },
+        {
+          "generated_path": "generated/release/sa/{target}/release-audit.json",
+          "repository_path": "generated/release/sa/{target}/release-audit.json",
+          "mode": "file"
+        },
+        {
+          "generated_path": "generated/release/sa/{target}/support-matrix.json",
+          "repository_path": "generated/release/sa/{target}/support-matrix.json",
+          "mode": "file"
+        }
+      ]
     }
   ],
   "released_protocol_baselines": [],
