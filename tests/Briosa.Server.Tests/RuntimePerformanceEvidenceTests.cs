@@ -36,7 +36,11 @@ public sealed class RuntimePerformanceEvidenceTests
                 restartDelay: TimeSpan.Zero),
             new WorkerExecutionPolicy(
                 watchdogTimeout: TimeSpan.FromSeconds(2),
-                queueCapacity: 64));
+                queueCapacity: 64),
+            identityPolicy: ExactTargetIdentityPolicy.CreateForTesting(
+                "2026.1.0529.7",
+                activatedSdkVersion: "2026.1.0529.7",
+                connectedSpatialAnalyzerVersion: "2026.1.0529.7"));
 
         Assert.True(await supervisor.StartAsync());
         for (var index = 0; index < WarmupRequestCount; index++)

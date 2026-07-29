@@ -41,7 +41,7 @@ internal sealed class ServerDiscoveryService(
     internal CoreProtocol.GetServerInfoResponse CreateServerInfo()
     {
         var snapshot = _statusProvider.Current;
-        return new CoreProtocol.GetServerInfoResponse
+        var response = new CoreProtocol.GetServerInfoResponse
         {
             Version = _buildIdentity.CreateVersionCoordinates(),
             WorkerState = ToProtocolState(snapshot.State),
@@ -50,9 +50,15 @@ internal sealed class ServerDiscoveryService(
                 ToProtocolState(snapshot.Connection?.ExecutionReadinessState),
             ReadyForMp = WorkerReadinessHealthCheck.IsReady(snapshot),
             TargetIsolationMode = _operationPolicy.TargetIsolationMode,
-            ConnectedSpatialAnalyzerVersionState =
-                CoreProtocol.ConnectedSpatialAnalyzerVersionState.Unavailable
+            ActivatedSdkIdentity = ToProtocolIdentity(
+                snapshot.RuntimeIdentity?.ActivatedSdk),
+            ConnectedSpatialAnalyzerIdentity = ToProtocolIdentity(
+                snapshot.RuntimeIdentity?.ConnectedSpatialAnalyzer)
         };
+        PopulateLegacyConnectedIdentity(
+            response,
+            snapshot.RuntimeIdentity?.ConnectedSpatialAnalyzer);
+        return response;
     }
 
     internal CoreProtocol.ListCapabilitiesResponse CreateCapabilities()
@@ -127,4 +133,62 @@ internal sealed class ServerDiscoveryService(
                 CoreProtocol.SpatialAnalyzerExecutionReadinessState.OperatorRecoveryRequired,
             _ => CoreProtocol.SpatialAnalyzerExecutionReadinessState.Unspecified
         };
+
+    private static CoreProtocol.RuntimeIdentityEvidence ToProtocolIdentity(
+        RuntimeIdentityEvidence? evidence)
+    {
+        var response = new CoreProtocol.RuntimeIdentityEvidence
+        {
+            Source = evidence?.Source switch
+            {
+                RuntimeIdentityEvidenceSource.RuntimeVerification =>
+                    CoreProtocol.RuntimeIdentityEvidenceSource.RuntimeVerification,
+                RuntimeIdentityEvidenceSource.OperatorAttestation =>
+                    CoreProtocol.RuntimeIdentityEvidenceSource.OperatorAttestation,
+                _ => CoreProtocol.RuntimeIdentityEvidenceSource.Unavailable
+            },
+            MatchState = evidence?.MatchState switch
+            {
+                RuntimeIdentityMatchState.ExactMatch =>
+                    CoreProtocol.RuntimeIdentityMatchState.ExactMatch,
+                RuntimeIdentityMatchState.Mismatch =>
+                    CoreProtocol.RuntimeIdentityMatchState.Mismatch,
+                _ => CoreProtocol.RuntimeIdentityMatchState.Unavailable
+            }
+        };
+        if (evidence?.Version is not null)
+        {
+            response.Version = evidence.Version;
+        }
+
+        return response;
+    }
+
+    private static void PopulateLegacyConnectedIdentity(
+        CoreProtocol.GetServerInfoResponse response,
+        RuntimeIdentityEvidence? evidence)
+    {
+        if (evidence?.Version is not null)
+        {
+            response.ConnectedSpatialAnalyzerVersion = evidence.Version;
+        }
+
+        response.ConnectedSpatialAnalyzerVersionState =
+            (evidence?.Source, evidence?.MatchState) switch
+            {
+                (RuntimeIdentityEvidenceSource.RuntimeVerification,
+                    RuntimeIdentityMatchState.ExactMatch) =>
+                    CoreProtocol.ConnectedSpatialAnalyzerVersionState.VerifiedMatch,
+                (RuntimeIdentityEvidenceSource.RuntimeVerification,
+                    RuntimeIdentityMatchState.Mismatch) =>
+                    CoreProtocol.ConnectedSpatialAnalyzerVersionState.VerifiedMismatch,
+                (RuntimeIdentityEvidenceSource.OperatorAttestation,
+                    RuntimeIdentityMatchState.ExactMatch) =>
+                    CoreProtocol.ConnectedSpatialAnalyzerVersionState.OperatorAttestedMatch,
+                (RuntimeIdentityEvidenceSource.OperatorAttestation,
+                    RuntimeIdentityMatchState.Mismatch) =>
+                    CoreProtocol.ConnectedSpatialAnalyzerVersionState.OperatorAttestedMismatch,
+                _ => CoreProtocol.ConnectedSpatialAnalyzerVersionState.Unavailable
+            };
+    }
 }

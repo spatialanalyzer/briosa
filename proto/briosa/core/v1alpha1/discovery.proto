@@ -29,6 +29,30 @@ message GetServerInfoResponse {
   ConnectedSpatialAnalyzerVersionState connected_spatial_analyzer_version_state = 6;
   SpatialAnalyzerExecutionReadinessState spatial_analyzer_execution_readiness_state = 7;
   TargetIsolationMode target_isolation_mode = 8;
+  RuntimeIdentityEvidence activated_sdk_identity = 9;
+  RuntimeIdentityEvidence connected_spatial_analyzer_identity = 10;
+}
+
+message RuntimeIdentityEvidence {
+  // Present only when runtime verification or an explicit operator attestation
+  // supplied a version. It is never copied from the configured target.
+  optional string version = 1;
+  RuntimeIdentityEvidenceSource source = 2;
+  RuntimeIdentityMatchState match_state = 3;
+}
+
+enum RuntimeIdentityEvidenceSource {
+  RUNTIME_IDENTITY_EVIDENCE_SOURCE_UNSPECIFIED = 0;
+  RUNTIME_IDENTITY_EVIDENCE_SOURCE_UNAVAILABLE = 1;
+  RUNTIME_IDENTITY_EVIDENCE_SOURCE_RUNTIME_VERIFICATION = 2;
+  RUNTIME_IDENTITY_EVIDENCE_SOURCE_OPERATOR_ATTESTATION = 3;
+}
+
+enum RuntimeIdentityMatchState {
+  RUNTIME_IDENTITY_MATCH_STATE_UNSPECIFIED = 0;
+  RUNTIME_IDENTITY_MATCH_STATE_UNAVAILABLE = 1;
+  RUNTIME_IDENTITY_MATCH_STATE_EXACT_MATCH = 2;
+  RUNTIME_IDENTITY_MATCH_STATE_MISMATCH = 3;
 }
 
 // Describes how callers may share one worker/SpatialAnalyzer target.
@@ -71,6 +95,8 @@ enum ConnectedSpatialAnalyzerVersionState {
   CONNECTED_SPATIAL_ANALYZER_VERSION_STATE_UNAVAILABLE = 1;
   CONNECTED_SPATIAL_ANALYZER_VERSION_STATE_VERIFIED_MATCH = 2;
   CONNECTED_SPATIAL_ANALYZER_VERSION_STATE_VERIFIED_MISMATCH = 3;
+  CONNECTED_SPATIAL_ANALYZER_VERSION_STATE_OPERATOR_ATTESTED_MATCH = 4;
+  CONNECTED_SPATIAL_ANALYZER_VERSION_STATE_OPERATOR_ATTESTED_MISMATCH = 5;
 }
 
 message ListCapabilitiesRequest {}

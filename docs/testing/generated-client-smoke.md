@@ -17,7 +17,7 @@ Build a package and run all generated-client scenarios on an ordinary Windows x6
   -PackagePath artifacts/generated-client/briosa-0.1.0-test-sa-2026.1.0529.7-win-x64.zip
 ```
 
-These tests load `conformance/v1/live-scenarios.json` and substitute the separate `Briosa.SmokeWorker.exe` process for the real SDK worker. They require neither SpatialAnalyzer nor a license and cover:
+These tests load `conformance/v1/live-scenarios.json` and substitute the separate `Briosa.SmokeWorker.exe` process for the real SDK worker. The harness supplies per-claim operator attestations labeled `portable-fake-worker` so the packaged host exercises its identity gate without presenting those inputs as release evidence. They require neither SpatialAnalyzer nor a license and cover:
 
 | Client scenario | Expected public behavior |
 | --- | --- |
@@ -53,6 +53,10 @@ Then run:
 ```powershell
 ./eng/Test-LicensedSpatialAnalyzer.ps1 `
   -PackagePath artifacts/release/briosa-0.1.0-sa-2026.1.0529.7-win-x64.zip `
+  -ActivatedSdkAttestedVersion 2026.1.0529.7 `
+  -ActivatedSdkAttestationReference change-record:SDK-identity-review `
+  -ConnectedSpatialAnalyzerAttestedVersion 2026.1.0529.7 `
+  -ConnectedSpatialAnalyzerAttestationReference change-record:SA-install-review `
   -ConfirmLicensedSpatialAnalyzerTest
 ```
 
@@ -65,6 +69,6 @@ The script:
 5. requires successful MP execution and result-only retrieval without logging the returned directory; and
 6. stops only the Briosa processes it created and reports a residual SDK process.
 
-The connected SA version remains reported as unverified because the approved SDK interface has no reviewed version query. The exact executable prerequisite and package target provide the controlled test assumption; they do not change runtime discovery semantics.
+The approved SDK interface still has no reviewed version query. The two required references identify operator-retained evidence for the exact SDK registration and connected application used by the run; they are not derived from the package target and are not logged or returned by discovery. Discovery reports both claims as operator-attested. This does not satisfy issue #70's pending Hexagon clarification or protected deliberate-mismatch validation.
 
 Do not inject MP failures, hangs, crashes, or getter failures into a real production SA session. Those behaviors remain portable fake-worker tests. The [licensed runner operations guide](../operations/licensed-sa-runner.md) defines the protected workflow, provisioning boundary, state checks, and recovery procedure.

@@ -9,6 +9,11 @@ using Grpc.AspNetCore.HealthChecks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
+using ProtocolIdentityMatchState = Briosa.Core.V1Alpha1.RuntimeIdentityMatchState;
+using ProtocolIdentitySource = Briosa.Core.V1Alpha1.RuntimeIdentityEvidenceSource;
+using ServerIdentityEvidence = Briosa.Server.Workers.RuntimeIdentityEvidence;
+using ServerIdentityMatchState = Briosa.Server.Workers.RuntimeIdentityMatchState;
+using ServerIdentitySource = Briosa.Server.Workers.RuntimeIdentityEvidenceSource;
 
 namespace Briosa.Server.Tests;
 
@@ -62,11 +67,15 @@ public sealed class DiscoveryServiceTests
     [Fact]
     public void ServerInfoReportsSafeStateWithoutInventingConnectedVersion()
     {
+        var snapshot = Snapshot(
+            WorkerLifecycleState.Ready,
+            WorkerConnectionState.Connected,
+            WorkerExecutionReadinessState.ExecutionReady) with
+        {
+            RuntimeIdentity = UnavailableIdentity()
+        };
         var service = new ServerDiscoveryService(
-            new FakeWorkerStatusProvider(Snapshot(
-                WorkerLifecycleState.Ready,
-                WorkerConnectionState.Connected,
-                WorkerExecutionReadinessState.ExecutionReady)),
+            new FakeWorkerStatusProvider(snapshot),
             new FakeBuildIdentityProvider(),
             CreatePolicy());
 
@@ -82,12 +91,20 @@ public sealed class DiscoveryServiceTests
         Assert.Equal(
             SpatialAnalyzerExecutionReadinessState.ExecutionReady,
             response.SpatialAnalyzerExecutionReadinessState);
-        Assert.True(response.ReadyForMp);
+        Assert.False(response.ReadyForMp);
         Assert.Equal(TargetIsolationMode.SingleTenant, response.TargetIsolationMode);
         Assert.False(response.HasConnectedSpatialAnalyzerVersion);
         Assert.Equal(
             ConnectedSpatialAnalyzerVersionState.Unavailable,
             response.ConnectedSpatialAnalyzerVersionState);
+        Assert.False(response.ActivatedSdkIdentity.HasVersion);
+        Assert.Equal(
+            ProtocolIdentitySource.Unavailable,
+            response.ActivatedSdkIdentity.Source);
+        Assert.Equal(
+            ProtocolIdentityMatchState.Unavailable,
+            response.ActivatedSdkIdentity.MatchState);
+        Assert.False(response.ConnectedSpatialAnalyzerIdentity.HasVersion);
     }
 
     [Fact]
@@ -110,6 +127,81 @@ public sealed class DiscoveryServiceTests
             SpatialAnalyzerExecutionReadinessState.Unverified,
             response.SpatialAnalyzerExecutionReadinessState);
         Assert.False(response.ReadyForMp);
+    }
+
+    [Fact]
+    public void DiscoveryPreservesIndependentRuntimeAndAttestedIdentityEvidence()
+    {
+        var snapshot = Snapshot(
+            WorkerLifecycleState.Ready,
+            WorkerConnectionState.Connected,
+            WorkerExecutionReadinessState.ExecutionReady) with
+        {
+            RuntimeIdentity = new ExactTargetIdentitySnapshot(
+                new ServerIdentityEvidence(
+                    "2026.1.0529.7",
+                    ServerIdentitySource.RuntimeVerification,
+                    ServerIdentityMatchState.ExactMatch),
+                new ServerIdentityEvidence(
+                    "2026.1.0529.7",
+                    ServerIdentitySource.OperatorAttestation,
+                    ServerIdentityMatchState.ExactMatch))
+        };
+
+        var response = new ServerDiscoveryService(
+            new FakeWorkerStatusProvider(snapshot),
+            new FakeBuildIdentityProvider(),
+            CreatePolicy())
+            .CreateServerInfo();
+
+        Assert.True(response.ReadyForMp);
+        Assert.Equal(
+            ProtocolIdentitySource.RuntimeVerification,
+            response.ActivatedSdkIdentity.Source);
+        Assert.Equal(
+            ProtocolIdentitySource.OperatorAttestation,
+            response.ConnectedSpatialAnalyzerIdentity.Source);
+        Assert.Equal(
+            ConnectedSpatialAnalyzerVersionState.OperatorAttestedMatch,
+            response.ConnectedSpatialAnalyzerVersionState);
+        Assert.Equal(
+            "2026.1.0529.7",
+            response.ConnectedSpatialAnalyzerVersion);
+    }
+
+    [Fact]
+    public void VerifiedMismatchIsDiscoverableAndCannotReportReady()
+    {
+        var snapshot = Snapshot(
+            WorkerLifecycleState.Ready,
+            WorkerConnectionState.Connected,
+            WorkerExecutionReadinessState.ExecutionReady) with
+        {
+            RuntimeIdentity = new ExactTargetIdentitySnapshot(
+                new ServerIdentityEvidence(
+                    "2025.0",
+                    ServerIdentitySource.RuntimeVerification,
+                    ServerIdentityMatchState.Mismatch),
+                new ServerIdentityEvidence(
+                    "2026.1.0529.7",
+                    ServerIdentitySource.RuntimeVerification,
+                    ServerIdentityMatchState.ExactMatch))
+        };
+
+        var response = new ServerDiscoveryService(
+            new FakeWorkerStatusProvider(snapshot),
+            new FakeBuildIdentityProvider(),
+            CreatePolicy())
+            .CreateServerInfo();
+
+        Assert.False(response.ReadyForMp);
+        Assert.Equal("2025.0", response.ActivatedSdkIdentity.Version);
+        Assert.Equal(
+            ProtocolIdentityMatchState.Mismatch,
+            response.ActivatedSdkIdentity.MatchState);
+        Assert.Equal(
+            ProtocolIdentityMatchState.ExactMatch,
+            response.ConnectedSpatialAnalyzerIdentity.MatchState);
     }
 
     [Fact]
@@ -211,7 +303,30 @@ public sealed class DiscoveryServiceTests
                     MaximumAttempts: 3,
                     "sensitive-connection-diagnostic",
                     DateTimeOffset.UtcNow),
-            DateTimeOffset.UtcNow);
+            DateTimeOffset.UtcNow,
+            MatchingIdentity());
+
+    private static ExactTargetIdentitySnapshot MatchingIdentity() =>
+        new(
+            new ServerIdentityEvidence(
+                "2026.1.0529.7",
+                ServerIdentitySource.OperatorAttestation,
+                ServerIdentityMatchState.ExactMatch),
+            new ServerIdentityEvidence(
+                "2026.1.0529.7",
+                ServerIdentitySource.OperatorAttestation,
+                ServerIdentityMatchState.ExactMatch));
+
+    private static ExactTargetIdentitySnapshot UnavailableIdentity() =>
+        new(
+            new ServerIdentityEvidence(
+                Version: null,
+                ServerIdentitySource.Unavailable,
+                ServerIdentityMatchState.Unavailable),
+            new ServerIdentityEvidence(
+                Version: null,
+                ServerIdentitySource.Unavailable,
+                ServerIdentityMatchState.Unavailable));
 
     private sealed class FakeWorkerStatusProvider(WorkerLifecycleSnapshot current) :
         IWorkerStatusProvider

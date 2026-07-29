@@ -28,6 +28,10 @@ internal static class WorkerProcessRegistration
             configuration,
             "Briosa:Worker:ExecutionWatchdogTimeout",
             TimeSpan.FromSeconds(30));
+        var identityPolicy = ExactTargetIdentityPolicy.Create(
+            configuration,
+            TargetCatalogMetadata.SpatialAnalyzerTarget);
+        services.TryAddSingleton(identityPolicy);
 
         services.TryAddSingleton(provider =>
         {
@@ -51,7 +55,8 @@ internal static class WorkerProcessRegistration
                 processFactory,
                 policy,
                 executionPolicy,
-                logger: provider.GetRequiredService<ILogger<WorkerProcessSupervisor>>());
+                logger: provider.GetRequiredService<ILogger<WorkerProcessSupervisor>>(),
+                identityPolicy: provider.GetRequiredService<ExactTargetIdentityPolicy>());
         });
         services.TryAddSingleton<OperationAuditLogger>();
         services.TryAddSingleton(_ => OperationPolicy.Create(
@@ -114,11 +119,23 @@ internal sealed partial class WorkerSupervisorHostedService(
         var connection = _supervisor.Current.Connection!;
         if (connection.State == WorkerConnectionState.Connected &&
             connection.ExecutionReadinessState ==
-                WorkerExecutionReadinessState.ExecutionReady)
+                WorkerExecutionReadinessState.ExecutionReady &&
+            _supervisor.Current.RuntimeIdentity?.AllowsExecution == true)
         {
             LogWorkerReady(
                 _supervisor.Current.Generation,
                 connection.StatusCode);
+        }
+        else if (connection.State == WorkerConnectionState.Connected &&
+            _supervisor.Current.RuntimeIdentity?.AllowsExecution != true)
+        {
+            var identity = _supervisor.Current.RuntimeIdentity!;
+            LogWorkerIdentityNotReady(
+                _supervisor.Current.Generation,
+                identity.ActivatedSdk.Source,
+                identity.ActivatedSdk.MatchState,
+                identity.ConnectedSpatialAnalyzer.Source,
+                identity.ConnectedSpatialAnalyzer.MatchState);
         }
         else
         {
@@ -156,4 +173,15 @@ internal sealed partial class WorkerSupervisorHostedService(
         WorkerExecutionReadinessState executionReadinessState,
         int? statusCode,
         string diagnosticCode);
+
+    [LoggerMessage(
+        EventId = 1004,
+        Level = LogLevel.Warning,
+        Message = "Briosa worker generation {Generation} attached but exact-target identity is not ready, so the execution-channel probe was not admitted: activated SDK {ActivatedSdkIdentitySource}/{ActivatedSdkIdentityMatchState}, connected SA {ConnectedSaIdentitySource}/{ConnectedSaIdentityMatchState}.")]
+    private partial void LogWorkerIdentityNotReady(
+        int generation,
+        RuntimeIdentityEvidenceSource activatedSdkIdentitySource,
+        RuntimeIdentityMatchState activatedSdkIdentityMatchState,
+        RuntimeIdentityEvidenceSource connectedSaIdentitySource,
+        RuntimeIdentityMatchState connectedSaIdentityMatchState);
 }

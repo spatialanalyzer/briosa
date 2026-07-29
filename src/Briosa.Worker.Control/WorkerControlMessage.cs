@@ -4,7 +4,7 @@ namespace Briosa.Worker.Control;
 
 public static class WorkerControlProtocol
 {
-    public const int CurrentVersion = 10;
+    public const int CurrentVersion = 11;
 
     public const int MaximumMessageBytes = 64 * 1024;
 }
@@ -239,6 +239,20 @@ public enum WorkerExecutionReadinessState
     OperatorRecoveryRequired
 }
 
+public enum WorkerRuntimeIdentityEvidenceSource
+{
+    Unavailable,
+    RuntimeVerified
+}
+
+public sealed record WorkerRuntimeIdentityEvidence(
+    string? Version,
+    WorkerRuntimeIdentityEvidenceSource Source);
+
+public sealed record WorkerRuntimeIdentitySnapshot(
+    WorkerRuntimeIdentityEvidence ActivatedSdk,
+    WorkerRuntimeIdentityEvidence ConnectedSpatialAnalyzer);
+
 public sealed record WorkerConnectionSnapshot(
     WorkerConnectionState State,
     WorkerExecutionReadinessState ExecutionReadinessState,
@@ -246,7 +260,8 @@ public sealed record WorkerConnectionSnapshot(
     int Attempt,
     int MaximumAttempts,
     string DiagnosticCode,
-    DateTimeOffset TransitionedAt);
+    DateTimeOffset TransitionedAt,
+    WorkerRuntimeIdentitySnapshot? RuntimeIdentity = null);
 
 public sealed record WorkerPointNameValue(
     string CollectionName,

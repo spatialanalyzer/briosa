@@ -14,6 +14,7 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
             new JsonStringEnumConverter<WorkerControlMessageKind>(JsonNamingPolicy.CamelCase),
             new JsonStringEnumConverter<WorkerConnectionState>(JsonNamingPolicy.CamelCase),
             new JsonStringEnumConverter<WorkerExecutionReadinessState>(JsonNamingPolicy.CamelCase),
+            new JsonStringEnumConverter<WorkerRuntimeIdentityEvidenceSource>(JsonNamingPolicy.CamelCase),
             new JsonStringEnumConverter<WorkerMpValueKind>(JsonNamingPolicy.CamelCase),
             new JsonStringEnumConverter<WorkerAngularUnitValue>(JsonNamingPolicy.CamelCase),
             new JsonStringEnumConverter<WorkerDistanceUnitValue>(JsonNamingPolicy.CamelCase),
@@ -172,7 +173,27 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
             throw new InvalidDataException(
                 "The worker connection snapshot has an invalid state or shape.");
         }
+
+        if (connection.RuntimeIdentity is { } identity &&
+            (!IsValidIdentityEvidence(identity.ActivatedSdk) ||
+                !IsValidIdentityEvidence(identity.ConnectedSpatialAnalyzer)))
+        {
+            throw new InvalidDataException(
+                "The worker runtime identity evidence has an invalid shape.");
+        }
     }
+
+    private static bool IsValidIdentityEvidence(WorkerRuntimeIdentityEvidence? evidence) =>
+        evidence is not null && Enum.IsDefined(evidence.Source) && evidence.Source switch
+        {
+            WorkerRuntimeIdentityEvidenceSource.Unavailable => evidence.Version is null,
+            WorkerRuntimeIdentityEvidenceSource.RuntimeVerified =>
+                !string.IsNullOrWhiteSpace(evidence.Version) &&
+                evidence.Version.Length <= 128 &&
+                !evidence.Version.Contains('\r', StringComparison.Ordinal) &&
+                !evidence.Version.Contains('\n', StringComparison.Ordinal),
+            _ => false
+        };
 
     private static void ValidateCommand(WorkerMpCommand? command)
     {

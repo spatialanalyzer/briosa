@@ -12,6 +12,7 @@ briosa-<briosa-version>-sa-2026.1.0529.7-win-x64.zip
 - SpatialAnalyzer 2026.1.0529.7 installed separately.
 - A valid SpatialAnalyzer license appropriate for the operations you perform.
 - SpatialAnalyzer running before Briosa can become ready for MP execution.
+- Runtime-verified exact identity for the activated SDK and connected application, or an explicit per-claim operator attestation backed by retained evidence.
 
 SpatialAnalyzer, its installer, SDK executable, original type library, license material, and vendor documentation are not included. Briosa can start and report liveness without SpatialAnalyzer, but readiness remains not serving until its worker connects and completes the bounded execution-channel probe.
 
@@ -39,7 +40,9 @@ The packaged default binds unencrypted HTTP/2 to loopback only at `127.0.0.1:500
 ./Briosa.Server.exe
 ```
 
-The default SpatialAnalyzer SDK target is `localhost`. The public endpoint has one authoritative configuration surface: `Briosa:Endpoint:Address` and `Briosa:Endpoint:Port`. The address must be an IPv4 or IPv6 loopback IP literal. Generic ASP.NET Core URL settings, configured Kestrel endpoints, hostnames, wildcards, LAN addresses, and public addresses are rejected at startup.
+The default SpatialAnalyzer SDK target is `localhost`. That configured target identifies where Briosa connects; it does not identify the activated SDK or connected application release. The current adapter has no reviewed runtime version query, so an ordinary deployment must supply the independent version/reference attestations documented in [the health and discovery guide](health-and-discovery.md). Missing evidence remains live but not ready; a verified mismatch cannot be overridden.
+
+The public endpoint has one authoritative configuration surface: `Briosa:Endpoint:Address` and `Briosa:Endpoint:Port`. The address must be an IPv4 or IPv6 loopback IP literal. Generic ASP.NET Core URL settings, configured Kestrel endpoints, hostnames, wildcards, LAN addresses, and public addresses are rejected at startup.
 
 LAN, Internet, reverse-proxy, tunnel, shared-host, and other remotely reachable deployments are unsupported. Briosa v0.1 has no client authentication, per-operation authorization, or TLS configuration. See the [public endpoint operator guide](endpoint-security.md) and [v0.1 threat model](../security/threat-model.md) before deployment.
 

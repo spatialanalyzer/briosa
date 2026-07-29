@@ -112,6 +112,10 @@ function Start-ScenarioServer {
         "BRIOSA_TEST_WORKER_STATE_PATH" = $StatePath
         "Briosa__Worker__ExecutionWatchdogTimeout" = $WatchdogTimeout
         "Briosa__Security__Operations__Deny__0" = $(if ($DenyOperation) { "file_operations.get_working_directory" } else { $null })
+        "Briosa__SpatialAnalyzer__Identity__ActivatedSdk__OperatorAttestation__Version" = "2026.1.0529.7"
+        "Briosa__SpatialAnalyzer__Identity__ActivatedSdk__OperatorAttestation__Reference" = "portable-fake-worker"
+        "Briosa__SpatialAnalyzer__Identity__ConnectedSpatialAnalyzer__OperatorAttestation__Version" = "2026.1.0529.7"
+        "Briosa__SpatialAnalyzer__Identity__ConnectedSpatialAnalyzer__OperatorAttestation__Reference" = "portable-fake-worker"
     }
     $previousValues = [ordered]@{}
     foreach ($entry in $environmentValues.GetEnumerator()) {

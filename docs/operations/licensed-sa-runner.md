@@ -49,12 +49,15 @@ The runner requires outbound access to GitHub Actions and artifact endpoints. Br
 2. Close every SpatialAnalyzer instance, Briosa server or worker, and `SpatialAnalyzerSDK` process.
 3. Start exactly one SpatialAnalyzer 2026.1.0529.7 x64 instance and wait until it is ready. This clean sequence lets the first eligible instance acquire the observed SDK ports.
 4. Start the Actions runner interactively in the same dedicated session.
-5. In GitHub Actions, select **Licensed SpatialAnalyzer validation**, choose `main`, and dispatch the workflow.
-6. Review the resolved source commit and hosted `prepare` job before approving the `licensed-sa-2026-1-0529-7` environment.
-7. Confirm that preflight, the generated-client smoke test, postflight, and temporary-payload cleanup all pass.
-8. Stop the Actions runner when validation is complete.
+5. Retain reviewed evidence identifying the activated SDK registration/type-library release and the connected application release. Use short, non-sensitive change-record or validation-record identifiers; do not enter paths, license data, or credentials.
+6. In GitHub Actions, select **Licensed SpatialAnalyzer validation**, choose `main`, enter the version established by each evidence record plus the two independent references, and dispatch the workflow. Do not copy the package target unless the retained evidence independently establishes that value.
+7. Review the resolved source commit and hosted `prepare` job before approving the `licensed-sa-2026-1-0529-7` environment.
+8. Confirm that preflight, the generated-client smoke test, postflight, and temporary-payload cleanup all pass.
+9. Stop the Actions runner when validation is complete.
 
-The hosted job builds the exact-target package and a self-contained generated client, packages only the required test scripts and binaries, and records the trusted source identity. The protected job verifies the payload SHA-256 before executing it and never checks out repository source.
+The hosted job builds the exact-target package and a self-contained generated client, packages only the required test scripts and binaries, and records the trusted source identity. The protected job verifies the payload SHA-256 before executing it and never checks out repository source. The dispatch values enable operator attestation only for that run; Briosa does not put them in application logs or discovery. GitHub may retain workflow-dispatch inputs in run metadata, so the references must be non-sensitive identifiers rather than evidence contents. A runtime-verified mismatch would still override an attestation and fail readiness.
+
+The current runner procedure is a fail-honest deployment gate, not proof of a vendor-supported runtime query. Issue [#70](https://github.com/spatialanalyzer/briosa/issues/70) remains open for Hexagon guidance and protected matching plus deliberately detectable mismatch evidence.
 
 ## State checks and diagnostics
 

@@ -8,6 +8,22 @@ param(
     [Parameter(Mandatory)]
     [switch]$ConfirmLicensedSpatialAnalyzerTest,
 
+    [Parameter(Mandatory)]
+    [ValidateNotNullOrEmpty()]
+    [string]$ActivatedSdkAttestedVersion,
+
+    [Parameter(Mandatory)]
+    [ValidateNotNullOrEmpty()]
+    [string]$ActivatedSdkAttestationReference,
+
+    [Parameter(Mandatory)]
+    [ValidateNotNullOrEmpty()]
+    [string]$ConnectedSpatialAnalyzerAttestedVersion,
+
+    [Parameter(Mandatory)]
+    [ValidateNotNullOrEmpty()]
+    [string]$ConnectedSpatialAnalyzerAttestationReference,
+
     [ValidateRange(1024, 65535)]
     [int]$Port = 50051,
 
@@ -21,6 +37,28 @@ $ErrorActionPreference = "Stop"
 
 if (-not $ConfirmLicensedSpatialAnalyzerTest) {
     throw "Pass -ConfirmLicensedSpatialAnalyzerTest to acknowledge the licensed-machine prerequisites."
+}
+
+foreach ($version in @(
+        $ActivatedSdkAttestedVersion,
+        $ConnectedSpatialAnalyzerAttestedVersion)) {
+    if ([string]::IsNullOrWhiteSpace($version) -or
+        $version.Length -gt 128 -or
+        $version.Contains("`r") -or
+        $version.Contains("`n")) {
+        throw "Identity attestation versions must be non-empty, single-line values of at most 128 characters."
+    }
+}
+
+foreach ($reference in @(
+        $ActivatedSdkAttestationReference,
+        $ConnectedSpatialAnalyzerAttestationReference)) {
+    if ([string]::IsNullOrWhiteSpace($reference) -or
+        $reference.Length -gt 256 -or
+        $reference.Contains("`r") -or
+        $reference.Contains("`n")) {
+        throw "Identity attestation references must be non-empty, single-line values of at most 256 characters."
+    }
 }
 
 if (-not $IsWindows -or -not [Environment]::Is64BitProcess) {
@@ -153,7 +191,13 @@ try {
 
     $processArguments = @{
         FilePath = $serverExecutable
-        ArgumentList = @("--Briosa:Endpoint:Port=$Port")
+        ArgumentList = @(
+            "--Briosa:Endpoint:Port=$Port"
+            "--Briosa:SpatialAnalyzer:Identity:ActivatedSdk:OperatorAttestation:Version=$ActivatedSdkAttestedVersion"
+            "--Briosa:SpatialAnalyzer:Identity:ActivatedSdk:OperatorAttestation:Reference=$ActivatedSdkAttestationReference"
+            "--Briosa:SpatialAnalyzer:Identity:ConnectedSpatialAnalyzer:OperatorAttestation:Version=$ConnectedSpatialAnalyzerAttestedVersion"
+            "--Briosa:SpatialAnalyzer:Identity:ConnectedSpatialAnalyzer:OperatorAttestation:Reference=$ConnectedSpatialAnalyzerAttestationReference"
+        )
         WorkingDirectory = $packageRoot
         WindowStyle = "Hidden"
         RedirectStandardOutput = $standardOutput

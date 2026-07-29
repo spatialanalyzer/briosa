@@ -9,7 +9,7 @@ Use a standard `grpc.health.v1.Health` client with one of these service names:
 | Service name | Meaning |
 | --- | --- |
 | `briosa.liveness` | The public Briosa host is serving. SpatialAnalyzer and worker state do not affect it. |
-| `briosa.readiness` | The worker is control-ready, attached to SpatialAnalyzer, and has completed the bounded execution-channel probe for its current generation. |
+| `briosa.readiness` | The worker is control-ready, attached to SpatialAnalyzer, has completed the bounded execution-channel probe for its current generation, and has exact-match evidence for both runtime identities. |
 
 The standard empty service name returns the aggregate health state. Deployment probes should use the explicit names so a SpatialAnalyzer outage does not restart an otherwise healthy public host.
 
@@ -17,7 +17,7 @@ The standard empty service name returns the aggregate health state. Deployment p
 
 Live SA 2026.1.0529.7 experiments showed that a second SDK client can report a successful `ConnectEx` while blocking indefinitely in `ExecuteStep`. Briosa therefore treats successful attachment as `Unverified` and does not admit ordinary MP work.
 
-The server sends a dedicated private verification request after worker attachment. The worker performs Get Working Directory through the normal SDK sequence on its owning STA, validates MP result code `2` and the expected output shape, then discards the path before replying. The server watchdog bounds the exchange. A timeout, cancellation, worker exit, or lost response moves through `CompetingClientSuspected` to `OperatorRecoveryRequired`, terminates the worker, and does not start an automatic reconnect loop. Establish a clean SpatialAnalyzer/SDK state and restart Briosa before trying again.
+After worker attachment and exact-match identity gating, the server sends a dedicated private verification request. The worker performs Get Working Directory through the normal SDK sequence on its owning STA, validates MP result code `2` and the expected output shape, then discards the path before replying. If either identity is unavailable or mismatched, Briosa does not issue the probe. The server watchdog bounds an issued exchange. A timeout, cancellation, worker exit, or lost response moves through `CompetingClientSuspected` to `OperatorRecoveryRequired`, terminates the worker, and does not start an automatic reconnect loop. Establish a clean SpatialAnalyzer/SDK state and restart Briosa before trying again.
 
 ## Server information
 
@@ -30,7 +30,41 @@ The server sends a dedicated private verification request after worker attachmen
 - the target-isolation mode (`single_tenant` for the current release); and
 - whether MP requests are currently ready.
 
-The connected SpatialAnalyzer version is optional. An SDK connection does not itself establish the connected release, so Briosa reports the version as unavailable until a reviewed runtime probe verifies it. It never substitutes the configured target for an unobserved connected version. The activated SDK engine/type-library version is also a separate identity claim because machine-wide COM registration can select a different installed SDK. Issue [#70](https://github.com/spatialanalyzer/briosa/issues/70) owns runtime verification or explicit operator attestation for both identities.
+The response carries separate evidence objects for the activated SDK engine/type library and connected SpatialAnalyzer application. Each contains an optional version plus:
+
+- a source: `UNAVAILABLE`, `RUNTIME_VERIFICATION`, or `OPERATOR_ATTESTATION`; and
+- a match state: `UNAVAILABLE`, `EXACT_MATCH`, or `MISMATCH`.
+
+The configured target is never substituted for an unobserved runtime version. Runtime verification takes precedence for its own claim, so a configured attestation cannot hide a runtime mismatch. The legacy connected-version fields mirror the effective connected-SA claim for older clients and retain distinct runtime-verified and operator-attested states.
+
+### Operator attestation when runtime evidence is unavailable
+
+The current production adapter has no reviewed runtime query for either identity. With no explicit evidence, Briosa remains live but fails readiness and rejects MP admission with a not-started unavailable outcome. An operator may attest either missing claim independently:
+
+```json
+{
+  "Briosa": {
+    "SpatialAnalyzer": {
+      "Identity": {
+        "ActivatedSdk": {
+          "OperatorAttestation": {
+            "Version": "2026.1.0529.7",
+            "Reference": "change-record:SDK-identity-review"
+          }
+        },
+        "ConnectedSpatialAnalyzer": {
+          "OperatorAttestation": {
+            "Version": "2026.1.0529.7",
+            "Reference": "change-record:SA-install-review"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+Each configured claim requires both `Version` and `Reference`; a partial pair fails startup. The reference identifies separately retained evidence and must not contain a path, credential, license value, or sensitive host detail. It is validated for presence but never returned by discovery or written to default logs. Record the version actually supported by the evidence rather than copying the package target as an assumption. See [ADR 0022](../architecture/0022-runtime-identity-and-attestation.md) for precedence and release-gate limits.
 
 ## Capabilities
 

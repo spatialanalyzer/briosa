@@ -151,7 +151,14 @@ internal static class SmokeWorkerProgram
             Attempt: 1,
             MaximumAttempts: 1,
             connected ? "connect-ex-connected" : "sdk-connection-not-ready",
-            DateTimeOffset.UtcNow);
+            DateTimeOffset.UtcNow,
+            new WorkerRuntimeIdentitySnapshot(
+                new WorkerRuntimeIdentityEvidence(
+                    Version: null,
+                    WorkerRuntimeIdentityEvidenceSource.Unavailable),
+                new WorkerRuntimeIdentityEvidence(
+                    Version: null,
+                    WorkerRuntimeIdentityEvidenceSource.Unavailable)));
     }
 
     private static bool ClaimFirstExecution(string? statePath)

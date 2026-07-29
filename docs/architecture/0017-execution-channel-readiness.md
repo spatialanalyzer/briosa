@@ -4,6 +4,7 @@
 - Date: 2026-07-28
 - Issue: [#91](https://github.com/spatialanalyzer/briosa/issues/91)
 - Amends: [ADR 0003](0003-sdk-connection-lifecycle.md), [ADR 0010](0010-health-version-and-capability-discovery.md)
+- Amended by: [ADR 0022](0022-runtime-identity-and-attestation.md)
 
 ## Context
 
@@ -25,7 +26,7 @@ Briosa separates five readiness dimensions:
 
 A successful `ConnectEx` transitions the SDK attachment to `ConnectedUnverified`. It does not admit catalog operations and cannot make `briosa.readiness` healthy.
 
-Before admitting ordinary MP work, the worker performs one bounded, read-only ownership probe on the same SDK adapter and STA. The initial exact-target probe is Get Working Directory because it is already a reviewed v0.1 operation. The probe performs the normal `SetStep`, execution, MP-result, and output-retrieval sequence, but its returned path is discarded at the worker boundary and never logged or exposed through discovery.
+Before admitting ordinary MP work, and only after [ADR 0022](0022-runtime-identity-and-attestation.md)'s exact-target identity gate passes, the worker performs one bounded, read-only ownership probe on the same SDK adapter and STA. The initial exact-target probe is Get Working Directory because it is already a reviewed v0.1 operation. The probe performs the normal `SetStep`, execution, MP-result, and output-retrieval sequence, but its returned path is discarded at the worker boundary and never logged or exposed through discovery.
 
 The execution-verification states are:
 
@@ -49,7 +50,7 @@ Discovery represents these values independently:
 - activated SDK engine/type-library version and verification state; and
 - connected SpatialAnalyzer application version and verification state.
 
-Configured target text is never copied into an observed-version field. A verified mismatch prevents readiness. When an authoritative runtime query is unavailable, deployment may use the explicit operator-attestation procedure owned by [#70](https://github.com/spatialanalyzer/briosa/issues/70); the attestation state remains distinguishable from runtime verification.
+Configured target text is never copied into an observed-version field. A verified mismatch prevents readiness. When an authoritative runtime query is unavailable, deployment may use the per-claim operator-attestation procedure in [ADR 0022](0022-runtime-identity-and-attestation.md). Runtime evidence always takes precedence, and the attestation state remains distinguishable from runtime verification.
 
 Public readiness requires a control-ready worker, `ExecutionReady`, an open command-admission policy, and an exact-target identity state allowed by the deployment policy. Liveness remains independent of every SDK and SpatialAnalyzer condition.
 

@@ -46,6 +46,39 @@ public sealed class DiscoveryProtocolTests
     }
 
     [Fact]
+    public void RuntimeIdentitiesKeepEvidenceSourceAndMatchStateIndependent()
+    {
+        var response = new GetServerInfoResponse
+        {
+            ActivatedSdkIdentity = new RuntimeIdentityEvidence
+            {
+                Version = "2025.0",
+                Source = RuntimeIdentityEvidenceSource.RuntimeVerification,
+                MatchState = RuntimeIdentityMatchState.Mismatch
+            },
+            ConnectedSpatialAnalyzerIdentity = new RuntimeIdentityEvidence
+            {
+                Version = "2026.1.0529.7",
+                Source = RuntimeIdentityEvidenceSource.OperatorAttestation,
+                MatchState = RuntimeIdentityMatchState.ExactMatch
+            }
+        };
+
+        Assert.Equal(
+            RuntimeIdentityEvidenceSource.RuntimeVerification,
+            response.ActivatedSdkIdentity.Source);
+        Assert.Equal(
+            RuntimeIdentityMatchState.Mismatch,
+            response.ActivatedSdkIdentity.MatchState);
+        Assert.Equal(
+            RuntimeIdentityEvidenceSource.OperatorAttestation,
+            response.ConnectedSpatialAnalyzerIdentity.Source);
+        Assert.Equal(
+            RuntimeIdentityMatchState.ExactMatch,
+            response.ConnectedSpatialAnalyzerIdentity.MatchState);
+    }
+
+    [Fact]
     public void AttachmentAndExecutionReadinessAreIndependentStates()
     {
         var response = new GetServerInfoResponse

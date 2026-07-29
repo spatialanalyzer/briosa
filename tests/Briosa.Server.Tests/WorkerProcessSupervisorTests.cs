@@ -53,6 +53,64 @@ public sealed class WorkerProcessSupervisorTests
     }
 
     [Fact]
+    public async Task ProcessReportedRuntimeMismatchOverridesAttestationAndBlocksAdmission()
+    {
+        await using var supervisor = CreateSupervisor(
+            _ => CreateLaunch("runtime-identity-mismatch"),
+            CreatePolicy());
+
+        Assert.True(await supervisor.StartAsync());
+        var current = supervisor.Current;
+        var outcome = await supervisor.ExecuteAsync(CreateCommand("blocked-by-identity"));
+
+        Assert.Equal(WorkerLifecycleState.Ready, current.State);
+        Assert.Equal(
+            WorkerExecutionReadinessState.Unverified,
+            current.Connection!.ExecutionReadinessState);
+        Assert.False(current.RuntimeIdentity!.AllowsExecution);
+        Assert.Equal(
+            RuntimeIdentityEvidenceSource.RuntimeVerification,
+            current.RuntimeIdentity.ActivatedSdk.Source);
+        Assert.Equal(
+            RuntimeIdentityMatchState.Mismatch,
+            current.RuntimeIdentity.ActivatedSdk.MatchState);
+        Assert.Equal(WorkerExecutionStatus.Unavailable, outcome.Status);
+        Assert.Equal("runtime-identity-not-ready", outcome.DiagnosticCode);
+        Assert.Equal(WorkerExecutionDisposition.NotStarted, outcome.ExecutionDisposition);
+    }
+
+    [Fact]
+    public async Task MalformedProcessIdentityEvidenceFailsWorkerStartup()
+    {
+        await using var supervisor = CreateSupervisor(
+            _ => CreateLaunch("malformed-runtime-identity"),
+            CreatePolicy());
+
+        Assert.False(await supervisor.StartAsync());
+
+        Assert.Equal(WorkerLifecycleState.Degraded, supervisor.Current.State);
+        Assert.Equal("worker-startup-failed", supervisor.Current.DiagnosticCode);
+    }
+
+    [Fact]
+    public async Task UnavailableRuntimeIdentityWithoutAttestationBlocksAdmission()
+    {
+        await using var supervisor = CreateSupervisor(
+            _ => CreateLaunch("normal"),
+            CreatePolicy(),
+            identityPolicy: ExactTargetIdentityPolicy.CreateForTesting(
+                "2026.1.0529.7"));
+
+        Assert.True(await supervisor.StartAsync());
+        var outcome = await supervisor.ExecuteAsync(CreateCommand("unattested"));
+
+        Assert.False(supervisor.Current.RuntimeIdentity!.AllowsExecution);
+        Assert.Equal(WorkerExecutionStatus.Unavailable, outcome.Status);
+        Assert.Equal("runtime-identity-not-ready", outcome.DiagnosticCode);
+        Assert.Equal(WorkerExecutionDisposition.NotStarted, outcome.ExecutionDisposition);
+    }
+
+    [Fact]
     public async Task HungWorkerIsForcedDownAndReplacedWithoutRestartingSupervisor()
     {
         await using var supervisor = CreateSupervisor(
@@ -798,11 +856,17 @@ public sealed class WorkerProcessSupervisorTests
     private static WorkerProcessSupervisor CreateSupervisor(
         Func<int, WorkerProcessLaunch> launchFactory,
         WorkerRestartPolicy policy,
-        WorkerExecutionPolicy? executionPolicy = null) =>
+        WorkerExecutionPolicy? executionPolicy = null,
+        ExactTargetIdentityPolicy? identityPolicy = null) =>
         new(
             new NamedPipeWorkerProcessFactory(launchFactory),
             policy,
-            executionPolicy ?? CreateExecutionPolicy());
+            executionPolicy ?? CreateExecutionPolicy(),
+            identityPolicy: identityPolicy ??
+                ExactTargetIdentityPolicy.CreateForTesting(
+                    "2026.1.0529.7",
+                    activatedSdkVersion: "2026.1.0529.7",
+                    connectedSpatialAnalyzerVersion: "2026.1.0529.7"));
 
     private static WorkerProcessLaunch CreateLaunch(
         string scenario,
