@@ -15,7 +15,7 @@ The reviewed catalog remains the source of truth for repetitive operation artifa
 
 - `Briosa.Generator catalog-generate` generates the exact-target category contract (`file_operations.proto`) and an immutable worker-command binding. CI regenerates both in a temporary directory and fails when committed artifacts differ or stale generated files remain.
 - The generated binding creates a command with operation ID `file_operations.get_working_directory`, MP step `Get Working Directory`, no input setters, and one requested text output named `Directory`.
-- The hand-written target service submits that command through `IWorkerCommandExecutor`. The production implementation is the existing `WorkerProcessSupervisor`; the public host never owns SDK or COM state.
+- The generated target service submits that command through the shared hand-written `CatalogOperationExecutor`, which owns audit and outcome policy and dispatches through `IWorkerCommandExecutor`. The production implementation remains the existing `WorkerProcessSupervisor`; the public host never owns SDK or COM state.
 - The worker executes `SetStep("Get Working Directory")`, `ExecuteStep`, `GetMPStepResult`, and, only when the result getter succeeds with MP result code `2`, `GetStringArg("Directory", ...)` on its single SDK-owning STA.
 - A successful getter produces a present `directory` field. An MP failure suppresses output retrieval. A failed getter produces a gRPC failure and never creates a response containing an empty or default directory.
 - Diagnostics contain only curated codes, generation, duration, and the numeric MP result. The retrieved path is neither logged nor placed in error status text.
@@ -37,7 +37,7 @@ A worker watchdog expiration is not reported as the caller's gRPC deadline. ADR 
 
 ## Generation boundary
 
-The initial vertical slice generated only its contract and no-input command binding. [ADR 0009](0009-catalog-derived-operation-artifacts.md) now generalizes reviewed input presence/default mapping, typed response adapters, reference documentation, exact SDK binding enforcement, and completeness manifests. Policy, logging, worker supervision, and gRPC outcome mapping remain hand-written review points.
+The initial vertical slice generated only its contract and no-input command binding. [ADR 0009](0009-catalog-derived-operation-artifacts.md) now generalizes reviewed input presence/default mapping, immutable commands, generated services and endpoint registration, typed response adapters, capabilities, reference documentation, exact SDK binding enforcement, and completeness manifests. Policy, logging, worker supervision, and gRPC outcome mapping remain hand-written review points.
 
 ## Testing
 

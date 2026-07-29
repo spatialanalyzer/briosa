@@ -44,13 +44,13 @@ For a focused local comparison, run:
 
 Validation reserves every fixed filename and top-level symbol already declared in the exact-target `proto` package. The repository layout is therefore part of the validation input: a synthetic or copied `<workspace>/catalog` must be accompanied by the matching `<workspace>/proto` tree. Missing fixed-protocol context fails closed rather than allowing a category to claim `values.proto`, `specialized_values.proto`, or an existing package symbol.
 
-Regenerate the catalog-derived protobuf contracts and worker bindings with:
+Regenerate the complete catalog-derived protobuf, request/worker/result adapter, gRPC service/registration, capability, reference, and coverage surface with:
 
 ```powershell
 dotnet run --project tools/Briosa.Generator -c Release -- catalog-generate catalog .
 ```
 
-Generated artifacts are committed but must not be hand-edited. Each manifest `protocol_partitions` entry owns one stable exact-target category `.proto` file and service in the same package. Argument `field_numbers` are explicit API identities; do not recalculate them from MP `ordinal` or `sdk_order`. The generator refuses to overwrite any existing destination that does not carry its catalog-artifact marker. Verify a clean generation and reject stale or extra generated files with:
+Generated artifacts are committed but must not be hand-edited. Each manifest `protocol_partitions` entry owns one stable exact-target category `.proto` file and generated service in the same package; one generated aggregate extension registers every category service. Argument `field_numbers` are explicit API identities; do not recalculate them from MP `ordinal` or `sdk_order`. Generated request validation uses only reviewed presence/default policy, and generated result mapping uses the exact reviewed semantic family. `CatalogOperationExecutor` remains the hand-written audit/outcome seam. The generator refuses to overwrite any existing destination that does not carry its catalog-artifact marker. Verify a clean generation and reject stale or extra generated files—including registrations or category files left after a partition change—with:
 
 ```powershell
 ./eng/Verify-CatalogArtifacts.ps1

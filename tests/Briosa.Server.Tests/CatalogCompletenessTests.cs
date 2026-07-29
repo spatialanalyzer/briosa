@@ -1,13 +1,15 @@
 using System.Reflection;
 using System.Text.Json;
+using Briosa.Server.Generated.Sa.V2026_1_0529_7.V1Alpha1;
 using Briosa.Server.Services;
+using Google.Protobuf.Reflection;
 
 namespace Briosa.Server.Tests;
 
 public sealed class CatalogCompletenessTests
 {
     [Fact]
-    public void EveryCatalogOperationIsGeneratedImplementedAndTested()
+    public void EveryCatalogSurfaceReportsTheExactReviewedOperationAndFamilySet()
     {
         var repositoryRoot = FindRepositoryRoot();
         var manifests = Directory.GetFiles(
@@ -21,40 +23,62 @@ public sealed class CatalogCompletenessTests
                 "catalog.json",
                 SearchOption.AllDirectories)
             .SelectMany(ReadCatalogOperations)
-            .ToHashSet(StringComparer.Ordinal);
+            .ToDictionary(operation => operation.OperationId, StringComparer.Ordinal);
         var generated = manifests
-            .SelectMany(ReadOperations)
+            .SelectMany(ReadCoverageOperations)
             .ToDictionary(operation => operation.OperationId, StringComparer.Ordinal);
         var implemented = MarkedOperations<OperationImplementationAttribute>(
             typeof(OperationImplementationAttribute).Assembly,
             marker => marker.OperationId);
-        var tested = MarkedOperations<OperationTestAttribute>(
-            typeof(CatalogCompletenessTests).Assembly,
-            marker => marker.OperationId);
+        var implementationMethods = typeof(OperationImplementationAttribute).Assembly.GetTypes()
+            .SelectMany(type => type.GetMethods(
+                BindingFlags.Public | BindingFlags.NonPublic |
+                BindingFlags.Instance | BindingFlags.Static))
+            .Where(method => method.GetCustomAttribute<OperationImplementationAttribute>() is not null)
+            .ToArray();
+        var capabilities = TargetCatalogMetadata.Operations
+            .Select(operation => operation.OperationId)
+            .ToHashSet(StringComparer.Ordinal);
+        var protocolMethods = ReadProtocolMethods();
+        var documented = ReadDocumentedOperations(repositoryRoot);
 
-        Assert.Equal(cataloged.Order(), generated.Keys.Order());
-        Assert.Equal(cataloged.Order(), implemented.Order());
-        Assert.Equal(cataloged.Order(), tested.Order());
+        Assert.Equal(cataloged.Keys.Order(), generated.Keys.Order());
+        Assert.Equal(cataloged.Keys.Order(), implemented.Order());
+        Assert.Equal(cataloged.Keys.Order(), capabilities.Order());
+        Assert.Equal(
+            generated.Values.Select(operation => operation.FullyQualifiedMethod).Order(),
+            protocolMethods.Order());
+        Assert.Equal(cataloged.Keys.Order(), documented.Order());
+        Assert.All(implementationMethods, method => Assert.NotNull(
+            method.DeclaringType?.GetCustomAttribute<
+                System.CodeDom.Compiler.GeneratedCodeAttribute>()));
+
         foreach (var operation in generated.Values)
         {
             Assert.True(operation.Protocol);
-            Assert.True(operation.CommandAdapter);
+            Assert.True(operation.RequestValidation);
+            Assert.True(operation.RequestAdapter);
+            Assert.True(operation.ImmutableWorkerCommand);
             Assert.True(operation.ResultAdapter);
+            Assert.True(operation.GrpcService);
+            Assert.True(operation.ServiceRegistration);
+            Assert.True(operation.Capability);
             Assert.True(operation.Documentation);
-            Assert.All(operation.Inputs, input =>
+
+            var reviewedArguments = cataloged[operation.OperationId].Arguments;
+            var generatedArguments = operation.Inputs.Concat(operation.Outputs)
+                .ToDictionary(argument => argument.ArgumentId, StringComparer.Ordinal);
+            Assert.Equal(reviewedArguments.Keys.Order(), generatedArguments.Keys.Order());
+            foreach (var argument in generatedArguments.Values)
             {
-                Assert.False(string.IsNullOrWhiteSpace(input.ArgumentId));
-                Assert.False(string.IsNullOrWhiteSpace(input.Setter));
-            });
-            Assert.All(operation.Outputs, output =>
-            {
-                Assert.False(string.IsNullOrWhiteSpace(output.ArgumentId));
-                Assert.False(string.IsNullOrWhiteSpace(output.Getter));
-            });
+                Assert.True(argument.ArgumentFamilyAssignment);
+                Assert.Equal(reviewedArguments[argument.ArgumentId], argument.SemanticType);
+                Assert.False(string.IsNullOrWhiteSpace(argument.Binding));
+            }
         }
     }
 
-    private static IEnumerable<string> ReadCatalogOperations(string manifestPath)
+    private static IEnumerable<CatalogOperation> ReadCatalogOperations(string manifestPath)
     {
         using var manifest = JsonDocument.Parse(File.ReadAllBytes(manifestPath));
         var targetRoot = Path.GetDirectoryName(manifestPath)!;
@@ -64,29 +88,69 @@ public sealed class CatalogCompletenessTests
                 targetRoot,
                 relativePath.GetString()!.Replace('/', Path.DirectorySeparatorChar));
             using var operation = JsonDocument.Parse(File.ReadAllBytes(operationPath));
-            yield return operation.RootElement.GetProperty("operation_id").GetString()!;
+            yield return new CatalogOperation(
+                operation.RootElement.GetProperty("operation_id").GetString()!,
+                operation.RootElement.GetProperty("arguments").EnumerateArray()
+                    .ToDictionary(
+                        argument => argument.GetProperty("argument_id").GetString()!,
+                        argument => argument.GetProperty("semantic_type").GetString()!,
+                        StringComparer.Ordinal));
         }
     }
 
-    private static IReadOnlyList<CoverageOperation> ReadOperations(string path)
+    private static IReadOnlyList<CoverageOperation> ReadCoverageOperations(string path)
     {
         using var document = JsonDocument.Parse(File.ReadAllBytes(path));
         return [.. document.RootElement.GetProperty("operations").EnumerateArray()
-            .Select(operation => new CoverageOperation(
-                operation.GetProperty("operation_id").GetString()!,
-                operation.GetProperty("generated").GetProperty("protocol").GetBoolean(),
-                operation.GetProperty("generated").GetProperty("command_adapter").GetBoolean(),
-                operation.GetProperty("generated").GetProperty("result_adapter").GetBoolean(),
-                operation.GetProperty("generated").GetProperty("documentation").GetBoolean(),
-                [.. operation.GetProperty("inputs").EnumerateArray().Select(input =>
-                    new CoverageArgument(
-                        input.GetProperty("argument_id").GetString()!,
-                        input.GetProperty("setter").GetString()))],
-                [.. operation.GetProperty("outputs").EnumerateArray().Select(output =>
-                    new CoverageArgument(
-                        output.GetProperty("argument_id").GetString()!,
-                        output.GetProperty("getter").GetString()))]))];
+            .Select(operation =>
+            {
+                var generated = operation.GetProperty("generated");
+                return new CoverageOperation(
+                    operation.GetProperty("operation_id").GetString()!,
+                    operation.GetProperty("fully_qualified_method").GetString()!,
+                    generated.GetProperty("protocol").GetBoolean(),
+                    generated.GetProperty("request_validation").GetBoolean(),
+                    generated.GetProperty("request_adapter").GetBoolean(),
+                    generated.GetProperty("immutable_worker_command").GetBoolean(),
+                    generated.GetProperty("result_adapter").GetBoolean(),
+                    generated.GetProperty("grpc_service").GetBoolean(),
+                    generated.GetProperty("service_registration").GetBoolean(),
+                    generated.GetProperty("capability").GetBoolean(),
+                    generated.GetProperty("documentation").GetBoolean(),
+                    [.. operation.GetProperty("inputs").EnumerateArray().Select(input =>
+                        ReadCoverageArgument(input, "setter"))],
+                    [.. operation.GetProperty("outputs").EnumerateArray().Select(output =>
+                        ReadCoverageArgument(output, "getter"))]);
+            })];
     }
+
+    private static CoverageArgument ReadCoverageArgument(
+        JsonElement argument,
+        string bindingProperty) =>
+        new(
+            argument.GetProperty("argument_id").GetString()!,
+            argument.GetProperty("semantic_type").GetString()!,
+            argument.GetProperty("argument_family_assignment").GetBoolean(),
+            argument.GetProperty(bindingProperty).GetString()!);
+
+    private static HashSet<string> ReadProtocolMethods() =>
+        [.. Briosa.Protocol.ProtocolAssembly.MarkerType.Assembly.GetTypes()
+            .Select(type => type.GetProperty(
+                "Descriptor",
+                BindingFlags.Public | BindingFlags.Static)?.GetValue(null))
+            .OfType<ServiceDescriptor>()
+            .Where(service => service.FullName.StartsWith("briosa.sa.", StringComparison.Ordinal))
+            .SelectMany(service => service.Methods.Select(method =>
+                $"/{service.FullName}/{method.Name}"))];
+
+    private static HashSet<string> ReadDocumentedOperations(DirectoryInfo repositoryRoot) =>
+        [.. Directory.GetFiles(
+                Path.Combine(repositoryRoot.FullName, "docs", "reference", "generated", "sa"),
+                "operations.md",
+                SearchOption.AllDirectories)
+            .SelectMany(File.ReadLines)
+            .Where(line => line.StartsWith("- Briosa operation: `", StringComparison.Ordinal))
+            .Select(line => line[21..^1])];
 
     private static HashSet<string> MarkedOperations<TAttribute>(
         Assembly assembly,
@@ -111,19 +175,28 @@ public sealed class CatalogCompletenessTests
             throw new DirectoryNotFoundException("Could not locate the Briosa repository root.");
     }
 
+    private sealed record CatalogOperation(
+        string OperationId,
+        IReadOnlyDictionary<string, string> Arguments);
+
     private sealed record CoverageOperation(
         string OperationId,
+        string FullyQualifiedMethod,
         bool Protocol,
-        bool CommandAdapter,
+        bool RequestValidation,
+        bool RequestAdapter,
+        bool ImmutableWorkerCommand,
         bool ResultAdapter,
+        bool GrpcService,
+        bool ServiceRegistration,
+        bool Capability,
         bool Documentation,
         IReadOnlyList<CoverageArgument> Inputs,
         IReadOnlyList<CoverageArgument> Outputs);
 
-    private sealed record CoverageArgument(string ArgumentId, string? Binding)
-    {
-        public string? Setter => Binding;
-
-        public string? Getter => Binding;
-    }
+    private sealed record CoverageArgument(
+        string ArgumentId,
+        string SemanticType,
+        bool ArgumentFamilyAssignment,
+        string Binding);
 }

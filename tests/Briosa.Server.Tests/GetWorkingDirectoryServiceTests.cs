@@ -1,6 +1,6 @@
 using Briosa.Core.V1Alpha1;
+using Briosa.Server.Generated.Sa.V2026_1_0529_7.V1Alpha1;
 using Briosa.Server.Services;
-using Briosa.Server.Services.Sa.V2026_1_0529_7.V1Alpha1;
 using Briosa.Server.Workers;
 using Briosa.Worker.Control;
 using Grpc.Core;
@@ -192,11 +192,11 @@ public sealed class GetWorkingDirectoryServiceTests
     private static TargetProtocol.FileOperations.FileOperationsClient CreateClient(
         IWorkerCommandExecutor executor)
     {
-        var service = new FileOperationsService(
+        var service = new FileOperationsService(new CatalogOperationExecutor(
             executor,
             new OperationAuditLogger(
                 NullLogger<OperationAuditLogger>.Instance),
-            TimeProvider.System);
+            TimeProvider.System));
         return new TargetProtocol.FileOperations.FileOperationsClient(
             new ServiceCallInvoker(service));
     }

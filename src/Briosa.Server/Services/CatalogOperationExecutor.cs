@@ -1,22 +1,19 @@
-using Briosa.Server.Generated.Sa.V2026_1_0529_7.V1Alpha1;
 using Briosa.Server.Security;
-using Briosa.Server.Services;
 using Briosa.Server.Workers;
 using Briosa.Worker.Control;
 using Grpc.Core;
-using TargetProtocol = global::Briosa.Sa.V2026_1_0529_7.V1Alpha1;
 
-namespace Briosa.Server.Services.Sa.V2026_1_0529_7.V1Alpha1;
+namespace Briosa.Server.Services;
 
-internal sealed class FileOperationsService(
+/// <summary>
+/// Owns the reviewed policy, outcome, and audit seam shared by generated catalog services.
+/// Catalog-derived request and result mapping remains in generated code.
+/// </summary>
+internal sealed class CatalogOperationExecutor(
     IWorkerCommandExecutor executor,
     OperationAuditLogger auditLogger,
-    TimeProvider timeProvider) : TargetProtocol.FileOperations.FileOperationsBase
+    TimeProvider timeProvider)
 {
-    private static readonly CatalogOperationDescriptor OperationDescriptor =
-        TargetCatalogMetadata.Operations.Single(operation =>
-            operation.OperationId == FileOperationsGetWorkingDirectoryBinding.OperationId);
-
     private readonly OperationAuditLogger _auditLogger =
         auditLogger ?? throw new ArgumentNullException(nameof(auditLogger));
     private readonly IWorkerCommandExecutor _executor =
@@ -24,41 +21,69 @@ internal sealed class FileOperationsService(
     private readonly TimeProvider _timeProvider =
         timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
 
-    [OperationImplementation(FileOperationsGetWorkingDirectoryBinding.OperationId)]
-    public override async Task<TargetProtocol.GetWorkingDirectoryResult> GetWorkingDirectory(
-        TargetProtocol.GetWorkingDirectoryRequest request,
-        ServerCallContext context)
+    public Task<TResponse> ExecuteAsync<TRequest, TResponse>(
+        TRequest request,
+        ServerCallContext context,
+        CatalogOperationDescriptor operation,
+        Func<TRequest, WorkerMpCommand> createCommand,
+        IReadOnlyList<OperationOutputContract> outputContracts,
+        Func<SuccessfulOperationExecution, TResponse> createResult)
+        where TRequest : class
+        where TResponse : class
     {
-        ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
-
-        return await ExecuteGetWorkingDirectory(
+        return ExecuteAsync(
             request,
+            operation,
+            createCommand,
+            outputContracts,
+            createResult,
             context.CancellationToken,
             context.Deadline,
             Guid.NewGuid(),
-            ClassifyActor(context.Peer)).ConfigureAwait(false);
+            ClassifyActor(context.Peer));
     }
 
-    internal async Task<TargetProtocol.GetWorkingDirectoryResult> ExecuteGetWorkingDirectory(
-        TargetProtocol.GetWorkingDirectoryRequest request,
+    internal async Task<TResponse> ExecuteAsync<TRequest, TResponse>(
+        TRequest request,
+        CatalogOperationDescriptor operation,
+        Func<TRequest, WorkerMpCommand> createCommand,
+        IReadOnlyList<OperationOutputContract> outputContracts,
+        Func<SuccessfulOperationExecution, TResponse> createResult,
         CancellationToken cancellationToken,
         DateTime? deadline = null,
         Guid? correlationId = null,
         string actorCategory = "internal-unattributed")
+        where TRequest : class
+        where TResponse : class
     {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(operation);
+        ArgumentNullException.ThrowIfNull(createCommand);
+        ArgumentNullException.ThrowIfNull(outputContracts);
+        ArgumentNullException.ThrowIfNull(createResult);
+
         var effectiveCorrelationId = correlationId is { } value && value != Guid.Empty
             ? value
             : Guid.NewGuid();
-        _auditLogger.RequestStarted(
-            effectiveCorrelationId,
-            OperationDescriptor,
-            actorCategory);
+        _auditLogger.RequestStarted(effectiveCorrelationId, operation, actorCategory);
         var startedAt = _timeProvider.GetTimestamp();
-        var command = FileOperationsGetWorkingDirectoryBinding.CreateCommand(request);
         WorkerExecutionOutcome? outcome = null;
         try
         {
+            WorkerMpCommand command;
+            try
+            {
+                command = createCommand(request);
+            }
+            catch (ArgumentException)
+            {
+                throw GrpcOperationOutcomeMapper.CreateValidationFailure(
+                    operation.OperationId,
+                    "request-validation-failed",
+                    replaySafety: operation.ReplaySafety);
+            }
+
             outcome = await _executor.ExecuteAsync(
                 command,
                 effectiveCorrelationId,
@@ -66,11 +91,27 @@ internal sealed class FileOperationsService(
             var completed = GrpcOperationOutcomeMapper.RequireSuccess(
                 outcome,
                 command.OperationId,
-                OperationDescriptor.ReplaySafety,
-                FileOperationsGetWorkingDirectoryBinding.OutputContracts,
+                operation.ReplaySafety,
+                outputContracts,
                 deadline is not null &&
                 deadline.Value != DateTime.MaxValue &&
                 deadline.Value <= _timeProvider.GetUtcNow().UtcDateTime);
+
+            TResponse result;
+            try
+            {
+                result = createResult(completed) ??
+                    throw new InvalidOperationException("The generated result mapper returned null.");
+            }
+            catch (Exception exception) when (exception is
+                ArgumentException or InvalidOperationException or OverflowException)
+            {
+                throw GrpcOperationOutcomeMapper.CreateResultMappingFailure(
+                    operation.OperationId,
+                    operation.ReplaySafety,
+                    outcome.Generation,
+                    completed.Details);
+            }
 
             _auditLogger.OperationCompleted(
                 EffectiveCorrelationId(outcome, effectiveCorrelationId),
@@ -78,19 +119,18 @@ internal sealed class FileOperationsService(
                 outcome.Generation,
                 RequestDurationMilliseconds(startedAt),
                 OperationAuditSummary.Create(outcome));
-            return FileOperationsGetWorkingDirectoryBinding.CreateResult(completed);
+            return result;
         }
         catch (RpcException exception)
         {
-            var diagnosticCode = GrpcOperationOutcomeMapper.GetDiagnosticCode(exception);
             _auditLogger.OperationFailed(
                 EffectiveCorrelationId(outcome, effectiveCorrelationId),
-                command.OperationId,
+                operation.OperationId,
                 outcome?.Generation ?? 0,
                 RequestDurationMilliseconds(startedAt),
                 OperationAuditSummary.Create(outcome),
                 exception.StatusCode,
-                diagnosticCode);
+                GrpcOperationOutcomeMapper.GetDiagnosticCode(exception));
             throw;
         }
     }

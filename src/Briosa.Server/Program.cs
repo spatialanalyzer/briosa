@@ -1,7 +1,7 @@
 using Briosa.Protocol;
+using Briosa.Server.Generated;
 using Briosa.Server.Security;
 using Briosa.Server.Services;
-using Briosa.Server.Services.Sa.V2026_1_0529_7.V1Alpha1;
 using Briosa.Server.Workers;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 
@@ -21,6 +21,7 @@ builder.Services.AddGrpc();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddWorkerProcessLifecycle(builder.Configuration);
 builder.Services.AddBriosaHealthAndDiscovery();
+builder.Services.AddSingleton<CatalogOperationExecutor>();
 
 var app = builder.Build();
 
@@ -29,7 +30,7 @@ app.MapGet("/", () => Results.Text(
 
 app.MapGrpcHealthChecksService();
 app.MapGrpcService<ServerDiscoveryService>();
-app.MapGrpcService<FileOperationsService>();
+app.MapGeneratedCatalogServices();
 
 app.Run();
 

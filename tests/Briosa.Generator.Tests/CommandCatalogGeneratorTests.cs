@@ -23,7 +23,8 @@ public sealed class CommandCatalogGeneratorTests
                     "proto/briosa/sa/v2026_1_0529_7/v1alpha1/file_operations.proto",
                     "src/Briosa.Server/Generated/Sa/V2026_1_0529_7/V1Alpha1/Operations.g.cs",
                     "docs/reference/generated/sa/2026.1.0529.7/operations.md",
-                    "generated/catalog/sa/2026.1.0529.7/coverage.json"
+                    "generated/catalog/sa/2026.1.0529.7/coverage.json",
+                    "src/Briosa.Server/Generated/CatalogServiceRegistration.g.cs"
                 ],
                 result.Files);
 
@@ -80,6 +81,20 @@ public sealed class CommandCatalogGeneratorTests
             Assert.Contains("/briosa.sa.v2026_1_0529_7.v1alpha1.FileOperations/GetWorkingDirectory", binding, StringComparison.Ordinal);
             Assert.Contains("OutputContracts", binding, StringComparison.Ordinal);
             Assert.Contains("CreateResult(SuccessfulOperationExecution completed)", binding, StringComparison.Ordinal);
+            Assert.Contains("internal sealed class FileOperationsService", binding, StringComparison.Ordinal);
+            Assert.Contains("[OperationImplementation(FileOperationsGetWorkingDirectoryBinding.OperationId)]", binding, StringComparison.Ordinal);
+            Assert.Contains("_operationExecutor.ExecuteAsync(", binding, StringComparison.Ordinal);
+
+            var registration = File.ReadAllText(Path.Combine(
+                outputRoot,
+                "src",
+                "Briosa.Server",
+                "Generated",
+                "CatalogServiceRegistration.g.cs"));
+            Assert.Contains(
+                "MapGrpcService<global::Briosa.Server.Generated.Sa.V2026_1_0529_7.V1Alpha1.FileOperationsService>()",
+                registration,
+                StringComparison.Ordinal);
 
             var proto = File.ReadAllText(Path.Combine(
                 outputRoot,
@@ -117,6 +132,13 @@ public sealed class CommandCatalogGeneratorTests
                 StringComparison.Ordinal);
             Assert.Contains("\"sdk_order\": 0", coverage, StringComparison.Ordinal);
             Assert.Contains("\"field_number\": 1", coverage, StringComparison.Ordinal);
+            Assert.Contains("\"request_validation\": true", coverage, StringComparison.Ordinal);
+            Assert.Contains("\"request_adapter\": true", coverage, StringComparison.Ordinal);
+            Assert.Contains("\"immutable_worker_command\": true", coverage, StringComparison.Ordinal);
+            Assert.Contains("\"grpc_service\": true", coverage, StringComparison.Ordinal);
+            Assert.Contains("\"service_registration\": true", coverage, StringComparison.Ordinal);
+            Assert.Contains("\"capability\": true", coverage, StringComparison.Ordinal);
+            Assert.Contains("\"argument_family_assignment\": true", coverage, StringComparison.Ordinal);
 
             var documentation = File.ReadAllText(Path.Combine(
                 outputRoot,
