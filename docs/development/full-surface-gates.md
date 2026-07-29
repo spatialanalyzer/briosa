@@ -1,6 +1,6 @@
 # Full-surface generation and CI gates
 
-Issue [#62](https://github.com/spatialanalyzer/briosa/issues/62) makes the complete reviewed surface reproducible and measurable on an ordinary Windows runner. The gate does not install, launch, or connect to SpatialAnalyzer and does not require an SA license or proprietary source evidence.
+Issues [#62](https://github.com/spatialanalyzer/briosa/issues/62) and [#68](https://github.com/spatialanalyzer/briosa/issues/68) make the complete reviewed surface and its generated portable conformance contract reproducible and measurable on an ordinary Windows runner. The gate does not install, launch, or connect to SpatialAnalyzer and does not require an SA license or proprietary source evidence.
 
 ## Repository policy
 
@@ -29,9 +29,10 @@ Without `-NoBuild`, the verifier builds the generator first. For every configure
 2. the value-family binding review, queue, manifest, and reference report;
 3. the SDK binding registry and report;
 4. the incomplete catalog review-scaffold tree; and
-5. every path emitted by catalog generation.
+5. every path emitted by catalog generation; and
+6. the evidence-derived portable-conformance manifest.
 
-The verifier discovers catalog artifact paths recursively from the clean generator output. It does not assume one protocol file, one service partition, or fixed generated filenames. The clean catalog context mirrors the repository's complete `proto` tree beside the isolated `catalog` input so generator validation can distinguish fixed protocol definitions from catalog-owned partitions without filename rules. It compares ordinal path lists, file lengths, and SHA-256 values across both runs. It then checks every committed mapping, runs the existing schema and semantic validators, and writes `artifacts/full-surface/manifest.json`. The manifest contains no timestamp or machine path; each unit records its evidence paths and fingerprints plus every affected generated file and fingerprint.
+The verifier discovers catalog artifact paths recursively from the clean generator output. It does not assume one protocol file, one service partition, or fixed generated filenames. The clean catalog context mirrors the repository's complete `proto` tree beside the isolated `catalog` input so generator validation can distinguish fixed protocol definitions from catalog-owned partitions without filename rules. The conformance context also uses the freshly synchronized binding review and registry, so upstream evidence drift cannot be hidden by a stale committed intermediate. It compares ordinal path lists, file lengths, and SHA-256 values across both runs. It then checks every committed mapping, runs the existing schema and semantic validators, and writes `artifacts/full-surface/manifest.json`. The manifest contains no timestamp or machine path; each unit records its evidence paths and fingerprints plus every affected generated file and fingerprint.
 
 An error names the exact target, logical surface, changed member or file, source evidence fingerprint, and affected generated surface. The value-family verifier additionally reports exact enum symbol/number drift, worker enum members, SDK literals, structured public and worker fields, and command-assignment keys of the form `method|inventory_key|sdk_order`.
 
@@ -41,6 +42,7 @@ The combined gate retains the existing fail-closed checks:
 - stale disposition evidence, manifests, shards, or reports fail;
 - a missing or uncovered SDK binding fails;
 - an enum member, SDK literal, structured field, or exact command-family assignment missing from either evidence or implementation fails;
+- a supported operation without an exact portable scenario set, executable generated binding, or reviewed shared-method assignment fails;
 - missing, stale, extra, or nondeterministic generated artifacts fail; and
 - protocol formatting, lint, compilation, and applicable released-baseline breaking checks fail.
 

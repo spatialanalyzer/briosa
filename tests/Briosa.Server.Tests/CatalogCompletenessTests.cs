@@ -39,12 +39,16 @@ public sealed class CatalogCompletenessTests
         var capabilities = TargetCatalogMetadata.Operations
             .Select(operation => operation.OperationId)
             .ToHashSet(StringComparer.Ordinal);
+        var conformanceBindings = TargetCatalogConformanceMetadata.Operations
+            .Select(operation => operation.Operation.OperationId)
+            .ToHashSet(StringComparer.Ordinal);
         var protocolMethods = ReadProtocolMethods();
         var documented = ReadDocumentedOperations(repositoryRoot);
 
         Assert.Equal(cataloged.Keys.Order(), generated.Keys.Order());
         Assert.Equal(cataloged.Keys.Order(), implemented.Order());
         Assert.Equal(cataloged.Keys.Order(), capabilities.Order());
+        Assert.Equal(cataloged.Keys.Order(), conformanceBindings.Order());
         Assert.Equal(
             generated.Values.Select(operation => operation.FullyQualifiedMethod).Order(),
             protocolMethods.Order());
@@ -64,6 +68,7 @@ public sealed class CatalogCompletenessTests
             Assert.True(operation.ServiceRegistration);
             Assert.True(operation.Capability);
             Assert.True(operation.Documentation);
+            Assert.True(operation.PortableConformance);
 
             var reviewedArguments = cataloged[operation.OperationId].Arguments;
             var generatedArguments = operation.Inputs.Concat(operation.Outputs)
@@ -117,6 +122,7 @@ public sealed class CatalogCompletenessTests
                     generated.GetProperty("service_registration").GetBoolean(),
                     generated.GetProperty("capability").GetBoolean(),
                     generated.GetProperty("documentation").GetBoolean(),
+                    generated.GetProperty("portable_conformance").GetBoolean(),
                     [.. operation.GetProperty("inputs").EnumerateArray().Select(input =>
                         ReadCoverageArgument(input, "setter"))],
                     [.. operation.GetProperty("outputs").EnumerateArray().Select(output =>
@@ -191,6 +197,7 @@ public sealed class CatalogCompletenessTests
         bool ServiceRegistration,
         bool Capability,
         bool Documentation,
+        bool PortableConformance,
         IReadOnlyList<CoverageArgument> Inputs,
         IReadOnlyList<CoverageArgument> Outputs);
 

@@ -36,6 +36,8 @@ internal static class CommandCatalogArtifactGenerator
             AppendBinding(builder, operation);
         }
 
+        AppendConformanceMetadata(builder, operations);
+
         foreach (var partition in manifest.ProtocolPartitions.OrderBy(
                      partition => partition.Alias,
                      StringComparer.Ordinal))
@@ -194,7 +196,8 @@ internal static class CommandCatalogArtifactGenerator
                     grpc_service = true,
                     service_registration = true,
                     capability = true,
-                    documentation = true
+                    documentation = true,
+                    portable_conformance = true
                 },
                 inputs = operation.Arguments.Where(IsInput).OrderBy(argument => argument.Ordinal)
                     .Select(argument => new
@@ -319,6 +322,62 @@ internal static class CommandCatalogArtifactGenerator
         AppendCreateCommand(builder, operation, inputs, outputs);
         builder.AppendLine();
         AppendCreateResult(builder, operation, outputs);
+        builder.AppendLine("}");
+    }
+
+    private static void AppendConformanceMetadata(
+        StringBuilder builder,
+        IReadOnlyList<CommandCatalogOperation> operations)
+    {
+        builder.AppendLine();
+        builder.AppendLine("[global::System.CodeDom.Compiler.GeneratedCode(\"Briosa.Generator\", \"1.0\")]");
+        builder.AppendLine("internal sealed record CatalogOperationConformanceBinding(");
+        builder.AppendLine("    CatalogOperationDescriptor Operation,");
+        builder.AppendLine("    Type RequestType,");
+        builder.AppendLine("    Type ResultType,");
+        builder.AppendLine("    Func<object, WorkerMpCommand> CreateCommand,");
+        builder.AppendLine("    IReadOnlyList<OperationOutputContract> OutputContracts,");
+        builder.AppendLine("    Func<SuccessfulOperationExecution, object> CreateResult,");
+        builder.AppendLine("    Func<CatalogOperationExecutor, object, CancellationToken, DateTime?, Task<object>> ExecuteAsync);");
+        builder.AppendLine();
+        builder.AppendLine("[global::System.CodeDom.Compiler.GeneratedCode(\"Briosa.Generator\", \"1.0\")]");
+        builder.AppendLine("internal static class TargetCatalogConformanceMetadata");
+        builder.AppendLine("{");
+        builder.AppendLine("    public static IReadOnlyList<CatalogOperationConformanceBinding> Operations { get; } =");
+        builder.AppendLine("        [");
+        foreach (var operation in operations.OrderBy(
+                     operation => operation.OperationId,
+                     StringComparer.Ordinal))
+        {
+            var binding = operation.Protocol.Service + operation.Protocol.Rpc + "Binding";
+            builder.AppendLine("            new(");
+            builder.AppendLine("                TargetCatalogMetadata.Operations.Single(operation =>");
+            builder.Append("                    operation.OperationId == ").Append(binding)
+                .AppendLine(".OperationId),");
+            builder.Append("                typeof(TargetProtocol.").Append(operation.Protocol.Request)
+                .AppendLine("),");
+            builder.Append("                typeof(TargetProtocol.").Append(operation.Protocol.Result)
+                .AppendLine("),");
+            builder.Append("                request => ").Append(binding).Append(".CreateCommand((TargetProtocol.")
+                .Append(operation.Protocol.Request).AppendLine(")request),");
+            builder.Append("                ").Append(binding).AppendLine(".OutputContracts,");
+            builder.Append("                completed => ").Append(binding)
+                .AppendLine(".CreateResult(completed),");
+            builder.AppendLine("                async (executor, request, cancellationToken, deadline) =>");
+            builder.AppendLine("                    await executor.ExecuteAsync(");
+            builder.Append("                        (TargetProtocol.").Append(operation.Protocol.Request)
+                .AppendLine(")request,");
+            builder.AppendLine("                        TargetCatalogMetadata.Operations.Single(operation =>");
+            builder.Append("                            operation.OperationId == ").Append(binding)
+                .AppendLine(".OperationId),");
+            builder.Append("                        ").Append(binding).AppendLine(".CreateCommand,");
+            builder.Append("                        ").Append(binding).AppendLine(".OutputContracts,");
+            builder.Append("                        ").Append(binding).AppendLine(".CreateResult,");
+            builder.AppendLine("                        cancellationToken,");
+            builder.AppendLine("                        deadline).ConfigureAwait(false)),");
+        }
+
+        builder.AppendLine("        ];");
         builder.AppendLine("}");
     }
 
@@ -668,6 +727,7 @@ internal static class CommandCatalogArtifactGenerator
             builder.Append("        var output").Append(name).Append(" = completed.Execution.OutputValues.Single(value => value.Name == ")
                 .Append(name).Append("ArgumentName && value.Kind == WorkerMpValueKind.")
                 .Append(ToWorkerValueKind(output.SemanticType)).AppendLine(");");
+            AppendReturnedValueValidation(builder, output, $"output{name}");
         }
 
         builder.Append("        return new TargetProtocol.").Append(operation.Protocol.Result).AppendLine();
@@ -681,6 +741,34 @@ internal static class CommandCatalogArtifactGenerator
         builder.AppendLine("            Execution = completed.Details");
         builder.AppendLine("        };");
         builder.AppendLine("    }");
+    }
+
+    private static void AppendReturnedValueValidation(
+        StringBuilder builder,
+        CommandCatalogArgument output,
+        string value)
+    {
+        var condition = output.SemanticType switch
+        {
+            "collection_item_name" =>
+                $"{value}.CollectionItemNameValue!.ItemType == WorkerItemTypeValue.Unspecified || !Enum.IsDefined({value}.CollectionItemNameValue.ItemType)",
+            "collection_item_name_list" =>
+                $"{value}.CollectionItemNameListValue!.Values.Any(item => item.ItemType == WorkerItemTypeValue.Unspecified || !Enum.IsDefined(item.ItemType))",
+            "collection_object_name" =>
+                $"{value}.CollectionObjectNameValue!.ObjectType == WorkerObjectTypeValue.Unspecified || !Enum.IsDefined({value}.CollectionObjectNameValue.ObjectType)",
+            "collection_object_name_list" =>
+                $"{value}.CollectionObjectNameListValue!.Values.Any(item => item.ObjectType == WorkerObjectTypeValue.Unspecified || !Enum.IsDefined(item.ObjectType))",
+            _ => null
+        };
+        if (condition is null)
+        {
+            return;
+        }
+
+        builder.Append("        if (").Append(condition).AppendLine(")");
+        builder.AppendLine("        {");
+        builder.AppendLine("            throw new InvalidOperationException(\"The worker returned an unknown exact-target enum value.\");");
+        builder.AppendLine("        }");
     }
 
     private static string ResultValueExpression(CommandCatalogArgument output, string variable) =>
@@ -841,7 +929,7 @@ internal static class CommandCatalogArtifactGenerator
         (IsMessageType(semanticType) &&
          semanticType is not "string_list" and not "double_array" and not "edit_text");
 
-    private static string ToWorkerValueKind(string semanticType) =>
+    internal static string ToWorkerValueKind(string semanticType) =>
         semanticType switch
         {
             "logical" => "Logical",

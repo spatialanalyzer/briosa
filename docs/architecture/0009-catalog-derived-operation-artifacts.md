@@ -20,7 +20,8 @@ One deterministic generator emits the complete repetitive operation surface for 
 3. generated gRPC service methods and one aggregate endpoint-registration extension;
 4. generated capability descriptors consumed by discovery and runtime policy;
 5. Briosa-authored reference Markdown; and
-6. a machine-readable coverage manifest.
+6. a machine-readable coverage manifest; and
+7. an executable portable-conformance binding registry plus an evidence-derived scenario manifest.
 
 The generated binding owns catalog-derived mechanics: operation and MP-step identity, request presence and omission handling, reviewed defaults, ordered input setters, requested output getters, output contracts, and typed successful-result construction. It attaches the shared execution details defined by ADR 0008. Generated files contain no worker supervision, gRPC error policy, logging, security, or authorization decisions.
 
@@ -36,13 +37,15 @@ The private worker command carries the exact SDK binding name in addition to its
 
 Each generated implementation method has an operation marker. The completeness test compares the exact operation set across catalog files, coverage manifests, protobuf descriptors, generated implementations, capability descriptors, and generated reference documentation. It also compares every coverage input/output semantic family with the reviewed catalog assignment.
 
-The coverage manifest explicitly records protocol, request validation, request adapter, immutable command, result adapter, gRPC service, registration, capability, documentation, and exact argument-family assignment coverage. It describes generation coverage, not support for the complete installed SpatialAnalyzer command inventory.
+The coverage manifest explicitly records protocol, request validation, request adapter, immutable command, result adapter, gRPC service, registration, capability, documentation, portable conformance, and exact argument-family assignment coverage. It describes generation coverage, not support for the complete installed SpatialAnalyzer command inventory.
+
+The exact-target portable-conformance manifest fingerprints the catalog, every supported operation document, binding registry and review, and value-family evidence. It expands stable positive and negative identities for every supported operation, usable SDK method/family row, implemented value family, enum member, structured field shape, and exact multi-family command assignment. Generation fails on missing evidence, duplicate identities, or an unreviewed shared-method assignment. The committed manifest is a test inventory, not a second source of API truth; catalog and reviewed binding evidence remain authoritative.
 
 CI regenerates every target in an empty temporary directory and compares both the expected path set and file bytes with the repository. Missing, extra, and stale files fail verification across every generated root, including obsolete category protocol files and registrations after a partition changes.
 
 ## Testing
 
-Synthetic catalog tests exercise required inputs, optional omitted setters, reviewed defaults, input/output arguments, every currently modeled semantic type, typed output construction, and message-component validation. Portable runtime tests distinguish default-like present values, absent values, MP failure, getter failure, and fail-closed unknown returned type literals. The committed vertical slice test verifies that `GetWorkingDirectory` uses the generated service, immutable command, output contract, and response adapter through the shared hand-written execution seam.
+Synthetic catalog tests exercise required inputs, optional omitted setters, reviewed defaults, input/output arguments, every currently modeled semantic type, typed output construction, and message-component validation. Portable runtime tests discover every generated operation binding and distinguish default-like present values, absent values, disconnected and unverified workers, setter/execute/MP/getter failures, policy denial, deadlines and cancellation before and after start, crash, hang, malformed responses, replay guidance, and fail-closed unknown returned type literals. Evidence-parity tests require every global manifest row to match the registry and value catalog exactly; the existing worker completeness suite executes those binding, value-shape, enum-literal, and command-assignment contracts against the production adapter seam. See the [portable conformance guide](../testing/portable-conformance.md).
 
 All generation, completeness, and fake-worker tests remain portable and require neither SpatialAnalyzer nor a license.
 

@@ -1,0 +1,347 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://spatialanalyzer.github.io/briosa/conformance/schemas/v1/manifest.schema.json",
+  "title": "Briosa portable conformance manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schema_version",
+    "generated_by",
+    "catalog_id",
+    "catalog_revision",
+    "spatial_analyzer_target",
+    "target_protocol_package",
+    "evidence_inputs",
+    "counts",
+    "operations",
+    "binding_cases",
+    "value_family_cases",
+    "enum_cases",
+    "structured_cases",
+    "assignment_cases"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "../../../../conformance/schemas/v1/manifest.schema.json"
+    },
+    "schema_version": {
+      "const": 1
+    },
+    "generated_by": {
+      "const": "Briosa.Generator portable conformance"
+    },
+    "catalog_id": {
+      "type": "string",
+      "pattern": "^briosa\\.sa\\.[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "catalog_revision": {
+      "type": "string",
+      "pattern": "^[1-9][0-9]*$"
+    },
+    "spatial_analyzer_target": {
+      "$ref": "#/definitions/target"
+    },
+    "target_protocol_package": {
+      "type": "string",
+      "pattern": "^briosa\\.sa\\.v[0-9]+_[0-9]+_[0-9]+_[0-9]+\\.v[0-9]+(?:alpha|beta)[0-9]+$"
+    },
+    "evidence_inputs": {
+      "type": "array",
+      "minItems": 4,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/definitions/evidence_input"
+      }
+    },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_count",
+        "binding_case_count",
+        "value_family_case_count",
+        "enum_case_count",
+        "structured_case_count",
+        "assignment_case_count"
+      ],
+      "properties": {
+        "operation_count": { "type": "integer", "minimum": 1 },
+        "binding_case_count": { "type": "integer", "minimum": 1 },
+        "value_family_case_count": { "type": "integer", "minimum": 1 },
+        "enum_case_count": { "type": "integer", "minimum": 1 },
+        "structured_case_count": { "type": "integer", "minimum": 1 },
+        "assignment_case_count": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "operations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/operation"
+      }
+    },
+    "binding_cases": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/binding_case"
+      }
+    },
+    "value_family_cases": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/value_family_case"
+      }
+    },
+    "enum_cases": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/enum_case"
+      }
+    },
+    "structured_cases": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/structured_case"
+      }
+    },
+    "assignment_cases": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/assignment_case"
+      }
+    }
+  },
+  "definitions": {
+    "target": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "case_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "family_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$"
+    },
+    "evidence_input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+      }
+    },
+    "argument": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "argument_id",
+        "ordinal",
+        "sdk_order",
+        "mp_name",
+        "direction",
+        "semantic_type",
+        "worker_value_kind",
+        "binding",
+        "presence",
+        "omission_behavior"
+      ],
+      "properties": {
+        "argument_id": { "$ref": "#/definitions/family_id" },
+        "ordinal": { "type": "integer", "minimum": 0 },
+        "sdk_order": { "type": "integer", "minimum": 0 },
+        "mp_name": { "type": "string", "minLength": 1 },
+        "direction": {
+          "enum": ["input", "output", "input_output"]
+        },
+        "semantic_type": { "$ref": "#/definitions/family_id" },
+        "worker_value_kind": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Za-z0-9]*$"
+        },
+        "binding": {
+          "type": "string",
+          "pattern": "^(?:Set|Get)[A-Za-z0-9]+Arg[0-9]*$"
+        },
+        "presence": {
+          "type": ["string", "null"],
+          "enum": ["required", "optional", null]
+        },
+        "omission_behavior": {
+          "type": ["string", "null"],
+          "enum": ["reject_request", "omit_sdk_setter", "set_catalog_default", null]
+        }
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scenario_id", "kind", "argument_id"],
+      "properties": {
+        "scenario_id": { "$ref": "#/definitions/case_id" },
+        "kind": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_.]*$"
+        },
+        "argument_id": {
+          "anyOf": [
+            { "$ref": "#/definitions/family_id" },
+            { "type": "null" }
+          ]
+        }
+      }
+    },
+    "operation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "inventory_key",
+        "mp_step",
+        "fully_qualified_method",
+        "request",
+        "result",
+        "effect",
+        "execution_scope",
+        "replay_safety",
+        "risk_flags",
+        "inputs",
+        "outputs",
+        "scenarios"
+      ],
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$"
+        },
+        "inventory_key": { "type": "string", "minLength": 1 },
+        "mp_step": { "type": "string", "minLength": 1 },
+        "fully_qualified_method": {
+          "type": "string",
+          "pattern": "^/briosa\\.sa\\..+/.+$"
+        },
+        "request": { "type": "string", "pattern": "^[A-Z][A-Za-z0-9]*Request$" },
+        "result": { "type": "string", "pattern": "^[A-Z][A-Za-z0-9]*Result$" },
+        "effect": { "enum": ["read_only", "mutating"] },
+        "execution_scope": {
+          "enum": ["self_contained", "global_state_read", "global_state_mutation", "exclusive_workflow"]
+        },
+        "replay_safety": { "enum": ["safe", "unsafe", "unknown"] },
+        "risk_flags": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "inputs": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/argument" }
+        },
+        "outputs": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/argument" }
+        },
+        "scenarios": {
+          "type": "array",
+          "minItems": 20,
+          "items": { "$ref": "#/definitions/scenario" }
+        }
+      }
+    },
+    "binding_case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["case_id", "kind", "method", "direction", "family_id"],
+      "properties": {
+        "case_id": { "$ref": "#/definitions/case_id" },
+        "kind": {
+          "enum": ["binding.positive", "binding.setter_rejected", "binding.getter_failed", "binding.unknown_returned_enum"]
+        },
+        "method": { "type": "string", "minLength": 1 },
+        "direction": { "enum": ["setter", "getter"] },
+        "family_id": { "$ref": "#/definitions/family_id" }
+      }
+    },
+    "value_family_case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["case_id", "kind", "family_id", "shape", "public_type", "worker_type"],
+      "properties": {
+        "case_id": { "$ref": "#/definitions/case_id" },
+        "kind": { "enum": ["value_family.positive", "value_family.negative"] },
+        "family_id": { "$ref": "#/definitions/family_id" },
+        "shape": { "type": "string", "minLength": 1 },
+        "public_type": { "type": "string", "minLength": 1 },
+        "worker_type": { "type": "string", "minLength": 1 }
+      }
+    },
+    "enum_case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["case_id", "kind", "public_type", "worker_type", "public_symbol", "public_number", "worker_symbol", "sdk_literal"],
+      "properties": {
+        "case_id": { "$ref": "#/definitions/case_id" },
+        "kind": { "enum": ["enum.member_positive", "enum.unknown_negative"] },
+        "public_type": { "type": "string", "minLength": 1 },
+        "worker_type": { "type": "string", "minLength": 1 },
+        "public_symbol": { "type": ["string", "null"] },
+        "public_number": { "type": ["integer", "null"], "minimum": 1 },
+        "worker_symbol": { "type": ["string", "null"] },
+        "sdk_literal": { "type": ["string", "null"] }
+      }
+    },
+    "structured_case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["case_id", "kind", "public_type", "worker_type", "field_name", "field_number", "field_type", "cardinality"],
+      "properties": {
+        "case_id": { "$ref": "#/definitions/case_id" },
+        "kind": {
+          "enum": [
+            "structured.positive",
+            "structured.malformed_negative",
+            "structured.optional_present",
+            "structured.optional_absent",
+            "structured.repeated_present",
+            "structured.repeated_empty",
+            "structured.singular_present"
+          ]
+        },
+        "public_type": { "type": "string", "minLength": 1 },
+        "worker_type": { "type": "string", "minLength": 1 },
+        "field_name": { "type": ["string", "null"] },
+        "field_number": { "type": ["integer", "null"], "minimum": 1 },
+        "field_type": { "type": ["string", "null"] },
+        "cardinality": { "type": ["string", "null"] }
+      }
+    },
+    "assignment_case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["case_id", "kind", "method", "inventory_key", "sdk_order", "family_id", "rejected_family_id"],
+      "properties": {
+        "case_id": { "$ref": "#/definitions/case_id" },
+        "kind": {
+          "enum": ["assignment.reviewed_positive", "assignment.unreviewed_family_negative"]
+        },
+        "method": { "type": "string", "minLength": 1 },
+        "inventory_key": { "type": "string", "minLength": 1 },
+        "sdk_order": { "type": "integer", "minimum": 0 },
+        "family_id": { "$ref": "#/definitions/family_id" },
+        "rejected_family_id": {
+          "anyOf": [
+            { "$ref": "#/definitions/family_id" },
+            { "type": "null" }
+          ]
+        }
+      }
+    }
+  }
+}

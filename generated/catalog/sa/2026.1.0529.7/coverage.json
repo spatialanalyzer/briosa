@@ -29,7 +29,8 @@
         "grpc_service": true,
         "service_registration": true,
         "capability": true,
-        "documentation": true
+        "documentation": true,
+        "portable_conformance": true
       },
       "inputs": [],
       "outputs": [

@@ -72,6 +72,8 @@ public sealed class CommandCatalogGeneratorTests
             Assert.Contains("WorkerMpValueKind.Text", binding, StringComparison.Ordinal);
             Assert.Contains("DirectoryGetter = \"GetStringArg\"", binding, StringComparison.Ordinal);
             Assert.Contains("TargetCatalogMetadata", binding, StringComparison.Ordinal);
+            Assert.Contains("TargetCatalogConformanceMetadata", binding, StringComparison.Ordinal);
+            Assert.Contains("CatalogOperationConformanceBinding", binding, StringComparison.Ordinal);
             Assert.Contains("CatalogId = \"briosa.sa.2026.1.0529.7\"", binding, StringComparison.Ordinal);
             Assert.Contains("CoreProtocol.ReplaySafety.Safe", binding, StringComparison.Ordinal);
             Assert.Contains(
@@ -138,6 +140,7 @@ public sealed class CommandCatalogGeneratorTests
             Assert.Contains("\"grpc_service\": true", coverage, StringComparison.Ordinal);
             Assert.Contains("\"service_registration\": true", coverage, StringComparison.Ordinal);
             Assert.Contains("\"capability\": true", coverage, StringComparison.Ordinal);
+            Assert.Contains("\"portable_conformance\": true", coverage, StringComparison.Ordinal);
             Assert.Contains("\"argument_family_assignment\": true", coverage, StringComparison.Ordinal);
 
             var documentation = File.ReadAllText(Path.Combine(
