@@ -229,6 +229,23 @@ function Invoke-CleanGeneration {
             "catalog-generate",
             $catalogInput,
             (Join-Path $surfaceRoot "catalog-artifacts/$target"))
+
+        $conformanceContext = Join-Path $workRoot "portable-conformance-context/$target"
+        Copy-Tree -Source (Join-Path $repositoryRoot "catalog/schemas") `
+            -Destination (Join-Path $conformanceContext "catalog/schemas")
+        Copy-Tree -Source $catalogTargetSource `
+            -Destination (Join-Path $conformanceContext "catalog/sa/$target")
+        Copy-Tree -Source (Join-Path $repositoryRoot "proto") `
+            -Destination (Join-Path $conformanceContext "proto")
+        Copy-Tree -Source $bindingWork `
+            -Destination (Join-Path $conformanceContext "bindings/sa/$target")
+        $conformanceValueRoot = Join-Path $conformanceContext "values/sa/$target"
+        [IO.Directory]::CreateDirectory($conformanceValueRoot) | Out-Null
+        Copy-Item -LiteralPath $valueCatalog -Destination (Join-Path $conformanceValueRoot "catalog.json")
+        Invoke-Generator -GeneratorArguments @(
+            "portable-conformance-generate",
+            $conformanceContext,
+            (Join-Path $surfaceRoot "portable-conformance/$target"))
     }
 }
 
@@ -402,7 +419,8 @@ $requiredSurfaceIds = @(
     "value-family",
     "binding-registry",
     "catalog-scaffolds",
-    "catalog-artifacts")
+    "catalog-artifacts",
+    "portable-conformance")
 if (Compare-Object $requiredSurfaceIds $surfaceIds) {
     throw "Full-surface policy must define every repository-owned generation surface exactly once."
 }
@@ -500,6 +518,10 @@ try {
                 -Configuration $Configuration -NoBuild
             & (Join-Path $PSScriptRoot "Verify-CatalogArtifacts.ps1") `
                 -Configuration $Configuration -NoBuild
+        }
+        Invoke-SurfaceVerification -SurfaceId "portable-conformance" -Target $target -Action {
+            & (Join-Path $PSScriptRoot "Verify-PortableConformance.ps1") `
+                -SpatialAnalyzerTarget $target -Configuration $Configuration -NoBuild
         }
     }
 

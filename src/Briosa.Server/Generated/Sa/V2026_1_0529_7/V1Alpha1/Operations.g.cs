@@ -63,6 +63,42 @@ internal static class FileOperationsGetWorkingDirectoryBinding
 }
 
 [global::System.CodeDom.Compiler.GeneratedCode("Briosa.Generator", "1.0")]
+internal sealed record CatalogOperationConformanceBinding(
+    CatalogOperationDescriptor Operation,
+    Type RequestType,
+    Type ResultType,
+    Func<object, WorkerMpCommand> CreateCommand,
+    IReadOnlyList<OperationOutputContract> OutputContracts,
+    Func<SuccessfulOperationExecution, object> CreateResult,
+    Func<CatalogOperationExecutor, object, CancellationToken, DateTime?, Task<object>> ExecuteAsync);
+
+[global::System.CodeDom.Compiler.GeneratedCode("Briosa.Generator", "1.0")]
+internal static class TargetCatalogConformanceMetadata
+{
+    public static IReadOnlyList<CatalogOperationConformanceBinding> Operations { get; } =
+        [
+            new(
+                TargetCatalogMetadata.Operations.Single(operation =>
+                    operation.OperationId == FileOperationsGetWorkingDirectoryBinding.OperationId),
+                typeof(TargetProtocol.GetWorkingDirectoryRequest),
+                typeof(TargetProtocol.GetWorkingDirectoryResult),
+                request => FileOperationsGetWorkingDirectoryBinding.CreateCommand((TargetProtocol.GetWorkingDirectoryRequest)request),
+                FileOperationsGetWorkingDirectoryBinding.OutputContracts,
+                completed => FileOperationsGetWorkingDirectoryBinding.CreateResult(completed),
+                async (executor, request, cancellationToken, deadline) =>
+                    await executor.ExecuteAsync(
+                        (TargetProtocol.GetWorkingDirectoryRequest)request,
+                        TargetCatalogMetadata.Operations.Single(operation =>
+                            operation.OperationId == FileOperationsGetWorkingDirectoryBinding.OperationId),
+                        FileOperationsGetWorkingDirectoryBinding.CreateCommand,
+                        FileOperationsGetWorkingDirectoryBinding.OutputContracts,
+                        FileOperationsGetWorkingDirectoryBinding.CreateResult,
+                        cancellationToken,
+                        deadline).ConfigureAwait(false)),
+        ];
+}
+
+[global::System.CodeDom.Compiler.GeneratedCode("Briosa.Generator", "1.0")]
 internal sealed class FileOperationsService(CatalogOperationExecutor operationExecutor) :
     TargetProtocol.FileOperations.FileOperationsBase
 {

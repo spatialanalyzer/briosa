@@ -88,6 +88,23 @@
           "mode": "tree_overlay"
         }
       ]
+    },
+    {
+      "id": "portable-conformance",
+      "evidence_paths": [
+        "catalog/sa/{target}",
+        "proto",
+        "bindings/sa/{target}/registry.json",
+        "bindings/sa/{target}/review.json",
+        "values/sa/{target}/catalog.json"
+      ],
+      "committed_outputs": [
+        {
+          "generated_path": "generated/conformance/sa/{target}/manifest.json",
+          "repository_path": "generated/conformance/sa/{target}/manifest.json",
+          "mode": "file"
+        }
+      ]
     }
   ],
   "released_protocol_baselines": [],

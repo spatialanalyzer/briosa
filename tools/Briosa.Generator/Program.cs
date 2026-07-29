@@ -6,6 +6,8 @@ return args switch
 {
     ["catalog-generate", var catalogRoot, var outputRoot] =>
         GenerateCatalog(catalogRoot, outputRoot),
+    ["portable-conformance-generate", var repositoryRoot, var outputRoot] =>
+        GeneratePortableConformance(repositoryRoot, outputRoot),
     ["catalog-scaffold-generate", var inventoryPath, var dispositionDirectory,
         var valueFamilyCatalogPath, var catalogRoot, var outputDirectory] =>
         GenerateCatalogScaffolds(
@@ -50,6 +52,18 @@ static int GenerateCatalog(string catalogRoot, string outputRoot)
     }
 
     Console.WriteLine($"Generated {result.Files.Count} catalog artifact(s).");
+    return 0;
+}
+
+static int GeneratePortableConformance(string repositoryRoot, string outputRoot)
+{
+    var result = PortableConformanceGenerator.Generate(repositoryRoot, outputRoot);
+    foreach (var file in result.Files)
+    {
+        Console.WriteLine(file);
+    }
+
+    Console.WriteLine($"Generated {result.Files.Count} portable conformance manifest(s).");
     return 0;
 }
 
@@ -249,6 +263,8 @@ static int ShowUsage()
 {
     Console.Error.WriteLine("Usage:");
     Console.Error.WriteLine("  Briosa.Generator catalog-generate <catalog-root> <output-root>");
+    Console.Error.WriteLine(
+        "  Briosa.Generator portable-conformance-generate <repository-root> <output-root>");
     Console.Error.WriteLine(
         "  Briosa.Generator catalog-scaffold-generate <inventory-path> " +
         "<disposition-directory> <value-family-catalog-path> <catalog-root> " +

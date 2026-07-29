@@ -4,7 +4,7 @@ Run the scripts in this directory from the repository root. Most scripts require
 
 ## Complete-surface and CI-budget verification
 
-`Verify-FullSurface.ps1` is the ordinary-CI umbrella for disposition, value-family, binding-registry, scaffold, catalog-artifact, and interop validation. It generates every configured surface twice in clean temporary roots, discovers all emitted paths, compares bytes and committed freshness, runs the existing semantic validators, and writes a fingerprinted manifest under `artifacts/full-surface`:
+`Verify-FullSurface.ps1` is the ordinary-CI umbrella for disposition, value-family, binding-registry, scaffold, catalog-artifact, portable-conformance, and interop validation. It generates every configured surface twice in clean temporary roots, discovers all emitted paths, compares bytes and committed freshness, runs the existing semantic validators, and writes a fingerprinted manifest under `artifacts/full-surface`:
 
 ```powershell
 ./eng/Verify-FullSurface.ps1
@@ -65,6 +65,25 @@ Generated artifacts are committed but must not be hand-edited. Each manifest `pr
 ```
 
 Pass `-NoBuild` only after `Briosa.Generator` has already been built in the selected configuration.
+
+## Portable conformance verification
+
+Generate the exact-target portable scenario inventory from the supported catalog, binding registry/review, and value-family evidence with:
+
+```powershell
+dotnet run --project tools/Briosa.Generator -c Release -- `
+  portable-conformance-generate . .
+```
+
+The committed `generated/conformance/sa/<target>/manifest.json` fingerprints every input and records stable positive and negative identities for each supported operation, usable method/family row, value family, enum member, structured shape, and exact multi-family assignment. Generated operation bindings let server tests execute request validation, immutable worker-command mapping, typed results, capability/policy behavior, readiness, uncertain completion, replay guidance, and fake worker failures without maintaining a second operation list.
+
+Verify schema, evidence fingerprints, exact operation and case identities, two-run determinism, and committed freshness with:
+
+```powershell
+./eng/Verify-PortableConformance.ps1
+```
+
+This is an ordinary-runner Briosa contract and never activates SpatialAnalyzer. See [the portable conformance guide](../docs/testing/portable-conformance.md) for the executable test boundary and regeneration workflow.
 
 After a public release, pair catalog verification with `Verify-Protocol.ps1 -AgainstRef <released-ref>`. The repository's FILE-level Buf policy rejects moving a published service or message between category files as well as incompatible field changes. See [ADR 0021](../docs/architecture/0021-exact-target-protobuf-partitions-and-identifiers.md) before allocating a new category alias, RPC, request/result type, or field number.
 
