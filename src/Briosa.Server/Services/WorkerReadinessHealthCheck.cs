@@ -30,5 +30,6 @@ internal sealed class WorkerReadinessHealthCheck(IWorkerStatusProvider statusPro
         {
             State: WorkerConnectionState.Connected,
             ExecutionReadinessState: WorkerExecutionReadinessState.ExecutionReady
-        };
+        } &&
+        snapshot.RuntimeIdentity?.AllowsExecution == true;
 }

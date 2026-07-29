@@ -25,6 +25,14 @@ function Assert-WorkflowPattern {
 
 Assert-WorkflowPattern '(?m)^  workflow_dispatch:\s*$' `
     "The licensed workflow must be manually dispatched."
+Assert-WorkflowPattern 'activated_sdk_attestation_reference:' `
+    "The licensed workflow must require an activated-SDK evidence reference."
+Assert-WorkflowPattern 'connected_sa_attestation_reference:' `
+    "The licensed workflow must require a connected-SA evidence reference."
+Assert-WorkflowPattern 'activated_sdk_attested_version:' `
+    "The licensed workflow must require an activated-SDK attested version."
+Assert-WorkflowPattern 'connected_sa_attested_version:' `
+    "The licensed workflow must require a connected-SA attested version."
 if ($workflow -match
     '(?m)^  (pull_request|pull_request_target|push|workflow_run|repository_dispatch):') {
     throw "The licensed workflow must not accept automatic or untrusted triggers."
@@ -56,6 +64,10 @@ foreach ($requiredPattern in @(
         'actions/download-artifact@',
         'Test-LicensedRunnerState\.ps1',
         '-ConfirmLicensedSpatialAnalyzerTest',
+        '-ActivatedSdkAttestedVersion',
+        '-ActivatedSdkAttestationReference',
+        '-ConnectedSpatialAnalyzerAttestedVersion',
+        '-ConnectedSpatialAnalyzerAttestationReference',
         '(?m)^        if: always\(\)\s*$')) {
     if ($protectedJob -notmatch $requiredPattern) {
         throw "The protected licensed-sa job is missing required policy '$requiredPattern'."

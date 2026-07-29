@@ -209,7 +209,9 @@ Run portable packaged-host success and failure scenarios without SpatialAnalyzer
 ./eng/Test-GeneratedClientScenarios.ps1 -PackagePath <path-to-briosa-zip>
 ```
 
-`Test-LicensedSpatialAnalyzer.ps1` is an explicit opt-in check for one already-running, separately licensed SA 2026.1.0529.7 instance.
+The portable harness supplies explicitly labeled fake-worker attestations for both runtime identities. Production defaults remain fail-closed: the activated SDK and connected SA each require runtime-verified exact evidence or their own complete `Version`/`Reference` operator-attestation pair. Runtime evidence takes precedence and cannot be masked by attestation. Evidence references are kept out of discovery and default logs; see [ADR 0022](../docs/architecture/0022-runtime-identity-and-attestation.md).
+
+`Test-LicensedSpatialAnalyzer.ps1` is an explicit opt-in check for one already-running, separately licensed SA 2026.1.0529.7 instance. It requires independent attested version and evidence-reference arguments for the activated SDK and connected application; these arguments never convert the configured package target into an observed fact.
 
 `Test-LicensedRunnerState.ps1` verifies safe preflight or postflight process state without logging process IDs, paths, license data, or returned values:
 
@@ -217,7 +219,7 @@ Run portable packaged-host success and failure scenarios without SpatialAnalyzer
 ./eng/Test-LicensedRunnerState.ps1 -Phase Preflight
 ```
 
-`Verify-LicensedRunnerWorkflow.ps1` is an ordinary-CI policy check that rejects untrusted triggers, mutable action references, a licensed-runner checkout, or drift from the exact runner group and environment:
+`Verify-LicensedRunnerWorkflow.ps1` is an ordinary-CI policy check that rejects untrusted triggers, missing identity-reference inputs, mutable action references, a licensed-runner checkout, or drift from the exact runner group and environment:
 
 ```powershell
 ./eng/Verify-LicensedRunnerWorkflow.ps1

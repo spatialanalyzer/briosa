@@ -1,6 +1,7 @@
 using Briosa.Server.Workers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Briosa.Worker.Control;
 
 namespace Briosa.Server.Tests;
 
@@ -46,5 +47,58 @@ public sealed class WorkerProcessRegistrationTests
         Assert.Contains(
             services,
             descriptor => descriptor.ServiceType == typeof(WorkerProcessSupervisor));
+    }
+
+    [Fact]
+    public void PartialRuntimeIdentityAttestationFailsStartupRegistration()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                [ExactTargetIdentityPolicy.ActivatedSdkVersionKey] = "2026.1.0529.7"
+            })
+            .Build();
+        var services = new ServiceCollection();
+
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            services.AddWorkerProcessLifecycle(configuration));
+
+        Assert.Contains(
+            ExactTargetIdentityPolicy.ActivatedSdkReferenceKey,
+            exception.Message,
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void IndependentAttestationConfigurationPreservesMissingClaim()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                [ExactTargetIdentityPolicy.ActivatedSdkVersionKey] = "2026.1.0529.7",
+                [ExactTargetIdentityPolicy.ActivatedSdkReferenceKey] =
+                    "deployment-record:sdk"
+            })
+            .Build();
+        var services = new ServiceCollection();
+
+        services.AddWorkerProcessLifecycle(configuration);
+        using var provider = services.BuildServiceProvider();
+        var policy = provider.GetRequiredService<ExactTargetIdentityPolicy>();
+        var identity = policy.Evaluate(new WorkerRuntimeIdentitySnapshot(
+            new WorkerRuntimeIdentityEvidence(
+                Version: null,
+                WorkerRuntimeIdentityEvidenceSource.Unavailable),
+            new WorkerRuntimeIdentityEvidence(
+                Version: null,
+                WorkerRuntimeIdentityEvidenceSource.Unavailable)));
+
+        Assert.Equal(
+            RuntimeIdentityEvidenceSource.OperatorAttestation,
+            identity.ActivatedSdk.Source);
+        Assert.Equal(
+            RuntimeIdentityEvidenceSource.Unavailable,
+            identity.ConnectedSpatialAnalyzer.Source);
+        Assert.False(identity.AllowsExecution);
     }
 }

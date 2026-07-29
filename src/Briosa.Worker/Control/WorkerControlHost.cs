@@ -559,7 +559,14 @@ internal static partial class WorkerControlHost
             connection.Attempt,
             connection.MaximumAttempts,
             connection.DiagnosticCode,
-            connection.TransitionedAt);
+            connection.TransitionedAt,
+            new WorkerRuntimeIdentitySnapshot(
+                new WorkerRuntimeIdentityEvidence(
+                    Version: null,
+                    WorkerRuntimeIdentityEvidenceSource.Unavailable),
+                new WorkerRuntimeIdentityEvidence(
+                    Version: null,
+                    WorkerRuntimeIdentityEvidenceSource.Unavailable)));
 
     private static void StartParentMonitor(int parentProcessId)
     {

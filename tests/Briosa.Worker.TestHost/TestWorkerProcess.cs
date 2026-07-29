@@ -43,7 +43,9 @@ internal static class TestWorkerProcess
             channel.Send(
                 WorkerControlMessage.Ready(
                     Environment.ProcessId,
-                    ConnectionSnapshot(WorkerExecutionReadinessState.Unverified)));
+                    ConnectionSnapshot(
+                        WorkerExecutionReadinessState.Unverified,
+                        scenario: options.Scenario)));
 
             while (true)
             {
@@ -71,7 +73,8 @@ internal static class TestWorkerProcess
                                     : WorkerExecutionReadinessState.ExecutionReady,
                                 verificationFailed
                                     ? "execution-readiness-probe-mp-failed"
-                                    : "execution-readiness-verified")));
+                                    : "execution-readiness-verified",
+                                options.Scenario)));
                         break;
                     case WorkerControlMessageKind.Ping:
                         if (options.Scenario == TestWorkerScenario.HangOnPing)
@@ -110,7 +113,8 @@ internal static class TestWorkerProcess
                             CompletedExecution(
                                 message.Command!,
                                 mpSucceeded: options.Scenario != TestWorkerScenario.MpFailure,
-                                delayed));
+                                delayed,
+                                options.Scenario));
                         if (options.Scenario == TestWorkerScenario.CrashAfterExecute)
                         {
                             Environment.Exit(45);
@@ -155,7 +159,8 @@ internal static class TestWorkerProcess
     private static WorkerExecutionResponse CompletedExecution(
         WorkerMpCommand command,
         bool mpSucceeded,
-        bool delayed) =>
+        bool delayed,
+        TestWorkerScenario scenario) =>
         new(
             WorkerExecutionResponseStatus.Completed,
             new WorkerMpExecutionResult(
@@ -168,7 +173,9 @@ internal static class TestWorkerProcess
                     ? [.. command.OutputArguments.Select(CreateOutputValue)]
                     : [],
                 mpSucceeded ? null : "scripted-mp-failure"),
-            ConnectionSnapshot(WorkerExecutionReadinessState.ExecutionReady),
+            ConnectionSnapshot(
+                WorkerExecutionReadinessState.ExecutionReady,
+                scenario: scenario),
             DiagnosticCode: null);
 
     private static WorkerMpOutputValue CreateOutputValue(WorkerMpOutputArgument output) =>
@@ -328,7 +335,8 @@ internal static class TestWorkerProcess
 
     private static WorkerConnectionSnapshot ConnectionSnapshot(
         WorkerExecutionReadinessState readinessState,
-        string diagnosticCode = "connect-ex-connected") =>
+        string diagnosticCode = "connect-ex-connected",
+        TestWorkerScenario scenario = TestWorkerScenario.Normal) =>
         new(
             WorkerConnectionState.Connected,
             readinessState,
@@ -336,7 +344,33 @@ internal static class TestWorkerProcess
             Attempt: 1,
             MaximumAttempts: 1,
             diagnosticCode,
-            DateTimeOffset.UtcNow);
+            DateTimeOffset.UtcNow,
+            scenario switch
+            {
+                TestWorkerScenario.RuntimeIdentityMismatch =>
+                    new WorkerRuntimeIdentitySnapshot(
+                        new WorkerRuntimeIdentityEvidence(
+                            "2025.0",
+                            WorkerRuntimeIdentityEvidenceSource.RuntimeVerified),
+                        new WorkerRuntimeIdentityEvidence(
+                            "2026.1.0529.7",
+                            WorkerRuntimeIdentityEvidenceSource.RuntimeVerified)),
+                TestWorkerScenario.MalformedRuntimeIdentity =>
+                    new WorkerRuntimeIdentitySnapshot(
+                        new WorkerRuntimeIdentityEvidence(
+                            Version: null,
+                            WorkerRuntimeIdentityEvidenceSource.RuntimeVerified),
+                        new WorkerRuntimeIdentityEvidence(
+                            Version: null,
+                            WorkerRuntimeIdentityEvidenceSource.Unavailable)),
+                _ => new WorkerRuntimeIdentitySnapshot(
+                    new WorkerRuntimeIdentityEvidence(
+                        Version: null,
+                        WorkerRuntimeIdentityEvidenceSource.Unavailable),
+                    new WorkerRuntimeIdentityEvidence(
+                        Version: null,
+                        WorkerRuntimeIdentityEvidenceSource.Unavailable))
+            });
 
     private static void WriteRecord(string? path, LifecycleRecord record)
     {
@@ -369,7 +403,9 @@ internal enum TestWorkerScenario
     DropExecutionResponse,
     HangOnVerify,
     CrashOnVerify,
-    RejectVerify
+    RejectVerify,
+    RuntimeIdentityMismatch,
+    MalformedRuntimeIdentity
 }
 
 internal sealed record TestWorkerOptions(
@@ -409,6 +445,8 @@ internal sealed record TestWorkerOptions(
             "hang-on-verify" => TestWorkerScenario.HangOnVerify,
             "crash-on-verify" => TestWorkerScenario.CrashOnVerify,
             "reject-verify" => TestWorkerScenario.RejectVerify,
+            "runtime-identity-mismatch" => TestWorkerScenario.RuntimeIdentityMismatch,
+            "malformed-runtime-identity" => TestWorkerScenario.MalformedRuntimeIdentity,
             _ => throw new ArgumentOutOfRangeException(
                 nameof(value),
                 value,

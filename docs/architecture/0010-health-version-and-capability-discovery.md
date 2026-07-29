@@ -3,7 +3,7 @@
 - Status: Accepted for the v0.1 vertical slice
 - Date: 2026-07-22
 - Issue: [#12](https://github.com/spatialanalyzer/briosa/issues/12)
-- Amended by: [ADR 0017](0017-execution-channel-readiness.md)
+- Amended by: [ADR 0017](0017-execution-channel-readiness.md), [ADR 0022](0022-runtime-identity-and-attestation.md)
 
 ## Context
 
@@ -27,7 +27,7 @@ The stable core package adds `DiscoveryService`:
 - `GetServerInfo` returns `VersionCoordinates`, safe worker/connection/execution-readiness enums, readiness, and an optional connected-SA version with an explicit verification state.
 - `ListCapabilities` returns catalog identity and only the operations in the reviewed exact-target allowlist.
 
-The configured exact SA target is always reported. The connected-SA version remains absent with state `UNAVAILABLE` until a separately reviewed runtime mechanism can establish it. Future support may report a verified match or mismatch without changing existing field meanings.
+The configured exact SA target is always reported. [ADR 0022](0022-runtime-identity-and-attestation.md) adds separate activated-SDK and connected-SA evidence values, sources, and match states. A claim remains absent and unavailable until runtime verification or an explicit operator attestation establishes it; configured target text is never substituted.
 
 Catalog generation emits an immutable runtime capability descriptor beside operation adapters. Discovery therefore uses the same operation ID, service, RPC, fully qualified method, and reviewed effect classification as the public generated surface. It does not parse the catalog on the request path and does not maintain a second allowlist.
 
@@ -43,7 +43,7 @@ Portable tests verify:
 
 - liveness naming is independent of worker state;
 - readiness requires worker readiness, a connected SDK snapshot, and successful execution verification for the current generation;
-- connected-version absence is distinct from its verification state;
+- each runtime-version absence is distinct from its evidence source and match state;
 - capability discovery exactly reflects generated catalog metadata; and
 - protocol descriptors contain no prohibited operational or license fields.
 

@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Threading.Channels;
+using Briosa.Server.Generated.Sa.V2026_1_0529_7.V1Alpha1;
 using Briosa.Worker.Control;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -13,6 +14,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
     private readonly List<WorkerLifecycleSnapshot> _history = [];
     private readonly Lock _historyLock = new();
     private readonly WorkerExecutionPolicy _executionPolicy;
+    private readonly ExactTargetIdentityPolicy _identityPolicy;
     private readonly IWorkerProcessFactory _processFactory;
     private readonly WorkerRestartPolicy _policy;
     private readonly Queue<DateTimeOffset> _restartTimes = new();
@@ -54,7 +56,8 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         WorkerRestartPolicy policy,
         WorkerExecutionPolicy? executionPolicy = null,
         TimeProvider? timeProvider = null,
-        ILogger<WorkerProcessSupervisor>? logger = null)
+        ILogger<WorkerProcessSupervisor>? logger = null,
+        ExactTargetIdentityPolicy? identityPolicy = null)
     {
         ArgumentNullException.ThrowIfNull(processFactory);
         ArgumentNullException.ThrowIfNull(policy);
@@ -63,6 +66,8 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         _executionPolicy = executionPolicy ?? new WorkerExecutionPolicy(
             TimeSpan.FromSeconds(30),
             queueCapacity: 64);
+        _identityPolicy = identityPolicy ?? ExactTargetIdentityPolicy.CreateRuntimeOnly(
+            TargetCatalogMetadata.SpatialAnalyzerTarget);
         _timeProvider = timeProvider ?? TimeProvider.System;
         _logger = logger ?? NullLogger<WorkerProcessSupervisor>.Instance;
         _current = new WorkerLifecycleSnapshot(
@@ -205,9 +210,14 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         var queueSlots = _executionQueueSlots;
         var executionCancellation = _executionCancellation;
         if (queue is null || queueSlots is null || executionCancellation is null ||
-            Current.State != WorkerLifecycleState.Ready)
+            Current.State != WorkerLifecycleState.Ready ||
+            Current.RuntimeIdentity?.AllowsExecution != true)
         {
-            return Unavailable("worker-not-ready", effectiveCorrelationId);
+            return Unavailable(
+                Current.State == WorkerLifecycleState.Ready
+                    ? "runtime-identity-not-ready"
+                    : "worker-not-ready",
+                effectiveCorrelationId);
         }
 
         var item = new ExecutionWorkItem(command, effectiveCorrelationId);
@@ -445,9 +455,14 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
             acquired = true;
             var generation = Current.Generation;
             var worker = _worker;
-            if (Current.State != WorkerLifecycleState.Ready || worker is null)
+            if (Current.State != WorkerLifecycleState.Ready || worker is null ||
+                Current.RuntimeIdentity?.AllowsExecution != true)
             {
-                return Unavailable("worker-not-ready", correlationId);
+                return Unavailable(
+                    Current.State == WorkerLifecycleState.Ready && worker is not null
+                        ? "runtime-identity-not-ready"
+                        : "worker-not-ready",
+                    correlationId);
             }
 
             using var watchdog = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -470,6 +485,8 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                 var executionResponse = response.ExecutionResponse;
                 if ((executionResponse.Status == WorkerExecutionResponseStatus.Completed) !=
                     (executionResponse.Execution is not null) ||
+                    executionResponse.Connection.RuntimeIdentity !=
+                        Current.Connection?.RuntimeIdentity ||
                     executionResponse.Execution is { ExecuteStepReturned: true, MpSucceeded: true } execution &&
                     !OutputsMatch(command.OutputArguments, execution.OutputValues))
                 {
@@ -625,6 +642,8 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                 if (ready.Kind != WorkerControlMessageKind.Ready ||
                     ready.ProcessId is not > 0 ||
                     ready.Connection is null ||
+                    !ExactTargetIdentityPolicy.IsWellFormed(
+                        ready.Connection.RuntimeIdentity) ||
                     ready.Connection.State == WorkerConnectionState.Connected &&
                     ready.Connection.ExecutionReadinessState !=
                         WorkerExecutionReadinessState.Unverified)
@@ -671,6 +690,22 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
             return true;
         }
 
+        if (!_identityPolicy.Evaluate(connection.RuntimeIdentity).AllowsExecution)
+        {
+            Transition(
+                WorkerLifecycleState.Ready,
+                _reportedProcessId,
+                Current.LastTermination,
+                "worker-ready-identity-not-ready",
+                connection with
+                {
+                    ExecutionReadinessState = WorkerExecutionReadinessState.Unverified,
+                    DiagnosticCode = "runtime-identity-not-ready",
+                    TransitionedAt = _timeProvider.GetUtcNow()
+                });
+            return true;
+        }
+
         var verifying = connection with
         {
             ExecutionReadinessState = WorkerExecutionReadinessState.Verifying,
@@ -704,7 +739,10 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
             if (response.Kind != WorkerControlMessageKind.ExecutionVerificationResult ||
                 response.CorrelationId != correlationId ||
                 response.Connection is null ||
-                response.Connection.State != WorkerConnectionState.Connected)
+                response.Connection.State != WorkerConnectionState.Connected ||
+                response.Connection.RuntimeIdentity != attachedConnection.RuntimeIdentity ||
+                !ExactTargetIdentityPolicy.IsWellFormed(
+                    response.Connection.RuntimeIdentity))
             {
                 throw new InvalidDataException(
                     "The worker returned an invalid execution-verification response.");
@@ -997,7 +1035,8 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
             termination,
             diagnosticCode,
             connection,
-            _timeProvider.GetUtcNow());
+            _timeProvider.GetUtcNow(),
+            _identityPolicy.Evaluate(connection?.RuntimeIdentity));
         lock (_historyLock)
         {
             _current = snapshot;
@@ -1016,12 +1055,16 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
             snapshot.DiagnosticCode,
             snapshot.Connection?.State,
             snapshot.Connection?.ExecutionReadinessState,
-            snapshot.Connection?.StatusCode);
+            snapshot.Connection?.StatusCode,
+            snapshot.RuntimeIdentity?.ActivatedSdk.Source,
+            snapshot.RuntimeIdentity?.ActivatedSdk.MatchState,
+            snapshot.RuntimeIdentity?.ConnectedSpatialAnalyzer.Source,
+            snapshot.RuntimeIdentity?.ConnectedSpatialAnalyzer.MatchState);
     }
     [LoggerMessage(
         EventId = 1201,
         Level = LogLevel.Information,
-        Message = "Worker transitioned to {WorkerState} at generation {Generation} with restart count {RestartCount}, termination {Termination}, diagnostic {DiagnosticCode}, connection state {ConnectionState}, execution readiness {ExecutionReadinessState}, and ConnectEx status {StatusCode}.")]
+        Message = "Worker transitioned to {WorkerState} at generation {Generation} with restart count {RestartCount}, termination {Termination}, diagnostic {DiagnosticCode}, connection state {ConnectionState}, execution readiness {ExecutionReadinessState}, ConnectEx status {StatusCode}, activated SDK identity {ActivatedSdkIdentitySource}/{ActivatedSdkIdentityMatchState}, and connected SA identity {ConnectedSaIdentitySource}/{ConnectedSaIdentityMatchState}.")]
     private partial void LogWorkerTransition(
         WorkerLifecycleState workerState,
         int generation,
@@ -1030,7 +1073,11 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         string diagnosticCode,
         WorkerConnectionState? connectionState,
         WorkerExecutionReadinessState? executionReadinessState,
-        int? statusCode);
+        int? statusCode,
+        RuntimeIdentityEvidenceSource? activatedSdkIdentitySource,
+        RuntimeIdentityMatchState? activatedSdkIdentityMatchState,
+        RuntimeIdentityEvidenceSource? connectedSaIdentitySource,
+        RuntimeIdentityMatchState? connectedSaIdentityMatchState);
 
 
 

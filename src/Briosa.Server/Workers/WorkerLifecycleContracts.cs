@@ -26,7 +26,8 @@ internal sealed record WorkerLifecycleSnapshot(
     WorkerTerminationKind LastTermination,
     string DiagnosticCode,
     WorkerConnectionSnapshot? Connection,
-    DateTimeOffset TransitionedAt);
+    DateTimeOffset TransitionedAt,
+    ExactTargetIdentitySnapshot? RuntimeIdentity = null);
 
 internal sealed class WorkerRestartPolicy
 {
