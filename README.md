@@ -76,6 +76,8 @@ Run `./eng/Verify-BindingRegistry.ps1` to reconcile every inventory-observed SDK
 
 Run `./eng/Verify-ValueFamilyEvidence.ps1` to validate the exact-target enum literals, structured fields, source fingerprints, and all multi-domain SDK-method assignments, and to reject stale or nondeterministic generated evidence artifacts. See the [value-family evidence guide](docs/development/value-family-evidence.md) before changing these mappings.
 
+Run `./eng/Verify-CatalogScaffolds.ps1` to generate and schema-check the incomplete review queue twice. Scaffolds account for every reviewed approved candidate not already in the supported catalog, consume exact per-occurrence value-family assignments, retain explicit public-policy blockers, and never write into `catalog`. See the [catalog review-scaffold guide](docs/development/catalog-review-scaffolds.md) for incremental conflict handling and the manual promotion checklist.
+
 For SA `2026.1.0529.7`, see the [intentional-exclusion policy](docs/reference/sa/2026.1.0529.7/intentional-exclusions.md) and the generated [command-level disposition report](disposition/sa/2026.1.0529.7/report.md).
 
 Run `dotnet run --project tools/Briosa.Generator -c Release -- catalog-generate catalog .` to regenerate exact-target protobuf, server bindings, reference documentation, and coverage manifests. Never edit those artifacts by hand. `./eng/Verify-CatalogArtifacts.ps1` performs a clean generation and fails on content or file-list drift.

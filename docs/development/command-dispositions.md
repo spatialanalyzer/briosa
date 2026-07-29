@@ -61,6 +61,8 @@ The semantic rules are:
 
 Delivery waves are `wave_1` through `wave_4`, followed by `final`. A wave is scheduling metadata, not public support by itself. Only a reviewed `approved_candidate` may be promoted into the supported command catalog, whose separate validation and generation process defines the runtime surface.
 
+Use the [catalog review-scaffold workflow](catalog-review-scaffolds.md) to prepare that promotion. It preserves disposition facts and exact per-occurrence value-family assignments while leaving public naming, input policy, risk/replay policy, data classification, and documentation blocked for explicit catalog review. A scaffold is not a supported operation.
+
 ## Workflow
 
 After extracting or updating an exact-target inventory, synchronize its ledger:

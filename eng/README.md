@@ -40,6 +40,26 @@ Generated artifacts are committed but must not be hand-edited. Verify a clean ge
 
 Pass `-NoBuild` only after `Briosa.Generator` has already been built in the selected configuration.
 
+Generate incomplete, evidence-traceable review scaffolds for every reviewed approved candidate that is not already in the supported catalog with `catalog-scaffold-generate`. Output must remain separate from `catalog`; use an ignored `artifacts` directory:
+
+```powershell
+dotnet run --project tools/Briosa.Generator -c Release -- `
+  catalog-scaffold-generate `
+  inventory/sa/2026.1.0529.7/inventory.json `
+  disposition/sa/2026.1.0529.7 `
+  values/sa/2026.1.0529.7/catalog.json `
+  catalog `
+  artifacts/catalog-scaffolds/2026.1.0529.7
+```
+
+`Verify-CatalogScaffolds.ps1` runs that workflow twice in clean temporary directories, validates both versioned scaffold schemas and every hash, and rejects nondeterminism or incomplete candidate accounting:
+
+```powershell
+./eng/Verify-CatalogScaffolds.ps1
+```
+
+Scaffolds deliberately retain null public-policy blockers and cannot generate a public operation. Existing changed or stale scaffolds produce conflicts instead of being overwritten. See [the catalog review-scaffold guide](../docs/development/catalog-review-scaffolds.md) before promoting a candidate.
+
 ## Command disposition verification
 
 `Verify-Disposition.ps1` validates the complete exact-target command review ledger against its pinned inventory. It applies the versioned schemas, requires exact inventory-key coverage, enforces fail-closed review semantics, and rejects stale shards, hashes, or reports:

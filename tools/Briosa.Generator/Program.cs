@@ -6,6 +6,14 @@ return args switch
 {
     ["catalog-generate", var catalogRoot, var outputRoot] =>
         GenerateCatalog(catalogRoot, outputRoot),
+    ["catalog-scaffold-generate", var inventoryPath, var dispositionDirectory,
+        var valueFamilyCatalogPath, var catalogRoot, var outputDirectory] =>
+        GenerateCatalogScaffolds(
+            inventoryPath,
+            dispositionDirectory,
+            valueFamilyCatalogPath,
+            catalogRoot,
+            outputDirectory),
     ["mp-inventory-extract", var saTarget, var documentationRoot, var sdkCodeRoot, var outputRoot] =>
         ExtractMpInventory(saTarget, documentationRoot, sdkCodeRoot, outputRoot),
     ["disposition-sync", var inventoryPath, var targetDirectory] =>
@@ -42,6 +50,39 @@ static int GenerateCatalog(string catalogRoot, string outputRoot)
     }
 
     Console.WriteLine($"Generated {result.Files.Count} catalog artifact(s).");
+    return 0;
+}
+
+static int GenerateCatalogScaffolds(
+    string inventoryPath,
+    string dispositionDirectory,
+    string valueFamilyCatalogPath,
+    string catalogRoot,
+    string outputDirectory)
+{
+    var result = CommandCatalogScaffolder.Generate(
+        inventoryPath,
+        dispositionDirectory,
+        valueFamilyCatalogPath,
+        catalogRoot,
+        outputDirectory);
+    foreach (var conflict in result.Conflicts)
+    {
+        Console.Error.WriteLine($"{conflict.Path}: {conflict.Reason}");
+    }
+
+    if (!result.IsSuccessful)
+    {
+        Console.Error.WriteLine(
+            $"Catalog scaffold generation found {result.Conflicts.Count} conflict(s); " +
+            "no files were changed.");
+        return 1;
+    }
+
+    Console.WriteLine(
+        $"Generated or verified {result.ScaffoldCount} review scaffold(s) from " +
+        $"{result.ApprovedCandidateCount} approved candidate(s); " +
+        $"{result.ExistingCatalogOperationCount} supported catalog operation(s) were preserved.");
     return 0;
 }
 
@@ -208,6 +249,10 @@ static int ShowUsage()
 {
     Console.Error.WriteLine("Usage:");
     Console.Error.WriteLine("  Briosa.Generator catalog-generate <catalog-root> <output-root>");
+    Console.Error.WriteLine(
+        "  Briosa.Generator catalog-scaffold-generate <inventory-path> " +
+        "<disposition-directory> <value-family-catalog-path> <catalog-root> " +
+        "<output-directory>");
     Console.Error.WriteLine("  Briosa.Generator catalog-validate <catalog-root>");
     Console.Error.WriteLine(
         "  Briosa.Generator disposition-sync <inventory-path> <target-directory>");
