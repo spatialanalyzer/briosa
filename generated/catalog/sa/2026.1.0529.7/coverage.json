@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "generated_by": "Briosa.Generator command catalog",
   "catalog_id": "briosa.sa.2026.1.0529.7",
   "catalog_revision": "6",
@@ -22,8 +22,13 @@
       "replay_safety": "safe",
       "generated": {
         "protocol": true,
-        "command_adapter": true,
+        "request_validation": true,
+        "request_adapter": true,
+        "immutable_worker_command": true,
         "result_adapter": true,
+        "grpc_service": true,
+        "service_registration": true,
+        "capability": true,
         "documentation": true
       },
       "inputs": [],
@@ -36,6 +41,7 @@
           "direction": "output",
           "result_only": "yes",
           "semantic_type": "string",
+          "argument_family_assignment": true,
           "data_classification": "path",
           "field_number": 1,
           "getter": "GetStringArg"

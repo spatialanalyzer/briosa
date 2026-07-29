@@ -216,6 +216,24 @@ internal static class GrpcOperationOutcomeMapper
             mpExecution: null,
             "The operation is not supported by this Briosa target.");
 
+    public static RpcException CreateResultMappingFailure(
+        string operationId,
+        ReplaySafety replaySafety,
+        int generation,
+        MpExecutionDetails details) =>
+        CreateFailure(
+            StatusCode.DataLoss,
+            operationId,
+            OperationFailureKind.Internal,
+            "result-mapping-failed",
+            ExecutionDisposition.Completed,
+            RecoveryGuidance.None,
+            ReplayGuidance.DoNotReplay,
+            replaySafety,
+            generation,
+            details ?? throw new ArgumentNullException(nameof(details)),
+            "Briosa could not map the returned value to the exact-target result contract.");
+
     private static RpcException CreateTransportFailure(
         WorkerExecutionOutcome outcome,
         string operationId,

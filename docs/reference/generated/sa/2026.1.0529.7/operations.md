@@ -6,6 +6,8 @@ Catalog `briosa.sa.2026.1.0529.7` revision `6`.
 
 Only explicitly reviewed Briosa operations are listed here. This is not the installed SpatialAnalyzer MP catalog.
 
+For every listed operation the same generation pass emits its protobuf contract, request validation/mapping, immutable worker command, typed result mapping, gRPC service/registration, capability descriptor, and coverage record. Policy, supervision, error mapping, and auditing remain hand-written shared seams.
+
 ## Execution and replay contract
 
 Every non-OK operation returns typed, value-free execution disposition, worker recovery guidance, replay guidance, and the exact-target replay-safety classification.

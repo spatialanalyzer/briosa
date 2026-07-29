@@ -3,6 +3,7 @@
 using Briosa.Server.Security;
 using Briosa.Server.Services;
 using Briosa.Worker.Control;
+using Grpc.Core;
 using CoreProtocol = global::Briosa.Core.V1Alpha1;
 using TargetProtocol = global::Briosa.Sa.V2026_1_0529_7.V1Alpha1;
 
@@ -43,8 +44,7 @@ internal static class FileOperationsGetWorkingDirectoryBinding
         return new WorkerMpCommand(
             OperationId,
             StepName,
-            InputArguments: inputs,
-            OutputArguments:
+            inputs,
             [
                 new(DirectoryArgumentName, WorkerMpValueKind.Text, DirectoryGetter),
             ]);
@@ -60,4 +60,45 @@ internal static class FileOperationsGetWorkingDirectoryBinding
             Execution = completed.Details
         };
     }
+}
+
+[global::System.CodeDom.Compiler.GeneratedCode("Briosa.Generator", "1.0")]
+internal sealed class FileOperationsService(CatalogOperationExecutor operationExecutor) :
+    TargetProtocol.FileOperations.FileOperationsBase
+{
+    private readonly CatalogOperationExecutor _operationExecutor =
+        operationExecutor ?? throw new ArgumentNullException(nameof(operationExecutor));
+
+    private static readonly CatalogOperationDescriptor GetWorkingDirectoryOperation =
+        TargetCatalogMetadata.Operations.Single(operation =>
+            operation.OperationId == FileOperationsGetWorkingDirectoryBinding.OperationId);
+
+    [OperationImplementation(FileOperationsGetWorkingDirectoryBinding.OperationId)]
+    public override Task<TargetProtocol.GetWorkingDirectoryResult> GetWorkingDirectory(
+        TargetProtocol.GetWorkingDirectoryRequest request,
+        ServerCallContext context) =>
+        _operationExecutor.ExecuteAsync(
+            request,
+            context,
+            GetWorkingDirectoryOperation,
+            FileOperationsGetWorkingDirectoryBinding.CreateCommand,
+            FileOperationsGetWorkingDirectoryBinding.OutputContracts,
+            FileOperationsGetWorkingDirectoryBinding.CreateResult);
+
+    internal Task<TargetProtocol.GetWorkingDirectoryResult> ExecuteGetWorkingDirectory(
+        TargetProtocol.GetWorkingDirectoryRequest request,
+        CancellationToken cancellationToken,
+        DateTime? deadline = null,
+        Guid? correlationId = null,
+        string actorCategory = "internal-unattributed") =>
+        _operationExecutor.ExecuteAsync(
+            request,
+            GetWorkingDirectoryOperation,
+            FileOperationsGetWorkingDirectoryBinding.CreateCommand,
+            FileOperationsGetWorkingDirectoryBinding.OutputContracts,
+            FileOperationsGetWorkingDirectoryBinding.CreateResult,
+            cancellationToken,
+            deadline,
+            correlationId,
+            actorCategory);
 }

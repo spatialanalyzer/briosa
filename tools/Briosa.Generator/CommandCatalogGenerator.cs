@@ -34,6 +34,7 @@ internal static class CommandCatalogGenerator
         var fullCatalogRoot = Path.GetFullPath(catalogRoot);
         var fullOutputRoot = Path.GetFullPath(outputRoot);
         var generatedFiles = new List<string>();
+        var generatedServices = new List<(string GeneratedNamespace, string Service)>();
         foreach (var manifestPath in Directory
             .EnumerateFiles(
                 Path.Combine(fullCatalogRoot, "sa"),
@@ -72,10 +73,12 @@ internal static class CommandCatalogGenerator
 
             var targetNamespace = ToCSharpNamespace(manifest.TargetProtocolPackage);
             var generatedNamespace = $"Briosa.Server.Generated.{targetNamespace["Briosa.".Length..]}";
+            generatedServices.AddRange(manifest.ProtocolPartitions.Select(partition =>
+                (generatedNamespace, partition.Service)));
             WriteGeneratedFile(
                 fullOutputRoot,
                 $"src/Briosa.Server/Generated/{targetNamespace["Briosa.".Length..].Replace('.', '/')}/Operations.g.cs",
-                CommandCatalogArtifactGenerator.GenerateWorkerBindings(
+                CommandCatalogArtifactGenerator.GenerateServerOperations(
                     generatedNamespace,
                     targetNamespace,
                     manifest,
@@ -92,6 +95,12 @@ internal static class CommandCatalogGenerator
                 CommandCatalogArtifactGenerator.GenerateCoverageManifest(manifest, operations),
                 generatedFiles);
         }
+
+        WriteGeneratedFile(
+            fullOutputRoot,
+            "src/Briosa.Server/Generated/CatalogServiceRegistration.g.cs",
+            CommandCatalogArtifactGenerator.GenerateServiceRegistration(generatedServices),
+            generatedFiles);
 
         return new CommandCatalogGenerationResult(generatedFiles);
     }
