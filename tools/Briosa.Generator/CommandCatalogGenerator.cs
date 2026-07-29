@@ -274,7 +274,7 @@ internal static class CommandCatalogGenerator
             "file_reference" or
             "font" or
             "point_name" or
-            "vector" or
+            "vector3" or
             "tolerance_vector_options" or
             "collection_group_name_list" or
             "collection_instrument_id" or
@@ -315,7 +315,7 @@ internal static class CommandCatalogGenerator
             "file_reference" => "FileReference",
             "font" => "Font",
             "point_name" => "PointName",
-            "vector" => "Vector3",
+            "vector3" => "Vector3",
             "tolerance_vector_options" => "ToleranceVectorOptions",
             "collection_group_name_list" => "CollectionGroupNameList",
             "collection_instrument_id" => "CollectionInstrumentId",

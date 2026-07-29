@@ -716,6 +716,11 @@ internal static partial class CommandCatalogValidator
         {
             errors.Add($"{argumentPath} has unknown semantic_type.");
         }
+        else if (string.Equals(argument.SemanticType, "vector", StringComparison.Ordinal))
+        {
+            errors.Add(
+                $"{argumentPath} uses legacy pseudo-family 'vector'; use authoritative semantic_type 'vector3'.");
+        }
         if (string.Equals(argument.DataClassification, "unknown", StringComparison.Ordinal))
         {
             errors.Add($"{argumentPath} has unknown data_classification.");

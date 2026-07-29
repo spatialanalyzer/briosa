@@ -222,9 +222,12 @@ Run portable packaged-host success and failure scenarios without SpatialAnalyzer
 ./eng/Test-GeneratedClientScenarios.ps1 `
   -PackagePath <path-to-briosa-zip> `
   -FixturePath conformance/v1/wave1-read-only-scenarios.json
+./eng/Test-GeneratedClientScenarios.ps1 `
+  -PackagePath <path-to-briosa-zip> `
+  -FixturePath conformance/v1/wave2-point-lifecycle-scenarios.json
 ```
 
-The Wave 1 matrix covers generated-client success, missing-required-input validation, deny-overrides-allow policy, and MP failure. Reports contain only identity, state, status, booleans, and failure classification; returned values are never printed.
+The Wave 1 matrix covers generated-client success, missing-required-input validation, deny-overrides-allow policy, and MP failure. The Wave 2 matrix covers the exact construct/rename/delete point lifecycle, authoritative `vector3` mapping, required-input rejection, reviewed-default omission, deny-overrides-allow, MP failure, and unknown mutation replay safety. Reports contain only identity, state, status, booleans, and failure classification; raw arguments and returned values are never printed.
 
 The portable harness supplies explicitly labeled fake-worker attestations for both runtime identities. Production defaults remain fail-closed: the activated SDK and connected SA each require runtime-verified exact evidence or their own complete `Version`/`Reference` operator-attestation pair. Runtime evidence takes precedence and cannot be masked by attestation. Evidence references are kept out of discovery and default logs; see [ADR 0022](../docs/architecture/0022-runtime-identity-and-attestation.md).
 

@@ -24,6 +24,8 @@ Catalog generation emits one `CatalogOperationConformanceBinding` per supported 
 
 The server conformance suite creates every protobuf request through descriptors, verifies the exact command and output contract, runs successful typed result mapping, and table-drives all generated operation scenarios through deterministic fakes. Negative cases preserve the difference between not-started and started-outcome-unknown execution, worker recovery and replay guidance, readiness, policy denial, MP/result/getter failures, and malformed worker responses. Returned unknown collection object/item enum values fail closed as data loss.
 
+For the initial Wave 2 point lifecycle, the manifest also proves exact `vector3`, point-name, point-name-list, and reviewed logical-default setters; required-field rejection; global-state-mutation metadata; and unknown replay safety. These operations have no output arguments, so an output-getter-failure case is not applicable; MP-result retrieval failure, malformed response, deadline, cancellation, crash, hang, policy, and readiness cases remain generated and executable.
+
 The global manifest rows are not count-only documentation. Generator tests require exact set equality with the binding and value evidence. Existing worker completeness tests execute the corresponding method/family, private-value, enum-literal, structured-value, and command-assignment contracts against the production adapter seam and private control protocol. A new evidence row therefore fails until both generation and its executable fake path exist.
 
 ## Running the gate

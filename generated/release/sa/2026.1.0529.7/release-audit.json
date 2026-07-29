@@ -8,11 +8,11 @@
   "evidence_inputs": [
     {
       "path": ".github/workflows/ci.yml",
-      "sha256": "5da55e8ef01626bf3bc61b41da59653bfa3d97432823cd1cc6953dc169a12c95"
+      "sha256": "ce04df3af16ee6e5b4075aea479231415eb5200b47e316ce798b972370650d3f"
     },
     {
       "path": ".github/workflows/release.yml",
-      "sha256": "7548eb8fedeca4f00005eaa4be4b45b7e9a562fbbf9c55e4b0ad0b05024284da"
+      "sha256": "682b0122198bb4cbf5828fbfc48b53c7ac1934734c9b47345c724b6a9857f55c"
     },
     {
       "path": "docs/architecture/0018-uncertain-completion-and-replay.md",
@@ -28,7 +28,7 @@
     },
     {
       "path": "docs/operations/command-policy-and-auditing.md",
-      "sha256": "250eabdeed24d4e1f718330395c7491406d76ab17a0f4dc1a10bad5a1fd5f18e"
+      "sha256": "0be29b355952940f629ab5e65f8271fb50e17458de7b4af16a5c2a37df58af6c"
     },
     {
       "path": "docs/operations/licensed-sa-runner.md",
@@ -40,7 +40,7 @@
     },
     {
       "path": "docs/testing/portable-conformance.md",
-      "sha256": "54e93c489b045c4777790c0389a1b54e7e398ae15b8c806603dfa2cc4f5c3693"
+      "sha256": "32dca4cb5a53b77ff2a91339666ec031536db14c790067a128d888b2982d9664"
     },
     {
       "path": "docs/testing/runtime-performance-and-soak.md",
@@ -52,7 +52,7 @@
     },
     {
       "path": "generated/release/sa/2026.1.0529.7/support-matrix.json",
-      "sha256": "4298bc7435b1bb443ab95a2c12435238c6fa11548e7e36845f38b05e5fdd6601"
+      "sha256": "db151626d68d397b0e385bd3076c766b2cc413ca1f0072c25fafd7d5e7f014a9"
     },
     {
       "path": "release/sa/2026.1.0529.7/audit-policy.json",
@@ -61,8 +61,8 @@
   ],
   "summary": {
     "passed": 3,
-    "blocked": 2,
-    "not_applicable": 2
+    "blocked": 3,
+    "not_applicable": 1
   },
   "criteria": [
     {
@@ -91,9 +91,16 @@
       "criterion_id": "epic-47-risk-fixtures",
       "source": "https://github.com/spatialanalyzer/briosa/issues/47",
       "description": "Mutating and device-related operations have reviewed fixtures and controls.",
-      "status": "not_applicable",
-      "evidence": [],
-      "blocker_references": []
+      "status": "blocked",
+      "evidence": [
+        "collection_operations.construct_point_in_working_coordinates",
+        "collection_operations.delete_points",
+        "collection_operations.rename_point"
+      ],
+      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/20",
+        "https://github.com/spatialanalyzer/briosa/issues/69"
+      ]
     },
     {
       "criterion_id": "epic-47-performance-and-reproducibility",

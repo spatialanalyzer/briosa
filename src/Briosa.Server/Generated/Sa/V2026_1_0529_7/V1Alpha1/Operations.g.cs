@@ -13,19 +13,127 @@ namespace Briosa.Server.Generated.Sa.V2026_1_0529_7.V1Alpha1;
 internal static class TargetCatalogMetadata
 {
     public const string CatalogId = "briosa.sa.2026.1.0529.7";
-    public const string CatalogRevision = "7";
+    public const string CatalogRevision = "8";
     public const string SpatialAnalyzerTarget = "2026.1.0529.7";
     public const string TargetProtocolPackage = "briosa.sa.v2026_1_0529_7.v1alpha1";
 
     public static IReadOnlyList<CatalogOperationDescriptor> Operations { get; } =
         [
+            new("collection_operations.construct_point_in_working_coordinates", "Construct a Point in Working Coordinates", "briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations", "ConstructPointInWorkingCoordinates", "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/ConstructPointInWorkingCoordinates", "mutating", CoreProtocol.OperationExecutionScope.GlobalStateMutation, CoreProtocol.ReplaySafety.Unknown, []),
+            new("collection_operations.delete_points", "Delete Points", "briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations", "DeletePoints", "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/DeletePoints", "mutating", CoreProtocol.OperationExecutionScope.GlobalStateMutation, CoreProtocol.ReplaySafety.Unknown, []),
             new("collection_operations.get_collection_count", "Get Number of Collections", "briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations", "GetCollectionCount", "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/GetCollectionCount", "read_only", CoreProtocol.OperationExecutionScope.GlobalStateRead, CoreProtocol.ReplaySafety.Safe, []),
             new("collection_operations.get_collection_name_by_index", "Get i-th Collection Name", "briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations", "GetCollectionNameByIndex", "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/GetCollectionNameByIndex", "read_only", CoreProtocol.OperationExecutionScope.GlobalStateRead, CoreProtocol.ReplaySafety.Safe, []),
             new("collection_operations.get_point_count_in_group", "Get Number of Points in Group", "briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations", "GetPointCountInGroup", "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/GetPointCountInGroup", "read_only", CoreProtocol.OperationExecutionScope.GlobalStateRead, CoreProtocol.ReplaySafety.Safe, []),
             new("collection_operations.list_groups_in_collection", "Make a Collection Object Name Ref List from all Groups in a Collection", "briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations", "ListGroupsInCollection", "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/ListGroupsInCollection", "read_only", CoreProtocol.OperationExecutionScope.GlobalStateRead, CoreProtocol.ReplaySafety.Safe, []),
             new("collection_operations.list_points_in_group", "Make a Point Name Ref List From a Group", "briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations", "ListPointsInGroup", "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/ListPointsInGroup", "read_only", CoreProtocol.OperationExecutionScope.GlobalStateRead, CoreProtocol.ReplaySafety.Safe, []),
+            new("collection_operations.rename_point", "Rename Point", "briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations", "RenamePoint", "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/RenamePoint", "mutating", CoreProtocol.OperationExecutionScope.GlobalStateMutation, CoreProtocol.ReplaySafety.Unknown, []),
             new("file_operations.get_working_directory", "Get Working Directory", "briosa.sa.v2026_1_0529_7.v1alpha1.FileOperations", "GetWorkingDirectory", "/briosa.sa.v2026_1_0529_7.v1alpha1.FileOperations/GetWorkingDirectory", "read_only", CoreProtocol.OperationExecutionScope.GlobalStateRead, CoreProtocol.ReplaySafety.Safe, ["filesystem_metadata"]),
         ];
+}
+
+[global::System.CodeDom.Compiler.GeneratedCode("Briosa.Generator", "1.0")]
+internal static class CollectionOperationsConstructPointInWorkingCoordinatesBinding
+{
+    public const string OperationId = "collection_operations.construct_point_in_working_coordinates";
+    public const string StepName = "Construct a Point in Working Coordinates";
+    public const string PointNameArgumentName = "Point Name";
+    public const string PointNameFieldName = "point_name";
+    public const string PointNameSetter = "SetPointNameArg";
+    public const string WorkingCoordinatesArgumentName = "Working Coordinates";
+    public const string WorkingCoordinatesFieldName = "working_coordinates";
+    public const string WorkingCoordinatesSetter = "SetVectorArg";
+
+    public static IReadOnlyList<OperationOutputContract> OutputContracts { get; } =
+        [];
+
+    public static WorkerMpCommand CreateCommand(TargetProtocol.ConstructPointInWorkingCoordinatesRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        List<WorkerMpInputArgument> inputs = [];
+        if (request.PointName is not null)
+        {
+            if (!request.PointName.HasCollectionName || !request.PointName.HasGroupName || !request.PointName.HasTargetName)
+            {
+                throw new ArgumentException("Request field 'point_name' must contain every exact-target component.", nameof(request));
+            }
+            inputs.Add(new WorkerMpInputArgument(PointNameArgumentName, WorkerMpValueKind.PointName, SdkBinding: PointNameSetter, PointNameValue: new(request.PointName.CollectionName, request.PointName.GroupName, request.PointName.TargetName)));
+        }
+        else
+        {
+            throw new ArgumentException("Required request field 'point_name' is missing.", nameof(request));
+        }
+        if (request.WorkingCoordinates is not null)
+        {
+            if (!request.WorkingCoordinates.HasX || !request.WorkingCoordinates.HasY || !request.WorkingCoordinates.HasZ)
+            {
+                throw new ArgumentException("Request field 'working_coordinates' must contain every exact-target component.", nameof(request));
+            }
+            inputs.Add(new WorkerMpInputArgument(WorkingCoordinatesArgumentName, WorkerMpValueKind.Vector, SdkBinding: WorkingCoordinatesSetter, VectorValue: new(request.WorkingCoordinates.X, request.WorkingCoordinates.Y, request.WorkingCoordinates.Z)));
+        }
+        else
+        {
+            throw new ArgumentException("Required request field 'working_coordinates' is missing.", nameof(request));
+        }
+        return new WorkerMpCommand(
+            OperationId,
+            StepName,
+            inputs,
+            []);
+    }
+
+    public static TargetProtocol.ConstructPointInWorkingCoordinatesResult CreateResult(SuccessfulOperationExecution completed)
+    {
+        ArgumentNullException.ThrowIfNull(completed);
+        return new TargetProtocol.ConstructPointInWorkingCoordinatesResult
+        {
+            Execution = completed.Details
+        };
+    }
+}
+
+[global::System.CodeDom.Compiler.GeneratedCode("Briosa.Generator", "1.0")]
+internal static class CollectionOperationsDeletePointsBinding
+{
+    public const string OperationId = "collection_operations.delete_points";
+    public const string StepName = "Delete Points";
+    public const string PointNamesArgumentName = "Point Names";
+    public const string PointNamesFieldName = "point_names";
+    public const string PointNamesSetter = "SetPointNameRefListArg";
+
+    public static IReadOnlyList<OperationOutputContract> OutputContracts { get; } =
+        [];
+
+    public static WorkerMpCommand CreateCommand(TargetProtocol.DeletePointsRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        List<WorkerMpInputArgument> inputs = [];
+        if (request.PointNames is not null)
+        {
+            if (request.PointNames.Values.Any(item => !item.HasCollectionName || !item.HasGroupName || !item.HasTargetName))
+            {
+                throw new ArgumentException("Request field 'point_names' must contain every exact-target component.", nameof(request));
+            }
+            inputs.Add(new WorkerMpInputArgument(PointNamesArgumentName, WorkerMpValueKind.PointNameList, SdkBinding: PointNamesSetter, PointNameListValue: new([.. request.PointNames.Values.Select(value => new WorkerPointNameValue(value.CollectionName, value.GroupName, value.TargetName))])));
+        }
+        else
+        {
+            throw new ArgumentException("Required request field 'point_names' is missing.", nameof(request));
+        }
+        return new WorkerMpCommand(
+            OperationId,
+            StepName,
+            inputs,
+            []);
+    }
+
+    public static TargetProtocol.DeletePointsResult CreateResult(SuccessfulOperationExecution completed)
+    {
+        ArgumentNullException.ThrowIfNull(completed);
+        return new TargetProtocol.DeletePointsResult
+        {
+            Execution = completed.Details
+        };
+    }
 }
 
 [global::System.CodeDom.Compiler.GeneratedCode("Briosa.Generator", "1.0")]
@@ -280,6 +388,77 @@ internal static class CollectionOperationsListPointsInGroupBinding
 }
 
 [global::System.CodeDom.Compiler.GeneratedCode("Briosa.Generator", "1.0")]
+internal static class CollectionOperationsRenamePointBinding
+{
+    public const string OperationId = "collection_operations.rename_point";
+    public const string StepName = "Rename Point";
+    public const string OriginalPointNameArgumentName = "Original Point Name";
+    public const string OriginalPointNameFieldName = "original_point_name";
+    public const string OriginalPointNameSetter = "SetPointNameArg";
+    public const string NewPointNameArgumentName = "New Point Name";
+    public const string NewPointNameFieldName = "new_point_name";
+    public const string NewPointNameSetter = "SetPointNameArg";
+    public const string OverwriteIfExistsArgumentName = "Overwrite if exists?";
+    public const string OverwriteIfExistsFieldName = "overwrite_if_exists";
+    public const string OverwriteIfExistsSetter = "SetBoolArg";
+
+    public static IReadOnlyList<OperationOutputContract> OutputContracts { get; } =
+        [];
+
+    public static WorkerMpCommand CreateCommand(TargetProtocol.RenamePointRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        List<WorkerMpInputArgument> inputs = [];
+        if (request.OriginalPointName is not null)
+        {
+            if (!request.OriginalPointName.HasCollectionName || !request.OriginalPointName.HasGroupName || !request.OriginalPointName.HasTargetName)
+            {
+                throw new ArgumentException("Request field 'original_point_name' must contain every exact-target component.", nameof(request));
+            }
+            inputs.Add(new WorkerMpInputArgument(OriginalPointNameArgumentName, WorkerMpValueKind.PointName, SdkBinding: OriginalPointNameSetter, PointNameValue: new(request.OriginalPointName.CollectionName, request.OriginalPointName.GroupName, request.OriginalPointName.TargetName)));
+        }
+        else
+        {
+            throw new ArgumentException("Required request field 'original_point_name' is missing.", nameof(request));
+        }
+        if (request.NewPointName is not null)
+        {
+            if (!request.NewPointName.HasCollectionName || !request.NewPointName.HasGroupName || !request.NewPointName.HasTargetName)
+            {
+                throw new ArgumentException("Request field 'new_point_name' must contain every exact-target component.", nameof(request));
+            }
+            inputs.Add(new WorkerMpInputArgument(NewPointNameArgumentName, WorkerMpValueKind.PointName, SdkBinding: NewPointNameSetter, PointNameValue: new(request.NewPointName.CollectionName, request.NewPointName.GroupName, request.NewPointName.TargetName)));
+        }
+        else
+        {
+            throw new ArgumentException("Required request field 'new_point_name' is missing.", nameof(request));
+        }
+        if (request.HasOverwriteIfExists)
+        {
+            inputs.Add(new WorkerMpInputArgument(OverwriteIfExistsArgumentName, WorkerMpValueKind.Logical, SdkBinding: OverwriteIfExistsSetter, BooleanValue: request.OverwriteIfExists));
+        }
+        else
+        {
+            inputs.Add(new WorkerMpInputArgument(OverwriteIfExistsArgumentName, WorkerMpValueKind.Logical, SdkBinding: OverwriteIfExistsSetter, BooleanValue: false));
+        }
+        return new WorkerMpCommand(
+            OperationId,
+            StepName,
+            inputs,
+            []);
+    }
+
+    public static TargetProtocol.RenamePointResult CreateResult(SuccessfulOperationExecution completed)
+    {
+        ArgumentNullException.ThrowIfNull(completed);
+        return new TargetProtocol.RenamePointResult
+        {
+            Execution = completed.Details
+        };
+    }
+}
+
+[global::System.CodeDom.Compiler.GeneratedCode("Briosa.Generator", "1.0")]
 internal static class FileOperationsGetWorkingDirectoryBinding
 {
     public const string OperationId = "file_operations.get_working_directory";
@@ -333,6 +512,42 @@ internal static class TargetCatalogConformanceMetadata
 {
     public static IReadOnlyList<CatalogOperationConformanceBinding> Operations { get; } =
         [
+            new(
+                TargetCatalogMetadata.Operations.Single(operation =>
+                    operation.OperationId == CollectionOperationsConstructPointInWorkingCoordinatesBinding.OperationId),
+                typeof(TargetProtocol.ConstructPointInWorkingCoordinatesRequest),
+                typeof(TargetProtocol.ConstructPointInWorkingCoordinatesResult),
+                request => CollectionOperationsConstructPointInWorkingCoordinatesBinding.CreateCommand((TargetProtocol.ConstructPointInWorkingCoordinatesRequest)request),
+                CollectionOperationsConstructPointInWorkingCoordinatesBinding.OutputContracts,
+                completed => CollectionOperationsConstructPointInWorkingCoordinatesBinding.CreateResult(completed),
+                async (executor, request, cancellationToken, deadline) =>
+                    await executor.ExecuteAsync(
+                        (TargetProtocol.ConstructPointInWorkingCoordinatesRequest)request,
+                        TargetCatalogMetadata.Operations.Single(operation =>
+                            operation.OperationId == CollectionOperationsConstructPointInWorkingCoordinatesBinding.OperationId),
+                        CollectionOperationsConstructPointInWorkingCoordinatesBinding.CreateCommand,
+                        CollectionOperationsConstructPointInWorkingCoordinatesBinding.OutputContracts,
+                        CollectionOperationsConstructPointInWorkingCoordinatesBinding.CreateResult,
+                        cancellationToken,
+                        deadline).ConfigureAwait(false)),
+            new(
+                TargetCatalogMetadata.Operations.Single(operation =>
+                    operation.OperationId == CollectionOperationsDeletePointsBinding.OperationId),
+                typeof(TargetProtocol.DeletePointsRequest),
+                typeof(TargetProtocol.DeletePointsResult),
+                request => CollectionOperationsDeletePointsBinding.CreateCommand((TargetProtocol.DeletePointsRequest)request),
+                CollectionOperationsDeletePointsBinding.OutputContracts,
+                completed => CollectionOperationsDeletePointsBinding.CreateResult(completed),
+                async (executor, request, cancellationToken, deadline) =>
+                    await executor.ExecuteAsync(
+                        (TargetProtocol.DeletePointsRequest)request,
+                        TargetCatalogMetadata.Operations.Single(operation =>
+                            operation.OperationId == CollectionOperationsDeletePointsBinding.OperationId),
+                        CollectionOperationsDeletePointsBinding.CreateCommand,
+                        CollectionOperationsDeletePointsBinding.OutputContracts,
+                        CollectionOperationsDeletePointsBinding.CreateResult,
+                        cancellationToken,
+                        deadline).ConfigureAwait(false)),
             new(
                 TargetCatalogMetadata.Operations.Single(operation =>
                     operation.OperationId == CollectionOperationsGetCollectionCountBinding.OperationId),
@@ -425,6 +640,24 @@ internal static class TargetCatalogConformanceMetadata
                         deadline).ConfigureAwait(false)),
             new(
                 TargetCatalogMetadata.Operations.Single(operation =>
+                    operation.OperationId == CollectionOperationsRenamePointBinding.OperationId),
+                typeof(TargetProtocol.RenamePointRequest),
+                typeof(TargetProtocol.RenamePointResult),
+                request => CollectionOperationsRenamePointBinding.CreateCommand((TargetProtocol.RenamePointRequest)request),
+                CollectionOperationsRenamePointBinding.OutputContracts,
+                completed => CollectionOperationsRenamePointBinding.CreateResult(completed),
+                async (executor, request, cancellationToken, deadline) =>
+                    await executor.ExecuteAsync(
+                        (TargetProtocol.RenamePointRequest)request,
+                        TargetCatalogMetadata.Operations.Single(operation =>
+                            operation.OperationId == CollectionOperationsRenamePointBinding.OperationId),
+                        CollectionOperationsRenamePointBinding.CreateCommand,
+                        CollectionOperationsRenamePointBinding.OutputContracts,
+                        CollectionOperationsRenamePointBinding.CreateResult,
+                        cancellationToken,
+                        deadline).ConfigureAwait(false)),
+            new(
+                TargetCatalogMetadata.Operations.Single(operation =>
                     operation.OperationId == FileOperationsGetWorkingDirectoryBinding.OperationId),
                 typeof(TargetProtocol.GetWorkingDirectoryRequest),
                 typeof(TargetProtocol.GetWorkingDirectoryResult),
@@ -450,6 +683,72 @@ internal sealed class CollectionOperationsService(CatalogOperationExecutor opera
 {
     private readonly CatalogOperationExecutor _operationExecutor =
         operationExecutor ?? throw new ArgumentNullException(nameof(operationExecutor));
+
+    private static readonly CatalogOperationDescriptor ConstructPointInWorkingCoordinatesOperation =
+        TargetCatalogMetadata.Operations.Single(operation =>
+            operation.OperationId == CollectionOperationsConstructPointInWorkingCoordinatesBinding.OperationId);
+
+    [OperationImplementation(CollectionOperationsConstructPointInWorkingCoordinatesBinding.OperationId)]
+    public override Task<TargetProtocol.ConstructPointInWorkingCoordinatesResult> ConstructPointInWorkingCoordinates(
+        TargetProtocol.ConstructPointInWorkingCoordinatesRequest request,
+        ServerCallContext context) =>
+        _operationExecutor.ExecuteAsync(
+            request,
+            context,
+            ConstructPointInWorkingCoordinatesOperation,
+            CollectionOperationsConstructPointInWorkingCoordinatesBinding.CreateCommand,
+            CollectionOperationsConstructPointInWorkingCoordinatesBinding.OutputContracts,
+            CollectionOperationsConstructPointInWorkingCoordinatesBinding.CreateResult);
+
+    internal Task<TargetProtocol.ConstructPointInWorkingCoordinatesResult> ExecuteConstructPointInWorkingCoordinates(
+        TargetProtocol.ConstructPointInWorkingCoordinatesRequest request,
+        CancellationToken cancellationToken,
+        DateTime? deadline = null,
+        Guid? correlationId = null,
+        string actorCategory = "internal-unattributed") =>
+        _operationExecutor.ExecuteAsync(
+            request,
+            ConstructPointInWorkingCoordinatesOperation,
+            CollectionOperationsConstructPointInWorkingCoordinatesBinding.CreateCommand,
+            CollectionOperationsConstructPointInWorkingCoordinatesBinding.OutputContracts,
+            CollectionOperationsConstructPointInWorkingCoordinatesBinding.CreateResult,
+            cancellationToken,
+            deadline,
+            correlationId,
+            actorCategory);
+
+    private static readonly CatalogOperationDescriptor DeletePointsOperation =
+        TargetCatalogMetadata.Operations.Single(operation =>
+            operation.OperationId == CollectionOperationsDeletePointsBinding.OperationId);
+
+    [OperationImplementation(CollectionOperationsDeletePointsBinding.OperationId)]
+    public override Task<TargetProtocol.DeletePointsResult> DeletePoints(
+        TargetProtocol.DeletePointsRequest request,
+        ServerCallContext context) =>
+        _operationExecutor.ExecuteAsync(
+            request,
+            context,
+            DeletePointsOperation,
+            CollectionOperationsDeletePointsBinding.CreateCommand,
+            CollectionOperationsDeletePointsBinding.OutputContracts,
+            CollectionOperationsDeletePointsBinding.CreateResult);
+
+    internal Task<TargetProtocol.DeletePointsResult> ExecuteDeletePoints(
+        TargetProtocol.DeletePointsRequest request,
+        CancellationToken cancellationToken,
+        DateTime? deadline = null,
+        Guid? correlationId = null,
+        string actorCategory = "internal-unattributed") =>
+        _operationExecutor.ExecuteAsync(
+            request,
+            DeletePointsOperation,
+            CollectionOperationsDeletePointsBinding.CreateCommand,
+            CollectionOperationsDeletePointsBinding.OutputContracts,
+            CollectionOperationsDeletePointsBinding.CreateResult,
+            cancellationToken,
+            deadline,
+            correlationId,
+            actorCategory);
 
     private static readonly CatalogOperationDescriptor GetCollectionCountOperation =
         TargetCatalogMetadata.Operations.Single(operation =>
@@ -611,6 +910,39 @@ internal sealed class CollectionOperationsService(CatalogOperationExecutor opera
             CollectionOperationsListPointsInGroupBinding.CreateCommand,
             CollectionOperationsListPointsInGroupBinding.OutputContracts,
             CollectionOperationsListPointsInGroupBinding.CreateResult,
+            cancellationToken,
+            deadline,
+            correlationId,
+            actorCategory);
+
+    private static readonly CatalogOperationDescriptor RenamePointOperation =
+        TargetCatalogMetadata.Operations.Single(operation =>
+            operation.OperationId == CollectionOperationsRenamePointBinding.OperationId);
+
+    [OperationImplementation(CollectionOperationsRenamePointBinding.OperationId)]
+    public override Task<TargetProtocol.RenamePointResult> RenamePoint(
+        TargetProtocol.RenamePointRequest request,
+        ServerCallContext context) =>
+        _operationExecutor.ExecuteAsync(
+            request,
+            context,
+            RenamePointOperation,
+            CollectionOperationsRenamePointBinding.CreateCommand,
+            CollectionOperationsRenamePointBinding.OutputContracts,
+            CollectionOperationsRenamePointBinding.CreateResult);
+
+    internal Task<TargetProtocol.RenamePointResult> ExecuteRenamePoint(
+        TargetProtocol.RenamePointRequest request,
+        CancellationToken cancellationToken,
+        DateTime? deadline = null,
+        Guid? correlationId = null,
+        string actorCategory = "internal-unattributed") =>
+        _operationExecutor.ExecuteAsync(
+            request,
+            RenamePointOperation,
+            CollectionOperationsRenamePointBinding.CreateCommand,
+            CollectionOperationsRenamePointBinding.OutputContracts,
+            CollectionOperationsRenamePointBinding.CreateResult,
             cancellationToken,
             deadline,
             correlationId,

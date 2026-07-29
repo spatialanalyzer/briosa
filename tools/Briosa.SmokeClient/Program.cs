@@ -19,6 +19,12 @@ internal static class SmokeClientProgram
         "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/GetCollectionCount";
     private const string GetCollectionNameByIndexOperation =
         "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/GetCollectionNameByIndex";
+    private const string ConstructPointInWorkingCoordinatesOperation =
+        "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/ConstructPointInWorkingCoordinates";
+    private const string DeletePointsOperation =
+        "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/DeletePoints";
+    private const string RenamePointOperation =
+        "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/RenamePoint";
     private const string ErrorTrailerName = "briosa-operation-error-bin";
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -198,6 +204,28 @@ internal static class SmokeClientProgram
                     serverInfo,
                     options.Timeout,
                     cancellationToken).ConfigureAwait(false),
+            SmokeScenario.ConstructPointReady => await ExecuteConstructPointReady(
+                collectionClient,
+                serverInfo,
+                options.Timeout,
+                cancellationToken).ConfigureAwait(false),
+            SmokeScenario.ConstructPointMissingCoordinates =>
+                await ExecuteConstructPointMissingCoordinates(
+                    collectionClient,
+                    serverInfo,
+                    options.Timeout,
+                    cancellationToken).ConfigureAwait(false),
+            SmokeScenario.DeletePointsPolicyDenied =>
+                await ExecuteDeletePointsPolicyDenied(
+                    collectionClient,
+                    serverInfo,
+                    options.Timeout,
+                    cancellationToken).ConfigureAwait(false),
+            SmokeScenario.RenamePointMpFailure => await ExecuteRenamePointMpFailure(
+                collectionClient,
+                serverInfo,
+                options.Timeout,
+                cancellationToken).ConfigureAwait(false),
             _ => throw new SmokeFailureException("unsupported-smoke-scenario")
         };
 
@@ -395,15 +423,160 @@ internal static class SmokeClientProgram
             RecoverySucceeded: false);
     }
 
+    private static async Task<ScenarioOutcome> ExecuteConstructPointReady(
+        TargetProtocol.CollectionOperations.CollectionOperationsClient client,
+        GetServerInfoResponse serverInfo,
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
+    {
+        RequireReady(serverInfo);
+        var result = await client.ConstructPointInWorkingCoordinatesAsync(
+                new TargetProtocol.ConstructPointInWorkingCoordinatesRequest
+                {
+                    PointName = PointName("Point A"),
+                    WorkingCoordinates = new TargetProtocol.Vector3
+                    {
+                        X = 1,
+                        Y = 2,
+                        Z = 3
+                    }
+                },
+                deadline: DateTime.UtcNow.Add(timeout),
+                cancellationToken: cancellationToken)
+            .ResponseAsync.ConfigureAwait(false);
+        if (result.Execution is null ||
+            result.Execution.State != MpExecutionState.Succeeded ||
+            result.Execution.OutputRetrievals.Count != 0)
+        {
+            throw new SmokeFailureException("unexpected-construct-point-success-shape");
+        }
+
+        return new ScenarioOutcome(true, StatusCode.OK, false, null, false);
+    }
+
+    private static async Task<ScenarioOutcome> ExecuteConstructPointMissingCoordinates(
+        TargetProtocol.CollectionOperations.CollectionOperationsClient client,
+        GetServerInfoResponse serverInfo,
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
+    {
+        RequireReady(serverInfo);
+        OperationError error;
+        try
+        {
+            _ = await client.ConstructPointInWorkingCoordinatesAsync(
+                    new TargetProtocol.ConstructPointInWorkingCoordinatesRequest
+                    {
+                        PointName = PointName("Point A")
+                    },
+                    deadline: DateTime.UtcNow.Add(timeout),
+                    cancellationToken: cancellationToken)
+                .ResponseAsync.ConfigureAwait(false);
+            throw new SmokeFailureException("missing-coordinates-unexpectedly-succeeded");
+        }
+        catch (RpcException exception) when (
+            exception.StatusCode == StatusCode.InvalidArgument)
+        {
+            error = ReadOperationError(exception);
+        }
+
+        RequireNotStartedError(
+            error,
+            OperationFailureKind.Validation,
+            ReplaySafety.Unknown);
+        return new ScenarioOutcome(false, StatusCode.InvalidArgument, true, error.Kind.ToString(), false);
+    }
+
+    private static async Task<ScenarioOutcome> ExecuteDeletePointsPolicyDenied(
+        TargetProtocol.CollectionOperations.CollectionOperationsClient client,
+        GetServerInfoResponse serverInfo,
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
+    {
+        RequireReady(serverInfo);
+        OperationError error;
+        try
+        {
+            var request = new TargetProtocol.DeletePointsRequest();
+            request.PointNames = new TargetProtocol.PointNameList();
+            request.PointNames.Values.Add(PointName("Point A"));
+            _ = await client.DeletePointsAsync(
+                    request,
+                    deadline: DateTime.UtcNow.Add(timeout),
+                    cancellationToken: cancellationToken)
+                .ResponseAsync.ConfigureAwait(false);
+            throw new SmokeFailureException("delete-points-policy-unexpectedly-succeeded");
+        }
+        catch (RpcException exception) when (
+            exception.StatusCode == StatusCode.PermissionDenied)
+        {
+            error = ReadOperationError(exception);
+        }
+
+        RequireNotStartedError(
+            error,
+            OperationFailureKind.PolicyDenied,
+            ReplaySafety.Unknown);
+        return new ScenarioOutcome(false, StatusCode.PermissionDenied, true, error.Kind.ToString(), false);
+    }
+
+    private static async Task<ScenarioOutcome> ExecuteRenamePointMpFailure(
+        TargetProtocol.CollectionOperations.CollectionOperationsClient client,
+        GetServerInfoResponse serverInfo,
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
+    {
+        RequireReady(serverInfo);
+        OperationError error;
+        try
+        {
+            _ = await client.RenamePointAsync(
+                    new TargetProtocol.RenamePointRequest
+                    {
+                        OriginalPointName = PointName("Point A"),
+                        NewPointName = PointName("Point B")
+                    },
+                    deadline: DateTime.UtcNow.Add(timeout),
+                    cancellationToken: cancellationToken)
+                .ResponseAsync.ConfigureAwait(false);
+            throw new SmokeFailureException("rename-point-mp-failure-unexpectedly-succeeded");
+        }
+        catch (RpcException exception) when (
+            exception.StatusCode == StatusCode.FailedPrecondition)
+        {
+            error = ReadOperationError(exception);
+        }
+
+        if (error.Kind != OperationFailureKind.MpFailure ||
+            error.ExecutionDisposition != ExecutionDisposition.Completed ||
+            error.ReplaySafety != ReplaySafety.Unknown ||
+            error.ReplayGuidance != ReplayGuidance.DoNotReplay ||
+            error.MpExecution is null ||
+            error.MpExecution.OutputRetrievals.Count != 0)
+        {
+            throw new SmokeFailureException("unexpected-rename-point-mp-failure-shape");
+        }
+
+        return new ScenarioOutcome(false, StatusCode.FailedPrecondition, true, error.Kind.ToString(), false);
+    }
+
+    private static TargetProtocol.PointName PointName(string targetName) => new()
+    {
+        CollectionName = "Portable Collection",
+        GroupName = "Portable Group",
+        TargetName = targetName
+    };
+
     private static void RequireNotStartedError(
         OperationError error,
-        OperationFailureKind expectedKind)
+        OperationFailureKind expectedKind,
+        ReplaySafety expectedReplaySafety = ReplaySafety.Safe)
     {
         if (error.Kind != expectedKind ||
             error.ExecutionDisposition != ExecutionDisposition.NotStarted ||
             error.RecoveryGuidance != RecoveryGuidance.None ||
             error.ReplayGuidance != ReplayGuidance.DoNotReplay ||
-            error.ReplaySafety != ReplaySafety.Safe ||
+            error.ReplaySafety != expectedReplaySafety ||
             error.MpExecution is not null)
         {
             throw new SmokeFailureException("unexpected-not-started-error-shape");
@@ -702,7 +875,11 @@ internal static class SmokeClientProgram
         CollectionCountReady,
         CollectionNameMissingIndex,
         CollectionCountPolicyDenied,
-        CollectionCountMpFailure
+        CollectionCountMpFailure,
+        ConstructPointReady,
+        ConstructPointMissingCoordinates,
+        DeletePointsPolicyDenied,
+        RenamePointMpFailure
     }
 
     private sealed record SmokeOptions(
@@ -742,6 +919,12 @@ internal static class SmokeClientProgram
                     SmokeScenario.CollectionCountPolicyDenied,
                 "collection-count-mp-failure" =>
                     SmokeScenario.CollectionCountMpFailure,
+                "construct-point-ready" => SmokeScenario.ConstructPointReady,
+                "construct-point-missing-coordinates" =>
+                    SmokeScenario.ConstructPointMissingCoordinates,
+                "delete-points-policy-denied" =>
+                    SmokeScenario.DeletePointsPolicyDenied,
+                "rename-point-mp-failure" => SmokeScenario.RenamePointMpFailure,
                 _ => throw new SmokeFailureException("unsupported-smoke-scenario")
             };
             var timeoutSecondsText = GetArgument(arguments, "--timeout-seconds");
@@ -783,6 +966,16 @@ internal static class SmokeClientProgram
                 SmokeScenario.CollectionNameMissingIndex => new(
                     OperationAdvertised: true,
                     GetCollectionNameByIndexOperation),
+                SmokeScenario.ConstructPointReady or
+                SmokeScenario.ConstructPointMissingCoordinates => new(
+                    OperationAdvertised: true,
+                    ConstructPointInWorkingCoordinatesOperation),
+                SmokeScenario.DeletePointsPolicyDenied => new(
+                    OperationAdvertised: false,
+                    DeletePointsOperation),
+                SmokeScenario.RenamePointMpFailure => new(
+                    OperationAdvertised: true,
+                    RenamePointOperation),
                 _ => new FixtureExpectation(
                     scenario != SmokeScenario.PolicyDenied,
                     ExpectedOperation)
@@ -798,7 +991,8 @@ internal static class SmokeClientProgram
                 root.GetProperty("error_trailer").GetString() != ErrorTrailerName ||
                 root.GetProperty("fixture_set_id").GetString() is not (
                     "briosa.client.live.v1" or
-                    "briosa.client.wave1-read-only.v1"))
+                    "briosa.client.wave1-read-only.v1" or
+                    "briosa.client.wave2-point-lifecycle.v1"))
             {
                 throw new SmokeFailureException("conformance-fixture-identity-mismatch");
             }
@@ -831,6 +1025,10 @@ internal static class SmokeClientProgram
                     GetCollectionCountOperation,
                 "collection_operations.get_collection_name_by_index" =>
                     GetCollectionNameByIndexOperation,
+                "collection_operations.construct_point_in_working_coordinates" =>
+                    ConstructPointInWorkingCoordinatesOperation,
+                "collection_operations.delete_points" => DeletePointsOperation,
+                "collection_operations.rename_point" => RenamePointOperation,
                 _ => throw new SmokeFailureException(
                     "conformance-operation-identity-mismatch")
             };

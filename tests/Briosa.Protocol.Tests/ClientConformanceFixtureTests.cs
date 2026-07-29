@@ -26,6 +26,14 @@ public sealed class ClientConformanceFixtureTests
         "collection-name-missing-index"
     ];
 
+    private static readonly string[] ExpectedWave2PointLifecycleScenarios =
+    [
+        "construct-point-missing-coordinates",
+        "construct-point-ready",
+        "delete-points-policy-denied",
+        "rename-point-mp-failure"
+    ];
+
     [Fact]
     public void LiveFixtureDefinesTheCompletePackagedHostMatrix()
     {
@@ -175,6 +183,47 @@ public sealed class ClientConformanceFixtureTests
                 "collection_operations.",
                 GetRequiredString(scenario, "operation_id"),
                 StringComparison.Ordinal);
+            Assert.All(
+                scenario.GetProperty("expected").GetProperty("failure_kinds")
+                    .EnumerateArray(),
+                value => Assert.Contains(value.GetString()!, knownFailureKinds));
+        }
+    }
+
+    [Fact]
+    public void Wave2PointLifecycleFixtureCoversEveryOperationAndConservativeFailures()
+    {
+        using var document = ReadFixture("wave2-point-lifecycle-scenarios.json");
+        var root = document.RootElement;
+
+        Assert.Equal(1, root.GetProperty("schema_version").GetInt32());
+        Assert.Equal(
+            "briosa.client.wave2-point-lifecycle.v1",
+            root.GetProperty("fixture_set_id").GetString());
+        Assert.Equal(
+            "briosa-operation-error-bin",
+            root.GetProperty("error_trailer").GetString());
+
+        var scenarios = root.GetProperty("scenarios").EnumerateArray().ToArray();
+        Assert.Equal(
+            ExpectedWave2PointLifecycleScenarios,
+            scenarios.Select(scenario => scenario.GetProperty("id").GetString())
+                .Order(StringComparer.Ordinal));
+        Assert.Equal(
+            [
+                "collection_operations.construct_point_in_working_coordinates",
+                "collection_operations.delete_points",
+                "collection_operations.rename_point"
+            ],
+            scenarios.Select(scenario => GetRequiredString(scenario, "operation_id"))
+                .Distinct(StringComparer.Ordinal)
+                .Order(StringComparer.Ordinal));
+
+        var knownFailureKinds = EnumNames(
+            Briosa.Core.V1Alpha1.OperationError.Descriptor
+                .FindFieldByNumber(2).EnumType);
+        foreach (var scenario in scenarios)
+        {
             Assert.All(
                 scenario.GetProperty("expected").GetProperty("failure_kinds")
                     .EnumerateArray(),

@@ -30,8 +30,8 @@ public sealed class CommandCatalogScaffolderTests
         Assert.True(first.IsSuccessful, DisplayConflicts(first));
         Assert.True(second.IsSuccessful, DisplayConflicts(second));
         Assert.Equal(677, first.ApprovedCandidateCount);
-        Assert.Equal(6, first.ExistingCatalogOperationCount);
-        Assert.Equal(671, first.ScaffoldCount);
+        Assert.Equal(9, first.ExistingCatalogOperationCount);
+        Assert.Equal(668, first.ScaffoldCount);
         Assert.Equal(ReadTree(fixture.FirstOutput), ReadTree(fixture.SecondOutput));
         Assert.False(File.Exists(CandidatePath(
             fixture.FirstOutput,
@@ -39,6 +39,15 @@ public sealed class CommandCatalogScaffolderTests
         Assert.False(File.Exists(CandidatePath(
             fixture.FirstOutput,
             "documentation:AnalysisOperations/GetNumberOfCollections.htm")));
+        Assert.False(File.Exists(CandidatePath(
+            fixture.FirstOutput,
+            "documentation:ConstructionOperations/PointsandGroups/ConstructAPointInWorkingCoordinates.htm")));
+        Assert.False(File.Exists(CandidatePath(
+            fixture.FirstOutput,
+            "documentation:ConstructionOperations/RenamePoint.htm")));
+        Assert.False(File.Exists(CandidatePath(
+            fixture.FirstOutput,
+            "documentation:ConstructionOperations/DeletePoints.htm")));
 
         var angle = ReadScaffold(fixture.FirstOutput, AngleInventoryKey);
         Assert.Equal("incomplete", angle.ReviewStatus);

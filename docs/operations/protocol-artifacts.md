@@ -15,7 +15,7 @@ The archive contains one top-level directory with:
 - `buf.yaml` and `proto/`: canonical protobuf sources;
 - `descriptor/briosa.protoset`: a pure `google.protobuf.FileDescriptorSet`;
 - `catalog/coverage.json`: exact-target generated operation coverage;
-- `conformance/v1/`: vertical-slice and Wave 1 packaged-host scenarios plus typed-error/replay cases;
+- `conformance/v1/`: vertical-slice, Wave 1 read-only, and Wave 2 point-lifecycle packaged-host scenarios plus typed-error/replay cases;
 - `manifest.json`: release, protocol, catalog, target, fixture, and hash coordinates;
 - `files.sha256`: hashes for every other file in the archive; and
 - this guide and the Apache-2.0 license.

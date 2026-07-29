@@ -13,7 +13,7 @@ public sealed class CommandCatalogValidatorTests
 
         Assert.True(result.IsValid, string.Join(Environment.NewLine, result.Errors));
         Assert.Equal(1, result.CatalogCount);
-        Assert.Equal(6, result.OperationCount);
+        Assert.Equal(9, result.OperationCount);
     }
 
     [Fact]
@@ -34,6 +34,30 @@ public sealed class CommandCatalogValidatorTests
         Assert.DoesNotContain(
             membership["operation_ids"]!.AsArray(),
             value => value!.GetValue<string>() == "file_operations.get_working_directory");
+    }
+
+    [Fact]
+    public void InitialWaveTwoMembershipIsTheExactPointLifecycleSubset()
+    {
+        var releasePath = Path.Combine(
+            FindCatalogRoot(),
+            "sa",
+            "2026.1.0529.7",
+            "release-memberships",
+            "v0.2-wave2-initial.json");
+        var membership = JsonNode.Parse(File.ReadAllText(releasePath))!.AsObject();
+
+        Assert.Equal("v0.2-wave2-initial", membership["membership_id"]!.GetValue<string>());
+        Assert.Equal("v0.2", membership["release_line"]!.GetValue<string>());
+        Assert.Equal("wave_2", membership["delivery_wave"]!.GetValue<string>());
+        Assert.Equal(
+            [
+                "collection_operations.construct_point_in_working_coordinates",
+                "collection_operations.delete_points",
+                "collection_operations.rename_point"
+            ],
+            membership["operation_ids"]!.AsArray()
+                .Select(value => value!.GetValue<string>()));
     }
 
     [Fact]
@@ -213,6 +237,22 @@ public sealed class CommandCatalogValidatorTests
     }
 
     [Fact]
+    public void LegacyVectorPseudoFamilyFailsReleaseValidation()
+    {
+        using var fixture = CatalogFixture.Create();
+        fixture.EditOperation(operation =>
+            operation["arguments"]![0]!["semantic_type"] = "vector");
+
+        var result = CommandCatalogValidator.ValidateDirectory(fixture.Root);
+
+        Assert.Contains(
+            result.Errors,
+            error => error.Contains(
+                "legacy pseudo-family 'vector'",
+                StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void RiskFlagsMustUseDeterministicOrder()
     {
         using var fixture = CatalogFixture.Create();
@@ -375,7 +415,7 @@ public sealed class CommandCatalogValidatorTests
         var result = CommandCatalogValidator.ValidateDirectory(fixture.Root);
 
         Assert.True(result.IsValid, string.Join(Environment.NewLine, result.Errors));
-        Assert.Equal(7, result.OperationCount);
+        Assert.Equal(10, result.OperationCount);
     }
 
     [Fact]

@@ -628,7 +628,7 @@ internal static class CommandCatalogArtifactGenerator
             "angular_unit" or "distance_unit" or "temperature_unit" =>
                 $"{value} == 0 || !Enum.IsDefined({value})",
             "point_name" => MissingPointNameComponents(value),
-            "vector" => $"!{value}.HasX || !{value}.HasY || !{value}.HasZ",
+            "vector3" => $"!{value}.HasX || !{value}.HasY || !{value}.HasZ",
             "tolerance_vector_options" => string.Join(" || ", ToleranceNames.Select(name =>
                 $"{value}.{name} is null || !{value}.{name}.HasEnabled || !{value}.{name}.HasValue")),
             "collection_instrument_id" =>
@@ -708,7 +708,7 @@ internal static class CommandCatalogArtifactGenerator
             "font" => prefix +
                 $"FontValue: new({valueExpression}.FontName, (byte){valueExpression}.Size, new WorkerRgbColorValue((byte){valueExpression}.Color.Red, (byte){valueExpression}.Color.Green, (byte){valueExpression}.Color.Blue)))",
             "point_name" => prefix + $"PointNameValue: new({valueExpression}.CollectionName, {valueExpression}.GroupName, {valueExpression}.TargetName))",
-            "vector" => prefix + $"VectorValue: new({valueExpression}.X, {valueExpression}.Y, {valueExpression}.Z))",
+            "vector3" => prefix + $"VectorValue: new({valueExpression}.X, {valueExpression}.Y, {valueExpression}.Z))",
             "tolerance_vector_options" => prefix +
                 $"ToleranceVectorOptionsValue: new({string.Join(", ", ToleranceNames.Select(nameValue => $"new({valueExpression}.{nameValue}.Enabled, {valueExpression}.{nameValue}.Value)"))}))",
             "collection_instrument_id" => prefix +
@@ -823,7 +823,7 @@ internal static class CommandCatalogArtifactGenerator
             "file_reference" =>
                 $"new TargetProtocol.FileReference {{ Path = {variable}.FileReferenceValue!.Path, EmbeddedFile = {variable}.FileReferenceValue.EmbeddedFile }}",
             "point_name" => $"new TargetProtocol.PointName {{ CollectionName = {variable}.PointNameValue!.CollectionName, GroupName = {variable}.PointNameValue.GroupName, TargetName = {variable}.PointNameValue.TargetName }}",
-            "vector" => $"new TargetProtocol.Vector3 {{ X = {variable}.VectorValue!.X, Y = {variable}.VectorValue.Y, Z = {variable}.VectorValue.Z }}",
+            "vector3" => $"new TargetProtocol.Vector3 {{ X = {variable}.VectorValue!.X, Y = {variable}.VectorValue.Y, Z = {variable}.VectorValue.Z }}",
             "tolerance_vector_options" => $"new TargetProtocol.ToleranceVectorOptions {{ {string.Join(", ", ToleranceNames.Select(name => $"{name} = new TargetProtocol.ToleranceLimit {{ Enabled = {variable}.ToleranceVectorOptionsValue!.{name}.Enabled, Value = {variable}.ToleranceVectorOptionsValue.{name}.Value }}"))} }}",
             "collection_instrument_id" =>
                 $"new TargetProtocol.CollectionInstrumentId {{ CollectionName = {variable}.CollectionInstrumentIdValue!.CollectionName, InstrumentId = {variable}.CollectionInstrumentIdValue.InstrumentId }}",
@@ -926,7 +926,7 @@ internal static class CommandCatalogArtifactGenerator
             "file_reference" or
             "font" or
             "point_name" or
-            "vector" or
+            "vector3" or
             "tolerance_vector_options" or
             "collection_group_name_list" or
             "collection_instrument_id" or
@@ -975,7 +975,7 @@ internal static class CommandCatalogArtifactGenerator
             "temperature_unit" => "TemperatureUnit",
             "font" => "Font",
             "point_name" => "PointName",
-            "vector" => "Vector",
+            "vector3" => "Vector",
             "tolerance_vector_options" => "ToleranceVectorOptions",
             "chart_name" => "ChartName",
             "cloud_name" => "CloudName",

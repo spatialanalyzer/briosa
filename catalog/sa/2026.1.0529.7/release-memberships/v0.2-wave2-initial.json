@@ -1,0 +1,15 @@
+{
+  "$schema": "../../../schemas/v1/release-membership.schema.json",
+  "schema_version": 1,
+  "membership_id": "v0.2-wave2-initial",
+  "release_line": "v0.2",
+  "delivery_wave": "wave_2",
+  "catalog_id": "briosa.sa.2026.1.0529.7",
+  "spatial_analyzer_target": "2026.1.0529.7",
+  "catalog_revision": "8",
+  "operation_ids": [
+    "collection_operations.construct_point_in_working_coordinates",
+    "collection_operations.delete_points",
+    "collection_operations.rename_point"
+  ]
+}

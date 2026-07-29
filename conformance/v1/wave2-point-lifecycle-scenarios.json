@@ -1,0 +1,78 @@
+{
+  "$schema": "../schemas/v1/wave2-point-lifecycle-scenarios.schema.json",
+  "schema_version": 1,
+  "fixture_set_id": "briosa.client.wave2-point-lifecycle.v1",
+  "error_trailer": "briosa-operation-error-bin",
+  "scenarios": [
+    {
+      "id": "construct-point-missing-coordinates",
+      "operation_id": "collection_operations.construct_point_in_working_coordinates",
+      "worker_scenario": "ready",
+      "watchdog_timeout": null,
+      "deny_operation": false,
+      "expected": {
+        "grpc_status": "INVALID_ARGUMENT",
+        "ready_for_mp": true,
+        "operation_advertised": true,
+        "operation_succeeded": false,
+        "recovery_succeeded": false,
+        "typed_error_required": true,
+        "failure_kinds": [
+          "OPERATION_FAILURE_KIND_VALIDATION"
+        ]
+      }
+    },
+    {
+      "id": "construct-point-ready",
+      "operation_id": "collection_operations.construct_point_in_working_coordinates",
+      "worker_scenario": "ready",
+      "watchdog_timeout": null,
+      "deny_operation": false,
+      "expected": {
+        "grpc_status": "OK",
+        "ready_for_mp": true,
+        "operation_advertised": true,
+        "operation_succeeded": true,
+        "recovery_succeeded": false,
+        "typed_error_required": false,
+        "failure_kinds": []
+      }
+    },
+    {
+      "id": "delete-points-policy-denied",
+      "operation_id": "collection_operations.delete_points",
+      "worker_scenario": "ready",
+      "watchdog_timeout": null,
+      "deny_operation": true,
+      "expected": {
+        "grpc_status": "PERMISSION_DENIED",
+        "ready_for_mp": true,
+        "operation_advertised": false,
+        "operation_succeeded": false,
+        "recovery_succeeded": false,
+        "typed_error_required": true,
+        "failure_kinds": [
+          "OPERATION_FAILURE_KIND_POLICY_DENIED"
+        ]
+      }
+    },
+    {
+      "id": "rename-point-mp-failure",
+      "operation_id": "collection_operations.rename_point",
+      "worker_scenario": "mp-failure",
+      "watchdog_timeout": null,
+      "deny_operation": false,
+      "expected": {
+        "grpc_status": "FAILED_PRECONDITION",
+        "ready_for_mp": true,
+        "operation_advertised": true,
+        "operation_succeeded": false,
+        "recovery_succeeded": false,
+        "typed_error_required": true,
+        "failure_kinds": [
+          "OPERATION_FAILURE_KIND_MP_FAILURE"
+        ]
+      }
+    }
+  ]
+}
