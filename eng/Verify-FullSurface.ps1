@@ -414,6 +414,12 @@ $requiredBudgetUnits = [ordered]@{
     package = "seconds"
     startup = "seconds"
     "descriptor-size" = "bytes"
+    "package-size" = "bytes"
+    "startup-working-set" = "bytes"
+    "dispatch-p95" = "milliseconds"
+    "request-mapping-p95" = "milliseconds"
+    "discovery-p95" = "milliseconds"
+    "retained-managed-memory" = "bytes"
 }
 foreach ($entry in $requiredBudgetUnits.GetEnumerator()) {
     $matches = @($policy.budgets | Where-Object metric -CEQ $entry.Key)

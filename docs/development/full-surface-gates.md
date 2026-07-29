@@ -80,6 +80,12 @@ Ordinary CI has one validation path for each proposed change. The `pull_request`
 | Package | seconds | 900 | two deterministic Windows package builds and package verification |
 | Startup | seconds | 30 | packaged host process start through accepting a loopback connection |
 | Descriptor size | bytes | 4,194,304 | verified protocol artifact descriptor set |
+| Package size | bytes | 268,435,456 | verified deterministic Windows package ZIP |
+| Startup working set | bytes | 536,870,912 | packaged host immediately after accepting a loopback connection without a worker or SA |
+| Dispatch p95 | milliseconds | 250 | 512 sequential named-pipe fake-worker calls after 64 warmups |
+| Request-mapping p95 | milliseconds | 50 | 512 generated request/outcome/response mappings after 64 warmups |
+| Discovery p95 | milliseconds | 50 | 512 capability responses over all currently allowed generated operations after 64 warmups |
+| Retained managed memory | bytes | 33,554,432 | non-negative managed-heap increase across the 512-call fake-worker sample |
 
 Budget changes require a pull request that includes the uploaded metric reports from at least three representative successful runs, explains the surface growth or runner change, and selects the smallest practical threshold with explicit headroom. A transient slow runner should be rerun; it is not sufficient evidence to raise a budget. Lowering a budget after an optimization follows the same review path. Never add an inline bypass or per-branch exception.
 
@@ -92,7 +98,7 @@ For a local duration measurement, pass an executable and its argument array:
   -ArgumentList @("build", "Briosa.slnx", "-c", "Release", "--no-restore")
 ```
 
-Startup and descriptor-size measurements are recorded inside `Test-WindowsPackage.ps1` and `Test-ProtocolArtifact.ps1`, respectively.
+Startup, startup-working-set, and package-size measurements are recorded inside `Test-WindowsPackage.ps1`; descriptor size is recorded by `Test-ProtocolArtifact.ps1`. `Test-RuntimePerformance.ps1` records fake-worker dispatch, request-mapping, discovery p95, and retained managed memory. See the [runtime performance and soak guide](../testing/runtime-performance-and-soak.md) for the sample and state boundaries; none of these portable gates starts or connects to SpatialAnalyzer.
 
 ## Deterministic sharding
 

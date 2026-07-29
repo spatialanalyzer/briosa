@@ -263,6 +263,243 @@ public sealed class WorkerProcessSupervisorTests
         Assert.Equal("worker-stop-timeout", supervisor.Current.DiagnosticCode);
     }
 
+    [Fact]
+    public async Task FullQueueCancellationIsNotAdmittedAndDrainIsObservable()
+    {
+        await using var supervisor = CreateSupervisor(
+            _ => CreateLaunch("delay-first-execute"),
+            CreatePolicy(heartbeatInterval: TimeSpan.FromSeconds(10)),
+            CreateExecutionPolicy(queueCapacity: 2));
+
+        Assert.True(await supervisor.StartAsync());
+        var active = supervisor.ExecuteAsync(CreateCommand("active"));
+        _ = await WaitForExecution(
+            supervisor,
+            snapshot => snapshot.ActiveExecutions == 1);
+        var queued = new[]
+        {
+            supervisor.ExecuteAsync(CreateCommand("queued-1")),
+            supervisor.ExecuteAsync(CreateCommand("queued-2"))
+        };
+        _ = await WaitForExecution(
+            supervisor,
+            snapshot => snapshot.QueuedRequests == 2);
+        using var cancellation = new CancellationTokenSource();
+        var blocked = supervisor.ExecuteAsync(
+            CreateCommand("blocked"),
+            cancellation.Token);
+        _ = await WaitForExecution(
+            supervisor,
+            snapshot => snapshot.WaitingForAdmission == 1);
+
+        await cancellation.CancelAsync();
+        var rejected = await blocked;
+        var completed = await Task.WhenAll([active, .. queued]);
+        var drained = await WaitForExecution(
+            supervisor,
+            snapshot => snapshot.TerminalRequests == 3);
+
+        Assert.Equal(WorkerExecutionStatus.ClientCancelled, rejected.Status);
+        Assert.Equal(WorkerExecutionDisposition.NotStarted, rejected.ExecutionDisposition);
+        Assert.All(
+            completed,
+            outcome => Assert.Equal(WorkerExecutionStatus.Completed, outcome.Status));
+        Assert.Equal(2, drained.QueueCapacity);
+        Assert.Equal(0, drained.QueuedRequests);
+        Assert.Equal(0, drained.WaitingForAdmission);
+        Assert.Equal(0, drained.ActiveExecutions);
+        Assert.Equal(2, drained.PeakQueuedRequests);
+        Assert.Equal(3, drained.AdmittedRequests);
+        Assert.Equal(3, drained.TerminalRequests);
+        Assert.Equal(1, drained.ClientCancellationsBeforeAdmission);
+        Assert.Equal(0, drained.ClientCancellationsAfterAdmission);
+    }
+
+    [Fact]
+    public async Task CancellationAfterAdmissionDrainsToATerminalOutcome()
+    {
+        await using var supervisor = CreateSupervisor(
+            _ => CreateLaunch("delay-first-execute"),
+            CreatePolicy(heartbeatInterval: TimeSpan.FromSeconds(10)),
+            CreateExecutionPolicy(queueCapacity: 2));
+
+        Assert.True(await supervisor.StartAsync());
+        var active = supervisor.ExecuteAsync(CreateCommand("active"));
+        _ = await WaitForExecution(
+            supervisor,
+            snapshot => snapshot.ActiveExecutions == 1);
+        using var cancellation = new CancellationTokenSource();
+        var queued = supervisor.ExecuteAsync(
+            CreateCommand("cancelled-after-admission"),
+            cancellation.Token);
+        _ = await WaitForExecution(
+            supervisor,
+            snapshot => snapshot.QueuedRequests == 1);
+
+        await cancellation.CancelAsync();
+        var cancelled = await queued;
+        _ = await active;
+        var drained = await WaitForExecution(
+            supervisor,
+            snapshot => snapshot.TerminalRequests == 2);
+
+        Assert.Equal(WorkerExecutionStatus.ClientCancelled, cancelled.Status);
+        Assert.Equal(
+            WorkerExecutionDisposition.StartedOutcomeUnknown,
+            cancelled.ExecutionDisposition);
+        Assert.Equal(2, drained.AdmittedRequests);
+        Assert.Equal(2, drained.TerminalRequests);
+        Assert.Equal(0, drained.QueuedRequests);
+        Assert.Equal(0, drained.ActiveExecutions);
+        Assert.Equal(1, drained.ClientCancellationsAfterAdmission);
+    }
+
+    [Fact]
+    public async Task StopWakesCapacityWaitersAndTerminatesEveryAdmission()
+    {
+        await using var supervisor = CreateSupervisor(
+            _ => CreateLaunch("delay-first-execute"),
+            CreatePolicy(heartbeatInterval: TimeSpan.FromSeconds(10)),
+            CreateExecutionPolicy(queueCapacity: 1));
+
+        Assert.True(await supervisor.StartAsync());
+        var active = supervisor.ExecuteAsync(CreateCommand("active"));
+        _ = await WaitForExecution(
+            supervisor,
+            snapshot => snapshot.ActiveExecutions == 1);
+        var queued = supervisor.ExecuteAsync(CreateCommand("queued"));
+        _ = await WaitForExecution(
+            supervisor,
+            snapshot => snapshot.QueuedRequests == 1);
+        var waiting = supervisor.ExecuteAsync(CreateCommand("waiting"));
+        _ = await WaitForExecution(
+            supervisor,
+            snapshot => snapshot.WaitingForAdmission == 1);
+
+        var stopping = supervisor.StopAsync();
+        var outcomes = await Task.WhenAll(active, queued, waiting);
+        await stopping;
+        var drained = supervisor.ExecutionSnapshot;
+
+        Assert.Contains(
+            outcomes,
+            outcome => outcome.DiagnosticCode == "worker-execution-queue-closed" &&
+                outcome.ExecutionDisposition == WorkerExecutionDisposition.NotStarted);
+        Assert.Equal(2, drained.AdmittedRequests);
+        Assert.Equal(2, drained.TerminalRequests);
+        Assert.Equal(0, drained.QueuedRequests);
+        Assert.Equal(0, drained.WaitingForAdmission);
+        Assert.Equal(0, drained.ActiveExecutions);
+    }
+
+    [Fact]
+    public async Task RepeatedWatchdogReplacementRemainsBoundedAndObservable()
+    {
+        const int failureCount = 6;
+        await using var supervisor = CreateSupervisor(
+            generation => CreateLaunch(
+                generation <= failureCount ? "drop-execution-response" : "normal"),
+            CreatePolicy(
+                maximumRestarts: failureCount,
+                heartbeatInterval: TimeSpan.FromSeconds(10),
+                lifecycleHistoryCapacity: 16),
+            CreateExecutionPolicy(
+                watchdogTimeout: TimeSpan.FromMilliseconds(150),
+                queueCapacity: 2));
+
+        Assert.True(await supervisor.StartAsync());
+        var failures = new List<WorkerExecutionOutcome>();
+        for (var index = 0; index < failureCount; index++)
+        {
+            failures.Add(await supervisor.ExecuteAsync(CreateCommand($"watchdog-{index}")));
+        }
+
+        var recovered = await supervisor.ExecuteAsync(CreateCommand("recovered"));
+        var snapshot = supervisor.ExecutionSnapshot;
+
+        Assert.All(
+            failures,
+            outcome =>
+            {
+                Assert.Equal(WorkerExecutionStatus.WatchdogTimeout, outcome.Status);
+                Assert.Equal(
+                    WorkerExecutionDisposition.StartedOutcomeUnknown,
+                    outcome.ExecutionDisposition);
+            });
+        Assert.Equal(WorkerExecutionStatus.Completed, recovered.Status);
+        Assert.Equal(failureCount + 1, recovered.Generation);
+        Assert.Equal(failureCount, snapshot.WatchdogTimeouts);
+        Assert.Equal(failureCount + 1, snapshot.AdmittedRequests);
+        Assert.Equal(snapshot.AdmittedRequests, snapshot.TerminalRequests);
+        Assert.InRange(supervisor.History.Count, 1, 16);
+        Assert.Equal(supervisor.Current, supervisor.History[^1]);
+    }
+
+    [Fact]
+    public async Task RepeatedCrashReplacementRemainsBoundedAndObservable()
+    {
+        const int failureCount = 8;
+        await using var supervisor = CreateSupervisor(
+            generation => CreateLaunch(
+                generation <= failureCount ? "crash-on-execute" : "normal"),
+            CreatePolicy(
+                maximumRestarts: failureCount,
+                heartbeatInterval: TimeSpan.FromSeconds(10),
+                lifecycleHistoryCapacity: 16),
+            CreateExecutionPolicy(queueCapacity: 2));
+
+        Assert.True(await supervisor.StartAsync());
+        var failures = new List<WorkerExecutionOutcome>();
+        for (var index = 0; index < failureCount; index++)
+        {
+            failures.Add(await supervisor.ExecuteAsync(CreateCommand($"crash-{index}")));
+        }
+
+        var recovered = await supervisor.ExecuteAsync(CreateCommand("recovered"));
+        var snapshot = supervisor.ExecutionSnapshot;
+
+        Assert.All(
+            failures,
+            outcome =>
+            {
+                Assert.Equal(WorkerExecutionStatus.WorkerFailure, outcome.Status);
+                Assert.Equal(
+                    WorkerExecutionDisposition.StartedOutcomeUnknown,
+                    outcome.ExecutionDisposition);
+            });
+        Assert.Equal(WorkerExecutionStatus.Completed, recovered.Status);
+        Assert.Equal(failureCount + 1, recovered.Generation);
+        Assert.Equal(failureCount, snapshot.WorkerFailures);
+        Assert.Equal(failureCount + 1, snapshot.AdmittedRequests);
+        Assert.Equal(snapshot.AdmittedRequests, snapshot.TerminalRequests);
+        Assert.InRange(supervisor.History.Count, 1, 16);
+        Assert.Equal(supervisor.Current, supervisor.History[^1]);
+    }
+
+    [Fact]
+    public async Task LifecycleHistoryRetainsOnlyTheReviewedCapacity()
+    {
+        const int historyCapacity = 6;
+        await using var supervisor = CreateSupervisor(
+            _ => CreateLaunch("normal"),
+            CreatePolicy(
+                heartbeatInterval: TimeSpan.FromSeconds(10),
+                lifecycleHistoryCapacity: historyCapacity));
+
+        for (var cycle = 0; cycle < 5; cycle++)
+        {
+            Assert.True(await supervisor.StartAsync());
+            await supervisor.StopAsync();
+            Assert.InRange(supervisor.History.Count, 1, historyCapacity);
+            Assert.Equal(supervisor.Current, supervisor.History[^1]);
+        }
+
+        Assert.Equal(historyCapacity, supervisor.History.Count);
+        Assert.DoesNotContain(
+            supervisor.History,
+            snapshot => snapshot.DiagnosticCode == "not-started");
+    }
+
 
     [Fact]
     public async Task ConcurrentRequestsRemainSerializedAcrossTheWorkerPipe()
@@ -718,15 +955,17 @@ public sealed class WorkerProcessSupervisorTests
             new WorkerToleranceLimit(Enabled: false, Value: -4));
 
     private static WorkerExecutionPolicy CreateExecutionPolicy(
-        TimeSpan? watchdogTimeout = null) =>
+        TimeSpan? watchdogTimeout = null,
+        int queueCapacity = 16) =>
         new(
             watchdogTimeout ?? TimeSpan.FromSeconds(2),
-            queueCapacity: 16);
+            queueCapacity);
 
     private static WorkerRestartPolicy CreatePolicy(
         int maximumRestarts = 3,
         TimeSpan? heartbeatInterval = null,
-        TimeSpan? shutdownTimeout = null) =>
+        TimeSpan? shutdownTimeout = null,
+        int lifecycleHistoryCapacity = 256) =>
         new(
             maximumRestarts,
             restartWindow: TimeSpan.FromSeconds(10),
@@ -734,7 +973,25 @@ public sealed class WorkerProcessSupervisorTests
             heartbeatTimeout: TimeSpan.FromMilliseconds(250),
             startupTimeout: TimeSpan.FromSeconds(5),
             shutdownTimeout ?? TimeSpan.FromMilliseconds(500),
-            restartDelay: TimeSpan.FromMilliseconds(10));
+            restartDelay: TimeSpan.FromMilliseconds(10),
+            lifecycleHistoryCapacity);
+
+    private static async Task<WorkerExecutionSnapshot> WaitForExecution(
+        WorkerProcessSupervisor supervisor,
+        Func<WorkerExecutionSnapshot, bool> predicate)
+    {
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        while (true)
+        {
+            var snapshot = supervisor.ExecutionSnapshot;
+            if (predicate(snapshot))
+            {
+                return snapshot;
+            }
+
+            await Task.Delay(TimeSpan.FromMilliseconds(10), timeout.Token);
+        }
+    }
 
     private static async Task<WorkerLifecycleSnapshot> WaitFor(
         WorkerProcessSupervisor supervisor,

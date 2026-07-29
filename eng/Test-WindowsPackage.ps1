@@ -80,6 +80,10 @@ try {
     $firstHash = (Get-FileHash -LiteralPath $firstZip -Algorithm SHA256).Hash
     $secondHash = (Get-FileHash -LiteralPath $secondZip -Algorithm SHA256).Hash
     Assert-Condition -Condition ($firstHash -eq $secondHash) -Message "Two clean package builds produced different SHA-256 hashes."
+    & (Join-Path $PSScriptRoot "Measure-CiBudget.ps1") `
+        -Metric package-size `
+        -ObservedValue ([double](Get-Item -LiteralPath $firstZip).Length) `
+        -OutputDirectory $MetricsOutputDirectory
 
     $externalChecksumPath = "$firstZip.sha256"
     $externalChecksum = Get-Content -LiteralPath $externalChecksumPath -Raw
@@ -184,6 +188,11 @@ try {
         -ObservedValue $startupStopwatch.Elapsed.TotalSeconds `
         -OutputDirectory $MetricsOutputDirectory
     Assert-Condition -Condition $listening -Message "The packaged host did not open its configured loopback endpoint without SpatialAnalyzer."
+    $serverProcess.Refresh()
+    & (Join-Path $PSScriptRoot "Measure-CiBudget.ps1") `
+        -Metric startup-working-set `
+        -ObservedValue ([double]$serverProcess.WorkingSet64) `
+        -OutputDirectory $MetricsOutputDirectory
 
     if (-not $serverProcess.HasExited) {
         Stop-Process -Id $serverProcess.Id -Force

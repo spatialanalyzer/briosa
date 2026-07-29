@@ -12,7 +12,15 @@ Run the scripts in this directory from the repository root. Most scripts require
 
 The schema-validated `full-surface-policy.json` owns exact targets, evidence paths, committed-output mappings, explicit released protocol baselines, deterministic sharding, and budgets. The released-baseline list is empty while Briosa is unreleased; `main` is never treated as published. Catalog output discovery is recursive and does not assume a single operation-protocol file or fixed partition names.
 
-`Measure-CiBudget.ps1` measures a command duration or validates an observed size/duration, writes a JSON metric, and fails when the raw value exceeds the reviewed threshold; only display values are rounded. `Test-CiBudgetPolicy.ps1` verifies the exact boundary. CI measures locked restore, full generation, compile, tests, Windows packaging, packaged-host startup, and protocol descriptor size and uploads the reports. Multi-shard execution is fail-closed until CI has a checked matrix. See [the full-surface gate guide](../docs/development/full-surface-gates.md) before changing a baseline, budget, target, mapping, or sharding policy.
+`Measure-CiBudget.ps1` measures a command duration or validates an observed size, duration, latency, or memory value; it writes a JSON metric and fails when the raw value exceeds the reviewed threshold, while only display values are rounded. `Test-CiBudgetPolicy.ps1` verifies exact and just-over boundaries. CI measures locked restore, full generation, compile, tests, Windows packaging, packaged-host startup, protocol descriptor size, Windows package size, startup working set, fake-worker dispatch, request-mapping and discovery p95, and retained managed memory, then uploads the reports. Multi-shard execution is fail-closed until CI has a checked matrix. See [the full-surface gate guide](../docs/development/full-surface-gates.md) before changing a baseline, budget, target, mapping, or sharding policy.
+
+`Test-RuntimePerformance.ps1` runs 64 warmups plus 512 samples for named-pipe fake-worker dispatch, generated request mapping, and catalog discovery, and records retained-memory observations without activating SpatialAnalyzer:
+
+```powershell
+./eng/Test-RuntimePerformance.ps1 -NoBuild
+```
+
+It also verifies admitted/terminal accounting is drained. Queue saturation, admission cancellation, stop races, repeated watchdog and crash replacement, bounded lifecycle history, and sustained audit correlation are deterministic server tests. See [the runtime performance and soak guide](../docs/testing/runtime-performance-and-soak.md) for exact boundaries and the deferred licensed soak.
 
 `Verify-CiWorkflow.ps1` protects the ordinary workflow trigger and concurrency policy. Feature branches are validated by one `pull_request` run when they target `main`; `push` validation is restricted to `main`, and a newer commit cancels an obsolete run for the same pull request or branch. This avoids running the same Windows jobs for both `push` and `pull_request` on every open branch while retaining post-merge validation of `main`.
 

@@ -14,6 +14,7 @@ The public host supervises one child worker generation at a time.
 - The host and worker use a private, randomly named Windows named pipe. The pipe carries versioned, length-prefixed JSON control envelopes with correlation identifiers.
 - Protocol versions 1 and 2 established worker ready, heartbeat ping/pong, graceful stop, stopped acknowledgement, and connection readiness. Protocol version 3 adds the serialized execution messages defined by [ADR 0004](0004-mp-execution-pipeline.md). Later revisions add exact catalog bindings, execution/result details, specialized value families, and identity/reference-list values without exposing COM types. Protocol version 10 adds the dedicated redacted execution-verification exchange and removes the configured hostname from the host-facing connection snapshot; see [ADR 0017](0017-execution-channel-readiness.md).
 - The host reports `Starting`, `Ready`, `Degraded`, and `Stopped` snapshots with generation, process identity, restart count, termination kind, timestamp, and a safe diagnostic code.
+- The current lifecycle snapshot is retained independently from a bounded diagnostic history. The default history capacity is 256 transitions so repeated recovery cannot grow host memory without limit.
 - A heartbeat timeout, broken control channel, or process exit degrades the current generation. The host terminates the entire worker process tree when graceful cleanup is no longer trustworthy, then starts a fresh generation without restarting the public host.
 - Restarts are limited to a configured count inside a rolling time window. Exhausting that budget leaves the supervisor degraded and suppresses further automatic launches.
 - Normal host shutdown requests a graceful worker stop and waits for acknowledgement and process exit. Timeout or transport failure escalates to process-tree termination.
@@ -29,6 +30,8 @@ The control pipe is local to the machine, has an unguessable per-generation name
 ## Testing
 
 Ordinary CI launches a separate fake worker executable that speaks the real lifecycle protocol. It can block its STA, exit abruptly, or ignore graceful shutdown so tests can verify replacement and forced cleanup without SpatialAnalyzer or proprietary binaries. The fake is not a SpatialAnalyzer emulator.
+
+Portable soak tests cycle generations beyond a deliberately small test history capacity and verify that the current state remains available while old transitions are evicted.
 
 ## Consequences
 

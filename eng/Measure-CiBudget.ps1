@@ -8,7 +8,13 @@ param(
         "test",
         "package",
         "startup",
-        "descriptor-size")]
+        "descriptor-size",
+        "package-size",
+        "startup-working-set",
+        "dispatch-p95",
+        "request-mapping-p95",
+        "discovery-p95",
+        "retained-managed-memory")]
     [string]$Metric,
 
     [Parameter(Mandatory, ParameterSetName = "Command")]
@@ -56,11 +62,20 @@ if ($budget.Count -ne 1) {
 
 $commandExitCode = 0
 if ($PSCmdlet.ParameterSetName -eq "Command") {
+    if ($budget[0].unit -notin @("seconds", "milliseconds")) {
+        throw "Command measurement is not valid for '$Metric' in $($budget[0].unit); provide -ObservedValue."
+    }
+
     $stopwatch = [Diagnostics.Stopwatch]::StartNew()
     & $Executable @ArgumentList
     $commandExitCode = $LASTEXITCODE
     $stopwatch.Stop()
-    $ObservedValue = $stopwatch.Elapsed.TotalSeconds
+    $ObservedValue = if ($budget[0].unit -ceq "milliseconds") {
+        $stopwatch.Elapsed.TotalMilliseconds
+    }
+    else {
+        $stopwatch.Elapsed.TotalSeconds
+    }
 }
 
 $roundedValue = [Math]::Round($ObservedValue, 3, [MidpointRounding]::AwayFromZero)

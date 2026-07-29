@@ -29,6 +29,19 @@ internal sealed record WorkerExecutionOutcome(
     int Generation,
     Guid CorrelationId = default);
 
+internal sealed record WorkerExecutionSnapshot(
+    int QueueCapacity,
+    int QueuedRequests,
+    int WaitingForAdmission,
+    int ActiveExecutions,
+    int PeakQueuedRequests,
+    long AdmittedRequests,
+    long TerminalRequests,
+    long ClientCancellationsBeforeAdmission,
+    long ClientCancellationsAfterAdmission,
+    long WatchdogTimeouts,
+    long WorkerFailures);
+
 internal sealed class WorkerExecutionPolicy
 {
     public WorkerExecutionPolicy(TimeSpan watchdogTimeout, int queueCapacity)

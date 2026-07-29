@@ -103,6 +103,10 @@ jobs:
               "--no-build",
               "--no-restore")
 
+      - name: Measure vendor-independent runtime performance
+        shell: pwsh
+        run: ./eng/Test-RuntimePerformance.ps1 -NoBuild
+
       - name: Upload build metrics
         if: always()
         uses: actions/upload-artifact@v7

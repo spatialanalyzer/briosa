@@ -138,7 +138,7 @@
     },
     "budgets": {
       "type": "array",
-      "minItems": 7,
+      "minItems": 13,
       "items": {
         "type": "object",
         "additionalProperties": false,
@@ -157,13 +157,20 @@
               "test",
               "package",
               "startup",
-              "descriptor-size"
+              "descriptor-size",
+              "package-size",
+              "startup-working-set",
+              "dispatch-p95",
+              "request-mapping-p95",
+              "discovery-p95",
+              "retained-managed-memory"
             ]
           },
           "unit": {
             "enum": [
               "seconds",
-              "bytes"
+              "bytes",
+              "milliseconds"
             ]
           },
           "maximum": {
