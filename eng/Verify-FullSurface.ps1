@@ -246,6 +246,37 @@ function Invoke-CleanGeneration {
             "portable-conformance-generate",
             $conformanceContext,
             (Join-Path $surfaceRoot "portable-conformance/$target"))
+
+        $releaseContext = Join-Path $workRoot "release-evidence-context/$target"
+        Copy-Tree -Source (Join-Path $repositoryRoot "catalog/schemas") `
+            -Destination (Join-Path $releaseContext "catalog/schemas")
+        Copy-Tree -Source $catalogTargetSource `
+            -Destination (Join-Path $releaseContext "catalog/sa/$target")
+        Copy-Tree -Source (Join-Path $repositoryRoot "proto") `
+            -Destination (Join-Path $releaseContext "proto")
+        Copy-Tree -Source $inventoryWork `
+            -Destination (Join-Path $releaseContext "inventory/sa/$target")
+        Copy-Tree -Source $dispositionWork `
+            -Destination (Join-Path $releaseContext "disposition/sa/$target")
+        Copy-Tree -Source (Join-Path $repositoryRoot "release") `
+            -Destination (Join-Path $releaseContext "release")
+        Copy-Tree -Source (Join-Path $repositoryRoot "docs") `
+            -Destination (Join-Path $releaseContext "docs")
+        Copy-Tree -Source (Join-Path $repositoryRoot ".github") `
+            -Destination (Join-Path $releaseContext ".github")
+        Copy-Tree -Source (Join-Path $repositoryRoot "eng") `
+            -Destination (Join-Path $releaseContext "eng")
+        $generatedConformance = Join-Path $surfaceRoot `
+            "portable-conformance/$target/generated/conformance/sa/$target/manifest.json"
+        $releaseConformanceRoot = Join-Path $releaseContext "generated/conformance/sa/$target"
+        [IO.Directory]::CreateDirectory($releaseConformanceRoot) | Out-Null
+        Copy-Item `
+            -LiteralPath $generatedConformance `
+            -Destination (Join-Path $releaseConformanceRoot "manifest.json")
+        Invoke-Generator -GeneratorArguments @(
+            "release-evidence-generate",
+            $releaseContext,
+            (Join-Path $surfaceRoot "release-evidence/$target"))
     }
 }
 
@@ -420,7 +451,8 @@ $requiredSurfaceIds = @(
     "binding-registry",
     "catalog-scaffolds",
     "catalog-artifacts",
-    "portable-conformance")
+    "portable-conformance",
+    "release-evidence")
 if (Compare-Object $requiredSurfaceIds $surfaceIds) {
     throw "Full-surface policy must define every repository-owned generation surface exactly once."
 }
@@ -521,6 +553,10 @@ try {
         }
         Invoke-SurfaceVerification -SurfaceId "portable-conformance" -Target $target -Action {
             & (Join-Path $PSScriptRoot "Verify-PortableConformance.ps1") `
+                -SpatialAnalyzerTarget $target -Configuration $Configuration -NoBuild
+        }
+        Invoke-SurfaceVerification -SurfaceId "release-evidence" -Target $target -Action {
+            & (Join-Path $PSScriptRoot "Verify-ReleaseEvidence.ps1") `
                 -SpatialAnalyzerTarget $target -Configuration $Configuration -NoBuild
         }
     }

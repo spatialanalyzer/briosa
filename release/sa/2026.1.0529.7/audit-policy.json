@@ -1,0 +1,29 @@
+{
+  "$schema": "../../schemas/v1/audit-policy.schema.json",
+  "schema_version": 1,
+  "spatial_analyzer_target": "2026.1.0529.7",
+  "master_epic": "https://github.com/spatialanalyzer/briosa/issues/47",
+  "protected_conformance": {
+    "status": "pending",
+    "blocker_references": [
+      "https://github.com/spatialanalyzer/briosa/issues/20",
+      "https://github.com/spatialanalyzer/briosa/issues/69"
+    ]
+  },
+  "runtime_identity_validation": {
+    "status": "pending",
+    "blocker_references": [
+      "https://github.com/spatialanalyzer/briosa/issues/70"
+    ]
+  },
+  "operator_guide_paths": [
+    "docs/architecture/0018-uncertain-completion-and-replay.md",
+    "docs/architecture/0019-global-state-workflow-isolation.md",
+    "docs/architecture/0022-runtime-identity-and-attestation.md",
+    "docs/operations/command-policy-and-auditing.md",
+    "docs/operations/licensed-sa-runner.md",
+    "docs/security/threat-model.md",
+    "docs/testing/portable-conformance.md",
+    "docs/testing/runtime-performance-and-soak.md"
+  ]
+}
