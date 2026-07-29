@@ -18,11 +18,33 @@ public sealed class OperationPolicyTests
     {
         var policy = CreatePolicy();
 
-        var decision = policy.Evaluate(Command());
-
-        Assert.Equal(OperationPolicyDecisionKind.Denied, decision.Kind);
-        Assert.Equal("operation-policy-denied", decision.DiagnosticCode);
+        foreach (var operation in TargetCatalogMetadata.Operations)
+        {
+            var decision = policy.Evaluate(Command(
+                operation.OperationId,
+                operation.MpStep));
+            Assert.Equal(OperationPolicyDecisionKind.Denied, decision.Kind);
+            Assert.Equal("operation-policy-denied", decision.DiagnosticCode);
+        }
         Assert.Empty(policy.AllowedOperations);
+    }
+
+    [Fact]
+    public void EveryGeneratedOperationRequiresAnExactExplicitAllowEntry()
+    {
+        var operationIds = TargetCatalogMetadata.Operations
+            .Select(operation => operation.OperationId)
+            .ToArray();
+        var policy = CreatePolicy(allow: operationIds);
+
+        foreach (var operation in TargetCatalogMetadata.Operations)
+        {
+            Assert.Equal(
+                OperationPolicyDecisionKind.Allowed,
+                policy.Evaluate(Command(operation.OperationId, operation.MpStep)).Kind);
+        }
+        Assert.Equal(operationIds.Order(), policy.AllowedOperations
+            .Select(operation => operation.OperationId).Order());
     }
 
     [Fact]
@@ -78,7 +100,7 @@ public sealed class OperationPolicyTests
         OperationExecutionScope executionScope,
         string diagnosticCode)
     {
-        var operation = Assert.Single(TargetCatalogMetadata.Operations) with
+        var operation = WorkingDirectoryOperation() with
         {
             ExecutionScope = executionScope
         };
@@ -97,7 +119,7 @@ public sealed class OperationPolicyTests
         var factory = new CountingProcessFactory();
         var supervisor = new WorkerProcessSupervisor(factory, RestartPolicy());
         await using var configuredSupervisor = supervisor.ConfigureAwait(true);
-        var operation = Assert.Single(TargetCatalogMetadata.Operations) with
+        var operation = WorkingDirectoryOperation() with
         {
             ExecutionScope = OperationExecutionScope.ExclusiveWorkflow
         };
@@ -152,6 +174,10 @@ public sealed class OperationPolicyTests
             new ConfigurationBuilder().AddInMemoryCollection(values).Build(),
             operations ?? TargetCatalogMetadata.Operations);
     }
+
+    private static CatalogOperationDescriptor WorkingDirectoryOperation() =>
+        TargetCatalogMetadata.Operations.Single(operation =>
+            operation.OperationId == OperationId);
 
     private static void Add(
         Dictionary<string, string?> values,

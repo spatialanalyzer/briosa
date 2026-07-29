@@ -166,9 +166,12 @@ jobs:
 
       - name: Run packaged generated-client scenarios
         shell: pwsh
-        run: >
-          ./eng/Test-GeneratedClientScenarios.ps1
-          -PackagePath artifacts/package-smoke/briosa-0.1.0-ci-sa-2026.1.0529.7-win-x64.zip
+        run: |
+          ./eng/Test-GeneratedClientScenarios.ps1 `
+            -PackagePath artifacts/package-smoke/briosa-0.1.0-ci-sa-2026.1.0529.7-win-x64.zip
+          ./eng/Test-GeneratedClientScenarios.ps1 `
+            -PackagePath artifacts/package-smoke/briosa-0.1.0-ci-sa-2026.1.0529.7-win-x64.zip `
+            -FixturePath conformance/v1/wave1-read-only-scenarios.json
 
       - name: Upload package metrics
         if: always()

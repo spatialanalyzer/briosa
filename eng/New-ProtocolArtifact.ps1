@@ -108,6 +108,9 @@ $liveFixtures = Get-Content `
 $errorFixtures = Get-Content `
     -LiteralPath (Join-Path $conformanceRoot "v1\operation-error-cases.json") `
     -Raw | ConvertFrom-Json
+$wave1ReadOnlyFixtures = Get-Content `
+    -LiteralPath (Join-Path $conformanceRoot "v1\wave1-read-only-scenarios.json") `
+    -Raw | ConvertFrom-Json
 $targetVersion = [string]$coverage.spatial_analyzer_target
 $catalogRevision = [string]$coverage.catalog_revision
 $artifactBase = "briosa-protocol-$Version-sa-$targetVersion-catalog-$catalogRevision"
@@ -180,7 +183,8 @@ try {
         conformance_fixture_sha256 = Get-AggregateFingerprint -Files $conformanceFiles
         conformance_fixture_sets = @(
             [string]$liveFixtures.fixture_set_id,
-            [string]$errorFixtures.fixture_set_id)
+            [string]$errorFixtures.fixture_set_id,
+            [string]$wave1ReadOnlyFixtures.fixture_set_id)
         client_generation_contract_version = 1
         files = @($contentFiles)
     }

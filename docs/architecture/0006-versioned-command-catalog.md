@@ -1,6 +1,6 @@
 # ADR 0006: Exact-target supported-command catalogs
 
-- Status: Accepted for the v0.1 vertical slice
+- Status: Accepted; expanded for v0.2 release subsets
 - Date: 2026-07-21
 - Amended by: [ADR 0016](0016-command-argument-semantic-families.md) and [ADR 0021](0021-exact-target-protobuf-partitions-and-identifiers.md)
 
@@ -32,11 +32,14 @@ catalog/
   schemas/v1/
     catalog.schema.json
     operation.schema.json
+    release-membership.schema.json
   sa/
     2026.1.0529.7/
       catalog.json
       operations/
         file_operations.get_working_directory.json
+      release-memberships/
+        v0.2-wave1-initial.json
 ```
 
 The exact SA version appears once in the target manifest and must match its directory. The manifest also records the exact target protocol package and a positive, target-local catalog revision. Catalogs do not inherit, overlay, or declare compatibility ranges with another release.
@@ -44,6 +47,8 @@ The exact SA version appears once in the target manifest and must match its dire
 The manifest also records the stable protocol partition for every reviewed category. Each partition fixes its category text, lower-snake-case alias, PascalCase service, and `.proto` filename. Operations cannot invent a category mapping outside that registry.
 
 The manifest lists every operation file in ordinal path order. Validation fails for an unlisted file, a missing file, duplicate source or operation identities, or target/package mismatches. This makes a target directory one complete reviewable snapshot of Briosa support for that release.
+
+The manifest separately lists every release-membership file. A membership names an additive delivery subset using exact operation IDs and repeats the catalog ID, target, and revision so stale release claims fail closed. Membership is neither the complete catalog nor deployment authorization, and a release-line label does not declare cross-version compatibility. See the [release-membership guide](../development/release-membership.md).
 
 ## Operation and protocol naming
 
@@ -129,6 +134,12 @@ The SA 2026.1.0529.7 catalog begins with `file_operations.get_working_directory`
 
 This is represented through the ordinary schema and validator with no command-specific code path.
 
+## Initial v0.2 Wave 1 subset
+
+The first v0.2 Wave 1 membership adds five low-risk collection-introspection operations: collection count, collection name by explicit index, point count in a group, groups in a collection, and points in a group. Each is read-only, safe to replay, and classified as a point-in-time global-state read. Serialization prevents COM interleaving but does not turn several calls into one consistent snapshot.
+
+This membership is a small useful subset of the 101 reviewed Wave 1 candidates. It does not imply that the remaining candidates are supported, and it does not automatically enable any member in runtime policy.
+
 ## Validation
 
 JSON Schema draft 7 validates document structure independently of code generation. The semantic validator then checks cross-file completeness, exact-target identity, deterministic names, evidence references, argument rules, reviewed defaults, and required SDK bindings. Ordinary CI runs both layers without SpatialAnalyzer, installed vendor documentation, a license, or proprietary SDK samples.
@@ -142,4 +153,5 @@ Schema changes and catalog changes are API-review inputs. The target-local catal
 - Same-name MP commands can become distinct Briosa operations, although ineligible variants need not be exposed.
 - Optionality and defaults require deliberate review instead of trusting generated sample values.
 - Adding a supported operation requires evidence, semantic review, risk classification, and complete binding metadata.
+- Release membership makes delivered subsets mechanically complete without conflating planning, generated catalog support, and runtime allow/deny policy.
 - Supporting another SA release adds a complete independent target directory rather than version thresholds or inherited deltas.

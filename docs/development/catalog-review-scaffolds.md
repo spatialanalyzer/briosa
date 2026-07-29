@@ -63,7 +63,8 @@ Promote small, risk-ordered subsets rather than copying the complete scaffold se
 5. Review effect, replay safety, execution scope, risk flags, data classifications, and isolation guidance under ADRs 0015, 0018, and 0019.
 6. Write original public descriptions and select the exact catalog evidence references. Inventory traceability comes from the first-class `inventory_key`; evidence text no longer acts as an identity parser.
 7. Add the completed operation file to the exact-target catalog manifest and increment the target-local catalog revision.
-8. Run catalog validation, scaffold verification, generated-artifact verification, and the relevant portable command tests.
+8. If the operation belongs to a named delivery subset, add its exact ID to the appropriate `release-memberships` file, keep the list sorted, and update that file to the same catalog revision. Membership is not runtime authorization; see the [release-membership guide](release-membership.md).
+9. Run catalog validation, scaffold verification, generated-artifact verification, generated-client scenarios, and the relevant portable command tests.
 
 Removing a scaffold from an ignored local output does not promote or exclude a command. Only a complete operation listed by the supported catalog manifest can generate a public operation.
 

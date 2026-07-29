@@ -2,7 +2,7 @@
 <!-- Generated from the reviewed Briosa command catalog. Do not edit by hand. -->
 # SpatialAnalyzer 2026.1.0529.7 operation reference
 
-Catalog `briosa.sa.2026.1.0529.7` revision `6`.
+Catalog `briosa.sa.2026.1.0529.7` revision `7`.
 
 Only explicitly reviewed Briosa operations are listed here. This is not the installed SpatialAnalyzer MP catalog.
 
@@ -17,6 +17,150 @@ Every non-OK operation returns typed, value-free execution disposition, worker r
 - `completed`: Briosa obtained a terminal MP result. Output-retrieval failure does not make replay safe.
 
 Worker replacement restores availability; it does not change an operation's execution disposition or authorize replay.
+
+## Release subset membership
+
+Membership declarations identify additive reviewed delivery subsets, not the complete installed MP inventory and not cross-version compatibility claims.
+
+- `v0.2-wave1-initial` (`v0.2`, `wave_1`): 5 operation(s)
+
+## `CollectionOperations.GetCollectionCount`
+
+Returns the number of collections currently present in the connected SpatialAnalyzer model.
+
+- Briosa operation: `collection_operations.get_collection_count`
+- Inventory key: `documentation:AnalysisOperations/GetNumberOfCollections.htm`
+- Protocol file: `collection_operations.proto`
+- Fully qualified method: `/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/GetCollectionCount`
+- Exact MP step: `Get Number of Collections`
+- Stability: `experimental`
+- Execution scope: `global_state_read`
+- Isolation review: Reads application-global model state. The count is a point-in-time result and is not a snapshot guarantee for later collection queries.
+- Effect: `read_only`
+- Replay safety: `safe`
+- Risk flags: none
+
+### Inputs
+
+None.
+
+### Outputs
+
+| Field | Number | MP ordinal | SDK order | MP argument | Direction | Type | Data classification | SDK binding | Presence / retrieval |
+| --- | ---: | ---: | ---: | --- | --- | --- | --- | --- | --- |
+| `collection_count` | 1 | 0 | 0 | `Total Count` | `output` | `whole_number` | `measurement` | `GetIntegerArg` | result-only yes |
+
+## `CollectionOperations.GetCollectionNameByIndex`
+
+Returns the collection name at an explicit SpatialAnalyzer collection index.
+
+- Briosa operation: `collection_operations.get_collection_name_by_index`
+- Inventory key: `documentation:AnalysisOperations/GetI-thCollectionName.htm`
+- Protocol file: `collection_operations.proto`
+- Fully qualified method: `/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/GetCollectionNameByIndex`
+- Exact MP step: `Get i-th Collection Name`
+- Stability: `experimental`
+- Execution scope: `global_state_read`
+- Isolation review: Reads application-global model state. Collection ordering can change between calls, so callers must not treat a prior count and this lookup as one atomic snapshot.
+- Effect: `read_only`
+- Replay safety: `safe`
+- Risk flags: none
+
+### Inputs
+
+| Field | Number | MP ordinal | SDK order | MP argument | Direction | Type | Data classification | SDK binding | Presence / retrieval |
+| --- | ---: | ---: | ---: | --- | --- | --- | --- | --- | --- |
+| `collection_index` | 1 | 0 | 0 | `Collection Index` | `input` | `whole_number` | `object_identifier` | `SetIntegerArg` | required; reject_request; default none |
+
+### Outputs
+
+| Field | Number | MP ordinal | SDK order | MP argument | Direction | Type | Data classification | SDK binding | Presence / retrieval |
+| --- | ---: | ---: | ---: | --- | --- | --- | --- | --- | --- |
+| `collection_name` | 1 | 1 | 1 | `Resultant Name` | `output` | `collection_name` | `object_identifier` | `GetCollectionNameArg` | result-only yes |
+
+## `CollectionOperations.GetPointCountInGroup`
+
+Returns the number of points in a named SpatialAnalyzer group.
+
+- Briosa operation: `collection_operations.get_point_count_in_group`
+- Inventory key: `documentation:AnalysisOperations/GetNumberOfPointsInGroup.htm`
+- Protocol file: `collection_operations.proto`
+- Fully qualified method: `/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/GetPointCountInGroup`
+- Exact MP step: `Get Number of Points in Group`
+- Stability: `experimental`
+- Execution scope: `global_state_read`
+- Isolation review: Reads application-global model state. The count can change independently of earlier group or point-list queries.
+- Effect: `read_only`
+- Replay safety: `safe`
+- Risk flags: none
+
+### Inputs
+
+| Field | Number | MP ordinal | SDK order | MP argument | Direction | Type | Data classification | SDK binding | Presence / retrieval |
+| --- | ---: | ---: | ---: | --- | --- | --- | --- | --- | --- |
+| `group` | 1 | 0 | 0 | `Group Name` | `input` | `collection_object_name` | `object_identifier` | `SetCollectionObjectNameArg2` | required; reject_request; default none |
+
+### Outputs
+
+| Field | Number | MP ordinal | SDK order | MP argument | Direction | Type | Data classification | SDK binding | Presence / retrieval |
+| --- | ---: | ---: | ---: | --- | --- | --- | --- | --- | --- |
+| `point_count` | 1 | 1 | 1 | `Total Count` | `output` | `whole_number` | `measurement` | `GetIntegerArg` | result-only yes |
+
+## `CollectionOperations.ListGroupsInCollection`
+
+Returns the group object identities currently present in a named collection.
+
+- Briosa operation: `collection_operations.list_groups_in_collection`
+- Inventory key: `documentation:ConstructionOperations/OtherMPTypes/MakeACollectionObjectNameRefListCollection.htm`
+- Protocol file: `collection_operations.proto`
+- Fully qualified method: `/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/ListGroupsInCollection`
+- Exact MP step: `Make a Collection Object Name Ref List from all Groups in a Collection`
+- Stability: `experimental`
+- Execution scope: `global_state_read`
+- Isolation review: Reads application-global model state. The returned list is point-in-time data and does not create an exclusive collection snapshot.
+- Effect: `read_only`
+- Replay safety: `safe`
+- Risk flags: none
+
+### Inputs
+
+| Field | Number | MP ordinal | SDK order | MP argument | Direction | Type | Data classification | SDK binding | Presence / retrieval |
+| --- | ---: | ---: | ---: | --- | --- | --- | --- | --- | --- |
+| `collection_name` | 1 | 0 | 0 | `Collection Name` | `input` | `collection_name` | `object_identifier` | `SetCollectionNameArg` | required; reject_request; default none |
+
+### Outputs
+
+| Field | Number | MP ordinal | SDK order | MP argument | Direction | Type | Data classification | SDK binding | Presence / retrieval |
+| --- | ---: | ---: | ---: | --- | --- | --- | --- | --- | --- |
+| `groups` | 1 | 1 | 1 | `Collection Object Name List` | `output` | `collection_object_name_list` | `object_identifier` | `GetCollectionObjectNameRefListArg` | result-only yes |
+
+## `CollectionOperations.ListPointsInGroup`
+
+Returns the point identities currently present in a named SpatialAnalyzer group.
+
+- Briosa operation: `collection_operations.list_points_in_group`
+- Inventory key: `documentation:ConstructionOperations/OtherMPTypes/MakeAPointNameRefListFrom.htm`
+- Protocol file: `collection_operations.proto`
+- Fully qualified method: `/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/ListPointsInGroup`
+- Exact MP step: `Make a Point Name Ref List From a Group`
+- Stability: `experimental`
+- Execution scope: `global_state_read`
+- Isolation review: Reads application-global model state. The returned list can become stale immediately and is not coordinated with separate count or group-list calls.
+- Effect: `read_only`
+- Replay safety: `safe`
+- Risk flags: none
+
+### Inputs
+
+| Field | Number | MP ordinal | SDK order | MP argument | Direction | Type | Data classification | SDK binding | Presence / retrieval |
+| --- | ---: | ---: | ---: | --- | --- | --- | --- | --- | --- |
+| `group` | 1 | 0 | 0 | `Group Name` | `input` | `collection_object_name` | `object_identifier` | `SetCollectionObjectNameArg2` | required; reject_request; default none |
+
+### Outputs
+
+| Field | Number | MP ordinal | SDK order | MP argument | Direction | Type | Data classification | SDK binding | Presence / retrieval |
+| --- | ---: | ---: | ---: | --- | --- | --- | --- | --- | --- |
+| `points` | 1 | 1 | 1 | `Resultant Point Name List` | `output` | `point_name_list` | `object_identifier` | `GetPointNameRefListArg` | result-only yes |
 
 ## `FileOperations.GetWorkingDirectory`
 

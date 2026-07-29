@@ -18,7 +18,7 @@ public sealed class OperationAuditLoggerTests
         var sink = new CapturingLogger();
         var audit = new OperationAuditLogger(sink);
         var correlationId = Guid.NewGuid();
-        var operation = Assert.Single(TargetCatalogMetadata.Operations);
+        var operation = WorkingDirectoryOperation();
         var outcome = new WorkerExecutionOutcome(
             WorkerExecutionStatus.Completed,
             WorkerExecutionDisposition.Completed,
@@ -124,7 +124,7 @@ public sealed class OperationAuditLoggerTests
         const int requestCount = 512;
         var sink = new CapturingLogger();
         var audit = new OperationAuditLogger(sink);
-        var operation = Assert.Single(TargetCatalogMetadata.Operations);
+        var operation = WorkingDirectoryOperation();
         var correlationIds = Enumerable.Range(0, requestCount)
             .Select(_ => Guid.NewGuid())
             .ToArray();
@@ -157,6 +157,10 @@ public sealed class OperationAuditLoggerTests
                     StringComparison.OrdinalIgnoreCase)));
         }
     }
+
+    private static CatalogOperationDescriptor WorkingDirectoryOperation() =>
+        TargetCatalogMetadata.Operations.Single(operation =>
+            operation.OperationId == "file_operations.get_working_directory");
 
     private sealed class CapturingLogger : ILogger<OperationAuditLogger>
     {

@@ -18,6 +18,14 @@ public sealed class ClientConformanceFixtureTests
         "watchdog-recovery"
     ];
 
+    private static readonly string[] ExpectedWave1ReadOnlyScenarios =
+    [
+        "collection-count-mp-failure",
+        "collection-count-policy-denied",
+        "collection-count-ready",
+        "collection-name-missing-index"
+    ];
+
     [Fact]
     public void LiveFixtureDefinesTheCompletePackagedHostMatrix()
     {
@@ -121,6 +129,60 @@ public sealed class ClientConformanceFixtureTests
     }
 
     [Fact]
+    public void Wave1ReadOnlyFixtureCoversSuccessValidationPolicyAndExecutionFailure()
+    {
+        using var document = ReadFixture("wave1-read-only-scenarios.json");
+        var root = document.RootElement;
+
+        Assert.Equal(1, root.GetProperty("schema_version").GetInt32());
+        Assert.Equal(
+            "briosa.client.wave1-read-only.v1",
+            root.GetProperty("fixture_set_id").GetString());
+        Assert.Equal(
+            "briosa-operation-error-bin",
+            root.GetProperty("error_trailer").GetString());
+
+        var scenarios = root.GetProperty("scenarios").EnumerateArray().ToArray();
+        Assert.Equal(
+            ExpectedWave1ReadOnlyScenarios,
+            scenarios.Select(scenario => scenario.GetProperty("id").GetString())
+                .Order(StringComparer.Ordinal));
+        Assert.Equal(
+            scenarios.Length,
+            scenarios.Select(scenario => scenario.GetProperty("id").GetString())
+                .Distinct(StringComparer.Ordinal)
+                .Count());
+
+        var expectedStatuses = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "FAILED_PRECONDITION",
+            "INVALID_ARGUMENT",
+            "OK",
+            "PERMISSION_DENIED"
+        };
+        Assert.Equal(
+            expectedStatuses,
+            scenarios.Select(scenario => scenario.GetProperty("expected")
+                    .GetProperty("grpc_status").GetString()!)
+                .ToHashSet(StringComparer.Ordinal));
+
+        var knownFailureKinds = EnumNames(
+            Briosa.Core.V1Alpha1.OperationError.Descriptor
+                .FindFieldByNumber(2).EnumType);
+        foreach (var scenario in scenarios)
+        {
+            Assert.StartsWith(
+                "collection_operations.",
+                GetRequiredString(scenario, "operation_id"),
+                StringComparison.Ordinal);
+            Assert.All(
+                scenario.GetProperty("expected").GetProperty("failure_kinds")
+                    .EnumerateArray(),
+                value => Assert.Contains(value.GetString()!, knownFailureKinds));
+        }
+    }
+
+    [Fact]
     public void FixturesContainNoOperationalValues()
     {
         var fixtureRoot = FindFixtureRoot();
@@ -145,6 +207,7 @@ public sealed class ClientConformanceFixtureTests
         "DATA_LOSS",
         "DEADLINE_EXCEEDED",
         "FAILED_PRECONDITION",
+        "INVALID_ARGUMENT",
         "OK",
         "PERMISSION_DENIED",
         "UNAVAILABLE",

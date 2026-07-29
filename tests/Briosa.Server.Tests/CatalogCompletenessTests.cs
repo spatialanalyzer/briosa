@@ -18,15 +18,27 @@ public sealed class CatalogCompletenessTests
             SearchOption.AllDirectories);
         Assert.NotEmpty(manifests);
 
-        var cataloged = Directory.GetFiles(
+        var catalogManifests = Directory.GetFiles(
                 Path.Combine(repositoryRoot.FullName, "catalog", "sa"),
                 "catalog.json",
-                SearchOption.AllDirectories)
-            .SelectMany(ReadCatalogOperations)
+                SearchOption.AllDirectories);
+        var cataloged = catalogManifests.SelectMany(ReadCatalogOperations)
             .ToDictionary(operation => operation.OperationId, StringComparer.Ordinal);
+        var releaseMemberships = catalogManifests
+            .SelectMany(ReadReleaseMemberships)
+            .ToDictionary(membership => membership.MembershipId, StringComparer.Ordinal);
         var generated = manifests
             .SelectMany(ReadCoverageOperations)
             .ToDictionary(operation => operation.OperationId, StringComparer.Ordinal);
+        var generatedReleaseMemberships = manifests
+            .SelectMany(ReadCoverageReleaseMemberships)
+            .ToDictionary(membership => membership.MembershipId, StringComparer.Ordinal);
+        var conformanceOperationIds = Directory.GetFiles(
+                Path.Combine(repositoryRoot.FullName, "generated", "conformance", "sa"),
+                "manifest.json",
+                SearchOption.AllDirectories)
+            .SelectMany(ReadConformanceOperationIds)
+            .ToHashSet(StringComparer.Ordinal);
         var implemented = MarkedOperations<OperationImplementationAttribute>(
             typeof(OperationImplementationAttribute).Assembly,
             marker => marker.OperationId);
@@ -53,6 +65,7 @@ public sealed class CatalogCompletenessTests
             generated.Values.Select(operation => operation.FullyQualifiedMethod).Order(),
             protocolMethods.Order());
         Assert.Equal(cataloged.Keys.Order(), documented.Order());
+        Assert.Equal(releaseMemberships.Keys.Order(), generatedReleaseMemberships.Keys.Order());
         Assert.All(implementationMethods, method => Assert.NotNull(
             method.DeclaringType?.GetCustomAttribute<
                 System.CodeDom.Compiler.GeneratedCodeAttribute>()));
@@ -79,6 +92,21 @@ public sealed class CatalogCompletenessTests
                 Assert.True(argument.ArgumentFamilyAssignment);
                 Assert.Equal(reviewedArguments[argument.ArgumentId], argument.SemanticType);
                 Assert.False(string.IsNullOrWhiteSpace(argument.Binding));
+            }
+        }
+
+        foreach (var membership in releaseMemberships.Values)
+        {
+            var generatedMembership = generatedReleaseMemberships[membership.MembershipId];
+            Assert.Equal(membership.CatalogId, generatedMembership.CatalogId);
+            Assert.Equal(membership.OperationIds, generatedMembership.OperationIds);
+            foreach (var operationId in membership.OperationIds)
+            {
+                Assert.Contains(operationId, generated.Keys);
+                Assert.Contains(operationId, conformanceOperationIds);
+                Assert.Contains(
+                    membership.MembershipId,
+                    generated[operationId].ReleaseMemberships);
             }
         }
     }
@@ -113,6 +141,8 @@ public sealed class CatalogCompletenessTests
                 return new CoverageOperation(
                     operation.GetProperty("operation_id").GetString()!,
                     operation.GetProperty("fully_qualified_method").GetString()!,
+                    [.. operation.GetProperty("release_memberships").EnumerateArray()
+                        .Select(value => value.GetString()!)],
                     generated.GetProperty("protocol").GetBoolean(),
                     generated.GetProperty("request_validation").GetBoolean(),
                     generated.GetProperty("request_adapter").GetBoolean(),
@@ -129,6 +159,42 @@ public sealed class CatalogCompletenessTests
                         ReadCoverageArgument(output, "getter"))]);
             })];
     }
+
+    private static IEnumerable<ReleaseMembership> ReadReleaseMemberships(string manifestPath)
+    {
+        using var manifest = JsonDocument.Parse(File.ReadAllBytes(manifestPath));
+        var targetRoot = Path.GetDirectoryName(manifestPath)!;
+        foreach (var relativePath in manifest.RootElement
+                     .GetProperty("release_membership_files").EnumerateArray())
+        {
+            var membershipPath = Path.Combine(
+                targetRoot,
+                relativePath.GetString()!.Replace('/', Path.DirectorySeparatorChar));
+            using var membership = JsonDocument.Parse(File.ReadAllBytes(membershipPath));
+            yield return ReadReleaseMembership(membership.RootElement);
+        }
+    }
+
+    private static IReadOnlyList<ReleaseMembership> ReadCoverageReleaseMemberships(string path)
+    {
+        using var document = JsonDocument.Parse(File.ReadAllBytes(path));
+        return [.. document.RootElement.GetProperty("release_memberships").EnumerateArray()
+            .Select(ReadReleaseMembership)];
+    }
+
+    private static IReadOnlyList<string> ReadConformanceOperationIds(string path)
+    {
+        using var document = JsonDocument.Parse(File.ReadAllBytes(path));
+        return [.. document.RootElement.GetProperty("operations").EnumerateArray()
+            .Select(operation => operation.GetProperty("operation_id").GetString()!)];
+    }
+
+    private static ReleaseMembership ReadReleaseMembership(JsonElement membership) =>
+        new(
+            membership.GetProperty("membership_id").GetString()!,
+            membership.GetProperty("catalog_id").GetString()!,
+            [.. membership.GetProperty("operation_ids").EnumerateArray()
+                .Select(operationId => operationId.GetString()!)]);
 
     private static CoverageArgument ReadCoverageArgument(
         JsonElement argument,
@@ -188,6 +254,7 @@ public sealed class CatalogCompletenessTests
     private sealed record CoverageOperation(
         string OperationId,
         string FullyQualifiedMethod,
+        IReadOnlyList<string> ReleaseMemberships,
         bool Protocol,
         bool RequestValidation,
         bool RequestAdapter,
@@ -200,6 +267,11 @@ public sealed class CatalogCompletenessTests
         bool PortableConformance,
         IReadOnlyList<CoverageArgument> Inputs,
         IReadOnlyList<CoverageArgument> Outputs);
+
+    private sealed record ReleaseMembership(
+        string MembershipId,
+        string CatalogId,
+        IReadOnlyList<string> OperationIds);
 
     private sealed record CoverageArgument(
         string ArgumentId,

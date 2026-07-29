@@ -44,7 +44,7 @@ For a focused local comparison, run:
 
 ## Command catalog verification
 
-`Verify-Catalog.ps1` applies the versioned JSON Schemas and semantic release rules to every exact-target supported-command catalog. It rejects unlisted files, target or naming drift, category/service/file collisions, unresolved RPC or message identities, missing or duplicate field numbers, conflated inventory/MP/SDK identities, unresolved metadata, unsafe default inference, and missing SDK bindings:
+`Verify-Catalog.ps1` applies the versioned JSON Schemas and semantic release rules to every exact-target supported-command catalog and release membership. It rejects unlisted files, target or naming drift, stale release coordinates, duplicate or unknown release members, category/service/file collisions, unresolved RPC or message identities, missing or duplicate field numbers, conflated inventory/MP/SDK identities, unresolved metadata, unsafe default inference, and missing SDK bindings:
 
 ```powershell
 ./eng/Verify-Catalog.ps1
@@ -58,7 +58,7 @@ Regenerate the complete catalog-derived protobuf, request/worker/result adapter,
 dotnet run --project tools/Briosa.Generator -c Release -- catalog-generate catalog .
 ```
 
-Generated artifacts are committed but must not be hand-edited. Each manifest `protocol_partitions` entry owns one stable exact-target category `.proto` file and generated service in the same package; one generated aggregate extension registers every category service. Argument `field_numbers` are explicit API identities; do not recalculate them from MP `ordinal` or `sdk_order`. Generated request validation uses only reviewed presence/default policy, and generated result mapping uses the exact reviewed semantic family. `CatalogOperationExecutor` remains the hand-written audit/outcome seam. The generator refuses to overwrite any existing destination that does not carry its catalog-artifact marker. Verify a clean generation and reject stale or extra generated files—including registrations or category files left after a partition change—with:
+Generated artifacts are committed but must not be hand-edited. Each manifest `protocol_partitions` entry owns one stable exact-target category `.proto` file and generated service in the same package; one generated aggregate extension registers every category service. Listed `release_membership_files` must live under the target's `release-memberships` directory, match the target catalog coordinates, and contain sorted exact operation IDs. The generator embeds those memberships in coverage and generated reference documentation without treating them as runtime authorization. Argument `field_numbers` are explicit API identities; do not recalculate them from MP `ordinal` or `sdk_order`. Generated request validation uses only reviewed presence/default policy, and generated result mapping uses the exact reviewed semantic family. `CatalogOperationExecutor` remains the hand-written audit/outcome seam. The generator refuses to overwrite any existing destination that does not carry its catalog-artifact marker. Verify a clean generation and reject stale or extra generated files—including registrations or category files left after a partition change—with:
 
 ```powershell
 ./eng/Verify-CatalogArtifacts.ps1
@@ -106,6 +106,8 @@ dotnet run --project tools/Briosa.Generator -c Release -- `
 ```
 
 Scaffolds deliberately retain null public-policy blockers and cannot generate a public operation. Existing changed or stale scaffolds produce conflicts instead of being overwritten. See [the catalog review-scaffold guide](../docs/development/catalog-review-scaffolds.md) before promoting a candidate.
+
+After promoting an operation, add its exact ID to a reviewed release membership only when it belongs to that delivery subset. Keep membership IDs sorted and catalog/target/revision coordinates exact, then regenerate. The [release-membership guide](../docs/development/release-membership.md) explains why membership is additive and does not change runtime allow/deny policy.
 
 ## Command disposition verification
 
@@ -207,7 +209,12 @@ Run portable packaged-host success and failure scenarios without SpatialAnalyzer
 
 ```powershell
 ./eng/Test-GeneratedClientScenarios.ps1 -PackagePath <path-to-briosa-zip>
+./eng/Test-GeneratedClientScenarios.ps1 `
+  -PackagePath <path-to-briosa-zip> `
+  -FixturePath conformance/v1/wave1-read-only-scenarios.json
 ```
+
+The Wave 1 matrix covers generated-client success, missing-required-input validation, deny-overrides-allow policy, and MP failure. Reports contain only identity, state, status, booleans, and failure classification; returned values are never printed.
 
 The portable harness supplies explicitly labeled fake-worker attestations for both runtime identities. Production defaults remain fail-closed: the activated SDK and connected SA each require runtime-verified exact evidence or their own complete `Version`/`Reference` operator-attestation pair. Runtime evidence takes precedence and cannot be masked by attestation. Evidence references are kept out of discovery and default logs; see [ADR 0022](../docs/architecture/0022-runtime-identity-and-attestation.md).
 

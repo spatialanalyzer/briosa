@@ -99,6 +99,21 @@ public sealed class PortableConformanceGeneratorTests
         Assert.Equal(
             manifest.GetProperty("assignment_cases").GetArrayLength(),
             manifest.GetProperty("counts").GetProperty("assignment_case_count").GetInt32());
+
+        var operations = manifest.GetProperty("operations").EnumerateArray()
+            .ToDictionary(
+                operation => Text(operation, "operation_id"),
+                StringComparer.Ordinal);
+        Assert.DoesNotContain(
+            operations["collection_operations.list_groups_in_collection"]
+                .GetProperty("scenarios").EnumerateArray(),
+            scenario => Text(scenario, "kind") == "request.malformed_shape" &&
+                Text(scenario, "argument_id") == "collection_name");
+        Assert.Contains(
+            operations["collection_operations.get_point_count_in_group"]
+                .GetProperty("scenarios").EnumerateArray(),
+            scenario => Text(scenario, "kind") == "request.malformed_shape" &&
+                Text(scenario, "argument_id") == "group");
     }
 
     [Fact]

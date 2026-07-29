@@ -51,13 +51,25 @@ public sealed partial class ProtocolSchemaTests
             "2026.1.0529.7",
             "catalog.json");
         using var catalog = JsonDocument.Parse(File.ReadAllBytes(catalogPath));
-        var partition = Assert.Single(
-            catalog.RootElement.GetProperty("protocol_partitions").EnumerateArray());
+        var partitions = catalog.RootElement.GetProperty("protocol_partitions")
+            .EnumerateArray()
+            .ToDictionary(
+                partition => partition.GetProperty("alias").GetString()!,
+                StringComparer.Ordinal);
 
-        Assert.Equal("File Operations", partition.GetProperty("category").GetString());
-        Assert.Equal("file_operations", partition.GetProperty("alias").GetString());
-        Assert.Equal("FileOperations", partition.GetProperty("service").GetString());
-        Assert.Equal("file_operations.proto", partition.GetProperty("proto_file").GetString());
+        Assert.Equal(["collection_operations", "file_operations"], partitions.Keys.Order());
+        Assert.Equal(
+            "Collection Operations",
+            partitions["collection_operations"].GetProperty("category").GetString());
+        Assert.Equal(
+            "CollectionOperations",
+            partitions["collection_operations"].GetProperty("service").GetString());
+        Assert.Equal(
+            "collection_operations.proto",
+            partitions["collection_operations"].GetProperty("proto_file").GetString());
+        Assert.Equal(
+            "FileOperations",
+            partitions["file_operations"].GetProperty("service").GetString());
 
         var bufConfiguration = File.ReadAllText(Path.Combine(repositoryRoot.FullName, "buf.yaml"));
         Assert.Matches(@"(?ms)^breaking:\s*\r?\n\s+use:\s*\r?\n\s+- FILE\s*$", bufConfiguration);

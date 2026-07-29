@@ -13,7 +13,113 @@ public sealed class CommandCatalogValidatorTests
 
         Assert.True(result.IsValid, string.Join(Environment.NewLine, result.Errors));
         Assert.Equal(1, result.CatalogCount);
-        Assert.Equal(1, result.OperationCount);
+        Assert.Equal(6, result.OperationCount);
+    }
+
+    [Fact]
+    public void InitialWaveOneMembershipIsAnExactSupportedCatalogSubset()
+    {
+        var releasePath = Path.Combine(
+            FindCatalogRoot(),
+            "sa",
+            "2026.1.0529.7",
+            "release-memberships",
+            "v0.2-wave1-initial.json");
+        var membership = JsonNode.Parse(File.ReadAllText(releasePath))!.AsObject();
+
+        Assert.Equal("v0.2-wave1-initial", membership["membership_id"]!.GetValue<string>());
+        Assert.Equal("v0.2", membership["release_line"]!.GetValue<string>());
+        Assert.Equal("wave_1", membership["delivery_wave"]!.GetValue<string>());
+        Assert.Equal(5, membership["operation_ids"]!.AsArray().Count);
+        Assert.DoesNotContain(
+            membership["operation_ids"]!.AsArray(),
+            value => value!.GetValue<string>() == "file_operations.get_working_directory");
+    }
+
+    [Fact]
+    public void ReleaseMembershipCannotReferenceAnUnsupportedOperation()
+    {
+        using var fixture = CatalogFixture.Create();
+        fixture.EditReleaseMembership(release =>
+            release["operation_ids"]!.AsArray().Add("collection_operations.unsupported"));
+
+        var result = CommandCatalogValidator.ValidateDirectory(fixture.Root);
+
+        Assert.Contains(
+            result.Errors,
+            error => error.Contains(
+                "operation_id 'collection_operations.unsupported' is not present",
+                StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void ReleaseMembershipRejectsDuplicateOperationIds()
+    {
+        using var fixture = CatalogFixture.Create();
+        fixture.EditReleaseMembership(release =>
+            release["operation_ids"]!.AsArray().Add(
+                "collection_operations.list_points_in_group"));
+
+        var result = CommandCatalogValidator.ValidateDirectory(fixture.Root);
+
+        Assert.Contains(
+            result.Errors,
+            error => error.Contains(
+                "duplicate operation_id 'collection_operations.list_points_in_group'",
+                StringComparison.Ordinal));
+    }
+
+    [Theory]
+    [InlineData("catalog_id", "briosa.sa.2025.9", "catalog_id")]
+    [InlineData("spatial_analyzer_target", "2025.9", "spatial_analyzer_target")]
+    [InlineData("catalog_revision", "99", "catalog_revision")]
+    public void ReleaseMembershipCoordinatesMustMatchTheOwningCatalog(
+        string property,
+        string value,
+        string expectedError)
+    {
+        using var fixture = CatalogFixture.Create();
+        fixture.EditReleaseMembership(release => release[property] = value);
+
+        var result = CommandCatalogValidator.ValidateDirectory(fixture.Root);
+
+        Assert.Contains(
+            result.Errors,
+            error => error.Contains(expectedError, StringComparison.Ordinal) &&
+                error.Contains("must be", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void UnlistedReleaseMembershipFileFailsClosed()
+    {
+        using var fixture = CatalogFixture.Create();
+        fixture.EditManifest(manifest =>
+            manifest["release_membership_files"]!.AsArray().Clear());
+
+        var result = CommandCatalogValidator.ValidateDirectory(fixture.Root);
+
+        Assert.Contains(
+            result.Errors,
+            error => error.Contains(
+                "must list every release-memberships/*.json file exactly once",
+                StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void ListedButMissingReleaseMembershipFileFailsClosed()
+    {
+        using var fixture = CatalogFixture.Create();
+        fixture.EditManifest(manifest =>
+            manifest["release_membership_files"] = new JsonArray(
+                "release-memberships/v0.2-wave1-missing.json"));
+
+        var result = CommandCatalogValidator.ValidateDirectory(fixture.Root);
+
+        Assert.Contains(
+            result.Errors,
+            error => error.Contains(
+                "release membership file 'release-memberships/v0.2-wave1-missing.json' does not exist",
+                StringComparison.Ordinal));
     }
 
     [Fact]
@@ -269,7 +375,7 @@ public sealed class CommandCatalogValidatorTests
         var result = CommandCatalogValidator.ValidateDirectory(fixture.Root);
 
         Assert.True(result.IsValid, string.Join(Environment.NewLine, result.Errors));
-        Assert.Equal(2, result.OperationCount);
+        Assert.Equal(7, result.OperationCount);
     }
 
     [Fact]
@@ -517,6 +623,11 @@ public sealed class CommandCatalogValidatorTests
             "operations",
             "file_operations.get_working_directory.json");
 
+        private string ReleaseMembershipPath => Path.Combine(
+            TargetDirectory,
+            "release-memberships",
+            "v0.2-wave1-initial.json");
+
         public static CatalogFixture Create()
         {
             var workspaceRoot = Path.Combine(
@@ -534,6 +645,9 @@ public sealed class CommandCatalogValidatorTests
         public void EditManifest(Action<JsonObject> edit) => EditJson(ManifestPath, edit);
 
         public void EditOperation(Action<JsonObject> edit) => EditJson(OperationPath, edit);
+
+        public void EditReleaseMembership(Action<JsonObject> edit) =>
+            EditJson(ReleaseMembershipPath, edit);
 
         public void RemoveProtocolContext()
         {

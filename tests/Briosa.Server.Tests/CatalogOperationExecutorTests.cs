@@ -19,7 +19,7 @@ public sealed class CatalogOperationExecutorTests
             new SuccessfulExecutor(sensitiveValue),
             new OperationAuditLogger(sink),
             TimeProvider.System);
-        var operation = Assert.Single(TargetCatalogMetadata.Operations);
+        var operation = WorkingDirectoryOperation();
 
         var exception = await Assert.ThrowsAsync<RpcException>(() =>
             executor.ExecuteAsync<object, object>(
@@ -49,7 +49,7 @@ public sealed class CatalogOperationExecutorTests
             worker,
             new OperationAuditLogger(new CapturingLogger()),
             TimeProvider.System);
-        var operation = Assert.Single(TargetCatalogMetadata.Operations);
+        var operation = WorkingDirectoryOperation();
 
         var exception = await Assert.ThrowsAsync<RpcException>(() =>
             executor.ExecuteAsync<object, object>(
@@ -67,6 +67,10 @@ public sealed class CatalogOperationExecutorTests
 
     private static OperationError ReadError(RpcException exception) =>
         OperationError.Parser.ParseFrom(Assert.Single(exception.Trailers).ValueBytes);
+
+    private static Briosa.Server.Security.CatalogOperationDescriptor WorkingDirectoryOperation() =>
+        TargetCatalogMetadata.Operations.Single(operation =>
+            operation.OperationId == "file_operations.get_working_directory");
 
     private sealed class SuccessfulExecutor(string value) : IWorkerCommandExecutor
     {

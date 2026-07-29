@@ -102,6 +102,7 @@ function Start-ScenarioServer {
         [Parameter(Mandatory)][int]$Port,
         [Parameter(Mandatory)][string]$StandardOutput,
         [Parameter(Mandatory)][string]$StandardError,
+        [Parameter(Mandatory)][string]$OperationId,
         [string]$WatchdogTimeout,
         [switch]$DenyOperation
     )
@@ -111,7 +112,8 @@ function Start-ScenarioServer {
         "BRIOSA_TEST_WORKER_SCENARIO" = $WorkerScenario
         "BRIOSA_TEST_WORKER_STATE_PATH" = $StatePath
         "Briosa__Worker__ExecutionWatchdogTimeout" = $WatchdogTimeout
-        "Briosa__Security__Operations__Deny__0" = $(if ($DenyOperation) { "file_operations.get_working_directory" } else { $null })
+        "Briosa__Security__Operations__Allow__0" = $OperationId
+        "Briosa__Security__Operations__Deny__0" = $(if ($DenyOperation) { $OperationId } else { $null })
         "Briosa__SpatialAnalyzer__Identity__ActivatedSdk__OperatorAttestation__Version" = "2026.1.0529.7"
         "Briosa__SpatialAnalyzer__Identity__ActivatedSdk__OperatorAttestation__Reference" = "portable-fake-worker"
         "Briosa__SpatialAnalyzer__Identity__ConnectedSpatialAnalyzer__OperatorAttestation__Version" = "2026.1.0529.7"
@@ -160,7 +162,9 @@ if (-not (Test-Path -LiteralPath $resolvedFixture -PathType Leaf)) {
 
 $fixture = Get-Content -LiteralPath $resolvedFixture -Raw | ConvertFrom-Json
 if ($fixture.schema_version -ne 1 -or
-    $fixture.fixture_set_id -ne "briosa.client.live.v1" -or
+    $fixture.fixture_set_id -notin @(
+        "briosa.client.live.v1",
+        "briosa.client.wave1-read-only.v1") -or
     $fixture.error_trailer -ne "briosa-operation-error-bin") {
     throw "The client conformance fixture identity is unsupported."
 }
@@ -200,9 +204,15 @@ try {
     }
 
     $scenarios = @($fixture.scenarios | ForEach-Object {
+        $operationId = if ($null -ne $_.PSObject.Properties["operation_id"]) {
+            [string]$_.operation_id
+        } else {
+            [string]$fixture.operation_id
+        }
         [pscustomobject]@{
             Worker = $_.worker_scenario
             Client = $_.id
+            OperationId = $operationId
             Watchdog = $_.watchdog_timeout
             DenyOperation = $_.deny_operation
             Expected = $_.expected
@@ -229,6 +239,7 @@ try {
                 Port = $port
                 StandardOutput = $standardOutput
                 StandardError = $standardError
+                OperationId = $scenario.OperationId
                 WatchdogTimeout = $scenario.Watchdog
                 DenyOperation = $scenario.DenyOperation
             }

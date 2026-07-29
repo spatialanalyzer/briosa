@@ -52,6 +52,13 @@ internal static class CommandCatalogGenerator
                         path.Replace('/', Path.DirectorySeparatorChar))))
                 .OrderBy(operation => operation.OperationId, StringComparer.Ordinal)
                 .ToArray();
+            var releaseMemberships = manifest.ReleaseMembershipFiles
+                .Select(path => Deserialize<CommandCatalogReleaseMembership>(
+                    Path.Combine(
+                        targetDirectory,
+                        path.Replace('/', Path.DirectorySeparatorChar))))
+                .OrderBy(membership => membership.MembershipId, StringComparer.Ordinal)
+                .ToArray();
 
             var packagePath = manifest.TargetProtocolPackage.Replace('.', '/');
             foreach (var partition in manifest.ProtocolPartitions
@@ -87,12 +94,18 @@ internal static class CommandCatalogGenerator
             WriteGeneratedFile(
                 fullOutputRoot,
                 $"docs/reference/generated/sa/{manifest.SpatialAnalyzerTarget}/operations.md",
-                CommandCatalogArtifactGenerator.GenerateDocumentation(manifest, operations),
+                CommandCatalogArtifactGenerator.GenerateDocumentation(
+                    manifest,
+                    operations,
+                    releaseMemberships),
                 generatedFiles);
             WriteGeneratedFile(
                 fullOutputRoot,
                 $"generated/catalog/sa/{manifest.SpatialAnalyzerTarget}/coverage.json",
-                CommandCatalogArtifactGenerator.GenerateCoverageManifest(manifest, operations),
+                CommandCatalogArtifactGenerator.GenerateCoverageManifest(
+                    manifest,
+                    operations,
+                    releaseMemberships),
                 generatedFiles);
         }
 
