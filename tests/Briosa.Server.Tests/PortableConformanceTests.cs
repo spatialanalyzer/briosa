@@ -174,6 +174,25 @@ public sealed class PortableConformanceTests
     }
 
     [Fact]
+    public void RenamePointOmissionSendsTheReviewedFalseDefault()
+    {
+        var binding = Assert.Single(
+            TargetCatalogConformanceMetadata.Operations,
+            candidate => candidate.Operation.OperationId ==
+                "collection_operations.rename_point");
+        var request = CreatePopulatedMessage(binding.RequestType);
+        request.Descriptor.FindFieldByName("overwrite_if_exists").Accessor.Clear(request);
+
+        var command = binding.CreateCommand(request);
+
+        var overwrite = Assert.Single(
+            command.InputArguments,
+            argument => argument.Name == "Overwrite if exists?");
+        Assert.Equal(WorkerMpValueKind.Logical, overwrite.Kind);
+        Assert.False(overwrite.BooleanValue);
+    }
+
+    [Fact]
     public async Task EverySupportedResultMapsThroughTheGeneratedExecutionSeam()
     {
         var manifest = LoadManifest();
@@ -750,7 +769,10 @@ public sealed class PortableConformanceTests
             {
                 var values = field.Accessor.GetValue(message);
                 var add = values.GetType().GetMethods(BindingFlags.Instance | BindingFlags.Public)
-                    .Single(method => method.Name == "Add" && method.GetParameters().Length == 1);
+                    .Single(method =>
+                        method.Name == "Add" &&
+                        method.GetParameters() is [{ ParameterType: var parameterType }] &&
+                        parameterType.IsInstanceOfType(value));
                 _ = add.Invoke(values, [value]);
             }
             else

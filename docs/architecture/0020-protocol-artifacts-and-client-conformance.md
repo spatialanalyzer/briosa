@@ -18,7 +18,7 @@ Every Briosa release publishes one runtime-neutral protocol artifact beside the 
 - the canonical `buf.yaml` and public `.proto` source tree;
 - a pure `google.protobuf.FileDescriptorSet` built from that tree;
 - the generated exact-target catalog coverage manifest;
-- versioned, value-safe vertical-slice, Wave 1 read-only, and typed-error conformance fixtures;
+- versioned, value-safe vertical-slice, Wave 1 read-only, Wave 2 point-lifecycle, and typed-error conformance fixtures;
 - an artifact manifest with Briosa version, source revision, exact SA target, protocol packages, catalog identity, content fingerprints, and every included file hash; and
 - Apache-2.0 licensing and a client-consumption guide.
 
@@ -30,7 +30,7 @@ Client package versions remain independent. A new client release can consume an 
 
 ## Conformance contract
 
-The vertical-slice fixture set drives the packaged fake-worker lifecycle scenarios. It covers identity and capability discovery, readiness, success, policy denial, unavailable SA, MP failure, output-retrieval failure, deadline, cancellation, watchdog replacement, and an unsupported exact-target method. The Wave 1 read-only fixture adds generated collection-client success, required-input validation, policy denial, and MP failure while keeping returned values out of reports.
+The vertical-slice fixture set drives the packaged fake-worker lifecycle scenarios. It covers identity and capability discovery, readiness, success, policy denial, unavailable SA, MP failure, output-retrieval failure, deadline, cancellation, watchdog replacement, and an unsupported exact-target method. The Wave 1 read-only fixture adds generated collection-client success, required-input validation, policy denial, and MP failure while keeping returned values out of reports. The Wave 2 point-lifecycle fixture covers all three initial mutations, authoritative `vector3` mapping, required-input validation, deny-overrides-allow policy, reviewed-default omission, MP failure, and unknown replay safety without exposing point names or coordinates.
 
 The typed-error fixture set is transport-language-neutral and includes both executable and synthetic safety cases. It distinguishes execution disposition, recovery guidance, replay guidance, and replay safety, including unsafe and unknown ambiguous-completion cases that must require reconciliation. A client must decode `briosa-operation-error-bin` as `OperationError`; it must not parse status text or automatically replay merely because the worker becomes ready.
 

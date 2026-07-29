@@ -11,8 +11,8 @@ Cataloged operations require a separately installed and licensed exact-target Sp
 | Classification | Count |
 | --- | ---: |
 | Inventory commands | 1412 |
-| Cataloged, portable-only operations | 6 |
-| Approved candidates not cataloged | 671 |
+| Cataloged, portable-only operations | 9 |
+| Approved candidates not cataloged | 668 |
 | Blocked | 51 |
 | Intentional exclusions | 477 |
 | SDK unavailable | 207 |
@@ -281,7 +281,7 @@ Cataloged operations require a separately installed and licensed exact-target Sp
 | `documentation:ConstructionOperations/Cylinders/ConstructCylinder.htm` | Construct Cylinder | ConstructionOperations / Cylinders | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/Cylinders/ConstructCylinderFromEndPoints.htm` | Construct Cylinder From End Points | ConstructionOperations / Cylinders | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/Cylinders/ConstructCylindersFromSurfaceFaces-RuntimeSelect.htm` | Construct Cylinders From Surface Faces-Runtime Select | ConstructionOperations / Cylinders | `intentional_exclusion` | — | `unknown` (unknown) | `not_applicable` | `not_applicable` |
-| `documentation:ConstructionOperations/DeletePoints.htm` | Delete Points | ConstructionOperations | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
+| `documentation:ConstructionOperations/DeletePoints.htm` | Delete Points | ConstructionOperations | `cataloged_portable_only` | `collection_operations.delete_points` | `mutating` | `portable_briosa_contract` | `not_performed` |
 | `documentation:ConstructionOperations/DeletePointsWildCardSelection.htm` | Delete Points WildCard Selection | ConstructionOperations | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/Ellipsoids/ConstructB-SplineFromIntersectionOfSurfaces.htm` | Construct B-Spline From Intersection of Surfaces | ConstructionOperations / Ellipsoids | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/Ellipsoids/ConstructEllipsoid.htm` | Construct Ellipsoid | ConstructionOperations / Ellipsoids | `sdk_unavailable` | — | `mutating` | `not_applicable` | `not_applicable` |
@@ -419,7 +419,7 @@ Cataloged operations require a separately installed and licensed exact-target Sp
 | `documentation:ConstructionOperations/PointsandGroups/AverageAsetOfGroups.htm` | Average a set of Groups | ConstructionOperations / PointsandGroups | `approved_not_cataloged` | — | `mutating` (long_running) | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/PointsandGroups/ClearHiddenPointBarDatabase.htm` | Clear Hidden Point Bar Database | ConstructionOperations / PointsandGroups | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/PointsandGroups/ConstructAPointAtProjectionOfPointOntoAnObject.htm` | Construct a Point at Projection of Point onto An Object | ConstructionOperations / PointsandGroups | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
-| `documentation:ConstructionOperations/PointsandGroups/ConstructAPointInWorkingCoordinates.htm` | Construct a Point in Working Coordinates | ConstructionOperations / PointsandGroups | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
+| `documentation:ConstructionOperations/PointsandGroups/ConstructAPointInWorkingCoordinates.htm` | Construct a Point in Working Coordinates | ConstructionOperations / PointsandGroups | `cataloged_portable_only` | `collection_operations.construct_point_in_working_coordinates` | `mutating` | `portable_briosa_contract` | `not_performed` |
 | `documentation:ConstructionOperations/PointsandGroups/ConstructPointAtIntersectionOf2B-Splines.htm` | Construct Point at Intersection of 2 B-Splines | ConstructionOperations / PointsandGroups | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/PointsandGroups/ConstructPointAtIntersectionOfB-SplineAndSurfaces.htm` | Construct Point at Intersection of B-Spline and Surfaces | ConstructionOperations / PointsandGroups | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/PointsandGroups/ConstructPointAtIntersectionOfPlaneAndLine.htm` | Construct Point at Intersection of Plane and Line | ConstructionOperations / PointsandGroups | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
@@ -468,7 +468,7 @@ Cataloged operations require a separately installed and licensed exact-target Sp
 | `documentation:ConstructionOperations/RenameCollection.htm` | Rename Collection | ConstructionOperations | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/RenameItem.htm` | Rename Item | ConstructionOperations | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/RenameObject.htm` | Rename Object | ConstructionOperations | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
-| `documentation:ConstructionOperations/RenamePoint.htm` | Rename Point | ConstructionOperations | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
+| `documentation:ConstructionOperations/RenamePoint.htm` | Rename Point | ConstructionOperations | `cataloged_portable_only` | `collection_operations.rename_point` | `mutating` | `portable_briosa_contract` | `not_performed` |
 | `documentation:ConstructionOperations/RenamePointswithNamePattern.htm` | Rename Points with Name Pattern | ConstructionOperations | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/ScaleBars/ConstructScaleBar.htm` | Construct Scale Bar | ConstructionOperations / ScaleBars | `sdk_unavailable` | — | `mutating` | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/Spheres/ConstructSphere.htm` | Construct Sphere | ConstructionOperations / Spheres | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |

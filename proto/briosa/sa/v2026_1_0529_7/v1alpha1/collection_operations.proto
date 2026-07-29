@@ -10,6 +10,10 @@ import "briosa/sa/v2026_1_0529_7/v1alpha1/values.proto";
 option csharp_namespace = "Briosa.Sa.V2026_1_0529_7.V1Alpha1";
 
 service CollectionOperations {
+  // Constructs a named point at explicit working-frame coordinates.
+  rpc ConstructPointInWorkingCoordinates(ConstructPointInWorkingCoordinatesRequest) returns (ConstructPointInWorkingCoordinatesResult);
+  // Deletes an explicit list of named points.
+  rpc DeletePoints(DeletePointsRequest) returns (DeletePointsResult);
   // Returns the number of collections currently present in the connected SpatialAnalyzer model.
   rpc GetCollectionCount(GetCollectionCountRequest) returns (GetCollectionCountResult);
   // Returns the collection name at an explicit SpatialAnalyzer collection index.
@@ -20,6 +24,30 @@ service CollectionOperations {
   rpc ListGroupsInCollection(ListGroupsInCollectionRequest) returns (ListGroupsInCollectionResult);
   // Returns the point identities currently present in a named SpatialAnalyzer group.
   rpc ListPointsInGroup(ListPointsInGroupRequest) returns (ListPointsInGroupResult);
+  // Renames an explicitly identified point, with reviewed collision behavior selected by the caller.
+  rpc RenamePoint(RenamePointRequest) returns (RenamePointResult);
+}
+
+message ConstructPointInWorkingCoordinatesRequest {
+  // The exact collection, group, and target name for the point to construct.
+  PointName point_name = 1;
+  // All three coordinates in the active working frame. The generated zero-vector sample is not an omission default.
+  Vector3 working_coordinates = 2;
+}
+
+message ConstructPointInWorkingCoordinatesResult {
+  // Explicit MP and result-only argument retrieval outcome.
+  briosa.core.v1alpha1.MpExecutionDetails execution = 1000;
+}
+
+message DeletePointsRequest {
+  // The exact collection, group, and target identities of the points to delete.
+  PointNameList point_names = 1;
+}
+
+message DeletePointsResult {
+  // Explicit MP and result-only argument retrieval outcome.
+  briosa.core.v1alpha1.MpExecutionDetails execution = 1000;
 }
 
 message GetCollectionCountRequest {}
@@ -75,6 +103,20 @@ message ListPointsInGroupRequest {
 message ListPointsInGroupResult {
   // The ordered point identities returned by the exact MP command.
   PointNameList points = 1;
+  // Explicit MP and result-only argument retrieval outcome.
+  briosa.core.v1alpha1.MpExecutionDetails execution = 1000;
+}
+
+message RenamePointRequest {
+  // The exact existing collection, group, and target name to rename.
+  PointName original_point_name = 1;
+  // The exact collection, group, and target name to assign.
+  PointName new_point_name = 2;
+  // Whether SpatialAnalyzer may overwrite an existing point at the destination name. Omission explicitly sends the reviewed false default.
+  optional bool overwrite_if_exists = 3;
+}
+
+message RenamePointResult {
   // Explicit MP and result-only argument retrieval outcome.
   briosa.core.v1alpha1.MpExecutionDetails execution = 1000;
 }

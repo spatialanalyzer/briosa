@@ -2,7 +2,7 @@
   "schema_version": 2,
   "generated_by": "Briosa.Generator command catalog",
   "catalog_id": "briosa.sa.2026.1.0529.7",
-  "catalog_revision": "7",
+  "catalog_revision": "8",
   "spatial_analyzer_target": "2026.1.0529.7",
   "target_protocol_package": "briosa.sa.v2026_1_0529_7.v1alpha1",
   "release_memberships": [
@@ -18,9 +18,131 @@
         "collection_operations.list_groups_in_collection",
         "collection_operations.list_points_in_group"
       ]
+    },
+    {
+      "membership_id": "v0.2-wave2-initial",
+      "release_line": "v0.2",
+      "delivery_wave": "wave_2",
+      "catalog_id": "briosa.sa.2026.1.0529.7",
+      "operation_ids": [
+        "collection_operations.construct_point_in_working_coordinates",
+        "collection_operations.delete_points",
+        "collection_operations.rename_point"
+      ]
     }
   ],
   "operations": [
+    {
+      "operation_id": "collection_operations.construct_point_in_working_coordinates",
+      "release_memberships": [
+        "v0.2-wave2-initial"
+      ],
+      "inventory_key": "documentation:ConstructionOperations/PointsandGroups/ConstructAPointInWorkingCoordinates.htm",
+      "mp_step": "Construct a Point in Working Coordinates",
+      "protocol_file": "collection_operations.proto",
+      "service": "CollectionOperations",
+      "rpc": "ConstructPointInWorkingCoordinates",
+      "request": "ConstructPointInWorkingCoordinatesRequest",
+      "result": "ConstructPointInWorkingCoordinatesResult",
+      "fully_qualified_method": "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/ConstructPointInWorkingCoordinates",
+      "effect": "mutating",
+      "execution_scope": "global_state_mutation",
+      "isolation_review": "Mutates named geometry in application-global model state. Cancellation or deadline expiry does not roll back the command or cancel an in-flight COM call; an ambiguous completion requires reconciliation before replay.",
+      "replay_safety": "unknown",
+      "generated": {
+        "protocol": true,
+        "request_validation": true,
+        "request_adapter": true,
+        "immutable_worker_command": true,
+        "result_adapter": true,
+        "grpc_service": true,
+        "service_registration": true,
+        "capability": true,
+        "documentation": true,
+        "portable_conformance": true
+      },
+      "inputs": [
+        {
+          "argument_id": "point_name",
+          "ordinal": 0,
+          "sdk_order": 0,
+          "mp_name": "Point Name",
+          "direction": "input",
+          "semantic_type": "point_name",
+          "argument_family_assignment": true,
+          "data_classification": "object_identifier",
+          "field_number": 1,
+          "setter": "SetPointNameArg",
+          "presence": "required",
+          "omission_behavior": "reject_request",
+          "default_status": "none"
+        },
+        {
+          "argument_id": "working_coordinates",
+          "ordinal": 1,
+          "sdk_order": 1,
+          "mp_name": "Working Coordinates",
+          "direction": "input",
+          "semantic_type": "vector3",
+          "argument_family_assignment": true,
+          "data_classification": "geometry",
+          "field_number": 2,
+          "setter": "SetVectorArg",
+          "presence": "required",
+          "omission_behavior": "reject_request",
+          "default_status": "none"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "operation_id": "collection_operations.delete_points",
+      "release_memberships": [
+        "v0.2-wave2-initial"
+      ],
+      "inventory_key": "documentation:ConstructionOperations/DeletePoints.htm",
+      "mp_step": "Delete Points",
+      "protocol_file": "collection_operations.proto",
+      "service": "CollectionOperations",
+      "rpc": "DeletePoints",
+      "request": "DeletePointsRequest",
+      "result": "DeletePointsResult",
+      "fully_qualified_method": "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/DeletePoints",
+      "effect": "mutating",
+      "execution_scope": "global_state_mutation",
+      "isolation_review": "Mutates named geometry in application-global model state. Cancellation or deadline expiry does not roll back deletion or cancel an in-flight COM call; an ambiguous completion requires reconciliation before replay.",
+      "replay_safety": "unknown",
+      "generated": {
+        "protocol": true,
+        "request_validation": true,
+        "request_adapter": true,
+        "immutable_worker_command": true,
+        "result_adapter": true,
+        "grpc_service": true,
+        "service_registration": true,
+        "capability": true,
+        "documentation": true,
+        "portable_conformance": true
+      },
+      "inputs": [
+        {
+          "argument_id": "point_names",
+          "ordinal": 0,
+          "sdk_order": 0,
+          "mp_name": "Point Names",
+          "direction": "input",
+          "semantic_type": "point_name_list",
+          "argument_family_assignment": true,
+          "data_classification": "object_identifier",
+          "field_number": 1,
+          "setter": "SetPointNameRefListArg",
+          "presence": "required",
+          "omission_behavior": "reject_request",
+          "default_status": "none"
+        }
+      ],
+      "outputs": []
+    },
     {
       "operation_id": "collection_operations.get_collection_count",
       "release_memberships": [
@@ -314,6 +436,84 @@
           "getter": "GetPointNameRefListArg"
         }
       ]
+    },
+    {
+      "operation_id": "collection_operations.rename_point",
+      "release_memberships": [
+        "v0.2-wave2-initial"
+      ],
+      "inventory_key": "documentation:ConstructionOperations/RenamePoint.htm",
+      "mp_step": "Rename Point",
+      "protocol_file": "collection_operations.proto",
+      "service": "CollectionOperations",
+      "rpc": "RenamePoint",
+      "request": "RenamePointRequest",
+      "result": "RenamePointResult",
+      "fully_qualified_method": "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/RenamePoint",
+      "effect": "mutating",
+      "execution_scope": "global_state_mutation",
+      "isolation_review": "Mutates named geometry in application-global model state. Cancellation or deadline expiry does not roll back the rename or cancel an in-flight COM call; an ambiguous completion requires reconciliation before replay.",
+      "replay_safety": "unknown",
+      "generated": {
+        "protocol": true,
+        "request_validation": true,
+        "request_adapter": true,
+        "immutable_worker_command": true,
+        "result_adapter": true,
+        "grpc_service": true,
+        "service_registration": true,
+        "capability": true,
+        "documentation": true,
+        "portable_conformance": true
+      },
+      "inputs": [
+        {
+          "argument_id": "original_point_name",
+          "ordinal": 0,
+          "sdk_order": 0,
+          "mp_name": "Original Point Name",
+          "direction": "input",
+          "semantic_type": "point_name",
+          "argument_family_assignment": true,
+          "data_classification": "object_identifier",
+          "field_number": 1,
+          "setter": "SetPointNameArg",
+          "presence": "required",
+          "omission_behavior": "reject_request",
+          "default_status": "none"
+        },
+        {
+          "argument_id": "new_point_name",
+          "ordinal": 1,
+          "sdk_order": 1,
+          "mp_name": "New Point Name",
+          "direction": "input",
+          "semantic_type": "point_name",
+          "argument_family_assignment": true,
+          "data_classification": "object_identifier",
+          "field_number": 2,
+          "setter": "SetPointNameArg",
+          "presence": "required",
+          "omission_behavior": "reject_request",
+          "default_status": "none"
+        },
+        {
+          "argument_id": "overwrite_if_exists",
+          "ordinal": 2,
+          "sdk_order": 2,
+          "mp_name": "Overwrite if exists?",
+          "direction": "input",
+          "semantic_type": "logical",
+          "argument_family_assignment": true,
+          "data_classification": "non_sensitive",
+          "field_number": 3,
+          "setter": "SetBoolArg",
+          "presence": "optional",
+          "omission_behavior": "set_catalog_default",
+          "default_status": "reviewed"
+        }
+      ],
+      "outputs": []
     },
     {
       "operation_id": "file_operations.get_working_directory",

@@ -4,7 +4,7 @@ Briosa is an open-source gRPC bridge around the Hexagon SpatialAnalyzer SDK. Spa
 
 ## Current target
 
-The initial vertical slice targets .NET 10 on Windows x64 and SpatialAnalyzer 2026.1.0529.7. Its first public operation is the exact-target `GetWorkingDirectory` RPC. The initial v0.2 Wave 1 subset adds five generated collection-introspection operations; it is a deliberately small promotion from the 101 reviewed Wave 1 candidates, not a claim that the full candidate pool has shipped.
+The initial vertical slice targets .NET 10 on Windows x64 and SpatialAnalyzer 2026.1.0529.7. Its first public operation is the exact-target `GetWorkingDirectory` RPC. The initial v0.2 Wave 1 subset adds five generated collection-introspection operations, and the initial Wave 2 subset adds the exact point lifecycle `ConstructPointInWorkingCoordinates`, `RenamePoint`, and `DeletePoints` operations. These are deliberately small reviewed promotions, not a claim that either full candidate pool has shipped.
 
 ## Build
 
@@ -64,7 +64,7 @@ See the [health and discovery operator guide](docs/operations/health-and-discove
 
 The `catalog` directory is the reviewed, machine-readable allowlist of MP operations Briosa exposes for each exact SpatialAnalyzer target. It is deliberately separate from the complete installed SA inventory: catalog absence means an operation is not exposed by Briosa, not that SA lacks it.
 
-Machine-readable files under `catalog/sa/<target>/release-memberships` name additive delivery subsets while preserving exact catalog, target, and revision coordinates. They are distinct from the complete catalog and runtime authorization. See the [release-membership guide](docs/development/release-membership.md) for the initial v0.2 Wave 1 subset, validation rules, and promotion workflow.
+Machine-readable files under `catalog/sa/<target>/release-memberships` name additive delivery subsets while preserving exact catalog, target, and revision coordinates. They are distinct from the complete catalog and runtime authorization. See the [release-membership guide](docs/development/release-membership.md) for the initial v0.2 Wave 1 and Wave 2 subsets, validation rules, and promotion workflow.
 
 The `inventory` directory contains deterministic derived facts from locally installed MP documentation and **View SDK Code** exports. It preserves missing and conflicting metadata for review without committing vendor source material or making an operation public. See [the extraction guide](docs/development/mp-command-inventory.md) for inputs, provenance, regeneration, and the intellectual-property boundary.
 
@@ -108,7 +108,7 @@ The [fake SDK and contract-test harness](docs/testing/fake-sdk-harness.md) verif
 
 Run `./eng/Test-RuntimePerformance.ps1 -NoBuild` after a Release build to record the reviewed fake-worker dispatch, generated request-mapping, catalog-discovery, and retained-memory metrics. Deterministic process tests separately saturate and drain the bounded queue, distinguish pre/post-admission cancellation, wake admission waiters on shutdown, cycle watchdog and crash recovery, cap lifecycle history, and preserve value-free audit correlation. Package checks also budget ZIP size and startup working set. The [runtime performance and soak guide](docs/testing/runtime-performance-and-soak.md) defines the exact samples and explains why the licensed read-only soak remains deferred pending issue #20 and Hexagon licensing guidance.
 
-The [generated-client smoke guide](docs/testing/generated-client-smoke.md) covers portable packaged-host scenarios for the vertical slice and initial Wave 1 subset, plus the explicit licensed-SA vertical-slice test. They use a separate generated client process and never print returned SpatialAnalyzer values.
+The [generated-client smoke guide](docs/testing/generated-client-smoke.md) covers portable packaged-host scenarios for the vertical slice and initial Wave 1 read-only and Wave 2 point-lifecycle subsets, plus the explicit licensed-SA vertical-slice test. They use a separate generated client process and never print SpatialAnalyzer arguments or returned values.
 
 The [licensed runner operations guide](docs/operations/licensed-sa-runner.md) defines the dedicated-machine, organization runner-group, protected-environment, trusted-payload, and recovery requirements for real-SA validation. Never attach a repository-level self-hosted runner or a personal workstation to this public repository.
 

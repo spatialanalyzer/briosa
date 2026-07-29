@@ -3,13 +3,21 @@
   "schema_version": 1,
   "generated_by": "Briosa.Generator portable conformance",
   "catalog_id": "briosa.sa.2026.1.0529.7",
-  "catalog_revision": "7",
+  "catalog_revision": "8",
   "spatial_analyzer_target": "2026.1.0529.7",
   "target_protocol_package": "briosa.sa.v2026_1_0529_7.v1alpha1",
   "evidence_inputs": [
     {
       "path": "catalog/sa/2026.1.0529.7/catalog.json",
-      "sha256": "2fb8ee2216f57b9809c4d8581234d31afd7ce8bb084dfc02f17bbadf38d059ad"
+      "sha256": "52721a26e305496b465f90d5f2659c49aec10f2e31499dd1a949501d42dfe330"
+    },
+    {
+      "path": "catalog/sa/2026.1.0529.7/operations/collection_operations.construct_point_in_working_coordinates.json",
+      "sha256": "577dad94b9f430c1e674b51b7c49ab5f17d04536681ff979b6f03b6e0efcdffd"
+    },
+    {
+      "path": "catalog/sa/2026.1.0529.7/operations/collection_operations.delete_points.json",
+      "sha256": "403cd2f1a62c6339b57f2f5e7e5e45d7542ef71ab48b79de08edde3980a200df"
     },
     {
       "path": "catalog/sa/2026.1.0529.7/operations/collection_operations.get_collection_count.json",
@@ -32,6 +40,10 @@
       "sha256": "5e0b9859c93647f4f1d33bf2bc3f7bddf6fec777bf17e5114b49073cff936408"
     },
     {
+      "path": "catalog/sa/2026.1.0529.7/operations/collection_operations.rename_point.json",
+      "sha256": "2f263fa567b0885f11d4677728b8f6753d19e5dca87e9bedbd27ee3eb6833476"
+    },
+    {
       "path": "catalog/sa/2026.1.0529.7/operations/file_operations.get_working_directory.json",
       "sha256": "0fb4ab05df51313ef5b104481f526f4a99ab78c621e92aeb33662ccea0b921ff"
     },
@@ -49,7 +61,7 @@
     }
   ],
   "counts": {
-    "operation_count": 6,
+    "operation_count": 9,
     "binding_case_count": 252,
     "value_family_case_count": 158,
     "enum_case_count": 512,
@@ -57,6 +69,331 @@
     "assignment_case_count": 1990
   },
   "operations": [
+    {
+      "operation_id": "collection_operations.construct_point_in_working_coordinates",
+      "inventory_key": "documentation:ConstructionOperations/PointsandGroups/ConstructAPointInWorkingCoordinates.htm",
+      "mp_step": "Construct a Point in Working Coordinates",
+      "fully_qualified_method": "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/ConstructPointInWorkingCoordinates",
+      "request": "ConstructPointInWorkingCoordinatesRequest",
+      "result": "ConstructPointInWorkingCoordinatesResult",
+      "effect": "mutating",
+      "execution_scope": "global_state_mutation",
+      "replay_safety": "unknown",
+      "risk_flags": [],
+      "inputs": [
+        {
+          "argument_id": "point_name",
+          "ordinal": 0,
+          "sdk_order": 0,
+          "mp_name": "Point Name",
+          "direction": "input",
+          "semantic_type": "point_name",
+          "worker_value_kind": "PointName",
+          "binding": "SetPointNameArg",
+          "presence": "required",
+          "omission_behavior": "reject_request"
+        },
+        {
+          "argument_id": "working_coordinates",
+          "ordinal": 1,
+          "sdk_order": 1,
+          "mp_name": "Working Coordinates",
+          "direction": "input",
+          "semantic_type": "vector3",
+          "worker_value_kind": "Vector",
+          "binding": "SetVectorArg",
+          "presence": "required",
+          "omission_behavior": "reject_request"
+        }
+      ],
+      "outputs": [],
+      "scenarios": [
+        {
+          "scenario_id": "operation:collection_operations.construct_point_in_working_coordinates:binding:point_name:setter-rejected",
+          "kind": "binding.setter_rejected",
+          "argument_id": "point_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_in_working_coordinates:binding:working_coordinates:setter-rejected",
+          "kind": "binding.setter_rejected",
+          "argument_id": "working_coordinates"
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_in_working_coordinates:capability:metadata",
+          "kind": "capability.metadata",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_in_working_coordinates:error:cancellation:not-started",
+          "kind": "error.cancellation_not_started",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_in_working_coordinates:error:cancellation:started-unknown",
+          "kind": "error.cancellation_started_unknown",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_in_working_coordinates:error:deadline:not-started",
+          "kind": "error.deadline_not_started",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_in_working_coordinates:error:deadline:started-unknown",
+          "kind": "error.deadline_started_unknown",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_in_working_coordinates:error:disconnected",
+          "kind": "error.disconnected",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_in_working_coordinates:error:execute-rejected",
+          "kind": "error.execute_rejected",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_in_working_coordinates:error:malformed-worker-response",
+          "kind": "error.malformed_worker_response",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_in_working_coordinates:error:mp-failed",
+          "kind": "error.mp_failed",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_in_working_coordinates:error:mp-result-retrieval-failed",
+          "kind": "error.mp_result_retrieval_failed",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_in_working_coordinates:error:worker-crash",
+          "kind": "error.worker_crash",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_in_working_coordinates:error:worker-hang",
+          "kind": "error.worker_hang",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_in_working_coordinates:metadata:execution-disposition",
+          "kind": "metadata.execution_disposition",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_in_working_coordinates:metadata:execution-scope",
+          "kind": "metadata.execution_scope",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_in_working_coordinates:metadata:replay-guidance",
+          "kind": "metadata.replay_guidance",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_in_working_coordinates:policy:allow",
+          "kind": "policy.allowed",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_in_working_coordinates:policy:deny",
+          "kind": "policy.denied",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_in_working_coordinates:readiness:unverified",
+          "kind": "readiness.unverified",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_in_working_coordinates:request:point_name:malformed",
+          "kind": "request.malformed_shape",
+          "argument_id": "point_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_in_working_coordinates:request:point_name:missing",
+          "kind": "request.required_missing",
+          "argument_id": "point_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_in_working_coordinates:request:point_name:positive",
+          "kind": "request.argument_positive",
+          "argument_id": "point_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_in_working_coordinates:request:valid",
+          "kind": "request.valid",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_in_working_coordinates:request:working_coordinates:malformed",
+          "kind": "request.malformed_shape",
+          "argument_id": "working_coordinates"
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_in_working_coordinates:request:working_coordinates:missing",
+          "kind": "request.required_missing",
+          "argument_id": "working_coordinates"
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_in_working_coordinates:request:working_coordinates:positive",
+          "kind": "request.argument_positive",
+          "argument_id": "working_coordinates"
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_in_working_coordinates:result:success",
+          "kind": "result.success",
+          "argument_id": null
+        }
+      ]
+    },
+    {
+      "operation_id": "collection_operations.delete_points",
+      "inventory_key": "documentation:ConstructionOperations/DeletePoints.htm",
+      "mp_step": "Delete Points",
+      "fully_qualified_method": "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/DeletePoints",
+      "request": "DeletePointsRequest",
+      "result": "DeletePointsResult",
+      "effect": "mutating",
+      "execution_scope": "global_state_mutation",
+      "replay_safety": "unknown",
+      "risk_flags": [],
+      "inputs": [
+        {
+          "argument_id": "point_names",
+          "ordinal": 0,
+          "sdk_order": 0,
+          "mp_name": "Point Names",
+          "direction": "input",
+          "semantic_type": "point_name_list",
+          "worker_value_kind": "PointNameList",
+          "binding": "SetPointNameRefListArg",
+          "presence": "required",
+          "omission_behavior": "reject_request"
+        }
+      ],
+      "outputs": [],
+      "scenarios": [
+        {
+          "scenario_id": "operation:collection_operations.delete_points:binding:point_names:setter-rejected",
+          "kind": "binding.setter_rejected",
+          "argument_id": "point_names"
+        },
+        {
+          "scenario_id": "operation:collection_operations.delete_points:capability:metadata",
+          "kind": "capability.metadata",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.delete_points:error:cancellation:not-started",
+          "kind": "error.cancellation_not_started",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.delete_points:error:cancellation:started-unknown",
+          "kind": "error.cancellation_started_unknown",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.delete_points:error:deadline:not-started",
+          "kind": "error.deadline_not_started",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.delete_points:error:deadline:started-unknown",
+          "kind": "error.deadline_started_unknown",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.delete_points:error:disconnected",
+          "kind": "error.disconnected",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.delete_points:error:execute-rejected",
+          "kind": "error.execute_rejected",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.delete_points:error:malformed-worker-response",
+          "kind": "error.malformed_worker_response",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.delete_points:error:mp-failed",
+          "kind": "error.mp_failed",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.delete_points:error:mp-result-retrieval-failed",
+          "kind": "error.mp_result_retrieval_failed",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.delete_points:error:worker-crash",
+          "kind": "error.worker_crash",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.delete_points:error:worker-hang",
+          "kind": "error.worker_hang",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.delete_points:metadata:execution-disposition",
+          "kind": "metadata.execution_disposition",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.delete_points:metadata:execution-scope",
+          "kind": "metadata.execution_scope",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.delete_points:metadata:replay-guidance",
+          "kind": "metadata.replay_guidance",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.delete_points:policy:allow",
+          "kind": "policy.allowed",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.delete_points:policy:deny",
+          "kind": "policy.denied",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.delete_points:readiness:unverified",
+          "kind": "readiness.unverified",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.delete_points:request:point_names:missing",
+          "kind": "request.required_missing",
+          "argument_id": "point_names"
+        },
+        {
+          "scenario_id": "operation:collection_operations.delete_points:request:point_names:positive",
+          "kind": "request.argument_positive",
+          "argument_id": "point_names"
+        },
+        {
+          "scenario_id": "operation:collection_operations.delete_points:request:valid",
+          "kind": "request.valid",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.delete_points:result:success",
+          "kind": "result.success",
+          "argument_id": null
+        }
+      ]
+    },
     {
       "operation_id": "collection_operations.get_collection_count",
       "inventory_key": "documentation:AnalysisOperations/GetNumberOfCollections.htm",
@@ -909,6 +1246,219 @@
         },
         {
           "scenario_id": "operation:collection_operations.list_points_in_group:result:success",
+          "kind": "result.success",
+          "argument_id": null
+        }
+      ]
+    },
+    {
+      "operation_id": "collection_operations.rename_point",
+      "inventory_key": "documentation:ConstructionOperations/RenamePoint.htm",
+      "mp_step": "Rename Point",
+      "fully_qualified_method": "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/RenamePoint",
+      "request": "RenamePointRequest",
+      "result": "RenamePointResult",
+      "effect": "mutating",
+      "execution_scope": "global_state_mutation",
+      "replay_safety": "unknown",
+      "risk_flags": [],
+      "inputs": [
+        {
+          "argument_id": "original_point_name",
+          "ordinal": 0,
+          "sdk_order": 0,
+          "mp_name": "Original Point Name",
+          "direction": "input",
+          "semantic_type": "point_name",
+          "worker_value_kind": "PointName",
+          "binding": "SetPointNameArg",
+          "presence": "required",
+          "omission_behavior": "reject_request"
+        },
+        {
+          "argument_id": "new_point_name",
+          "ordinal": 1,
+          "sdk_order": 1,
+          "mp_name": "New Point Name",
+          "direction": "input",
+          "semantic_type": "point_name",
+          "worker_value_kind": "PointName",
+          "binding": "SetPointNameArg",
+          "presence": "required",
+          "omission_behavior": "reject_request"
+        },
+        {
+          "argument_id": "overwrite_if_exists",
+          "ordinal": 2,
+          "sdk_order": 2,
+          "mp_name": "Overwrite if exists?",
+          "direction": "input",
+          "semantic_type": "logical",
+          "worker_value_kind": "Logical",
+          "binding": "SetBoolArg",
+          "presence": "optional",
+          "omission_behavior": "set_catalog_default"
+        }
+      ],
+      "outputs": [],
+      "scenarios": [
+        {
+          "scenario_id": "operation:collection_operations.rename_point:binding:new_point_name:setter-rejected",
+          "kind": "binding.setter_rejected",
+          "argument_id": "new_point_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_point:binding:original_point_name:setter-rejected",
+          "kind": "binding.setter_rejected",
+          "argument_id": "original_point_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_point:binding:overwrite_if_exists:setter-rejected",
+          "kind": "binding.setter_rejected",
+          "argument_id": "overwrite_if_exists"
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_point:capability:metadata",
+          "kind": "capability.metadata",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_point:error:cancellation:not-started",
+          "kind": "error.cancellation_not_started",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_point:error:cancellation:started-unknown",
+          "kind": "error.cancellation_started_unknown",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_point:error:deadline:not-started",
+          "kind": "error.deadline_not_started",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_point:error:deadline:started-unknown",
+          "kind": "error.deadline_started_unknown",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_point:error:disconnected",
+          "kind": "error.disconnected",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_point:error:execute-rejected",
+          "kind": "error.execute_rejected",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_point:error:malformed-worker-response",
+          "kind": "error.malformed_worker_response",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_point:error:mp-failed",
+          "kind": "error.mp_failed",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_point:error:mp-result-retrieval-failed",
+          "kind": "error.mp_result_retrieval_failed",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_point:error:worker-crash",
+          "kind": "error.worker_crash",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_point:error:worker-hang",
+          "kind": "error.worker_hang",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_point:metadata:execution-disposition",
+          "kind": "metadata.execution_disposition",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_point:metadata:execution-scope",
+          "kind": "metadata.execution_scope",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_point:metadata:replay-guidance",
+          "kind": "metadata.replay_guidance",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_point:policy:allow",
+          "kind": "policy.allowed",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_point:policy:deny",
+          "kind": "policy.denied",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_point:readiness:unverified",
+          "kind": "readiness.unverified",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_point:request:new_point_name:malformed",
+          "kind": "request.malformed_shape",
+          "argument_id": "new_point_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_point:request:new_point_name:missing",
+          "kind": "request.required_missing",
+          "argument_id": "new_point_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_point:request:new_point_name:positive",
+          "kind": "request.argument_positive",
+          "argument_id": "new_point_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_point:request:original_point_name:malformed",
+          "kind": "request.malformed_shape",
+          "argument_id": "original_point_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_point:request:original_point_name:missing",
+          "kind": "request.required_missing",
+          "argument_id": "original_point_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_point:request:original_point_name:positive",
+          "kind": "request.argument_positive",
+          "argument_id": "original_point_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_point:request:overwrite_if_exists:omitted",
+          "kind": "request.optional_omitted",
+          "argument_id": "overwrite_if_exists"
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_point:request:overwrite_if_exists:positive",
+          "kind": "request.argument_positive",
+          "argument_id": "overwrite_if_exists"
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_point:request:overwrite_if_exists:present-default-like",
+          "kind": "request.present_default_like",
+          "argument_id": "overwrite_if_exists"
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_point:request:valid",
+          "kind": "request.valid",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_point:result:success",
           "kind": "result.success",
           "argument_id": null
         }

@@ -4,7 +4,7 @@ Briosa has two command-exposure boundaries. The exact-target generated catalog d
 
 ## Configure allowed operations
 
-The packaged configuration enables only the reviewed vertical-slice operation. The initial v0.2 Wave 1 members remain denied until an operator explicitly adds their exact IDs:
+The packaged configuration enables only the reviewed vertical-slice operation. The initial v0.2 Wave 1 and Wave 2 members remain denied until an operator explicitly adds their exact IDs:
 
 ```json
 {
@@ -32,6 +32,8 @@ $env:Briosa__Security__Operations__Deny__0 = 'file_operations.get_working_direct
 The denylist overrides the allowlist. Omitting the allowlist denies every operation. Unknown, empty, duplicate, or non-array values fail startup instead of being ignored. Restart the server after changing policy; policy is not reloaded in place. An allowlist cannot enable an operation with unknown isolation metadata or an `exclusive_workflow` scope while the target is `single_tenant`.
 
 Adding an operation to a catalog release membership does not modify `appsettings.json`, widen an existing allowlist, or make discovery advertise it. Treat membership as a release-completeness assertion only.
+
+The initial Wave 2 point-lifecycle operations are application-global mutations with unknown replay safety. Allowing them does not authorize automatic retry. If a call is admitted and its response is lost through cancellation, deadline, worker crash, or watchdog termination, reconcile the named model state before deciding whether another mutation is safe.
 
 `DiscoveryService/ListCapabilities` reports the intersection of the generated catalog and the runtime allowlist after deny rules. It is the correct way for a client to learn what this server instance currently exposes.
 

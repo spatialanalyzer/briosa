@@ -40,6 +40,7 @@ catalog/
         file_operations.get_working_directory.json
       release-memberships/
         v0.2-wave1-initial.json
+        v0.2-wave2-initial.json
 ```
 
 The exact SA version appears once in the target manifest and must match its directory. The manifest also records the exact target protocol package and a positive, target-local catalog revision. Catalogs do not inherit, overlay, or declare compatibility ranges with another release.
@@ -139,6 +140,12 @@ This is represented through the ordinary schema and validator with no command-sp
 The first v0.2 Wave 1 membership adds five low-risk collection-introspection operations: collection count, collection name by explicit index, point count in a group, groups in a collection, and points in a group. Each is read-only, safe to replay, and classified as a point-in-time global-state read. Serialization prevents COM interleaving but does not turn several calls into one consistent snapshot.
 
 This membership is a small useful subset of the 101 reviewed Wave 1 candidates. It does not imply that the remaining candidates are supported, and it does not automatically enable any member in runtime policy.
+
+## Initial v0.2 Wave 2 subset
+
+The first v0.2 Wave 2 membership adds one exact point lifecycle: construct a point in working coordinates, rename a point, and delete points. The vector input uses the authoritative `vector3` semantic family; the historical `vector` pseudo-family is invalid catalog input. Construct and delete require all public inputs. Rename requires both point names and, when `overwrite_if_exists` is omitted, explicitly sends the reviewed `false` catalog default.
+
+All three operations are application-global mutations with unknown replay safety. Serialization prevents COM interleaving but does not make an ambiguous result safe to retry. A timeout, cancellation, worker crash, or lost response after admission can require application-state reconciliation. Release membership does not authorize the operations; ordinary runtime policy continues to deny them until an operator explicitly allows each exact ID.
 
 ## Validation
 

@@ -130,6 +130,14 @@ public sealed class CommandCatalogGeneratorTests
                 collectionProto,
                 StringComparison.Ordinal);
             Assert.Contains(
+                "rpc ConstructPointInWorkingCoordinates(ConstructPointInWorkingCoordinatesRequest) returns (ConstructPointInWorkingCoordinatesResult)",
+                collectionProto,
+                StringComparison.Ordinal);
+            Assert.Contains(
+                "rpc DeletePoints(DeletePointsRequest) returns (DeletePointsResult)",
+                collectionProto,
+                StringComparison.Ordinal);
+            Assert.Contains(
                 "rpc GetCollectionNameByIndex(GetCollectionNameByIndexRequest) returns (GetCollectionNameByIndexResult)",
                 collectionProto,
                 StringComparison.Ordinal);
@@ -141,6 +149,11 @@ public sealed class CommandCatalogGeneratorTests
                 "rpc ListPointsInGroup(ListPointsInGroupRequest) returns (ListPointsInGroupResult)",
                 collectionProto,
                 StringComparison.Ordinal);
+            Assert.Contains(
+                "rpc RenamePoint(RenamePointRequest) returns (RenamePointResult)",
+                collectionProto,
+                StringComparison.Ordinal);
+            Assert.Contains("Vector3 working_coordinates = 2", collectionProto, StringComparison.Ordinal);
 
             var coverage = File.ReadAllText(Path.Combine(
                 outputRoot,
@@ -169,6 +182,7 @@ public sealed class CommandCatalogGeneratorTests
             Assert.Contains("\"portable_conformance\": true", coverage, StringComparison.Ordinal);
             Assert.Contains("\"argument_family_assignment\": true", coverage, StringComparison.Ordinal);
             Assert.Contains("\"membership_id\": \"v0.2-wave1-initial\"", coverage, StringComparison.Ordinal);
+            Assert.Contains("\"membership_id\": \"v0.2-wave2-initial\"", coverage, StringComparison.Ordinal);
             Assert.Contains("\"catalog_id\": \"briosa.sa.2026.1.0529.7\"", coverage, StringComparison.Ordinal);
             Assert.Contains(
                 "\"collection_operations.list_points_in_group\"",
@@ -184,11 +198,13 @@ public sealed class CommandCatalogGeneratorTests
                 "2026.1.0529.7",
                 "operations.md"));
             Assert.Contains("Replay safety: `safe`", documentation, StringComparison.Ordinal);
+            Assert.Contains("Replay safety: `unknown`", documentation, StringComparison.Ordinal);
             Assert.Contains(
                 "Execution scope: `global_state_read`",
                 documentation,
                 StringComparison.Ordinal);
             Assert.Contains("`v0.2-wave1-initial` (`v0.2`, `wave_1`): 5 operation(s)", documentation, StringComparison.Ordinal);
+            Assert.Contains("`v0.2-wave2-initial` (`v0.2`, `wave_2`): 3 operation(s)", documentation, StringComparison.Ordinal);
         }
         finally
         {

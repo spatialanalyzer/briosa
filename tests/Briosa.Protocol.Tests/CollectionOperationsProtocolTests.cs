@@ -15,11 +15,14 @@ public sealed partial class ProtocolSchemaTests
 
         Assert.Equal(
             [
+                "ConstructPointInWorkingCoordinates",
+                "DeletePoints",
                 "GetCollectionCount",
                 "GetCollectionNameByIndex",
                 "GetPointCountInGroup",
                 "ListGroupsInCollection",
-                "ListPointsInGroup"
+                "ListPointsInGroup",
+                "RenamePoint"
             ],
             methods.Keys.Order(StringComparer.Ordinal));
         Assert.Equal(
@@ -78,5 +81,32 @@ public sealed partial class ProtocolSchemaTests
             TargetProtocol.PointNameList.Descriptor,
             TargetProtocol.ListPointsInGroupResult.Descriptor
                 .FindFieldByName("points").MessageType);
+    }
+
+    [Fact]
+    public void PointLifecycleFieldsRetainReviewedTypesAndPresence()
+    {
+        var construct = TargetProtocol.ConstructPointInWorkingCoordinatesRequest.Descriptor;
+        var rename = TargetProtocol.RenamePointRequest.Descriptor;
+
+        Assert.Equal(
+            TargetProtocol.PointName.Descriptor,
+            construct.FindFieldByName("point_name").MessageType);
+        Assert.Equal(
+            TargetProtocol.Vector3.Descriptor,
+            construct.FindFieldByName("working_coordinates").MessageType);
+        Assert.Equal(
+            TargetProtocol.PointNameList.Descriptor,
+            TargetProtocol.DeletePointsRequest.Descriptor
+                .FindFieldByName("point_names").MessageType);
+        Assert.Equal(
+            3,
+            rename.FindFieldByName("overwrite_if_exists").FieldNumber);
+
+        var request = new TargetProtocol.RenamePointRequest
+        {
+            OverwriteIfExists = false
+        };
+        Assert.True(request.HasOverwriteIfExists);
     }
 }

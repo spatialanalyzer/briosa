@@ -574,11 +574,14 @@ public sealed class CommandDispositionLedgerTests
 
         Assert.Equal(
             [
+                "Construct a Point in Working Coordinates",
+                "Delete Points",
                 "Get Number of Collections",
                 "Get i-th Collection Name",
                 "Get Number of Points in Group",
                 "Make a Collection Object Name Ref List from all Groups in a Collection",
                 "Make a Point Name Ref List From a Group",
+                "Rename Point",
                 "Get Working Directory"
             ],
             supportedSteps);

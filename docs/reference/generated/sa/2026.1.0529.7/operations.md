@@ -2,7 +2,7 @@
 <!-- Generated from the reviewed Briosa command catalog. Do not edit by hand. -->
 # SpatialAnalyzer 2026.1.0529.7 operation reference
 
-Catalog `briosa.sa.2026.1.0529.7` revision `7`.
+Catalog `briosa.sa.2026.1.0529.7` revision `8`.
 
 Only explicitly reviewed Briosa operations are listed here. This is not the installed SpatialAnalyzer MP catalog.
 
@@ -23,6 +23,61 @@ Worker replacement restores availability; it does not change an operation's exec
 Membership declarations identify additive reviewed delivery subsets, not the complete installed MP inventory and not cross-version compatibility claims.
 
 - `v0.2-wave1-initial` (`v0.2`, `wave_1`): 5 operation(s)
+
+- `v0.2-wave2-initial` (`v0.2`, `wave_2`): 3 operation(s)
+
+## `CollectionOperations.ConstructPointInWorkingCoordinates`
+
+Constructs a named point at explicit working-frame coordinates.
+
+- Briosa operation: `collection_operations.construct_point_in_working_coordinates`
+- Inventory key: `documentation:ConstructionOperations/PointsandGroups/ConstructAPointInWorkingCoordinates.htm`
+- Protocol file: `collection_operations.proto`
+- Fully qualified method: `/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/ConstructPointInWorkingCoordinates`
+- Exact MP step: `Construct a Point in Working Coordinates`
+- Stability: `experimental`
+- Execution scope: `global_state_mutation`
+- Isolation review: Mutates named geometry in application-global model state. Cancellation or deadline expiry does not roll back the command or cancel an in-flight COM call; an ambiguous completion requires reconciliation before replay.
+- Effect: `mutating`
+- Replay safety: `unknown`
+- Risk flags: none
+
+### Inputs
+
+| Field | Number | MP ordinal | SDK order | MP argument | Direction | Type | Data classification | SDK binding | Presence / retrieval |
+| --- | ---: | ---: | ---: | --- | --- | --- | --- | --- | --- |
+| `point_name` | 1 | 0 | 0 | `Point Name` | `input` | `point_name` | `object_identifier` | `SetPointNameArg` | required; reject_request; default none |
+| `working_coordinates` | 2 | 1 | 1 | `Working Coordinates` | `input` | `vector3` | `geometry` | `SetVectorArg` | required; reject_request; default none |
+
+### Outputs
+
+None.
+
+## `CollectionOperations.DeletePoints`
+
+Deletes an explicit list of named points.
+
+- Briosa operation: `collection_operations.delete_points`
+- Inventory key: `documentation:ConstructionOperations/DeletePoints.htm`
+- Protocol file: `collection_operations.proto`
+- Fully qualified method: `/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/DeletePoints`
+- Exact MP step: `Delete Points`
+- Stability: `experimental`
+- Execution scope: `global_state_mutation`
+- Isolation review: Mutates named geometry in application-global model state. Cancellation or deadline expiry does not roll back deletion or cancel an in-flight COM call; an ambiguous completion requires reconciliation before replay.
+- Effect: `mutating`
+- Replay safety: `unknown`
+- Risk flags: none
+
+### Inputs
+
+| Field | Number | MP ordinal | SDK order | MP argument | Direction | Type | Data classification | SDK binding | Presence / retrieval |
+| --- | ---: | ---: | ---: | --- | --- | --- | --- | --- | --- |
+| `point_names` | 1 | 0 | 0 | `Point Names` | `input` | `point_name_list` | `object_identifier` | `SetPointNameRefListArg` | required; reject_request; default none |
+
+### Outputs
+
+None.
 
 ## `CollectionOperations.GetCollectionCount`
 
@@ -161,6 +216,34 @@ Returns the point identities currently present in a named SpatialAnalyzer group.
 | Field | Number | MP ordinal | SDK order | MP argument | Direction | Type | Data classification | SDK binding | Presence / retrieval |
 | --- | ---: | ---: | ---: | --- | --- | --- | --- | --- | --- |
 | `points` | 1 | 1 | 1 | `Resultant Point Name List` | `output` | `point_name_list` | `object_identifier` | `GetPointNameRefListArg` | result-only yes |
+
+## `CollectionOperations.RenamePoint`
+
+Renames an explicitly identified point, with reviewed collision behavior selected by the caller.
+
+- Briosa operation: `collection_operations.rename_point`
+- Inventory key: `documentation:ConstructionOperations/RenamePoint.htm`
+- Protocol file: `collection_operations.proto`
+- Fully qualified method: `/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/RenamePoint`
+- Exact MP step: `Rename Point`
+- Stability: `experimental`
+- Execution scope: `global_state_mutation`
+- Isolation review: Mutates named geometry in application-global model state. Cancellation or deadline expiry does not roll back the rename or cancel an in-flight COM call; an ambiguous completion requires reconciliation before replay.
+- Effect: `mutating`
+- Replay safety: `unknown`
+- Risk flags: none
+
+### Inputs
+
+| Field | Number | MP ordinal | SDK order | MP argument | Direction | Type | Data classification | SDK binding | Presence / retrieval |
+| --- | ---: | ---: | ---: | --- | --- | --- | --- | --- | --- |
+| `original_point_name` | 1 | 0 | 0 | `Original Point Name` | `input` | `point_name` | `object_identifier` | `SetPointNameArg` | required; reject_request; default none |
+| `new_point_name` | 2 | 1 | 1 | `New Point Name` | `input` | `point_name` | `object_identifier` | `SetPointNameArg` | required; reject_request; default none |
+| `overwrite_if_exists` | 3 | 2 | 2 | `Overwrite if exists?` | `input` | `logical` | `non_sensitive` | `SetBoolArg` | optional; set_catalog_default; default reviewed |
+
+### Outputs
+
+None.
 
 ## `FileOperations.GetWorkingDirectory`
 
