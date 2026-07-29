@@ -2,7 +2,7 @@
   "$schema": "../../schemas/v1/catalog.schema.json",
   "schema_version": 1,
   "catalog_id": "briosa.sa.2026.1.0529.7",
-  "catalog_revision": "5",
+  "catalog_revision": "6",
   "spatial_analyzer_target": "2026.1.0529.7",
   "target_protocol_package": "briosa.sa.v2026_1_0529_7.v1alpha1",
   "sources": [
@@ -23,6 +23,14 @@
       "kind": "generated_sdk_sample",
       "description": "Locally generated View SDK Code used to verify exact setter and getter bindings.",
       "source_material_committed": false
+    }
+  ],
+  "protocol_partitions": [
+    {
+      "category": "File Operations",
+      "alias": "file_operations",
+      "service": "FileOperations",
+      "proto_file": "file_operations.proto"
     }
   ],
   "operation_files": [

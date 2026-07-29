@@ -9,6 +9,8 @@ internal sealed record CommandCatalogGenerationResult(IReadOnlyList<string> File
 
 internal static class CommandCatalogGenerator
 {
+    internal const string GeneratedArtifactIdentity = "Briosa.Generator command catalog";
+
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
@@ -51,11 +53,22 @@ internal static class CommandCatalogGenerator
                 .ToArray();
 
             var packagePath = manifest.TargetProtocolPackage.Replace('.', '/');
-            WriteGeneratedFile(
-                fullOutputRoot,
-                $"proto/{packagePath}/operations.proto",
-                GenerateProto(manifest, operations),
-                generatedFiles);
+            foreach (var partition in manifest.ProtocolPartitions
+                         .OrderBy(partition => partition.Alias, StringComparer.Ordinal))
+            {
+                var partitionOperations = operations
+                    .Where(operation => string.Equals(
+                        operation.OperationId.Split('.')[0],
+                        partition.Alias,
+                        StringComparison.Ordinal))
+                    .OrderBy(operation => operation.Protocol.Rpc, StringComparer.Ordinal)
+                    .ToArray();
+                WriteGeneratedFile(
+                    fullOutputRoot,
+                    $"proto/{packagePath}/{partition.ProtoFile}",
+                    GenerateProto(manifest, partition, partitionOperations),
+                    generatedFiles);
+            }
 
             var targetNamespace = ToCSharpNamespace(manifest.TargetProtocolPackage);
             var generatedNamespace = $"Briosa.Server.Generated.{targetNamespace["Briosa.".Length..]}";
@@ -85,6 +98,7 @@ internal static class CommandCatalogGenerator
 
     private static string GenerateProto(
         CommandCatalogManifest manifest,
+        CommandCatalogProtocolPartition partition,
         IReadOnlyList<CommandCatalogOperation> operations)
     {
         var builder = new StringBuilder();
@@ -121,28 +135,21 @@ internal static class CommandCatalogGenerator
             .Append(ToCSharpNamespace(manifest.TargetProtocolPackage))
             .AppendLine("\";");
 
-        foreach (var serviceGroup in operations
-            .GroupBy(operation => operation.Protocol.Service, StringComparer.Ordinal)
-            .OrderBy(group => group.Key, StringComparer.Ordinal))
+        builder.AppendLine();
+        builder.Append("service ").Append(partition.Service).AppendLine(" {");
+        foreach (var operation in operations)
         {
-            builder.AppendLine();
-            builder.Append("service ").Append(serviceGroup.Key).AppendLine(" {");
-            foreach (var operation in serviceGroup.OrderBy(
-                operation => operation.Protocol.Rpc,
-                StringComparer.Ordinal))
-            {
-                AppendComment(builder, operation.Documentation.Summary, indentation: "  ");
-                builder.Append("  rpc ")
-                    .Append(operation.Protocol.Rpc)
-                    .Append('(')
-                    .Append(operation.Protocol.Request)
-                    .Append(") returns (")
-                    .Append(operation.Protocol.Result)
-                    .AppendLine(");");
-            }
-
-            builder.AppendLine("}");
+            AppendComment(builder, operation.Documentation.Summary, indentation: "  ");
+            builder.Append("  rpc ")
+                .Append(operation.Protocol.Rpc)
+                .Append('(')
+                .Append(operation.Protocol.Request)
+                .Append(") returns (")
+                .Append(operation.Protocol.Result)
+                .AppendLine(");");
         }
+
+        builder.AppendLine("}");
 
         foreach (var operation in operations)
         {
@@ -186,7 +193,7 @@ internal static class CommandCatalogGenerator
                 .Append(' ')
                 .Append(argument.ArgumentId)
                 .Append(" = ")
-                .Append((argument.Ordinal + 1).ToString(CultureInfo.InvariantCulture))
+                .Append(argument.FieldNumbers.Request!.Value.ToString(CultureInfo.InvariantCulture))
                 .AppendLine(";");
         }
 
@@ -212,7 +219,7 @@ internal static class CommandCatalogGenerator
                 .Append(' ')
                 .Append(argument.ArgumentId)
                 .Append(" = ")
-                .Append((argument.Ordinal + 1).ToString(CultureInfo.InvariantCulture))
+                .Append(argument.FieldNumbers.Result!.Value.ToString(CultureInfo.InvariantCulture))
                 .AppendLine(";");
         }
 
@@ -347,10 +354,45 @@ internal static class CommandCatalogGenerator
             outputRoot,
             normalizedPath.Replace('/', Path.DirectorySeparatorChar));
         Directory.CreateDirectory(Path.GetDirectoryName(outputPath)!);
+        if (File.Exists(outputPath) &&
+            !IsCatalogGeneratedArtifact(File.ReadAllText(outputPath)))
+        {
+            throw new InvalidDataException(
+                $"Refusing to overwrite non-catalog-generated file '{normalizedPath}'.");
+        }
+
         File.WriteAllText(
             outputPath,
             content.ReplaceLineEndings("\n"),
             new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
         generatedFiles.Add(normalizedPath);
+    }
+
+    private static bool IsCatalogGeneratedArtifact(string content)
+    {
+        var normalizedContent = content.ReplaceLineEndings("\n");
+        if (normalizedContent.StartsWith(
+                "// <auto-generated />\n// Generated from the reviewed Briosa command catalog.",
+                StringComparison.Ordinal) ||
+            normalizedContent.StartsWith(
+                "<!-- <auto-generated /> -->\n<!-- Generated from the reviewed Briosa command catalog.",
+                StringComparison.Ordinal))
+        {
+            return true;
+        }
+
+        try
+        {
+            using var document = JsonDocument.Parse(normalizedContent);
+            return document.RootElement.TryGetProperty("generated_by", out var generatedBy) &&
+                string.Equals(
+                    generatedBy.GetString(),
+                    GeneratedArtifactIdentity,
+                    StringComparison.Ordinal);
+        }
+        catch (JsonException)
+        {
+            return false;
+        }
     }
 }

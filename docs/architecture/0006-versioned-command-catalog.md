@@ -2,7 +2,7 @@
 
 - Status: Accepted for the v0.1 vertical slice
 - Date: 2026-07-21
-- Amended by: [ADR 0016](0016-command-argument-semantic-families.md)
+- Amended by: [ADR 0016](0016-command-argument-semantic-families.md) and [ADR 0021](0021-exact-target-protobuf-partitions-and-identifiers.md)
 
 ## Context
 
@@ -41,6 +41,8 @@ catalog/
 
 The exact SA version appears once in the target manifest and must match its directory. The manifest also records the exact target protocol package and a positive, target-local catalog revision. Catalogs do not inherit, overlay, or declare compatibility ranges with another release.
 
+The manifest also records the stable protocol partition for every reviewed category. Each partition fixes its category text, lower-snake-case alias, PascalCase service, and `.proto` filename. Operations cannot invent a category mapping outside that registry.
+
 The manifest lists every operation file in ordinal path order. Validation fails for an unlisted file, a missing file, duplicate source or operation identities, or target/package mismatches. This makes a target directory one complete reviewable snapshot of Briosa support for that release.
 
 ## Operation and protocol naming
@@ -59,8 +61,9 @@ For `file_operations.get_working_directory`, deterministic public names are:
 | RPC | `GetWorkingDirectory` |
 | Request | `GetWorkingDirectoryRequest` |
 | Result | `GetWorkingDirectoryResult` |
+| Protobuf file | `file_operations.proto` |
 
-The catalog stores those public names so reviewers can see the API, and validation checks them against the deterministic transformation. The exact `mp_step` string is stored independently and is allowed to collide with another operation. Future client names derive from the same reviewed identity rather than from language-specific heuristics.
+The catalog stores those public names so reviewers can see the API, and validation checks them against the deterministic transformation. It also stores the exact `inventory_key`; that identity is unique within the target and replaces evidence-name inference when joining catalog operations back to reviewed inventory. The exact `mp_step` string is stored independently and is allowed to collide with another operation. Future client names derive from the same reviewed identity rather than from language-specific heuristics. Package-wide collision rules and stable field allocation are defined by [ADR 0021](0021-exact-target-protobuf-partitions-and-identifiers.md).
 
 ## Argument semantics
 
@@ -68,6 +71,8 @@ Arguments are one ordered list because MP documentation uses command-wide ordina
 
 - a stable lower-snake-case argument identity;
 - the exact MP argument name and ordinal;
+- the distinct exact SDK order;
+- explicit stable request and result field numbers, nullable only when the direction does not use that message;
 - direction: input, output, input/output, or unknown;
 - whether it is result-only;
 - a public semantic type independent of COM;
@@ -128,7 +133,7 @@ This is represented through the ordinary schema and validator with no command-sp
 
 JSON Schema draft 7 validates document structure independently of code generation. The semantic validator then checks cross-file completeness, exact-target identity, deterministic names, evidence references, argument rules, reviewed defaults, and required SDK bindings. Ordinary CI runs both layers without SpatialAnalyzer, installed vendor documentation, a license, or proprietary SDK samples.
 
-Schema changes and catalog changes are API-review inputs. The target-local catalog revision must be incremented when a reviewed snapshot changes. Generated artifacts remain downstream products and may not override catalog facts.
+Schema changes and catalog changes are API-review inputs. The target-local catalog revision must be incremented when a reviewed snapshot changes. Generated artifacts remain downstream products and may not override catalog facts. Generation rejects unresolved service, RPC, request/result, field, binding-type, file, and category-alias collisions; it never assigns suffixes from enumeration order.
 
 ## Consequences
 

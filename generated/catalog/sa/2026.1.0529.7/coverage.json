@@ -1,17 +1,21 @@
 {
   "schema_version": 1,
+  "generated_by": "Briosa.Generator command catalog",
   "catalog_id": "briosa.sa.2026.1.0529.7",
-  "catalog_revision": "5",
+  "catalog_revision": "6",
   "spatial_analyzer_target": "2026.1.0529.7",
   "target_protocol_package": "briosa.sa.v2026_1_0529_7.v1alpha1",
   "operations": [
     {
       "operation_id": "file_operations.get_working_directory",
+      "inventory_key": "documentation:FileOperations/GetWorkingDirectory.htm",
       "mp_step": "Get Working Directory",
+      "protocol_file": "file_operations.proto",
       "service": "FileOperations",
       "rpc": "GetWorkingDirectory",
       "request": "GetWorkingDirectoryRequest",
       "result": "GetWorkingDirectoryResult",
+      "fully_qualified_method": "/briosa.sa.v2026_1_0529_7.v1alpha1.FileOperations/GetWorkingDirectory",
       "effect": "read_only",
       "execution_scope": "global_state_read",
       "isolation_review": "Reads SpatialAnalyzer\u0027s application-global working directory; callers sharing one target must coordinate any operation that can change it.",
@@ -27,11 +31,13 @@
         {
           "argument_id": "directory",
           "ordinal": 0,
+          "sdk_order": 0,
           "mp_name": "Directory",
           "direction": "output",
           "result_only": "yes",
           "semantic_type": "string",
           "data_classification": "path",
+          "field_number": 1,
           "getter": "GetStringArg"
         }
       ]

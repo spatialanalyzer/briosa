@@ -17,13 +17,14 @@ Every scaffold retains the inventory key, inventory and resolved MP-step claims,
 
 Public API decisions remain explicit null blockers:
 
-- operation, category, RPC, request, result, and argument names;
+- operation, category partition, RPC, request, result, and argument names;
+- explicit request/result field numbers;
 - input requiredness, omission behavior, and default policy;
 - effect, replay safety, risk flags, and execution scope;
 - per-argument data classification; and
 - public summaries, isolation guidance, argument descriptions, and catalog evidence.
 
-The reviewed disposition and input-resolution values are preserved as evidence beside those blockers. They are not copied automatically into the public catalog. A scaffold uses `scaffold.schema.json`, has `review_status: incomplete`, and cannot pass supported-catalog validation or generate protocol/server artifacts.
+The reviewed disposition and input-resolution values are preserved as evidence beside those blockers. Inventory key and SDK order are already exact evidence identities, but public category/name and field-number choices remain blocked. They are not inferred from sort order or copied automatically into the public catalog. A scaffold uses `scaffold.schema.json`, has `review_status: incomplete`, and cannot pass supported-catalog validation or generate protocol/server artifacts.
 
 ## Generate a review set
 
@@ -56,11 +57,11 @@ Review scaffolds as generated evidence. Do not edit them into a second source of
 Promote small, risk-ordered subsets rather than copying the complete scaffold set into `catalog`.
 
 1. Confirm that the source fingerprints still match a freshly generated scaffold.
-2. Review the resolved MP step and exact argument order against the cited evidence.
-3. Choose stable operation, service, RPC, request, result, and argument identities under the naming policy established by issue #60.
+2. Review the resolved MP step, MP/documented ordinal, and distinct SDK order against the cited evidence.
+3. Carry the exact `inventory_key`, register or reuse one stable category partition, and choose operation, RPC, request, result, argument, and explicit request/result field identities under [ADR 0021](../architecture/0021-exact-target-protobuf-partitions-and-identifiers.md).
 4. Review input presence, omission, and default behavior; a retained candidate or prior disposition value is not automatic public policy.
 5. Review effect, replay safety, execution scope, risk flags, data classifications, and isolation guidance under ADRs 0015, 0018, and 0019.
-6. Write original public descriptions and select the exact catalog evidence references. Include `Inventory key: <exact inventory key>` as a `maintainer_review` evidence reference so later scaffold runs can trace SDK-only operations without inference.
+6. Write original public descriptions and select the exact catalog evidence references. Inventory traceability comes from the first-class `inventory_key`; evidence text no longer acts as an identity parser.
 7. Add the completed operation file to the exact-target catalog manifest and increment the target-local catalog revision.
 8. Run catalog validation, scaffold verification, generated-artifact verification, and the relevant portable command tests.
 

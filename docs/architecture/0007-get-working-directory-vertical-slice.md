@@ -13,7 +13,7 @@ The command is intentionally small, but it must exercise the same boundaries req
 
 The reviewed catalog remains the source of truth for repetitive operation artifacts.
 
-- `Briosa.Generator catalog-generate` generates the exact-target `operations.proto` contract and an immutable worker-command binding. CI regenerates both in a temporary directory and fails when committed artifacts differ or stale generated files remain.
+- `Briosa.Generator catalog-generate` generates the exact-target category contract (`file_operations.proto`) and an immutable worker-command binding. CI regenerates both in a temporary directory and fails when committed artifacts differ or stale generated files remain.
 - The generated binding creates a command with operation ID `file_operations.get_working_directory`, MP step `Get Working Directory`, no input setters, and one requested text output named `Directory`.
 - The hand-written target service submits that command through `IWorkerCommandExecutor`. The production implementation is the existing `WorkerProcessSupervisor`; the public host never owns SDK or COM state.
 - The worker executes `SetStep("Get Working Directory")`, `ExecuteStep`, `GetMPStepResult`, and, only when the result getter succeeds with MP result code `2`, `GetStringArg("Directory", ...)` on its single SDK-owning STA.

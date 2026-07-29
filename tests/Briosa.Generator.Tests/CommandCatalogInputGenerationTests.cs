@@ -17,10 +17,20 @@ public sealed class CommandCatalogInputGenerationTests
         try
         {
             CopyDirectory(Path.Combine(repositoryRoot.FullName, "catalog"), catalogRoot);
+            CopyDirectory(
+                Path.Combine(repositoryRoot.FullName, "proto"),
+                Path.Combine(temporaryRoot, "proto"));
             var targetRoot = Path.Combine(catalogRoot, "sa", "2026.1.0529.7");
             var manifestPath = Path.Combine(targetRoot, "catalog.json");
             var manifest = JsonNode.Parse(File.ReadAllText(manifestPath))!.AsObject();
             manifest["operation_files"]!.AsArray().Add("operations/synthetic.all_types.json");
+            manifest["protocol_partitions"]!.AsArray().Add(new JsonObject
+            {
+                ["category"] = "Synthetic",
+                ["alias"] = "synthetic",
+                ["service"] = "Synthetic",
+                ["proto_file"] = "synthetic.proto"
+            });
             File.WriteAllText(manifestPath, manifest.ToJsonString(JsonOptions));
             var syntheticOperation = JsonNode.Parse(SyntheticOperation)!.AsObject();
             var syntheticArguments = syntheticOperation["arguments"]!.AsArray();
@@ -36,6 +46,22 @@ public sealed class CommandCatalogInputGenerationTests
             {
                 syntheticArguments.Add(argument?.DeepClone());
             }
+            foreach (var argumentNode in syntheticArguments)
+            {
+                var argument = argumentNode!.AsObject();
+                var ordinal = argument["ordinal"]!.GetValue<int>();
+                var direction = argument["direction"]!.GetValue<string>();
+                argument["sdk_order"] = ordinal;
+                argument["field_numbers"] = new JsonObject
+                {
+                    ["request"] = direction is "input" or "input_output"
+                        ? JsonValue.Create(ordinal + 1)
+                        : null,
+                    ["result"] = direction is "output" or "input_output"
+                        ? JsonValue.Create(ordinal + 1)
+                        : null
+                };
+            }
             syntheticOperation["arguments"] = new JsonArray(
                 syntheticArguments
                     .OrderBy(argument => argument!["ordinal"]!.GetValue<int>())
@@ -47,6 +73,22 @@ public sealed class CommandCatalogInputGenerationTests
                 syntheticOperation.ToJsonString(JsonOptions));
 
             _ = CommandCatalogGenerator.Generate(catalogRoot, outputRoot);
+
+            var targetProtoRoot = Path.Combine(
+                outputRoot,
+                "proto",
+                "briosa",
+                "sa",
+                "v2026_1_0529_7",
+                "v1alpha1");
+            var fileOperationsProto = File.ReadAllText(Path.Combine(
+                targetProtoRoot,
+                "file_operations.proto"));
+            var syntheticProto = File.ReadAllText(Path.Combine(targetProtoRoot, "synthetic.proto"));
+            Assert.Contains("service FileOperations", fileOperationsProto, StringComparison.Ordinal);
+            Assert.DoesNotContain("service Synthetic", fileOperationsProto, StringComparison.Ordinal);
+            Assert.Contains("service Synthetic", syntheticProto, StringComparison.Ordinal);
+            Assert.DoesNotContain("service FileOperations", syntheticProto, StringComparison.Ordinal);
 
             var binding = File.ReadAllText(Path.Combine(
                 outputRoot,
@@ -231,6 +273,7 @@ public sealed class CommandCatalogInputGenerationTests
         {
           "$schema": "../../../schemas/v1/operation.schema.json",
           "operation_id": "synthetic.all_types",
+          "inventory_key": "synthetic:test:all_types",
           "mp_step": "Synthetic All Types",
           "category": "Synthetic",
           "protocol": {

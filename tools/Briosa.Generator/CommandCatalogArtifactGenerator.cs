@@ -65,6 +65,11 @@ internal static class CommandCatalogArtifactGenerator
 
         foreach (var operation in operations)
         {
+            var partition = manifest.ProtocolPartitions.Single(partition =>
+                string.Equals(
+                    partition.Alias,
+                    operation.OperationId.Split('.')[0],
+                    StringComparison.Ordinal));
             builder.AppendLine();
             builder.Append("## `").Append(operation.Protocol.Service).Append('.')
                 .Append(operation.Protocol.Rpc).AppendLine("`");
@@ -72,6 +77,12 @@ internal static class CommandCatalogArtifactGenerator
             builder.AppendLine(operation.Documentation.Summary);
             builder.AppendLine();
             builder.Append("- Briosa operation: `").Append(operation.OperationId).AppendLine("`");
+            builder.Append("- Inventory key: `").Append(operation.InventoryKey).AppendLine("`");
+            builder.Append("- Protocol file: `").Append(partition.ProtoFile).AppendLine("`");
+            builder.Append("- Fully qualified method: `/")
+                .Append(manifest.TargetProtocolPackage).Append('.')
+                .Append(operation.Protocol.Service).Append('/')
+                .Append(operation.Protocol.Rpc).AppendLine("`");
             builder.Append("- Exact MP step: `").Append(operation.MpStep).AppendLine("`");
             builder.Append("- Stability: `").Append(operation.Stability).AppendLine("`");
             builder.Append("- Execution scope: `").Append(operation.ExecutionScope)
@@ -84,8 +95,8 @@ internal static class CommandCatalogArtifactGenerator
                 .AppendLine(operation.Risk.Flags.Count == 0
                     ? "none"
                     : string.Join(", ", operation.Risk.Flags.Select(flag => $"`{flag}`")));
-            AppendArgumentTable(builder, "Inputs", operation.Arguments.Where(IsInput));
-            AppendArgumentTable(builder, "Outputs", operation.Arguments.Where(IsOutput));
+            AppendArgumentTable(builder, "Inputs", operation.Arguments.Where(IsInput), isInput: true);
+            AppendArgumentTable(builder, "Outputs", operation.Arguments.Where(IsOutput), isInput: false);
         }
 
         return builder.ToString();
@@ -95,9 +106,13 @@ internal static class CommandCatalogArtifactGenerator
         CommandCatalogManifest manifest,
         IReadOnlyList<CommandCatalogOperation> operations)
     {
+        var partitions = manifest.ProtocolPartitions.ToDictionary(
+            partition => partition.Alias,
+            StringComparer.Ordinal);
         var document = new
         {
             schema_version = 1,
+            generated_by = CommandCatalogGenerator.GeneratedArtifactIdentity,
             manifest.CatalogId,
             manifest.CatalogRevision,
             manifest.SpatialAnalyzerTarget,
@@ -105,11 +120,15 @@ internal static class CommandCatalogArtifactGenerator
             operations = operations.Select(operation => new
             {
                 operation.OperationId,
+                operation.InventoryKey,
                 operation.MpStep,
+                protocol_file = partitions[operation.OperationId.Split('.')[0]].ProtoFile,
                 service = operation.Protocol.Service,
                 rpc = operation.Protocol.Rpc,
                 request = operation.Protocol.Request,
                 result = operation.Protocol.Result,
+                fully_qualified_method =
+                    $"/{manifest.TargetProtocolPackage}.{operation.Protocol.Service}/{operation.Protocol.Rpc}",
                 effect = operation.Risk.Effect,
                 execution_scope = operation.ExecutionScope,
                 isolation_review = operation.Documentation.Isolation,
@@ -126,10 +145,12 @@ internal static class CommandCatalogArtifactGenerator
                     {
                         argument.ArgumentId,
                         argument.Ordinal,
+                        argument.SdkOrder,
                         argument.MpName,
                         argument.Direction,
                         argument.SemanticType,
                         argument.DataClassification,
+                        field_number = argument.FieldNumbers.Request,
                         setter = argument.SdkBinding.Setter,
                         presence = argument.Input?.Presence,
                         omission_behavior = argument.Input?.OmissionBehavior,
@@ -140,11 +161,13 @@ internal static class CommandCatalogArtifactGenerator
                     {
                         argument.ArgumentId,
                         argument.Ordinal,
+                        argument.SdkOrder,
                         argument.MpName,
                         argument.Direction,
                         argument.ResultOnly,
                         argument.SemanticType,
                         argument.DataClassification,
+                        field_number = argument.FieldNumbers.Result,
                         getter = argument.SdkBinding.Getter
                     })
             })
@@ -616,7 +639,8 @@ internal static class CommandCatalogArtifactGenerator
     private static void AppendArgumentTable(
         StringBuilder builder,
         string heading,
-        IEnumerable<CommandCatalogArgument> arguments)
+        IEnumerable<CommandCatalogArgument> arguments,
+        bool isInput)
     {
         var values = arguments.OrderBy(argument => argument.Ordinal).ToArray();
         builder.AppendLine().Append("### ").AppendLine(heading).AppendLine();
@@ -626,15 +650,21 @@ internal static class CommandCatalogArtifactGenerator
             return;
         }
 
-        builder.AppendLine("| Field | MP argument | Direction | Type | Data classification | SDK binding | Presence / retrieval |");
-        builder.AppendLine("| --- | --- | --- | --- | --- | --- | --- |");
+        builder.AppendLine("| Field | Number | MP ordinal | SDK order | MP argument | Direction | Type | Data classification | SDK binding | Presence / retrieval |");
+        builder.AppendLine("| --- | ---: | ---: | ---: | --- | --- | --- | --- | --- | --- |");
         foreach (var argument in values)
         {
-            var binding = IsInput(argument) ? argument.SdkBinding.Setter : argument.SdkBinding.Getter;
-            var behavior = IsInput(argument)
+            var binding = isInput ? argument.SdkBinding.Setter : argument.SdkBinding.Getter;
+            var fieldNumber = isInput
+                ? argument.FieldNumbers.Request
+                : argument.FieldNumbers.Result;
+            var behavior = isInput
                 ? $"{argument.Input!.Presence}; {argument.Input.OmissionBehavior}; default {argument.Input.Default.Status}"
                 : $"result-only {argument.ResultOnly}";
-            builder.Append("| `").Append(argument.ArgumentId).Append("` | `")
+            builder.Append("| `").Append(argument.ArgumentId).Append("` | ")
+                .Append(fieldNumber).Append(" | ")
+                .Append(argument.Ordinal).Append(" | ")
+                .Append(argument.SdkOrder).Append(" | `")
                 .Append(argument.MpName).Append("` | `").Append(argument.Direction)
                 .Append("` | `").Append(argument.SemanticType).Append("` | `")
                 .Append(argument.DataClassification).Append("` | `")

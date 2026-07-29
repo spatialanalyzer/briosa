@@ -12,6 +12,7 @@
     "spatial_analyzer_target",
     "target_protocol_package",
     "sources",
+    "protocol_partitions",
     "operation_files"
   ],
   "properties": {
@@ -67,6 +68,38 @@
           },
           "source_material_committed": {
             "type": "boolean"
+          }
+        }
+      }
+    },
+    "protocol_partitions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "category",
+          "alias",
+          "service",
+          "proto_file"
+        ],
+        "properties": {
+          "category": {
+            "type": "string",
+            "minLength": 1
+          },
+          "alias": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$"
+          },
+          "service": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Za-z0-9]*$"
+          },
+          "proto_file": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(?:_[a-z0-9]+)*\\.proto$"
           }
         }
       }

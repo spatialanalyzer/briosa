@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using System.Text.Json;
 using Briosa.Core.V1Alpha1;
 using Google.Protobuf;
 using TargetProtocol = Briosa.Sa.V2026_1_0529_7.V1Alpha1;
@@ -19,6 +20,47 @@ public sealed partial class ProtocolSchemaTests
         Assert.NotEqual(
             typeof(VersionCoordinates).Namespace,
             typeof(TargetProtocol.PointName).Namespace);
+    }
+
+    [Fact]
+    public void ExactTargetMethodRetainsItsReviewedCategoryFileAndFieldIdentity()
+    {
+        var file = TargetProtocol.GetWorkingDirectoryRequest.Descriptor.File;
+        var service = Assert.Single(file.Services);
+        var method = Assert.Single(service.Methods);
+        var directory = TargetProtocol.GetWorkingDirectoryResult.Descriptor.FindFieldByName("directory");
+        var execution = TargetProtocol.GetWorkingDirectoryResult.Descriptor.FindFieldByName("execution");
+
+        Assert.Equal(
+            "briosa/sa/v2026_1_0529_7/v1alpha1/file_operations.proto",
+            file.Name);
+        Assert.Equal("briosa.sa.v2026_1_0529_7.v1alpha1.FileOperations", service.FullName);
+        Assert.Equal("GetWorkingDirectory", method.Name);
+        Assert.Equal(1, directory.FieldNumber);
+        Assert.Equal(1000, execution.FieldNumber);
+    }
+
+    [Fact]
+    public void CatalogPartitionsAndFileLevelBreakingPolicyRemainExplicit()
+    {
+        var repositoryRoot = FindRepositoryRoot();
+        var catalogPath = Path.Combine(
+            repositoryRoot.FullName,
+            "catalog",
+            "sa",
+            "2026.1.0529.7",
+            "catalog.json");
+        using var catalog = JsonDocument.Parse(File.ReadAllBytes(catalogPath));
+        var partition = Assert.Single(
+            catalog.RootElement.GetProperty("protocol_partitions").EnumerateArray());
+
+        Assert.Equal("File Operations", partition.GetProperty("category").GetString());
+        Assert.Equal("file_operations", partition.GetProperty("alias").GetString());
+        Assert.Equal("FileOperations", partition.GetProperty("service").GetString());
+        Assert.Equal("file_operations.proto", partition.GetProperty("proto_file").GetString());
+
+        var bufConfiguration = File.ReadAllText(Path.Combine(repositoryRoot.FullName, "buf.yaml"));
+        Assert.Matches(@"(?ms)^breaking:\s*\r?\n\s+use:\s*\r?\n\s+- FILE\s*$", bufConfiguration);
     }
 
     [Fact]
