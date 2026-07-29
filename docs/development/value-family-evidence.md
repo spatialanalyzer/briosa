@@ -79,6 +79,8 @@ The first command validates JSON schemas, fingerprints, code/catalog completenes
 
 Changing a source fingerprint, enum literal, structured field, family mapping, or exact shared-method observation requires regenerating and reviewing the affected artifacts. Never hand-edit generated files below `generated/values` or `docs/reference/generated`.
 
+The [catalog review-scaffold generator](catalog-review-scaffolds.md) consumes this catalog directly. For a method with several reviewed domains, it requires the assignment keyed by exact method, inventory key, and SDK order; the older command-level disposition family summary cannot override that assignment.
+
 ## Adding another exact SA release
 
 Treat each release as an independent evidence target; a matching CLR signature or MP label is not compatibility evidence. For a new release:
