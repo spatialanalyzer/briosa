@@ -16,11 +16,13 @@ Private worker protocol version 3 adds typed MP execution requests and responses
 
 - A request carries Briosa-owned operation and step identifiers, typed input values, and typed descriptors for requested result-only arguments. The initial private value family covers logical, whole-number, floating-point, text, point-name, vector, and tolerance-vector values. COM types do not cross the process boundary; issue #14 owns the complete catalog of specialized argument types.
 - The server supervisor owns a bounded, single-consumer execution queue. This is the transport-neutral seam that future gRPC service methods call.
+- A value-free execution snapshot reports queue capacity/depth, admission waiters, active and peak work, admitted/terminal counts, cancellation position, watchdogs, and worker failures. It is diagnostic state, not request telemetry, and never carries operation values.
 - The worker maps each request to an `SdkCommand`. Its existing `SerializedSdkExecutor` performs the complete `SetStep`, input-setter, `ExecuteStep`, `GetMPStepResult`, and successful result-argument getter sequence on its one SDK-owning STA. No request can interleave another request's sequence.
 - An argument setter that returns false produces the curated `sdk-argument-rejected` outcome and does not execute a partially configured step.
 - The adapter calls `GetMPStepResult` only after `ExecuteStep` returns true. The getter Boolean means that the numeric result was retrieved; it is not the MP success flag. Result code `2` is success. Codes `-1`, `0`, `1`, `3`, `4`, `5`, and unknown values are preserved as non-success outcomes, and a false getter return is preserved separately as `sdk-mp-result-retrieval-failed` with no result code. Requested output getters run only after code `2`. Private worker protocol version 6 carries execute acceptance, MP-result retrieval, MP success, and the optional raw result code independently. A failed output getter produces `sdk-output-retrieval-failed` without silently substituting a default value.
 - The server's production watchdog defaults to 30 seconds. The execution queue capacity defaults to 64. These are worker-safety limits and are independent of a gRPC deadline or caller cancellation token.
 - A canceled caller stops waiting and receives `client-wait-cancelled`. Cancellation before enqueue is `NotStarted`; cancellation after enqueue is `StartedOutcomeUnknown` unless the worker proves that it skipped the request. An already queued request remains owned by the single consumer so its response is drained and the pipe stays synchronized. Cancellation does not claim to stop the COM call.
+- Queue admission is generation-scoped. Shutdown closes admission and wakes capacity waiters; it then drains every admitted item to a terminal internal outcome before replacing or stopping the runtime loops.
 - If the watchdog expires, the supervisor force-terminates the worker process tree, starts a replacement within the existing bounded restart policy, and reports `WatchdogTimeout` with `StartedOutcomeUnknown` for the affected request. Replacement restores availability but does not authorize replay.
 - A worker crash or invalid/broken control response after the request may have entered the worker is reported as `WorkerFailure` with `StartedOutcomeUnknown` and uses the same replacement path. Worker unavailability proved before execution remains a separate `NotStarted` outcome.
 - Heartbeats and executions share the supervisor's process gate, so a heartbeat cannot enter the request-response pipe while an execution is active.
@@ -36,6 +38,8 @@ Execution diagnostics contain operation-independent status codes, process genera
 Portable process tests use the fake worker executable to verify:
 
 - concurrent callers are served serially;
+- full-queue callers remain outside admission, cancel as `NotStarted`, and never increase admitted depth beyond capacity;
+- post-admission cancellation drains to a terminal internal outcome, and shutdown wakes capacity waiters;
 - caller cancellation returns promptly while a later request succeeds on the same generation;
 - a hung execution triggers forced replacement and the next call succeeds;
 - a crashed execution is distinct from a watchdog timeout and is replaced;
@@ -43,6 +47,7 @@ Portable process tests use the fake worker executable to verify:
 - MP-result retrieval failure remains distinct from an MP-reported failure and prevents output getter calls;
 - scalar, point-name, vector, and tolerance-vector outputs round-trip across the process boundary;
 - an SDK-faulted production worker returns unavailable without activating or controlling SpatialAnalyzer.
+- repeated watchdog replacement, bounded lifecycle history, retained-memory evidence, and value-free audit correlation remain stable under portable sustained load.
 
 Worker-unit tests verify STA affinity, non-interleaving, the exact production-adapter call order through MP result inspection and output getters, and output-getter failure preservation. Ordinary builds and tests require no SpatialAnalyzer process, installation, license, or proprietary runtime binary beyond the approved generated interop types already committed to the repository.
 

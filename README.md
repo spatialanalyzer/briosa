@@ -100,13 +100,15 @@ See [the interop generation guide](docs/development/interop-generation.md) and [
 
 The [fake SDK and contract-test harness](docs/testing/fake-sdk-harness.md) verifies Briosa's lifecycle, serialization, result handling, and recovery seams without installing or licensing SpatialAnalyzer. The scripted fake tests Briosa contracts and is not a SpatialAnalyzer emulator.
 
+Run `./eng/Test-RuntimePerformance.ps1 -NoBuild` after a Release build to record the reviewed fake-worker dispatch, generated request-mapping, catalog-discovery, and retained-memory metrics. Deterministic process tests separately saturate and drain the bounded queue, distinguish pre/post-admission cancellation, wake admission waiters on shutdown, cycle watchdog and crash recovery, cap lifecycle history, and preserve value-free audit correlation. Package checks also budget ZIP size and startup working set. The [runtime performance and soak guide](docs/testing/runtime-performance-and-soak.md) defines the exact samples and explains why the licensed read-only soak remains deferred pending issue #20 and Hexagon licensing guidance.
+
 The [generated-client smoke guide](docs/testing/generated-client-smoke.md) covers portable packaged-host scenarios and the explicit licensed-SA vertical-slice test. Both use a separate generated client process and redact the returned working-directory value.
 
 The [licensed runner operations guide](docs/operations/licensed-sa-runner.md) defines the dedicated-machine, organization runner-group, protected-environment, trusted-payload, and recovery requirements for real-SA validation. Never attach a repository-level self-hosted runner or a personal workstation to this public repository.
 
 ## Worker process lifecycle
 
-The gRPC host supervises SpatialAnalyzer automation in a disposable child worker over a private named pipe. It reports explicit lifecycle snapshots, replaces hung or crashed workers within a bounded restart window, and escalates failed graceful shutdown to process-tree termination.
+The gRPC host supervises SpatialAnalyzer automation in a disposable child worker over a private named pipe. It reports an explicit current lifecycle snapshot plus a bounded diagnostic history, replaces hung or crashed workers within a bounded restart window, and escalates failed graceful shutdown to process-tree termination. A value-free execution snapshot makes queue depth, admission waiters, terminal drain, cancellation position, and recovery counts testable without logging arguments or results.
 
 The host expects `Briosa.Worker.exe` beside the server by default. Development or packaged layouts can set `Briosa__Worker__ExecutablePath` to an explicit worker path. A missing worker degrades SDK readiness without terminating the public host.
 

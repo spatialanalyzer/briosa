@@ -37,7 +37,8 @@ internal sealed class WorkerRestartPolicy
         TimeSpan heartbeatTimeout,
         TimeSpan startupTimeout,
         TimeSpan shutdownTimeout,
-        TimeSpan restartDelay)
+        TimeSpan restartDelay,
+        int lifecycleHistoryCapacity = 256)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(maximumRestarts);
         ThrowIfNonPositive(restartWindow, nameof(restartWindow));
@@ -53,6 +54,8 @@ internal sealed class WorkerRestartPolicy
                 "The restart delay cannot be negative.");
         }
 
+        ArgumentOutOfRangeException.ThrowIfLessThan(lifecycleHistoryCapacity, 1);
+
         MaximumRestarts = maximumRestarts;
         RestartWindow = restartWindow;
         HeartbeatInterval = heartbeatInterval;
@@ -60,6 +63,7 @@ internal sealed class WorkerRestartPolicy
         StartupTimeout = startupTimeout;
         ShutdownTimeout = shutdownTimeout;
         RestartDelay = restartDelay;
+        LifecycleHistoryCapacity = lifecycleHistoryCapacity;
     }
 
     public int MaximumRestarts { get; }
@@ -75,6 +79,8 @@ internal sealed class WorkerRestartPolicy
     public TimeSpan ShutdownTimeout { get; }
 
     public TimeSpan RestartDelay { get; }
+
+    public int LifecycleHistoryCapacity { get; }
 
     private static void ThrowIfNonPositive(TimeSpan value, string parameterName)
     {

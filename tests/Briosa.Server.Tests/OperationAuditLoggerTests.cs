@@ -118,6 +118,46 @@ public sealed class OperationAuditLoggerTests
         Assert.DoesNotContain(SensitivePath, sink.AllText, StringComparison.OrdinalIgnoreCase);
     }
 
+    [Fact]
+    public void SustainedAuditEventsRemainCorrelatedValueFreeAndTerminal()
+    {
+        const int requestCount = 512;
+        var sink = new CapturingLogger();
+        var audit = new OperationAuditLogger(sink);
+        var operation = Assert.Single(TargetCatalogMetadata.Operations);
+        var correlationIds = Enumerable.Range(0, requestCount)
+            .Select(_ => Guid.NewGuid())
+            .ToArray();
+
+        foreach (var correlationId in correlationIds)
+        {
+            audit.RequestStarted(correlationId, operation, "local-unauthenticated");
+            audit.OperationCompleted(
+                correlationId,
+                operation.OperationId,
+                generation: 7,
+                requestDurationMilliseconds: 0,
+                new OperationAuditSummary(
+                    "completed",
+                    "succeeded",
+                    "retrieved",
+                    SdkDurationMilliseconds: 0,
+                    MpResultCode: 2));
+        }
+
+        Assert.Equal(requestCount, sink.Entries.Count(entry => entry.EventId == 2001));
+        Assert.Equal(requestCount, sink.Entries.Count(entry => entry.EventId == 2004));
+        Assert.DoesNotContain(SensitivePath, sink.AllText, StringComparison.OrdinalIgnoreCase);
+        foreach (var correlationId in correlationIds)
+        {
+            Assert.Equal(
+                2,
+                sink.Entries.Count(entry => entry.Message.Contains(
+                    correlationId.ToString(),
+                    StringComparison.OrdinalIgnoreCase)));
+        }
+    }
+
     private sealed class CapturingLogger : ILogger<OperationAuditLogger>
     {
         private readonly List<LogEntry> _entries = [];

@@ -52,6 +52,8 @@ Completion and failure events separate:
 - successful, failed, and not-attempted output retrieval; and
 - gRPC status from the curated diagnostic code.
 
+Portable sustained tests require exactly one request-start and one terminal audit event per correlation ID across 512 completed fake requests, while continuing to reject returned values from the logging surface. Queue and recovery counters are separately available as a value-free internal execution snapshot; they do not add operation payloads to audit events. See the [runtime performance and soak guide](../testing/runtime-performance-and-soak.md).
+
 ## Data handling and retention
 
 Briosa audit APIs never accept raw arguments or results. Do not add middleware that logs gRPC bodies, protobuf messages, COM values, peer strings, target hosts, or exception objects. Debug and trace levels are not permission to log them.

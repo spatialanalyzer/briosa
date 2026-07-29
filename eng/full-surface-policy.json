@@ -137,6 +137,42 @@
       "unit": "bytes",
       "maximum": 4194304,
       "review_path": "docs/development/full-surface-gates.md#ci-budgets"
+    },
+    {
+      "metric": "package-size",
+      "unit": "bytes",
+      "maximum": 268435456,
+      "review_path": "docs/testing/runtime-performance-and-soak.md#reviewed-budgets"
+    },
+    {
+      "metric": "startup-working-set",
+      "unit": "bytes",
+      "maximum": 536870912,
+      "review_path": "docs/testing/runtime-performance-and-soak.md#reviewed-budgets"
+    },
+    {
+      "metric": "dispatch-p95",
+      "unit": "milliseconds",
+      "maximum": 250,
+      "review_path": "docs/testing/runtime-performance-and-soak.md#reviewed-budgets"
+    },
+    {
+      "metric": "request-mapping-p95",
+      "unit": "milliseconds",
+      "maximum": 50,
+      "review_path": "docs/testing/runtime-performance-and-soak.md#reviewed-budgets"
+    },
+    {
+      "metric": "discovery-p95",
+      "unit": "milliseconds",
+      "maximum": 50,
+      "review_path": "docs/testing/runtime-performance-and-soak.md#reviewed-budgets"
+    },
+    {
+      "metric": "retained-managed-memory",
+      "unit": "bytes",
+      "maximum": 33554432,
+      "review_path": "docs/testing/runtime-performance-and-soak.md#reviewed-budgets"
     }
   ]
 }
