@@ -35,11 +35,32 @@ public sealed class CommandDispositionLedgerTests
     }
 
     [Fact]
+    public void Issue82LeavesNoPendingDefaultCandidates()
+    {
+        var repositoryRoot = FindRepositoryRoot().FullName;
+        var queue = JsonNode.Parse(File.ReadAllText(Path.Combine(
+            repositoryRoot,
+            "generated",
+            "values",
+            "sa",
+            "2026.1.0529.7",
+            "default-review-queue.json")))!.AsObject();
+        var summary = queue["summary"]!.AsObject();
+
+        Assert.Equal(421, summary["corroborated_default_count"]!.GetValue<int>());
+        Assert.Equal(314, summary["reviewed_no_default_count"]!.GetValue<int>());
+        Assert.Equal(0, summary["needs_review_count"]!.GetValue<int>());
+        Assert.Equal(1271, summary["no_candidate_count"]!.GetValue<int>());
+        Assert.Empty(queue["entries"]!.AsArray());
+    }
+
+    [Fact]
     public void Issue53ResolvesEveryCandidateShapeAndScopesRemainingDependencies()
     {
         const string issue53 = "https://github.com/spatialanalyzer/briosa/issues/53";
         const string issue79 = "https://github.com/spatialanalyzer/briosa/issues/79";
         const string issue80 = "https://github.com/spatialanalyzer/briosa/issues/80";
+        const string issue82 = "https://github.com/spatialanalyzer/briosa/issues/82";
         var entries = ReadCommittedEntries();
         var inventory = ReadCommittedInventory();
         var directionFindings = inventory.Commands
@@ -92,7 +113,8 @@ public sealed class CommandDispositionLedgerTests
         Assert.Equal(485, inputs.Count(input => input.Presence == "optional"));
         Assert.Equal(64, inputs.Count(input => input.OmissionBehavior == "omit_sdk_setter"));
         Assert.Equal(421, inputs.Count(input => input.Default.Status == "reviewed"));
-        Assert.Equal(314, inputs.Count(input => input.Default.ReviewStatus == "needs_review"));
+        Assert.Equal(314, inputs.Count(input => input.Default.Status == "reviewed_no_default"));
+        Assert.DoesNotContain(inputs, input => input.Default.ReviewStatus == "needs_review");
         Assert.All(
             inputs.Where(input => input.Default.Status == "reviewed"),
             input =>
@@ -106,16 +128,28 @@ public sealed class CommandDispositionLedgerTests
                 Assert.Null(input.Default.ReviewStatus);
                 Assert.Null(input.Default.Candidates);
             });
+        var reviewedNoDefault = inputs
+            .Where(input => input.Default.Status == "reviewed_no_default")
+            .ToArray();
         Assert.All(
-            inputs.Where(input => input.Default.ReviewStatus == "needs_review"),
+            reviewedNoDefault,
             input =>
             {
                 Assert.Equal("required", input.Presence);
                 Assert.Equal("reject_request", input.OmissionBehavior);
-                Assert.Equal("none", input.Default.Status);
                 Assert.Null(input.Default.Value);
+                Assert.Null(input.Default.Evidence);
+                Assert.Null(input.Default.ReviewStatus);
                 Assert.NotEmpty(input.Default.Candidates!);
+                Assert.Equal(issue82, input.Default.DecisionReference);
+                Assert.True(input.Default.EvidenceState is
+                    "exact_target_sample_only" or "conflict" or "objectivesa_only");
+                Assert.NotEmpty(input.Default.ReasonCodes!);
             });
+        Assert.All(
+            candidates.Where(entry => entry.CommandShape!.Arguments.Any(argument =>
+                argument.Input?.Default.Status == "reviewed_no_default")),
+            entry => Assert.Contains(issue82, entry.DecisionReferences));
 
         Assert.Equal(45, blocked.Count(entry => entry.BlockerReferences.SequenceEqual([issue79])));
         Assert.Equal(11, blocked.Count(entry => entry.BlockerReferences.SequenceEqual([issue80])));

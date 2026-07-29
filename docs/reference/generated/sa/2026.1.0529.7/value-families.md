@@ -11,7 +11,8 @@ This generated report summarizes the reviewed exact-target value-family source o
 - Shared SDK methods: 6
 - Exact command assignments: 995
 - ObjectiveSA corroborated defaults: 421
-- Defaults awaiting #82 review: 314
+- Reviewed candidates retaining required input: 314
+- Defaults awaiting #82 review: 0
 
 ## Shared-method domains
 

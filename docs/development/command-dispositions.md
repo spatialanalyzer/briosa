@@ -72,7 +72,7 @@ dotnet run --project tools/Briosa.Generator -c Release -- `
   disposition/sa/2026.1.0529.7
 ```
 
-For the initial SA 2026.1.0529.7 default review, maintainers with the local prior-release ObjectiveSA source and exact-target VB export may run `eng/Review-CommandDefaults.ps1`. It activates only corroborated prior-release defaults, leaves all other proposals inactive, and excludes sensitive values and obvious placeholders. The generated report is the manual-review queue; changing a candidate into a reviewed default remains a reviewed ledger decision.
+For SA 2026.1.0529.7 default review, maintainers with the pinned prior-release ObjectiveSA source may run `eng/Review-CommandDefaults.ps1`. A `reviewed` default activates one exact catalog value and makes public omission mean `set_catalog_default`. A `reviewed_no_default` resolution retains the candidate evidence and issue reference but keeps the public input `required`, keeps omission at `reject_request`, and invokes the SDK setter only with an explicit request value. `none` plus `needs_review` is pending; plain `none` records that no candidate exists. The script preserves and drift-checks reviewed-no-default decisions on later evidence refreshes.
 Review category shards in a focused pull request, update only reviewer-owned fields, and synchronize again so hashes and the report reflect the decisions. Then run:
 
 ```powershell

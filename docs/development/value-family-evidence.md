@@ -90,15 +90,16 @@ Treat each release as an independent evidence target; a matching CLR signature o
 5. Synchronize the target's binding review and generated value artifacts, add the target to CI discovery where required, and run both evidence and binding-registry verifiers.
 6. Keep unresolved source conflicts and unknown assignments blocked. Escalate redistribution questions instead of committing raw vendor inputs.
 
-## Reproducing the issue #82 queue
+## Issue #82 default decisions
 
-The ObjectiveSA importer supports the current source layout and no longer requires the raw View SDK Code directory when the exact-target candidates already committed to the disposition ledger are being recalculated:
+The ObjectiveSA importer supports the current source layout and does not require the raw View SDK Code directory when recalculating the exact-target candidates already committed to the disposition ledger. The accepted issue #82 review used proposal SHA-256 `1cb9d4e52b9371cdfbb3610edcb08f619824462a7eff4eb7ad3e3d2ed2c48556` and applied it once with:
 
 ```powershell
 ./eng/Review-CommandDefaults.ps1 `
   -ObjectiveSARoot C:\git\objectivesa `
   -InventoryPath inventory\sa\2026.1.0529.7\inventory.json `
   -DispositionDirectory disposition\sa\2026.1.0529.7 `
+  -DecisionProposalPath artifacts\82-default-review\decision-proposal.json `
   -Apply
 dotnet run --project tools/Briosa.Generator -c Release -- `
   disposition-sync `
@@ -107,4 +108,6 @@ dotnet run --project tools/Briosa.Generator -c Release -- `
 ./eng/Sync-ValueFamilyEvidence.ps1
 ```
 
-The reviewed baseline produces 1,187 ObjectiveSA mappings, 719 exact-target setter samples, 421 corroborated defaults, 314 entries requiring issue #82 review, and 1,271 inputs with no candidate. The committed queue is `generated/values/sa/2026.1.0529.7/default-review-queue.json`; candidates remain inactive until maintainers review them command by command.
+The reviewed baseline produces 1,187 ObjectiveSA mappings, 719 exact-target setter samples, 421 active corroborated defaults, 314 reviewed candidates retaining required input, no pending entries, and 1,271 inputs with no candidate. Every retained decision records its candidate values, evidence state, reason codes, and issue #82 reference in the disposition shard. Re-running the script without `-DecisionProposalPath` preserves those decisions only when the recalculated evidence is byte-equivalent; drift fails closed. The generated queue at `generated/values/sa/2026.1.0529.7/default-review-queue.json` must remain empty.
+
+See the [exact-target default decision summary](../reference/sa/2026.1.0529.7/default-decisions.md) for the reviewed batches and evidence boundaries.

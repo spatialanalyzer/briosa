@@ -818,7 +818,8 @@
       ],
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/49",
-        "https://github.com/spatialanalyzer/briosa/issues/53"
+        "https://github.com/spatialanalyzer/briosa/issues/53",
+        "https://github.com/spatialanalyzer/briosa/issues/82"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -929,8 +930,13 @@
               "presence": "required",
               "omission_behavior": "reject_request",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
+                "status": "reviewed_no_default",
+                "decision_reference": "https://github.com/spatialanalyzer/briosa/issues/82",
+                "evidence_state": "objectivesa_only",
+                "reason_codes": [
+                  "prior_release_evidence_not_authoritative",
+                  "retain_explicit_operation_semantics"
+                ],
                 "candidates": [
                   {
                     "source": "objectivesa_prior_release",
@@ -954,8 +960,13 @@
               "presence": "required",
               "omission_behavior": "reject_request",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
+                "status": "reviewed_no_default",
+                "decision_reference": "https://github.com/spatialanalyzer/briosa/issues/82",
+                "evidence_state": "objectivesa_only",
+                "reason_codes": [
+                  "prior_release_evidence_not_authoritative",
+                  "retain_explicit_operation_semantics"
+                ],
                 "candidates": [
                   {
                     "source": "objectivesa_prior_release",
@@ -1250,7 +1261,8 @@
       ],
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/49",
-        "https://github.com/spatialanalyzer/briosa/issues/53"
+        "https://github.com/spatialanalyzer/briosa/issues/53",
+        "https://github.com/spatialanalyzer/briosa/issues/82"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -1318,8 +1330,13 @@
               "presence": "required",
               "omission_behavior": "reject_request",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
+                "status": "reviewed_no_default",
+                "decision_reference": "https://github.com/spatialanalyzer/briosa/issues/82",
+                "evidence_state": "exact_target_sample_only",
+                "reason_codes": [
+                  "retain_explicit_operation_semantics",
+                  "view_sdk_sample_does_not_prove_omission_default"
+                ],
                 "candidates": [
                   {
                     "source": "sa_2026_generated_vb",
@@ -1343,8 +1360,13 @@
               "presence": "required",
               "omission_behavior": "reject_request",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
+                "status": "reviewed_no_default",
+                "decision_reference": "https://github.com/spatialanalyzer/briosa/issues/82",
+                "evidence_state": "exact_target_sample_only",
+                "reason_codes": [
+                  "retain_explicit_operation_semantics",
+                  "view_sdk_sample_does_not_prove_omission_default"
+                ],
                 "candidates": [
                   {
                     "source": "sa_2026_generated_vb",
@@ -1368,8 +1390,13 @@
               "presence": "required",
               "omission_behavior": "reject_request",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
+                "status": "reviewed_no_default",
+                "decision_reference": "https://github.com/spatialanalyzer/briosa/issues/82",
+                "evidence_state": "exact_target_sample_only",
+                "reason_codes": [
+                  "retain_explicit_operation_semantics",
+                  "view_sdk_sample_does_not_prove_omission_default"
+                ],
                 "candidates": [
                   {
                     "source": "sa_2026_generated_vb",
@@ -1438,7 +1465,8 @@
       ],
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/49",
-        "https://github.com/spatialanalyzer/briosa/issues/53"
+        "https://github.com/spatialanalyzer/briosa/issues/53",
+        "https://github.com/spatialanalyzer/briosa/issues/82"
       ],
       "blocker_references": [],
       "risk_effect": "read_only",
@@ -1486,8 +1514,13 @@
               "presence": "required",
               "omission_behavior": "reject_request",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
+                "status": "reviewed_no_default",
+                "decision_reference": "https://github.com/spatialanalyzer/briosa/issues/82",
+                "evidence_state": "exact_target_sample_only",
+                "reason_codes": [
+                  "retain_explicit_operation_semantics",
+                  "view_sdk_sample_does_not_prove_omission_default"
+                ],
                 "candidates": [
                   {
                     "source": "sa_2026_generated_vb",
@@ -1574,7 +1607,8 @@
       ],
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/49",
-        "https://github.com/spatialanalyzer/briosa/issues/53"
+        "https://github.com/spatialanalyzer/briosa/issues/53",
+        "https://github.com/spatialanalyzer/briosa/issues/82"
       ],
       "blocker_references": [],
       "risk_effect": "read_only",
@@ -1642,8 +1676,13 @@
               "presence": "required",
               "omission_behavior": "reject_request",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
+                "status": "reviewed_no_default",
+                "decision_reference": "https://github.com/spatialanalyzer/briosa/issues/82",
+                "evidence_state": "exact_target_sample_only",
+                "reason_codes": [
+                  "retain_explicit_operation_semantics",
+                  "view_sdk_sample_does_not_prove_omission_default"
+                ],
                 "candidates": [
                   {
                     "source": "sa_2026_generated_vb",
@@ -1667,8 +1706,13 @@
               "presence": "required",
               "omission_behavior": "reject_request",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
+                "status": "reviewed_no_default",
+                "decision_reference": "https://github.com/spatialanalyzer/briosa/issues/82",
+                "evidence_state": "exact_target_sample_only",
+                "reason_codes": [
+                  "retain_explicit_operation_semantics",
+                  "view_sdk_sample_does_not_prove_omission_default"
+                ],
                 "candidates": [
                   {
                     "source": "sa_2026_generated_vb",
@@ -1802,7 +1846,8 @@
       ],
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/49",
-        "https://github.com/spatialanalyzer/briosa/issues/53"
+        "https://github.com/spatialanalyzer/briosa/issues/53",
+        "https://github.com/spatialanalyzer/briosa/issues/82"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -1853,8 +1898,13 @@
               "presence": "required",
               "omission_behavior": "reject_request",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
+                "status": "reviewed_no_default",
+                "decision_reference": "https://github.com/spatialanalyzer/briosa/issues/82",
+                "evidence_state": "exact_target_sample_only",
+                "reason_codes": [
+                  "retain_explicit_operation_semantics",
+                  "view_sdk_sample_does_not_prove_omission_default"
+                ],
                 "candidates": [
                   {
                     "source": "sa_2026_generated_vb",
@@ -1878,8 +1928,13 @@
               "presence": "required",
               "omission_behavior": "reject_request",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
+                "status": "reviewed_no_default",
+                "decision_reference": "https://github.com/spatialanalyzer/briosa/issues/82",
+                "evidence_state": "exact_target_sample_only",
+                "reason_codes": [
+                  "retain_explicit_operation_semantics",
+                  "view_sdk_sample_does_not_prove_omission_default"
+                ],
                 "candidates": [
                   {
                     "source": "sa_2026_generated_vb",
@@ -1921,8 +1976,13 @@
               "presence": "required",
               "omission_behavior": "reject_request",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
+                "status": "reviewed_no_default",
+                "decision_reference": "https://github.com/spatialanalyzer/briosa/issues/82",
+                "evidence_state": "exact_target_sample_only",
+                "reason_codes": [
+                  "retain_explicit_operation_semantics",
+                  "view_sdk_sample_does_not_prove_omission_default"
+                ],
                 "candidates": [
                   {
                     "source": "sa_2026_generated_vb",
@@ -2020,7 +2080,8 @@
       ],
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/49",
-        "https://github.com/spatialanalyzer/briosa/issues/53"
+        "https://github.com/spatialanalyzer/briosa/issues/53",
+        "https://github.com/spatialanalyzer/briosa/issues/82"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -2068,8 +2129,13 @@
               "presence": "required",
               "omission_behavior": "reject_request",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
+                "status": "reviewed_no_default",
+                "decision_reference": "https://github.com/spatialanalyzer/briosa/issues/82",
+                "evidence_state": "exact_target_sample_only",
+                "reason_codes": [
+                  "retain_explicit_operation_semantics",
+                  "view_sdk_sample_does_not_prove_omission_default"
+                ],
                 "candidates": [
                   {
                     "source": "sa_2026_generated_vb",
@@ -2093,8 +2159,13 @@
               "presence": "required",
               "omission_behavior": "reject_request",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
+                "status": "reviewed_no_default",
+                "decision_reference": "https://github.com/spatialanalyzer/briosa/issues/82",
+                "evidence_state": "exact_target_sample_only",
+                "reason_codes": [
+                  "retain_explicit_operation_semantics",
+                  "view_sdk_sample_does_not_prove_omission_default"
+                ],
                 "candidates": [
                   {
                     "source": "sa_2026_generated_vb",
@@ -2133,7 +2204,8 @@
       ],
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/49",
-        "https://github.com/spatialanalyzer/briosa/issues/53"
+        "https://github.com/spatialanalyzer/briosa/issues/53",
+        "https://github.com/spatialanalyzer/briosa/issues/82"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -2180,8 +2252,13 @@
               "presence": "required",
               "omission_behavior": "reject_request",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
+                "status": "reviewed_no_default",
+                "decision_reference": "https://github.com/spatialanalyzer/briosa/issues/82",
+                "evidence_state": "exact_target_sample_only",
+                "reason_codes": [
+                  "retain_explicit_operation_semantics",
+                  "view_sdk_sample_does_not_prove_omission_default"
+                ],
                 "candidates": [
                   {
                     "source": "sa_2026_generated_vb",
@@ -2494,7 +2571,8 @@
       ],
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/49",
-        "https://github.com/spatialanalyzer/briosa/issues/53"
+        "https://github.com/spatialanalyzer/briosa/issues/53",
+        "https://github.com/spatialanalyzer/briosa/issues/82"
       ],
       "blocker_references": [],
       "risk_effect": "mutating",
@@ -2544,8 +2622,13 @@
               "presence": "required",
               "omission_behavior": "reject_request",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
+                "status": "reviewed_no_default",
+                "decision_reference": "https://github.com/spatialanalyzer/briosa/issues/82",
+                "evidence_state": "exact_target_sample_only",
+                "reason_codes": [
+                  "retain_explicit_operation_semantics",
+                  "view_sdk_sample_does_not_prove_omission_default"
+                ],
                 "candidates": [
                   {
                     "source": "sa_2026_generated_vb",
@@ -2569,8 +2652,13 @@
               "presence": "required",
               "omission_behavior": "reject_request",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
+                "status": "reviewed_no_default",
+                "decision_reference": "https://github.com/spatialanalyzer/briosa/issues/82",
+                "evidence_state": "exact_target_sample_only",
+                "reason_codes": [
+                  "retain_explicit_operation_semantics",
+                  "view_sdk_sample_does_not_prove_omission_default"
+                ],
                 "candidates": [
                   {
                     "source": "sa_2026_generated_vb",
@@ -2594,8 +2682,13 @@
               "presence": "required",
               "omission_behavior": "reject_request",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
+                "status": "reviewed_no_default",
+                "decision_reference": "https://github.com/spatialanalyzer/briosa/issues/82",
+                "evidence_state": "exact_target_sample_only",
+                "reason_codes": [
+                  "retain_explicit_operation_semantics",
+                  "view_sdk_sample_does_not_prove_omission_default"
+                ],
                 "candidates": [
                   {
                     "source": "sa_2026_generated_vb",
@@ -2619,8 +2712,13 @@
               "presence": "required",
               "omission_behavior": "reject_request",
               "default": {
-                "status": "none",
-                "review_status": "needs_review",
+                "status": "reviewed_no_default",
+                "decision_reference": "https://github.com/spatialanalyzer/briosa/issues/82",
+                "evidence_state": "exact_target_sample_only",
+                "reason_codes": [
+                  "retain_explicit_operation_semantics",
+                  "view_sdk_sample_does_not_prove_omission_default"
+                ],
                 "candidates": [
                   {
                     "source": "sa_2026_generated_vb",

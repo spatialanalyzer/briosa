@@ -39,7 +39,8 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 - Optional inputs: 485
 - Omitted SDK setters: 64
 - Reviewed catalog defaults: 421
-- Proposed defaults needing review: 314
+- Reviewed candidates retaining required input: 314
+- Proposed defaults needing review: 0
 - A generated SA 2026 VB value remains inactive review evidence unless a matching ObjectiveSA prior-release default corroborates it without an exact-target conflict.
 
 ## Categories
@@ -272,324 +273,328 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 
 ## Proposed defaults requiring maintainer review
 
-These values are evidence-backed proposals only. Their inputs continue to reject omission until a reviewed disposition explicitly activates a catalog default. Maintainer review is tracked by https://github.com/spatialanalyzer/briosa/issues/82.
+None.
 
-| Category path | MP step | Argument | Candidate evidence |
-| --- | --- | --- | --- |
-| AnalysisOperations | Get i-th Collection Name | Collection Index | sa_2026_generated_vb=0 |
-| AnalysisOperations | Get Timestamp for i-th Frame in Frame Set | Frame Set Index | sa_2026_generated_vb=0 |
-| AnalysisOperations | Get Timestamp for i-th Point in Point Set | Point Set Index | sa_2026_generated_vb=0 |
-| AnalysisOperations | Get Transform for i-th Frame in Frame Set | Frame Set Index | sa_2026_generated_vb=0 |
-| AnalysisOperations | Is Object of Type | Object Type | sa_2026_generated_vb="Any" |
-| AnalysisOperations | Mushroom Target Hole Inspection | Sphere Target Radius | sa_2026_generated_vb=0.0 |
-| AnalysisOperations / PipeRelationships | Make pipe Relationship Cut | Pipe 1 - Make Cut | sa_2026_generated_vb=true |
-| AnalysisOperations / PipeRelationships | Make pipe Relationship Cut | Pipe 1 - Create Frame | sa_2026_generated_vb=false |
-| AnalysisOperations / PipeRelationships | Make pipe Relationship Cut | Pipe 2 - Make Cut | sa_2026_generated_vb=true |
-| AnalysisOperations / PipeRelationships | Make pipe Relationship Cut | Pipe 2 - Create Frame | sa_2026_generated_vb=false |
-| AnalysisOperations | Query Clouds to Objects | Projection Options | sa_2026_generated_vb=["Object To Probe Vectors",false,false,0.0,false,0.0] |
-| AnalysisOperations | Query Clouds to Surface | Projection Options | sa_2026_generated_vb=["Object To Probe Vectors",false,false,0.0,false,0.0] |
-| AnalysisOperations | Query Groups to Objects | Projection Options | sa_2026_generated_vb=["Object To Probe Vectors",false,false,0.0,false,0.0] |
-| AnalysisOperations | Query Groups to Objects | Show Results Dialog? | objectivesa_prior_release=false; sa_2026_generated_vb=true |
-| AnalysisOperations | Query Points to Circle | Is Inside Measurement | sa_2026_generated_vb=true |
-| AnalysisOperations | Query Points to Circle | Auto Scale Vectors to % of Radius | sa_2026_generated_vb=40 |
-| AnalysisOperations | Query Points to Objects | Projection Options | sa_2026_generated_vb=["Object To Probe Vectors",false,false,0.0,false,0.0] |
-| AnalysisOperations | Query Points to Objects | Show Results Dialog? | objectivesa_prior_release=false; sa_2026_generated_vb=true |
-| AnalysisOperations | Re-Compute Calculated Items | Refresh Filtered Cloud Data? | sa_2026_generated_vb=false |
-| AnalysisOperations / RelationshipAttributes | Enable/Disable Relationships for Optimization | Enable? | sa_2026_generated_vb=false |
-| AnalysisOperations / RelationshipAttributes | Set Geom Relationship Criteria | Show in Report | sa_2026_generated_vb=true |
-| AnalysisOperations / RelationshipAttributes | Set Geom Relationship Criteria | Tolerance Options | sa_2026_generated_vb=[false,0.0,false,0.0] |
-| AnalysisOperations / RelationshipAttributes | Set Geom Relationship Nominal Geometry | Compare To Nominal? | sa_2026_generated_vb=true |
-| AnalysisOperations / RelationshipAttributes | Set Geom Relationship Nominal Avg Point | Compare To Nominal? | sa_2026_generated_vb=true |
-| AnalysisOperations / RelationshipAttributes | Set Geom Relationship Projection Plane | Project to Plane? | sa_2026_generated_vb=true |
-| AnalysisOperations / RelationshipAttributes | Set Relationship Auto Vectors Group Default Prefix | Geom Rel AVN VG Default Prefix | sa_2026_generated_vb="GR-AVN-" |
-| AnalysisOperations / RelationshipAttributes | Set Relationship Auto Vectors Group Default Prefix | Geom Rel AVF VG Default Prefix | sa_2026_generated_vb="GR-AVF-" |
-| AnalysisOperations / RelationshipAttributes | Set Relationship Auto Vectors Group Default Prefix | Non-Geom Rel VG Default Prefix | sa_2026_generated_vb="Auto Vectors: " |
-| AnalysisOperations / RelationshipAttributes | Set Relationship Orientation Fit Constraints (Vector Type) | Orientation Vector Constraint | sa_2026_generated_vb=[true,0.0,true,0.0,true,0.0,false,0.0,true,0.0,true,0.0,true,0.0,false,0.0] |
-| AnalysisOperations / RelationshipAttributes | Set Relationship Position Fit Constraints (Vector Type) | Position Vector Constraint | sa_2026_generated_vb=[true,0.0,true,0.0,true,0.0,false,0.0,true,0.0,true,0.0,true,0.0,false,0.0] |
-| AnalysisOperations / RelationshipAttributes | Set Relationship Projection Options | Projection Options | sa_2026_generated_vb=["Object To Probe Vectors",false,false,0.0,false,0.0] |
-| AnalysisOperations / RelationshipAttributes | Set Relationship Tolerance (Vector Type) | Vector Tolerance | sa_2026_generated_vb=[false,0.0,false,0.0,false,0.0,false,0.0,false,0.0,false,0.0,false,0.0,false,0.0] |
-| AnalysisOperations / RelationshipAttributesScalarTypes | Set Object to Object Direction Relationship Fit Constraints | Angle Between Vectors Fit Constraints | sa_2026_generated_vb=[true,0.0,true,0.0] |
-| AnalysisOperations / RelationshipAttributesScalarTypes | Set Object to Object Direction Relationship Fit Constraints | Mutual Perpendicular Length Fit Constraints | sa_2026_generated_vb=[true,0.0,true,0.0] |
-| AnalysisOperations / RelationshipAttributesScalarTypes | Set Relationship Fit Constraints (Scalar Type) | Fit Constraint Options | sa_2026_generated_vb=[true,0.0,true,0.0] |
-| AnalysisOperations / RelationshipAttributesScalarTypes | Set Relationship Tolerance (Scalar Type) | Tolerance Options | sa_2026_generated_vb=[false,0.0,false,0.0] |
-| AnalysisOperations | Set Circle Properties | Center Coordinate | sa_2026_generated_vb=[0.0,0.0,0.0] |
-| AnalysisOperations | Set Circle Properties | Normal Direction | sa_2026_generated_vb=[0.0,0.0,0.0] |
-| AnalysisOperations | Set Circle Properties | Radius | sa_2026_generated_vb=0.0 |
-| AnalysisOperations | Set Cone Properties | Cone End Point (in working coordinates) | sa_2026_generated_vb=[0.0,0.0,0.0] |
-| AnalysisOperations | Set Cone Properties | Cone Axis (in working coordinates) | sa_2026_generated_vb=[0.0,0.0,0.0] |
-| AnalysisOperations | Set Cone Properties | Cone Length | sa_2026_generated_vb=0.0 |
-| AnalysisOperations | Set Cone Properties | Cone Theta Start | sa_2026_generated_vb=0.0 |
-| AnalysisOperations | Set Cone Properties | Cone Theta Span | sa_2026_generated_vb=0.0 |
-| AnalysisOperations | Set Cone Properties | Cone Included Angle | sa_2026_generated_vb=0.0 |
-| AnalysisOperations | Set Cone Properties | Cut Length from Apex | sa_2026_generated_vb=0.0 |
-| AnalysisOperations | Set Default Colorization Options | Colorization Options | sa_2026_generated_vb=["Continuous","Blue","Green","Red",false,true,false,100.0,1,false,0.1,false,false,true,false,0.5,-0.5,0.03,-0.03] |
-| AnalysisOperations | Set Measurement Auxiliary Data | Value | sa_2026_generated_vb=0.0 |
-| AnalysisOperations | Sphere Axis Check | Sphere Target Radius | sa_2026_generated_vb=0.0 |
-| AnalysisOperations | Temperature Compensate a group | Material CTE (1/Deg F) | sa_2026_generated_vb=0.0 |
-| AnalysisOperations | Temperature Compensate a group | Initial Temperature (F) | sa_2026_generated_vb=0.0 |
-| AnalysisOperations | Temperature Compensate a group | Final Temperature (F) | sa_2026_generated_vb=0.0 |
-| AnalysisOperations | Translate Objects by Delta | Delta Translation | sa_2026_generated_vb=[0.0,0.0,0.0] |
-| CloudMeshOps / CloudFilters | Filter Clouds to Plane | Allowable Offset Dir | objectivesa_prior_release="Both" |
-| CloudMeshOps / CloudFilters | Filter Clouds to Plane | Output Type | objectivesa_prior_release="Points" |
-| CloudMeshOps / CloudFilters | Filter Clouds to Vector Groups - Resolve Clouds | Radial Cutoff | sa_2026_generated_vb=0.1 |
-| CloudMeshOps / CloudFilters | Filter Clouds to Vector Groups - Resolve Clouds | Lower Cutoff | sa_2026_generated_vb=-0.1 |
-| CloudMeshOps / CloudFilters | Filter Clouds to Vector Groups - Resolve Clouds | Upper Cutoff | sa_2026_generated_vb=0.1 |
-| CloudMeshOps / CloudFilters | Get Cloud RGB Values | RGB Color Channel | sa_2026_generated_vb="Intensity" |
-| CloudMeshOps / CloudFilters | Get Cloud RGB Values Near Point | Diameter | sa_2026_generated_vb=10.0 |
-| CloudMeshOps / CloudFilters | Get Cloud RGB Values Near Point | RGB Color Channel | sa_2026_generated_vb="Intensity" |
-| CloudMeshOps / CloudFilters | Subdivide Cloud by Point Spacing | Point Spacing | sa_2026_generated_vb=0.0 |
-| CloudMeshOps / CloudFilters | Subdivide Cloud by Point Spacing | Minimum Points Per Group | sa_2026_generated_vb=0 |
-| CloudMeshOps / CloudFilters | Subdivide Cloud by Point Spacing | Keep All Groups? | sa_2026_generated_vb=true |
-| CloudMeshOps / CrossSections | Enable/Disable Cloud Cross Sections | Cross Section ID | sa_2026_generated_vb=0 |
-| CloudMeshOps / CrossSections | Enable/Disable Cloud Cross Sections | Enable (TRUE) / Disable (FALSE)? | sa_2026_generated_vb=true |
-| CloudMeshOps / CrossSections | Enable Single Cloud Cross Section | Cross Section ID | sa_2026_generated_vb=0 |
-| CloudMeshOps / MeshOperations | Mesh Fill Holes | Maximum Triangle Length | sa_2026_generated_vb=-1.0 |
-| CloudMeshOps / MeshOperations | Mesh Fill Holes | Tension | sa_2026_generated_vb=0.0 |
-| CloudMeshOps / MeshOperations | Mesh Fill Holes | Unconditional Filling? | sa_2026_generated_vb=false |
-| CloudMeshOps / MeshOperations | Mesh Fill Holes | Fill All Holes? | sa_2026_generated_vb=true |
-| ConstructionOperations / Callouts | Create Picture Callout | Object for Callout Anchor Point | objectivesa_prior_release=null |
-| ConstructionOperations / Callouts | Set I-th Callout Position in Callout View | Callout View Index | sa_2026_generated_vb=0 |
-| ConstructionOperations / Callouts | Set I-th Callout Position in Callout View | X Position | sa_2026_generated_vb=0 |
-| ConstructionOperations / Callouts | Set I-th Callout Position in Callout View | Y Position | sa_2026_generated_vb=0 |
-| ConstructionOperations / Circles | Construct Circle | Circle Center (in working coordinates) | sa_2026_generated_vb=[0.0,0.0,0.0] |
-| ConstructionOperations / Circles | Construct Circle | Circle Normal (in working coordinates) | sa_2026_generated_vb=[0.0,0.0,0.0] |
-| ConstructionOperations / Circles | Construct Circle | Circle Radius | sa_2026_generated_vb=0.0 |
-| ConstructionOperations / Cones | Construct Cone | Cone End Point (in working coordinates) | sa_2026_generated_vb=[0.0,0.0,0.0] |
-| ConstructionOperations / Cones | Construct Cone | Cone Axis (in working coordinates) | sa_2026_generated_vb=[0.0,0.0,0.0] |
-| ConstructionOperations / Cones | Construct Cone | Cone Length | sa_2026_generated_vb=0.0 |
-| ConstructionOperations / Cones | Construct Cone | Cone Theta Start | sa_2026_generated_vb=0.0 |
-| ConstructionOperations / Cones | Construct Cone | Cone Theta Span | sa_2026_generated_vb=0.0 |
-| ConstructionOperations / Cones | Construct Cone | Cone Included Angle | sa_2026_generated_vb=0.0 |
-| ConstructionOperations / Cylinders | Construct Cylinder | Cylinder End Point (in working coordinates) | sa_2026_generated_vb=[0.0,0.0,0.0] |
-| ConstructionOperations / Cylinders | Construct Cylinder | Cylinder Axis (in working coordinates) | sa_2026_generated_vb=[0.0,0.0,0.0] |
-| ConstructionOperations / Cylinders | Construct Cylinder | Cylinder Diameter | sa_2026_generated_vb=0.0 |
-| ConstructionOperations / Cylinders | Construct Cylinder | Cylinder Length | sa_2026_generated_vb=0.0 |
-| ConstructionOperations / Cylinders | Construct Cylinder From End Points | Cylinder End Point A (in working coordinates) | sa_2026_generated_vb=[0.0,0.0,0.0] |
-| ConstructionOperations / Cylinders | Construct Cylinder From End Points | Cylinder End Point B (in working coordinates) | sa_2026_generated_vb=[0.0,0.0,0.0] |
-| ConstructionOperations / Cylinders | Construct Cylinder From End Points | Cylinder Diameter | sa_2026_generated_vb=0.0 |
-| ConstructionOperations / Frames | Construct Frame, Known Origin, Object Direction, Object Direction | Known Point Value in New Frame | sa_2026_generated_vb=[0.0,0.0,0.0] |
-| ConstructionOperations / Frames | Construct Frame, 3 Planes | X Value on PLane | sa_2026_generated_vb=0.0 |
-| ConstructionOperations / Frames | Construct Frame, 3 Planes | Y Value on PLane | sa_2026_generated_vb=0.0 |
-| ConstructionOperations / Frames | Construct Frame, 3 Planes | Z Value on Plane | sa_2026_generated_vb=0.0 |
-| ConstructionOperations / Lines | Construct Line 2 Points (Vector Notation) | First Vector | sa_2026_generated_vb=[0.0,0.0,0.0] |
-| ConstructionOperations / Lines | Construct Line 2 Points (Vector Notation) | Second Vector | sa_2026_generated_vb=[0.0,0.0,0.0] |
-| ConstructionOperations / Lines | Construct Line From Instrument Shot | Observation Index | sa_2026_generated_vb=0 |
-| ConstructionOperations / Lines | Construct Line Normal to Object | Line Length | sa_2026_generated_vb=1.0 |
-| ConstructionOperations / OtherMPTypes | Make a Collection Object Name Ref List - By Type and Color | Object Type | sa_2026_generated_vb="Any" |
-| ConstructionOperations / OtherMPTypes | Make a Collection Object Name Ref List - By Type and Color | Object Color | sa_2026_generated_vb=[255,0,0] |
-| ConstructionOperations / Planes | Construct Plane | Plane Center (in working coordinates) | sa_2026_generated_vb=[0.0,0.0,0.0] |
-| ConstructionOperations / Planes | Construct Plane | Plane Normal (in working coordinates) | sa_2026_generated_vb=[0.0,0.0,0.0] |
-| ConstructionOperations / PointClouds | Construct Cross Section Cloud | Cylindrical Cross Section Mode? | sa_2026_generated_vb=false |
-| ConstructionOperations / PointClouds | Construct Cross Section Cloud | Start Distance | sa_2026_generated_vb=0.0 |
-| ConstructionOperations / PointClouds | Construct Cross Section Cloud | Section Spacing | sa_2026_generated_vb=0.0 |
-| ConstructionOperations / PointClouds | Construct Cross Section Cloud | Proximity Threshold | sa_2026_generated_vb=0.0 |
-| ConstructionOperations / PointClouds | Construct Cross Section Cloud | Maximum Section Count | sa_2026_generated_vb=0 |
-| ConstructionOperations / PointClouds | Construct Cross Section Cloud | Limit Cross Section Extent | sa_2026_generated_vb=false |
-| ConstructionOperations / PointClouds | Construct Cross Section Cloud | Radius Limit | sa_2026_generated_vb=0.0 |
-| ConstructionOperations / PointClouds | Construct Cross Section Cloud | Project to Reference Surface | sa_2026_generated_vb=false |
-| ConstructionOperations / PointClouds | Construct Cross Section Cloud | Cloud Thinning Settings | sa_2026_generated_vb=["Nth Point",5,100,20000] |
-| ConstructionOperations / PointClouds | Construct Point Clouds from Existing Clouds - Uniform Spacing | Desired Point Spacing | objectivesa_prior_release=0.2; sa_2026_generated_vb=0.02 |
-| ConstructionOperations / PointsandGroups | Construct a Point in Working Coordinates | Working Coordinates | sa_2026_generated_vb=[0.0,0.0,0.0] |
-| ConstructionOperations / PointsandGroups | Construct Point at Intersection of B-Spline and Surfaces | Approximation Tolerance | sa_2026_generated_vb=0.001 |
-| ConstructionOperations / PointsandGroups | Construct Point From Survey Target Center | Survey Target Type | sa_2026_generated_vb="Triangle" |
-| ConstructionOperations / PointsandGroups | Construct Point From Survey Target Center | Search Diameter | sa_2026_generated_vb=0.0 |
-| ConstructionOperations / PointsandGroups | Construct Points Auto-Correspond 2 groups Inter-Point Distance | Auto-correspond same-point tolerance | sa_2026_generated_vb=0.1 |
-| ConstructionOperations / PointsandGroups | Construct Points Auto-Correspond 2 groups Proximity | Auto-correspond same-point tolerance | sa_2026_generated_vb=0.25 |
-| ConstructionOperations / PointsandGroups | Construct Points Layout on Grid | Point Prefix | sa_2026_generated_vb="p" |
-| ConstructionOperations / PointsandGroups | Construct Points Layout on Grid | X Min | sa_2026_generated_vb=0.0 |
-| ConstructionOperations / PointsandGroups | Construct Points Layout on Grid | X Max | sa_2026_generated_vb=100.0 |
-| ConstructionOperations / PointsandGroups | Construct Points Layout on Grid | X Count | sa_2026_generated_vb=10 |
-| ConstructionOperations / PointsandGroups | Construct Points Layout on Grid | Y Min | sa_2026_generated_vb=0.0 |
-| ConstructionOperations / PointsandGroups | Construct Points Layout on Grid | Y Max | sa_2026_generated_vb=50.0 |
-| ConstructionOperations / PointsandGroups | Construct Points Layout on Grid | Y Count | sa_2026_generated_vb=10 |
-| ConstructionOperations / PointsandGroups | Construct Points Layout on Grid | Z Min | sa_2026_generated_vb=0.0 |
-| ConstructionOperations / PointsandGroups | Construct Points Layout on Grid | Z Max | sa_2026_generated_vb=0.0 |
-| ConstructionOperations / PointsandGroups | Construct Points Layout on Grid | Z Count | sa_2026_generated_vb=1 |
-| ConstructionOperations / PointsandGroups | Construct Points N-Spaced on Curves | Number of Evenly Spaced Points | sa_2026_generated_vb=10 |
-| ConstructionOperations / PointsandGroups | Construct Points Shifted in Working Frame | Shift Vector | sa_2026_generated_vb=[0.0,0.0,0.0] |
-| ConstructionOperations / PointsandGroups | Construct Points Spaced at a Distance on Curves | Distance Between Points | sa_2026_generated_vb=0.5 |
-| ConstructionOperations / PointsandGroups | Construct Points Subset with Greatest Spacing | Subset Size | sa_2026_generated_vb=10 |
-| ConstructionOperations / PointsandGroups | Create Hidden Point | Hidden Point Rod Index | sa_2026_generated_vb=0 |
-| ConstructionOperations / PointsandGroups | Create Hidden Point | Overwrite existing point? | sa_2026_generated_vb=false |
-| ConstructionOperations / PointsandGroups | Delete Hidden point Rod | Hidden Point Rod Index | sa_2026_generated_vb=0 |
-| ConstructionOperations / PointsandGroups | Transform Points by Delta (About Working Frame) | Delta In Working Coordinates | sa_2026_generated_vb=[0.0,0.0,0.0] |
-| ConstructionOperations / Spheres | Construct Sphere | Sphere Center (in working coordinates) | sa_2026_generated_vb=[0.0,0.0,0.0] |
-| ConstructionOperations / Spheres | Construct Sphere | Sphere Radius | sa_2026_generated_vb=0.0 |
-| ConstructionOperations / VectorGroups | Construct a Vector in Working Coordinates (Begin/Delta) | 'Begin' in Working Coordinates | sa_2026_generated_vb=[0.0,0.0,0.0] |
-| ConstructionOperations / VectorGroups | Construct a Vector in Working Coordinates (Begin/Delta) | 'Delta' in Working Coordinates | sa_2026_generated_vb=[0.0,0.0,0.0] |
-| ConstructionOperations / VectorGroups | Construct a Vector in Working Coordinates (Begin/Direction/Mag.) | 'Begin' in Working Coordinates | sa_2026_generated_vb=[0.0,0.0,0.0] |
-| ConstructionOperations / VectorGroups | Construct a Vector in Working Coordinates (Begin/Direction/Mag.) | 'Direction' in Working Coordinates | sa_2026_generated_vb=[0.0,0.0,0.0] |
-| ConstructionOperations / VectorGroups | Construct a Vector in Working Coordinates (Begin/Direction/Mag.) | Signed Magnitude | sa_2026_generated_vb=0.0 |
-| Events | Get i-th Event From Event Ref List | Event Index | sa_2026_generated_vb=0 |
-| FileOperations / QDASFileExport | Get QDAS Catalog Entry Identifier | Font | sa_2026_generated_vb=["MS Shell Dlg",8,0,0,0] |
-| GDT | Feature Inspection Auto Filter | Feature Check Name List | objectivesa_prior_release=null |
-| GDT / GDTConstruct | Make GD&T Datum Annotation | Auxiliary Object | objectivesa_prior_release=null |
-| GDT / GDTConstruct | Make GD&T Datum Annotation | Auxiliary Geometry Relationship | objectivesa_prior_release=null |
-| GDT | Set GD&T Extended Options | Use Extended Options | sa_2026_generated_vb=true |
-| GDT | Set GD&T Extended Options | Circle Extended Options | sa_2026_generated_vb="Least Squares" |
-| GDT | Set GD&T Extended Options | Cone Extended Options | sa_2026_generated_vb="Least Squares" |
-| GDT | Set GD&T Extended Options | Cylinder Extended Options | sa_2026_generated_vb="Least Squares" |
-| GDT | Set GD&T Extended Options | Ellipse Extended Options | sa_2026_generated_vb="Least Squares" |
-| GDT | Set GD&T Extended Options | Line Extended Options | sa_2026_generated_vb="Least Squares" |
-| GDT | Set GD&T Extended Options | Open Slot Extended Options | sa_2026_generated_vb="Least Squares" |
-| GDT | Set GD&T Extended Options | Plane Extended Options | sa_2026_generated_vb="Least Squares" |
-| GDT | Set GD&T Extended Options | Slot Extended Options | sa_2026_generated_vb="Least Squares" |
-| GDT | Set GD&T Extended Options | Sphere Extended Options | sa_2026_generated_vb="Least Squares" |
-| InstrumentOperations / APILadar | Set LADAR Auto Meas Point | Sample Time MS (1-2000) | sa_2026_generated_vb=0 |
-| InstrumentOperations / APILadar | Set LADAR Auto Meas Sphere | Sphere Radius | sa_2026_generated_vb=1.1875 |
-| InstrumentOperations / APILadar | Set LADAR Auto Meas Sphere | Scan Line Spacing | sa_2026_generated_vb=0.05 |
-| InstrumentOperations / APILadar | Set LADAR Auto Meas Sphere | Send Center Point? | sa_2026_generated_vb=true |
-| InstrumentOperations / APILadar | Set LADAR Auto Meas Sphere | Send Sphere? | sa_2026_generated_vb=false |
-| InstrumentOperations / APILadar | Set LADAR Auto Meas Sphere | Send Measured Cloud? | sa_2026_generated_vb=false |
-| InstrumentOperations | Add Nominal Point to TCP Fixture | Nominal Point Location | sa_2026_generated_vb=[0.0,0.0,0.0] |
-| InstrumentOperations | Auto-Correspond with Proximity Trigger | Vector Group to make while Measuring (blank means ignore) | objectivesa_prior_release=null |
-| InstrumentOperations | Get Current Instrument Position Update | Reporting Frame | sa_2026_generated_vb="Instrument Base" |
-| InstrumentOperations | Get Observation Info | Observation Index | sa_2026_generated_vb=0 |
-| InstrumentOperations | Locate Instruments (USMN) | Show USMN Dialog | objectivesa_prior_release="On Tolerance Violation" |
-| InstrumentOperations | Locate Instruments (USMN) | Groups to be Excluded | objectivesa_prior_release=null |
-| InstrumentOperations | Move Measurement Observation | Observation index | sa_2026_generated_vb=0 |
-| InstrumentOperations | Move Measurement Observation | Delete point if no measurements remain? | sa_2026_generated_vb=false |
-| InstrumentOperations / NikonMetrologyLaserRadar / CloudViewerOperations | Set Filter | Filter Value | sa_2026_generated_vb=0 |
-| InstrumentOperations / NikonMetrologyLaserRadar | LR APDIS Perform MCM Calibration | Use Matte Tooling Ball? | sa_2026_generated_vb=true |
-| InstrumentOperations / NikonMetrologyLaserRadar | LR Hardware Connect | Port | sa_2026_generated_vb=0 |
-| InstrumentOperations / NikonMetrologyLaserRadar | LR Self Test - LO Sep | Region (1=Region12,2=Region23,3=Region34) | sa_2026_generated_vb=0 |
-| InstrumentOperations / NikonMetrologyLaserRadar | LR Self Test - LO Sep | Num Range Measurements | sa_2026_generated_vb=0 |
-| InstrumentOperations | Scan CAD Faces | Enable exclusions? | sa_2026_generated_vb=true |
-| InstrumentOperations | Scan CAD Faces | Wait for Completion | sa_2026_generated_vb=true |
-| InstrumentOperations | Set Instrument Interface Response Timeout | Timeout (secs) | sa_2026_generated_vb=0.0 |
-| InstrumentOperations | Set Observation Status | Observation Index | sa_2026_generated_vb=0 |
-| InstrumentOperations | Set Observation Status | Active? | sa_2026_generated_vb=false |
-| InstrumentOperations | Set Probe Offset Frame Offline (Select Previously Measured Frame) | Face ID  | sa_2026_generated_vb=0 |
-| InstrumentOperations | Set Target Computation Options | Target Computation Method | sa_2026_generated_vb="Use most recent shot from each face" |
-| InstrumentOperations | Start Instrument Interface | Initialize at Startup | sa_2026_generated_vb=false |
-| RelationshipOperations | Auto Filter Clouds to Nominal Geometry 2D | Cloud Thinning Settings | sa_2026_generated_vb=["Nth Point",5,100,20000] |
-| RelationshipOperations | Auto Filter Clouds to Nominal Geometry 2D | Use Feature Specific Filter Settings? | sa_2026_generated_vb=false |
-| RelationshipOperations | Auto Filter Clouds to Nominal Geometry 3D | Cloud Thinning Settings | sa_2026_generated_vb=["Nth Point",5,100,20000] |
-| RelationshipOperations | Auto Filter Clouds to Nominal Geometry 3D | Use Feature Specific Filter Settings? | sa_2026_generated_vb=false |
-| RelationshipOperations | Auto Filter Points/Groups/Clouds to Surface Faces | Cloud Thinning Settings | objectivesa_prior_release=null; sa_2026_generated_vb=["Nth Point",5,100,20000] |
-| RelationshipOperations | Create Points to Objects Map | Proximity Tolerance | sa_2026_generated_vb=0.0 |
-| RelationshipOperations | Edit Geometry Relationship Point List | Point Edit Mode | objectivesa_prior_release="Point List" |
-| RelationshipOperations | Extract Geometry From Point Clouds | Geometry Type | sa_2026_generated_vb="Circle" |
-| RelationshipOperations | Extract Geometry From Point Clouds | Tolerance | sa_2026_generated_vb=0.1 |
-| RelationshipOperations | Extract Geometry From Point Clouds | Reverse Normal | sa_2026_generated_vb=false |
-| RelationshipOperations | Extract Geometry From Point Clouds | Planar Point Count | sa_2026_generated_vb=1000 |
-| RelationshipOperations | Get i-th Relationship From Relationship Ref List | Relationship Index | sa_2026_generated_vb=0 |
-| RelationshipOperations | Make Dynamic Circle Relationship | Construction Mode | sa_2026_generated_vb="Cylinder and Plane Intersection - Hold Plane Normal" |
-| RelationshipOperations | Make Dynamic Ellipse Relationship | Construction Mode | sa_2026_generated_vb="Cylinder and Plane Intersection" |
-| RelationshipOperations | Make Dynamic Line Relationship | Construction Mode | sa_2026_generated_vb="Intersection of Two Planes" |
-| RelationshipOperations | Make Dynamic Plane Relationship | Construction Mode | sa_2026_generated_vb="Bisect Two Planes" |
-| RelationshipOperations | Make Dynamic Point Relationship | Construction Mode | sa_2026_generated_vb="Intersection of Line and Plane" |
-| RelationshipOperations | Make Frame to Frame Relationship | Orientation Tolerance | objectivesa_prior_release=null; sa_2026_generated_vb=[false,0.0,false,0.0] |
-| RelationshipOperations | Make Frame to Frame Relationship | Position Tolerance | objectivesa_prior_release=null; sa_2026_generated_vb=[false,0.0,false,0.0,false,0.0,false,0.0,false,0.0,false,0.0,false,0.0,false,0.0] |
-| RelationshipOperations | Make Group to Group Relationship | Tolerance | objectivesa_prior_release=null; sa_2026_generated_vb=[false,0.0,false,0.0,false,0.0,false,0.0,false,0.0,false,0.0,false,0.0,false,0.0] |
-| RelationshipOperations | Make Group to Group Relationship | Constraint | objectivesa_prior_release=null; sa_2026_generated_vb=[true,0.0,true,0.0,true,0.0,false,0.0,true,0.0,true,0.0,true,0.0,false,0.0] |
-| RelationshipOperations | Make Point Clouds to Objects Relationship | Projection Options | sa_2026_generated_vb=["Object To Probe Vectors",false,false,0.0,false,0.0] |
-| RelationshipOperations | Make Point to Point Relationship | Tolerance | objectivesa_prior_release=null; sa_2026_generated_vb=[false,0.0,false,0.0,false,0.0,false,0.0,false,0.0,false,0.0,false,0.0,false,0.0] |
-| RelationshipOperations | Make Point to Point Relationship | Constraint | objectivesa_prior_release=null; sa_2026_generated_vb=[true,0.0,true,0.0,true,0.0,false,0.0,true,0.0,true,0.0,true,0.0,false,0.0] |
-| RelationshipOperations | Make Points to Objects Relationship | Projection Options | sa_2026_generated_vb=["Object To Probe Vectors",false,false,0.0,false,0.0] |
-| ReportingOperations / CustomReportTables | Add Custom Table to SA Report | Show Report? | sa_2026_generated_vb=false |
-| ReportingOperations / CustomReportTables | Get Custom Table Cell Double | Row | sa_2026_generated_vb=0 |
-| ReportingOperations / CustomReportTables | Get Custom Table Cell Double | Column | sa_2026_generated_vb=0 |
-| ReportingOperations / CustomReportTables | Get Custom Table Cell String | Row | sa_2026_generated_vb=0 |
-| ReportingOperations / CustomReportTables | Get Custom Table Cell String | Column | sa_2026_generated_vb=0 |
-| ReportingOperations / CustomReportTables | Make Custom Table | Decimal Precision | sa_2026_generated_vb=6 |
-| ReportingOperations / CustomReportTables | Set Custom Table Cell Color | Row | sa_2026_generated_vb=0 |
-| ReportingOperations / CustomReportTables | Set Custom Table Cell Color | Column | sa_2026_generated_vb=0 |
-| ReportingOperations / CustomReportTables | Set Custom Table Cell Color | Foreground Color Name | sa_2026_generated_vb=[255,0,0] |
-| ReportingOperations / CustomReportTables | Set Custom Table Cell Color | Background Color Name | sa_2026_generated_vb=[255,0,0] |
-| ReportingOperations / CustomReportTables | Set Custom Table Cell Font | Row | sa_2026_generated_vb=0 |
-| ReportingOperations / CustomReportTables | Set Custom Table Cell Font | Column | sa_2026_generated_vb=0 |
-| ReportingOperations / CustomReportTables | Set Custom Table Cell Font | Font | sa_2026_generated_vb=["MS Shell Dlg",8,0,0,0] |
-| ReportingOperations / ReportBar | Set Report Bar Visibility | Show Report Bar? | sa_2026_generated_vb=false |
-| ReportingOperations | Set Relationship Report Options | Report Options | sa_2026_generated_vb=["Cartesian","Single",true,true,true,true,true,true,true,false,true,true] |
-| ReportingOperations | Set Report Tag Value From Double | Tag Value | sa_2026_generated_vb=0.0 |
-| ReportingOperations | Set Report Tag Value From Integer | Tag Value | sa_2026_generated_vb=0 |
-| ReportingOperations | Set Scale for Picture | Scale | sa_2026_generated_vb=100.0 |
-| ReportingOperations | Set Vector Group Report Options | Report Options | sa_2026_generated_vb=["Cartesian","Single",true,true,true,true,true,true,true,false,true,true] |
-| RobotOperations | Get Calibration Appliance Integer Value | Index Offset | sa_2026_generated_vb=0 |
-| RobotOperations | Get Calibration Appliance Real Value | Index Offset | sa_2026_generated_vb=0 |
-| RobotOperations | Perform Robot Calibration (Alternate) | Set Current Base as Nominal? | sa_2026_generated_vb=false |
-| RobotOperations | Set Calibration Appliance Integer Value | Index Offset | sa_2026_generated_vb=0 |
-| RobotOperations | Set Calibration Appliance Integer Value | Integer Value | sa_2026_generated_vb=0 |
-| RobotOperations | Set Robot/Machine Parameter | Parameter Value | sa_2026_generated_vb=0.0 |
-| RobotOperations | Set Calibration Appliance Real Value | Index Offset | sa_2026_generated_vb=0 |
-| RobotOperations | Set Calibration Appliance Real Value | Real Value | sa_2026_generated_vb=0.0 |
-| ScaleBars | Scale Bar Check | Current Temperature (F) | sa_2026_generated_vb=0.0 |
-| ScaleBars | Scale Bar Check | Length of Bar at 68F | sa_2026_generated_vb=0.0 |
-| ScaleBars | Scale Bar Check | Material CTE (PPM/F) | sa_2026_generated_vb=0.0 |
-| ScaleBars | Scale Bar Check | Tolerance | sa_2026_generated_vb=0.0 |
-| UtilityOperations / Network | Set Wild Card Asterisk Mode | Auto Wrap Search String? | sa_2026_generated_vb=true |
-| UtilityOperations / Units | Scale Objects | Scale Factor | sa_2026_generated_vb=0.0 |
-| UtilityOperations / Units | Set Angular Representation | 0-360, (FALSE = +/-180) | sa_2026_generated_vb=false |
-| UtilityOperations / Units | Set Auto Event Creation | Active? | sa_2026_generated_vb=false |
-| UtilityOperations / Units | Set Automatic Backup State | Auto Job File Restore Points Active? | sa_2026_generated_vb=true |
-| UtilityOperations / Units | Set Automatic Backup State | Auto Measurements Backup Active? | sa_2026_generated_vb=true |
-| UtilityOperations / Units | Set Automatic Relationship Construction State | Active? | sa_2026_generated_vb=false |
-| UtilityOperations / Units | Set Decimal Digits for Display | Length | objectivesa_prior_release=6; sa_2026_generated_vb=0 |
-| UtilityOperations / Units | Set Decimal Digits for Display | Angle | objectivesa_prior_release=6; sa_2026_generated_vb=0 |
-| UtilityOperations / Units | Set Decimal Digits for Display | Scale | objectivesa_prior_release=6; sa_2026_generated_vb=0 |
-| UtilityOperations / Units | Set Decimal Digits for Display | Unit Vector | objectivesa_prior_release=6; sa_2026_generated_vb=0 |
-| UtilityOperations / Units | Set Decimal Digits for Display | Weight | objectivesa_prior_release=6; sa_2026_generated_vb=0 |
-| UtilityOperations / Units | Set View Idle Update Frequency | Idle Count | sa_2026_generated_vb=0 |
-| Vector Operations | Auto-Range and Set Vector Group Colorization (All) | Treat Individually? | sa_2026_generated_vb=false |
-| Vector Operations | Auto-Range and Set Vector Group Colorization (All) | Colorization Options (Uses Mode Only) | sa_2026_generated_vb=["Continuous","Blue","Green","Red",false,true,false,100.0,1,false,0.1,false,false,true,false,0.5,-0.5,0.03,-0.03] |
-| Vector Operations | Auto-Range and Set Vector Group Colorization (Selected) | Treat Individually? | sa_2026_generated_vb=false |
-| Vector Operations | Auto-Range and Set Vector Group Colorization (Selected) | Colorization Options (Uses Mode Only) | sa_2026_generated_vb=["Continuous","Blue","Green","Red",false,true,false,100.0,1,false,0.1,false,false,true,false,0.5,-0.5,0.03,-0.03] |
-| Vector Operations | Delete i-th Vector From Vector Group | Vector Index | sa_2026_generated_vb=0 |
-| Vector Operations | Get i-th Vector From Vector Group | Vector Index | sa_2026_generated_vb=0 |
-| Vector Operations | Set Vector Group Colorization Options (All) | Colorization Options | sa_2026_generated_vb=["Continuous","Blue","Green","Red",false,true,false,100.0,1,false,0.1,false,false,true,false,0.5,-0.5,0.03,-0.03] |
-| Vector Operations | Set Vector Group Colorization Options (Selected) | Colorization Options | sa_2026_generated_vb=["Continuous","Blue","Green","Red",false,true,false,100.0,1,false,0.1,false,false,true,false,0.5,-0.5,0.03,-0.03] |
-| ViewControl / Colors | Set Object(s) Color | New Working Color Name | sa_2026_generated_vb=[255,0,0] |
-| ViewControl / Colors | Set Working Color | New Working Color Name | sa_2026_generated_vb=[255,0,0] |
-| ViewControl / Colors | Set Working Color Auto Increment | Auto Increment | sa_2026_generated_vb=false |
-| ViewControl / HideShowOperations | Show/Hide Callout View | Show Callout View? | sa_2026_generated_vb=true |
-| ViewControl / HideShowOperations | Show/Hide Instrument Probe Tip | Show Instrument Probe Tip? | sa_2026_generated_vb=false |
-| ViewControl / HideShowOperations | Show/Hide Instruments | Show Instruments? | sa_2026_generated_vb=false |
-| ViewControl / HideShowOperations | Show/Hide Points | Show? (Hide = FALSE) | sa_2026_generated_vb=false |
-| ViewControl / HideShowOperations | Show/Hide Relationship Report | Show Relationship Report | sa_2026_generated_vb=false |
-| ViewControl / HideShowOperations | Show/Hide by Object Type | All Collections? | sa_2026_generated_vb=false |
-| ViewControl / HideShowOperations | Show/Hide by Object Type | Object Type To Show / Hide | sa_2026_generated_vb="Any" |
-| ViewControl / HideShowOperations | Show/Hide by Object Type | Hide? (Show = FALSE) | sa_2026_generated_vb=true |
-| ViewControl / HideShowOperations | Show Items in Tree | Collapse all other Items? | sa_2026_generated_vb=true |
-| ViewControl / HideShowOperations | Show Items in Tree | Points | objectivesa_prior_release=null |
-| ViewControl / HideShowOperations | Show Items in Tree | Objects | objectivesa_prior_release=null |
-| ViewControl / HideShowOperations | Show Items in Tree | Instruments | objectivesa_prior_release=null |
-| ViewControl / HideShowOperations | Show Items in Tree | Feature Checks | objectivesa_prior_release=null |
-| ViewControl / HideShowOperations | Show Items in Tree | Datums | objectivesa_prior_release=null |
-| ViewControl / HideShowOperations | Show Items in Tree | Collections | objectivesa_prior_release=null |
-| ViewControl / HighlightOperations | Highlight Objects | HighLight Objects? | sa_2026_generated_vb=false |
-| ViewControl / HighlightOperations | Highlight Point | Show Point? | sa_2026_generated_vb=false |
-| ViewControl | Set Target Labels Use Full Names | Use Full Names? | sa_2026_generated_vb=false |
-| ViewControl | Set View Clipping Plane | Remove Clipping Plane? | sa_2026_generated_vb=false |
-| InstrumentOperations | Set Inspection Verification Mode | Enable Verification? | sa_2026_generated_vb=false |
-| InstrumentOperations | Set WRTL Channel | Channel | sa_2026_generated_vb=0 |
-| InstrumentOperations | Enable/Disable Frame Set Scan Mode (By Instrument) | Enable Frame Set Scan Mode | sa_2026_generated_vb=true |
-| InstrumentOperations / APILADAR | Set LADAR FeatureMeas Sphere | Scan Line Spacing | sa_2026_generated_vb=0.05 |
-| InstrumentOperations / APILADAR | Set LADAR FeatureMeas Circle | Scan Line Spacing | sa_2026_generated_vb=0.05 |
-| InstrumentOperations / APILADAR | Set LADAR FeatureMeas Circle | Width of Extra Area Around Scan | sa_2026_generated_vb=0.0 |
-| InstrumentOperations / APILADAR | Set LADAR FeatureMeas Slot | Scan Line Spacing | sa_2026_generated_vb=0.05 |
-| InstrumentOperations / APILADAR | Set LADAR FeatureMeas Slot | Width of Extra Area Around Scan | sa_2026_generated_vb=0.0 |
-| InstrumentOperations / APILADAR | Set LADAR FeatureMeas Cylinder | Scan Line Spacing | sa_2026_generated_vb=0.05 |
-| InstrumentOperations / APILADAR | Set LADAR FeatureMeas Cylinder | Width of Extra Area Around Scan | sa_2026_generated_vb=0.0 |
-| RelationshipOperations | Make Groups to Objects Relationship | Projection Options | sa_2026_generated_vb=["Object To Probe Vectors",false,false,0.0,false,0.0] |
-| RelationshipOperations | Make Cloud to Swatch Relationship | Maximum Radial Offset | sa_2026_generated_vb=0.125 |
-| RelationshipOperations | Make Cloud to Swatch Relationship | Minimum Axial Offset | sa_2026_generated_vb=-0.125 |
-| RelationshipOperations | Make Cloud to Swatch Relationship | Maximum Axial Offset | sa_2026_generated_vb=0.125 |
-| RelationshipOperations / RelationshipAttributesScalarTypes | Set Object to Object Direction Relationship Tolerances | Angle Between Vectors Tolerances | sa_2026_generated_vb=[false,0.0,false,0.0] |
-| RelationshipOperations / RelationshipAttributesScalarTypes | Set Object to Object Direction Relationship Tolerances | Mutual Perpendicular Length Tolerances | sa_2026_generated_vb=[false,0.0,false,0.0] |
-| RobotCalibrationApplianceNodeOperations | Set Calibration Appliance Node Calibration Appliance IP Address | Calibration Appliance IP Address | objectivesa_prior_release="127.0.0.1"; sa_2026_generated_vb="0.0.0.0" |
-| RobotCalibrationApplianceNodeOperations | Enable/Disable Calibration Appliance Node Trap Manager | Enable(TRUE), Disable(FALSE)? | sa_2026_generated_vb=true |
-| RobotCalibrationApplianceNodeOperations | Set Calibration Appliance Node Integer Value | Index Offset | sa_2026_generated_vb=0 |
-| RobotCalibrationApplianceNodeOperations | Set Calibration Appliance Node Integer Value | Integer Value | sa_2026_generated_vb=0 |
-| RobotCalibrationApplianceNodeOperations | Get Calibration Appliance Node Integer Value | Index Offset | sa_2026_generated_vb=0 |
-| RobotCalibrationApplianceNodeOperations | Set Calibration Appliance Node Real Value | Index Offset | sa_2026_generated_vb=0 |
-| RobotCalibrationApplianceNodeOperations | Set Calibration Appliance Node Real Value | Real Value | sa_2026_generated_vb=0.0 |
-| RobotCalibrationApplianceNodeOperations | Get Calibration Appliance Node Real Value | Index Offset | sa_2026_generated_vb=0 |
-| RobotCalibrationApplianceNodeOperations | Update Calibration Appliance Node Display Robot Joints | Enable Display Robot Joint Updates? | sa_2026_generated_vb=true |
-| RobotCalibrationApplianceNodeOperations | Connect/Disconnect Calibration Appliance Node | Connect(TRUE) or Disconnect(FALSE)? | sa_2026_generated_vb=true |
-| RobotCalibrationApplianceNodeOperations | Enable/Disable Calibration Appliance Node Instrument Auto Point | Enable Instrument Auto Point? | sa_2026_generated_vb=true |
-| RobotCalibrationApplianceNodeOperations | Set Calibration Appliance Node Instrument Dwell Time | Measurement Dwell Time (Seconds) | sa_2026_generated_vb=0.0 |
-| ViewControl / HideShowOperations | Show / Hide Dimension | Show Dimension? | sa_2026_generated_vb=true |
+## Reviewed default candidates retained as required inputs
+
+These candidates were reviewed under issue #82. Briosa keeps each input required, rejects omission, and invokes the exact SDK setter only with an explicit request value.
+
+| Category path | MP step | Argument | Evidence state | Candidate evidence | Decision reasons |
+| --- | --- | --- | --- | --- | --- |
+| AnalysisOperations | Get i-th Collection Name | Collection Index | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations | Get Timestamp for i-th Frame in Frame Set | Frame Set Index | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations | Get Timestamp for i-th Point in Point Set | Point Set Index | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations | Get Transform for i-th Frame in Frame Set | Frame Set Index | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations | Is Object of Type | Object Type | `exact_target_sample_only` | sa_2026_generated_vb="Any" | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations | Mushroom Target Hole Inspection | Sphere Target Radius | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations / PipeRelationships | Make pipe Relationship Cut | Pipe 1 - Make Cut | `exact_target_sample_only` | sa_2026_generated_vb=true | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations / PipeRelationships | Make pipe Relationship Cut | Pipe 1 - Create Frame | `exact_target_sample_only` | sa_2026_generated_vb=false | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations / PipeRelationships | Make pipe Relationship Cut | Pipe 2 - Make Cut | `exact_target_sample_only` | sa_2026_generated_vb=true | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations / PipeRelationships | Make pipe Relationship Cut | Pipe 2 - Create Frame | `exact_target_sample_only` | sa_2026_generated_vb=false | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations | Query Clouds to Objects | Projection Options | `exact_target_sample_only` | sa_2026_generated_vb=["Object To Probe Vectors",false,false,0.0,false,0.0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations | Query Clouds to Surface | Projection Options | `exact_target_sample_only` | sa_2026_generated_vb=["Object To Probe Vectors",false,false,0.0,false,0.0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations | Query Groups to Objects | Projection Options | `exact_target_sample_only` | sa_2026_generated_vb=["Object To Probe Vectors",false,false,0.0,false,0.0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations | Query Groups to Objects | Show Results Dialog? | `conflict` | objectivesa_prior_release=false; sa_2026_generated_vb=true | exact_target_prior_release_conflict_fail_closed, retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations | Query Points to Circle | Is Inside Measurement | `exact_target_sample_only` | sa_2026_generated_vb=true | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations | Query Points to Circle | Auto Scale Vectors to % of Radius | `exact_target_sample_only` | sa_2026_generated_vb=40 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations | Query Points to Objects | Projection Options | `exact_target_sample_only` | sa_2026_generated_vb=["Object To Probe Vectors",false,false,0.0,false,0.0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations | Query Points to Objects | Show Results Dialog? | `conflict` | objectivesa_prior_release=false; sa_2026_generated_vb=true | exact_target_prior_release_conflict_fail_closed, retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations | Re-Compute Calculated Items | Refresh Filtered Cloud Data? | `exact_target_sample_only` | sa_2026_generated_vb=false | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations / RelationshipAttributes | Enable/Disable Relationships for Optimization | Enable? | `exact_target_sample_only` | sa_2026_generated_vb=false | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations / RelationshipAttributes | Set Geom Relationship Criteria | Show in Report | `exact_target_sample_only` | sa_2026_generated_vb=true | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations / RelationshipAttributes | Set Geom Relationship Criteria | Tolerance Options | `exact_target_sample_only` | sa_2026_generated_vb=[false,0.0,false,0.0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations / RelationshipAttributes | Set Geom Relationship Nominal Geometry | Compare To Nominal? | `exact_target_sample_only` | sa_2026_generated_vb=true | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations / RelationshipAttributes | Set Geom Relationship Nominal Avg Point | Compare To Nominal? | `exact_target_sample_only` | sa_2026_generated_vb=true | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations / RelationshipAttributes | Set Geom Relationship Projection Plane | Project to Plane? | `exact_target_sample_only` | sa_2026_generated_vb=true | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations / RelationshipAttributes | Set Relationship Auto Vectors Group Default Prefix | Geom Rel AVN VG Default Prefix | `exact_target_sample_only` | sa_2026_generated_vb="GR-AVN-" | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations / RelationshipAttributes | Set Relationship Auto Vectors Group Default Prefix | Geom Rel AVF VG Default Prefix | `exact_target_sample_only` | sa_2026_generated_vb="GR-AVF-" | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations / RelationshipAttributes | Set Relationship Auto Vectors Group Default Prefix | Non-Geom Rel VG Default Prefix | `exact_target_sample_only` | sa_2026_generated_vb="Auto Vectors: " | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations / RelationshipAttributes | Set Relationship Orientation Fit Constraints (Vector Type) | Orientation Vector Constraint | `exact_target_sample_only` | sa_2026_generated_vb=[true,0.0,true,0.0,true,0.0,false,0.0,true,0.0,true,0.0,true,0.0,false,0.0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations / RelationshipAttributes | Set Relationship Position Fit Constraints (Vector Type) | Position Vector Constraint | `exact_target_sample_only` | sa_2026_generated_vb=[true,0.0,true,0.0,true,0.0,false,0.0,true,0.0,true,0.0,true,0.0,false,0.0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations / RelationshipAttributes | Set Relationship Projection Options | Projection Options | `exact_target_sample_only` | sa_2026_generated_vb=["Object To Probe Vectors",false,false,0.0,false,0.0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations / RelationshipAttributes | Set Relationship Tolerance (Vector Type) | Vector Tolerance | `exact_target_sample_only` | sa_2026_generated_vb=[false,0.0,false,0.0,false,0.0,false,0.0,false,0.0,false,0.0,false,0.0,false,0.0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations / RelationshipAttributesScalarTypes | Set Object to Object Direction Relationship Fit Constraints | Angle Between Vectors Fit Constraints | `exact_target_sample_only` | sa_2026_generated_vb=[true,0.0,true,0.0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations / RelationshipAttributesScalarTypes | Set Object to Object Direction Relationship Fit Constraints | Mutual Perpendicular Length Fit Constraints | `exact_target_sample_only` | sa_2026_generated_vb=[true,0.0,true,0.0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations / RelationshipAttributesScalarTypes | Set Relationship Fit Constraints (Scalar Type) | Fit Constraint Options | `exact_target_sample_only` | sa_2026_generated_vb=[true,0.0,true,0.0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations / RelationshipAttributesScalarTypes | Set Relationship Tolerance (Scalar Type) | Tolerance Options | `exact_target_sample_only` | sa_2026_generated_vb=[false,0.0,false,0.0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations | Set Circle Properties | Center Coordinate | `exact_target_sample_only` | sa_2026_generated_vb=[0.0,0.0,0.0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations | Set Circle Properties | Normal Direction | `exact_target_sample_only` | sa_2026_generated_vb=[0.0,0.0,0.0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations | Set Circle Properties | Radius | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations | Set Cone Properties | Cone End Point (in working coordinates) | `exact_target_sample_only` | sa_2026_generated_vb=[0.0,0.0,0.0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations | Set Cone Properties | Cone Axis (in working coordinates) | `exact_target_sample_only` | sa_2026_generated_vb=[0.0,0.0,0.0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations | Set Cone Properties | Cone Length | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations | Set Cone Properties | Cone Theta Start | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations | Set Cone Properties | Cone Theta Span | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations | Set Cone Properties | Cone Included Angle | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations | Set Cone Properties | Cut Length from Apex | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations | Set Default Colorization Options | Colorization Options | `exact_target_sample_only` | sa_2026_generated_vb=["Continuous","Blue","Green","Red",false,true,false,100.0,1,false,0.1,false,false,true,false,0.5,-0.5,0.03,-0.03] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations | Set Measurement Auxiliary Data | Value | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations | Sphere Axis Check | Sphere Target Radius | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations | Temperature Compensate a group | Material CTE (1/Deg F) | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations | Temperature Compensate a group | Initial Temperature (F) | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations | Temperature Compensate a group | Final Temperature (F) | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| AnalysisOperations | Translate Objects by Delta | Delta Translation | `exact_target_sample_only` | sa_2026_generated_vb=[0.0,0.0,0.0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| CloudMeshOps / CloudFilters | Filter Clouds to Plane | Allowable Offset Dir | `objectivesa_only` | objectivesa_prior_release="Both" | prior_release_evidence_not_authoritative, retain_explicit_operation_semantics |
+| CloudMeshOps / CloudFilters | Filter Clouds to Plane | Output Type | `objectivesa_only` | objectivesa_prior_release="Points" | prior_release_evidence_not_authoritative, retain_explicit_operation_semantics |
+| CloudMeshOps / CloudFilters | Filter Clouds to Vector Groups - Resolve Clouds | Radial Cutoff | `exact_target_sample_only` | sa_2026_generated_vb=0.1 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| CloudMeshOps / CloudFilters | Filter Clouds to Vector Groups - Resolve Clouds | Lower Cutoff | `exact_target_sample_only` | sa_2026_generated_vb=-0.1 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| CloudMeshOps / CloudFilters | Filter Clouds to Vector Groups - Resolve Clouds | Upper Cutoff | `exact_target_sample_only` | sa_2026_generated_vb=0.1 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| CloudMeshOps / CloudFilters | Get Cloud RGB Values | RGB Color Channel | `exact_target_sample_only` | sa_2026_generated_vb="Intensity" | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| CloudMeshOps / CloudFilters | Get Cloud RGB Values Near Point | Diameter | `exact_target_sample_only` | sa_2026_generated_vb=10.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| CloudMeshOps / CloudFilters | Get Cloud RGB Values Near Point | RGB Color Channel | `exact_target_sample_only` | sa_2026_generated_vb="Intensity" | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| CloudMeshOps / CloudFilters | Subdivide Cloud by Point Spacing | Point Spacing | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| CloudMeshOps / CloudFilters | Subdivide Cloud by Point Spacing | Minimum Points Per Group | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| CloudMeshOps / CloudFilters | Subdivide Cloud by Point Spacing | Keep All Groups? | `exact_target_sample_only` | sa_2026_generated_vb=true | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| CloudMeshOps / CrossSections | Enable/Disable Cloud Cross Sections | Cross Section ID | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| CloudMeshOps / CrossSections | Enable/Disable Cloud Cross Sections | Enable (TRUE) / Disable (FALSE)? | `exact_target_sample_only` | sa_2026_generated_vb=true | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| CloudMeshOps / CrossSections | Enable Single Cloud Cross Section | Cross Section ID | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| CloudMeshOps / MeshOperations | Mesh Fill Holes | Maximum Triangle Length | `exact_target_sample_only` | sa_2026_generated_vb=-1.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| CloudMeshOps / MeshOperations | Mesh Fill Holes | Tension | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| CloudMeshOps / MeshOperations | Mesh Fill Holes | Unconditional Filling? | `exact_target_sample_only` | sa_2026_generated_vb=false | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| CloudMeshOps / MeshOperations | Mesh Fill Holes | Fill All Holes? | `exact_target_sample_only` | sa_2026_generated_vb=true | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / Callouts | Create Picture Callout | Object for Callout Anchor Point | `objectivesa_only` | objectivesa_prior_release=null | prior_release_evidence_not_authoritative, retain_explicit_operation_semantics, unsafe_empty_identity_placeholder |
+| ConstructionOperations / Callouts | Set I-th Callout Position in Callout View | Callout View Index | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / Callouts | Set I-th Callout Position in Callout View | X Position | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / Callouts | Set I-th Callout Position in Callout View | Y Position | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / Circles | Construct Circle | Circle Center (in working coordinates) | `exact_target_sample_only` | sa_2026_generated_vb=[0.0,0.0,0.0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / Circles | Construct Circle | Circle Normal (in working coordinates) | `exact_target_sample_only` | sa_2026_generated_vb=[0.0,0.0,0.0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / Circles | Construct Circle | Circle Radius | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / Cones | Construct Cone | Cone End Point (in working coordinates) | `exact_target_sample_only` | sa_2026_generated_vb=[0.0,0.0,0.0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / Cones | Construct Cone | Cone Axis (in working coordinates) | `exact_target_sample_only` | sa_2026_generated_vb=[0.0,0.0,0.0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / Cones | Construct Cone | Cone Length | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / Cones | Construct Cone | Cone Theta Start | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / Cones | Construct Cone | Cone Theta Span | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / Cones | Construct Cone | Cone Included Angle | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / Cylinders | Construct Cylinder | Cylinder End Point (in working coordinates) | `exact_target_sample_only` | sa_2026_generated_vb=[0.0,0.0,0.0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / Cylinders | Construct Cylinder | Cylinder Axis (in working coordinates) | `exact_target_sample_only` | sa_2026_generated_vb=[0.0,0.0,0.0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / Cylinders | Construct Cylinder | Cylinder Diameter | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / Cylinders | Construct Cylinder | Cylinder Length | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / Cylinders | Construct Cylinder From End Points | Cylinder End Point A (in working coordinates) | `exact_target_sample_only` | sa_2026_generated_vb=[0.0,0.0,0.0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / Cylinders | Construct Cylinder From End Points | Cylinder End Point B (in working coordinates) | `exact_target_sample_only` | sa_2026_generated_vb=[0.0,0.0,0.0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / Cylinders | Construct Cylinder From End Points | Cylinder Diameter | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / Frames | Construct Frame, Known Origin, Object Direction, Object Direction | Known Point Value in New Frame | `exact_target_sample_only` | sa_2026_generated_vb=[0.0,0.0,0.0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / Frames | Construct Frame, 3 Planes | X Value on PLane | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / Frames | Construct Frame, 3 Planes | Y Value on PLane | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / Frames | Construct Frame, 3 Planes | Z Value on Plane | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / Lines | Construct Line 2 Points (Vector Notation) | First Vector | `exact_target_sample_only` | sa_2026_generated_vb=[0.0,0.0,0.0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / Lines | Construct Line 2 Points (Vector Notation) | Second Vector | `exact_target_sample_only` | sa_2026_generated_vb=[0.0,0.0,0.0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / Lines | Construct Line From Instrument Shot | Observation Index | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / Lines | Construct Line Normal to Object | Line Length | `exact_target_sample_only` | sa_2026_generated_vb=1.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / OtherMPTypes | Make a Collection Object Name Ref List - By Type and Color | Object Type | `exact_target_sample_only` | sa_2026_generated_vb="Any" | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / OtherMPTypes | Make a Collection Object Name Ref List - By Type and Color | Object Color | `exact_target_sample_only` | sa_2026_generated_vb=[255,0,0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / Planes | Construct Plane | Plane Center (in working coordinates) | `exact_target_sample_only` | sa_2026_generated_vb=[0.0,0.0,0.0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / Planes | Construct Plane | Plane Normal (in working coordinates) | `exact_target_sample_only` | sa_2026_generated_vb=[0.0,0.0,0.0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / PointClouds | Construct Cross Section Cloud | Cylindrical Cross Section Mode? | `exact_target_sample_only` | sa_2026_generated_vb=false | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / PointClouds | Construct Cross Section Cloud | Start Distance | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / PointClouds | Construct Cross Section Cloud | Section Spacing | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / PointClouds | Construct Cross Section Cloud | Proximity Threshold | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / PointClouds | Construct Cross Section Cloud | Maximum Section Count | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / PointClouds | Construct Cross Section Cloud | Limit Cross Section Extent | `exact_target_sample_only` | sa_2026_generated_vb=false | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / PointClouds | Construct Cross Section Cloud | Radius Limit | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / PointClouds | Construct Cross Section Cloud | Project to Reference Surface | `exact_target_sample_only` | sa_2026_generated_vb=false | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / PointClouds | Construct Cross Section Cloud | Cloud Thinning Settings | `exact_target_sample_only` | sa_2026_generated_vb=["Nth Point",5,100,20000] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / PointClouds | Construct Point Clouds from Existing Clouds - Uniform Spacing | Desired Point Spacing | `conflict` | objectivesa_prior_release=0.2; sa_2026_generated_vb=0.02 | exact_target_prior_release_conflict_fail_closed, retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / PointsandGroups | Construct a Point in Working Coordinates | Working Coordinates | `exact_target_sample_only` | sa_2026_generated_vb=[0.0,0.0,0.0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / PointsandGroups | Construct Point at Intersection of B-Spline and Surfaces | Approximation Tolerance | `exact_target_sample_only` | sa_2026_generated_vb=0.001 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / PointsandGroups | Construct Point From Survey Target Center | Survey Target Type | `exact_target_sample_only` | sa_2026_generated_vb="Triangle" | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / PointsandGroups | Construct Point From Survey Target Center | Search Diameter | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / PointsandGroups | Construct Points Auto-Correspond 2 groups Inter-Point Distance | Auto-correspond same-point tolerance | `exact_target_sample_only` | sa_2026_generated_vb=0.1 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / PointsandGroups | Construct Points Auto-Correspond 2 groups Proximity | Auto-correspond same-point tolerance | `exact_target_sample_only` | sa_2026_generated_vb=0.25 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / PointsandGroups | Construct Points Layout on Grid | Point Prefix | `exact_target_sample_only` | sa_2026_generated_vb="p" | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / PointsandGroups | Construct Points Layout on Grid | X Min | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / PointsandGroups | Construct Points Layout on Grid | X Max | `exact_target_sample_only` | sa_2026_generated_vb=100.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / PointsandGroups | Construct Points Layout on Grid | X Count | `exact_target_sample_only` | sa_2026_generated_vb=10 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / PointsandGroups | Construct Points Layout on Grid | Y Min | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / PointsandGroups | Construct Points Layout on Grid | Y Max | `exact_target_sample_only` | sa_2026_generated_vb=50.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / PointsandGroups | Construct Points Layout on Grid | Y Count | `exact_target_sample_only` | sa_2026_generated_vb=10 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / PointsandGroups | Construct Points Layout on Grid | Z Min | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / PointsandGroups | Construct Points Layout on Grid | Z Max | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / PointsandGroups | Construct Points Layout on Grid | Z Count | `exact_target_sample_only` | sa_2026_generated_vb=1 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / PointsandGroups | Construct Points N-Spaced on Curves | Number of Evenly Spaced Points | `exact_target_sample_only` | sa_2026_generated_vb=10 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / PointsandGroups | Construct Points Shifted in Working Frame | Shift Vector | `exact_target_sample_only` | sa_2026_generated_vb=[0.0,0.0,0.0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / PointsandGroups | Construct Points Spaced at a Distance on Curves | Distance Between Points | `exact_target_sample_only` | sa_2026_generated_vb=0.5 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / PointsandGroups | Construct Points Subset with Greatest Spacing | Subset Size | `exact_target_sample_only` | sa_2026_generated_vb=10 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / PointsandGroups | Create Hidden Point | Hidden Point Rod Index | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / PointsandGroups | Create Hidden Point | Overwrite existing point? | `exact_target_sample_only` | sa_2026_generated_vb=false | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / PointsandGroups | Delete Hidden point Rod | Hidden Point Rod Index | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / PointsandGroups | Transform Points by Delta (About Working Frame) | Delta In Working Coordinates | `exact_target_sample_only` | sa_2026_generated_vb=[0.0,0.0,0.0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / Spheres | Construct Sphere | Sphere Center (in working coordinates) | `exact_target_sample_only` | sa_2026_generated_vb=[0.0,0.0,0.0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / Spheres | Construct Sphere | Sphere Radius | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / VectorGroups | Construct a Vector in Working Coordinates (Begin/Delta) | 'Begin' in Working Coordinates | `exact_target_sample_only` | sa_2026_generated_vb=[0.0,0.0,0.0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / VectorGroups | Construct a Vector in Working Coordinates (Begin/Delta) | 'Delta' in Working Coordinates | `exact_target_sample_only` | sa_2026_generated_vb=[0.0,0.0,0.0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / VectorGroups | Construct a Vector in Working Coordinates (Begin/Direction/Mag.) | 'Begin' in Working Coordinates | `exact_target_sample_only` | sa_2026_generated_vb=[0.0,0.0,0.0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / VectorGroups | Construct a Vector in Working Coordinates (Begin/Direction/Mag.) | 'Direction' in Working Coordinates | `exact_target_sample_only` | sa_2026_generated_vb=[0.0,0.0,0.0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ConstructionOperations / VectorGroups | Construct a Vector in Working Coordinates (Begin/Direction/Mag.) | Signed Magnitude | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| Events | Get i-th Event From Event Ref List | Event Index | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| FileOperations / QDASFileExport | Get QDAS Catalog Entry Identifier | Font | `exact_target_sample_only` | sa_2026_generated_vb=["MS Shell Dlg",8,0,0,0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| GDT | Feature Inspection Auto Filter | Feature Check Name List | `objectivesa_only` | objectivesa_prior_release=null | prior_release_evidence_not_authoritative, retain_explicit_operation_semantics, unsafe_empty_identity_placeholder |
+| GDT / GDTConstruct | Make GD&T Datum Annotation | Auxiliary Object | `objectivesa_only` | objectivesa_prior_release=null | prior_release_evidence_not_authoritative, retain_explicit_operation_semantics, unsafe_empty_identity_placeholder |
+| GDT / GDTConstruct | Make GD&T Datum Annotation | Auxiliary Geometry Relationship | `objectivesa_only` | objectivesa_prior_release=null | prior_release_evidence_not_authoritative, retain_explicit_operation_semantics, unsafe_empty_identity_placeholder |
+| GDT | Set GD&T Extended Options | Use Extended Options | `exact_target_sample_only` | sa_2026_generated_vb=true | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| GDT | Set GD&T Extended Options | Circle Extended Options | `exact_target_sample_only` | sa_2026_generated_vb="Least Squares" | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| GDT | Set GD&T Extended Options | Cone Extended Options | `exact_target_sample_only` | sa_2026_generated_vb="Least Squares" | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| GDT | Set GD&T Extended Options | Cylinder Extended Options | `exact_target_sample_only` | sa_2026_generated_vb="Least Squares" | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| GDT | Set GD&T Extended Options | Ellipse Extended Options | `exact_target_sample_only` | sa_2026_generated_vb="Least Squares" | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| GDT | Set GD&T Extended Options | Line Extended Options | `exact_target_sample_only` | sa_2026_generated_vb="Least Squares" | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| GDT | Set GD&T Extended Options | Open Slot Extended Options | `exact_target_sample_only` | sa_2026_generated_vb="Least Squares" | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| GDT | Set GD&T Extended Options | Plane Extended Options | `exact_target_sample_only` | sa_2026_generated_vb="Least Squares" | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| GDT | Set GD&T Extended Options | Slot Extended Options | `exact_target_sample_only` | sa_2026_generated_vb="Least Squares" | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| GDT | Set GD&T Extended Options | Sphere Extended Options | `exact_target_sample_only` | sa_2026_generated_vb="Least Squares" | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| InstrumentOperations / APILadar | Set LADAR Auto Meas Point | Sample Time MS (1-2000) | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| InstrumentOperations / APILadar | Set LADAR Auto Meas Sphere | Sphere Radius | `exact_target_sample_only` | sa_2026_generated_vb=1.1875 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| InstrumentOperations / APILadar | Set LADAR Auto Meas Sphere | Scan Line Spacing | `exact_target_sample_only` | sa_2026_generated_vb=0.05 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| InstrumentOperations / APILadar | Set LADAR Auto Meas Sphere | Send Center Point? | `exact_target_sample_only` | sa_2026_generated_vb=true | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| InstrumentOperations / APILadar | Set LADAR Auto Meas Sphere | Send Sphere? | `exact_target_sample_only` | sa_2026_generated_vb=false | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| InstrumentOperations / APILadar | Set LADAR Auto Meas Sphere | Send Measured Cloud? | `exact_target_sample_only` | sa_2026_generated_vb=false | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| InstrumentOperations | Add Nominal Point to TCP Fixture | Nominal Point Location | `exact_target_sample_only` | sa_2026_generated_vb=[0.0,0.0,0.0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| InstrumentOperations | Auto-Correspond with Proximity Trigger | Vector Group to make while Measuring (blank means ignore) | `objectivesa_only` | objectivesa_prior_release=null | prior_release_evidence_not_authoritative, retain_explicit_operation_semantics, unsafe_empty_identity_placeholder |
+| InstrumentOperations | Get Current Instrument Position Update | Reporting Frame | `exact_target_sample_only` | sa_2026_generated_vb="Instrument Base" | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| InstrumentOperations | Get Observation Info | Observation Index | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| InstrumentOperations | Locate Instruments (USMN) | Show USMN Dialog | `objectivesa_only` | objectivesa_prior_release="On Tolerance Violation" | prior_release_evidence_not_authoritative, retain_explicit_operation_semantics |
+| InstrumentOperations | Locate Instruments (USMN) | Groups to be Excluded | `objectivesa_only` | objectivesa_prior_release=null | prior_release_evidence_not_authoritative, retain_explicit_operation_semantics, unsafe_empty_identity_placeholder |
+| InstrumentOperations | Move Measurement Observation | Observation index | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| InstrumentOperations | Move Measurement Observation | Delete point if no measurements remain? | `exact_target_sample_only` | sa_2026_generated_vb=false | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| InstrumentOperations / NikonMetrologyLaserRadar / CloudViewerOperations | Set Filter | Filter Value | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| InstrumentOperations / NikonMetrologyLaserRadar | LR APDIS Perform MCM Calibration | Use Matte Tooling Ball? | `exact_target_sample_only` | sa_2026_generated_vb=true | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| InstrumentOperations / NikonMetrologyLaserRadar | LR Hardware Connect | Port | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| InstrumentOperations / NikonMetrologyLaserRadar | LR Self Test - LO Sep | Region (1=Region12,2=Region23,3=Region34) | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| InstrumentOperations / NikonMetrologyLaserRadar | LR Self Test - LO Sep | Num Range Measurements | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| InstrumentOperations | Scan CAD Faces | Enable exclusions? | `exact_target_sample_only` | sa_2026_generated_vb=true | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| InstrumentOperations | Scan CAD Faces | Wait for Completion | `exact_target_sample_only` | sa_2026_generated_vb=true | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| InstrumentOperations | Set Instrument Interface Response Timeout | Timeout (secs) | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| InstrumentOperations | Set Observation Status | Observation Index | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| InstrumentOperations | Set Observation Status | Active? | `exact_target_sample_only` | sa_2026_generated_vb=false | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| InstrumentOperations | Set Probe Offset Frame Offline (Select Previously Measured Frame) | Face ID  | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| InstrumentOperations | Set Target Computation Options | Target Computation Method | `exact_target_sample_only` | sa_2026_generated_vb="Use most recent shot from each face" | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| InstrumentOperations | Start Instrument Interface | Initialize at Startup | `exact_target_sample_only` | sa_2026_generated_vb=false | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RelationshipOperations | Auto Filter Clouds to Nominal Geometry 2D | Cloud Thinning Settings | `exact_target_sample_only` | sa_2026_generated_vb=["Nth Point",5,100,20000] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RelationshipOperations | Auto Filter Clouds to Nominal Geometry 2D | Use Feature Specific Filter Settings? | `exact_target_sample_only` | sa_2026_generated_vb=false | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RelationshipOperations | Auto Filter Clouds to Nominal Geometry 3D | Cloud Thinning Settings | `exact_target_sample_only` | sa_2026_generated_vb=["Nth Point",5,100,20000] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RelationshipOperations | Auto Filter Clouds to Nominal Geometry 3D | Use Feature Specific Filter Settings? | `exact_target_sample_only` | sa_2026_generated_vb=false | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RelationshipOperations | Auto Filter Points/Groups/Clouds to Surface Faces | Cloud Thinning Settings | `conflict` | objectivesa_prior_release=null; sa_2026_generated_vb=["Nth Point",5,100,20000] | exact_target_prior_release_conflict_fail_closed, retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RelationshipOperations | Create Points to Objects Map | Proximity Tolerance | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RelationshipOperations | Edit Geometry Relationship Point List | Point Edit Mode | `objectivesa_only` | objectivesa_prior_release="Point List" | prior_release_evidence_not_authoritative, retain_explicit_operation_semantics |
+| RelationshipOperations | Extract Geometry From Point Clouds | Geometry Type | `exact_target_sample_only` | sa_2026_generated_vb="Circle" | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RelationshipOperations | Extract Geometry From Point Clouds | Tolerance | `exact_target_sample_only` | sa_2026_generated_vb=0.1 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RelationshipOperations | Extract Geometry From Point Clouds | Reverse Normal | `exact_target_sample_only` | sa_2026_generated_vb=false | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RelationshipOperations | Extract Geometry From Point Clouds | Planar Point Count | `exact_target_sample_only` | sa_2026_generated_vb=1000 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RelationshipOperations | Get i-th Relationship From Relationship Ref List | Relationship Index | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RelationshipOperations | Make Dynamic Circle Relationship | Construction Mode | `exact_target_sample_only` | sa_2026_generated_vb="Cylinder and Plane Intersection - Hold Plane Normal" | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RelationshipOperations | Make Dynamic Ellipse Relationship | Construction Mode | `exact_target_sample_only` | sa_2026_generated_vb="Cylinder and Plane Intersection" | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RelationshipOperations | Make Dynamic Line Relationship | Construction Mode | `exact_target_sample_only` | sa_2026_generated_vb="Intersection of Two Planes" | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RelationshipOperations | Make Dynamic Plane Relationship | Construction Mode | `exact_target_sample_only` | sa_2026_generated_vb="Bisect Two Planes" | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RelationshipOperations | Make Dynamic Point Relationship | Construction Mode | `exact_target_sample_only` | sa_2026_generated_vb="Intersection of Line and Plane" | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RelationshipOperations | Make Frame to Frame Relationship | Orientation Tolerance | `conflict` | objectivesa_prior_release=null; sa_2026_generated_vb=[false,0.0,false,0.0] | exact_target_prior_release_conflict_fail_closed, retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RelationshipOperations | Make Frame to Frame Relationship | Position Tolerance | `conflict` | objectivesa_prior_release=null; sa_2026_generated_vb=[false,0.0,false,0.0,false,0.0,false,0.0,false,0.0,false,0.0,false,0.0,false,0.0] | exact_target_prior_release_conflict_fail_closed, retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RelationshipOperations | Make Group to Group Relationship | Tolerance | `conflict` | objectivesa_prior_release=null; sa_2026_generated_vb=[false,0.0,false,0.0,false,0.0,false,0.0,false,0.0,false,0.0,false,0.0,false,0.0] | exact_target_prior_release_conflict_fail_closed, retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RelationshipOperations | Make Group to Group Relationship | Constraint | `conflict` | objectivesa_prior_release=null; sa_2026_generated_vb=[true,0.0,true,0.0,true,0.0,false,0.0,true,0.0,true,0.0,true,0.0,false,0.0] | exact_target_prior_release_conflict_fail_closed, retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RelationshipOperations | Make Point Clouds to Objects Relationship | Projection Options | `exact_target_sample_only` | sa_2026_generated_vb=["Object To Probe Vectors",false,false,0.0,false,0.0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RelationshipOperations | Make Point to Point Relationship | Tolerance | `conflict` | objectivesa_prior_release=null; sa_2026_generated_vb=[false,0.0,false,0.0,false,0.0,false,0.0,false,0.0,false,0.0,false,0.0,false,0.0] | exact_target_prior_release_conflict_fail_closed, retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RelationshipOperations | Make Point to Point Relationship | Constraint | `conflict` | objectivesa_prior_release=null; sa_2026_generated_vb=[true,0.0,true,0.0,true,0.0,false,0.0,true,0.0,true,0.0,true,0.0,false,0.0] | exact_target_prior_release_conflict_fail_closed, retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RelationshipOperations | Make Points to Objects Relationship | Projection Options | `exact_target_sample_only` | sa_2026_generated_vb=["Object To Probe Vectors",false,false,0.0,false,0.0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ReportingOperations / CustomReportTables | Add Custom Table to SA Report | Show Report? | `exact_target_sample_only` | sa_2026_generated_vb=false | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ReportingOperations / CustomReportTables | Get Custom Table Cell Double | Row | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ReportingOperations / CustomReportTables | Get Custom Table Cell Double | Column | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ReportingOperations / CustomReportTables | Get Custom Table Cell String | Row | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ReportingOperations / CustomReportTables | Get Custom Table Cell String | Column | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ReportingOperations / CustomReportTables | Make Custom Table | Decimal Precision | `exact_target_sample_only` | sa_2026_generated_vb=6 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ReportingOperations / CustomReportTables | Set Custom Table Cell Color | Row | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ReportingOperations / CustomReportTables | Set Custom Table Cell Color | Column | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ReportingOperations / CustomReportTables | Set Custom Table Cell Color | Foreground Color Name | `exact_target_sample_only` | sa_2026_generated_vb=[255,0,0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ReportingOperations / CustomReportTables | Set Custom Table Cell Color | Background Color Name | `exact_target_sample_only` | sa_2026_generated_vb=[255,0,0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ReportingOperations / CustomReportTables | Set Custom Table Cell Font | Row | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ReportingOperations / CustomReportTables | Set Custom Table Cell Font | Column | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ReportingOperations / CustomReportTables | Set Custom Table Cell Font | Font | `exact_target_sample_only` | sa_2026_generated_vb=["MS Shell Dlg",8,0,0,0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ReportingOperations / ReportBar | Set Report Bar Visibility | Show Report Bar? | `exact_target_sample_only` | sa_2026_generated_vb=false | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ReportingOperations | Set Relationship Report Options | Report Options | `exact_target_sample_only` | sa_2026_generated_vb=["Cartesian","Single",true,true,true,true,true,true,true,false,true,true] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ReportingOperations | Set Report Tag Value From Double | Tag Value | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ReportingOperations | Set Report Tag Value From Integer | Tag Value | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ReportingOperations | Set Scale for Picture | Scale | `exact_target_sample_only` | sa_2026_generated_vb=100.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ReportingOperations | Set Vector Group Report Options | Report Options | `exact_target_sample_only` | sa_2026_generated_vb=["Cartesian","Single",true,true,true,true,true,true,true,false,true,true] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RobotOperations | Get Calibration Appliance Integer Value | Index Offset | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RobotOperations | Get Calibration Appliance Real Value | Index Offset | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RobotOperations | Perform Robot Calibration (Alternate) | Set Current Base as Nominal? | `exact_target_sample_only` | sa_2026_generated_vb=false | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RobotOperations | Set Calibration Appliance Integer Value | Index Offset | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RobotOperations | Set Calibration Appliance Integer Value | Integer Value | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RobotOperations | Set Robot/Machine Parameter | Parameter Value | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RobotOperations | Set Calibration Appliance Real Value | Index Offset | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RobotOperations | Set Calibration Appliance Real Value | Real Value | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ScaleBars | Scale Bar Check | Current Temperature (F) | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ScaleBars | Scale Bar Check | Length of Bar at 68F | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ScaleBars | Scale Bar Check | Material CTE (PPM/F) | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ScaleBars | Scale Bar Check | Tolerance | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| UtilityOperations / Network | Set Wild Card Asterisk Mode | Auto Wrap Search String? | `exact_target_sample_only` | sa_2026_generated_vb=true | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| UtilityOperations / Units | Scale Objects | Scale Factor | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| UtilityOperations / Units | Set Angular Representation | 0-360, (FALSE = +/-180) | `exact_target_sample_only` | sa_2026_generated_vb=false | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| UtilityOperations / Units | Set Auto Event Creation | Active? | `exact_target_sample_only` | sa_2026_generated_vb=false | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| UtilityOperations / Units | Set Automatic Backup State | Auto Job File Restore Points Active? | `exact_target_sample_only` | sa_2026_generated_vb=true | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| UtilityOperations / Units | Set Automatic Backup State | Auto Measurements Backup Active? | `exact_target_sample_only` | sa_2026_generated_vb=true | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| UtilityOperations / Units | Set Automatic Relationship Construction State | Active? | `exact_target_sample_only` | sa_2026_generated_vb=false | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| UtilityOperations / Units | Set Decimal Digits for Display | Length | `conflict` | objectivesa_prior_release=6; sa_2026_generated_vb=0 | exact_target_prior_release_conflict_fail_closed, retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| UtilityOperations / Units | Set Decimal Digits for Display | Angle | `conflict` | objectivesa_prior_release=6; sa_2026_generated_vb=0 | exact_target_prior_release_conflict_fail_closed, retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| UtilityOperations / Units | Set Decimal Digits for Display | Scale | `conflict` | objectivesa_prior_release=6; sa_2026_generated_vb=0 | exact_target_prior_release_conflict_fail_closed, retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| UtilityOperations / Units | Set Decimal Digits for Display | Unit Vector | `conflict` | objectivesa_prior_release=6; sa_2026_generated_vb=0 | exact_target_prior_release_conflict_fail_closed, retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| UtilityOperations / Units | Set Decimal Digits for Display | Weight | `conflict` | objectivesa_prior_release=6; sa_2026_generated_vb=0 | exact_target_prior_release_conflict_fail_closed, retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| UtilityOperations / Units | Set View Idle Update Frequency | Idle Count | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| Vector Operations | Auto-Range and Set Vector Group Colorization (All) | Treat Individually? | `exact_target_sample_only` | sa_2026_generated_vb=false | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| Vector Operations | Auto-Range and Set Vector Group Colorization (All) | Colorization Options (Uses Mode Only) | `exact_target_sample_only` | sa_2026_generated_vb=["Continuous","Blue","Green","Red",false,true,false,100.0,1,false,0.1,false,false,true,false,0.5,-0.5,0.03,-0.03] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| Vector Operations | Auto-Range and Set Vector Group Colorization (Selected) | Treat Individually? | `exact_target_sample_only` | sa_2026_generated_vb=false | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| Vector Operations | Auto-Range and Set Vector Group Colorization (Selected) | Colorization Options (Uses Mode Only) | `exact_target_sample_only` | sa_2026_generated_vb=["Continuous","Blue","Green","Red",false,true,false,100.0,1,false,0.1,false,false,true,false,0.5,-0.5,0.03,-0.03] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| Vector Operations | Delete i-th Vector From Vector Group | Vector Index | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| Vector Operations | Get i-th Vector From Vector Group | Vector Index | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| Vector Operations | Set Vector Group Colorization Options (All) | Colorization Options | `exact_target_sample_only` | sa_2026_generated_vb=["Continuous","Blue","Green","Red",false,true,false,100.0,1,false,0.1,false,false,true,false,0.5,-0.5,0.03,-0.03] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| Vector Operations | Set Vector Group Colorization Options (Selected) | Colorization Options | `exact_target_sample_only` | sa_2026_generated_vb=["Continuous","Blue","Green","Red",false,true,false,100.0,1,false,0.1,false,false,true,false,0.5,-0.5,0.03,-0.03] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ViewControl / Colors | Set Object(s) Color | New Working Color Name | `exact_target_sample_only` | sa_2026_generated_vb=[255,0,0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ViewControl / Colors | Set Working Color | New Working Color Name | `exact_target_sample_only` | sa_2026_generated_vb=[255,0,0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ViewControl / Colors | Set Working Color Auto Increment | Auto Increment | `exact_target_sample_only` | sa_2026_generated_vb=false | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ViewControl / HideShowOperations | Show/Hide Callout View | Show Callout View? | `exact_target_sample_only` | sa_2026_generated_vb=true | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ViewControl / HideShowOperations | Show/Hide Instrument Probe Tip | Show Instrument Probe Tip? | `exact_target_sample_only` | sa_2026_generated_vb=false | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ViewControl / HideShowOperations | Show/Hide Instruments | Show Instruments? | `exact_target_sample_only` | sa_2026_generated_vb=false | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ViewControl / HideShowOperations | Show/Hide Points | Show? (Hide = FALSE) | `exact_target_sample_only` | sa_2026_generated_vb=false | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ViewControl / HideShowOperations | Show/Hide Relationship Report | Show Relationship Report | `exact_target_sample_only` | sa_2026_generated_vb=false | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ViewControl / HideShowOperations | Show/Hide by Object Type | All Collections? | `exact_target_sample_only` | sa_2026_generated_vb=false | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ViewControl / HideShowOperations | Show/Hide by Object Type | Object Type To Show / Hide | `exact_target_sample_only` | sa_2026_generated_vb="Any" | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ViewControl / HideShowOperations | Show/Hide by Object Type | Hide? (Show = FALSE) | `exact_target_sample_only` | sa_2026_generated_vb=true | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ViewControl / HideShowOperations | Show Items in Tree | Collapse all other Items? | `exact_target_sample_only` | sa_2026_generated_vb=true | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ViewControl / HideShowOperations | Show Items in Tree | Points | `objectivesa_only` | objectivesa_prior_release=null | prior_release_evidence_not_authoritative, retain_explicit_operation_semantics, unsafe_empty_identity_placeholder |
+| ViewControl / HideShowOperations | Show Items in Tree | Objects | `objectivesa_only` | objectivesa_prior_release=null | prior_release_evidence_not_authoritative, retain_explicit_operation_semantics, unsafe_empty_identity_placeholder |
+| ViewControl / HideShowOperations | Show Items in Tree | Instruments | `objectivesa_only` | objectivesa_prior_release=null | prior_release_evidence_not_authoritative, retain_explicit_operation_semantics, unsafe_empty_identity_placeholder |
+| ViewControl / HideShowOperations | Show Items in Tree | Feature Checks | `objectivesa_only` | objectivesa_prior_release=null | prior_release_evidence_not_authoritative, retain_explicit_operation_semantics, unsafe_empty_identity_placeholder |
+| ViewControl / HideShowOperations | Show Items in Tree | Datums | `objectivesa_only` | objectivesa_prior_release=null | prior_release_evidence_not_authoritative, retain_explicit_operation_semantics, unsafe_empty_identity_placeholder |
+| ViewControl / HideShowOperations | Show Items in Tree | Collections | `objectivesa_only` | objectivesa_prior_release=null | prior_release_evidence_not_authoritative, retain_explicit_operation_semantics, unsafe_empty_identity_placeholder |
+| ViewControl / HighlightOperations | Highlight Objects | HighLight Objects? | `exact_target_sample_only` | sa_2026_generated_vb=false | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ViewControl / HighlightOperations | Highlight Point | Show Point? | `exact_target_sample_only` | sa_2026_generated_vb=false | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ViewControl | Set Target Labels Use Full Names | Use Full Names? | `exact_target_sample_only` | sa_2026_generated_vb=false | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ViewControl | Set View Clipping Plane | Remove Clipping Plane? | `exact_target_sample_only` | sa_2026_generated_vb=false | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| InstrumentOperations | Set Inspection Verification Mode | Enable Verification? | `exact_target_sample_only` | sa_2026_generated_vb=false | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| InstrumentOperations | Set WRTL Channel | Channel | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| InstrumentOperations | Enable/Disable Frame Set Scan Mode (By Instrument) | Enable Frame Set Scan Mode | `exact_target_sample_only` | sa_2026_generated_vb=true | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| InstrumentOperations / APILADAR | Set LADAR FeatureMeas Sphere | Scan Line Spacing | `exact_target_sample_only` | sa_2026_generated_vb=0.05 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| InstrumentOperations / APILADAR | Set LADAR FeatureMeas Circle | Scan Line Spacing | `exact_target_sample_only` | sa_2026_generated_vb=0.05 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| InstrumentOperations / APILADAR | Set LADAR FeatureMeas Circle | Width of Extra Area Around Scan | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| InstrumentOperations / APILADAR | Set LADAR FeatureMeas Slot | Scan Line Spacing | `exact_target_sample_only` | sa_2026_generated_vb=0.05 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| InstrumentOperations / APILADAR | Set LADAR FeatureMeas Slot | Width of Extra Area Around Scan | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| InstrumentOperations / APILADAR | Set LADAR FeatureMeas Cylinder | Scan Line Spacing | `exact_target_sample_only` | sa_2026_generated_vb=0.05 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| InstrumentOperations / APILADAR | Set LADAR FeatureMeas Cylinder | Width of Extra Area Around Scan | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RelationshipOperations | Make Groups to Objects Relationship | Projection Options | `exact_target_sample_only` | sa_2026_generated_vb=["Object To Probe Vectors",false,false,0.0,false,0.0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RelationshipOperations | Make Cloud to Swatch Relationship | Maximum Radial Offset | `exact_target_sample_only` | sa_2026_generated_vb=0.125 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RelationshipOperations | Make Cloud to Swatch Relationship | Minimum Axial Offset | `exact_target_sample_only` | sa_2026_generated_vb=-0.125 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RelationshipOperations | Make Cloud to Swatch Relationship | Maximum Axial Offset | `exact_target_sample_only` | sa_2026_generated_vb=0.125 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RelationshipOperations / RelationshipAttributesScalarTypes | Set Object to Object Direction Relationship Tolerances | Angle Between Vectors Tolerances | `exact_target_sample_only` | sa_2026_generated_vb=[false,0.0,false,0.0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RelationshipOperations / RelationshipAttributesScalarTypes | Set Object to Object Direction Relationship Tolerances | Mutual Perpendicular Length Tolerances | `exact_target_sample_only` | sa_2026_generated_vb=[false,0.0,false,0.0] | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RobotCalibrationApplianceNodeOperations | Set Calibration Appliance Node Calibration Appliance IP Address | Calibration Appliance IP Address | `conflict` | objectivesa_prior_release="127.0.0.1"; sa_2026_generated_vb="0.0.0.0" | exact_target_prior_release_conflict_fail_closed, retain_explicit_operation_semantics, unsafe_environment_specific_endpoint_default, view_sdk_sample_does_not_prove_omission_default |
+| RobotCalibrationApplianceNodeOperations | Enable/Disable Calibration Appliance Node Trap Manager | Enable(TRUE), Disable(FALSE)? | `exact_target_sample_only` | sa_2026_generated_vb=true | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RobotCalibrationApplianceNodeOperations | Set Calibration Appliance Node Integer Value | Index Offset | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RobotCalibrationApplianceNodeOperations | Set Calibration Appliance Node Integer Value | Integer Value | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RobotCalibrationApplianceNodeOperations | Get Calibration Appliance Node Integer Value | Index Offset | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RobotCalibrationApplianceNodeOperations | Set Calibration Appliance Node Real Value | Index Offset | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RobotCalibrationApplianceNodeOperations | Set Calibration Appliance Node Real Value | Real Value | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RobotCalibrationApplianceNodeOperations | Get Calibration Appliance Node Real Value | Index Offset | `exact_target_sample_only` | sa_2026_generated_vb=0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RobotCalibrationApplianceNodeOperations | Update Calibration Appliance Node Display Robot Joints | Enable Display Robot Joint Updates? | `exact_target_sample_only` | sa_2026_generated_vb=true | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RobotCalibrationApplianceNodeOperations | Connect/Disconnect Calibration Appliance Node | Connect(TRUE) or Disconnect(FALSE)? | `exact_target_sample_only` | sa_2026_generated_vb=true | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RobotCalibrationApplianceNodeOperations | Enable/Disable Calibration Appliance Node Instrument Auto Point | Enable Instrument Auto Point? | `exact_target_sample_only` | sa_2026_generated_vb=true | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| RobotCalibrationApplianceNodeOperations | Set Calibration Appliance Node Instrument Dwell Time | Measurement Dwell Time (Seconds) | `exact_target_sample_only` | sa_2026_generated_vb=0.0 | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
+| ViewControl / HideShowOperations | Show / Hide Dimension | Show Dimension? | `exact_target_sample_only` | sa_2026_generated_vb=true | retain_explicit_operation_semantics, view_sdk_sample_does_not_prove_omission_default |
 
 ## Reviewed intentional exclusions
 

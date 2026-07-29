@@ -178,6 +178,7 @@ Write-Utf8Json $review $BindingReviewOutputPath
 
 $queueEntries = [Collections.Generic.List[object]]::new()
 $corroborated = 0
+$reviewedNoDefault = 0
 $noCandidate = 0
 foreach ($shardPath in Get-ChildItem (Join-Path $repositoryRoot "disposition\sa\$SpatialAnalyzerTarget\categories") -Filter "*.json" -File) {
     $shard = Get-Content -Raw -LiteralPath $shardPath.FullName | ConvertFrom-Json -Depth 100
@@ -189,6 +190,10 @@ foreach ($shardPath in Get-ChildItem (Join-Path $repositoryRoot "disposition\sa\
             if ($null -eq $argument.input) { continue }
             if ($argument.input.default.status -eq "reviewed") {
                 $corroborated++
+                continue
+            }
+            if ($argument.input.default.status -eq "reviewed_no_default") {
+                $reviewedNoDefault++
                 continue
             }
             if ($null -ne $argument.input.default.PSObject.Properties["review_status"] -and
@@ -234,6 +239,7 @@ $queue = [ordered]@{
     }
     summary = [ordered]@{
         corroborated_default_count = $corroborated
+        reviewed_no_default_count = $reviewedNoDefault
         needs_review_count = $queueEntries.Count
         no_candidate_count = $noCandidate
     }
@@ -277,6 +283,7 @@ $lines.Add("- Worker structured fields: $(@($catalog.structured_types.worker_fie
 $lines.Add("- Shared SDK methods: $($catalog.shared_methods.Count)")
 $lines.Add("- Exact command assignments: $($catalog.command_assignments.Count)")
 $lines.Add("- ObjectiveSA corroborated defaults: $corroborated")
+$lines.Add("- Reviewed candidates retaining required input: $reviewedNoDefault")
 $lines.Add("- Defaults awaiting #82 review: $($queueEntries.Count)")
 $lines.Add("")
 $lines.Add("## Shared-method domains")

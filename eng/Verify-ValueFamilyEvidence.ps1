@@ -153,6 +153,16 @@ try {
     Test-JsonDocument (Join-Path $generatedDirectory "manifest.json") (Join-Path $repositoryRoot "values\schemas\v1\manifest.schema.json")
     Test-JsonDocument (Join-Path $generatedDirectory "default-review-queue.json") (Join-Path $repositoryRoot "values\schemas\v1\default-review-queue.schema.json")
     $catalog = Get-Content -Raw -LiteralPath $catalogPath | ConvertFrom-Json -Depth 100
+    $defaultReviewQueue = Get-Content -Raw -LiteralPath (Join-Path $generatedDirectory "default-review-queue.json") | ConvertFrom-Json -Depth 100
+    if ($defaultReviewQueue.summary.needs_review_count -ne @($defaultReviewQueue.entries).Count) {
+        throw "Default-review queue summary does not match its entries."
+    }
+    if ($SpatialAnalyzerTarget -eq "2026.1.0529.7" -and
+        ($defaultReviewQueue.summary.reviewed_no_default_count -ne 314 -or
+            $defaultReviewQueue.summary.needs_review_count -ne 0 -or
+            @($defaultReviewQueue.entries).Count -ne 0)) {
+        throw "The accepted issue #82 decisions require 314 reviewed-no-default inputs and an empty pending queue."
+    }
     $registry = Get-Content -Raw -LiteralPath (Join-Path $repositoryRoot "bindings\sa\$SpatialAnalyzerTarget\registry.json") | ConvertFrom-Json -Depth 100
 
     $catalogFamilies = @($catalog.families | Sort-Object family_id | ForEach-Object {

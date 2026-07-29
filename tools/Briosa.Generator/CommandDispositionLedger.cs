@@ -945,17 +945,21 @@ internal static partial class CommandDispositionLedger
 
         var defaultStatus = input.Default.Status;
         var reviewStatus = input.Default.ReviewStatus;
+        var decisionReference = input.Default.DecisionReference;
+        var evidenceState = input.Default.EvidenceState;
+        var reasonCodes = input.Default.ReasonCodes ?? [];
         var hasDefaultValue = input.Default.Value is not null;
         var evidence = input.Default.Evidence ?? [];
         var candidates = input.Default.Candidates ?? [];
         switch (defaultStatus)
         {
             case "none":
-                if (hasDefaultValue || evidence.Count != 0)
+                if (hasDefaultValue || evidence.Count != 0 || decisionReference is not null ||
+                    evidenceState is not null || reasonCodes.Count != 0)
                 {
                     errors.Add(
                         $"{argumentPath}: a default with status none cannot retain an active " +
-                        "value or reviewed evidence.");
+                        "value, reviewed evidence, or reviewed-decision metadata.");
                 }
 
                 var hasPendingReview = candidates.Count != 0;
@@ -979,7 +983,8 @@ internal static partial class CommandDispositionLedger
                 break;
             case "reviewed":
                 if (!hasDefaultValue || evidence.Count == 0 || candidates.Count != 0 ||
-                    reviewStatus is not null)
+                    reviewStatus is not null || decisionReference is not null ||
+                    evidenceState is not null || reasonCodes.Count != 0)
                 {
                     errors.Add(
                         $"{argumentPath}: a reviewed default requires a value and evidence, " +
@@ -987,6 +992,41 @@ internal static partial class CommandDispositionLedger
                 }
 
                 RequireSortedUnique(evidence, argumentPath, "default evidence", errors);
+                break;
+            case "reviewed_no_default":
+                if (hasDefaultValue || evidence.Count != 0 || reviewStatus is not null ||
+                    candidates.Count == 0 || decisionReference is null ||
+                    evidenceState is not ("exact_target_sample_only" or "conflict" or "objectivesa_only") ||
+                    reasonCodes.Count == 0)
+                {
+                    errors.Add(
+                        $"{argumentPath}: a reviewed-no-default decision requires retained " +
+                        "candidates, exact evidence state, reason codes, and a decision reference, " +
+                        "and cannot activate a value or retain pending-review metadata.");
+                }
+
+                if (decisionReference is not null)
+                {
+                    ValidateGitHubReference(
+                        decisionReference,
+                        argumentPath,
+                        "default decision reference",
+                        errors);
+                }
+
+                RequireSortedUnique(reasonCodes, argumentPath, "default decision reason codes", errors);
+                if (reasonCodes.Any(reasonCode => !ReasonCode().IsMatch(reasonCode)))
+                {
+                    errors.Add($"{argumentPath}: invalid default decision reason code.");
+                }
+
+                if (!candidates.Select(candidate => candidate.Source).SequenceEqual(
+                        candidates.Select(candidate => candidate.Source).Order(StringComparer.Ordinal),
+                        StringComparer.Ordinal))
+                {
+                    errors.Add($"{argumentPath}: default candidates must be ordered by source.");
+                }
+
                 break;
             default:
                 errors.Add($"{argumentPath}: unknown default status '{defaultStatus}'.");
@@ -1502,6 +1542,10 @@ internal static partial class CommandDispositionLedger
             input.Default.Status,
             "reviewed",
             StringComparison.Ordinal))}");
+        builder.AppendLine(CultureInfo.InvariantCulture, $"- Reviewed candidates retaining required input: {inputs.Count(input => string.Equals(
+            input.Default.Status,
+            "reviewed_no_default",
+            StringComparison.Ordinal))}");
         builder.AppendLine(CultureInfo.InvariantCulture, $"- Proposed defaults needing review: {inputs.Count(input => string.Equals(
             input.Default.ReviewStatus,
             "needs_review",
@@ -1515,7 +1559,8 @@ internal static partial class CommandDispositionLedger
         StringBuilder builder,
         IEnumerable<CommandDispositionEntry> entries)
     {
-        var pending = entries
+        var entryArray = entries.ToArray();
+        var pending = entryArray
             .Where(entry => string.Equals(
                 entry.CommandShape?.Status,
                 "resolved",
@@ -1536,28 +1581,75 @@ internal static partial class CommandDispositionLedger
         if (pending.Length == 0)
         {
             builder.AppendLine("None.");
+        }
+        else
+        {
+            builder.AppendLine(
+                "These values are evidence-backed proposals only. Their inputs continue to reject " +
+                "omission until a reviewed disposition explicitly activates a catalog default. " +
+                "Maintainer review is tracked by https://github.com/spatialanalyzer/briosa/issues/82.");
+            builder.AppendLine();
+            builder.AppendLine("| Category path | MP step | Argument | Candidate evidence |");
+            builder.AppendLine("| --- | --- | --- | --- |");
+            foreach (var item in pending)
+            {
+                var candidates = item.Argument.Input!.Default.Candidates ?? [];
+                var renderedCandidates = string.Join(
+                    "; ",
+                    candidates.Select(candidate =>
+                        $"{candidate.Source}={JsonSerializer.Serialize(candidate.Value, CompactOptions)}"));
+                builder.AppendLine(
+                    CultureInfo.InvariantCulture,
+                    $"| {EscapeMarkdown(string.Join(" / ", item.Entry.CategoryPath))} | " +
+                    $"{EscapeMarkdown(item.Entry.MpStep)} | {EscapeMarkdown(item.Argument.MpName)} | " +
+                    $"{EscapeMarkdown(renderedCandidates)} |");
+            }
+        }
+
+        var retained = entryArray
+            .Where(entry => string.Equals(
+                entry.CommandShape?.Status,
+                "resolved",
+                StringComparison.Ordinal))
+            .SelectMany(entry => entry.CommandShape!.Arguments
+                .Where(argument => string.Equals(
+                    argument.Input?.Default.Status,
+                    "reviewed_no_default",
+                    StringComparison.Ordinal))
+                .Select(argument => (Entry: entry, Argument: argument)))
+            .OrderBy(item => item.Entry.InventoryKey, StringComparer.Ordinal)
+            .ThenBy(item => item.Argument.Ordinal)
+            .ToArray();
+
+        builder.AppendLine();
+        builder.AppendLine("## Reviewed default candidates retained as required inputs");
+        builder.AppendLine();
+        if (retained.Length == 0)
+        {
+            builder.AppendLine("None.");
             return;
         }
 
         builder.AppendLine(
-            "These values are evidence-backed proposals only. Their inputs continue to reject " +
-            "omission until a reviewed disposition explicitly activates a catalog default. " +
-            "Maintainer review is tracked by https://github.com/spatialanalyzer/briosa/issues/82.");
+            "These candidates were reviewed under issue #82. Briosa keeps each input required, " +
+            "rejects omission, and invokes the exact SDK setter only with an explicit request value.");
         builder.AppendLine();
-        builder.AppendLine("| Category path | MP step | Argument | Candidate evidence |");
-        builder.AppendLine("| --- | --- | --- | --- |");
-        foreach (var item in pending)
+        builder.AppendLine("| Category path | MP step | Argument | Evidence state | Candidate evidence | Decision reasons |");
+        builder.AppendLine("| --- | --- | --- | --- | --- | --- |");
+        foreach (var item in retained)
         {
-            var candidates = item.Argument.Input!.Default.Candidates ?? [];
+            var resolution = item.Argument.Input!.Default;
             var renderedCandidates = string.Join(
                 "; ",
-                candidates.Select(candidate =>
+                (resolution.Candidates ?? []).Select(candidate =>
                     $"{candidate.Source}={JsonSerializer.Serialize(candidate.Value, CompactOptions)}"));
             builder.AppendLine(
                 CultureInfo.InvariantCulture,
                 $"| {EscapeMarkdown(string.Join(" / ", item.Entry.CategoryPath))} | " +
                 $"{EscapeMarkdown(item.Entry.MpStep)} | {EscapeMarkdown(item.Argument.MpName)} | " +
-                $"{EscapeMarkdown(renderedCandidates)} |");
+                $"`{EscapeMarkdown(resolution.EvidenceState ?? string.Empty)}` | " +
+                $"{EscapeMarkdown(renderedCandidates)} | " +
+                $"{EscapeMarkdown(string.Join(", ", resolution.ReasonCodes ?? []))} |");
         }
     }
 

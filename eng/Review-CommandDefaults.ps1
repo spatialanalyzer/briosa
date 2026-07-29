@@ -4,6 +4,7 @@ param(
     [string]$SdkCodeRoot,
     [Parameter(Mandatory)][string]$InventoryPath,
     [Parameter(Mandatory)][string]$DispositionDirectory,
+    [string]$DecisionProposalPath,
     [switch]$Apply
 )
 
@@ -14,6 +15,23 @@ function Get-NormalizedIdentifier {
     param([Parameter(Mandatory)][AllowEmptyString()][string]$Value)
 
     return [regex]::Replace($Value, "[^A-Za-z0-9]", "").ToLowerInvariant()
+}
+
+function Get-Sha256 {
+    param([Parameter(Mandatory)][string]$Path)
+
+    return (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash.ToLowerInvariant()
+}
+
+function Test-JsonEqual {
+    param(
+        [AllowNull()]$Left,
+        [AllowNull()]$Right
+    )
+
+    $leftJson = ConvertTo-Json -InputObject @($Left) -Compress -Depth 100
+    $rightJson = ConvertTo-Json -InputObject @($Right) -Compress -Depth 100
+    return $leftJson -ceq $rightJson
 }
 
 function Split-TopLevel {
@@ -343,6 +361,14 @@ function Get-CommittedExactTargetCalls {
                         $candidate = $candidateEntry.value
                     }
                 }
+                elseif ($argument.input.default.status -eq "reviewed_no_default") {
+                    $candidateEntry = @($argument.input.default.candidates | Where-Object {
+                            $_.source -eq "sa_2026_generated_vb"
+                        }) | Select-Object -First 1
+                    if ($null -ne $candidateEntry) {
+                        $candidate = $candidateEntry.value
+                    }
+                }
 
                 if ($null -eq $candidate -or $argument.sdk_binding.setter -eq "unavailable") {
                     continue
@@ -478,7 +504,56 @@ foreach ($command in $inventory.commands) {
     $inventoryByKey[$command.inventory_key] = $command
 }
 
+$decisionByKey = @{}
+$usedDecisionKeys = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+if (-not [string]::IsNullOrWhiteSpace($DecisionProposalPath)) {
+    $proposal = Get-Content -Raw -LiteralPath $DecisionProposalPath | ConvertFrom-Json -Depth 100
+    if ($proposal.schema_version -ne 1 -or
+        $proposal.artifact_kind -ne "issue_82_default_review_decision_proposal" -or
+        $proposal.source_repository_commit -ne "0d7ee3808dba1389e754d8955e3e7b46a853a233" -or
+        $proposal.summary.candidate_count -ne 314 -or
+        $proposal.summary.proposed_approve_default_count -ne 0 -or
+        $proposal.summary.proposed_retain_required_no_default_count -ne 314 -or
+        @($proposal.decisions).Count -ne 314) {
+        throw "The issue #82 decision proposal does not match the reviewed baseline."
+    }
+
+    $repositoryRoot = (Resolve-Path (Join-Path $DispositionDirectory "..\..\..")).Path
+    foreach ($source in @(
+            [pscustomobject]@{
+                Path = Join-Path $repositoryRoot $proposal.generated_from.queue_path
+                Sha256 = $proposal.generated_from.queue_sha256
+            },
+            [pscustomobject]@{
+                Path = Join-Path $repositoryRoot $proposal.generated_from.value_catalog_path
+                Sha256 = $proposal.generated_from.value_catalog_sha256
+            },
+            [pscustomobject]@{
+                Path = Join-Path $repositoryRoot $proposal.generated_from.binding_registry_path
+                Sha256 = $proposal.generated_from.binding_registry_sha256
+            })) {
+        if ((Get-Sha256 $source.Path) -cne $source.Sha256) {
+            throw "The issue #82 proposal source '$($source.Path)' has drifted."
+        }
+    }
+
+    foreach ($decision in $proposal.decisions) {
+        $key = "$($decision.inventory_key)|$($decision.sdk_order)"
+        if ($decisionByKey.ContainsKey($key)) {
+            throw "The issue #82 proposal contains duplicate decision '$key'."
+        }
+        if ($decision.proposal.decision -ne "retain_required_no_default" -or
+            $decision.proposal.input_presence -ne "required" -or
+            $decision.proposal.omission_behavior -ne "reject_request" -or
+            $null -ne $decision.proposal.approved_default_value) {
+            throw "The issue #82 proposal decision '$key' is not the reviewed fail-closed outcome."
+        }
+        $decisionByKey[$key] = $decision
+    }
+}
+
 $reviewedCount = 0
+$reviewedNoDefaultCount = 0
 $needsReviewCount = 0
 $noDefaultCount = 0
 $changedFiles = [Collections.Generic.List[string]]::new()
@@ -498,6 +573,7 @@ foreach ($shardPath in Get-ChildItem -LiteralPath (Join-Path $DispositionDirecto
             if ($null -eq $argument.input) {
                 continue
             }
+            $existingDefault = $argument.input.default
 
             if ($argument.input.presence -eq "optional" -and
                 $argument.input.omission_behavior -eq "omit_sdk_setter") {
@@ -574,6 +650,79 @@ foreach ($shardPath in Get-ChildItem -LiteralPath (Join-Path $DispositionDirecto
                 continue
             }
 
+            if ($argument.inventory_index -lt 0 -or
+                $argument.inventory_index -ge $inventoryCommand.arguments.Count) {
+                throw "Could not resolve one exact SDK order for '$($entry.inventory_key)' index $($argument.inventory_index)."
+            }
+            $sdkOrder = $inventoryCommand.arguments[$argument.inventory_index].sdk_order
+            $decisionKey = "$($entry.inventory_key)|$sdkOrder"
+            $decision = if ($decisionByKey.ContainsKey($decisionKey)) {
+                $decisionByKey[$decisionKey]
+            }
+            else {
+                $null
+            }
+
+            if ($null -ne $decision) {
+                if ($decision.inventory_entry_sha256 -cne $entry.inventory_entry_sha256 -or
+                    $decision.disposition_shard -cne $shardPath.Name -or
+                    $decision.mp_step -cne $entry.command_shape.mp_step -or
+                    $decision.argument_ordinal -ne $argument.ordinal -or
+                    $decision.mp_name -cne $argument.mp_name -or
+                    $decision.setter -cne $argument.sdk_binding.setter -or
+                    -not (Test-JsonEqual @($decision.candidates) @($candidates))) {
+                    throw "The issue #82 proposal decision '$decisionKey' has drifted from the disposition evidence."
+                }
+
+                $argument.input.presence = "required"
+                $argument.input.omission_behavior = "reject_request"
+                $argument.input.default = [ordered]@{
+                    status = "reviewed_no_default"
+                    decision_reference = "https://github.com/spatialanalyzer/briosa/issues/82"
+                    evidence_state = $decision.evidence_state
+                    reason_codes = @($decision.proposal.reason_codes | Sort-Object -Unique)
+                    candidates = $candidates.ToArray()
+                }
+                $entry.decision_references = @(
+                    @($entry.decision_references) +
+                    "https://github.com/spatialanalyzer/briosa/issues/82" |
+                        Sort-Object -Unique)
+                [void]$usedDecisionKeys.Add($decisionKey)
+                $reviewedNoDefaultCount++
+                $shardChanged = $true
+                $reviewRows.Add([pscustomobject]@{
+                    Step = $entry.mp_step
+                    Argument = $argument.mp_name
+                    Status = "reviewed_no_default"
+                    ObjectiveSA = if ($null -ne $objective) {
+                        @($objective.Defaults.Value) -join "; "
+                    } else {
+                        ""
+                    }
+                    SA2026 = if ($allVbValuesParsed) {
+                        Convert-CandidateValue $vb.Values | ConvertTo-Json -Compress -Depth 20
+                    } else {
+                        ""
+                    }
+                })
+                continue
+            }
+
+            if ($existingDefault.status -eq "reviewed_no_default") {
+                if ($existingDefault.decision_reference -ne
+                    "https://github.com/spatialanalyzer/briosa/issues/82" -or
+                    $existingDefault.evidence_state -notin @(
+                        "exact_target_sample_only",
+                        "conflict",
+                        "objectivesa_only") -or
+                    @($existingDefault.reason_codes).Count -eq 0 -or
+                    -not (Test-JsonEqual @($existingDefault.candidates) @($candidates))) {
+                    throw "Reviewed issue #82 decision '$decisionKey' has drifted from its evidence."
+                }
+                $reviewedNoDefaultCount++
+                continue
+            }
+
             $argument.input.presence = "required"
             $argument.input.omission_behavior = "reject_request"
             $argument.input.default = [ordered]@{
@@ -611,9 +760,14 @@ foreach ($shardPath in Get-ChildItem -LiteralPath (Join-Path $DispositionDirecto
         $changedFiles.Add($shardPath.FullName)
     }
 }
+if ($decisionByKey.Count -ne $usedDecisionKeys.Count) {
+    $missing = @($decisionByKey.Keys | Where-Object { -not $usedDecisionKeys.Contains($_) })
+    throw "The issue #82 proposal contains $($missing.Count) unapplied decision(s): $($missing -join ', ')."
+}
 Write-Host "ObjectiveSA default mappings: $($objectiveDefaults.Count)"
 Write-Host "SA 2026 exact-target setter samples: $($vbCalls.Count)"
 Write-Host "Reviewed defaults: $reviewedCount"
+Write-Host "Reviewed candidates retaining required input: $reviewedNoDefaultCount"
 Write-Host "Defaults needing review: $needsReviewCount"
 Write-Host "Inputs with no default candidate: $noDefaultCount"
 
