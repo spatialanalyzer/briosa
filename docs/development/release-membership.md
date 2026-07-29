@@ -12,7 +12,7 @@ Every membership records:
 - the exact catalog ID, SpatialAnalyzer target, and catalog revision; and
 - a sorted, duplicate-free list of exact operation IDs.
 
-The target catalog manifest lists every membership file. Validation rejects missing, unlisted, or stale files; duplicate or unknown operation IDs; and any catalog, target, or revision mismatch. Generation copies membership facts into the coverage manifest and tags every member operation, so completeness tests can compare source membership with protocol, binding, service, registration, capability, documentation, and generated coverage.
+The target catalog manifest lists every membership file. Validation rejects missing, unlisted, or stale files; duplicate or unknown operation IDs; and any catalog, target, or revision mismatch. Generation copies membership facts into the coverage manifest and tags every member operation, so completeness tests compare source membership with protocol, binding, service, registration, capability, documentation, generated coverage, and the portable conformance manifest. A release member missing from executable portable conformance therefore fails CI.
 
 ## Promotion workflow
 

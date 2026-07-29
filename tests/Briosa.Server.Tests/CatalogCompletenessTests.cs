@@ -33,6 +33,12 @@ public sealed class CatalogCompletenessTests
         var generatedReleaseMemberships = manifests
             .SelectMany(ReadCoverageReleaseMemberships)
             .ToDictionary(membership => membership.MembershipId, StringComparer.Ordinal);
+        var conformanceOperationIds = Directory.GetFiles(
+                Path.Combine(repositoryRoot.FullName, "generated", "conformance", "sa"),
+                "manifest.json",
+                SearchOption.AllDirectories)
+            .SelectMany(ReadConformanceOperationIds)
+            .ToHashSet(StringComparer.Ordinal);
         var implemented = MarkedOperations<OperationImplementationAttribute>(
             typeof(OperationImplementationAttribute).Assembly,
             marker => marker.OperationId);
@@ -97,6 +103,7 @@ public sealed class CatalogCompletenessTests
             foreach (var operationId in membership.OperationIds)
             {
                 Assert.Contains(operationId, generated.Keys);
+                Assert.Contains(operationId, conformanceOperationIds);
                 Assert.Contains(
                     membership.MembershipId,
                     generated[operationId].ReleaseMemberships);
@@ -173,6 +180,13 @@ public sealed class CatalogCompletenessTests
         using var document = JsonDocument.Parse(File.ReadAllBytes(path));
         return [.. document.RootElement.GetProperty("release_memberships").EnumerateArray()
             .Select(ReadReleaseMembership)];
+    }
+
+    private static IReadOnlyList<string> ReadConformanceOperationIds(string path)
+    {
+        using var document = JsonDocument.Parse(File.ReadAllBytes(path));
+        return [.. document.RootElement.GetProperty("operations").EnumerateArray()
+            .Select(operation => operation.GetProperty("operation_id").GetString()!)];
     }
 
     private static ReleaseMembership ReadReleaseMembership(JsonElement membership) =>
