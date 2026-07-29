@@ -3,7 +3,7 @@
 - Status: Accepted for the v0.1 vertical slice
 - Date: 2026-07-22
 - Issue: [#16](https://github.com/spatialanalyzer/briosa/issues/16)
-- Amended by: [ADR 0016](0016-command-argument-semantic-families.md)
+- Amended by: [ADR 0016](0016-command-argument-semantic-families.md) and [ADR 0021](0021-exact-target-protobuf-partitions-and-identifiers.md)
 
 ## Context
 
@@ -15,7 +15,7 @@ SpatialAnalyzer command shapes are exact-release contracts. The generator must n
 
 One deterministic generator emits four checked-in artifacts for each exact SA target:
 
-1. the target `operations.proto`;
+1. one target protobuf service/file per reviewed category partition;
 2. generated server operation bindings;
 3. Briosa-authored reference Markdown; and
 4. a machine-readable coverage manifest.

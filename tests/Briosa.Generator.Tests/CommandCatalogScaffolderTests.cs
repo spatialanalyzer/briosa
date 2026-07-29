@@ -63,9 +63,14 @@ public sealed class CommandCatalogScaffolderTests
             {
                 Assert.Null(argument.CatalogFields.ArgumentId);
                 Assert.Null(argument.CatalogFields.DataClassification);
+                Assert.Null(argument.CatalogFields.FieldNumbers);
                 Assert.Null(argument.CatalogFields.Input);
                 Assert.Null(argument.CatalogFields.Documentation);
             });
+        Assert.Contains(
+            "/arguments/0/catalog_fields/field_numbers",
+            angle.Blockers,
+            StringComparer.Ordinal);
         Assert.Matches("^[a-f0-9]{64}$", angle.SourceFingerprints.InventorySha256);
         Assert.Matches(
             "^[a-f0-9]{64}$",

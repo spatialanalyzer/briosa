@@ -29,9 +29,15 @@ public sealed class CommandCatalogValidatorTests
         var argument = operation["arguments"]!.AsArray().Single()!.AsObject();
 
         Assert.Equal("Get Working Directory", operation["mp_step"]!.GetValue<string>());
+        Assert.Equal(
+            "documentation:FileOperations/GetWorkingDirectory.htm",
+            operation["inventory_key"]!.GetValue<string>());
         Assert.Equal("global_state_read", operation["execution_scope"]!.GetValue<string>());
         Assert.Equal("safe", operation["risk"]!["replay_safety"]!.GetValue<string>());
         Assert.Equal("Directory", argument["mp_name"]!.GetValue<string>());
+        Assert.Equal(0, argument["sdk_order"]!.GetValue<int>());
+        Assert.Null(argument["field_numbers"]!["request"]);
+        Assert.Equal(1, argument["field_numbers"]!["result"]!.GetValue<int>());
         Assert.Equal("output", argument["direction"]!.GetValue<string>());
         Assert.Equal("yes", argument["result_only"]!.GetValue<string>());
         Assert.Equal("string", argument["semantic_type"]!.GetValue<string>());
@@ -267,6 +273,197 @@ public sealed class CommandCatalogValidatorTests
     }
 
     [Fact]
+    public void PackageWideRpcAndMessageCollisionsFailClosed()
+    {
+        using var fixture = CatalogFixture.Create();
+        fixture.AddProtocolPartition("Other", "other", "Other", "other.proto");
+        fixture.AddOperation(
+            "other.get_working_directory",
+            "Other",
+            "GetWorkingDirectory",
+            "Other");
+
+        var result = CommandCatalogValidator.ValidateDirectory(fixture.Root);
+
+        Assert.Contains(
+            result.Errors,
+            error => error.Contains("package-wide RPC name", StringComparison.Ordinal));
+        Assert.Contains(
+            result.Errors,
+            error => error.Contains("package symbol 'GetWorkingDirectoryRequest'", StringComparison.Ordinal));
+        Assert.Contains(
+            result.Errors,
+            error => error.Contains("package symbol 'GetWorkingDirectoryResult'", StringComparison.Ordinal));
+        Assert.Throws<InvalidDataException>(() => CommandCatalogGenerator.Generate(
+            fixture.Root,
+            Path.Combine(fixture.Root, "generated-collision-output")));
+    }
+
+    [Fact]
+    public void CategoryAliasCollisionsFailClosedInsteadOfReceivingSuffixes()
+    {
+        using var fixture = CatalogFixture.Create();
+        fixture.AddProtocolPartition(
+            "Other File Operations",
+            "file_operations",
+            "FileOperations",
+            "file_operations.proto");
+
+        var result = CommandCatalogValidator.ValidateDirectory(fixture.Root);
+
+        Assert.Contains(
+            result.Errors,
+            error => error.Contains("duplicates a category alias", StringComparison.Ordinal));
+        Assert.Contains(
+            result.Errors,
+            error => error.Contains("collides on service", StringComparison.Ordinal));
+        Assert.Contains(
+            result.Errors,
+            error => error.Contains("collides on proto_file", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void ServicesCannotCollideWithGeneratedMessageTypes()
+    {
+        using var fixture = CatalogFixture.Create();
+        fixture.AddProtocolPartition(
+            "Request Collision",
+            "get_working_directory_request",
+            "GetWorkingDirectoryRequest",
+            "get_working_directory_request.proto");
+
+        var result = CommandCatalogValidator.ValidateDirectory(fixture.Root);
+
+        Assert.Contains(
+            result.Errors,
+            error => error.Contains(
+                "package symbol 'GetWorkingDirectoryRequest'",
+                StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void CategoryFilesCannotReplaceFixedExactTargetProtocolFiles()
+    {
+        using var fixture = CatalogFixture.Create();
+        fixture.AddProtocolPartition(
+            "Values",
+            "values",
+            "Values",
+            "values.proto");
+
+        var result = CommandCatalogValidator.ValidateDirectory(fixture.Root);
+
+        Assert.Contains(
+            result.Errors,
+            error => error.Contains(
+                "proto_file 'values.proto' collides with an existing non-catalog exact-target protocol file",
+                StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void ServicesCannotReplaceFixedExactTargetPackageSymbols()
+    {
+        using var fixture = CatalogFixture.Create();
+        fixture.AddProtocolPartition(
+            "Point Name",
+            "point_name",
+            "PointName",
+            "point_name.proto");
+
+        var result = CommandCatalogValidator.ValidateDirectory(fixture.Root);
+
+        Assert.Contains(
+            result.Errors,
+            error => error.Contains("package symbol 'PointName'", StringComparison.Ordinal) &&
+                error.Contains("fixed protocol file 'values.proto'", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void MissingFixedProtocolContextFailsClosed()
+    {
+        using var fixture = CatalogFixture.Create();
+        fixture.RemoveProtocolContext();
+
+        var result = CommandCatalogValidator.ValidateDirectory(fixture.Root);
+
+        Assert.Contains(
+            result.Errors,
+            error => error.Contains(
+                "fixed package filenames and symbols cannot be validated",
+                StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void FieldNumbersAreExplicitAndIndependentFromMpOrdinals()
+    {
+        using var fixture = CatalogFixture.Create();
+        fixture.EditOperation(operation => operation["arguments"]![0]!["ordinal"] = 42);
+
+        var result = CommandCatalogValidator.ValidateDirectory(fixture.Root);
+
+        Assert.True(result.IsValid, string.Join(Environment.NewLine, result.Errors));
+    }
+
+    [Fact]
+    public void ReservedFieldNumbersFailClosed()
+    {
+        using var fixture = CatalogFixture.Create();
+        fixture.EditOperation(operation =>
+        {
+            var first = operation["arguments"]![0]!.AsObject();
+            first["field_numbers"]!["result"] = 1000;
+        });
+
+        var result = CommandCatalogValidator.ValidateDirectory(fixture.Root);
+
+        Assert.Contains(
+            result.Errors,
+            error => error.Contains("reserved result field number 1000", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void DuplicateFieldNumbersFailClosed()
+    {
+        using var fixture = CatalogFixture.Create();
+        fixture.EditOperation(operation =>
+        {
+            var first = operation["arguments"]![0]!.AsObject();
+            var second = first.DeepClone().AsObject();
+            second["argument_id"] = "other_directory";
+            second["ordinal"] = 1;
+            second["sdk_order"] = 1;
+            operation["arguments"]!.AsArray().Add(second);
+        });
+
+        var result = CommandCatalogValidator.ValidateDirectory(fixture.Root);
+
+        Assert.Contains(
+            result.Errors,
+            error => error.Contains("duplicates result field number 1", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void DuplicateSdkOrderFailsIndependentlyFromDocumentedOrdinal()
+    {
+        using var fixture = CatalogFixture.Create();
+        fixture.EditOperation(operation =>
+        {
+            var first = operation["arguments"]![0]!.AsObject();
+            var second = first.DeepClone().AsObject();
+            second["argument_id"] = "other_directory";
+            second["ordinal"] = 1;
+            second["field_numbers"]!["result"] = 2;
+            operation["arguments"]!.AsArray().Add(second);
+        });
+
+        var result = CommandCatalogValidator.ValidateDirectory(fixture.Root);
+
+        Assert.Contains(
+            result.Errors,
+            error => error.Contains("duplicate argument sdk_order 0", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void TargetDirectoryAndManifestIdentityMustMatch()
     {
         using var fixture = CatalogFixture.Create();
@@ -301,10 +498,13 @@ public sealed class CommandCatalogValidatorTests
             WriteIndented = true
         };
 
-        private CatalogFixture(string root)
+        private CatalogFixture(string workspaceRoot, string root)
         {
+            WorkspaceRoot = workspaceRoot;
             Root = root;
         }
+
+        private string WorkspaceRoot { get; }
 
         public string Root { get; }
 
@@ -319,21 +519,41 @@ public sealed class CommandCatalogValidatorTests
 
         public static CatalogFixture Create()
         {
-            var root = Path.Combine(
+            var workspaceRoot = Path.Combine(
                 Path.GetTempPath(),
                 $"briosa-catalog-tests-{Guid.NewGuid():N}");
-            CopyDirectory(FindCatalogRoot(), root);
-            return new CatalogFixture(root);
+            var catalogRoot = Path.Combine(workspaceRoot, "catalog");
+            var repositoryRoot = Directory.GetParent(FindCatalogRoot())!.FullName;
+            CopyDirectory(FindCatalogRoot(), catalogRoot);
+            CopyDirectory(
+                Path.Combine(repositoryRoot, "proto"),
+                Path.Combine(workspaceRoot, "proto"));
+            return new CatalogFixture(workspaceRoot, catalogRoot);
         }
 
         public void EditManifest(Action<JsonObject> edit) => EditJson(ManifestPath, edit);
 
         public void EditOperation(Action<JsonObject> edit) => EditJson(OperationPath, edit);
 
-        public void AddOperation(string operationId, string service, string rpc)
+        public void RemoveProtocolContext()
+        {
+            var protocolRoot = Path.Combine(WorkspaceRoot, "proto");
+            if (Directory.Exists(protocolRoot))
+            {
+                Directory.Delete(protocolRoot, recursive: true);
+            }
+        }
+
+        public void AddOperation(
+            string operationId,
+            string service,
+            string rpc,
+            string category = "File Operations")
         {
             var operation = JsonNode.Parse(File.ReadAllText(OperationPath))!.AsObject();
             operation["operation_id"] = operationId;
+            operation["inventory_key"] = $"synthetic:{operationId}";
+            operation["category"] = category;
             operation["protocol"] = new JsonObject
             {
                 ["service"] = service,
@@ -361,11 +581,39 @@ public sealed class CommandCatalogValidatorTests
             });
         }
 
+        public void AddProtocolPartition(
+            string category,
+            string alias,
+            string service,
+            string protoFile)
+        {
+            EditManifest(manifest =>
+            {
+                var partitions = manifest["protocol_partitions"]!.AsArray();
+                partitions.Add(new JsonObject
+                {
+                    ["category"] = category,
+                    ["alias"] = alias,
+                    ["service"] = service,
+                    ["proto_file"] = protoFile
+                });
+                var sorted = partitions
+                    .Select(node => node!.DeepClone())
+                    .OrderBy(node => node!["alias"]!.GetValue<string>(), StringComparer.Ordinal)
+                    .ToArray();
+                partitions.Clear();
+                foreach (var partition in sorted)
+                {
+                    partitions.Add(partition);
+                }
+            });
+        }
+
         public void Dispose()
         {
-            if (Directory.Exists(Root))
+            if (Directory.Exists(WorkspaceRoot))
             {
-                Directory.Delete(Root, recursive: true);
+                Directory.Delete(WorkspaceRoot, recursive: true);
             }
         }
 

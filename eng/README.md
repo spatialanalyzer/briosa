@@ -20,11 +20,13 @@ strict FILE-level comparison against its explicit Git ref:
 
 ## Command catalog verification
 
-`Verify-Catalog.ps1` applies the versioned JSON Schemas and semantic release rules to every exact-target supported-command catalog. It rejects unlisted files, target or naming drift, unresolved metadata, unsafe default inference, and missing SDK bindings:
+`Verify-Catalog.ps1` applies the versioned JSON Schemas and semantic release rules to every exact-target supported-command catalog. It rejects unlisted files, target or naming drift, category/service/file collisions, unresolved RPC or message identities, missing or duplicate field numbers, conflated inventory/MP/SDK identities, unresolved metadata, unsafe default inference, and missing SDK bindings:
 
 ```powershell
 ./eng/Verify-Catalog.ps1
 ```
+
+Validation reserves every fixed filename and top-level symbol already declared in the exact-target `proto` package. The repository layout is therefore part of the validation input: a synthetic or copied `<workspace>/catalog` must be accompanied by the matching `<workspace>/proto` tree. Missing fixed-protocol context fails closed rather than allowing a category to claim `values.proto`, `specialized_values.proto`, or an existing package symbol.
 
 Regenerate the catalog-derived protobuf contracts and worker bindings with:
 
@@ -32,13 +34,15 @@ Regenerate the catalog-derived protobuf contracts and worker bindings with:
 dotnet run --project tools/Briosa.Generator -c Release -- catalog-generate catalog .
 ```
 
-Generated artifacts are committed but must not be hand-edited. Verify a clean generation and reject stale or extra generated files with:
+Generated artifacts are committed but must not be hand-edited. Each manifest `protocol_partitions` entry owns one stable exact-target category `.proto` file and service in the same package. Argument `field_numbers` are explicit API identities; do not recalculate them from MP `ordinal` or `sdk_order`. The generator refuses to overwrite any existing destination that does not carry its catalog-artifact marker. Verify a clean generation and reject stale or extra generated files with:
 
 ```powershell
 ./eng/Verify-CatalogArtifacts.ps1
 ```
 
 Pass `-NoBuild` only after `Briosa.Generator` has already been built in the selected configuration.
+
+After a public release, pair catalog verification with `Verify-Protocol.ps1 -AgainstRef <released-ref>`. The repository's FILE-level Buf policy rejects moving a published service or message between category files as well as incompatible field changes. See [ADR 0021](../docs/architecture/0021-exact-target-protobuf-partitions-and-identifiers.md) before allocating a new category alias, RPC, request/result type, or field number.
 
 Generate incomplete, evidence-traceable review scaffolds for every reviewed approved candidate that is not already in the supported catalog with `catalog-scaffold-generate`. Output must remain separate from `catalog`; use an ignored `artifacts` directory:
 

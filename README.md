@@ -50,7 +50,7 @@ Briosa separates the stable `briosa.core.v1alpha1` package from MP contracts gen
 
 Install Buf 1.72.0 and run `./eng/Verify-Protocol.ps1` to check formatting, lint rules, and schema compilation. Once Briosa has a public release baseline, pass its explicit Git ref with `-AgainstRef`; the evolving unreleased `main` branch is intentionally not treated as a compatibility baseline. The .NET build compiles the reviewed protobuf sources directly.
 
-See [the exact-SA-target protocol decision](docs/architecture/0005-exact-sa-target-protocols.md) for package layout, version coordinates, compatibility, presence, target isolation, and review rules.
+Exact-target operations remain in one release package but are generated into stable reviewed category files and services. Catalog arguments own explicit request/result field numbers independently from MP ordinal and SDK order; generation rejects unresolved identifier collisions without inventing suffixes. See [the exact-SA-target protocol decision](docs/architecture/0005-exact-sa-target-protocols.md) and [the partition and identifier decision](docs/architecture/0021-exact-target-protobuf-partitions-and-identifiers.md) for package layout, version coordinates, compatibility, naming, field allocation, target isolation, and review rules.
 
 Successful MP responses pair exact-target typed values with explicit core execution and output-retrieval details. Failed calls use canonical gRPC statuses and carry a value-free typed error in `briosa-operation-error-bin`. See [the MP outcome and error decision](docs/architecture/0008-mp-outcomes-and-grpc-errors.md) and its [uncertain-completion amendment](docs/architecture/0018-uncertain-completion-and-replay.md). Worker recovery and command replay safety are separate; an ambiguously completed call must not be automatically replayed merely because a replacement worker becomes available.
 
@@ -68,7 +68,7 @@ The `inventory` directory contains deterministic derived facts from locally inst
 
 The `disposition` directory accounts for every exact-target inventory key without making all of them public. Category-sharded decisions record approved candidates, intentional exclusions, SDK-unavailable operations, and named blockers. Evidence fingerprints force command-scoped re-review when extracted facts change. See [the disposition review guide](docs/development/command-dispositions.md) for decision fields, review states, delivery waves, and promotion rules.
 
-Run `./eng/Verify-Catalog.ps1` to validate JSON structure, target and path identity, deterministic protocol names, argument direction, reviewed input omission/default behavior, evidence references, risk metadata, and private SDK setter/getter availability. Validation requires neither SpatialAnalyzer nor the local vendor evidence corpus.
+Run `./eng/Verify-Catalog.ps1` to validate JSON structure, target and path identity, stable category/service/file partitions, fixed protocol filename and package-symbol reservations, unique fully qualified methods and generated symbols, explicit field allocation, distinct inventory/MP/SDK identities, argument direction, reviewed input omission/default behavior, evidence references, risk metadata, and private SDK setter/getter availability. Validation requires neither SpatialAnalyzer nor the local vendor evidence corpus.
 
 Run `./eng/Verify-Disposition.ps1` to validate complete inventory coverage, evidence identity, review-state semantics, deterministic category shards, and the generated disposition report. New and changed commands fail closed until reviewed.
 
@@ -80,7 +80,7 @@ Run `./eng/Verify-CatalogScaffolds.ps1` to generate and schema-check the incompl
 
 For SA `2026.1.0529.7`, see the [intentional-exclusion policy](docs/reference/sa/2026.1.0529.7/intentional-exclusions.md) and the generated [command-level disposition report](disposition/sa/2026.1.0529.7/report.md).
 
-Run `dotnet run --project tools/Briosa.Generator -c Release -- catalog-generate catalog .` to regenerate exact-target protobuf, server bindings, reference documentation, and coverage manifests. Never edit those artifacts by hand. `./eng/Verify-CatalogArtifacts.ps1` performs a clean generation and fails on content or file-list drift.
+Run `dotnet run --project tools/Briosa.Generator -c Release -- catalog-generate catalog .` to regenerate category-partitioned exact-target protobuf, server bindings, reference documentation, and coverage manifests. Never edit those artifacts by hand. `./eng/Verify-CatalogArtifacts.ps1` performs a clean generation and fails on content or file-list drift, including stale category files.
 
 Release-aligned client generation uses the deterministic protocol artifact described in [the protocol artifact and conformance guide](docs/operations/protocol-artifacts.md). It packages canonical protobuf sources, a descriptor set, exact catalog identity, and shared value-safe fixtures for all thin-client repositories. Produce it with `./eng/New-ProtocolArtifact.ps1` and verify its byte identity, manifests, checksums, descriptor, and fixtures with `./eng/Test-ProtocolArtifact.ps1`; neither command requires SpatialAnalyzer or an SA license.
 

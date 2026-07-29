@@ -11,7 +11,6 @@ internal static class CommandCatalogScaffolder
         "https://spatialanalyzer.github.io/briosa/catalog/schemas/v1/scaffold-manifest.schema.json";
     private const string ScaffoldSchema =
         "https://spatialanalyzer.github.io/briosa/catalog/schemas/v1/scaffold.schema.json";
-    private const string InventoryKeyReferencePrefix = "Inventory key: ";
 
     private static readonly JsonSerializerOptions ReadOptions = new()
     {
@@ -254,10 +253,6 @@ internal static class CommandCatalogScaffolder
         MpCommandInventory inventory,
         Dictionary<string, CatalogScaffoldDispositionSource> dispositionEntries)
     {
-        var sourceKinds = manifest.Sources.ToDictionary(
-            source => source.SourceId,
-            source => source.Kind,
-            StringComparer.Ordinal);
         var result = new HashSet<string>(StringComparer.Ordinal);
         foreach (var operationFile in manifest.OperationFiles)
         {
@@ -265,7 +260,6 @@ internal static class CommandCatalogScaffolder
                 CombineRelativePath(targetCatalogDirectory, operationFile));
             var candidates = ResolveCatalogOperationCandidates(
                 operation,
-                sourceKinds,
                 inventory.Commands);
             if (candidates.Count != 1)
             {
@@ -302,57 +296,12 @@ internal static class CommandCatalogScaffolder
 
     private static List<MpCommandInventoryCommand> ResolveCatalogOperationCandidates(
         CommandCatalogOperation operation,
-        Dictionary<string, string> sourceKinds,
         IReadOnlyList<MpCommandInventoryCommand> commands)
-    {
-        var explicitKeys = operation.Evidence
-            .Where(evidence =>
-                sourceKinds.TryGetValue(evidence.SourceId, out var kind) &&
-                string.Equals(kind, "maintainer_review", StringComparison.Ordinal) &&
-                evidence.Reference.StartsWith(
-                    InventoryKeyReferencePrefix,
-                    StringComparison.Ordinal))
-            .Select(evidence => evidence.Reference[InventoryKeyReferencePrefix.Length..])
-            .Distinct(StringComparer.Ordinal)
-            .ToArray();
-        if (explicitKeys.Length > 0)
-        {
-            return commands
-                .Where(command =>
-                    explicitKeys.Contains(command.InventoryKey, StringComparer.Ordinal) &&
-                    string.Equals(command.MpStep, operation.MpStep, StringComparison.Ordinal))
-                .ToList();
-        }
-
-        var documentationReferences = operation.Evidence
-            .Where(evidence =>
-                sourceKinds.TryGetValue(evidence.SourceId, out var kind) &&
-                string.Equals(
-                    kind,
-                    "installed_mp_documentation",
-                    StringComparison.Ordinal))
-            .Select(evidence => evidence.Reference)
-            .ToHashSet(StringComparer.Ordinal);
-        var documentationMatches = commands
+        => commands
             .Where(command =>
-                command.Documentation is not null &&
-                documentationReferences.Contains(command.Documentation.Reference) &&
+                string.Equals(command.InventoryKey, operation.InventoryKey, StringComparison.Ordinal) &&
                 string.Equals(command.MpStep, operation.MpStep, StringComparison.Ordinal))
             .ToList();
-        if (documentationMatches.Count > 0)
-        {
-            return documentationMatches;
-        }
-
-        return commands
-            .Where(command =>
-                string.Equals(command.MpStep, operation.MpStep, StringComparison.Ordinal) &&
-                string.Equals(
-                    NormalizeName(command.CategoryPath.LastOrDefault() ?? string.Empty),
-                    NormalizeName(operation.Category),
-                    StringComparison.Ordinal))
-            .ToList();
-    }
 
     private static CommandCatalogScaffoldDocument CreateScaffold(
         MpCommandInventoryCommand command,
@@ -397,6 +346,7 @@ internal static class CommandCatalogScaffolder
         {
             blockers.Add($"/arguments/{index}/catalog_fields/argument_id");
             blockers.Add($"/arguments/{index}/catalog_fields/data_classification");
+            blockers.Add($"/arguments/{index}/catalog_fields/field_numbers");
             blockers.Add($"/arguments/{index}/catalog_fields/documentation");
             if (arguments[index].ReviewedInput is not null)
             {
@@ -505,6 +455,7 @@ internal static class CommandCatalogScaffolder
             {
                 ArgumentId = null,
                 DataClassification = null,
+                FieldNumbers = null,
                 Input = null,
                 Documentation = null
             }
@@ -619,9 +570,6 @@ internal static class CommandCatalogScaffolder
              !string.Equals(relative, "..", StringComparison.Ordinal) &&
              !Path.IsPathRooted(relative));
     }
-
-    private static string NormalizeName(string value) =>
-        new(value.Where(char.IsLetterOrDigit).Select(char.ToLowerInvariant).ToArray());
 
     private static string Sha256(string value) =>
         Sha256(Encoding.UTF8.GetBytes(value));
@@ -1085,6 +1033,9 @@ internal sealed class CatalogScaffoldArgumentFields
 
     [JsonRequired]
     public required string? DataClassification { get; init; }
+
+    [JsonRequired]
+    public required CommandCatalogFieldNumbers? FieldNumbers { get; init; }
 
     [JsonRequired]
     public required CommandCatalogInputMetadata? Input { get; init; }

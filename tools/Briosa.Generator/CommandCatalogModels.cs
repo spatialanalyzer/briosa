@@ -28,7 +28,25 @@ internal sealed class CommandCatalogManifest
     public required List<CommandCatalogSource> Sources { get; init; }
 
     [JsonRequired]
+    public required List<CommandCatalogProtocolPartition> ProtocolPartitions { get; init; }
+
+    [JsonRequired]
     public required List<string> OperationFiles { get; init; }
+}
+
+internal sealed class CommandCatalogProtocolPartition
+{
+    [JsonRequired]
+    public required string Category { get; init; }
+
+    [JsonRequired]
+    public required string Alias { get; init; }
+
+    [JsonRequired]
+    public required string Service { get; init; }
+
+    [JsonRequired]
+    public required string ProtoFile { get; init; }
 }
 
 internal sealed class CommandCatalogSource
@@ -54,6 +72,9 @@ internal sealed class CommandCatalogOperation
 
     [JsonRequired]
     public required string OperationId { get; init; }
+
+    [JsonRequired]
+    public required string InventoryKey { get; init; }
 
     [JsonRequired]
     public required string MpStep { get; init; }
@@ -138,6 +159,9 @@ internal sealed class CommandCatalogArgument
     public required int Ordinal { get; init; }
 
     [JsonRequired]
+    public required int SdkOrder { get; init; }
+
+    [JsonRequired]
     public required string MpName { get; init; }
 
     [JsonRequired]
@@ -151,6 +175,8 @@ internal sealed class CommandCatalogArgument
     [JsonRequired]
     public required string DataClassification { get; init; }
 
+    [JsonRequired]
+    public required CommandCatalogFieldNumbers FieldNumbers { get; init; }
 
     public CommandCatalogInputMetadata? Input { get; init; }
 
@@ -159,6 +185,15 @@ internal sealed class CommandCatalogArgument
 
     [JsonRequired]
     public required string Documentation { get; init; }
+}
+
+internal sealed class CommandCatalogFieldNumbers
+{
+    [JsonRequired]
+    public required int? Request { get; init; }
+
+    [JsonRequired]
+    public required int? Result { get; init; }
 }
 
 internal sealed class CommandCatalogInputMetadata

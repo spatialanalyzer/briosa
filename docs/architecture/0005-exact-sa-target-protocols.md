@@ -2,6 +2,7 @@
 
 - Status: Accepted for the v0.1 vertical slice
 - Date: 2026-07-21
+- Amended by: [ADR 0021](0021-exact-target-protobuf-partitions-and-identifiers.md)
 
 ## Context
 
@@ -24,6 +25,9 @@ The source layout mirrors the package identity:
 proto/
   briosa/core/v1alpha1/
   briosa/sa/v2026_1_0529_7/v1alpha1/
+    file_operations.proto
+    values.proto
+    specialized_values.proto
 ```
 
 Generated C# namespaces use `Briosa.Core.V1Alpha1` and `Briosa.Sa.V2026_1_0529_7.V1Alpha1`. Version components retain every component and leading zero from the exact SA version, replacing punctuation with underscores only where required by protobuf and language identifiers.
@@ -84,6 +88,7 @@ The release baseline must never be inferred from `main`.
 
 - Core files are compared with the prior core baseline.
 - A target file is compared only with the prior file in the same exact target and package line.
+- Reviewed categories own stable service/file partitions inside that package; adding a category adds a file rather than moving existing symbols.
 - Adding a different exact-target package creates an independent API rather than replacing an existing target.
 - After a package line is publicly released, its field numbers, names, and meanings are immutable. Removed field numbers and names must be reserved.
 - A semantic correction that changes a published meaning requires a new target package version even if the wire type is unchanged.

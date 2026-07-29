@@ -7,6 +7,7 @@
   "required": [
     "$schema",
     "operation_id",
+    "inventory_key",
     "mp_step",
     "category",
     "protocol",
@@ -24,6 +25,10 @@
     "operation_id": {
       "type": "string",
       "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$"
+    },
+    "inventory_key": {
+      "type": "string",
+      "minLength": 1
     },
     "mp_step": {
       "type": "string",
@@ -191,11 +196,13 @@
       "required": [
         "argument_id",
         "ordinal",
+        "sdk_order",
         "mp_name",
         "direction",
         "result_only",
         "semantic_type",
         "data_classification",
+        "field_numbers",
         "sdk_binding",
         "documentation"
       ],
@@ -205,6 +212,10 @@
           "pattern": "^[a-z][a-z0-9_]*$"
         },
         "ordinal": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sdk_order": {
           "type": "integer",
           "minimum": 0
         },
@@ -243,6 +254,32 @@
             "proprietary",
             "unknown"
           ]
+        },
+        "field_numbers": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "request",
+            "result"
+          ],
+          "properties": {
+            "request": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1,
+              "maximum": 536870911
+            },
+            "result": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1,
+              "maximum": 536870911
+            }
+          }
         },
         "input": {
           "$ref": "#/definitions/input_metadata"

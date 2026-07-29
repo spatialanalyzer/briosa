@@ -483,6 +483,7 @@
       "required": [
         "argument_id",
         "data_classification",
+        "field_numbers",
         "input",
         "documentation"
       ],
@@ -491,6 +492,9 @@
           "type": "null"
         },
         "data_classification": {
+          "type": "null"
+        },
+        "field_numbers": {
           "type": "null"
         },
         "input": {

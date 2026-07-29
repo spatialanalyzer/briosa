@@ -1,6 +1,7 @@
 {
   "$schema": "../../../schemas/v1/operation.schema.json",
   "operation_id": "file_operations.get_working_directory",
+  "inventory_key": "documentation:FileOperations/GetWorkingDirectory.htm",
   "mp_step": "Get Working Directory",
   "category": "File Operations",
   "protocol": {
@@ -26,11 +27,16 @@
     {
       "argument_id": "directory",
       "ordinal": 0,
+      "sdk_order": 0,
       "mp_name": "Directory",
       "direction": "output",
       "result_only": "yes",
       "semantic_type": "string",
       "data_classification": "path",
+      "field_numbers": {
+        "request": null,
+        "result": 1
+      },
       "sdk_binding": {
         "status": "available",
         "setter": null,

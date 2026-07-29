@@ -2,7 +2,7 @@
 <!-- Generated from the reviewed Briosa command catalog. Do not edit by hand. -->
 # SpatialAnalyzer 2026.1.0529.7 operation reference
 
-Catalog `briosa.sa.2026.1.0529.7` revision `5`.
+Catalog `briosa.sa.2026.1.0529.7` revision `6`.
 
 Only explicitly reviewed Briosa operations are listed here. This is not the installed SpatialAnalyzer MP catalog.
 
@@ -21,6 +21,9 @@ Worker replacement restores availability; it does not change an operation's exec
 Returns the directory SpatialAnalyzer uses to resolve measurement-plan-relative paths.
 
 - Briosa operation: `file_operations.get_working_directory`
+- Inventory key: `documentation:FileOperations/GetWorkingDirectory.htm`
+- Protocol file: `file_operations.proto`
+- Fully qualified method: `/briosa.sa.v2026_1_0529_7.v1alpha1.FileOperations/GetWorkingDirectory`
 - Exact MP step: `Get Working Directory`
 - Stability: `experimental`
 - Execution scope: `global_state_read`
@@ -35,6 +38,6 @@ None.
 
 ### Outputs
 
-| Field | MP argument | Direction | Type | Data classification | SDK binding | Presence / retrieval |
-| --- | --- | --- | --- | --- | --- | --- |
-| `directory` | `Directory` | `output` | `string` | `path` | `GetStringArg` | result-only yes |
+| Field | Number | MP ordinal | SDK order | MP argument | Direction | Type | Data classification | SDK binding | Presence / retrieval |
+| --- | ---: | ---: | ---: | --- | --- | --- | --- | --- | --- |
+| `directory` | 1 | 0 | 0 | `Directory` | `output` | `string` | `path` | `GetStringArg` | result-only yes |
