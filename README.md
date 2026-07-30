@@ -6,6 +6,26 @@ Briosa is an open-source gRPC bridge around the Hexagon SpatialAnalyzer SDK. Spa
 
 The initial vertical slice targets .NET 10 on Windows x64 and SpatialAnalyzer 2026.1.0529.7. Its first public operation is the exact-target `GetWorkingDirectory` RPC. The initial v0.2 Wave 1 subset adds five generated collection-introspection operations, and the initial Wave 2 subset adds the exact point lifecycle `ConstructPointInWorkingCoordinates`, `RenamePoint`, and `DeletePoints` operations. These are deliberately small reviewed promotions, not a claim that either full candidate pool has shipped.
 
+## Local real-SA quickstart
+
+On Windows x64, install and license SpatialAnalyzer 2026.1.0529.7 and its matching SDK separately, configure the two independently established identity claims in .NET user-secrets, install `grpcurl`, close every competing SDK client and extra SpatialAnalyzer instance, then start exactly one matching SpatialAnalyzer instance. The [complete local gRPC server guide](docs/development/local-grpc-server.md) gives the one-time setup, evidence rules, grpcui workflow, expected states, safe recovery, and validation boundary.
+
+From the repository root, start the real source server and its separately supervised worker with one command:
+
+```powershell
+dotnet run --project src/Briosa.Server --launch-profile SpatialAnalyzer
+```
+
+In another PowerShell terminal, inspect reflection and readiness, then call the default reviewed read-only operation:
+
+```powershell
+grpcurl -plaintext 127.0.0.1:50051 list
+grpcurl -plaintext -d '{"service":"briosa.readiness"}' 127.0.0.1:50051 grpc.health.v1.Health/Check
+grpcurl -plaintext -d '{}' 127.0.0.1:50051 briosa.sa.v2026_1_0529_7.v1alpha1.FileOperations/GetWorkingDirectory
+```
+
+The returned directory is developer-visible SpatialAnalyzer data; do not copy it into logs or validation reports. Stop Briosa with Ctrl+C. This local success path is developer evidence, not protected licensed-SA or release validation.
+
 ## Build
 
 Install the SDK selected by `global.json`, then run:
