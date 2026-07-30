@@ -6,6 +6,17 @@ For SA `2026.1.0529.7`, the initial v0.2 Wave 1 subset is declared in `catalog/s
 
 The seven Wave 2 members mutate application-global state and have `unknown` replay safety. Their membership records delivery, not an endorsement of automatic retry: cancellation, timeout, worker loss, or a lost response after admission can require the caller to inspect current model state before deciding what to do next.
 
+The four derived-constructor additions were authorized under the maintainer-approved Wave 2 promotion rule: exact-target installed documentation and View SDK Code establish the SA `2026.1.0529.7` contract, while a matching ObjectiveSA counterpart corroborates the command and argument shape. The review found these one-to-one counterparts:
+
+| Exact MP step | ObjectiveSA counterpart | Matching shape |
+| --- | --- | --- |
+| `Construct a Point at Circle Center` | `ConstructPointAtCircleCenter` | circle collection-object input followed by resultant point-name input; no getter-returned output |
+| `Construct a Point at line MidPoint` | `ConstructPointAtLineMidpoint` | line collection-object input followed by resultant point-name input; no getter-returned output |
+| `Construct Point (Fit to Points)` | `ConstructPointFitToPoints` | point-name reference-list input followed by resultant point-name input; no getter-returned output |
+| `Construct Point Group from Point Name Ref List` | `ConstructPointGroupFromPointNameRefList` | point-name reference-list input followed by resultant group collection-object input; no getter-returned output |
+
+ObjectiveSA remains prior-release secondary evidence, not live runtime conformance for the exact target. All four operations therefore remain `cataloged_portable_only` with `validation_status: not_performed`; the membership and portable tests do not claim that a licensed-SA run has occurred.
+
 ## Required coordinates
 
 Every membership records:
