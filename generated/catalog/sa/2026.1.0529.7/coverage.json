@@ -2,7 +2,7 @@
   "schema_version": 2,
   "generated_by": "Briosa.Generator command catalog",
   "catalog_id": "briosa.sa.2026.1.0529.7",
-  "catalog_revision": "11",
+  "catalog_revision": "12",
   "spatial_analyzer_target": "2026.1.0529.7",
   "target_protocol_package": "briosa.sa.v2026_1_0529_7.v1alpha1",
   "release_memberships": [
@@ -39,7 +39,10 @@
         "collection_operations.rename_collection",
         "collection_operations.rename_object",
         "collection_operations.rename_point",
-        "collection_operations.set_or_construct_default_collection"
+        "collection_operations.set_collection_notes",
+        "collection_operations.set_object_notes",
+        "collection_operations.set_or_construct_default_collection",
+        "collection_operations.set_point_notes"
       ]
     }
   ],
@@ -1221,6 +1224,162 @@
       "outputs": []
     },
     {
+      "operation_id": "collection_operations.set_collection_notes",
+      "release_memberships": [
+        "v0.2-wave2-initial"
+      ],
+      "inventory_key": "documentation:UtilityOperations/Notes/SetCollectionNotes.htm",
+      "mp_step": "Set Collection Notes",
+      "protocol_file": "collection_operations.proto",
+      "service": "CollectionOperations",
+      "rpc": "SetCollectionNotes",
+      "request": "SetCollectionNotesRequest",
+      "result": "SetCollectionNotesResult",
+      "fully_qualified_method": "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/SetCollectionNotes",
+      "effect": "mutating",
+      "execution_scope": "global_state_mutation",
+      "isolation_review": "Mutates collection metadata in application-global model state. Cancellation or deadline expiry does not roll back the notes change or cancel an in-flight COM call; an ambiguous completion requires reconciliation before replay.",
+      "replay_safety": "unknown",
+      "generated": {
+        "protocol": true,
+        "request_validation": true,
+        "request_adapter": true,
+        "immutable_worker_command": true,
+        "result_adapter": true,
+        "grpc_service": true,
+        "service_registration": true,
+        "capability": true,
+        "documentation": true,
+        "portable_conformance": true
+      },
+      "inputs": [
+        {
+          "argument_id": "collection_name",
+          "ordinal": 0,
+          "sdk_order": 0,
+          "mp_name": "Collection",
+          "direction": "input",
+          "semantic_type": "collection_name",
+          "argument_family_assignment": true,
+          "data_classification": "object_identifier",
+          "field_number": 1,
+          "setter": "SetCollectionNameArg",
+          "presence": "required",
+          "omission_behavior": "reject_request",
+          "default_status": "none"
+        },
+        {
+          "argument_id": "notes",
+          "ordinal": 1,
+          "sdk_order": 1,
+          "mp_name": "Notes",
+          "direction": "input",
+          "semantic_type": "edit_text",
+          "argument_family_assignment": true,
+          "data_classification": "proprietary",
+          "field_number": 2,
+          "setter": "SetEditTextArg",
+          "presence": "required",
+          "omission_behavior": "reject_request",
+          "default_status": "none"
+        },
+        {
+          "argument_id": "append",
+          "ordinal": 2,
+          "sdk_order": 2,
+          "mp_name": "Append? (FALSE = Overwrite)",
+          "direction": "input",
+          "semantic_type": "logical",
+          "argument_family_assignment": true,
+          "data_classification": "non_sensitive",
+          "field_number": 3,
+          "setter": "SetBoolArg",
+          "presence": "optional",
+          "omission_behavior": "set_catalog_default",
+          "default_status": "reviewed"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "operation_id": "collection_operations.set_object_notes",
+      "release_memberships": [
+        "v0.2-wave2-initial"
+      ],
+      "inventory_key": "documentation:UtilityOperations/Notes/SetObjectNotes.htm",
+      "mp_step": "Set Object Notes",
+      "protocol_file": "collection_operations.proto",
+      "service": "CollectionOperations",
+      "rpc": "SetObjectNotes",
+      "request": "SetObjectNotesRequest",
+      "result": "SetObjectNotesResult",
+      "fully_qualified_method": "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/SetObjectNotes",
+      "effect": "mutating",
+      "execution_scope": "global_state_mutation",
+      "isolation_review": "Mutates object metadata in application-global model state. Cancellation or deadline expiry does not roll back the notes change or cancel an in-flight COM call; an ambiguous completion requires reconciliation before replay.",
+      "replay_safety": "unknown",
+      "generated": {
+        "protocol": true,
+        "request_validation": true,
+        "request_adapter": true,
+        "immutable_worker_command": true,
+        "result_adapter": true,
+        "grpc_service": true,
+        "service_registration": true,
+        "capability": true,
+        "documentation": true,
+        "portable_conformance": true
+      },
+      "inputs": [
+        {
+          "argument_id": "object_name",
+          "ordinal": 0,
+          "sdk_order": 0,
+          "mp_name": "Object",
+          "direction": "input",
+          "semantic_type": "collection_object_name",
+          "argument_family_assignment": true,
+          "data_classification": "object_identifier",
+          "field_number": 1,
+          "setter": "SetCollectionObjectNameArg2",
+          "presence": "required",
+          "omission_behavior": "reject_request",
+          "default_status": "none"
+        },
+        {
+          "argument_id": "notes",
+          "ordinal": 1,
+          "sdk_order": 1,
+          "mp_name": "Notes",
+          "direction": "input",
+          "semantic_type": "edit_text",
+          "argument_family_assignment": true,
+          "data_classification": "proprietary",
+          "field_number": 2,
+          "setter": "SetEditTextArg",
+          "presence": "required",
+          "omission_behavior": "reject_request",
+          "default_status": "none"
+        },
+        {
+          "argument_id": "append",
+          "ordinal": 2,
+          "sdk_order": 2,
+          "mp_name": "Append? (FALSE = Overwrite)",
+          "direction": "input",
+          "semantic_type": "logical",
+          "argument_family_assignment": true,
+          "data_classification": "non_sensitive",
+          "field_number": 3,
+          "setter": "SetBoolArg",
+          "presence": "optional",
+          "omission_behavior": "set_catalog_default",
+          "default_status": "reviewed"
+        }
+      ],
+      "outputs": []
+    },
+    {
       "operation_id": "collection_operations.set_or_construct_default_collection",
       "release_memberships": [
         "v0.2-wave2-initial"
@@ -1264,6 +1423,84 @@
           "presence": "required",
           "omission_behavior": "reject_request",
           "default_status": "none"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "operation_id": "collection_operations.set_point_notes",
+      "release_memberships": [
+        "v0.2-wave2-initial"
+      ],
+      "inventory_key": "documentation:UtilityOperations/Notes/SetPointNotes.htm",
+      "mp_step": "Set Point Notes",
+      "protocol_file": "collection_operations.proto",
+      "service": "CollectionOperations",
+      "rpc": "SetPointNotes",
+      "request": "SetPointNotesRequest",
+      "result": "SetPointNotesResult",
+      "fully_qualified_method": "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/SetPointNotes",
+      "effect": "mutating",
+      "execution_scope": "global_state_mutation",
+      "isolation_review": "Mutates point metadata in application-global model state. Cancellation or deadline expiry does not roll back the notes change or cancel an in-flight COM call; an ambiguous completion requires reconciliation before replay.",
+      "replay_safety": "unknown",
+      "generated": {
+        "protocol": true,
+        "request_validation": true,
+        "request_adapter": true,
+        "immutable_worker_command": true,
+        "result_adapter": true,
+        "grpc_service": true,
+        "service_registration": true,
+        "capability": true,
+        "documentation": true,
+        "portable_conformance": true
+      },
+      "inputs": [
+        {
+          "argument_id": "point_name",
+          "ordinal": 0,
+          "sdk_order": 0,
+          "mp_name": "Point",
+          "direction": "input",
+          "semantic_type": "point_name",
+          "argument_family_assignment": true,
+          "data_classification": "object_identifier",
+          "field_number": 1,
+          "setter": "SetPointNameArg",
+          "presence": "required",
+          "omission_behavior": "reject_request",
+          "default_status": "none"
+        },
+        {
+          "argument_id": "notes",
+          "ordinal": 1,
+          "sdk_order": 1,
+          "mp_name": "Notes",
+          "direction": "input",
+          "semantic_type": "edit_text",
+          "argument_family_assignment": true,
+          "data_classification": "proprietary",
+          "field_number": 2,
+          "setter": "SetEditTextArg",
+          "presence": "required",
+          "omission_behavior": "reject_request",
+          "default_status": "none"
+        },
+        {
+          "argument_id": "append",
+          "ordinal": 2,
+          "sdk_order": 2,
+          "mp_name": "Append? (FALSE = Overwrite)",
+          "direction": "input",
+          "semantic_type": "logical",
+          "argument_family_assignment": true,
+          "data_classification": "non_sensitive",
+          "field_number": 3,
+          "setter": "SetBoolArg",
+          "presence": "optional",
+          "omission_behavior": "set_catalog_default",
+          "default_status": "reviewed"
         }
       ],
       "outputs": []

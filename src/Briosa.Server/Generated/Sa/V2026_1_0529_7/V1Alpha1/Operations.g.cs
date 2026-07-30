@@ -13,7 +13,7 @@ namespace Briosa.Server.Generated.Sa.V2026_1_0529_7.V1Alpha1;
 internal static class TargetCatalogMetadata
 {
     public const string CatalogId = "briosa.sa.2026.1.0529.7";
-    public const string CatalogRevision = "11";
+    public const string CatalogRevision = "12";
     public const string SpatialAnalyzerTarget = "2026.1.0529.7";
     public const string TargetProtocolPackage = "briosa.sa.v2026_1_0529_7.v1alpha1";
 
@@ -38,7 +38,10 @@ internal static class TargetCatalogMetadata
             new("collection_operations.rename_collection", "Rename Collection", "briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations", "RenameCollection", "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/RenameCollection", "mutating", CoreProtocol.OperationExecutionScope.GlobalStateMutation, CoreProtocol.ReplaySafety.Unknown, []),
             new("collection_operations.rename_object", "Rename Object", "briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations", "RenameObject", "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/RenameObject", "mutating", CoreProtocol.OperationExecutionScope.GlobalStateMutation, CoreProtocol.ReplaySafety.Unknown, []),
             new("collection_operations.rename_point", "Rename Point", "briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations", "RenamePoint", "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/RenamePoint", "mutating", CoreProtocol.OperationExecutionScope.GlobalStateMutation, CoreProtocol.ReplaySafety.Unknown, []),
+            new("collection_operations.set_collection_notes", "Set Collection Notes", "briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations", "SetCollectionNotes", "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/SetCollectionNotes", "mutating", CoreProtocol.OperationExecutionScope.GlobalStateMutation, CoreProtocol.ReplaySafety.Unknown, []),
+            new("collection_operations.set_object_notes", "Set Object Notes", "briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations", "SetObjectNotes", "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/SetObjectNotes", "mutating", CoreProtocol.OperationExecutionScope.GlobalStateMutation, CoreProtocol.ReplaySafety.Unknown, []),
             new("collection_operations.set_or_construct_default_collection", "Set (or construct) default collection", "briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations", "SetOrConstructDefaultCollection", "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/SetOrConstructDefaultCollection", "mutating", CoreProtocol.OperationExecutionScope.GlobalStateMutation, CoreProtocol.ReplaySafety.Unknown, []),
+            new("collection_operations.set_point_notes", "Set Point Notes", "briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations", "SetPointNotes", "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/SetPointNotes", "mutating", CoreProtocol.OperationExecutionScope.GlobalStateMutation, CoreProtocol.ReplaySafety.Unknown, []),
             new("file_operations.get_working_directory", "Get Working Directory", "briosa.sa.v2026_1_0529_7.v1alpha1.FileOperations", "GetWorkingDirectory", "/briosa.sa.v2026_1_0529_7.v1alpha1.FileOperations/GetWorkingDirectory", "read_only", CoreProtocol.OperationExecutionScope.GlobalStateRead, CoreProtocol.ReplaySafety.Safe, ["filesystem_metadata"]),
         ];
 }
@@ -1103,6 +1106,136 @@ internal static class CollectionOperationsRenamePointBinding
 }
 
 [global::System.CodeDom.Compiler.GeneratedCode("Briosa.Generator", "1.0")]
+internal static class CollectionOperationsSetCollectionNotesBinding
+{
+    public const string OperationId = "collection_operations.set_collection_notes";
+    public const string StepName = "Set Collection Notes";
+    public const string CollectionNameArgumentName = "Collection";
+    public const string CollectionNameFieldName = "collection_name";
+    public const string CollectionNameSetter = "SetCollectionNameArg";
+    public const string NotesArgumentName = "Notes";
+    public const string NotesFieldName = "notes";
+    public const string NotesSetter = "SetEditTextArg";
+    public const string AppendArgumentName = "Append? (FALSE = Overwrite)";
+    public const string AppendFieldName = "append";
+    public const string AppendSetter = "SetBoolArg";
+
+    public static IReadOnlyList<OperationOutputContract> OutputContracts { get; } =
+        [];
+
+    public static WorkerMpCommand CreateCommand(TargetProtocol.SetCollectionNotesRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        List<WorkerMpInputArgument> inputs = [];
+        if (request.HasCollectionName)
+        {
+            inputs.Add(new WorkerMpInputArgument(CollectionNameArgumentName, WorkerMpValueKind.CollectionName, SdkBinding: CollectionNameSetter, StringValue: request.CollectionName));
+        }
+        else
+        {
+            throw new ArgumentException("Required request field 'collection_name' is missing.", nameof(request));
+        }
+        if (request.Notes is not null)
+        {
+            inputs.Add(new WorkerMpInputArgument(NotesArgumentName, WorkerMpValueKind.EditText, SdkBinding: NotesSetter, StringListValue: new([.. request.Notes.Values])));
+        }
+        else
+        {
+            throw new ArgumentException("Required request field 'notes' is missing.", nameof(request));
+        }
+        if (request.HasAppend)
+        {
+            inputs.Add(new WorkerMpInputArgument(AppendArgumentName, WorkerMpValueKind.Logical, SdkBinding: AppendSetter, BooleanValue: request.Append));
+        }
+        else
+        {
+            inputs.Add(new WorkerMpInputArgument(AppendArgumentName, WorkerMpValueKind.Logical, SdkBinding: AppendSetter, BooleanValue: true));
+        }
+        return new WorkerMpCommand(
+            OperationId,
+            StepName,
+            inputs,
+            []);
+    }
+
+    public static TargetProtocol.SetCollectionNotesResult CreateResult(SuccessfulOperationExecution completed)
+    {
+        ArgumentNullException.ThrowIfNull(completed);
+        return new TargetProtocol.SetCollectionNotesResult
+        {
+            Execution = completed.Details
+        };
+    }
+}
+
+[global::System.CodeDom.Compiler.GeneratedCode("Briosa.Generator", "1.0")]
+internal static class CollectionOperationsSetObjectNotesBinding
+{
+    public const string OperationId = "collection_operations.set_object_notes";
+    public const string StepName = "Set Object Notes";
+    public const string ObjectNameArgumentName = "Object";
+    public const string ObjectNameFieldName = "object_name";
+    public const string ObjectNameSetter = "SetCollectionObjectNameArg2";
+    public const string NotesArgumentName = "Notes";
+    public const string NotesFieldName = "notes";
+    public const string NotesSetter = "SetEditTextArg";
+    public const string AppendArgumentName = "Append? (FALSE = Overwrite)";
+    public const string AppendFieldName = "append";
+    public const string AppendSetter = "SetBoolArg";
+
+    public static IReadOnlyList<OperationOutputContract> OutputContracts { get; } =
+        [];
+
+    public static WorkerMpCommand CreateCommand(TargetProtocol.SetObjectNotesRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        List<WorkerMpInputArgument> inputs = [];
+        if (request.ObjectName is not null)
+        {
+            if (!request.ObjectName.HasCollectionName || !request.ObjectName.HasObjectName || !request.ObjectName.HasObjectType || request.ObjectName.ObjectType == TargetProtocol.ObjectType.Unspecified || !Enum.IsDefined(request.ObjectName.ObjectType))
+            {
+                throw new ArgumentException("Request field 'object_name' must contain every exact-target component.", nameof(request));
+            }
+            inputs.Add(new WorkerMpInputArgument(ObjectNameArgumentName, WorkerMpValueKind.CollectionObjectName, SdkBinding: ObjectNameSetter, CollectionObjectNameValue: new(request.ObjectName.CollectionName, request.ObjectName.ObjectName, (WorkerObjectTypeValue)(int)request.ObjectName.ObjectType)));
+        }
+        else
+        {
+            throw new ArgumentException("Required request field 'object_name' is missing.", nameof(request));
+        }
+        if (request.Notes is not null)
+        {
+            inputs.Add(new WorkerMpInputArgument(NotesArgumentName, WorkerMpValueKind.EditText, SdkBinding: NotesSetter, StringListValue: new([.. request.Notes.Values])));
+        }
+        else
+        {
+            throw new ArgumentException("Required request field 'notes' is missing.", nameof(request));
+        }
+        if (request.HasAppend)
+        {
+            inputs.Add(new WorkerMpInputArgument(AppendArgumentName, WorkerMpValueKind.Logical, SdkBinding: AppendSetter, BooleanValue: request.Append));
+        }
+        else
+        {
+            inputs.Add(new WorkerMpInputArgument(AppendArgumentName, WorkerMpValueKind.Logical, SdkBinding: AppendSetter, BooleanValue: true));
+        }
+        return new WorkerMpCommand(
+            OperationId,
+            StepName,
+            inputs,
+            []);
+    }
+
+    public static TargetProtocol.SetObjectNotesResult CreateResult(SuccessfulOperationExecution completed)
+    {
+        ArgumentNullException.ThrowIfNull(completed);
+        return new TargetProtocol.SetObjectNotesResult
+        {
+            Execution = completed.Details
+        };
+    }
+}
+
+[global::System.CodeDom.Compiler.GeneratedCode("Briosa.Generator", "1.0")]
 internal static class CollectionOperationsSetOrConstructDefaultCollectionBinding
 {
     public const string OperationId = "collection_operations.set_or_construct_default_collection";
@@ -1137,6 +1270,73 @@ internal static class CollectionOperationsSetOrConstructDefaultCollectionBinding
     {
         ArgumentNullException.ThrowIfNull(completed);
         return new TargetProtocol.SetOrConstructDefaultCollectionResult
+        {
+            Execution = completed.Details
+        };
+    }
+}
+
+[global::System.CodeDom.Compiler.GeneratedCode("Briosa.Generator", "1.0")]
+internal static class CollectionOperationsSetPointNotesBinding
+{
+    public const string OperationId = "collection_operations.set_point_notes";
+    public const string StepName = "Set Point Notes";
+    public const string PointNameArgumentName = "Point";
+    public const string PointNameFieldName = "point_name";
+    public const string PointNameSetter = "SetPointNameArg";
+    public const string NotesArgumentName = "Notes";
+    public const string NotesFieldName = "notes";
+    public const string NotesSetter = "SetEditTextArg";
+    public const string AppendArgumentName = "Append? (FALSE = Overwrite)";
+    public const string AppendFieldName = "append";
+    public const string AppendSetter = "SetBoolArg";
+
+    public static IReadOnlyList<OperationOutputContract> OutputContracts { get; } =
+        [];
+
+    public static WorkerMpCommand CreateCommand(TargetProtocol.SetPointNotesRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        List<WorkerMpInputArgument> inputs = [];
+        if (request.PointName is not null)
+        {
+            if (!request.PointName.HasCollectionName || !request.PointName.HasGroupName || !request.PointName.HasTargetName)
+            {
+                throw new ArgumentException("Request field 'point_name' must contain every exact-target component.", nameof(request));
+            }
+            inputs.Add(new WorkerMpInputArgument(PointNameArgumentName, WorkerMpValueKind.PointName, SdkBinding: PointNameSetter, PointNameValue: new(request.PointName.CollectionName, request.PointName.GroupName, request.PointName.TargetName)));
+        }
+        else
+        {
+            throw new ArgumentException("Required request field 'point_name' is missing.", nameof(request));
+        }
+        if (request.Notes is not null)
+        {
+            inputs.Add(new WorkerMpInputArgument(NotesArgumentName, WorkerMpValueKind.EditText, SdkBinding: NotesSetter, StringListValue: new([.. request.Notes.Values])));
+        }
+        else
+        {
+            throw new ArgumentException("Required request field 'notes' is missing.", nameof(request));
+        }
+        if (request.HasAppend)
+        {
+            inputs.Add(new WorkerMpInputArgument(AppendArgumentName, WorkerMpValueKind.Logical, SdkBinding: AppendSetter, BooleanValue: request.Append));
+        }
+        else
+        {
+            inputs.Add(new WorkerMpInputArgument(AppendArgumentName, WorkerMpValueKind.Logical, SdkBinding: AppendSetter, BooleanValue: true));
+        }
+        return new WorkerMpCommand(
+            OperationId,
+            StepName,
+            inputs,
+            []);
+    }
+
+    public static TargetProtocol.SetPointNotesResult CreateResult(SuccessfulOperationExecution completed)
+    {
+        ArgumentNullException.ThrowIfNull(completed);
+        return new TargetProtocol.SetPointNotesResult
         {
             Execution = completed.Details
         };
@@ -1541,6 +1741,42 @@ internal static class TargetCatalogConformanceMetadata
                         deadline).ConfigureAwait(false)),
             new(
                 TargetCatalogMetadata.Operations.Single(operation =>
+                    operation.OperationId == CollectionOperationsSetCollectionNotesBinding.OperationId),
+                typeof(TargetProtocol.SetCollectionNotesRequest),
+                typeof(TargetProtocol.SetCollectionNotesResult),
+                request => CollectionOperationsSetCollectionNotesBinding.CreateCommand((TargetProtocol.SetCollectionNotesRequest)request),
+                CollectionOperationsSetCollectionNotesBinding.OutputContracts,
+                completed => CollectionOperationsSetCollectionNotesBinding.CreateResult(completed),
+                async (executor, request, cancellationToken, deadline) =>
+                    await executor.ExecuteAsync(
+                        (TargetProtocol.SetCollectionNotesRequest)request,
+                        TargetCatalogMetadata.Operations.Single(operation =>
+                            operation.OperationId == CollectionOperationsSetCollectionNotesBinding.OperationId),
+                        CollectionOperationsSetCollectionNotesBinding.CreateCommand,
+                        CollectionOperationsSetCollectionNotesBinding.OutputContracts,
+                        CollectionOperationsSetCollectionNotesBinding.CreateResult,
+                        cancellationToken,
+                        deadline).ConfigureAwait(false)),
+            new(
+                TargetCatalogMetadata.Operations.Single(operation =>
+                    operation.OperationId == CollectionOperationsSetObjectNotesBinding.OperationId),
+                typeof(TargetProtocol.SetObjectNotesRequest),
+                typeof(TargetProtocol.SetObjectNotesResult),
+                request => CollectionOperationsSetObjectNotesBinding.CreateCommand((TargetProtocol.SetObjectNotesRequest)request),
+                CollectionOperationsSetObjectNotesBinding.OutputContracts,
+                completed => CollectionOperationsSetObjectNotesBinding.CreateResult(completed),
+                async (executor, request, cancellationToken, deadline) =>
+                    await executor.ExecuteAsync(
+                        (TargetProtocol.SetObjectNotesRequest)request,
+                        TargetCatalogMetadata.Operations.Single(operation =>
+                            operation.OperationId == CollectionOperationsSetObjectNotesBinding.OperationId),
+                        CollectionOperationsSetObjectNotesBinding.CreateCommand,
+                        CollectionOperationsSetObjectNotesBinding.OutputContracts,
+                        CollectionOperationsSetObjectNotesBinding.CreateResult,
+                        cancellationToken,
+                        deadline).ConfigureAwait(false)),
+            new(
+                TargetCatalogMetadata.Operations.Single(operation =>
                     operation.OperationId == CollectionOperationsSetOrConstructDefaultCollectionBinding.OperationId),
                 typeof(TargetProtocol.SetOrConstructDefaultCollectionRequest),
                 typeof(TargetProtocol.SetOrConstructDefaultCollectionResult),
@@ -1555,6 +1791,24 @@ internal static class TargetCatalogConformanceMetadata
                         CollectionOperationsSetOrConstructDefaultCollectionBinding.CreateCommand,
                         CollectionOperationsSetOrConstructDefaultCollectionBinding.OutputContracts,
                         CollectionOperationsSetOrConstructDefaultCollectionBinding.CreateResult,
+                        cancellationToken,
+                        deadline).ConfigureAwait(false)),
+            new(
+                TargetCatalogMetadata.Operations.Single(operation =>
+                    operation.OperationId == CollectionOperationsSetPointNotesBinding.OperationId),
+                typeof(TargetProtocol.SetPointNotesRequest),
+                typeof(TargetProtocol.SetPointNotesResult),
+                request => CollectionOperationsSetPointNotesBinding.CreateCommand((TargetProtocol.SetPointNotesRequest)request),
+                CollectionOperationsSetPointNotesBinding.OutputContracts,
+                completed => CollectionOperationsSetPointNotesBinding.CreateResult(completed),
+                async (executor, request, cancellationToken, deadline) =>
+                    await executor.ExecuteAsync(
+                        (TargetProtocol.SetPointNotesRequest)request,
+                        TargetCatalogMetadata.Operations.Single(operation =>
+                            operation.OperationId == CollectionOperationsSetPointNotesBinding.OperationId),
+                        CollectionOperationsSetPointNotesBinding.CreateCommand,
+                        CollectionOperationsSetPointNotesBinding.OutputContracts,
+                        CollectionOperationsSetPointNotesBinding.CreateResult,
                         cancellationToken,
                         deadline).ConfigureAwait(false)),
             new(
@@ -2212,6 +2466,72 @@ internal sealed class CollectionOperationsService(CatalogOperationExecutor opera
             correlationId,
             actorCategory);
 
+    private static readonly CatalogOperationDescriptor SetCollectionNotesOperation =
+        TargetCatalogMetadata.Operations.Single(operation =>
+            operation.OperationId == CollectionOperationsSetCollectionNotesBinding.OperationId);
+
+    [OperationImplementation(CollectionOperationsSetCollectionNotesBinding.OperationId)]
+    public override Task<TargetProtocol.SetCollectionNotesResult> SetCollectionNotes(
+        TargetProtocol.SetCollectionNotesRequest request,
+        ServerCallContext context) =>
+        _operationExecutor.ExecuteAsync(
+            request,
+            context,
+            SetCollectionNotesOperation,
+            CollectionOperationsSetCollectionNotesBinding.CreateCommand,
+            CollectionOperationsSetCollectionNotesBinding.OutputContracts,
+            CollectionOperationsSetCollectionNotesBinding.CreateResult);
+
+    internal Task<TargetProtocol.SetCollectionNotesResult> ExecuteSetCollectionNotes(
+        TargetProtocol.SetCollectionNotesRequest request,
+        CancellationToken cancellationToken,
+        DateTime? deadline = null,
+        Guid? correlationId = null,
+        string actorCategory = "internal-unattributed") =>
+        _operationExecutor.ExecuteAsync(
+            request,
+            SetCollectionNotesOperation,
+            CollectionOperationsSetCollectionNotesBinding.CreateCommand,
+            CollectionOperationsSetCollectionNotesBinding.OutputContracts,
+            CollectionOperationsSetCollectionNotesBinding.CreateResult,
+            cancellationToken,
+            deadline,
+            correlationId,
+            actorCategory);
+
+    private static readonly CatalogOperationDescriptor SetObjectNotesOperation =
+        TargetCatalogMetadata.Operations.Single(operation =>
+            operation.OperationId == CollectionOperationsSetObjectNotesBinding.OperationId);
+
+    [OperationImplementation(CollectionOperationsSetObjectNotesBinding.OperationId)]
+    public override Task<TargetProtocol.SetObjectNotesResult> SetObjectNotes(
+        TargetProtocol.SetObjectNotesRequest request,
+        ServerCallContext context) =>
+        _operationExecutor.ExecuteAsync(
+            request,
+            context,
+            SetObjectNotesOperation,
+            CollectionOperationsSetObjectNotesBinding.CreateCommand,
+            CollectionOperationsSetObjectNotesBinding.OutputContracts,
+            CollectionOperationsSetObjectNotesBinding.CreateResult);
+
+    internal Task<TargetProtocol.SetObjectNotesResult> ExecuteSetObjectNotes(
+        TargetProtocol.SetObjectNotesRequest request,
+        CancellationToken cancellationToken,
+        DateTime? deadline = null,
+        Guid? correlationId = null,
+        string actorCategory = "internal-unattributed") =>
+        _operationExecutor.ExecuteAsync(
+            request,
+            SetObjectNotesOperation,
+            CollectionOperationsSetObjectNotesBinding.CreateCommand,
+            CollectionOperationsSetObjectNotesBinding.OutputContracts,
+            CollectionOperationsSetObjectNotesBinding.CreateResult,
+            cancellationToken,
+            deadline,
+            correlationId,
+            actorCategory);
+
     private static readonly CatalogOperationDescriptor SetOrConstructDefaultCollectionOperation =
         TargetCatalogMetadata.Operations.Single(operation =>
             operation.OperationId == CollectionOperationsSetOrConstructDefaultCollectionBinding.OperationId);
@@ -2240,6 +2560,39 @@ internal sealed class CollectionOperationsService(CatalogOperationExecutor opera
             CollectionOperationsSetOrConstructDefaultCollectionBinding.CreateCommand,
             CollectionOperationsSetOrConstructDefaultCollectionBinding.OutputContracts,
             CollectionOperationsSetOrConstructDefaultCollectionBinding.CreateResult,
+            cancellationToken,
+            deadline,
+            correlationId,
+            actorCategory);
+
+    private static readonly CatalogOperationDescriptor SetPointNotesOperation =
+        TargetCatalogMetadata.Operations.Single(operation =>
+            operation.OperationId == CollectionOperationsSetPointNotesBinding.OperationId);
+
+    [OperationImplementation(CollectionOperationsSetPointNotesBinding.OperationId)]
+    public override Task<TargetProtocol.SetPointNotesResult> SetPointNotes(
+        TargetProtocol.SetPointNotesRequest request,
+        ServerCallContext context) =>
+        _operationExecutor.ExecuteAsync(
+            request,
+            context,
+            SetPointNotesOperation,
+            CollectionOperationsSetPointNotesBinding.CreateCommand,
+            CollectionOperationsSetPointNotesBinding.OutputContracts,
+            CollectionOperationsSetPointNotesBinding.CreateResult);
+
+    internal Task<TargetProtocol.SetPointNotesResult> ExecuteSetPointNotes(
+        TargetProtocol.SetPointNotesRequest request,
+        CancellationToken cancellationToken,
+        DateTime? deadline = null,
+        Guid? correlationId = null,
+        string actorCategory = "internal-unattributed") =>
+        _operationExecutor.ExecuteAsync(
+            request,
+            SetPointNotesOperation,
+            CollectionOperationsSetPointNotesBinding.CreateCommand,
+            CollectionOperationsSetPointNotesBinding.OutputContracts,
+            CollectionOperationsSetPointNotesBinding.CreateResult,
             cancellationToken,
             deadline,
             correlationId,

@@ -34,7 +34,10 @@ public sealed partial class ProtocolSchemaTests
                 "RenameCollection",
                 "RenameObject",
                 "RenamePoint",
-                "SetOrConstructDefaultCollection"
+                "SetCollectionNotes",
+                "SetObjectNotes",
+                "SetOrConstructDefaultCollection",
+                "SetPointNotes"
             ],
             methods.Keys.Order(StringComparer.Ordinal));
         Assert.Equal(

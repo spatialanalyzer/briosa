@@ -48,8 +48,14 @@ service CollectionOperations {
   rpc RenameObject(RenameObjectRequest) returns (RenameObjectResult);
   // Renames an explicitly identified point, with reviewed collision behavior selected by the caller.
   rpc RenamePoint(RenamePointRequest) returns (RenamePointResult);
+  // Appends to or replaces the notes attached to an explicitly identified collection.
+  rpc SetCollectionNotes(SetCollectionNotesRequest) returns (SetCollectionNotesResult);
+  // Appends to or replaces the notes attached to an explicitly identified collection object.
+  rpc SetObjectNotes(SetObjectNotesRequest) returns (SetObjectNotesResult);
   // Selects an existing collection as the default or constructs it when it does not exist.
   rpc SetOrConstructDefaultCollection(SetOrConstructDefaultCollectionRequest) returns (SetOrConstructDefaultCollectionResult);
+  // Appends to or replaces the notes attached to an explicitly identified point.
+  rpc SetPointNotes(SetPointNotesRequest) returns (SetPointNotesResult);
 }
 
 message ConstructPointAtCircleCenterRequest {
@@ -277,12 +283,54 @@ message RenamePointResult {
   briosa.core.v1alpha1.MpExecutionDetails execution = 1000;
 }
 
+message SetCollectionNotesRequest {
+  // The exact collection whose notes are changed.
+  optional string collection_name = 1;
+  // The ordered note lines to append or use as the replacement text.
+  StringList notes = 2;
+  // Whether to append to the current notes. Omission explicitly sends the reviewed true default; false replaces the current notes.
+  optional bool append = 3;
+}
+
+message SetCollectionNotesResult {
+  // Explicit MP and result-only argument retrieval outcome.
+  briosa.core.v1alpha1.MpExecutionDetails execution = 1000;
+}
+
+message SetObjectNotesRequest {
+  // The exact collection/object identity whose notes are changed.
+  CollectionObjectName object_name = 1;
+  // The ordered note lines to append or use as the replacement text.
+  StringList notes = 2;
+  // Whether to append to the current notes. Omission explicitly sends the reviewed true default; false replaces the current notes.
+  optional bool append = 3;
+}
+
+message SetObjectNotesResult {
+  // Explicit MP and result-only argument retrieval outcome.
+  briosa.core.v1alpha1.MpExecutionDetails execution = 1000;
+}
+
 message SetOrConstructDefaultCollectionRequest {
   // The exact collection name to select or construct.
   optional string collection_name = 1;
 }
 
 message SetOrConstructDefaultCollectionResult {
+  // Explicit MP and result-only argument retrieval outcome.
+  briosa.core.v1alpha1.MpExecutionDetails execution = 1000;
+}
+
+message SetPointNotesRequest {
+  // The exact collection, group, and target name of the point whose notes are changed.
+  PointName point_name = 1;
+  // The ordered note lines to append or use as the replacement text.
+  StringList notes = 2;
+  // Whether to append to the current notes. Omission explicitly sends the reviewed true default; false replaces the current notes.
+  optional bool append = 3;
+}
+
+message SetPointNotesResult {
   // Explicit MP and result-only argument retrieval outcome.
   briosa.core.v1alpha1.MpExecutionDetails execution = 1000;
 }

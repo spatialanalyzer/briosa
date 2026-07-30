@@ -30,8 +30,8 @@ public sealed class CommandCatalogScaffolderTests
         Assert.True(first.IsSuccessful, DisplayConflicts(first));
         Assert.True(second.IsSuccessful, DisplayConflicts(second));
         Assert.Equal(684, first.ApprovedCandidateCount);
-        Assert.Equal(21, first.ExistingCatalogOperationCount);
-        Assert.Equal(663, first.ScaffoldCount);
+        Assert.Equal(24, first.ExistingCatalogOperationCount);
+        Assert.Equal(660, first.ScaffoldCount);
         Assert.Equal(ReadTree(fixture.FirstOutput), ReadTree(fixture.SecondOutput));
         Assert.False(File.Exists(CandidatePath(
             fixture.FirstOutput,

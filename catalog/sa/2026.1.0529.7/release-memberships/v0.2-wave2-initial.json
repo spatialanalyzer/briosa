@@ -6,7 +6,7 @@
   "delivery_wave": "wave_2",
   "catalog_id": "briosa.sa.2026.1.0529.7",
   "spatial_analyzer_target": "2026.1.0529.7",
-  "catalog_revision": "11",
+  "catalog_revision": "12",
   "operation_ids": [
     "collection_operations.construct_point_at_circle_center",
     "collection_operations.construct_point_at_line_midpoint",
@@ -22,6 +22,9 @@
     "collection_operations.rename_collection",
     "collection_operations.rename_object",
     "collection_operations.rename_point",
-    "collection_operations.set_or_construct_default_collection"
+    "collection_operations.set_collection_notes",
+    "collection_operations.set_object_notes",
+    "collection_operations.set_or_construct_default_collection",
+    "collection_operations.set_point_notes"
   ]
 }

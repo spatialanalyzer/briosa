@@ -11,8 +11,8 @@ Cataloged operations require a separately installed and licensed exact-target Sp
 | Classification | Count |
 | --- | ---: |
 | Inventory commands | 1412 |
-| Cataloged, portable-only operations | 21 |
-| Approved candidates not cataloged | 663 |
+| Cataloged, portable-only operations | 24 |
+| Approved candidates not cataloged | 660 |
 | Blocked | 40 |
 | Intentional exclusions | 477 |
 | SDK unavailable | 211 |
@@ -1135,9 +1135,9 @@ Cataloged operations require a separately installed and licensed exact-target Sp
 | `documentation:UtilityOperations/Notes/GetCollectionNotes.htm` | Get Collection Notes | UtilityOperations / Notes | `approved_not_cataloged` | — | `read_only` | `not_applicable` | `not_applicable` |
 | `documentation:UtilityOperations/Notes/GetObjectNotes.htm` | Get Object Notes | UtilityOperations / Notes | `approved_not_cataloged` | — | `read_only` | `not_applicable` | `not_applicable` |
 | `documentation:UtilityOperations/Notes/GetPointNotes.htm` | Get Point Notes | UtilityOperations / Notes | `approved_not_cataloged` | — | `read_only` | `not_applicable` | `not_applicable` |
-| `documentation:UtilityOperations/Notes/SetCollectionNotes.htm` | Set Collection Notes | UtilityOperations / Notes | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
-| `documentation:UtilityOperations/Notes/SetObjectNotes.htm` | Set Object Notes | UtilityOperations / Notes | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
-| `documentation:UtilityOperations/Notes/SetPointNotes.htm` | Set Point Notes | UtilityOperations / Notes | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
+| `documentation:UtilityOperations/Notes/SetCollectionNotes.htm` | Set Collection Notes | UtilityOperations / Notes | `cataloged_portable_only` | `collection_operations.set_collection_notes` | `mutating` | `portable_briosa_contract` | `not_performed` |
+| `documentation:UtilityOperations/Notes/SetObjectNotes.htm` | Set Object Notes | UtilityOperations / Notes | `cataloged_portable_only` | `collection_operations.set_object_notes` | `mutating` | `portable_briosa_contract` | `not_performed` |
+| `documentation:UtilityOperations/Notes/SetPointNotes.htm` | Set Point Notes | UtilityOperations / Notes | `cataloged_portable_only` | `collection_operations.set_point_notes` | `mutating` | `portable_briosa_contract` | `not_performed` |
 | `documentation:UtilityOperations/OPC-DAServer/GetOPCDATagValueDouble.htm` | Get OPC DA Tag Value Double | UtilityOperations / OPC-DAServer | `intentional_exclusion` | — | `unknown` (unknown) | `not_applicable` | `not_applicable` |
 | `documentation:UtilityOperations/OPC-DAServer/GetOPCDATagValueInteger.htm` | Get OPC DA Tag Value Integer | UtilityOperations / OPC-DAServer | `intentional_exclusion` | — | `unknown` (unknown) | `not_applicable` | `not_applicable` |
 | `documentation:UtilityOperations/OPC-DAServer/GetOPCDATagValueString.htm` | Get OPC DA Tag Value String | UtilityOperations / OPC-DAServer | `intentional_exclusion` | — | `unknown` (unknown) | `not_applicable` | `not_applicable` |
