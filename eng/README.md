@@ -251,7 +251,7 @@ The portable harness supplies explicitly labeled fake-worker attestations for bo
 ./eng/Test-LicensedRunnerState.ps1 -Phase Preflight
 ```
 
-`Verify-LicensedRunnerWorkflow.ps1` is an ordinary-CI policy check that rejects untrusted triggers, missing identity-reference inputs, mutable action references, a licensed-runner checkout, or drift from the exact runner group and environment:
+`Verify-LicensedRunnerWorkflow.ps1` is an ordinary-CI policy check that rejects untrusted triggers, missing identity-reference inputs, mutable action references, a licensed-runner checkout, runner-only contexts used before job steps begin, an unsafe or missing step-scoped run-directory initializer, or drift from the exact runner group and environment:
 
 ```powershell
 ./eng/Verify-LicensedRunnerWorkflow.ps1

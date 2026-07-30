@@ -27,7 +27,7 @@ A repository administrator must create an environment with these settings:
 
 The workflow intentionally remains queued if the group has no matching online runner. Do not work around that state by adding a repository-level runner or broadening workflow access.
 
-Before bringing the runner online, protect `main` with a branch ruleset that requires pull requests, CI, and review and rejects force pushes and deletion. At the time this guide was written, `main` was not protected and the organization had only one visible member. The environment must therefore require an explicit manual approval, but it cannot enforce two-person review until another trusted maintainer is appointed.
+`main` is protected by the active organization `Default branch protection` ruleset and repository `Briosa CI requirements` ruleset. Together they require pull requests, resolved review threads, squash-only linear history, the Windows build/test and package-smoke checks against the current base, and rejection of force pushes and deletion. The organization ruleset currently requires zero approving reviews, so the pull-request requirement is not independent approval. Preserve both rulesets before bringing the licensed runner online. The environment must require explicit manual approval, and one approving code review plus prevent-self-review should be enabled when a second trusted maintainer is available.
 
 ## Dedicated machine
 
