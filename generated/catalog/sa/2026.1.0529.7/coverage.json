@@ -2,7 +2,7 @@
   "schema_version": 2,
   "generated_by": "Briosa.Generator command catalog",
   "catalog_id": "briosa.sa.2026.1.0529.7",
-  "catalog_revision": "8",
+  "catalog_revision": "9",
   "spatial_analyzer_target": "2026.1.0529.7",
   "target_protocol_package": "briosa.sa.v2026_1_0529_7.v1alpha1",
   "release_memberships": [
@@ -25,6 +25,10 @@
       "delivery_wave": "wave_2",
       "catalog_id": "briosa.sa.2026.1.0529.7",
       "operation_ids": [
+        "collection_operations.construct_point_at_circle_center",
+        "collection_operations.construct_point_at_line_midpoint",
+        "collection_operations.construct_point_fit_to_points",
+        "collection_operations.construct_point_group_from_point_name_list",
         "collection_operations.construct_point_in_working_coordinates",
         "collection_operations.delete_points",
         "collection_operations.rename_point"
@@ -32,6 +36,258 @@
     }
   ],
   "operations": [
+    {
+      "operation_id": "collection_operations.construct_point_at_circle_center",
+      "release_memberships": [
+        "v0.2-wave2-initial"
+      ],
+      "inventory_key": "documentation:ConstructionOperations/PointsandGroups/ConstructaPointAtCircleCenter.htm",
+      "mp_step": "Construct a Point at Circle Center",
+      "protocol_file": "collection_operations.proto",
+      "service": "CollectionOperations",
+      "rpc": "ConstructPointAtCircleCenter",
+      "request": "ConstructPointAtCircleCenterRequest",
+      "result": "ConstructPointAtCircleCenterResult",
+      "fully_qualified_method": "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/ConstructPointAtCircleCenter",
+      "effect": "mutating",
+      "execution_scope": "global_state_mutation",
+      "isolation_review": "Mutates named geometry in application-global model state. Cancellation or deadline expiry does not roll back construction or cancel an in-flight COM call; an ambiguous completion requires reconciliation before replay.",
+      "replay_safety": "unknown",
+      "generated": {
+        "protocol": true,
+        "request_validation": true,
+        "request_adapter": true,
+        "immutable_worker_command": true,
+        "result_adapter": true,
+        "grpc_service": true,
+        "service_registration": true,
+        "capability": true,
+        "documentation": true,
+        "portable_conformance": true
+      },
+      "inputs": [
+        {
+          "argument_id": "circle",
+          "ordinal": 0,
+          "sdk_order": 0,
+          "mp_name": "Circle Name",
+          "direction": "input",
+          "semantic_type": "collection_object_name",
+          "argument_family_assignment": true,
+          "data_classification": "object_identifier",
+          "field_number": 1,
+          "setter": "SetCollectionObjectNameArg2",
+          "presence": "required",
+          "omission_behavior": "reject_request",
+          "default_status": "none"
+        },
+        {
+          "argument_id": "point_name",
+          "ordinal": 1,
+          "sdk_order": 1,
+          "mp_name": "Point Name",
+          "direction": "input",
+          "semantic_type": "point_name",
+          "argument_family_assignment": true,
+          "data_classification": "object_identifier",
+          "field_number": 2,
+          "setter": "SetPointNameArg",
+          "presence": "required",
+          "omission_behavior": "reject_request",
+          "default_status": "none"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "operation_id": "collection_operations.construct_point_at_line_midpoint",
+      "release_memberships": [
+        "v0.2-wave2-initial"
+      ],
+      "inventory_key": "documentation:ConstructionOperations/PointsandGroups/ConstructaPointAtLineMidPoint.htm",
+      "mp_step": "Construct a Point at line MidPoint",
+      "protocol_file": "collection_operations.proto",
+      "service": "CollectionOperations",
+      "rpc": "ConstructPointAtLineMidpoint",
+      "request": "ConstructPointAtLineMidpointRequest",
+      "result": "ConstructPointAtLineMidpointResult",
+      "fully_qualified_method": "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/ConstructPointAtLineMidpoint",
+      "effect": "mutating",
+      "execution_scope": "global_state_mutation",
+      "isolation_review": "Mutates named geometry in application-global model state. Cancellation or deadline expiry does not roll back construction or cancel an in-flight COM call; an ambiguous completion requires reconciliation before replay.",
+      "replay_safety": "unknown",
+      "generated": {
+        "protocol": true,
+        "request_validation": true,
+        "request_adapter": true,
+        "immutable_worker_command": true,
+        "result_adapter": true,
+        "grpc_service": true,
+        "service_registration": true,
+        "capability": true,
+        "documentation": true,
+        "portable_conformance": true
+      },
+      "inputs": [
+        {
+          "argument_id": "line",
+          "ordinal": 0,
+          "sdk_order": 0,
+          "mp_name": "Line Name",
+          "direction": "input",
+          "semantic_type": "collection_object_name",
+          "argument_family_assignment": true,
+          "data_classification": "object_identifier",
+          "field_number": 1,
+          "setter": "SetCollectionObjectNameArg2",
+          "presence": "required",
+          "omission_behavior": "reject_request",
+          "default_status": "none"
+        },
+        {
+          "argument_id": "point_name",
+          "ordinal": 1,
+          "sdk_order": 1,
+          "mp_name": "Point Name",
+          "direction": "input",
+          "semantic_type": "point_name",
+          "argument_family_assignment": true,
+          "data_classification": "object_identifier",
+          "field_number": 2,
+          "setter": "SetPointNameArg",
+          "presence": "required",
+          "omission_behavior": "reject_request",
+          "default_status": "none"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "operation_id": "collection_operations.construct_point_fit_to_points",
+      "release_memberships": [
+        "v0.2-wave2-initial"
+      ],
+      "inventory_key": "documentation:ConstructionOperations/PointsandGroups/ConstructPointFitToPoints.htm",
+      "mp_step": "Construct Point (Fit to Points)",
+      "protocol_file": "collection_operations.proto",
+      "service": "CollectionOperations",
+      "rpc": "ConstructPointFitToPoints",
+      "request": "ConstructPointFitToPointsRequest",
+      "result": "ConstructPointFitToPointsResult",
+      "fully_qualified_method": "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/ConstructPointFitToPoints",
+      "effect": "mutating",
+      "execution_scope": "global_state_mutation",
+      "isolation_review": "Mutates named geometry in application-global model state. Cancellation or deadline expiry does not roll back construction or cancel an in-flight COM call; an ambiguous completion requires reconciliation before replay.",
+      "replay_safety": "unknown",
+      "generated": {
+        "protocol": true,
+        "request_validation": true,
+        "request_adapter": true,
+        "immutable_worker_command": true,
+        "result_adapter": true,
+        "grpc_service": true,
+        "service_registration": true,
+        "capability": true,
+        "documentation": true,
+        "portable_conformance": true
+      },
+      "inputs": [
+        {
+          "argument_id": "point_names",
+          "ordinal": 0,
+          "sdk_order": 0,
+          "mp_name": "Point Names",
+          "direction": "input",
+          "semantic_type": "point_name_list",
+          "argument_family_assignment": true,
+          "data_classification": "object_identifier",
+          "field_number": 1,
+          "setter": "SetPointNameRefListArg",
+          "presence": "required",
+          "omission_behavior": "reject_request",
+          "default_status": "none"
+        },
+        {
+          "argument_id": "resulting_point_name",
+          "ordinal": 1,
+          "sdk_order": 1,
+          "mp_name": "Resulting Point Name",
+          "direction": "input",
+          "semantic_type": "point_name",
+          "argument_family_assignment": true,
+          "data_classification": "object_identifier",
+          "field_number": 2,
+          "setter": "SetPointNameArg",
+          "presence": "required",
+          "omission_behavior": "reject_request",
+          "default_status": "none"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "operation_id": "collection_operations.construct_point_group_from_point_name_list",
+      "release_memberships": [
+        "v0.2-wave2-initial"
+      ],
+      "inventory_key": "documentation:ConstructionOperations/PointsandGroups/ConstructPointGroupfromPointNameRefList.htm",
+      "mp_step": "Construct Point Group from Point Name Ref List",
+      "protocol_file": "collection_operations.proto",
+      "service": "CollectionOperations",
+      "rpc": "ConstructPointGroupFromPointNameList",
+      "request": "ConstructPointGroupFromPointNameListRequest",
+      "result": "ConstructPointGroupFromPointNameListResult",
+      "fully_qualified_method": "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/ConstructPointGroupFromPointNameList",
+      "effect": "mutating",
+      "execution_scope": "global_state_mutation",
+      "isolation_review": "Mutates named geometry in application-global model state. Cancellation or deadline expiry does not roll back construction or cancel an in-flight COM call; an ambiguous completion requires reconciliation before replay.",
+      "replay_safety": "unknown",
+      "generated": {
+        "protocol": true,
+        "request_validation": true,
+        "request_adapter": true,
+        "immutable_worker_command": true,
+        "result_adapter": true,
+        "grpc_service": true,
+        "service_registration": true,
+        "capability": true,
+        "documentation": true,
+        "portable_conformance": true
+      },
+      "inputs": [
+        {
+          "argument_id": "point_names",
+          "ordinal": 0,
+          "sdk_order": 0,
+          "mp_name": "Point Name List",
+          "direction": "input",
+          "semantic_type": "point_name_list",
+          "argument_family_assignment": true,
+          "data_classification": "object_identifier",
+          "field_number": 1,
+          "setter": "SetPointNameRefListArg",
+          "presence": "required",
+          "omission_behavior": "reject_request",
+          "default_status": "none"
+        },
+        {
+          "argument_id": "group_name",
+          "ordinal": 1,
+          "sdk_order": 1,
+          "mp_name": "Group Name",
+          "direction": "input",
+          "semantic_type": "collection_object_name",
+          "argument_family_assignment": true,
+          "data_classification": "object_identifier",
+          "field_number": 2,
+          "setter": "SetCollectionObjectNameArg2",
+          "presence": "required",
+          "omission_behavior": "reject_request",
+          "default_status": "none"
+        }
+      ],
+      "outputs": []
+    },
     {
       "operation_id": "collection_operations.construct_point_in_working_coordinates",
       "release_memberships": [

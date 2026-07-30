@@ -134,6 +134,22 @@ public sealed class CommandCatalogGeneratorTests
                 collectionProto,
                 StringComparison.Ordinal);
             Assert.Contains(
+                "rpc ConstructPointAtCircleCenter(ConstructPointAtCircleCenterRequest) returns (ConstructPointAtCircleCenterResult)",
+                collectionProto,
+                StringComparison.Ordinal);
+            Assert.Contains(
+                "rpc ConstructPointAtLineMidpoint(ConstructPointAtLineMidpointRequest) returns (ConstructPointAtLineMidpointResult)",
+                collectionProto,
+                StringComparison.Ordinal);
+            Assert.Contains(
+                "rpc ConstructPointFitToPoints(ConstructPointFitToPointsRequest) returns (ConstructPointFitToPointsResult)",
+                collectionProto,
+                StringComparison.Ordinal);
+            Assert.Contains(
+                "rpc ConstructPointGroupFromPointNameList(ConstructPointGroupFromPointNameListRequest) returns (ConstructPointGroupFromPointNameListResult)",
+                collectionProto,
+                StringComparison.Ordinal);
+            Assert.Contains(
                 "rpc DeletePoints(DeletePointsRequest) returns (DeletePointsResult)",
                 collectionProto,
                 StringComparison.Ordinal);
@@ -204,7 +220,7 @@ public sealed class CommandCatalogGeneratorTests
                 documentation,
                 StringComparison.Ordinal);
             Assert.Contains("`v0.2-wave1-initial` (`v0.2`, `wave_1`): 5 operation(s)", documentation, StringComparison.Ordinal);
-            Assert.Contains("`v0.2-wave2-initial` (`v0.2`, `wave_2`): 3 operation(s)", documentation, StringComparison.Ordinal);
+            Assert.Contains("`v0.2-wave2-initial` (`v0.2`, `wave_2`): 7 operation(s)", documentation, StringComparison.Ordinal);
         }
         finally
         {

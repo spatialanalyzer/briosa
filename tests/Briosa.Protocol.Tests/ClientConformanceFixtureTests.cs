@@ -28,6 +28,10 @@ public sealed class ClientConformanceFixtureTests
 
     private static readonly string[] ExpectedWave2PointLifecycleScenarios =
     [
+        "construct-circle-center-ready",
+        "construct-line-midpoint-missing-line",
+        "construct-point-fit-mp-failure",
+        "construct-point-group-policy-denied",
         "construct-point-missing-coordinates",
         "construct-point-ready",
         "delete-points-policy-denied",
@@ -211,6 +215,10 @@ public sealed class ClientConformanceFixtureTests
                 .Order(StringComparer.Ordinal));
         Assert.Equal(
             [
+                "collection_operations.construct_point_at_circle_center",
+                "collection_operations.construct_point_at_line_midpoint",
+                "collection_operations.construct_point_fit_to_points",
+                "collection_operations.construct_point_group_from_point_name_list",
                 "collection_operations.construct_point_in_working_coordinates",
                 "collection_operations.delete_points",
                 "collection_operations.rename_point"

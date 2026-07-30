@@ -2,7 +2,7 @@
 <!-- Generated from the reviewed Briosa command catalog. Do not edit by hand. -->
 # SpatialAnalyzer 2026.1.0529.7 operation reference
 
-Catalog `briosa.sa.2026.1.0529.7` revision `8`.
+Catalog `briosa.sa.2026.1.0529.7` revision `9`.
 
 Only explicitly reviewed Briosa operations are listed here. This is not the installed SpatialAnalyzer MP catalog.
 
@@ -24,7 +24,115 @@ Membership declarations identify additive reviewed delivery subsets, not the com
 
 - `v0.2-wave1-initial` (`v0.2`, `wave_1`): 5 operation(s)
 
-- `v0.2-wave2-initial` (`v0.2`, `wave_2`): 3 operation(s)
+- `v0.2-wave2-initial` (`v0.2`, `wave_2`): 7 operation(s)
+
+## `CollectionOperations.ConstructPointAtCircleCenter`
+
+Constructs a named point at the center of an explicitly identified circle.
+
+- Briosa operation: `collection_operations.construct_point_at_circle_center`
+- Inventory key: `documentation:ConstructionOperations/PointsandGroups/ConstructaPointAtCircleCenter.htm`
+- Protocol file: `collection_operations.proto`
+- Fully qualified method: `/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/ConstructPointAtCircleCenter`
+- Exact MP step: `Construct a Point at Circle Center`
+- Stability: `experimental`
+- Execution scope: `global_state_mutation`
+- Isolation review: Mutates named geometry in application-global model state. Cancellation or deadline expiry does not roll back construction or cancel an in-flight COM call; an ambiguous completion requires reconciliation before replay.
+- Effect: `mutating`
+- Replay safety: `unknown`
+- Risk flags: none
+
+### Inputs
+
+| Field | Number | MP ordinal | SDK order | MP argument | Direction | Type | Data classification | SDK binding | Presence / retrieval |
+| --- | ---: | ---: | ---: | --- | --- | --- | --- | --- | --- |
+| `circle` | 1 | 0 | 0 | `Circle Name` | `input` | `collection_object_name` | `object_identifier` | `SetCollectionObjectNameArg2` | required; reject_request; default none |
+| `point_name` | 2 | 1 | 1 | `Point Name` | `input` | `point_name` | `object_identifier` | `SetPointNameArg` | required; reject_request; default none |
+
+### Outputs
+
+None.
+
+## `CollectionOperations.ConstructPointAtLineMidpoint`
+
+Constructs a named point at the midpoint of an explicitly identified line.
+
+- Briosa operation: `collection_operations.construct_point_at_line_midpoint`
+- Inventory key: `documentation:ConstructionOperations/PointsandGroups/ConstructaPointAtLineMidPoint.htm`
+- Protocol file: `collection_operations.proto`
+- Fully qualified method: `/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/ConstructPointAtLineMidpoint`
+- Exact MP step: `Construct a Point at line MidPoint`
+- Stability: `experimental`
+- Execution scope: `global_state_mutation`
+- Isolation review: Mutates named geometry in application-global model state. Cancellation or deadline expiry does not roll back construction or cancel an in-flight COM call; an ambiguous completion requires reconciliation before replay.
+- Effect: `mutating`
+- Replay safety: `unknown`
+- Risk flags: none
+
+### Inputs
+
+| Field | Number | MP ordinal | SDK order | MP argument | Direction | Type | Data classification | SDK binding | Presence / retrieval |
+| --- | ---: | ---: | ---: | --- | --- | --- | --- | --- | --- |
+| `line` | 1 | 0 | 0 | `Line Name` | `input` | `collection_object_name` | `object_identifier` | `SetCollectionObjectNameArg2` | required; reject_request; default none |
+| `point_name` | 2 | 1 | 1 | `Point Name` | `input` | `point_name` | `object_identifier` | `SetPointNameArg` | required; reject_request; default none |
+
+### Outputs
+
+None.
+
+## `CollectionOperations.ConstructPointFitToPoints`
+
+Constructs a named point by fitting an explicit list of source points.
+
+- Briosa operation: `collection_operations.construct_point_fit_to_points`
+- Inventory key: `documentation:ConstructionOperations/PointsandGroups/ConstructPointFitToPoints.htm`
+- Protocol file: `collection_operations.proto`
+- Fully qualified method: `/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/ConstructPointFitToPoints`
+- Exact MP step: `Construct Point (Fit to Points)`
+- Stability: `experimental`
+- Execution scope: `global_state_mutation`
+- Isolation review: Mutates named geometry in application-global model state. Cancellation or deadline expiry does not roll back construction or cancel an in-flight COM call; an ambiguous completion requires reconciliation before replay.
+- Effect: `mutating`
+- Replay safety: `unknown`
+- Risk flags: none
+
+### Inputs
+
+| Field | Number | MP ordinal | SDK order | MP argument | Direction | Type | Data classification | SDK binding | Presence / retrieval |
+| --- | ---: | ---: | ---: | --- | --- | --- | --- | --- | --- |
+| `point_names` | 1 | 0 | 0 | `Point Names` | `input` | `point_name_list` | `object_identifier` | `SetPointNameRefListArg` | required; reject_request; default none |
+| `resulting_point_name` | 2 | 1 | 1 | `Resulting Point Name` | `input` | `point_name` | `object_identifier` | `SetPointNameArg` | required; reject_request; default none |
+
+### Outputs
+
+None.
+
+## `CollectionOperations.ConstructPointGroupFromPointNameList`
+
+Constructs a named point group from an explicit list of source points.
+
+- Briosa operation: `collection_operations.construct_point_group_from_point_name_list`
+- Inventory key: `documentation:ConstructionOperations/PointsandGroups/ConstructPointGroupfromPointNameRefList.htm`
+- Protocol file: `collection_operations.proto`
+- Fully qualified method: `/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/ConstructPointGroupFromPointNameList`
+- Exact MP step: `Construct Point Group from Point Name Ref List`
+- Stability: `experimental`
+- Execution scope: `global_state_mutation`
+- Isolation review: Mutates named geometry in application-global model state. Cancellation or deadline expiry does not roll back construction or cancel an in-flight COM call; an ambiguous completion requires reconciliation before replay.
+- Effect: `mutating`
+- Replay safety: `unknown`
+- Risk flags: none
+
+### Inputs
+
+| Field | Number | MP ordinal | SDK order | MP argument | Direction | Type | Data classification | SDK binding | Presence / retrieval |
+| --- | ---: | ---: | ---: | --- | --- | --- | --- | --- | --- |
+| `point_names` | 1 | 0 | 0 | `Point Name List` | `input` | `point_name_list` | `object_identifier` | `SetPointNameRefListArg` | required; reject_request; default none |
+| `group_name` | 2 | 1 | 1 | `Group Name` | `input` | `collection_object_name` | `object_identifier` | `SetCollectionObjectNameArg2` | required; reject_request; default none |
+
+### Outputs
+
+None.
 
 ## `CollectionOperations.ConstructPointInWorkingCoordinates`
 

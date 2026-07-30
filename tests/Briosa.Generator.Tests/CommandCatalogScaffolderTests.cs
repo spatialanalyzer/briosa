@@ -30,8 +30,8 @@ public sealed class CommandCatalogScaffolderTests
         Assert.True(first.IsSuccessful, DisplayConflicts(first));
         Assert.True(second.IsSuccessful, DisplayConflicts(second));
         Assert.Equal(684, first.ApprovedCandidateCount);
-        Assert.Equal(9, first.ExistingCatalogOperationCount);
-        Assert.Equal(675, first.ScaffoldCount);
+        Assert.Equal(13, first.ExistingCatalogOperationCount);
+        Assert.Equal(671, first.ScaffoldCount);
         Assert.Equal(ReadTree(fixture.FirstOutput), ReadTree(fixture.SecondOutput));
         Assert.False(File.Exists(CandidatePath(
             fixture.FirstOutput,
@@ -42,6 +42,18 @@ public sealed class CommandCatalogScaffolderTests
         Assert.False(File.Exists(CandidatePath(
             fixture.FirstOutput,
             "documentation:ConstructionOperations/PointsandGroups/ConstructAPointInWorkingCoordinates.htm")));
+        Assert.False(File.Exists(CandidatePath(
+            fixture.FirstOutput,
+            "documentation:ConstructionOperations/PointsandGroups/ConstructaPointAtCircleCenter.htm")));
+        Assert.False(File.Exists(CandidatePath(
+            fixture.FirstOutput,
+            "documentation:ConstructionOperations/PointsandGroups/ConstructaPointAtLineMidPoint.htm")));
+        Assert.False(File.Exists(CandidatePath(
+            fixture.FirstOutput,
+            "documentation:ConstructionOperations/PointsandGroups/ConstructPointFitToPoints.htm")));
+        Assert.False(File.Exists(CandidatePath(
+            fixture.FirstOutput,
+            "documentation:ConstructionOperations/PointsandGroups/ConstructPointGroupfromPointNameRefList.htm")));
         Assert.False(File.Exists(CandidatePath(
             fixture.FirstOutput,
             "documentation:ConstructionOperations/RenamePoint.htm")));

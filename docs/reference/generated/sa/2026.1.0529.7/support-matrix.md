@@ -11,8 +11,8 @@ Cataloged operations require a separately installed and licensed exact-target Sp
 | Classification | Count |
 | --- | ---: |
 | Inventory commands | 1412 |
-| Cataloged, portable-only operations | 9 |
-| Approved candidates not cataloged | 675 |
+| Cataloged, portable-only operations | 13 |
+| Approved candidates not cataloged | 671 |
 | Blocked | 45 |
 | Intentional exclusions | 476 |
 | SDK unavailable | 207 |
@@ -425,10 +425,10 @@ Cataloged operations require a separately installed and licensed exact-target Sp
 | `documentation:ConstructionOperations/PointsandGroups/ConstructPointAtIntersectionOfPlaneAndLine.htm` | Construct Point at Intersection of Plane and Line | ConstructionOperations / PointsandGroups | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/PointsandGroups/ConstructPointAtIntersectionOfPlanes.htm` | Construct Point at Intersection of Planes | ConstructionOperations / PointsandGroups | `blocked` | — | `mutating` | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/PointsandGroups/ConstructPointAtIntersectionOfTwoLines.htm` | Construct Point at Intersection of Two Lines | ConstructionOperations / PointsandGroups | `sdk_unavailable` | — | `mutating` | `not_applicable` | `not_applicable` |
-| `documentation:ConstructionOperations/PointsandGroups/ConstructPointFitToPoints.htm` | Construct Point (Fit to Points) | ConstructionOperations / PointsandGroups | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
+| `documentation:ConstructionOperations/PointsandGroups/ConstructPointFitToPoints.htm` | Construct Point (Fit to Points) | ConstructionOperations / PointsandGroups | `cataloged_portable_only` | `collection_operations.construct_point_fit_to_points` | `mutating` | `portable_briosa_contract` | `not_performed` |
 | `documentation:ConstructionOperations/PointsandGroups/ConstructPointFromSurveyTargetCenter.htm` | Construct Point From Survey Target Center | ConstructionOperations / PointsandGroups | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/PointsandGroups/ConstructPointGroupfromPointCloud.htm` | Construct Point Group from Point Cloud | ConstructionOperations / PointsandGroups | `approved_not_cataloged` | — | `mutating` (long_running) | `not_applicable` | `not_applicable` |
-| `documentation:ConstructionOperations/PointsandGroups/ConstructPointGroupfromPointNameRefList.htm` | Construct Point Group from Point Name Ref List | ConstructionOperations / PointsandGroups | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
+| `documentation:ConstructionOperations/PointsandGroups/ConstructPointGroupfromPointNameRefList.htm` | Construct Point Group from Point Name Ref List | ConstructionOperations / PointsandGroups | `cataloged_portable_only` | `collection_operations.construct_point_group_from_point_name_list` | `mutating` | `portable_briosa_contract` | `not_performed` |
 | `documentation:ConstructionOperations/PointsandGroups/ConstructPointGroupsfromVectorGroups.htm` | Construct Point Groups from Vector Groups | ConstructionOperations / PointsandGroups | `blocked` | — | `mutating` | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/PointsandGroups/ConstructPointatObjectOrigin.htm` | Construct Point at Object Origin | ConstructionOperations / PointsandGroups | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/PointsandGroups/ConstructPointfromCloudPoint-RuntimeSelect.htm` | Construct Point from Cloud Point - Runtime Select | ConstructionOperations / PointsandGroups | `intentional_exclusion` | — | `unknown` (unknown) | `not_applicable` | `not_applicable` |
@@ -453,8 +453,8 @@ Cataloged operations require a separately installed and licensed exact-target Sp
 | `documentation:ConstructionOperations/PointsandGroups/ConstructPointsonCurves.htm` | Construct Points on Curves Using Max Chordal Deviation | ConstructionOperations / PointsandGroups | `sdk_unavailable` | — | `mutating` | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/PointsandGroups/ConstructPointsonObjectsVertices.htm` | Construct Points on Object’s Vertices | ConstructionOperations / PointsandGroups | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/PointsandGroups/ConstructPointsonSurfacesbyClicking.htm` | Construct Points on Surface(s) by Clicking | ConstructionOperations / PointsandGroups | `intentional_exclusion` | — | `unknown` (interactive_ui) | `not_applicable` | `not_applicable` |
-| `documentation:ConstructionOperations/PointsandGroups/ConstructaPointAtCircleCenter.htm` | Construct a Point at Circle Center | ConstructionOperations / PointsandGroups | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
-| `documentation:ConstructionOperations/PointsandGroups/ConstructaPointAtLineMidPoint.htm` | Construct a Point at line MidPoint | ConstructionOperations / PointsandGroups | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
+| `documentation:ConstructionOperations/PointsandGroups/ConstructaPointAtCircleCenter.htm` | Construct a Point at Circle Center | ConstructionOperations / PointsandGroups | `cataloged_portable_only` | `collection_operations.construct_point_at_circle_center` | `mutating` | `portable_briosa_contract` | `not_performed` |
+| `documentation:ConstructionOperations/PointsandGroups/ConstructaPointAtLineMidPoint.htm` | Construct a Point at line MidPoint | ConstructionOperations / PointsandGroups | `cataloged_portable_only` | `collection_operations.construct_point_at_line_midpoint` | `mutating` | `portable_briosa_contract` | `not_performed` |
 | `documentation:ConstructionOperations/PointsandGroups/CopyGroupsExcludingObscuredPoints.htm` | Copy Groups Excluding Obscured Points | ConstructionOperations / PointsandGroups | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/PointsandGroups/CreateHiddenPoint.htm` | Create Hidden Point | ConstructionOperations / PointsandGroups | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/PointsandGroups/CreateHiddenPointRod.htm` | Create Hidden Point Rod | ConstructionOperations / PointsandGroups | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |

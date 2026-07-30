@@ -52,7 +52,7 @@
     },
     {
       "path": "generated/release/sa/2026.1.0529.7/support-matrix.json",
-      "sha256": "977b7fc474776149a39e11f301f532069389ec370c3aea03bf40aee95a00cd33"
+      "sha256": "e92bb69cea2fc12629c749d6276819c20273a03ce1a84ed33e41a0cb3efa0c16"
     },
     {
       "path": "release/sa/2026.1.0529.7/audit-policy.json",
@@ -93,6 +93,10 @@
       "description": "Mutating and device-related operations have reviewed fixtures and controls.",
       "status": "blocked",
       "evidence": [
+        "collection_operations.construct_point_at_circle_center",
+        "collection_operations.construct_point_at_line_midpoint",
+        "collection_operations.construct_point_fit_to_points",
+        "collection_operations.construct_point_group_from_point_name_list",
         "collection_operations.construct_point_in_working_coordinates",
         "collection_operations.delete_points",
         "collection_operations.rename_point"

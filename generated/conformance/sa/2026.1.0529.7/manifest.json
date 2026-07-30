@@ -3,13 +3,29 @@
   "schema_version": 1,
   "generated_by": "Briosa.Generator portable conformance",
   "catalog_id": "briosa.sa.2026.1.0529.7",
-  "catalog_revision": "8",
+  "catalog_revision": "9",
   "spatial_analyzer_target": "2026.1.0529.7",
   "target_protocol_package": "briosa.sa.v2026_1_0529_7.v1alpha1",
   "evidence_inputs": [
     {
       "path": "catalog/sa/2026.1.0529.7/catalog.json",
-      "sha256": "52721a26e305496b465f90d5f2659c49aec10f2e31499dd1a949501d42dfe330"
+      "sha256": "b6f67b8d02788064451ab3631d650c68fd4c6c7b5e43d7b25d9da707b5e9f41c"
+    },
+    {
+      "path": "catalog/sa/2026.1.0529.7/operations/collection_operations.construct_point_at_circle_center.json",
+      "sha256": "cd8b7454ecf97685a34445617a4faa7313054cba8a18e2246e3014f552f1d5ec"
+    },
+    {
+      "path": "catalog/sa/2026.1.0529.7/operations/collection_operations.construct_point_at_line_midpoint.json",
+      "sha256": "17a8b9201056dd38fb51cd0342e9e924caebc1a9588a72e7d5364bf9c27cdd70"
+    },
+    {
+      "path": "catalog/sa/2026.1.0529.7/operations/collection_operations.construct_point_fit_to_points.json",
+      "sha256": "7d81316946ea0d0067641bf7ce59fdbf54fb38a26ab8729a1bd9ecf09f43c2a4"
+    },
+    {
+      "path": "catalog/sa/2026.1.0529.7/operations/collection_operations.construct_point_group_from_point_name_list.json",
+      "sha256": "39d04639b69ba13f8e51d38aa334755c6dc74ad9bd680af192d8494a00ca3d4a"
     },
     {
       "path": "catalog/sa/2026.1.0529.7/operations/collection_operations.construct_point_in_working_coordinates.json",
@@ -61,7 +77,7 @@
     }
   ],
   "counts": {
-    "operation_count": 9,
+    "operation_count": 13,
     "binding_case_count": 252,
     "value_family_case_count": 158,
     "enum_case_count": 512,
@@ -69,6 +85,720 @@
     "assignment_case_count": 1990
   },
   "operations": [
+    {
+      "operation_id": "collection_operations.construct_point_at_circle_center",
+      "inventory_key": "documentation:ConstructionOperations/PointsandGroups/ConstructaPointAtCircleCenter.htm",
+      "mp_step": "Construct a Point at Circle Center",
+      "fully_qualified_method": "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/ConstructPointAtCircleCenter",
+      "request": "ConstructPointAtCircleCenterRequest",
+      "result": "ConstructPointAtCircleCenterResult",
+      "effect": "mutating",
+      "execution_scope": "global_state_mutation",
+      "replay_safety": "unknown",
+      "risk_flags": [],
+      "inputs": [
+        {
+          "argument_id": "circle",
+          "ordinal": 0,
+          "sdk_order": 0,
+          "mp_name": "Circle Name",
+          "direction": "input",
+          "semantic_type": "collection_object_name",
+          "worker_value_kind": "CollectionObjectName",
+          "binding": "SetCollectionObjectNameArg2",
+          "presence": "required",
+          "omission_behavior": "reject_request"
+        },
+        {
+          "argument_id": "point_name",
+          "ordinal": 1,
+          "sdk_order": 1,
+          "mp_name": "Point Name",
+          "direction": "input",
+          "semantic_type": "point_name",
+          "worker_value_kind": "PointName",
+          "binding": "SetPointNameArg",
+          "presence": "required",
+          "omission_behavior": "reject_request"
+        }
+      ],
+      "outputs": [],
+      "scenarios": [
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_circle_center:binding:circle:setter-rejected",
+          "kind": "binding.setter_rejected",
+          "argument_id": "circle"
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_circle_center:binding:point_name:setter-rejected",
+          "kind": "binding.setter_rejected",
+          "argument_id": "point_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_circle_center:capability:metadata",
+          "kind": "capability.metadata",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_circle_center:error:cancellation:not-started",
+          "kind": "error.cancellation_not_started",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_circle_center:error:cancellation:started-unknown",
+          "kind": "error.cancellation_started_unknown",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_circle_center:error:deadline:not-started",
+          "kind": "error.deadline_not_started",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_circle_center:error:deadline:started-unknown",
+          "kind": "error.deadline_started_unknown",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_circle_center:error:disconnected",
+          "kind": "error.disconnected",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_circle_center:error:execute-rejected",
+          "kind": "error.execute_rejected",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_circle_center:error:malformed-worker-response",
+          "kind": "error.malformed_worker_response",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_circle_center:error:mp-failed",
+          "kind": "error.mp_failed",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_circle_center:error:mp-result-retrieval-failed",
+          "kind": "error.mp_result_retrieval_failed",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_circle_center:error:worker-crash",
+          "kind": "error.worker_crash",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_circle_center:error:worker-hang",
+          "kind": "error.worker_hang",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_circle_center:metadata:execution-disposition",
+          "kind": "metadata.execution_disposition",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_circle_center:metadata:execution-scope",
+          "kind": "metadata.execution_scope",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_circle_center:metadata:replay-guidance",
+          "kind": "metadata.replay_guidance",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_circle_center:policy:allow",
+          "kind": "policy.allowed",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_circle_center:policy:deny",
+          "kind": "policy.denied",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_circle_center:readiness:unverified",
+          "kind": "readiness.unverified",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_circle_center:request:circle:malformed",
+          "kind": "request.malformed_shape",
+          "argument_id": "circle"
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_circle_center:request:circle:missing",
+          "kind": "request.required_missing",
+          "argument_id": "circle"
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_circle_center:request:circle:positive",
+          "kind": "request.argument_positive",
+          "argument_id": "circle"
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_circle_center:request:point_name:malformed",
+          "kind": "request.malformed_shape",
+          "argument_id": "point_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_circle_center:request:point_name:missing",
+          "kind": "request.required_missing",
+          "argument_id": "point_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_circle_center:request:point_name:positive",
+          "kind": "request.argument_positive",
+          "argument_id": "point_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_circle_center:request:valid",
+          "kind": "request.valid",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_circle_center:result:success",
+          "kind": "result.success",
+          "argument_id": null
+        }
+      ]
+    },
+    {
+      "operation_id": "collection_operations.construct_point_at_line_midpoint",
+      "inventory_key": "documentation:ConstructionOperations/PointsandGroups/ConstructaPointAtLineMidPoint.htm",
+      "mp_step": "Construct a Point at line MidPoint",
+      "fully_qualified_method": "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/ConstructPointAtLineMidpoint",
+      "request": "ConstructPointAtLineMidpointRequest",
+      "result": "ConstructPointAtLineMidpointResult",
+      "effect": "mutating",
+      "execution_scope": "global_state_mutation",
+      "replay_safety": "unknown",
+      "risk_flags": [],
+      "inputs": [
+        {
+          "argument_id": "line",
+          "ordinal": 0,
+          "sdk_order": 0,
+          "mp_name": "Line Name",
+          "direction": "input",
+          "semantic_type": "collection_object_name",
+          "worker_value_kind": "CollectionObjectName",
+          "binding": "SetCollectionObjectNameArg2",
+          "presence": "required",
+          "omission_behavior": "reject_request"
+        },
+        {
+          "argument_id": "point_name",
+          "ordinal": 1,
+          "sdk_order": 1,
+          "mp_name": "Point Name",
+          "direction": "input",
+          "semantic_type": "point_name",
+          "worker_value_kind": "PointName",
+          "binding": "SetPointNameArg",
+          "presence": "required",
+          "omission_behavior": "reject_request"
+        }
+      ],
+      "outputs": [],
+      "scenarios": [
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_line_midpoint:binding:line:setter-rejected",
+          "kind": "binding.setter_rejected",
+          "argument_id": "line"
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_line_midpoint:binding:point_name:setter-rejected",
+          "kind": "binding.setter_rejected",
+          "argument_id": "point_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_line_midpoint:capability:metadata",
+          "kind": "capability.metadata",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_line_midpoint:error:cancellation:not-started",
+          "kind": "error.cancellation_not_started",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_line_midpoint:error:cancellation:started-unknown",
+          "kind": "error.cancellation_started_unknown",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_line_midpoint:error:deadline:not-started",
+          "kind": "error.deadline_not_started",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_line_midpoint:error:deadline:started-unknown",
+          "kind": "error.deadline_started_unknown",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_line_midpoint:error:disconnected",
+          "kind": "error.disconnected",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_line_midpoint:error:execute-rejected",
+          "kind": "error.execute_rejected",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_line_midpoint:error:malformed-worker-response",
+          "kind": "error.malformed_worker_response",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_line_midpoint:error:mp-failed",
+          "kind": "error.mp_failed",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_line_midpoint:error:mp-result-retrieval-failed",
+          "kind": "error.mp_result_retrieval_failed",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_line_midpoint:error:worker-crash",
+          "kind": "error.worker_crash",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_line_midpoint:error:worker-hang",
+          "kind": "error.worker_hang",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_line_midpoint:metadata:execution-disposition",
+          "kind": "metadata.execution_disposition",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_line_midpoint:metadata:execution-scope",
+          "kind": "metadata.execution_scope",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_line_midpoint:metadata:replay-guidance",
+          "kind": "metadata.replay_guidance",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_line_midpoint:policy:allow",
+          "kind": "policy.allowed",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_line_midpoint:policy:deny",
+          "kind": "policy.denied",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_line_midpoint:readiness:unverified",
+          "kind": "readiness.unverified",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_line_midpoint:request:line:malformed",
+          "kind": "request.malformed_shape",
+          "argument_id": "line"
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_line_midpoint:request:line:missing",
+          "kind": "request.required_missing",
+          "argument_id": "line"
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_line_midpoint:request:line:positive",
+          "kind": "request.argument_positive",
+          "argument_id": "line"
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_line_midpoint:request:point_name:malformed",
+          "kind": "request.malformed_shape",
+          "argument_id": "point_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_line_midpoint:request:point_name:missing",
+          "kind": "request.required_missing",
+          "argument_id": "point_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_line_midpoint:request:point_name:positive",
+          "kind": "request.argument_positive",
+          "argument_id": "point_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_line_midpoint:request:valid",
+          "kind": "request.valid",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_at_line_midpoint:result:success",
+          "kind": "result.success",
+          "argument_id": null
+        }
+      ]
+    },
+    {
+      "operation_id": "collection_operations.construct_point_fit_to_points",
+      "inventory_key": "documentation:ConstructionOperations/PointsandGroups/ConstructPointFitToPoints.htm",
+      "mp_step": "Construct Point (Fit to Points)",
+      "fully_qualified_method": "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/ConstructPointFitToPoints",
+      "request": "ConstructPointFitToPointsRequest",
+      "result": "ConstructPointFitToPointsResult",
+      "effect": "mutating",
+      "execution_scope": "global_state_mutation",
+      "replay_safety": "unknown",
+      "risk_flags": [],
+      "inputs": [
+        {
+          "argument_id": "point_names",
+          "ordinal": 0,
+          "sdk_order": 0,
+          "mp_name": "Point Names",
+          "direction": "input",
+          "semantic_type": "point_name_list",
+          "worker_value_kind": "PointNameList",
+          "binding": "SetPointNameRefListArg",
+          "presence": "required",
+          "omission_behavior": "reject_request"
+        },
+        {
+          "argument_id": "resulting_point_name",
+          "ordinal": 1,
+          "sdk_order": 1,
+          "mp_name": "Resulting Point Name",
+          "direction": "input",
+          "semantic_type": "point_name",
+          "worker_value_kind": "PointName",
+          "binding": "SetPointNameArg",
+          "presence": "required",
+          "omission_behavior": "reject_request"
+        }
+      ],
+      "outputs": [],
+      "scenarios": [
+        {
+          "scenario_id": "operation:collection_operations.construct_point_fit_to_points:binding:point_names:setter-rejected",
+          "kind": "binding.setter_rejected",
+          "argument_id": "point_names"
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_fit_to_points:binding:resulting_point_name:setter-rejected",
+          "kind": "binding.setter_rejected",
+          "argument_id": "resulting_point_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_fit_to_points:capability:metadata",
+          "kind": "capability.metadata",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_fit_to_points:error:cancellation:not-started",
+          "kind": "error.cancellation_not_started",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_fit_to_points:error:cancellation:started-unknown",
+          "kind": "error.cancellation_started_unknown",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_fit_to_points:error:deadline:not-started",
+          "kind": "error.deadline_not_started",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_fit_to_points:error:deadline:started-unknown",
+          "kind": "error.deadline_started_unknown",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_fit_to_points:error:disconnected",
+          "kind": "error.disconnected",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_fit_to_points:error:execute-rejected",
+          "kind": "error.execute_rejected",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_fit_to_points:error:malformed-worker-response",
+          "kind": "error.malformed_worker_response",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_fit_to_points:error:mp-failed",
+          "kind": "error.mp_failed",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_fit_to_points:error:mp-result-retrieval-failed",
+          "kind": "error.mp_result_retrieval_failed",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_fit_to_points:error:worker-crash",
+          "kind": "error.worker_crash",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_fit_to_points:error:worker-hang",
+          "kind": "error.worker_hang",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_fit_to_points:metadata:execution-disposition",
+          "kind": "metadata.execution_disposition",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_fit_to_points:metadata:execution-scope",
+          "kind": "metadata.execution_scope",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_fit_to_points:metadata:replay-guidance",
+          "kind": "metadata.replay_guidance",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_fit_to_points:policy:allow",
+          "kind": "policy.allowed",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_fit_to_points:policy:deny",
+          "kind": "policy.denied",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_fit_to_points:readiness:unverified",
+          "kind": "readiness.unverified",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_fit_to_points:request:point_names:missing",
+          "kind": "request.required_missing",
+          "argument_id": "point_names"
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_fit_to_points:request:point_names:positive",
+          "kind": "request.argument_positive",
+          "argument_id": "point_names"
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_fit_to_points:request:resulting_point_name:malformed",
+          "kind": "request.malformed_shape",
+          "argument_id": "resulting_point_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_fit_to_points:request:resulting_point_name:missing",
+          "kind": "request.required_missing",
+          "argument_id": "resulting_point_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_fit_to_points:request:resulting_point_name:positive",
+          "kind": "request.argument_positive",
+          "argument_id": "resulting_point_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_fit_to_points:request:valid",
+          "kind": "request.valid",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_fit_to_points:result:success",
+          "kind": "result.success",
+          "argument_id": null
+        }
+      ]
+    },
+    {
+      "operation_id": "collection_operations.construct_point_group_from_point_name_list",
+      "inventory_key": "documentation:ConstructionOperations/PointsandGroups/ConstructPointGroupfromPointNameRefList.htm",
+      "mp_step": "Construct Point Group from Point Name Ref List",
+      "fully_qualified_method": "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/ConstructPointGroupFromPointNameList",
+      "request": "ConstructPointGroupFromPointNameListRequest",
+      "result": "ConstructPointGroupFromPointNameListResult",
+      "effect": "mutating",
+      "execution_scope": "global_state_mutation",
+      "replay_safety": "unknown",
+      "risk_flags": [],
+      "inputs": [
+        {
+          "argument_id": "point_names",
+          "ordinal": 0,
+          "sdk_order": 0,
+          "mp_name": "Point Name List",
+          "direction": "input",
+          "semantic_type": "point_name_list",
+          "worker_value_kind": "PointNameList",
+          "binding": "SetPointNameRefListArg",
+          "presence": "required",
+          "omission_behavior": "reject_request"
+        },
+        {
+          "argument_id": "group_name",
+          "ordinal": 1,
+          "sdk_order": 1,
+          "mp_name": "Group Name",
+          "direction": "input",
+          "semantic_type": "collection_object_name",
+          "worker_value_kind": "CollectionObjectName",
+          "binding": "SetCollectionObjectNameArg2",
+          "presence": "required",
+          "omission_behavior": "reject_request"
+        }
+      ],
+      "outputs": [],
+      "scenarios": [
+        {
+          "scenario_id": "operation:collection_operations.construct_point_group_from_point_name_list:binding:group_name:setter-rejected",
+          "kind": "binding.setter_rejected",
+          "argument_id": "group_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_group_from_point_name_list:binding:point_names:setter-rejected",
+          "kind": "binding.setter_rejected",
+          "argument_id": "point_names"
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_group_from_point_name_list:capability:metadata",
+          "kind": "capability.metadata",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_group_from_point_name_list:error:cancellation:not-started",
+          "kind": "error.cancellation_not_started",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_group_from_point_name_list:error:cancellation:started-unknown",
+          "kind": "error.cancellation_started_unknown",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_group_from_point_name_list:error:deadline:not-started",
+          "kind": "error.deadline_not_started",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_group_from_point_name_list:error:deadline:started-unknown",
+          "kind": "error.deadline_started_unknown",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_group_from_point_name_list:error:disconnected",
+          "kind": "error.disconnected",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_group_from_point_name_list:error:execute-rejected",
+          "kind": "error.execute_rejected",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_group_from_point_name_list:error:malformed-worker-response",
+          "kind": "error.malformed_worker_response",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_group_from_point_name_list:error:mp-failed",
+          "kind": "error.mp_failed",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_group_from_point_name_list:error:mp-result-retrieval-failed",
+          "kind": "error.mp_result_retrieval_failed",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_group_from_point_name_list:error:worker-crash",
+          "kind": "error.worker_crash",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_group_from_point_name_list:error:worker-hang",
+          "kind": "error.worker_hang",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_group_from_point_name_list:metadata:execution-disposition",
+          "kind": "metadata.execution_disposition",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_group_from_point_name_list:metadata:execution-scope",
+          "kind": "metadata.execution_scope",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_group_from_point_name_list:metadata:replay-guidance",
+          "kind": "metadata.replay_guidance",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_group_from_point_name_list:policy:allow",
+          "kind": "policy.allowed",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_group_from_point_name_list:policy:deny",
+          "kind": "policy.denied",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_group_from_point_name_list:readiness:unverified",
+          "kind": "readiness.unverified",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_group_from_point_name_list:request:group_name:malformed",
+          "kind": "request.malformed_shape",
+          "argument_id": "group_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_group_from_point_name_list:request:group_name:missing",
+          "kind": "request.required_missing",
+          "argument_id": "group_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_group_from_point_name_list:request:group_name:positive",
+          "kind": "request.argument_positive",
+          "argument_id": "group_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_group_from_point_name_list:request:point_names:missing",
+          "kind": "request.required_missing",
+          "argument_id": "point_names"
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_group_from_point_name_list:request:point_names:positive",
+          "kind": "request.argument_positive",
+          "argument_id": "point_names"
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_group_from_point_name_list:request:valid",
+          "kind": "request.valid",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.construct_point_group_from_point_name_list:result:success",
+          "kind": "result.success",
+          "argument_id": null
+        }
+      ]
+    },
     {
       "operation_id": "collection_operations.construct_point_in_working_coordinates",
       "inventory_key": "documentation:ConstructionOperations/PointsandGroups/ConstructAPointInWorkingCoordinates.htm",

@@ -572,6 +572,10 @@ public sealed class CommandDispositionLedgerTests
 
         Assert.Equal(
             [
+                "Construct a Point at Circle Center",
+                "Construct a Point at line MidPoint",
+                "Construct Point (Fit to Points)",
+                "Construct Point Group from Point Name Ref List",
                 "Construct a Point in Working Coordinates",
                 "Delete Points",
                 "Get Number of Collections",
