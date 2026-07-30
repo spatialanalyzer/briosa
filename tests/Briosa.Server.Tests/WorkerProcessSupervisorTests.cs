@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Threading.Channels;
 using Briosa.Server.Workers;
 using Briosa.Worker.Control;
 
@@ -318,7 +319,45 @@ public sealed class WorkerProcessSupervisorTests
 
         Assert.Equal(WorkerLifecycleState.Stopped, supervisor.Current.State);
         Assert.Equal(WorkerTerminationKind.Forced, supervisor.Current.LastTermination);
-        Assert.Equal("worker-stop-timeout", supervisor.Current.DiagnosticCode);
+        Assert.Equal("worker-stop-ack-timeout", supervisor.Current.DiagnosticCode);
+    }
+
+    [Fact]
+    public async Task ShutdownDrainsAnInFlightHeartbeatBeforeSendingStop()
+    {
+        await using var process = new CoordinatedHeartbeatProcess();
+        await using var supervisor = new WorkerProcessSupervisor(
+            new FixedWorkerProcessFactory(process),
+            CreatePolicy(
+                heartbeatInterval: TimeSpan.FromMilliseconds(1),
+                shutdownTimeout: TimeSpan.FromSeconds(1)),
+            CreateExecutionPolicy(),
+            identityPolicy: ExactTargetIdentityPolicy.CreateForTesting(
+                "2026.1.0529.7",
+                activatedSdkVersion: "2026.1.0529.7",
+                connectedSpatialAnalyzerVersion: "2026.1.0529.7"));
+
+        Assert.True(await supervisor.StartAsync());
+        await process.PingStarted.WaitAsync(TimeSpan.FromSeconds(5));
+
+        var stopping = supervisor.StopAsync();
+        try
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(50));
+            Assert.False(stopping.IsCompleted);
+            Assert.False(process.PingWasCancelled);
+        }
+        finally
+        {
+            process.ReleaseHeartbeat();
+        }
+
+        await stopping.WaitAsync(TimeSpan.FromSeconds(5));
+
+        Assert.False(process.PingWasCancelled);
+        Assert.Equal(WorkerLifecycleState.Stopped, supervisor.Current.State);
+        Assert.Equal(WorkerTerminationKind.Graceful, supervisor.Current.LastTermination);
+        Assert.Equal("worker-stopped", supervisor.Current.DiagnosticCode);
     }
 
     [Fact]
@@ -439,6 +478,7 @@ public sealed class WorkerProcessSupervisorTests
         await stopping;
         var drained = supervisor.ExecutionSnapshot;
 
+        Assert.Equal(WorkerExecutionStatus.Completed, outcomes[0].Status);
         Assert.Contains(
             outcomes,
             outcome => outcome.DiagnosticCode == "worker-execution-queue-closed" &&
@@ -448,6 +488,8 @@ public sealed class WorkerProcessSupervisorTests
         Assert.Equal(0, drained.QueuedRequests);
         Assert.Equal(0, drained.WaitingForAdmission);
         Assert.Equal(0, drained.ActiveExecutions);
+        Assert.Equal(WorkerTerminationKind.Graceful, supervisor.Current.LastTermination);
+        Assert.Equal("worker-stopped", supervisor.Current.DiagnosticCode);
     }
 
     [Fact]
@@ -1075,6 +1117,130 @@ public sealed class WorkerProcessSupervisorTests
             }
 
             await Task.Delay(TimeSpan.FromMilliseconds(20), timeout.Token);
+        }
+    }
+
+    private sealed class FixedWorkerProcessFactory(IWorkerProcess process) : IWorkerProcessFactory
+    {
+        public ValueTask<IWorkerProcess> StartAsync(
+            int generation,
+            CancellationToken cancellationToken = default) =>
+            ValueTask.FromResult(process);
+    }
+
+    private sealed class CoordinatedHeartbeatProcess : IWorkerProcess
+    {
+        private readonly TaskCompletionSource _exit = new(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly TaskCompletionSource _heartbeatRelease = new(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly TaskCompletionSource _pingStarted = new(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly Channel<WorkerControlMessage> _responses =
+            Channel.CreateUnbounded<WorkerControlMessage>(
+                new UnboundedChannelOptions
+                {
+                    SingleReader = true,
+                    SingleWriter = false
+                });
+        private int _exited;
+        private int _pingWasCancelled;
+        private int _poisoned;
+
+        public CoordinatedHeartbeatProcess()
+        {
+            Assert.True(_responses.Writer.TryWrite(
+                WorkerControlMessage.Ready(
+                    processId: 1234,
+                    new WorkerConnectionSnapshot(
+                        WorkerConnectionState.Faulted,
+                        WorkerExecutionReadinessState.Unverified,
+                        StatusCode: null,
+                        Attempt: 1,
+                        MaximumAttempts: 1,
+                        "sdk-client-activation-failed",
+                        DateTimeOffset.UtcNow,
+                        new WorkerRuntimeIdentitySnapshot(
+                            new WorkerRuntimeIdentityEvidence(
+                                Version: null,
+                                WorkerRuntimeIdentityEvidenceSource.Unavailable),
+                            new WorkerRuntimeIdentityEvidence(
+                                Version: null,
+                                WorkerRuntimeIdentityEvidenceSource.Unavailable))))));
+        }
+
+        public bool HasExited => Volatile.Read(ref _exited) != 0;
+
+        public int? ExitCode => HasExited ? 0 : null;
+
+        public Task PingStarted => _pingStarted.Task;
+
+        public bool PingWasCancelled => Volatile.Read(ref _pingWasCancelled) != 0;
+
+        public async ValueTask SendAsync(
+            WorkerControlMessage message,
+            CancellationToken cancellationToken = default)
+        {
+            if (message.Kind == WorkerControlMessageKind.Ping)
+            {
+                _pingStarted.TrySetResult();
+                try
+                {
+                    await _heartbeatRelease.Task.WaitAsync(cancellationToken);
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    Interlocked.Exchange(ref _pingWasCancelled, 1);
+                    Interlocked.Exchange(ref _poisoned, 1);
+                    throw;
+                }
+
+                Assert.True(_responses.Writer.TryWrite(
+                    WorkerControlMessage.Pong(message.CorrelationId)));
+                return;
+            }
+
+            if (message.Kind == WorkerControlMessageKind.Stop)
+            {
+                if (Volatile.Read(ref _poisoned) != 0)
+                {
+                    throw new IOException("The cancelled heartbeat poisoned the control channel.");
+                }
+
+                Assert.True(_responses.Writer.TryWrite(
+                    WorkerControlMessage.Stopped(message.CorrelationId)));
+                MarkExited();
+                return;
+            }
+
+            throw new InvalidDataException($"Unexpected message kind {message.Kind}.");
+        }
+
+        public ValueTask<WorkerControlMessage> ReceiveAsync(
+            CancellationToken cancellationToken = default) =>
+            _responses.Reader.ReadAsync(cancellationToken);
+
+        public Task WaitForExitAsync(CancellationToken cancellationToken = default) =>
+            _exit.Task.WaitAsync(cancellationToken);
+
+        public ValueTask TerminateAsync(CancellationToken cancellationToken = default)
+        {
+            MarkExited();
+            return ValueTask.CompletedTask;
+        }
+
+        public ValueTask DisposeAsync()
+        {
+            MarkExited();
+            return ValueTask.CompletedTask;
+        }
+
+        public void ReleaseHeartbeat() => _heartbeatRelease.TrySetResult();
+
+        private void MarkExited()
+        {
+            Interlocked.Exchange(ref _exited, 1);
+            _exit.TrySetResult();
         }
     }
 

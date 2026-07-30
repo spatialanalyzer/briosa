@@ -57,9 +57,9 @@ public sealed class ReleaseEvidenceGeneratorTests
         Assert.Equal(
             684 - expectedCatalogedOperations,
             counts.GetProperty("approved_not_cataloged").GetInt32());
-        Assert.Equal(45, counts.GetProperty("blocked").GetInt32());
-        Assert.Equal(476, counts.GetProperty("intentional_exclusions").GetInt32());
-        Assert.Equal(207, counts.GetProperty("sdk_unavailable").GetInt32());
+        Assert.Equal(40, counts.GetProperty("blocked").GetInt32());
+        Assert.Equal(477, counts.GetProperty("intentional_exclusions").GetInt32());
+        Assert.Equal(211, counts.GetProperty("sdk_unavailable").GetInt32());
         Assert.Equal(1412, commands.Length);
         Assert.Equal(
             1412,

@@ -3232,12 +3232,11 @@
         "GDT"
       ],
       "inventory_entry_sha256": "5ceb9d99c87366a2a511558b583904f2a5958aac80ed7d82d79e03e93ece4524",
-      "disposition": "blocked",
+      "disposition": "sdk_unavailable",
       "review_state": "reviewed",
-      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
+      "rationale": "The exact-target command requires SetMPGDTOptionsDistanceBetweenModeArg and SetMPGDTOptionsCheckValidatorTypeArg, both absent from the committed SA 2026.1.0529.7 interop public API. Briosa does not substitute generic setters, so the complete command shape is unavailable through the SDK.",
       "reason_codes": [
-        "argument_semantics_unresolved",
-        "sdk_binding_unresolved"
+        "sdk_binding_unavailable"
       ],
       "evidence_references": [
         "documentation:GDT/SetGDTOptions.htm",
@@ -3245,11 +3244,10 @@
       ],
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/49",
-        "https://github.com/spatialanalyzer/briosa/issues/53"
-      ],
-      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/53",
         "https://github.com/spatialanalyzer/briosa/issues/79"
       ],
+      "blocker_references": [],
       "risk_effect": "mutating",
       "risk_flags": [],
       "data_classifications": [
@@ -3265,21 +3263,10 @@
       ],
       "delivery_wave": null,
       "command_shape": {
-        "status": "blocked",
+        "status": "not_applicable",
         "mp_step": null,
         "arguments": [],
-        "discrepancies": [
-          {
-            "code": "exact_interop_binding_missing",
-            "argument_indexes": [
-              1,
-              8
-            ],
-            "owner": "hexagon",
-            "blocker_reference": "https://github.com/spatialanalyzer/briosa/issues/79",
-            "rationale": "View SDK Code names an exact binding that is absent from the committed exact-target interop public API."
-          }
-        ]
+        "discrepancies": []
       }
     },
     {

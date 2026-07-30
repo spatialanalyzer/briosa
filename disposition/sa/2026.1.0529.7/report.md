@@ -14,9 +14,9 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 | Disposition | Count |
 | --- | ---: |
 | `approved_candidate` | 684 |
-| `blocked` | 45 |
-| `intentional_exclusion` | 476 |
-| `sdk_unavailable` | 207 |
+| `blocked` | 40 |
+| `intentional_exclusion` | 477 |
+| `sdk_unavailable` | 211 |
 
 ## Review states
 
@@ -31,8 +31,8 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 | Status | Commands |
 | --- | ---: |
 | `resolved` | 684 |
-| `blocked` | 45 |
-| `not_applicable` | 683 |
+| `blocked` | 40 |
+| `not_applicable` | 688 |
 
 - Resolved arguments: 2556
 - Required inputs: 1569
@@ -51,14 +51,14 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 | AnalysisOperations | 189 | 103 | 40 | 31 | 15 | 15 | 0 | 0 |
 | CloudAndMeshOperations | 1 | 0 | 0 | 0 | 1 | 1 | 0 | 0 |
 | CloudMeshOps | 28 | 19 | 0 | 8 | 1 | 1 | 0 | 0 |
-| ConstructionOperations | 278 | 134 | 94 | 32 | 18 | 18 | 0 | 0 |
+| ConstructionOperations | 278 | 134 | 95 | 34 | 15 | 15 | 0 | 0 |
 | DimensionOperations | 1 | 0 | 0 | 0 | 1 | 1 | 0 | 0 |
 | Dimensions | 19 | 2 | 4 | 13 | 0 | 0 | 0 | 0 |
 | EventOperations | 1 | 1 | 0 | 0 | 0 | 0 | 0 | 0 |
 | Events | 5 | 4 | 0 | 1 | 0 | 0 | 0 | 0 |
 | ExcelDirectConnect | 17 | 0 | 17 | 0 | 0 | 0 | 0 | 0 |
 | FileOperations | 125 | 43 | 62 | 20 | 0 | 0 | 0 | 0 |
-| GDT | 40 | 18 | 10 | 7 | 5 | 5 | 0 | 0 |
+| GDT | 40 | 18 | 10 | 8 | 4 | 4 | 0 | 0 |
 | GDTOperations | 3 | 0 | 0 | 0 | 3 | 3 | 0 | 0 |
 | GoogleSheets | 18 | 0 | 18 | 0 | 0 | 0 | 0 | 0 |
 | GoogleSheetsOperations | 1 | 0 | 1 | 0 | 0 | 0 | 0 | 0 |
@@ -67,7 +67,7 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 | MPTaskOverview | 11 | 0 | 11 | 0 | 0 | 0 | 0 | 0 |
 | MSOfficeReportingOperations | 14 | 0 | 14 | 0 | 0 | 0 | 0 | 0 |
 | ProcessFlowOperations | 25 | 2 | 21 | 2 | 0 | 0 | 0 | 0 |
-| RelationshipOperations | 67 | 48 | 5 | 13 | 1 | 1 | 0 | 0 |
+| RelationshipOperations | 67 | 48 | 5 | 14 | 0 | 0 | 0 | 0 |
 | ReportingOperations | 71 | 52 | 8 | 11 | 0 | 0 | 0 | 0 |
 | RobotCalibrationApplianceNodeOperations | 25 | 23 | 0 | 2 | 0 | 0 | 0 | 0 |
 | RobotOperations | 33 | 28 | 0 | 5 | 0 | 0 | 0 | 0 |
@@ -82,59 +82,51 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 
 | Value | Count |
 | --- | ---: |
-| `mutating` | 36 |
-| `read_only` | 9 |
+| `mutating` | 33 |
+| `read_only` | 7 |
 
 ## Unresolved work by risk flag
 
 | Value | Count |
 | --- | ---: |
-| `long_running` | 7 |
+| `long_running` | 6 |
 
 ## Unresolved work by data classification
 
 | Value | Count |
 | --- | ---: |
-| `geometry` | 40 |
-| `measurement` | 16 |
+| `geometry` | 36 |
+| `measurement` | 14 |
 | `non_sensitive` | 1 |
-| `object_identifier` | 42 |
+| `object_identifier` | 39 |
 
 ## Unresolved work by value family
 
 | Value | Count |
 | --- | ---: |
 | `b_spline_fit_options` | 1 |
-| `cloud_thinning_mode` | 1 |
 | `collection_instrument_id_list` | 1 |
-| `collection_object_name` | 35 |
-| `collection_object_name_list` | 13 |
-| `collection_object_name_ref_list` | 1 |
+| `collection_object_name` | 33 |
+| `collection_object_name_list` | 11 |
 | `fit_constraint_scalar_options` | 1 |
-| `floating_point` | 19 |
-| `gd_and_t_options_check_validator_type` | 1 |
-| `gdt_check_validator_type` | 1 |
-| `gdt_distance_between_mode` | 1 |
-| `item_type` | 1 |
-| `logical` | 22 |
-| `mesh_orientation_type` | 1 |
+| `floating_point` | 15 |
+| `logical` | 20 |
 | `point_filter_input_type` | 1 |
 | `point_name` | 2 |
 | `point_name_list` | 4 |
-| `sigmoidal_gap_constraint_options` | 1 |
-| `string` | 11 |
+| `string` | 10 |
 | `tolerance_vector_options` | 1 |
 | `transform` | 2 |
 | `vector3` | 7 |
 | `vector_name_list` | 1 |
-| `whole_number` | 9 |
+| `whole_number` | 8 |
 | `world_transform` | 1 |
 
 ## Reason codes
 
 | Value | Count |
 | --- | ---: |
-| `argument_semantics_unresolved` | 43 |
+| `argument_semantics_unresolved` | 40 |
 | `at_risk_candidate` | 11 |
 | `client_owned_external_integration` | 74 |
 | `client_owned_office_integration` | 14 |
@@ -143,7 +135,7 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 | `client_owned_state_and_control_flow` | 70 |
 | `client_owned_user_experience` | 75 |
 | `client_owned_value_computation` | 64 |
-| `client_owned_value_construction` | 100 |
+| `client_owned_value_construction` | 101 |
 | `command_shape_resolved` | 684 |
 | `filesystem_operation` | 60 |
 | `interactive_operation` | 40 |
@@ -153,8 +145,7 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 | `operator_ui_dependency` | 18 |
 | `read_only` | 4 |
 | `read_only_operation` | 153 |
-| `sdk_binding_unavailable` | 111 |
-| `sdk_binding_unresolved` | 5 |
+| `sdk_binding_unavailable` | 115 |
 | `sdk_command_not_observed` | 39 |
 | `sdk_input_binding_unavailable` | 57 |
 | `server_lifecycle_boundary` | 1 |
@@ -164,7 +155,7 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 
 | Value | Count |
 | --- | ---: |
-| `https://github.com/spatialanalyzer/briosa/issues/79` | 45 |
+| `https://github.com/spatialanalyzer/briosa/issues/79` | 40 |
 
 ## Delivery waves
 
@@ -186,12 +177,10 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 | AnalysisOperations / RelationshipAttributesScalarTypes | Get Relationship Fit Constraints (Scalar Type) | documentation:AnalysisOperations/RelationshipAttributesScalarTypes/GetRelationshipFitConstraints.htm | `sdk_argument_not_documented` (arguments 2, 3, 4, 5) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
 | AnalysisOperations | Set Point Properties | documentation:AnalysisOperations/SetPointProperties.htm | `sdk_argument_not_documented` (arguments 3, 4) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
 | CloudMeshOps / CloudFilters | Filter Clouds to Vector Groups - Resolve Points | documentation:CloudMeshOps/CloudFilters/FilterCloudsToVectorGroups.htm | `sdk_argument_not_documented` (arguments 8, 9) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
-| ConstructionOperations / OtherMPTypes | Make a Collection Item Name Reference List - Wildcard Selection | documentation:ConstructionOperations/OtherMPTypes/MakeACollectionItemNameReference.htm | `exact_interop_binding_missing` (arguments 2) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
 | ConstructionOperations / PointsandGroups | Construct Point at Intersection of Planes | documentation:ConstructionOperations/PointsandGroups/ConstructPointAtIntersectionOfPlanes.htm | `missing_input_arguments_section` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
 | ConstructionOperations / PointsandGroups | Construct Point at Intersection of Planes | documentation:ConstructionOperations/PointsandGroups/ConstructPointAtIntersectionOfPlanes.htm | `sdk_argument_not_documented` (arguments 1, 2, 3) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
 | ConstructionOperations / PointsandGroups | Construct Point Groups from Vector Groups | documentation:ConstructionOperations/PointsandGroups/ConstructPointGroupsfromVectorGroups.htm | `missing_input_arguments_section` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
 | ConstructionOperations / PointsandGroups | Construct Point Groups from Vector Groups | documentation:ConstructionOperations/PointsandGroups/ConstructPointGroupsfromVectorGroups.htm | `sdk_argument_not_documented` (arguments 1, 2, 3, 4) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
-| ConstructionOperations / PolygonizedSurfaces | Construct Polygonized Surface from Point Clouds | documentation:ConstructionOperations/PolygonizedSurfaces/ConstructPolygonizedSurfacefromPointClouds.htm | `exact_interop_binding_missing` (arguments 1) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
 | ConstructionOperations / Surfaces | Construct Surface From Cylinder | documentation:ConstructionOperations/Surfaces/ConstructSurfaceFromCylinder.htm | `sdk_argument_not_documented` (arguments 3) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
 | ConstructionOperations / VectorGroups | Make a Vector Name Ref List From a Vector Group | documentation:ConstructionOperations/VectorGroups/MakeAVectorNameRefList.htm | `missing_input_arguments_section` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
 | ConstructionOperations / VectorGroups | Make a Vector Name Ref List From a Vector Group | documentation:ConstructionOperations/VectorGroups/MakeAVectorNameRefList.htm | `sdk_argument_not_documented` (arguments 1) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
@@ -200,7 +189,6 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 | GDT | Enable/Disable Datum Alignment for Feature Check | documentation:GDT/EnableDisableDatumAlignment.htm | `sdk_argument_not_documented` (arguments 4) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
 | GDT | Evaluate Feature Check | documentation:GDT/EvaluateFeatureCheck.htm | `sdk_argument_not_documented` (arguments 21) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
 | GDT | Evaluate Feature Checks | documentation:GDT/EvaluateFeatureChecks.htm | `sdk_argument_not_documented` (arguments 4, 5) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
-| GDT | Set GD&T Options | documentation:GDT/SetGDTOptions.htm | `exact_interop_binding_missing` (arguments 1, 8) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
 | AnalysisOperations | Create Point Uncertainty Cloud Point Sets | sdk:AnalysisOperations.txt#19 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
 | AnalysisOperations | Create Point Uncertainty Cloud Point Sets | sdk:AnalysisOperations.txt#19 | `sdk_argument_not_documented` (arguments 1, 2, 3, 4, 5, 6, 7) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
 | AnalysisOperations | Set Point Weights From Uncertainties | sdk:AnalysisOperations.txt#20 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
@@ -237,7 +225,6 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 | ConstructionOperations / Frames | Construct Frame From Transform In World | sdk:ConstructionOperations_Frames.txt#3 | `sdk_argument_not_documented` (arguments 1) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
 | ConstructionOperations / Planes | Construct Planes, Bisect 2 Planes | sdk:ConstructionOperations_Planes.txt#4 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
 | ConstructionOperations / Planes | Construct Planes, Bisect 2 Planes | sdk:ConstructionOperations_Planes.txt#4 | `sdk_argument_not_documented` (arguments 1, 2) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
-| ConstructionOperations / PointClouds | Create Cloud Thinning Settings | sdk:ConstructionOperations_PointClouds.txt#11 | `exact_interop_binding_missing` (arguments 0) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
 | ConstructionOperations / PointClouds | Construct Point Cloud from Visible Cloud Points | sdk:ConstructionOperations_PointClouds.txt#5 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
 | ConstructionOperations / PointClouds | Construct Point Cloud from Visible Cloud Points | sdk:ConstructionOperations_PointClouds.txt#5 | `sdk_argument_not_documented` (arguments 1) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
 | ConstructionOperations / PointsAndGroups | Construct Points By Projecting Points On Mesh Along Direction | sdk:ConstructionOperations_PointsAndGroups.txt#26 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
@@ -250,7 +237,6 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 | GDTOperations / GDTAnalysis | Generate Feature Check Summary | sdk:GDTOperations_GDTAnalysis.txt#20 | `sdk_argument_not_documented` (arguments 1) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
 | GDTOperations / GDTConstruction | Make Surface Face List From Surface | sdk:GDTOperations_GDTConstruction.txt#2 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
 | GDTOperations / GDTConstruction | Make Surface Face List From Surface | sdk:GDTOperations_GDTConstruction.txt#2 | `sdk_argument_not_documented` (arguments 1) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
-| RelationshipOperations / RelationshipAttributesScalarTypes | Get Relationship Sigmoidal Gap Fit Constraints | sdk:RelationshipOperations_RelationshipAttributesScalarTypes.txt#8 | `exact_interop_binding_missing` (arguments 9) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
 
 ## Reviewed operation contracts
 
@@ -736,6 +722,7 @@ These candidates were reviewed under issue #82. Briosa keeps each input required
 | ConstructionOperations / OtherMPTypes | Subtract Two Point Name Ref Lists | documentation:ConstructionOperations/OtherMPTypes/SubtractTwoPointNameRef.htm | client_owned_value_construction | Pure value construction, conversion, decomposition, or list algebra belongs in Briosa client types and client-language code. | https://github.com/spatialanalyzer/briosa/issues/52 |
 | ConstructionOperations / Planes | Construct Planes From Surface Faces-Runtime Select | documentation:ConstructionOperations/Planes/ConstructPlanesFromSurfaceFaces-RuntimeSelect.htm | client_owned_user_experience | Operator prompts and interactive SpatialAnalyzer UI control belong in the client application. | https://github.com/spatialanalyzer/briosa/issues/52 |
 | ConstructionOperations / PointClouds | Construct Point Clouds from Existing Cloud Points - Runtime Select | documentation:ConstructionOperations/PointClouds/ConstructPointCloudsfromExistingCloudPoints.htm | client_owned_user_experience | Operator prompts and interactive SpatialAnalyzer UI control belong in the client application. | https://github.com/spatialanalyzer/briosa/issues/52 |
+| ConstructionOperations / PointClouds | Create Cloud Thinning Settings | sdk:ConstructionOperations_PointClouds.txt#11 | client_owned_value_construction | Cloud thinning settings are a client-owned value. Briosa already models cloud_thinning_options, and consumer commands pass that structured value directly through SetCloudThinningOptionsArg, so a separate server operation would add no useful SA interaction. | https://github.com/spatialanalyzer/briosa/issues/49, https://github.com/spatialanalyzer/briosa/issues/52, https://github.com/spatialanalyzer/briosa/issues/53, https://github.com/spatialanalyzer/briosa/issues/79 |
 | ConstructionOperations / PointsandGroups | Construct Point from Cloud Point - Runtime Select | documentation:ConstructionOperations/PointsandGroups/ConstructPointfromCloudPoint-RuntimeSelect.htm | client_owned_user_experience | Operator prompts and interactive SpatialAnalyzer UI control belong in the client application. | https://github.com/spatialanalyzer/briosa/issues/52 |
 | ConstructionOperations / PointsandGroups | Construct Points From Surface Faces - Runtime Select | documentation:ConstructionOperations/PointsandGroups/ConstructPointsFromSurfaceFaces.htm | client_owned_user_experience | Operator prompts and interactive SpatialAnalyzer UI control belong in the client application. | https://github.com/spatialanalyzer/briosa/issues/52 |
 | ConstructionOperations / PointsandGroups | Construct Points on Surface(s) by Clicking | documentation:ConstructionOperations/PointsandGroups/ConstructPointsonSurfacesbyClicking.htm | operator_ui_dependency | This command depends on operator-driven SpatialAnalyzer UI interaction, which is not suitable for a deterministic unattended gRPC operation. | https://github.com/spatialanalyzer/briosa/issues/49, https://github.com/spatialanalyzer/briosa/issues/52 |

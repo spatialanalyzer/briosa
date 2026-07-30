@@ -95,10 +95,10 @@ public sealed class CommandDispositionLedgerTests
         Assert.Equal(8, directionDispositions["intentional_exclusion"]);
         Assert.Equal(1, directionDispositions["sdk_unavailable"]);
         Assert.Equal(684, candidates.Length);
-        Assert.Equal(45, blocked.Length);
-        Assert.Equal(207, entries.Count(entry => entry.Disposition == "sdk_unavailable"));
+        Assert.Equal(40, blocked.Length);
+        Assert.Equal(211, entries.Count(entry => entry.Disposition == "sdk_unavailable"));
         Assert.Equal(
-            111,
+            115,
             entries.Count(entry =>
                 entry.Disposition == "sdk_unavailable" &&
                 entry.DecisionReferences.Contains(issue53, StringComparer.Ordinal)));
@@ -151,7 +151,7 @@ public sealed class CommandDispositionLedgerTests
                 argument.Input?.Default.Status == "reviewed_no_default")),
             entry => Assert.Contains(issue82, entry.DecisionReferences));
 
-        Assert.Equal(45, blocked.Count(entry => entry.BlockerReferences.SequenceEqual([issue79])));
+        Assert.Equal(40, blocked.Count(entry => entry.BlockerReferences.SequenceEqual([issue79])));
         Assert.Equal(0, blocked.Count(entry => entry.BlockerReferences.SequenceEqual([issue80])));
         Assert.All(blocked, entry =>
         {
@@ -208,14 +208,91 @@ public sealed class CommandDispositionLedgerTests
         Assert.Equal("wave_4", apdisCalibration.DeliveryWave);
         Assert.Contains("device_control", apdisCalibration.RiskFlags);
         Assert.Contains("long_running", apdisCalibration.RiskFlags);
-        var missingInterop = Assert.Single(
-            entries,
-            entry => entry.MpStep == "Get Relationship Sigmoidal Gap Fit Constraints");
-        Assert.Equal("blocked", missingInterop.Disposition);
-        Assert.Equal([issue79], missingInterop.BlockerReferences);
+    }
+
+    [Fact]
+    public void Issue79FinalizesTheExactStaticDispositionSlice()
+    {
+        const string issue79 = "https://github.com/spatialanalyzer/briosa/issues/79";
+        var decisions = ReadCommittedEntries()
+            .Where(entry => entry.DecisionReferences.Contains(issue79, StringComparer.Ordinal))
+            .ToDictionary(entry => entry.InventoryKey, StringComparer.Ordinal);
+        var unavailableBindings = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["documentation:ConstructionOperations/OtherMPTypes/MakeACollectionItemNameReference.htm"] =
+                "SetItemTypeArg",
+            ["documentation:ConstructionOperations/PolygonizedSurfaces/ConstructPolygonizedSurfacefromPointClouds.htm"] =
+                "SetMeshOrientationTypeArg",
+            ["documentation:GDT/SetGDTOptions.htm"] =
+                "SetMPGDTOptionsDistanceBetweenModeArg",
+            ["sdk:RelationshipOperations_RelationshipAttributesScalarTypes.txt#8"] =
+                "GetSigmoidalGapConstraintOptionsArg"
+        };
+
+        Assert.Equal(5, decisions.Count);
+        foreach (var (inventoryKey, binding) in unavailableBindings)
+        {
+            var entry = decisions[inventoryKey];
+            Assert.Equal("sdk_unavailable", entry.Disposition);
+            Assert.Contains("sdk_binding_unavailable", entry.ReasonCodes);
+            Assert.Contains(binding, entry.Rationale, StringComparison.Ordinal);
+        }
+
         Assert.Contains(
-            missingInterop.CommandShape!.Discrepancies,
-            discrepancy => discrepancy.Code == "exact_interop_binding_missing");
+            "SetMPGDTOptionsCheckValidatorTypeArg",
+            decisions["documentation:GDT/SetGDTOptions.htm"].Rationale,
+            StringComparison.Ordinal);
+
+        var cloudThinning = decisions["sdk:ConstructionOperations_PointClouds.txt#11"];
+        Assert.Equal("intentional_exclusion", cloudThinning.Disposition);
+        Assert.Equal(["client_owned_value_construction"], cloudThinning.ReasonCodes);
+        Assert.Contains("cloud_thinning_options", cloudThinning.Rationale, StringComparison.Ordinal);
+        Assert.Contains("SetCloudThinningOptionsArg", cloudThinning.Rationale, StringComparison.Ordinal);
+
+        var registry = JsonNode.Parse(File.ReadAllText(Path.Combine(
+            FindRepositoryRoot().FullName,
+            "bindings",
+            "sa",
+            "2026.1.0529.7",
+            "registry.json")))!.AsObject();
+        var bindings = registry["bindings"]!.AsArray();
+        var exactMissingBindings = new[]
+        {
+            "GetSigmoidalGapConstraintOptionsArg",
+            "SetItemTypeArg",
+            "SetMPGDTOptionsCheckValidatorTypeArg",
+            "SetMPGDTOptionsDistanceBetweenModeArg",
+            "SetMeshOrientationTypeArg"
+        };
+        foreach (var method in exactMissingBindings)
+        {
+            var binding = Assert.Single(
+                bindings,
+                node => node!["method"]!.GetValue<string>() == method)!.AsObject();
+            Assert.Equal("blocked_missing_interop", binding["registry_status"]!.GetValue<string>());
+            Assert.Null(binding["interop_signature"]);
+        }
+
+        var cloudThinningBinding = Assert.Single(
+            bindings,
+            node => node!["method"]!.GetValue<string>() == "SetCloudThinningOptionsArg")!
+            .AsObject();
+        Assert.Equal("usable", cloudThinningBinding["registry_status"]!.GetValue<string>());
+        Assert.Equal(
+            ["cloud_thinning_options"],
+            cloudThinningBinding["semantic_value_families"]!.AsArray()
+                .Select(node => node!.GetValue<string>()));
+
+        Assert.All(decisions.Values, entry =>
+        {
+            Assert.Equal("reviewed", entry.ReviewState);
+            Assert.Empty(entry.BlockerReferences);
+            Assert.Null(entry.DeliveryWave);
+            Assert.Equal("not_applicable", entry.CommandShape!.Status);
+            Assert.Null(entry.CommandShape.MpStep);
+            Assert.Empty(entry.CommandShape.Arguments);
+            Assert.Empty(entry.CommandShape.Discrepancies);
+        });
     }
 
     [Fact]
@@ -328,9 +405,9 @@ public sealed class CommandDispositionLedgerTests
 
         Assert.Equal(450, reviewed.Length);
         Assert.Equal(279, reviewed.Count(entry => entry.Disposition == "approved_candidate"));
-        Assert.Equal(44, reviewed.Count(entry => entry.Disposition == "blocked"));
-        Assert.Equal(36, reviewed.Count(entry => entry.Disposition == "intentional_exclusion"));
-        Assert.Equal(91, reviewed.Count(entry => entry.Disposition == "sdk_unavailable"));
+        Assert.Equal(40, reviewed.Count(entry => entry.Disposition == "blocked"));
+        Assert.Equal(37, reviewed.Count(entry => entry.Disposition == "intentional_exclusion"));
+        Assert.Equal(94, reviewed.Count(entry => entry.Disposition == "sdk_unavailable"));
         Assert.Equal(65, reviewed.Count(entry => entry.DeliveryWave == "wave_1"));
         Assert.Equal(132, reviewed.Count(entry => entry.DeliveryWave == "wave_2"));
         Assert.Equal(44, reviewed.Count(entry => entry.DeliveryWave == "wave_3"));
@@ -489,9 +566,9 @@ public sealed class CommandDispositionLedgerTests
 
         Assert.Equal(371, reviewed.Length);
         Assert.Equal(225, reviewed.Count(entry => entry.Disposition == "approved_candidate"));
-        Assert.Equal(1, reviewed.Count(entry => entry.Disposition == "blocked"));
+        Assert.Equal(0, reviewed.Count(entry => entry.Disposition == "blocked"));
         Assert.Equal(76, reviewed.Count(entry => entry.Disposition == "intentional_exclusion"));
-        Assert.Equal(69, reviewed.Count(entry => entry.Disposition == "sdk_unavailable"));
+        Assert.Equal(70, reviewed.Count(entry => entry.Disposition == "sdk_unavailable"));
         Assert.Equal(35, reviewed.Count(entry => entry.DeliveryWave == "wave_1"));
         Assert.Equal(97, reviewed.Count(entry => entry.DeliveryWave == "wave_2"));
         Assert.Equal(19, reviewed.Count(entry => entry.DeliveryWave == "wave_3"));

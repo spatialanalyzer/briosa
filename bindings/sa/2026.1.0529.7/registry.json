@@ -8,7 +8,7 @@
   },
   "dispositions": {
     "path": "../../../disposition/sa/2026.1.0529.7/manifest.json",
-    "sha256": "a17db941f33793f346c6172882c7c826b2b70609f033dd8de8a8bce7ec9044b0"
+    "sha256": "50c5c70e15d494d42cddfc5343d1a833019d4506c39878e984920915a9d255d6"
   },
   "interop_assembly": {
     "path": "../../../interop/SpatialAnalyzer/2026.1.0529.7/Briosa.SpatialAnalyzer.Interop.dll",
@@ -4601,8 +4601,8 @@
       "inventory_usage": {
         "argument_count": 1,
         "command_count": 1,
-        "excluded_command_count": 0,
-        "remaining_command_count": 1,
+        "excluded_command_count": 1,
+        "remaining_command_count": 0,
         "sha256": "d0d7a0fdb3e293c5ff5dab0996666885467468a302081ca90a33b8f192a6520f"
       },
       "rationale": "The binding is emitted by exact-target View SDK Code but is absent from the committed exact-target interop API.",
@@ -5857,8 +5857,8 @@
       "inventory_usage": {
         "argument_count": 504,
         "command_count": 226,
-        "excluded_command_count": 53,
-        "remaining_command_count": 173,
+        "excluded_command_count": 54,
+        "remaining_command_count": 172,
         "sha256": "282da6baabad65bedb4adb6ec58995142c1fd3d3432809daa7102d4c86c95e55"
       },
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",
@@ -6976,8 +6976,8 @@
       "inventory_usage": {
         "argument_count": 346,
         "command_count": 243,
-        "excluded_command_count": 120,
-        "remaining_command_count": 123,
+        "excluded_command_count": 121,
+        "remaining_command_count": 122,
         "sha256": "a2c64a01f854e4ec7cf72ab763eab85b8fb43022af727928c468ec11e9f05c11"
       },
       "rationale": "The exact interop signature and semantic value family are reviewed. Operation approval remains a separate disposition decision.",

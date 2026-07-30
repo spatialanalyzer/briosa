@@ -7,9 +7,9 @@ Issue [#51](https://github.com/spatialanalyzer/briosa/issues/51) reviews the fin
 | Disposition | Commands |
 | --- | ---: |
 | Approved candidate | 225 |
-| Blocked | 1 |
+| Blocked | 0 |
 | Intentional exclusion | 76 |
-| SDK unavailable | 69 |
+| SDK unavailable | 70 |
 
 Approved candidates are assigned to the risk-ordered delivery plan:
 

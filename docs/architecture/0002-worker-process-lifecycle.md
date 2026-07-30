@@ -16,8 +16,9 @@ The public host supervises one child worker generation at a time.
 - The host reports `Starting`, `Ready`, `Degraded`, and `Stopped` snapshots with generation, process identity, restart count, termination kind, timestamp, and a safe diagnostic code.
 - The current lifecycle snapshot is retained independently from a bounded diagnostic history. The default history capacity is 256 transitions so repeated recovery cannot grow host memory without limit.
 - A heartbeat timeout, broken control channel, or process exit degrades the current generation. The host terminates the entire worker process tree when graceful cleanup is no longer trustworthy, then starts a fresh generation without restarting the public host.
+- Runtime-loop cancellation stops future heartbeat scheduling but does not interrupt a length-prefixed control exchange after it has entered the pipe. The in-flight exchange completes under its own bounded heartbeat or execution watchdog. A timeout or transport failure makes that generation's channel untrustworthy, so the host terminates the worker instead of reusing the pipe for a graceful-stop exchange.
 - Restarts are limited to a configured count inside a rolling time window. Exhausting that budget leaves the supervisor degraded and suppresses further automatic launches.
-- Normal host shutdown requests a graceful worker stop and waits for acknowledgement and process exit. Timeout or transport failure escalates to process-tree termination.
+- Normal host shutdown first quiesces runtime loops, requests a graceful worker stop, and waits for acknowledgement and process exit. Timeout or transport failure escalates to process-tree termination. Safe diagnostic codes identify whether failure occurred while sending `Stop`, awaiting `Stopped`, or awaiting process exit.
 - The worker receives the host process identifier and exits if its parent disappears, reducing orphan risk after an abnormal host exit.
 - The worker creates its SDK lifetime on a dedicated STA and releases it on that same STA during graceful shutdown. A killed generation makes no claim that COM cleanup ran; process isolation is the cleanup boundary.
 
@@ -29,7 +30,7 @@ The control pipe is local to the machine, has an unguessable per-generation name
 
 ## Testing
 
-Ordinary CI launches a separate fake worker executable that speaks the real lifecycle protocol. It can block its STA, exit abruptly, or ignore graceful shutdown so tests can verify replacement and forced cleanup without SpatialAnalyzer or proprietary binaries. The fake is not a SpatialAnalyzer emulator.
+Ordinary CI launches a separate fake worker executable that speaks the real lifecycle protocol. It can block its STA, exit abruptly, or ignore graceful shutdown so tests can verify replacement and forced cleanup without SpatialAnalyzer or proprietary binaries. A coordinated in-memory process test also begins shutdown during a heartbeat exchange and proves that the exchange drains before the same channel carries `Stop`. The fake is not a SpatialAnalyzer emulator.
 
 Portable soak tests cycle generations beyond a deliberately small test history capacity and verify that the current state remains available while old transitions are evicted.
 

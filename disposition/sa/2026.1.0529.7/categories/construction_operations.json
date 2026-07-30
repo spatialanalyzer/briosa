@@ -9383,12 +9383,11 @@
         "OtherMPTypes"
       ],
       "inventory_entry_sha256": "0fad2bc1aed420e6d5f09876ce976929454643df61958f6084e696819b5de8b3",
-      "disposition": "blocked",
+      "disposition": "sdk_unavailable",
       "review_state": "reviewed",
-      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
+      "rationale": "The exact-target command requires SetItemTypeArg, which is absent from the committed SA 2026.1.0529.7 interop public API. Briosa does not substitute a generic setter, so the complete standalone command shape is unavailable through the SDK.",
       "reason_codes": [
-        "argument_semantics_unresolved",
-        "sdk_binding_unresolved"
+        "sdk_binding_unavailable"
       ],
       "evidence_references": [
         "documentation:ConstructionOperations/OtherMPTypes/MakeACollectionItemNameReference.htm",
@@ -9396,11 +9395,10 @@
       ],
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/49",
-        "https://github.com/spatialanalyzer/briosa/issues/53"
-      ],
-      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/53",
         "https://github.com/spatialanalyzer/briosa/issues/79"
       ],
+      "blocker_references": [],
       "risk_effect": "read_only",
       "risk_flags": [],
       "data_classifications": [
@@ -9414,20 +9412,10 @@
       ],
       "delivery_wave": null,
       "command_shape": {
-        "status": "blocked",
+        "status": "not_applicable",
         "mp_step": null,
         "arguments": [],
-        "discrepancies": [
-          {
-            "code": "exact_interop_binding_missing",
-            "argument_indexes": [
-              2
-            ],
-            "owner": "hexagon",
-            "blocker_reference": "https://github.com/spatialanalyzer/briosa/issues/79",
-            "rationale": "View SDK Code names an exact binding that is absent from the committed exact-target interop public API."
-          }
-        ]
+        "discrepancies": []
       }
     },
     {
@@ -19246,11 +19234,11 @@
         "PolygonizedSurfaces"
       ],
       "inventory_entry_sha256": "093d1f988a2cb5d5dd53a6cca4c1ba214a1c75cfad21f641fdb328307145d5fe",
-      "disposition": "blocked",
+      "disposition": "sdk_unavailable",
       "review_state": "reviewed",
-      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
+      "rationale": "The exact-target command requires SetMeshOrientationTypeArg, which is absent from the committed SA 2026.1.0529.7 interop public API. Briosa does not substitute a generic setter, so the complete command shape is unavailable through the SDK.",
       "reason_codes": [
-        "sdk_binding_unresolved"
+        "sdk_binding_unavailable"
       ],
       "evidence_references": [
         "documentation:ConstructionOperations/PolygonizedSurfaces/ConstructPolygonizedSurfacefromPointClouds.htm",
@@ -19258,11 +19246,10 @@
       ],
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/49",
-        "https://github.com/spatialanalyzer/briosa/issues/53"
-      ],
-      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/53",
         "https://github.com/spatialanalyzer/briosa/issues/79"
       ],
+      "blocker_references": [],
       "risk_effect": "mutating",
       "risk_flags": [
         "long_running"
@@ -19280,20 +19267,10 @@
       ],
       "delivery_wave": null,
       "command_shape": {
-        "status": "blocked",
+        "status": "not_applicable",
         "mp_step": null,
         "arguments": [],
-        "discrepancies": [
-          {
-            "code": "exact_interop_binding_missing",
-            "argument_indexes": [
-              1
-            ],
-            "owner": "hexagon",
-            "blocker_reference": "https://github.com/spatialanalyzer/briosa/issues/79",
-            "rationale": "View SDK Code names an exact binding that is absent from the committed exact-target interop public API."
-          }
-        ]
+        "discrepancies": []
       }
     },
     {
@@ -22879,23 +22856,22 @@
         "PointClouds"
       ],
       "inventory_entry_sha256": "d30ad9bcd129b1d10cd3c5b886ea551cc335c1fa1ca27339e2e7a36d60c62dff",
-      "disposition": "blocked",
+      "disposition": "intentional_exclusion",
       "review_state": "reviewed",
-      "rationale": "Exact-target documentation and SDK evidence leave one or more argument meanings, directions, or bindings unresolved; only this named command remains blocked pending focused reconciliation.",
+      "rationale": "Cloud thinning settings are a client-owned value. Briosa already models cloud_thinning_options, and consumer commands pass that structured value directly through SetCloudThinningOptionsArg, so a separate server operation would add no useful SA interaction.",
       "reason_codes": [
-        "argument_semantics_unresolved",
-        "sdk_binding_unresolved"
+        "client_owned_value_construction"
       ],
       "evidence_references": [
         "sdk:ConstructionOperations_PointClouds.txt#11"
       ],
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/49",
-        "https://github.com/spatialanalyzer/briosa/issues/53"
-      ],
-      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/52",
+        "https://github.com/spatialanalyzer/briosa/issues/53",
         "https://github.com/spatialanalyzer/briosa/issues/79"
       ],
+      "blocker_references": [],
       "risk_effect": "mutating",
       "risk_flags": [],
       "data_classifications": [
@@ -22908,20 +22884,10 @@
       ],
       "delivery_wave": null,
       "command_shape": {
-        "status": "blocked",
+        "status": "not_applicable",
         "mp_step": null,
         "arguments": [],
-        "discrepancies": [
-          {
-            "code": "exact_interop_binding_missing",
-            "argument_indexes": [
-              0
-            ],
-            "owner": "hexagon",
-            "blocker_reference": "https://github.com/spatialanalyzer/briosa/issues/79",
-            "rationale": "View SDK Code names an exact binding that is absent from the committed exact-target interop public API."
-          }
-        ]
+        "discrepancies": []
       }
     },
     {
