@@ -134,7 +134,6 @@ jobs:
     timeout-minutes: 15
 
     env:
-      RUN_ROOT: ${{ runner.temp }}\briosa-licensed-${{ github.run_id }}-${{ github.run_attempt }}
       EXPECTED_PAYLOAD_SHA256: ${{ needs.prepare.outputs.payload_sha256 }}
       BRIOSA_ACTIVATED_SDK_ATTESTED_VERSION: ${{ inputs.activated_sdk_attested_version }}
       BRIOSA_ACTIVATED_SDK_ATTESTATION_REFERENCE: ${{ inputs.activated_sdk_attestation_reference }}
@@ -142,6 +141,24 @@ jobs:
       BRIOSA_CONNECTED_SA_ATTESTATION_REFERENCE: ${{ inputs.connected_sa_attestation_reference }}
 
     steps:
+      - name: Initialize isolated run directory
+        shell: pwsh
+        run: |
+          $runnerTemp = [IO.Path]::GetFullPath($env:RUNNER_TEMP)
+          $runRoot = [IO.Path]::GetFullPath((Join-Path $runnerTemp (
+            'briosa-licensed-{0}-{1}' -f
+            $env:GITHUB_RUN_ID,
+            $env:GITHUB_RUN_ATTEMPT)))
+          $runnerTempPrefix = $runnerTemp.TrimEnd('\') + '\'
+          if (-not $runRoot.StartsWith(
+              $runnerTempPrefix,
+              [StringComparison]::OrdinalIgnoreCase)) {
+            throw 'The licensed-test run root is outside RUNNER_TEMP.'
+          }
+
+          "RUN_ROOT=$runRoot" | Out-File `
+            -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
       - name: Download trusted payload
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:

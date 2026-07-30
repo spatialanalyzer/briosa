@@ -1,16 +1,18 @@
 [CmdletBinding()]
-param()
+param(
+    [string]$WorkflowPath =
+        (Join-Path $PSScriptRoot "../.github/workflows/licensed-sa.yml")
+)
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-$repositoryRoot = Split-Path -Parent $PSScriptRoot
-$workflowPath = Join-Path $repositoryRoot ".github\workflows\licensed-sa.yml"
-if (-not (Test-Path -LiteralPath $workflowPath -PathType Leaf)) {
-    throw "The licensed SpatialAnalyzer workflow is missing."
+$resolvedWorkflowPath = [IO.Path]::GetFullPath($WorkflowPath)
+if (-not (Test-Path -LiteralPath $resolvedWorkflowPath -PathType Leaf)) {
+    throw "The licensed SpatialAnalyzer workflow '$resolvedWorkflowPath' is missing."
 }
 
-$workflow = Get-Content -LiteralPath $workflowPath -Raw
+$workflow = Get-Content -LiteralPath $resolvedWorkflowPath -Raw
 
 function Assert-WorkflowPattern {
     param(
@@ -57,6 +59,41 @@ if (-not $protectedJobMatch.Success) {
 }
 
 $protectedJob = $protectedJobMatch.Groups['job'].Value
+$protectedJobSections = [regex]::Match(
+    $protectedJob,
+    '(?ms)\A(?<preamble>.*?)^    steps:\s*\r?\n(?<steps>.*)\z')
+if (-not $protectedJobSections.Success) {
+    throw "The protected licensed-sa job is missing its steps boundary."
+}
+
+$protectedJobPreamble = $protectedJobSections.Groups['preamble'].Value
+if ($protectedJobPreamble -match '\$\{\{\s*runner\.') {
+    throw (
+        "The runner context is unavailable before protected-job steps begin; " +
+        "derive runner paths inside a step instead.")
+}
+
+$protectedSteps = $protectedJobSections.Groups['steps'].Value
+$runRootInitializer = [regex]::Match(
+    $protectedSteps,
+    '(?ms)\A      - name: Initialize isolated run directory\r?\n(?<step>.*?)(?=^      - name:|\z)')
+if (-not $runRootInitializer.Success) {
+    throw "The protected job must initialize its isolated run directory first."
+}
+
+$initializerStep = $runRootInitializer.Groups['step'].Value
+foreach ($requiredInitializerPattern in @(
+        '\$env:RUNNER_TEMP',
+        '\$env:GITHUB_ENV',
+        'RUN_ROOT=\$runRoot',
+        '\$runRoot\.StartsWith\(')) {
+    if ($initializerStep -notmatch $requiredInitializerPattern) {
+        throw (
+            "The protected run-directory initializer is missing required policy " +
+            "'$requiredInitializerPattern'.")
+    }
+}
+
 foreach ($requiredPattern in @(
         '(?m)^    environment: licensed-sa-2026-1-0529-7\s*$',
         '(?m)^      group: briosa-licensed-sa\s*$',
