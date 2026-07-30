@@ -1,0 +1,88 @@
+{
+  "$schema": "../schemas/v1/wave2-collection-mutations-scenarios.schema.json",
+  "schema_version": 1,
+  "fixture_set_id": "briosa.client.wave2-collection-mutations.v1",
+  "error_trailer": "briosa-operation-error-bin",
+  "scenarios": [
+    {
+      "id": "copy-objects-to-collection-ready",
+      "operation_id": "collection_operations.copy_objects_to_collection",
+      "worker_scenario": "ready",
+      "watchdog_timeout": null,
+      "deny_operation": false,
+      "expected": {
+        "grpc_status": "OK",
+        "ready_for_mp": true,
+        "operation_advertised": true,
+        "operation_succeeded": true,
+        "recovery_succeeded": false,
+        "typed_error_required": false,
+        "failure_kinds": []
+      }
+    },
+    {
+      "id": "delete-collection-ready",
+      "operation_id": "collection_operations.delete_collection",
+      "worker_scenario": "ready",
+      "watchdog_timeout": null,
+      "deny_operation": false,
+      "expected": {
+        "grpc_status": "OK",
+        "ready_for_mp": true,
+        "operation_advertised": true,
+        "operation_succeeded": true,
+        "recovery_succeeded": false,
+        "typed_error_required": false,
+        "failure_kinds": []
+      }
+    },
+    {
+      "id": "move-objects-to-collection-ready",
+      "operation_id": "collection_operations.move_objects_to_collection",
+      "worker_scenario": "ready",
+      "watchdog_timeout": null,
+      "deny_operation": false,
+      "expected": {
+        "grpc_status": "OK",
+        "ready_for_mp": true,
+        "operation_advertised": true,
+        "operation_succeeded": true,
+        "recovery_succeeded": false,
+        "typed_error_required": false,
+        "failure_kinds": []
+      }
+    },
+    {
+      "id": "rename-collection-ready",
+      "operation_id": "collection_operations.rename_collection",
+      "worker_scenario": "ready",
+      "watchdog_timeout": null,
+      "deny_operation": false,
+      "expected": {
+        "grpc_status": "OK",
+        "ready_for_mp": true,
+        "operation_advertised": true,
+        "operation_succeeded": true,
+        "recovery_succeeded": false,
+        "typed_error_required": false,
+        "failure_kinds": []
+      }
+    },
+    {
+      "id": "set-or-construct-default-collection-ready",
+      "operation_id": "collection_operations.set_or_construct_default_collection",
+      "worker_scenario": "ready",
+      "watchdog_timeout": null,
+      "deny_operation": false,
+      "expected": {
+        "grpc_status": "OK",
+        "ready_for_mp": true,
+        "operation_advertised": true,
+        "operation_succeeded": true,
+        "recovery_succeeded": false,
+        "typed_error_required": false,
+        "failure_kinds": []
+      }
+    }
+  ]
+}

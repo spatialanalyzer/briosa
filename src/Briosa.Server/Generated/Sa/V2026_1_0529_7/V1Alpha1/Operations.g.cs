@@ -13,7 +13,7 @@ namespace Briosa.Server.Generated.Sa.V2026_1_0529_7.V1Alpha1;
 internal static class TargetCatalogMetadata
 {
     public const string CatalogId = "briosa.sa.2026.1.0529.7";
-    public const string CatalogRevision = "9";
+    public const string CatalogRevision = "10";
     public const string SpatialAnalyzerTarget = "2026.1.0529.7";
     public const string TargetProtocolPackage = "briosa.sa.v2026_1_0529_7.v1alpha1";
 
@@ -24,13 +24,18 @@ internal static class TargetCatalogMetadata
             new("collection_operations.construct_point_fit_to_points", "Construct Point (Fit to Points)", "briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations", "ConstructPointFitToPoints", "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/ConstructPointFitToPoints", "mutating", CoreProtocol.OperationExecutionScope.GlobalStateMutation, CoreProtocol.ReplaySafety.Unknown, []),
             new("collection_operations.construct_point_group_from_point_name_list", "Construct Point Group from Point Name Ref List", "briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations", "ConstructPointGroupFromPointNameList", "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/ConstructPointGroupFromPointNameList", "mutating", CoreProtocol.OperationExecutionScope.GlobalStateMutation, CoreProtocol.ReplaySafety.Unknown, []),
             new("collection_operations.construct_point_in_working_coordinates", "Construct a Point in Working Coordinates", "briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations", "ConstructPointInWorkingCoordinates", "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/ConstructPointInWorkingCoordinates", "mutating", CoreProtocol.OperationExecutionScope.GlobalStateMutation, CoreProtocol.ReplaySafety.Unknown, []),
+            new("collection_operations.copy_objects_to_collection", "Copy Objects to a collection", "briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations", "CopyObjectsToCollection", "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/CopyObjectsToCollection", "mutating", CoreProtocol.OperationExecutionScope.GlobalStateMutation, CoreProtocol.ReplaySafety.Unknown, []),
+            new("collection_operations.delete_collection", "Delete Collection", "briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations", "DeleteCollection", "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/DeleteCollection", "mutating", CoreProtocol.OperationExecutionScope.GlobalStateMutation, CoreProtocol.ReplaySafety.Unknown, []),
             new("collection_operations.delete_points", "Delete Points", "briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations", "DeletePoints", "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/DeletePoints", "mutating", CoreProtocol.OperationExecutionScope.GlobalStateMutation, CoreProtocol.ReplaySafety.Unknown, []),
             new("collection_operations.get_collection_count", "Get Number of Collections", "briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations", "GetCollectionCount", "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/GetCollectionCount", "read_only", CoreProtocol.OperationExecutionScope.GlobalStateRead, CoreProtocol.ReplaySafety.Safe, []),
             new("collection_operations.get_collection_name_by_index", "Get i-th Collection Name", "briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations", "GetCollectionNameByIndex", "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/GetCollectionNameByIndex", "read_only", CoreProtocol.OperationExecutionScope.GlobalStateRead, CoreProtocol.ReplaySafety.Safe, []),
             new("collection_operations.get_point_count_in_group", "Get Number of Points in Group", "briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations", "GetPointCountInGroup", "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/GetPointCountInGroup", "read_only", CoreProtocol.OperationExecutionScope.GlobalStateRead, CoreProtocol.ReplaySafety.Safe, []),
             new("collection_operations.list_groups_in_collection", "Make a Collection Object Name Ref List from all Groups in a Collection", "briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations", "ListGroupsInCollection", "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/ListGroupsInCollection", "read_only", CoreProtocol.OperationExecutionScope.GlobalStateRead, CoreProtocol.ReplaySafety.Safe, []),
             new("collection_operations.list_points_in_group", "Make a Point Name Ref List From a Group", "briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations", "ListPointsInGroup", "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/ListPointsInGroup", "read_only", CoreProtocol.OperationExecutionScope.GlobalStateRead, CoreProtocol.ReplaySafety.Safe, []),
+            new("collection_operations.move_objects_to_collection", "Move Objects to a collection", "briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations", "MoveObjectsToCollection", "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/MoveObjectsToCollection", "mutating", CoreProtocol.OperationExecutionScope.GlobalStateMutation, CoreProtocol.ReplaySafety.Unknown, []),
+            new("collection_operations.rename_collection", "Rename Collection", "briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations", "RenameCollection", "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/RenameCollection", "mutating", CoreProtocol.OperationExecutionScope.GlobalStateMutation, CoreProtocol.ReplaySafety.Unknown, []),
             new("collection_operations.rename_point", "Rename Point", "briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations", "RenamePoint", "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/RenamePoint", "mutating", CoreProtocol.OperationExecutionScope.GlobalStateMutation, CoreProtocol.ReplaySafety.Unknown, []),
+            new("collection_operations.set_or_construct_default_collection", "Set (or construct) default collection", "briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations", "SetOrConstructDefaultCollection", "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/SetOrConstructDefaultCollection", "mutating", CoreProtocol.OperationExecutionScope.GlobalStateMutation, CoreProtocol.ReplaySafety.Unknown, []),
             new("file_operations.get_working_directory", "Get Working Directory", "briosa.sa.v2026_1_0529_7.v1alpha1.FileOperations", "GetWorkingDirectory", "/briosa.sa.v2026_1_0529_7.v1alpha1.FileOperations/GetWorkingDirectory", "read_only", CoreProtocol.OperationExecutionScope.GlobalStateRead, CoreProtocol.ReplaySafety.Safe, ["filesystem_metadata"]),
         ];
 }
@@ -336,6 +341,103 @@ internal static class CollectionOperationsConstructPointInWorkingCoordinatesBind
 }
 
 [global::System.CodeDom.Compiler.GeneratedCode("Briosa.Generator", "1.0")]
+internal static class CollectionOperationsCopyObjectsToCollectionBinding
+{
+    public const string OperationId = "collection_operations.copy_objects_to_collection";
+    public const string StepName = "Copy Objects to a collection";
+    public const string SourceObjectsArgumentName = "Source Objects";
+    public const string SourceObjectsFieldName = "source_objects";
+    public const string SourceObjectsSetter = "SetCollectionObjectNameRefListArg";
+    public const string DestinationCollectionNameArgumentName = "Destination Collection Name";
+    public const string DestinationCollectionNameFieldName = "destination_collection_name";
+    public const string DestinationCollectionNameSetter = "SetCollectionNameArg";
+
+    public static IReadOnlyList<OperationOutputContract> OutputContracts { get; } =
+        [];
+
+    public static WorkerMpCommand CreateCommand(TargetProtocol.CopyObjectsToCollectionRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        List<WorkerMpInputArgument> inputs = [];
+        if (request.SourceObjects is not null)
+        {
+            if (request.SourceObjects.Values.Any(item => !item.HasCollectionName || !item.HasObjectName || !item.HasObjectType || item.ObjectType == TargetProtocol.ObjectType.Unspecified || !Enum.IsDefined(item.ObjectType)))
+            {
+                throw new ArgumentException("Request field 'source_objects' must contain every exact-target component.", nameof(request));
+            }
+            inputs.Add(new WorkerMpInputArgument(SourceObjectsArgumentName, WorkerMpValueKind.CollectionObjectNameList, SdkBinding: SourceObjectsSetter, CollectionObjectNameListValue: new([.. request.SourceObjects.Values.Select(value => new WorkerCollectionObjectNameValue(value.CollectionName, value.ObjectName, (WorkerObjectTypeValue)(int)value.ObjectType))])));
+        }
+        else
+        {
+            throw new ArgumentException("Required request field 'source_objects' is missing.", nameof(request));
+        }
+        if (request.HasDestinationCollectionName)
+        {
+            inputs.Add(new WorkerMpInputArgument(DestinationCollectionNameArgumentName, WorkerMpValueKind.CollectionName, SdkBinding: DestinationCollectionNameSetter, StringValue: request.DestinationCollectionName));
+        }
+        else
+        {
+            throw new ArgumentException("Required request field 'destination_collection_name' is missing.", nameof(request));
+        }
+        return new WorkerMpCommand(
+            OperationId,
+            StepName,
+            inputs,
+            []);
+    }
+
+    public static TargetProtocol.CopyObjectsToCollectionResult CreateResult(SuccessfulOperationExecution completed)
+    {
+        ArgumentNullException.ThrowIfNull(completed);
+        return new TargetProtocol.CopyObjectsToCollectionResult
+        {
+            Execution = completed.Details
+        };
+    }
+}
+
+[global::System.CodeDom.Compiler.GeneratedCode("Briosa.Generator", "1.0")]
+internal static class CollectionOperationsDeleteCollectionBinding
+{
+    public const string OperationId = "collection_operations.delete_collection";
+    public const string StepName = "Delete Collection";
+    public const string CollectionNameArgumentName = "Name of Collection to Delete";
+    public const string CollectionNameFieldName = "collection_name";
+    public const string CollectionNameSetter = "SetCollectionNameArg";
+
+    public static IReadOnlyList<OperationOutputContract> OutputContracts { get; } =
+        [];
+
+    public static WorkerMpCommand CreateCommand(TargetProtocol.DeleteCollectionRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        List<WorkerMpInputArgument> inputs = [];
+        if (request.HasCollectionName)
+        {
+            inputs.Add(new WorkerMpInputArgument(CollectionNameArgumentName, WorkerMpValueKind.CollectionName, SdkBinding: CollectionNameSetter, StringValue: request.CollectionName));
+        }
+        else
+        {
+            throw new ArgumentException("Required request field 'collection_name' is missing.", nameof(request));
+        }
+        return new WorkerMpCommand(
+            OperationId,
+            StepName,
+            inputs,
+            []);
+    }
+
+    public static TargetProtocol.DeleteCollectionResult CreateResult(SuccessfulOperationExecution completed)
+    {
+        ArgumentNullException.ThrowIfNull(completed);
+        return new TargetProtocol.DeleteCollectionResult
+        {
+            Execution = completed.Details
+        };
+    }
+}
+
+[global::System.CodeDom.Compiler.GeneratedCode("Briosa.Generator", "1.0")]
 internal static class CollectionOperationsDeletePointsBinding
 {
     public const string OperationId = "collection_operations.delete_points";
@@ -632,6 +734,114 @@ internal static class CollectionOperationsListPointsInGroupBinding
 }
 
 [global::System.CodeDom.Compiler.GeneratedCode("Briosa.Generator", "1.0")]
+internal static class CollectionOperationsMoveObjectsToCollectionBinding
+{
+    public const string OperationId = "collection_operations.move_objects_to_collection";
+    public const string StepName = "Move Objects to a collection";
+    public const string SourceObjectsArgumentName = "Source Objects";
+    public const string SourceObjectsFieldName = "source_objects";
+    public const string SourceObjectsSetter = "SetCollectionObjectNameRefListArg";
+    public const string DestinationCollectionNameArgumentName = "Destination Collection Name";
+    public const string DestinationCollectionNameFieldName = "destination_collection_name";
+    public const string DestinationCollectionNameSetter = "SetCollectionNameArg";
+
+    public static IReadOnlyList<OperationOutputContract> OutputContracts { get; } =
+        [];
+
+    public static WorkerMpCommand CreateCommand(TargetProtocol.MoveObjectsToCollectionRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        List<WorkerMpInputArgument> inputs = [];
+        if (request.SourceObjects is not null)
+        {
+            if (request.SourceObjects.Values.Any(item => !item.HasCollectionName || !item.HasObjectName || !item.HasObjectType || item.ObjectType == TargetProtocol.ObjectType.Unspecified || !Enum.IsDefined(item.ObjectType)))
+            {
+                throw new ArgumentException("Request field 'source_objects' must contain every exact-target component.", nameof(request));
+            }
+            inputs.Add(new WorkerMpInputArgument(SourceObjectsArgumentName, WorkerMpValueKind.CollectionObjectNameList, SdkBinding: SourceObjectsSetter, CollectionObjectNameListValue: new([.. request.SourceObjects.Values.Select(value => new WorkerCollectionObjectNameValue(value.CollectionName, value.ObjectName, (WorkerObjectTypeValue)(int)value.ObjectType))])));
+        }
+        else
+        {
+            throw new ArgumentException("Required request field 'source_objects' is missing.", nameof(request));
+        }
+        if (request.HasDestinationCollectionName)
+        {
+            inputs.Add(new WorkerMpInputArgument(DestinationCollectionNameArgumentName, WorkerMpValueKind.CollectionName, SdkBinding: DestinationCollectionNameSetter, StringValue: request.DestinationCollectionName));
+        }
+        else
+        {
+            throw new ArgumentException("Required request field 'destination_collection_name' is missing.", nameof(request));
+        }
+        return new WorkerMpCommand(
+            OperationId,
+            StepName,
+            inputs,
+            []);
+    }
+
+    public static TargetProtocol.MoveObjectsToCollectionResult CreateResult(SuccessfulOperationExecution completed)
+    {
+        ArgumentNullException.ThrowIfNull(completed);
+        return new TargetProtocol.MoveObjectsToCollectionResult
+        {
+            Execution = completed.Details
+        };
+    }
+}
+
+[global::System.CodeDom.Compiler.GeneratedCode("Briosa.Generator", "1.0")]
+internal static class CollectionOperationsRenameCollectionBinding
+{
+    public const string OperationId = "collection_operations.rename_collection";
+    public const string StepName = "Rename Collection";
+    public const string OriginalCollectionNameArgumentName = "Original Collection Name";
+    public const string OriginalCollectionNameFieldName = "original_collection_name";
+    public const string OriginalCollectionNameSetter = "SetCollectionNameArg";
+    public const string NewCollectionNameArgumentName = "New Collection Name";
+    public const string NewCollectionNameFieldName = "new_collection_name";
+    public const string NewCollectionNameSetter = "SetCollectionNameArg";
+
+    public static IReadOnlyList<OperationOutputContract> OutputContracts { get; } =
+        [];
+
+    public static WorkerMpCommand CreateCommand(TargetProtocol.RenameCollectionRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        List<WorkerMpInputArgument> inputs = [];
+        if (request.HasOriginalCollectionName)
+        {
+            inputs.Add(new WorkerMpInputArgument(OriginalCollectionNameArgumentName, WorkerMpValueKind.CollectionName, SdkBinding: OriginalCollectionNameSetter, StringValue: request.OriginalCollectionName));
+        }
+        else
+        {
+            throw new ArgumentException("Required request field 'original_collection_name' is missing.", nameof(request));
+        }
+        if (request.HasNewCollectionName)
+        {
+            inputs.Add(new WorkerMpInputArgument(NewCollectionNameArgumentName, WorkerMpValueKind.CollectionName, SdkBinding: NewCollectionNameSetter, StringValue: request.NewCollectionName));
+        }
+        else
+        {
+            throw new ArgumentException("Required request field 'new_collection_name' is missing.", nameof(request));
+        }
+        return new WorkerMpCommand(
+            OperationId,
+            StepName,
+            inputs,
+            []);
+    }
+
+    public static TargetProtocol.RenameCollectionResult CreateResult(SuccessfulOperationExecution completed)
+    {
+        ArgumentNullException.ThrowIfNull(completed);
+        return new TargetProtocol.RenameCollectionResult
+        {
+            Execution = completed.Details
+        };
+    }
+}
+
+[global::System.CodeDom.Compiler.GeneratedCode("Briosa.Generator", "1.0")]
 internal static class CollectionOperationsRenamePointBinding
 {
     public const string OperationId = "collection_operations.rename_point";
@@ -696,6 +906,47 @@ internal static class CollectionOperationsRenamePointBinding
     {
         ArgumentNullException.ThrowIfNull(completed);
         return new TargetProtocol.RenamePointResult
+        {
+            Execution = completed.Details
+        };
+    }
+}
+
+[global::System.CodeDom.Compiler.GeneratedCode("Briosa.Generator", "1.0")]
+internal static class CollectionOperationsSetOrConstructDefaultCollectionBinding
+{
+    public const string OperationId = "collection_operations.set_or_construct_default_collection";
+    public const string StepName = "Set (or construct) default collection";
+    public const string CollectionNameArgumentName = "Collection Name";
+    public const string CollectionNameFieldName = "collection_name";
+    public const string CollectionNameSetter = "SetCollectionNameArg";
+
+    public static IReadOnlyList<OperationOutputContract> OutputContracts { get; } =
+        [];
+
+    public static WorkerMpCommand CreateCommand(TargetProtocol.SetOrConstructDefaultCollectionRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        List<WorkerMpInputArgument> inputs = [];
+        if (request.HasCollectionName)
+        {
+            inputs.Add(new WorkerMpInputArgument(CollectionNameArgumentName, WorkerMpValueKind.CollectionName, SdkBinding: CollectionNameSetter, StringValue: request.CollectionName));
+        }
+        else
+        {
+            throw new ArgumentException("Required request field 'collection_name' is missing.", nameof(request));
+        }
+        return new WorkerMpCommand(
+            OperationId,
+            StepName,
+            inputs,
+            []);
+    }
+
+    public static TargetProtocol.SetOrConstructDefaultCollectionResult CreateResult(SuccessfulOperationExecution completed)
+    {
+        ArgumentNullException.ThrowIfNull(completed);
+        return new TargetProtocol.SetOrConstructDefaultCollectionResult
         {
             Execution = completed.Details
         };
@@ -848,6 +1099,42 @@ internal static class TargetCatalogConformanceMetadata
                         deadline).ConfigureAwait(false)),
             new(
                 TargetCatalogMetadata.Operations.Single(operation =>
+                    operation.OperationId == CollectionOperationsCopyObjectsToCollectionBinding.OperationId),
+                typeof(TargetProtocol.CopyObjectsToCollectionRequest),
+                typeof(TargetProtocol.CopyObjectsToCollectionResult),
+                request => CollectionOperationsCopyObjectsToCollectionBinding.CreateCommand((TargetProtocol.CopyObjectsToCollectionRequest)request),
+                CollectionOperationsCopyObjectsToCollectionBinding.OutputContracts,
+                completed => CollectionOperationsCopyObjectsToCollectionBinding.CreateResult(completed),
+                async (executor, request, cancellationToken, deadline) =>
+                    await executor.ExecuteAsync(
+                        (TargetProtocol.CopyObjectsToCollectionRequest)request,
+                        TargetCatalogMetadata.Operations.Single(operation =>
+                            operation.OperationId == CollectionOperationsCopyObjectsToCollectionBinding.OperationId),
+                        CollectionOperationsCopyObjectsToCollectionBinding.CreateCommand,
+                        CollectionOperationsCopyObjectsToCollectionBinding.OutputContracts,
+                        CollectionOperationsCopyObjectsToCollectionBinding.CreateResult,
+                        cancellationToken,
+                        deadline).ConfigureAwait(false)),
+            new(
+                TargetCatalogMetadata.Operations.Single(operation =>
+                    operation.OperationId == CollectionOperationsDeleteCollectionBinding.OperationId),
+                typeof(TargetProtocol.DeleteCollectionRequest),
+                typeof(TargetProtocol.DeleteCollectionResult),
+                request => CollectionOperationsDeleteCollectionBinding.CreateCommand((TargetProtocol.DeleteCollectionRequest)request),
+                CollectionOperationsDeleteCollectionBinding.OutputContracts,
+                completed => CollectionOperationsDeleteCollectionBinding.CreateResult(completed),
+                async (executor, request, cancellationToken, deadline) =>
+                    await executor.ExecuteAsync(
+                        (TargetProtocol.DeleteCollectionRequest)request,
+                        TargetCatalogMetadata.Operations.Single(operation =>
+                            operation.OperationId == CollectionOperationsDeleteCollectionBinding.OperationId),
+                        CollectionOperationsDeleteCollectionBinding.CreateCommand,
+                        CollectionOperationsDeleteCollectionBinding.OutputContracts,
+                        CollectionOperationsDeleteCollectionBinding.CreateResult,
+                        cancellationToken,
+                        deadline).ConfigureAwait(false)),
+            new(
+                TargetCatalogMetadata.Operations.Single(operation =>
                     operation.OperationId == CollectionOperationsDeletePointsBinding.OperationId),
                 typeof(TargetProtocol.DeletePointsRequest),
                 typeof(TargetProtocol.DeletePointsResult),
@@ -956,6 +1243,42 @@ internal static class TargetCatalogConformanceMetadata
                         deadline).ConfigureAwait(false)),
             new(
                 TargetCatalogMetadata.Operations.Single(operation =>
+                    operation.OperationId == CollectionOperationsMoveObjectsToCollectionBinding.OperationId),
+                typeof(TargetProtocol.MoveObjectsToCollectionRequest),
+                typeof(TargetProtocol.MoveObjectsToCollectionResult),
+                request => CollectionOperationsMoveObjectsToCollectionBinding.CreateCommand((TargetProtocol.MoveObjectsToCollectionRequest)request),
+                CollectionOperationsMoveObjectsToCollectionBinding.OutputContracts,
+                completed => CollectionOperationsMoveObjectsToCollectionBinding.CreateResult(completed),
+                async (executor, request, cancellationToken, deadline) =>
+                    await executor.ExecuteAsync(
+                        (TargetProtocol.MoveObjectsToCollectionRequest)request,
+                        TargetCatalogMetadata.Operations.Single(operation =>
+                            operation.OperationId == CollectionOperationsMoveObjectsToCollectionBinding.OperationId),
+                        CollectionOperationsMoveObjectsToCollectionBinding.CreateCommand,
+                        CollectionOperationsMoveObjectsToCollectionBinding.OutputContracts,
+                        CollectionOperationsMoveObjectsToCollectionBinding.CreateResult,
+                        cancellationToken,
+                        deadline).ConfigureAwait(false)),
+            new(
+                TargetCatalogMetadata.Operations.Single(operation =>
+                    operation.OperationId == CollectionOperationsRenameCollectionBinding.OperationId),
+                typeof(TargetProtocol.RenameCollectionRequest),
+                typeof(TargetProtocol.RenameCollectionResult),
+                request => CollectionOperationsRenameCollectionBinding.CreateCommand((TargetProtocol.RenameCollectionRequest)request),
+                CollectionOperationsRenameCollectionBinding.OutputContracts,
+                completed => CollectionOperationsRenameCollectionBinding.CreateResult(completed),
+                async (executor, request, cancellationToken, deadline) =>
+                    await executor.ExecuteAsync(
+                        (TargetProtocol.RenameCollectionRequest)request,
+                        TargetCatalogMetadata.Operations.Single(operation =>
+                            operation.OperationId == CollectionOperationsRenameCollectionBinding.OperationId),
+                        CollectionOperationsRenameCollectionBinding.CreateCommand,
+                        CollectionOperationsRenameCollectionBinding.OutputContracts,
+                        CollectionOperationsRenameCollectionBinding.CreateResult,
+                        cancellationToken,
+                        deadline).ConfigureAwait(false)),
+            new(
+                TargetCatalogMetadata.Operations.Single(operation =>
                     operation.OperationId == CollectionOperationsRenamePointBinding.OperationId),
                 typeof(TargetProtocol.RenamePointRequest),
                 typeof(TargetProtocol.RenamePointResult),
@@ -970,6 +1293,24 @@ internal static class TargetCatalogConformanceMetadata
                         CollectionOperationsRenamePointBinding.CreateCommand,
                         CollectionOperationsRenamePointBinding.OutputContracts,
                         CollectionOperationsRenamePointBinding.CreateResult,
+                        cancellationToken,
+                        deadline).ConfigureAwait(false)),
+            new(
+                TargetCatalogMetadata.Operations.Single(operation =>
+                    operation.OperationId == CollectionOperationsSetOrConstructDefaultCollectionBinding.OperationId),
+                typeof(TargetProtocol.SetOrConstructDefaultCollectionRequest),
+                typeof(TargetProtocol.SetOrConstructDefaultCollectionResult),
+                request => CollectionOperationsSetOrConstructDefaultCollectionBinding.CreateCommand((TargetProtocol.SetOrConstructDefaultCollectionRequest)request),
+                CollectionOperationsSetOrConstructDefaultCollectionBinding.OutputContracts,
+                completed => CollectionOperationsSetOrConstructDefaultCollectionBinding.CreateResult(completed),
+                async (executor, request, cancellationToken, deadline) =>
+                    await executor.ExecuteAsync(
+                        (TargetProtocol.SetOrConstructDefaultCollectionRequest)request,
+                        TargetCatalogMetadata.Operations.Single(operation =>
+                            operation.OperationId == CollectionOperationsSetOrConstructDefaultCollectionBinding.OperationId),
+                        CollectionOperationsSetOrConstructDefaultCollectionBinding.CreateCommand,
+                        CollectionOperationsSetOrConstructDefaultCollectionBinding.OutputContracts,
+                        CollectionOperationsSetOrConstructDefaultCollectionBinding.CreateResult,
                         cancellationToken,
                         deadline).ConfigureAwait(false)),
             new(
@@ -1160,6 +1501,72 @@ internal sealed class CollectionOperationsService(CatalogOperationExecutor opera
             CollectionOperationsConstructPointInWorkingCoordinatesBinding.CreateCommand,
             CollectionOperationsConstructPointInWorkingCoordinatesBinding.OutputContracts,
             CollectionOperationsConstructPointInWorkingCoordinatesBinding.CreateResult,
+            cancellationToken,
+            deadline,
+            correlationId,
+            actorCategory);
+
+    private static readonly CatalogOperationDescriptor CopyObjectsToCollectionOperation =
+        TargetCatalogMetadata.Operations.Single(operation =>
+            operation.OperationId == CollectionOperationsCopyObjectsToCollectionBinding.OperationId);
+
+    [OperationImplementation(CollectionOperationsCopyObjectsToCollectionBinding.OperationId)]
+    public override Task<TargetProtocol.CopyObjectsToCollectionResult> CopyObjectsToCollection(
+        TargetProtocol.CopyObjectsToCollectionRequest request,
+        ServerCallContext context) =>
+        _operationExecutor.ExecuteAsync(
+            request,
+            context,
+            CopyObjectsToCollectionOperation,
+            CollectionOperationsCopyObjectsToCollectionBinding.CreateCommand,
+            CollectionOperationsCopyObjectsToCollectionBinding.OutputContracts,
+            CollectionOperationsCopyObjectsToCollectionBinding.CreateResult);
+
+    internal Task<TargetProtocol.CopyObjectsToCollectionResult> ExecuteCopyObjectsToCollection(
+        TargetProtocol.CopyObjectsToCollectionRequest request,
+        CancellationToken cancellationToken,
+        DateTime? deadline = null,
+        Guid? correlationId = null,
+        string actorCategory = "internal-unattributed") =>
+        _operationExecutor.ExecuteAsync(
+            request,
+            CopyObjectsToCollectionOperation,
+            CollectionOperationsCopyObjectsToCollectionBinding.CreateCommand,
+            CollectionOperationsCopyObjectsToCollectionBinding.OutputContracts,
+            CollectionOperationsCopyObjectsToCollectionBinding.CreateResult,
+            cancellationToken,
+            deadline,
+            correlationId,
+            actorCategory);
+
+    private static readonly CatalogOperationDescriptor DeleteCollectionOperation =
+        TargetCatalogMetadata.Operations.Single(operation =>
+            operation.OperationId == CollectionOperationsDeleteCollectionBinding.OperationId);
+
+    [OperationImplementation(CollectionOperationsDeleteCollectionBinding.OperationId)]
+    public override Task<TargetProtocol.DeleteCollectionResult> DeleteCollection(
+        TargetProtocol.DeleteCollectionRequest request,
+        ServerCallContext context) =>
+        _operationExecutor.ExecuteAsync(
+            request,
+            context,
+            DeleteCollectionOperation,
+            CollectionOperationsDeleteCollectionBinding.CreateCommand,
+            CollectionOperationsDeleteCollectionBinding.OutputContracts,
+            CollectionOperationsDeleteCollectionBinding.CreateResult);
+
+    internal Task<TargetProtocol.DeleteCollectionResult> ExecuteDeleteCollection(
+        TargetProtocol.DeleteCollectionRequest request,
+        CancellationToken cancellationToken,
+        DateTime? deadline = null,
+        Guid? correlationId = null,
+        string actorCategory = "internal-unattributed") =>
+        _operationExecutor.ExecuteAsync(
+            request,
+            DeleteCollectionOperation,
+            CollectionOperationsDeleteCollectionBinding.CreateCommand,
+            CollectionOperationsDeleteCollectionBinding.OutputContracts,
+            CollectionOperationsDeleteCollectionBinding.CreateResult,
             cancellationToken,
             deadline,
             correlationId,
@@ -1363,6 +1770,72 @@ internal sealed class CollectionOperationsService(CatalogOperationExecutor opera
             correlationId,
             actorCategory);
 
+    private static readonly CatalogOperationDescriptor MoveObjectsToCollectionOperation =
+        TargetCatalogMetadata.Operations.Single(operation =>
+            operation.OperationId == CollectionOperationsMoveObjectsToCollectionBinding.OperationId);
+
+    [OperationImplementation(CollectionOperationsMoveObjectsToCollectionBinding.OperationId)]
+    public override Task<TargetProtocol.MoveObjectsToCollectionResult> MoveObjectsToCollection(
+        TargetProtocol.MoveObjectsToCollectionRequest request,
+        ServerCallContext context) =>
+        _operationExecutor.ExecuteAsync(
+            request,
+            context,
+            MoveObjectsToCollectionOperation,
+            CollectionOperationsMoveObjectsToCollectionBinding.CreateCommand,
+            CollectionOperationsMoveObjectsToCollectionBinding.OutputContracts,
+            CollectionOperationsMoveObjectsToCollectionBinding.CreateResult);
+
+    internal Task<TargetProtocol.MoveObjectsToCollectionResult> ExecuteMoveObjectsToCollection(
+        TargetProtocol.MoveObjectsToCollectionRequest request,
+        CancellationToken cancellationToken,
+        DateTime? deadline = null,
+        Guid? correlationId = null,
+        string actorCategory = "internal-unattributed") =>
+        _operationExecutor.ExecuteAsync(
+            request,
+            MoveObjectsToCollectionOperation,
+            CollectionOperationsMoveObjectsToCollectionBinding.CreateCommand,
+            CollectionOperationsMoveObjectsToCollectionBinding.OutputContracts,
+            CollectionOperationsMoveObjectsToCollectionBinding.CreateResult,
+            cancellationToken,
+            deadline,
+            correlationId,
+            actorCategory);
+
+    private static readonly CatalogOperationDescriptor RenameCollectionOperation =
+        TargetCatalogMetadata.Operations.Single(operation =>
+            operation.OperationId == CollectionOperationsRenameCollectionBinding.OperationId);
+
+    [OperationImplementation(CollectionOperationsRenameCollectionBinding.OperationId)]
+    public override Task<TargetProtocol.RenameCollectionResult> RenameCollection(
+        TargetProtocol.RenameCollectionRequest request,
+        ServerCallContext context) =>
+        _operationExecutor.ExecuteAsync(
+            request,
+            context,
+            RenameCollectionOperation,
+            CollectionOperationsRenameCollectionBinding.CreateCommand,
+            CollectionOperationsRenameCollectionBinding.OutputContracts,
+            CollectionOperationsRenameCollectionBinding.CreateResult);
+
+    internal Task<TargetProtocol.RenameCollectionResult> ExecuteRenameCollection(
+        TargetProtocol.RenameCollectionRequest request,
+        CancellationToken cancellationToken,
+        DateTime? deadline = null,
+        Guid? correlationId = null,
+        string actorCategory = "internal-unattributed") =>
+        _operationExecutor.ExecuteAsync(
+            request,
+            RenameCollectionOperation,
+            CollectionOperationsRenameCollectionBinding.CreateCommand,
+            CollectionOperationsRenameCollectionBinding.OutputContracts,
+            CollectionOperationsRenameCollectionBinding.CreateResult,
+            cancellationToken,
+            deadline,
+            correlationId,
+            actorCategory);
+
     private static readonly CatalogOperationDescriptor RenamePointOperation =
         TargetCatalogMetadata.Operations.Single(operation =>
             operation.OperationId == CollectionOperationsRenamePointBinding.OperationId);
@@ -1391,6 +1864,39 @@ internal sealed class CollectionOperationsService(CatalogOperationExecutor opera
             CollectionOperationsRenamePointBinding.CreateCommand,
             CollectionOperationsRenamePointBinding.OutputContracts,
             CollectionOperationsRenamePointBinding.CreateResult,
+            cancellationToken,
+            deadline,
+            correlationId,
+            actorCategory);
+
+    private static readonly CatalogOperationDescriptor SetOrConstructDefaultCollectionOperation =
+        TargetCatalogMetadata.Operations.Single(operation =>
+            operation.OperationId == CollectionOperationsSetOrConstructDefaultCollectionBinding.OperationId);
+
+    [OperationImplementation(CollectionOperationsSetOrConstructDefaultCollectionBinding.OperationId)]
+    public override Task<TargetProtocol.SetOrConstructDefaultCollectionResult> SetOrConstructDefaultCollection(
+        TargetProtocol.SetOrConstructDefaultCollectionRequest request,
+        ServerCallContext context) =>
+        _operationExecutor.ExecuteAsync(
+            request,
+            context,
+            SetOrConstructDefaultCollectionOperation,
+            CollectionOperationsSetOrConstructDefaultCollectionBinding.CreateCommand,
+            CollectionOperationsSetOrConstructDefaultCollectionBinding.OutputContracts,
+            CollectionOperationsSetOrConstructDefaultCollectionBinding.CreateResult);
+
+    internal Task<TargetProtocol.SetOrConstructDefaultCollectionResult> ExecuteSetOrConstructDefaultCollection(
+        TargetProtocol.SetOrConstructDefaultCollectionRequest request,
+        CancellationToken cancellationToken,
+        DateTime? deadline = null,
+        Guid? correlationId = null,
+        string actorCategory = "internal-unattributed") =>
+        _operationExecutor.ExecuteAsync(
+            request,
+            SetOrConstructDefaultCollectionOperation,
+            CollectionOperationsSetOrConstructDefaultCollectionBinding.CreateCommand,
+            CollectionOperationsSetOrConstructDefaultCollectionBinding.OutputContracts,
+            CollectionOperationsSetOrConstructDefaultCollectionBinding.CreateResult,
             cancellationToken,
             deadline,
             correlationId,

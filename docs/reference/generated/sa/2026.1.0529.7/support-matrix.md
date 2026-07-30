@@ -11,8 +11,8 @@ Cataloged operations require a separately installed and licensed exact-target Sp
 | Classification | Count |
 | --- | ---: |
 | Inventory commands | 1412 |
-| Cataloged, portable-only operations | 13 |
-| Approved candidates not cataloged | 671 |
+| Cataloged, portable-only operations | 18 |
+| Approved candidates not cataloged | 666 |
 | Blocked | 40 |
 | Intentional exclusions | 477 |
 | SDK unavailable | 211 |
@@ -268,16 +268,16 @@ Cataloged operations require a separately installed and licensed exact-target Sp
 | `documentation:ConstructionOperations/Circles/ConstructCirclesFromSurfaceFaces-RuntimeSelect.htm` | Construct Circles From Surface Faces-Runtime Select | ConstructionOperations / Circles | `intentional_exclusion` | — | `unknown` (unknown) | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/Circles/ConstructCirclesLinesFromSurfaces.htm` | Construct Circles (Lines) From Surfaces | ConstructionOperations / Circles | `sdk_unavailable` | — | `mutating` | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/Collections/ConstructCollection.htm` | Construct Collection | ConstructionOperations / Collections | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
-| `documentation:ConstructionOperations/Collections/DeleteCollection.htm` | Delete Collection | ConstructionOperations / Collections | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
+| `documentation:ConstructionOperations/Collections/DeleteCollection.htm` | Delete Collection | ConstructionOperations / Collections | `cataloged_portable_only` | `collection_operations.delete_collection` | `mutating` | `portable_briosa_contract` | `not_performed` |
 | `documentation:ConstructionOperations/Collections/DeleteCollectionsbyWildcard.htm` | Delete Collections by Wildcard | ConstructionOperations / Collections | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/Collections/GetActiveCollectionName.htm` | Get Active Collection Name | ConstructionOperations / Collections | `approved_not_cataloged` | — | `read_only` | `not_applicable` | `not_applicable` |
-| `documentation:ConstructionOperations/Collections/SetOrConstructDefaultCollection.htm` | Set (or construct) default collection | ConstructionOperations / Collections | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
+| `documentation:ConstructionOperations/Collections/SetOrConstructDefaultCollection.htm` | Set (or construct) default collection | ConstructionOperations / Collections | `cataloged_portable_only` | `collection_operations.set_or_construct_default_collection` | `mutating` | `portable_briosa_contract` | `not_performed` |
 | `documentation:ConstructionOperations/Cones/ConstructCone.htm` | Construct Cone | ConstructionOperations / Cones | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/Cones/ConstructConesFromSurfaceFaces-RuntimeSelect.htm` | Construct Cones From Surface Faces-Runtime Select | ConstructionOperations / Cones | `intentional_exclusion` | — | `unknown` (unknown) | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/ConstructObjectsFromSurface.htm` | Construct Objects From Surface Faces - Runtime Select | ConstructionOperations | `intentional_exclusion` | — | `unknown` (unknown) | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/CopyObject.htm` | Copy Object | ConstructionOperations | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/CopyObjects-PointtoPointDelta.htm` | Copy Objects - Point to Point Delta | ConstructionOperations | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
-| `documentation:ConstructionOperations/CopyObjectstoacollection.htm` | Copy Objects to a collection | ConstructionOperations | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
+| `documentation:ConstructionOperations/CopyObjectstoacollection.htm` | Copy Objects to a collection | ConstructionOperations | `cataloged_portable_only` | `collection_operations.copy_objects_to_collection` | `mutating` | `portable_briosa_contract` | `not_performed` |
 | `documentation:ConstructionOperations/Cylinders/ConstructCylinder.htm` | Construct Cylinder | ConstructionOperations / Cylinders | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/Cylinders/ConstructCylinderFromEndPoints.htm` | Construct Cylinder From End Points | ConstructionOperations / Cylinders | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/Cylinders/ConstructCylindersFromSurfaceFaces-RuntimeSelect.htm` | Construct Cylinders From Surface Faces-Runtime Select | ConstructionOperations / Cylinders | `intentional_exclusion` | — | `unknown` (unknown) | `not_applicable` | `not_applicable` |
@@ -312,7 +312,7 @@ Cataloged operations require a separately installed and licensed exact-target Sp
 | `documentation:ConstructionOperations/Lines/ConstructLinesFromSurfaceFaces-RuntimeSelect.htm` | Construct Lines From Surface Faces-Runtime Select | ConstructionOperations / Lines | `intentional_exclusion` | — | `unknown` (unknown) | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/MirrorObjects.htm` | Mirror Object(s) | ConstructionOperations | `sdk_unavailable` | — | `mutating` | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/MoveObjects-PointtoPointDelta.htm` | Move Objects - Point to Point Delta | ConstructionOperations | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
-| `documentation:ConstructionOperations/MoveObjectstoacollection.htm` | Move Objects to a collection | ConstructionOperations | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
+| `documentation:ConstructionOperations/MoveObjectstoacollection.htm` | Move Objects to a collection | ConstructionOperations | `cataloged_portable_only` | `collection_operations.move_objects_to_collection` | `mutating` | `portable_briosa_contract` | `not_performed` |
 | `documentation:ConstructionOperations/OtherMPTypes/AddACollectionInstrument.htm` | Add a Collection Instrument to a Ref List | ConstructionOperations / OtherMPTypes | `intentional_exclusion` | — | `unknown` (unknown) | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/OtherMPTypes/AddACollectionObjectName.htm` | Add a Collection Object Name to a Ref List | ConstructionOperations / OtherMPTypes | `intentional_exclusion` | — | `unknown` (unknown) | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/OtherMPTypes/AddCollectionInstruments.htm` | Add Collection Instruments to a Ref List - WildCard Selection | ConstructionOperations / OtherMPTypes | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
@@ -465,7 +465,7 @@ Cataloged operations require a separately installed and licensed exact-target Sp
 | `documentation:ConstructionOperations/PointsandGroups/SetPointPositioninWorkingCoordinates.htm` | Set Point Position in Working Coordinates | ConstructionOperations / PointsandGroups | `sdk_unavailable` | — | `mutating` | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/PointsandGroups/TransformPointsbyDelta.htm` | Transform Points by Delta (About Working Frame) | ConstructionOperations / PointsandGroups | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/PolygonizedSurfaces/ConstructPolygonizedSurfacefromPointClouds.htm` | Construct Polygonized Surface from Point Clouds | ConstructionOperations / PolygonizedSurfaces | `sdk_unavailable` | — | `mutating` (long_running) | `not_applicable` | `not_applicable` |
-| `documentation:ConstructionOperations/RenameCollection.htm` | Rename Collection | ConstructionOperations | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
+| `documentation:ConstructionOperations/RenameCollection.htm` | Rename Collection | ConstructionOperations | `cataloged_portable_only` | `collection_operations.rename_collection` | `mutating` | `portable_briosa_contract` | `not_performed` |
 | `documentation:ConstructionOperations/RenameItem.htm` | Rename Item | ConstructionOperations | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/RenameObject.htm` | Rename Object | ConstructionOperations | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/RenamePoint.htm` | Rename Point | ConstructionOperations | `cataloged_portable_only` | `collection_operations.rename_point` | `mutating` | `portable_briosa_contract` | `not_performed` |

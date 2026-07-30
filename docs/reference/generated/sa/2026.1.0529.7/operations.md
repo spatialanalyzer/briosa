@@ -2,7 +2,7 @@
 <!-- Generated from the reviewed Briosa command catalog. Do not edit by hand. -->
 # SpatialAnalyzer 2026.1.0529.7 operation reference
 
-Catalog `briosa.sa.2026.1.0529.7` revision `9`.
+Catalog `briosa.sa.2026.1.0529.7` revision `10`.
 
 Only explicitly reviewed Briosa operations are listed here. This is not the installed SpatialAnalyzer MP catalog.
 
@@ -24,7 +24,7 @@ Membership declarations identify additive reviewed delivery subsets, not the com
 
 - `v0.2-wave1-initial` (`v0.2`, `wave_1`): 5 operation(s)
 
-- `v0.2-wave2-initial` (`v0.2`, `wave_2`): 7 operation(s)
+- `v0.2-wave2-initial` (`v0.2`, `wave_2`): 12 operation(s)
 
 ## `CollectionOperations.ConstructPointAtCircleCenter`
 
@@ -156,6 +156,59 @@ Constructs a named point at explicit working-frame coordinates.
 | --- | ---: | ---: | ---: | --- | --- | --- | --- | --- | --- |
 | `point_name` | 1 | 0 | 0 | `Point Name` | `input` | `point_name` | `object_identifier` | `SetPointNameArg` | required; reject_request; default none |
 | `working_coordinates` | 2 | 1 | 1 | `Working Coordinates` | `input` | `vector3` | `geometry` | `SetVectorArg` | required; reject_request; default none |
+
+### Outputs
+
+None.
+
+## `CollectionOperations.CopyObjectsToCollection`
+
+Copies an explicit list of collection objects into a destination collection.
+
+- Briosa operation: `collection_operations.copy_objects_to_collection`
+- Inventory key: `documentation:ConstructionOperations/CopyObjectstoacollection.htm`
+- Protocol file: `collection_operations.proto`
+- Fully qualified method: `/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/CopyObjectsToCollection`
+- Exact MP step: `Copy Objects to a collection`
+- Stability: `experimental`
+- Execution scope: `global_state_mutation`
+- Isolation review: Mutates application-global model state. Cancellation or deadline expiry does not roll back copied objects or cancel an in-flight COM call; an ambiguous completion requires reconciliation before replay.
+- Effect: `mutating`
+- Replay safety: `unknown`
+- Risk flags: none
+
+### Inputs
+
+| Field | Number | MP ordinal | SDK order | MP argument | Direction | Type | Data classification | SDK binding | Presence / retrieval |
+| --- | ---: | ---: | ---: | --- | --- | --- | --- | --- | --- |
+| `source_objects` | 1 | 0 | 0 | `Source Objects` | `input` | `collection_object_name_list` | `object_identifier` | `SetCollectionObjectNameRefListArg` | required; reject_request; default none |
+| `destination_collection_name` | 2 | 1 | 1 | `Destination Collection Name` | `input` | `collection_name` | `object_identifier` | `SetCollectionNameArg` | required; reject_request; default none |
+
+### Outputs
+
+None.
+
+## `CollectionOperations.DeleteCollection`
+
+Deletes one explicitly named collection.
+
+- Briosa operation: `collection_operations.delete_collection`
+- Inventory key: `documentation:ConstructionOperations/Collections/DeleteCollection.htm`
+- Protocol file: `collection_operations.proto`
+- Fully qualified method: `/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/DeleteCollection`
+- Exact MP step: `Delete Collection`
+- Stability: `experimental`
+- Execution scope: `global_state_mutation`
+- Isolation review: Mutates application-global collection state. Cancellation or deadline expiry does not roll back deletion or cancel an in-flight COM call; an ambiguous completion requires reconciliation before replay.
+- Effect: `mutating`
+- Replay safety: `unknown`
+- Risk flags: none
+
+### Inputs
+
+| Field | Number | MP ordinal | SDK order | MP argument | Direction | Type | Data classification | SDK binding | Presence / retrieval |
+| --- | ---: | ---: | ---: | --- | --- | --- | --- | --- | --- |
+| `collection_name` | 1 | 0 | 0 | `Name of Collection to Delete` | `input` | `collection_name` | `object_identifier` | `SetCollectionNameArg` | required; reject_request; default none |
 
 ### Outputs
 
@@ -325,6 +378,60 @@ Returns the point identities currently present in a named SpatialAnalyzer group.
 | --- | ---: | ---: | ---: | --- | --- | --- | --- | --- | --- |
 | `points` | 1 | 1 | 1 | `Resultant Point Name List` | `output` | `point_name_list` | `object_identifier` | `GetPointNameRefListArg` | result-only yes |
 
+## `CollectionOperations.MoveObjectsToCollection`
+
+Moves an explicit list of collection objects into a destination collection.
+
+- Briosa operation: `collection_operations.move_objects_to_collection`
+- Inventory key: `documentation:ConstructionOperations/MoveObjectstoacollection.htm`
+- Protocol file: `collection_operations.proto`
+- Fully qualified method: `/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/MoveObjectsToCollection`
+- Exact MP step: `Move Objects to a collection`
+- Stability: `experimental`
+- Execution scope: `global_state_mutation`
+- Isolation review: Mutates application-global model state. Cancellation or deadline expiry does not roll back moved objects or cancel an in-flight COM call; an ambiguous completion requires reconciliation before replay.
+- Effect: `mutating`
+- Replay safety: `unknown`
+- Risk flags: none
+
+### Inputs
+
+| Field | Number | MP ordinal | SDK order | MP argument | Direction | Type | Data classification | SDK binding | Presence / retrieval |
+| --- | ---: | ---: | ---: | --- | --- | --- | --- | --- | --- |
+| `source_objects` | 1 | 0 | 0 | `Source Objects` | `input` | `collection_object_name_list` | `object_identifier` | `SetCollectionObjectNameRefListArg` | required; reject_request; default none |
+| `destination_collection_name` | 2 | 1 | 1 | `Destination Collection Name` | `input` | `collection_name` | `object_identifier` | `SetCollectionNameArg` | required; reject_request; default none |
+
+### Outputs
+
+None.
+
+## `CollectionOperations.RenameCollection`
+
+Renames one explicitly identified collection.
+
+- Briosa operation: `collection_operations.rename_collection`
+- Inventory key: `documentation:ConstructionOperations/RenameCollection.htm`
+- Protocol file: `collection_operations.proto`
+- Fully qualified method: `/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/RenameCollection`
+- Exact MP step: `Rename Collection`
+- Stability: `experimental`
+- Execution scope: `global_state_mutation`
+- Isolation review: Mutates application-global collection state. Cancellation or deadline expiry does not roll back the rename or cancel an in-flight COM call; an ambiguous completion requires reconciliation before replay.
+- Effect: `mutating`
+- Replay safety: `unknown`
+- Risk flags: none
+
+### Inputs
+
+| Field | Number | MP ordinal | SDK order | MP argument | Direction | Type | Data classification | SDK binding | Presence / retrieval |
+| --- | ---: | ---: | ---: | --- | --- | --- | --- | --- | --- |
+| `original_collection_name` | 1 | 0 | 0 | `Original Collection Name` | `input` | `collection_name` | `object_identifier` | `SetCollectionNameArg` | required; reject_request; default none |
+| `new_collection_name` | 2 | 1 | 1 | `New Collection Name` | `input` | `collection_name` | `object_identifier` | `SetCollectionNameArg` | required; reject_request; default none |
+
+### Outputs
+
+None.
+
 ## `CollectionOperations.RenamePoint`
 
 Renames an explicitly identified point, with reviewed collision behavior selected by the caller.
@@ -348,6 +455,32 @@ Renames an explicitly identified point, with reviewed collision behavior selecte
 | `original_point_name` | 1 | 0 | 0 | `Original Point Name` | `input` | `point_name` | `object_identifier` | `SetPointNameArg` | required; reject_request; default none |
 | `new_point_name` | 2 | 1 | 1 | `New Point Name` | `input` | `point_name` | `object_identifier` | `SetPointNameArg` | required; reject_request; default none |
 | `overwrite_if_exists` | 3 | 2 | 2 | `Overwrite if exists?` | `input` | `logical` | `non_sensitive` | `SetBoolArg` | optional; set_catalog_default; default reviewed |
+
+### Outputs
+
+None.
+
+## `CollectionOperations.SetOrConstructDefaultCollection`
+
+Selects an existing collection as the default or constructs it when it does not exist.
+
+- Briosa operation: `collection_operations.set_or_construct_default_collection`
+- Inventory key: `documentation:ConstructionOperations/Collections/SetOrConstructDefaultCollection.htm`
+- Protocol file: `collection_operations.proto`
+- Fully qualified method: `/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/SetOrConstructDefaultCollection`
+- Exact MP step: `Set (or construct) default collection`
+- Stability: `experimental`
+- Execution scope: `global_state_mutation`
+- Isolation review: Mutates application-global collection state. Cancellation or deadline expiry does not roll back collection creation or selection and does not cancel an in-flight COM call; an ambiguous completion requires reconciliation before replay.
+- Effect: `mutating`
+- Replay safety: `unknown`
+- Risk flags: none
+
+### Inputs
+
+| Field | Number | MP ordinal | SDK order | MP argument | Direction | Type | Data classification | SDK binding | Presence / retrieval |
+| --- | ---: | ---: | ---: | --- | --- | --- | --- | --- | --- |
+| `collection_name` | 1 | 0 | 0 | `Collection Name` | `input` | `collection_name` | `object_identifier` | `SetCollectionNameArg` | required; reject_request; default none |
 
 ### Outputs
 

@@ -8,11 +8,11 @@
   "evidence_inputs": [
     {
       "path": ".github/workflows/ci.yml",
-      "sha256": "a8865fa9bb60f2643d5f96fc5240ef7a6cb79606c473b1fb6217023b2b51dcec"
+      "sha256": "0aba56233ff19588ffcfcd13dd5aaa434b9811b5a26c2c1ad612b6609392ef0c"
     },
     {
       "path": ".github/workflows/release.yml",
-      "sha256": "682b0122198bb4cbf5828fbfc48b53c7ac1934734c9b47345c724b6a9857f55c"
+      "sha256": "527a7fa73180e502ef635986dd9c56315b3fb3675944fb64789f540f6c81a926"
     },
     {
       "path": "docs/architecture/0018-uncertain-completion-and-replay.md",
@@ -52,7 +52,7 @@
     },
     {
       "path": "generated/release/sa/2026.1.0529.7/support-matrix.json",
-      "sha256": "966deb860fe0acac55d3fd1b84a10f57401864394e242eddc03e05fbcd6b9623"
+      "sha256": "17a3d6e077a3c290c6eb906706883fc21d256269e8b52d924ab8a51cb35a1e90"
     },
     {
       "path": "release/sa/2026.1.0529.7/audit-policy.json",
@@ -98,8 +98,13 @@
         "collection_operations.construct_point_fit_to_points",
         "collection_operations.construct_point_group_from_point_name_list",
         "collection_operations.construct_point_in_working_coordinates",
+        "collection_operations.copy_objects_to_collection",
+        "collection_operations.delete_collection",
         "collection_operations.delete_points",
-        "collection_operations.rename_point"
+        "collection_operations.move_objects_to_collection",
+        "collection_operations.rename_collection",
+        "collection_operations.rename_point",
+        "collection_operations.set_or_construct_default_collection"
       ],
       "blocker_references": [
         "https://github.com/spatialanalyzer/briosa/issues/20",

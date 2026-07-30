@@ -6,7 +6,7 @@
   "delivery_wave": "wave_1",
   "catalog_id": "briosa.sa.2026.1.0529.7",
   "spatial_analyzer_target": "2026.1.0529.7",
-  "catalog_revision": "9",
+  "catalog_revision": "10",
   "operation_ids": [
     "collection_operations.get_collection_count",
     "collection_operations.get_collection_name_by_index",

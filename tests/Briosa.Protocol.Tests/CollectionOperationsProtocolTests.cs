@@ -20,13 +20,18 @@ public sealed partial class ProtocolSchemaTests
                 "ConstructPointFitToPoints",
                 "ConstructPointGroupFromPointNameList",
                 "ConstructPointInWorkingCoordinates",
+                "CopyObjectsToCollection",
+                "DeleteCollection",
                 "DeletePoints",
                 "GetCollectionCount",
                 "GetCollectionNameByIndex",
                 "GetPointCountInGroup",
                 "ListGroupsInCollection",
                 "ListPointsInGroup",
-                "RenamePoint"
+                "MoveObjectsToCollection",
+                "RenameCollection",
+                "RenamePoint",
+                "SetOrConstructDefaultCollection"
             ],
             methods.Keys.Order(StringComparer.Ordinal));
         Assert.Equal(

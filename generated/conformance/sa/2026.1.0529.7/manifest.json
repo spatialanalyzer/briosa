@@ -3,13 +3,13 @@
   "schema_version": 1,
   "generated_by": "Briosa.Generator portable conformance",
   "catalog_id": "briosa.sa.2026.1.0529.7",
-  "catalog_revision": "9",
+  "catalog_revision": "10",
   "spatial_analyzer_target": "2026.1.0529.7",
   "target_protocol_package": "briosa.sa.v2026_1_0529_7.v1alpha1",
   "evidence_inputs": [
     {
       "path": "catalog/sa/2026.1.0529.7/catalog.json",
-      "sha256": "b6f67b8d02788064451ab3631d650c68fd4c6c7b5e43d7b25d9da707b5e9f41c"
+      "sha256": "becfdc5d9f2473df9dd876bccd5330caad3b9bba24f9d8485df2ebb94ec03cf8"
     },
     {
       "path": "catalog/sa/2026.1.0529.7/operations/collection_operations.construct_point_at_circle_center.json",
@@ -30,6 +30,14 @@
     {
       "path": "catalog/sa/2026.1.0529.7/operations/collection_operations.construct_point_in_working_coordinates.json",
       "sha256": "577dad94b9f430c1e674b51b7c49ab5f17d04536681ff979b6f03b6e0efcdffd"
+    },
+    {
+      "path": "catalog/sa/2026.1.0529.7/operations/collection_operations.copy_objects_to_collection.json",
+      "sha256": "6cf2df99f9d9aa01a2d88864c1e4c102636030f26fa59ebfab3cba50b076d03c"
+    },
+    {
+      "path": "catalog/sa/2026.1.0529.7/operations/collection_operations.delete_collection.json",
+      "sha256": "3d00a00b62df65f48c243bca9357b5e665b4e6876a9f6a72b1160cdad66bb6e0"
     },
     {
       "path": "catalog/sa/2026.1.0529.7/operations/collection_operations.delete_points.json",
@@ -56,8 +64,20 @@
       "sha256": "5e0b9859c93647f4f1d33bf2bc3f7bddf6fec777bf17e5114b49073cff936408"
     },
     {
+      "path": "catalog/sa/2026.1.0529.7/operations/collection_operations.move_objects_to_collection.json",
+      "sha256": "544a41bdf0995d291d982c3077289c4dfe6c7435d9129a9f02e9ddbd0c98321a"
+    },
+    {
+      "path": "catalog/sa/2026.1.0529.7/operations/collection_operations.rename_collection.json",
+      "sha256": "a7bf56c8d2e298ae4cdbb0143f776ff53a7cacf818cb47a36e8575b2a5ac2f91"
+    },
+    {
       "path": "catalog/sa/2026.1.0529.7/operations/collection_operations.rename_point.json",
       "sha256": "2f263fa567b0885f11d4677728b8f6753d19e5dca87e9bedbd27ee3eb6833476"
+    },
+    {
+      "path": "catalog/sa/2026.1.0529.7/operations/collection_operations.set_or_construct_default_collection.json",
+      "sha256": "7685aad4d2e12fafa8ad16a9aa13e143cb60b857f6d10f7b5821d93fedd8f0a3"
     },
     {
       "path": "catalog/sa/2026.1.0529.7/operations/file_operations.get_working_directory.json",
@@ -77,7 +97,7 @@
     }
   ],
   "counts": {
-    "operation_count": 13,
+    "operation_count": 18,
     "binding_case_count": 252,
     "value_family_case_count": 158,
     "enum_case_count": 512,
@@ -975,6 +995,331 @@
         },
         {
           "scenario_id": "operation:collection_operations.construct_point_in_working_coordinates:result:success",
+          "kind": "result.success",
+          "argument_id": null
+        }
+      ]
+    },
+    {
+      "operation_id": "collection_operations.copy_objects_to_collection",
+      "inventory_key": "documentation:ConstructionOperations/CopyObjectstoacollection.htm",
+      "mp_step": "Copy Objects to a collection",
+      "fully_qualified_method": "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/CopyObjectsToCollection",
+      "request": "CopyObjectsToCollectionRequest",
+      "result": "CopyObjectsToCollectionResult",
+      "effect": "mutating",
+      "execution_scope": "global_state_mutation",
+      "replay_safety": "unknown",
+      "risk_flags": [],
+      "inputs": [
+        {
+          "argument_id": "source_objects",
+          "ordinal": 0,
+          "sdk_order": 0,
+          "mp_name": "Source Objects",
+          "direction": "input",
+          "semantic_type": "collection_object_name_list",
+          "worker_value_kind": "CollectionObjectNameList",
+          "binding": "SetCollectionObjectNameRefListArg",
+          "presence": "required",
+          "omission_behavior": "reject_request"
+        },
+        {
+          "argument_id": "destination_collection_name",
+          "ordinal": 1,
+          "sdk_order": 1,
+          "mp_name": "Destination Collection Name",
+          "direction": "input",
+          "semantic_type": "collection_name",
+          "worker_value_kind": "CollectionName",
+          "binding": "SetCollectionNameArg",
+          "presence": "required",
+          "omission_behavior": "reject_request"
+        }
+      ],
+      "outputs": [],
+      "scenarios": [
+        {
+          "scenario_id": "operation:collection_operations.copy_objects_to_collection:binding:destination_collection_name:setter-rejected",
+          "kind": "binding.setter_rejected",
+          "argument_id": "destination_collection_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.copy_objects_to_collection:binding:source_objects:setter-rejected",
+          "kind": "binding.setter_rejected",
+          "argument_id": "source_objects"
+        },
+        {
+          "scenario_id": "operation:collection_operations.copy_objects_to_collection:capability:metadata",
+          "kind": "capability.metadata",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.copy_objects_to_collection:error:cancellation:not-started",
+          "kind": "error.cancellation_not_started",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.copy_objects_to_collection:error:cancellation:started-unknown",
+          "kind": "error.cancellation_started_unknown",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.copy_objects_to_collection:error:deadline:not-started",
+          "kind": "error.deadline_not_started",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.copy_objects_to_collection:error:deadline:started-unknown",
+          "kind": "error.deadline_started_unknown",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.copy_objects_to_collection:error:disconnected",
+          "kind": "error.disconnected",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.copy_objects_to_collection:error:execute-rejected",
+          "kind": "error.execute_rejected",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.copy_objects_to_collection:error:malformed-worker-response",
+          "kind": "error.malformed_worker_response",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.copy_objects_to_collection:error:mp-failed",
+          "kind": "error.mp_failed",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.copy_objects_to_collection:error:mp-result-retrieval-failed",
+          "kind": "error.mp_result_retrieval_failed",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.copy_objects_to_collection:error:worker-crash",
+          "kind": "error.worker_crash",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.copy_objects_to_collection:error:worker-hang",
+          "kind": "error.worker_hang",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.copy_objects_to_collection:metadata:execution-disposition",
+          "kind": "metadata.execution_disposition",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.copy_objects_to_collection:metadata:execution-scope",
+          "kind": "metadata.execution_scope",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.copy_objects_to_collection:metadata:replay-guidance",
+          "kind": "metadata.replay_guidance",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.copy_objects_to_collection:policy:allow",
+          "kind": "policy.allowed",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.copy_objects_to_collection:policy:deny",
+          "kind": "policy.denied",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.copy_objects_to_collection:readiness:unverified",
+          "kind": "readiness.unverified",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.copy_objects_to_collection:request:destination_collection_name:missing",
+          "kind": "request.required_missing",
+          "argument_id": "destination_collection_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.copy_objects_to_collection:request:destination_collection_name:positive",
+          "kind": "request.argument_positive",
+          "argument_id": "destination_collection_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.copy_objects_to_collection:request:destination_collection_name:present-default-like",
+          "kind": "request.present_default_like",
+          "argument_id": "destination_collection_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.copy_objects_to_collection:request:source_objects:missing",
+          "kind": "request.required_missing",
+          "argument_id": "source_objects"
+        },
+        {
+          "scenario_id": "operation:collection_operations.copy_objects_to_collection:request:source_objects:positive",
+          "kind": "request.argument_positive",
+          "argument_id": "source_objects"
+        },
+        {
+          "scenario_id": "operation:collection_operations.copy_objects_to_collection:request:valid",
+          "kind": "request.valid",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.copy_objects_to_collection:result:success",
+          "kind": "result.success",
+          "argument_id": null
+        }
+      ]
+    },
+    {
+      "operation_id": "collection_operations.delete_collection",
+      "inventory_key": "documentation:ConstructionOperations/Collections/DeleteCollection.htm",
+      "mp_step": "Delete Collection",
+      "fully_qualified_method": "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/DeleteCollection",
+      "request": "DeleteCollectionRequest",
+      "result": "DeleteCollectionResult",
+      "effect": "mutating",
+      "execution_scope": "global_state_mutation",
+      "replay_safety": "unknown",
+      "risk_flags": [],
+      "inputs": [
+        {
+          "argument_id": "collection_name",
+          "ordinal": 0,
+          "sdk_order": 0,
+          "mp_name": "Name of Collection to Delete",
+          "direction": "input",
+          "semantic_type": "collection_name",
+          "worker_value_kind": "CollectionName",
+          "binding": "SetCollectionNameArg",
+          "presence": "required",
+          "omission_behavior": "reject_request"
+        }
+      ],
+      "outputs": [],
+      "scenarios": [
+        {
+          "scenario_id": "operation:collection_operations.delete_collection:binding:collection_name:setter-rejected",
+          "kind": "binding.setter_rejected",
+          "argument_id": "collection_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.delete_collection:capability:metadata",
+          "kind": "capability.metadata",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.delete_collection:error:cancellation:not-started",
+          "kind": "error.cancellation_not_started",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.delete_collection:error:cancellation:started-unknown",
+          "kind": "error.cancellation_started_unknown",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.delete_collection:error:deadline:not-started",
+          "kind": "error.deadline_not_started",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.delete_collection:error:deadline:started-unknown",
+          "kind": "error.deadline_started_unknown",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.delete_collection:error:disconnected",
+          "kind": "error.disconnected",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.delete_collection:error:execute-rejected",
+          "kind": "error.execute_rejected",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.delete_collection:error:malformed-worker-response",
+          "kind": "error.malformed_worker_response",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.delete_collection:error:mp-failed",
+          "kind": "error.mp_failed",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.delete_collection:error:mp-result-retrieval-failed",
+          "kind": "error.mp_result_retrieval_failed",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.delete_collection:error:worker-crash",
+          "kind": "error.worker_crash",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.delete_collection:error:worker-hang",
+          "kind": "error.worker_hang",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.delete_collection:metadata:execution-disposition",
+          "kind": "metadata.execution_disposition",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.delete_collection:metadata:execution-scope",
+          "kind": "metadata.execution_scope",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.delete_collection:metadata:replay-guidance",
+          "kind": "metadata.replay_guidance",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.delete_collection:policy:allow",
+          "kind": "policy.allowed",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.delete_collection:policy:deny",
+          "kind": "policy.denied",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.delete_collection:readiness:unverified",
+          "kind": "readiness.unverified",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.delete_collection:request:collection_name:missing",
+          "kind": "request.required_missing",
+          "argument_id": "collection_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.delete_collection:request:collection_name:positive",
+          "kind": "request.argument_positive",
+          "argument_id": "collection_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.delete_collection:request:collection_name:present-default-like",
+          "kind": "request.present_default_like",
+          "argument_id": "collection_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.delete_collection:request:valid",
+          "kind": "request.valid",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.delete_collection:result:success",
           "kind": "result.success",
           "argument_id": null
         }
@@ -1982,6 +2327,363 @@
       ]
     },
     {
+      "operation_id": "collection_operations.move_objects_to_collection",
+      "inventory_key": "documentation:ConstructionOperations/MoveObjectstoacollection.htm",
+      "mp_step": "Move Objects to a collection",
+      "fully_qualified_method": "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/MoveObjectsToCollection",
+      "request": "MoveObjectsToCollectionRequest",
+      "result": "MoveObjectsToCollectionResult",
+      "effect": "mutating",
+      "execution_scope": "global_state_mutation",
+      "replay_safety": "unknown",
+      "risk_flags": [],
+      "inputs": [
+        {
+          "argument_id": "source_objects",
+          "ordinal": 0,
+          "sdk_order": 0,
+          "mp_name": "Source Objects",
+          "direction": "input",
+          "semantic_type": "collection_object_name_list",
+          "worker_value_kind": "CollectionObjectNameList",
+          "binding": "SetCollectionObjectNameRefListArg",
+          "presence": "required",
+          "omission_behavior": "reject_request"
+        },
+        {
+          "argument_id": "destination_collection_name",
+          "ordinal": 1,
+          "sdk_order": 1,
+          "mp_name": "Destination Collection Name",
+          "direction": "input",
+          "semantic_type": "collection_name",
+          "worker_value_kind": "CollectionName",
+          "binding": "SetCollectionNameArg",
+          "presence": "required",
+          "omission_behavior": "reject_request"
+        }
+      ],
+      "outputs": [],
+      "scenarios": [
+        {
+          "scenario_id": "operation:collection_operations.move_objects_to_collection:binding:destination_collection_name:setter-rejected",
+          "kind": "binding.setter_rejected",
+          "argument_id": "destination_collection_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.move_objects_to_collection:binding:source_objects:setter-rejected",
+          "kind": "binding.setter_rejected",
+          "argument_id": "source_objects"
+        },
+        {
+          "scenario_id": "operation:collection_operations.move_objects_to_collection:capability:metadata",
+          "kind": "capability.metadata",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.move_objects_to_collection:error:cancellation:not-started",
+          "kind": "error.cancellation_not_started",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.move_objects_to_collection:error:cancellation:started-unknown",
+          "kind": "error.cancellation_started_unknown",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.move_objects_to_collection:error:deadline:not-started",
+          "kind": "error.deadline_not_started",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.move_objects_to_collection:error:deadline:started-unknown",
+          "kind": "error.deadline_started_unknown",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.move_objects_to_collection:error:disconnected",
+          "kind": "error.disconnected",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.move_objects_to_collection:error:execute-rejected",
+          "kind": "error.execute_rejected",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.move_objects_to_collection:error:malformed-worker-response",
+          "kind": "error.malformed_worker_response",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.move_objects_to_collection:error:mp-failed",
+          "kind": "error.mp_failed",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.move_objects_to_collection:error:mp-result-retrieval-failed",
+          "kind": "error.mp_result_retrieval_failed",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.move_objects_to_collection:error:worker-crash",
+          "kind": "error.worker_crash",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.move_objects_to_collection:error:worker-hang",
+          "kind": "error.worker_hang",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.move_objects_to_collection:metadata:execution-disposition",
+          "kind": "metadata.execution_disposition",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.move_objects_to_collection:metadata:execution-scope",
+          "kind": "metadata.execution_scope",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.move_objects_to_collection:metadata:replay-guidance",
+          "kind": "metadata.replay_guidance",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.move_objects_to_collection:policy:allow",
+          "kind": "policy.allowed",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.move_objects_to_collection:policy:deny",
+          "kind": "policy.denied",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.move_objects_to_collection:readiness:unverified",
+          "kind": "readiness.unverified",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.move_objects_to_collection:request:destination_collection_name:missing",
+          "kind": "request.required_missing",
+          "argument_id": "destination_collection_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.move_objects_to_collection:request:destination_collection_name:positive",
+          "kind": "request.argument_positive",
+          "argument_id": "destination_collection_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.move_objects_to_collection:request:destination_collection_name:present-default-like",
+          "kind": "request.present_default_like",
+          "argument_id": "destination_collection_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.move_objects_to_collection:request:source_objects:missing",
+          "kind": "request.required_missing",
+          "argument_id": "source_objects"
+        },
+        {
+          "scenario_id": "operation:collection_operations.move_objects_to_collection:request:source_objects:positive",
+          "kind": "request.argument_positive",
+          "argument_id": "source_objects"
+        },
+        {
+          "scenario_id": "operation:collection_operations.move_objects_to_collection:request:valid",
+          "kind": "request.valid",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.move_objects_to_collection:result:success",
+          "kind": "result.success",
+          "argument_id": null
+        }
+      ]
+    },
+    {
+      "operation_id": "collection_operations.rename_collection",
+      "inventory_key": "documentation:ConstructionOperations/RenameCollection.htm",
+      "mp_step": "Rename Collection",
+      "fully_qualified_method": "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/RenameCollection",
+      "request": "RenameCollectionRequest",
+      "result": "RenameCollectionResult",
+      "effect": "mutating",
+      "execution_scope": "global_state_mutation",
+      "replay_safety": "unknown",
+      "risk_flags": [],
+      "inputs": [
+        {
+          "argument_id": "original_collection_name",
+          "ordinal": 0,
+          "sdk_order": 0,
+          "mp_name": "Original Collection Name",
+          "direction": "input",
+          "semantic_type": "collection_name",
+          "worker_value_kind": "CollectionName",
+          "binding": "SetCollectionNameArg",
+          "presence": "required",
+          "omission_behavior": "reject_request"
+        },
+        {
+          "argument_id": "new_collection_name",
+          "ordinal": 1,
+          "sdk_order": 1,
+          "mp_name": "New Collection Name",
+          "direction": "input",
+          "semantic_type": "collection_name",
+          "worker_value_kind": "CollectionName",
+          "binding": "SetCollectionNameArg",
+          "presence": "required",
+          "omission_behavior": "reject_request"
+        }
+      ],
+      "outputs": [],
+      "scenarios": [
+        {
+          "scenario_id": "operation:collection_operations.rename_collection:binding:new_collection_name:setter-rejected",
+          "kind": "binding.setter_rejected",
+          "argument_id": "new_collection_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_collection:binding:original_collection_name:setter-rejected",
+          "kind": "binding.setter_rejected",
+          "argument_id": "original_collection_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_collection:capability:metadata",
+          "kind": "capability.metadata",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_collection:error:cancellation:not-started",
+          "kind": "error.cancellation_not_started",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_collection:error:cancellation:started-unknown",
+          "kind": "error.cancellation_started_unknown",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_collection:error:deadline:not-started",
+          "kind": "error.deadline_not_started",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_collection:error:deadline:started-unknown",
+          "kind": "error.deadline_started_unknown",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_collection:error:disconnected",
+          "kind": "error.disconnected",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_collection:error:execute-rejected",
+          "kind": "error.execute_rejected",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_collection:error:malformed-worker-response",
+          "kind": "error.malformed_worker_response",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_collection:error:mp-failed",
+          "kind": "error.mp_failed",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_collection:error:mp-result-retrieval-failed",
+          "kind": "error.mp_result_retrieval_failed",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_collection:error:worker-crash",
+          "kind": "error.worker_crash",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_collection:error:worker-hang",
+          "kind": "error.worker_hang",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_collection:metadata:execution-disposition",
+          "kind": "metadata.execution_disposition",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_collection:metadata:execution-scope",
+          "kind": "metadata.execution_scope",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_collection:metadata:replay-guidance",
+          "kind": "metadata.replay_guidance",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_collection:policy:allow",
+          "kind": "policy.allowed",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_collection:policy:deny",
+          "kind": "policy.denied",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_collection:readiness:unverified",
+          "kind": "readiness.unverified",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_collection:request:new_collection_name:missing",
+          "kind": "request.required_missing",
+          "argument_id": "new_collection_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_collection:request:new_collection_name:positive",
+          "kind": "request.argument_positive",
+          "argument_id": "new_collection_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_collection:request:new_collection_name:present-default-like",
+          "kind": "request.present_default_like",
+          "argument_id": "new_collection_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_collection:request:original_collection_name:missing",
+          "kind": "request.required_missing",
+          "argument_id": "original_collection_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_collection:request:original_collection_name:positive",
+          "kind": "request.argument_positive",
+          "argument_id": "original_collection_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_collection:request:original_collection_name:present-default-like",
+          "kind": "request.present_default_like",
+          "argument_id": "original_collection_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_collection:request:valid",
+          "kind": "request.valid",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.rename_collection:result:success",
+          "kind": "result.success",
+          "argument_id": null
+        }
+      ]
+    },
+    {
       "operation_id": "collection_operations.rename_point",
       "inventory_key": "documentation:ConstructionOperations/RenamePoint.htm",
       "mp_step": "Rename Point",
@@ -2189,6 +2891,155 @@
         },
         {
           "scenario_id": "operation:collection_operations.rename_point:result:success",
+          "kind": "result.success",
+          "argument_id": null
+        }
+      ]
+    },
+    {
+      "operation_id": "collection_operations.set_or_construct_default_collection",
+      "inventory_key": "documentation:ConstructionOperations/Collections/SetOrConstructDefaultCollection.htm",
+      "mp_step": "Set (or construct) default collection",
+      "fully_qualified_method": "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/SetOrConstructDefaultCollection",
+      "request": "SetOrConstructDefaultCollectionRequest",
+      "result": "SetOrConstructDefaultCollectionResult",
+      "effect": "mutating",
+      "execution_scope": "global_state_mutation",
+      "replay_safety": "unknown",
+      "risk_flags": [],
+      "inputs": [
+        {
+          "argument_id": "collection_name",
+          "ordinal": 0,
+          "sdk_order": 0,
+          "mp_name": "Collection Name",
+          "direction": "input",
+          "semantic_type": "collection_name",
+          "worker_value_kind": "CollectionName",
+          "binding": "SetCollectionNameArg",
+          "presence": "required",
+          "omission_behavior": "reject_request"
+        }
+      ],
+      "outputs": [],
+      "scenarios": [
+        {
+          "scenario_id": "operation:collection_operations.set_or_construct_default_collection:binding:collection_name:setter-rejected",
+          "kind": "binding.setter_rejected",
+          "argument_id": "collection_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_or_construct_default_collection:capability:metadata",
+          "kind": "capability.metadata",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_or_construct_default_collection:error:cancellation:not-started",
+          "kind": "error.cancellation_not_started",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_or_construct_default_collection:error:cancellation:started-unknown",
+          "kind": "error.cancellation_started_unknown",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_or_construct_default_collection:error:deadline:not-started",
+          "kind": "error.deadline_not_started",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_or_construct_default_collection:error:deadline:started-unknown",
+          "kind": "error.deadline_started_unknown",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_or_construct_default_collection:error:disconnected",
+          "kind": "error.disconnected",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_or_construct_default_collection:error:execute-rejected",
+          "kind": "error.execute_rejected",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_or_construct_default_collection:error:malformed-worker-response",
+          "kind": "error.malformed_worker_response",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_or_construct_default_collection:error:mp-failed",
+          "kind": "error.mp_failed",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_or_construct_default_collection:error:mp-result-retrieval-failed",
+          "kind": "error.mp_result_retrieval_failed",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_or_construct_default_collection:error:worker-crash",
+          "kind": "error.worker_crash",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_or_construct_default_collection:error:worker-hang",
+          "kind": "error.worker_hang",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_or_construct_default_collection:metadata:execution-disposition",
+          "kind": "metadata.execution_disposition",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_or_construct_default_collection:metadata:execution-scope",
+          "kind": "metadata.execution_scope",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_or_construct_default_collection:metadata:replay-guidance",
+          "kind": "metadata.replay_guidance",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_or_construct_default_collection:policy:allow",
+          "kind": "policy.allowed",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_or_construct_default_collection:policy:deny",
+          "kind": "policy.denied",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_or_construct_default_collection:readiness:unverified",
+          "kind": "readiness.unverified",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_or_construct_default_collection:request:collection_name:missing",
+          "kind": "request.required_missing",
+          "argument_id": "collection_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_or_construct_default_collection:request:collection_name:positive",
+          "kind": "request.argument_positive",
+          "argument_id": "collection_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_or_construct_default_collection:request:collection_name:present-default-like",
+          "kind": "request.present_default_like",
+          "argument_id": "collection_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_or_construct_default_collection:request:valid",
+          "kind": "request.valid",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_or_construct_default_collection:result:success",
           "kind": "result.success",
           "argument_id": null
         }

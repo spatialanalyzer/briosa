@@ -13,7 +13,7 @@ public sealed class CommandCatalogValidatorTests
 
         Assert.True(result.IsValid, string.Join(Environment.NewLine, result.Errors));
         Assert.Equal(1, result.CatalogCount);
-        Assert.Equal(13, result.OperationCount);
+        Assert.Equal(18, result.OperationCount);
     }
 
     [Fact]
@@ -37,7 +37,7 @@ public sealed class CommandCatalogValidatorTests
     }
 
     [Fact]
-    public void InitialWaveTwoMembershipIsTheExactPointLifecycleSubset()
+    public void InitialWaveTwoMembershipIsTheExactMutationSubset()
     {
         var releasePath = Path.Combine(
             FindCatalogRoot(),
@@ -57,8 +57,13 @@ public sealed class CommandCatalogValidatorTests
                 "collection_operations.construct_point_fit_to_points",
                 "collection_operations.construct_point_group_from_point_name_list",
                 "collection_operations.construct_point_in_working_coordinates",
+                "collection_operations.copy_objects_to_collection",
+                "collection_operations.delete_collection",
                 "collection_operations.delete_points",
-                "collection_operations.rename_point"
+                "collection_operations.move_objects_to_collection",
+                "collection_operations.rename_collection",
+                "collection_operations.rename_point",
+                "collection_operations.set_or_construct_default_collection"
             ],
             membership["operation_ids"]!.AsArray()
                 .Select(value => value!.GetValue<string>()));
@@ -419,7 +424,7 @@ public sealed class CommandCatalogValidatorTests
         var result = CommandCatalogValidator.ValidateDirectory(fixture.Root);
 
         Assert.True(result.IsValid, string.Join(Environment.NewLine, result.Errors));
-        Assert.Equal(14, result.OperationCount);
+        Assert.Equal(19, result.OperationCount);
     }
 
     [Fact]

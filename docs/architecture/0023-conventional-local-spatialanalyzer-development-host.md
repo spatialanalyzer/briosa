@@ -94,8 +94,8 @@ In another PowerShell session, use an installed `grpcurl` client over the loopba
 
 ```powershell
 grpcurl -plaintext 127.0.0.1:50051 list
-grpcurl -plaintext -d '{"service":"briosa.liveness"}' 127.0.0.1:50051 grpc.health.v1.Health/Check
-grpcurl -plaintext -d '{"service":"briosa.readiness"}' 127.0.0.1:50051 grpc.health.v1.Health/Check
+'{"service":"briosa.liveness"}' | grpcurl -plaintext -d '@' 127.0.0.1:50051 grpc.health.v1.Health/Check
+'{"service":"briosa.readiness"}' | grpcurl -plaintext -d '@' 127.0.0.1:50051 grpc.health.v1.Health/Check
 grpcurl -plaintext -d '{}' 127.0.0.1:50051 briosa.core.v1alpha1.DiscoveryService/GetServerInfo
 grpcurl -plaintext -d '{}' 127.0.0.1:50051 briosa.core.v1alpha1.DiscoveryService/ListCapabilities
 grpcurl -plaintext -d '{}' 127.0.0.1:50051 briosa.sa.v2026_1_0529_7.v1alpha1.FileOperations/GetWorkingDirectory

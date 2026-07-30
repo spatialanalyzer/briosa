@@ -4,7 +4,7 @@ Briosa is an open-source gRPC bridge around the Hexagon SpatialAnalyzer SDK. Spa
 
 ## Current target
 
-The initial vertical slice targets .NET 10 on Windows x64 and SpatialAnalyzer 2026.1.0529.7. Its first public operation is the exact-target `GetWorkingDirectory` RPC. The initial v0.2 Wave 1 subset adds five generated collection-introspection operations. The growing Wave 2 subset contains seven point mutations: the original construct, rename, and delete lifecycle plus four constructors derived from circles, lines, point fits, and point-name lists. These are deliberately small reviewed promotions, not a claim that either full candidate pool has shipped.
+The initial vertical slice targets .NET 10 on Windows x64 and SpatialAnalyzer 2026.1.0529.7. Its first public operation is the exact-target `GetWorkingDirectory` RPC. The initial v0.2 Wave 1 subset adds five generated collection-introspection operations. The growing Wave 2 subset contains twelve mutations: seven point lifecycle and derived-construction operations plus five collection mutations for default selection/construction, rename, delete, copy, and move. These are deliberately small reviewed promotions, not a claim that either full candidate pool has shipped.
 
 ## Local real-SA quickstart
 
@@ -20,9 +20,11 @@ In another PowerShell terminal, inspect reflection and readiness, then call the 
 
 ```powershell
 grpcurl -plaintext 127.0.0.1:50051 list
-grpcurl -plaintext -d '{"service":"briosa.readiness"}' 127.0.0.1:50051 grpc.health.v1.Health/Check
+'{"service":"briosa.readiness"}' | grpcurl -plaintext -d '@' 127.0.0.1:50051 grpc.health.v1.Health/Check
 grpcurl -plaintext -d '{}' 127.0.0.1:50051 briosa.sa.v2026_1_0529_7.v1alpha1.FileOperations/GetWorkingDirectory
 ```
+
+The health request is piped through standard input because Windows PowerShell can remove the embedded JSON quotes when forwarding a single-quoted argument to a native executable.
 
 The returned directory is developer-visible SpatialAnalyzer data; do not copy it into logs or validation reports. Stop Briosa with Ctrl+C. This local success path is developer evidence, not protected licensed-SA or release validation.
 

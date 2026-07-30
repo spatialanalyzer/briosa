@@ -114,6 +114,9 @@ $wave1ReadOnlyFixtures = Get-Content `
 $wave2PointLifecycleFixtures = Get-Content `
     -LiteralPath (Join-Path $conformanceRoot "v1\wave2-point-lifecycle-scenarios.json") `
     -Raw | ConvertFrom-Json
+$wave2CollectionMutationFixtures = Get-Content `
+    -LiteralPath (Join-Path $conformanceRoot "v1\wave2-collection-mutations-scenarios.json") `
+    -Raw | ConvertFrom-Json
 $targetVersion = [string]$coverage.spatial_analyzer_target
 $catalogRevision = [string]$coverage.catalog_revision
 $artifactBase = "briosa-protocol-$Version-sa-$targetVersion-catalog-$catalogRevision"
@@ -188,7 +191,8 @@ try {
             [string]$liveFixtures.fixture_set_id,
             [string]$errorFixtures.fixture_set_id,
             [string]$wave1ReadOnlyFixtures.fixture_set_id,
-            [string]$wave2PointLifecycleFixtures.fixture_set_id)
+            [string]$wave2PointLifecycleFixtures.fixture_set_id,
+            [string]$wave2CollectionMutationFixtures.fixture_set_id)
         client_generation_contract_version = 1
         files = @($contentFiles)
     }
