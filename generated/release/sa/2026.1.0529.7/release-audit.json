@@ -8,7 +8,7 @@
   "evidence_inputs": [
     {
       "path": ".github/workflows/ci.yml",
-      "sha256": "6b4f9d37755ed877638825686d36071365d7affedc83ea9aa13ba5d8afedab6f"
+      "sha256": "a8865fa9bb60f2643d5f96fc5240ef7a6cb79606c473b1fb6217023b2b51dcec"
     },
     {
       "path": ".github/workflows/release.yml",
@@ -36,7 +36,7 @@
     },
     {
       "path": "docs/security/threat-model.md",
-      "sha256": "face32fc9d24e674c30813c954aaa2766500248349514dfeb661a99a59cde8b4"
+      "sha256": "19f632670db1b57b3c477437a2027b4426d7ddddbbb842b24026b5f14413308c"
     },
     {
       "path": "docs/testing/portable-conformance.md",

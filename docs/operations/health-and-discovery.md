@@ -2,6 +2,12 @@
 
 Briosa exposes the standard gRPC health service and a read-only core discovery service. Reading either service does not invoke another SpatialAnalyzer MP command; readiness reflects the startup verification already performed for the current worker generation.
 
+## Development-only reflection
+
+A Debug build exposes standard gRPC server reflection only when the ASP.NET Core environment is `Development`. Registration and endpoint mapping both enforce the runtime environment check, while the server's Debug compilation controls whether the reflection implementation exists at all. Production and other runtime environments do not map the service, and the Release package excludes both the reflection host and protocol assemblies from its dependency closure.
+
+Reflection describes every mapped health, discovery, and generated exact-target service. A reflected method is not an enabled capability: reflection never invokes a worker, changes readiness, supplies identity evidence, or bypasses request validation and the exact-operation allow/deny policy. In particular, reflected schemas can include catalog operations that `ListCapabilities` does not advertise and that invocation will reject. Treat `ListCapabilities` as the authority for the current process's admitted operation set.
+
 ## Health checks
 
 Use a standard `grpc.health.v1.Health` client with one of these service names:

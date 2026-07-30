@@ -155,6 +155,20 @@ try {
             [StringComparison]::Ordinal)) `
         -Message "The Debug user-secrets identity must not appear in the Release server assembly."
 
+    foreach ($developmentOnlyAssembly in @(
+        "Grpc.AspNetCore.Server.Reflection.dll",
+        "Grpc.Reflection.dll")) {
+        Assert-Condition `
+            -Condition (-not (Test-Path -LiteralPath (Join-Path $packageRoot $developmentOnlyAssembly))) `
+            -Message "The Production package contains development-only gRPC reflection assembly '$developmentOnlyAssembly'."
+    }
+    $serverDependencies = Get-Content -LiteralPath (Join-Path $packageRoot "Briosa.Server.deps.json") -Raw
+    Assert-Condition `
+        -Condition (-not $serverDependencies.Contains("Grpc.AspNetCore.Server.Reflection", [StringComparison]::Ordinal)) `
+        -Message "The Production dependency manifest includes the development reflection host."
+    Assert-Condition `
+        -Condition (-not $serverDependencies.Contains('Grpc.Reflection', [StringComparison]::Ordinal)) `
+        -Message "The Production dependency manifest includes the reflection protocol runtime."
 
     $checksumRoot = Join-Path $packageRoot "files.sha256"
     foreach ($line in Get-Content -LiteralPath $checksumRoot) {

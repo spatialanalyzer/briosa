@@ -49,6 +49,18 @@ The Wave 2 fixture covers all three point-lifecycle operations across the same p
 
 Adapter tests separately prove that a failed MP suppresses all result-only SDK getters and that a successful MP followed by a failed getter is preserved. Policy tests prove fail-closed configuration and rejection before worker startup. Error-mapper tests cover validation, policy denial, unsupported operation, disconnected SA, unavailable worker, cancellation, deadline, watchdog, worker failure, rejected `ExecuteStep`, MP failure, getter failure, and malformed result shapes.
 
+## Portable development-reflection verification
+
+Ordinary CI also builds the server in Debug and starts it twice with the portable smoke worker over ephemeral loopback ports. In `Development`, a standard reflection client verifies the health and discovery services plus every generated exact-target service and RPC. The same process-level test confirms that capability discovery still advertises only `file_operations.get_working_directory`, reflected mutating methods remain denied by policy, and unavailable identity/readiness still rejects working-directory execution. In `Production`, the reflection RPC is unimplemented even though the executable was compiled in Debug.
+
+The Release package test separately rejects `Grpc.AspNetCore.Server.Reflection.dll`, `Grpc.Reflection.dll`, and either dependency in `Briosa.Server.deps.json`. Together these checks prove the compile-time and runtime gates without installing, launching, or connecting to SpatialAnalyzer. Run the focused Debug check with:
+
+```powershell
+dotnet test tests/Briosa.Server.Tests/Briosa.Server.Tests.csproj `
+  -c Debug `
+  --filter FullyQualifiedName~DevelopmentGrpcReflectionTests
+```
+
 ## Licensed SpatialAnalyzer smoke test
 
 The licensed test is an explicit local or protected-runner action. Before running it:
