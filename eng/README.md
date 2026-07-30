@@ -12,6 +12,8 @@ Run the scripts in this directory from the repository root. Most scripts require
 
 Pass `-NoRestore` only after a locked restore. Ordinary CI runs this check separately from Release build and package verification. `Test-WindowsPackage.ps1` continues to build the Release server and worker independently and rejects the Debug launch profile, Development settings, and Debug user-secrets identity in the archive. Neither check supplies SpatialAnalyzer identity evidence or produces licensed-SA validation.
 
+For the developer success path that starts the real source server and uses standard reflection-aware clients against an already-running licensed exact-target SpatialAnalyzer instance, follow the [local gRPC server guide](../docs/development/local-grpc-server.md). That manual workflow is distinct from this portable script and from protected licensed-SA release validation.
+
 ## Complete-surface and CI-budget verification
 
 `Verify-FullSurface.ps1` is the ordinary-CI umbrella for disposition, value-family, binding-registry, scaffold, catalog-artifact, portable-conformance, release-evidence, and interop validation. It generates every configured surface twice in clean temporary roots, discovers all emitted paths, compares bytes and committed freshness, runs the existing semantic validators, and writes a fingerprinted manifest under `artifacts/full-surface`:
