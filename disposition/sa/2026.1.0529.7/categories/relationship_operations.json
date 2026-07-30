@@ -7399,23 +7399,22 @@
         "RelationshipAttributesScalarTypes"
       ],
       "inventory_entry_sha256": "592420dbff9569eb0689e49bcc8c33ad63e86ecf90a5d1762b8f09ef85e7f316",
-      "disposition": "blocked",
+      "disposition": "sdk_unavailable",
       "review_state": "reviewed",
-      "rationale": "The generated SDK shape requires an exact method absent from the exact-target interop public API; no generic substitution is inferred.",
+      "rationale": "The exact-target command requires GetSigmoidalGapConstraintOptionsArg, which is absent from the committed SA 2026.1.0529.7 interop public API. Briosa does not substitute a generic getter, so the complete command shape is unavailable through the SDK.",
       "reason_codes": [
         "read_only_operation",
-        "sdk_binding_unresolved"
+        "sdk_binding_unavailable"
       ],
       "evidence_references": [
         "sdk:RelationshipOperations_RelationshipAttributesScalarTypes.txt#8"
       ],
       "decision_references": [
         "https://github.com/spatialanalyzer/briosa/issues/51",
-        "https://github.com/spatialanalyzer/briosa/issues/53"
-      ],
-      "blocker_references": [
+        "https://github.com/spatialanalyzer/briosa/issues/53",
         "https://github.com/spatialanalyzer/briosa/issues/79"
       ],
+      "blocker_references": [],
       "risk_effect": "read_only",
       "risk_flags": [],
       "data_classifications": [
@@ -7430,20 +7429,10 @@
       ],
       "delivery_wave": null,
       "command_shape": {
-        "status": "blocked",
+        "status": "not_applicable",
         "mp_step": null,
         "arguments": [],
-        "discrepancies": [
-          {
-            "code": "exact_interop_binding_missing",
-            "argument_indexes": [
-              9
-            ],
-            "owner": "hexagon",
-            "blocker_reference": "https://github.com/spatialanalyzer/briosa/issues/79",
-            "rationale": "View SDK Code names an exact binding that is absent from the committed exact-target interop public API."
-          }
-        ]
+        "discrepancies": []
       }
     }
   ]

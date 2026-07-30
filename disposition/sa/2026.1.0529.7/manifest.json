@@ -36,7 +36,7 @@
       "category": "ConstructionOperations",
       "path": "categories/construction_operations.json",
       "entry_count": 278,
-      "sha256": "69b3d65a527bb2d9addd763531665824f9388a3ddbe308e04ce060a4afba7ed2"
+      "sha256": "23edb070604aafb83ff76a28cfe5719fbf0a2e4c01023565cf0343956759f118"
     },
     {
       "category": "DimensionOperations",
@@ -78,7 +78,7 @@
       "category": "GDT",
       "path": "categories/gdt.json",
       "entry_count": 40,
-      "sha256": "0f93568ca2d7bff7bb7a860ecc89125e24dbab33bde8d90d1c2e2f74ff3083ee"
+      "sha256": "b5a5ff9ac44165e01601204061921cb1ba609d32976006d673c65553e77684c6"
     },
     {
       "category": "GDTOperations",
@@ -132,7 +132,7 @@
       "category": "RelationshipOperations",
       "path": "categories/relationship_operations.json",
       "entry_count": 67,
-      "sha256": "8ee204602c9dc1820d3d00601313d30cf45a8eb284952977abef56e45744cae1"
+      "sha256": "16c1d1e16284ede12c94175db3efd29e5bbf9eeb92e24122e6ca1596b85988d7"
     },
     {
       "category": "ReportingOperations",

@@ -54,7 +54,7 @@ If an argument has no observed usable setter or getter, the command is `sdk_unav
 
 The reconciliation leaves two focused dependency groups:
 
-- issue #79 owns commands whose documentation/SDK evidence is incomplete or whose generated exact binding is absent from the committed interop API;
+- issue #79 owns the remaining commands whose exact-target semantics or composite return payloads still require authoritative evidence. Its static interop review finalized four commands as `sdk_unavailable` because their exact generated bindings are absent from the committed interop API, and excluded `Create Cloud Thinning Settings` because clients already construct the supported `cloud_thinning_options` value directly;
 - issue #80 retains 11 save, import/export, merge, and PDF operations as at-risk Wave 3 candidates after their exact MP steps and complete bindings were reconciled with pinned ObjectiveSA implementations. Six have controlled exact-target probe evidence and five require valid local fixtures; unavailable fixtures are not treated as exclusions. The machine-readable constraints, repeatable licensed-test matrix, and evidence boundaries are documented in [File-operation contracts](file-operation-contracts.md).
 
 The generated disposition report names every blocked command and discrepancy. Changing the inventory fingerprint moves the command back to re-review and discards its resolved shape.

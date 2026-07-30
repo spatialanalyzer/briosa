@@ -44,7 +44,7 @@ This gate uses a vendor-independent dispatch fake. It does not activate SpatialA
 
 Mixed-use methods remain `usable` when at least one non-excluded command observes them. Product-scope exclusion is command-specific and must not disable a shared binding needed by another command.
 
-The first exact-target review found six `blocked_missing_interop` methods. Issue #53 isolated their affected commands, and focused Hexagon issue #79 now owns the remaining exact-target clarification. Issue #57 records the B-spline getter/setter, projection-options setter, and point-delta-report-options setter as `blocked_semantics` because the exact release does not provide verified encodings or complete choice lists. A generated sample call is not evidence that Briosa may substitute a generic SDK method.
+The first exact-target review found six `blocked_missing_interop` methods. Issue #79 finalized their affected command rows without inventing replacements: four commands are `sdk_unavailable`, and `Create Cloud Thinning Settings` is intentionally excluded because clients already construct `cloud_thinning_options` for consumer commands that call `SetCloudThinningOptionsArg`. The registry retains all six method-level `blocked_missing_interop` facts because the generated names are still absent from the exact interop API; a final unsupported command disposition is not evidence that a method became callable. Issue #57 separately records the B-spline getter/setter, projection-options setter, and point-delta-report-options setter as `blocked_semantics` because the exact release does not provide verified encodings or complete choice lists. A generated sample call is not evidence that Briosa may substitute a generic SDK method.
 
 ## Workflow
 

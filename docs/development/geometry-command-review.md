@@ -6,19 +6,19 @@ Issue [#49](https://github.com/spatialanalyzer/briosa/issues/49) reviews the exa
 
 | Disposition | Commands |
 | --- | ---: |
-| Approved candidate | 220 |
-| Blocked | 156 |
-| Intentional exclusion | 36 |
-| SDK unavailable | 38 |
+| Approved candidate | 279 |
+| Blocked | 40 |
+| Intentional exclusion | 37 |
+| SDK unavailable | 94 |
 
 Approved candidates are assigned to the risk-ordered delivery plan:
 
 | Delivery wave | Commands |
 | --- | ---: |
-| Wave 1: low-risk read-only queries | 48 |
-| Wave 2: non-device state and geometry mutations | 98 |
+| Wave 1: low-risk read-only queries | 65 |
+| Wave 2: non-device state and geometry mutations | 132 |
 | Wave 3: dimension, GD&T, relationship, callout, and filesystem operations | 44 |
-| Wave 4: interactive or potentially long-running operations | 30 |
+| Wave 4: interactive or potentially long-running operations | 38 |
 
 These are candidate and scheduling decisions, not public API support. Catalog promotion, generated contracts, runtime policy, and operation tests remain separate gates.
 

@@ -35,5 +35,5 @@ Exact-target evidence has precedence. The current ObjectiveSA wrapper is useful 
 - Shared SDK method names no longer collapse distinct public semantics.
 - The same native call path remains direct and allocation-light; family selection happens in generated code, not through runtime reflection or catalog lookup.
 - Unknown returned type strings fail closed rather than leaking as raw public strings.
-- `SetItemTypeArg` remains blocked under issue #79 while composite collection-item values remain implementable.
+- The standalone command that requires the absent `SetItemTypeArg` is `sdk_unavailable`; composite collection-item values remain implementable through their exact shared bindings.
 - Adding another exact SA target requires independent object/item member evidence and command-argument assignments.

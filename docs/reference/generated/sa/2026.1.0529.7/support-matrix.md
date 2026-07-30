@@ -13,9 +13,9 @@ Cataloged operations require a separately installed and licensed exact-target Sp
 | Inventory commands | 1412 |
 | Cataloged, portable-only operations | 13 |
 | Approved candidates not cataloged | 671 |
-| Blocked | 45 |
-| Intentional exclusions | 476 |
-| SDK unavailable | 207 |
+| Blocked | 40 |
+| Intentional exclusions | 477 |
+| SDK unavailable | 211 |
 
 ## Exact command matrix
 
@@ -344,7 +344,7 @@ Cataloged operations require a separately installed and licensed exact-target Sp
 | `documentation:ConstructionOperations/OtherMPTypes/MakeACollectionInstrumentIDRuntime.htm` | Make a Collection Instrument ID - Runtime Select | ConstructionOperations / OtherMPTypes | `intentional_exclusion` | — | `unknown` (unknown) | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/OtherMPTypes/MakeACollectionInstrumentReferenceListRuntime.htm` | Make a Collection Instrument Reference List - Runtime Select | ConstructionOperations / OtherMPTypes | `intentional_exclusion` | — | `unknown` (unknown) | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/OtherMPTypes/MakeACollectionItemName.htm` | Make a Collection Item Name from Strings | ConstructionOperations / OtherMPTypes | `intentional_exclusion` | — | `unknown` (unknown) | `not_applicable` | `not_applicable` |
-| `documentation:ConstructionOperations/OtherMPTypes/MakeACollectionItemNameReference.htm` | Make a Collection Item Name Reference List - Wildcard Selection | ConstructionOperations / OtherMPTypes | `blocked` | — | `read_only` | `not_applicable` | `not_applicable` |
+| `documentation:ConstructionOperations/OtherMPTypes/MakeACollectionItemNameReference.htm` | Make a Collection Item Name Reference List - Wildcard Selection | ConstructionOperations / OtherMPTypes | `sdk_unavailable` | — | `read_only` | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/OtherMPTypes/MakeACollectionMachineID.htm` | Make a Collection Machine ID from a Collection and an Integer | ConstructionOperations / OtherMPTypes | `intentional_exclusion` | — | `unknown` (unknown) | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/OtherMPTypes/MakeACollectionNameRuntime.htm` | Make a Collection Name - Runtime Select | ConstructionOperations / OtherMPTypes | `intentional_exclusion` | — | `unknown` (unknown) | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/OtherMPTypes/MakeACollectionObjectName.htm` | Make a Collection Object Name - Runtime Select | ConstructionOperations / OtherMPTypes | `intentional_exclusion` | — | `unknown` (unknown) | `not_applicable` | `not_applicable` |
@@ -464,7 +464,7 @@ Cataloged operations require a separately installed and licensed exact-target Sp
 | `documentation:ConstructionOperations/PointsandGroups/GetHiddenPointRodIndexbyName.htm` | Get Hidden Point Rod Index by Name | ConstructionOperations / PointsandGroups | `approved_not_cataloged` | — | `read_only` | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/PointsandGroups/SetPointPositioninWorkingCoordinates.htm` | Set Point Position in Working Coordinates | ConstructionOperations / PointsandGroups | `sdk_unavailable` | — | `mutating` | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/PointsandGroups/TransformPointsbyDelta.htm` | Transform Points by Delta (About Working Frame) | ConstructionOperations / PointsandGroups | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
-| `documentation:ConstructionOperations/PolygonizedSurfaces/ConstructPolygonizedSurfacefromPointClouds.htm` | Construct Polygonized Surface from Point Clouds | ConstructionOperations / PolygonizedSurfaces | `blocked` | — | `mutating` (long_running) | `not_applicable` | `not_applicable` |
+| `documentation:ConstructionOperations/PolygonizedSurfaces/ConstructPolygonizedSurfacefromPointClouds.htm` | Construct Polygonized Surface from Point Clouds | ConstructionOperations / PolygonizedSurfaces | `sdk_unavailable` | — | `mutating` (long_running) | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/RenameCollection.htm` | Rename Collection | ConstructionOperations | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/RenameItem.htm` | Rename Item | ConstructionOperations | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/RenameObject.htm` | Rename Object | ConstructionOperations | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
@@ -695,7 +695,7 @@ Cataloged operations require a separately installed and licensed exact-target Sp
 | `documentation:GDT/SetFeatureCheckReporting.htm` | Set Feature Check Reporting Options | GDT | `sdk_unavailable` | — | `mutating` | `not_applicable` | `not_applicable` |
 | `documentation:GDT/SetFeatureCheckReportingFrame.htm` | Set Feature Check Reporting Frame | GDT | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
 | `documentation:GDT/SetGDTExtendedOps.htm` | Set GD&T Extended Options | GDT | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
-| `documentation:GDT/SetGDTOptions.htm` | Set GD&T Options | GDT | `blocked` | — | `mutating` | `not_applicable` | `not_applicable` |
+| `documentation:GDT/SetGDTOptions.htm` | Set GD&T Options | GDT | `sdk_unavailable` | — | `mutating` | `not_applicable` | `not_applicable` |
 | `documentation:GDT/StartStopFeatureCheckTrapping.htm` | Start/Stop Feature Check Trapping | GDT | `intentional_exclusion` | — | `unknown` (interactive_ui) | `not_applicable` | `not_applicable` |
 | `documentation:GoogleSheets/CloseAllGoogleSheetsSpreadsheets.htm` | Close All Google Sheets Spreadsheets | GoogleSheets | `intentional_exclusion` | — | `unknown` (unknown) | `not_applicable` | `not_applicable` |
 | `documentation:GoogleSheets/CloseGoogleSheetsSpreadsheet.htm` | Close Google Sheets Spreadsheet | GoogleSheets | `intentional_exclusion` | — | `unknown` (unknown) | `not_applicable` | `not_applicable` |
@@ -1347,7 +1347,7 @@ Cataloged operations require a separately installed and licensed exact-target Sp
 | `sdk:ConstructionOperations_OtherMPTypes.txt#43` | Make a Relationship Reference List- Runtime Select | ConstructionOperations / OtherMPTypes | `intentional_exclusion` | — | `unknown` (unknown) | `not_applicable` | `not_applicable` |
 | `sdk:ConstructionOperations_OtherMPTypes.txt#55` | Make a Transform from Doubles (Euler Parameters) | ConstructionOperations / OtherMPTypes | `intentional_exclusion` | — | `unknown` (unknown) | `not_applicable` | `not_applicable` |
 | `sdk:ConstructionOperations_Planes.txt#4` | Construct Planes, Bisect 2 Planes | ConstructionOperations / Planes | `blocked` | — | `mutating` | `not_applicable` | `not_applicable` |
-| `sdk:ConstructionOperations_PointClouds.txt#11` | Create Cloud Thinning Settings | ConstructionOperations / PointClouds | `blocked` | — | `mutating` | `not_applicable` | `not_applicable` |
+| `sdk:ConstructionOperations_PointClouds.txt#11` | Create Cloud Thinning Settings | ConstructionOperations / PointClouds | `intentional_exclusion` | — | `mutating` | `not_applicable` | `not_applicable` |
 | `sdk:ConstructionOperations_PointClouds.txt#5` | Construct Point Cloud from Visible Cloud Points | ConstructionOperations / PointClouds | `blocked` | — | `mutating` (long_running) | `not_applicable` | `not_applicable` |
 | `sdk:ConstructionOperations_PointsAndGroups.txt#26` | Construct Points By Projecting Points On Mesh Along Direction | ConstructionOperations / PointsAndGroups | `blocked` | — | `mutating` | `not_applicable` | `not_applicable` |
 | `sdk:DimensionOperations.txt#12` | Set Dimension Tolerance | DimensionOperations | `blocked` | — | `mutating` | `not_applicable` | `not_applicable` |
@@ -1394,7 +1394,7 @@ Cataloged operations require a separately installed and licensed exact-target Sp
 | `sdk:RelationshipOperations_RelationshipAttributes.txt#13` | Get Geom Relationship Criteria Name List | RelationshipOperations / RelationshipAttributes | `approved_not_cataloged` | — | `read_only` | `not_applicable` | `not_applicable` |
 | `sdk:RelationshipOperations_RelationshipAttributes.txt#35` | Get Relationship Status | RelationshipOperations / RelationshipAttributes | `approved_not_cataloged` | — | `read_only` | `not_applicable` | `not_applicable` |
 | `sdk:RelationshipOperations_RelationshipAttributesScalarTypes.txt#10` | Set Object to Object Direction Relationship Tolerances | RelationshipOperations / RelationshipAttributesScalarTypes | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
-| `sdk:RelationshipOperations_RelationshipAttributesScalarTypes.txt#8` | Get Relationship Sigmoidal Gap Fit Constraints | RelationshipOperations / RelationshipAttributesScalarTypes | `blocked` | — | `read_only` | `not_applicable` | `not_applicable` |
+| `sdk:RelationshipOperations_RelationshipAttributesScalarTypes.txt#8` | Get Relationship Sigmoidal Gap Fit Constraints | RelationshipOperations / RelationshipAttributesScalarTypes | `sdk_unavailable` | — | `read_only` | `not_applicable` | `not_applicable` |
 | `sdk:ReportingOperations.txt#22` | Refresh Callout Views in SA Report | ReportingOperations | `approved_not_cataloged` | — | `mutating` (interactive_ui) | `not_applicable` | `not_applicable` |
 | `sdk:RobotCalibrationApplianceNodeOperations.txt#1` | Add Calibration Appliance Node | RobotCalibrationApplianceNodeOperations | `approved_not_cataloged` | — | `mutating` (device_control, network_access) | `not_applicable` | `not_applicable` |
 | `sdk:RobotCalibrationApplianceNodeOperations.txt#10` | Set Calibration Appliance Node Measurement Frame | RobotCalibrationApplianceNodeOperations | `approved_not_cataloged` | — | `mutating` (device_control, network_access) | `not_applicable` | `not_applicable` |

@@ -78,7 +78,7 @@
     },
     {
       "path": "disposition/sa/2026.1.0529.7/categories/construction_operations.json",
-      "sha256": "69b3d65a527bb2d9addd763531665824f9388a3ddbe308e04ce060a4afba7ed2"
+      "sha256": "23edb070604aafb83ff76a28cfe5719fbf0a2e4c01023565cf0343956759f118"
     },
     {
       "path": "disposition/sa/2026.1.0529.7/categories/dimension_operations.json",
@@ -106,7 +106,7 @@
     },
     {
       "path": "disposition/sa/2026.1.0529.7/categories/gdt.json",
-      "sha256": "0f93568ca2d7bff7bb7a860ecc89125e24dbab33bde8d90d1c2e2f74ff3083ee"
+      "sha256": "b5a5ff9ac44165e01601204061921cb1ba609d32976006d673c65553e77684c6"
     },
     {
       "path": "disposition/sa/2026.1.0529.7/categories/gdtoperations.json",
@@ -142,7 +142,7 @@
     },
     {
       "path": "disposition/sa/2026.1.0529.7/categories/relationship_operations.json",
-      "sha256": "8ee204602c9dc1820d3d00601313d30cf45a8eb284952977abef56e45744cae1"
+      "sha256": "16c1d1e16284ede12c94175db3efd29e5bbf9eeb92e24122e6ca1596b85988d7"
     },
     {
       "path": "disposition/sa/2026.1.0529.7/categories/reporting_operations.json",
@@ -182,11 +182,11 @@
     },
     {
       "path": "disposition/sa/2026.1.0529.7/manifest.json",
-      "sha256": "a17db941f33793f346c6172882c7c826b2b70609f033dd8de8a8bce7ec9044b0"
+      "sha256": "50c5c70e15d494d42cddfc5343d1a833019d4506c39878e984920915a9d255d6"
     },
     {
       "path": "generated/conformance/sa/2026.1.0529.7/manifest.json",
-      "sha256": "ba2a2d103c59c9111e94730a33b6aad2bb9215de1eeb7d4d9b912705424613d2"
+      "sha256": "05e8bb90fed74a6e9151b69ee7785bd6814b5ae0110f28555251449e26e84d14"
     },
     {
       "path": "inventory/sa/2026.1.0529.7/inventory.json",
@@ -198,9 +198,9 @@
     "cataloged_operations": 13,
     "approved_candidates": 684,
     "approved_not_cataloged": 671,
-    "blocked": 45,
-    "intentional_exclusions": 476,
-    "sdk_unavailable": 207,
+    "blocked": 40,
+    "intentional_exclusions": 477,
+    "sdk_unavailable": 211,
     "portable_validated_cataloged_operations": 13,
     "protected_validated_cataloged_operations": 0
   },
@@ -7791,9 +7791,9 @@
         "ConstructionOperations",
         "OtherMPTypes"
       ],
-      "disposition": "blocked",
+      "disposition": "sdk_unavailable",
       "review_state": "reviewed",
-      "release_classification": "blocked",
+      "release_classification": "sdk_unavailable",
       "operation_id": null,
       "risk_effect": "read_only",
       "risk_flags": [],
@@ -7805,9 +7805,7 @@
         "portable": "not_applicable",
         "protected_spatial_analyzer": "not_applicable"
       },
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/79"
-      ]
+      "blocker_references": []
     },
     {
       "inventory_key": "documentation:ConstructionOperations/OtherMPTypes/MakeACollectionMachineID.htm",
@@ -10715,9 +10713,9 @@
         "ConstructionOperations",
         "PolygonizedSurfaces"
       ],
-      "disposition": "blocked",
+      "disposition": "sdk_unavailable",
       "review_state": "reviewed",
-      "release_classification": "blocked",
+      "release_classification": "sdk_unavailable",
       "operation_id": null,
       "risk_effect": "mutating",
       "risk_flags": [
@@ -10731,9 +10729,7 @@
         "portable": "not_applicable",
         "protected_spatial_analyzer": "not_applicable"
       },
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/79"
-      ]
+      "blocker_references": []
     },
     {
       "inventory_key": "documentation:ConstructionOperations/RenameCollection.htm",
@@ -16322,9 +16318,9 @@
       "category_path": [
         "GDT"
       ],
-      "disposition": "blocked",
+      "disposition": "sdk_unavailable",
       "review_state": "reviewed",
-      "release_classification": "blocked",
+      "release_classification": "sdk_unavailable",
       "operation_id": null,
       "risk_effect": "mutating",
       "risk_flags": [],
@@ -16336,9 +16332,7 @@
         "portable": "not_applicable",
         "protected_spatial_analyzer": "not_applicable"
       },
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/79"
-      ]
+      "blocker_references": []
     },
     {
       "inventory_key": "documentation:GDT/StartStopFeatureCheckTrapping.htm",
@@ -31747,9 +31741,9 @@
         "ConstructionOperations",
         "PointClouds"
       ],
-      "disposition": "blocked",
+      "disposition": "intentional_exclusion",
       "review_state": "reviewed",
-      "release_classification": "blocked",
+      "release_classification": "intentional_exclusion",
       "operation_id": null,
       "risk_effect": "mutating",
       "risk_flags": [],
@@ -31761,9 +31755,7 @@
         "portable": "not_applicable",
         "protected_spatial_analyzer": "not_applicable"
       },
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/79"
-      ]
+      "blocker_references": []
     },
     {
       "inventory_key": "sdk:ConstructionOperations_PointClouds.txt#5",
@@ -32867,9 +32859,9 @@
         "RelationshipOperations",
         "RelationshipAttributesScalarTypes"
       ],
-      "disposition": "blocked",
+      "disposition": "sdk_unavailable",
       "review_state": "reviewed",
-      "release_classification": "blocked",
+      "release_classification": "sdk_unavailable",
       "operation_id": null,
       "risk_effect": "read_only",
       "risk_flags": [],
@@ -32881,9 +32873,7 @@
         "portable": "not_applicable",
         "protected_spatial_analyzer": "not_applicable"
       },
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/79"
-      ]
+      "blocker_references": []
     },
     {
       "inventory_key": "sdk:ReportingOperations.txt#22",

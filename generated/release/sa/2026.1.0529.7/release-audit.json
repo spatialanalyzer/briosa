@@ -52,7 +52,7 @@
     },
     {
       "path": "generated/release/sa/2026.1.0529.7/support-matrix.json",
-      "sha256": "e92bb69cea2fc12629c749d6276819c20273a03ce1a84ed33e41a0cb3efa0c16"
+      "sha256": "966deb860fe0acac55d3fd1b84a10f57401864394e242eddc03e05fbcd6b9623"
     },
     {
       "path": "release/sa/2026.1.0529.7/audit-policy.json",
