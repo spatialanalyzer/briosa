@@ -74,7 +74,7 @@
     },
     {
       "path": "disposition/sa/2026.1.0529.7/categories/event_operations.json",
-      "sha256": "8fec7d630743f49438307bfd61f8a038f4910036e73197b28daa2dd7d3c04b37"
+      "sha256": "57d14e8659800753a588d113fdaedbb409b0eb27f15e3de19aca51910a39a536"
     },
     {
       "path": "disposition/sa/2026.1.0529.7/categories/events.json",
@@ -86,7 +86,7 @@
     },
     {
       "path": "disposition/sa/2026.1.0529.7/categories/file_operations.json",
-      "sha256": "d73eecf780d44b5018d6acff2e6b191b2b7525acf26ce052fbe0ee40e6b94f48"
+      "sha256": "bad9c24dce7e080c5e97f9ae3938697dc1d7dda6919ec40d7dbc73543d6207ac"
     },
     {
       "path": "disposition/sa/2026.1.0529.7/categories/gdt.json",
@@ -122,7 +122,7 @@
     },
     {
       "path": "disposition/sa/2026.1.0529.7/categories/process_flow_operations.json",
-      "sha256": "037ec86976fa2c36c5b3b40611bfbc9e2c265ce5e42415b61f7c8f21cf2a77fa"
+      "sha256": "93ef4d90144d45e10bf46627fc2c21519d0ffca626c58f71015549ab98c3906a"
     },
     {
       "path": "disposition/sa/2026.1.0529.7/categories/relationship_operations.json",
@@ -166,11 +166,11 @@
     },
     {
       "path": "disposition/sa/2026.1.0529.7/manifest.json",
-      "sha256": "b3121b51b9ed8656ee7e8799fcf84fd30b9fe9b3c5c97025389a82fd5e1f535f"
+      "sha256": "a17db941f33793f346c6172882c7c826b2b70609f033dd8de8a8bce7ec9044b0"
     },
     {
       "path": "generated/conformance/sa/2026.1.0529.7/manifest.json",
-      "sha256": "7751be4e429845ac79f870d2321679972328e6f65869626404ea2237ca4005ee"
+      "sha256": "c2c81c5330c9e17282183d005a591b3633eef7d643e26bdcf3fd994d7ec52f52"
     },
     {
       "path": "inventory/sa/2026.1.0529.7/inventory.json",
@@ -180,10 +180,10 @@
   "counts": {
     "inventory_commands": 1412,
     "cataloged_operations": 9,
-    "approved_candidates": 677,
-    "approved_not_cataloged": 668,
+    "approved_candidates": 684,
+    "approved_not_cataloged": 675,
     "blocked": 45,
-    "intentional_exclusions": 483,
+    "intentional_exclusions": 476,
     "sdk_unavailable": 207,
     "portable_validated_cataloged_operations": 9,
     "protected_validated_cataloged_operations": 0
@@ -14881,9 +14881,9 @@
       "category_path": [
         "FileOperations"
       ],
-      "disposition": "intentional_exclusion",
+      "disposition": "approved_candidate",
       "review_state": "reviewed",
-      "release_classification": "intentional_exclusion",
+      "release_classification": "approved_not_cataloged",
       "operation_id": null,
       "risk_effect": "mutating",
       "risk_flags": [
@@ -15249,9 +15249,9 @@
         "FileOperations",
         "XML"
       ],
-      "disposition": "intentional_exclusion",
+      "disposition": "approved_candidate",
       "review_state": "reviewed",
-      "release_classification": "intentional_exclusion",
+      "release_classification": "approved_not_cataloged",
       "operation_id": null,
       "risk_effect": "mutating",
       "risk_flags": [
@@ -15275,9 +15275,9 @@
         "FileOperations",
         "XML"
       ],
-      "disposition": "intentional_exclusion",
+      "disposition": "approved_candidate",
       "review_state": "reviewed",
-      "release_classification": "intentional_exclusion",
+      "release_classification": "approved_not_cataloged",
       "operation_id": null,
       "risk_effect": "mutating",
       "risk_flags": [
@@ -31807,9 +31807,9 @@
       "category_path": [
         "EventOperations"
       ],
-      "disposition": "intentional_exclusion",
+      "disposition": "approved_candidate",
       "review_state": "reviewed",
-      "release_classification": "intentional_exclusion",
+      "release_classification": "approved_not_cataloged",
       "operation_id": null,
       "risk_effect": "read_only",
       "risk_flags": [
@@ -31905,9 +31905,9 @@
         "FileOperations",
         "FileExport"
       ],
-      "disposition": "intentional_exclusion",
+      "disposition": "approved_candidate",
       "review_state": "reviewed",
-      "release_classification": "intentional_exclusion",
+      "release_classification": "approved_not_cataloged",
       "operation_id": null,
       "risk_effect": "read_only",
       "risk_flags": [
@@ -31931,9 +31931,9 @@
         "FileOperations",
         "FileImport"
       ],
-      "disposition": "intentional_exclusion",
+      "disposition": "approved_candidate",
       "review_state": "reviewed",
-      "release_classification": "intentional_exclusion",
+      "release_classification": "approved_not_cataloged",
       "operation_id": null,
       "risk_effect": "mutating",
       "risk_flags": [
@@ -31957,9 +31957,9 @@
         "FileOperations",
         "FileImport"
       ],
-      "disposition": "intentional_exclusion",
+      "disposition": "approved_candidate",
       "review_state": "reviewed",
-      "release_classification": "intentional_exclusion",
+      "release_classification": "approved_not_cataloged",
       "operation_id": null,
       "risk_effect": "mutating",
       "risk_flags": [

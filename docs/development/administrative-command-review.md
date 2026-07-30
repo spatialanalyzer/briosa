@@ -6,9 +6,9 @@ Issue [#51](https://github.com/spatialanalyzer/briosa/issues/51) reviews the fin
 
 | Disposition | Commands |
 | --- | ---: |
-| Approved candidate | 218 |
+| Approved candidate | 225 |
 | Blocked | 1 |
-| Intentional exclusion | 83 |
+| Intentional exclusion | 76 |
 | SDK unavailable | 69 |
 
 Approved candidates are assigned to the risk-ordered delivery plan:
@@ -28,7 +28,7 @@ Candidate status is not public support. This review does not promote a new opera
 - Generic filesystem manipulation, ODBC access, arbitrary program or PowerShell execution, raw ASCII serialization, DataShare integration, application-chrome control, notifications, and MP runtime control flow remain client-owned intentional exclusions.
 - Briosa does not expose a public command that shuts down the separately installed SpatialAnalyzer application.
 - Operator-driven relationship watch and trapping workflows are excluded. `Relationship Watch Window Template` is additionally excluded because its exact-target shape includes SA-hosted UDP integration.
-- Issue #80 finalized 11 ambiguous save, merge, PDF, and SDK-only import/export variants after controlled SA 2026.1.0529.7 validation: four have performed, constrained Wave 3 candidate contracts and seven are intentional exclusions. None retains an issue #80 blocker. See [the file-operation contract review](file-operation-contracts.md); candidate status does not make an operation publicly supported.
+- Issue #80 retains all 11 ambiguous save, merge, PDF, and SDK-only import/export variants as at-risk Wave 3 candidates after exact ObjectiveSA parity review. Six have controlled SA 2026.1.0529.7 probe evidence; five await valid local fixtures. None retains an issue #80 blocker, but candidate status does not make an operation publicly supported. See [the file-operation contract review](file-operation-contracts.md).
 - An absent exact-target SDK occurrence or explicit unavailable required input produces `sdk_unavailable`. Other direction, ordinal, getter, setter, or semantic conflicts remain command-scoped blockers linked only to issue #53.
 
 ## Filesystem and administrative policy gate

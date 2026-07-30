@@ -147,7 +147,18 @@ dotnet run --project tools/Briosa.Generator -c Release -- disposition-sync <inve
 
 See [the command disposition review guide](../docs/development/command-dispositions.md) before editing category decisions.
 
-Optional disposition `operation_contract` metadata is also semantic input. Its decision must match the disposition; constraint and evidence-limitation codes must be sorted; and validation status must truthfully distinguish documentation review from an authorized live probe. The generated catalog scaffolds preserve candidate contracts. Issue #80's final ledger records `performed` only for the six commands exercised by controlled exact-target probes and retains `not_performed` for the five exclusions that did not need or lacked a sanctioned fixture; see [the file-operation contract review](../docs/development/file-operation-contracts.md).
+Optional disposition `operation_contract` metadata is also semantic input. Its decision must match the disposition; constraint and evidence-limitation codes must be sorted; and validation status must truthfully distinguish documentation review from an authorized live probe. The generated catalog scaffolds preserve candidate contracts. Issue #80 retains all eleven ObjectiveSA-matched operations as at-risk candidates, records `performed` only for the six commands exercised by controlled exact-target probes, and keeps the remaining five explicitly `not_performed`; see [the file-operation contract review](../docs/development/file-operation-contracts.md).
+
+`Test-LicensedFileOperations.ps1` is the explicit opt-in local integration runner for the eleven issue #80 commands. It requires the pinned ObjectiveSA checkout, exact SA 2026.1.0529.7 binaries, explicit confirmation, zero pre-existing SA/SDK/Briosa processes, and one scenario per fresh disposable SA generation. Five fixture-dependent scenarios require a local descriptor; unavailable XML, event, VSTARS, or Polyworks fixtures remain at-risk gaps rather than passing tests or exclusions. The point-set scenario repeatably verifies the observed wrong-type rejection with a generated point group; successful point-set export remains unverified. The runner emits structural status only and removes its disposable outputs.
+
+```powershell
+./eng/Test-LicensedFileOperations.ps1 `
+  -Scenario save `
+  -ObjectiveSARoot C:\git\objectivesa `
+  -ConfirmLicensedSpatialAnalyzerTest
+```
+
+Run it from 64-bit PowerShell 7 (`pwsh`) with Visual Studio/MSBuild available. Fixture paths must be absolute existing files and may contain spaces; see the integration-test README and fixture schema for the per-scenario `job_path`, `input_path`, `object`, and `items` shape. A nonzero exit includes call failure, watchdog expiry, result mismatch, cleanup failure, or residual relevant processes.
 
 ## SDK binding registry verification
 

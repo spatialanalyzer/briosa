@@ -50,7 +50,7 @@ public sealed class CommandDispositionLedgerTests
         Assert.Equal(421, summary["corroborated_default_count"]!.GetValue<int>());
         Assert.Equal(314, summary["reviewed_no_default_count"]!.GetValue<int>());
         Assert.Equal(0, summary["needs_review_count"]!.GetValue<int>());
-        Assert.Equal(1296, summary["no_candidate_count"]!.GetValue<int>());
+        Assert.Equal(1319, summary["no_candidate_count"]!.GetValue<int>());
         Assert.Empty(queue["entries"]!.AsArray());
     }
 
@@ -94,7 +94,7 @@ public sealed class CommandDispositionLedgerTests
         Assert.Equal(7, directionDispositions["approved_candidate"]);
         Assert.Equal(8, directionDispositions["intentional_exclusion"]);
         Assert.Equal(1, directionDispositions["sdk_unavailable"]);
-        Assert.Equal(677, candidates.Length);
+        Assert.Equal(684, candidates.Length);
         Assert.Equal(45, blocked.Length);
         Assert.Equal(207, entries.Count(entry => entry.Disposition == "sdk_unavailable"));
         Assert.Equal(
@@ -109,7 +109,7 @@ public sealed class CommandDispositionLedgerTests
             Assert.Empty(entry.CommandShape.Discrepancies);
             Assert.Contains(issue53, entry.DecisionReferences);
         });
-        Assert.Equal(1546, inputs.Count(input => input.Presence == "required"));
+        Assert.Equal(1569, inputs.Count(input => input.Presence == "required"));
         Assert.Equal(485, inputs.Count(input => input.Presence == "optional"));
         Assert.Equal(64, inputs.Count(input => input.OmissionBehavior == "omit_sdk_setter"));
         Assert.Equal(421, inputs.Count(input => input.Default.Status == "reviewed"));
@@ -284,7 +284,7 @@ public sealed class CommandDispositionLedgerTests
             entries,
             "FileOperations",
             "Import Nominals from XML File",
-            "intentional_exclusion");
+            "approved_candidate");
         AssertDisposition(
             entries,
             "ConstructionOperations",
@@ -488,13 +488,13 @@ public sealed class CommandDispositionLedgerTests
             .ToArray();
 
         Assert.Equal(371, reviewed.Length);
-        Assert.Equal(218, reviewed.Count(entry => entry.Disposition == "approved_candidate"));
+        Assert.Equal(225, reviewed.Count(entry => entry.Disposition == "approved_candidate"));
         Assert.Equal(1, reviewed.Count(entry => entry.Disposition == "blocked"));
-        Assert.Equal(83, reviewed.Count(entry => entry.Disposition == "intentional_exclusion"));
+        Assert.Equal(76, reviewed.Count(entry => entry.Disposition == "intentional_exclusion"));
         Assert.Equal(69, reviewed.Count(entry => entry.Disposition == "sdk_unavailable"));
         Assert.Equal(35, reviewed.Count(entry => entry.DeliveryWave == "wave_1"));
         Assert.Equal(97, reviewed.Count(entry => entry.DeliveryWave == "wave_2"));
-        Assert.Equal(12, reviewed.Count(entry => entry.DeliveryWave == "wave_3"));
+        Assert.Equal(19, reviewed.Count(entry => entry.DeliveryWave == "wave_3"));
         Assert.Equal(74, reviewed.Count(entry => entry.DeliveryWave == "wave_4"));
 
         Assert.Equal(1412, entries.Length);
@@ -530,7 +530,7 @@ public sealed class CommandDispositionLedgerTests
         AssertDisposition(entries, "FileOperations", "Export IGES File - Entire Model", "approved_candidate");
         AssertDisposition(entries, "FileOperations", "Save As", "approved_candidate");
         AssertDisposition(entries, "FileOperations", "Run Powershell Script", "intentional_exclusion");
-        AssertDisposition(entries, "EventOperations", "Export Event Ref List", "intentional_exclusion");
+        AssertDisposition(entries, "EventOperations", "Export Event Ref List", "approved_candidate");
         AssertDisposition(entries, "ProcessFlowOperations", "Output SA Report to PDF", "approved_candidate");
         AssertDisposition(
             entries,
@@ -586,7 +586,7 @@ public sealed class CommandDispositionLedgerTests
     }
 
     [Fact]
-    public void Issue80RecordsFinalFileOperationContractsFromExactTargetEvidence()
+    public void Issue80RecordsAtRiskCandidatesWithTruthfulFixtureEvidence()
     {
         const string issue80 = "https://github.com/spatialanalyzer/briosa/issues/80";
         var entries = ReadCommittedEntries();
@@ -595,14 +595,25 @@ public sealed class CommandDispositionLedgerTests
             .ToArray();
 
         Assert.Equal(11, reviewed.Length);
-        Assert.Equal(4, reviewed.Count(entry => entry.Disposition == "approved_candidate"));
-        Assert.Equal(7, reviewed.Count(entry => entry.Disposition == "intentional_exclusion"));
-        Assert.DoesNotContain(reviewed, entry => entry.Disposition == "blocked");
+        Assert.All(reviewed, entry => Assert.Equal("approved_candidate", entry.Disposition));
         Assert.All(reviewed, entry =>
         {
             Assert.NotNull(entry.OperationContract);
             Assert.NotEmpty(entry.OperationContract.Constraints);
             Assert.Empty(entry.BlockerReferences);
+            Assert.Equal("wave_3", entry.DeliveryWave);
+            Assert.Equal("constrained_candidate", entry.OperationContract.Decision);
+            Assert.Equal("resolved", entry.CommandShape!.Status);
+            Assert.Contains("at_risk_candidate", entry.ReasonCodes, StringComparer.Ordinal);
+            Assert.Contains("objectivesa_parity_reviewed", entry.ReasonCodes, StringComparer.Ordinal);
+            Assert.All(
+                entry.CommandShape.Arguments.Where(argument => argument.Input is not null),
+                argument =>
+                {
+                    Assert.Equal("required", argument.Input!.Presence);
+                    Assert.Equal("reject_request", argument.Input.OmissionBehavior);
+                    Assert.Equal("none", argument.Input.Default.Status);
+                });
             if (entry.OperationContract.ValidationStatus == "performed")
             {
                 Assert.DoesNotContain(
@@ -621,35 +632,24 @@ public sealed class CommandDispositionLedgerTests
         });
 
         var approvedKeys = reviewed
-            .Where(entry => entry.Disposition == "approved_candidate")
             .Select(entry => entry.InventoryKey)
             .OrderBy(key => key, StringComparer.Ordinal)
             .ToArray();
         Assert.Equal(
             [
+                "documentation:FileOperations/Save.htm",
                 "documentation:FileOperations/SaveAs.htm",
                 "documentation:FileOperations/SaveAsReadOnlyTemplate.htm",
+                "documentation:FileOperations/XML/ImportNominalsFromXMLFile.htm",
+                "documentation:FileOperations/XML/MergeMeasurementsintoXML.htm",
                 "documentation:ProcessFlowOperations/OutputSAReportToPDF.htm",
-                "sdk:FileOperations_FileExport.txt#1"
+                "sdk:EventOperations.txt#4",
+                "sdk:FileOperations_FileExport.txt#1",
+                "sdk:FileOperations_FileExport.txt#2",
+                "sdk:FileOperations_FileImport.txt#16",
+                "sdk:FileOperations_FileImport.txt#19"
             ],
             approvedKeys);
-        Assert.All(
-            reviewed.Where(entry => entry.Disposition == "approved_candidate"),
-            entry =>
-            {
-                Assert.Equal("wave_3", entry.DeliveryWave);
-                Assert.Equal("constrained_candidate", entry.OperationContract!.Decision);
-                Assert.Equal("performed", entry.OperationContract.ValidationStatus);
-                Assert.Equal("resolved", entry.CommandShape!.Status);
-                Assert.All(
-                    entry.CommandShape.Arguments.Where(argument => argument.Input is not null),
-                    argument =>
-                    {
-                        Assert.Equal("required", argument.Input!.Presence);
-                        Assert.Equal("reject_request", argument.Input.OmissionBehavior);
-                        Assert.Equal("none", argument.Input.Default.Status);
-                    });
-            });
 
         var performedKeys = reviewed
             .Where(entry => entry.OperationContract!.ValidationStatus == "performed")
@@ -658,10 +658,10 @@ public sealed class CommandDispositionLedgerTests
             .ToArray();
         Assert.Equal(
             [
+                "documentation:FileOperations/Save.htm",
                 "documentation:FileOperations/SaveAs.htm",
                 "documentation:FileOperations/SaveAsReadOnlyTemplate.htm",
                 "documentation:ProcessFlowOperations/OutputSAReportToPDF.htm",
-                "sdk:EventOperations.txt#4",
                 "sdk:FileOperations_FileExport.txt#1",
                 "sdk:FileOperations_FileExport.txt#2"
             ],
@@ -670,14 +670,19 @@ public sealed class CommandDispositionLedgerTests
         var save = Assert.Single(
             reviewed,
             entry => entry.InventoryKey == "documentation:FileOperations/Save.htm");
-        Assert.Equal("intentional_exclusion", save.Disposition);
         Assert.Contains("interactive_ui", save.RiskFlags, StringComparer.Ordinal);
-        Assert.Equal("intentional_exclusion", save.OperationContract!.Decision);
+        Assert.Contains(
+            "named_job_required_before_enqueue",
+            save.OperationContract!.Constraints,
+            StringComparer.Ordinal);
+        Assert.Contains(
+            "unnamed_job_rejected_to_prevent_modal_save_as",
+            save.OperationContract.Constraints,
+            StringComparer.Ordinal);
 
         var pointSet = Assert.Single(
             reviewed,
             entry => entry.InventoryKey == "sdk:FileOperations_FileExport.txt#2");
-        Assert.Equal("intentional_exclusion", pointSet.Disposition);
         Assert.Contains(
             "typed_point_set_container_required",
             pointSet.OperationContract!.Constraints,
@@ -690,7 +695,6 @@ public sealed class CommandDispositionLedgerTests
         var eventExport = Assert.Single(
             reviewed,
             entry => entry.InventoryKey == "sdk:EventOperations.txt#4");
-        Assert.Equal("intentional_exclusion", eventExport.Disposition);
         Assert.Contains(
             "wildcard_event_discovery_completion_unknown_after_watchdog_termination",
             eventExport.OperationContract!.EvidenceLimitations,

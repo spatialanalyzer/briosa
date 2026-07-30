@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <PlatformTarget>x64</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <NoWarn>$(NoWarn);CA1031</NoWarn>
+    <ObjectiveSARoot Condition="'$(ObjectiveSARoot)' == ''">$(OBJECTIVE_SA_ROOT)</ObjectiveSARoot>
+    <ObjectiveSAAssembly>$(ObjectiveSARoot)\ObjectiveSA\bin\Release\net8.0-windows\ObjectiveSA.dll</ObjectiveSAAssembly>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="ObjectiveSA">
+      <HintPath>$(ObjectiveSAAssembly)</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <COMReference Include="SpatialAnalyzerSDK">
+      <WrapperTool>tlbimp</WrapperTool>
+      <VersionMinor>0</VersionMinor>
+      <VersionMajor>1</VersionMajor>
+      <Guid>860f748c-c80b-4216-9386-187357f520f7</Guid>
+      <Lcid>0</Lcid>
+      <Isolated>false</Isolated>
+      <CopyLocal>true</CopyLocal>
+      <EmbedInteropTypes>true</EmbedInteropTypes>
+    </COMReference>
+  </ItemGroup>
+
+  <Target Name="ValidateObjectiveSA" BeforeTargets="ResolveReferences">
+    <Error
+      Condition="!Exists('$(ObjectiveSAAssembly)')"
+      Text="Build the pinned ObjectiveSA checkout or pass ObjectiveSARoot before building this licensed integration runner." />
+  </Target>
+</Project>
