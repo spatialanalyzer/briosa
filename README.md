@@ -4,7 +4,7 @@ Briosa is an open-source gRPC bridge around the Hexagon SpatialAnalyzer SDK. Spa
 
 ## Current target
 
-The initial vertical slice targets .NET 10 on Windows x64 and SpatialAnalyzer 2026.1.0529.7. Its first public operation is the exact-target `GetWorkingDirectory` RPC. The initial v0.2 Wave 1 subset adds five generated collection-introspection operations. The growing Wave 2 subset contains seven point mutations: the original construct, rename, and delete lifecycle plus four constructors derived from circles, lines, point fits, and point-name lists. These are deliberately small reviewed promotions, not a claim that either full candidate pool has shipped.
+The initial vertical slice targets .NET 10 on Windows x64 and SpatialAnalyzer 2026.1.0529.7. Its first public operation is the exact-target `GetWorkingDirectory` RPC. The initial v0.2 Wave 1 subset adds five generated collection-introspection operations. The growing Wave 2 subset contains twelve mutations: seven point lifecycle and derived-construction operations plus five collection mutations for default selection/construction, rename, delete, copy, and move. These are deliberately small reviewed promotions, not a claim that either full candidate pool has shipped.
 
 ## Local real-SA quickstart
 

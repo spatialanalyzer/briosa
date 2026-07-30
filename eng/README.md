@@ -248,9 +248,12 @@ Run portable packaged-host success and failure scenarios without SpatialAnalyzer
 ./eng/Test-GeneratedClientScenarios.ps1 `
   -PackagePath <path-to-briosa-zip> `
   -FixturePath conformance/v1/wave2-point-lifecycle-scenarios.json
+./eng/Test-GeneratedClientScenarios.ps1 `
+  -PackagePath <path-to-briosa-zip> `
+  -FixturePath conformance/v1/wave2-collection-mutations-scenarios.json
 ```
 
-The Wave 1 matrix covers generated-client success, missing-required-input validation, deny-overrides-allow policy, and MP failure. The Wave 2 matrix covers all seven promoted point mutations: working-coordinate, circle-center, line-midpoint, fit-to-points, and point-group construction plus rename and delete. It exercises authoritative structured-value mappings, required-input rejection, reviewed-default omission, deny-overrides-allow, MP failure, and unknown mutation replay safety. Reports contain only identity, state, status, booleans, and failure classification; raw arguments and returned values are never printed.
+The Wave 1 matrix covers generated-client success, missing-required-input validation, deny-overrides-allow policy, and MP failure. The Wave 2 point matrix covers all seven promoted point mutations: working-coordinate, circle-center, line-midpoint, fit-to-points, and point-group construction plus rename and delete. The Wave 2 collection matrix gives copy, delete, move, rename, and set-or-construct-default operations one packaged-host success scenario each. Together they exercise authoritative structured-value mappings, required-input rejection, reviewed-default omission, deny-overrides-allow, MP failure, and unknown mutation replay safety. Reports contain only identity, state, status, booleans, and failure classification; raw arguments and returned values are never printed.
 
 The portable harness supplies explicitly labeled fake-worker attestations for both runtime identities. Production defaults remain fail-closed: the activated SDK and connected SA each require runtime-verified exact evidence or their own complete `Version`/`Reference` operator-attestation pair. Runtime evidence takes precedence and cannot be masked by attestation. Evidence references are kept out of discovery and default logs; see [ADR 0022](../docs/architecture/0022-runtime-identity-and-attestation.md).
 

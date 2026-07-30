@@ -1,0 +1,94 @@
+{
+  "$schema": "../../../schemas/v1/operation.schema.json",
+  "operation_id": "collection_operations.rename_collection",
+  "inventory_key": "documentation:ConstructionOperations/RenameCollection.htm",
+  "mp_step": "Rename Collection",
+  "category": "Collection Operations",
+  "protocol": {
+    "service": "CollectionOperations",
+    "rpc": "RenameCollection",
+    "request": "RenameCollectionRequest",
+    "result": "RenameCollectionResult"
+  },
+  "stability": "experimental",
+  "execution_scope": "global_state_mutation",
+  "risk": {
+    "effect": "mutating",
+    "replay_safety": "unknown",
+    "flags": []
+  },
+  "documentation": {
+    "summary": "Renames one explicitly identified collection.",
+    "isolation": "Mutates application-global collection state. Cancellation or deadline expiry does not roll back the rename or cancel an in-flight COM call; an ambiguous completion requires reconciliation before replay."
+  },
+  "arguments": [
+    {
+      "argument_id": "original_collection_name",
+      "ordinal": 0,
+      "sdk_order": 0,
+      "mp_name": "Original Collection Name",
+      "direction": "input",
+      "result_only": "no",
+      "semantic_type": "collection_name",
+      "data_classification": "object_identifier",
+      "field_numbers": {
+        "request": 1,
+        "result": null
+      },
+      "input": {
+        "presence": "required",
+        "omission_behavior": "reject_request",
+        "default": {
+          "status": "none"
+        }
+      },
+      "sdk_binding": {
+        "status": "available",
+        "setter": "SetCollectionNameArg",
+        "getter": null
+      },
+      "documentation": "The exact existing collection name to rename."
+    },
+    {
+      "argument_id": "new_collection_name",
+      "ordinal": 1,
+      "sdk_order": 1,
+      "mp_name": "New Collection Name",
+      "direction": "input",
+      "result_only": "no",
+      "semantic_type": "collection_name",
+      "data_classification": "object_identifier",
+      "field_numbers": {
+        "request": 2,
+        "result": null
+      },
+      "input": {
+        "presence": "required",
+        "omission_behavior": "reject_request",
+        "default": {
+          "status": "none"
+        }
+      },
+      "sdk_binding": {
+        "status": "available",
+        "setter": "SetCollectionNameArg",
+        "getter": null
+      },
+      "documentation": "The exact collection name to assign."
+    }
+  ],
+  "evidence": [
+    {
+      "source_id": "maintainer_review",
+      "reference": "Issues #49, #53, and #64 exact-target collection-mutation review"
+    },
+    {
+      "source_id": "sa_mp_command_reference",
+      "reference": "ConstructionOperations/RenameCollection.htm"
+    },
+    {
+      "source_id": "sa_view_sdk_code",
+      "reference": "ConstructionOperations.txt: Rename Collection"
+    }
+  ]
+}

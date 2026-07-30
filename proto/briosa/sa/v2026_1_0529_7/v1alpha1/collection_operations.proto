@@ -20,6 +20,10 @@ service CollectionOperations {
   rpc ConstructPointGroupFromPointNameList(ConstructPointGroupFromPointNameListRequest) returns (ConstructPointGroupFromPointNameListResult);
   // Constructs a named point at explicit working-frame coordinates.
   rpc ConstructPointInWorkingCoordinates(ConstructPointInWorkingCoordinatesRequest) returns (ConstructPointInWorkingCoordinatesResult);
+  // Copies an explicit list of collection objects into a destination collection.
+  rpc CopyObjectsToCollection(CopyObjectsToCollectionRequest) returns (CopyObjectsToCollectionResult);
+  // Deletes one explicitly named collection.
+  rpc DeleteCollection(DeleteCollectionRequest) returns (DeleteCollectionResult);
   // Deletes an explicit list of named points.
   rpc DeletePoints(DeletePointsRequest) returns (DeletePointsResult);
   // Returns the number of collections currently present in the connected SpatialAnalyzer model.
@@ -32,8 +36,14 @@ service CollectionOperations {
   rpc ListGroupsInCollection(ListGroupsInCollectionRequest) returns (ListGroupsInCollectionResult);
   // Returns the point identities currently present in a named SpatialAnalyzer group.
   rpc ListPointsInGroup(ListPointsInGroupRequest) returns (ListPointsInGroupResult);
+  // Moves an explicit list of collection objects into a destination collection.
+  rpc MoveObjectsToCollection(MoveObjectsToCollectionRequest) returns (MoveObjectsToCollectionResult);
+  // Renames one explicitly identified collection.
+  rpc RenameCollection(RenameCollectionRequest) returns (RenameCollectionResult);
   // Renames an explicitly identified point, with reviewed collision behavior selected by the caller.
   rpc RenamePoint(RenamePointRequest) returns (RenamePointResult);
+  // Selects an existing collection as the default or constructs it when it does not exist.
+  rpc SetOrConstructDefaultCollection(SetOrConstructDefaultCollectionRequest) returns (SetOrConstructDefaultCollectionResult);
 }
 
 message ConstructPointAtCircleCenterRequest {
@@ -92,6 +102,28 @@ message ConstructPointInWorkingCoordinatesRequest {
 }
 
 message ConstructPointInWorkingCoordinatesResult {
+  // Explicit MP and result-only argument retrieval outcome.
+  briosa.core.v1alpha1.MpExecutionDetails execution = 1000;
+}
+
+message CopyObjectsToCollectionRequest {
+  // The exact collection/object identities to copy.
+  CollectionObjectNameList source_objects = 1;
+  // The exact destination collection name.
+  optional string destination_collection_name = 2;
+}
+
+message CopyObjectsToCollectionResult {
+  // Explicit MP and result-only argument retrieval outcome.
+  briosa.core.v1alpha1.MpExecutionDetails execution = 1000;
+}
+
+message DeleteCollectionRequest {
+  // The exact collection name to delete.
+  optional string collection_name = 1;
+}
+
+message DeleteCollectionResult {
   // Explicit MP and result-only argument retrieval outcome.
   briosa.core.v1alpha1.MpExecutionDetails execution = 1000;
 }
@@ -163,6 +195,30 @@ message ListPointsInGroupResult {
   briosa.core.v1alpha1.MpExecutionDetails execution = 1000;
 }
 
+message MoveObjectsToCollectionRequest {
+  // The exact collection/object identities to move.
+  CollectionObjectNameList source_objects = 1;
+  // The exact destination collection name.
+  optional string destination_collection_name = 2;
+}
+
+message MoveObjectsToCollectionResult {
+  // Explicit MP and result-only argument retrieval outcome.
+  briosa.core.v1alpha1.MpExecutionDetails execution = 1000;
+}
+
+message RenameCollectionRequest {
+  // The exact existing collection name to rename.
+  optional string original_collection_name = 1;
+  // The exact collection name to assign.
+  optional string new_collection_name = 2;
+}
+
+message RenameCollectionResult {
+  // Explicit MP and result-only argument retrieval outcome.
+  briosa.core.v1alpha1.MpExecutionDetails execution = 1000;
+}
+
 message RenamePointRequest {
   // The exact existing collection, group, and target name to rename.
   PointName original_point_name = 1;
@@ -173,6 +229,16 @@ message RenamePointRequest {
 }
 
 message RenamePointResult {
+  // Explicit MP and result-only argument retrieval outcome.
+  briosa.core.v1alpha1.MpExecutionDetails execution = 1000;
+}
+
+message SetOrConstructDefaultCollectionRequest {
+  // The exact collection name to select or construct.
+  optional string collection_name = 1;
+}
+
+message SetOrConstructDefaultCollectionResult {
   // Explicit MP and result-only argument retrieval outcome.
   briosa.core.v1alpha1.MpExecutionDetails execution = 1000;
 }

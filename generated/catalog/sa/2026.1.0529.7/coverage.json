@@ -2,7 +2,7 @@
   "schema_version": 2,
   "generated_by": "Briosa.Generator command catalog",
   "catalog_id": "briosa.sa.2026.1.0529.7",
-  "catalog_revision": "9",
+  "catalog_revision": "10",
   "spatial_analyzer_target": "2026.1.0529.7",
   "target_protocol_package": "briosa.sa.v2026_1_0529_7.v1alpha1",
   "release_memberships": [
@@ -30,8 +30,13 @@
         "collection_operations.construct_point_fit_to_points",
         "collection_operations.construct_point_group_from_point_name_list",
         "collection_operations.construct_point_in_working_coordinates",
+        "collection_operations.copy_objects_to_collection",
+        "collection_operations.delete_collection",
         "collection_operations.delete_points",
-        "collection_operations.rename_point"
+        "collection_operations.move_objects_to_collection",
+        "collection_operations.rename_collection",
+        "collection_operations.rename_point",
+        "collection_operations.set_or_construct_default_collection"
       ]
     }
   ],
@@ -344,6 +349,117 @@
           "data_classification": "geometry",
           "field_number": 2,
           "setter": "SetVectorArg",
+          "presence": "required",
+          "omission_behavior": "reject_request",
+          "default_status": "none"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "operation_id": "collection_operations.copy_objects_to_collection",
+      "release_memberships": [
+        "v0.2-wave2-initial"
+      ],
+      "inventory_key": "documentation:ConstructionOperations/CopyObjectstoacollection.htm",
+      "mp_step": "Copy Objects to a collection",
+      "protocol_file": "collection_operations.proto",
+      "service": "CollectionOperations",
+      "rpc": "CopyObjectsToCollection",
+      "request": "CopyObjectsToCollectionRequest",
+      "result": "CopyObjectsToCollectionResult",
+      "fully_qualified_method": "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/CopyObjectsToCollection",
+      "effect": "mutating",
+      "execution_scope": "global_state_mutation",
+      "isolation_review": "Mutates application-global model state. Cancellation or deadline expiry does not roll back copied objects or cancel an in-flight COM call; an ambiguous completion requires reconciliation before replay.",
+      "replay_safety": "unknown",
+      "generated": {
+        "protocol": true,
+        "request_validation": true,
+        "request_adapter": true,
+        "immutable_worker_command": true,
+        "result_adapter": true,
+        "grpc_service": true,
+        "service_registration": true,
+        "capability": true,
+        "documentation": true,
+        "portable_conformance": true
+      },
+      "inputs": [
+        {
+          "argument_id": "source_objects",
+          "ordinal": 0,
+          "sdk_order": 0,
+          "mp_name": "Source Objects",
+          "direction": "input",
+          "semantic_type": "collection_object_name_list",
+          "argument_family_assignment": true,
+          "data_classification": "object_identifier",
+          "field_number": 1,
+          "setter": "SetCollectionObjectNameRefListArg",
+          "presence": "required",
+          "omission_behavior": "reject_request",
+          "default_status": "none"
+        },
+        {
+          "argument_id": "destination_collection_name",
+          "ordinal": 1,
+          "sdk_order": 1,
+          "mp_name": "Destination Collection Name",
+          "direction": "input",
+          "semantic_type": "collection_name",
+          "argument_family_assignment": true,
+          "data_classification": "object_identifier",
+          "field_number": 2,
+          "setter": "SetCollectionNameArg",
+          "presence": "required",
+          "omission_behavior": "reject_request",
+          "default_status": "none"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "operation_id": "collection_operations.delete_collection",
+      "release_memberships": [
+        "v0.2-wave2-initial"
+      ],
+      "inventory_key": "documentation:ConstructionOperations/Collections/DeleteCollection.htm",
+      "mp_step": "Delete Collection",
+      "protocol_file": "collection_operations.proto",
+      "service": "CollectionOperations",
+      "rpc": "DeleteCollection",
+      "request": "DeleteCollectionRequest",
+      "result": "DeleteCollectionResult",
+      "fully_qualified_method": "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/DeleteCollection",
+      "effect": "mutating",
+      "execution_scope": "global_state_mutation",
+      "isolation_review": "Mutates application-global collection state. Cancellation or deadline expiry does not roll back deletion or cancel an in-flight COM call; an ambiguous completion requires reconciliation before replay.",
+      "replay_safety": "unknown",
+      "generated": {
+        "protocol": true,
+        "request_validation": true,
+        "request_adapter": true,
+        "immutable_worker_command": true,
+        "result_adapter": true,
+        "grpc_service": true,
+        "service_registration": true,
+        "capability": true,
+        "documentation": true,
+        "portable_conformance": true
+      },
+      "inputs": [
+        {
+          "argument_id": "collection_name",
+          "ordinal": 0,
+          "sdk_order": 0,
+          "mp_name": "Name of Collection to Delete",
+          "direction": "input",
+          "semantic_type": "collection_name",
+          "argument_family_assignment": true,
+          "data_classification": "object_identifier",
+          "field_number": 1,
+          "setter": "SetCollectionNameArg",
           "presence": "required",
           "omission_behavior": "reject_request",
           "default_status": "none"
@@ -694,6 +810,132 @@
       ]
     },
     {
+      "operation_id": "collection_operations.move_objects_to_collection",
+      "release_memberships": [
+        "v0.2-wave2-initial"
+      ],
+      "inventory_key": "documentation:ConstructionOperations/MoveObjectstoacollection.htm",
+      "mp_step": "Move Objects to a collection",
+      "protocol_file": "collection_operations.proto",
+      "service": "CollectionOperations",
+      "rpc": "MoveObjectsToCollection",
+      "request": "MoveObjectsToCollectionRequest",
+      "result": "MoveObjectsToCollectionResult",
+      "fully_qualified_method": "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/MoveObjectsToCollection",
+      "effect": "mutating",
+      "execution_scope": "global_state_mutation",
+      "isolation_review": "Mutates application-global model state. Cancellation or deadline expiry does not roll back moved objects or cancel an in-flight COM call; an ambiguous completion requires reconciliation before replay.",
+      "replay_safety": "unknown",
+      "generated": {
+        "protocol": true,
+        "request_validation": true,
+        "request_adapter": true,
+        "immutable_worker_command": true,
+        "result_adapter": true,
+        "grpc_service": true,
+        "service_registration": true,
+        "capability": true,
+        "documentation": true,
+        "portable_conformance": true
+      },
+      "inputs": [
+        {
+          "argument_id": "source_objects",
+          "ordinal": 0,
+          "sdk_order": 0,
+          "mp_name": "Source Objects",
+          "direction": "input",
+          "semantic_type": "collection_object_name_list",
+          "argument_family_assignment": true,
+          "data_classification": "object_identifier",
+          "field_number": 1,
+          "setter": "SetCollectionObjectNameRefListArg",
+          "presence": "required",
+          "omission_behavior": "reject_request",
+          "default_status": "none"
+        },
+        {
+          "argument_id": "destination_collection_name",
+          "ordinal": 1,
+          "sdk_order": 1,
+          "mp_name": "Destination Collection Name",
+          "direction": "input",
+          "semantic_type": "collection_name",
+          "argument_family_assignment": true,
+          "data_classification": "object_identifier",
+          "field_number": 2,
+          "setter": "SetCollectionNameArg",
+          "presence": "required",
+          "omission_behavior": "reject_request",
+          "default_status": "none"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "operation_id": "collection_operations.rename_collection",
+      "release_memberships": [
+        "v0.2-wave2-initial"
+      ],
+      "inventory_key": "documentation:ConstructionOperations/RenameCollection.htm",
+      "mp_step": "Rename Collection",
+      "protocol_file": "collection_operations.proto",
+      "service": "CollectionOperations",
+      "rpc": "RenameCollection",
+      "request": "RenameCollectionRequest",
+      "result": "RenameCollectionResult",
+      "fully_qualified_method": "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/RenameCollection",
+      "effect": "mutating",
+      "execution_scope": "global_state_mutation",
+      "isolation_review": "Mutates application-global collection state. Cancellation or deadline expiry does not roll back the rename or cancel an in-flight COM call; an ambiguous completion requires reconciliation before replay.",
+      "replay_safety": "unknown",
+      "generated": {
+        "protocol": true,
+        "request_validation": true,
+        "request_adapter": true,
+        "immutable_worker_command": true,
+        "result_adapter": true,
+        "grpc_service": true,
+        "service_registration": true,
+        "capability": true,
+        "documentation": true,
+        "portable_conformance": true
+      },
+      "inputs": [
+        {
+          "argument_id": "original_collection_name",
+          "ordinal": 0,
+          "sdk_order": 0,
+          "mp_name": "Original Collection Name",
+          "direction": "input",
+          "semantic_type": "collection_name",
+          "argument_family_assignment": true,
+          "data_classification": "object_identifier",
+          "field_number": 1,
+          "setter": "SetCollectionNameArg",
+          "presence": "required",
+          "omission_behavior": "reject_request",
+          "default_status": "none"
+        },
+        {
+          "argument_id": "new_collection_name",
+          "ordinal": 1,
+          "sdk_order": 1,
+          "mp_name": "New Collection Name",
+          "direction": "input",
+          "semantic_type": "collection_name",
+          "argument_family_assignment": true,
+          "data_classification": "object_identifier",
+          "field_number": 2,
+          "setter": "SetCollectionNameArg",
+          "presence": "required",
+          "omission_behavior": "reject_request",
+          "default_status": "none"
+        }
+      ],
+      "outputs": []
+    },
+    {
       "operation_id": "collection_operations.rename_point",
       "release_memberships": [
         "v0.2-wave2-initial"
@@ -767,6 +1009,54 @@
           "presence": "optional",
           "omission_behavior": "set_catalog_default",
           "default_status": "reviewed"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "operation_id": "collection_operations.set_or_construct_default_collection",
+      "release_memberships": [
+        "v0.2-wave2-initial"
+      ],
+      "inventory_key": "documentation:ConstructionOperations/Collections/SetOrConstructDefaultCollection.htm",
+      "mp_step": "Set (or construct) default collection",
+      "protocol_file": "collection_operations.proto",
+      "service": "CollectionOperations",
+      "rpc": "SetOrConstructDefaultCollection",
+      "request": "SetOrConstructDefaultCollectionRequest",
+      "result": "SetOrConstructDefaultCollectionResult",
+      "fully_qualified_method": "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/SetOrConstructDefaultCollection",
+      "effect": "mutating",
+      "execution_scope": "global_state_mutation",
+      "isolation_review": "Mutates application-global collection state. Cancellation or deadline expiry does not roll back collection creation or selection and does not cancel an in-flight COM call; an ambiguous completion requires reconciliation before replay.",
+      "replay_safety": "unknown",
+      "generated": {
+        "protocol": true,
+        "request_validation": true,
+        "request_adapter": true,
+        "immutable_worker_command": true,
+        "result_adapter": true,
+        "grpc_service": true,
+        "service_registration": true,
+        "capability": true,
+        "documentation": true,
+        "portable_conformance": true
+      },
+      "inputs": [
+        {
+          "argument_id": "collection_name",
+          "ordinal": 0,
+          "sdk_order": 0,
+          "mp_name": "Collection Name",
+          "direction": "input",
+          "semantic_type": "collection_name",
+          "argument_family_assignment": true,
+          "data_classification": "object_identifier",
+          "field_number": 1,
+          "setter": "SetCollectionNameArg",
+          "presence": "required",
+          "omission_behavior": "reject_request",
+          "default_status": "none"
         }
       ],
       "outputs": []

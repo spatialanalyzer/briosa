@@ -170,7 +170,8 @@ if ($fixture.schema_version -ne 1 -or
     $fixture.fixture_set_id -notin @(
         "briosa.client.live.v1",
         "briosa.client.wave1-read-only.v1",
-        "briosa.client.wave2-point-lifecycle.v1") -or
+        "briosa.client.wave2-point-lifecycle.v1",
+        "briosa.client.wave2-collection-mutations.v1") -or
     $fixture.error_trailer -ne "briosa-operation-error-bin") {
     throw "The client conformance fixture identity is unsupported."
 }

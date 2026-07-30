@@ -186,6 +186,9 @@ jobs:
           ./eng/Test-GeneratedClientScenarios.ps1 `
             -PackagePath artifacts/package-smoke/briosa-0.1.0-ci-sa-2026.1.0529.7-win-x64.zip `
             -FixturePath conformance/v1/wave2-point-lifecycle-scenarios.json
+          ./eng/Test-GeneratedClientScenarios.ps1 `
+            -PackagePath artifacts/package-smoke/briosa-0.1.0-ci-sa-2026.1.0529.7-win-x64.zip `
+            -FixturePath conformance/v1/wave2-collection-mutations-scenarios.json
 
       - name: Upload package metrics
         if: always()

@@ -1,6 +1,6 @@
 # Generated-client smoke testing
 
-Issue #18 validates the v0.1 vertical slice through a separate process that uses the generated .NET gRPC client. Issue #94 promotes its scenario matrix into the language-neutral `briosa.client.live.v1` fixture set consumed by every supported client. Issue #63 adds the `briosa.client.wave1-read-only.v1` matrix for the initial v0.2 collection-introspection subset. Issue #64 adds the `briosa.client.wave2-point-lifecycle.v1` matrix for the growing mutating point surface. The smoke client crosses the packaged server's real loopback HTTP/2 boundary; it does not call server services in memory.
+Issue #18 validates the v0.1 vertical slice through a separate process that uses the generated .NET gRPC client. Issue #94 promotes its scenario matrix into the language-neutral `briosa.client.live.v1` fixture set consumed by every supported client. Issue #63 adds the `briosa.client.wave1-read-only.v1` matrix for the initial v0.2 collection-introspection subset. Issue #64 adds separate `briosa.client.wave2-point-lifecycle.v1` and `briosa.client.wave2-collection-mutations.v1` matrices for the growing mutating surface. The smoke client crosses the packaged server's real loopback HTTP/2 boundary; it does not call server services in memory.
 
 The probe reports only compatibility coordinates, state enums, booleans, and stable failure classifications. It intentionally does not print the working directory or any other returned SpatialAnalyzer value.
 
@@ -23,6 +23,10 @@ Build a package and run all generated-client scenarios on an ordinary Windows x6
 ./eng/Test-GeneratedClientScenarios.ps1 `
   -PackagePath artifacts/generated-client/briosa-0.1.0-test-sa-2026.1.0529.7-win-x64.zip `
   -FixturePath conformance/v1/wave2-point-lifecycle-scenarios.json
+
+./eng/Test-GeneratedClientScenarios.ps1 `
+  -PackagePath artifacts/generated-client/briosa-0.1.0-test-sa-2026.1.0529.7-win-x64.zip `
+  -FixturePath conformance/v1/wave2-collection-mutations-scenarios.json
 ```
 
 These tests load `conformance/v1/live-scenarios.json` and substitute the separate `Briosa.SmokeWorker.exe` process for the real SDK worker. The harness supplies per-claim operator attestations labeled `portable-fake-worker` so the packaged host exercises its identity gate without presenting those inputs as release evidence. They require neither SpatialAnalyzer nor a license and cover:
@@ -44,6 +48,8 @@ The fake worker's results, codes, delays, failures, and hangs are invented Brios
 The Wave 1 fixture adds four generated-client checks across the same packaged boundary: successful collection-count retrieval, missing collection-index validation before worker execution, deny-overrides-allow policy, and MP failure. The client verifies result presence and execution metadata but never prints the returned count or any other operation value.
 
 The Wave 2 fixture covers all seven promoted point mutations across the same packaged boundary. It proves successful working-coordinate and circle-center construction; missing-coordinate and missing-line validation before worker execution; deny-overrides-allow for delete and point-group construction; and MP failure for rename and fit-to-points. The scenarios exercise the authoritative `vector3`, `collection_object_name`, `point_name`, and `point_name_list` families, while rename continues to prove that omission applies the reviewed `false` default. Mutation failures preserve `unknown` replay safety and `DO_NOT_REPLAY` guidance. Reports contain no point names, coordinates, raw arguments, or returned values.
+
+The collection-mutation fixture gives every newly promoted method its own packaged-boundary success scenario: copy objects, delete a collection, move objects, rename a collection, and set or construct the default collection. These checks exercise `collection_name` and `collection_object_name_list` request mapping through a generated client, capability policy, the public service, the framed worker channel, and the deterministic fake. The generated portable-conformance manifest separately table-drives each operation's validation, command mapping, MP failure, cancellation/deadline disposition, policy, and malformed-result behavior. Neither layer claims licensed SpatialAnalyzer execution.
 
 `conformance/v1/operation-error-cases.json` adds value-free unsafe and unknown replay cases that the initial read-only live operation cannot produce. Client libraries use those cases to verify typed error adapters and must never authorize automatic replay.
 
