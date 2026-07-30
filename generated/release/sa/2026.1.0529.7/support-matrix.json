@@ -6,7 +6,7 @@
   "evidence_inputs": [
     {
       "path": "catalog/sa/2026.1.0529.7/catalog.json",
-      "sha256": "becfdc5d9f2473df9dd876bccd5330caad3b9bba24f9d8485df2ebb94ec03cf8"
+      "sha256": "ac37a4ea0ce90b276c77f4d863c3bc397292ccc9c7042b8f48748e3bc67369c0"
     },
     {
       "path": "catalog/sa/2026.1.0529.7/operations/collection_operations.construct_point_at_circle_center.json",
@@ -29,12 +29,20 @@
       "sha256": "577dad94b9f430c1e674b51b7c49ab5f17d04536681ff979b6f03b6e0efcdffd"
     },
     {
+      "path": "catalog/sa/2026.1.0529.7/operations/collection_operations.copy_object.json",
+      "sha256": "a0b32dfc1ee1646e3c6cbb3df4647c228b813fcb54ef58b055be2ba1d8f3b943"
+    },
+    {
       "path": "catalog/sa/2026.1.0529.7/operations/collection_operations.copy_objects_to_collection.json",
       "sha256": "6cf2df99f9d9aa01a2d88864c1e4c102636030f26fa59ebfab3cba50b076d03c"
     },
     {
       "path": "catalog/sa/2026.1.0529.7/operations/collection_operations.delete_collection.json",
       "sha256": "3d00a00b62df65f48c243bca9357b5e665b4e6876a9f6a72b1160cdad66bb6e0"
+    },
+    {
+      "path": "catalog/sa/2026.1.0529.7/operations/collection_operations.delete_objects.json",
+      "sha256": "c437ddb9c9f3f72a756db81152e8e084c7f45ae74ef55a639fcb8abf2e16776a"
     },
     {
       "path": "catalog/sa/2026.1.0529.7/operations/collection_operations.delete_points.json",
@@ -67,6 +75,10 @@
     {
       "path": "catalog/sa/2026.1.0529.7/operations/collection_operations.rename_collection.json",
       "sha256": "a7bf56c8d2e298ae4cdbb0143f776ff53a7cacf818cb47a36e8575b2a5ac2f91"
+    },
+    {
+      "path": "catalog/sa/2026.1.0529.7/operations/collection_operations.rename_object.json",
+      "sha256": "e3baefa6831436552bdd3f560b7b7b179b32d2fd4183885bceacdeb56703700f"
     },
     {
       "path": "catalog/sa/2026.1.0529.7/operations/collection_operations.rename_point.json",
@@ -206,7 +218,7 @@
     },
     {
       "path": "generated/conformance/sa/2026.1.0529.7/manifest.json",
-      "sha256": "e116ff958bc119fdb9e12548d49e3a6b5699712a1ebc0627975c7bb3c69c4a46"
+      "sha256": "1cf4c218325eba4498db2fa486fbf14cffd819e385d5ca790acfd652e09b42f1"
     },
     {
       "path": "inventory/sa/2026.1.0529.7/inventory.json",
@@ -215,13 +227,13 @@
   ],
   "counts": {
     "inventory_commands": 1412,
-    "cataloged_operations": 18,
+    "cataloged_operations": 21,
     "approved_candidates": 684,
-    "approved_not_cataloged": 666,
+    "approved_not_cataloged": 663,
     "blocked": 40,
     "intentional_exclusions": 477,
     "sdk_unavailable": 211,
-    "portable_validated_cataloged_operations": 18,
+    "portable_validated_cataloged_operations": 21,
     "protected_validated_cataloged_operations": 0
   },
   "commands": [
@@ -6175,17 +6187,23 @@
       ],
       "disposition": "approved_candidate",
       "review_state": "reviewed",
-      "release_classification": "approved_not_cataloged",
-      "operation_id": null,
+      "release_classification": "cataloged_portable_only",
+      "operation_id": "collection_operations.copy_object",
       "risk_effect": "mutating",
       "risk_flags": [],
-      "replay_safety": null,
-      "execution_scope": null,
-      "prerequisites": [],
+      "replay_safety": "unknown",
+      "execution_scope": "global_state_mutation",
+      "prerequisites": [
+        "exact_target_identity",
+        "execution_channel_readiness",
+        "licensed_spatial_analyzer_installation",
+        "runtime_policy_allowlist",
+        "single_tenant_coordination"
+      ],
       "validation": {
         "metadata": "reviewed_metadata",
-        "portable": "not_applicable",
-        "protected_spatial_analyzer": "not_applicable"
+        "portable": "portable_briosa_contract",
+        "protected_spatial_analyzer": "not_performed"
       },
       "blocker_references": []
     },
@@ -10833,17 +10851,23 @@
       ],
       "disposition": "approved_candidate",
       "review_state": "reviewed",
-      "release_classification": "approved_not_cataloged",
-      "operation_id": null,
+      "release_classification": "cataloged_portable_only",
+      "operation_id": "collection_operations.rename_object",
       "risk_effect": "mutating",
       "risk_flags": [],
-      "replay_safety": null,
-      "execution_scope": null,
-      "prerequisites": [],
+      "replay_safety": "unknown",
+      "execution_scope": "global_state_mutation",
+      "prerequisites": [
+        "exact_target_identity",
+        "execution_channel_readiness",
+        "licensed_spatial_analyzer_installation",
+        "runtime_policy_allowlist",
+        "single_tenant_coordination"
+      ],
       "validation": {
         "metadata": "reviewed_metadata",
-        "portable": "not_applicable",
-        "protected_spatial_analyzer": "not_applicable"
+        "portable": "portable_briosa_contract",
+        "protected_spatial_analyzer": "not_performed"
       },
       "blocker_references": []
     },
@@ -27548,17 +27572,23 @@
       ],
       "disposition": "approved_candidate",
       "review_state": "reviewed",
-      "release_classification": "approved_not_cataloged",
-      "operation_id": null,
+      "release_classification": "cataloged_portable_only",
+      "operation_id": "collection_operations.delete_objects",
       "risk_effect": "mutating",
       "risk_flags": [],
-      "replay_safety": null,
-      "execution_scope": null,
-      "prerequisites": [],
+      "replay_safety": "unknown",
+      "execution_scope": "global_state_mutation",
+      "prerequisites": [
+        "exact_target_identity",
+        "execution_channel_readiness",
+        "licensed_spatial_analyzer_installation",
+        "runtime_policy_allowlist",
+        "single_tenant_coordination"
+      ],
       "validation": {
         "metadata": "reviewed_metadata",
-        "portable": "not_applicable",
-        "protected_spatial_analyzer": "not_applicable"
+        "portable": "portable_briosa_contract",
+        "protected_spatial_analyzer": "not_performed"
       },
       "blocker_references": []
     },

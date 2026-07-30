@@ -11,8 +11,8 @@ Cataloged operations require a separately installed and licensed exact-target Sp
 | Classification | Count |
 | --- | ---: |
 | Inventory commands | 1412 |
-| Cataloged, portable-only operations | 18 |
-| Approved candidates not cataloged | 666 |
+| Cataloged, portable-only operations | 21 |
+| Approved candidates not cataloged | 663 |
 | Blocked | 40 |
 | Intentional exclusions | 477 |
 | SDK unavailable | 211 |
@@ -275,7 +275,7 @@ Cataloged operations require a separately installed and licensed exact-target Sp
 | `documentation:ConstructionOperations/Cones/ConstructCone.htm` | Construct Cone | ConstructionOperations / Cones | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/Cones/ConstructConesFromSurfaceFaces-RuntimeSelect.htm` | Construct Cones From Surface Faces-Runtime Select | ConstructionOperations / Cones | `intentional_exclusion` | — | `unknown` (unknown) | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/ConstructObjectsFromSurface.htm` | Construct Objects From Surface Faces - Runtime Select | ConstructionOperations | `intentional_exclusion` | — | `unknown` (unknown) | `not_applicable` | `not_applicable` |
-| `documentation:ConstructionOperations/CopyObject.htm` | Copy Object | ConstructionOperations | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
+| `documentation:ConstructionOperations/CopyObject.htm` | Copy Object | ConstructionOperations | `cataloged_portable_only` | `collection_operations.copy_object` | `mutating` | `portable_briosa_contract` | `not_performed` |
 | `documentation:ConstructionOperations/CopyObjects-PointtoPointDelta.htm` | Copy Objects - Point to Point Delta | ConstructionOperations | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/CopyObjectstoacollection.htm` | Copy Objects to a collection | ConstructionOperations | `cataloged_portable_only` | `collection_operations.copy_objects_to_collection` | `mutating` | `portable_briosa_contract` | `not_performed` |
 | `documentation:ConstructionOperations/Cylinders/ConstructCylinder.htm` | Construct Cylinder | ConstructionOperations / Cylinders | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
@@ -467,7 +467,7 @@ Cataloged operations require a separately installed and licensed exact-target Sp
 | `documentation:ConstructionOperations/PolygonizedSurfaces/ConstructPolygonizedSurfacefromPointClouds.htm` | Construct Polygonized Surface from Point Clouds | ConstructionOperations / PolygonizedSurfaces | `sdk_unavailable` | — | `mutating` (long_running) | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/RenameCollection.htm` | Rename Collection | ConstructionOperations | `cataloged_portable_only` | `collection_operations.rename_collection` | `mutating` | `portable_briosa_contract` | `not_performed` |
 | `documentation:ConstructionOperations/RenameItem.htm` | Rename Item | ConstructionOperations | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
-| `documentation:ConstructionOperations/RenameObject.htm` | Rename Object | ConstructionOperations | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
+| `documentation:ConstructionOperations/RenameObject.htm` | Rename Object | ConstructionOperations | `cataloged_portable_only` | `collection_operations.rename_object` | `mutating` | `portable_briosa_contract` | `not_performed` |
 | `documentation:ConstructionOperations/RenamePoint.htm` | Rename Point | ConstructionOperations | `cataloged_portable_only` | `collection_operations.rename_point` | `mutating` | `portable_briosa_contract` | `not_performed` |
 | `documentation:ConstructionOperations/RenamePointswithNamePattern.htm` | Rename Points with Name Pattern | ConstructionOperations | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
 | `documentation:ConstructionOperations/ScaleBars/ConstructScaleBar.htm` | Construct Scale Bar | ConstructionOperations / ScaleBars | `sdk_unavailable` | — | `mutating` | `not_applicable` | `not_applicable` |
@@ -1171,7 +1171,7 @@ Cataloged operations require a separately installed and licensed exact-target Sp
 | `documentation:UtilityOperations/Units/DelayForSpecifiedTime.htm` | Delay for Specified Time | UtilityOperations / Units | `intentional_exclusion` | — | `unknown` (unknown) | `not_applicable` | `not_applicable` |
 | `documentation:UtilityOperations/Units/DeleteDirectory.htm` | Delete Directory | UtilityOperations / Units | `intentional_exclusion` | — | `mutating` (filesystem_write) | `not_applicable` | `not_applicable` |
 | `documentation:UtilityOperations/Units/DeleteItems.htm` | Delete Items | UtilityOperations / Units | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
-| `documentation:UtilityOperations/Units/DeleteObjects.htm` | Delete Objects | UtilityOperations / Units | `approved_not_cataloged` | — | `mutating` | `not_applicable` | `not_applicable` |
+| `documentation:UtilityOperations/Units/DeleteObjects.htm` | Delete Objects | UtilityOperations / Units | `cataloged_portable_only` | `collection_operations.delete_objects` | `mutating` | `portable_briosa_contract` | `not_performed` |
 | `documentation:UtilityOperations/Units/DirectoryExistence.htm` | Directory Existence | UtilityOperations / Units | `intentional_exclusion` | — | `read_only` (filesystem_metadata) | `not_applicable` | `not_applicable` |
 | `documentation:UtilityOperations/Units/GenerateRandomNumber.htm` | Generate Random Number | UtilityOperations / Units | `intentional_exclusion` | — | `unknown` (unknown) | `not_applicable` | `not_applicable` |
 | `documentation:UtilityOperations/Units/GetActiveUnits.htm` | Get Active Units | UtilityOperations / Units | `approved_not_cataloged` | — | `read_only` | `not_applicable` | `not_applicable` |

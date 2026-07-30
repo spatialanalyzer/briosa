@@ -2,7 +2,7 @@
   "schema_version": 2,
   "generated_by": "Briosa.Generator command catalog",
   "catalog_id": "briosa.sa.2026.1.0529.7",
-  "catalog_revision": "10",
+  "catalog_revision": "11",
   "spatial_analyzer_target": "2026.1.0529.7",
   "target_protocol_package": "briosa.sa.v2026_1_0529_7.v1alpha1",
   "release_memberships": [
@@ -30,11 +30,14 @@
         "collection_operations.construct_point_fit_to_points",
         "collection_operations.construct_point_group_from_point_name_list",
         "collection_operations.construct_point_in_working_coordinates",
+        "collection_operations.copy_object",
         "collection_operations.copy_objects_to_collection",
         "collection_operations.delete_collection",
+        "collection_operations.delete_objects",
         "collection_operations.delete_points",
         "collection_operations.move_objects_to_collection",
         "collection_operations.rename_collection",
+        "collection_operations.rename_object",
         "collection_operations.rename_point",
         "collection_operations.set_or_construct_default_collection"
       ]
@@ -357,6 +360,84 @@
       "outputs": []
     },
     {
+      "operation_id": "collection_operations.copy_object",
+      "release_memberships": [
+        "v0.2-wave2-initial"
+      ],
+      "inventory_key": "documentation:ConstructionOperations/CopyObject.htm",
+      "mp_step": "Copy Object",
+      "protocol_file": "collection_operations.proto",
+      "service": "CollectionOperations",
+      "rpc": "CopyObject",
+      "request": "CopyObjectRequest",
+      "result": "CopyObjectResult",
+      "fully_qualified_method": "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/CopyObject",
+      "effect": "mutating",
+      "execution_scope": "global_state_mutation",
+      "isolation_review": "Mutates named geometry in application-global model state. Cancellation or deadline expiry does not roll back the copy or cancel an in-flight COM call; an ambiguous completion requires reconciliation before replay.",
+      "replay_safety": "unknown",
+      "generated": {
+        "protocol": true,
+        "request_validation": true,
+        "request_adapter": true,
+        "immutable_worker_command": true,
+        "result_adapter": true,
+        "grpc_service": true,
+        "service_registration": true,
+        "capability": true,
+        "documentation": true,
+        "portable_conformance": true
+      },
+      "inputs": [
+        {
+          "argument_id": "source_object",
+          "ordinal": 0,
+          "sdk_order": 0,
+          "mp_name": "Source Object",
+          "direction": "input",
+          "semantic_type": "collection_object_name",
+          "argument_family_assignment": true,
+          "data_classification": "object_identifier",
+          "field_number": 1,
+          "setter": "SetCollectionObjectNameArg2",
+          "presence": "required",
+          "omission_behavior": "reject_request",
+          "default_status": "none"
+        },
+        {
+          "argument_id": "new_object_name",
+          "ordinal": 1,
+          "sdk_order": 1,
+          "mp_name": "New Object Name",
+          "direction": "input",
+          "semantic_type": "collection_object_name",
+          "argument_family_assignment": true,
+          "data_classification": "object_identifier",
+          "field_number": 2,
+          "setter": "SetCollectionObjectNameArg2",
+          "presence": "required",
+          "omission_behavior": "reject_request",
+          "default_status": "none"
+        },
+        {
+          "argument_id": "overwrite_if_exists",
+          "ordinal": 2,
+          "sdk_order": 2,
+          "mp_name": "Overwrite if exists?",
+          "direction": "input",
+          "semantic_type": "logical",
+          "argument_family_assignment": true,
+          "data_classification": "non_sensitive",
+          "field_number": 3,
+          "setter": "SetBoolArg",
+          "presence": "optional",
+          "omission_behavior": "set_catalog_default",
+          "default_status": "reviewed"
+        }
+      ],
+      "outputs": []
+    },
+    {
       "operation_id": "collection_operations.copy_objects_to_collection",
       "release_memberships": [
         "v0.2-wave2-initial"
@@ -460,6 +541,54 @@
           "data_classification": "object_identifier",
           "field_number": 1,
           "setter": "SetCollectionNameArg",
+          "presence": "required",
+          "omission_behavior": "reject_request",
+          "default_status": "none"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "operation_id": "collection_operations.delete_objects",
+      "release_memberships": [
+        "v0.2-wave2-initial"
+      ],
+      "inventory_key": "documentation:UtilityOperations/Units/DeleteObjects.htm",
+      "mp_step": "Delete Objects",
+      "protocol_file": "collection_operations.proto",
+      "service": "CollectionOperations",
+      "rpc": "DeleteObjects",
+      "request": "DeleteObjectsRequest",
+      "result": "DeleteObjectsResult",
+      "fully_qualified_method": "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/DeleteObjects",
+      "effect": "mutating",
+      "execution_scope": "global_state_mutation",
+      "isolation_review": "Mutates named geometry in application-global model state. Cancellation or deadline expiry does not roll back deletion or cancel an in-flight COM call; an ambiguous completion requires reconciliation before replay.",
+      "replay_safety": "unknown",
+      "generated": {
+        "protocol": true,
+        "request_validation": true,
+        "request_adapter": true,
+        "immutable_worker_command": true,
+        "result_adapter": true,
+        "grpc_service": true,
+        "service_registration": true,
+        "capability": true,
+        "documentation": true,
+        "portable_conformance": true
+      },
+      "inputs": [
+        {
+          "argument_id": "object_names",
+          "ordinal": 0,
+          "sdk_order": 0,
+          "mp_name": "Object Names",
+          "direction": "input",
+          "semantic_type": "collection_object_name_list",
+          "argument_family_assignment": true,
+          "data_classification": "object_identifier",
+          "field_number": 1,
+          "setter": "SetCollectionObjectNameRefListArg",
           "presence": "required",
           "omission_behavior": "reject_request",
           "default_status": "none"
@@ -931,6 +1060,84 @@
           "presence": "required",
           "omission_behavior": "reject_request",
           "default_status": "none"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "operation_id": "collection_operations.rename_object",
+      "release_memberships": [
+        "v0.2-wave2-initial"
+      ],
+      "inventory_key": "documentation:ConstructionOperations/RenameObject.htm",
+      "mp_step": "Rename Object",
+      "protocol_file": "collection_operations.proto",
+      "service": "CollectionOperations",
+      "rpc": "RenameObject",
+      "request": "RenameObjectRequest",
+      "result": "RenameObjectResult",
+      "fully_qualified_method": "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/RenameObject",
+      "effect": "mutating",
+      "execution_scope": "global_state_mutation",
+      "isolation_review": "Mutates named geometry in application-global model state. Cancellation or deadline expiry does not roll back the rename or cancel an in-flight COM call; an ambiguous completion requires reconciliation before replay.",
+      "replay_safety": "unknown",
+      "generated": {
+        "protocol": true,
+        "request_validation": true,
+        "request_adapter": true,
+        "immutable_worker_command": true,
+        "result_adapter": true,
+        "grpc_service": true,
+        "service_registration": true,
+        "capability": true,
+        "documentation": true,
+        "portable_conformance": true
+      },
+      "inputs": [
+        {
+          "argument_id": "original_object_name",
+          "ordinal": 0,
+          "sdk_order": 0,
+          "mp_name": "Original Object Name",
+          "direction": "input",
+          "semantic_type": "collection_object_name",
+          "argument_family_assignment": true,
+          "data_classification": "object_identifier",
+          "field_number": 1,
+          "setter": "SetCollectionObjectNameArg2",
+          "presence": "required",
+          "omission_behavior": "reject_request",
+          "default_status": "none"
+        },
+        {
+          "argument_id": "new_object_name",
+          "ordinal": 1,
+          "sdk_order": 1,
+          "mp_name": "New Object Name",
+          "direction": "input",
+          "semantic_type": "collection_object_name",
+          "argument_family_assignment": true,
+          "data_classification": "object_identifier",
+          "field_number": 2,
+          "setter": "SetCollectionObjectNameArg2",
+          "presence": "required",
+          "omission_behavior": "reject_request",
+          "default_status": "none"
+        },
+        {
+          "argument_id": "overwrite_if_exists",
+          "ordinal": 2,
+          "sdk_order": 2,
+          "mp_name": "Overwrite if exists?",
+          "direction": "input",
+          "semantic_type": "logical",
+          "argument_family_assignment": true,
+          "data_classification": "non_sensitive",
+          "field_number": 3,
+          "setter": "SetBoolArg",
+          "presence": "optional",
+          "omission_behavior": "set_catalog_default",
+          "default_status": "reviewed"
         }
       ],
       "outputs": []

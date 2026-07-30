@@ -8,11 +8,11 @@
   "evidence_inputs": [
     {
       "path": ".github/workflows/ci.yml",
-      "sha256": "0aba56233ff19588ffcfcd13dd5aaa434b9811b5a26c2c1ad612b6609392ef0c"
+      "sha256": "4fce1161de29ee29c523f4dd4a7f756eced333d37b45f93ba0f939557da0dae1"
     },
     {
       "path": ".github/workflows/release.yml",
-      "sha256": "527a7fa73180e502ef635986dd9c56315b3fb3675944fb64789f540f6c81a926"
+      "sha256": "7604ce8cac875b7424e5a4226f29902b1692197d5e4eb6174525e7c063477919"
     },
     {
       "path": "docs/architecture/0018-uncertain-completion-and-replay.md",
@@ -52,7 +52,7 @@
     },
     {
       "path": "generated/release/sa/2026.1.0529.7/support-matrix.json",
-      "sha256": "17a3d6e077a3c290c6eb906706883fc21d256269e8b52d924ab8a51cb35a1e90"
+      "sha256": "dfea642579111f015d9fc9cd79a71d4ccf4ac603156c0d34384a369acbd5ba39"
     },
     {
       "path": "release/sa/2026.1.0529.7/audit-policy.json",
@@ -98,11 +98,14 @@
         "collection_operations.construct_point_fit_to_points",
         "collection_operations.construct_point_group_from_point_name_list",
         "collection_operations.construct_point_in_working_coordinates",
+        "collection_operations.copy_object",
         "collection_operations.copy_objects_to_collection",
         "collection_operations.delete_collection",
+        "collection_operations.delete_objects",
         "collection_operations.delete_points",
         "collection_operations.move_objects_to_collection",
         "collection_operations.rename_collection",
+        "collection_operations.rename_object",
         "collection_operations.rename_point",
         "collection_operations.set_or_construct_default_collection"
       ],
