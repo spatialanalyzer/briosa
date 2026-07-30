@@ -2,7 +2,7 @@
 <!-- Generated from the reviewed Briosa command catalog. Do not edit by hand. -->
 # SpatialAnalyzer 2026.1.0529.7 operation reference
 
-Catalog `briosa.sa.2026.1.0529.7` revision `10`.
+Catalog `briosa.sa.2026.1.0529.7` revision `11`.
 
 Only explicitly reviewed Briosa operations are listed here. This is not the installed SpatialAnalyzer MP catalog.
 
@@ -24,7 +24,7 @@ Membership declarations identify additive reviewed delivery subsets, not the com
 
 - `v0.2-wave1-initial` (`v0.2`, `wave_1`): 5 operation(s)
 
-- `v0.2-wave2-initial` (`v0.2`, `wave_2`): 12 operation(s)
+- `v0.2-wave2-initial` (`v0.2`, `wave_2`): 15 operation(s)
 
 ## `CollectionOperations.ConstructPointAtCircleCenter`
 
@@ -161,6 +161,34 @@ Constructs a named point at explicit working-frame coordinates.
 
 None.
 
+## `CollectionOperations.CopyObject`
+
+Copies one explicitly identified collection object to a new object identity.
+
+- Briosa operation: `collection_operations.copy_object`
+- Inventory key: `documentation:ConstructionOperations/CopyObject.htm`
+- Protocol file: `collection_operations.proto`
+- Fully qualified method: `/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/CopyObject`
+- Exact MP step: `Copy Object`
+- Stability: `experimental`
+- Execution scope: `global_state_mutation`
+- Isolation review: Mutates named geometry in application-global model state. Cancellation or deadline expiry does not roll back the copy or cancel an in-flight COM call; an ambiguous completion requires reconciliation before replay.
+- Effect: `mutating`
+- Replay safety: `unknown`
+- Risk flags: none
+
+### Inputs
+
+| Field | Number | MP ordinal | SDK order | MP argument | Direction | Type | Data classification | SDK binding | Presence / retrieval |
+| --- | ---: | ---: | ---: | --- | --- | --- | --- | --- | --- |
+| `source_object` | 1 | 0 | 0 | `Source Object` | `input` | `collection_object_name` | `object_identifier` | `SetCollectionObjectNameArg2` | required; reject_request; default none |
+| `new_object_name` | 2 | 1 | 1 | `New Object Name` | `input` | `collection_object_name` | `object_identifier` | `SetCollectionObjectNameArg2` | required; reject_request; default none |
+| `overwrite_if_exists` | 3 | 2 | 2 | `Overwrite if exists?` | `input` | `logical` | `non_sensitive` | `SetBoolArg` | optional; set_catalog_default; default reviewed |
+
+### Outputs
+
+None.
+
 ## `CollectionOperations.CopyObjectsToCollection`
 
 Copies an explicit list of collection objects into a destination collection.
@@ -209,6 +237,32 @@ Deletes one explicitly named collection.
 | Field | Number | MP ordinal | SDK order | MP argument | Direction | Type | Data classification | SDK binding | Presence / retrieval |
 | --- | ---: | ---: | ---: | --- | --- | --- | --- | --- | --- |
 | `collection_name` | 1 | 0 | 0 | `Name of Collection to Delete` | `input` | `collection_name` | `object_identifier` | `SetCollectionNameArg` | required; reject_request; default none |
+
+### Outputs
+
+None.
+
+## `CollectionOperations.DeleteObjects`
+
+Deletes an explicit list of named collection objects.
+
+- Briosa operation: `collection_operations.delete_objects`
+- Inventory key: `documentation:UtilityOperations/Units/DeleteObjects.htm`
+- Protocol file: `collection_operations.proto`
+- Fully qualified method: `/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/DeleteObjects`
+- Exact MP step: `Delete Objects`
+- Stability: `experimental`
+- Execution scope: `global_state_mutation`
+- Isolation review: Mutates named geometry in application-global model state. Cancellation or deadline expiry does not roll back deletion or cancel an in-flight COM call; an ambiguous completion requires reconciliation before replay.
+- Effect: `mutating`
+- Replay safety: `unknown`
+- Risk flags: none
+
+### Inputs
+
+| Field | Number | MP ordinal | SDK order | MP argument | Direction | Type | Data classification | SDK binding | Presence / retrieval |
+| --- | ---: | ---: | ---: | --- | --- | --- | --- | --- | --- |
+| `object_names` | 1 | 0 | 0 | `Object Names` | `input` | `collection_object_name_list` | `object_identifier` | `SetCollectionObjectNameRefListArg` | required; reject_request; default none |
 
 ### Outputs
 
@@ -427,6 +481,34 @@ Renames one explicitly identified collection.
 | --- | ---: | ---: | ---: | --- | --- | --- | --- | --- | --- |
 | `original_collection_name` | 1 | 0 | 0 | `Original Collection Name` | `input` | `collection_name` | `object_identifier` | `SetCollectionNameArg` | required; reject_request; default none |
 | `new_collection_name` | 2 | 1 | 1 | `New Collection Name` | `input` | `collection_name` | `object_identifier` | `SetCollectionNameArg` | required; reject_request; default none |
+
+### Outputs
+
+None.
+
+## `CollectionOperations.RenameObject`
+
+Renames one explicitly identified collection object.
+
+- Briosa operation: `collection_operations.rename_object`
+- Inventory key: `documentation:ConstructionOperations/RenameObject.htm`
+- Protocol file: `collection_operations.proto`
+- Fully qualified method: `/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/RenameObject`
+- Exact MP step: `Rename Object`
+- Stability: `experimental`
+- Execution scope: `global_state_mutation`
+- Isolation review: Mutates named geometry in application-global model state. Cancellation or deadline expiry does not roll back the rename or cancel an in-flight COM call; an ambiguous completion requires reconciliation before replay.
+- Effect: `mutating`
+- Replay safety: `unknown`
+- Risk flags: none
+
+### Inputs
+
+| Field | Number | MP ordinal | SDK order | MP argument | Direction | Type | Data classification | SDK binding | Presence / retrieval |
+| --- | ---: | ---: | ---: | --- | --- | --- | --- | --- | --- |
+| `original_object_name` | 1 | 0 | 0 | `Original Object Name` | `input` | `collection_object_name` | `object_identifier` | `SetCollectionObjectNameArg2` | required; reject_request; default none |
+| `new_object_name` | 2 | 1 | 1 | `New Object Name` | `input` | `collection_object_name` | `object_identifier` | `SetCollectionObjectNameArg2` | required; reject_request; default none |
+| `overwrite_if_exists` | 3 | 2 | 2 | `Overwrite if exists?` | `input` | `logical` | `non_sensitive` | `SetBoolArg` | optional; set_catalog_default; default reviewed |
 
 ### Outputs
 

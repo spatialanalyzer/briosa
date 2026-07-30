@@ -127,7 +127,7 @@ try {
     Assert-Condition -Condition ($manifest.catalog_id -eq $coverage.catalog_id) -Message "The catalog ID is incorrect."
     Assert-Condition -Condition ($manifest.catalog_revision -eq $coverage.catalog_revision) -Message "The catalog revision is incorrect."
     Assert-Condition -Condition ($manifest.client_generation_contract_version -eq 1) -Message "The client-generation contract version is incorrect."
-    Assert-Condition -Condition ($manifest.conformance_fixture_sets.Count -eq 5) -Message "The protocol artifact must identify all five fixture sets."
+    Assert-Condition -Condition ($manifest.conformance_fixture_sets.Count -eq 6) -Message "The protocol artifact must identify all six fixture sets."
 
     $manifestFiles = @($manifest.files | Sort-Object path)
     $actualContentFiles = @(
@@ -259,6 +259,17 @@ try {
     Assert-Condition `
         -Condition (-not (Compare-Object $expectedWave2CollectionIds $actualWave2CollectionIds)) `
         -Message "The Wave 2 collection-mutation generated-client scenarios are incomplete."
+
+    $wave2ObjectFixturePath = Join-Path $bundleRoot "conformance\v1\wave2-object-lifecycle-scenarios.json"
+    $wave2ObjectFixtures = Get-Content -LiteralPath $wave2ObjectFixturePath -Raw | ConvertFrom-Json
+    $expectedWave2ObjectIds = @(
+        "copy-object-ready",
+        "delete-objects-ready",
+        "rename-object-ready")
+    $actualWave2ObjectIds = @($wave2ObjectFixtures.scenarios.id | Sort-Object)
+    Assert-Condition `
+        -Condition (-not (Compare-Object $expectedWave2ObjectIds $actualWave2ObjectIds)) `
+        -Message "The Wave 2 object-lifecycle generated-client scenarios are incomplete."
 
     $errorFixturePath = Join-Path $bundleRoot "conformance\v1\operation-error-cases.json"
     $errorFixtures = Get-Content -LiteralPath $errorFixturePath -Raw | ConvertFrom-Json

@@ -654,8 +654,10 @@ public sealed class CommandDispositionLedgerTests
                 "Construct Point (Fit to Points)",
                 "Construct Point Group from Point Name Ref List",
                 "Construct a Point in Working Coordinates",
+                "Copy Object",
                 "Copy Objects to a collection",
                 "Delete Collection",
+                "Delete Objects",
                 "Delete Points",
                 "Get Number of Collections",
                 "Get i-th Collection Name",
@@ -664,6 +666,7 @@ public sealed class CommandDispositionLedgerTests
                 "Make a Point Name Ref List From a Group",
                 "Move Objects to a collection",
                 "Rename Collection",
+                "Rename Object",
                 "Rename Point",
                 "Set (or construct) default collection",
                 "Get Working Directory"

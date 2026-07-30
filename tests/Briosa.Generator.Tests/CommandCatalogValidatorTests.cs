@@ -13,7 +13,7 @@ public sealed class CommandCatalogValidatorTests
 
         Assert.True(result.IsValid, string.Join(Environment.NewLine, result.Errors));
         Assert.Equal(1, result.CatalogCount);
-        Assert.Equal(18, result.OperationCount);
+        Assert.Equal(21, result.OperationCount);
     }
 
     [Fact]
@@ -57,11 +57,14 @@ public sealed class CommandCatalogValidatorTests
                 "collection_operations.construct_point_fit_to_points",
                 "collection_operations.construct_point_group_from_point_name_list",
                 "collection_operations.construct_point_in_working_coordinates",
+                "collection_operations.copy_object",
                 "collection_operations.copy_objects_to_collection",
                 "collection_operations.delete_collection",
+                "collection_operations.delete_objects",
                 "collection_operations.delete_points",
                 "collection_operations.move_objects_to_collection",
                 "collection_operations.rename_collection",
+                "collection_operations.rename_object",
                 "collection_operations.rename_point",
                 "collection_operations.set_or_construct_default_collection"
             ],
@@ -424,7 +427,7 @@ public sealed class CommandCatalogValidatorTests
         var result = CommandCatalogValidator.ValidateDirectory(fixture.Root);
 
         Assert.True(result.IsValid, string.Join(Environment.NewLine, result.Errors));
-        Assert.Equal(19, result.OperationCount);
+        Assert.Equal(22, result.OperationCount);
     }
 
     [Fact]

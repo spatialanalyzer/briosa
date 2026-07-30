@@ -20,8 +20,10 @@ public sealed partial class ProtocolSchemaTests
                 "ConstructPointFitToPoints",
                 "ConstructPointGroupFromPointNameList",
                 "ConstructPointInWorkingCoordinates",
+                "CopyObject",
                 "CopyObjectsToCollection",
                 "DeleteCollection",
+                "DeleteObjects",
                 "DeletePoints",
                 "GetCollectionCount",
                 "GetCollectionNameByIndex",
@@ -30,6 +32,7 @@ public sealed partial class ProtocolSchemaTests
                 "ListPointsInGroup",
                 "MoveObjectsToCollection",
                 "RenameCollection",
+                "RenameObject",
                 "RenamePoint",
                 "SetOrConstructDefaultCollection"
             ],

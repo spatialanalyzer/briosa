@@ -47,6 +47,13 @@ public sealed class ClientConformanceFixtureTests
         "set-or-construct-default-collection-ready"
     ];
 
+    private static readonly string[] ExpectedWave2ObjectLifecycleScenarios =
+    [
+        "copy-object-ready",
+        "delete-objects-ready",
+        "rename-object-ready"
+    ];
+
     [Fact]
     public void LiveFixtureDefinesTheCompletePackagedHostMatrix()
     {
@@ -274,6 +281,45 @@ public sealed class ClientConformanceFixtureTests
                 "collection_operations.move_objects_to_collection",
                 "collection_operations.rename_collection",
                 "collection_operations.set_or_construct_default_collection"
+            ],
+            scenarios.Select(scenario => GetRequiredString(scenario, "operation_id"))
+                .Distinct(StringComparer.Ordinal)
+                .Order(StringComparer.Ordinal));
+        Assert.All(
+            scenarios,
+            scenario =>
+            {
+                var expected = scenario.GetProperty("expected");
+                Assert.Equal("OK", GetRequiredString(expected, "grpc_status"));
+                Assert.True(expected.GetProperty("operation_succeeded").GetBoolean());
+                Assert.Empty(expected.GetProperty("failure_kinds").EnumerateArray());
+            });
+    }
+
+    [Fact]
+    public void Wave2ObjectLifecycleFixtureCoversEveryOperation()
+    {
+        using var document = ReadFixture("wave2-object-lifecycle-scenarios.json");
+        var root = document.RootElement;
+
+        Assert.Equal(1, root.GetProperty("schema_version").GetInt32());
+        Assert.Equal(
+            "briosa.client.wave2-object-lifecycle.v1",
+            root.GetProperty("fixture_set_id").GetString());
+        Assert.Equal(
+            "briosa-operation-error-bin",
+            root.GetProperty("error_trailer").GetString());
+
+        var scenarios = root.GetProperty("scenarios").EnumerateArray().ToArray();
+        Assert.Equal(
+            ExpectedWave2ObjectLifecycleScenarios,
+            scenarios.Select(scenario => scenario.GetProperty("id").GetString())
+                .Order(StringComparer.Ordinal));
+        Assert.Equal(
+            [
+                "collection_operations.copy_object",
+                "collection_operations.delete_objects",
+                "collection_operations.rename_object"
             ],
             scenarios.Select(scenario => GetRequiredString(scenario, "operation_id"))
                 .Distinct(StringComparer.Ordinal)

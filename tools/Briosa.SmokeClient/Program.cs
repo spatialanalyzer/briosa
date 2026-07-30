@@ -43,6 +43,12 @@ internal static class SmokeClientProgram
         "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/RenameCollection";
     private const string SetOrConstructDefaultCollectionOperation =
         "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/SetOrConstructDefaultCollection";
+    private const string CopyObjectOperation =
+        "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/CopyObject";
+    private const string DeleteObjectsOperation =
+        "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/DeleteObjects";
+    private const string RenameObjectOperation =
+        "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/RenameObject";
     private const string ErrorTrailerName = "briosa-operation-error-bin";
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -296,6 +302,21 @@ internal static class SmokeClientProgram
                     serverInfo,
                     options.Timeout,
                     cancellationToken).ConfigureAwait(false),
+            SmokeScenario.CopyObjectReady => await ExecuteCopyObjectReady(
+                collectionClient,
+                serverInfo,
+                options.Timeout,
+                cancellationToken).ConfigureAwait(false),
+            SmokeScenario.DeleteObjectsReady => await ExecuteDeleteObjectsReady(
+                collectionClient,
+                serverInfo,
+                options.Timeout,
+                cancellationToken).ConfigureAwait(false),
+            SmokeScenario.RenameObjectReady => await ExecuteRenameObjectReady(
+                collectionClient,
+                serverInfo,
+                options.Timeout,
+                cancellationToken).ConfigureAwait(false),
             _ => throw new SmokeFailureException("unsupported-smoke-scenario")
         };
 
@@ -843,6 +864,75 @@ internal static class SmokeClientProgram
         return new ScenarioOutcome(true, StatusCode.OK, false, null, false);
     }
 
+    private static async Task<ScenarioOutcome> ExecuteCopyObjectReady(
+        TargetProtocol.CollectionOperations.CollectionOperationsClient client,
+        GetServerInfoResponse serverInfo,
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
+    {
+        RequireReady(serverInfo);
+        var result = await client.CopyObjectAsync(
+                new TargetProtocol.CopyObjectRequest
+                {
+                    SourceObject = CollectionObjectName(
+                        "Line A",
+                        TargetProtocol.ObjectType.Line),
+                    NewObjectName = CollectionObjectName(
+                        "Line B",
+                        TargetProtocol.ObjectType.Line)
+                },
+                deadline: DateTime.UtcNow.Add(timeout),
+                cancellationToken: cancellationToken)
+            .ResponseAsync.ConfigureAwait(false);
+        RequireMutationSuccess(result.Execution, "unexpected-copy-object-success-shape");
+        return new ScenarioOutcome(true, StatusCode.OK, false, null, false);
+    }
+
+    private static async Task<ScenarioOutcome> ExecuteDeleteObjectsReady(
+        TargetProtocol.CollectionOperations.CollectionOperationsClient client,
+        GetServerInfoResponse serverInfo,
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
+    {
+        RequireReady(serverInfo);
+        var result = await client.DeleteObjectsAsync(
+                new TargetProtocol.DeleteObjectsRequest
+                {
+                    ObjectNames = CollectionObjectNames(
+                        ("Line A", TargetProtocol.ObjectType.Line),
+                        ("Circle A", TargetProtocol.ObjectType.Circle))
+                },
+                deadline: DateTime.UtcNow.Add(timeout),
+                cancellationToken: cancellationToken)
+            .ResponseAsync.ConfigureAwait(false);
+        RequireMutationSuccess(result.Execution, "unexpected-delete-objects-success-shape");
+        return new ScenarioOutcome(true, StatusCode.OK, false, null, false);
+    }
+
+    private static async Task<ScenarioOutcome> ExecuteRenameObjectReady(
+        TargetProtocol.CollectionOperations.CollectionOperationsClient client,
+        GetServerInfoResponse serverInfo,
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
+    {
+        RequireReady(serverInfo);
+        var result = await client.RenameObjectAsync(
+                new TargetProtocol.RenameObjectRequest
+                {
+                    OriginalObjectName = CollectionObjectName(
+                        "Line A",
+                        TargetProtocol.ObjectType.Line),
+                    NewObjectName = CollectionObjectName(
+                        "Line B",
+                        TargetProtocol.ObjectType.Line)
+                },
+                deadline: DateTime.UtcNow.Add(timeout),
+                cancellationToken: cancellationToken)
+            .ResponseAsync.ConfigureAwait(false);
+        RequireMutationSuccess(result.Execution, "unexpected-rename-object-success-shape");
+        return new ScenarioOutcome(true, StatusCode.OK, false, null, false);
+    }
+
     private static TargetProtocol.PointName PointName(string targetName) => new()
     {
         CollectionName = "Portable Collection",
@@ -1223,7 +1313,10 @@ internal static class SmokeClientProgram
         DeleteCollectionReady,
         MoveObjectsToCollectionReady,
         RenameCollectionReady,
-        SetOrConstructDefaultCollectionReady
+        SetOrConstructDefaultCollectionReady,
+        CopyObjectReady,
+        DeleteObjectsReady,
+        RenameObjectReady
     }
 
     private sealed record SmokeOptions(
@@ -1285,6 +1378,9 @@ internal static class SmokeClientProgram
                 "rename-collection-ready" => SmokeScenario.RenameCollectionReady,
                 "set-or-construct-default-collection-ready" =>
                     SmokeScenario.SetOrConstructDefaultCollectionReady,
+                "copy-object-ready" => SmokeScenario.CopyObjectReady,
+                "delete-objects-ready" => SmokeScenario.DeleteObjectsReady,
+                "rename-object-ready" => SmokeScenario.RenameObjectReady,
                 _ => throw new SmokeFailureException("unsupported-smoke-scenario")
             };
             var timeoutSecondsText = GetArgument(arguments, "--timeout-seconds");
@@ -1363,6 +1459,15 @@ internal static class SmokeClientProgram
                 SmokeScenario.SetOrConstructDefaultCollectionReady => new(
                     OperationAdvertised: true,
                     SetOrConstructDefaultCollectionOperation),
+                SmokeScenario.CopyObjectReady => new(
+                    OperationAdvertised: true,
+                    CopyObjectOperation),
+                SmokeScenario.DeleteObjectsReady => new(
+                    OperationAdvertised: true,
+                    DeleteObjectsOperation),
+                SmokeScenario.RenameObjectReady => new(
+                    OperationAdvertised: true,
+                    RenameObjectOperation),
                 _ => new FixtureExpectation(
                     scenario != SmokeScenario.PolicyDenied,
                     ExpectedOperation)
@@ -1380,7 +1485,8 @@ internal static class SmokeClientProgram
                     "briosa.client.live.v1" or
                     "briosa.client.wave1-read-only.v1" or
                     "briosa.client.wave2-point-lifecycle.v1" or
-                    "briosa.client.wave2-collection-mutations.v1"))
+                    "briosa.client.wave2-collection-mutations.v1" or
+                    "briosa.client.wave2-object-lifecycle.v1"))
             {
                 throw new SmokeFailureException("conformance-fixture-identity-mismatch");
             }
@@ -1435,6 +1541,9 @@ internal static class SmokeClientProgram
                     RenameCollectionOperation,
                 "collection_operations.set_or_construct_default_collection" =>
                     SetOrConstructDefaultCollectionOperation,
+                "collection_operations.copy_object" => CopyObjectOperation,
+                "collection_operations.delete_objects" => DeleteObjectsOperation,
+                "collection_operations.rename_object" => RenameObjectOperation,
                 _ => throw new SmokeFailureException(
                     "conformance-operation-identity-mismatch")
             };

@@ -2,7 +2,7 @@
   "$schema": "../../schemas/v1/catalog.schema.json",
   "schema_version": 1,
   "catalog_id": "briosa.sa.2026.1.0529.7",
-  "catalog_revision": "10",
+  "catalog_revision": "11",
   "spatial_analyzer_target": "2026.1.0529.7",
   "target_protocol_package": "briosa.sa.v2026_1_0529_7.v1alpha1",
   "sources": [
@@ -49,8 +49,10 @@
     "operations/collection_operations.construct_point_fit_to_points.json",
     "operations/collection_operations.construct_point_group_from_point_name_list.json",
     "operations/collection_operations.construct_point_in_working_coordinates.json",
+    "operations/collection_operations.copy_object.json",
     "operations/collection_operations.copy_objects_to_collection.json",
     "operations/collection_operations.delete_collection.json",
+    "operations/collection_operations.delete_objects.json",
     "operations/collection_operations.delete_points.json",
     "operations/collection_operations.get_collection_count.json",
     "operations/collection_operations.get_collection_name_by_index.json",
@@ -59,6 +61,7 @@
     "operations/collection_operations.list_points_in_group.json",
     "operations/collection_operations.move_objects_to_collection.json",
     "operations/collection_operations.rename_collection.json",
+    "operations/collection_operations.rename_object.json",
     "operations/collection_operations.rename_point.json",
     "operations/collection_operations.set_or_construct_default_collection.json",
     "operations/file_operations.get_working_directory.json"

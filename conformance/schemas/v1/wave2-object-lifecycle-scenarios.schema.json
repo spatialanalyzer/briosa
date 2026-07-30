@@ -1,0 +1,114 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://spatialanalyzer.github.io/briosa/conformance/schemas/v1/wave2-object-lifecycle-scenarios.schema.json",
+  "title": "Briosa Wave 2 object-lifecycle generated-client scenarios",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schema_version",
+    "fixture_set_id",
+    "error_trailer",
+    "scenarios"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "../schemas/v1/wave2-object-lifecycle-scenarios.schema.json"
+    },
+    "schema_version": {
+      "const": 1
+    },
+    "fixture_set_id": {
+      "const": "briosa.client.wave2-object-lifecycle.v1"
+    },
+    "error_trailer": {
+      "const": "briosa-operation-error-bin"
+    },
+    "scenarios": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "$ref": "#/definitions/scenario"
+      }
+    }
+  },
+  "definitions": {
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "operation_id",
+        "worker_scenario",
+        "watchdog_timeout",
+        "deny_operation",
+        "expected"
+      ],
+      "properties": {
+        "id": {
+          "enum": [
+            "copy-object-ready",
+            "delete-objects-ready",
+            "rename-object-ready"
+          ]
+        },
+        "operation_id": {
+          "enum": [
+            "collection_operations.copy_object",
+            "collection_operations.delete_objects",
+            "collection_operations.rename_object"
+          ]
+        },
+        "worker_scenario": {
+          "const": "ready"
+        },
+        "watchdog_timeout": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "deny_operation": {
+          "const": false
+        },
+        "expected": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "grpc_status",
+            "ready_for_mp",
+            "operation_advertised",
+            "operation_succeeded",
+            "recovery_succeeded",
+            "typed_error_required",
+            "failure_kinds"
+          ],
+          "properties": {
+            "grpc_status": {
+              "const": "OK"
+            },
+            "ready_for_mp": {
+              "const": true
+            },
+            "operation_advertised": {
+              "const": true
+            },
+            "operation_succeeded": {
+              "const": true
+            },
+            "recovery_succeeded": {
+              "const": false
+            },
+            "typed_error_required": {
+              "const": false
+            },
+            "failure_kinds": {
+              "type": "array",
+              "maxItems": 0
+            }
+          }
+        }
+      }
+    }
+  }
+}

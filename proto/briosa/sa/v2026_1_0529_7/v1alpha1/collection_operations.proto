@@ -20,10 +20,14 @@ service CollectionOperations {
   rpc ConstructPointGroupFromPointNameList(ConstructPointGroupFromPointNameListRequest) returns (ConstructPointGroupFromPointNameListResult);
   // Constructs a named point at explicit working-frame coordinates.
   rpc ConstructPointInWorkingCoordinates(ConstructPointInWorkingCoordinatesRequest) returns (ConstructPointInWorkingCoordinatesResult);
+  // Copies one explicitly identified collection object to a new object identity.
+  rpc CopyObject(CopyObjectRequest) returns (CopyObjectResult);
   // Copies an explicit list of collection objects into a destination collection.
   rpc CopyObjectsToCollection(CopyObjectsToCollectionRequest) returns (CopyObjectsToCollectionResult);
   // Deletes one explicitly named collection.
   rpc DeleteCollection(DeleteCollectionRequest) returns (DeleteCollectionResult);
+  // Deletes an explicit list of named collection objects.
+  rpc DeleteObjects(DeleteObjectsRequest) returns (DeleteObjectsResult);
   // Deletes an explicit list of named points.
   rpc DeletePoints(DeletePointsRequest) returns (DeletePointsResult);
   // Returns the number of collections currently present in the connected SpatialAnalyzer model.
@@ -40,6 +44,8 @@ service CollectionOperations {
   rpc MoveObjectsToCollection(MoveObjectsToCollectionRequest) returns (MoveObjectsToCollectionResult);
   // Renames one explicitly identified collection.
   rpc RenameCollection(RenameCollectionRequest) returns (RenameCollectionResult);
+  // Renames one explicitly identified collection object.
+  rpc RenameObject(RenameObjectRequest) returns (RenameObjectResult);
   // Renames an explicitly identified point, with reviewed collision behavior selected by the caller.
   rpc RenamePoint(RenamePointRequest) returns (RenamePointResult);
   // Selects an existing collection as the default or constructs it when it does not exist.
@@ -106,6 +112,20 @@ message ConstructPointInWorkingCoordinatesResult {
   briosa.core.v1alpha1.MpExecutionDetails execution = 1000;
 }
 
+message CopyObjectRequest {
+  // The exact existing collection/object identity to copy.
+  CollectionObjectName source_object = 1;
+  // The exact collection/object identity to assign to the copy.
+  CollectionObjectName new_object_name = 2;
+  // Whether SpatialAnalyzer may replace an existing object at the requested destination identity. Omission explicitly sends the reviewed false default.
+  optional bool overwrite_if_exists = 3;
+}
+
+message CopyObjectResult {
+  // Explicit MP and result-only argument retrieval outcome.
+  briosa.core.v1alpha1.MpExecutionDetails execution = 1000;
+}
+
 message CopyObjectsToCollectionRequest {
   // The exact collection/object identities to copy.
   CollectionObjectNameList source_objects = 1;
@@ -124,6 +144,16 @@ message DeleteCollectionRequest {
 }
 
 message DeleteCollectionResult {
+  // Explicit MP and result-only argument retrieval outcome.
+  briosa.core.v1alpha1.MpExecutionDetails execution = 1000;
+}
+
+message DeleteObjectsRequest {
+  // The exact collection/object identities to delete.
+  CollectionObjectNameList object_names = 1;
+}
+
+message DeleteObjectsResult {
   // Explicit MP and result-only argument retrieval outcome.
   briosa.core.v1alpha1.MpExecutionDetails execution = 1000;
 }
@@ -215,6 +245,20 @@ message RenameCollectionRequest {
 }
 
 message RenameCollectionResult {
+  // Explicit MP and result-only argument retrieval outcome.
+  briosa.core.v1alpha1.MpExecutionDetails execution = 1000;
+}
+
+message RenameObjectRequest {
+  // The exact existing collection/object identity to rename.
+  CollectionObjectName original_object_name = 1;
+  // The exact collection/object identity to assign.
+  CollectionObjectName new_object_name = 2;
+  // Whether SpatialAnalyzer may replace an existing object at the requested destination identity. Omission explicitly sends the reviewed false default.
+  optional bool overwrite_if_exists = 3;
+}
+
+message RenameObjectResult {
   // Explicit MP and result-only argument retrieval outcome.
   briosa.core.v1alpha1.MpExecutionDetails execution = 1000;
 }
