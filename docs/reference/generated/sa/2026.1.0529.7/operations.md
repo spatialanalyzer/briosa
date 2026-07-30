@@ -2,7 +2,7 @@
 <!-- Generated from the reviewed Briosa command catalog. Do not edit by hand. -->
 # SpatialAnalyzer 2026.1.0529.7 operation reference
 
-Catalog `briosa.sa.2026.1.0529.7` revision `11`.
+Catalog `briosa.sa.2026.1.0529.7` revision `12`.
 
 Only explicitly reviewed Briosa operations are listed here. This is not the installed SpatialAnalyzer MP catalog.
 
@@ -24,7 +24,7 @@ Membership declarations identify additive reviewed delivery subsets, not the com
 
 - `v0.2-wave1-initial` (`v0.2`, `wave_1`): 5 operation(s)
 
-- `v0.2-wave2-initial` (`v0.2`, `wave_2`): 15 operation(s)
+- `v0.2-wave2-initial` (`v0.2`, `wave_2`): 18 operation(s)
 
 ## `CollectionOperations.ConstructPointAtCircleCenter`
 
@@ -542,6 +542,62 @@ Renames an explicitly identified point, with reviewed collision behavior selecte
 
 None.
 
+## `CollectionOperations.SetCollectionNotes`
+
+Appends to or replaces the notes attached to an explicitly identified collection.
+
+- Briosa operation: `collection_operations.set_collection_notes`
+- Inventory key: `documentation:UtilityOperations/Notes/SetCollectionNotes.htm`
+- Protocol file: `collection_operations.proto`
+- Fully qualified method: `/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/SetCollectionNotes`
+- Exact MP step: `Set Collection Notes`
+- Stability: `experimental`
+- Execution scope: `global_state_mutation`
+- Isolation review: Mutates collection metadata in application-global model state. Cancellation or deadline expiry does not roll back the notes change or cancel an in-flight COM call; an ambiguous completion requires reconciliation before replay.
+- Effect: `mutating`
+- Replay safety: `unknown`
+- Risk flags: none
+
+### Inputs
+
+| Field | Number | MP ordinal | SDK order | MP argument | Direction | Type | Data classification | SDK binding | Presence / retrieval |
+| --- | ---: | ---: | ---: | --- | --- | --- | --- | --- | --- |
+| `collection_name` | 1 | 0 | 0 | `Collection` | `input` | `collection_name` | `object_identifier` | `SetCollectionNameArg` | required; reject_request; default none |
+| `notes` | 2 | 1 | 1 | `Notes` | `input` | `edit_text` | `proprietary` | `SetEditTextArg` | required; reject_request; default none |
+| `append` | 3 | 2 | 2 | `Append? (FALSE = Overwrite)` | `input` | `logical` | `non_sensitive` | `SetBoolArg` | optional; set_catalog_default; default reviewed |
+
+### Outputs
+
+None.
+
+## `CollectionOperations.SetObjectNotes`
+
+Appends to or replaces the notes attached to an explicitly identified collection object.
+
+- Briosa operation: `collection_operations.set_object_notes`
+- Inventory key: `documentation:UtilityOperations/Notes/SetObjectNotes.htm`
+- Protocol file: `collection_operations.proto`
+- Fully qualified method: `/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/SetObjectNotes`
+- Exact MP step: `Set Object Notes`
+- Stability: `experimental`
+- Execution scope: `global_state_mutation`
+- Isolation review: Mutates object metadata in application-global model state. Cancellation or deadline expiry does not roll back the notes change or cancel an in-flight COM call; an ambiguous completion requires reconciliation before replay.
+- Effect: `mutating`
+- Replay safety: `unknown`
+- Risk flags: none
+
+### Inputs
+
+| Field | Number | MP ordinal | SDK order | MP argument | Direction | Type | Data classification | SDK binding | Presence / retrieval |
+| --- | ---: | ---: | ---: | --- | --- | --- | --- | --- | --- |
+| `object_name` | 1 | 0 | 0 | `Object` | `input` | `collection_object_name` | `object_identifier` | `SetCollectionObjectNameArg2` | required; reject_request; default none |
+| `notes` | 2 | 1 | 1 | `Notes` | `input` | `edit_text` | `proprietary` | `SetEditTextArg` | required; reject_request; default none |
+| `append` | 3 | 2 | 2 | `Append? (FALSE = Overwrite)` | `input` | `logical` | `non_sensitive` | `SetBoolArg` | optional; set_catalog_default; default reviewed |
+
+### Outputs
+
+None.
+
 ## `CollectionOperations.SetOrConstructDefaultCollection`
 
 Selects an existing collection as the default or constructs it when it does not exist.
@@ -563,6 +619,34 @@ Selects an existing collection as the default or constructs it when it does not 
 | Field | Number | MP ordinal | SDK order | MP argument | Direction | Type | Data classification | SDK binding | Presence / retrieval |
 | --- | ---: | ---: | ---: | --- | --- | --- | --- | --- | --- |
 | `collection_name` | 1 | 0 | 0 | `Collection Name` | `input` | `collection_name` | `object_identifier` | `SetCollectionNameArg` | required; reject_request; default none |
+
+### Outputs
+
+None.
+
+## `CollectionOperations.SetPointNotes`
+
+Appends to or replaces the notes attached to an explicitly identified point.
+
+- Briosa operation: `collection_operations.set_point_notes`
+- Inventory key: `documentation:UtilityOperations/Notes/SetPointNotes.htm`
+- Protocol file: `collection_operations.proto`
+- Fully qualified method: `/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/SetPointNotes`
+- Exact MP step: `Set Point Notes`
+- Stability: `experimental`
+- Execution scope: `global_state_mutation`
+- Isolation review: Mutates point metadata in application-global model state. Cancellation or deadline expiry does not roll back the notes change or cancel an in-flight COM call; an ambiguous completion requires reconciliation before replay.
+- Effect: `mutating`
+- Replay safety: `unknown`
+- Risk flags: none
+
+### Inputs
+
+| Field | Number | MP ordinal | SDK order | MP argument | Direction | Type | Data classification | SDK binding | Presence / retrieval |
+| --- | ---: | ---: | ---: | --- | --- | --- | --- | --- | --- |
+| `point_name` | 1 | 0 | 0 | `Point` | `input` | `point_name` | `object_identifier` | `SetPointNameArg` | required; reject_request; default none |
+| `notes` | 2 | 1 | 1 | `Notes` | `input` | `edit_text` | `proprietary` | `SetEditTextArg` | required; reject_request; default none |
+| `append` | 3 | 2 | 2 | `Append? (FALSE = Overwrite)` | `input` | `logical` | `non_sensitive` | `SetBoolArg` | optional; set_catalog_default; default reviewed |
 
 ### Outputs
 

@@ -1,0 +1,56 @@
+{
+  "$schema": "../schemas/v1/wave2-note-mutations-scenarios.schema.json",
+  "schema_version": 1,
+  "fixture_set_id": "briosa.client.wave2-note-mutations.v1",
+  "error_trailer": "briosa-operation-error-bin",
+  "scenarios": [
+    {
+      "id": "set-collection-notes-ready",
+      "operation_id": "collection_operations.set_collection_notes",
+      "worker_scenario": "ready",
+      "watchdog_timeout": null,
+      "deny_operation": false,
+      "expected": {
+        "grpc_status": "OK",
+        "ready_for_mp": true,
+        "operation_advertised": true,
+        "operation_succeeded": true,
+        "recovery_succeeded": false,
+        "typed_error_required": false,
+        "failure_kinds": []
+      }
+    },
+    {
+      "id": "set-object-notes-ready",
+      "operation_id": "collection_operations.set_object_notes",
+      "worker_scenario": "ready",
+      "watchdog_timeout": null,
+      "deny_operation": false,
+      "expected": {
+        "grpc_status": "OK",
+        "ready_for_mp": true,
+        "operation_advertised": true,
+        "operation_succeeded": true,
+        "recovery_succeeded": false,
+        "typed_error_required": false,
+        "failure_kinds": []
+      }
+    },
+    {
+      "id": "set-point-notes-ready",
+      "operation_id": "collection_operations.set_point_notes",
+      "worker_scenario": "ready",
+      "watchdog_timeout": null,
+      "deny_operation": false,
+      "expected": {
+        "grpc_status": "OK",
+        "ready_for_mp": true,
+        "operation_advertised": true,
+        "operation_succeeded": true,
+        "recovery_succeeded": false,
+        "typed_error_required": false,
+        "failure_kinds": []
+      }
+    }
+  ]
+}

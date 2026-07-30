@@ -668,7 +668,10 @@ public sealed class CommandDispositionLedgerTests
                 "Rename Collection",
                 "Rename Object",
                 "Rename Point",
+                "Set Collection Notes",
+                "Set Object Notes",
                 "Set (or construct) default collection",
+                "Set Point Notes",
                 "Get Working Directory"
             ],
             supportedSteps);

@@ -2,9 +2,9 @@
 
 A supported-command catalog is the maximum exact-target API that the binary can express. A release-membership document identifies the smaller, reviewed subset being delivered for a named release line and wave. It is planning and completeness metadata, not a compatibility promise and not runtime authorization.
 
-For SA `2026.1.0529.7`, the initial v0.2 Wave 1 subset is declared in `catalog/sa/2026.1.0529.7/release-memberships/v0.2-wave1-initial.json`. It contains five collection-introspection operations. The growing Wave 2 subset is independently declared in `v0.2-wave2-initial.json` and contains fifteen mutations. Seven cover the point lifecycle and derived construction: construct a point in working coordinates, rename a point, delete points, construct a point at a circle center, construct a point at a line midpoint, fit a point to points, and construct a point group from a point-name list. Five cover collection state: set or construct the default collection, rename a collection, delete a collection, copy objects to a collection, and move objects to a collection. Three cover exact object lifecycle: copy an object, rename an object, and delete an object-name reference list. The earlier `file_operations.get_working_directory` vertical slice remains in the supported catalog but is not counted as a newly promoted member. Membership is deliberately additive and does not imply that all disposition-approved candidates for either wave have shipped.
+For SA `2026.1.0529.7`, the initial v0.2 Wave 1 subset is declared in `catalog/sa/2026.1.0529.7/release-memberships/v0.2-wave1-initial.json`. It contains five collection-introspection operations. The growing Wave 2 subset is independently declared in `v0.2-wave2-initial.json` and contains eighteen mutations. Seven cover the point lifecycle and derived construction: construct a point in working coordinates, rename a point, delete points, construct a point at a circle center, construct a point at a line midpoint, fit a point to points, and construct a point group from a point-name list. Five cover collection state: set or construct the default collection, rename a collection, delete a collection, copy objects to a collection, and move objects to a collection. Three cover exact object lifecycle: copy an object, rename an object, and delete an object-name reference list. Three set notes on an explicitly identified collection, object, or point. The earlier `file_operations.get_working_directory` vertical slice remains in the supported catalog but is not counted as a newly promoted member. Membership is deliberately additive and does not imply that all disposition-approved candidates for either wave have shipped.
 
-All fifteen Wave 2 members mutate application-global state and have `unknown` replay safety. Their membership records delivery, not an endorsement of automatic retry: cancellation, timeout, worker loss, or a lost response after admission can require the caller to inspect current model state before deciding what to do next.
+All eighteen Wave 2 members mutate application-global state and have `unknown` replay safety. Their membership records delivery, not an endorsement of automatic retry: cancellation, timeout, worker loss, or a lost response after admission can require the caller to inspect current model state before deciding what to do next.
 
 The four derived-constructor additions were authorized under the maintainer-approved Wave 2 promotion rule: exact-target installed documentation and View SDK Code establish the SA `2026.1.0529.7` contract, while a matching ObjectiveSA counterpart corroborates the command and argument shape. The review found these one-to-one counterparts:
 
@@ -38,6 +38,16 @@ The three object lifecycle operations are another independently reviewable promo
 | `Delete Objects` | `DeleteObjects` | required collection-object-name reference list |
 
 These operations also remain `cataloged_portable_only`. Their packaged-host scenarios prove that each generated RPC is advertised and succeeds through the deterministic fake; generated conformance tests separately cover required-input validation, setter rejection, MP failure, cancellation/deadline disposition, watchdog recovery, policy denial, and malformed results without claiming licensed SpatialAnalyzer execution.
+
+The three note mutations share one reviewed contract across distinct identity families. Exact-target documentation and View SDK Code match the ObjectiveSA implementations, including required ordered edit-text lines and the optional `append` input defaulting to `true`:
+
+| Exact MP step | ObjectiveSA counterpart | Matching shape |
+| --- | --- | --- |
+| `Set Collection Notes` | `SetCollectionNotes` | required collection name and edit-text lines followed by optional `append`, defaulting to `true` |
+| `Set Object Notes` | `SetObjectNotes` | required collection-object name and edit-text lines followed by optional `append`, defaulting to `true` |
+| `Set Point Notes` | `SetPointNotes` | required point name and edit-text lines followed by optional `append`, defaulting to `true` |
+
+Note text is classified as proprietary and is never included in default logs or conformance reports. These operations remain `cataloged_portable_only`; their packaged-host fixture proves each generated RPC through deterministic fake execution, while generated conformance covers validation, setter rejection, MP failure, interruption/watchdog dispositions, policy, and malformed results.
 
 ## Required coordinates
 

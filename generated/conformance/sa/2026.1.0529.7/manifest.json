@@ -3,13 +3,13 @@
   "schema_version": 1,
   "generated_by": "Briosa.Generator portable conformance",
   "catalog_id": "briosa.sa.2026.1.0529.7",
-  "catalog_revision": "11",
+  "catalog_revision": "12",
   "spatial_analyzer_target": "2026.1.0529.7",
   "target_protocol_package": "briosa.sa.v2026_1_0529_7.v1alpha1",
   "evidence_inputs": [
     {
       "path": "catalog/sa/2026.1.0529.7/catalog.json",
-      "sha256": "ac37a4ea0ce90b276c77f4d863c3bc397292ccc9c7042b8f48748e3bc67369c0"
+      "sha256": "76118a2f837daa031bef961c048a373b8d3016d7826f00365eb417c73806ecb7"
     },
     {
       "path": "catalog/sa/2026.1.0529.7/operations/collection_operations.construct_point_at_circle_center.json",
@@ -88,8 +88,20 @@
       "sha256": "2f263fa567b0885f11d4677728b8f6753d19e5dca87e9bedbd27ee3eb6833476"
     },
     {
+      "path": "catalog/sa/2026.1.0529.7/operations/collection_operations.set_collection_notes.json",
+      "sha256": "5f4a02c9c7eac6c83e946339d35687cff5fbf8ed82245868a4587b4e10567723"
+    },
+    {
+      "path": "catalog/sa/2026.1.0529.7/operations/collection_operations.set_object_notes.json",
+      "sha256": "597d38a97ee0691514cddf4654b5e8abb916a3dba60e959fec51febfa3af0cbc"
+    },
+    {
       "path": "catalog/sa/2026.1.0529.7/operations/collection_operations.set_or_construct_default_collection.json",
       "sha256": "7685aad4d2e12fafa8ad16a9aa13e143cb60b857f6d10f7b5821d93fedd8f0a3"
+    },
+    {
+      "path": "catalog/sa/2026.1.0529.7/operations/collection_operations.set_point_notes.json",
+      "sha256": "3e0a0068878c439609f809d28500c1ea72aa9faaae095da6d40efb777d78a2cd"
     },
     {
       "path": "catalog/sa/2026.1.0529.7/operations/file_operations.get_working_directory.json",
@@ -109,7 +121,7 @@
     }
   ],
   "counts": {
-    "operation_count": 21,
+    "operation_count": 24,
     "binding_case_count": 252,
     "value_family_case_count": 158,
     "enum_case_count": 512,
@@ -3479,6 +3491,422 @@
       ]
     },
     {
+      "operation_id": "collection_operations.set_collection_notes",
+      "inventory_key": "documentation:UtilityOperations/Notes/SetCollectionNotes.htm",
+      "mp_step": "Set Collection Notes",
+      "fully_qualified_method": "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/SetCollectionNotes",
+      "request": "SetCollectionNotesRequest",
+      "result": "SetCollectionNotesResult",
+      "effect": "mutating",
+      "execution_scope": "global_state_mutation",
+      "replay_safety": "unknown",
+      "risk_flags": [],
+      "inputs": [
+        {
+          "argument_id": "collection_name",
+          "ordinal": 0,
+          "sdk_order": 0,
+          "mp_name": "Collection",
+          "direction": "input",
+          "semantic_type": "collection_name",
+          "worker_value_kind": "CollectionName",
+          "binding": "SetCollectionNameArg",
+          "presence": "required",
+          "omission_behavior": "reject_request"
+        },
+        {
+          "argument_id": "notes",
+          "ordinal": 1,
+          "sdk_order": 1,
+          "mp_name": "Notes",
+          "direction": "input",
+          "semantic_type": "edit_text",
+          "worker_value_kind": "EditText",
+          "binding": "SetEditTextArg",
+          "presence": "required",
+          "omission_behavior": "reject_request"
+        },
+        {
+          "argument_id": "append",
+          "ordinal": 2,
+          "sdk_order": 2,
+          "mp_name": "Append? (FALSE = Overwrite)",
+          "direction": "input",
+          "semantic_type": "logical",
+          "worker_value_kind": "Logical",
+          "binding": "SetBoolArg",
+          "presence": "optional",
+          "omission_behavior": "set_catalog_default"
+        }
+      ],
+      "outputs": [],
+      "scenarios": [
+        {
+          "scenario_id": "operation:collection_operations.set_collection_notes:binding:append:setter-rejected",
+          "kind": "binding.setter_rejected",
+          "argument_id": "append"
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_collection_notes:binding:collection_name:setter-rejected",
+          "kind": "binding.setter_rejected",
+          "argument_id": "collection_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_collection_notes:binding:notes:setter-rejected",
+          "kind": "binding.setter_rejected",
+          "argument_id": "notes"
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_collection_notes:capability:metadata",
+          "kind": "capability.metadata",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_collection_notes:error:cancellation:not-started",
+          "kind": "error.cancellation_not_started",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_collection_notes:error:cancellation:started-unknown",
+          "kind": "error.cancellation_started_unknown",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_collection_notes:error:deadline:not-started",
+          "kind": "error.deadline_not_started",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_collection_notes:error:deadline:started-unknown",
+          "kind": "error.deadline_started_unknown",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_collection_notes:error:disconnected",
+          "kind": "error.disconnected",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_collection_notes:error:execute-rejected",
+          "kind": "error.execute_rejected",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_collection_notes:error:malformed-worker-response",
+          "kind": "error.malformed_worker_response",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_collection_notes:error:mp-failed",
+          "kind": "error.mp_failed",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_collection_notes:error:mp-result-retrieval-failed",
+          "kind": "error.mp_result_retrieval_failed",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_collection_notes:error:worker-crash",
+          "kind": "error.worker_crash",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_collection_notes:error:worker-hang",
+          "kind": "error.worker_hang",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_collection_notes:metadata:execution-disposition",
+          "kind": "metadata.execution_disposition",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_collection_notes:metadata:execution-scope",
+          "kind": "metadata.execution_scope",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_collection_notes:metadata:replay-guidance",
+          "kind": "metadata.replay_guidance",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_collection_notes:policy:allow",
+          "kind": "policy.allowed",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_collection_notes:policy:deny",
+          "kind": "policy.denied",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_collection_notes:readiness:unverified",
+          "kind": "readiness.unverified",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_collection_notes:request:append:omitted",
+          "kind": "request.optional_omitted",
+          "argument_id": "append"
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_collection_notes:request:append:positive",
+          "kind": "request.argument_positive",
+          "argument_id": "append"
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_collection_notes:request:append:present-default-like",
+          "kind": "request.present_default_like",
+          "argument_id": "append"
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_collection_notes:request:collection_name:missing",
+          "kind": "request.required_missing",
+          "argument_id": "collection_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_collection_notes:request:collection_name:positive",
+          "kind": "request.argument_positive",
+          "argument_id": "collection_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_collection_notes:request:collection_name:present-default-like",
+          "kind": "request.present_default_like",
+          "argument_id": "collection_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_collection_notes:request:notes:missing",
+          "kind": "request.required_missing",
+          "argument_id": "notes"
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_collection_notes:request:notes:positive",
+          "kind": "request.argument_positive",
+          "argument_id": "notes"
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_collection_notes:request:valid",
+          "kind": "request.valid",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_collection_notes:result:success",
+          "kind": "result.success",
+          "argument_id": null
+        }
+      ]
+    },
+    {
+      "operation_id": "collection_operations.set_object_notes",
+      "inventory_key": "documentation:UtilityOperations/Notes/SetObjectNotes.htm",
+      "mp_step": "Set Object Notes",
+      "fully_qualified_method": "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/SetObjectNotes",
+      "request": "SetObjectNotesRequest",
+      "result": "SetObjectNotesResult",
+      "effect": "mutating",
+      "execution_scope": "global_state_mutation",
+      "replay_safety": "unknown",
+      "risk_flags": [],
+      "inputs": [
+        {
+          "argument_id": "object_name",
+          "ordinal": 0,
+          "sdk_order": 0,
+          "mp_name": "Object",
+          "direction": "input",
+          "semantic_type": "collection_object_name",
+          "worker_value_kind": "CollectionObjectName",
+          "binding": "SetCollectionObjectNameArg2",
+          "presence": "required",
+          "omission_behavior": "reject_request"
+        },
+        {
+          "argument_id": "notes",
+          "ordinal": 1,
+          "sdk_order": 1,
+          "mp_name": "Notes",
+          "direction": "input",
+          "semantic_type": "edit_text",
+          "worker_value_kind": "EditText",
+          "binding": "SetEditTextArg",
+          "presence": "required",
+          "omission_behavior": "reject_request"
+        },
+        {
+          "argument_id": "append",
+          "ordinal": 2,
+          "sdk_order": 2,
+          "mp_name": "Append? (FALSE = Overwrite)",
+          "direction": "input",
+          "semantic_type": "logical",
+          "worker_value_kind": "Logical",
+          "binding": "SetBoolArg",
+          "presence": "optional",
+          "omission_behavior": "set_catalog_default"
+        }
+      ],
+      "outputs": [],
+      "scenarios": [
+        {
+          "scenario_id": "operation:collection_operations.set_object_notes:binding:append:setter-rejected",
+          "kind": "binding.setter_rejected",
+          "argument_id": "append"
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_object_notes:binding:notes:setter-rejected",
+          "kind": "binding.setter_rejected",
+          "argument_id": "notes"
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_object_notes:binding:object_name:setter-rejected",
+          "kind": "binding.setter_rejected",
+          "argument_id": "object_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_object_notes:capability:metadata",
+          "kind": "capability.metadata",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_object_notes:error:cancellation:not-started",
+          "kind": "error.cancellation_not_started",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_object_notes:error:cancellation:started-unknown",
+          "kind": "error.cancellation_started_unknown",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_object_notes:error:deadline:not-started",
+          "kind": "error.deadline_not_started",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_object_notes:error:deadline:started-unknown",
+          "kind": "error.deadline_started_unknown",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_object_notes:error:disconnected",
+          "kind": "error.disconnected",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_object_notes:error:execute-rejected",
+          "kind": "error.execute_rejected",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_object_notes:error:malformed-worker-response",
+          "kind": "error.malformed_worker_response",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_object_notes:error:mp-failed",
+          "kind": "error.mp_failed",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_object_notes:error:mp-result-retrieval-failed",
+          "kind": "error.mp_result_retrieval_failed",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_object_notes:error:worker-crash",
+          "kind": "error.worker_crash",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_object_notes:error:worker-hang",
+          "kind": "error.worker_hang",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_object_notes:metadata:execution-disposition",
+          "kind": "metadata.execution_disposition",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_object_notes:metadata:execution-scope",
+          "kind": "metadata.execution_scope",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_object_notes:metadata:replay-guidance",
+          "kind": "metadata.replay_guidance",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_object_notes:policy:allow",
+          "kind": "policy.allowed",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_object_notes:policy:deny",
+          "kind": "policy.denied",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_object_notes:readiness:unverified",
+          "kind": "readiness.unverified",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_object_notes:request:append:omitted",
+          "kind": "request.optional_omitted",
+          "argument_id": "append"
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_object_notes:request:append:positive",
+          "kind": "request.argument_positive",
+          "argument_id": "append"
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_object_notes:request:append:present-default-like",
+          "kind": "request.present_default_like",
+          "argument_id": "append"
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_object_notes:request:notes:missing",
+          "kind": "request.required_missing",
+          "argument_id": "notes"
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_object_notes:request:notes:positive",
+          "kind": "request.argument_positive",
+          "argument_id": "notes"
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_object_notes:request:object_name:malformed",
+          "kind": "request.malformed_shape",
+          "argument_id": "object_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_object_notes:request:object_name:missing",
+          "kind": "request.required_missing",
+          "argument_id": "object_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_object_notes:request:object_name:positive",
+          "kind": "request.argument_positive",
+          "argument_id": "object_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_object_notes:request:valid",
+          "kind": "request.valid",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_object_notes:result:success",
+          "kind": "result.success",
+          "argument_id": null
+        }
+      ]
+    },
+    {
       "operation_id": "collection_operations.set_or_construct_default_collection",
       "inventory_key": "documentation:ConstructionOperations/Collections/SetOrConstructDefaultCollection.htm",
       "mp_step": "Set (or construct) default collection",
@@ -3622,6 +4050,214 @@
         },
         {
           "scenario_id": "operation:collection_operations.set_or_construct_default_collection:result:success",
+          "kind": "result.success",
+          "argument_id": null
+        }
+      ]
+    },
+    {
+      "operation_id": "collection_operations.set_point_notes",
+      "inventory_key": "documentation:UtilityOperations/Notes/SetPointNotes.htm",
+      "mp_step": "Set Point Notes",
+      "fully_qualified_method": "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/SetPointNotes",
+      "request": "SetPointNotesRequest",
+      "result": "SetPointNotesResult",
+      "effect": "mutating",
+      "execution_scope": "global_state_mutation",
+      "replay_safety": "unknown",
+      "risk_flags": [],
+      "inputs": [
+        {
+          "argument_id": "point_name",
+          "ordinal": 0,
+          "sdk_order": 0,
+          "mp_name": "Point",
+          "direction": "input",
+          "semantic_type": "point_name",
+          "worker_value_kind": "PointName",
+          "binding": "SetPointNameArg",
+          "presence": "required",
+          "omission_behavior": "reject_request"
+        },
+        {
+          "argument_id": "notes",
+          "ordinal": 1,
+          "sdk_order": 1,
+          "mp_name": "Notes",
+          "direction": "input",
+          "semantic_type": "edit_text",
+          "worker_value_kind": "EditText",
+          "binding": "SetEditTextArg",
+          "presence": "required",
+          "omission_behavior": "reject_request"
+        },
+        {
+          "argument_id": "append",
+          "ordinal": 2,
+          "sdk_order": 2,
+          "mp_name": "Append? (FALSE = Overwrite)",
+          "direction": "input",
+          "semantic_type": "logical",
+          "worker_value_kind": "Logical",
+          "binding": "SetBoolArg",
+          "presence": "optional",
+          "omission_behavior": "set_catalog_default"
+        }
+      ],
+      "outputs": [],
+      "scenarios": [
+        {
+          "scenario_id": "operation:collection_operations.set_point_notes:binding:append:setter-rejected",
+          "kind": "binding.setter_rejected",
+          "argument_id": "append"
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_point_notes:binding:notes:setter-rejected",
+          "kind": "binding.setter_rejected",
+          "argument_id": "notes"
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_point_notes:binding:point_name:setter-rejected",
+          "kind": "binding.setter_rejected",
+          "argument_id": "point_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_point_notes:capability:metadata",
+          "kind": "capability.metadata",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_point_notes:error:cancellation:not-started",
+          "kind": "error.cancellation_not_started",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_point_notes:error:cancellation:started-unknown",
+          "kind": "error.cancellation_started_unknown",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_point_notes:error:deadline:not-started",
+          "kind": "error.deadline_not_started",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_point_notes:error:deadline:started-unknown",
+          "kind": "error.deadline_started_unknown",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_point_notes:error:disconnected",
+          "kind": "error.disconnected",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_point_notes:error:execute-rejected",
+          "kind": "error.execute_rejected",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_point_notes:error:malformed-worker-response",
+          "kind": "error.malformed_worker_response",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_point_notes:error:mp-failed",
+          "kind": "error.mp_failed",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_point_notes:error:mp-result-retrieval-failed",
+          "kind": "error.mp_result_retrieval_failed",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_point_notes:error:worker-crash",
+          "kind": "error.worker_crash",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_point_notes:error:worker-hang",
+          "kind": "error.worker_hang",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_point_notes:metadata:execution-disposition",
+          "kind": "metadata.execution_disposition",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_point_notes:metadata:execution-scope",
+          "kind": "metadata.execution_scope",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_point_notes:metadata:replay-guidance",
+          "kind": "metadata.replay_guidance",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_point_notes:policy:allow",
+          "kind": "policy.allowed",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_point_notes:policy:deny",
+          "kind": "policy.denied",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_point_notes:readiness:unverified",
+          "kind": "readiness.unverified",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_point_notes:request:append:omitted",
+          "kind": "request.optional_omitted",
+          "argument_id": "append"
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_point_notes:request:append:positive",
+          "kind": "request.argument_positive",
+          "argument_id": "append"
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_point_notes:request:append:present-default-like",
+          "kind": "request.present_default_like",
+          "argument_id": "append"
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_point_notes:request:notes:missing",
+          "kind": "request.required_missing",
+          "argument_id": "notes"
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_point_notes:request:notes:positive",
+          "kind": "request.argument_positive",
+          "argument_id": "notes"
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_point_notes:request:point_name:malformed",
+          "kind": "request.malformed_shape",
+          "argument_id": "point_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_point_notes:request:point_name:missing",
+          "kind": "request.required_missing",
+          "argument_id": "point_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_point_notes:request:point_name:positive",
+          "kind": "request.argument_positive",
+          "argument_id": "point_name"
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_point_notes:request:valid",
+          "kind": "request.valid",
+          "argument_id": null
+        },
+        {
+          "scenario_id": "operation:collection_operations.set_point_notes:result:success",
           "kind": "result.success",
           "argument_id": null
         }

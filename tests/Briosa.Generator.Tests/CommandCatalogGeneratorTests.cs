@@ -220,7 +220,7 @@ public sealed class CommandCatalogGeneratorTests
                 documentation,
                 StringComparison.Ordinal);
             Assert.Contains("`v0.2-wave1-initial` (`v0.2`, `wave_1`): 5 operation(s)", documentation, StringComparison.Ordinal);
-            Assert.Contains("`v0.2-wave2-initial` (`v0.2`, `wave_2`): 15 operation(s)", documentation, StringComparison.Ordinal);
+            Assert.Contains("`v0.2-wave2-initial` (`v0.2`, `wave_2`): 18 operation(s)", documentation, StringComparison.Ordinal);
         }
         finally
         {

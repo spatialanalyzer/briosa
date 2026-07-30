@@ -54,6 +54,13 @@ public sealed class ClientConformanceFixtureTests
         "rename-object-ready"
     ];
 
+    private static readonly string[] ExpectedWave2NoteMutationScenarios =
+    [
+        "set-collection-notes-ready",
+        "set-object-notes-ready",
+        "set-point-notes-ready"
+    ];
+
     [Fact]
     public void LiveFixtureDefinesTheCompletePackagedHostMatrix()
     {
@@ -320,6 +327,45 @@ public sealed class ClientConformanceFixtureTests
                 "collection_operations.copy_object",
                 "collection_operations.delete_objects",
                 "collection_operations.rename_object"
+            ],
+            scenarios.Select(scenario => GetRequiredString(scenario, "operation_id"))
+                .Distinct(StringComparer.Ordinal)
+                .Order(StringComparer.Ordinal));
+        Assert.All(
+            scenarios,
+            scenario =>
+            {
+                var expected = scenario.GetProperty("expected");
+                Assert.Equal("OK", GetRequiredString(expected, "grpc_status"));
+                Assert.True(expected.GetProperty("operation_succeeded").GetBoolean());
+                Assert.Empty(expected.GetProperty("failure_kinds").EnumerateArray());
+            });
+    }
+
+    [Fact]
+    public void Wave2NoteMutationFixtureCoversEveryOperation()
+    {
+        using var document = ReadFixture("wave2-note-mutations-scenarios.json");
+        var root = document.RootElement;
+
+        Assert.Equal(1, root.GetProperty("schema_version").GetInt32());
+        Assert.Equal(
+            "briosa.client.wave2-note-mutations.v1",
+            root.GetProperty("fixture_set_id").GetString());
+        Assert.Equal(
+            "briosa-operation-error-bin",
+            root.GetProperty("error_trailer").GetString());
+
+        var scenarios = root.GetProperty("scenarios").EnumerateArray().ToArray();
+        Assert.Equal(
+            ExpectedWave2NoteMutationScenarios,
+            scenarios.Select(scenario => scenario.GetProperty("id").GetString())
+                .Order(StringComparer.Ordinal));
+        Assert.Equal(
+            [
+                "collection_operations.set_collection_notes",
+                "collection_operations.set_object_notes",
+                "collection_operations.set_point_notes"
             ],
             scenarios.Select(scenario => GetRequiredString(scenario, "operation_id"))
                 .Distinct(StringComparer.Ordinal)

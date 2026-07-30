@@ -95,6 +95,9 @@ jobs:
           ./eng/Test-GeneratedClientScenarios.ps1 `
             -PackagePath "artifacts/release/briosa-${{ steps.version.outputs.value }}-sa-2026.1.0529.7-win-x64.zip" `
             -FixturePath conformance/v1/wave2-object-lifecycle-scenarios.json
+          ./eng/Test-GeneratedClientScenarios.ps1 `
+            -PackagePath "artifacts/release/briosa-${{ steps.version.outputs.value }}-sa-2026.1.0529.7-win-x64.zip" `
+            -FixturePath conformance/v1/wave2-note-mutations-scenarios.json
 
       - name: Enforce generated release audit
         shell: pwsh

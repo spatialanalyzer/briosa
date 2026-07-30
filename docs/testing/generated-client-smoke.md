@@ -1,6 +1,6 @@
 # Generated-client smoke testing
 
-Issue #18 validates the v0.1 vertical slice through a separate process that uses the generated .NET gRPC client. Issue #94 promotes its scenario matrix into the language-neutral `briosa.client.live.v1` fixture set consumed by every supported client. Issue #63 adds the `briosa.client.wave1-read-only.v1` matrix for the initial v0.2 collection-introspection subset. Issue #64 adds separate `briosa.client.wave2-point-lifecycle.v1`, `briosa.client.wave2-collection-mutations.v1`, and `briosa.client.wave2-object-lifecycle.v1` matrices for the growing mutating surface. The smoke client crosses the packaged server's real loopback HTTP/2 boundary; it does not call server services in memory.
+Issue #18 validates the v0.1 vertical slice through a separate process that uses the generated .NET gRPC client. Issue #94 promotes its scenario matrix into the language-neutral `briosa.client.live.v1` fixture set consumed by every supported client. Issue #63 adds the `briosa.client.wave1-read-only.v1` matrix for the initial v0.2 collection-introspection subset. Issue #64 adds separate `briosa.client.wave2-point-lifecycle.v1`, `briosa.client.wave2-collection-mutations.v1`, `briosa.client.wave2-object-lifecycle.v1`, and `briosa.client.wave2-note-mutations.v1` matrices for the growing mutating surface. The smoke client crosses the packaged server's real loopback HTTP/2 boundary; it does not call server services in memory.
 
 The probe reports only compatibility coordinates, state enums, booleans, and stable failure classifications. It intentionally does not print the working directory or any other returned SpatialAnalyzer value.
 
@@ -31,6 +31,10 @@ Build a package and run all generated-client scenarios on an ordinary Windows x6
 ./eng/Test-GeneratedClientScenarios.ps1 `
   -PackagePath artifacts/generated-client/briosa-0.1.0-test-sa-2026.1.0529.7-win-x64.zip `
   -FixturePath conformance/v1/wave2-object-lifecycle-scenarios.json
+
+./eng/Test-GeneratedClientScenarios.ps1 `
+  -PackagePath artifacts/generated-client/briosa-0.1.0-test-sa-2026.1.0529.7-win-x64.zip `
+  -FixturePath conformance/v1/wave2-note-mutations-scenarios.json
 ```
 
 These tests load `conformance/v1/live-scenarios.json` and substitute the separate `Briosa.SmokeWorker.exe` process for the real SDK worker. The harness supplies per-claim operator attestations labeled `portable-fake-worker` so the packaged host exercises its identity gate without presenting those inputs as release evidence. They require neither SpatialAnalyzer nor a license and cover:
@@ -56,6 +60,8 @@ The Wave 2 fixture covers all seven promoted point mutations across the same pac
 The collection-mutation fixture gives every newly promoted method its own packaged-boundary success scenario: copy objects, delete a collection, move objects, rename a collection, and set or construct the default collection. These checks exercise `collection_name` and `collection_object_name_list` request mapping through a generated client, capability policy, the public service, the framed worker channel, and the deterministic fake. The generated portable-conformance manifest separately table-drives each operation's validation, command mapping, MP failure, cancellation/deadline disposition, policy, and malformed-result behavior. Neither layer claims licensed SpatialAnalyzer execution.
 
 The object-lifecycle fixture gives copy object, rename object, and delete objects their own packaged-boundary success scenarios. It exercises scalar and reference-list `collection_object_name` mappings plus reviewed optional-Boolean omission. The generated portable-conformance manifest remains the primary exhaustive evidence for required-input validation, setter rejection, MP failure, getter handling, cancellation/deadline disposition, watchdog recovery, policy denial, and malformed results.
+
+The note-mutation fixture gives set collection notes, set object notes, and set point notes their own packaged-boundary success scenarios. It exercises `edit_text` request mapping with collection, collection-object, and point identities and omission of the reviewed `append=true` default. Note lines are test-only inputs and never appear in the value-free report.
 
 `conformance/v1/operation-error-cases.json` adds value-free unsafe and unknown replay cases that the initial read-only live operation cannot produce. Client libraries use those cases to verify typed error adapters and must never authorize automatic replay.
 

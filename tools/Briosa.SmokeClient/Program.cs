@@ -49,6 +49,12 @@ internal static class SmokeClientProgram
         "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/DeleteObjects";
     private const string RenameObjectOperation =
         "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/RenameObject";
+    private const string SetCollectionNotesOperation =
+        "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/SetCollectionNotes";
+    private const string SetObjectNotesOperation =
+        "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/SetObjectNotes";
+    private const string SetPointNotesOperation =
+        "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/SetPointNotes";
     private const string ErrorTrailerName = "briosa-operation-error-bin";
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -313,6 +319,21 @@ internal static class SmokeClientProgram
                 options.Timeout,
                 cancellationToken).ConfigureAwait(false),
             SmokeScenario.RenameObjectReady => await ExecuteRenameObjectReady(
+                collectionClient,
+                serverInfo,
+                options.Timeout,
+                cancellationToken).ConfigureAwait(false),
+            SmokeScenario.SetCollectionNotesReady => await ExecuteSetCollectionNotesReady(
+                collectionClient,
+                serverInfo,
+                options.Timeout,
+                cancellationToken).ConfigureAwait(false),
+            SmokeScenario.SetObjectNotesReady => await ExecuteSetObjectNotesReady(
+                collectionClient,
+                serverInfo,
+                options.Timeout,
+                cancellationToken).ConfigureAwait(false),
+            SmokeScenario.SetPointNotesReady => await ExecuteSetPointNotesReady(
                 collectionClient,
                 serverInfo,
                 options.Timeout,
@@ -933,6 +954,75 @@ internal static class SmokeClientProgram
         return new ScenarioOutcome(true, StatusCode.OK, false, null, false);
     }
 
+    private static async Task<ScenarioOutcome> ExecuteSetCollectionNotesReady(
+        TargetProtocol.CollectionOperations.CollectionOperationsClient client,
+        GetServerInfoResponse serverInfo,
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
+    {
+        RequireReady(serverInfo);
+        var result = await client.SetCollectionNotesAsync(
+                new TargetProtocol.SetCollectionNotesRequest
+                {
+                    CollectionName = "Portable Collection",
+                    Notes = Notes("Portable note")
+                },
+                deadline: DateTime.UtcNow.Add(timeout),
+                cancellationToken: cancellationToken)
+            .ResponseAsync.ConfigureAwait(false);
+        RequireMutationSuccess(result.Execution, "unexpected-set-collection-notes-success-shape");
+        return new ScenarioOutcome(true, StatusCode.OK, false, null, false);
+    }
+
+    private static async Task<ScenarioOutcome> ExecuteSetObjectNotesReady(
+        TargetProtocol.CollectionOperations.CollectionOperationsClient client,
+        GetServerInfoResponse serverInfo,
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
+    {
+        RequireReady(serverInfo);
+        var result = await client.SetObjectNotesAsync(
+                new TargetProtocol.SetObjectNotesRequest
+                {
+                    ObjectName = CollectionObjectName(
+                        "Line A",
+                        TargetProtocol.ObjectType.Line),
+                    Notes = Notes("Portable note")
+                },
+                deadline: DateTime.UtcNow.Add(timeout),
+                cancellationToken: cancellationToken)
+            .ResponseAsync.ConfigureAwait(false);
+        RequireMutationSuccess(result.Execution, "unexpected-set-object-notes-success-shape");
+        return new ScenarioOutcome(true, StatusCode.OK, false, null, false);
+    }
+
+    private static async Task<ScenarioOutcome> ExecuteSetPointNotesReady(
+        TargetProtocol.CollectionOperations.CollectionOperationsClient client,
+        GetServerInfoResponse serverInfo,
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
+    {
+        RequireReady(serverInfo);
+        var result = await client.SetPointNotesAsync(
+                new TargetProtocol.SetPointNotesRequest
+                {
+                    PointName = PointName("Point A"),
+                    Notes = Notes("Portable note")
+                },
+                deadline: DateTime.UtcNow.Add(timeout),
+                cancellationToken: cancellationToken)
+            .ResponseAsync.ConfigureAwait(false);
+        RequireMutationSuccess(result.Execution, "unexpected-set-point-notes-success-shape");
+        return new ScenarioOutcome(true, StatusCode.OK, false, null, false);
+    }
+
+    private static TargetProtocol.StringList Notes(params string[] values)
+    {
+        var result = new TargetProtocol.StringList();
+        result.Values.Add(values);
+        return result;
+    }
+
     private static TargetProtocol.PointName PointName(string targetName) => new()
     {
         CollectionName = "Portable Collection",
@@ -1316,7 +1406,10 @@ internal static class SmokeClientProgram
         SetOrConstructDefaultCollectionReady,
         CopyObjectReady,
         DeleteObjectsReady,
-        RenameObjectReady
+        RenameObjectReady,
+        SetCollectionNotesReady,
+        SetObjectNotesReady,
+        SetPointNotesReady
     }
 
     private sealed record SmokeOptions(
@@ -1381,6 +1474,9 @@ internal static class SmokeClientProgram
                 "copy-object-ready" => SmokeScenario.CopyObjectReady,
                 "delete-objects-ready" => SmokeScenario.DeleteObjectsReady,
                 "rename-object-ready" => SmokeScenario.RenameObjectReady,
+                "set-collection-notes-ready" => SmokeScenario.SetCollectionNotesReady,
+                "set-object-notes-ready" => SmokeScenario.SetObjectNotesReady,
+                "set-point-notes-ready" => SmokeScenario.SetPointNotesReady,
                 _ => throw new SmokeFailureException("unsupported-smoke-scenario")
             };
             var timeoutSecondsText = GetArgument(arguments, "--timeout-seconds");
@@ -1468,6 +1564,15 @@ internal static class SmokeClientProgram
                 SmokeScenario.RenameObjectReady => new(
                     OperationAdvertised: true,
                     RenameObjectOperation),
+                SmokeScenario.SetCollectionNotesReady => new(
+                    OperationAdvertised: true,
+                    SetCollectionNotesOperation),
+                SmokeScenario.SetObjectNotesReady => new(
+                    OperationAdvertised: true,
+                    SetObjectNotesOperation),
+                SmokeScenario.SetPointNotesReady => new(
+                    OperationAdvertised: true,
+                    SetPointNotesOperation),
                 _ => new FixtureExpectation(
                     scenario != SmokeScenario.PolicyDenied,
                     ExpectedOperation)
@@ -1486,7 +1591,8 @@ internal static class SmokeClientProgram
                     "briosa.client.wave1-read-only.v1" or
                     "briosa.client.wave2-point-lifecycle.v1" or
                     "briosa.client.wave2-collection-mutations.v1" or
-                    "briosa.client.wave2-object-lifecycle.v1"))
+                    "briosa.client.wave2-object-lifecycle.v1" or
+                    "briosa.client.wave2-note-mutations.v1"))
             {
                 throw new SmokeFailureException("conformance-fixture-identity-mismatch");
             }
@@ -1544,6 +1650,9 @@ internal static class SmokeClientProgram
                 "collection_operations.copy_object" => CopyObjectOperation,
                 "collection_operations.delete_objects" => DeleteObjectsOperation,
                 "collection_operations.rename_object" => RenameObjectOperation,
+                "collection_operations.set_collection_notes" => SetCollectionNotesOperation,
+                "collection_operations.set_object_notes" => SetObjectNotesOperation,
+                "collection_operations.set_point_notes" => SetPointNotesOperation,
                 _ => throw new SmokeFailureException(
                     "conformance-operation-identity-mismatch")
             };
