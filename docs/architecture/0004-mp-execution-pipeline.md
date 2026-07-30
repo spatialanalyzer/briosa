@@ -22,10 +22,10 @@ Private worker protocol version 3 adds typed MP execution requests and responses
 - The adapter calls `GetMPStepResult` only after `ExecuteStep` returns true. The getter Boolean means that the numeric result was retrieved; it is not the MP success flag. Result code `2` is success. Codes `-1`, `0`, `1`, `3`, `4`, `5`, and unknown values are preserved as non-success outcomes, and a false getter return is preserved separately as `sdk-mp-result-retrieval-failed` with no result code. Requested output getters run only after code `2`. Private worker protocol version 6 carries execute acceptance, MP-result retrieval, MP success, and the optional raw result code independently. A failed output getter produces `sdk-output-retrieval-failed` without silently substituting a default value.
 - The server's production watchdog defaults to 30 seconds. The execution queue capacity defaults to 64. These are worker-safety limits and are independent of a gRPC deadline or caller cancellation token.
 - A canceled caller stops waiting and receives `client-wait-cancelled`. Cancellation before enqueue is `NotStarted`; cancellation after enqueue is `StartedOutcomeUnknown` unless the worker proves that it skipped the request. An already queued request remains owned by the single consumer so its response is drained and the pipe stays synchronized. Cancellation does not claim to stop the COM call.
-- Queue admission is generation-scoped. Shutdown closes admission and wakes capacity waiters; it then drains every admitted item to a terminal internal outcome before replacing or stopping the runtime loops.
+- Queue admission is generation-scoped. Shutdown closes admission and wakes capacity waiters. An exchange that has already entered the length-prefixed pipe continues under the execution watchdog rather than being interrupted by runtime-loop cancellation; remaining queued items are completed without entering the pipe. Every admitted item therefore reaches a terminal internal outcome before the worker is stopped or replaced.
 - If the watchdog expires, the supervisor force-terminates the worker process tree, starts a replacement within the existing bounded restart policy, and reports `WatchdogTimeout` with `StartedOutcomeUnknown` for the affected request. Replacement restores availability but does not authorize replay.
 - A worker crash or invalid/broken control response after the request may have entered the worker is reported as `WorkerFailure` with `StartedOutcomeUnknown` and uses the same replacement path. Worker unavailability proved before execution remains a separate `NotStarted` outcome.
-- Heartbeats and executions share the supervisor's process gate, so a heartbeat cannot enter the request-response pipe while an execution is active.
+- Heartbeats and executions share the supervisor's process gate, so a heartbeat cannot enter the request-response pipe while an execution is active. Shutdown cancels future heartbeat scheduling and waits for any bounded in-flight ping/pong exchange before attempting the stop/stopped exchange on that channel.
 
 The v0.1 public command surface is not expanded by this decision. Generated gRPC operations will submit curated commands through this internal executor in later command-specific work.
 
@@ -40,6 +40,8 @@ Portable process tests use the fake worker executable to verify:
 - concurrent callers are served serially;
 - full-queue callers remain outside admission, cancel as `NotStarted`, and never increase admitted depth beyond capacity;
 - post-admission cancellation drains to a terminal internal outcome, and shutdown wakes capacity waiters;
+- shutdown during an active execution drains its response before graceful stop, while queued work that has not entered the pipe terminates without execution;
+- shutdown during an active heartbeat drains pong before reusing the channel for graceful stop;
 - caller cancellation returns promptly while a later request succeeds on the same generation;
 - a hung execution triggers forced replacement and the next call succeeds;
 - a crashed execution is distinct from a watchdog timeout and is replaced;

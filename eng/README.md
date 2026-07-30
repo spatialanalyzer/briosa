@@ -4,7 +4,7 @@ Run the scripts in this directory from the repository root. Most scripts require
 
 ## Local SpatialAnalyzer source-host verification
 
-`Test-LocalSpatialAnalyzerHost.ps1` verifies the conventional Debug source-host composition without activating the SDK or connecting to SpatialAnalyzer. It enforces the first/default `SpatialAnalyzer` launch profile, builds `Briosa.Server` in Debug, compares every file in the real worker output cohort with its colocated server-output copy, and runs the production worker control lifecycle with SDK activation explicitly disabled. The lifecycle check also proves bounded graceful worker cleanup.
+`Test-LocalSpatialAnalyzerHost.ps1` verifies the conventional Debug source-host composition without activating the SDK or connecting to SpatialAnalyzer. It enforces the first/default `SpatialAnalyzer` launch profile, builds `Briosa.Server` in Debug, compares every file in the real worker output cohort with its colocated server-output copy, and runs the production worker control lifecycle with SDK activation explicitly disabled. The lifecycle check also proves bounded graceful worker cleanup. Deterministic server tests separately coordinate shutdown during heartbeat and execution exchanges, proving that an entered length-prefixed exchange drains before the control channel is reused for `Stop`.
 
 ```powershell
 ./eng/Test-LocalSpatialAnalyzerHost.ps1
@@ -42,7 +42,7 @@ The audit policy below `release/sa/<target>` remains fail-closed for protected c
 ./eng/Test-RuntimePerformance.ps1 -NoBuild
 ```
 
-It also verifies admitted/terminal accounting is drained. Queue saturation, admission cancellation, stop races, repeated watchdog and crash replacement, bounded lifecycle history, and sustained audit correlation are deterministic server tests. See [the runtime performance and soak guide](../docs/testing/runtime-performance-and-soak.md) for exact boundaries and the deferred licensed soak.
+It also verifies admitted/terminal accounting is drained. Queue saturation, admission cancellation, heartbeat and execution stop races, phase-specific stop failure diagnostics, repeated watchdog and crash replacement, bounded lifecycle history, and sustained audit correlation are deterministic server tests. See [the runtime performance and soak guide](../docs/testing/runtime-performance-and-soak.md) for exact boundaries and the deferred licensed soak.
 
 `Verify-CiWorkflow.ps1` protects the ordinary workflow trigger and concurrency policy. Feature branches are validated by one `pull_request` run when they target `main`; `push` validation is restricted to `main`, and a newer commit cancels an obsolete run for the same pull request or branch. This avoids running the same Windows jobs for both `push` and `pull_request` on every open branch while retaining post-merge validation of `main`.
 

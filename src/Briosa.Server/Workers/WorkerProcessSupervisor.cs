@@ -465,8 +465,11 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                     correlationId);
             }
 
-            using var watchdog = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            watchdog.CancelAfter(_executionPolicy.WatchdogTimeout);
+            // A cancelled length-prefixed exchange cannot safely share its pipe with Stop.
+            // Runtime-loop cancellation stops admission; this operation's watchdog owns
+            // cancellation after the request enters the channel.
+            using var watchdog = new CancellationTokenSource(
+                _executionPolicy.WatchdogTimeout);
             try
             {
                 requestMayHaveStarted = true;
@@ -509,8 +512,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                     generation,
                     correlationId);
             }
-            catch (OperationCanceledException) when (
-                !cancellationToken.IsCancellationRequested)
+            catch (OperationCanceledException) when (watchdog.IsCancellationRequested)
             {
                 _ = await RecoverWorker(
                     "worker-execution-watchdog-timeout",
@@ -602,7 +604,12 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                         return;
                     }
 
-                    var (healthy, diagnosticCode) = await ProbeWorker(cancellationToken).ConfigureAwait(false);
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        return;
+                    }
+
+                    var (healthy, diagnosticCode) = await ProbeWorker().ConfigureAwait(false);
                     if (!healthy &&
                         !await RecoverWorker(diagnosticCode, cancellationToken)
                             .ConfigureAwait(false))
@@ -838,8 +845,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
             });
     }
 
-    private async Task<(bool Healthy, string DiagnosticCode)> ProbeWorker(
-        CancellationToken cancellationToken)
+    private async Task<(bool Healthy, string DiagnosticCode)> ProbeWorker()
     {
         var worker = _worker;
         if (worker is null)
@@ -852,8 +858,9 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
             return (false, "worker-exited");
         }
 
-        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        timeout.CancelAfter(_policy.HeartbeatTimeout);
+        // Let an entered ping/pong exchange finish under its own deadline. Cancelling it
+        // from StopRuntimeLoops could leave a partial frame before Stop reuses the pipe.
+        using var timeout = new CancellationTokenSource(_policy.HeartbeatTimeout);
         var correlationId = Guid.NewGuid();
         try
         {
@@ -866,8 +873,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                     ? (true, "worker-responsive")
                     : (false, "worker-invalid-heartbeat");
         }
-        catch (OperationCanceledException) when (
-            !cancellationToken.IsCancellationRequested)
+        catch (OperationCanceledException) when (timeout.IsCancellationRequested)
         {
             return (false, "worker-heartbeat-timeout");
         }
@@ -881,29 +887,52 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         string diagnosticCode,
         CancellationToken cancellationToken)
     {
-        var termination = _worker?.HasExited == true
-            ? WorkerTerminationKind.Crash
-            : WorkerTerminationKind.Forced;
-        Transition(
-            WorkerLifecycleState.Degraded,
-            _reportedProcessId == 0 ? null : _reportedProcessId,
-            termination,
-            diagnosticCode);
-        await CleanupWorker(force: true).ConfigureAwait(false);
+        await RetireWorker(diagnosticCode).ConfigureAwait(false);
+
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return false;
+        }
 
         while (TryRecordRestart())
         {
-            if (_policy.RestartDelay > TimeSpan.Zero)
+            if (cancellationToken.IsCancellationRequested)
             {
-                await Task.Delay(
-                    _policy.RestartDelay,
-                    _timeProvider,
-                    cancellationToken).ConfigureAwait(false);
+                return false;
             }
 
-            if (await StartWorker(cancellationToken).ConfigureAwait(false))
+            if (_policy.RestartDelay > TimeSpan.Zero)
             {
-                return true;
+                try
+                {
+                    await Task.Delay(
+                        _policy.RestartDelay,
+                        _timeProvider,
+                        cancellationToken).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) when (
+                    cancellationToken.IsCancellationRequested)
+                {
+                    return false;
+                }
+            }
+
+            try
+            {
+                if (await StartWorker(cancellationToken).ConfigureAwait(false))
+                {
+                    return true;
+                }
+            }
+            catch (OperationCanceledException) when (
+                cancellationToken.IsCancellationRequested)
+            {
+                if (_worker is not null)
+                {
+                    await RetireWorker("worker-restart-cancelled").ConfigureAwait(false);
+                }
+
+                return false;
             }
 
             if (Current.Connection?.ExecutionReadinessState ==
@@ -916,9 +945,22 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         Transition(
             WorkerLifecycleState.Degraded,
             processId: null,
-            termination,
+            Current.LastTermination,
             "restart-budget-exhausted");
         return false;
+    }
+
+    private async Task RetireWorker(string diagnosticCode)
+    {
+        var termination = _worker?.HasExited == true
+            ? WorkerTerminationKind.Crash
+            : WorkerTerminationKind.Forced;
+        Transition(
+            WorkerLifecycleState.Degraded,
+            _reportedProcessId == 0 ? null : _reportedProcessId,
+            termination,
+            diagnosticCode);
+        await CleanupWorker(force: true).ConfigureAwait(false);
     }
 
     private async Task StopWorker()
@@ -945,11 +987,13 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         {
             using var timeout = new CancellationTokenSource(_policy.ShutdownTimeout);
             var correlationId = Guid.NewGuid();
+            var stopPhase = WorkerStopPhase.Send;
             try
             {
                 await worker.SendAsync(
                     WorkerControlMessage.Stop(correlationId),
                     timeout.Token).ConfigureAwait(false);
+                stopPhase = WorkerStopPhase.Acknowledgement;
                 var response = await worker.ReceiveAsync(timeout.Token).ConfigureAwait(false);
                 if (response.Kind != WorkerControlMessageKind.Stopped ||
                     response.CorrelationId != correlationId)
@@ -958,19 +1002,20 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                         "The worker returned an invalid stop acknowledgement.");
                 }
 
+                stopPhase = WorkerStopPhase.ProcessExit;
                 await worker.WaitForExitAsync(timeout.Token).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
                 termination = WorkerTerminationKind.Forced;
-                diagnosticCode = "worker-stop-timeout";
+                diagnosticCode = StopDiagnosticCode(stopPhase, "timeout");
             }
             catch (Exception exception) when (IsRecoverableProcessFailure(exception))
             {
                 termination = worker.HasExited
                     ? WorkerTerminationKind.Crash
                     : WorkerTerminationKind.Forced;
-                diagnosticCode = "worker-stop-failed";
+                diagnosticCode = StopDiagnosticCode(stopPhase, "failed");
             }
         }
 
@@ -1128,4 +1173,20 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
             ObjectDisposedException or
             Win32Exception or
             JsonException;
+
+    private static string StopDiagnosticCode(WorkerStopPhase phase, string outcome) =>
+        $"worker-stop-{phase switch
+        {
+            WorkerStopPhase.Send => "send",
+            WorkerStopPhase.Acknowledgement => "ack",
+            WorkerStopPhase.ProcessExit => "exit",
+            _ => throw new ArgumentOutOfRangeException(nameof(phase), phase, null)
+        }}-{outcome}";
+
+    private enum WorkerStopPhase
+    {
+        Send,
+        Acknowledgement,
+        ProcessExit
+    }
 }
