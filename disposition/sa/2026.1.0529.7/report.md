@@ -13,9 +13,9 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 
 | Disposition | Count |
 | --- | ---: |
-| `approved_candidate` | 677 |
-| `blocked` | 51 |
-| `intentional_exclusion` | 477 |
+| `approved_candidate` | 684 |
+| `blocked` | 45 |
+| `intentional_exclusion` | 476 |
 | `sdk_unavailable` | 207 |
 
 ## Review states
@@ -30,12 +30,12 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 
 | Status | Commands |
 | --- | ---: |
-| `resolved` | 677 |
-| `blocked` | 51 |
-| `not_applicable` | 684 |
+| `resolved` | 684 |
+| `blocked` | 45 |
+| `not_applicable` | 683 |
 
-- Resolved arguments: 2545
-- Required inputs: 1558
+- Resolved arguments: 2556
+- Required inputs: 1569
 - Optional inputs: 485
 - Omitted SDK setters: 64
 - Reviewed catalog defaults: 421
@@ -57,7 +57,7 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 | EventOperations | 1 | 1 | 0 | 0 | 0 | 0 | 0 | 0 |
 | Events | 5 | 4 | 0 | 1 | 0 | 0 | 0 | 0 |
 | ExcelDirectConnect | 17 | 0 | 17 | 0 | 0 | 0 | 0 | 0 |
-| FileOperations | 125 | 37 | 63 | 20 | 5 | 5 | 0 | 0 |
+| FileOperations | 125 | 43 | 62 | 20 | 0 | 0 | 0 | 0 |
 | GDT | 40 | 18 | 10 | 7 | 5 | 5 | 0 | 0 |
 | GDTOperations | 3 | 0 | 0 | 0 | 3 | 3 | 0 | 0 |
 | GoogleSheets | 18 | 0 | 18 | 0 | 0 | 0 | 0 | 0 |
@@ -66,7 +66,7 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 | MPSubroutines | 4 | 0 | 4 | 0 | 0 | 0 | 0 | 0 |
 | MPTaskOverview | 11 | 0 | 11 | 0 | 0 | 0 | 0 | 0 |
 | MSOfficeReportingOperations | 14 | 0 | 14 | 0 | 0 | 0 | 0 | 0 |
-| ProcessFlowOperations | 25 | 1 | 21 | 2 | 1 | 1 | 0 | 0 |
+| ProcessFlowOperations | 25 | 2 | 21 | 2 | 0 | 0 | 0 | 0 |
 | RelationshipOperations | 67 | 48 | 5 | 13 | 1 | 1 | 0 | 0 |
 | ReportingOperations | 71 | 52 | 8 | 11 | 0 | 0 | 0 | 0 |
 | RobotCalibrationApplianceNodeOperations | 25 | 23 | 0 | 2 | 0 | 0 | 0 | 0 |
@@ -82,28 +82,23 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 
 | Value | Count |
 | --- | ---: |
-| `mutating` | 41 |
-| `read_only` | 10 |
+| `mutating` | 36 |
+| `read_only` | 9 |
 
 ## Unresolved work by risk flag
 
 | Value | Count |
 | --- | ---: |
-| `filesystem_read` | 3 |
-| `filesystem_write` | 3 |
-| `interactive_ui` | 1 |
-| `long_running` | 13 |
+| `long_running` | 7 |
 
 ## Unresolved work by data classification
 
 | Value | Count |
 | --- | ---: |
 | `geometry` | 40 |
-| `measurement` | 17 |
+| `measurement` | 16 |
 | `non_sensitive` | 1 |
-| `object_identifier` | 44 |
-| `path` | 6 |
-| `proprietary` | 3 |
+| `object_identifier` | 42 |
 
 ## Unresolved work by value family
 
@@ -112,18 +107,16 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 | `b_spline_fit_options` | 1 |
 | `cloud_thinning_mode` | 1 |
 | `collection_instrument_id_list` | 1 |
-| `collection_item_name` | 1 |
-| `collection_object_name` | 36 |
+| `collection_object_name` | 35 |
 | `collection_object_name_list` | 13 |
 | `collection_object_name_ref_list` | 1 |
-| `file_reference` | 6 |
 | `fit_constraint_scalar_options` | 1 |
 | `floating_point` | 19 |
 | `gd_and_t_options_check_validator_type` | 1 |
 | `gdt_check_validator_type` | 1 |
 | `gdt_distance_between_mode` | 1 |
 | `item_type` | 1 |
-| `logical` | 24 |
+| `logical` | 22 |
 | `mesh_orientation_type` | 1 |
 | `point_filter_input_type` | 1 |
 | `point_name` | 2 |
@@ -134,7 +127,7 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 | `transform` | 2 |
 | `vector3` | 7 |
 | `vector_name_list` | 1 |
-| `whole_number` | 10 |
+| `whole_number` | 9 |
 | `world_transform` | 1 |
 
 ## Reason codes
@@ -142,6 +135,7 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 | Value | Count |
 | --- | ---: |
 | `argument_semantics_unresolved` | 43 |
+| `at_risk_candidate` | 11 |
 | `client_owned_external_integration` | 74 |
 | `client_owned_office_integration` | 14 |
 | `client_owned_serialization` | 22 |
@@ -150,28 +144,27 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 | `client_owned_user_experience` | 75 |
 | `client_owned_value_computation` | 64 |
 | `client_owned_value_construction` | 100 |
-| `command_shape_resolved` | 677 |
-| `exact_target_file_behavior_evidence_required` | 6 |
-| `file_semantics_unresolved` | 6 |
-| `filesystem_operation` | 54 |
-| `interactive_operation` | 41 |
-| `long_running_operation` | 104 |
+| `command_shape_resolved` | 684 |
+| `filesystem_operation` | 60 |
+| `interactive_operation` | 40 |
+| `long_running_operation` | 100 |
+| `objectivesa_parity_reviewed` | 11 |
 | `operation_contract_reviewed` | 11 |
 | `operator_ui_dependency` | 18 |
-| `read_only_operation` | 156 |
+| `read_only` | 4 |
+| `read_only_operation` | 153 |
 | `sdk_binding_unavailable` | 111 |
 | `sdk_binding_unresolved` | 5 |
 | `sdk_command_not_observed` | 39 |
 | `sdk_input_binding_unavailable` | 57 |
 | `server_lifecycle_boundary` | 1 |
-| `state_mutation` | 460 |
+| `state_mutation` | 465 |
 
 ## Blockers
 
 | Value | Count |
 | --- | ---: |
 | `https://github.com/spatialanalyzer/briosa/issues/79` | 45 |
-| `https://github.com/spatialanalyzer/briosa/issues/80` | 6 |
 
 ## Delivery waves
 
@@ -179,7 +172,7 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 | --- | ---: |
 | `wave_1` | 101 |
 | `wave_2` | 229 |
-| `wave_3` | 56 |
+| `wave_3` | 63 |
 | `wave_4` | 291 |
 
 ## Command-specific shape discrepancies
@@ -203,15 +196,11 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 | ConstructionOperations / VectorGroups | Make a Vector Name Ref List From a Vector Group | documentation:ConstructionOperations/VectorGroups/MakeAVectorNameRefList.htm | `missing_input_arguments_section` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
 | ConstructionOperations / VectorGroups | Make a Vector Name Ref List From a Vector Group | documentation:ConstructionOperations/VectorGroups/MakeAVectorNameRefList.htm | `sdk_argument_not_documented` (arguments 1) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
 | ConstructionOperations / VectorGroups | Make Vector Names Unique in Vector Group | documentation:ConstructionOperations/VectorGroups/MakeVectorNamesUniqueIn.htm | `missing_return_arguments_section` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
-| FileOperations | Save As | documentation:FileOperations/SaveAs.htm | `file_behavior_unresolved` (arguments 0, 1, 2) | `briosa` | https://github.com/spatialanalyzer/briosa/issues/80 |
-| FileOperations | Save As Read-Only Template | documentation:FileOperations/SaveAsReadOnlyTemplate.htm | `file_behavior_unresolved` (arguments 0) | `briosa` | https://github.com/spatialanalyzer/briosa/issues/80 |
-| FileOperations / XML | Import Nominals from XML File | documentation:FileOperations/XML/ImportNominalsFromXMLFile.htm | `file_behavior_unresolved` (arguments 0) | `briosa` | https://github.com/spatialanalyzer/briosa/issues/80 |
 | GDT | Datum Alignment | documentation:GDT/DatumAlignment.htm | `sdk_argument_not_documented` (arguments 3) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
 | GDT | Enable/Disable Datum Alignment for Feature Check | documentation:GDT/EnableDisableDatumAlignment.htm | `sdk_argument_not_documented` (arguments 4) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
 | GDT | Evaluate Feature Check | documentation:GDT/EvaluateFeatureCheck.htm | `sdk_argument_not_documented` (arguments 21) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
 | GDT | Evaluate Feature Checks | documentation:GDT/EvaluateFeatureChecks.htm | `sdk_argument_not_documented` (arguments 4, 5) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
 | GDT | Set GD&T Options | documentation:GDT/SetGDTOptions.htm | `exact_interop_binding_missing` (arguments 1, 8) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
-| ProcessFlowOperations | Output SA Report to PDF | documentation:ProcessFlowOperations/OutputSAReportToPDF.htm | `file_behavior_unresolved` (arguments 0, 1, 2) | `briosa` | https://github.com/spatialanalyzer/briosa/issues/80 |
 | AnalysisOperations | Create Point Uncertainty Cloud Point Sets | sdk:AnalysisOperations.txt#19 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
 | AnalysisOperations | Create Point Uncertainty Cloud Point Sets | sdk:AnalysisOperations.txt#19 | `sdk_argument_not_documented` (arguments 1, 2, 3, 4, 5, 6, 7) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
 | AnalysisOperations | Set Point Weights From Uncertainties | sdk:AnalysisOperations.txt#20 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
@@ -255,8 +244,6 @@ This deterministic report summarizes Briosa-authored disposition metadata. It do
 | ConstructionOperations / PointsAndGroups | Construct Points By Projecting Points On Mesh Along Direction | sdk:ConstructionOperations_PointsAndGroups.txt#26 | `sdk_argument_not_documented` (arguments 1, 2, 3, 4, 5) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
 | DimensionOperations | Set Dimension Tolerance | sdk:DimensionOperations.txt#12 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
 | DimensionOperations | Set Dimension Tolerance | sdk:DimensionOperations.txt#12 | `sdk_argument_not_documented` (arguments 1, 2, 3, 4, 5, 6) | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
-| FileOperations / FileImport | Import VSTARS Cameras | sdk:FileOperations_FileImport.txt#16 | `file_behavior_unresolved` (arguments 0) | `briosa` | https://github.com/spatialanalyzer/briosa/issues/80 |
-| FileOperations / FileImport | Import Polyworks File | sdk:FileOperations_FileImport.txt#19 | `file_behavior_unresolved` (arguments 0, 1) | `briosa` | https://github.com/spatialanalyzer/briosa/issues/80 |
 | GDTOperations / GDTAnalysis | Set Global Force Simultaneous Evaluation | sdk:GDTOperations_GDTAnalysis.txt#17 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
 | GDTOperations / GDTAnalysis | Set Global Force Simultaneous Evaluation | sdk:GDTOperations_GDTAnalysis.txt#17 | `sdk_argument_not_documented` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
 | GDTOperations / GDTAnalysis | Generate Feature Check Summary | sdk:GDTOperations_GDTAnalysis.txt#20 | `documentation_command_missing` | `hexagon` | https://github.com/spatialanalyzer/briosa/issues/79 |
@@ -271,17 +258,17 @@ These constraints are disposition evidence for later catalog review. A candidate
 
 | Category path | MP step | Inventory key | Decision | Validation | Constraints | Evidence limitations |
 | --- | --- | --- | --- | --- | --- | --- |
-| FileOperations | Save | documentation:FileOperations/Save.htm | `intentional_exclusion` | `not_performed` | current_job_path_is_hidden_state, destination_cannot_be_supplied, unattended_service_exclusion, unnamed_job_may_open_save_as_dialog | live_validation_not_performed |
-| FileOperations | Save As | documentation:FileOperations/SaveAs.htm | `blocked_pending_exact_target_evidence` | `not_performed` | absolute_external_path_required, all_inputs_required, automatic_replay_prohibited, embedded_file_rejected, overwrite_consent_not_inferred | existing_destination_behavior_unresolved, live_validation_not_performed, modal_prompt_behavior_unresolved |
-| FileOperations | Save As Read-Only Template | documentation:FileOperations/SaveAsReadOnlyTemplate.htm | `blocked_pending_exact_target_evidence` | `not_performed` | absolute_external_path_required, automatic_replay_prohibited, embedded_file_rejected, serial_number_not_exposed_without_binding | documentation_serial_statement_conflicts_with_argument_table, existing_destination_behavior_unresolved, live_validation_not_performed, modal_prompt_behavior_unresolved |
-| FileOperations / XML | Import Nominals from XML File | documentation:FileOperations/XML/ImportNominalsFromXMLFile.htm | `blocked_pending_exact_target_evidence` | `not_performed` | absolute_external_path_required, automatic_replay_prohibited, embedded_file_rejected | group_and_point_collision_behavior_unresolved, live_validation_not_performed, partial_mutation_behavior_unresolved, ui_behavior_unresolved |
-| FileOperations / XML | Merge Measurements into XML File | documentation:FileOperations/XML/MergeMeasurementsintoXML.htm | `constrained_candidate` | `not_performed` | absolute_external_path_required, all_inputs_required, automatic_replay_prohibited, deny_by_default, embedded_file_rejected, explicit_in_place_merge_consent_required, promotion_requires_disposable_file_conformance, typed_point_group_required | existing_name_collision_behavior_not_probe_validated, live_validation_not_performed, partial_failure_preservation_not_probe_validated |
-| ProcessFlowOperations | Output SA Report to PDF | documentation:ProcessFlowOperations/OutputSAReportToPDF.htm | `blocked_pending_exact_target_evidence` | `not_performed` | absolute_external_path_required, all_inputs_required, automatic_replay_prohibited, embedded_file_rejected, show_pdf_forced_false, viewer_launch_prohibited | existing_destination_behavior_unresolved, live_validation_not_performed, modal_prompt_behavior_unresolved |
-| EventOperations | Export Event Ref List | sdk:EventOperations.txt#4 | `constrained_candidate` | `not_performed` | absolute_external_path_required, append_mode_not_supported, automatic_replay_prohibited, create_new_mode_requires_explicit_consent, deny_by_default, embedded_file_rejected, nonempty_event_list_required, nonnegative_decimal_precision_required, promotion_requires_disposable_file_conformance, replace_mode_requires_explicit_consent | exact_target_command_documentation_unavailable, existing_file_behavior_uses_prior_release_secondary_evidence, live_validation_not_performed |
-| FileOperations / FileExport | Export ASCII Points | sdk:FileOperations_FileExport.txt#1 | `constrained_candidate` | `not_performed` | absolute_external_path_required, all_format_inputs_required, append_mode_requires_explicit_consent, automatic_replay_prohibited, create_new_mode_not_supported, delimiter_limited_to_space_or_comma, deny_by_default, embedded_file_rejected, nonempty_group_list_required, nonnegative_decimal_precision_required, promotion_requires_disposable_file_conformance, replace_mode_requires_explicit_consent | append_boundary_not_probe_validated, inventory_documentation_title_mismatch_reconciled_by_argument_shape, live_validation_not_performed, prior_release_overwrite_behavior_conflicts_with_exact_target_documentation |
-| FileOperations / FileExport | Export ASCII Point Set | sdk:FileOperations_FileExport.txt#2 | `constrained_candidate` | `not_performed` | absolute_external_path_required, all_format_inputs_required, append_mode_requires_explicit_consent, automatic_replay_prohibited, create_new_mode_not_supported, delimiter_limited_to_space_or_comma, deny_by_default, embedded_file_rejected, nonnegative_decimal_precision_required, promotion_requires_disposable_file_conformance, replace_mode_requires_explicit_consent, typed_point_set_container_required | append_boundary_not_probe_validated, inventory_documentation_title_mismatch_reconciled_by_argument_shape, live_validation_not_performed, prior_release_overwrite_behavior_conflicts_with_exact_target_documentation |
-| FileOperations / FileImport | Import VSTARS Cameras | sdk:FileOperations_FileImport.txt#16 | `blocked_pending_exact_target_evidence` | `not_performed` | absolute_external_path_required, automatic_replay_prohibited, embedded_file_rejected | camera_collision_behavior_unresolved, exact_target_command_documentation_unavailable, live_validation_not_performed, partial_import_and_rollback_behavior_unresolved, ui_behavior_unresolved |
-| FileOperations / FileImport | Import Polyworks File | sdk:FileOperations_FileImport.txt#19 | `blocked_pending_exact_target_evidence` | `not_performed` | absolute_external_path_required, automatic_replay_prohibited, embedded_file_rejected, typed_cloud_name_required | exact_target_command_documentation_unavailable, live_validation_not_performed, partial_import_and_rollback_behavior_unresolved, target_cloud_mutation_behavior_unresolved, ui_behavior_unresolved |
+| FileOperations | Save | documentation:FileOperations/Save.htm | `constrained_candidate` | `performed` | automatic_replay_prohibited, deny_by_default, named_job_required_before_enqueue, single_tenant_current_job_only, unnamed_job_rejected_to_prevent_modal_save_as | committed_integration_scenario_available, disposable_named_job_save_succeeded, objectivesa_prior_release_parity_reviewed |
+| FileOperations | Save As | documentation:FileOperations/SaveAs.htm | `constrained_candidate` | `performed` | absolute_external_path_required, all_inputs_required, automatic_replay_prohibited, deny_by_default, embedded_file_rejected, existing_writable_parent_required_before_enqueue, replace_mode_requires_explicit_consent | atomic_replacement_not_established, committed_integration_scenario_available, filename_serial_format_not_public_contract, objectivesa_prior_release_parity_reviewed |
+| FileOperations | Save As Read-Only Template | documentation:FileOperations/SaveAsReadOnlyTemplate.htm | `constrained_candidate` | `performed` | absolute_external_path_required, automatic_replay_prohibited, deny_by_default, embedded_file_rejected, existing_writable_parent_required_before_enqueue, replace_mode_requires_explicit_consent, serial_number_not_exposed_without_binding | atomic_replacement_not_established, committed_integration_scenario_available, documentation_serial_statement_conflicts_with_argument_table, objectivesa_prior_release_parity_reviewed |
+| FileOperations / XML | Import Nominals from XML File | documentation:FileOperations/XML/ImportNominalsFromXMLFile.htm | `constrained_candidate` | `not_performed` | absolute_external_path_required, automatic_replay_prohibited, deny_by_default, embedded_file_rejected, existing_readable_source_required | exact_target_xml_fixture_required, group_and_point_collision_behavior_unresolved, live_validation_not_performed, objectivesa_prior_release_parity_reviewed, partial_mutation_behavior_unresolved, ui_behavior_unresolved |
+| FileOperations / XML | Merge Measurements into XML File | documentation:FileOperations/XML/MergeMeasurementsintoXML.htm | `constrained_candidate` | `not_performed` | absolute_external_path_required, all_inputs_required, automatic_replay_prohibited, deny_by_default, embedded_file_rejected, existing_readable_writable_source_required, explicit_in_place_merge_consent_required, typed_point_group_required | exact_target_xml_fixture_required, existing_name_collision_behavior_not_probe_validated, live_validation_not_performed, objectivesa_prior_release_parity_reviewed, partial_failure_preservation_not_probe_validated |
+| ProcessFlowOperations | Output SA Report to PDF | documentation:ProcessFlowOperations/OutputSAReportToPDF.htm | `constrained_candidate` | `performed` | absolute_external_path_required, all_inputs_required, automatic_replay_prohibited, deny_by_default, embedded_file_rejected, existing_writable_parent_required_before_enqueue, replace_mode_requires_explicit_consent, show_pdf_forced_false, viewer_launch_prohibited | committed_integration_scenario_available, empty_disposable_report_only, objectivesa_prior_release_parity_reviewed, viewer_enabled_mode_not_tested |
+| EventOperations | Export Event Ref List | sdk:EventOperations.txt#4 | `constrained_candidate` | `not_performed` | absolute_external_path_required, automatic_replay_prohibited, deny_by_default, embedded_file_rejected, existing_writable_parent_required_before_enqueue, nonempty_event_list_required, nonnegative_decimal_precision_required, replace_mode_requires_explicit_consent | committed_integration_scenario_requires_event_fixture, exact_target_command_documentation_unavailable, live_validation_not_performed, no_successful_valid_event_fixture, objectivesa_prior_release_parity_reviewed, wildcard_event_discovery_completion_unknown_after_watchdog_termination |
+| FileOperations / FileExport | Export ASCII Points | sdk:FileOperations_FileExport.txt#1 | `constrained_candidate` | `performed` | absolute_external_path_required, all_format_inputs_required, append_mode_requires_explicit_consent, automatic_replay_prohibited, delimiter_limited_to_space_or_comma, deny_by_default, embedded_file_rejected, existing_writable_parent_required_before_enqueue, nonempty_group_list_required, nonnegative_decimal_precision_required, replace_mode_requires_explicit_consent | committed_integration_scenario_available, inventory_documentation_title_mismatch_reconciled_by_argument_shape, missing_parent_completion_unknown_after_watchdog_termination, objectivesa_prior_release_parity_reviewed |
+| FileOperations / FileExport | Export ASCII Point Set | sdk:FileOperations_FileExport.txt#2 | `constrained_candidate` | `performed` | absolute_external_path_required, all_format_inputs_required, append_mode_requires_explicit_consent, automatic_replay_prohibited, delimiter_limited_to_space_or_comma, deny_by_default, embedded_file_rejected, existing_writable_parent_required_before_enqueue, nonnegative_decimal_precision_required, replace_mode_requires_explicit_consent, typed_point_set_container_required | committed_integration_negative_scenario_available, inventory_documentation_title_mismatch_reconciled_by_argument_shape, no_successful_valid_point_set_fixture, objectivesa_prior_release_parity_reviewed, wrong_collection_object_type_rejected |
+| FileOperations / FileImport | Import VSTARS Cameras | sdk:FileOperations_FileImport.txt#16 | `constrained_candidate` | `not_performed` | absolute_external_path_required, automatic_replay_prohibited, deny_by_default, embedded_file_rejected, existing_readable_source_required | camera_collision_behavior_unresolved, committed_integration_scenario_requires_licensed_third_party_fixture, exact_target_command_documentation_unavailable, live_validation_not_performed, objectivesa_prior_release_parity_reviewed, partial_import_and_rollback_behavior_unresolved, ui_behavior_unresolved |
+| FileOperations / FileImport | Import Polyworks File | sdk:FileOperations_FileImport.txt#19 | `constrained_candidate` | `not_performed` | absolute_external_path_required, automatic_replay_prohibited, deny_by_default, embedded_file_rejected, existing_readable_source_required, typed_cloud_name_required | committed_integration_scenario_requires_licensed_third_party_fixture, exact_target_command_documentation_unavailable, live_validation_not_performed, objectivesa_prior_release_parity_reviewed, partial_import_and_rollback_behavior_unresolved, target_cloud_mutation_behavior_unresolved, ui_behavior_unresolved |
 
 ## Proposed defaults requiring maintainer review
 
@@ -791,7 +778,6 @@ These candidates were reviewed under issue #82. Briosa keeps each input required
 | FileOperations | Rename General File | documentation:FileOperations/RenameGeneralFile.htm | client_owned_external_integration | Generic filesystem, database, or process integration belongs in the client application and would unnecessarily expand Briosa authority. | https://github.com/spatialanalyzer/briosa/issues/51 |
 | FileOperations | Run Another Program | documentation:FileOperations/RunAnotherProgram.htm | client_owned_external_integration | Generic filesystem, database, or process integration belongs in the client application and would unnecessarily expand Briosa authority. | https://github.com/spatialanalyzer/briosa/issues/51 |
 | FileOperations | Run Powershell Script | documentation:FileOperations/RunPowershellScript.htm | client_owned_external_integration | Generic filesystem, database, or process integration belongs in the client application and would unnecessarily expand Briosa authority. | https://github.com/spatialanalyzer/briosa/issues/51 |
-| FileOperations | Save | documentation:FileOperations/Save.htm | filesystem_operation, interactive_operation, operation_contract_reviewed, state_mutation | The command saves through the current job's hidden file identity and can open an interactive Save As dialog for an unnamed job. Briosa cannot require an explicit destination or suppress that UI through this MP shape, so the unattended service excludes it. | https://github.com/spatialanalyzer/briosa/issues/51, https://github.com/spatialanalyzer/briosa/issues/53, https://github.com/spatialanalyzer/briosa/issues/80 |
 | FileOperations | Shut Down SA | documentation:FileOperations/ShutDownSA.htm | server_lifecycle_boundary | Briosa may observe SpatialAnalyzer availability but does not expose a public command that shuts down the separately installed application. | https://github.com/spatialanalyzer/briosa/issues/51 |
 | FileOperations | Terminate All Running MPs | sdk:FileOperations.txt#19 | client_owned_state_and_control_flow | Programming-language control flow and MP runtime sequencing belong in the client application. | https://github.com/spatialanalyzer/briosa/issues/51 |
 | FileOperations | Verify General File Exists | documentation:FileOperations/VerifyGeneralFileExists.htm | client_owned_external_integration | Generic filesystem, database, or process integration belongs in the client application and would unnecessarily expand Briosa authority. | https://github.com/spatialanalyzer/briosa/issues/51 |

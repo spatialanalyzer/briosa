@@ -1,58 +1,77 @@
 # SA 2026.1.0529.7 file-operation contracts
 
-Issue [#80](https://github.com/spatialanalyzer/briosa/issues/80) reviews 11 commands whose path, overwrite, append, merge, embedded-file, or interactive behavior was not safe to infer during command-shape reconciliation. This review uses committed exact-target inventory and value-family facts plus the installed-evidence fingerprints recorded below. It did not launch or connect to SpatialAnalyzer and did not perform a disposable-file experiment.
+Issue [#80](https://github.com/spatialanalyzer/briosa/issues/80) reviews 11 commands whose path, overwrite, append, merge, embedded-file, or interactive behavior was not safe to infer during command-shape reconciliation. All 11 are retained as at-risk Wave 3 candidates. None is intentionally excluded merely because a valid local fixture, third-party application, or license is unavailable.
 
-An approved candidate is not a supported Briosa operation. The four candidates below are assigned to [Wave 3 issue #65](https://github.com/spatialanalyzer/briosa/issues/65), remain deny-by-default, and must satisfy their recorded conformance prerequisites before catalog promotion. A timeout, cancellation, lost response, or worker replacement never authorizes automatic replay of one of these operations.
+Candidate status is not public support. Promotion remains a separate catalog, protocol, policy, adapter, fake-worker, and conformance review in [Wave 3 issue #65](https://github.com/spatialanalyzer/briosa/issues/65). Every candidate is deny-by-default, all request inputs remain explicit, and ambiguous completion never authorizes automatic replay.
 
-## Machine-readable boundary
+## ObjectiveSA parity rule
 
-The disposition shard's optional `operation_contract` preserves reviewed constraints for later catalog scaffolding:
+The pinned ObjectiveSA commit `324c73b8e172868b4ccb4a0121e3bd1cbc520c5c` implements every issue #80 MP step with the same complete setter shape found in the committed exact-target inventory. That exact name-and-shape match authorizes Briosa to retain these operations without a separate command-by-command permission request.
 
-- `decision` must agree with the disposition: `constrained_candidate`, `intentional_exclusion`, or `blocked_pending_exact_target_evidence`;
-- `validation_status` distinguishes `not_performed` from `performed` instead of presenting documentation review as live proof;
-- `constraints` records stable fail-closed requirements; and
-- `evidence_limitations` records unresolved behavior. `not_performed` requires `live_validation_not_performed`; `performed` rejects that limitation.
+ObjectiveSA targets an earlier SA release and remains secondary evidence. The exact SA 2026.1 inventory, interop API, and controlled live results win on conflict. ObjectiveSA cannot add an input, output, choice, default, or compatibility claim absent from the exact target.
 
-The schema, semantic validator, deterministic report, and scaffold generator enforce and preserve this metadata. A later authorized exact-target probe must change `validation_status` and its limitations together. It must not silently weaken the constraints.
+An unavailable fixture is an at-risk validation gap, not evidence that the MP command is unsupported. If a future command lacks exact ObjectiveSA parity and its disposition is uncertain, maintainers must be asked before it is excluded or promoted.
+
+## Repeatable licensed-test boundary
+
+The committed matrix at `tests/Briosa.SpatialAnalyzer.IntegrationTests/file-operation-matrix.json` contains one scenario for each command. `eng/Test-LicensedFileOperations.ps1` builds the pinned ObjectiveSA checkout, verifies and starts exactly SA 2026.1.0529.7, admits one SDK client, runs one scenario under a watchdog, closes the disposable SA generation, and emits structural status only. Object-dependent scenarios open a disposable copy of a supplied SA job; the XML merge scenario also copies its input and verifies that the supplied source remains unchanged.
+
+The runner is deliberately excluded from `Briosa.slnx`. Ordinary builds and pull-request tests must not require SpatialAnalyzer, a desktop session, a license, ObjectiveSA, or third-party fixtures. Local fixture descriptors, imported files, object names, paths, geometry, file contents, process identifiers, and proprietary artifacts must never be committed or copied into test reports.
+
+The matrix distinguishes:
+
+- `generated_by_test`: the scenario can create its disposable prerequisites;
+- a named local SA-object or file fixture: the runner exists, but successful execution still needs that safe fixture; and
+- `licensed_third_party_fixture_required`: the exact command is retained at risk even though the current machine cannot legally or practically generate a valid VSTARS or Polyworks source.
+
+No unexecuted scenario is a passing test. `validation_status: performed` records controlled exact-target behavior already observed; `not_performed` remains explicit until the committed runner succeeds with a valid fixture.
 
 ## Cross-operation policy
 
-For every candidate in this review:
+For every candidate:
 
-- require every MP input explicitly; a generated sample or prior-release wrapper value is not a public default;
-- require a non-empty absolute external path and reject embedded-file references initially;
-- canonicalize and authorize paths under the normal filesystem policy before enqueue;
-- require explicit merge, replacement, creation, or append intent where applicable;
+- require every MP input explicitly; ObjectiveSA convenience values are not public defaults;
+- require and authorize non-empty absolute external paths before enqueue;
+- reject embedded-file references initially;
+- require an existing readable input or writable output parent as appropriate;
+- require explicit append, replacement, merge, or current-job consent;
 - keep the operation disabled until an operation-specific policy enables it;
-- redact paths, file contents, geometry, measurements, and object names from default logs and test artifacts; and
-- classify replay as prohibited until exact-operation evidence proves otherwise. Worker recovery restores availability only.
+- redact paths, contents, geometry, measurements, and object names from default logs and retained evidence; and
+- prohibit automatic replay after timeout, cancellation, crash, or response loss.
 
-## Reviewed outcomes
+`Save` additionally requires a named current job before enqueue. Briosa must reject the unnamed-job case rather than allowing the zero-argument MP step to open a modal Save As dialog.
 
-| Inventory key | Outcome | Fail-closed contract | Evidence still required |
-| --- | --- | --- | --- |
-| `documentation:FileOperations/Save.htm` | Intentional exclusion | The MP has no destination input, depends on the current job's hidden file identity, and may open Save As for an unnamed job. The unattended service cannot obtain destination or UI consent. | No probe is needed for the exclusion. Reopening requires a vendor-supported bounded destination and UI-suppression mechanism. |
-| `documentation:FileOperations/XML/MergeMeasurementsintoXML.htm` | Constrained Wave 3 candidate | Require an absolute external XML path, typed point group, all inputs, explicit in-place merge consent, and no automatic replay. Matching point records update or gain their actual value; the file is mutated in place. | Disposable conformance must prove unmatched-content preservation, update/create behavior, collision handling, and source preservation on failure. |
-| `sdk:EventOperations.txt#4` | Constrained Wave 3 candidate | Require a non-empty typed event list, absolute external path, non-negative precision, and an explicit create-new or replace mode mapped to the overwrite Boolean. Do not offer append. | Exact-target conformance must prove false preserves an existing destination, true replaces it without prompting, ordering, and negative-path preservation. |
-| `sdk:FileOperations_FileExport.txt#1` | Constrained Wave 3 candidate | Require all 18 inputs. Restrict delimiter to Space or Comma initially. Offer only explicit replace-or-create and append-or-create modes; do not promise create-only. | Exact-target conformance must resolve the prior-release conflict, absent/existing destination matrix, append boundary, preservation on failure, and modal behavior. |
-| `sdk:FileOperations_FileExport.txt#2` | Constrained Wave 3 candidate | Require all 13 inputs and a typed point-set container. Apply the same delimiter and explicit replace-or-create/append-or-create policy; do not promise create-only. | The same disposable-file matrix is required, including point-set type rejection and modal behavior. |
-| `documentation:FileOperations/SaveAs.htm` | Blocked | If reconsidered, require an absolute external destination and explicit serial-number choice; reject embedded paths and inferred overwrite consent. | Existing-file, atomicity, and modal-prompt behavior remain unresolved. |
-| `documentation:FileOperations/SaveAsReadOnlyTemplate.htm` | Blocked | Require an absolute external destination. Do not expose the serial-number behavior mentioned in prose because the exact argument table and SDK observation contain no such binding. | Existing-file and modal-prompt behavior plus clarification of the prose/table conflict. |
-| `documentation:FileOperations/XML/ImportNominalsFromXMLFile.htm` | Blocked | Require an absolute external XML source and reject automatic replay. | Same-named group and point collisions, partial mutation, rollback, and UI behavior. |
-| `documentation:ProcessFlowOperations/OutputSAReportToPDF.htm` | Blocked | Require a typed report and absolute external PDF destination; force `Show PDF?` false and prohibit viewer launch. | Existing-file and modal-prompt behavior with the viewer disabled. |
-| `sdk:FileOperations_FileImport.txt#16` | Blocked | Require an absolute external source; reject embedded paths and automatic replay. | Exact-target documentation or sanctioned sample guidance for camera naming, duplicate handling, partial import, rollback, and UI behavior. |
-| `sdk:FileOperations_FileImport.txt#19` | Blocked | Require a typed cloud and absolute external source; reject embedded paths and automatic replay. | Target-cloud creation/append/replacement semantics, partial import, rollback, type rejection, and UI behavior. |
+## Exact-target observations
 
-All 11 commands have an observed SDK step or binding. None is classified `sdk_unavailable`.
+- `Export ASCII Points` created a nonempty file for an absent destination in both append modes. With an existing destination, append preserved the existing prefix and added data, while replace mode replaced the prior data.
+- `Export ASCII Points` with a missing parent neither created the parent nor the file, but `ExecuteStep` did not return within 55 seconds and exposed a modal condition. Briosa must reject a missing or non-writable parent before enqueue and treat a later timeout as unknown completion.
+- `Save` completed against a disposable named job and left a nonempty saved job after a subsequent mutation.
+- `Save As` created a nonempty job, its serial-number mode produced exactly one nonempty output, and an existing destination was silently replaced.
+- `Save As Read-Only Template` created a nonempty template and silently replaced an existing destination.
+- `Output SA Report to PDF`, with a disposable empty report and `Show PDF?` false, created a nonempty PDF and silently replaced an existing destination. Viewer launch remains prohibited.
+- `Export ASCII Point Set` rejected a generated point-group substitute and created no file. The committed negative scenario reproduces that result; it proves the typed point-set requirement, not successful export behavior.
+- Event wildcard discovery did not return within 45 seconds and was watchdog-terminated. That ambiguous discovery attempt provides no successful Event export evidence.
 
-## Evidence identity and conflicts
+## Candidate outcomes
 
-The exact-target value catalog records installed documentation aggregate SHA-256 `21d20f9cc79c37ca3515d184a5de3d820b8ecabff4a2da4f24977628d79b8d3a` and View SDK Code aggregate SHA-256 `cc12ba5bd8ded0e9af45eecb59c7894b1f19d0e45aa961cebb60c877cc72ef86`. ObjectiveSA is pinned only as prior-release secondary evidence at commit `324c73b8e172868b4ccb4a0121e3bd1cbc520c5c`, fingerprint `d6107f1e10d2c957198c3cb082368033117e7e2ed2907eafb9eadc40607d295b`.
+| Inventory key | Validation | At-risk contract or remaining fixture |
+| --- | --- | --- |
+| `documentation:FileOperations/Save.htm` | Performed | Require a named current job; reject unnamed jobs to prevent modal Save As; no replay. |
+| `documentation:FileOperations/SaveAs.htm` | Performed | Require all three inputs, existing writable parent, explicit replacement consent, and no replay. Atomicity and filename formatting are not public guarantees. |
+| `documentation:FileOperations/SaveAsReadOnlyTemplate.htm` | Performed | Require an explicit destination and replacement consent. Do not expose the unbound serial-number prose. |
+| `sdk:FileOperations_FileExport.txt#1` | Performed | Require all 18 inputs, nonempty group list, supported delimiter, writable parent, and explicit append or replacement consent. |
+| `sdk:FileOperations_FileExport.txt#2` | Wrong-type path performed | The committed generated-negative scenario requires MP failure and no output. A valid typed point-set fixture is still required before claiming successful export. |
+| `sdk:EventOperations.txt#4` | No valid fixture | Require a nonempty typed event-list fixture and explicit replacement consent. The discovery timeout is not a passing export test. |
+| `documentation:FileOperations/XML/ImportNominalsFromXMLFile.htm` | Not performed | Require a valid exact-target XML fixture; collision, partial mutation, rollback, and UI behavior remain at risk. |
+| `documentation:FileOperations/XML/MergeMeasurementsintoXML.htm` | Not performed | Require valid exact-target XML plus a typed point group and explicit in-place mutation consent. |
+| `documentation:ProcessFlowOperations/OutputSAReportToPDF.htm` | Performed | Require a typed report, writable destination, explicit replacement consent, and `Show PDF?` false. |
+| `sdk:FileOperations_FileImport.txt#16` | Not performed | Require a valid VSTARS camera fixture. Naming, duplicates, partial import, rollback, and UI behavior remain at risk. |
+| `sdk:FileOperations_FileImport.txt#19` | Not performed | Require a valid Polyworks fixture and typed cloud target. Target mutation, partial import, rollback, and UI behavior remain at risk. |
 
-The ASCII SDK commands reconcile positionally to installed pages whose titles differ: `ExportASIIPoints.htm` has page SHA-256 `82685888be75ed26da7826a5d19abadfc964496221530021496e0753046b0c1b`, and `ExportASCIIPointSets.htm` has `9df859b0baa67091e983a9db1dbafead7ecda888ec3d074fc34a75cd39c86748`. Both exact pages describe false as replacement and true as append, while ObjectiveSA describes false as preserving an existing file. Explicit replace-or-create consent is safe under either behavior; a create-only promise is not.
+All 11 commands have an exact SDK occurrence, complete required input shape, matching ObjectiveSA implementation, resolved command shape, and no issue #80 blocker reference. They are candidates only; none is automatically cataloged or enabled.
 
-The XML merge page is fingerprinted as `d2e5926a0659c5f9796e8b51b12f7be19e02a7169920aff8f1b967950ae7420b`; the additional installed product-help record is `374cf99d6526ea87ffb185dd618b482eb5ebbcefa1d75b820dcb8470d7fa644a`. These fingerprints identify reviewed source inputs without committing or reproducing vendor documentation.
+## Evidence identity
 
-## Remaining issue work
+The exact-target value catalog records installed documentation aggregate SHA-256 `21d20f9cc79c37ca3515d184a5de3d820b8ecabff4a2da4f24977628d79b8d3a` and View SDK Code aggregate SHA-256 `cc12ba5bd8ded0e9af45eecb59c7894b1f19d0e45aa961cebb60c877cc72ef86`. The pinned ObjectiveSA baseline has fingerprint `d6107f1e10d2c957198c3cb082368033117e7e2ed2907eafb9eadc40607d295b`.
 
-Issue #80 remains open. Six commands still require exact-target behavior evidence, and the four candidates still carry `promotion_requires_disposable_file_conformance` or equivalent limitations. Any live probe requires fresh authorization, a controlled licensed SA instance, disposable noncustomer fixtures, and a cleanup/recovery plan. `Show PDF? = true` is unnecessary and must not be tested as part of this contract.
+The ASCII SDK commands reconcile positionally to installed pages whose titles differ: `ExportASIIPoints.htm` has page SHA-256 `82685888be75ed26da7826a5d19abadfc964496221530021496e0753046b0c1b`, and `ExportASCIIPointSets.htm` has `9df859b0baa67091e983a9db1dbafead7ecda888ec3d074fc34a75cd39c86748`. Exact-target live behavior overrides the prior-release overwrite description without generalizing to other releases.

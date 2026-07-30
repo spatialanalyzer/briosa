@@ -20,6 +20,15 @@ The repository is licensed under Apache-2.0. SpatialAnalyzer, the SA SDK, their 
 
 Keep public protocol design in `briosa`; do not let a client repository become the accidental source of truth for shared API semantics.
 
+## ObjectiveSA parity and at-risk commands
+
+- ObjectiveSA is pinned prior-release secondary evidence, never a substitute for the exact-target SpatialAnalyzer inventory or interop surface.
+- When an ObjectiveSA method has the same MP step and the complete input/output bindings agree with committed exact-target evidence, maintainers have authorized Briosa to retain and later implement that operation without a separate command-by-command permission request.
+- Missing local fixtures, third-party software, hardware, or licenses make an otherwise matched operation an **at-risk candidate**. They do not by themselves justify an intentional exclusion.
+- Record at-risk validation gaps explicitly and add an opt-in licensed integration scenario. Do not represent an unavailable fixture or an unexecuted scenario as a passing test.
+- When exact ObjectiveSA parity is absent and the desired disposition remains uncertain, ask the maintainer before excluding or promoting the command.
+- Exact-target evidence still wins on any conflict. Do not use ObjectiveSA to add a binding, choice, default, or compatibility claim absent from the targeted SA release.
+
 ## Established technical facts
 
 - The SA SDK is an OLE Automation/DCOM server exposed by `SpatialAnalyzerSDK.exe`.

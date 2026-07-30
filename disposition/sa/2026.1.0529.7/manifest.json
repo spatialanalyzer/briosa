@@ -54,7 +54,7 @@
       "category": "EventOperations",
       "path": "categories/event_operations.json",
       "entry_count": 1,
-      "sha256": "bee78203ec4628014f69b5fb2ba4c1115771e288faaa883d60011b7f35066f4b"
+      "sha256": "57d14e8659800753a588d113fdaedbb409b0eb27f15e3de19aca51910a39a536"
     },
     {
       "category": "Events",
@@ -72,7 +72,7 @@
       "category": "FileOperations",
       "path": "categories/file_operations.json",
       "entry_count": 125,
-      "sha256": "82f3ee5129798a3573b19012f5b5367390b6111846cefe29671f18beb6fa7829"
+      "sha256": "bad9c24dce7e080c5e97f9ae3938697dc1d7dda6919ec40d7dbc73543d6207ac"
     },
     {
       "category": "GDT",
@@ -126,7 +126,7 @@
       "category": "ProcessFlowOperations",
       "path": "categories/process_flow_operations.json",
       "entry_count": 25,
-      "sha256": "29d26ab115c2f0362bd326b42e7e4111270cfaef9ea105a15bcb988879cae3bb"
+      "sha256": "93ef4d90144d45e10bf46627fc2c21519d0ffca626c58f71015549ab98c3906a"
     },
     {
       "category": "RelationshipOperations",

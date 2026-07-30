@@ -13,13 +13,14 @@
       "inventory_entry_sha256": "793abe4e51914e2be684dabceef09df31204d37a9ea4da3e20fb12630fd9f656",
       "disposition": "approved_candidate",
       "review_state": "reviewed",
-      "rationale": "The exact SDK shape exposes direct overwrite control. Retain a deny-by-default Wave 3 candidate requiring an absolute external path, a non-empty typed event list, non-negative precision, and an explicit create-new or replace mode; append and automatic replay remain unavailable.",
+      "rationale": "The exact SA 2026.1 SDK occurrence and pinned ObjectiveSA implementation agree on all four inputs. Retain an at-risk Wave 3 candidate; the missing disposable event fixture is a validation limitation, not an exclusion.",
       "reason_codes": [
+        "at_risk_candidate",
         "command_shape_resolved",
         "filesystem_operation",
-        "long_running_operation",
+        "objectivesa_parity_reviewed",
         "operation_contract_reviewed",
-        "read_only_operation"
+        "read_only"
       ],
       "evidence_references": [
         "sdk:EventOperations.txt#4"
@@ -51,20 +52,21 @@
         "validation_status": "not_performed",
         "constraints": [
           "absolute_external_path_required",
-          "append_mode_not_supported",
           "automatic_replay_prohibited",
-          "create_new_mode_requires_explicit_consent",
           "deny_by_default",
           "embedded_file_rejected",
+          "existing_writable_parent_required_before_enqueue",
           "nonempty_event_list_required",
           "nonnegative_decimal_precision_required",
-          "promotion_requires_disposable_file_conformance",
           "replace_mode_requires_explicit_consent"
         ],
         "evidence_limitations": [
+          "committed_integration_scenario_requires_event_fixture",
           "exact_target_command_documentation_unavailable",
-          "existing_file_behavior_uses_prior_release_secondary_evidence",
-          "live_validation_not_performed"
+          "live_validation_not_performed",
+          "no_successful_valid_event_fixture",
+          "objectivesa_prior_release_parity_reviewed",
+          "wildcard_event_discovery_completion_unknown_after_watchdog_termination"
         ]
       },
       "command_shape": {

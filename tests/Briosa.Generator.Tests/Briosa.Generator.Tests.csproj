@@ -17,6 +17,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\Briosa.SpatialAnalyzer.IntegrationTests\FixtureDescriptor.cs"
+             Link="LicensedIntegration\FixtureDescriptor.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Using Include="Xunit" />
   </ItemGroup>
 </Project>
