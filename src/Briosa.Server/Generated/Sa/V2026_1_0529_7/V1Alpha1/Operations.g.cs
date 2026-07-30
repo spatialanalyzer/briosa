@@ -13,12 +13,16 @@ namespace Briosa.Server.Generated.Sa.V2026_1_0529_7.V1Alpha1;
 internal static class TargetCatalogMetadata
 {
     public const string CatalogId = "briosa.sa.2026.1.0529.7";
-    public const string CatalogRevision = "8";
+    public const string CatalogRevision = "9";
     public const string SpatialAnalyzerTarget = "2026.1.0529.7";
     public const string TargetProtocolPackage = "briosa.sa.v2026_1_0529_7.v1alpha1";
 
     public static IReadOnlyList<CatalogOperationDescriptor> Operations { get; } =
         [
+            new("collection_operations.construct_point_at_circle_center", "Construct a Point at Circle Center", "briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations", "ConstructPointAtCircleCenter", "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/ConstructPointAtCircleCenter", "mutating", CoreProtocol.OperationExecutionScope.GlobalStateMutation, CoreProtocol.ReplaySafety.Unknown, []),
+            new("collection_operations.construct_point_at_line_midpoint", "Construct a Point at line MidPoint", "briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations", "ConstructPointAtLineMidpoint", "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/ConstructPointAtLineMidpoint", "mutating", CoreProtocol.OperationExecutionScope.GlobalStateMutation, CoreProtocol.ReplaySafety.Unknown, []),
+            new("collection_operations.construct_point_fit_to_points", "Construct Point (Fit to Points)", "briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations", "ConstructPointFitToPoints", "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/ConstructPointFitToPoints", "mutating", CoreProtocol.OperationExecutionScope.GlobalStateMutation, CoreProtocol.ReplaySafety.Unknown, []),
+            new("collection_operations.construct_point_group_from_point_name_list", "Construct Point Group from Point Name Ref List", "briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations", "ConstructPointGroupFromPointNameList", "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/ConstructPointGroupFromPointNameList", "mutating", CoreProtocol.OperationExecutionScope.GlobalStateMutation, CoreProtocol.ReplaySafety.Unknown, []),
             new("collection_operations.construct_point_in_working_coordinates", "Construct a Point in Working Coordinates", "briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations", "ConstructPointInWorkingCoordinates", "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/ConstructPointInWorkingCoordinates", "mutating", CoreProtocol.OperationExecutionScope.GlobalStateMutation, CoreProtocol.ReplaySafety.Unknown, []),
             new("collection_operations.delete_points", "Delete Points", "briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations", "DeletePoints", "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/DeletePoints", "mutating", CoreProtocol.OperationExecutionScope.GlobalStateMutation, CoreProtocol.ReplaySafety.Unknown, []),
             new("collection_operations.get_collection_count", "Get Number of Collections", "briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations", "GetCollectionCount", "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/GetCollectionCount", "read_only", CoreProtocol.OperationExecutionScope.GlobalStateRead, CoreProtocol.ReplaySafety.Safe, []),
@@ -29,6 +33,246 @@ internal static class TargetCatalogMetadata
             new("collection_operations.rename_point", "Rename Point", "briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations", "RenamePoint", "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/RenamePoint", "mutating", CoreProtocol.OperationExecutionScope.GlobalStateMutation, CoreProtocol.ReplaySafety.Unknown, []),
             new("file_operations.get_working_directory", "Get Working Directory", "briosa.sa.v2026_1_0529_7.v1alpha1.FileOperations", "GetWorkingDirectory", "/briosa.sa.v2026_1_0529_7.v1alpha1.FileOperations/GetWorkingDirectory", "read_only", CoreProtocol.OperationExecutionScope.GlobalStateRead, CoreProtocol.ReplaySafety.Safe, ["filesystem_metadata"]),
         ];
+}
+
+[global::System.CodeDom.Compiler.GeneratedCode("Briosa.Generator", "1.0")]
+internal static class CollectionOperationsConstructPointAtCircleCenterBinding
+{
+    public const string OperationId = "collection_operations.construct_point_at_circle_center";
+    public const string StepName = "Construct a Point at Circle Center";
+    public const string CircleArgumentName = "Circle Name";
+    public const string CircleFieldName = "circle";
+    public const string CircleSetter = "SetCollectionObjectNameArg2";
+    public const string PointNameArgumentName = "Point Name";
+    public const string PointNameFieldName = "point_name";
+    public const string PointNameSetter = "SetPointNameArg";
+
+    public static IReadOnlyList<OperationOutputContract> OutputContracts { get; } =
+        [];
+
+    public static WorkerMpCommand CreateCommand(TargetProtocol.ConstructPointAtCircleCenterRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        List<WorkerMpInputArgument> inputs = [];
+        if (request.Circle is not null)
+        {
+            if (!request.Circle.HasCollectionName || !request.Circle.HasObjectName || !request.Circle.HasObjectType || request.Circle.ObjectType == TargetProtocol.ObjectType.Unspecified || !Enum.IsDefined(request.Circle.ObjectType))
+            {
+                throw new ArgumentException("Request field 'circle' must contain every exact-target component.", nameof(request));
+            }
+            inputs.Add(new WorkerMpInputArgument(CircleArgumentName, WorkerMpValueKind.CollectionObjectName, SdkBinding: CircleSetter, CollectionObjectNameValue: new(request.Circle.CollectionName, request.Circle.ObjectName, (WorkerObjectTypeValue)(int)request.Circle.ObjectType)));
+        }
+        else
+        {
+            throw new ArgumentException("Required request field 'circle' is missing.", nameof(request));
+        }
+        if (request.PointName is not null)
+        {
+            if (!request.PointName.HasCollectionName || !request.PointName.HasGroupName || !request.PointName.HasTargetName)
+            {
+                throw new ArgumentException("Request field 'point_name' must contain every exact-target component.", nameof(request));
+            }
+            inputs.Add(new WorkerMpInputArgument(PointNameArgumentName, WorkerMpValueKind.PointName, SdkBinding: PointNameSetter, PointNameValue: new(request.PointName.CollectionName, request.PointName.GroupName, request.PointName.TargetName)));
+        }
+        else
+        {
+            throw new ArgumentException("Required request field 'point_name' is missing.", nameof(request));
+        }
+        return new WorkerMpCommand(
+            OperationId,
+            StepName,
+            inputs,
+            []);
+    }
+
+    public static TargetProtocol.ConstructPointAtCircleCenterResult CreateResult(SuccessfulOperationExecution completed)
+    {
+        ArgumentNullException.ThrowIfNull(completed);
+        return new TargetProtocol.ConstructPointAtCircleCenterResult
+        {
+            Execution = completed.Details
+        };
+    }
+}
+
+[global::System.CodeDom.Compiler.GeneratedCode("Briosa.Generator", "1.0")]
+internal static class CollectionOperationsConstructPointAtLineMidpointBinding
+{
+    public const string OperationId = "collection_operations.construct_point_at_line_midpoint";
+    public const string StepName = "Construct a Point at line MidPoint";
+    public const string LineArgumentName = "Line Name";
+    public const string LineFieldName = "line";
+    public const string LineSetter = "SetCollectionObjectNameArg2";
+    public const string PointNameArgumentName = "Point Name";
+    public const string PointNameFieldName = "point_name";
+    public const string PointNameSetter = "SetPointNameArg";
+
+    public static IReadOnlyList<OperationOutputContract> OutputContracts { get; } =
+        [];
+
+    public static WorkerMpCommand CreateCommand(TargetProtocol.ConstructPointAtLineMidpointRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        List<WorkerMpInputArgument> inputs = [];
+        if (request.Line is not null)
+        {
+            if (!request.Line.HasCollectionName || !request.Line.HasObjectName || !request.Line.HasObjectType || request.Line.ObjectType == TargetProtocol.ObjectType.Unspecified || !Enum.IsDefined(request.Line.ObjectType))
+            {
+                throw new ArgumentException("Request field 'line' must contain every exact-target component.", nameof(request));
+            }
+            inputs.Add(new WorkerMpInputArgument(LineArgumentName, WorkerMpValueKind.CollectionObjectName, SdkBinding: LineSetter, CollectionObjectNameValue: new(request.Line.CollectionName, request.Line.ObjectName, (WorkerObjectTypeValue)(int)request.Line.ObjectType)));
+        }
+        else
+        {
+            throw new ArgumentException("Required request field 'line' is missing.", nameof(request));
+        }
+        if (request.PointName is not null)
+        {
+            if (!request.PointName.HasCollectionName || !request.PointName.HasGroupName || !request.PointName.HasTargetName)
+            {
+                throw new ArgumentException("Request field 'point_name' must contain every exact-target component.", nameof(request));
+            }
+            inputs.Add(new WorkerMpInputArgument(PointNameArgumentName, WorkerMpValueKind.PointName, SdkBinding: PointNameSetter, PointNameValue: new(request.PointName.CollectionName, request.PointName.GroupName, request.PointName.TargetName)));
+        }
+        else
+        {
+            throw new ArgumentException("Required request field 'point_name' is missing.", nameof(request));
+        }
+        return new WorkerMpCommand(
+            OperationId,
+            StepName,
+            inputs,
+            []);
+    }
+
+    public static TargetProtocol.ConstructPointAtLineMidpointResult CreateResult(SuccessfulOperationExecution completed)
+    {
+        ArgumentNullException.ThrowIfNull(completed);
+        return new TargetProtocol.ConstructPointAtLineMidpointResult
+        {
+            Execution = completed.Details
+        };
+    }
+}
+
+[global::System.CodeDom.Compiler.GeneratedCode("Briosa.Generator", "1.0")]
+internal static class CollectionOperationsConstructPointFitToPointsBinding
+{
+    public const string OperationId = "collection_operations.construct_point_fit_to_points";
+    public const string StepName = "Construct Point (Fit to Points)";
+    public const string PointNamesArgumentName = "Point Names";
+    public const string PointNamesFieldName = "point_names";
+    public const string PointNamesSetter = "SetPointNameRefListArg";
+    public const string ResultingPointNameArgumentName = "Resulting Point Name";
+    public const string ResultingPointNameFieldName = "resulting_point_name";
+    public const string ResultingPointNameSetter = "SetPointNameArg";
+
+    public static IReadOnlyList<OperationOutputContract> OutputContracts { get; } =
+        [];
+
+    public static WorkerMpCommand CreateCommand(TargetProtocol.ConstructPointFitToPointsRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        List<WorkerMpInputArgument> inputs = [];
+        if (request.PointNames is not null)
+        {
+            if (request.PointNames.Values.Any(item => !item.HasCollectionName || !item.HasGroupName || !item.HasTargetName))
+            {
+                throw new ArgumentException("Request field 'point_names' must contain every exact-target component.", nameof(request));
+            }
+            inputs.Add(new WorkerMpInputArgument(PointNamesArgumentName, WorkerMpValueKind.PointNameList, SdkBinding: PointNamesSetter, PointNameListValue: new([.. request.PointNames.Values.Select(value => new WorkerPointNameValue(value.CollectionName, value.GroupName, value.TargetName))])));
+        }
+        else
+        {
+            throw new ArgumentException("Required request field 'point_names' is missing.", nameof(request));
+        }
+        if (request.ResultingPointName is not null)
+        {
+            if (!request.ResultingPointName.HasCollectionName || !request.ResultingPointName.HasGroupName || !request.ResultingPointName.HasTargetName)
+            {
+                throw new ArgumentException("Request field 'resulting_point_name' must contain every exact-target component.", nameof(request));
+            }
+            inputs.Add(new WorkerMpInputArgument(ResultingPointNameArgumentName, WorkerMpValueKind.PointName, SdkBinding: ResultingPointNameSetter, PointNameValue: new(request.ResultingPointName.CollectionName, request.ResultingPointName.GroupName, request.ResultingPointName.TargetName)));
+        }
+        else
+        {
+            throw new ArgumentException("Required request field 'resulting_point_name' is missing.", nameof(request));
+        }
+        return new WorkerMpCommand(
+            OperationId,
+            StepName,
+            inputs,
+            []);
+    }
+
+    public static TargetProtocol.ConstructPointFitToPointsResult CreateResult(SuccessfulOperationExecution completed)
+    {
+        ArgumentNullException.ThrowIfNull(completed);
+        return new TargetProtocol.ConstructPointFitToPointsResult
+        {
+            Execution = completed.Details
+        };
+    }
+}
+
+[global::System.CodeDom.Compiler.GeneratedCode("Briosa.Generator", "1.0")]
+internal static class CollectionOperationsConstructPointGroupFromPointNameListBinding
+{
+    public const string OperationId = "collection_operations.construct_point_group_from_point_name_list";
+    public const string StepName = "Construct Point Group from Point Name Ref List";
+    public const string PointNamesArgumentName = "Point Name List";
+    public const string PointNamesFieldName = "point_names";
+    public const string PointNamesSetter = "SetPointNameRefListArg";
+    public const string GroupNameArgumentName = "Group Name";
+    public const string GroupNameFieldName = "group_name";
+    public const string GroupNameSetter = "SetCollectionObjectNameArg2";
+
+    public static IReadOnlyList<OperationOutputContract> OutputContracts { get; } =
+        [];
+
+    public static WorkerMpCommand CreateCommand(TargetProtocol.ConstructPointGroupFromPointNameListRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        List<WorkerMpInputArgument> inputs = [];
+        if (request.PointNames is not null)
+        {
+            if (request.PointNames.Values.Any(item => !item.HasCollectionName || !item.HasGroupName || !item.HasTargetName))
+            {
+                throw new ArgumentException("Request field 'point_names' must contain every exact-target component.", nameof(request));
+            }
+            inputs.Add(new WorkerMpInputArgument(PointNamesArgumentName, WorkerMpValueKind.PointNameList, SdkBinding: PointNamesSetter, PointNameListValue: new([.. request.PointNames.Values.Select(value => new WorkerPointNameValue(value.CollectionName, value.GroupName, value.TargetName))])));
+        }
+        else
+        {
+            throw new ArgumentException("Required request field 'point_names' is missing.", nameof(request));
+        }
+        if (request.GroupName is not null)
+        {
+            if (!request.GroupName.HasCollectionName || !request.GroupName.HasObjectName || !request.GroupName.HasObjectType || request.GroupName.ObjectType == TargetProtocol.ObjectType.Unspecified || !Enum.IsDefined(request.GroupName.ObjectType))
+            {
+                throw new ArgumentException("Request field 'group_name' must contain every exact-target component.", nameof(request));
+            }
+            inputs.Add(new WorkerMpInputArgument(GroupNameArgumentName, WorkerMpValueKind.CollectionObjectName, SdkBinding: GroupNameSetter, CollectionObjectNameValue: new(request.GroupName.CollectionName, request.GroupName.ObjectName, (WorkerObjectTypeValue)(int)request.GroupName.ObjectType)));
+        }
+        else
+        {
+            throw new ArgumentException("Required request field 'group_name' is missing.", nameof(request));
+        }
+        return new WorkerMpCommand(
+            OperationId,
+            StepName,
+            inputs,
+            []);
+    }
+
+    public static TargetProtocol.ConstructPointGroupFromPointNameListResult CreateResult(SuccessfulOperationExecution completed)
+    {
+        ArgumentNullException.ThrowIfNull(completed);
+        return new TargetProtocol.ConstructPointGroupFromPointNameListResult
+        {
+            Execution = completed.Details
+        };
+    }
 }
 
 [global::System.CodeDom.Compiler.GeneratedCode("Briosa.Generator", "1.0")]
@@ -514,6 +758,78 @@ internal static class TargetCatalogConformanceMetadata
         [
             new(
                 TargetCatalogMetadata.Operations.Single(operation =>
+                    operation.OperationId == CollectionOperationsConstructPointAtCircleCenterBinding.OperationId),
+                typeof(TargetProtocol.ConstructPointAtCircleCenterRequest),
+                typeof(TargetProtocol.ConstructPointAtCircleCenterResult),
+                request => CollectionOperationsConstructPointAtCircleCenterBinding.CreateCommand((TargetProtocol.ConstructPointAtCircleCenterRequest)request),
+                CollectionOperationsConstructPointAtCircleCenterBinding.OutputContracts,
+                completed => CollectionOperationsConstructPointAtCircleCenterBinding.CreateResult(completed),
+                async (executor, request, cancellationToken, deadline) =>
+                    await executor.ExecuteAsync(
+                        (TargetProtocol.ConstructPointAtCircleCenterRequest)request,
+                        TargetCatalogMetadata.Operations.Single(operation =>
+                            operation.OperationId == CollectionOperationsConstructPointAtCircleCenterBinding.OperationId),
+                        CollectionOperationsConstructPointAtCircleCenterBinding.CreateCommand,
+                        CollectionOperationsConstructPointAtCircleCenterBinding.OutputContracts,
+                        CollectionOperationsConstructPointAtCircleCenterBinding.CreateResult,
+                        cancellationToken,
+                        deadline).ConfigureAwait(false)),
+            new(
+                TargetCatalogMetadata.Operations.Single(operation =>
+                    operation.OperationId == CollectionOperationsConstructPointAtLineMidpointBinding.OperationId),
+                typeof(TargetProtocol.ConstructPointAtLineMidpointRequest),
+                typeof(TargetProtocol.ConstructPointAtLineMidpointResult),
+                request => CollectionOperationsConstructPointAtLineMidpointBinding.CreateCommand((TargetProtocol.ConstructPointAtLineMidpointRequest)request),
+                CollectionOperationsConstructPointAtLineMidpointBinding.OutputContracts,
+                completed => CollectionOperationsConstructPointAtLineMidpointBinding.CreateResult(completed),
+                async (executor, request, cancellationToken, deadline) =>
+                    await executor.ExecuteAsync(
+                        (TargetProtocol.ConstructPointAtLineMidpointRequest)request,
+                        TargetCatalogMetadata.Operations.Single(operation =>
+                            operation.OperationId == CollectionOperationsConstructPointAtLineMidpointBinding.OperationId),
+                        CollectionOperationsConstructPointAtLineMidpointBinding.CreateCommand,
+                        CollectionOperationsConstructPointAtLineMidpointBinding.OutputContracts,
+                        CollectionOperationsConstructPointAtLineMidpointBinding.CreateResult,
+                        cancellationToken,
+                        deadline).ConfigureAwait(false)),
+            new(
+                TargetCatalogMetadata.Operations.Single(operation =>
+                    operation.OperationId == CollectionOperationsConstructPointFitToPointsBinding.OperationId),
+                typeof(TargetProtocol.ConstructPointFitToPointsRequest),
+                typeof(TargetProtocol.ConstructPointFitToPointsResult),
+                request => CollectionOperationsConstructPointFitToPointsBinding.CreateCommand((TargetProtocol.ConstructPointFitToPointsRequest)request),
+                CollectionOperationsConstructPointFitToPointsBinding.OutputContracts,
+                completed => CollectionOperationsConstructPointFitToPointsBinding.CreateResult(completed),
+                async (executor, request, cancellationToken, deadline) =>
+                    await executor.ExecuteAsync(
+                        (TargetProtocol.ConstructPointFitToPointsRequest)request,
+                        TargetCatalogMetadata.Operations.Single(operation =>
+                            operation.OperationId == CollectionOperationsConstructPointFitToPointsBinding.OperationId),
+                        CollectionOperationsConstructPointFitToPointsBinding.CreateCommand,
+                        CollectionOperationsConstructPointFitToPointsBinding.OutputContracts,
+                        CollectionOperationsConstructPointFitToPointsBinding.CreateResult,
+                        cancellationToken,
+                        deadline).ConfigureAwait(false)),
+            new(
+                TargetCatalogMetadata.Operations.Single(operation =>
+                    operation.OperationId == CollectionOperationsConstructPointGroupFromPointNameListBinding.OperationId),
+                typeof(TargetProtocol.ConstructPointGroupFromPointNameListRequest),
+                typeof(TargetProtocol.ConstructPointGroupFromPointNameListResult),
+                request => CollectionOperationsConstructPointGroupFromPointNameListBinding.CreateCommand((TargetProtocol.ConstructPointGroupFromPointNameListRequest)request),
+                CollectionOperationsConstructPointGroupFromPointNameListBinding.OutputContracts,
+                completed => CollectionOperationsConstructPointGroupFromPointNameListBinding.CreateResult(completed),
+                async (executor, request, cancellationToken, deadline) =>
+                    await executor.ExecuteAsync(
+                        (TargetProtocol.ConstructPointGroupFromPointNameListRequest)request,
+                        TargetCatalogMetadata.Operations.Single(operation =>
+                            operation.OperationId == CollectionOperationsConstructPointGroupFromPointNameListBinding.OperationId),
+                        CollectionOperationsConstructPointGroupFromPointNameListBinding.CreateCommand,
+                        CollectionOperationsConstructPointGroupFromPointNameListBinding.OutputContracts,
+                        CollectionOperationsConstructPointGroupFromPointNameListBinding.CreateResult,
+                        cancellationToken,
+                        deadline).ConfigureAwait(false)),
+            new(
+                TargetCatalogMetadata.Operations.Single(operation =>
                     operation.OperationId == CollectionOperationsConstructPointInWorkingCoordinatesBinding.OperationId),
                 typeof(TargetProtocol.ConstructPointInWorkingCoordinatesRequest),
                 typeof(TargetProtocol.ConstructPointInWorkingCoordinatesResult),
@@ -683,6 +999,138 @@ internal sealed class CollectionOperationsService(CatalogOperationExecutor opera
 {
     private readonly CatalogOperationExecutor _operationExecutor =
         operationExecutor ?? throw new ArgumentNullException(nameof(operationExecutor));
+
+    private static readonly CatalogOperationDescriptor ConstructPointAtCircleCenterOperation =
+        TargetCatalogMetadata.Operations.Single(operation =>
+            operation.OperationId == CollectionOperationsConstructPointAtCircleCenterBinding.OperationId);
+
+    [OperationImplementation(CollectionOperationsConstructPointAtCircleCenterBinding.OperationId)]
+    public override Task<TargetProtocol.ConstructPointAtCircleCenterResult> ConstructPointAtCircleCenter(
+        TargetProtocol.ConstructPointAtCircleCenterRequest request,
+        ServerCallContext context) =>
+        _operationExecutor.ExecuteAsync(
+            request,
+            context,
+            ConstructPointAtCircleCenterOperation,
+            CollectionOperationsConstructPointAtCircleCenterBinding.CreateCommand,
+            CollectionOperationsConstructPointAtCircleCenterBinding.OutputContracts,
+            CollectionOperationsConstructPointAtCircleCenterBinding.CreateResult);
+
+    internal Task<TargetProtocol.ConstructPointAtCircleCenterResult> ExecuteConstructPointAtCircleCenter(
+        TargetProtocol.ConstructPointAtCircleCenterRequest request,
+        CancellationToken cancellationToken,
+        DateTime? deadline = null,
+        Guid? correlationId = null,
+        string actorCategory = "internal-unattributed") =>
+        _operationExecutor.ExecuteAsync(
+            request,
+            ConstructPointAtCircleCenterOperation,
+            CollectionOperationsConstructPointAtCircleCenterBinding.CreateCommand,
+            CollectionOperationsConstructPointAtCircleCenterBinding.OutputContracts,
+            CollectionOperationsConstructPointAtCircleCenterBinding.CreateResult,
+            cancellationToken,
+            deadline,
+            correlationId,
+            actorCategory);
+
+    private static readonly CatalogOperationDescriptor ConstructPointAtLineMidpointOperation =
+        TargetCatalogMetadata.Operations.Single(operation =>
+            operation.OperationId == CollectionOperationsConstructPointAtLineMidpointBinding.OperationId);
+
+    [OperationImplementation(CollectionOperationsConstructPointAtLineMidpointBinding.OperationId)]
+    public override Task<TargetProtocol.ConstructPointAtLineMidpointResult> ConstructPointAtLineMidpoint(
+        TargetProtocol.ConstructPointAtLineMidpointRequest request,
+        ServerCallContext context) =>
+        _operationExecutor.ExecuteAsync(
+            request,
+            context,
+            ConstructPointAtLineMidpointOperation,
+            CollectionOperationsConstructPointAtLineMidpointBinding.CreateCommand,
+            CollectionOperationsConstructPointAtLineMidpointBinding.OutputContracts,
+            CollectionOperationsConstructPointAtLineMidpointBinding.CreateResult);
+
+    internal Task<TargetProtocol.ConstructPointAtLineMidpointResult> ExecuteConstructPointAtLineMidpoint(
+        TargetProtocol.ConstructPointAtLineMidpointRequest request,
+        CancellationToken cancellationToken,
+        DateTime? deadline = null,
+        Guid? correlationId = null,
+        string actorCategory = "internal-unattributed") =>
+        _operationExecutor.ExecuteAsync(
+            request,
+            ConstructPointAtLineMidpointOperation,
+            CollectionOperationsConstructPointAtLineMidpointBinding.CreateCommand,
+            CollectionOperationsConstructPointAtLineMidpointBinding.OutputContracts,
+            CollectionOperationsConstructPointAtLineMidpointBinding.CreateResult,
+            cancellationToken,
+            deadline,
+            correlationId,
+            actorCategory);
+
+    private static readonly CatalogOperationDescriptor ConstructPointFitToPointsOperation =
+        TargetCatalogMetadata.Operations.Single(operation =>
+            operation.OperationId == CollectionOperationsConstructPointFitToPointsBinding.OperationId);
+
+    [OperationImplementation(CollectionOperationsConstructPointFitToPointsBinding.OperationId)]
+    public override Task<TargetProtocol.ConstructPointFitToPointsResult> ConstructPointFitToPoints(
+        TargetProtocol.ConstructPointFitToPointsRequest request,
+        ServerCallContext context) =>
+        _operationExecutor.ExecuteAsync(
+            request,
+            context,
+            ConstructPointFitToPointsOperation,
+            CollectionOperationsConstructPointFitToPointsBinding.CreateCommand,
+            CollectionOperationsConstructPointFitToPointsBinding.OutputContracts,
+            CollectionOperationsConstructPointFitToPointsBinding.CreateResult);
+
+    internal Task<TargetProtocol.ConstructPointFitToPointsResult> ExecuteConstructPointFitToPoints(
+        TargetProtocol.ConstructPointFitToPointsRequest request,
+        CancellationToken cancellationToken,
+        DateTime? deadline = null,
+        Guid? correlationId = null,
+        string actorCategory = "internal-unattributed") =>
+        _operationExecutor.ExecuteAsync(
+            request,
+            ConstructPointFitToPointsOperation,
+            CollectionOperationsConstructPointFitToPointsBinding.CreateCommand,
+            CollectionOperationsConstructPointFitToPointsBinding.OutputContracts,
+            CollectionOperationsConstructPointFitToPointsBinding.CreateResult,
+            cancellationToken,
+            deadline,
+            correlationId,
+            actorCategory);
+
+    private static readonly CatalogOperationDescriptor ConstructPointGroupFromPointNameListOperation =
+        TargetCatalogMetadata.Operations.Single(operation =>
+            operation.OperationId == CollectionOperationsConstructPointGroupFromPointNameListBinding.OperationId);
+
+    [OperationImplementation(CollectionOperationsConstructPointGroupFromPointNameListBinding.OperationId)]
+    public override Task<TargetProtocol.ConstructPointGroupFromPointNameListResult> ConstructPointGroupFromPointNameList(
+        TargetProtocol.ConstructPointGroupFromPointNameListRequest request,
+        ServerCallContext context) =>
+        _operationExecutor.ExecuteAsync(
+            request,
+            context,
+            ConstructPointGroupFromPointNameListOperation,
+            CollectionOperationsConstructPointGroupFromPointNameListBinding.CreateCommand,
+            CollectionOperationsConstructPointGroupFromPointNameListBinding.OutputContracts,
+            CollectionOperationsConstructPointGroupFromPointNameListBinding.CreateResult);
+
+    internal Task<TargetProtocol.ConstructPointGroupFromPointNameListResult> ExecuteConstructPointGroupFromPointNameList(
+        TargetProtocol.ConstructPointGroupFromPointNameListRequest request,
+        CancellationToken cancellationToken,
+        DateTime? deadline = null,
+        Guid? correlationId = null,
+        string actorCategory = "internal-unattributed") =>
+        _operationExecutor.ExecuteAsync(
+            request,
+            ConstructPointGroupFromPointNameListOperation,
+            CollectionOperationsConstructPointGroupFromPointNameListBinding.CreateCommand,
+            CollectionOperationsConstructPointGroupFromPointNameListBinding.OutputContracts,
+            CollectionOperationsConstructPointGroupFromPointNameListBinding.CreateResult,
+            cancellationToken,
+            deadline,
+            correlationId,
+            actorCategory);
 
     private static readonly CatalogOperationDescriptor ConstructPointInWorkingCoordinatesOperation =
         TargetCatalogMetadata.Operations.Single(operation =>

@@ -10,6 +10,14 @@ import "briosa/sa/v2026_1_0529_7/v1alpha1/values.proto";
 option csharp_namespace = "Briosa.Sa.V2026_1_0529_7.V1Alpha1";
 
 service CollectionOperations {
+  // Constructs a named point at the center of an explicitly identified circle.
+  rpc ConstructPointAtCircleCenter(ConstructPointAtCircleCenterRequest) returns (ConstructPointAtCircleCenterResult);
+  // Constructs a named point at the midpoint of an explicitly identified line.
+  rpc ConstructPointAtLineMidpoint(ConstructPointAtLineMidpointRequest) returns (ConstructPointAtLineMidpointResult);
+  // Constructs a named point by fitting an explicit list of source points.
+  rpc ConstructPointFitToPoints(ConstructPointFitToPointsRequest) returns (ConstructPointFitToPointsResult);
+  // Constructs a named point group from an explicit list of source points.
+  rpc ConstructPointGroupFromPointNameList(ConstructPointGroupFromPointNameListRequest) returns (ConstructPointGroupFromPointNameListResult);
   // Constructs a named point at explicit working-frame coordinates.
   rpc ConstructPointInWorkingCoordinates(ConstructPointInWorkingCoordinatesRequest) returns (ConstructPointInWorkingCoordinatesResult);
   // Deletes an explicit list of named points.
@@ -26,6 +34,54 @@ service CollectionOperations {
   rpc ListPointsInGroup(ListPointsInGroupRequest) returns (ListPointsInGroupResult);
   // Renames an explicitly identified point, with reviewed collision behavior selected by the caller.
   rpc RenamePoint(RenamePointRequest) returns (RenamePointResult);
+}
+
+message ConstructPointAtCircleCenterRequest {
+  // The exact collection/object identity of the source circle.
+  CollectionObjectName circle = 1;
+  // The exact collection, group, and target name for the point to construct.
+  PointName point_name = 2;
+}
+
+message ConstructPointAtCircleCenterResult {
+  // Explicit MP and result-only argument retrieval outcome.
+  briosa.core.v1alpha1.MpExecutionDetails execution = 1000;
+}
+
+message ConstructPointAtLineMidpointRequest {
+  // The exact collection/object identity of the source line.
+  CollectionObjectName line = 1;
+  // The exact collection, group, and target name for the point to construct.
+  PointName point_name = 2;
+}
+
+message ConstructPointAtLineMidpointResult {
+  // Explicit MP and result-only argument retrieval outcome.
+  briosa.core.v1alpha1.MpExecutionDetails execution = 1000;
+}
+
+message ConstructPointFitToPointsRequest {
+  // The exact collection, group, and target identities of the points to fit.
+  PointNameList point_names = 1;
+  // The exact collection, group, and target name for the fitted point.
+  PointName resulting_point_name = 2;
+}
+
+message ConstructPointFitToPointsResult {
+  // Explicit MP and result-only argument retrieval outcome.
+  briosa.core.v1alpha1.MpExecutionDetails execution = 1000;
+}
+
+message ConstructPointGroupFromPointNameListRequest {
+  // The exact collection, group, and target identities of the points to include.
+  PointNameList point_names = 1;
+  // The exact collection/object identity for the point group to construct.
+  CollectionObjectName group_name = 2;
+}
+
+message ConstructPointGroupFromPointNameListResult {
+  // Explicit MP and result-only argument retrieval outcome.
+  briosa.core.v1alpha1.MpExecutionDetails execution = 1000;
 }
 
 message ConstructPointInWorkingCoordinatesRequest {

@@ -234,6 +234,10 @@ try {
     $wave2FixturePath = Join-Path $bundleRoot "conformance\v1\wave2-point-lifecycle-scenarios.json"
     $wave2Fixtures = Get-Content -LiteralPath $wave2FixturePath -Raw | ConvertFrom-Json
     $expectedWave2Ids = @(
+        "construct-circle-center-ready",
+        "construct-line-midpoint-missing-line",
+        "construct-point-fit-mp-failure",
+        "construct-point-group-policy-denied",
         "construct-point-missing-coordinates",
         "construct-point-ready",
         "delete-points-policy-denied",

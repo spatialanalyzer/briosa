@@ -6,7 +6,23 @@
   "evidence_inputs": [
     {
       "path": "catalog/sa/2026.1.0529.7/catalog.json",
-      "sha256": "52721a26e305496b465f90d5f2659c49aec10f2e31499dd1a949501d42dfe330"
+      "sha256": "b6f67b8d02788064451ab3631d650c68fd4c6c7b5e43d7b25d9da707b5e9f41c"
+    },
+    {
+      "path": "catalog/sa/2026.1.0529.7/operations/collection_operations.construct_point_at_circle_center.json",
+      "sha256": "cd8b7454ecf97685a34445617a4faa7313054cba8a18e2246e3014f552f1d5ec"
+    },
+    {
+      "path": "catalog/sa/2026.1.0529.7/operations/collection_operations.construct_point_at_line_midpoint.json",
+      "sha256": "17a8b9201056dd38fb51cd0342e9e924caebc1a9588a72e7d5364bf9c27cdd70"
+    },
+    {
+      "path": "catalog/sa/2026.1.0529.7/operations/collection_operations.construct_point_fit_to_points.json",
+      "sha256": "7d81316946ea0d0067641bf7ce59fdbf54fb38a26ab8729a1bd9ecf09f43c2a4"
+    },
+    {
+      "path": "catalog/sa/2026.1.0529.7/operations/collection_operations.construct_point_group_from_point_name_list.json",
+      "sha256": "39d04639b69ba13f8e51d38aa334755c6dc74ad9bd680af192d8494a00ca3d4a"
     },
     {
       "path": "catalog/sa/2026.1.0529.7/operations/collection_operations.construct_point_in_working_coordinates.json",
@@ -170,7 +186,7 @@
     },
     {
       "path": "generated/conformance/sa/2026.1.0529.7/manifest.json",
-      "sha256": "c2c81c5330c9e17282183d005a591b3633eef7d643e26bdcf3fd994d7ec52f52"
+      "sha256": "ba2a2d103c59c9111e94730a33b6aad2bb9215de1eeb7d4d9b912705424613d2"
     },
     {
       "path": "inventory/sa/2026.1.0529.7/inventory.json",
@@ -179,13 +195,13 @@
   ],
   "counts": {
     "inventory_commands": 1412,
-    "cataloged_operations": 9,
+    "cataloged_operations": 13,
     "approved_candidates": 684,
-    "approved_not_cataloged": 675,
+    "approved_not_cataloged": 671,
     "blocked": 45,
     "intentional_exclusions": 476,
     "sdk_unavailable": 207,
-    "portable_validated_cataloged_operations": 9,
+    "portable_validated_cataloged_operations": 13,
     "protected_validated_cataloged_operations": 0
   },
   "commands": [
@@ -9766,17 +9782,23 @@
       ],
       "disposition": "approved_candidate",
       "review_state": "reviewed",
-      "release_classification": "approved_not_cataloged",
-      "operation_id": null,
+      "release_classification": "cataloged_portable_only",
+      "operation_id": "collection_operations.construct_point_fit_to_points",
       "risk_effect": "mutating",
       "risk_flags": [],
-      "replay_safety": null,
-      "execution_scope": null,
-      "prerequisites": [],
+      "replay_safety": "unknown",
+      "execution_scope": "global_state_mutation",
+      "prerequisites": [
+        "exact_target_identity",
+        "execution_channel_readiness",
+        "licensed_spatial_analyzer_installation",
+        "runtime_policy_allowlist",
+        "single_tenant_coordination"
+      ],
       "validation": {
         "metadata": "reviewed_metadata",
-        "portable": "not_applicable",
-        "protected_spatial_analyzer": "not_applicable"
+        "portable": "portable_briosa_contract",
+        "protected_spatial_analyzer": "not_performed"
       },
       "blocker_references": []
     },
@@ -9837,17 +9859,23 @@
       ],
       "disposition": "approved_candidate",
       "review_state": "reviewed",
-      "release_classification": "approved_not_cataloged",
-      "operation_id": null,
+      "release_classification": "cataloged_portable_only",
+      "operation_id": "collection_operations.construct_point_group_from_point_name_list",
       "risk_effect": "mutating",
       "risk_flags": [],
-      "replay_safety": null,
-      "execution_scope": null,
-      "prerequisites": [],
+      "replay_safety": "unknown",
+      "execution_scope": "global_state_mutation",
+      "prerequisites": [
+        "exact_target_identity",
+        "execution_channel_readiness",
+        "licensed_spatial_analyzer_installation",
+        "runtime_policy_allowlist",
+        "single_tenant_coordination"
+      ],
       "validation": {
         "metadata": "reviewed_metadata",
-        "portable": "not_applicable",
-        "protected_spatial_analyzer": "not_applicable"
+        "portable": "portable_briosa_contract",
+        "protected_spatial_analyzer": "not_performed"
       },
       "blocker_references": []
     },
@@ -10424,17 +10452,23 @@
       ],
       "disposition": "approved_candidate",
       "review_state": "reviewed",
-      "release_classification": "approved_not_cataloged",
-      "operation_id": null,
+      "release_classification": "cataloged_portable_only",
+      "operation_id": "collection_operations.construct_point_at_circle_center",
       "risk_effect": "mutating",
       "risk_flags": [],
-      "replay_safety": null,
-      "execution_scope": null,
-      "prerequisites": [],
+      "replay_safety": "unknown",
+      "execution_scope": "global_state_mutation",
+      "prerequisites": [
+        "exact_target_identity",
+        "execution_channel_readiness",
+        "licensed_spatial_analyzer_installation",
+        "runtime_policy_allowlist",
+        "single_tenant_coordination"
+      ],
       "validation": {
         "metadata": "reviewed_metadata",
-        "portable": "not_applicable",
-        "protected_spatial_analyzer": "not_applicable"
+        "portable": "portable_briosa_contract",
+        "protected_spatial_analyzer": "not_performed"
       },
       "blocker_references": []
     },
@@ -10447,17 +10481,23 @@
       ],
       "disposition": "approved_candidate",
       "review_state": "reviewed",
-      "release_classification": "approved_not_cataloged",
-      "operation_id": null,
+      "release_classification": "cataloged_portable_only",
+      "operation_id": "collection_operations.construct_point_at_line_midpoint",
       "risk_effect": "mutating",
       "risk_flags": [],
-      "replay_safety": null,
-      "execution_scope": null,
-      "prerequisites": [],
+      "replay_safety": "unknown",
+      "execution_scope": "global_state_mutation",
+      "prerequisites": [
+        "exact_target_identity",
+        "execution_channel_readiness",
+        "licensed_spatial_analyzer_installation",
+        "runtime_policy_allowlist",
+        "single_tenant_coordination"
+      ],
       "validation": {
         "metadata": "reviewed_metadata",
-        "portable": "not_applicable",
-        "protected_spatial_analyzer": "not_applicable"
+        "portable": "portable_briosa_contract",
+        "protected_spatial_analyzer": "not_performed"
       },
       "blocker_references": []
     },

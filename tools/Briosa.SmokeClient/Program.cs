@@ -19,6 +19,14 @@ internal static class SmokeClientProgram
         "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/GetCollectionCount";
     private const string GetCollectionNameByIndexOperation =
         "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/GetCollectionNameByIndex";
+    private const string ConstructPointAtCircleCenterOperation =
+        "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/ConstructPointAtCircleCenter";
+    private const string ConstructPointAtLineMidpointOperation =
+        "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/ConstructPointAtLineMidpoint";
+    private const string ConstructPointFitToPointsOperation =
+        "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/ConstructPointFitToPoints";
+    private const string ConstructPointGroupFromPointNameListOperation =
+        "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/ConstructPointGroupFromPointNameList";
     private const string ConstructPointInWorkingCoordinatesOperation =
         "/briosa.sa.v2026_1_0529_7.v1alpha1.CollectionOperations/ConstructPointInWorkingCoordinates";
     private const string DeletePointsOperation =
@@ -200,6 +208,30 @@ internal static class SmokeClientProgram
                     cancellationToken).ConfigureAwait(false),
             SmokeScenario.CollectionCountMpFailure =>
                 await ExecuteCollectionCountMpFailure(
+                    collectionClient,
+                    serverInfo,
+                    options.Timeout,
+                    cancellationToken).ConfigureAwait(false),
+            SmokeScenario.ConstructCircleCenterReady =>
+                await ExecuteConstructCircleCenterReady(
+                    collectionClient,
+                    serverInfo,
+                    options.Timeout,
+                    cancellationToken).ConfigureAwait(false),
+            SmokeScenario.ConstructLineMidpointMissingLine =>
+                await ExecuteConstructLineMidpointMissingLine(
+                    collectionClient,
+                    serverInfo,
+                    options.Timeout,
+                    cancellationToken).ConfigureAwait(false),
+            SmokeScenario.ConstructPointFitMpFailure =>
+                await ExecuteConstructPointFitMpFailure(
+                    collectionClient,
+                    serverInfo,
+                    options.Timeout,
+                    cancellationToken).ConfigureAwait(false),
+            SmokeScenario.ConstructPointGroupPolicyDenied =>
+                await ExecuteConstructPointGroupPolicyDenied(
                     collectionClient,
                     serverInfo,
                     options.Timeout,
@@ -423,6 +455,128 @@ internal static class SmokeClientProgram
             RecoverySucceeded: false);
     }
 
+    private static async Task<ScenarioOutcome> ExecuteConstructCircleCenterReady(
+        TargetProtocol.CollectionOperations.CollectionOperationsClient client,
+        GetServerInfoResponse serverInfo,
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
+    {
+        RequireReady(serverInfo);
+        var result = await client.ConstructPointAtCircleCenterAsync(
+                new TargetProtocol.ConstructPointAtCircleCenterRequest
+                {
+                    Circle = CollectionObjectName(
+                        "Circle A",
+                        TargetProtocol.ObjectType.Circle),
+                    PointName = PointName("Point A")
+                },
+                deadline: DateTime.UtcNow.Add(timeout),
+                cancellationToken: cancellationToken)
+            .ResponseAsync.ConfigureAwait(false);
+        RequireMutationSuccess(result.Execution, "unexpected-circle-center-success-shape");
+        return new ScenarioOutcome(true, StatusCode.OK, false, null, false);
+    }
+
+    private static async Task<ScenarioOutcome> ExecuteConstructLineMidpointMissingLine(
+        TargetProtocol.CollectionOperations.CollectionOperationsClient client,
+        GetServerInfoResponse serverInfo,
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
+    {
+        RequireReady(serverInfo);
+        OperationError error;
+        try
+        {
+            _ = await client.ConstructPointAtLineMidpointAsync(
+                    new TargetProtocol.ConstructPointAtLineMidpointRequest
+                    {
+                        PointName = PointName("Point A")
+                    },
+                    deadline: DateTime.UtcNow.Add(timeout),
+                    cancellationToken: cancellationToken)
+                .ResponseAsync.ConfigureAwait(false);
+            throw new SmokeFailureException("missing-line-unexpectedly-succeeded");
+        }
+        catch (RpcException exception) when (
+            exception.StatusCode == StatusCode.InvalidArgument)
+        {
+            error = ReadOperationError(exception);
+        }
+
+        RequireNotStartedError(
+            error,
+            OperationFailureKind.Validation,
+            ReplaySafety.Unknown);
+        return new ScenarioOutcome(false, StatusCode.InvalidArgument, true, error.Kind.ToString(), false);
+    }
+
+    private static async Task<ScenarioOutcome> ExecuteConstructPointFitMpFailure(
+        TargetProtocol.CollectionOperations.CollectionOperationsClient client,
+        GetServerInfoResponse serverInfo,
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
+    {
+        RequireReady(serverInfo);
+        OperationError error;
+        try
+        {
+            _ = await client.ConstructPointFitToPointsAsync(
+                    new TargetProtocol.ConstructPointFitToPointsRequest
+                    {
+                        PointNames = PointNames("Point A", "Point B"),
+                        ResultingPointName = PointName("Point C")
+                    },
+                    deadline: DateTime.UtcNow.Add(timeout),
+                    cancellationToken: cancellationToken)
+                .ResponseAsync.ConfigureAwait(false);
+            throw new SmokeFailureException("point-fit-mp-failure-unexpectedly-succeeded");
+        }
+        catch (RpcException exception) when (
+            exception.StatusCode == StatusCode.FailedPrecondition)
+        {
+            error = ReadOperationError(exception);
+        }
+
+        RequireMutationMpFailure(error, "unexpected-point-fit-mp-failure-shape");
+        return new ScenarioOutcome(false, StatusCode.FailedPrecondition, true, error.Kind.ToString(), false);
+    }
+
+    private static async Task<ScenarioOutcome> ExecuteConstructPointGroupPolicyDenied(
+        TargetProtocol.CollectionOperations.CollectionOperationsClient client,
+        GetServerInfoResponse serverInfo,
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
+    {
+        RequireReady(serverInfo);
+        OperationError error;
+        try
+        {
+            _ = await client.ConstructPointGroupFromPointNameListAsync(
+                    new TargetProtocol.ConstructPointGroupFromPointNameListRequest
+                    {
+                        PointNames = PointNames("Point A", "Point B"),
+                        GroupName = CollectionObjectName(
+                            "Group B",
+                            TargetProtocol.ObjectType.PointGroup)
+                    },
+                    deadline: DateTime.UtcNow.Add(timeout),
+                    cancellationToken: cancellationToken)
+                .ResponseAsync.ConfigureAwait(false);
+            throw new SmokeFailureException("point-group-policy-unexpectedly-succeeded");
+        }
+        catch (RpcException exception) when (
+            exception.StatusCode == StatusCode.PermissionDenied)
+        {
+            error = ReadOperationError(exception);
+        }
+
+        RequireNotStartedError(
+            error,
+            OperationFailureKind.PolicyDenied,
+            ReplaySafety.Unknown);
+        return new ScenarioOutcome(false, StatusCode.PermissionDenied, true, error.Kind.ToString(), false);
+    }
+
     private static async Task<ScenarioOutcome> ExecuteConstructPointReady(
         TargetProtocol.CollectionOperations.CollectionOperationsClient client,
         GetServerInfoResponse serverInfo,
@@ -444,12 +598,9 @@ internal static class SmokeClientProgram
                 deadline: DateTime.UtcNow.Add(timeout),
                 cancellationToken: cancellationToken)
             .ResponseAsync.ConfigureAwait(false);
-        if (result.Execution is null ||
-            result.Execution.State != MpExecutionState.Succeeded ||
-            result.Execution.OutputRetrievals.Count != 0)
-        {
-            throw new SmokeFailureException("unexpected-construct-point-success-shape");
-        }
+        RequireMutationSuccess(
+            result.Execution,
+            "unexpected-construct-point-success-shape");
 
         return new ScenarioOutcome(true, StatusCode.OK, false, null, false);
     }
@@ -547,15 +698,7 @@ internal static class SmokeClientProgram
             error = ReadOperationError(exception);
         }
 
-        if (error.Kind != OperationFailureKind.MpFailure ||
-            error.ExecutionDisposition != ExecutionDisposition.Completed ||
-            error.ReplaySafety != ReplaySafety.Unknown ||
-            error.ReplayGuidance != ReplayGuidance.DoNotReplay ||
-            error.MpExecution is null ||
-            error.MpExecution.OutputRetrievals.Count != 0)
-        {
-            throw new SmokeFailureException("unexpected-rename-point-mp-failure-shape");
-        }
+        RequireMutationMpFailure(error, "unexpected-rename-point-mp-failure-shape");
 
         return new ScenarioOutcome(false, StatusCode.FailedPrecondition, true, error.Kind.ToString(), false);
     }
@@ -566,6 +709,49 @@ internal static class SmokeClientProgram
         GroupName = "Portable Group",
         TargetName = targetName
     };
+
+    private static TargetProtocol.PointNameList PointNames(params string[] targetNames)
+    {
+        var result = new TargetProtocol.PointNameList();
+        result.Values.Add(targetNames.Select(PointName));
+        return result;
+    }
+
+    private static TargetProtocol.CollectionObjectName CollectionObjectName(
+        string objectName,
+        TargetProtocol.ObjectType objectType) => new()
+        {
+            CollectionName = "Portable Collection",
+            ObjectName = objectName,
+            ObjectType = objectType
+        };
+
+    private static void RequireMutationSuccess(
+        MpExecutionDetails? execution,
+        string diagnosticCode)
+    {
+        if (execution is null ||
+            execution.State != MpExecutionState.Succeeded ||
+            execution.OutputRetrievals.Count != 0)
+        {
+            throw new SmokeFailureException(diagnosticCode);
+        }
+    }
+
+    private static void RequireMutationMpFailure(
+        OperationError error,
+        string diagnosticCode)
+    {
+        if (error.Kind != OperationFailureKind.MpFailure ||
+            error.ExecutionDisposition != ExecutionDisposition.Completed ||
+            error.ReplaySafety != ReplaySafety.Unknown ||
+            error.ReplayGuidance != ReplayGuidance.DoNotReplay ||
+            error.MpExecution is null ||
+            error.MpExecution.OutputRetrievals.Count != 0)
+        {
+            throw new SmokeFailureException(diagnosticCode);
+        }
+    }
 
     private static void RequireNotStartedError(
         OperationError error,
@@ -876,6 +1062,10 @@ internal static class SmokeClientProgram
         CollectionNameMissingIndex,
         CollectionCountPolicyDenied,
         CollectionCountMpFailure,
+        ConstructCircleCenterReady,
+        ConstructLineMidpointMissingLine,
+        ConstructPointFitMpFailure,
+        ConstructPointGroupPolicyDenied,
         ConstructPointReady,
         ConstructPointMissingCoordinates,
         DeletePointsPolicyDenied,
@@ -919,6 +1109,14 @@ internal static class SmokeClientProgram
                     SmokeScenario.CollectionCountPolicyDenied,
                 "collection-count-mp-failure" =>
                     SmokeScenario.CollectionCountMpFailure,
+                "construct-circle-center-ready" =>
+                    SmokeScenario.ConstructCircleCenterReady,
+                "construct-line-midpoint-missing-line" =>
+                    SmokeScenario.ConstructLineMidpointMissingLine,
+                "construct-point-fit-mp-failure" =>
+                    SmokeScenario.ConstructPointFitMpFailure,
+                "construct-point-group-policy-denied" =>
+                    SmokeScenario.ConstructPointGroupPolicyDenied,
                 "construct-point-ready" => SmokeScenario.ConstructPointReady,
                 "construct-point-missing-coordinates" =>
                     SmokeScenario.ConstructPointMissingCoordinates,
@@ -966,6 +1164,18 @@ internal static class SmokeClientProgram
                 SmokeScenario.CollectionNameMissingIndex => new(
                     OperationAdvertised: true,
                     GetCollectionNameByIndexOperation),
+                SmokeScenario.ConstructCircleCenterReady => new(
+                    OperationAdvertised: true,
+                    ConstructPointAtCircleCenterOperation),
+                SmokeScenario.ConstructLineMidpointMissingLine => new(
+                    OperationAdvertised: true,
+                    ConstructPointAtLineMidpointOperation),
+                SmokeScenario.ConstructPointFitMpFailure => new(
+                    OperationAdvertised: true,
+                    ConstructPointFitToPointsOperation),
+                SmokeScenario.ConstructPointGroupPolicyDenied => new(
+                    OperationAdvertised: false,
+                    ConstructPointGroupFromPointNameListOperation),
                 SmokeScenario.ConstructPointReady or
                 SmokeScenario.ConstructPointMissingCoordinates => new(
                     OperationAdvertised: true,
@@ -1025,6 +1235,14 @@ internal static class SmokeClientProgram
                     GetCollectionCountOperation,
                 "collection_operations.get_collection_name_by_index" =>
                     GetCollectionNameByIndexOperation,
+                "collection_operations.construct_point_at_circle_center" =>
+                    ConstructPointAtCircleCenterOperation,
+                "collection_operations.construct_point_at_line_midpoint" =>
+                    ConstructPointAtLineMidpointOperation,
+                "collection_operations.construct_point_fit_to_points" =>
+                    ConstructPointFitToPointsOperation,
+                "collection_operations.construct_point_group_from_point_name_list" =>
+                    ConstructPointGroupFromPointNameListOperation,
                 "collection_operations.construct_point_in_working_coordinates" =>
                     ConstructPointInWorkingCoordinatesOperation,
                 "collection_operations.delete_points" => DeletePointsOperation,

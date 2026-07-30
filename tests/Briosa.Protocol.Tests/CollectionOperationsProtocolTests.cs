@@ -15,6 +15,10 @@ public sealed partial class ProtocolSchemaTests
 
         Assert.Equal(
             [
+                "ConstructPointAtCircleCenter",
+                "ConstructPointAtLineMidpoint",
+                "ConstructPointFitToPoints",
+                "ConstructPointGroupFromPointNameList",
                 "ConstructPointInWorkingCoordinates",
                 "DeletePoints",
                 "GetCollectionCount",
@@ -86,9 +90,34 @@ public sealed partial class ProtocolSchemaTests
     [Fact]
     public void PointLifecycleFieldsRetainReviewedTypesAndPresence()
     {
+        var circleCenter = TargetProtocol.ConstructPointAtCircleCenterRequest.Descriptor;
+        var lineMidpoint = TargetProtocol.ConstructPointAtLineMidpointRequest.Descriptor;
+        var fitToPoints = TargetProtocol.ConstructPointFitToPointsRequest.Descriptor;
+        var pointGroup = TargetProtocol.ConstructPointGroupFromPointNameListRequest.Descriptor;
         var construct = TargetProtocol.ConstructPointInWorkingCoordinatesRequest.Descriptor;
         var rename = TargetProtocol.RenamePointRequest.Descriptor;
 
+        Assert.Equal(
+            TargetProtocol.CollectionObjectName.Descriptor,
+            circleCenter.FindFieldByName("circle").MessageType);
+        Assert.Equal(
+            TargetProtocol.PointName.Descriptor,
+            circleCenter.FindFieldByName("point_name").MessageType);
+        Assert.Equal(
+            TargetProtocol.CollectionObjectName.Descriptor,
+            lineMidpoint.FindFieldByName("line").MessageType);
+        Assert.Equal(
+            TargetProtocol.PointNameList.Descriptor,
+            fitToPoints.FindFieldByName("point_names").MessageType);
+        Assert.Equal(
+            TargetProtocol.PointName.Descriptor,
+            fitToPoints.FindFieldByName("resulting_point_name").MessageType);
+        Assert.Equal(
+            TargetProtocol.PointNameList.Descriptor,
+            pointGroup.FindFieldByName("point_names").MessageType);
+        Assert.Equal(
+            TargetProtocol.CollectionObjectName.Descriptor,
+            pointGroup.FindFieldByName("group_name").MessageType);
         Assert.Equal(
             TargetProtocol.PointName.Descriptor,
             construct.FindFieldByName("point_name").MessageType);

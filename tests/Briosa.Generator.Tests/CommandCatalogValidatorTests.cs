@@ -13,7 +13,7 @@ public sealed class CommandCatalogValidatorTests
 
         Assert.True(result.IsValid, string.Join(Environment.NewLine, result.Errors));
         Assert.Equal(1, result.CatalogCount);
-        Assert.Equal(9, result.OperationCount);
+        Assert.Equal(13, result.OperationCount);
     }
 
     [Fact]
@@ -52,6 +52,10 @@ public sealed class CommandCatalogValidatorTests
         Assert.Equal("wave_2", membership["delivery_wave"]!.GetValue<string>());
         Assert.Equal(
             [
+                "collection_operations.construct_point_at_circle_center",
+                "collection_operations.construct_point_at_line_midpoint",
+                "collection_operations.construct_point_fit_to_points",
+                "collection_operations.construct_point_group_from_point_name_list",
                 "collection_operations.construct_point_in_working_coordinates",
                 "collection_operations.delete_points",
                 "collection_operations.rename_point"
@@ -415,7 +419,7 @@ public sealed class CommandCatalogValidatorTests
         var result = CommandCatalogValidator.ValidateDirectory(fixture.Root);
 
         Assert.True(result.IsValid, string.Join(Environment.NewLine, result.Errors));
-        Assert.Equal(10, result.OperationCount);
+        Assert.Equal(14, result.OperationCount);
     }
 
     [Fact]

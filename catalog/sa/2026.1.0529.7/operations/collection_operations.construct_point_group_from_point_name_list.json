@@ -1,0 +1,94 @@
+{
+  "$schema": "../../../schemas/v1/operation.schema.json",
+  "operation_id": "collection_operations.construct_point_group_from_point_name_list",
+  "inventory_key": "documentation:ConstructionOperations/PointsandGroups/ConstructPointGroupfromPointNameRefList.htm",
+  "mp_step": "Construct Point Group from Point Name Ref List",
+  "category": "Collection Operations",
+  "protocol": {
+    "service": "CollectionOperations",
+    "rpc": "ConstructPointGroupFromPointNameList",
+    "request": "ConstructPointGroupFromPointNameListRequest",
+    "result": "ConstructPointGroupFromPointNameListResult"
+  },
+  "stability": "experimental",
+  "execution_scope": "global_state_mutation",
+  "risk": {
+    "effect": "mutating",
+    "replay_safety": "unknown",
+    "flags": []
+  },
+  "documentation": {
+    "summary": "Constructs a named point group from an explicit list of source points.",
+    "isolation": "Mutates named geometry in application-global model state. Cancellation or deadline expiry does not roll back construction or cancel an in-flight COM call; an ambiguous completion requires reconciliation before replay."
+  },
+  "arguments": [
+    {
+      "argument_id": "point_names",
+      "ordinal": 0,
+      "sdk_order": 0,
+      "mp_name": "Point Name List",
+      "direction": "input",
+      "result_only": "no",
+      "semantic_type": "point_name_list",
+      "data_classification": "object_identifier",
+      "field_numbers": {
+        "request": 1,
+        "result": null
+      },
+      "input": {
+        "presence": "required",
+        "omission_behavior": "reject_request",
+        "default": {
+          "status": "none"
+        }
+      },
+      "sdk_binding": {
+        "status": "available",
+        "setter": "SetPointNameRefListArg",
+        "getter": null
+      },
+      "documentation": "The exact collection, group, and target identities of the points to include."
+    },
+    {
+      "argument_id": "group_name",
+      "ordinal": 1,
+      "sdk_order": 1,
+      "mp_name": "Group Name",
+      "direction": "input",
+      "result_only": "no",
+      "semantic_type": "collection_object_name",
+      "data_classification": "object_identifier",
+      "field_numbers": {
+        "request": 2,
+        "result": null
+      },
+      "input": {
+        "presence": "required",
+        "omission_behavior": "reject_request",
+        "default": {
+          "status": "none"
+        }
+      },
+      "sdk_binding": {
+        "status": "available",
+        "setter": "SetCollectionObjectNameArg2",
+        "getter": null
+      },
+      "documentation": "The exact collection/object identity for the point group to construct."
+    }
+  ],
+  "evidence": [
+    {
+      "source_id": "maintainer_review",
+      "reference": "Issues #49, #53, and #64 exact-target mutation review"
+    },
+    {
+      "source_id": "sa_mp_command_reference",
+      "reference": "ConstructionOperations/PointsandGroups/ConstructPointGroupfromPointNameRefList.htm"
+    },
+    {
+      "source_id": "sa_view_sdk_code",
+      "reference": "ConstructionOperations_PointsAndGroups.txt: Construct Point Group from Point Name Ref List"
+    }
+  ]
+}

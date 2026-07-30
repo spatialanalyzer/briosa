@@ -5,6 +5,76 @@
   "error_trailer": "briosa-operation-error-bin",
   "scenarios": [
     {
+      "id": "construct-circle-center-ready",
+      "operation_id": "collection_operations.construct_point_at_circle_center",
+      "worker_scenario": "ready",
+      "watchdog_timeout": null,
+      "deny_operation": false,
+      "expected": {
+        "grpc_status": "OK",
+        "ready_for_mp": true,
+        "operation_advertised": true,
+        "operation_succeeded": true,
+        "recovery_succeeded": false,
+        "typed_error_required": false,
+        "failure_kinds": []
+      }
+    },
+    {
+      "id": "construct-line-midpoint-missing-line",
+      "operation_id": "collection_operations.construct_point_at_line_midpoint",
+      "worker_scenario": "ready",
+      "watchdog_timeout": null,
+      "deny_operation": false,
+      "expected": {
+        "grpc_status": "INVALID_ARGUMENT",
+        "ready_for_mp": true,
+        "operation_advertised": true,
+        "operation_succeeded": false,
+        "recovery_succeeded": false,
+        "typed_error_required": true,
+        "failure_kinds": [
+          "OPERATION_FAILURE_KIND_VALIDATION"
+        ]
+      }
+    },
+    {
+      "id": "construct-point-fit-mp-failure",
+      "operation_id": "collection_operations.construct_point_fit_to_points",
+      "worker_scenario": "mp-failure",
+      "watchdog_timeout": null,
+      "deny_operation": false,
+      "expected": {
+        "grpc_status": "FAILED_PRECONDITION",
+        "ready_for_mp": true,
+        "operation_advertised": true,
+        "operation_succeeded": false,
+        "recovery_succeeded": false,
+        "typed_error_required": true,
+        "failure_kinds": [
+          "OPERATION_FAILURE_KIND_MP_FAILURE"
+        ]
+      }
+    },
+    {
+      "id": "construct-point-group-policy-denied",
+      "operation_id": "collection_operations.construct_point_group_from_point_name_list",
+      "worker_scenario": "ready",
+      "watchdog_timeout": null,
+      "deny_operation": true,
+      "expected": {
+        "grpc_status": "PERMISSION_DENIED",
+        "ready_for_mp": true,
+        "operation_advertised": false,
+        "operation_succeeded": false,
+        "recovery_succeeded": false,
+        "typed_error_required": true,
+        "failure_kinds": [
+          "OPERATION_FAILURE_KIND_POLICY_DENIED"
+        ]
+      }
+    },
+    {
       "id": "construct-point-missing-coordinates",
       "operation_id": "collection_operations.construct_point_in_working_coordinates",
       "worker_scenario": "ready",

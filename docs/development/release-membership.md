@@ -2,9 +2,20 @@
 
 A supported-command catalog is the maximum exact-target API that the binary can express. A release-membership document identifies the smaller, reviewed subset being delivered for a named release line and wave. It is planning and completeness metadata, not a compatibility promise and not runtime authorization.
 
-For SA `2026.1.0529.7`, the initial v0.2 Wave 1 subset is declared in `catalog/sa/2026.1.0529.7/release-memberships/v0.2-wave1-initial.json`. It contains five collection-introspection operations. The initial Wave 2 subset is independently declared in `v0.2-wave2-initial.json` and contains exactly three point-lifecycle operations: construct a point in working coordinates, rename a point, and delete points. The earlier `file_operations.get_working_directory` vertical slice remains in the supported catalog but is not counted as a newly promoted member. Membership is deliberately additive and does not imply that all disposition-approved candidates for either wave have shipped.
+For SA `2026.1.0529.7`, the initial v0.2 Wave 1 subset is declared in `catalog/sa/2026.1.0529.7/release-memberships/v0.2-wave1-initial.json`. It contains five collection-introspection operations. The growing Wave 2 subset is independently declared in `v0.2-wave2-initial.json` and contains seven point mutations: construct a point in working coordinates, rename a point, delete points, construct a point at a circle center, construct a point at a line midpoint, fit a point to points, and construct a point group from a point-name list. The earlier `file_operations.get_working_directory` vertical slice remains in the supported catalog but is not counted as a newly promoted member. Membership is deliberately additive and does not imply that all disposition-approved candidates for either wave have shipped.
 
-The three Wave 2 members mutate application-global state and have `unknown` replay safety. Their membership records delivery, not an endorsement of automatic retry: cancellation, timeout, worker loss, or a lost response after admission can require the caller to inspect current model state before deciding what to do next.
+The seven Wave 2 members mutate application-global state and have `unknown` replay safety. Their membership records delivery, not an endorsement of automatic retry: cancellation, timeout, worker loss, or a lost response after admission can require the caller to inspect current model state before deciding what to do next.
+
+The four derived-constructor additions were authorized under the maintainer-approved Wave 2 promotion rule: exact-target installed documentation and View SDK Code establish the SA `2026.1.0529.7` contract, while a matching ObjectiveSA counterpart corroborates the command and argument shape. The review found these one-to-one counterparts:
+
+| Exact MP step | ObjectiveSA counterpart | Matching shape |
+| --- | --- | --- |
+| `Construct a Point at Circle Center` | `ConstructPointAtCircleCenter` | circle collection-object input followed by resultant point-name input; no getter-returned output |
+| `Construct a Point at line MidPoint` | `ConstructPointAtLineMidpoint` | line collection-object input followed by resultant point-name input; no getter-returned output |
+| `Construct Point (Fit to Points)` | `ConstructPointFitToPoints` | point-name reference-list input followed by resultant point-name input; no getter-returned output |
+| `Construct Point Group from Point Name Ref List` | `ConstructPointGroupFromPointNameRefList` | point-name reference-list input followed by resultant group collection-object input; no getter-returned output |
+
+ObjectiveSA remains prior-release secondary evidence, not live runtime conformance for the exact target. All four operations therefore remain `cataloged_portable_only` with `validation_status: not_performed`; the membership and portable tests do not claim that a licensed-SA run has occurred.
 
 ## Required coordinates
 
