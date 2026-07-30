@@ -249,6 +249,40 @@ public sealed class CommandDispositionLedgerTests
         Assert.Contains("cloud_thinning_options", cloudThinning.Rationale, StringComparison.Ordinal);
         Assert.Contains("SetCloudThinningOptionsArg", cloudThinning.Rationale, StringComparison.Ordinal);
 
+        var registry = JsonNode.Parse(File.ReadAllText(Path.Combine(
+            FindRepositoryRoot().FullName,
+            "bindings",
+            "sa",
+            "2026.1.0529.7",
+            "registry.json")))!.AsObject();
+        var bindings = registry["bindings"]!.AsArray();
+        var exactMissingBindings = new[]
+        {
+            "GetSigmoidalGapConstraintOptionsArg",
+            "SetItemTypeArg",
+            "SetMPGDTOptionsCheckValidatorTypeArg",
+            "SetMPGDTOptionsDistanceBetweenModeArg",
+            "SetMeshOrientationTypeArg"
+        };
+        foreach (var method in exactMissingBindings)
+        {
+            var binding = Assert.Single(
+                bindings,
+                node => node!["method"]!.GetValue<string>() == method)!.AsObject();
+            Assert.Equal("blocked_missing_interop", binding["registry_status"]!.GetValue<string>());
+            Assert.Null(binding["interop_signature"]);
+        }
+
+        var cloudThinningBinding = Assert.Single(
+            bindings,
+            node => node!["method"]!.GetValue<string>() == "SetCloudThinningOptionsArg")!
+            .AsObject();
+        Assert.Equal("usable", cloudThinningBinding["registry_status"]!.GetValue<string>());
+        Assert.Equal(
+            ["cloud_thinning_options"],
+            cloudThinningBinding["semantic_value_families"]!.AsArray()
+                .Select(node => node!.GetValue<string>()));
+
         Assert.All(decisions.Values, entry =>
         {
             Assert.Equal("reviewed", entry.ReviewState);
