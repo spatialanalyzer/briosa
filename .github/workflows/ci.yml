@@ -60,6 +60,10 @@ jobs:
             -Executable dotnet `
             -ArgumentList @("restore", "Briosa.slnx", "--locked-mode")
 
+      - name: Verify local SpatialAnalyzer source-host composition
+        shell: pwsh
+        run: ./eng/Test-LocalSpatialAnalyzerHost.ps1 -NoRestore
+
       - name: Build interop verifier
         run: dotnet build tools/Briosa.Generator/Briosa.Generator.csproj -c Release --no-restore
 

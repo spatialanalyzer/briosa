@@ -58,20 +58,14 @@ internal sealed class ExactTargetIdentityPolicy
     public string TargetVersion { get; }
 
     public static ExactTargetIdentityPolicy Create(
-        IConfiguration configuration,
+        SpatialAnalyzerIdentityOptions identityOptions,
         string targetVersion)
     {
-        ArgumentNullException.ThrowIfNull(configuration);
+        ArgumentNullException.ThrowIfNull(identityOptions);
         return new ExactTargetIdentityPolicy(
             targetVersion,
-            ReadAttestation(
-                configuration,
-                ActivatedSdkVersionKey,
-                ActivatedSdkReferenceKey),
-            ReadAttestation(
-                configuration,
-                ConnectedSpatialAnalyzerVersionKey,
-                ConnectedSpatialAnalyzerReferenceKey));
+            CreateAttestation(identityOptions.ActivatedSdk),
+            CreateAttestation(identityOptions.ConnectedSpatialAnalyzer));
     }
 
     internal static ExactTargetIdentityPolicy CreateForTesting(
@@ -150,34 +144,11 @@ internal sealed class ExactTargetIdentityPolicy
         !version.Contains('\r', StringComparison.Ordinal) &&
         !version.Contains('\n', StringComparison.Ordinal);
 
-    private static OperatorAttestation? ReadAttestation(
-        IConfiguration configuration,
-        string versionKey,
-        string referenceKey)
-    {
-        var version = configuration[versionKey];
-        var reference = configuration[referenceKey];
-        if (string.IsNullOrWhiteSpace(version) && string.IsNullOrWhiteSpace(reference))
-        {
-            return null;
-        }
-
-        if (string.IsNullOrWhiteSpace(version) || string.IsNullOrWhiteSpace(reference))
-        {
-            throw new InvalidOperationException(
-                $"Operator attestation requires both '{versionKey}' and '{referenceKey}'.");
-        }
-
-        if (!IsValidVersion(version) || reference.Length > 256 ||
-            reference.Contains('\r', StringComparison.Ordinal) ||
-            reference.Contains('\n', StringComparison.Ordinal))
-        {
-            throw new InvalidOperationException(
-                $"Operator attestation values for '{versionKey}' and '{referenceKey}' have an invalid shape.");
-        }
-
-        return new OperatorAttestation(version, reference);
-    }
+    private static OperatorAttestation? CreateAttestation(
+        OperatorAttestationOptions? options) =>
+        options is null
+            ? null
+            : new OperatorAttestation(options.Version, options.Reference);
 
     private sealed record OperatorAttestation(string Version, string Reference);
 }

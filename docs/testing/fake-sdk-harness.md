@@ -14,6 +14,8 @@ Cancellation can stop a caller from entering the owner or waiting through a retr
 
 Process-level scenarios distinguish cancellation before enqueue (`NotStarted`) from cancellation after enqueue (`StartedOutcomeUnknown`). They also simulate a hang after execution starts, a completed command followed by worker exit before the response, and a response that is lost until the watchdog replaces the worker. Each ambiguous case retains the original worker generation and remains uncertain after the replacement reports ready.
 
+`eng/Test-LocalSpatialAnalyzerHost.ps1` covers the separate source-composition seam. It verifies that a Debug server build contains the complete real worker cohort, then starts that worker through the production supervisor with the existing SDK-activation-disable test switch. This exercises the named-pipe startup and graceful shutdown boundary without COM activation, `ConnectEx`, or SpatialAnalyzer. It is portable wiring evidence, not licensed-SA evidence.
+
 The issue #71 sustained harness adds a value-free execution snapshot and bounded lifecycle history. It proves that a full queue never admits beyond capacity, capacity waiters cancel as `NotStarted`, admitted cancellation drains to a terminal internal outcome, shutdown wakes blocked admissions, and repeated watchdog replacement remains accounted for. See the [runtime performance and soak guide](runtime-performance-and-soak.md) for sample sizes, budgets, and the licensed-soak deferral.
 
 ## Scripted behaviors

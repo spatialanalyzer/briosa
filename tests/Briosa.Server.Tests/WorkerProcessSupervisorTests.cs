@@ -815,10 +815,14 @@ public sealed class WorkerProcessSupervisorTests
     [Fact]
     public async Task ProductionWorkerCompletesControlLifecycleWithoutSpatialAnalyzer()
     {
-        var executable = Path.Combine(
-            AppContext.BaseDirectory,
-            "worker-under-test",
-            "Briosa.Worker.exe");
+        var sourceWorkerOutput = Environment.GetEnvironmentVariable(
+            "BRIOSA_SOURCE_WORKER_OUTPUT");
+        var executable = string.IsNullOrWhiteSpace(sourceWorkerOutput)
+            ? Path.Combine(
+                AppContext.BaseDirectory,
+                "worker-under-test",
+                "Briosa.Worker.exe")
+            : Path.Combine(sourceWorkerOutput, "Briosa.Worker.exe");
         Assert.True(
             File.Exists(executable),
             $"The worker executable was not found at '{executable}'.");
@@ -827,7 +831,7 @@ public sealed class WorkerProcessSupervisorTests
                 executable,
                 ["--disable-sdk-activation", "--sa-host", "sa-lab"],
                 workingDirectory: Path.GetDirectoryName(executable)),
-            CreatePolicy());
+            CreatePolicy(shutdownTimeout: TimeSpan.FromSeconds(5)));
 
         Assert.True(await supervisor.StartAsync());
         Assert.Equal(WorkerLifecycleState.Ready, supervisor.Current.State);

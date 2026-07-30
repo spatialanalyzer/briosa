@@ -2,6 +2,16 @@
 
 Run the scripts in this directory from the repository root. Most scripts require PowerShell 7 and the repository's documented .NET SDK. Protocol schema and artifact work also requires Buf 1.72.0. Interop generation requires Visual Studio Developer PowerShell. The licensed-SA scripts are the only scripts in this directory that may connect to SpatialAnalyzer; follow their explicit opt-in guidance.
 
+## Local SpatialAnalyzer source-host verification
+
+`Test-LocalSpatialAnalyzerHost.ps1` verifies the conventional Debug source-host composition without activating the SDK or connecting to SpatialAnalyzer. It enforces the first/default `SpatialAnalyzer` launch profile, builds `Briosa.Server` in Debug, compares every file in the real worker output cohort with its colocated server-output copy, and runs the production worker control lifecycle with SDK activation explicitly disabled. The lifecycle check also proves bounded graceful worker cleanup.
+
+```powershell
+./eng/Test-LocalSpatialAnalyzerHost.ps1
+```
+
+Pass `-NoRestore` only after a locked restore. Ordinary CI runs this check separately from Release build and package verification. `Test-WindowsPackage.ps1` continues to build the Release server and worker independently and rejects the Debug launch profile, Development settings, and Debug user-secrets identity in the archive. Neither check supplies SpatialAnalyzer identity evidence or produces licensed-SA validation.
+
 ## Complete-surface and CI-budget verification
 
 `Verify-FullSurface.ps1` is the ordinary-CI umbrella for disposition, value-family, binding-registry, scaffold, catalog-artifact, portable-conformance, release-evidence, and interop validation. It generates every configured surface twice in clean temporary roots, discovers all emitted paths, compares bytes and committed freshness, runs the existing semantic validators, and writes a fingerprinted manifest under `artifacts/full-surface`:

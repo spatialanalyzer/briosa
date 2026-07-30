@@ -8,7 +8,7 @@
   "evidence_inputs": [
     {
       "path": ".github/workflows/ci.yml",
-      "sha256": "ce04df3af16ee6e5b4075aea479231415eb5200b47e316ce798b972370650d3f"
+      "sha256": "6b4f9d37755ed877638825686d36071365d7affedc83ea9aa13ba5d8afedab6f"
     },
     {
       "path": ".github/workflows/release.yml",
