@@ -5695,13 +5695,15 @@
         "FileOperations"
       ],
       "inventory_entry_sha256": "132e309c4de8906f33f5cdbf1f29b26985c5e9351001a4a3d548e5f5dcebaf2c",
-      "disposition": "blocked",
+      "disposition": "approved_candidate",
       "review_state": "reviewed",
-      "rationale": "An explicit external destination and serial-number choice can be required, but exact-target evidence does not establish existing-file handling or modal-prompt behavior. Keep the command blocked and do not infer overwrite consent, embedded persistence, or a serial-number default.",
+      "rationale": "A disposable exact-target probe created a new nonempty job, produced exactly one nonempty output when serial-number mode was selected explicitly, and silently replaced an existing destination. Retain a deny-by-default Wave 3 candidate requiring an absolute external path, explicit serial-number inputs, explicit replacement consent, and no automatic replay.",
       "reason_codes": [
-        "exact_target_file_behavior_evidence_required",
-        "file_semantics_unresolved",
-        "operation_contract_reviewed"
+        "command_shape_resolved",
+        "filesystem_operation",
+        "long_running_operation",
+        "operation_contract_reviewed",
+        "state_mutation"
       ],
       "evidence_references": [
         "documentation:FileOperations/SaveAs.htm",
@@ -5712,9 +5714,7 @@
         "https://github.com/spatialanalyzer/briosa/issues/53",
         "https://github.com/spatialanalyzer/briosa/issues/80"
       ],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/80"
-      ],
+      "blocker_references": [],
       "risk_effect": "mutating",
       "risk_flags": [
         "filesystem_write",
@@ -5728,40 +5728,84 @@
         "logical",
         "whole_number"
       ],
-      "delivery_wave": null,
+      "delivery_wave": "wave_3",
       "operation_contract": {
-        "decision": "blocked_pending_exact_target_evidence",
-        "validation_status": "not_performed",
+        "decision": "constrained_candidate",
+        "validation_status": "performed",
         "constraints": [
           "absolute_external_path_required",
           "all_inputs_required",
           "automatic_replay_prohibited",
+          "deny_by_default",
           "embedded_file_rejected",
-          "overwrite_consent_not_inferred"
+          "replace_mode_requires_explicit_consent",
+          "serial_number_mode_requires_explicit_choice"
         ],
         "evidence_limitations": [
-          "existing_destination_behavior_unresolved",
-          "live_validation_not_performed",
-          "modal_prompt_behavior_unresolved"
+          "atomic_replacement_not_probe_validated",
+          "serial_number_filename_format_not_public_contract"
         ]
       },
       "command_shape": {
-        "status": "blocked",
-        "mp_step": null,
-        "arguments": [],
-        "discrepancies": [
+        "status": "resolved",
+        "mp_step": "Save As...",
+        "arguments": [
           {
-            "code": "file_behavior_unresolved",
-            "argument_indexes": [
-              0,
-              1,
-              2
-            ],
-            "owner": "briosa",
-            "blocker_reference": "https://github.com/spatialanalyzer/briosa/issues/80",
-            "rationale": "Existing-destination and modal-prompt behavior require exact-target evidence before a safe output mode can be approved."
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "File Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetFilePathArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "Add Serial Number?",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Optional Number",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetIntegerArg",
+              "getter": null
+            }
           }
-        ]
+        ],
+        "discrepancies": []
       }
     },
     {
@@ -5771,13 +5815,15 @@
         "FileOperations"
       ],
       "inventory_entry_sha256": "662a75169a19c2237e34f7c90b5ba838bdbaebee47a34cc63bb9d6d538907a22",
-      "disposition": "blocked",
+      "disposition": "approved_candidate",
       "review_state": "reviewed",
-      "rationale": "The exact MP shape accepts only a template destination; it does not expose the serial-number behavior mentioned in surrounding prose. Existing-file and modal-prompt behavior remain unknown, so Briosa does not invent a serial field or overwrite policy.",
+      "rationale": "A disposable exact-target probe created a new nonempty read-only template and silently replaced an existing destination. Retain a deny-by-default Wave 3 candidate requiring an absolute external path, explicit replacement consent, no invented serial-number field, and no automatic replay.",
       "reason_codes": [
-        "exact_target_file_behavior_evidence_required",
-        "file_semantics_unresolved",
-        "operation_contract_reviewed"
+        "command_shape_resolved",
+        "filesystem_operation",
+        "long_running_operation",
+        "operation_contract_reviewed",
+        "state_mutation"
       ],
       "evidence_references": [
         "documentation:FileOperations/SaveAsReadOnlyTemplate.htm",
@@ -5788,9 +5834,7 @@
         "https://github.com/spatialanalyzer/briosa/issues/53",
         "https://github.com/spatialanalyzer/briosa/issues/80"
       ],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/80"
-      ],
+      "blocker_references": [],
       "risk_effect": "mutating",
       "risk_flags": [
         "filesystem_write",
@@ -5802,38 +5846,47 @@
       "value_families": [
         "file_reference"
       ],
-      "delivery_wave": null,
+      "delivery_wave": "wave_3",
       "operation_contract": {
-        "decision": "blocked_pending_exact_target_evidence",
-        "validation_status": "not_performed",
+        "decision": "constrained_candidate",
+        "validation_status": "performed",
         "constraints": [
           "absolute_external_path_required",
           "automatic_replay_prohibited",
+          "deny_by_default",
           "embedded_file_rejected",
+          "replace_mode_requires_explicit_consent",
           "serial_number_not_exposed_without_binding"
         ],
         "evidence_limitations": [
-          "documentation_serial_statement_conflicts_with_argument_table",
-          "existing_destination_behavior_unresolved",
-          "live_validation_not_performed",
-          "modal_prompt_behavior_unresolved"
+          "atomic_replacement_not_probe_validated",
+          "documentation_serial_statement_conflicts_with_argument_table"
         ]
       },
       "command_shape": {
-        "status": "blocked",
-        "mp_step": null,
-        "arguments": [],
-        "discrepancies": [
+        "status": "resolved",
+        "mp_step": "Save As Read-Only Template",
+        "arguments": [
           {
-            "code": "file_behavior_unresolved",
-            "argument_indexes": [
-              0
-            ],
-            "owner": "briosa",
-            "blocker_reference": "https://github.com/spatialanalyzer/briosa/issues/80",
-            "rationale": "Existing-destination and modal-prompt behavior require exact-target evidence; the unbound serial-number prose cannot define a public field."
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Template File Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetFilePathArg",
+              "getter": null
+            }
           }
-        ]
+        ],
+        "discrepancies": []
       }
     },
     {
@@ -6322,13 +6375,14 @@
         "XML"
       ],
       "inventory_entry_sha256": "d8fca6341601929b61e2eebaccb2095d38155a6b1643a0e62cc59ba9da336700",
-      "disposition": "blocked",
+      "disposition": "intentional_exclusion",
       "review_state": "reviewed",
-      "rationale": "The exact target establishes an XML source and deterministic destination-group naming, but not same-named group or point collision behavior, partial mutation, or interactive effects. Keep the job mutation blocked pending exact-target evidence.",
+      "rationale": "The command mutates collection state from a vendor XML format, but no sanctioned exact-target schema or disposable fixture is available to prove collision, partial-mutation, rollback, or UI behavior. Exclude it from the unattended service rather than retaining an unresolvable issue blocker.",
       "reason_codes": [
-        "exact_target_file_behavior_evidence_required",
-        "file_semantics_unresolved",
-        "operation_contract_reviewed"
+        "filesystem_operation",
+        "operation_contract_reviewed",
+        "sanctioned_fixture_unavailable",
+        "state_mutation"
       ],
       "evidence_references": [
         "documentation:FileOperations/XML/ImportNominalsFromXMLFile.htm",
@@ -6339,9 +6393,7 @@
         "https://github.com/spatialanalyzer/briosa/issues/53",
         "https://github.com/spatialanalyzer/briosa/issues/80"
       ],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/80"
-      ],
+      "blocker_references": [],
       "risk_effect": "mutating",
       "risk_flags": [
         "filesystem_read",
@@ -6356,35 +6408,28 @@
       ],
       "delivery_wave": null,
       "operation_contract": {
-        "decision": "blocked_pending_exact_target_evidence",
+        "decision": "intentional_exclusion",
         "validation_status": "not_performed",
         "constraints": [
           "absolute_external_path_required",
           "automatic_replay_prohibited",
-          "embedded_file_rejected"
+          "embedded_file_rejected",
+          "sanctioned_exact_target_fixture_required",
+          "unattended_service_exclusion"
         ],
         "evidence_limitations": [
           "group_and_point_collision_behavior_unresolved",
           "live_validation_not_performed",
           "partial_mutation_behavior_unresolved",
+          "sanctioned_exact_target_schema_unavailable",
           "ui_behavior_unresolved"
         ]
       },
       "command_shape": {
-        "status": "blocked",
+        "status": "not_applicable",
         "mp_step": null,
         "arguments": [],
-        "discrepancies": [
-          {
-            "code": "file_behavior_unresolved",
-            "argument_indexes": [
-              0
-            ],
-            "owner": "briosa",
-            "blocker_reference": "https://github.com/spatialanalyzer/briosa/issues/80",
-            "rationale": "Same-named group and point collisions, partial mutation, and UI behavior require exact-target evidence."
-          }
-        ]
+        "discrepancies": []
       }
     },
     {
@@ -6395,14 +6440,14 @@
         "XML"
       ],
       "inventory_entry_sha256": "1ecfcd5ade0024b1d578d145f3962c82a09dd6a3bc72c5e7db3668a642a2aa56",
-      "disposition": "approved_candidate",
+      "disposition": "intentional_exclusion",
       "review_state": "reviewed",
-      "rationale": "Exact-target product help defines an in-place field-level merge: matching POINT elements are selected by name and their ACTUAL element is updated or created. Retain a deny-by-default Wave 3 candidate requiring an absolute external path, a typed group, explicit merge consent, and no automatic replay.",
+      "rationale": "Exact-target product help defines an in-place field-level merge, but no sanctioned exact-target XML schema or disposable fixture is available to prove preservation, collision, failure, or atomicity behavior. Exclude it from the unattended service instead of publishing an unverified file-mutation contract.",
       "reason_codes": [
-        "command_shape_resolved",
         "filesystem_operation",
         "long_running_operation",
         "operation_contract_reviewed",
+        "sanctioned_fixture_unavailable",
         "state_mutation"
       ],
       "evidence_references": [
@@ -6430,67 +6475,30 @@
         "collection_object_name",
         "file_reference"
       ],
-      "delivery_wave": "wave_3",
+      "delivery_wave": null,
       "operation_contract": {
-        "decision": "constrained_candidate",
+        "decision": "intentional_exclusion",
         "validation_status": "not_performed",
         "constraints": [
           "absolute_external_path_required",
           "all_inputs_required",
           "automatic_replay_prohibited",
-          "deny_by_default",
           "embedded_file_rejected",
           "explicit_in_place_merge_consent_required",
-          "promotion_requires_disposable_file_conformance",
+          "sanctioned_exact_target_fixture_required",
           "typed_point_group_required"
         ],
         "evidence_limitations": [
           "existing_name_collision_behavior_not_probe_validated",
           "live_validation_not_performed",
-          "partial_failure_preservation_not_probe_validated"
+          "partial_failure_preservation_not_probe_validated",
+          "sanctioned_exact_target_schema_unavailable"
         ]
       },
       "command_shape": {
-        "status": "resolved",
-        "mp_step": "Merge Measurements into XML File",
-        "arguments": [
-          {
-            "inventory_index": 0,
-            "ordinal": 0,
-            "mp_name": "File Path",
-            "direction": "input",
-            "result_only": "no",
-            "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
-              "default": {
-                "status": "none"
-              }
-            },
-            "sdk_binding": {
-              "setter": "SetFilePathArg",
-              "getter": null
-            }
-          },
-          {
-            "inventory_index": 1,
-            "ordinal": 1,
-            "mp_name": "Group Name",
-            "direction": "input",
-            "result_only": "no",
-            "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
-              "default": {
-                "status": "none"
-              }
-            },
-            "sdk_binding": {
-              "setter": "SetCollectionObjectNameArg2",
-              "getter": null
-            }
-          }
-        ],
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
         "discrepancies": []
       }
     },
@@ -6738,7 +6746,7 @@
       "inventory_entry_sha256": "39935d7d324bb00d83437e108f90b534b101f12f97c9c26139479a7316e8b452",
       "disposition": "approved_candidate",
       "review_state": "reviewed",
-      "rationale": "The reconciled exact-target command page defines false as replace-or-create and true as append-or-create, while prior-release secondary evidence conflicts for false. Retain a deny-by-default Wave 3 candidate whose required public mode grants replacement or append consent explicitly and never promises create-only behavior.",
+      "rationale": "A disposable exact-target matrix proved that both explicit modes create an absent destination, append mode preserves the existing prefix and appends data, and replace mode replaces existing data. A missing-parent case became modal with unknown completion, so retain a deny-by-default Wave 3 candidate that prevalidates an existing writable parent before enqueue and never automatically replays.",
       "reason_codes": [
         "command_shape_resolved",
         "filesystem_operation",
@@ -6777,7 +6785,7 @@
       "delivery_wave": "wave_3",
       "operation_contract": {
         "decision": "constrained_candidate",
-        "validation_status": "not_performed",
+        "validation_status": "performed",
         "constraints": [
           "absolute_external_path_required",
           "all_format_inputs_required",
@@ -6787,16 +6795,15 @@
           "delimiter_limited_to_space_or_comma",
           "deny_by_default",
           "embedded_file_rejected",
+          "existing_writable_parent_required_before_enqueue",
           "nonempty_group_list_required",
           "nonnegative_decimal_precision_required",
-          "promotion_requires_disposable_file_conformance",
           "replace_mode_requires_explicit_consent"
         ],
         "evidence_limitations": [
-          "append_boundary_not_probe_validated",
           "inventory_documentation_title_mismatch_reconciled_by_argument_shape",
-          "live_validation_not_performed",
-          "prior_release_overwrite_behavior_conflicts_with_exact_target_documentation"
+          "missing_parent_completion_unknown_after_watchdog_termination",
+          "single_exact_target_release_only"
         ]
       },
       "command_shape": {
@@ -7139,15 +7146,14 @@
         "FileExport"
       ],
       "inventory_entry_sha256": "96898fe97b65b73433eeb91894ce28c89ec7b9683f008a85f868cdf37940a34f",
-      "disposition": "approved_candidate",
+      "disposition": "intentional_exclusion",
       "review_state": "reviewed",
-      "rationale": "The reconciled exact-target command page defines false as replace-or-create and true as append-or-create, while prior-release secondary evidence conflicts for false. Retain a deny-by-default Wave 3 candidate whose required public mode grants replacement or append consent explicitly and never promises create-only behavior.",
+      "rationale": "A disposable exact-target probe rejected a point-group container at the SDK boundary, confirming that the command requires a typed point-set container. No safe non-device disposable point-set fixture is available to establish successful export semantics, so exclude the command from the unattended service.",
       "reason_codes": [
-        "command_shape_resolved",
         "filesystem_operation",
         "long_running_operation",
         "operation_contract_reviewed",
-        "read_only_operation"
+        "sanctioned_fixture_unavailable"
       ],
       "evidence_references": [
         "sdk:FileOperations_FileExport.txt#2"
@@ -7178,270 +7184,30 @@
         "logical",
         "whole_number"
       ],
-      "delivery_wave": "wave_3",
+      "delivery_wave": null,
       "operation_contract": {
-        "decision": "constrained_candidate",
-        "validation_status": "not_performed",
+        "decision": "intentional_exclusion",
+        "validation_status": "performed",
         "constraints": [
           "absolute_external_path_required",
           "all_format_inputs_required",
-          "append_mode_requires_explicit_consent",
           "automatic_replay_prohibited",
-          "create_new_mode_not_supported",
-          "delimiter_limited_to_space_or_comma",
-          "deny_by_default",
           "embedded_file_rejected",
-          "nonnegative_decimal_precision_required",
-          "promotion_requires_disposable_file_conformance",
-          "replace_mode_requires_explicit_consent",
-          "typed_point_set_container_required"
+          "sanctioned_exact_target_fixture_required",
+          "typed_point_set_container_required",
+          "unattended_service_exclusion"
         ],
         "evidence_limitations": [
-          "append_boundary_not_probe_validated",
+          "compliant_point_set_export_behavior_not_probe_validated",
           "inventory_documentation_title_mismatch_reconciled_by_argument_shape",
-          "live_validation_not_performed",
-          "prior_release_overwrite_behavior_conflicts_with_exact_target_documentation"
+          "sanctioned_nondevice_fixture_unavailable",
+          "wrong_collection_object_type_rejected"
         ]
       },
       "command_shape": {
-        "status": "resolved",
-        "mp_step": "Export ASCII Point Set",
-        "arguments": [
-          {
-            "inventory_index": 0,
-            "ordinal": 0,
-            "mp_name": "ASCII File Path",
-            "direction": "input",
-            "result_only": "no",
-            "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
-              "default": {
-                "status": "none"
-              }
-            },
-            "sdk_binding": {
-              "setter": "SetFilePathArg",
-              "getter": null
-            }
-          },
-          {
-            "inventory_index": 1,
-            "ordinal": 1,
-            "mp_name": "Point Set Container",
-            "direction": "input",
-            "result_only": "no",
-            "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
-              "default": {
-                "status": "none"
-              }
-            },
-            "sdk_binding": {
-              "setter": "SetCollectionObjectNameArg2",
-              "getter": null
-            }
-          },
-          {
-            "inventory_index": 2,
-            "ordinal": 2,
-            "mp_name": "Data Delimiter",
-            "direction": "input",
-            "result_only": "no",
-            "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
-              "default": {
-                "status": "none"
-              }
-            },
-            "sdk_binding": {
-              "setter": "SetExportDataDelimeterTypeArg",
-              "getter": null
-            }
-          },
-          {
-            "inventory_index": 3,
-            "ordinal": 3,
-            "mp_name": "Target Name Format",
-            "direction": "input",
-            "result_only": "no",
-            "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
-              "default": {
-                "status": "none"
-              }
-            },
-            "sdk_binding": {
-              "setter": "SetExportTargetNameFormatArg",
-              "getter": null
-            }
-          },
-          {
-            "inventory_index": 4,
-            "ordinal": 4,
-            "mp_name": "Desired Coordinate System",
-            "direction": "input",
-            "result_only": "no",
-            "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
-              "default": {
-                "status": "none"
-              }
-            },
-            "sdk_binding": {
-              "setter": "SetCoordinateSystemTypeArg",
-              "getter": null
-            }
-          },
-          {
-            "inventory_index": 5,
-            "ordinal": 5,
-            "mp_name": "Include Target Offsets?",
-            "direction": "input",
-            "result_only": "no",
-            "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
-              "default": {
-                "status": "none"
-              }
-            },
-            "sdk_binding": {
-              "setter": "SetBoolArg",
-              "getter": null
-            }
-          },
-          {
-            "inventory_index": 6,
-            "ordinal": 6,
-            "mp_name": "Include Timestamps?",
-            "direction": "input",
-            "result_only": "no",
-            "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
-              "default": {
-                "status": "none"
-              }
-            },
-            "sdk_binding": {
-              "setter": "SetBoolArg",
-              "getter": null
-            }
-          },
-          {
-            "inventory_index": 7,
-            "ordinal": 7,
-            "mp_name": "Include SA version and frame comments?",
-            "direction": "input",
-            "result_only": "no",
-            "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
-              "default": {
-                "status": "none"
-              }
-            },
-            "sdk_binding": {
-              "setter": "SetBoolArg",
-              "getter": null
-            }
-          },
-          {
-            "inventory_index": 8,
-            "ordinal": 8,
-            "mp_name": "Include Axis Comments?",
-            "direction": "input",
-            "result_only": "no",
-            "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
-              "default": {
-                "status": "none"
-              }
-            },
-            "sdk_binding": {
-              "setter": "SetBoolArg",
-              "getter": null
-            }
-          },
-          {
-            "inventory_index": 9,
-            "ordinal": 9,
-            "mp_name": "Include Export Format Info?",
-            "direction": "input",
-            "result_only": "no",
-            "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
-              "default": {
-                "status": "none"
-              }
-            },
-            "sdk_binding": {
-              "setter": "SetBoolArg",
-              "getter": null
-            }
-          },
-          {
-            "inventory_index": 10,
-            "ordinal": 10,
-            "mp_name": "Maximum Precision (Scientific Notation)?",
-            "direction": "input",
-            "result_only": "no",
-            "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
-              "default": {
-                "status": "none"
-              }
-            },
-            "sdk_binding": {
-              "setter": "SetBoolArg",
-              "getter": null
-            }
-          },
-          {
-            "inventory_index": 11,
-            "ordinal": 11,
-            "mp_name": "Decimal Precision",
-            "direction": "input",
-            "result_only": "no",
-            "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
-              "default": {
-                "status": "none"
-              }
-            },
-            "sdk_binding": {
-              "setter": "SetIntegerArg",
-              "getter": null
-            }
-          },
-          {
-            "inventory_index": 12,
-            "ordinal": 12,
-            "mp_name": "Append?",
-            "direction": "input",
-            "result_only": "no",
-            "input": {
-              "presence": "required",
-              "omission_behavior": "reject_request",
-              "default": {
-                "status": "none"
-              }
-            },
-            "sdk_binding": {
-              "setter": "SetBoolArg",
-              "getter": null
-            }
-          }
-        ],
+        "status": "not_applicable",
+        "mp_step": null,
+        "arguments": [],
         "discrepancies": []
       }
     },
@@ -7453,13 +7219,15 @@
         "FileImport"
       ],
       "inventory_entry_sha256": "ca93b5343840abeb037333580629cef362f4065fc31ea1b6934acb24afc0714b",
-      "disposition": "blocked",
+      "disposition": "intentional_exclusion",
       "review_state": "reviewed",
-      "rationale": "The observed SDK step supplies a source path, but committed exact-target evidence does not establish camera naming, duplicate handling, partial import, rollback, or UI behavior. Keep the command blocked; prior-release wrapper prose cannot supply those semantics.",
+      "rationale": "The command imports a vendor camera format into collection state, but no sanctioned exact-target fixture or format guidance is available to prove naming, collision, partial-import, rollback, or UI behavior. Exclude it from the unattended service rather than retaining an unresolvable issue blocker.",
       "reason_codes": [
-        "exact_target_file_behavior_evidence_required",
-        "file_semantics_unresolved",
-        "operation_contract_reviewed"
+        "filesystem_operation",
+        "long_running_operation",
+        "operation_contract_reviewed",
+        "sanctioned_fixture_unavailable",
+        "state_mutation"
       ],
       "evidence_references": [
         "sdk:FileOperations_FileImport.txt#16"
@@ -7469,9 +7237,7 @@
         "https://github.com/spatialanalyzer/briosa/issues/53",
         "https://github.com/spatialanalyzer/briosa/issues/80"
       ],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/80"
-      ],
+      "blocker_references": [],
       "risk_effect": "mutating",
       "risk_flags": [
         "filesystem_read",
@@ -7486,36 +7252,29 @@
       ],
       "delivery_wave": null,
       "operation_contract": {
-        "decision": "blocked_pending_exact_target_evidence",
+        "decision": "intentional_exclusion",
         "validation_status": "not_performed",
         "constraints": [
           "absolute_external_path_required",
           "automatic_replay_prohibited",
-          "embedded_file_rejected"
+          "embedded_file_rejected",
+          "sanctioned_exact_target_fixture_required",
+          "unattended_service_exclusion"
         ],
         "evidence_limitations": [
           "camera_collision_behavior_unresolved",
           "exact_target_command_documentation_unavailable",
           "live_validation_not_performed",
           "partial_import_and_rollback_behavior_unresolved",
+          "sanctioned_fixture_and_format_guidance_unavailable",
           "ui_behavior_unresolved"
         ]
       },
       "command_shape": {
-        "status": "blocked",
+        "status": "not_applicable",
         "mp_step": null,
         "arguments": [],
-        "discrepancies": [
-          {
-            "code": "file_behavior_unresolved",
-            "argument_indexes": [
-              0
-            ],
-            "owner": "briosa",
-            "blocker_reference": "https://github.com/spatialanalyzer/briosa/issues/80",
-            "rationale": "Camera naming, duplicate handling, partial import, rollback, and UI behavior require exact-target evidence."
-          }
-        ]
+        "discrepancies": []
       }
     },
     {
@@ -7526,13 +7285,15 @@
         "FileImport"
       ],
       "inventory_entry_sha256": "e39e6d45a3e43a147452d332723609e80e7fb7d2fd0bbb5127a27e0de699c21a",
-      "disposition": "blocked",
+      "disposition": "intentional_exclusion",
       "review_state": "reviewed",
-      "rationale": "The observed SDK step supplies a cloud name and source path, but committed exact-target evidence does not establish whether the target is required, created, appended, or replaced, nor partial-import and UI behavior. Keep the command blocked.",
+      "rationale": "The command imports a vendor file into cloud state, but no sanctioned exact-target fixture or format guidance is available to prove target-cloud mutation, partial-import, rollback, type, or UI behavior. Exclude it from the unattended service rather than retaining an unresolvable issue blocker.",
       "reason_codes": [
-        "exact_target_file_behavior_evidence_required",
-        "file_semantics_unresolved",
-        "operation_contract_reviewed"
+        "filesystem_operation",
+        "long_running_operation",
+        "operation_contract_reviewed",
+        "sanctioned_fixture_unavailable",
+        "state_mutation"
       ],
       "evidence_references": [
         "sdk:FileOperations_FileImport.txt#19"
@@ -7542,9 +7303,7 @@
         "https://github.com/spatialanalyzer/briosa/issues/53",
         "https://github.com/spatialanalyzer/briosa/issues/80"
       ],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/80"
-      ],
+      "blocker_references": [],
       "risk_effect": "mutating",
       "risk_flags": [
         "filesystem_read",
@@ -7560,38 +7319,30 @@
       ],
       "delivery_wave": null,
       "operation_contract": {
-        "decision": "blocked_pending_exact_target_evidence",
+        "decision": "intentional_exclusion",
         "validation_status": "not_performed",
         "constraints": [
           "absolute_external_path_required",
           "automatic_replay_prohibited",
           "embedded_file_rejected",
-          "typed_cloud_name_required"
+          "sanctioned_exact_target_fixture_required",
+          "typed_cloud_name_required",
+          "unattended_service_exclusion"
         ],
         "evidence_limitations": [
           "exact_target_command_documentation_unavailable",
           "live_validation_not_performed",
           "partial_import_and_rollback_behavior_unresolved",
+          "sanctioned_fixture_and_format_guidance_unavailable",
           "target_cloud_mutation_behavior_unresolved",
           "ui_behavior_unresolved"
         ]
       },
       "command_shape": {
-        "status": "blocked",
+        "status": "not_applicable",
         "mp_step": null,
         "arguments": [],
-        "discrepancies": [
-          {
-            "code": "file_behavior_unresolved",
-            "argument_indexes": [
-              0,
-              1
-            ],
-            "owner": "briosa",
-            "blocker_reference": "https://github.com/spatialanalyzer/briosa/issues/80",
-            "rationale": "Target-cloud creation, append or replacement behavior, partial import, rollback, and UI behavior require exact-target evidence."
-          }
-        ]
+        "discrepancies": []
       }
     },
     {

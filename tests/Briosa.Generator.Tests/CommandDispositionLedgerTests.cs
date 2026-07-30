@@ -50,7 +50,7 @@ public sealed class CommandDispositionLedgerTests
         Assert.Equal(421, summary["corroborated_default_count"]!.GetValue<int>());
         Assert.Equal(314, summary["reviewed_no_default_count"]!.GetValue<int>());
         Assert.Equal(0, summary["needs_review_count"]!.GetValue<int>());
-        Assert.Equal(1308, summary["no_candidate_count"]!.GetValue<int>());
+        Assert.Equal(1296, summary["no_candidate_count"]!.GetValue<int>());
         Assert.Empty(queue["entries"]!.AsArray());
     }
 
@@ -95,7 +95,7 @@ public sealed class CommandDispositionLedgerTests
         Assert.Equal(8, directionDispositions["intentional_exclusion"]);
         Assert.Equal(1, directionDispositions["sdk_unavailable"]);
         Assert.Equal(677, candidates.Length);
-        Assert.Equal(51, blocked.Length);
+        Assert.Equal(45, blocked.Length);
         Assert.Equal(207, entries.Count(entry => entry.Disposition == "sdk_unavailable"));
         Assert.Equal(
             111,
@@ -109,7 +109,7 @@ public sealed class CommandDispositionLedgerTests
             Assert.Empty(entry.CommandShape.Discrepancies);
             Assert.Contains(issue53, entry.DecisionReferences);
         });
-        Assert.Equal(1558, inputs.Count(input => input.Presence == "required"));
+        Assert.Equal(1546, inputs.Count(input => input.Presence == "required"));
         Assert.Equal(485, inputs.Count(input => input.Presence == "optional"));
         Assert.Equal(64, inputs.Count(input => input.OmissionBehavior == "omit_sdk_setter"));
         Assert.Equal(421, inputs.Count(input => input.Default.Status == "reviewed"));
@@ -152,7 +152,7 @@ public sealed class CommandDispositionLedgerTests
             entry => Assert.Contains(issue82, entry.DecisionReferences));
 
         Assert.Equal(45, blocked.Count(entry => entry.BlockerReferences.SequenceEqual([issue79])));
-        Assert.Equal(6, blocked.Count(entry => entry.BlockerReferences.SequenceEqual([issue80])));
+        Assert.Equal(0, blocked.Count(entry => entry.BlockerReferences.SequenceEqual([issue80])));
         Assert.All(blocked, entry =>
         {
             Assert.Equal("blocked", entry.CommandShape!.Status);
@@ -284,7 +284,7 @@ public sealed class CommandDispositionLedgerTests
             entries,
             "FileOperations",
             "Import Nominals from XML File",
-            "blocked");
+            "intentional_exclusion");
         AssertDisposition(
             entries,
             "ConstructionOperations",
@@ -299,7 +299,7 @@ public sealed class CommandDispositionLedgerTests
             entries,
             "ProcessFlowOperations",
             "Output SA Report to PDF",
-            "blocked");
+            "approved_candidate");
 
         var reportPath = Path.Combine(
             FindRepositoryRoot().FullName,
@@ -489,8 +489,8 @@ public sealed class CommandDispositionLedgerTests
 
         Assert.Equal(371, reviewed.Length);
         Assert.Equal(218, reviewed.Count(entry => entry.Disposition == "approved_candidate"));
-        Assert.Equal(7, reviewed.Count(entry => entry.Disposition == "blocked"));
-        Assert.Equal(77, reviewed.Count(entry => entry.Disposition == "intentional_exclusion"));
+        Assert.Equal(1, reviewed.Count(entry => entry.Disposition == "blocked"));
+        Assert.Equal(83, reviewed.Count(entry => entry.Disposition == "intentional_exclusion"));
         Assert.Equal(69, reviewed.Count(entry => entry.Disposition == "sdk_unavailable"));
         Assert.Equal(35, reviewed.Count(entry => entry.DeliveryWave == "wave_1"));
         Assert.Equal(97, reviewed.Count(entry => entry.DeliveryWave == "wave_2"));
@@ -508,11 +508,9 @@ public sealed class CommandDispositionLedgerTests
         });
         Assert.All(
             reviewed.Where(entry => entry.Disposition == "blocked"),
-            entry => Assert.True(
-                entry.BlockerReferences.SequenceEqual(
-                    ["https://github.com/spatialanalyzer/briosa/issues/79"]) ||
-                entry.BlockerReferences.SequenceEqual(
-                    ["https://github.com/spatialanalyzer/briosa/issues/80"])));
+            entry => Assert.Equal(
+                ["https://github.com/spatialanalyzer/briosa/issues/79"],
+                entry.BlockerReferences));
         Assert.All(
             reviewed.Where(entry =>
                 entry.Disposition == "approved_candidate" &&
@@ -523,17 +521,17 @@ public sealed class CommandDispositionLedgerTests
             entry => entry.RiskFlags.Contains("external_process", StringComparer.Ordinal) ||
                 entry.RiskFlags.Contains("network_access", StringComparer.Ordinal));
         Assert.Equal(
-            6,
+            0,
             reviewed.Count(entry =>
                 entry.Disposition == "blocked" &&
                 entry.ReasonCodes.Contains("file_semantics_unresolved", StringComparer.Ordinal)));
 
         AssertDisposition(entries, "FileOperations", "Get Working Directory", "approved_candidate");
         AssertDisposition(entries, "FileOperations", "Export IGES File - Entire Model", "approved_candidate");
-        AssertDisposition(entries, "FileOperations", "Save As", "blocked");
+        AssertDisposition(entries, "FileOperations", "Save As", "approved_candidate");
         AssertDisposition(entries, "FileOperations", "Run Powershell Script", "intentional_exclusion");
-        AssertDisposition(entries, "EventOperations", "Export Event Ref List", "approved_candidate");
-        AssertDisposition(entries, "ProcessFlowOperations", "Output SA Report to PDF", "blocked");
+        AssertDisposition(entries, "EventOperations", "Export Event Ref List", "intentional_exclusion");
+        AssertDisposition(entries, "ProcessFlowOperations", "Output SA Report to PDF", "approved_candidate");
         AssertDisposition(
             entries,
             "RelationshipOperations",
@@ -588,7 +586,7 @@ public sealed class CommandDispositionLedgerTests
     }
 
     [Fact]
-    public void Issue80RecordsFailClosedFileOperationContractsWithoutClaimingLiveValidation()
+    public void Issue80RecordsFinalFileOperationContractsFromExactTargetEvidence()
     {
         const string issue80 = "https://github.com/spatialanalyzer/briosa/issues/80";
         var entries = ReadCommittedEntries();
@@ -598,17 +596,28 @@ public sealed class CommandDispositionLedgerTests
 
         Assert.Equal(11, reviewed.Length);
         Assert.Equal(4, reviewed.Count(entry => entry.Disposition == "approved_candidate"));
-        Assert.Equal(6, reviewed.Count(entry => entry.Disposition == "blocked"));
-        Assert.Single(reviewed, entry => entry.Disposition == "intentional_exclusion");
+        Assert.Equal(7, reviewed.Count(entry => entry.Disposition == "intentional_exclusion"));
+        Assert.DoesNotContain(reviewed, entry => entry.Disposition == "blocked");
         Assert.All(reviewed, entry =>
         {
             Assert.NotNull(entry.OperationContract);
-            Assert.Equal("not_performed", entry.OperationContract.ValidationStatus);
-            Assert.Contains(
-                "live_validation_not_performed",
-                entry.OperationContract.EvidenceLimitations,
-                StringComparer.Ordinal);
             Assert.NotEmpty(entry.OperationContract.Constraints);
+            Assert.Empty(entry.BlockerReferences);
+            if (entry.OperationContract.ValidationStatus == "performed")
+            {
+                Assert.DoesNotContain(
+                    "live_validation_not_performed",
+                    entry.OperationContract.EvidenceLimitations,
+                    StringComparer.Ordinal);
+            }
+            else
+            {
+                Assert.Equal("not_performed", entry.OperationContract.ValidationStatus);
+                Assert.Contains(
+                    "live_validation_not_performed",
+                    entry.OperationContract.EvidenceLimitations,
+                    StringComparer.Ordinal);
+            }
         });
 
         var approvedKeys = reviewed
@@ -618,10 +627,10 @@ public sealed class CommandDispositionLedgerTests
             .ToArray();
         Assert.Equal(
             [
-                "documentation:FileOperations/XML/MergeMeasurementsintoXML.htm",
-                "sdk:EventOperations.txt#4",
-                "sdk:FileOperations_FileExport.txt#1",
-                "sdk:FileOperations_FileExport.txt#2"
+                "documentation:FileOperations/SaveAs.htm",
+                "documentation:FileOperations/SaveAsReadOnlyTemplate.htm",
+                "documentation:ProcessFlowOperations/OutputSAReportToPDF.htm",
+                "sdk:FileOperations_FileExport.txt#1"
             ],
             approvedKeys);
         Assert.All(
@@ -630,8 +639,10 @@ public sealed class CommandDispositionLedgerTests
             {
                 Assert.Equal("wave_3", entry.DeliveryWave);
                 Assert.Equal("constrained_candidate", entry.OperationContract!.Decision);
+                Assert.Equal("performed", entry.OperationContract.ValidationStatus);
+                Assert.Equal("resolved", entry.CommandShape!.Status);
                 Assert.All(
-                    entry.CommandShape!.Arguments.Where(argument => argument.Input is not null),
+                    entry.CommandShape.Arguments.Where(argument => argument.Input is not null),
                     argument =>
                     {
                         Assert.Equal("required", argument.Input!.Presence);
@@ -640,31 +651,72 @@ public sealed class CommandDispositionLedgerTests
                     });
             });
 
-        var excluded = Assert.Single(
+        var performedKeys = reviewed
+            .Where(entry => entry.OperationContract!.ValidationStatus == "performed")
+            .Select(entry => entry.InventoryKey)
+            .OrderBy(key => key, StringComparer.Ordinal)
+            .ToArray();
+        Assert.Equal(
+            [
+                "documentation:FileOperations/SaveAs.htm",
+                "documentation:FileOperations/SaveAsReadOnlyTemplate.htm",
+                "documentation:ProcessFlowOperations/OutputSAReportToPDF.htm",
+                "sdk:EventOperations.txt#4",
+                "sdk:FileOperations_FileExport.txt#1",
+                "sdk:FileOperations_FileExport.txt#2"
+            ],
+            performedKeys);
+
+        var save = Assert.Single(
             reviewed,
             entry => entry.InventoryKey == "documentation:FileOperations/Save.htm");
-        Assert.Equal("intentional_exclusion", excluded.Disposition);
-        Assert.Contains("interactive_ui", excluded.RiskFlags, StringComparer.Ordinal);
-        Assert.Equal("intentional_exclusion", excluded.OperationContract!.Decision);
+        Assert.Equal("intentional_exclusion", save.Disposition);
+        Assert.Contains("interactive_ui", save.RiskFlags, StringComparer.Ordinal);
+        Assert.Equal("intentional_exclusion", save.OperationContract!.Decision);
+
+        var pointSet = Assert.Single(
+            reviewed,
+            entry => entry.InventoryKey == "sdk:FileOperations_FileExport.txt#2");
+        Assert.Equal("intentional_exclusion", pointSet.Disposition);
+        Assert.Contains(
+            "typed_point_set_container_required",
+            pointSet.OperationContract!.Constraints,
+            StringComparer.Ordinal);
+        Assert.Contains(
+            "wrong_collection_object_type_rejected",
+            pointSet.OperationContract.EvidenceLimitations,
+            StringComparer.Ordinal);
+
+        var eventExport = Assert.Single(
+            reviewed,
+            entry => entry.InventoryKey == "sdk:EventOperations.txt#4");
+        Assert.Equal("intentional_exclusion", eventExport.Disposition);
+        Assert.Contains(
+            "wildcard_event_discovery_completion_unknown_after_watchdog_termination",
+            eventExport.OperationContract!.EvidenceLimitations,
+            StringComparer.Ordinal);
 
         var pdf = Assert.Single(
             reviewed,
             entry => entry.InventoryKey ==
                 "documentation:ProcessFlowOperations/OutputSAReportToPDF.htm");
-        Assert.Equal("blocked", pdf.Disposition);
+        Assert.Equal("approved_candidate", pdf.Disposition);
         Assert.Contains("viewer_launch_prohibited", pdf.OperationContract!.Constraints);
         Assert.Equal("collection_item_name", pdf.ValueFamilies[0]);
 
-        var eventExport = Assert.Single(
+        var asciiPoints = Assert.Single(
             reviewed,
-            entry => entry.InventoryKey == "sdk:EventOperations.txt#4");
-        Assert.Equal("collection_item_name_list", eventExport.ValueFamilies[0]);
-        Assert.Contains("append_mode_not_supported", eventExport.OperationContract!.Constraints);
-        Assert.Contains("create_new_mode_not_supported", Assert.Single(
-            reviewed,
-            entry => entry.InventoryKey == "sdk:FileOperations_FileExport.txt#1")
-            .OperationContract!.Constraints);
+            entry => entry.InventoryKey == "sdk:FileOperations_FileExport.txt#1");
+        Assert.Contains(
+            "existing_writable_parent_required_before_enqueue",
+            asciiPoints.OperationContract!.Constraints,
+            StringComparer.Ordinal);
+        Assert.Contains(
+            "missing_parent_completion_unknown_after_watchdog_termination",
+            asciiPoints.OperationContract.EvidenceLimitations,
+            StringComparer.Ordinal);
     }
+
 
     [Fact]
     public void SyncInitializesEveryCommandAsBlockedAndUnreviewed()

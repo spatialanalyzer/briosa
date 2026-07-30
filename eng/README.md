@@ -147,7 +147,7 @@ dotnet run --project tools/Briosa.Generator -c Release -- disposition-sync <inve
 
 See [the command disposition review guide](../docs/development/command-dispositions.md) before editing category decisions.
 
-Optional disposition `operation_contract` metadata is also semantic input. Its decision must match the disposition; constraint and evidence-limitation codes must be sorted; and validation status must truthfully distinguish documentation review from an authorized live probe. The generated catalog scaffolds preserve candidate contracts. Issue #80's current entries all remain `not_performed`; see [the file-operation contract review](../docs/development/file-operation-contracts.md).
+Optional disposition `operation_contract` metadata is also semantic input. Its decision must match the disposition; constraint and evidence-limitation codes must be sorted; and validation status must truthfully distinguish documentation review from an authorized live probe. The generated catalog scaffolds preserve candidate contracts. Issue #80's final ledger records `performed` only for the six commands exercised by controlled exact-target probes and retains `not_performed` for the five exclusions that did not need or lacked a sanctioned fixture; see [the file-operation contract review](../docs/development/file-operation-contracts.md).
 
 ## SDK binding registry verification
 

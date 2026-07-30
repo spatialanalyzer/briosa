@@ -860,13 +860,15 @@
         "ProcessFlowOperations"
       ],
       "inventory_entry_sha256": "4f362c987acfaf3680ba055b3d6f89d818ba1d05e74cf1d431743b3fb3c1eb01",
-      "disposition": "blocked",
+      "disposition": "approved_candidate",
       "review_state": "reviewed",
-      "rationale": "The exact command supports an output path and a viewer-launch switch, but existing-file and modal-prompt behavior are not established. Keep the operation blocked, require the viewer switch to remain false, and do not infer overwrite or UI consent.",
+      "rationale": "A disposable exact-target probe with a freshly created empty report and viewer launch disabled created a new nonempty PDF and silently replaced an existing destination. Retain a deny-by-default Wave 3 candidate requiring an absolute path, explicit replacement consent, Show PDF false, and no automatic replay.",
       "reason_codes": [
-        "exact_target_file_behavior_evidence_required",
-        "file_semantics_unresolved",
-        "operation_contract_reviewed"
+        "command_shape_resolved",
+        "filesystem_operation",
+        "long_running_operation",
+        "operation_contract_reviewed",
+        "read_only_operation"
       ],
       "evidence_references": [
         "documentation:ProcessFlowOperations/OutputSAReportToPDF.htm",
@@ -877,9 +879,7 @@
         "https://github.com/spatialanalyzer/briosa/issues/53",
         "https://github.com/spatialanalyzer/briosa/issues/80"
       ],
-      "blocker_references": [
-        "https://github.com/spatialanalyzer/briosa/issues/80"
-      ],
+      "blocker_references": [],
       "risk_effect": "read_only",
       "risk_flags": [
         "filesystem_write",
@@ -897,41 +897,86 @@
         "file_reference",
         "logical"
       ],
-      "delivery_wave": null,
+      "delivery_wave": "wave_3",
       "operation_contract": {
-        "decision": "blocked_pending_exact_target_evidence",
-        "validation_status": "not_performed",
+        "decision": "constrained_candidate",
+        "validation_status": "performed",
         "constraints": [
           "absolute_external_path_required",
           "all_inputs_required",
           "automatic_replay_prohibited",
+          "deny_by_default",
           "embedded_file_rejected",
+          "replace_mode_requires_explicit_consent",
           "show_pdf_forced_false",
           "viewer_launch_prohibited"
         ],
         "evidence_limitations": [
-          "existing_destination_behavior_unresolved",
-          "live_validation_not_performed",
-          "modal_prompt_behavior_unresolved"
+          "atomic_replacement_not_probe_validated",
+          "fresh_disposable_empty_report_only",
+          "single_exact_target_release_only"
         ]
       },
       "command_shape": {
-        "status": "blocked",
-        "mp_step": null,
-        "arguments": [],
-        "discrepancies": [
+        "status": "resolved",
+        "mp_step": "Output SA Report to PDF",
+        "arguments": [
           {
-            "code": "file_behavior_unresolved",
-            "argument_indexes": [
-              0,
-              1,
-              2
-            ],
-            "owner": "briosa",
-            "blocker_reference": "https://github.com/spatialanalyzer/briosa/issues/80",
-            "rationale": "Existing-destination and modal-prompt behavior require exact-target evidence; viewer launch is prohibited regardless of that result."
+            "inventory_index": 0,
+            "ordinal": 0,
+            "mp_name": "Report Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetCollectionObjectNameArg2",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 1,
+            "ordinal": 1,
+            "mp_name": "File Name",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetFilePathArg",
+              "getter": null
+            }
+          },
+          {
+            "inventory_index": 2,
+            "ordinal": 2,
+            "mp_name": "Show PDF?",
+            "direction": "input",
+            "result_only": "no",
+            "input": {
+              "presence": "required",
+              "omission_behavior": "reject_request",
+              "default": {
+                "status": "none"
+              }
+            },
+            "sdk_binding": {
+              "setter": "SetBoolArg",
+              "getter": null
+            }
           }
-        ]
+        ],
+        "discrepancies": []
       }
     },
     {

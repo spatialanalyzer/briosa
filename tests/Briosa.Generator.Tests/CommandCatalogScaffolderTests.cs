@@ -98,21 +98,27 @@ public sealed class CommandCatalogScaffolderTests
             "exact_command_assignment",
             Assert.Single(itemArgument.FamilyAssignments).Source);
 
-        var eventExport = ReadScaffold(fixture.FirstOutput, "sdk:EventOperations.txt#4");
-        Assert.NotNull(eventExport.ReviewedDisposition.OperationContract);
+        var saveAs = ReadScaffold(
+            fixture.FirstOutput,
+            "documentation:FileOperations/SaveAs.htm");
+        Assert.NotNull(saveAs.ReviewedDisposition.OperationContract);
         Assert.Equal(
             "constrained_candidate",
-            eventExport.ReviewedDisposition.OperationContract.Decision);
+            saveAs.ReviewedDisposition.OperationContract.Decision);
         Assert.Equal(
-            "not_performed",
-            eventExport.ReviewedDisposition.OperationContract.ValidationStatus);
-        Assert.Contains(
+            "performed",
+            saveAs.ReviewedDisposition.OperationContract.ValidationStatus);
+        Assert.DoesNotContain(
             "live_validation_not_performed",
-            eventExport.ReviewedDisposition.OperationContract.EvidenceLimitations,
+            saveAs.ReviewedDisposition.OperationContract.EvidenceLimitations,
             StringComparer.Ordinal);
         Assert.Contains(
+            "replace_mode_requires_explicit_consent",
+            saveAs.ReviewedDisposition.OperationContract.Constraints,
+            StringComparer.Ordinal);
+        Assert.DoesNotContain(
             "/reviewed_disposition/operation_contract/validation_status",
-            eventExport.Blockers,
+            saveAs.Blockers,
             StringComparer.Ordinal);
     }
 

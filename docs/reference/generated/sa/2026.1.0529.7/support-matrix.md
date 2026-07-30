@@ -13,8 +13,8 @@ Cataloged operations require a separately installed and licensed exact-target Sp
 | Inventory commands | 1412 |
 | Cataloged, portable-only operations | 9 |
 | Approved candidates not cataloged | 668 |
-| Blocked | 51 |
-| Intentional exclusions | 477 |
+| Blocked | 45 |
+| Intentional exclusions | 483 |
 | SDK unavailable | 207 |
 
 ## Exact command matrix
@@ -637,8 +637,8 @@ Cataloged operations require a separately installed and licensed exact-target Sp
 | `documentation:FileOperations/RunAnotherProgram.htm` | Run Another Program | FileOperations | `intentional_exclusion` | — | `mutating` (external_process, long_running) | `not_applicable` | `not_applicable` |
 | `documentation:FileOperations/RunPowershellScript.htm` | Run Powershell Script | FileOperations | `intentional_exclusion` | — | `mutating` (external_process, filesystem_read, long_running) | `not_applicable` | `not_applicable` |
 | `documentation:FileOperations/Save.htm` | Save | FileOperations | `intentional_exclusion` | — | `mutating` (filesystem_write, interactive_ui) | `not_applicable` | `not_applicable` |
-| `documentation:FileOperations/SaveAs.htm` | Save As | FileOperations | `blocked` | — | `mutating` (filesystem_write, long_running) | `not_applicable` | `not_applicable` |
-| `documentation:FileOperations/SaveAsReadOnlyTemplate.htm` | Save As Read-Only Template | FileOperations | `blocked` | — | `mutating` (filesystem_write, long_running) | `not_applicable` | `not_applicable` |
+| `documentation:FileOperations/SaveAs.htm` | Save As | FileOperations | `approved_not_cataloged` | — | `mutating` (filesystem_write, long_running) | `not_applicable` | `not_applicable` |
+| `documentation:FileOperations/SaveAsReadOnlyTemplate.htm` | Save As Read-Only Template | FileOperations | `approved_not_cataloged` | — | `mutating` (filesystem_write, long_running) | `not_applicable` | `not_applicable` |
 | `documentation:FileOperations/SetBackupDirectory.htm` | Set Backup Directory | FileOperations | `sdk_unavailable` | — | `mutating` (filesystem_metadata) | `not_applicable` | `not_applicable` |
 | `documentation:FileOperations/SetDataRootDirectory.htm` | Set Data Root Directory | FileOperations | `sdk_unavailable` | — | `mutating` (filesystem_metadata) | `not_applicable` | `not_applicable` |
 | `documentation:FileOperations/SetReportsDirectory.htm` | Set Reports Directory | FileOperations | `sdk_unavailable` | — | `mutating` (filesystem_metadata) | `not_applicable` | `not_applicable` |
@@ -651,8 +651,8 @@ Cataloged operations require a separately installed and licensed exact-target Sp
 | `documentation:FileOperations/XML/CloseXMLFile.htm` | Close XML File | FileOperations / XML | `intentional_exclusion` | — | `unknown` (unknown) | `not_applicable` | `not_applicable` |
 | `documentation:FileOperations/XML/GetXMLAttribute.htm` | Get XML Attribute | FileOperations / XML | `intentional_exclusion` | — | `unknown` (unknown) | `not_applicable` | `not_applicable` |
 | `documentation:FileOperations/XML/GetXMLElementTextContent.htm` | Get XML Element Text Content | FileOperations / XML | `intentional_exclusion` | — | `unknown` (unknown) | `not_applicable` | `not_applicable` |
-| `documentation:FileOperations/XML/ImportNominalsFromXMLFile.htm` | Import Nominals from XML File | FileOperations / XML | `blocked` | — | `mutating` (filesystem_read, long_running) | `not_applicable` | `not_applicable` |
-| `documentation:FileOperations/XML/MergeMeasurementsintoXML.htm` | Merge Measurements into XML File | FileOperations / XML | `approved_not_cataloged` | — | `mutating` (filesystem_write, long_running) | `not_applicable` | `not_applicable` |
+| `documentation:FileOperations/XML/ImportNominalsFromXMLFile.htm` | Import Nominals from XML File | FileOperations / XML | `intentional_exclusion` | — | `mutating` (filesystem_read, long_running) | `not_applicable` | `not_applicable` |
+| `documentation:FileOperations/XML/MergeMeasurementsintoXML.htm` | Merge Measurements into XML File | FileOperations / XML | `intentional_exclusion` | — | `mutating` (filesystem_write, long_running) | `not_applicable` | `not_applicable` |
 | `documentation:FileOperations/XML/OpenXMLFile.htm` | Open XML File | FileOperations / XML | `intentional_exclusion` | — | `unknown` (unknown) | `not_applicable` | `not_applicable` |
 | `documentation:FileOperations/XML/RemoveXMLAttribute.htm` | Remove XML Attribute | FileOperations / XML | `intentional_exclusion` | — | `unknown` (unknown) | `not_applicable` | `not_applicable` |
 | `documentation:FileOperations/XML/RemoveXMLElement.htm` | Remove XML Element | FileOperations / XML | `intentional_exclusion` | — | `unknown` (unknown) | `not_applicable` | `not_applicable` |
@@ -928,7 +928,7 @@ Cataloged operations require a separately installed and licensed exact-target Sp
 | `documentation:ProcessFlowOperations/ObjectExistenceTest.htm` | Object Existence Test | ProcessFlowOperations | `sdk_unavailable` | — | `read_only` | `not_applicable` | `not_applicable` |
 | `documentation:ProcessFlowOperations/ObjectExistenceTestCheckOnly.htm` | Object Existence Test (Check Only) | ProcessFlowOperations | `approved_not_cataloged` | — | `read_only` | `not_applicable` | `not_applicable` |
 | `documentation:ProcessFlowOperations/OutputSAReportToExcel.htm` | Output SA Report to Excel | ProcessFlowOperations | `intentional_exclusion` | — | `unknown` (unknown) | `not_applicable` | `not_applicable` |
-| `documentation:ProcessFlowOperations/OutputSAReportToPDF.htm` | Output SA Report to PDF | ProcessFlowOperations | `blocked` | — | `read_only` (filesystem_write, interactive_ui, long_running) | `not_applicable` | `not_applicable` |
+| `documentation:ProcessFlowOperations/OutputSAReportToPDF.htm` | Output SA Report to PDF | ProcessFlowOperations | `approved_not_cataloged` | — | `read_only` (filesystem_write, interactive_ui, long_running) | `not_applicable` | `not_applicable` |
 | `documentation:ProcessFlowOperations/ResetCounter.htm` | Reset Counter | ProcessFlowOperations | `intentional_exclusion` | — | `unknown` (unknown) | `not_applicable` | `not_applicable` |
 | `documentation:ProcessFlowOperations/StepStatusTest.htm` | Step Status Test | ProcessFlowOperations | `intentional_exclusion` | — | `unknown` (unknown) | `not_applicable` | `not_applicable` |
 | `documentation:ProcessFlowOperations/WaitforStepstoComplete.htm` | Wait for Steps to Complete | ProcessFlowOperations | `intentional_exclusion` | — | `unknown` (unknown) | `not_applicable` | `not_applicable` |
@@ -1351,13 +1351,13 @@ Cataloged operations require a separately installed and licensed exact-target Sp
 | `sdk:ConstructionOperations_PointClouds.txt#5` | Construct Point Cloud from Visible Cloud Points | ConstructionOperations / PointClouds | `blocked` | — | `mutating` (long_running) | `not_applicable` | `not_applicable` |
 | `sdk:ConstructionOperations_PointsAndGroups.txt#26` | Construct Points By Projecting Points On Mesh Along Direction | ConstructionOperations / PointsAndGroups | `blocked` | — | `mutating` | `not_applicable` | `not_applicable` |
 | `sdk:DimensionOperations.txt#12` | Set Dimension Tolerance | DimensionOperations | `blocked` | — | `mutating` | `not_applicable` | `not_applicable` |
-| `sdk:EventOperations.txt#4` | Export Event Ref List | EventOperations | `approved_not_cataloged` | — | `read_only` (filesystem_write, long_running) | `not_applicable` | `not_applicable` |
+| `sdk:EventOperations.txt#4` | Export Event Ref List | EventOperations | `intentional_exclusion` | — | `read_only` (filesystem_write, long_running) | `not_applicable` | `not_applicable` |
 | `sdk:FileOperations.txt#19` | Terminate All Running MPs | FileOperations | `intentional_exclusion` | — | `mutating` | `not_applicable` | `not_applicable` |
 | `sdk:FileOperations.txt#34` | Pop PolyBay Analysis Window | FileOperations | `intentional_exclusion` | — | `mutating` (interactive_ui) | `not_applicable` | `not_applicable` |
 | `sdk:FileOperations_FileExport.txt#1` | Export ASCII Points | FileOperations / FileExport | `approved_not_cataloged` | — | `read_only` (filesystem_write, long_running) | `not_applicable` | `not_applicable` |
-| `sdk:FileOperations_FileExport.txt#2` | Export ASCII Point Set | FileOperations / FileExport | `approved_not_cataloged` | — | `read_only` (filesystem_write, long_running) | `not_applicable` | `not_applicable` |
-| `sdk:FileOperations_FileImport.txt#16` | Import VSTARS Cameras | FileOperations / FileImport | `blocked` | — | `mutating` (filesystem_read, long_running) | `not_applicable` | `not_applicable` |
-| `sdk:FileOperations_FileImport.txt#19` | Import Polyworks File | FileOperations / FileImport | `blocked` | — | `mutating` (filesystem_read, long_running) | `not_applicable` | `not_applicable` |
+| `sdk:FileOperations_FileExport.txt#2` | Export ASCII Point Set | FileOperations / FileExport | `intentional_exclusion` | — | `read_only` (filesystem_write, long_running) | `not_applicable` | `not_applicable` |
+| `sdk:FileOperations_FileImport.txt#16` | Import VSTARS Cameras | FileOperations / FileImport | `intentional_exclusion` | — | `mutating` (filesystem_read, long_running) | `not_applicable` | `not_applicable` |
+| `sdk:FileOperations_FileImport.txt#19` | Import Polyworks File | FileOperations / FileImport | `intentional_exclusion` | — | `mutating` (filesystem_read, long_running) | `not_applicable` | `not_applicable` |
 | `sdk:FileOperations_XML.txt#1` | Use NRKXML Library | FileOperations / XML | `intentional_exclusion` | — | `unknown` (unknown) | `not_applicable` | `not_applicable` |
 | `sdk:GDTOperations_GDTAnalysis.txt#17` | Set Global Force Simultaneous Evaluation | GDTOperations / GDTAnalysis | `blocked` | — | `mutating` | `not_applicable` | `not_applicable` |
 | `sdk:GDTOperations_GDTAnalysis.txt#20` | Generate Feature Check Summary | GDTOperations / GDTAnalysis | `blocked` | — | `mutating` | `not_applicable` | `not_applicable` |

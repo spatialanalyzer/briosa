@@ -55,7 +55,7 @@ If an argument has no observed usable setter or getter, the command is `sdk_unav
 The reconciliation leaves two focused dependency groups:
 
 - issue #79 owns commands whose documentation/SDK evidence is incomplete or whose generated exact binding is absent from the committed interop API;
-- issue #80 reviewed 11 save, import/export, merge, and PDF operations. One is intentionally excluded and four now have constrained Wave 3 candidate contracts; six remain blocked on exact-target collision, overwrite, partial-failure, or interactive behavior. The machine-readable constraints and evidence limitations are documented in [File-operation contracts](file-operation-contracts.md).
+- issue #80 finalized 11 save, import/export, merge, and PDF operations after controlled exact-target validation. Four have performed, constrained Wave 3 candidate contracts and seven are intentional exclusions; none retains an issue #80 blocker. The machine-readable constraints and evidence boundaries are documented in [File-operation contracts](file-operation-contracts.md).
 
 The generated disposition report names every blocked command and discrepancy. Changing the inventory fingerprint moves the command back to re-review and discards its resolved shape.
 
