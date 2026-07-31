@@ -45,6 +45,25 @@ for ($index = 0; $index -lt $expectedPrefix.Count; $index++) {
     }
 }
 
+$workflowText = Get-Content -LiteralPath $resolvedWorkflowPath -Raw
+$requiredFragments = @(
+    "  required-build-and-test:",
+    "    name: Windows x64 build and test",
+    '    if: ${{ always() }}',
+    "          REPOSITORY_POLICY_RESULT: `${{ needs.repository-policy.result }}",
+    "          BUILD_AND_TEST_RESULT: `${{ needs.build-and-test.result }}",
+    "  required-package-smoke:",
+    "    name: Windows package reproducibility and smoke test",
+    "          PACKAGE_SMOKE_RESULT: `${{ needs.package-smoke.result }}"
+)
+
+foreach ($fragment in $requiredFragments) {
+    if (-not $workflowText.Contains($fragment, [StringComparison]::Ordinal)) {
+        throw "Ordinary CI workflow is missing required-check gate fragment '$fragment'."
+    }
+}
+
 Write-Host (
     "Ordinary CI workflow runs pull-request validation once, limits push validation to main, " +
-    "cancels superseded runs, and retains read-only contents permission.")
+    "cancels superseded runs, retains read-only contents permission, and preserves stable " +
+    "aggregate required-check names over the exact-target job matrices.")
