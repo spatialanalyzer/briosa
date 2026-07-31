@@ -66,23 +66,6 @@ if ($evidence.schema_version -ne 1 -or
     throw "The runtime performance evidence has an invalid or incomplete state contract."
 }
 
-& (Join-Path $PSScriptRoot "Measure-CiBudget.ps1") `
-    -Metric dispatch-p95 `
-    -ObservedValue ([double]$evidence.dispatch_p95_milliseconds) `
-    -OutputDirectory $outputRoot
-& (Join-Path $PSScriptRoot "Measure-CiBudget.ps1") `
-    -Metric retained-managed-memory `
-    -ObservedValue ([double]$evidence.retained_managed_memory_bytes) `
-    -OutputDirectory $outputRoot
-& (Join-Path $PSScriptRoot "Measure-CiBudget.ps1") `
-    -Metric request-mapping-p95 `
-    -ObservedValue ([double]$evidence.request_mapping_p95_milliseconds) `
-    -OutputDirectory $outputRoot
-& (Join-Path $PSScriptRoot "Measure-CiBudget.ps1") `
-    -Metric discovery-p95 `
-    -ObservedValue ([double]$evidence.discovery_p95_milliseconds) `
-    -OutputDirectory $outputRoot
-
 Write-Host ((
     "Vendor-independent runtime evidence passed for {0} measured requests after {1} warmups. " +
     "No SpatialAnalyzer process or SDK was used.") -f

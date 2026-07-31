@@ -1,10 +1,11 @@
 # Command policy and auditing
 
-Briosa has two command-exposure boundaries. The exact-target generated catalog defines every operation the binary can express. Runtime policy can only reduce that set. Release membership is delivery metadata between those boundaries; it does not authorize a call.
+Briosa has two command-exposure boundaries:
 
-## Configure allowed operations
+1. the handwritten operations compiled and registered in `SpatialAnalyzerApi.Operations`; and
+2. runtime exact-ID allow and deny policy, which can only reduce that set.
 
-The packaged configuration enables only the reviewed vertical-slice operation. The initial v0.2 Wave 1 and Wave 2 members remain denied until an operator explicitly adds their exact IDs:
+The packaged configuration enables only:
 
 ```json
 {
@@ -21,49 +22,30 @@ The packaged configuration enables only the reviewed vertical-slice operation. T
 }
 ```
 
-Use indexed environment variables when deployment tooling cannot edit JSON:
+The denylist overrides the allowlist. Omitting the allowlist denies every operation. Unknown, empty, duplicate, or non-array values fail startup instead of being ignored. Restart the server after changing policy; policy is not reloaded in place.
 
-```powershell
-$env:Briosa__Security__Operations__Allow__0 = 'file_operations.get_working_directory'
-$env:Briosa__Security__Operations__Deny__0 = 'file_operations.get_working_directory'
-./Briosa.Server.exe
-```
+An allowlist cannot create an operation that is absent from handwritten source. `DiscoveryService/ListCapabilities` reports the intersection of implemented operations and runtime policy after isolation checks. It is the correct way for a client to learn what the current process admits.
 
-The denylist overrides the allowlist. Omitting the allowlist denies every operation. Unknown, empty, duplicate, or non-array values fail startup instead of being ignored. Restart the server after changing policy; policy is not reloaded in place. An allowlist cannot enable an operation with unknown isolation metadata or an `exclusive_workflow` scope while the target is `single_tenant`.
+## Audit events
 
-Adding an operation to a catalog release membership does not modify `appsettings.json`, widen an existing allowlist, or make discovery advertise it. Treat membership as a release-completeness assertion only.
+For each admitted or rejected request, Briosa records structural metadata:
 
-The initial Wave 2 point-lifecycle operations are application-global mutations with unknown replay safety. Allowing them does not authorize automatic retry. If a call is admitted and its response is lost through cancellation, deadline, worker crash, or watchdog termination, reconcile the named model state before deciding whether another mutation is safe.
+- correlation ID;
+- exact operation ID and gRPC method;
+- actor category;
+- execution scope;
+- worker generation;
+- request and SDK duration where available;
+- execution disposition;
+- MP and output-retrieval outcome;
+- numeric MP result code when retrieved;
+- gRPC status; and
+- curated diagnostic code.
 
-`DiscoveryService/ListCapabilities` reports the intersection of the generated catalog and the runtime allowlist after deny rules. It is the correct way for a client to learn what this server instance currently exposes.
+Audit APIs do not accept raw request arguments or returned values. Paths, geometry, identifiers, notes, credentials, hostnames, proprietary data, and raw exception text are excluded even when verbose logging is enabled.
 
-## Interpret audit events
+Correlation does not imply safe replay. A cancelled, timed-out, crashed, or lost request may have started and completed in SpatialAnalyzer. Follow the typed execution disposition, replay guidance, and operation-specific evidence.
 
-The operation event sequence is normally:
+## Adding an operation
 
-1. `2001` request received, including reviewed execution scope;
-2. `2002` policy allowed or `2003` policy rejected; and
-3. `2004` operation completed or `2005` operation failed.
-
-All request events carry the same correlation ID. Worker lifecycle event `1201` identifies generation changes and value-free connection state. Event `2000` records the target-isolation mode, allow/deny counts, and a SHA-256 fingerprint of the effective policy without listing operation IDs.
-
-The actor category is `local-unauthenticated` for the supported loopback deployment. It is not a user or service identity. A non-loopback peer is recorded only as `unverified-unauthenticated`; such public binding remains unsupported and is rejected by endpoint configuration.
-
-Completion and failure events separate:
-
-- total request duration from SDK execution duration;
-- MP success, MP failure, and rejected `ExecuteStep`;
-- successful, failed, and not-attempted output retrieval; and
-- gRPC status from the curated diagnostic code.
-
-Portable sustained tests require exactly one request-start and one terminal audit event per correlation ID across 512 completed fake requests, while continuing to reject returned values from the logging surface. Queue and recovery counters are separately available as a value-free internal execution snapshot; they do not add operation payloads to audit events. See the [runtime performance and soak guide](../testing/runtime-performance-and-soak.md).
-
-## Data handling and retention
-
-Briosa audit APIs never accept raw arguments or results. Do not add middleware that logs gRPC bodies, protobuf messages, COM values, peer strings, target hosts, or exception objects. Debug and trace levels are not permission to log them.
-
-Treat paths, geometry, object identifiers, measurements, credentials, license data, and proprietary values as protected in both directions. Apply restrictive filesystem or collector access to logs, forward them only to an approved destination, and retain them only as long as operational or compliance needs require. Client applications remain responsible for protecting returned values after they leave Briosa.
-
-Policy denial is reported as gRPC `PERMISSION_DENIED` with a typed `POLICY_DENIED` error and `DO_NOT_RETRY` guidance. It indicates deployment policy, not that an authenticated identity was evaluated.
-
-See [ADR 0015](../architecture/0015-command-policy-and-audit-events.md), the [public endpoint guide](endpoint-security.md), and the [v0.1 threat model](../security/threat-model.md) for the complete security boundary.
+The operation pull request assigns its exact ID, effect, replay safety, execution scope, and risk flags in its handwritten descriptor. It also decides whether packaged defaults should admit it. Inventory or historical catalog membership cannot expand policy.

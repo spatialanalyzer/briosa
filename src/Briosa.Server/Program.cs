@@ -1,5 +1,5 @@
 using Briosa.Protocol;
-using Briosa.Server.Generated;
+using Briosa.Server.Operations;
 using Briosa.Server.Security;
 using Briosa.Server.Services;
 using Briosa.Server.Workers;
@@ -22,7 +22,7 @@ builder.Services.AddBriosaDevelopmentGrpcReflection(builder.Environment);
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddWorkerProcessLifecycle(builder.Configuration);
 builder.Services.AddBriosaHealthAndDiscovery();
-builder.Services.AddSingleton<CatalogOperationExecutor>();
+builder.Services.AddSingleton<OperationExecutor>();
 
 var app = builder.Build();
 
@@ -31,7 +31,7 @@ app.MapGet("/", () => Results.Text(
 
 app.MapGrpcHealthChecksService();
 app.MapGrpcService<ServerDiscoveryService>();
-app.MapGeneratedCatalogServices();
+app.MapSpatialAnalyzerServices();
 app.MapBriosaDevelopmentGrpcReflection();
 
 app.Run();

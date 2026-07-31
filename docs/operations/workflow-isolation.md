@@ -14,11 +14,11 @@ The worker queue serializes each complete MP sequence. It does not reserve appli
 | `exclusive_workflow` | Requires ownership across RPCs or an interactive/device session. Denied because leases are not implemented. |
 | `unknown` or unspecified | Denied because the isolation review is incomplete. |
 
-An operation can appear in capability discovery only when its catalog scope is reviewed, the current isolation mode supports it, and runtime allow/deny policy enables it. Adding an exclusive workflow to an allowlist cannot bypass the isolation denial.
+An operation can appear in capability discovery only when its handwritten descriptor has a reviewed scope, the current isolation mode supports it, and runtime allow/deny policy enables it. Adding an exclusive workflow to an allowlist cannot bypass the isolation denial.
 
 ## Command-family inventory
 
-The following inventory is a promotion guide, not a blanket classification. Exact command semantics can move an operation into a stricter scope, so every promoted catalog entry still requires an operation-specific isolation review.
+The following inventory is an implementation guide, not a blanket classification. Exact command semantics can move an operation into a stricter scope, so every handwritten operation still requires an operation-specific isolation review.
 
 | Family | Typical global state or lifetime | Promotion expectation |
 | --- | --- | --- |
@@ -29,7 +29,7 @@ The following inventory is a promotion guide, not a blanket classification. Exac
 | Live measurement, scanning, targeting, guiding, projection, trapping, robot motion, and calibration | Device or interactive session spanning commands | `exclusive_workflow` unless an exact command demonstrably completes and cleans up within one RPC. |
 | Event monitoring, relationship watching, UI interaction, and other start/continue/stop sequences | Long-lived application session | `exclusive_workflow`; ordinary RPCs remain blocked. |
 
-The reviewed disposition ledger remains the source of candidate and wave assignments. Promotion from that ledger into the supported catalog is where the execution-scope requirement becomes mandatory and machine-enforced.
+Reference evidence may suggest a likely scope, but the operation pull request is where execution scope becomes a reviewed, tested, machine-enforced descriptor.
 
 ## Worker replacement and future leases
 

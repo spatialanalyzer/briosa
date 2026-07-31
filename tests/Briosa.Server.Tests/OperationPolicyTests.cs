@@ -1,5 +1,6 @@
 using Briosa.Core.V1Alpha1;
-using Briosa.Server.Generated.Sa.V2026_1_0529_7.V1Alpha1;
+using Briosa.Server.Operations;
+using Briosa.Server.Operations.FileOperations;
 using Briosa.Server.Security;
 using Briosa.Server.Services;
 using Briosa.Server.Workers;
@@ -14,11 +15,11 @@ public sealed class OperationPolicyTests
     private const string OperationId = "file_operations.get_working_directory";
 
     [Fact]
-    public void MissingAllowListDeniesEveryCatalogOperation()
+    public void MissingAllowListDeniesEveryImplementedOperation()
     {
         var policy = CreatePolicy();
 
-        foreach (var operation in TargetCatalogMetadata.Operations)
+        foreach (var operation in SpatialAnalyzerApi.Operations)
         {
             var decision = policy.Evaluate(Command(
                 operation.OperationId,
@@ -30,14 +31,14 @@ public sealed class OperationPolicyTests
     }
 
     [Fact]
-    public void EveryGeneratedOperationRequiresAnExactExplicitAllowEntry()
+    public void EveryImplementedOperationRequiresAnExactExplicitAllowEntry()
     {
-        var operationIds = TargetCatalogMetadata.Operations
+        var operationIds = SpatialAnalyzerApi.Operations
             .Select(operation => operation.OperationId)
             .ToArray();
         var policy = CreatePolicy(allow: operationIds);
 
-        foreach (var operation in TargetCatalogMetadata.Operations)
+        foreach (var operation in SpatialAnalyzerApi.Operations)
         {
             Assert.Equal(
                 OperationPolicyDecisionKind.Allowed,
@@ -48,7 +49,7 @@ public sealed class OperationPolicyTests
     }
 
     [Fact]
-    public void ExactAllowListEnablesTheReviewedCatalogBinding()
+    public void ExactAllowListEnablesTheImplementedBinding()
     {
         var policy = CreatePolicy(allow: [OperationId]);
 
@@ -165,19 +166,18 @@ public sealed class OperationPolicyTests
     private static OperationPolicy CreatePolicy(
         IReadOnlyList<string>? allow = null,
         IReadOnlyList<string>? deny = null,
-        IReadOnlyList<CatalogOperationDescriptor>? operations = null)
+        IReadOnlyList<OperationDescriptor>? operations = null)
     {
         var values = new Dictionary<string, string?>(StringComparer.Ordinal);
         Add(values, OperationPolicy.AllowKey, allow);
         Add(values, OperationPolicy.DenyKey, deny);
         return OperationPolicy.Create(
             new ConfigurationBuilder().AddInMemoryCollection(values).Build(),
-            operations ?? TargetCatalogMetadata.Operations);
+            operations ?? SpatialAnalyzerApi.Operations);
     }
 
-    private static CatalogOperationDescriptor WorkingDirectoryOperation() =>
-        TargetCatalogMetadata.Operations.Single(operation =>
-            operation.OperationId == OperationId);
+    private static OperationDescriptor WorkingDirectoryOperation() =>
+        GetWorkingDirectoryOperation.Descriptor;
 
     private static void Add(
         Dictionary<string, string?> values,

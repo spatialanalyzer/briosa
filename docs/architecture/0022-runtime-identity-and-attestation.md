@@ -7,7 +7,7 @@
 
 ## Context
 
-Briosa is generated for an exact SpatialAnalyzer release, but that configured target is only a build and deployment coordinate. It does not identify the COM server that Windows activated or the SpatialAnalyzer application to which `ConnectEx` attached. Existing ObjectiveSA experience indicates that one machine-wide SDK registration can select the last installed SDK even when several releases are installed. This is useful project evidence, not a vendor-guaranteed activation contract.
+Briosa is built for an exact SpatialAnalyzer release, but that configured target is only a build and deployment coordinate. It does not identify the COM server that Windows activated or the SpatialAnalyzer application to which `ConnectEx` attached. Existing ObjectiveSA experience indicates that one machine-wide SDK registration can select the last installed SDK even when several releases are installed. This is useful project evidence, not a vendor-guaranteed activation contract.
 
 The approved SDK surface currently has no reviewed query for either runtime identity. Copying `2026.1.0529.7` from package metadata into an observed field would create a false compatibility claim. Conversely, silently treating missing evidence as compatible would allow an exact-target server to execute against an unknown release.
 
@@ -15,7 +15,7 @@ The approved SDK surface currently has no reviewed query for either runtime iden
 
 Briosa preserves three claims independently:
 
-1. the configured exact target from build/catalog metadata;
+1. the configured exact target from build metadata;
 2. the activated SDK engine/type-library identity; and
 3. the connected SpatialAnalyzer application identity.
 

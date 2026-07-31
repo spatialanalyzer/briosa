@@ -1,63 +1,45 @@
-# Fake SDK and contract-test harness
+# Fake SDK and worker harness
 
-The portable worker tests use a scripted adapter instead of installing, starting, or licensing SpatialAnalyzer. The harness exists to verify Briosa's own worker contracts: lifecycle ownership, STA affinity, serialization, result-only argument retrieval, result preservation, and recovery policy seams.
+Ordinary builds and tests must not require SpatialAnalyzer, a license, a desktop session, or SDK activation. Briosa keeps the SDK behind private interfaces and uses deterministic fakes at three levels.
 
-## Boundary under test
+## Direct SDK adapter tests
 
-`ISpatialAnalyzerSdk` is an internal, synchronous worker-boundary contract. It uses Briosa-owned command and outcome types and exposes no COM types. `SerializedSdkExecutor` creates and disposes one adapter on a dedicated STA thread and sends all connection and command work through a single-consumer queue.
+Production-adapter tests use an injectable synchronous call surface to verify exact ordering and failure behavior without COM activation. The `GetWorkingDirectory` test proves:
 
-`SdkConnectionManager` owns at most one active executor and models SDK attachment independently from execution verification. A successful `ConnectEx` remains `Unverified`; ordinary commands return `sdk-connection-not-ready` without entering the adapter until the dedicated Get Working Directory probe succeeds on the same STA. The probe result path is discarded before the worker replies. Unknown connection statuses and activation failures are not retried; only status codes in an explicit reviewed transient set can consume a larger attempt budget.
+1. `SetStep("Get Working Directory")`;
+2. `ExecuteStep`;
+3. `GetMPStepResult`;
+4. success only when result code `2` is retrieved; and
+5. `GetStringArg("Directory", ...)` only after MP success.
 
-The production supervisor bounds the probe with its process watchdog. A probe hang, cancellation, crash, or lost response terminates the worker, records competing-client suspicion, and ends in operator-required recovery without automatically launching another generation. Portable process tests exercise explicit recovery after that quarantine.
+Reusable codec tests cover scalar, list, identity/reference, and structured value marshaling retained by the worker. Testing an internal codec does not make any MP command public.
 
-Cancellation can stop a caller from entering the owner or waiting through a retry delay, but it does not claim to cancel a synchronous SDK call that has already started. The production watchdog recovers availability by replacing the worker process. It does not prove whether an in-flight command completed or make replay safe; [ADR 0018](../architecture/0018-uncertain-completion-and-replay.md) defines the required execution disposition and replay contract.
+## In-process server fakes
 
-Process-level scenarios distinguish cancellation before enqueue (`NotStarted`) from cancellation after enqueue (`StartedOutcomeUnknown`). They also simulate a hang after execution starts, a completed command followed by worker exit before the response, and a response that is lost until the watchdog replaces the worker. Each ambiguous case retains the original worker generation and remains uncertain after the replacement reports ready.
+Server tests inject `IWorkerCommandExecutor` to exercise the handwritten `GetWorkingDirectoryOperation` command and result mapping through `OperationExecutor`. They cover success, MP failure, output retrieval failure, caller deadline, cancellation, result-mapping failure, typed error details, policy, capability discovery, and audit redaction.
 
-`eng/Test-LocalSpatialAnalyzerHost.ps1` covers the separate source-composition seam. It verifies that a Debug server build contains the complete real worker cohort, then starts that worker through the production supervisor with the existing SDK-activation-disable test switch. This exercises the named-pipe startup and graceful shutdown boundary without COM activation, `ConnectEx`, or SpatialAnalyzer. It is portable wiring evidence, not licensed-SA evidence.
+The outcome-mapper matrix validates present default-like values, failed retrieval, malformed results, uncertain completion, recovery guidance, and replay guidance independently from SpatialAnalyzer.
 
-The issue #71 sustained harness adds a value-free execution snapshot and bounded lifecycle history. It proves that a full queue never admits beyond capacity, capacity waiters cancel as `NotStarted`, admitted cancellation drains to a terminal internal outcome, shutdown wakes blocked admissions, and repeated watchdog replacement remains accounted for. See the [runtime performance and soak guide](runtime-performance-and-soak.md) for sample sizes, budgets, and the licensed-soak deferral.
+## Process-level fake workers
 
-## Scripted behaviors
+`Briosa.Worker.TestHost` and `Briosa.SmokeWorker` cross the real private named-pipe control boundary. Scenarios include:
 
-The reusable `Briosa.Worker.Testing` assembly provides deterministic scripts for:
+- normal execution;
+- disconnected or faulted SDK state;
+- retry and reconnect;
+- delayed execution;
+- hung execution and watchdog replacement;
+- worker crash;
+- malformed responses;
+- MP failure; and
+- output getter failure.
 
-| Behavior | Contract exercised |
-| --- | --- |
-| Success | Attached-but-unverified, successful redacted verification, connected execution, a successful MP result, and typed result-only arguments |
-| Probe rejection | `ExecuteStep` rejection fails closed before ordinary commands are admitted |
-| Malformed probe output | MP success without the exact expected output shape requires operator recovery |
-| MP-result retrieval failure | `GetMPStepResult` may return false, leaving no trustworthy numeric result |
-| MP failure | `ExecuteStep` may return true while a retrieved MP result code other than `2` reports failure |
-| Connection failure | `ConnectEx` availability and status remain distinct from command outcomes |
-| Delayed connection | Connecting state rejects work while concurrent callers share one adapter |
-| Status-aware reconnect | Unknown statuses fail closed after one attempt; only reviewed transient statuses consume the configured bound |
-| Delay | A blocked command keeps later commands from entering the adapter |
-| Hang | Ordinary execution uses replacement policy; a verification hang quarantines without reconnecting |
-| Crash | Ordinary execution uses replacement policy; loss during verification requires explicit recovery |
+These tests prove host survival, bounded shutdown, generation changes, queue serialization, cancellation before and after admission, uncertain completion, readiness, identity gating, and cleanup.
 
-The watchdog and supervisor types in this test-support assembly remain lightweight harness seams. `Briosa.Server.Tests` exercises the production process queue, private execution transport, mixed output-value round trips, caller cancellation, watchdog, crash recovery, and MP-result preservation described in [ADR 0004](../architecture/0004-mp-execution-pipeline.md).
+Cancellation can stop a caller from entering the queue or waiting for a response. It does not claim to cancel a synchronous SDK call already in progress. Worker replacement restores availability but does not prove whether the command completed or make replay safe.
 
-## Reusing the contracts
+## Packaged client boundary
 
-`SdkContractAssertions` contains adapter-independent checks. Production-adapter tests use an injectable synchronous call surface to verify the exact setter/execution/MP-result/getter order without COM activation. The [generated-client smoke workflow](generated-client-smoke.md) exercises the packaged network boundary with portable fake-worker scenarios and provides an explicit real-SA success check. MP failure, getter failure, hangs, and crashes remain fake-only.
+The [standard generated-client smoke workflow](client-smoke.md) starts the packaged server with a separate fake worker and crosses the actual loopback HTTP/2 endpoint. The licensed workflow uses the same public client for the one authorized real-SA success path.
 
-Catalog-service tests pass generated request/command/result delegates through the shared `CatalogOperationExecutor`. Synthetic generator fixtures cover every modeled argument family, while the outcome-mapper matrix covers every usable getter family with present default-like values (including `false`, zero, empty strings, and empty collections), missing typed values, and failed retrieval. Unknown returned collection type literals fail closed in the worker adapter and remain a retrieval failure rather than becoming an unspecified public enum. A result-mapping exception produces one value-free failure audit event and never a preceding completion event.
-
-`BindingFamilyAdapterCompletenessTests` adds an evidence-driven dispatch fake for breadth rather than behavioral simulation. It reflects the exact `ISpatialAnalyzerSdkCalls` seam, records every call and apartment state, supplies valid typed outputs for each reviewed getter, and can reject any setter, fail any getter, or return MP failure without a vendor process. Registry and value-family evidence select the cases, so all 103 usable method/family rows run against the production adapter and all 79 implemented private value kinds cross the real JSON worker-control channel. The fake intentionally has no fallback for an unknown getter; a new getter without explicit typed output behavior fails the test.
-
-The server outcome-mapping tests independently read the same binding registry and require an explicit success case for every usable getter family. Each case passes a present default-like or empty value through `RequireSuccess`, which guards the distinction between a retrieved value such as `false`, `0`, an empty string, or an empty list and a missing typed result.
-
-That completeness contract also runs every one of the 470 reviewed enum members and compares the emitted SDK literal with the exact-target evidence catalog. It checks every structured worker field, all shared-method domains, `VariantWrapper` marshalling, and fail-closed collection object/item decoding. The release-specific scope is listed in the [binding-family completeness reference](../reference/sa/2026.1.0529.7/binding-family-completeness.md).
-
-## Non-emulation statement
-
-The scripted fake is not an implementation, simulator, or behavioral model of SpatialAnalyzer. It uses the documented MP result codes (`2` for success and `3` for failure), while its diagnostic codes, delays, failures, hangs, and crashes are controlled test inputs. Passing these tests demonstrates Briosa behavior only at the contracts listed above.
-
-Run the portable checks with:
-
-```powershell
-dotnet test tests/Briosa.Worker.Tests/Briosa.Worker.Tests.csproj -c Release
-```
-
-No SpatialAnalyzer installation, process, license, proprietary SDK executable, or protected runner is used.
+Mutating failure injection, competing-client experiments, hangs, and crashes remain fake-only unless a separate licensed test is explicitly authorized.

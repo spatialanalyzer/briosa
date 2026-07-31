@@ -7,7 +7,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using Briosa.Server.Generated.Sa.V2026_1_0529_7.V1Alpha1;
+using Briosa.Server.Operations;
 using Google.Protobuf.Reflection;
 using Grpc.Core;
 using Grpc.Health.V1;
@@ -53,7 +53,7 @@ public sealed class DevelopmentGrpcReflectionTests
             ["briosa.core.v1alpha1.DiscoveryService"] =
                 ["GetServerInfo", "ListCapabilities"]
         };
-        foreach (var service in TargetCatalogMetadata.Operations
+        foreach (var service in SpatialAnalyzerApi.Operations
             .GroupBy(operation => operation.GrpcService, StringComparer.Ordinal))
         {
             expectedMethods.Add(
@@ -108,16 +108,6 @@ public sealed class DevelopmentGrpcReflectionTests
                 new TargetProtocol.GetWorkingDirectoryRequest()).ResponseAsync.ConfigureAwait(true))
             .ConfigureAwait(true);
         Assert.Equal(StatusCode.Unavailable, unavailable.StatusCode);
-
-        var collectionOperations =
-            new TargetProtocol.CollectionOperations.CollectionOperationsClient(host.Channel);
-        var denied = await Assert.ThrowsAsync<RpcException>(async () =>
-            await collectionOperations.RenamePointAsync(new TargetProtocol.RenamePointRequest
-            {
-                OriginalPointName = Point("original"),
-                NewPointName = Point("renamed")
-            }).ResponseAsync.ConfigureAwait(true)).ConfigureAwait(true);
-        Assert.Equal(StatusCode.PermissionDenied, denied.StatusCode);
     }
 
     [Fact]
@@ -133,14 +123,6 @@ public sealed class DevelopmentGrpcReflectionTests
 
         Assert.Equal(StatusCode.Unimplemented, exception.StatusCode);
     }
-
-    private static TargetProtocol.PointName Point(string targetName) =>
-        new()
-        {
-            CollectionName = "reflection-policy-test",
-            GroupName = "reflection-policy-test",
-            TargetName = targetName
-        };
 
     private static async Task<string[]> ListServicesAsync(
         ServerReflection.ServerReflectionClient client)
@@ -238,6 +220,14 @@ public sealed class DevelopmentGrpcReflectionTests
             };
             startInfo.ArgumentList.Add($"--Briosa:Endpoint:Port={port}");
             startInfo.ArgumentList.Add($"--Briosa:Worker:ExecutablePath={smokeWorker}");
+            startInfo.ArgumentList.Add(
+                "--Briosa:SpatialAnalyzer:Identity:ActivatedSdk:OperatorAttestation:Version=");
+            startInfo.ArgumentList.Add(
+                "--Briosa:SpatialAnalyzer:Identity:ActivatedSdk:OperatorAttestation:Reference=");
+            startInfo.ArgumentList.Add(
+                "--Briosa:SpatialAnalyzer:Identity:ConnectedSpatialAnalyzer:OperatorAttestation:Version=");
+            startInfo.ArgumentList.Add(
+                "--Briosa:SpatialAnalyzer:Identity:ConnectedSpatialAnalyzer:OperatorAttestation:Reference=");
             startInfo.Environment["ASPNETCORE_ENVIRONMENT"] = environmentName;
             startInfo.Environment["DOTNET_ENVIRONMENT"] = environmentName;
             startInfo.Environment["BRIOSA_TEST_WORKER_SCENARIO"] = "disconnected";

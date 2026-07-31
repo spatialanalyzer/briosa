@@ -30,7 +30,7 @@ Run the offline diagnostics command before starting the server:
 ./Briosa.Server.exe diagnostics
 ```
 
-It prints JSON containing Briosa, protocol, catalog, target-SA, source, and interop identities plus booleans for required packaged files. It does not start the web host, activate COM, connect to SpatialAnalyzer, or expose paths, hostnames, ports, license information, or raw diagnostics. Exit code `0` means the static package layout and platform checks passed; exit code `2` means a required file or platform condition is missing.
+It prints JSON containing Briosa, protocol, target-SA, source, and interop identities plus booleans for required packaged files. It does not start the web host, activate COM, connect to SpatialAnalyzer, or expose paths, hostnames, ports, license information, or raw diagnostics. Exit code `0` means the static package layout and platform checks passed; exit code `2` means a required file or platform condition is missing.
 
 ## Start the server
 
@@ -58,13 +58,13 @@ If startup reports `OPERATOR_RECOVERY_REQUIRED`, do not repeatedly restart Brios
 
 - Briosa version and full source revision;
 - runtime identifier and self-contained/trimming choices;
-- catalog ID and revision;
 - exact supported SpatialAnalyzer release set;
 - core and target protocol packages;
+- the exact implemented operation IDs;
 - canonical interop fingerprint; and
 - explicit statements that SpatialAnalyzer is not bundled and requires a separate license.
 
-`metadata/` retains the generated catalog coverage manifest and approved interop provenance used to build the distribution.
+`metadata/` retains the approved interop provenance used to build the distribution.
 
 ## Build locally
 
@@ -76,7 +76,7 @@ From a clean repository checkout:
 
 The script uses locked `win-x64` restores, clean self-contained publishes, deterministic ZIP ordering and timestamps, and writes the ZIP, external checksum, and external provenance manifest to `artifacts/`.
 
-Ordinary CI wraps the complete two-build package verification in the reviewed `package` duration budget. `Test-WindowsPackage.ps1` requires identical ZIP hashes before recording the verified archive against `package-size`; it then measures process start through the first accepted loopback connection against `startup` and records the host working set against `startup-working-set`. The startup check explicitly selects the vendor-independent worker test host, so it never activates or connects to SpatialAnalyzer. Machine-readable reports are written below `artifacts/ci-metrics`. Thresholds and their adjustment evidence are defined in the [full-surface gate guide](../development/full-surface-gates.md) and [runtime performance guide](../testing/runtime-performance-and-soak.md); a slow run is not an implicit waiver.
+`Test-WindowsPackage.ps1` builds the archive twice and requires identical ZIP hashes. Its startup check explicitly selects the vendor-independent worker test host, so it never activates or connects to SpatialAnalyzer.
 
 The Debug source-host composition is not a packaging input. The Release package script continues to publish server and worker independently, then merges their reviewed runtime cohorts. Package verification requires the production worker and approved interop assembly while rejecting `launchSettings.json`, `appsettings.Development.json`, and the Debug user-secrets project identity.
 

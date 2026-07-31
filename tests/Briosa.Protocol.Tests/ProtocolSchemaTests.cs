@@ -1,7 +1,5 @@
 using System.Text.RegularExpressions;
-using System.Text.Json;
 using Briosa.Core.V1Alpha1;
-using Google.Protobuf;
 using TargetProtocol = Briosa.Sa.V2026_1_0529_7.V1Alpha1;
 
 namespace Briosa.Protocol.Tests;
@@ -9,17 +7,17 @@ namespace Briosa.Protocol.Tests;
 public sealed partial class ProtocolSchemaTests
 {
     [Fact]
-    public void GeneratedDescriptorsRetainIndependentPackageIdentities()
+    public void ProtobufDescriptorsRetainIndependentPackageIdentities()
     {
         Assert.Equal(
             "briosa.core.v1alpha1",
             VersionCoordinates.Descriptor.File.Package);
         Assert.Equal(
             "briosa.sa.v2026_1_0529_7.v1alpha1",
-            TargetProtocol.PointName.Descriptor.File.Package);
+            TargetProtocol.GetWorkingDirectoryRequest.Descriptor.File.Package);
         Assert.NotEqual(
             typeof(VersionCoordinates).Namespace,
-            typeof(TargetProtocol.PointName).Namespace);
+            typeof(TargetProtocol.GetWorkingDirectoryRequest).Namespace);
     }
 
     [Fact]
@@ -41,178 +39,11 @@ public sealed partial class ProtocolSchemaTests
     }
 
     [Fact]
-    public void CatalogPartitionsAndFileLevelBreakingPolicyRemainExplicit()
+    public void FileLevelBreakingPolicyRemainsExplicit()
     {
         var repositoryRoot = FindRepositoryRoot();
-        var catalogPath = Path.Combine(
-            repositoryRoot.FullName,
-            "catalog",
-            "sa",
-            "2026.1.0529.7",
-            "catalog.json");
-        using var catalog = JsonDocument.Parse(File.ReadAllBytes(catalogPath));
-        var partitions = catalog.RootElement.GetProperty("protocol_partitions")
-            .EnumerateArray()
-            .ToDictionary(
-                partition => partition.GetProperty("alias").GetString()!,
-                StringComparer.Ordinal);
-
-        Assert.Equal(["collection_operations", "file_operations"], partitions.Keys.Order());
-        Assert.Equal(
-            "Collection Operations",
-            partitions["collection_operations"].GetProperty("category").GetString());
-        Assert.Equal(
-            "CollectionOperations",
-            partitions["collection_operations"].GetProperty("service").GetString());
-        Assert.Equal(
-            "collection_operations.proto",
-            partitions["collection_operations"].GetProperty("proto_file").GetString());
-        Assert.Equal(
-            "FileOperations",
-            partitions["file_operations"].GetProperty("service").GetString());
-
         var bufConfiguration = File.ReadAllText(Path.Combine(repositoryRoot.FullName, "buf.yaml"));
         Assert.Matches(@"(?ms)^breaking:\s*\r?\n\s+use:\s*\r?\n\s+- FILE\s*$", bufConfiguration);
-    }
-
-    [Fact]
-    public void ExplicitPresenceDistinguishesDisabledAndZeroFromMissing()
-    {
-        var limit = new TargetProtocol.ToleranceLimit
-        {
-            Enabled = false,
-            Value = 0
-        };
-
-        Assert.True(limit.HasEnabled);
-        Assert.True(limit.HasValue);
-
-        limit.ClearEnabled();
-        limit.ClearValue();
-
-        Assert.False(limit.HasEnabled);
-        Assert.False(limit.HasValue);
-    }
-
-    [Fact]
-    public void IdentityAndReferenceMessagesPreservePresenceOrderAndEmptyLists()
-    {
-        var objects = new TargetProtocol.CollectionObjectNameList();
-        objects.Values.Add(new TargetProtocol.CollectionObjectName
-        {
-            CollectionName = "Collection",
-            ObjectName = "Object",
-            ObjectType = TargetProtocol.ObjectType.PointGroup
-        });
-        var points = new TargetProtocol.PointNameList();
-        points.Values.Add(new TargetProtocol.PointName
-        {
-            CollectionName = "Collection",
-            GroupName = "Group",
-            TargetName = "Point A"
-        });
-        points.Values.Add(new TargetProtocol.PointName
-        {
-            CollectionName = "Collection",
-            GroupName = "Group",
-            TargetName = ""
-        });
-
-        var objectRoundTrip = TargetProtocol.CollectionObjectNameList.Parser.ParseFrom(
-            objects.ToByteArray());
-        var pointRoundTrip = TargetProtocol.PointNameList.Parser.ParseFrom(
-            points.ToByteArray());
-        var vectors = new TargetProtocol.VectorNameList();
-        vectors.Values.Add(new TargetProtocol.VectorName
-        {
-            CollectionName = "Collection",
-            GroupName = "Vectors",
-            Name = "Vector A"
-        });
-        var vectorRoundTrip = TargetProtocol.VectorNameList.Parser.ParseFrom(
-            vectors.ToByteArray());
-        var emptyRoundTrip = TargetProtocol.StringList.Parser.ParseFrom(
-            new TargetProtocol.StringList().ToByteArray());
-
-        Assert.Equal(TargetProtocol.ObjectType.PointGroup, Assert.Single(objectRoundTrip.Values).ObjectType);
-        Assert.Equal(["Point A", ""], pointRoundTrip.Values.Select(value => value.TargetName));
-        Assert.Equal("Vector A", Assert.Single(vectorRoundTrip.Values).Name);
-        Assert.Empty(emptyRoundTrip.Values);
-    }
-
-    [Fact]
-    public void ContainerValuesRoundTripWithoutComShapes()
-    {
-        var world = new TargetProtocol.WorldTransform
-        {
-            Transform = new TargetProtocol.Transform
-            {
-                Values = { Enumerable.Range(0, 16).Select(value => (double)value) }
-            },
-            ScaleFactor = 0
-        };
-        var file = new TargetProtocol.FileReference
-        {
-            Path = "",
-            EmbeddedFile = false
-        };
-        var font = new TargetProtocol.Font
-        {
-            FontName = "Segoe UI",
-            Size = 255,
-            Color = new TargetProtocol.RgbColor
-            {
-                Red = 0,
-                Green = 127,
-                Blue = 255
-            }
-        };
-
-        var worldRoundTrip = TargetProtocol.WorldTransform.Parser.ParseFrom(
-            world.ToByteArray());
-        var fileRoundTrip = TargetProtocol.FileReference.Parser.ParseFrom(
-            file.ToByteArray());
-        var fontRoundTrip = TargetProtocol.Font.Parser.ParseFrom(
-            font.ToByteArray());
-        var emptyArrayRoundTrip = TargetProtocol.DoubleArray.Parser.ParseFrom(
-            new TargetProtocol.DoubleArray().ToByteArray());
-
-        Assert.Equal(16, worldRoundTrip.Transform.Values.Count);
-        Assert.Equal(15d, worldRoundTrip.Transform.Values[15]);
-        Assert.True(worldRoundTrip.HasScaleFactor);
-        Assert.Equal(0d, worldRoundTrip.ScaleFactor);
-        Assert.True(fileRoundTrip.HasPath);
-        Assert.Equal("", fileRoundTrip.Path);
-        Assert.True(fileRoundTrip.HasEmbeddedFile);
-        Assert.False(fileRoundTrip.EmbeddedFile);
-        Assert.True(fontRoundTrip.HasSize);
-        Assert.Equal(255u, fontRoundTrip.Size);
-        Assert.Equal(255u, fontRoundTrip.Color.Blue);
-        Assert.Empty(emptyArrayRoundTrip.Values);
-        Assert.Equal(2, (int)TargetProtocol.AngularUnit.DegreesMinutesSeconds);
-        Assert.Equal(6, (int)TargetProtocol.DistanceUnit.UsSurveyFeet);
-        Assert.Equal(2, (int)TargetProtocol.TemperatureUnit.Celsius);
-    }
-
-    [Fact]
-    public void CollectionObjectPreservesAllRequiredComponents()
-    {
-        var value = new TargetProtocol.CollectionObjectName
-        {
-            CollectionName = "Collection",
-            ObjectName = "Object",
-            ObjectType = TargetProtocol.ObjectType.PointGroup
-        };
-
-        var roundTrip = TargetProtocol.CollectionObjectName.Parser.ParseFrom(value.ToByteArray());
-
-        Assert.True(roundTrip.HasCollectionName);
-        Assert.True(roundTrip.HasObjectName);
-        Assert.True(roundTrip.HasObjectType);
-        Assert.Equal(TargetProtocol.ObjectType.PointGroup, roundTrip.ObjectType);
-        Assert.NotEqual(
-            TargetProtocol.CollectionInstrumentId.Descriptor.FullName,
-            TargetProtocol.CollectionMachineId.Descriptor.FullName);
     }
     [Fact]
     public void SchemaPackagesMatchTheirDirectories()

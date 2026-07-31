@@ -53,59 +53,24 @@ jobs:
           cache-dependency-path: '**/packages.lock.json'
 
       - name: Restore locked dependencies
-        shell: pwsh
-        run: |
-          ./eng/Measure-CiBudget.ps1 `
-            -Metric restore `
-            -Executable dotnet `
-            -ArgumentList @("restore", "Briosa.slnx", "--locked-mode")
+        run: dotnet restore Briosa.slnx --locked-mode
 
       - name: Verify local SpatialAnalyzer source-host composition
         shell: pwsh
         run: ./eng/Test-LocalSpatialAnalyzerHost.ps1 -NoRestore
 
-      - name: Build interop verifier
-        run: dotnet build tools/Briosa.Generator/Briosa.Generator.csproj -c Release --no-restore
+      - name: Build interop inspector
+        run: dotnet build tools/Briosa.InteropInspector/Briosa.InteropInspector.csproj -c Release --no-restore
 
-      - name: Verify deterministic full surface
+      - name: Verify protobuf contracts
         shell: pwsh
-        run: |
-          ./eng/Measure-CiBudget.ps1 `
-            -Metric generation `
-            -Executable pwsh `
-            -ArgumentList @(
-              "-NoLogo",
-              "-NoProfile",
-              "-File",
-              "./eng/Verify-FullSurface.ps1",
-              "-NoBuild")
+        run: ./eng/Verify-Protocol.ps1
 
       - name: Build solution
-        shell: pwsh
-        run: |
-          ./eng/Measure-CiBudget.ps1 `
-            -Metric compile `
-            -Executable dotnet `
-            -ArgumentList @(
-              "build",
-              "Briosa.slnx",
-              "-c",
-              "Release",
-              "--no-restore")
+        run: dotnet build Briosa.slnx -c Release --no-restore
 
       - name: Run tests
-        shell: pwsh
-        run: |
-          ./eng/Measure-CiBudget.ps1 `
-            -Metric test `
-            -Executable dotnet `
-            -ArgumentList @(
-              "test",
-              "Briosa.slnx",
-              "-c",
-              "Release",
-              "--no-build",
-              "--no-restore")
+        run: dotnet test Briosa.slnx -c Release --no-build --no-restore
 
       - name: Verify development-only gRPC reflection
         run: >-
@@ -118,14 +83,12 @@ jobs:
         shell: pwsh
         run: ./eng/Test-RuntimePerformance.ps1 -NoBuild
 
-      - name: Upload build metrics
+      - name: Upload runtime evidence
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: full-surface-build-metrics
-          path: |
-            artifacts/ci-metrics
-            artifacts/full-surface
+          name: runtime-performance-evidence
+          path: artifacts/ci-metrics/runtime-performance
           if-no-files-found: warn
 
   package-smoke:
@@ -158,48 +121,14 @@ jobs:
 
       - name: Build twice and verify package
         shell: pwsh
-        run: |
-          ./eng/Measure-CiBudget.ps1 `
-            -Metric package `
-            -Executable pwsh `
-            -ArgumentList @(
-              "-NoLogo",
-              "-NoProfile",
-              "-File",
-              "./eng/Test-WindowsPackage.ps1",
-              "-Version",
-              "0.1.0-ci") `
-            -OutputDirectory artifacts/ci-metrics/package-smoke
+        run: ./eng/Test-WindowsPackage.ps1 -Version 0.1.0-ci
 
       - name: Build twice and verify protocol artifact
         shell: pwsh
         run: ./eng/Test-ProtocolArtifact.ps1 -Version 0.2.0-ci
 
-      - name: Run packaged generated-client scenarios
+      - name: Run packaged client scenarios
         shell: pwsh
-        run: |
-          ./eng/Test-GeneratedClientScenarios.ps1 `
-            -PackagePath artifacts/package-smoke/briosa-0.1.0-ci-sa-2026.1.0529.7-win-x64.zip
-          ./eng/Test-GeneratedClientScenarios.ps1 `
-            -PackagePath artifacts/package-smoke/briosa-0.1.0-ci-sa-2026.1.0529.7-win-x64.zip `
-            -FixturePath conformance/v1/wave1-read-only-scenarios.json
-          ./eng/Test-GeneratedClientScenarios.ps1 `
-            -PackagePath artifacts/package-smoke/briosa-0.1.0-ci-sa-2026.1.0529.7-win-x64.zip `
-            -FixturePath conformance/v1/wave2-point-lifecycle-scenarios.json
-          ./eng/Test-GeneratedClientScenarios.ps1 `
-            -PackagePath artifacts/package-smoke/briosa-0.1.0-ci-sa-2026.1.0529.7-win-x64.zip `
-            -FixturePath conformance/v1/wave2-collection-mutations-scenarios.json
-          ./eng/Test-GeneratedClientScenarios.ps1 `
-            -PackagePath artifacts/package-smoke/briosa-0.1.0-ci-sa-2026.1.0529.7-win-x64.zip `
-            -FixturePath conformance/v1/wave2-object-lifecycle-scenarios.json
-          ./eng/Test-GeneratedClientScenarios.ps1 `
-            -PackagePath artifacts/package-smoke/briosa-0.1.0-ci-sa-2026.1.0529.7-win-x64.zip `
-            -FixturePath conformance/v1/wave2-note-mutations-scenarios.json
-
-      - name: Upload package metrics
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: full-surface-package-metrics
-          path: artifacts/ci-metrics
-          if-no-files-found: warn
+        run: >
+          ./eng/Test-ClientScenarios.ps1
+          -PackagePath artifacts/package-smoke/briosa-0.1.0-ci-sa-2026.1.0529.7-win-x64.zip

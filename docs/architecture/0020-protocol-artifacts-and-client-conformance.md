@@ -1,53 +1,43 @@
-# ADR 0020: Protocol artifacts and cross-client conformance
+# ADR 0020: Protocol artifacts and cross-client generation
 
-- Status: Accepted for the v0.2 command surface
+- Status: Accepted; conformance-manifest strategy superseded by [ADR 0024](0024-handwritten-mp-operation-vertical-slices.md)
 - Date: 2026-07-28
+- Revised: 2026-07-31
 - Issue: [#94](https://github.com/spatialanalyzer/briosa/issues/94)
-- Amends: [ADR 0005](0005-exact-sa-target-protocols.md), [ADR 0010](0010-health-version-and-capability-discovery.md), [ADR 0012](0012-generated-client-verification.md)
+- Amends: [ADR 0005](0005-exact-sa-target-protocols.md) and [ADR 0012](0012-generated-client-verification.md)
 
 ## Context
 
-`spatialanalyzer/briosa` owns the public protobuf contracts, exact-target catalog, and shared operation semantics. The .NET, JavaScript/TypeScript, and Python client repositories must consume the same reviewed snapshot without copying policy or hand-maintaining parallel command surfaces like the legacy ObjectiveSA wrapper.
+`spatialanalyzer/briosa` owns the public protobuf contracts and shared transport semantics. The .NET, JavaScript/TypeScript, Python, and other client repositories need a reproducible input without copying moving `.proto` files or depending on a Briosa-specific language generator.
 
-A Briosa server version, catalog revision, exact SpatialAnalyzer target, and client package version are independent coordinates. Treating any one of them as a substitute for the others would imply compatibility that has not been established. Source-only protobuf consumption is also insufficient when a client needs a reproducible descriptor input, a verifiable generation identity, and shared failure/replay expectations.
+A Briosa server version, exact SpatialAnalyzer target, target protocol package, and client package version are independent coordinates. Source-only consumption is also insufficient when a client needs a verifiable descriptor input and generation provenance.
 
 ## Decision
 
-Every Briosa release publishes one runtime-neutral protocol artifact beside the Windows server artifact. It contains:
+Every Briosa release may publish one runtime-neutral protocol artifact beside the Windows server artifact. It contains:
 
-- the canonical `buf.yaml` and public `.proto` source tree;
-- a pure `google.protobuf.FileDescriptorSet` built from that tree;
-- the generated exact-target catalog coverage manifest;
-- versioned, value-safe vertical-slice, Wave 1 read-only, Wave 2 point-lifecycle, and typed-error conformance fixtures;
-- an artifact manifest with Briosa version, source revision, exact SA target, protocol packages, catalog identity, content fingerprints, and every included file hash; and
+- canonical `buf.yaml` and handwritten public `.proto` sources;
+- a pure `google.protobuf.FileDescriptorSet` built from those sources;
+- a manifest with Briosa version, source revision, exact SA target, protocol packages, content fingerprints, and every included file hash;
+- internal and external SHA-256 checksums; and
 - Apache-2.0 licensing and a client-consumption guide.
 
-The artifact is named `briosa-protocol-<briosa-version>-sa-<exact-target>-catalog-<revision>.zip`. It is byte-reproducible for the same source and version across supported Windows builder runtimes and has an adjacent SHA-256 file and provenance manifest. ZIP entries are stored without Deflate compression because compressed bytes are not stable across PowerShell/.NET runtime implementations; ordinal entry ordering, normalized content, a fixed root name, and fixed timestamps define the portable container representation.
+The artifact is named `briosa-protocol-<briosa-version>-sa-<exact-target>.zip`. It contains no command catalog, release membership, generated operation source, generated conformance manifest, or client-language template.
 
-Clients generate repetitive transport code from the artifact's sources or descriptor set. A client repository may add idiomatic adapters, packaging, cancellation/deadline integration, and language-specific presence handling, but it does not copy operation policy, catalog facts, error mapping, or compatibility rules. It must record at least the protocol ZIP SHA-256, protocol-schema fingerprint, core and target package names, exact SA target, catalog ID/revision, and fixture-set IDs used by that release.
+Clients use standard protobuf/gRPC tools against the sources or descriptor set. A client repository may add idiomatic adapters, packaging, cancellation/deadline integration, and language-specific presence handling as reviewed source. It must not infer cross-SA compatibility from a matching wire shape.
 
-Client package versions remain independent. A new client release can consume an unchanged Briosa protocol artifact, and a new Briosa release can reuse an unchanged protocol/catalog snapshot. Neither case claims compatibility with another SpatialAnalyzer release. At runtime, a client compares exact discovery coordinates and capability identity rather than inferring support from semantic-version ranges.
+Client package versions remain independent. A new client release can consume an unchanged Briosa protocol artifact, and a new Briosa release can reuse an unchanged protocol snapshot.
 
-## Conformance contract
+## Verification
 
-The vertical-slice fixture set drives the packaged fake-worker lifecycle scenarios. It covers identity and capability discovery, readiness, success, policy denial, unavailable SA, MP failure, output-retrieval failure, deadline, cancellation, watchdog replacement, and an unsupported exact-target method. The Wave 1 read-only fixture adds generated collection-client success, required-input validation, policy denial, and MP failure while keeping returned values out of reports. The Wave 2 point-lifecycle fixture covers all three initial mutations, authoritative `vector3` mapping, required-input validation, deny-overrides-allow policy, reviewed-default omission, MP failure, and unknown replay safety without exposing point names or coordinates.
+CI builds the protocol artifact twice and requires identical ZIP hashes. It rebuilds the descriptor set from the bundled source, validates internal and external checksums, and rejects source/manifest drift.
 
-The typed-error fixture set is transport-language-neutral and includes both executable and synthetic safety cases. It distinguishes execution disposition, recovery guidance, replay guidance, and replay safety, including unsafe and unknown ambiguous-completion cases that must require reconciliation. A client must decode `briosa-operation-error-bin` as `OperationError`; it must not parse status text or automatically replay merely because the worker becomes ready.
-
-Fixtures contain enum names, stable operation IDs, status codes, field presence, and value-free diagnostics only. They contain no paths, geometry, object identifiers, credentials, license data, device data, raw arguments, or returned values.
-
-Each client repository runs a minimal generated Get Working Directory client against the same live fixture IDs and validates its error adapter against the typed-error cases. The client-specific bootstrap issues own packaging and idiomatic API choices; Briosa remains the fixture and semantic source of truth.
-
-## Drift and publication
-
-CI builds the protocol artifact twice and requires identical ZIP hashes. On Windows it also rebuilds the identical bundle through Windows PowerShell and requires the same outer hash as the current PowerShell runtime. It rebuilds the descriptor set from the bundled source, validates internal and external checksums, verifies fixture identity and required cases, and rejects source/manifest drift. The release workflow publishes protocol and Windows artifacts together from one tag and source revision.
-
-A client drift check fails when its recorded artifact checksum or coordinates differ from the downloaded manifest. Updating generated files requires an explicit artifact update; a client cannot silently regenerate from a moving branch or independently edited `.proto` copy.
+Portable server behavior is tested in the repository's ordinary test projects and focused packaged-client scenarios. Client repositories test their language-specific error and convenience layers directly. A central generated conformance manifest is not required.
 
 ## Consequences
 
-- All supported languages consume one reviewed, auditable protocol input.
+- All languages can consume one auditable protocol input with normal ecosystem tools.
 - Descriptor-driven and source-driven generators receive equivalent content.
-- Shared behavior is test data rather than duplicated prose or language-specific policy.
-- Client repositories can release independently while retaining exact generation provenance.
-- Publishing to a schema registry or adding other platforms can be layered on later without changing the artifact identity contract.
+- Client repositories can evolve idiomatically without a central template engine.
+- Operation behavior remains authoritative in handwritten source and focused tests.
+- Publishing to a schema registry or adding platforms can be layered on later without changing the operation-authoring strategy.

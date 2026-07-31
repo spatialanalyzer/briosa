@@ -1,6 +1,6 @@
 using System.Reflection;
 using Briosa.Core.V1Alpha1;
-using Briosa.Server.Generated.Sa.V2026_1_0529_7.V1Alpha1;
+using Briosa.Server.Operations;
 
 namespace Briosa.Server.Services;
 
@@ -34,9 +34,8 @@ internal sealed class AssemblyServerBuildIdentityProvider : IServerBuildIdentity
         {
             BriosaVersion = GetBriosaVersion(_assembly),
             CoreProtocolPackage = CoreProtocolPackage,
-            SpatialAnalyzerTarget = TargetCatalogMetadata.SpatialAnalyzerTarget,
-            TargetProtocolPackage = TargetCatalogMetadata.TargetProtocolPackage,
-            CatalogRevision = TargetCatalogMetadata.CatalogRevision,
+            SpatialAnalyzerTarget = SpatialAnalyzerApi.TargetVersion,
+            TargetProtocolPackage = SpatialAnalyzerApi.TargetProtocolPackage,
             InteropFingerprint = InteropFingerprint
         };
         var sourceRevision = _assembly.GetCustomAttributes<AssemblyMetadataAttribute>()

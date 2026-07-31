@@ -3,7 +3,7 @@
 - Status: Accepted for the v0.1 vertical slice
 - Date: 2026-07-22
 - Issue: [#12](https://github.com/spatialanalyzer/briosa/issues/12)
-- Amended by: [ADR 0017](0017-execution-channel-readiness.md), [ADR 0022](0022-runtime-identity-and-attestation.md)
+- Amended by: [ADR 0017](0017-execution-channel-readiness.md), [ADR 0022](0022-runtime-identity-and-attestation.md), and [ADR 0024](0024-handwritten-mp-operation-vertical-slices.md)
 
 ## Context
 
@@ -25,11 +25,11 @@ The empty health-service name retains the standard aggregate behavior. Clients a
 The stable core package adds `DiscoveryService`:
 
 - `GetServerInfo` returns `VersionCoordinates`, safe worker/connection/execution-readiness enums, readiness, and an optional connected-SA version with an explicit verification state.
-- `ListCapabilities` returns catalog identity and only the operations in the reviewed exact-target allowlist.
+- `ListCapabilities` returns exact-target coordinates and only handwritten operations enabled by runtime policy.
 
 The configured exact SA target is always reported. [ADR 0022](0022-runtime-identity-and-attestation.md) adds separate activated-SDK and connected-SA evidence values, sources, and match states. A claim remains absent and unavailable until runtime verification or an explicit operator attestation establishes it; configured target text is never substituted.
 
-Catalog generation emits an immutable runtime capability descriptor beside operation adapters. Discovery therefore uses the same operation ID, service, RPC, fully qualified method, and reviewed effect classification as the public generated surface. It does not parse the catalog on the request path and does not maintain a second allowlist.
+Each handwritten operation owns one immutable runtime descriptor beside its adapter. `SpatialAnalyzerApi.Operations` is the shared registration source for policy and discovery, so discovery uses the same operation ID, service, RPC, fully qualified method, effect, scope, and replay classification as execution.
 
 ## Information boundary
 
@@ -44,7 +44,7 @@ Portable tests verify:
 - liveness naming is independent of worker state;
 - readiness requires worker readiness, a connected SDK snapshot, and successful execution verification for the current generation;
 - each runtime-version absence is distinct from its evidence source and match state;
-- capability discovery exactly reflects generated catalog metadata; and
+- capability discovery exactly reflects the policy-filtered handwritten operation registry; and
 - protocol descriptors contain no prohibited operational or license fields.
 
 These tests require neither SpatialAnalyzer nor a license.
@@ -54,4 +54,4 @@ These tests require neither SpatialAnalyzer nor a license.
 - Kubernetes, services, installers, and clients can use a standard health client.
 - A running but disconnected Briosa host remains live and not ready.
 - Compatibility discovery fails honest: configured target and observed connected version are never conflated.
-- Adding a reviewed catalog operation automatically updates capability discovery through deterministic generation.
+- Adding a reviewed operation requires an explicit capability registration covered by tests.

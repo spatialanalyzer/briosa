@@ -40,6 +40,8 @@
       },
       "additionalProperties": {
         "$ref": "#/definitions/reference"
+      }
+    },
     "binding_family_overrides": {
       "type": "object",
       "propertyNames": {
@@ -59,8 +61,6 @@
       "uniqueItems": true,
       "items": {
         "$ref": "#/definitions/argument_family_assignment"
-      }
-    },
       }
     },
     "implemented_coverage": {

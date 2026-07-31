@@ -6,7 +6,7 @@ Briosa exposes the standard gRPC health service and a read-only core discovery s
 
 A Debug build exposes standard gRPC server reflection only when the ASP.NET Core environment is `Development`. Registration and endpoint mapping both enforce the runtime environment check, while the server's Debug compilation controls whether the reflection implementation exists at all. Production and other runtime environments do not map the service, and the Release package excludes both the reflection host and protocol assemblies from its dependency closure.
 
-Reflection describes every mapped health, discovery, and generated exact-target service. A reflected method is not an enabled capability: reflection never invokes a worker, changes readiness, supplies identity evidence, or bypasses request validation and the exact-operation allow/deny policy. In particular, reflected schemas can include catalog operations that `ListCapabilities` does not advertise and that invocation will reject. Treat `ListCapabilities` as the authority for the current process's admitted operation set.
+Reflection describes every mapped health, discovery, and exact-target service. A reflected method is not an enabled capability: reflection never invokes a worker, changes readiness, supplies identity evidence, or bypasses request validation and the exact-operation allow/deny policy. Treat `ListCapabilities` as the authority for the current process's admitted operation set.
 
 ## Health checks
 
@@ -31,7 +31,7 @@ After worker attachment and exact-match identity gating, the server sends a dedi
 
 - Briosa and protocol build coordinates;
 - the configured exact SpatialAnalyzer target;
-- catalog revision and interop fingerprint;
+- target protocol package and interop fingerprint;
 - safe worker, SDK connection, and execution-readiness states;
 - the target-isolation mode (`single_tenant` for the current release); and
 - whether MP requests are currently ready.
@@ -76,7 +76,7 @@ Debug source hosting enables the standard .NET user-secrets provider for these s
 
 ## Capabilities
 
-`briosa.core.v1alpha1.DiscoveryService/ListCapabilities` lists only reviewed operations built into the exact-target catalog, supported by the current isolation mode, and enabled by the server's runtime operation policy. Each entry includes its stable operation ID, gRPC service and RPC, fully qualified method, reviewed read-only/mutating/unknown effect classification, replay safety, and execution scope. A missing runtime allowlist produces an empty operation list. Unknown and `exclusive_workflow` scopes are not advertised in the current `single_tenant` mode.
+`briosa.core.v1alpha1.DiscoveryService/ListCapabilities` lists only handwritten operations registered in the current build, supported by the current isolation mode, and enabled by runtime policy. Each entry includes its stable operation ID, gRPC service and RPC, fully qualified method, reviewed read-only/mutating/unknown effect classification, replay safety, and execution scope. A missing runtime allowlist produces an empty operation list. Unknown and `exclusive_workflow` scopes are not advertised in the current `single_tenant` mode.
 
 Serialization covers one MP sequence, not a workflow spanning RPCs. See the [workflow-isolation guide](workflow-isolation.md) before coordinating multiple operations through one target.
 

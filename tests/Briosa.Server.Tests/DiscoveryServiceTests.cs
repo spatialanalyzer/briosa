@@ -1,5 +1,5 @@
 using Briosa.Core.V1Alpha1;
-using Briosa.Server.Generated.Sa.V2026_1_0529_7.V1Alpha1;
+using Briosa.Server.Operations;
 using Briosa.Server.Security;
 using Microsoft.Extensions.Configuration;
 using Briosa.Server.Services;
@@ -205,7 +205,7 @@ public sealed class DiscoveryServiceTests
     }
 
     [Fact]
-    public void CapabilitiesComeFromReviewedGeneratedCatalog()
+    public void CapabilitiesComeFromImplementedOperationRegistry()
     {
         var response = new ServerDiscoveryService(
             new FakeWorkerStatusProvider(Snapshot(WorkerLifecycleState.Stopped, null)),
@@ -213,8 +213,6 @@ public sealed class DiscoveryServiceTests
             CreatePolicy())
             .CreateCapabilities();
 
-        Assert.Equal("briosa.sa.2026.1.0529.7", response.CatalogId);
-        Assert.Equal("12", response.CatalogRevision);
         Assert.Equal("2026.1.0529.7", response.SpatialAnalyzerTarget);
         Assert.Equal(
             "briosa.sa.v2026_1_0529_7.v1alpha1",
@@ -260,7 +258,6 @@ public sealed class DiscoveryServiceTests
         Assert.Equal(
             "briosa.sa.v2026_1_0529_7.v1alpha1",
             coordinates.TargetProtocolPackage);
-        Assert.Equal("12", coordinates.CatalogRevision);
         Assert.Equal(
             AssemblyServerBuildIdentityProvider.InteropFingerprint,
             coordinates.InteropFingerprint);
@@ -279,7 +276,7 @@ public sealed class DiscoveryServiceTests
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(values)
             .Build();
-        return OperationPolicy.Create(configuration, TargetCatalogMetadata.Operations);
+        return OperationPolicy.Create(configuration, SpatialAnalyzerApi.Operations);
     }
     private static WorkerLifecycleSnapshot Snapshot(
         WorkerLifecycleState workerState,
@@ -343,7 +340,6 @@ public sealed class DiscoveryServiceTests
                 CoreProtocolPackage = "briosa.core.v1alpha1",
                 SpatialAnalyzerTarget = "2026.1.0529.7",
                 TargetProtocolPackage = "briosa.sa.v2026_1_0529_7.v1alpha1",
-                CatalogRevision = "2",
                 InteropFingerprint = "sha256:test"
             };
     }

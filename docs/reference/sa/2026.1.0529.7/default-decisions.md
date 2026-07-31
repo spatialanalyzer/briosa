@@ -1,5 +1,7 @@
 # SA 2026.1.0529.7 default decisions
 
+> Reference snapshot only. These historical reviews do not define public defaults for a handwritten operation.
+
 Issue [#82](https://github.com/spatialanalyzer/briosa/issues/82) reviewed all 314 inactive convenience-default candidates produced by the exact-target evidence workflow. None is activated as a Briosa default. Every affected public input remains required, omission is rejected, and the matching SDK setter receives only an explicit request value.
 
 This decision does not claim that SpatialAnalyzer has no internal defaults. A View SDK Code value proves an exact setter/value sample, not the public meaning of omitting a Briosa field. ObjectiveSA is pinned secondary evidence from version `2024.1.5.1`; it cannot establish SA `2026.1.0529.7` omission semantics by itself.
@@ -27,4 +29,4 @@ The review covers 282 exact-target sample-only candidates, 16 exact-target versu
 | 5 | Remaining exact-target samples without a required ObjectiveSA mapping | 86 |
 | **Total** | **Retain required input with no Briosa default** | **314** |
 
-The exact per-argument record is the disposition ledger and its generated report. Each `reviewed_no_default` resolution retains candidate values, evidence state, reason codes, and the #82 decision reference. The generated pending queue must contain zero entries. Raw vendor documentation, generated code, and proprietary binaries are not committed.
+The retained value snapshot contains the historical per-argument evidence and #82 review decisions. A future handwritten operation must re-evaluate any relevant omission behavior in its own pull request. Raw vendor documentation, generated code, and proprietary binaries are not committed.

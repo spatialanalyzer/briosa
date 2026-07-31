@@ -12,7 +12,7 @@ service DiscoveryService {
   // Returns build coordinates and a safe current runtime summary.
   rpc GetServerInfo(GetServerInfoRequest) returns (GetServerInfoResponse);
 
-  // Lists only operations in this build's reviewed command catalog.
+  // Lists only implemented operations enabled by the active runtime policy.
   rpc ListCapabilities(ListCapabilitiesRequest) returns (ListCapabilitiesResponse);
 }
 
@@ -102,8 +102,8 @@ enum ConnectedSpatialAnalyzerVersionState {
 message ListCapabilitiesRequest {}
 
 message ListCapabilitiesResponse {
-  string catalog_id = 1;
-  string catalog_revision = 2;
+  reserved 1, 2;
+  reserved "catalog_id", "catalog_revision";
   string spatial_analyzer_target = 3;
   string target_protocol_package = 4;
   repeated OperationCapability operations = 5;

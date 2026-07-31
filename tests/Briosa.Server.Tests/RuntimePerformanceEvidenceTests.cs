@@ -1,7 +1,8 @@
 using System.Diagnostics;
 using System.Text.Json;
 using Briosa.Core.V1Alpha1;
-using Briosa.Server.Generated.Sa.V2026_1_0529_7.V1Alpha1;
+using Briosa.Server.Operations;
+using Briosa.Server.Operations.FileOperations;
 using Briosa.Server.Security;
 using Briosa.Server.Services;
 using Briosa.Server.Workers;
@@ -103,9 +104,9 @@ public sealed class RuntimePerformanceEvidenceTests
                     dispatch =
                         "WorkerProcessSupervisor.ExecuteAsync through the private named-pipe control channel and vendor-independent fake worker; no SpatialAnalyzer SDK call",
                     request_mapping =
-                        "generated Get Working Directory CreateCommand, GrpcOperationOutcomeMapper.RequireSuccess, and generated CreateResult with a fixed completed outcome",
+                        "handwritten Get Working Directory CreateCommand, GrpcOperationOutcomeMapper.RequireSuccess, and CreateResult with a fixed completed outcome",
                     discovery =
-                        "ListCapabilities response creation over every operation allowed by the current generated catalog"
+                        "ListCapabilities response creation over every operation allowed by the implemented operation registry"
                 },
                 dispatch_p95_milliseconds = dispatchP95Milliseconds,
                 request_mapping_p95_milliseconds = requestMappingP95Milliseconds,
@@ -163,14 +164,14 @@ public sealed class RuntimePerformanceEvidenceTests
         var request = new TargetProtocol.GetWorkingDirectoryRequest();
         return () =>
         {
-            var command = FileOperationsGetWorkingDirectoryBinding.CreateCommand(request);
+            var command = GetWorkingDirectoryOperation.CreateCommand(request);
             var successful = GrpcOperationOutcomeMapper.RequireSuccess(
                 outcome,
                 command.OperationId,
                 ReplaySafety.Safe,
-                FileOperationsGetWorkingDirectoryBinding.OutputContracts,
+                GetWorkingDirectoryOperation.OutputContracts,
                 callerDeadlineExceeded: false);
-            var result = FileOperationsGetWorkingDirectoryBinding.CreateResult(successful);
+            var result = GetWorkingDirectoryOperation.CreateResult(successful);
             if (!result.HasDirectory || result.Execution is null)
             {
                 throw new InvalidOperationException(
@@ -181,7 +182,7 @@ public sealed class RuntimePerformanceEvidenceTests
 
     private static Action CreateDiscoveryAction()
     {
-        var policyValues = TargetCatalogMetadata.Operations
+        var policyValues = SpatialAnalyzerApi.Operations
             .Select((operation, index) => new KeyValuePair<string, string?>(
                 $"{OperationPolicy.AllowKey}:{index}",
                 operation.OperationId));
@@ -190,7 +191,7 @@ public sealed class RuntimePerformanceEvidenceTests
             .Build();
         var policy = OperationPolicy.Create(
             configuration,
-            TargetCatalogMetadata.Operations);
+            SpatialAnalyzerApi.Operations);
         var service = new ServerDiscoveryService(
             new FixedStatusProvider(),
             new FixedBuildIdentityProvider(),

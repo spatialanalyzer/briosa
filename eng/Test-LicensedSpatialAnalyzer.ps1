@@ -156,17 +156,17 @@ try {
     if (-not $NoBuild -and -not $usesPrebuiltSmokeClient) {
         & dotnet restore $smokeClientProject --locked-mode
         if ($LASTEXITCODE -ne 0) {
-            throw "The generated smoke client restore failed."
+            throw "The standard gRPC smoke client restore failed."
         }
 
         & dotnet build $smokeClientProject -c $Configuration --no-restore
         if ($LASTEXITCODE -ne 0) {
-            throw "The generated smoke client build failed."
+            throw "The standard gRPC smoke client build failed."
         }
     }
 
     if (-not (Test-Path -LiteralPath $resolvedSmokeClient -PathType Leaf)) {
-        throw "The generated smoke client must be built before the licensed test."
+        throw "The standard gRPC smoke client must be built before the licensed test."
     }
 
     Expand-Archive -LiteralPath $resolvedPackage -DestinationPath $extractRoot
@@ -225,14 +225,14 @@ try {
                 ForEach-Object { [string]$_ })
     }
     if ($LASTEXITCODE -ne 0) {
-        throw "The generated client did not complete the licensed smoke test."
+        throw "The gRPC client did not complete the licensed smoke test."
     }
 
     $report = ($clientOutput -join [Environment]::NewLine) | ConvertFrom-Json
     if (-not $report.success -or
         -not $report.ready_for_mp -or
         -not $report.operation_succeeded) {
-        throw "The generated client reported an unsuccessful licensed smoke test."
+        throw "The gRPC client reported an unsuccessful licensed smoke test."
     }
 
     $errorText = [string](
@@ -241,7 +241,7 @@ try {
         throw "The packaged server wrote to standard error during the licensed test."
     }
 
-    Write-Host "Licensed SpatialAnalyzer generated-client smoke test passed."
+    Write-Host "Licensed SpatialAnalyzer GetWorkingDirectory smoke test passed."
     Write-Host "The returned working-directory value was intentionally not logged."
 }
 finally {

@@ -94,7 +94,7 @@ grpcurl -plaintext 127.0.0.1:50051 list
 
 The list includes `grpc.reflection.v1alpha.ServerReflection`,
 `grpc.health.v1.Health`, `briosa.core.v1alpha1.DiscoveryService`, and the
-generated exact-target services. Reflection proves only that a schema is
+exact-target services. Reflection proves only that a schema is
 mapped; it does not authorize an operation or prove SpatialAnalyzer readiness.
 
 Check host liveness and MP readiness separately:
@@ -162,14 +162,14 @@ working-directory value.
 
 ## Keep the operation allowlist narrow
 
-The generated catalog is the maximum API surface the binary can express, not an
-authorization list. `ListCapabilities` is the authority for the operations the
-current process admits. The committed runtime policy allows exactly
+The handwritten operation registry is the maximum API surface the binary can
+express, not an authorization list. `ListCapabilities` is the authority for the
+operations the current process admits. The committed runtime policy allows exactly
 `file_operations.get_working_directory`; reflection and Development mode do not
 expand it. A reflected operation that is absent from `ListCapabilities` remains
 denied before worker or SDK execution.
 
-Never copy all catalog or reflected operations into a real-SA allowlist. Before
+Never copy all reflected operations into a real-SA allowlist. Before
 any per-run expansion, review each exact operation ID, its inputs, effect,
 execution scope, replay safety, and expected result. Add only those reviewed
 IDs to the indexed `Briosa:Security:Operations:Allow` configuration, restart
@@ -196,7 +196,7 @@ complete logs in a public report.
 | Either identity match state is `MISMATCH`; readiness is not `SERVING`; `readyForMp` is `false` | The activated SDK or connected application does not exactly match the configured target. | Correct the installation, COM registration, connection target, or independently established attestation. Never alter a claim or target to conceal the mismatch. |
 | Execution readiness is `COMPETING_CLIENT_SUSPECTED` or `OPERATOR_RECOVERY_REQUIRED`; readiness is not `SERVING` | An execution-channel probe timed out, failed ambiguously, or indicated unsafe SDK ownership. Automatic worker replacement cannot make replay or port ownership safe. | Stop Briosa. Close every SDK client and every SpatialAnalyzer instance, start exactly one clean matching instance, wait for it to acquire the ports, and restart Briosa. Reboot if ownership remains uncertain. |
 | Reflection or grpcui reports the reflection service as unimplemented | The host is not both a Debug build and in the `Development` environment. | Start the source host with the documented `SpatialAnalyzer` profile. Do not try to enable reflection in a Release package. |
-| An operation is reflected but returns `PERMISSION_DENIED` or is absent from `ListCapabilities` | Reflection described a compiled schema that runtime policy does not admit. | Leave it denied unless its exact operation has received a deliberate real-SA review. Do not broaden the catalog automatically. |
+| An operation is reflected but returns `PERMISSION_DENIED` or is absent from `ListCapabilities` | Reflection described a compiled schema that runtime policy does not admit. | Leave it denied unless its exact operation has received a deliberate real-SA review. Do not broaden policy automatically. |
 
 The clean recovery sequence is also required after a timeout, cancellation,
 worker crash, lost response, or uncertain port ownership. Do not automatically
@@ -214,7 +214,7 @@ second run; follow the clean recovery sequence before reconnecting.
 
 A successful manual run shows that this developer checkout can traverse the
 public host, worker process, SDK connection, identity gate, execution-channel
-probe, command policy, generated gRPC adapter, and one real read-only MP command.
+probe, command policy, standard gRPC transport adapter, and one real read-only MP command.
 Record only the source commit, target version, time, successful state names, and
 successful operation ID. Do not record the returned directory or evidence
 contents.

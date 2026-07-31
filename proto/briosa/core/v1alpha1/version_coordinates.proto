@@ -20,8 +20,8 @@ message VersionCoordinates {
   // The exact-target protobuf package implemented by the distribution.
   optional string target_protocol_package = 4;
 
-  // Immutable identity of the reviewed command catalog.
-  optional string catalog_revision = 5;
+  reserved 5;
+  reserved "catalog_revision";
 
   // Fingerprint of the approved generated interop metadata.
   optional string interop_fingerprint = 6;

@@ -1,6 +1,6 @@
 # ADR 0006: Exact-target supported-command catalogs
 
-- Status: Accepted; expanded for v0.2 release subsets
+- Status: Superseded by [ADR 0024](0024-handwritten-mp-operation-vertical-slices.md)
 - Date: 2026-07-21
 - Amended by: [ADR 0016](0016-command-argument-semantic-families.md) and [ADR 0021](0021-exact-target-protobuf-partitions-and-identifiers.md)
 
@@ -49,7 +49,7 @@ The manifest also records the stable protocol partition for every reviewed categ
 
 The manifest lists every operation file in ordinal path order. Validation fails for an unlisted file, a missing file, duplicate source or operation identities, or target/package mismatches. This makes a target directory one complete reviewable snapshot of Briosa support for that release.
 
-The manifest separately lists every release-membership file. A membership names an additive delivery subset using exact operation IDs and repeats the catalog ID, target, and revision so stale release claims fail closed. Membership is neither the complete catalog nor deployment authorization, and a release-line label does not declare cross-version compatibility. See the [release-membership guide](../development/release-membership.md).
+The former manifest separately listed release-membership files. That delivery mechanism was retired by ADR 0024 and remains documented here only as historical context.
 
 ## Operation and protocol naming
 

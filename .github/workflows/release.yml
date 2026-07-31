@@ -78,30 +78,11 @@ jobs:
           -Version "${{ steps.version.outputs.value }}"
           -OutputDirectory artifacts/release
 
-      - name: Run packaged generated-client scenarios
+      - name: Run packaged client scenarios
         shell: pwsh
-        run: |
-          ./eng/Test-GeneratedClientScenarios.ps1 `
-            -PackagePath "artifacts/release/briosa-${{ steps.version.outputs.value }}-sa-2026.1.0529.7-win-x64.zip"
-          ./eng/Test-GeneratedClientScenarios.ps1 `
-            -PackagePath "artifacts/release/briosa-${{ steps.version.outputs.value }}-sa-2026.1.0529.7-win-x64.zip" `
-            -FixturePath conformance/v1/wave1-read-only-scenarios.json
-          ./eng/Test-GeneratedClientScenarios.ps1 `
-            -PackagePath "artifacts/release/briosa-${{ steps.version.outputs.value }}-sa-2026.1.0529.7-win-x64.zip" `
-            -FixturePath conformance/v1/wave2-point-lifecycle-scenarios.json
-          ./eng/Test-GeneratedClientScenarios.ps1 `
-            -PackagePath "artifacts/release/briosa-${{ steps.version.outputs.value }}-sa-2026.1.0529.7-win-x64.zip" `
-            -FixturePath conformance/v1/wave2-collection-mutations-scenarios.json
-          ./eng/Test-GeneratedClientScenarios.ps1 `
-            -PackagePath "artifacts/release/briosa-${{ steps.version.outputs.value }}-sa-2026.1.0529.7-win-x64.zip" `
-            -FixturePath conformance/v1/wave2-object-lifecycle-scenarios.json
-          ./eng/Test-GeneratedClientScenarios.ps1 `
-            -PackagePath "artifacts/release/briosa-${{ steps.version.outputs.value }}-sa-2026.1.0529.7-win-x64.zip" `
-            -FixturePath conformance/v1/wave2-note-mutations-scenarios.json
-
-      - name: Enforce generated release audit
-        shell: pwsh
-        run: ./eng/Assert-ReleaseReady.ps1
+        run: >
+          ./eng/Test-ClientScenarios.ps1
+          -PackagePath "artifacts/release/briosa-${{ steps.version.outputs.value }}-sa-2026.1.0529.7-win-x64.zip"
 
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v7
