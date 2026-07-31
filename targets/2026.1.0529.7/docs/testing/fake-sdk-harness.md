@@ -4,19 +4,19 @@ Ordinary builds and tests must not require SpatialAnalyzer, a license, a desktop
 
 ## Direct SDK adapter tests
 
-Production-adapter tests use an injectable synchronous call surface to verify exact ordering and failure behavior without COM activation. The `GetWorkingDirectory` test proves:
+Production-adapter tests use an injectable synchronous call surface to verify exact ordering and failure behavior without COM activation. The implemented-operation tests prove:
 
-1. `SetStep("Get Working Directory")`;
-2. `ExecuteStep`;
-3. `GetMPStepResult`;
-4. success only when result code `2` is retrieved; and
-5. `GetStringArg("Directory", ...)` only after MP success.
+1. the exact `SetStep` call occurs first;
+2. input setters run in MP argument order;
+3. `ExecuteStep` precedes `GetMPStepResult`;
+4. success requires retrieved result code `2`; and
+5. exact output getters run only after MP success.
 
 Reusable codec tests cover scalar, list, identity/reference, and structured value marshaling retained by the worker. Testing an internal codec does not make any MP command public.
 
 ## In-process server fakes
 
-Server tests inject `IWorkerCommandExecutor` to exercise the handwritten `GetWorkingDirectoryOperation` command and result mapping through `OperationExecutor`. They cover success, MP failure, output retrieval failure, caller deadline, cancellation, result-mapping failure, typed error details, policy, capability discovery, and audit redaction.
+Server tests inject `IWorkerCommandExecutor` to exercise each handwritten operation's command and result mapping through `OperationExecutor`. They cover required input presence, valid zero values, success, MP failure, output retrieval failure, caller deadline, cancellation, result-mapping failure, typed error details, policy, capability discovery, and audit redaction.
 
 The outcome-mapper matrix validates present default-like values, failed retrieval, malformed results, uncertain completion, recovery guidance, and replay guidance independently from SpatialAnalyzer.
 
@@ -40,6 +40,6 @@ Cancellation can stop a caller from entering the queue or waiting for a response
 
 ## Packaged client boundary
 
-The [standard generated-client smoke workflow](client-smoke.md) starts the packaged server with a separate fake worker and crosses the actual loopback HTTP/2 endpoint. The licensed workflow uses the same public client for the one authorized real-SA success path.
+The [standard generated-client smoke workflow](client-smoke.md) starts the packaged server with a separate fake worker and crosses the actual loopback HTTP/2 endpoint. The licensed workflow uses the same public client for the authorized real-SA success paths.
 
 Mutating failure injection, competing-client experiments, hangs, and crashes remain fake-only unless a separate licensed test is explicitly authorized.

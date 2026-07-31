@@ -1,3 +1,4 @@
+using Briosa.Server.Operations.AnalysisOperations;
 using Briosa.Server.Operations.FileOperations;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
@@ -10,6 +11,7 @@ internal static class SpatialAnalyzerServiceRegistration
         this IEndpointRouteBuilder endpoints)
     {
         ArgumentNullException.ThrowIfNull(endpoints);
+        endpoints.MapGrpcService<AnalysisOperationsService>();
         endpoints.MapGrpcService<FileOperationsService>();
         return endpoints;
     }

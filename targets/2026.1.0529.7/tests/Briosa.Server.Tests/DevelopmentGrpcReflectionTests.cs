@@ -95,11 +95,31 @@ public sealed class DevelopmentGrpcReflectionTests
             serverInfo.ConnectedSpatialAnalyzerIdentity.Source);
         var capabilities = await discovery.ListCapabilitiesAsync(
             new Api.ListCapabilitiesRequest()).ResponseAsync.ConfigureAwait(true);
-        var capability = Assert.Single(capabilities.Operations);
-        Assert.Equal("file_operations.get_working_directory", capability.OperationId);
+        Assert.Equal(2, capabilities.Operations.Count);
+        Assert.Contains(
+            capabilities.Operations,
+            operation =>
+                operation.OperationId ==
+                "analysis_operations.get_i_th_collection_name");
+        Assert.Contains(
+            capabilities.Operations,
+            operation =>
+                operation.OperationId ==
+                "file_operations.get_working_directory");
         Assert.DoesNotContain(
             capabilities.Operations,
             operation => operation.Effect == Api.OperationEffect.Mutating);
+
+        var analysisOperations =
+            new Api.AnalysisOperations.AnalysisOperationsClient(host.Channel);
+        var analysisUnavailable = await Assert.ThrowsAsync<RpcException>(async () =>
+            await analysisOperations.GetIThCollectionNameAsync(
+                new Api.GetIThCollectionNameRequest
+                {
+                    CollectionIndex = 0
+                }).ResponseAsync.ConfigureAwait(true))
+            .ConfigureAwait(true);
+        Assert.Equal(StatusCode.Unavailable, analysisUnavailable.StatusCode);
 
         var fileOperations = new Api.FileOperations.FileOperationsClient(host.Channel);
         var unavailable = await Assert.ThrowsAsync<RpcException>(async () =>

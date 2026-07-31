@@ -127,6 +127,6 @@ When work encounters one of these questions, implement only a reversible minimum
 
 ## Current initial target
 
-The current baseline product is `targets/2026.1.0529.7`. It provides a production-shaped .NET 10 foundation with one supervised, serialized SDK connection, one handwritten read-only operation (`GetWorkingDirectory` for MP step `Get Working Directory`), standard generated-client smoke coverage, and safe diagnostics.
+The current baseline product is `targets/2026.1.0529.7`. It provides a production-shaped .NET 10 foundation with one supervised, serialized SDK connection, two handwritten read-only operations (`GetWorkingDirectory` and `GetIThCollectionName`), standard generated-client smoke coverage, and safe diagnostics.
 
 Add one operation at a time through an ordinary implementation issue and pull request. Reference inventory, bindings, values, or ObjectiveSA wrappers may accelerate review, but none is an implementation queue, public allowlist, or completeness requirement.

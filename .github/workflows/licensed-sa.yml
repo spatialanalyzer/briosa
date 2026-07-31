@@ -190,7 +190,7 @@ jobs:
           -Phase Preflight
           -RequireGitHubRunner
 
-      - name: Run licensed GetWorkingDirectory smoke test
+      - name: Run licensed read-only operation smoke tests
         shell: pwsh
         run: |
           $package = @(Get-ChildItem `

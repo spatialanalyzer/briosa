@@ -215,8 +215,11 @@ public sealed class DiscoveryServiceTests
 
         Assert.Equal("2026.1.0529.7", response.SpatialAnalyzerTarget);
         Assert.Equal("briosa", response.ProtocolPackage);
-        var operation = Assert.Single(response.Operations);
-        Assert.Equal("file_operations.get_working_directory", operation.OperationId);
+        Assert.Equal(2, response.Operations.Count);
+        var operation = Assert.Single(
+            response.Operations,
+            candidate =>
+                candidate.OperationId == "file_operations.get_working_directory");
         Assert.Equal(
             "briosa.FileOperations",
             operation.GrpcService);
@@ -229,6 +232,24 @@ public sealed class DiscoveryServiceTests
             OperationExecutionScope.GlobalStateRead,
             operation.ExecutionScope);
         Assert.Equal(ReplaySafety.Safe, operation.ReplaySafety);
+
+        var analysisOperation = Assert.Single(
+            response.Operations,
+            candidate =>
+                candidate.OperationId ==
+                "analysis_operations.get_i_th_collection_name");
+        Assert.Equal(
+            "briosa.AnalysisOperations",
+            analysisOperation.GrpcService);
+        Assert.Equal("GetIThCollectionName", analysisOperation.Rpc);
+        Assert.Equal(
+            "/briosa.AnalysisOperations/GetIThCollectionName",
+            analysisOperation.FullyQualifiedMethod);
+        Assert.Equal(OperationEffect.ReadOnly, analysisOperation.Effect);
+        Assert.Equal(
+            OperationExecutionScope.GlobalStateRead,
+            analysisOperation.ExecutionScope);
+        Assert.Equal(ReplaySafety.Safe, analysisOperation.ReplaySafety);
     }
 
     [Fact]
@@ -263,9 +284,12 @@ public sealed class DiscoveryServiceTests
         var values = new Dictionary<string, string?>(StringComparer.Ordinal);
         if (allow)
         {
-            values.Add(
-                $"{OperationPolicy.AllowKey}:0",
-                "file_operations.get_working_directory");
+            for (var index = 0; index < SpatialAnalyzerApi.Operations.Count; index++)
+            {
+                values.Add(
+                    $"{OperationPolicy.AllowKey}:{index}",
+                    SpatialAnalyzerApi.Operations[index].OperationId);
+            }
         }
 
         var configuration = new ConfigurationBuilder()

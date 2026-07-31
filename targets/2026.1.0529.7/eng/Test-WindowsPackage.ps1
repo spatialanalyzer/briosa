@@ -111,8 +111,9 @@ try {
     Assert-Condition -Condition ($manifest.protocolPackage -eq "briosa") -Message "The package protocol identity is incorrect."
     Assert-Condition -Condition ($null -eq $manifest.PSObject.Properties["coreProtocolPackage"] -and $null -eq $manifest.PSObject.Properties["targetProtocolPackage"]) -Message "A retired versioned protocol identity leaked into the package."
     Assert-Condition -Condition ($null -eq $manifest.PSObject.Properties["catalogRevision"]) -Message "The retired catalog revision leaked into the package."
-    Assert-Condition -Condition ($manifest.implementedOperations.Count -eq 1) -Message "The package must declare exactly one implemented operation."
-    Assert-Condition -Condition ($manifest.implementedOperations[0] -eq "file_operations.get_working_directory") -Message "The package implemented-operation declaration is incorrect."
+    Assert-Condition -Condition ($manifest.implementedOperations.Count -eq 2) -Message "The package must declare exactly two implemented operations."
+    Assert-Condition -Condition ($manifest.implementedOperations[0] -eq "analysis_operations.get_i_th_collection_name") -Message "The package analysis-operation declaration is incorrect."
+    Assert-Condition -Condition ($manifest.implementedOperations[1] -eq "file_operations.get_working_directory") -Message "The package file-operation declaration is incorrect."
     Assert-Condition -Condition ($manifest.spatialAnalyzerTarget -eq "2026.1.0529.7") -Message "The package declares the wrong SpatialAnalyzer target."
     Assert-Condition -Condition ($null -eq $manifest.PSObject.Properties["supportedSpatialAnalyzerReleases"]) -Message "A multi-target release list leaked into the exact-target package."
     Assert-Condition -Condition (-not $manifest.spatialAnalyzerBundled) -Message "The package must not claim to bundle SpatialAnalyzer."
@@ -122,8 +123,9 @@ try {
     Assert-Condition -Condition ($configuration.Briosa.Endpoint.Port -eq 50051) -Message "The packaged endpoint port is incorrect."
     Assert-Condition -Condition ($configuration.Briosa.SpatialAnalyzer.Host -eq "localhost") -Message "The packaged SpatialAnalyzer target must default to localhost."
     Assert-Condition -Condition ($configuration.Briosa.Worker.ExecutionWatchdogTimeout -eq "00:00:30") -Message "The packaged execution watchdog default is incorrect."
-    Assert-Condition -Condition ($configuration.Briosa.Security.Operations.Allow.Count -eq 1) -Message "The packaged operation allowlist must contain exactly one reviewed operation."
-    Assert-Condition -Condition ($configuration.Briosa.Security.Operations.Allow[0] -eq "file_operations.get_working_directory") -Message "The packaged operation allowlist is incorrect."
+    Assert-Condition -Condition ($configuration.Briosa.Security.Operations.Allow.Count -eq 2) -Message "The packaged operation allowlist must contain exactly two reviewed operations."
+    Assert-Condition -Condition ($configuration.Briosa.Security.Operations.Allow[0] -eq "analysis_operations.get_i_th_collection_name") -Message "The packaged analysis-operation allowlist entry is incorrect."
+    Assert-Condition -Condition ($configuration.Briosa.Security.Operations.Allow[1] -eq "file_operations.get_working_directory") -Message "The packaged file-operation allowlist entry is incorrect."
     Assert-Condition -Condition ($configuration.Briosa.Security.Operations.Deny.Count -eq 0) -Message "The packaged operation denylist must be empty by default."
 
     foreach ($requiredFile in @(

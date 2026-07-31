@@ -11,7 +11,7 @@ Run:
   -PackagePath artifacts/package-smoke/briosa-0.1.0-ci-sa-2026.1.0529.7-win-x64.zip
 ```
 
-The script starts the packaged server with a separate fake worker and exercises only `FileOperations/GetWorkingDirectory`. Its handwritten scenario table covers:
+The script starts the packaged server with a separate fake worker. The successful scenario invokes both `FileOperations/GetWorkingDirectory` and `AnalysisOperations/GetIThCollectionName` with collection index `0`; the failure scenarios reuse the established file-operation path. Its handwritten scenario table covers:
 
 - successful execution and output retrieval;
 - disconnected SpatialAnalyzer;
@@ -23,7 +23,7 @@ The script starts the packaged server with a separate fake worker and exercises 
 - worker watchdog termination and replacement; and
 - an unsupported exact-target service package.
 
-Every scenario validates structural status, typed error shape where applicable, readiness, recovery, and capability advertisement. It never prints command arguments or returned directory values.
+Every scenario validates structural status, typed error shape where applicable, readiness, recovery, and capability advertisement. It never prints command arguments or returned directory or collection-name values.
 
 These scenarios require Windows x64 and .NET but do not start SpatialAnalyzer or require a license.
 
@@ -36,12 +36,12 @@ The runner:
 - rejects competing Briosa, SDK, or SpatialAnalyzer processes;
 - starts one clean exact-target generation;
 - waits for verified readiness;
-- invokes `GetWorkingDirectory`;
+- invokes `GetWorkingDirectory` and `GetIThCollectionName`;
 - records structural success only;
 - stops the Briosa process cohort; and
 - verifies cleanup.
 
-The returned path is developer-visible output but is never copied into logs or evidence artifacts.
+The returned path and collection name are developer-visible output but are never copied into logs or evidence artifacts.
 
 ## Adding another operation
 

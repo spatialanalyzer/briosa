@@ -1,3 +1,4 @@
+using Briosa.Server.Operations.AnalysisOperations;
 using Briosa.Server.Operations.FileOperations;
 using Briosa.Server.Security;
 
@@ -12,5 +13,8 @@ internal static class SpatialAnalyzerApi
     public const string ProtocolPackage = "briosa";
 
     public static IReadOnlyList<OperationDescriptor> Operations { get; } =
-        [GetWorkingDirectoryOperation.Descriptor];
+        [
+            GetIThCollectionNameOperation.Descriptor,
+            GetWorkingDirectoryOperation.Descriptor
+        ];
 }

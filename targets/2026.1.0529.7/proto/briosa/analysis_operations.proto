@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package briosa;
+
+import "briosa/operation_outcomes.proto";
+
+option csharp_namespace = "Briosa";
+
+service AnalysisOperations {
+  // Executes the "Get i-th Collection Name" MP command.
+  rpc GetIThCollectionName(GetIThCollectionNameRequest) returns (GetIThCollectionNameResult);
+}
+
+message GetIThCollectionNameRequest {
+  // The zero-based MP argument named "Collection Index".
+  optional int32 collection_index = 1;
+}
+
+message GetIThCollectionNameResult {
+  // The MP return argument named "Resultant Name".
+  optional string resultant_name = 1;
+  // Explicit MP and result-only argument retrieval outcome.
+  MpExecutionDetails execution = 1000;
+}
