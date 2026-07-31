@@ -89,11 +89,20 @@ function Start-ScenarioServer {
         [switch]$DenyOperation
     )
 
+    # A [string] parameter coerces an explicit $null to an empty string.
+    # Normalize it before setting the environment so the packaged default is
+    # not replaced by an invalid empty configuration value on newer runtimes.
+    $effectiveWatchdogTimeout = if (
+        [string]::IsNullOrWhiteSpace($WatchdogTimeout)) {
+        $null
+    } else {
+        $WatchdogTimeout
+    }
     $environmentValues = [ordered]@{
         "Briosa__Worker__ExecutablePath" = $smokeWorkerExe
         "BRIOSA_TEST_WORKER_SCENARIO" = $WorkerScenario
         "BRIOSA_TEST_WORKER_STATE_PATH" = $StatePath
-        "Briosa__Worker__ExecutionWatchdogTimeout" = $WatchdogTimeout
+        "Briosa__Worker__ExecutionWatchdogTimeout" = $effectiveWatchdogTimeout
         "Briosa__Security__Operations__Deny__0" = $(if ($DenyOperation) { "file_operations.get_working_directory" } else { $null })
         "Briosa__SpatialAnalyzer__Identity__ActivatedSdk__OperatorAttestation__Version" = "2026.1.0529.7"
         "Briosa__SpatialAnalyzer__Identity__ActivatedSdk__OperatorAttestation__Reference" = "portable-fake-worker"
