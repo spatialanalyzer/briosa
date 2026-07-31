@@ -1,5 +1,7 @@
 # SA 2026.1.0529.7 SDK binding registry
 
+> Reference snapshot only. Historical coverage fields below belong to the retired evidence pipeline and are not current implementation or support claims. See [the SDK binding reference boundary](../../README.md).
+
 This deterministic report reconciles extracted View SDK Code evidence with the committed exact-target interop API. A usable binding does not approve any MP operation by itself.
 
 ## Coverage

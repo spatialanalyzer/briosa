@@ -2,7 +2,6 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Briosa.Server.Generated.Sa.V2026_1_0529_7.V1Alpha1;
 
 namespace Briosa.Server.Services;
 
@@ -31,13 +30,11 @@ internal static class ServerDiagnosticsCommand
         var supportedPlatform = OperatingSystem.IsWindows() &&
             RuntimeInformation.ProcessArchitecture == Architecture.X64;
         var report = new DiagnosticsReport(
-            SchemaVersion: 1,
+            SchemaVersion: 2,
             coordinates.BriosaVersion,
             coordinates.HasSourceRevision ? coordinates.SourceRevision : null,
             coordinates.CoreProtocolPackage,
             coordinates.TargetProtocolPackage,
-            TargetCatalogMetadata.CatalogId,
-            coordinates.CatalogRevision,
             coordinates.SpatialAnalyzerTarget,
             coordinates.InteropFingerprint,
             RuntimeInformation.ProcessArchitecture.ToString().ToUpperInvariant(),
@@ -56,8 +53,6 @@ internal static class ServerDiagnosticsCommand
         [property: JsonPropertyName("source_revision")] string? SourceRevision,
         [property: JsonPropertyName("core_protocol_package")] string CoreProtocolPackage,
         [property: JsonPropertyName("target_protocol_package")] string TargetProtocolPackage,
-        [property: JsonPropertyName("catalog_id")] string CatalogId,
-        [property: JsonPropertyName("catalog_revision")] string CatalogRevision,
         [property: JsonPropertyName("spatial_analyzer_target")] string SpatialAnalyzerTarget,
         [property: JsonPropertyName("interop_fingerprint")] string InteropFingerprint,
         [property: JsonPropertyName("process_architecture")] string ProcessArchitecture,

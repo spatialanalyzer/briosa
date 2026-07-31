@@ -1,4 +1,4 @@
-using Briosa.Server.Generated.Sa.V2026_1_0529_7.V1Alpha1;
+using Briosa.Server.Operations;
 using Briosa.Server.Security;
 using Briosa.Server.Workers;
 using Briosa.Worker.Control;
@@ -65,10 +65,8 @@ internal sealed class ServerDiscoveryService(
     {
         var response = new CoreProtocol.ListCapabilitiesResponse
         {
-            CatalogId = TargetCatalogMetadata.CatalogId,
-            CatalogRevision = TargetCatalogMetadata.CatalogRevision,
-            SpatialAnalyzerTarget = TargetCatalogMetadata.SpatialAnalyzerTarget,
-            TargetProtocolPackage = TargetCatalogMetadata.TargetProtocolPackage
+            SpatialAnalyzerTarget = SpatialAnalyzerApi.TargetVersion,
+            TargetProtocolPackage = SpatialAnalyzerApi.TargetProtocolPackage
         };
         response.Operations.AddRange(_operationPolicy.AllowedOperations.Select(operation =>
             new CoreProtocol.OperationCapability

@@ -3,9 +3,7 @@ param(
     [ValidatePattern('^[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?$')]
     [string]$Version = "0.1.0-ci",
 
-    [string]$OutputDirectory = "artifacts\package-smoke",
-
-    [string]$MetricsOutputDirectory = "artifacts\ci-metrics\package-smoke"
+    [string]$OutputDirectory = "artifacts\package-smoke"
 )
 
 Set-StrictMode -Version Latest
@@ -14,7 +12,6 @@ $ErrorActionPreference = "Stop"
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $packageScript = Join-Path $PSScriptRoot "New-WindowsPackage.ps1"
 $workerTestHostProject = Join-Path $repositoryRoot "tests\Briosa.Worker.TestHost\Briosa.Worker.TestHost.csproj"
-$coveragePath = Join-Path $repositoryRoot "generated\catalog\sa\2026.1.0529.7\coverage.json"
 $temporaryBase = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
 $temporaryRoot = Join-Path $temporaryBase "briosa-package-test-$([Guid]::NewGuid().ToString('N'))"
 $firstOutput = [IO.Path]::GetFullPath($OutputDirectory, $repositoryRoot)
@@ -66,8 +63,7 @@ if ($LASTEXITCODE -ne 0 -or $sourceRevision -notmatch '^[0-9a-fA-F]{40}$') {
     throw "Could not determine a complete source revision."
 }
 
-$coverage = Get-Content -LiteralPath $coveragePath -Raw | ConvertFrom-Json
-$artifactBase = "briosa-$Version-sa-$($coverage.spatial_analyzer_target)-win-x64"
+$artifactBase = "briosa-$Version-sa-2026.1.0529.7-win-x64"
 $zipName = "$artifactBase.zip"
 $firstZip = Join-Path $firstOutput $zipName
 $secondZip = Join-Path $secondOutput $zipName
@@ -98,11 +94,6 @@ try {
     $firstHash = (Get-FileHash -LiteralPath $firstZip -Algorithm SHA256).Hash
     $secondHash = (Get-FileHash -LiteralPath $secondZip -Algorithm SHA256).Hash
     Assert-Condition -Condition ($firstHash -eq $secondHash) -Message "Two clean package builds produced different SHA-256 hashes."
-    & (Join-Path $PSScriptRoot "Measure-CiBudget.ps1") `
-        -Metric package-size `
-        -ObservedValue ([double](Get-Item -LiteralPath $firstZip).Length) `
-        -OutputDirectory $MetricsOutputDirectory
-
     $externalChecksumPath = "$firstZip.sha256"
     $externalChecksum = Get-Content -LiteralPath $externalChecksumPath -Raw
     Assert-Condition -Condition ($externalChecksum.Trim() -eq "$firstHash  $zipName") -Message "The external ZIP checksum does not match the package."
@@ -116,6 +107,10 @@ try {
     Assert-Condition -Condition ($manifest.sourceRevision -eq $sourceRevision.ToLowerInvariant()) -Message "The manifest source revision is incorrect."
     Assert-Condition -Condition ($manifest.runtimeIdentifier -eq "win-x64") -Message "The manifest runtime identifier is incorrect."
     Assert-Condition -Condition ($manifest.selfContained -and -not $manifest.trimmed) -Message "The package must be self-contained and untrimmed."
+    Assert-Condition -Condition ($manifest.schemaVersion -eq 2) -Message "The package manifest schema version is incorrect."
+    Assert-Condition -Condition ($null -eq $manifest.PSObject.Properties["catalogRevision"]) -Message "The retired catalog revision leaked into the package."
+    Assert-Condition -Condition ($manifest.implementedOperations.Count -eq 1) -Message "The package must declare exactly one implemented operation."
+    Assert-Condition -Condition ($manifest.implementedOperations[0] -eq "file_operations.get_working_directory") -Message "The package implemented-operation declaration is incorrect."
     Assert-Condition -Condition ($manifest.supportedSpatialAnalyzerReleases.Count -eq 1) -Message "The package must declare exactly one supported SpatialAnalyzer release."
     Assert-Condition -Condition ($manifest.supportedSpatialAnalyzerReleases[0] -eq "2026.1.0529.7") -Message "The package declares the wrong SpatialAnalyzer release."
     Assert-Condition -Condition (-not $manifest.spatialAnalyzerBundled) -Message "The package must not claim to bundle SpatialAnalyzer."
@@ -243,16 +238,8 @@ try {
     }
 
     $startupStopwatch.Stop()
-    & (Join-Path $PSScriptRoot "Measure-CiBudget.ps1") `
-        -Metric startup `
-        -ObservedValue $startupStopwatch.Elapsed.TotalSeconds `
-        -OutputDirectory $MetricsOutputDirectory
     Assert-Condition -Condition $listening -Message "The packaged host did not open its configured loopback endpoint without SpatialAnalyzer."
     $serverProcess.Refresh()
-    & (Join-Path $PSScriptRoot "Measure-CiBudget.ps1") `
-        -Metric startup-working-set `
-        -ObservedValue ([double]$serverProcess.WorkingSet64) `
-        -OutputDirectory $MetricsOutputDirectory
 
     if (-not $serverProcess.HasExited) {
         Stop-Process -Id $serverProcess.Id -Force

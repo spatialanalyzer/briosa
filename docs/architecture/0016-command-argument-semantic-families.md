@@ -1,6 +1,6 @@
 # ADR 0016: Command-argument semantic families for shared SDK bindings
 
-- Status: Accepted
+- Status: Accepted for internal SDK semantics; public generation mechanics superseded by [ADR 0024](0024-handwritten-mp-operation-vertical-slices.md)
 - Date: 2026-07-27
 - Issue: [#86](https://github.com/spatialanalyzer/briosa/issues/86)
 - Amends: [ADR 0006](0006-versioned-command-catalog.md), [ADR 0009](0009-catalog-derived-operation-artifacts.md)
@@ -26,14 +26,14 @@ For SA 2026.1.0529.7:
 - returned SDK type literals are parsed against the selected command-argument family, and an unknown or out-of-family literal makes retrieval fail;
 - no generic string, integer, or object-type fallback is permitted.
 
-Protocol and worker plumbing may be implemented before catalog promotion. A generated operation may use either family only after the binding review assigns that exact inventory command argument to one family. Issue [#87](https://github.com/spatialanalyzer/briosa/issues/87) owns the evidence-backed assignment catalog and completeness checks for all shared-method observations.
+Worker plumbing may be implemented before a public operation. A handwritten operation may use either family only after its exact command argument is assigned from reviewed exact-target evidence. The retained value evidence records historical assignments but is not an implementation gate.
 
 Exact-target evidence has precedence. The current ObjectiveSA wrapper is useful secondary evidence for calling and marshaling conventions, but its earlier-release types cannot establish the SA 2026.1.0529.7 member set or command assignment.
 
 ## Consequences
 
 - Shared SDK method names no longer collapse distinct public semantics.
-- The same native call path remains direct and allocation-light; family selection happens in generated code, not through runtime reflection or catalog lookup.
+- The same native call path remains direct and allocation-light; family selection happens in handwritten operation code, not through runtime reflection or catalog lookup.
 - Unknown returned type strings fail closed rather than leaking as raw public strings.
 - The standalone command that requires the absent `SetItemTypeArg` is `sdk_unavailable`; composite collection-item values remain implementable through their exact shared bindings.
 - Adding another exact SA target requires independent object/item member evidence and command-argument assignments.

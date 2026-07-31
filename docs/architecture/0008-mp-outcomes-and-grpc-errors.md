@@ -10,7 +10,7 @@ An MP request can fail at several independent boundaries. The gRPC request may b
 
 These cases have different retry and data-validity implications. In particular, `ExecuteStep` returning true does not establish MP success, and MP success does not establish that every requested output was retrieved. A failed output getter cannot be represented as an absent/default value without losing information.
 
-The first vertical slice used operation-local status mapping while this shared contract remained deliberately unsettled. Generated clients now need one language-neutral representation that can be reused by later exact-SA operations without exposing private worker or COM types.
+The first vertical slice used operation-local status mapping while this shared contract remained deliberately unsettled. Clients need one language-neutral representation that can be reused by later exact-SA operations without exposing private worker or COM types.
 
 ## Decision
 
@@ -18,7 +18,7 @@ The stable core package defines release-independent outcome types in `operation_
 
 - `MpExecutionDetails` records the overall MP state, the numeric MP result code when available, and retrieval details for every requested output.
 - `OutputRetrievalDetails` identifies a public result field and distinguishes `RETRIEVED`, `NOT_ATTEMPTED`, and `FAILED`. It never contains the field's value.
-- Exact-SA result messages retain their strongly typed operation fields and add `MpExecutionDetails execution = 1000`. The high, fixed field number leaves ordinary catalog-derived field numbering unchanged. Existing result field numbers are never reused or renumbered.
+- Exact-SA result messages retain their strongly typed operation fields and add `MpExecutionDetails execution = 1000`. The high, fixed field number leaves ordinary operation fields separate. Existing result field numbers are never reused or renumbered.
 - A successful typed value is present only when its retrieval state is `RETRIEVED`. A successfully retrieved empty string, zero, or false value therefore remains distinguishable from absence or failure.
 - MP rejection, MP-result retrieval failure, or a retrieved non-success result marks every requested output `NOT_ATTEMPTED`, matching the executor rule that getters run only after result code `2`.
 - `RESULT_UNAVAILABLE` with `MP_RESULT_RETRIEVAL_FAILURE` represents a false `GetMPStepResult` Boolean and carries no numeric result code. `FAILED` with `MP_FAILURE` means the getter succeeded but returned a code other than `2`; the raw code is retained.
@@ -31,7 +31,7 @@ Non-OK calls use canonical gRPC status codes and include exactly one Briosa-spec
 - failure kind and curated diagnostic code;
 - execution disposition (`NotStarted`, `StartedOutcomeUnknown`, or `Completed`);
 - worker recovery guidance, kept independent from replay;
-- replay guidance and the exact-target catalog replay-safety classification;
+- replay guidance and the operation descriptor's reviewed replay-safety classification;
 - worker generation;
 - MP and output-retrieval details when execution reached that boundary.
 
@@ -44,17 +44,17 @@ It contains no raw command arguments or returned output values. gRPC status text
 | Invalid request, unsupported operation, or policy denial | canonical request status / matching kind | `NOT_STARTED` | `NONE` | `DO_NOT_REPLAY` unchanged |
 | SA or worker unavailable before enqueue or SDK execution | `Unavailable` / availability kind | `NOT_STARTED` | `WAIT_FOR_READINESS` | `MAY_REPLAY` after readiness |
 | Caller cancellation or deadline before enqueue | caller status / caller kind | `NOT_STARTED` | `NONE` | `MAY_REPLAY` |
-| Caller cancellation or deadline after enqueue | caller status / caller kind | `STARTED_OUTCOME_UNKNOWN` | `NONE` | `MAY_REPLAY` only for catalog `SAFE`; otherwise reconcile |
+| Caller cancellation or deadline after enqueue | caller status / caller kind | `STARTED_OUTCOME_UNKNOWN` | `NONE` | `MAY_REPLAY` only for operation `SAFE`; otherwise reconcile |
 | SDK argument setter rejected before `ExecuteStep` | `FailedPrecondition` / `SDK_ARGUMENT_REJECTED` | `NOT_STARTED` | `NONE` | `DO_NOT_REPLAY` unchanged |
-| `ExecuteStep` rejected | `FailedPrecondition` / `EXECUTE_STEP_REJECTED` | `STARTED_OUTCOME_UNKNOWN` | `NONE` | `MAY_REPLAY` only for catalog `SAFE`; otherwise reconcile |
-| Independent worker watchdog elapsed | `Unavailable` / `WORKER_WATCHDOG_TIMEOUT` | `STARTED_OUTCOME_UNKNOWN` | `WORKER_REPLACEMENT` | `MAY_REPLAY` only for catalog `SAFE`; otherwise reconcile |
-| Worker crash or control response loss | `Unavailable` / `WORKER_FAILURE` | `STARTED_OUTCOME_UNKNOWN` | `WORKER_REPLACEMENT` | `MAY_REPLAY` only for catalog `SAFE`; otherwise reconcile |
+| `ExecuteStep` rejected | `FailedPrecondition` / `EXECUTE_STEP_REJECTED` | `STARTED_OUTCOME_UNKNOWN` | `NONE` | `MAY_REPLAY` only for operation `SAFE`; otherwise reconcile |
+| Independent worker watchdog elapsed | `Unavailable` / `WORKER_WATCHDOG_TIMEOUT` | `STARTED_OUTCOME_UNKNOWN` | `WORKER_REPLACEMENT` | `MAY_REPLAY` only for operation `SAFE`; otherwise reconcile |
+| Worker crash or control response loss | `Unavailable` / `WORKER_FAILURE` | `STARTED_OUTCOME_UNKNOWN` | `WORKER_REPLACEMENT` | `MAY_REPLAY` only for operation `SAFE`; otherwise reconcile |
 | `GetMPStepResult` failed to retrieve a result | `Internal` / `MP_RESULT_RETRIEVAL_FAILURE` | `STARTED_OUTCOME_UNKNOWN` | `NONE` | `RECONCILE_BEFORE_REPLAY` |
 | Retrieved MP result code was not `2` | `FailedPrecondition` / `MP_FAILURE` | `COMPLETED` | `NONE` | `DO_NOT_REPLAY` unchanged |
 | Requested output getter failed | `DataLoss` / `OUTPUT_RETRIEVAL_FAILURE` | `COMPLETED` | `NONE` | `DO_NOT_REPLAY` to recover output |
 | Invalid result shape after a terminal MP result | `Internal` / `INTERNAL` | `COMPLETED` | `NONE` | `DO_NOT_REPLAY` |
 
-Missing or unspecified execution disposition is never treated as `NOT_STARTED`. Catalog replay safety is separately reviewed as `SAFE`, `UNSAFE`, or `UNKNOWN`; `UNKNOWN` is handled like `UNSAFE` for automatic behavior.
+Missing or unspecified execution disposition is never treated as `NOT_STARTED`. Operation replay safety is separately reviewed as `SAFE`, `UNSAFE`, or `UNKNOWN`; `UNKNOWN` is handled like `UNSAFE` for automatic behavior.
 
 ## Deadlines and worker watchdogs
 
@@ -66,7 +66,7 @@ The worker watchdog is independent. Its timeout force-terminates and replaces th
 
 ## Implementation boundary
 
-`GrpcOperationOutcomeMapper` is the reviewed hand-written policy point. It validates the private worker result shape, creates explicit successful execution details, and maps failures to gRPC status plus typed metadata. Generated catalog artifacts provide public field names and private MP argument names but do not choose error policy.
+`GrpcOperationOutcomeMapper` is the reviewed handwritten policy point. It validates the private worker result shape, creates explicit successful execution details, and maps failures to gRPC status plus typed metadata. Each handwritten operation provides its public field mapping and private MP argument names but does not choose error policy.
 
 Issue #16 will generalize operation adapter and result mapping generation. Issue #18 will build the packaged external-client and cross-process failure suite on this stable contract. Health, readiness, and capability services remain owned by issue #12.
 
@@ -82,10 +82,10 @@ Portable tests verify every matrix row without SpatialAnalyzer. They also verify
 - pre-enqueue cancellation is `NOT_STARTED`, while post-enqueue cancellation is uncertain;
 - worker replacement guidance never becomes replay guidance for `UNSAFE` or `UNKNOWN` operations;
 - malformed output shapes fail as `Internal`;
-- catalog regeneration adds shared execution details deterministically without renumbering operation fields.
+- operation tests verify shared execution details without renumbering operation fields.
 - non-OK calls carry only the typed `OperationError` trailer;
 
-Buf formatting, linting, and schema compilation remain ordinary CI checks. Once Briosa has a public release, FILE-level compatibility is checked against that explicit release baseline rather than the evolving `main` branch. Catalog-artifact verification regenerates checked-in operation contracts and fails on drift.
+Buf formatting, linting, and schema compilation remain ordinary CI checks. Once Briosa has a public release, FILE-level compatibility is checked against that explicit release baseline rather than the evolving `main` branch.
 
 ## Consequences
 
@@ -93,4 +93,4 @@ Buf formatting, linting, and schema compilation remain ordinary CI checks. Once 
 - Operation values remain exact-target and strongly typed while outcome mechanics remain stable core concepts.
 - Successful default-like values cannot be confused with retrieval failure.
 - Public failure metadata is safe for default diagnostics because it excludes raw values.
-- The high execution field number keeps shared execution metadata separate from ordinary catalog-derived result fields.
+- The high execution field number keeps shared execution metadata separate from ordinary operation result fields.

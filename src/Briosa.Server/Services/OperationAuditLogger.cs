@@ -96,7 +96,7 @@ internal sealed partial class OperationAuditLogger(ILogger<OperationAuditLogger>
 
     public void RequestStarted(
         Guid correlationId,
-        CatalogOperationDescriptor operation,
+        OperationDescriptor operation,
         string actorCategory)
     {
         ArgumentNullException.ThrowIfNull(operation);

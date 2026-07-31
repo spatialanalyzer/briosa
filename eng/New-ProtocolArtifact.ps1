@@ -17,9 +17,9 @@ $ErrorActionPreference = "Stop"
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $deterministicZipScript = Join-Path $PSScriptRoot "New-DeterministicZip.ps1"
-$coveragePath = Join-Path $repositoryRoot "generated\catalog\sa\2026.1.0529.7\coverage.json"
 $protoRoot = Join-Path $repositoryRoot "proto"
-$conformanceRoot = Join-Path $repositoryRoot "conformance"
+$targetVersion = "2026.1.0529.7"
+$targetProtocolPackage = "briosa.sa.v2026_1_0529_7.v1alpha1"
 $temporaryBase = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
 $temporaryRoot = Join-Path $temporaryBase "briosa-protocol-$([Guid]::NewGuid().ToString('N'))"
 $outputRoot = [IO.Path]::GetFullPath($OutputDirectory, $repositoryRoot)
@@ -32,10 +32,7 @@ function Write-Utf8File {
     )
 
     [IO.Directory]::CreateDirectory((Split-Path -Parent $Path)) | Out-Null
-    [IO.File]::WriteAllText(
-        $Path,
-        $Content,
-        [Text.UTF8Encoding]::new($false))
+    [IO.File]::WriteAllText($Path, $Content, [Text.UTF8Encoding]::new($false))
 }
 
 function Copy-NormalizedTextFile {
@@ -44,8 +41,9 @@ function Copy-NormalizedTextFile {
         [Parameter(Mandatory)][string]$Destination
     )
 
-    $content = [IO.File]::ReadAllText($Source).Replace("`r`n", "`n")
-    Write-Utf8File -Path $Destination -Content $content
+    Write-Utf8File `
+        -Path $Destination `
+        -Content ([IO.File]::ReadAllText($Source).Replace("`r`n", "`n"))
 }
 
 function Copy-NormalizedTextTree {
@@ -70,11 +68,10 @@ function Get-ContentFiles {
         Get-ChildItem -LiteralPath $Root -File -Recurse |
             Where-Object Name -NotIn @("manifest.json", "files.sha256") |
             ForEach-Object {
-                $relativePath = ([IO.Path]::GetRelativePath(
-                    $Root,
-                    $_.FullName)).Replace('\', '/')
                 [ordered]@{
-                    path = $relativePath
+                    path = ([IO.Path]::GetRelativePath(
+                        $Root,
+                        $_.FullName)).Replace('\', '/')
                     sha256 = (Get-FileHash `
                         -LiteralPath $_.FullName `
                         -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -89,9 +86,9 @@ function Get-AggregateFingerprint {
     $canonical = (($Files | ForEach-Object {
         "$($_.sha256)  $($_.path)"
     }) -join "`n") + "`n"
-    $bytes = [Text.Encoding]::UTF8.GetBytes($canonical)
     return [Convert]::ToHexString(
-        [Security.Cryptography.SHA256]::HashData($bytes)).ToLowerInvariant()
+        [Security.Cryptography.SHA256]::HashData(
+            [Text.Encoding]::UTF8.GetBytes($canonical))).ToLowerInvariant()
 }
 
 if ([string]::IsNullOrWhiteSpace($SourceRevision)) {
@@ -101,31 +98,7 @@ if ([string]::IsNullOrWhiteSpace($SourceRevision)) {
     }
 }
 
-$coverage = Get-Content -LiteralPath $coveragePath -Raw | ConvertFrom-Json
-$liveFixtures = Get-Content `
-    -LiteralPath (Join-Path $conformanceRoot "v1\live-scenarios.json") `
-    -Raw | ConvertFrom-Json
-$errorFixtures = Get-Content `
-    -LiteralPath (Join-Path $conformanceRoot "v1\operation-error-cases.json") `
-    -Raw | ConvertFrom-Json
-$wave1ReadOnlyFixtures = Get-Content `
-    -LiteralPath (Join-Path $conformanceRoot "v1\wave1-read-only-scenarios.json") `
-    -Raw | ConvertFrom-Json
-$wave2PointLifecycleFixtures = Get-Content `
-    -LiteralPath (Join-Path $conformanceRoot "v1\wave2-point-lifecycle-scenarios.json") `
-    -Raw | ConvertFrom-Json
-$wave2CollectionMutationFixtures = Get-Content `
-    -LiteralPath (Join-Path $conformanceRoot "v1\wave2-collection-mutations-scenarios.json") `
-    -Raw | ConvertFrom-Json
-$wave2ObjectLifecycleFixtures = Get-Content `
-    -LiteralPath (Join-Path $conformanceRoot "v1\wave2-object-lifecycle-scenarios.json") `
-    -Raw | ConvertFrom-Json
-$wave2NoteMutationFixtures = Get-Content `
-    -LiteralPath (Join-Path $conformanceRoot "v1\wave2-note-mutations-scenarios.json") `
-    -Raw | ConvertFrom-Json
-$targetVersion = [string]$coverage.spatial_analyzer_target
-$catalogRevision = [string]$coverage.catalog_revision
-$artifactBase = "briosa-protocol-$Version-sa-$targetVersion-catalog-$catalogRevision"
+$artifactBase = "briosa-protocol-$Version-sa-$targetVersion"
 $zipPath = Join-Path $outputRoot "$artifactBase.zip"
 $zipChecksumPath = "$zipPath.sha256"
 $externalProvenancePath = Join-Path $outputRoot "$artifactBase.provenance.json"
@@ -141,12 +114,6 @@ try {
     Copy-NormalizedTextTree `
         -Source $protoRoot `
         -Destination (Join-Path $bundleRoot "proto")
-    Copy-NormalizedTextTree `
-        -Source $conformanceRoot `
-        -Destination (Join-Path $bundleRoot "conformance")
-    Copy-NormalizedTextFile `
-        -Source $coveragePath `
-        -Destination (Join-Path $bundleRoot "catalog\coverage.json")
     Copy-NormalizedTextFile `
         -Source (Join-Path $repositoryRoot "docs\operations\protocol-artifacts.md") `
         -Destination (Join-Path $bundleRoot "README.md")
@@ -171,37 +138,23 @@ try {
 
     $contentFiles = Get-ContentFiles -Root $bundleRoot
     $protocolFiles = @($contentFiles | Where-Object {
-        $_.path -eq "buf.yaml" -or $_.path.StartsWith("proto/", [StringComparison]::Ordinal)
+        $_.path -eq "buf.yaml" -or
+        $_.path.StartsWith("proto/", [StringComparison]::Ordinal)
     })
-    $conformanceFiles = @($contentFiles | Where-Object {
-        $_.path.StartsWith("conformance/", [StringComparison]::Ordinal)
-    })
-    $descriptorFile = $contentFiles | Where-Object path -EQ "descriptor/briosa.protoset"
-    $coverageFile = $contentFiles | Where-Object path -EQ "catalog/coverage.json"
+    $descriptorFile = $contentFiles |
+        Where-Object path -EQ "descriptor/briosa.protoset"
     $manifest = [ordered]@{
-        schema_version = 1
+        schema_version = 2
         artifact_kind = "briosa_protocol"
         artifact_name = $artifactBase
         briosa_version = $Version
         source_revision = $SourceRevision.ToLowerInvariant()
         spatial_analyzer_target = $targetVersion
         core_protocol_package = "briosa.core.v1alpha1"
-        target_protocol_package = [string]$coverage.target_protocol_package
-        catalog_id = [string]$coverage.catalog_id
-        catalog_revision = $catalogRevision
+        target_protocol_package = $targetProtocolPackage
         protocol_schema_sha256 = Get-AggregateFingerprint -Files $protocolFiles
         descriptor_set_sha256 = [string]$descriptorFile.sha256
-        catalog_coverage_sha256 = [string]$coverageFile.sha256
-        conformance_fixture_sha256 = Get-AggregateFingerprint -Files $conformanceFiles
-        conformance_fixture_sets = @(
-            [string]$liveFixtures.fixture_set_id,
-            [string]$errorFixtures.fixture_set_id,
-            [string]$wave1ReadOnlyFixtures.fixture_set_id,
-            [string]$wave2PointLifecycleFixtures.fixture_set_id,
-            [string]$wave2CollectionMutationFixtures.fixture_set_id,
-            [string]$wave2ObjectLifecycleFixtures.fixture_set_id,
-            [string]$wave2NoteMutationFixtures.fixture_set_id)
-        client_generation_contract_version = 1
+        client_generation_contract = "standard-protobuf-grpc"
         files = @($contentFiles)
     }
     $manifestPath = Join-Path $bundleRoot "manifest.json"

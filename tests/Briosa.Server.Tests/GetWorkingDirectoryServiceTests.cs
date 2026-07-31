@@ -1,5 +1,5 @@
 using Briosa.Core.V1Alpha1;
-using Briosa.Server.Generated.Sa.V2026_1_0529_7.V1Alpha1;
+using Briosa.Server.Operations.FileOperations;
 using Briosa.Server.Services;
 using Briosa.Server.Workers;
 using Briosa.Worker.Control;
@@ -13,7 +13,7 @@ public sealed class GetWorkingDirectoryServiceTests
 {
     [Fact]
     [OperationTest("file_operations.get_working_directory")]
-    public async Task GeneratedClientRetrievesDirectoryThroughCatalogBinding()
+    public async Task GeneratedClientRetrievesDirectoryThroughHandwrittenBinding()
     {
         var executor = new RecordingExecutor(CompletedExecution(
             new WorkerMpOutputValue(
@@ -192,7 +192,7 @@ public sealed class GetWorkingDirectoryServiceTests
     private static TargetProtocol.FileOperations.FileOperationsClient CreateClient(
         IWorkerCommandExecutor executor)
     {
-        var service = new FileOperationsService(new CatalogOperationExecutor(
+        var service = new FileOperationsService(new OperationExecutor(
             executor,
             new OperationAuditLogger(
                 NullLogger<OperationAuditLogger>.Instance),

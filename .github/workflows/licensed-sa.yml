@@ -67,7 +67,7 @@ jobs:
           -SourceRevision $env:GITHUB_SHA
           -OutputDirectory artifacts/licensed-runner/package
 
-      - name: Build self-contained generated client
+      - name: Build self-contained gRPC client
         shell: pwsh
         run: |
           dotnet restore tools/Briosa.SmokeClient/Briosa.SmokeClient.csproj `
@@ -186,7 +186,7 @@ jobs:
           -Phase Preflight
           -RequireGitHubRunner
 
-      - name: Run licensed generated-client smoke test
+      - name: Run licensed GetWorkingDirectory smoke test
         shell: pwsh
         run: |
           $package = @(Get-ChildItem `

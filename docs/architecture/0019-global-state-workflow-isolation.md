@@ -15,9 +15,9 @@ ObjectiveSA historically assumed one in-process owner. Briosa is a service and c
 
 The initial v0.2 deployment contract is single-tenant per worker/SpatialAnalyzer target. A tenant is one mutually trusting application or coordinated application group under one operator. Briosa does not yet provide independent sessions or isolation between unrelated callers.
 
-The [workflow-isolation operator guide](../operations/workflow-isolation.md) inventories the command families that commonly read, mutate, or retain application-global state. The family inventory guides review; the exact promoted operation remains the unit of catalog classification.
+The [workflow-isolation operator guide](../operations/workflow-isolation.md) inventories the command families that commonly read, mutate, or retain application-global state. The family inventory guides review; the exact handwritten operation remains the unit of classification.
 
-Single-tenant deployment is not sufficient to promote an arbitrary multi-call stateful workflow. Catalog operations are reviewed with an execution-scope classification:
+Single-tenant deployment is not sufficient to expose an arbitrary multi-call stateful workflow. Handwritten operations are reviewed with an execution-scope classification:
 
 - `SelfContained`: the operation's contract is complete within one serialized MP sequence;
 - `GlobalStateRead`: the result depends on named SpatialAnalyzer global state but does not intentionally change it;
@@ -52,6 +52,6 @@ Portable tests prove that concurrent ordinary operations remain serialized, unkn
 ## Consequences
 
 - Briosa makes its initial single-tenant assumption explicit instead of implying client isolation.
-- Stateful commands require additional catalog review and may remain blocked even when an SDK binding exists.
+- Stateful commands require additional operation review and may remain blocked even when an SDK binding exists.
 - Shared or remotely authenticated multi-tenant deployment requires a later lease/session decision.
 - Self-contained read-only operations can continue to scale without waiting for a general workflow protocol.

@@ -11,7 +11,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
-$generatorProject = Join-Path $repositoryRoot 'tools\Briosa.Generator\Briosa.Generator.csproj'
+$inspectorProject = Join-Path $repositoryRoot 'tools\Briosa.InteropInspector\Briosa.InteropInspector.csproj'
 $resolvedTypeLibrary = (Resolve-Path -LiteralPath $TypeLibraryPath).Path
 
 if ([string]::IsNullOrWhiteSpace($SpatialAnalyzerVersion)) {
@@ -63,9 +63,9 @@ $provenanceName = 'Briosa.SpatialAnalyzer.Interop.provenance.json'
 New-Item -ItemType Directory -Force -Path $firstDirectory, $secondDirectory, $resolvedOutputDirectory | Out-Null
 
 try {
-    dotnet build $generatorProject -c Release --nologo
+    dotnet build $inspectorProject -c Release --nologo
     if ($LASTEXITCODE -ne 0) {
-        throw "The Briosa generator failed to build with exit code $LASTEXITCODE."
+        throw "The Briosa interop inspector failed to build with exit code $LASTEXITCODE."
     }
 
     $fixedArguments = @(
@@ -93,12 +93,12 @@ try {
 
     $firstApi = Join-Path $firstDirectory $publicApiName
     $secondApi = Join-Path $secondDirectory $publicApiName
-    dotnet run --project $generatorProject -c Release --no-build -- interop-api $firstAssembly $firstApi
+    dotnet run --project $inspectorProject -c Release --no-build -- interop-api $firstAssembly $firstApi
     if ($LASTEXITCODE -ne 0) {
         throw 'The first canonical API manifest failed to generate.'
     }
 
-    dotnet run --project $generatorProject -c Release --no-build -- interop-api $secondAssembly $secondApi
+    dotnet run --project $inspectorProject -c Release --no-build -- interop-api $secondAssembly $secondApi
     if ($LASTEXITCODE -ne 0) {
         throw 'The second canonical API manifest failed to generate.'
     }
@@ -120,7 +120,7 @@ try {
     $replaceAssembly = -not (Test-Path -LiteralPath $committedAssembly -PathType Leaf)
     if (-not $replaceAssembly) {
         $existingApi = Join-Path $stagingRoot 'existing-api.txt'
-        dotnet run --project $generatorProject -c Release --no-build -- interop-api $committedAssembly $existingApi
+        dotnet run --project $inspectorProject -c Release --no-build -- interop-api $committedAssembly $existingApi
         if ($LASTEXITCODE -ne 0) {
             throw 'The existing committed interop assembly could not be inspected.'
         }
@@ -133,12 +133,12 @@ try {
         Copy-Item -LiteralPath $firstAssembly -Destination $committedAssembly -Force
     }
 
-    dotnet run --project $generatorProject -c Release --no-build -- interop-api $committedAssembly $committedApi
+    dotnet run --project $inspectorProject -c Release --no-build -- interop-api $committedAssembly $committedApi
     if ($LASTEXITCODE -ne 0) {
         throw 'The committed canonical API manifest failed to generate.'
     }
 
-    $typeLibraryJson = dotnet run --project $generatorProject -c Release --no-build -- typelib-info $resolvedTypeLibrary
+    $typeLibraryJson = dotnet run --project $inspectorProject -c Release --no-build -- typelib-info $resolvedTypeLibrary
     if ($LASTEXITCODE -ne 0) {
         throw 'The type-library metadata could not be inspected.'
     }

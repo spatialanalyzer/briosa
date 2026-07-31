@@ -1,6 +1,6 @@
 # ADR 0009: Catalog-derived operation artifacts and completeness
 
-- Status: Accepted for the v0.2 command surface
+- Status: Superseded by [ADR 0024](0024-handwritten-mp-operation-vertical-slices.md)
 - Date: 2026-07-22
 - Issue: [#16](https://github.com/spatialanalyzer/briosa/issues/16)
 - Amended by: [ADR 0016](0016-command-argument-semantic-families.md) and [ADR 0021](0021-exact-target-protobuf-partitions-and-identifiers.md)
@@ -45,7 +45,7 @@ CI regenerates every target in an empty temporary directory and compares both th
 
 ## Testing
 
-Synthetic catalog tests exercise required inputs, optional omitted setters, reviewed defaults, input/output arguments, every currently modeled semantic type, typed output construction, and message-component validation. Portable runtime tests discover every generated operation binding and distinguish default-like present values, absent values, disconnected and unverified workers, setter/execute/MP/getter failures, policy denial, deadlines and cancellation before and after start, crash, hang, malformed responses, replay guidance, and fail-closed unknown returned type literals. Evidence-parity tests require every global manifest row to match the registry and value catalog exactly; the existing worker completeness suite executes those binding, value-shape, enum-literal, and command-assignment contracts against the production adapter seam. See the [portable conformance guide](../testing/portable-conformance.md).
+Synthetic catalog tests exercised required inputs, optional omitted setters, reviewed defaults, input/output arguments, modeled semantic types, typed output construction, and message-component validation. Those retired tests and their portable conformance guide remain available in Git history.
 
 All generation, completeness, and fake-worker tests remain portable and require neither SpatialAnalyzer nor a license.
 

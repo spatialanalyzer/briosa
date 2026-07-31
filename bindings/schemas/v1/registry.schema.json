@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://spatialanalyzer.github.io/briosa/bindings/schemas/v1/registry.schema.json",
-  "title": "Briosa generated exact-target SDK binding registry",
+  "title": "Briosa retained exact-target SDK binding evidence",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -9,7 +9,6 @@
     "schema_version",
     "spatial_analyzer_target",
     "inventory",
-    "dispositions",
     "interop_assembly",
     "interop_public_api",
     "review",
@@ -28,9 +27,6 @@
       "pattern": "^[0-9]+(?:\\.[0-9]+){3}$"
     },
     "inventory": {
-      "$ref": "#/definitions/source_reference"
-    },
-    "dispositions": {
       "$ref": "#/definitions/source_reference"
     },
     "interop_assembly": {

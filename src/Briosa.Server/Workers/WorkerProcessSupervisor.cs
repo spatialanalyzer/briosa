@@ -2,7 +2,7 @@ using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Threading.Channels;
-using Briosa.Server.Generated.Sa.V2026_1_0529_7.V1Alpha1;
+using Briosa.Server.Operations;
 using Briosa.Worker.Control;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -67,7 +67,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
             TimeSpan.FromSeconds(30),
             queueCapacity: 64);
         _identityPolicy = identityPolicy ?? ExactTargetIdentityPolicy.CreateRuntimeOnly(
-            TargetCatalogMetadata.SpatialAnalyzerTarget);
+            SpatialAnalyzerApi.TargetVersion);
         _timeProvider = timeProvider ?? TimeProvider.System;
         _logger = logger ?? NullLogger<WorkerProcessSupervisor>.Instance;
         _current = new WorkerLifecycleSnapshot(

@@ -24,9 +24,9 @@ The archive is a self-contained, non-trimmed, non-single-file `win-x64` director
 
 The package includes:
 
-- `manifest.json` with Briosa version, source revision, runtime, protocol, catalog, exact target, and interop coordinates;
+- `manifest.json` with Briosa version, source revision, runtime, protocol, exact target, implemented-operation, and interop coordinates;
 - `files.sha256` for every other file inside the package;
-- catalog-coverage and interop-provenance metadata used by the build;
+- interop-provenance metadata used by the build;
 - an operator guide, health/discovery guide, and Apache-2.0 license.
 
 The build also emits an external ZIP checksum and a copy of the provenance manifest. Publish outputs are produced independently and merged only when duplicate paths have identical content. ZIP entries are sorted and carry a fixed timestamp. CI builds the package twice and requires identical SHA-256 hashes.

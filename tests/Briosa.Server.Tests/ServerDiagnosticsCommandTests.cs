@@ -21,9 +21,9 @@ public sealed class ServerDiagnosticsCommandTests
             using var report = JsonDocument.Parse(output.ToString());
             var root = report.RootElement;
             Assert.Equal(0, exitCode);
-            Assert.Equal(1, root.GetProperty("schema_version").GetInt32());
+            Assert.Equal(2, root.GetProperty("schema_version").GetInt32());
             Assert.Equal("2026.1.0529.7", root.GetProperty("spatial_analyzer_target").GetString());
-            Assert.Equal("12", root.GetProperty("catalog_revision").GetString());
+            Assert.False(root.TryGetProperty("catalog_revision", out _));
             Assert.True(root.GetProperty("worker_executable_present").GetBoolean());
             Assert.True(root.GetProperty("interop_assembly_present").GetBoolean());
             Assert.True(root.GetProperty("spatial_analyzer_required").GetBoolean());

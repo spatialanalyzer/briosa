@@ -1,4 +1,4 @@
-using Briosa.Server.Generated.Sa.V2026_1_0529_7.V1Alpha1;
+using Briosa.Server.Operations.FileOperations;
 using Briosa.Server.Security;
 using Briosa.Server.Services;
 using Briosa.Server.Workers;
@@ -158,9 +158,8 @@ public sealed class OperationAuditLoggerTests
         }
     }
 
-    private static CatalogOperationDescriptor WorkingDirectoryOperation() =>
-        TargetCatalogMetadata.Operations.Single(operation =>
-            operation.OperationId == "file_operations.get_working_directory");
+    private static OperationDescriptor WorkingDirectoryOperation() =>
+        GetWorkingDirectoryOperation.Descriptor;
 
     private sealed class CapturingLogger : ILogger<OperationAuditLogger>
     {

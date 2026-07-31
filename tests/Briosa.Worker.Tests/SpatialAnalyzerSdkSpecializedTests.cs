@@ -95,7 +95,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
     }
 
     [Fact]
-    public void InstrumentTypeMappingCoversExactTargetCatalog()
+    public void InstrumentTypeMappingCoversRetainedExactTargetEvidence()
     {
         Assert.Equal(190, Enum.GetValues<SdkInstrumentTypeValue>().Length);
         Assert.Equal("Faro Vantage", SdkSpecializedValueCodec.ToSdkString(SdkInstrumentTypeValue.FaroVantage));

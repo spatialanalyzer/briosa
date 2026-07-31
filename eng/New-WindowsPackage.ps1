@@ -20,7 +20,8 @@ $ErrorActionPreference = "Stop"
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $serverProject = Join-Path $repositoryRoot "src\Briosa.Server\Briosa.Server.csproj"
 $workerProject = Join-Path $repositoryRoot "src\Briosa.Worker\Briosa.Worker.csproj"
-$coveragePath = Join-Path $repositoryRoot "generated\catalog\sa\2026.1.0529.7\coverage.json"
+$targetVersion = "2026.1.0529.7"
+$targetProtocolPackage = "briosa.sa.v2026_1_0529_7.v1alpha1"
 $interopRoot = Join-Path $repositoryRoot "interop\SpatialAnalyzer\2026.1.0529.7"
 $interopProvenancePath = Join-Path $interopRoot "Briosa.SpatialAnalyzer.Interop.provenance.json"
 $temporaryBase = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
@@ -136,9 +137,7 @@ if ([string]::IsNullOrWhiteSpace($SourceRevision)) {
     }
 }
 
-$coverage = Get-Content -LiteralPath $coveragePath -Raw | ConvertFrom-Json
 $interopProvenance = Get-Content -LiteralPath $interopProvenancePath -Raw | ConvertFrom-Json
-$targetVersion = [string]$coverage.spatial_analyzer_target
 $artifactBase = "briosa-$Version-sa-$targetVersion-win-x64"
 $zipPath = Join-Path $outputRoot "$artifactBase.zip"
 $zipChecksumPath = "$zipPath.sha256"
@@ -202,24 +201,21 @@ try {
 
     $metadataRoot = Join-Path $packageRoot "metadata"
     [IO.Directory]::CreateDirectory($metadataRoot) | Out-Null
-    Copy-Item -LiteralPath $coveragePath `
-        -Destination (Join-Path $metadataRoot "catalog-coverage.json")
     Copy-Item -LiteralPath $interopProvenancePath `
         -Destination (Join-Path $metadataRoot "interop-provenance.json")
 
     $manifest = [ordered]@{
-        schemaVersion = 1
+        schemaVersion = 2
         artifactName = $artifactBase
         briosaVersion = $Version
         sourceRevision = $SourceRevision.ToLowerInvariant()
         runtimeIdentifier = "win-x64"
         selfContained = $true
         trimmed = $false
-        catalogId = [string]$coverage.catalog_id
-        catalogRevision = [string]$coverage.catalog_revision
         supportedSpatialAnalyzerReleases = @($targetVersion)
         coreProtocolPackage = "briosa.core.v1alpha1"
-        targetProtocolPackage = [string]$coverage.target_protocol_package
+        targetProtocolPackage = $targetProtocolPackage
+        implementedOperations = @("file_operations.get_working_directory")
         interopFingerprint = "sha256:$($interopProvenance.artifact.canonicalApiSha256)"
         spatialAnalyzerBundled = $false
         spatialAnalyzerLicenseRequired = $true

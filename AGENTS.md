@@ -12,7 +12,7 @@ The repository is licensed under Apache-2.0. SpatialAnalyzer, the SA SDK, their 
 
 ## Repository relationships
 
-- `spatialanalyzer/briosa`: gRPC server, SDK worker, protocol definitions, command catalog, generators, and server tests.
+- `spatialanalyzer/briosa`: gRPC server, SDK worker, protocol definitions, handwritten MP operations, reference evidence, and server tests.
 - `spatialanalyzer/briosa-*`: language-specific thin clients.
 - `spatialanalyzer/community`: organization Discussions. Architecture exploration is recorded in [Discussion #1](https://github.com/orgs/spatialanalyzer/discussions/1).
 - `spatialanalyzer/governance`: organization and project governance, policies, and unresolved governance questions.
@@ -23,7 +23,7 @@ Keep public protocol design in `briosa`; do not let a client repository become t
 ## ObjectiveSA parity and at-risk commands
 
 - ObjectiveSA is pinned prior-release secondary evidence, never a substitute for the exact-target SpatialAnalyzer inventory or interop surface.
-- When an ObjectiveSA method has the same MP step and the complete input/output bindings agree with committed exact-target evidence, maintainers have authorized Briosa to retain and later implement that operation without a separate command-by-command permission request.
+- When an ObjectiveSA method has the same MP step and the complete input/output bindings agree with committed exact-target evidence, maintainers may use that match when reviewing a handwritten Briosa implementation without a separate command-by-command permission request.
 - Missing local fixtures, third-party software, hardware, or licenses make an otherwise matched operation an **at-risk candidate**. They do not by themselves justify an intentional exclusion.
 - Record at-risk validation gaps explicitly and add an opt-in licensed integration scenario. Do not represent an unavailable fixture or an unexecuted scenario as a passing test.
 - When exact ObjectiveSA parity is absent and the desired disposition remains uncertain, ask the maintainer before excluding or promoting the command.
@@ -44,7 +44,7 @@ Keep public protocol design in `briosa`; do not let a client repository become t
 - Serializing each MP sequence prevents COM interleaving but does not isolate application-global state across several RPCs. The initial service is single-tenant per worker/SA target, and exclusive multi-call workflows remain blocked until an explicit lease contract exists; see ADR 0019.
 - For SDK methods taking a `ref object` list, marshal the CLR array through `System.Runtime.InteropServices.VariantWrapper`. A live SA 2026.1.0529.7 probe observed `DISP_E_TYPEMISMATCH` for a bare `object[]` on both `GetStringRefListArg` and `SetStringRefListArg`; the wrapped forms succeeded.
 - SDK method names do not uniquely determine MP argument semantics. In SA 2026.1.0529.7, the collection-object-named scalar/list calls carry both the 26-choice object domain and the broader 42-choice item domain. Select the family per exact command argument and fail closed on unknown returned type literals; see ADR 0016.
-- The deterministic SA 2026.1.0529.7 inventory currently combines 1,302 structured command documents and 1,360 View SDK Code observations into 1,412 commands. All 1,412 have reviewed dispositions, but inventory membership is not automatically the supported Briosa API.
+- The retained SA 2026.1.0529.7 reference inventory combines 1,302 structured command documents and 1,360 View SDK Code observations into 1,412 commands. It is non-authoritative implementation evidence: inventory membership, former dispositions, and historical catalog membership do not make a command part of the supported Briosa API.
 
 See the [Discussion #1 findings](https://github.com/spatialanalyzer/community/discussions/1#discussioncomment-17706394) before changing connection, concurrency, timeout, or process-lifecycle assumptions.
 
@@ -57,7 +57,7 @@ Unless an accepted design decision explicitly changes them, preserve these const
 3. One worker-owned STA serializes the entire MP sequence: `SetStep`, argument setters, `ExecuteStep`, and result retrieval. Never interleave sequences from concurrent gRPC calls.
 4. Client cancellation and gRPC deadlines must not be confused with successful cancellation of an in-flight COM call. A watchdog may need to terminate and replace the worker.
 5. Public protobuf contracts must describe SpatialAnalyzer concepts without exposing COM implementation types.
-6. Supported MP operations come from a curated, versioned command catalog. Generation should be deterministic across protocol, adapters, documentation, and completeness tests.
+6. Each supported MP operation is an ordinary reviewed vertical slice: a mechanically MP-compatible strongly typed protobuf RPC, handwritten C# host/worker/SDK mapping, capability registration, portable tests, validation status, and user documentation. Standard protobuf/gRPC generation is allowed; Briosa-specific operation generation and inventory-completeness gates are not.
 7. Ordinary builds and tests must not require SpatialAnalyzer, a license, or proprietary SDK binaries. Put the SDK behind an internal abstraction and exercise lifecycle and failure behavior with a fake.
 8. Real-SA integration tests require a separately licensed, protected Windows environment. Never expose such a runner or its secrets to untrusted pull-request code.
 9. Bind public services to loopback by default until remote authentication, transport security, authorization, and command-risk policies are established.
@@ -72,7 +72,7 @@ Unless an accepted design decision explicitly changes them, preserve these const
 - Do not copy SpatialAnalyzer source, decompile proprietary implementation, or commit/publish Hexagon binaries.
 - Keep generated interop provenance and the generation procedure explicit and reproducible.
 - Before distributing generated interface assemblies or extracted vendor documentation, confirm that the planned artifact and redistribution terms are covered by documented project approval. When uncertain, stop and request maintainer/Hexagon focal guidance.
-- Treat installed MP documentation as input evidence. Do not republish vendor text wholesale; curate facts needed to define Briosa behavior and generate original documentation.
+- Treat installed MP documentation as input evidence. Do not republish vendor text wholesale; curate only the facts needed to implement, test, and document Briosa behavior.
 
 ## Work planning and Git workflow
 
@@ -90,8 +90,10 @@ Unless an accepted design decision explicitly changes them, preserve these const
 - Favor explicit state machines and typed outcomes over booleans, ambient state, or exception-only control flow.
 - Separate transport status, worker/connection availability, execution disposition, replay safety, and MP command results.
 - Make process ownership, COM lifetime, queueing, timeouts, retries, and cleanup observable and testable.
-- Prefer generated code only for repetitive catalog-derived surfaces. Keep policy, orchestration, security decisions, and exceptional behavior in reviewed hand-written code.
-- Never hand-edit generated artifacts. Change the catalog, schema, template, or generator and regenerate.
+- Preserve MP terminology mechanically wherever the target language permits it. Developers familiar with MPs should be able to recognize RPC and field names without learning a second Briosa-specific vocabulary.
+- Hand-author operation protobuf, host mapping, worker request/result mapping, SDK sequence, capability registration, tests, and documentation. Keep those files together conceptually as one reviewable vertical slice.
+- Never hand-edit output from standard protobuf/gRPC tools. Handwritten `.proto` files and C# operation sources are ordinary reviewed source.
+- Generative-AI tools may draft an operation from maintainer-provided MP and SDK evidence, but committed source, tests, observations, and engineering review are authoritative.
 - Include negative-path tests for disconnected SA, MP failure, deadline, cancellation, worker hang/crash, and unsupported SA versions.
 - Document why a constraint exists, especially when it comes from observed SDK behavior rather than official vendor guarantees.
 
@@ -99,10 +101,10 @@ Unless an accepted design decision explicitly changes them, preserve these const
 
 Use the least privileged environment that proves the change:
 
-1. Formatting, static analysis, and protocol/catalog validation.
+1. Formatting, static analysis, and protobuf validation.
 2. Unit and contract tests against the fake SDK.
 3. Process-level tests using fake delay, hang, crash, and malformed-result behaviors.
-4. Generated-client/server smoke tests that do not require SA where possible.
+4. Standard generated-client/server smoke tests that do not require SA where possible.
 5. Explicitly authorized tests against a licensed SpatialAnalyzer installation.
 
 Before controlling a desktop SpatialAnalyzer process, connecting to another host, changing firewall settings, or running a licensed integration environment, obtain explicit permission for the current task. Avoid attaching multiple experimental SDK clients to the same SA instance. A blocked client can leave connections behind and may require a clean SA restart.
@@ -111,7 +113,7 @@ Before controlling a desktop SpatialAnalyzer process, connecting to another host
 
 Do not treat these as settled:
 
-- The exact relationship between Briosa semantic versions, command-catalog versions, and version-locked SpatialAnalyzer releases.
+- The exact relationship between Briosa semantic versions and version-locked SpatialAnalyzer releases.
 - Which SpatialAnalyzer releases will be supported and for how long.
 - The authoritative command metadata Hexagon can provide and what derived artifacts may be redistributed.
 - Remote gRPC authentication, authorization, TLS, network topology, and command-risk policy.
@@ -123,6 +125,6 @@ When work encounters one of these questions, implement only a reversible minimum
 
 ## Current initial target
 
-The first milestone is `v0.1 - SDK Vertical Slice`, initially targeting SpatialAnalyzer 2026.1.0529.7. Its objective is a production-shaped .NET 10 foundation with one supervised, serialized SDK connection, one generated read-only operation (`Get Working Directory`), generated-client smoke coverage, and safe diagnostics.
+The current baseline targets SpatialAnalyzer 2026.1.0529.7. Its objective is a production-shaped .NET 10 foundation with one supervised, serialized SDK connection, one handwritten read-only operation (`GetWorkingDirectory` for MP step `Get Working Directory`), standard generated-client smoke coverage, and safe diagnostics.
 
-The milestone is a proving ground, not permission to expose all MP functions immediately. Establish the runtime boundary, fake test harness, protocol conventions, command catalog, and security defaults before expanding breadth.
+Add one operation at a time through an ordinary implementation issue and pull request. Reference inventory, bindings, values, or ObjectiveSA wrappers may accelerate review, but none is an implementation queue, public allowlist, or completeness requirement.

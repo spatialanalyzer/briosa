@@ -1,53 +1,53 @@
 # ADR 0007: Get Working Directory reference vertical slice
 
-- Status: Accepted for the v0.1 vertical slice
+- Status: Accepted; authoring strategy revised by [ADR 0024](0024-handwritten-mp-operation-vertical-slices.md)
 - Date: 2026-07-22
+- Revised: 2026-07-31
 
 ## Context
 
-`Get Working Directory` is Briosa's first production-shaped public MP operation for SpatialAnalyzer 2026.1.0529.7. It has no inputs and one result-only string argument. The installed MP command reference and generated SDK sample agree that the MP step is `Get Working Directory` and the SDK getter argument is `Directory`.
+`Get Working Directory` is Briosa's first production-shaped public MP operation for SpatialAnalyzer 2026.1.0529.7. It has no inputs and one result-only string argument. The installed MP command reference and View SDK Code agree that the MP step is `Get Working Directory` and the SDK getter argument is `Directory`.
 
-The command is intentionally small, but it must exercise the same boundaries required by larger commands: exact-release catalog metadata, deterministic public generation, the gRPC host, the supervised worker process, the serialized SDK-owning STA, MP-result inspection, and result-only argument retrieval.
+The command is intentionally small, but it exercises the same boundaries required by larger commands: a strongly typed public RPC, runtime policy, the supervised worker process, the serialized SDK-owning STA, MP-result inspection, result-only argument retrieval, typed outcomes, and redacted diagnostics.
 
 ## Decision
 
-The reviewed catalog remains the source of truth for repetitive operation artifacts.
+`GetWorkingDirectory` is maintained as ordinary reviewed source:
 
-- `Briosa.Generator catalog-generate` generates the exact-target category contract (`file_operations.proto`) and an immutable worker-command binding. CI regenerates both in a temporary directory and fails when committed artifacts differ or stale generated files remain.
-- The generated binding creates a command with operation ID `file_operations.get_working_directory`, MP step `Get Working Directory`, no input setters, and one requested text output named `Directory`.
-- The generated target service submits that command through the shared hand-written `CatalogOperationExecutor`, which owns audit and outcome policy and dispatches through `IWorkerCommandExecutor`. The production implementation remains the existing `WorkerProcessSupervisor`; the public host never owns SDK or COM state.
-- The worker executes `SetStep("Get Working Directory")`, `ExecuteStep`, `GetMPStepResult`, and, only when the result getter succeeds with MP result code `2`, `GetStringArg("Directory", ...)` on its single SDK-owning STA.
-- A successful getter produces a present `directory` field. An MP failure suppresses output retrieval. A failed getter produces a gRPC failure and never creates a response containing an empty or default directory.
-- Diagnostics contain only curated codes, generation, duration, and the numeric MP result. The retrieved path is neither logged nor placed in error status text.
+- `file_operations.proto` declares the exact-target `FileOperations/GetWorkingDirectory` RPC, an empty request, and a result with optional `directory` plus shared execution details.
+- `GetWorkingDirectoryOperation` defines the exact operation ID, MP step, `GetStringArg("Directory", ...)` output binding, worker command, result mapping, replay safety, scope, and capability descriptor.
+- `FileOperationsService` submits the operation through the shared handwritten `OperationExecutor`.
+- `SpatialAnalyzerApi.Operations` registers the implemented capability and provides the policy/discovery source.
+- The worker executes `SetStep`, `ExecuteStep`, `GetMPStepResult`, and—only after a retrieved success code of `2`—`GetStringArg("Directory", ...)` on its single SDK-owning STA.
 
-## Initial transport mapping
+A successful getter produces a present `directory`. An MP failure suppresses output retrieval. A failed getter produces a gRPC failure and never creates a successful response containing an invented empty path. Logs and error status never contain the returned directory.
 
-The vertical slice originally used the deliberately small mapping below. ADR 0008 now supersedes it with the shared typed outcome and error-detail contract while preserving these canonical gRPC statuses.
+Standard protobuf/gRPC generation produces transport plumbing and the smoke-test client. No Briosa-specific catalog or operation generator participates.
 
-| Internal outcome | gRPC status | Diagnostic detail |
-| --- | --- | --- |
-| Completed with retrieved output | OK | Typed result with explicit string presence |
-| `ExecuteStep` rejected or a retrieved MP result failed | `FailedPrecondition` | Curated diagnostic; MP code in metadata when available |
-| MP result could not be retrieved | `Internal` | `sdk-mp-result-retrieval-failed`; no MP code |
-| Output getter failed | `DataLoss` | `sdk-output-retrieval-failed` |
-| Worker unavailable, crashed, or watchdog expired | `Unavailable` | Curated worker diagnostic |
-| Caller stopped waiting | `Cancelled` | `client-wait-cancelled` |
+## Transport mapping
 
-A worker watchdog expiration is not reported as the caller's gRPC deadline. ADR 0008 defines the complete cross-operation mapping, execution disposition, recovery and replay guidance, caller-deadline behavior, and shared typed error details.
+ADR 0008 owns the complete typed outcome contract. The important mappings for this operation are:
 
-## Generation boundary
+| Internal outcome | gRPC status |
+| --- | --- |
+| Completed with retrieved output | `OK` |
+| `ExecuteStep` rejected or MP result failed | `FailedPrecondition` |
+| MP result could not be retrieved | `Internal` |
+| Output getter failed | `DataLoss` |
+| Worker unavailable, crashed, or watchdog expired | `Unavailable` |
+| Caller stopped waiting | `Cancelled` or `DeadlineExceeded` |
 
-The initial vertical slice generated only its contract and no-input command binding. [ADR 0009](0009-catalog-derived-operation-artifacts.md) now generalizes reviewed input presence/default mapping, immutable commands, generated services and endpoint registration, typed response adapters, capabilities, reference documentation, exact SDK binding enforcement, and completeness manifests. Policy, logging, worker supervision, and gRPC outcome mapping remain hand-written review points.
+A worker watchdog expiration is not reported as the caller's deadline. Worker replacement does not prove whether an interrupted COM operation completed.
 
-## Testing
+## Testing and validation
 
-Ordinary tests use the generated client and a fake worker executor to verify success, MP failure, output-getter failure, and watchdog behavior. A focused SDK-adapter test verifies the exact call order through `GetStringArg("Directory", ...)`. These tests do not activate SpatialAnalyzer and remain suitable for generic Windows CI.
+Portable tests verify the exact worker command, success mapping, MP failure, getter failure, policy, cancellation, deadlines, watchdog replacement, discovery, reflection, audit redaction, and SDK call order. These tests do not activate SpatialAnalyzer.
 
-Validation against a real SpatialAnalyzer installation is a separately authorized integration level. It must use SA 2026.1.0529.7, avoid attaching competing SDK clients, and confirm that the generated client receives the application's current working directory.
+The opt-in licensed workflow uses the standard generated client against a separately installed and licensed SA 2026.1.0529.7 instance. It validates the real public RPC and does not print or retain the returned directory.
 
 ## Consequences
 
-- The first public operation travels through the same worker boundary future commands will use.
-- Catalog and generated artifacts cannot drift silently.
+- The reference operation is readable end to end without reconstructing a generated pipeline.
+- Future operations can copy the proven structure and then refactor only after repetition demonstrates a stable abstraction.
 - Getter failure cannot be mistaken for a successful empty path.
-- Issues #13 and #16 retain their broader design and generation responsibilities rather than being silently settled by this single operation.
+- The worker, readiness, outcome, policy, and redaction architecture remains unchanged.

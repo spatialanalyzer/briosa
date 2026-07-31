@@ -6,10 +6,6 @@
     "path": "../../../inventory/sa/2026.1.0529.7/inventory.json",
     "sha256": "8a5e16b0fda8ebda70219b2c795af0c1b57004b0b048a32392d5b3253c97e502"
   },
-  "dispositions": {
-    "path": "../../../disposition/sa/2026.1.0529.7/manifest.json",
-    "sha256": "50c5c70e15d494d42cddfc5343d1a833019d4506c39878e984920915a9d255d6"
-  },
   "interop_assembly": {
     "path": "../../../interop/SpatialAnalyzer/2026.1.0529.7/Briosa.SpatialAnalyzer.Interop.dll",
     "sha256": "3ac95552fa11eac3bbb67eccff3f6be08771fafb629f67befd01da94aaa386b7"

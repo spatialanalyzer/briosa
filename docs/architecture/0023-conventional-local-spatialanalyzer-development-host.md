@@ -9,7 +9,7 @@
 
 Briosa has portable fake-worker tests and a packaged licensed-SA smoke path, but a licensed developer cannot yet exercise the real public gRPC surface through the conventional ASP.NET Core source workflow. Running the server from source currently requires a separately composed worker location, the server does not expose reflection, and the identity attestations required by ADR 0022 have no standard non-committed local configuration procedure.
 
-The primary local workflow needs to exercise the real production boundaries rather than a development substitute: the public host, separately supervised `Briosa.Worker` process, worker-owned STA, SDK connection, exact-target identity gate, execution-channel probe, command policy, and generated gRPC service. It must not weaken packaged Production behavior or turn a maintainer workstation into the protected runner defined by [ADR 0013](0013-protected-licensed-runner.md).
+The primary local workflow needs to exercise the real production boundaries rather than a development substitute: the public host, separately supervised `Briosa.Worker` process, worker-owned STA, SDK connection, exact-target identity gate, execution-channel probe, command policy, and standard gRPC service. It must not weaken packaged Production behavior or turn a maintainer workstation into the protected runner defined by [ADR 0013](0013-protected-licensed-runner.md).
 
 ## Decision
 
@@ -69,7 +69,7 @@ Server reflection is available only when both of these conditions are true:
 
 Issue #119 enforces both conditions at service registration and endpoint mapping. A Release build does not include the reflection runtime in its published dependency closure, and changing an environment variable cannot enable reflection in the Production package.
 
-Reflection provides schema discovery only. It does not bypass readiness, identity, command policy, request validation, or the worker boundary. The committed allowlist remains exactly `file_operations.get_working_directory`, the reviewed read-only vertical slice. No launch profile or Development settings file expands it. Exercising any additional exact operation against real SpatialAnalyzer requires a deliberate per-run allowlist override after reviewing its effect, replay safety, inputs, and expected result; mutating operations are never implicitly authorized by reflection or catalog membership.
+Reflection provides schema discovery only. It does not bypass readiness, identity, command policy, request validation, or the worker boundary. The committed allowlist remains exactly `file_operations.get_working_directory`, the reviewed read-only vertical slice. No launch profile or Development settings file expands it. Exercising any additional exact operation against real SpatialAnalyzer requires a deliberate implementation and validation review; mutating operations are never implicitly authorized by reflection or reference-evidence membership.
 
 The existing fake-worker scripts and portable tests remain the ordinary-CI and failure-injection path. A fake launch profile is not added initially. Any later convenience profile must be named explicitly as fake, remain secondary to `SpatialAnalyzer`, and never produce licensed-SA or release evidence.
 
@@ -120,7 +120,7 @@ The local workflow is developer evidence only. It does not satisfy the protected
 The implementation remains split into three reviewable tasks:
 
 1. [#118](https://github.com/spatialanalyzer/briosa/issues/118) adds the Debug-only complete worker composition, first/default `SpatialAnalyzer` launch profile, user-secrets project identity, typed options, startup validation, and portable tests. Release packaging and the packaged adjacent-worker contract must remain byte-separate from this development path.
-2. [#119](https://github.com/spatialanalyzer/briosa/issues/119) adds Debug-and-Development-gated reflection, verifies the generated health, discovery, and exact-target services are discoverable, proves Production exclusion, and confirms the default capability remains only `GetWorkingDirectory`.
+2. [#119](https://github.com/spatialanalyzer/briosa/issues/119) adds Debug-and-Development-gated reflection, verifies the health, discovery, and exact-target services are discoverable, proves Production exclusion, and confirms the default capability remains only `GetWorkingDirectory`.
 3. [#120](https://github.com/spatialanalyzer/briosa/issues/120) adds the prominent README quick start and complete local gRPC developer guide, verifies the source-run contract with portable checks, and records one explicitly authorized manual success-path run against an already-running licensed exact-target SpatialAnalyzer.
 
 Issues #118 and #119 may be developed concurrently after this decision is accepted, but their overlapping server project, package-lock, startup, and test changes are rebased and merged sequentially. Issue #120 follows their integrated behavior. Ordinary validation for all three issues requires no SpatialAnalyzer; live validation requires fresh permission for that task and follows the least-privileged success path above.

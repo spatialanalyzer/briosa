@@ -1,4 +1,4 @@
-using Briosa.Server.Generated.Sa.V2026_1_0529_7.V1Alpha1;
+using Briosa.Server.Operations;
 using Briosa.Server.Security;
 using Briosa.Server.Services;
 using Briosa.Worker.Control;
@@ -20,7 +20,7 @@ internal static class WorkerProcessRegistration
             SpatialAnalyzerConnectionOptions.BindAndValidate(configuration);
         var identityPolicy = ExactTargetIdentityPolicy.Create(
             spatialAnalyzerOptions.Identity,
-            TargetCatalogMetadata.SpatialAnalyzerTarget);
+            SpatialAnalyzerApi.TargetVersion);
         services.TryAddSingleton(workerOptions);
         services.TryAddSingleton(spatialAnalyzerOptions);
         services.TryAddSingleton(identityPolicy);
@@ -53,7 +53,7 @@ internal static class WorkerProcessRegistration
         services.TryAddSingleton<OperationAuditLogger>();
         services.TryAddSingleton(_ => OperationPolicy.Create(
             configuration,
-            TargetCatalogMetadata.Operations));
+            SpatialAnalyzerApi.Operations));
         services.TryAddSingleton<PolicyEnforcingWorkerCommandExecutor>();
         services.TryAddSingleton<IWorkerCommandExecutor>(provider =>
             provider.GetRequiredService<PolicyEnforcingWorkerCommandExecutor>());

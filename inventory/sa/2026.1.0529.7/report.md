@@ -1,5 +1,7 @@
 # SA 2026.1.0529.7 extracted MP command inventory
 
+> Reference snapshot only. This report does not define the Briosa API, approve an operation, or participate in implementation-completeness gates. See [the inventory reference boundary](../../README.md).
+
 This report summarizes derived facts only. Installed HTML and generated SDK samples remain local evidence and are not committed.
 
 ## Evidence

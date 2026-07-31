@@ -15,7 +15,7 @@ internal enum OperationPolicyDecisionKind
 internal sealed record OperationPolicyDecision(
     OperationPolicyDecisionKind Kind,
     string DiagnosticCode,
-    CatalogOperationDescriptor? Operation);
+    OperationDescriptor? Operation);
 
 internal sealed class OperationPolicy
 {
@@ -24,12 +24,12 @@ internal sealed class OperationPolicy
 
     private readonly FrozenSet<string> _allow;
     private readonly FrozenSet<string> _deny;
-    private readonly FrozenDictionary<string, CatalogOperationDescriptor> _operations;
+    private readonly FrozenDictionary<string, OperationDescriptor> _operations;
     private readonly Briosa.Core.V1Alpha1.TargetIsolationMode _targetIsolationMode =
         Briosa.Core.V1Alpha1.TargetIsolationMode.SingleTenant;
 
     private OperationPolicy(
-        IReadOnlyList<CatalogOperationDescriptor> operations,
+        IReadOnlyList<OperationDescriptor> operations,
         IReadOnlyList<string> allow,
         IReadOnlyList<string> deny)
     {
@@ -47,7 +47,7 @@ internal sealed class OperationPolicy
         Fingerprint = CreateFingerprint(allow, deny);
     }
 
-    public IReadOnlyList<CatalogOperationDescriptor> AllowedOperations { get; }
+    public IReadOnlyList<OperationDescriptor> AllowedOperations { get; }
 
     public Briosa.Core.V1Alpha1.TargetIsolationMode TargetIsolationMode =>
         _targetIsolationMode;
@@ -60,7 +60,7 @@ internal sealed class OperationPolicy
 
     public static OperationPolicy Create(
         IConfiguration configuration,
-        IReadOnlyList<CatalogOperationDescriptor> operations)
+        IReadOnlyList<OperationDescriptor> operations)
     {
         ArgumentNullException.ThrowIfNull(configuration);
         ArgumentNullException.ThrowIfNull(operations);
@@ -71,7 +71,7 @@ internal sealed class OperationPolicy
         if (duplicateOperation is not null)
         {
             throw new InvalidOperationException(
-                $"The generated catalog contains duplicate operation ID '{duplicateOperation.Key}'.");
+                $"The supported operation registry contains duplicate operation ID '{duplicateOperation.Key}'.");
         }
 
         var allow = ReadOperationIds(configuration, AllowKey);

@@ -8,7 +8,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
-$generatorProject = Join-Path $repositoryRoot 'tools\Briosa.Generator\Briosa.Generator.csproj'
+$inspectorProject = Join-Path $repositoryRoot 'tools\Briosa.InteropInspector\Briosa.InteropInspector.csproj'
 $interopDirectory = Join-Path $repositoryRoot "interop\SpatialAnalyzer\$SpatialAnalyzerVersion"
 $artifactPath = Join-Path $interopDirectory 'Briosa.SpatialAnalyzer.Interop.dll'
 $apiPath = Join-Path $interopDirectory 'Briosa.SpatialAnalyzer.Interop.PublicApi.txt'
@@ -38,9 +38,9 @@ if ($assemblyIdentity.Name -ne $provenance.artifact.assemblyName -or
 }
 
 if (-not $NoBuild) {
-    dotnet build $generatorProject -c Release --nologo
+    dotnet build $inspectorProject -c Release --nologo
     if ($LASTEXITCODE -ne 0) {
-        throw "The Briosa generator failed to build with exit code $LASTEXITCODE."
+        throw "The Briosa interop inspector failed to build with exit code $LASTEXITCODE."
     }
 }
 
@@ -49,7 +49,7 @@ $generatedApiPath = Join-Path $verificationDirectory 'Briosa.SpatialAnalyzer.Int
 New-Item -ItemType Directory -Force -Path $verificationDirectory | Out-Null
 
 try {
-    dotnet run --project $generatorProject -c Release --no-build -- interop-api $artifactPath $generatedApiPath
+    dotnet run --project $inspectorProject -c Release --no-build -- interop-api $artifactPath $generatedApiPath
     if ($LASTEXITCODE -ne 0) {
         throw 'The canonical API verifier failed.'
     }
