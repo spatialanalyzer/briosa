@@ -5,6 +5,7 @@
 - Revised: 2026-07-31
 - Issue: [#94](https://github.com/spatialanalyzer/briosa/issues/94)
 - Amends: [ADR 0005](0005-exact-sa-target-protocols.md) and [ADR 0012](0012-generated-client-verification.md)
+- Amended by: [ADR 0025](0025-isolated-exact-sa-target-products.md)
 
 ## Context
 

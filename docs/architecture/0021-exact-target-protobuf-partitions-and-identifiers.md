@@ -1,6 +1,6 @@
 # ADR 0021: Exact-target protobuf partitions and stable identifiers
 
-- Status: Accepted; generation mechanics superseded by [ADR 0024](0024-handwritten-mp-operation-vertical-slices.md)
+- Status: Superseded by [ADR 0025](0025-isolated-exact-sa-target-products.md); explicit reviewed operation identifiers remain required by [ADR 0024](0024-handwritten-mp-operation-vertical-slices.md)
 - Date: 2026-07-28
 - Revised: 2026-07-31
 - Issue: [#60](https://github.com/spatialanalyzer/briosa/issues/60)

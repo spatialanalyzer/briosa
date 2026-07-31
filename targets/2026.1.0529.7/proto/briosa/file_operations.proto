@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package briosa;
+
+import "briosa/operation_outcomes.proto";
+
+option csharp_namespace = "Briosa";
+
+service FileOperations {
+  // Executes the "Get Working Directory" MP command.
+  rpc GetWorkingDirectory(GetWorkingDirectoryRequest) returns (GetWorkingDirectoryResult);
+}
+
+message GetWorkingDirectoryRequest {}
+
+message GetWorkingDirectoryResult {
+  // The MP return argument named "Directory".
+  optional string directory = 1;
+  // Explicit MP and result-only argument retrieval outcome.
+  MpExecutionDetails execution = 1000;
+}

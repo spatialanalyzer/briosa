@@ -36,6 +36,7 @@ Keep public protocol design in `briosa`; do not let a client repository become t
 - SpatialAnalyzer must already be running for `ConnectEx(host, statusCode)` to connect. Use `localhost` for the local application; a reachable remote hostname or IP may also connect.
 - When several SpatialAnalyzer instances are open, only the first eligible instance owns the SDK communication ports. Closing it does not transfer ownership to an already-open instance; a newly opened instance must acquire the ports.
 - SA 2026.1.0529.7 was observed listening on TCP 901, 902, and 903, with SDK traffic observed on 902. Treat these observations as evidence, not as a vendor-guaranteed protocol contract.
+- A machine may have several SpatialAnalyzer releases and matching Briosa distributions installed, but one running Briosa server is locked to one exact SA release and one active SDK/SA instance. A client selects and launches the matching server distribution; SA release identifiers never enter public protobuf package, service, message, or RPC names. The public protobuf package is `briosa` and the generated C# namespace is `Briosa`.
 - Multiple SDK clients may report successful connections, but concurrent MP execution is unsafe. Experiments showed the first connected client owning execution while a second client could block indefinitely in `ExecuteStep`. `ConnectEx` success is attachment evidence, not proof of execution readiness; see ADR 0017.
 - COM activation can resolve to the SDK engine currently registered on the machine independently from the connected SpatialAnalyzer application version. Preserve the configured target, activated SDK version, and connected SA version as separate claims and fail closed on a verified mismatch.
 - Runtime identity evidence takes precedence over operator attestation for each claim. When runtime evidence is unavailable, the activated SDK and connected SA may be attested independently with an explicit version and non-sensitive evidence reference. Both effective claims must exactly match before Briosa issues the execution-channel probe or admits MP work; see ADR 0022.
@@ -65,6 +66,7 @@ Unless an accepted design decision explicitly changes them, preserve these const
 11. Do not report MP readiness from `ConnectEx` alone. Readiness requires exact-match activated-SDK and connected-SA evidence followed by a bounded execution-channel proof for the current worker generation. Never issue the probe while either identity claim is unavailable or mismatched.
 12. Preserve whether execution definitely did not start, may have started with an unknown outcome, or completed. Recovery guidance and replay safety are independent decisions.
 13. Treat the initial worker/SA target as single-tenant. Do not describe queue serialization as cross-client workflow isolation or expose an exclusive multi-call workflow without an accepted lease/session design.
+14. Keep each supported SA release as a complete product under `targets/<exact-sa-release>/`. Target projects must not reference projects or runtime source from another target. Keep the public protobuf package stable as `briosa`; exact SA releases identify products, artifacts, packages, and runtime compatibility gates.
 
 ## Interop and intellectual-property boundary
 
@@ -84,6 +86,7 @@ Unless an accepted design decision explicitly changes them, preserve these const
 - Keep `main` buildable. Prefer squash merges and delete merged branches.
 - Do not silently invent policy for an unresolved topic. Record the question in an issue, Discussion, or architecture decision and mark provisional behavior clearly.
 - Keep changes scoped to the active issue. Do not opportunistically implement later roadmap items merely because their eventual shape seems obvious.
+- Run target builds and tests from that target's directory. When adding a target, update the explicit CI and release matrices and its protected licensed-validation path.
 
 ## Design and implementation expectations
 
@@ -113,7 +116,6 @@ Before controlling a desktop SpatialAnalyzer process, connecting to another host
 
 Do not treat these as settled:
 
-- The exact relationship between Briosa semantic versions and version-locked SpatialAnalyzer releases.
 - Which SpatialAnalyzer releases will be supported and for how long.
 - The authoritative command metadata Hexagon can provide and what derived artifacts may be redistributed.
 - Remote gRPC authentication, authorization, TLS, network topology, and command-risk policy.
@@ -125,6 +127,6 @@ When work encounters one of these questions, implement only a reversible minimum
 
 ## Current initial target
 
-The current baseline targets SpatialAnalyzer 2026.1.0529.7. Its objective is a production-shaped .NET 10 foundation with one supervised, serialized SDK connection, one handwritten read-only operation (`GetWorkingDirectory` for MP step `Get Working Directory`), standard generated-client smoke coverage, and safe diagnostics.
+The current baseline product is `targets/2026.1.0529.7`. It provides a production-shaped .NET 10 foundation with one supervised, serialized SDK connection, one handwritten read-only operation (`GetWorkingDirectory` for MP step `Get Working Directory`), standard generated-client smoke coverage, and safe diagnostics.
 
 Add one operation at a time through an ordinary implementation issue and pull request. Reference inventory, bindings, values, or ObjectiveSA wrappers may accelerate review, but none is an implementation queue, public allowlist, or completeness requirement.

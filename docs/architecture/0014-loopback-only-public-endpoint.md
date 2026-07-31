@@ -30,7 +30,7 @@ The package previously defaulted `Urls` to `http://127.0.0.1:50051`, but ASP.NET
 
 ## Verification
 
-The [v0.1 threat model](../security/threat-model.md) maps assets, actors, trust boundaries, deployment scenarios, abuse cases, mitigations, residual risks, and remote prerequisites. Unit tests cover configuration rejection, and package smoke tests prove a non-loopback endpoint fails startup.
+The [v0.1 threat model](../../targets/2026.1.0529.7/docs/security/threat-model.md) maps assets, actors, trust boundaries, deployment scenarios, abuse cases, mitigations, residual risks, and remote prerequisites. Unit tests cover configuration rejection, and package smoke tests prove a non-loopback endpoint fails startup.
 
 ## References
 
