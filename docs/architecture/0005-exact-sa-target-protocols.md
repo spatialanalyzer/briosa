@@ -1,6 +1,6 @@
 # ADR 0005: Core and exact-SA-targeted public protocols
 
-- Status: Accepted for the v0.1 vertical slice
+- Status: Superseded by [ADR 0025](0025-isolated-exact-sa-target-products.md)
 - Date: 2026-07-21
 - Amended by: [ADR 0021](0021-exact-target-protobuf-partitions-and-identifiers.md) and [ADR 0024](0024-handwritten-mp-operation-vertical-slices.md)
 

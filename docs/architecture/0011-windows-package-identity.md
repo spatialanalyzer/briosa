@@ -3,6 +3,7 @@
 - Status: Accepted for the v0.1 vertical slice
 - Date: 2026-07-22
 - Issue: [#21](https://github.com/spatialanalyzer/briosa/issues/21)
+- Amended by: [ADR 0025](0025-isolated-exact-sa-target-products.md)
 
 ## Context
 

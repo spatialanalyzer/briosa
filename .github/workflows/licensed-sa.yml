@@ -44,6 +44,7 @@ jobs:
       DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
       DOTNET_NOLOGO: 'true'
       BRIOSA_TEST_VERSION: 0.1.0-licensed.${{ github.run_number }}
+      BRIOSA_TARGET_ROOT: targets/2026.1.0529.7
 
     steps:
       - name: Check out trusted source
@@ -61,6 +62,7 @@ jobs:
 
       - name: Build exact-target package
         shell: pwsh
+        working-directory: ${{ env.BRIOSA_TARGET_ROOT }}
         run: >
           ./eng/New-WindowsPackage.ps1
           -Version $env:BRIOSA_TEST_VERSION
@@ -69,6 +71,7 @@ jobs:
 
       - name: Build self-contained gRPC client
         shell: pwsh
+        working-directory: ${{ env.BRIOSA_TARGET_ROOT }}
         run: |
           dotnet restore tools/Briosa.SmokeClient/Briosa.SmokeClient.csproj `
             --locked-mode -r win-x64
@@ -80,6 +83,7 @@ jobs:
       - name: Assemble and hash trusted payload
         id: payload
         shell: pwsh
+        working-directory: ${{ env.BRIOSA_TARGET_ROOT }}
         run: |
           $payloadRoot = 'artifacts/licensed-runner/payload'
           $engineeringRoot = Join-Path $payloadRoot 'eng'
@@ -116,7 +120,7 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: licensed-sa-payload-${{ github.sha }}-${{ github.run_attempt }}
-          path: artifacts/licensed-runner/licensed-sa-payload.zip
+          path: ${{ env.BRIOSA_TARGET_ROOT }}/artifacts/licensed-runner/licensed-sa-payload.zip
           if-no-files-found: error
           retention-days: 7
 

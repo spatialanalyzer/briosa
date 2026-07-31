@@ -15,7 +15,7 @@ ObjectiveSA historically assumed one in-process owner. Briosa is a service and c
 
 The initial v0.2 deployment contract is single-tenant per worker/SpatialAnalyzer target. A tenant is one mutually trusting application or coordinated application group under one operator. Briosa does not yet provide independent sessions or isolation between unrelated callers.
 
-The [workflow-isolation operator guide](../operations/workflow-isolation.md) inventories the command families that commonly read, mutate, or retain application-global state. The family inventory guides review; the exact handwritten operation remains the unit of classification.
+The [workflow-isolation operator guide](../../targets/2026.1.0529.7/docs/operations/workflow-isolation.md) inventories the command families that commonly read, mutate, or retain application-global state. The family inventory guides review; the exact handwritten operation remains the unit of classification.
 
 Single-tenant deployment is not sufficient to expose an arbitrary multi-call stateful workflow. Handwritten operations are reviewed with an execution-scope classification:
 

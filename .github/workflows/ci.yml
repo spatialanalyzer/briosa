@@ -16,10 +16,41 @@ permissions:
   contents: read
 
 jobs:
+  repository-policy:
+    name: Repository workflow policy
+    runs-on: windows-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Verify ordinary CI workflow policy
+        shell: pwsh
+        run: ./eng/Verify-CiWorkflow.ps1
+
+      - name: Verify licensed runner workflow policy
+        shell: pwsh
+        run: ./eng/Verify-LicensedRunnerWorkflow.ps1
+
+      - name: Verify exact-target product isolation
+        shell: pwsh
+        run: ./eng/Verify-TargetIsolation.ps1
+
   build-and-test:
-    name: Windows x64 build and test
+    name: SA ${{ matrix.target.sa_version }} Windows x64 build and test
     runs-on: windows-latest
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - sa_version: 2026.1.0529.7
+            path: targets/2026.1.0529.7
+
+    defaults:
+      run:
+        working-directory: ${{ matrix.target.path }}
 
     env:
       DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
@@ -31,26 +62,18 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Verify ordinary CI workflow policy
-        shell: pwsh
-        run: ./eng/Verify-CiWorkflow.ps1
-
       - name: Install Buf
         uses: bufbuild/buf-setup-action@v1.50.0
         with:
           version: 1.72.0
           github_token: ${{ github.token }}
 
-      - name: Verify licensed runner workflow policy
-        shell: pwsh
-        run: ./eng/Verify-LicensedRunnerWorkflow.ps1
-
       - name: Install .NET SDK
         uses: actions/setup-dotnet@v5
         with:
           global-json-file: global.json
           cache: true
-          cache-dependency-path: '**/packages.lock.json'
+          cache-dependency-path: '${{ matrix.target.path }}/**/packages.lock.json'
 
       - name: Restore locked dependencies
         run: dotnet restore Briosa.slnx --locked-mode
@@ -87,14 +110,24 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: runtime-performance-evidence
-          path: artifacts/ci-metrics/runtime-performance
+          name: runtime-performance-evidence-sa-${{ matrix.target.sa_version }}
+          path: ${{ matrix.target.path }}/artifacts/ci-metrics/runtime-performance
           if-no-files-found: warn
 
   package-smoke:
-    name: Windows package reproducibility and smoke test
+    name: SA ${{ matrix.target.sa_version }} package and protocol smoke
     runs-on: windows-latest
     timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - sa_version: 2026.1.0529.7
+            path: targets/2026.1.0529.7
+
+    defaults:
+      run:
+        working-directory: ${{ matrix.target.path }}
 
     env:
       DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
@@ -117,7 +150,7 @@ jobs:
         with:
           global-json-file: global.json
           cache: true
-          cache-dependency-path: '**/packages.lock.json'
+          cache-dependency-path: '${{ matrix.target.path }}/**/packages.lock.json'
 
       - name: Build twice and verify package
         shell: pwsh
@@ -131,4 +164,4 @@ jobs:
         shell: pwsh
         run: >
           ./eng/Test-ClientScenarios.ps1
-          -PackagePath artifacts/package-smoke/briosa-0.1.0-ci-sa-2026.1.0529.7-win-x64.zip
+          -PackagePath artifacts/package-smoke/briosa-0.1.0-ci-sa-${{ matrix.target.sa_version }}-win-x64.zip

@@ -1,4 +1,4 @@
-name: Release Windows package
+name: Release exact-target products
 
 on:
   push:
@@ -15,12 +15,48 @@ permissions:
   contents: read
 
 jobs:
+  version:
+    name: Resolve Briosa version
+    runs-on: windows-latest
+    timeout-minutes: 5
+    outputs:
+      value: ${{ steps.version.outputs.value }}
+
+    steps:
+      - name: Resolve package version
+        id: version
+        shell: pwsh
+        env:
+          DISPATCH_VERSION: ${{ inputs.version }}
+        run: |
+          if ("${{ github.event_name }}" -eq "push") {
+            $version = $env:GITHUB_REF_NAME.Substring(1)
+          }
+          else {
+            $version = $env:DISPATCH_VERSION
+          }
+
+          if ($version -notmatch '^[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?$') {
+            throw "Version '$version' is not a supported semantic version."
+          }
+
+          "value=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
   package:
-    name: Build and verify Windows x64 package
+    name: Build SA ${{ matrix.target.sa_version }} products
+    needs: version
     runs-on: windows-latest
     timeout-minutes: 30
-    permissions:
-      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - sa_version: 2026.1.0529.7
+            path: targets/2026.1.0529.7
+
+    defaults:
+      run:
+        working-directory: ${{ matrix.target.path }}
 
     env:
       DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
@@ -43,64 +79,65 @@ jobs:
         with:
           global-json-file: global.json
           cache: true
-          cache-dependency-path: '**/packages.lock.json'
-
-      - name: Resolve package version
-        id: version
-        shell: pwsh
-        env:
-          DISPATCH_VERSION: ${{ inputs.version }}
-        run: |
-          if ("${{ github.event_name }}" -eq "push") {
-            $version = $env:GITHUB_REF_NAME.Substring(1)
-          }
-          else {
-            $version = $env:DISPATCH_VERSION
-          }
-
-          if ($version -notmatch '^[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?$') {
-            throw "Version '$version' is not a supported semantic version."
-          }
-
-          "value=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          cache-dependency-path: '${{ matrix.target.path }}/**/packages.lock.json'
 
       - name: Build twice and verify package
         shell: pwsh
         run: >
           ./eng/Test-WindowsPackage.ps1
-          -Version "${{ steps.version.outputs.value }}"
+          -Version "${{ needs.version.outputs.value }}"
           -OutputDirectory artifacts/release
 
       - name: Build twice and verify protocol artifact
         shell: pwsh
         run: >
           ./eng/Test-ProtocolArtifact.ps1
-          -Version "${{ steps.version.outputs.value }}"
+          -Version "${{ needs.version.outputs.value }}"
           -OutputDirectory artifacts/release
 
       - name: Run packaged client scenarios
         shell: pwsh
         run: >
           ./eng/Test-ClientScenarios.ps1
-          -PackagePath "artifacts/release/briosa-${{ steps.version.outputs.value }}-sa-2026.1.0529.7-win-x64.zip"
+          -PackagePath "artifacts/release/briosa-${{ needs.version.outputs.value }}-sa-${{ matrix.target.sa_version }}-win-x64.zip"
 
-      - name: Upload workflow artifact
+      - name: Upload exact-target release assets
         uses: actions/upload-artifact@v7
         with:
-          name: briosa-${{ steps.version.outputs.value }}-release-assets
-          path: artifacts/release/*
+          name: briosa-${{ needs.version.outputs.value }}-sa-${{ matrix.target.sa_version }}-release-assets
+          path: ${{ matrix.target.path }}/artifacts/release/*
           if-no-files-found: error
 
+  publish:
+    name: Publish GitHub Release
+    if: github.event_name == 'push' && github.ref_type == 'tag'
+    needs: [version, package]
+    runs-on: windows-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download all exact-target release assets
+        uses: actions/download-artifact@v8
+        with:
+          pattern: briosa-${{ needs.version.outputs.value }}-sa-*-release-assets
+          path: artifacts/release
+          merge-multiple: true
+
       - name: Publish GitHub Release
-        if: github.event_name == 'push' && github.ref_type == 'tag'
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
-          PACKAGE_VERSION: ${{ steps.version.outputs.value }}
+          PACKAGE_VERSION: ${{ needs.version.outputs.value }}
         run: |
           $files = Get-ChildItem -LiteralPath artifacts/release -File |
             Sort-Object Name |
             ForEach-Object FullName
+          if ($files.Count -eq 0) {
+            throw "No exact-target release assets were downloaded."
+          }
+
           $releaseArguments = @(
             "release",
             "create",

@@ -1,61 +1,25 @@
 # Briosa
 
-Briosa is an open-source gRPC bridge around the Hexagon SpatialAnalyzer SDK. It exposes SpatialAnalyzer MP commands as strongly typed, language-neutral RPCs while keeping COM and SDK state inside a separately supervised Windows worker process.
+Briosa is an open-source gRPC bridge around the Hexagon SpatialAnalyzer SDK. This repository builds a separate, version-locked Briosa product for every supported SpatialAnalyzer release.
 
 Briosa does not include SpatialAnalyzer, its SDK, or a license. SpatialAnalyzer must be installed, licensed, and running separately.
 
-## Current API
+## Supported targets
 
-The current exact target is SpatialAnalyzer `2026.1.0529.7`. One MP operation is implemented:
+| SpatialAnalyzer target | Product source | Public protobuf package | Generated C# namespace |
+| --- | --- | --- | --- |
+| `2026.1.0529.7` | [`targets/2026.1.0529.7`](targets/2026.1.0529.7) | `briosa` | `Briosa` |
 
-| gRPC RPC | MP step | Result |
-| --- | --- | --- |
-| `FileOperations/GetWorkingDirectory` | `Get Working Directory` | `directory` |
+Each target subtree owns its solution, protobuf contract, server, worker, tests, tools, dependency pins, interop boundary, reference evidence, packaging scripts, and target-specific documentation. Target projects must not reference projects or source from another target. A running server is built for exactly one SA release and controls one active SDK/SA instance; there is no runtime SA-version selector.
 
-This is the complete supported MP surface. Inventory entries, retained evidence, former catalog entries, and code present only in Git history are not supported operations.
+A Briosa semantic release such as `1.2.3` produces one server artifact and one protocol artifact per supported target. Artifact and future client-package names carry the SA release, while public RPC names and generated language namespaces remain stable to make ordinary SA upgrades straightforward.
 
-The protobuf contract is [file_operations.proto](proto/briosa/sa/v2026_1_0529_7/v1alpha1/file_operations.proto). The handwritten server mapping is under [src/Briosa.Server/Operations](src/Briosa.Server/Operations), and the operation contract is documented in [GetWorkingDirectory](docs/operations/get-working-directory.md).
+## Build a target
 
-## Operation strategy
-
-Briosa delivers one handwritten MP-operation vertical slice at a time. Each operation includes:
-
-1. an MP-compatible strongly typed protobuf RPC;
-2. handwritten host, worker-command, result, and SDK mapping;
-3. capability and policy registration;
-4. portable success and failure tests;
-5. an explicit real-SA validation status; and
-6. user documentation.
-
-Standard protobuf and gRPC tools still generate transport plumbing and clients. Briosa has no custom operation generator and no generic public `ExecuteCommand` RPC. See [ADR 0024](docs/architecture/0024-handwritten-mp-operation-vertical-slices.md).
-
-Generative-AI tools may draft a vertical slice from maintainer-provided MP and SDK evidence. Committed source, tests, observations, and engineering review are authoritative.
-
-## Runtime architecture
-
-- The public ASP.NET Core host never owns COM state.
-- One supervised worker process owns one SDK connection.
-- One worker-owned STA serializes the full `SetStep` → setters → `ExecuteStep` → MP result → getters sequence.
-- A timeout or caller cancellation does not imply that an in-flight COM operation stopped.
-- Worker replacement restores availability but does not make ambiguous automatic replay safe.
-- Readiness requires exact-match SDK and connected-SA identity evidence plus a bounded execution-channel probe.
-- The initial target is single-tenant; queue serialization is not cross-client workflow isolation.
-- The endpoint binds to loopback by default.
-- Audit events contain operation identity and structural outcomes, not command arguments or returned values.
-
-The architecture decisions under [docs/architecture](docs/architecture) describe these constraints in detail.
-
-## Build and test
-
-Requirements:
-
-- Windows x64;
-- .NET 10 SDK selected by `global.json`; and
-- Buf for protobuf formatting, linting, descriptors, and compatibility checks.
-
-From the repository root:
+Requirements are Windows x64, the .NET 10 SDK selected by [`global.json`](global.json), and Buf.
 
 ```powershell
+cd targets/2026.1.0529.7
 dotnet restore Briosa.slnx --locked-mode
 dotnet build Briosa.slnx -c Release --no-restore
 dotnet test Briosa.slnx -c Release --no-build --no-restore
@@ -63,64 +27,20 @@ dotnet test Briosa.slnx -c Release --no-build --no-restore
 ./eng/Verify-InteropArtifacts.ps1 -NoBuild
 ```
 
-These commands do not require SpatialAnalyzer, a license, or proprietary SDK installation beyond the approved committed interop boundary.
+Ordinary builds and tests do not require SpatialAnalyzer or a license. See the [SA 2026.1.0529.7 target guide](targets/2026.1.0529.7/README.md) for its API, package, smoke-test, and licensed-development workflows.
 
-Package and standard generated-client smoke validation:
+## Add another SpatialAnalyzer target
 
-```powershell
-./eng/Test-WindowsPackage.ps1 -Version 0.1.0-local
-./eng/Test-ProtocolArtifact.ps1 -Version 0.1.0-local
-./eng/Test-ClientScenarios.ps1 `
-  -PackagePath artifacts/package-smoke/briosa-0.1.0-local-sa-2026.1.0529.7-win-x64.zip
-```
+Adding a target is an explicit product fork, not a shared-project extension:
 
-The smoke scenarios use a separate fake worker and cover readiness, MP failure, output retrieval failure, policy rejection, caller deadline, cancellation, watchdog replacement, and unsupported target packages without starting SpatialAnalyzer.
+1. Create `targets/<exact-sa-release>/` as a complete copy of the closest reviewed target.
+2. Change the exact SA identity, interop input/provenance, dependency pins, evidence, and target documentation inside the new subtree.
+3. Review every retained MP operation against the new release; do not assume compatibility merely because the public `briosa` package is stable.
+4. Keep all project references and source includes inside the new target subtree.
+5. Add the target to the explicit matrices in CI and release workflows and add or update its protected licensed workflow.
+6. Produce target-qualified server and protocol artifacts and validate exact-version mismatch rejection before MP execution.
 
-## Local licensed SpatialAnalyzer workflow
-
-The conventional source workflow is documented in [Local gRPC server development](docs/development/local-grpc-server.md). It requires a separately installed and licensed exact-target SpatialAnalyzer and independently established activated-SDK and connected-SA identity evidence.
-
-After configuring the documented user secrets and starting exactly one eligible SpatialAnalyzer instance:
-
-```powershell
-dotnet run --project src/Briosa.Server --launch-profile SpatialAnalyzer
-```
-
-In a second shell:
-
-```powershell
-grpcurl -plaintext -d '{}' 127.0.0.1:50051 `
-  briosa.sa.v2026_1_0529_7.v1alpha1.FileOperations/GetWorkingDirectory
-```
-
-Do not attach competing SDK clients. The protected licensed workflow and local runner intentionally report only structural success and never print the returned directory.
-
-## Adding an MP operation
-
-Start with a focused GitHub issue. Preserve the MP command's established names wherever protobuf and the implementation language permit it. A developer familiar with MP programming should recognize the RPC and fields directly.
-
-A typical slice changes:
-
-- `proto/briosa/sa/<target>/...`;
-- `src/Briosa.Server/Operations/...`;
-- the worker SDK seam only when a new exact binding or value codec is needed;
-- `SpatialAnalyzerApi.Operations`;
-- portable protocol, server, worker, and smoke tests as appropriate; and
-- operation documentation and real-SA validation status.
-
-The follow-up must build without editing or extending a Briosa-specific generator.
-
-## Reference evidence
-
-The retained [inventory](inventory), [bindings](bindings), and [values](values) trees are non-authoritative reference snapshots derived from exact-target observations and pinned secondary ObjectiveSA review. They can accelerate implementation review, but they do not define support, approve commands, generate source, or participate in ordinary build completeness gates.
-
-Raw installed documentation, raw View SDK Code, ObjectiveSA source, proprietary binaries, paths, credentials, and licensed data are not copied into the repository. Removed catalogs, dispositions, generated conformance manifests, and historical generated operation artifacts remain recoverable from Git history.
-
-## Packaging and security
-
-The Windows package is self-contained for Briosa but does not bundle SpatialAnalyzer. It contains safe build coordinates, the approved interop provenance, and the exact implemented-operation declaration. See [Windows package](docs/operations/windows-package.md), [health and discovery](docs/operations/health-and-discovery.md), and [protocol artifacts](docs/operations/protocol-artifacts.md).
-
-Remote authentication, authorization, TLS, and command-risk policy remain unresolved. Keep production bindings loopback-only.
+Repository-wide governance, architecture decisions, workflow policy, and release orchestration remain at the root. See [ADR 0025](docs/architecture/0025-isolated-exact-sa-target-products.md).
 
 ## License
 

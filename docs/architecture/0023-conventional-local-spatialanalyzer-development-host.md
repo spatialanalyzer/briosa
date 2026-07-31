@@ -3,6 +3,7 @@
 - Status: Accepted for the v0.1 local development workflow; implementation and live validation remain in issues #118-#120
 - Date: 2026-07-29
 - Issue: [#117](https://github.com/spatialanalyzer/briosa/issues/117)
+- Amended by: [ADR 0025](0025-isolated-exact-sa-target-products.md)
 - Preserves: [ADR 0002](0002-worker-process-lifecycle.md), [ADR 0011](0011-windows-package-identity.md), [ADR 0014](0014-loopback-only-public-endpoint.md), [ADR 0015](0015-command-policy-and-audit-events.md), [ADR 0017](0017-execution-channel-readiness.md), and [ADR 0022](0022-runtime-identity-and-attestation.md)
 
 ## Context
@@ -15,11 +16,11 @@ The primary local workflow needs to exercise the real production boundaries rath
 
 ### Primary launch contract
 
-`SpatialAnalyzer` is the first and default `Project` profile in `src/Briosa.Server/Properties/launchSettings.json`. These commands start the same primary development workflow:
+`SpatialAnalyzer` is the first and default `Project` profile in `targets/2026.1.0529.7/src/Briosa.Server/Properties/launchSettings.json`. These commands start the same primary development workflow:
 
 ```powershell
-dotnet run --project src/Briosa.Server
-dotnet run --project src/Briosa.Server --launch-profile SpatialAnalyzer
+dotnet run --project targets/2026.1.0529.7/src/Briosa.Server
+dotnet run --project targets/2026.1.0529.7/src/Briosa.Server --launch-profile SpatialAnalyzer
 ```
 
 The explicit form is the stable command for documentation and automation. The plain form is the shortest developer command and is protected by a test that verifies the profile ordering and semantics.
@@ -50,10 +51,10 @@ Options are bound once and validated during host startup. Invalid endpoint value
 Local operator attestations use the four independent ADR 0022 fields in .NET user-secrets:
 
 ```powershell
-dotnet user-secrets set "Briosa:SpatialAnalyzer:Identity:ActivatedSdk:OperatorAttestation:Version" "2026.1.0529.7" --project src/Briosa.Server
-dotnet user-secrets set "Briosa:SpatialAnalyzer:Identity:ActivatedSdk:OperatorAttestation:Reference" "<non-sensitive-activated-SDK-evidence-reference>" --project src/Briosa.Server
-dotnet user-secrets set "Briosa:SpatialAnalyzer:Identity:ConnectedSpatialAnalyzer:OperatorAttestation:Version" "2026.1.0529.7" --project src/Briosa.Server
-dotnet user-secrets set "Briosa:SpatialAnalyzer:Identity:ConnectedSpatialAnalyzer:OperatorAttestation:Reference" "<non-sensitive-connected-SA-evidence-reference>" --project src/Briosa.Server
+dotnet user-secrets set "Briosa:SpatialAnalyzer:Identity:ActivatedSdk:OperatorAttestation:Version" "2026.1.0529.7" --project targets/2026.1.0529.7/src/Briosa.Server
+dotnet user-secrets set "Briosa:SpatialAnalyzer:Identity:ActivatedSdk:OperatorAttestation:Reference" "<non-sensitive-activated-SDK-evidence-reference>" --project targets/2026.1.0529.7/src/Briosa.Server
+dotnet user-secrets set "Briosa:SpatialAnalyzer:Identity:ConnectedSpatialAnalyzer:OperatorAttestation:Version" "2026.1.0529.7" --project targets/2026.1.0529.7/src/Briosa.Server
+dotnet user-secrets set "Briosa:SpatialAnalyzer:Identity:ConnectedSpatialAnalyzer:OperatorAttestation:Reference" "<non-sensitive-connected-SA-evidence-reference>" --project targets/2026.1.0529.7/src/Briosa.Server
 ```
 
 The example versions are valid only when the developer has independently established those exact observations. A developer must not copy the configured target into either field merely to make readiness succeed. The two references identify separately retained, non-sensitive evidence; they are not paths, credentials, license values, or returned SpatialAnalyzer data. Runtime evidence continues to take precedence over an attestation for the same claim, and both effective claims must match before Briosa issues the execution-channel probe.
@@ -87,7 +88,7 @@ Before starting Briosa, the developer must:
 From the repository root, start the source server:
 
 ```powershell
-dotnet run --project src/Briosa.Server --launch-profile SpatialAnalyzer
+dotnet run --project targets/2026.1.0529.7/src/Briosa.Server --launch-profile SpatialAnalyzer
 ```
 
 In another PowerShell session, use an installed `grpcurl` client over the loopback cleartext HTTP/2 endpoint:
@@ -96,9 +97,9 @@ In another PowerShell session, use an installed `grpcurl` client over the loopba
 grpcurl -plaintext 127.0.0.1:50051 list
 '{"service":"briosa.liveness"}' | grpcurl -plaintext -d '@' 127.0.0.1:50051 grpc.health.v1.Health/Check
 '{"service":"briosa.readiness"}' | grpcurl -plaintext -d '@' 127.0.0.1:50051 grpc.health.v1.Health/Check
-grpcurl -plaintext -d '{}' 127.0.0.1:50051 briosa.core.v1alpha1.DiscoveryService/GetServerInfo
-grpcurl -plaintext -d '{}' 127.0.0.1:50051 briosa.core.v1alpha1.DiscoveryService/ListCapabilities
-grpcurl -plaintext -d '{}' 127.0.0.1:50051 briosa.sa.v2026_1_0529_7.v1alpha1.FileOperations/GetWorkingDirectory
+grpcurl -plaintext -d '{}' 127.0.0.1:50051 briosa.DiscoveryService/GetServerInfo
+grpcurl -plaintext -d '{}' 127.0.0.1:50051 briosa.DiscoveryService/ListCapabilities
+grpcurl -plaintext -d '{}' 127.0.0.1:50051 briosa.FileOperations/GetWorkingDirectory
 ```
 
 The expected sequence is a live host, independently matched identities, a successful execution-channel proof for the current worker generation, healthy readiness, one advertised capability, and a successful working-directory response. The returned directory is developer-visible command output and must not be copied into logs or validation reports.
