@@ -23,7 +23,7 @@ Before Briosa connects, confirm all of the following:
   client and make its executable available on `PATH`. Optionally install
   [`grpcui`](https://github.com/fullstorydev/grpcui) for the browser-based
   examples; it is not required for the acceptance path.
-- Reserve the loopback endpoint `127.0.0.1:50051`. The v0.1 server is
+- Reserve the loopback endpoint `127.0.0.1:50051`. The current server is
   intentionally loopback-only and uses cleartext HTTP/2.
 - Close every other Briosa server or worker, ObjectiveSA probe, SDK experiment,
   and `SpatialAnalyzerSDK` client. Do not use a second SDK client to inspect or
@@ -235,8 +235,8 @@ Record only the source commit, target version, time, successful state names, and
 successful operation IDs. Do not record returned operation values or evidence
 contents.
 
-This workstation run is not the protected licensed-SA validation defined by
-[ADR 0013](../../../../docs/architecture/0013-protected-licensed-runner.md), does not satisfy
+This workstation run is not the protected licensed-SA validation defined by the
+[validation architecture](../../../../docs/architecture/validation-and-distribution.md), does not satisfy
 the protected runner requirement, and is not release-readiness or authoritative
 runtime-identity evidence. The protected workflow uses a reviewed package,
 generated smoke client, dedicated licensed machine, trusted `main`, approval

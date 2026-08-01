@@ -34,4 +34,4 @@ Verify two independent builds, descriptor equivalence, manifests, and checksums:
 
 Client repositories should verify the published checksum, generate their transport types with standard protobuf/gRPC tools, and add any language-idiomatic convenience layer as reviewed source in that client repository. The protobuf RPC and fields remain the shared API authority.
 
-A Briosa release may add or change an operation only through the normal protobuf compatibility policy and the handwritten vertical-slice review described by [ADR 0024](../../../../docs/architecture/0024-handwritten-mp-operation-vertical-slices.md).
+A Briosa release may add or change an operation only through the normal protobuf compatibility policy and the handwritten vertical-slice review described by the [operation and protocol model](../../../../docs/architecture/operation-and-protocol-model.md).

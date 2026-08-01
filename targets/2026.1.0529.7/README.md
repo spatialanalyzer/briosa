@@ -21,7 +21,7 @@ Briosa delivers complete handwritten MP-operation vertical slices, either indivi
 5. an explicit real-SA validation status; and
 6. user documentation.
 
-Related operations may share service, workflow, test, and documentation context when every command remains independently reviewable. There is no fixed batch maximum. Standard protobuf and gRPC tools still generate transport plumbing and clients. Briosa has no custom operation generator and no generic public `ExecuteCommand` RPC. See [ADR 0024](../../docs/architecture/0024-handwritten-mp-operation-vertical-slices.md).
+Related operations may share service, workflow, test, and documentation context when every command remains independently reviewable. There is no fixed batch maximum. Standard protobuf and gRPC tools still generate transport plumbing and clients. Briosa has no custom operation generator and no generic public `ExecuteCommand` RPC. See the [operation and protocol model](../../docs/architecture/operation-and-protocol-model.md).
 
 Generative-AI tools may draft a vertical slice from maintainer-provided MP and SDK evidence. Committed source, tests, observations, and engineering review are authoritative.
 
@@ -37,7 +37,7 @@ Generative-AI tools may draft a vertical slice from maintainer-provided MP and S
 - The endpoint binds to loopback by default.
 - Audit events contain operation identity and structural outcomes, not command arguments or returned values.
 
-The repository-wide [architecture decisions](../../docs/architecture) describe these constraints in detail.
+The repository-wide [current architecture](../../docs/architecture/README.md) describes these constraints in detail.
 
 ## Build and test
 

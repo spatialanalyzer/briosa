@@ -40,7 +40,7 @@ Adding a target is an explicit product fork, not a shared-project extension:
 5. Add the target to the explicit matrices in CI and release workflows and add or update its protected licensed workflow.
 6. Produce target-qualified server and protocol artifacts and validate exact-version mismatch rejection before MP execution.
 
-Repository-wide governance, architecture decisions, workflow policy, and release orchestration remain at the root. See [ADR 0025](docs/architecture/0025-isolated-exact-sa-target-products.md).
+Repository-wide governance, current architecture, workflow policy, and release orchestration remain at the root. See the [exact-target product model](docs/architecture/exact-target-product-model.md).
 
 ## License
 

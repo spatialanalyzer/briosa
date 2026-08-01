@@ -8,4 +8,4 @@ Current support is narrower: only calls exercised by operations in the handwritt
 
 Reusable worker codecs and adapters remain directly tested for their own contracts, including scalar values, identity/reference lists, specialized structured values, `VariantWrapper` list marshaling, malformed returns, and getter failures. Those internal tests do not make an MP command public.
 
-Historical registry coverage fields and generated reports belong to the retired catalog pipeline. See [the SDK binding reference guide](../../../development/sdk-binding-registry.md) and [ADR 0024](../../../../../../docs/architecture/0024-handwritten-mp-operation-vertical-slices.md).
+Historical registry coverage fields and generated reports belong to the retired catalog pipeline. See [the SDK binding reference guide](../../../development/sdk-binding-registry.md) and the [operation and protocol model](../../../../../../docs/architecture/operation-and-protocol-model.md).
