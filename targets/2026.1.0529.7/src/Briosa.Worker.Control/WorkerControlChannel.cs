@@ -213,7 +213,11 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
                 !HasInputValueForKind(argument)) ||
             command.OutputArguments.Any(argument =>
                 string.IsNullOrWhiteSpace(argument.Name) ||
-                !Enum.IsDefined(argument.Kind)))
+                !Enum.IsDefined(argument.Kind) ||
+                argument.ObjectTypeWhenOmitted is { } objectType &&
+                (argument.Kind != WorkerMpValueKind.CollectionObjectName ||
+                 objectType == WorkerObjectTypeValue.Unspecified ||
+                 !Enum.IsDefined(objectType))))
         {
             throw new InvalidDataException("The worker MP argument collection is invalid.");
         }

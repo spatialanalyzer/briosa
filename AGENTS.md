@@ -45,6 +45,7 @@ Keep public protocol design in `briosa`; do not let a client repository become t
 - Serializing each MP sequence prevents COM interleaving but does not isolate application-global state across several RPCs. The initial service is single-tenant per worker/SA target, and exclusive multi-call workflows remain blocked until an explicit lease contract exists; see ADR 0019.
 - For SDK methods taking a `ref object` list, marshal the CLR array through `System.Runtime.InteropServices.VariantWrapper`. A live SA 2026.1.0529.7 probe observed `DISP_E_TYPEMISMATCH` for a bare `object[]` on both `GetStringRefListArg` and `SetStringRefListArg`; the wrapped forms succeeded.
 - SDK method names do not uniquely determine MP argument semantics. In SA 2026.1.0529.7, the collection-object-named scalar/list calls carry both the 26-choice object domain and the broader 42-choice item domain. Select the family per exact command argument and fail closed on unknown returned type literals; see ADR 0016.
+- Live SA 2026.1.0529.7 validation of `Get Working Frame Properties` observed `GetCollectionObjectNameArg` returning non-empty collection and object names without an embedded object-type literal. That exact operation supplies its documented `Frame` type only when the literal is omitted; do not generalize this fallback to other collection-object outputs, and continue to fail closed on unknown embedded literals.
 - The retained SA 2026.1.0529.7 reference inventory combines 1,302 structured command documents and 1,360 View SDK Code observations into 1,412 commands. It is non-authoritative implementation evidence: inventory membership, former dispositions, and historical catalog membership do not make a command part of the supported Briosa API.
 
 See the [Discussion #1 findings](https://github.com/spatialanalyzer/community/discussions/1#discussioncomment-17706394) before changing connection, concurrency, timeout, or process-lifecycle assumptions.
@@ -58,7 +59,7 @@ Unless an accepted design decision explicitly changes them, preserve these const
 3. One worker-owned STA serializes the entire MP sequence: `SetStep`, argument setters, `ExecuteStep`, and result retrieval. Never interleave sequences from concurrent gRPC calls.
 4. Client cancellation and gRPC deadlines must not be confused with successful cancellation of an in-flight COM call. A watchdog may need to terminate and replace the worker.
 5. Public protobuf contracts must describe SpatialAnalyzer concepts without exposing COM implementation types.
-6. Each supported MP operation is an ordinary reviewed vertical slice: a mechanically MP-compatible strongly typed protobuf RPC, handwritten C# host/worker/SDK mapping, capability registration, portable tests, validation status, and user documentation. Standard protobuf/gRPC generation is allowed; Briosa-specific operation generation and inventory-completeness gates are not.
+6. Each supported MP operation is a complete reviewed vertical slice: a mechanically MP-compatible strongly typed protobuf RPC, handwritten C# host/worker/SDK mapping, capability registration, portable tests, validation status, and user documentation. Coherent issues and pull requests may contain multiple such operations; there is no arbitrary one-command boundary or fixed batch maximum. Standard protobuf/gRPC generation is allowed; Briosa-specific operation generation and inventory-completeness gates are not.
 7. Ordinary builds and tests must not require SpatialAnalyzer, a license, or proprietary SDK binaries. Put the SDK behind an internal abstraction and exercise lifecycle and failure behavior with a fake.
 8. Real-SA integration tests require a separately licensed, protected Windows environment. Never expose such a runner or its secrets to untrusted pull-request code.
 9. Bind public services to loopback by default until remote authentication, transport security, authorization, and command-risk policies are established.
@@ -82,6 +83,7 @@ Unless an accepted design decision explicitly changes them, preserve these const
 - Epics are planning containers, not branch boundaries.
 - Start from a Task. Use a short-lived branch named `<issue-number>-<short-description>`, such as `7-solution-scaffold`.
 - A pull request is the smallest coherent, buildable, reviewable change. A Task may require several PRs, and one PR may close tightly coupled Tasks, but avoid long-lived Epic branches.
+- Batch related MP operations when that improves delivery speed, shared workflow validation, or review context. Keep every operation individually traceable to exact-target evidence and individually complete within the batch; do not impose a command-count limit.
 - Link PRs with `Closes #<issue-number>` only when the PR satisfies the issue's acceptance criteria. Use `Refs #<issue-number>` for partial work.
 - Keep `main` buildable. Prefer squash merges and delete merged branches.
 - Do not silently invent policy for an unresolved topic. Record the question in an issue, Discussion, or architecture decision and mark provisional behavior clearly.
@@ -94,7 +96,7 @@ Unless an accepted design decision explicitly changes them, preserve these const
 - Separate transport status, worker/connection availability, execution disposition, replay safety, and MP command results.
 - Make process ownership, COM lifetime, queueing, timeouts, retries, and cleanup observable and testable.
 - Preserve MP terminology mechanically wherever the target language permits it. Developers familiar with MPs should be able to recognize RPC and field names without learning a second Briosa-specific vocabulary.
-- Hand-author operation protobuf, host mapping, worker request/result mapping, SDK sequence, capability registration, tests, and documentation. Keep those files together conceptually as one reviewable vertical slice.
+- Hand-author operation protobuf, host mapping, worker request/result mapping, SDK sequence, capability registration, tests, and documentation. Keep each operation conceptually complete and reviewable whether delivered alone or in a coherent multi-command batch.
 - Never hand-edit output from standard protobuf/gRPC tools. Handwritten `.proto` files and C# operation sources are ordinary reviewed source.
 - Generative-AI tools may draft an operation from maintainer-provided MP and SDK evidence, but committed source, tests, observations, and engineering review are authoritative.
 - Include negative-path tests for disconnected SA, MP failure, deadline, cancellation, worker hang/crash, and unsupported SA versions.
@@ -127,6 +129,6 @@ When work encounters one of these questions, implement only a reversible minimum
 
 ## Current initial target
 
-The current baseline product is `targets/2026.1.0529.7`. It provides a production-shaped .NET 10 foundation with one supervised, serialized SDK connection, three handwritten read-only operations (`GetWorkingDirectory`, `GetNumberOfCollections`, and `GetIThCollectionName`), standard generated-client smoke coverage, and safe diagnostics.
+The current baseline product is `targets/2026.1.0529.7`. It provides a production-shaped .NET 10 foundation with one supervised, serialized SDK connection, handwritten read-only MP operations, standard generated-client smoke coverage, and safe diagnostics. The handwritten protobuf contracts, `SpatialAnalyzerApi.Operations`, and runtime capability discovery—not a prose count or inventory—define the supported surface.
 
-Add one operation at a time through an ordinary implementation issue and pull request. Reference inventory, bindings, values, or ObjectiveSA wrappers may accelerate review, but none is an implementation queue, public allowlist, or completeness requirement.
+Add operations through coherent implementation issues and pull requests, batching related commands when useful. Reference inventory, bindings, values, or ObjectiveSA wrappers may accelerate review, but none is an implementation queue, public allowlist, or completeness requirement.

@@ -6,21 +6,13 @@ Briosa does not include SpatialAnalyzer, its SDK, or a license. SpatialAnalyzer 
 
 ## Current API
 
-The current exact target is SpatialAnalyzer `2026.1.0529.7`. Three MP operations are implemented:
+The current exact target is SpatialAnalyzer `2026.1.0529.7`. The handwritten [protobuf contracts](proto/briosa) and [operation registry](src/Briosa.Server/Operations/SpatialAnalyzerApi.cs) define the compiled MP surface; `DiscoveryService/ListCapabilities` reports the runtime-policy-admitted subset. Inventory entries, retained evidence, former catalog entries, prose lists, and code present only in Git history are not supported operations.
 
-| gRPC RPC | MP step | Request | Result |
-| --- | --- | --- | --- |
-| `AnalysisOperations/GetIThCollectionName` | `Get i-th Collection Name` | `collection_index` | `resultant_name` |
-| `AnalysisOperations/GetNumberOfCollections` | `Get Number of Collections` | none | `total_count` |
-| `FileOperations/GetWorkingDirectory` | `Get Working Directory` | none | `directory` |
-
-This is the complete supported MP surface. Inventory entries, retained evidence, former catalog entries, and code present only in Git history are not supported operations.
-
-The protobuf contracts are under [proto/briosa](proto/briosa). Their wire package is `briosa` and generated C# namespace is `Briosa`; the exact SA release belongs to this product and its artifact identity, not to public RPC or type names. The handwritten server mappings are under [src/Briosa.Server/Operations](src/Briosa.Server/Operations). See [GetIThCollectionName](docs/operations/get-i-th-collection-name.md), [GetNumberOfCollections](docs/operations/get-number-of-collections.md), and [GetWorkingDirectory](docs/operations/get-working-directory.md) for the operation contracts.
+The wire package is `briosa` and the generated C# namespace is `Briosa`; the exact SA release belongs to this product and its artifact identity, not to public RPC or type names. The handwritten server mappings are under [src/Briosa.Server/Operations](src/Briosa.Server/Operations). Operation and workflow details are under [docs/operations](docs/operations), including the [active-context read workflow](docs/operations/active-context.md).
 
 ## Operation strategy
 
-Briosa delivers one handwritten MP-operation vertical slice at a time. Each operation includes:
+Briosa delivers complete handwritten MP-operation vertical slices, either individually or in coherent batches. Each operation includes:
 
 1. an MP-compatible strongly typed protobuf RPC;
 2. handwritten host, worker-command, result, and SDK mapping;
@@ -29,7 +21,7 @@ Briosa delivers one handwritten MP-operation vertical slice at a time. Each oper
 5. an explicit real-SA validation status; and
 6. user documentation.
 
-Standard protobuf and gRPC tools still generate transport plumbing and clients. Briosa has no custom operation generator and no generic public `ExecuteCommand` RPC. See [ADR 0024](../../docs/architecture/0024-handwritten-mp-operation-vertical-slices.md).
+Related operations may share service, workflow, test, and documentation context when every command remains independently reviewable. There is no fixed batch maximum. Standard protobuf and gRPC tools still generate transport plumbing and clients. Briosa has no custom operation generator and no generic public `ExecuteCommand` RPC. See [ADR 0024](../../docs/architecture/0024-handwritten-mp-operation-vertical-slices.md).
 
 Generative-AI tools may draft a vertical slice from maintainer-provided MP and SDK evidence. Committed source, tests, observations, and engineering review are authoritative.
 
@@ -99,13 +91,22 @@ grpcurl -plaintext -d '{}' 127.0.0.1:50051 `
 
 grpcurl -plaintext -d '{"collectionIndex":0}' 127.0.0.1:50051 `
   briosa.AnalysisOperations/GetIThCollectionName
+
+grpcurl -plaintext -d '{}' 127.0.0.1:50051 `
+  briosa.ConstructionOperations/GetActiveCollectionName
+
+grpcurl -plaintext -d '{}' 127.0.0.1:50051 `
+  briosa.UtilityOperations/GetActiveUnits
+
+grpcurl -plaintext -d '{}' 127.0.0.1:50051 `
+  briosa.UtilityOperations/GetWorkingFrameProperties
 ```
 
-Do not attach competing SDK clients. The protected licensed workflow and local runner intentionally report only structural success and never print the returned directory, collection count, or collection name.
+Do not attach competing SDK clients. The protected licensed workflow and local runner intentionally report only structural success and never print returned SpatialAnalyzer values.
 
 ## Adding an MP operation
 
-Start with a focused GitHub issue. Preserve the MP command's established names wherever protobuf and the implementation language permit it. A developer familiar with MP programming should recognize the RPC and fields directly.
+Start with a focused GitHub issue for one command or a coherent command batch. Preserve each MP command's established names wherever protobuf and the implementation language permit it. A developer familiar with MP programming should recognize the RPC and fields directly.
 
 A typical slice changes:
 

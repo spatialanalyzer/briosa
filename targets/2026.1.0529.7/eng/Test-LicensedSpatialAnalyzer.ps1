@@ -225,7 +225,20 @@ try {
                 ForEach-Object { [string]$_ })
     }
     if ($LASTEXITCODE -ne 0) {
-        throw "The gRPC client did not complete the licensed smoke test."
+        $failureReport = $null
+        try {
+            $failureReport = ($clientOutput -join [Environment]::NewLine) |
+                ConvertFrom-Json
+        }
+        catch {
+        }
+
+        $diagnosticCode = [string]$failureReport.diagnostic_code
+        if ($diagnosticCode -notmatch '^[a-z0-9-]{1,128}$') {
+            $diagnosticCode = "licensed-client-failure-unclassified"
+        }
+
+        throw "The gRPC client did not complete the licensed smoke test ($diagnosticCode)."
     }
 
     $report = ($clientOutput -join [Environment]::NewLine) | ConvertFrom-Json
@@ -242,7 +255,7 @@ try {
     }
 
     Write-Host "Licensed SpatialAnalyzer read-only operation smoke tests passed."
-    Write-Host "Returned working-directory, collection-count, and collection-name values were intentionally not logged."
+    Write-Host "Returned SpatialAnalyzer values were intentionally not logged."
 }
 finally {
     if ($null -ne $serverProcess -and -not $serverProcess.HasExited) {

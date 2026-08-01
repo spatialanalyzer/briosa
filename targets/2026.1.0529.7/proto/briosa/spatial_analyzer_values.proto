@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package briosa;
+
+option csharp_namespace = "Briosa";
+
+// An object in a SpatialAnalyzer collection.
+message CollectionObjectName {
+  optional string collection_name = 1;
+  optional string object_name = 2;
+  ObjectType object_type = 3;
+}
+
+// The exact object-type domain accepted by collection-object MP arguments.
+enum ObjectType {
+  OBJECT_TYPE_UNSPECIFIED = 0;
+  OBJECT_TYPE_ANY = 1;
+  OBJECT_TYPE_B_SPLINE = 2;
+  OBJECT_TYPE_CIRCLE = 3;
+  OBJECT_TYPE_CLOUD = 4;
+  OBJECT_TYPE_ENHANCED_CLOUD = 5;
+  OBJECT_TYPE_SCAN_STRIPE_CLOUD = 6;
+  OBJECT_TYPE_CROSS_SECTION_CLOUD = 7;
+  OBJECT_TYPE_CONE = 8;
+  OBJECT_TYPE_CYLINDER = 9;
+  OBJECT_TYPE_DATUM = 10;
+  OBJECT_TYPE_ELLIPSE = 11;
+  OBJECT_TYPE_FRAME = 12;
+  OBJECT_TYPE_FRAME_SET = 13;
+  OBJECT_TYPE_LINE = 14;
+  OBJECT_TYPE_PARABOLOID = 15;
+  OBJECT_TYPE_PERIMETER = 16;
+  OBJECT_TYPE_PLANE = 17;
+  OBJECT_TYPE_POINT_GROUP = 18;
+  OBJECT_TYPE_POINT_SET = 19;
+  OBJECT_TYPE_POLY_SURFACE = 20;
+  OBJECT_TYPE_SCAN_STRIPE_MESH = 21;
+  OBJECT_TYPE_SLOT = 22;
+  OBJECT_TYPE_SPHERE = 23;
+  OBJECT_TYPE_SURFACE = 24;
+  OBJECT_TYPE_TORUS = 25;
+  OBJECT_TYPE_VECTOR_GROUP = 26;
+}

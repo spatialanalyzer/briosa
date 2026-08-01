@@ -262,7 +262,13 @@ internal static partial class WorkerControlHost
             ToleranceScalarOptionsValue: ToSdkToleranceScalar(argument.ToleranceScalarOptionsValue),
             SdkBinding: argument.SdkBinding);
     private static SdkOutputArgument ToSdkOutputArgument(WorkerMpOutputArgument argument) =>
-        new(argument.Name, ToSdkValueKind(argument.Kind), argument.SdkBinding);
+        new(
+            argument.Name,
+            ToSdkValueKind(argument.Kind),
+            argument.SdkBinding,
+            argument.ObjectTypeWhenOmitted is { } objectType
+                ? (SdkObjectTypeValue)((int)objectType - 1)
+                : null);
 
     private static SdkValueKind ToSdkValueKind(WorkerMpValueKind kind) =>
         kind switch

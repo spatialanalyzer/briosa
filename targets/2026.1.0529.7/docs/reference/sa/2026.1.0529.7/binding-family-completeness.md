@@ -4,7 +4,7 @@
 
 The retained binding registry records 151 SDK setter/getter methods reconciled between View SDK Code observations and the committed exact-target interop surface. It remains useful for locating exact call names and reviewed marshaling families when implementing a handwritten operation.
 
-Current support is narrower: only the calls required by implemented operations are product claims. `GetWorkingDirectory` uses `SetStep`, `ExecuteStep`, `GetMPStepResult`, and `GetStringArg("Directory", ...)`; `GetNumberOfCollections` adds `GetIntegerArg("Total Count", ...)`; and `GetIThCollectionName` additionally uses `SetIntegerArg("Collection Index", ...)` and `GetCollectionNameArg("Resultant Name", ...)`.
+Current support is narrower: only calls exercised by operations in the handwritten registry are product claims. Each operation source and its exact SDK-order tests record the applicable argument names, value families, and bindings without duplicating a manually maintained operation list in this reference snapshot.
 
 Reusable worker codecs and adapters remain directly tested for their own contracts, including scalar values, identity/reference lists, specialized structured values, `VariantWrapper` list marshaling, malformed returns, and getter failures. Those internal tests do not make an MP command public.
 

@@ -154,6 +154,14 @@ internal static class SmokeWorkerProgram
                 output.Kind,
                 Retrieved: true,
                 IntegerValue: 3),
+            WorkerMpValueKind.CollectionObjectName => new WorkerMpOutputValue(
+                output.Name,
+                output.Kind,
+                Retrieved: true,
+                CollectionObjectNameValue: new WorkerCollectionObjectNameValue(
+                    "Collection",
+                    "Object",
+                    WorkerObjectTypeValue.PointGroup)),
             _ => new WorkerMpOutputValue(
                 output.Name,
                 output.Kind,

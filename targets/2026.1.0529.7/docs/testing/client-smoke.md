@@ -11,7 +11,7 @@ Run:
   -PackagePath artifacts/package-smoke/briosa-0.1.0-ci-sa-2026.1.0529.7-win-x64.zip
 ```
 
-The script starts the packaged server with a separate fake worker. The successful scenario invokes `FileOperations/GetWorkingDirectory`, obtains a positive collection count from `AnalysisOperations/GetNumberOfCollections`, and then invokes `AnalysisOperations/GetIThCollectionName` with collection index `0`. The failure scenarios reuse the established file-operation path. Its handwritten scenario table covers:
+The script starts the packaged server with a separate fake worker. The successful scenario performs the reviewed read-only workflow across the file, analysis, construction, and utility services, including collection enumeration and active collection, units, and working-frame reads. The failure scenarios reuse the established file-operation path. Its handwritten scenario table covers:
 
 - successful execution and output retrieval;
 - disconnected SpatialAnalyzer;
@@ -23,7 +23,7 @@ The script starts the packaged server with a separate fake worker. The successfu
 - worker watchdog termination and replacement; and
 - an unsupported exact-target service package.
 
-Every scenario validates structural status, typed error shape where applicable, readiness, recovery, and capability advertisement. It never prints command arguments or returned directory, collection-count, or collection-name values.
+Every scenario validates structural status, typed error shape where applicable, readiness, recovery, and capability advertisement. It never prints command arguments or returned SpatialAnalyzer values.
 
 These scenarios require Windows x64 and .NET but do not start SpatialAnalyzer or require a license.
 
@@ -36,13 +36,13 @@ The runner:
 - rejects competing Briosa, SDK, or SpatialAnalyzer processes;
 - starts one clean exact-target generation;
 - waits for verified readiness;
-- invokes `GetWorkingDirectory`, `GetNumberOfCollections`, and `GetIThCollectionName`;
+- invokes the same reviewed read-only workflow used by the portable ready scenario;
 - records structural success only;
 - stops the Briosa process cohort; and
 - verifies cleanup.
 
-The returned path, collection count, and collection name are developer-visible output but are never copied into logs or evidence artifacts.
+Returned SpatialAnalyzer data is developer-visible output but is never copied into logs or evidence artifacts.
 
 ## Adding another operation
 
-An operation pull request adds focused portable client coverage when transport behavior or public request/response shape warrants it. Do not create a generated conformance manifest or extend a Briosa-specific operation generator. Keep the scenario close to the handwritten operation and test the behaviors that materially differ from existing coverage.
+An operation change adds focused portable client coverage when transport behavior or public request/response shape warrants it. Coherent batches may extend one workflow scenario rather than adding a scenario per command. Do not create a generated conformance manifest or extend a Briosa-specific operation generator. Test the behaviors that materially differ from existing coverage.

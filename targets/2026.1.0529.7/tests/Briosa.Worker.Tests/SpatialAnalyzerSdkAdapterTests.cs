@@ -262,7 +262,56 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         var output = Assert.Single(result.OutputValues);
         Assert.False(output.Retrieved);
         Assert.Null(output.CollectionObjectNameValue);
-        Assert.Equal("sdk-output-retrieval-failed", result.DiagnosticCode);
+        Assert.Equal(
+            "sdk-output-collection-object-type-omitted",
+            result.DiagnosticCode);
+    }
+
+    [Fact]
+    public void CollectionObjectGetterRejectionHasAValueFreeDiagnostic()
+    {
+        using var calls = new RecordingSdkCalls { FailedOutputName = "Object" };
+        using var adapter = new SpatialAnalyzerSdkAdapter(calls);
+        var command = new SdkCommand(
+            "rejected-object-getter",
+            "Rejected Object Getter",
+            [],
+            [new SdkOutputArgument(
+                "Object",
+                SdkValueKind.CollectionObjectName,
+                "GetCollectionObjectNameArg")]);
+
+        var result = adapter.Execute(command);
+
+        var output = Assert.Single(result.OutputValues);
+        Assert.False(output.Retrieved);
+        Assert.Null(output.CollectionObjectNameValue);
+        Assert.Equal("sdk-output-getter-rejected", result.DiagnosticCode);
+    }
+
+    [Fact]
+    public void ExplicitObjectTypeSupportsAnExactOutputThatOmitsTheRedundantType()
+    {
+        using var calls = new RecordingSdkCalls { MalformedOutputName = "Object" };
+        using var adapter = new SpatialAnalyzerSdkAdapter(calls);
+        var command = new SdkCommand(
+            "object-type-omitted",
+            "Object Type Omitted",
+            [],
+            [new SdkOutputArgument(
+                "Object",
+                SdkValueKind.CollectionObjectName,
+                "GetCollectionObjectNameArg",
+                SdkObjectTypeValue.Frame)]);
+
+        var result = adapter.Execute(command);
+
+        var output = Assert.Single(result.OutputValues);
+        Assert.True(output.Retrieved);
+        Assert.Equal(
+            SdkObjectTypeValue.Frame,
+            output.CollectionObjectNameValue!.ObjectType);
+        Assert.Null(result.DiagnosticCode);
     }
 
     [Fact]
@@ -765,6 +814,11 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             ref string objectName)
         {
             Events.Add($"GetCollectionObjectNameArg:{name}");
+            if (name == FailedOutputName)
+            {
+                return false;
+            }
+
             collectionName = "Collection";
             objectName = name == MalformedOutputName
                 ? "Object"

@@ -17,7 +17,7 @@ The project also expects thin clients in several languages. Their idioms and fra
 
 ## Decision
 
-Briosa implements one MP command at a time as an ordinary handwritten vertical slice. Each supported operation contains:
+Briosa implements MP commands as ordinary handwritten vertical slices. Each supported operation contains:
 
 1. a mechanically MP-compatible protobuf RPC and field names;
 2. strongly typed request and response messages;
@@ -36,7 +36,9 @@ The source tree defines support:
 - capability discovery is the runtime-policy-filtered view of that list; and
 - tests exercise the actual handwritten mapping rather than comparing it with a parallel catalog.
 
-The initial baseline contains only `GetWorkingDirectory`, which implements MP step `Get Working Directory`. Formerly catalog-promoted operations are unsupported until ordinary implementation issues reintroduce them as reviewed vertical slices.
+An issue or pull request may contain one operation or a coherent batch of related operations. The review boundary is completeness and clarity, not an arbitrary command count: every operation in a batch must preserve its own exact-target evidence, strongly typed contract, mapping, registration, focused tests, and validation status. Shared service, workflow, smoke, and documentation coverage may be organized at the batch level when that avoids ceremony without obscuring an operation's behavior. No fixed batch maximum is established.
+
+Formerly catalog-promoted operations remain unsupported until ordinary implementation work reintroduces them as reviewed vertical slices.
 
 ## Evidence boundary
 
@@ -57,14 +59,14 @@ This decision changes how operations are authored, not the runtime boundary. The
 
 Shared handwritten infrastructure is encouraged where it represents proven runtime behavior. `OperationExecutor`, worker control messages, SDK value codecs, outcome mapping, policy, audit, and supervision remain reusable. An operation should not duplicate those cross-cutting semantics.
 
-## Adding an operation
+## Adding operations
 
-A follow-up command is added without extending a Briosa-specific generator:
+A follow-up command or coherent command batch is added without extending a Briosa-specific generator:
 
-1. open a focused implementation issue with the MP and exact-target evidence;
-2. hand-author or AI-draft the protobuf and C# vertical slice using MP-compatible names;
-3. register the operation in `SpatialAnalyzerApi.Operations` and the appropriate gRPC service;
-4. add portable tests and document validation status;
+1. open a focused implementation issue identifying every MP command and its exact-target evidence;
+2. hand-author or AI-draft each protobuf and C# vertical slice using MP-compatible names;
+3. register every operation in `SpatialAnalyzerApi.Operations` and the appropriate gRPC service;
+4. add focused contract and SDK-order tests per operation, reusing shared lifecycle and workflow coverage where behavior is already proven;
 5. run ordinary restore, build, test, protocol, package, and smoke validation; and
 6. review the code and evidence like any other product change.
 
@@ -73,7 +75,7 @@ Overloads may be represented by separate strongly typed RPCs when that is cleare
 ## Consequences
 
 - Product code can evolve from tested examples instead of speculative generator abstractions.
-- A pull request shows the complete behavior of one command in ordinary source.
+- A pull request shows the complete behavior of every included command in ordinary source while allowing related commands to share review and workflow context.
 - Protocol names remain familiar to MP programmers.
 - Inventory breadth no longer creates a false impression of supported API breadth.
 - Repetition is accepted until several implemented operations demonstrate a stable abstraction worth extracting.

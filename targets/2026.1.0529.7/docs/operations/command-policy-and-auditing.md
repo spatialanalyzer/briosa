@@ -5,24 +5,7 @@ Briosa has two command-exposure boundaries:
 1. the handwritten operations compiled and registered in `SpatialAnalyzerApi.Operations`; and
 2. runtime exact-ID allow and deny policy, which can only reduce that set.
 
-The packaged configuration enables only:
-
-```json
-{
-  "Briosa": {
-    "Security": {
-      "Operations": {
-        "Allow": [
-          "analysis_operations.get_i_th_collection_name",
-          "analysis_operations.get_number_of_collections",
-          "file_operations.get_working_directory"
-        ],
-        "Deny": []
-      }
-    }
-  }
-}
-```
+The packaged configuration explicitly enables the reviewed operations in [`appsettings.json`](../../src/Briosa.Server/appsettings.json). That configuration is the source of truth for the default allowlist; this guide intentionally does not duplicate a list that would need updating for every command batch.
 
 The denylist overrides the allowlist. Omitting the allowlist denies every operation. Unknown, empty, duplicate, or non-array values fail startup instead of being ignored. Restart the server after changing policy; policy is not reloaded in place.
 
@@ -50,4 +33,4 @@ Correlation does not imply safe replay. A cancelled, timed-out, crashed, or lost
 
 ## Adding an operation
 
-The operation pull request assigns its exact ID, effect, replay safety, execution scope, and risk flags in its handwritten descriptor. It also decides whether packaged defaults should admit it. Inventory or historical catalog membership cannot expand policy.
+Each operation change assigns its exact ID, effect, replay safety, execution scope, and risk flags in its handwritten descriptor. It also decides whether packaged defaults should admit it. Inventory or historical catalog membership cannot expand policy.

@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package briosa;
+
+import "briosa/operation_outcomes.proto";
+import "briosa/spatial_analyzer_values.proto";
+
+option csharp_namespace = "Briosa";
+
+service UtilityOperations {
+  // Executes the "Get Active Units" MP command.
+  rpc GetActiveUnits(GetActiveUnitsRequest) returns (GetActiveUnitsResult);
+
+  // Executes the "Get Working Frame Properties" MP command.
+  rpc GetWorkingFrameProperties(GetWorkingFramePropertiesRequest) returns (GetWorkingFramePropertiesResult);
+}
+
+message GetActiveUnitsRequest {}
+
+message GetActiveUnitsResult {
+  // The MP return argument named "Length".
+  optional string length = 1;
+  // The MP return argument named "Angular".
+  optional string angular = 2;
+  // The MP return argument named "Temperature".
+  optional string temperature = 3;
+  // Explicit MP and result-only argument retrieval outcomes.
+  MpExecutionDetails execution = 1000;
+}
+
+message GetWorkingFramePropertiesRequest {}
+
+message GetWorkingFramePropertiesResult {
+  // The MP return argument named "Frame Name".
+  optional string frame_name = 1;
+  // The MP return argument named "Collection Name".
+  optional string collection_name = 2;
+  // The MP return argument named "Working Frame".
+  CollectionObjectName working_frame = 3;
+  // Explicit MP and result-only argument retrieval outcomes.
+  MpExecutionDetails execution = 1000;
+}
