@@ -44,4 +44,4 @@ The exact-target contract is based on inventory entry `documentation:AnalysisOpe
 
 Portable tests cover the protobuf contract, handwritten command/result mapping, exact SDK call order, policy, discovery, reflection, and a standard generated-client workflow that obtains the count before reading collection index `0` through a fake worker.
 
-The opt-in licensed workflow includes the same count-then-name sequence against a separately installed and licensed SpatialAnalyzer `2026.1.0529.7`. It reports structural success only and does not retain returned values. That licensed scenario was not executed for this implementation task.
+The opt-in licensed workflow includes the same count-then-name sequence against a separately installed and licensed SpatialAnalyzer `2026.1.0529.7`. It reports structural success only and does not retain returned values. The scenario executed successfully on August 1, 2026, using separate operator attestations for the activated SDK and connected SpatialAnalyzer identities.
