@@ -15,4 +15,4 @@ The snapshot remains useful for identifying exact method names, interop-only met
 
 Issue #132 retired registry synchronization and freshness enforcement. Git history preserves the producing code. Refreshing the snapshot is a separate evidence task and must not block an unrelated operation build.
 
-See [ADR 0024](../../../../docs/architecture/0024-handwritten-mp-operation-vertical-slices.md).
+See the [operation and protocol model](../../../../docs/architecture/operation-and-protocol-model.md).

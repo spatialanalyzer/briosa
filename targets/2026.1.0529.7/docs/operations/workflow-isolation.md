@@ -37,4 +37,4 @@ The current release issues no workflow token and holds no cross-RPC ownership st
 
 Audit events record the target-isolation mode, reviewed execution scope, policy decision, correlation ID, and worker generation where execution reaches the worker. They do not record arguments, results, workflow tokens, geometry, paths, device data, or proprietary values.
 
-See [ADR 0019](../../../../docs/architecture/0019-global-state-workflow-isolation.md) for the decision and future lease boundary.
+See [execution outcomes and recovery](../../../../docs/architecture/execution-outcomes-and-recovery.md) for the current decision and future lease boundary.

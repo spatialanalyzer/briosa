@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Briosa;
+using Google.Protobuf.Reflection;
 using Grpc.Core;
 using Grpc.Net.Client;
 using TargetProtocol = Briosa;
@@ -14,11 +15,14 @@ internal static class SmokeClientProgram
     private const string ExpectedProtocolPackage = "briosa";
     private const string ExpectedFileOperation =
         "/briosa.FileOperations/GetWorkingDirectory";
-    private const string ExpectedCollectionNameOperation =
-        "/briosa.AnalysisOperations/GetIThCollectionName";
-    private const string ExpectedCollectionCountOperation =
-        "/briosa.AnalysisOperations/GetNumberOfCollections";
     private const string ErrorTrailerName = "briosa-operation-error-bin";
+    private static readonly IReadOnlyList<ServiceDescriptor> MpServices =
+        [
+            TargetProtocol.AnalysisOperations.Descriptor,
+            TargetProtocol.ConstructionOperations.Descriptor,
+            TargetProtocol.FileOperations.Descriptor,
+            TargetProtocol.UtilityOperations.Descriptor
+        ];
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         WriteIndented = true
@@ -40,6 +44,11 @@ internal static class SmokeClientProgram
             var fileClient = new TargetProtocol.FileOperations.FileOperationsClient(channel);
             var analysisClient =
                 new TargetProtocol.AnalysisOperations.AnalysisOperationsClient(channel);
+            var constructionClient =
+                new TargetProtocol.ConstructionOperations.ConstructionOperationsClient(
+                    channel);
+            var utilityClient =
+                new TargetProtocol.UtilityOperations.UtilityOperationsClient(channel);
             var deadline = DateTime.UtcNow.Add(options.Timeout);
             var serverInfo = await discoveryClient.GetServerInfoAsync(
                     new GetServerInfoRequest(),
@@ -61,6 +70,8 @@ internal static class SmokeClientProgram
                     channel,
                     fileClient,
                     analysisClient,
+                    constructionClient,
+                    utilityClient,
                     serverInfo,
                     timeout.Token)
                 .ConfigureAwait(false);
@@ -102,19 +113,19 @@ internal static class SmokeClientProgram
             throw new SmokeFailureException("capability-target-identity-mismatch");
         }
 
-        var fileOperationAdvertised = capabilities.Operations.Any(operation =>
-            operation.FullyQualifiedMethod == ExpectedFileOperation);
-        if (fileOperationAdvertised != expectOperation)
+        var expectedOperations = MpServices
+            .SelectMany(service => service.Methods.Select(method =>
+                $"/{service.FullName}/{method.Name}"))
+            .Where(method => expectOperation || method != ExpectedFileOperation)
+            .Order(StringComparer.Ordinal);
+        var advertisedOperations = capabilities.Operations
+            .Select(operation => operation.FullyQualifiedMethod)
+            .Order(StringComparer.Ordinal);
+        if (!expectedOperations.SequenceEqual(
+                advertisedOperations,
+                StringComparer.Ordinal))
         {
             throw new SmokeFailureException("operation-policy-capability-mismatch");
-        }
-
-        if (!capabilities.Operations.Any(operation =>
-                operation.FullyQualifiedMethod == ExpectedCollectionNameOperation) ||
-            !capabilities.Operations.Any(operation =>
-                operation.FullyQualifiedMethod == ExpectedCollectionCountOperation))
-        {
-            throw new SmokeFailureException("analysis-operation-capability-missing");
         }
     }
 
@@ -123,6 +134,9 @@ internal static class SmokeClientProgram
         GrpcChannel channel,
         TargetProtocol.FileOperations.FileOperationsClient fileClient,
         TargetProtocol.AnalysisOperations.AnalysisOperationsClient analysisClient,
+        TargetProtocol.ConstructionOperations.ConstructionOperationsClient
+            constructionClient,
+        TargetProtocol.UtilityOperations.UtilityOperationsClient utilityClient,
         GetServerInfoResponse serverInfo,
         CancellationToken cancellationToken) =>
         options.Scenario switch
@@ -130,6 +144,8 @@ internal static class SmokeClientProgram
             SmokeScenario.Ready => await ExecuteReady(
                 fileClient,
                 analysisClient,
+                constructionClient,
+                utilityClient,
                 serverInfo,
                 options.Timeout,
                 cancellationToken).ConfigureAwait(false),
@@ -187,6 +203,9 @@ internal static class SmokeClientProgram
     private static async Task<ScenarioOutcome> ExecuteReady(
         TargetProtocol.FileOperations.FileOperationsClient fileClient,
         TargetProtocol.AnalysisOperations.AnalysisOperationsClient analysisClient,
+        TargetProtocol.ConstructionOperations.ConstructionOperationsClient
+            constructionClient,
+        TargetProtocol.UtilityOperations.UtilityOperationsClient utilityClient,
         GetServerInfoResponse serverInfo,
         TimeSpan timeout,
         CancellationToken cancellationToken)
@@ -196,6 +215,12 @@ internal static class SmokeClientProgram
             .ConfigureAwait(false);
         await RequireSuccessfulCollectionEnumeration(
                 analysisClient,
+                timeout,
+                cancellationToken)
+            .ConfigureAwait(false);
+        await RequireSuccessfulActiveContext(
+                constructionClient,
+                utilityClient,
                 timeout,
                 cancellationToken)
             .ConfigureAwait(false);
@@ -484,6 +509,131 @@ internal static class SmokeClientProgram
             throw new SmokeFailureException(
                 "unexpected-collection-name-success-shape");
         }
+    }
+
+    private static async Task RequireSuccessfulActiveContext(
+        TargetProtocol.ConstructionOperations.ConstructionOperationsClient
+            constructionClient,
+        TargetProtocol.UtilityOperations.UtilityOperationsClient utilityClient,
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
+    {
+        TargetProtocol.GetActiveCollectionNameResult collectionResult;
+        try
+        {
+            collectionResult = await constructionClient.GetActiveCollectionNameAsync(
+                    new TargetProtocol.GetActiveCollectionNameRequest(),
+                    deadline: DateTime.UtcNow.Add(timeout),
+                    cancellationToken: cancellationToken)
+                .ResponseAsync.ConfigureAwait(false);
+        }
+        catch (RpcException exception)
+        {
+            throw UnexpectedOperationFailure("active-collection", exception);
+        }
+        if (!collectionResult.HasCurrentlyActiveCollectionName)
+        {
+            throw new SmokeFailureException(
+                "unexpected-active-collection-success-shape");
+        }
+        RequireSuccessfulRetrievals(
+            collectionResult.Execution,
+            expectedCount: 1,
+            "unexpected-active-collection-success-shape");
+
+        TargetProtocol.GetActiveUnitsResult unitsResult;
+        try
+        {
+            unitsResult = await utilityClient.GetActiveUnitsAsync(
+                    new TargetProtocol.GetActiveUnitsRequest(),
+                    deadline: DateTime.UtcNow.Add(timeout),
+                    cancellationToken: cancellationToken)
+                .ResponseAsync.ConfigureAwait(false);
+        }
+        catch (RpcException exception)
+        {
+            throw UnexpectedOperationFailure("active-units", exception);
+        }
+        if (!unitsResult.HasLength ||
+            !unitsResult.HasAngular ||
+            !unitsResult.HasTemperature)
+        {
+            throw new SmokeFailureException("unexpected-active-units-success-shape");
+        }
+        RequireSuccessfulRetrievals(
+            unitsResult.Execution,
+            expectedCount: 3,
+            "unexpected-active-units-success-shape");
+
+        TargetProtocol.GetWorkingFramePropertiesResult frameResult;
+        try
+        {
+            frameResult = await utilityClient.GetWorkingFramePropertiesAsync(
+                    new TargetProtocol.GetWorkingFramePropertiesRequest(),
+                    deadline: DateTime.UtcNow.Add(timeout),
+                    cancellationToken: cancellationToken)
+                .ResponseAsync.ConfigureAwait(false);
+        }
+        catch (RpcException exception)
+        {
+            throw UnexpectedOperationFailure("working-frame", exception);
+        }
+        if (!frameResult.HasFrameName ||
+            !frameResult.HasCollectionName ||
+            frameResult.WorkingFrame is null ||
+            !frameResult.WorkingFrame.HasCollectionName ||
+            !frameResult.WorkingFrame.HasObjectName ||
+            frameResult.WorkingFrame.ObjectType == TargetProtocol.ObjectType.Unspecified)
+        {
+            throw new SmokeFailureException("unexpected-working-frame-success-shape");
+        }
+        RequireSuccessfulRetrievals(
+            frameResult.Execution,
+            expectedCount: 3,
+            "unexpected-working-frame-success-shape");
+    }
+
+    private static void RequireSuccessfulRetrievals(
+        MpExecutionDetails? execution,
+        int expectedCount,
+        string diagnosticCode)
+    {
+        if (execution is null ||
+            execution.State != MpExecutionState.Succeeded ||
+            execution.OutputRetrievals.Count != expectedCount ||
+            execution.OutputRetrievals.Any(retrieval =>
+                retrieval.State != OutputRetrievalState.Retrieved))
+        {
+            throw new SmokeFailureException(diagnosticCode);
+        }
+    }
+
+    private static SmokeFailureException UnexpectedOperationFailure(
+        string operation,
+        RpcException exception)
+    {
+        var detail = exception.Trailers.SingleOrDefault(
+            entry => entry.Key == ErrorTrailerName);
+        if (detail is not null)
+        {
+            try
+            {
+                var diagnosticCode = OperationError.Parser
+                    .ParseFrom(detail.ValueBytes)
+                    .DiagnosticCode;
+                if (Regex.IsMatch(diagnosticCode, "^[a-z0-9-]{1,128}$"))
+                {
+                    return new SmokeFailureException(
+                        $"{operation}-{diagnosticCode}");
+                }
+            }
+            catch (Google.Protobuf.InvalidProtocolBufferException)
+            {
+            }
+        }
+
+        return new SmokeFailureException(
+            $"{operation}-rpc-{exception.StatusCode}");
     }
 
     private static async Task<OperationError> RequireFailure(

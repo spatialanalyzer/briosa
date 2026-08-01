@@ -22,4 +22,4 @@ When implementing an operation:
 4. hand-author the operation vertical slice; and
 5. record real-SA validation status honestly.
 
-See [ADR 0024](../../../../docs/architecture/0024-handwritten-mp-operation-vertical-slices.md).
+See the [operation and protocol model](../../../../docs/architecture/operation-and-protocol-model.md).

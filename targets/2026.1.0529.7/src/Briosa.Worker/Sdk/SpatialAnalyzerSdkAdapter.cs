@@ -81,7 +81,9 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
             outputValues = [.. command.OutputArguments.Select(argument => GetOutputValue(_sdk, argument))];
             if (outputValues.Any(output => !output.Retrieved))
             {
-                diagnosticCode = "sdk-output-retrieval-failed";
+                diagnosticCode = outputValues
+                    .First(output => !output.Retrieved)
+                    .DiagnosticCode ?? "sdk-output-retrieval-failed";
             }
         }
 
@@ -700,18 +702,53 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
             argument.Name,
             ref collectionName,
             ref objectName);
+        if (!retrieved)
+        {
+            return new SdkOutputValue(
+                argument.Name,
+                argument.Kind,
+                Retrieved: false,
+                DiagnosticCode: "sdk-output-getter-rejected");
+        }
+
         SdkCollectionObjectNameValue? parsed = null;
-        retrieved = retrieved &&
-            SdkReferenceListCodec.TryParseObjectNameResult(
+        retrieved = SdkReferenceListCodec.TryParseObjectNameResult(
+            collectionName,
+            objectName,
+            out parsed);
+        if (!retrieved &&
+            argument.ObjectTypeWhenOmitted is { } objectType &&
+            !string.IsNullOrWhiteSpace(collectionName) &&
+            !string.IsNullOrWhiteSpace(objectName) &&
+            !objectName.Contains(',', StringComparison.Ordinal))
+        {
+            parsed = new SdkCollectionObjectNameValue(
                 collectionName,
                 objectName,
-                out parsed);
+                objectType);
+            retrieved = true;
+        }
+
         return new SdkOutputValue(
             argument.Name,
             argument.Kind,
             retrieved,
-            CollectionObjectNameValue: retrieved ? parsed : null);
+            CollectionObjectNameValue: retrieved ? parsed : null,
+            DiagnosticCode: retrieved
+                ? null
+                : CollectionObjectNameDiagnostic(collectionName, objectName));
     }
+
+    private static string CollectionObjectNameDiagnostic(
+        string collectionName,
+        string objectName) =>
+        string.IsNullOrWhiteSpace(collectionName)
+            ? "sdk-output-collection-object-collection-missing"
+            : string.IsNullOrWhiteSpace(objectName)
+                ? "sdk-output-collection-object-name-missing"
+                : !objectName.Contains(',', StringComparison.Ordinal)
+                    ? "sdk-output-collection-object-type-omitted"
+                    : "sdk-output-collection-object-type-unrecognized";
 
     private static SdkOutputValue GetNamedString(
         NamedStringGetter getter,

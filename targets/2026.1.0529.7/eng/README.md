@@ -40,7 +40,7 @@ Do not run it merely to satisfy an ordinary build. Confirm redistribution approv
 
 ## Licensed SpatialAnalyzer
 
-`Test-LicensedSpatialAnalyzer.ps1` is the explicit local/package runner for the real `GetWorkingDirectory`, `GetNumberOfCollections`, and `GetIThCollectionName` RPCs. It requires:
+`Test-LicensedSpatialAnalyzer.ps1` is the explicit local/package runner for the reviewed read-only generated-client workflow. It requires:
 
 - Windows x64;
 - a separately installed and licensed SpatialAnalyzer `2026.1.0529.7`;
@@ -48,7 +48,7 @@ Do not run it merely to satisfy an ordinary build. Confirm redistribution approv
 - independent activated-SDK and connected-SA identity evidence; and
 - `-ConfirmLicensedSpatialAnalyzerTest`.
 
-It starts or uses only the explicitly authorized exact-target environment, exercises the public gRPC API, emits structural status only, and never prints the returned directory, collection count, or collection name.
+It starts or uses only the explicitly authorized exact-target environment, exercises the public gRPC API, emits structural status only, and never prints returned SpatialAnalyzer values.
 
 `Test-LicensedRunnerState.ps1` and `Verify-LicensedRunnerWorkflow.ps1` protect the separately dispatched self-hosted runner workflow.
 

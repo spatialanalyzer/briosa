@@ -70,7 +70,7 @@ The current production adapter has no reviewed runtime query for either identity
 }
 ```
 
-Each configured claim requires both `Version` and `Reference`; a partial pair fails startup. The reference identifies separately retained evidence and must not contain a path, credential, license value, or sensitive host detail. It is validated for presence but never returned by discovery or written to default logs. Record the version actually supported by the evidence rather than copying the package target as an assumption. See [ADR 0022](../../../../docs/architecture/0022-runtime-identity-and-attestation.md) for precedence and release-gate limits.
+Each configured claim requires both `Version` and `Reference`; a partial pair fails startup. The reference identifies separately retained evidence and must not contain a path, credential, license value, or sensitive host detail. It is validated for presence but never returned by discovery or written to default logs. Record the version actually supported by the evidence rather than copying the package target as an assumption. See the [runtime boundary](../../../../docs/architecture/runtime-boundary-and-lifecycle.md) for precedence and release-gate limits.
 
 Debug source hosting enables the standard .NET user-secrets provider for these same four keys. User-secrets keeps the local values out of tracked settings and launch profiles, but it is not an evidence vault; retain the independently established evidence elsewhere. Release builds do not carry the user-secrets project identity. The complete source command and configuration procedure is tracked in issue #120.
 

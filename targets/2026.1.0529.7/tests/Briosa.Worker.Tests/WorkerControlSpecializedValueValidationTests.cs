@@ -151,10 +151,48 @@ public sealed class WorkerControlSpecializedValueValidationTests
         AssertRejected(message);
     }
 
+    [Fact]
+    public void OmittedObjectTypeFallbackRoundTripsForCollectionObjectOutputs()
+    {
+        using var stream = new MemoryStream();
+        using var sender = new WorkerControlChannel(stream, leaveOpen: true);
+        sender.Send(CreateSingleOutput(new(
+            "Working Frame",
+            WorkerMpValueKind.CollectionObjectName,
+            "GetCollectionObjectNameArg",
+            WorkerObjectTypeValue.Frame)));
+        stream.Position = 0;
+        using var receiver = new WorkerControlChannel(stream, leaveOpen: true);
+
+        var output = Assert.Single(receiver.Receive().Command!.OutputArguments);
+
+        Assert.Equal(WorkerObjectTypeValue.Frame, output.ObjectTypeWhenOmitted);
+    }
+
+    [Fact]
+    public void OmittedObjectTypeFallbackIsRejectedForInvalidOutputContracts()
+    {
+        AssertRejected(CreateSingleOutput(new(
+            "Text",
+            WorkerMpValueKind.Text,
+            "GetStringArg",
+            WorkerObjectTypeValue.Frame)));
+        AssertRejected(CreateSingleOutput(new(
+            "Object",
+            WorkerMpValueKind.CollectionObjectName,
+            "GetCollectionObjectNameArg",
+            WorkerObjectTypeValue.Unspecified)));
+    }
+
     private static WorkerControlMessage CreateSingleInput(WorkerMpInputArgument input) =>
         WorkerControlMessage.Execute(
             Guid.NewGuid(),
             new WorkerMpCommand("invalid", "Invalid", [input], []));
+
+    private static WorkerControlMessage CreateSingleOutput(WorkerMpOutputArgument output) =>
+        WorkerControlMessage.Execute(
+            Guid.NewGuid(),
+            new WorkerMpCommand("output", "Output", [], [output]));
 
     private static void AssertRejected(WorkerControlMessage message)
     {

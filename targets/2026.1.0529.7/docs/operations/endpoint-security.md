@@ -1,8 +1,8 @@
 # Public endpoint security
 
-Briosa v0.1 supports one local deployment posture: a trusted client and Briosa run on the same single-user Windows machine, and the gRPC host listens on an IP loopback address.
+Briosa currently supports one local deployment posture: a trusted client and Briosa run on the same single-user Windows machine, and the gRPC host listens on an IP loopback address.
 
-The packaged default is cleartext HTTP/2 at `127.0.0.1:50051`. Cleartext is limited to loopback; it is not suitable for LAN or remote traffic. Briosa v0.1 has no client authentication or per-caller authorization, so any local process that can connect to the port can call the exposed API.
+The packaged default is cleartext HTTP/2 at `127.0.0.1:50051`. Cleartext is limited to loopback; it is not suitable for LAN or remote traffic. Briosa currently has no client authentication or per-caller authorization, so any local process that can connect to the port can call the exposed API.
 
 ## Supported configuration
 
@@ -60,4 +60,4 @@ Remote public access is not enabled by changing an address. It needs a reviewed 
 
 The worker setting `Briosa:SpatialAnalyzer:Host` is separate. It selects the outbound SDK target and never widens the public endpoint. Remote SDK transport, ports, firewall, and licensing are under investigation in issue #23 and should not be treated as supported merely because `ConnectEx` can accept a hostname.
 
-See the [v0.1 threat model](../security/threat-model.md) and [loopback endpoint decision](../../../../docs/architecture/0014-loopback-only-public-endpoint.md) for the complete boundary and unresolved policies.
+See the [current threat model](../security/threat-model.md) and [security architecture](../../../../docs/architecture/security-and-observability.md) for the complete boundary and unresolved policies.

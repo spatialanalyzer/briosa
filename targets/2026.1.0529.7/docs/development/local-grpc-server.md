@@ -23,7 +23,7 @@ Before Briosa connects, confirm all of the following:
   client and make its executable available on `PATH`. Optionally install
   [`grpcui`](https://github.com/fullstorydev/grpcui) for the browser-based
   examples; it is not required for the acceptance path.
-- Reserve the loopback endpoint `127.0.0.1:50051`. The v0.1 server is
+- Reserve the loopback endpoint `127.0.0.1:50051`. The current server is
   intentionally loopback-only and uses cleartext HTTP/2.
 - Close every other Briosa server or worker, ObjectiveSA probe, SDK experiment,
   and `SpatialAnalyzerSDK` client. Do not use a second SDK client to inspect or
@@ -125,10 +125,8 @@ A ready source run reports:
 - both identity `matchState` values equal to
   `RUNTIME_IDENTITY_MATCH_STATE_EXACT_MATCH`, with each source truthfully
   identifying runtime verification or operator attestation; and
-- three default capabilities whose `operationId` values are
-  `analysis_operations.get_i_th_collection_name`,
-  `analysis_operations.get_number_of_collections`, and
-  `file_operations.get_working_directory`.
+- the reviewed operations admitted by the committed runtime policy, matching
+  the operation IDs reported by `ListCapabilities`.
 
 Finally, call the reviewed read-only operations:
 
@@ -138,11 +136,17 @@ grpcurl -plaintext -d '{}' 127.0.0.1:50051 briosa.FileOperations/GetWorkingDirec
 grpcurl -plaintext -d '{}' 127.0.0.1:50051 briosa.AnalysisOperations/GetNumberOfCollections
 
 grpcurl -plaintext -d '{"collectionIndex":0}' 127.0.0.1:50051 briosa.AnalysisOperations/GetIThCollectionName
+
+grpcurl -plaintext -d '{}' 127.0.0.1:50051 briosa.ConstructionOperations/GetActiveCollectionName
+
+grpcurl -plaintext -d '{}' 127.0.0.1:50051 briosa.UtilityOperations/GetActiveUnits
+
+grpcurl -plaintext -d '{}' 127.0.0.1:50051 briosa.UtilityOperations/GetWorkingFrameProperties
 ```
 
-The responses' `directory`, `totalCount`, and `resultantName` values are developer-visible
-SpatialAnalyzer data. Confirm that the calls succeed, but do not paste the
-returned values into logs, screenshots, public issues, or validation reports.
+The responses contain developer-visible SpatialAnalyzer data. Confirm that the
+calls succeed, but do not paste returned values into logs, screenshots, public
+issues, or validation reports.
 
 ## Optionally exercise the same API with grpcui
 
@@ -163,21 +167,22 @@ the UI to make the same calls:
 | `briosa.DiscoveryService/ListCapabilities` | `{}` |
 | `briosa.AnalysisOperations/GetNumberOfCollections` | `{}` |
 | `briosa.AnalysisOperations/GetIThCollectionName` | `{"collectionIndex":0}` |
+| `briosa.ConstructionOperations/GetActiveCollectionName` | `{}` |
 | `briosa.FileOperations/GetWorkingDirectory` | `{}` |
+| `briosa.UtilityOperations/GetActiveUnits` | `{}` |
+| `briosa.UtilityOperations/GetWorkingFrameProperties` | `{}` |
 
-Apply the same data-handling rule to the UI: do not retain or share the returned
-working-directory, collection-count, or collection-name value.
+Apply the same data-handling rule to the UI: do not retain or share returned
+SpatialAnalyzer values.
 
 ## Keep the operation allowlist narrow
 
 The handwritten operation registry is the maximum API surface the binary can
 express, not an authorization list. `ListCapabilities` is the authority for the
-operations the current process admits. The committed runtime policy allows exactly
-`analysis_operations.get_i_th_collection_name`,
-`analysis_operations.get_number_of_collections`, and
-`file_operations.get_working_directory`; reflection and Development mode do not
-expand it. A reflected operation that is absent from `ListCapabilities` remains
-denied before worker or SDK execution.
+operations the current process admits. The committed runtime policy in
+`src/Briosa.Server/appsettings.json` is the source of truth for defaults;
+reflection and Development mode do not expand it. A reflected operation that
+is absent from `ListCapabilities` remains denied before worker or SDK execution.
 
 Never copy all reflected operations into a real-SA allowlist. Before
 any per-run expansion, review each exact operation ID, its inputs, effect,
@@ -230,8 +235,8 @@ Record only the source commit, target version, time, successful state names, and
 successful operation IDs. Do not record returned operation values or evidence
 contents.
 
-This workstation run is not the protected licensed-SA validation defined by
-[ADR 0013](../../../../docs/architecture/0013-protected-licensed-runner.md), does not satisfy
+This workstation run is not the protected licensed-SA validation defined by the
+[validation architecture](../../../../docs/architecture/validation-and-distribution.md), does not satisfy
 the protected runner requirement, and is not release-readiness or authoritative
 runtime-identity evidence. The protected workflow uses a reviewed package,
 generated smoke client, dedicated licensed machine, trusted `main`, approval

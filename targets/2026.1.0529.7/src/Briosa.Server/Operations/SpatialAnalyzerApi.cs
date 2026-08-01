@@ -1,5 +1,7 @@
 using Briosa.Server.Operations.AnalysisOperations;
+using Briosa.Server.Operations.ConstructionOperations;
 using Briosa.Server.Operations.FileOperations;
+using Briosa.Server.Operations.UtilityOperations;
 using Briosa.Server.Security;
 
 namespace Briosa.Server.Operations;
@@ -16,6 +18,9 @@ internal static class SpatialAnalyzerApi
         [
             GetIThCollectionNameOperation.Descriptor,
             GetNumberOfCollectionsOperation.Descriptor,
-            GetWorkingDirectoryOperation.Descriptor
+            GetWorkingDirectoryOperation.Descriptor,
+            GetActiveCollectionNameOperation.Descriptor,
+            GetActiveUnitsOperation.Descriptor,
+            GetWorkingFramePropertiesOperation.Descriptor
         ];
 }

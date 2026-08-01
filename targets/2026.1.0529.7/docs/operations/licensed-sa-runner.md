@@ -2,7 +2,7 @@
 
 The protected workflow validates the packaged vertical slice against one separately licensed SpatialAnalyzer 2026.1.0529.7 x64 instance. It is not an ordinary pull-request check and must not run on a personal development workstation.
 
-Read [ADR 0013](../../../../docs/architecture/0013-protected-licensed-runner.md) before provisioning or changing the runner. The trust boundary depends on the runner group, selected-workflow policy, environment, workflow triggers, and dedicated machine being configured together.
+Read [security and observability](../../../../docs/architecture/security-and-observability.md) before provisioning or changing the runner. The trust boundary depends on the runner group, selected-workflow policy, environment, workflow triggers, and dedicated machine being configured together.
 
 ## Required GitHub configuration
 
@@ -93,4 +93,4 @@ The workflow deliberately does not kill or restart SpatialAnalyzer. Automatic re
 
 ## Scheduling
 
-No schedule is enabled for v0.1. Before adding one, demonstrate supported unattended SA startup and license use, reliable session ownership, automatic quarantine, and operator notification on the dedicated machine. A schedule must continue to use trusted `main`, the same protected environment and selected-workflow runner group, and serialized exact-target execution.
+No schedule is enabled for licensed validation. Before adding one, demonstrate supported unattended SA startup and license use, reliable session ownership, automatic quarantine, and operator notification on the dedicated machine. A schedule must continue to use trusted `main`, the same protected environment and selected-workflow runner group, and serialized exact-target execution.

@@ -1,10 +1,10 @@
-# Briosa v0.1 threat model
+# Briosa threat model
 
 ## Scope and security posture
 
 This threat model covers the public gRPC host, development-only gRPC reflection, disposable SDK worker, SpatialAnalyzer SDK connection, handwritten read-only operations, packaging, and operator configuration for exact target SA 2026.1.0529.7.
 
-The supported v0.1 deployment is one trusted user on one Windows machine. Briosa accepts cleartext HTTP/2 only on an IP loopback address. It provides no client authentication or per-caller authorization. LAN, Internet, reverse-proxy, SSH-tunnel, port-forward, shared-host, container-host-bridge, and other remotely reachable deployments are unsupported.
+The currently supported deployment is one trusted user on one Windows machine. Briosa accepts cleartext HTTP/2 only on an IP loopback address. It provides no client authentication or per-caller authorization. LAN, Internet, reverse-proxy, SSH-tunnel, port-forward, shared-host, container-host-bridge, and other remotely reachable deployments are unsupported.
 
 Loopback is a reachability boundary, not an identity boundary. Any local process able to connect to the selected port can call the public API. Operators must not run Briosa in a session or machine where other local users or untrusted processes need to be treated as hostile.
 
@@ -58,7 +58,7 @@ The successful result path reverses the first four boundaries: SA produces MP re
 
 ## Deployment scenarios
 
-| Scenario | v0.1 status | Rationale |
+| Scenario | Current status | Rationale |
 | --- | --- | --- |
 | Dedicated or single-user Windows machine, loopback client | Supported | Matches the enforced listener and local trust assumption |
 | Multiple trusted applications under the same operator account | Conditionally supported | Every local process can call the endpoint; clients still share one serialized SDK connection |
@@ -69,7 +69,7 @@ The successful result path reverses the first four boundaries: SA produces MP re
 
 ## Threat register
 
-| ID | Threat or abuse case | Impact | v0.1 mitigation | Residual risk or follow-up |
+| ID | Threat or abuse case | Impact | Current mitigation | Residual risk or follow-up |
 | --- | --- | --- | --- | --- |
 | T01 | Wildcard or non-loopback listener exposes MP execution | Remote command execution and output theft | Programmatic Kestrel listener accepts only `IPAddress.IsLoopback`; generic URL and endpoint settings are rejected | A tunnel or proxy created outside Briosa can still expose loopback |
 | T02 | Remote caller impersonates an authorized client | Unauthorized MP use | Remote reachability is unsupported and rejected | No local caller identity; remote support requires authentication |
@@ -121,7 +121,7 @@ Changing only the listener address, adding a firewall exception, or placing an u
 ## Assumptions and unresolved policy
 
 - The Windows account running Briosa and SA is trusted and should not be an administrator unless SA independently requires it.
-- Other local processes in that account are trusted for v0.1; loopback does not distinguish them.
+- Other local processes in that account are trusted by the current deployment model; loopback does not distinguish them.
 - Windows firewall and network policy do not publish or proxy the loopback endpoint.
 - The host and worker named-pipe access controls require continued review as service-account and multi-user deployment evolves.
 - Remote SDK transport and licensing remain issue #23.

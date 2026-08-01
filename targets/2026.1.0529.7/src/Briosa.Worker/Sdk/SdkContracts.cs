@@ -331,7 +331,8 @@ internal sealed record SdkInputArgument(
 internal sealed record SdkOutputArgument(
     string Name,
     SdkValueKind Kind,
-    string? SdkBinding = null);
+    string? SdkBinding = null,
+    SdkObjectTypeValue? ObjectTypeWhenOmitted = null);
 
 internal sealed record SdkOutputValue(
     string Name,
@@ -362,7 +363,8 @@ internal sealed record SdkOutputValue(
     SdkWorldTransformValue? WorldTransformValue = null,
     SdkFileReferenceValue? FileReferenceValue = null,
     SdkFitConstraintScalarOptionsValue? FitConstraintScalarOptionsValue = null,
-    SdkToleranceScalarOptionsValue? ToleranceScalarOptionsValue = null);
+    SdkToleranceScalarOptionsValue? ToleranceScalarOptionsValue = null,
+    string? DiagnosticCode = null);
 internal sealed class SdkCommand
 {
     public SdkCommand(string operationId)

@@ -397,7 +397,8 @@ public sealed record WorkerMpInputArgument(
 public sealed record WorkerMpOutputArgument(
     string Name,
     WorkerMpValueKind Kind,
-    string? SdkBinding = null);
+    string? SdkBinding = null,
+    WorkerObjectTypeValue? ObjectTypeWhenOmitted = null);
 
 public sealed record WorkerMpOutputValue(
     string Name,
