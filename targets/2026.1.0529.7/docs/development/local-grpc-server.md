@@ -125,8 +125,9 @@ A ready source run reports:
 - both identity `matchState` values equal to
   `RUNTIME_IDENTITY_MATCH_STATE_EXACT_MATCH`, with each source truthfully
   identifying runtime verification or operator attestation; and
-- two default capabilities whose `operationId` values are
-  `analysis_operations.get_i_th_collection_name` and
+- three default capabilities whose `operationId` values are
+  `analysis_operations.get_i_th_collection_name`,
+  `analysis_operations.get_number_of_collections`, and
   `file_operations.get_working_directory`.
 
 Finally, call the reviewed read-only operations:
@@ -134,10 +135,12 @@ Finally, call the reviewed read-only operations:
 ```powershell
 grpcurl -plaintext -d '{}' 127.0.0.1:50051 briosa.FileOperations/GetWorkingDirectory
 
+grpcurl -plaintext -d '{}' 127.0.0.1:50051 briosa.AnalysisOperations/GetNumberOfCollections
+
 grpcurl -plaintext -d '{"collectionIndex":0}' 127.0.0.1:50051 briosa.AnalysisOperations/GetIThCollectionName
 ```
 
-The responses' `directory` and `resultantName` values are developer-visible
+The responses' `directory`, `totalCount`, and `resultantName` values are developer-visible
 SpatialAnalyzer data. Confirm that the calls succeed, but do not paste the
 returned values into logs, screenshots, public issues, or validation reports.
 
@@ -158,18 +161,20 @@ the UI to make the same calls:
 | `grpc.health.v1.Health/Check` | `{"service":"briosa.readiness"}` |
 | `briosa.DiscoveryService/GetServerInfo` | `{}` |
 | `briosa.DiscoveryService/ListCapabilities` | `{}` |
+| `briosa.AnalysisOperations/GetNumberOfCollections` | `{}` |
 | `briosa.AnalysisOperations/GetIThCollectionName` | `{"collectionIndex":0}` |
 | `briosa.FileOperations/GetWorkingDirectory` | `{}` |
 
 Apply the same data-handling rule to the UI: do not retain or share the returned
-working-directory or collection-name value.
+working-directory, collection-count, or collection-name value.
 
 ## Keep the operation allowlist narrow
 
 The handwritten operation registry is the maximum API surface the binary can
 express, not an authorization list. `ListCapabilities` is the authority for the
 operations the current process admits. The committed runtime policy allows exactly
-`analysis_operations.get_i_th_collection_name` and
+`analysis_operations.get_i_th_collection_name`,
+`analysis_operations.get_number_of_collections`, and
 `file_operations.get_working_directory`; reflection and Development mode do not
 expand it. A reflected operation that is absent from `ListCapabilities` remains
 denied before worker or SDK execution.

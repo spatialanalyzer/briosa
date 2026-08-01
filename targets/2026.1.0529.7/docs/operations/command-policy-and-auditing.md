@@ -14,6 +14,7 @@ The packaged configuration enables only:
       "Operations": {
         "Allow": [
           "analysis_operations.get_i_th_collection_name",
+          "analysis_operations.get_number_of_collections",
           "file_operations.get_working_directory"
         ],
         "Deny": []

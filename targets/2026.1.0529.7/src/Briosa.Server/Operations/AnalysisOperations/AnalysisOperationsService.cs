@@ -21,4 +21,16 @@ internal sealed class AnalysisOperationsService(OperationExecutor operationExecu
             GetIThCollectionNameOperation.CreateCommand,
             GetIThCollectionNameOperation.OutputContracts,
             GetIThCollectionNameOperation.CreateResult);
+
+    [OperationImplementation(GetNumberOfCollectionsOperation.OperationId)]
+    public override Task<Api.GetNumberOfCollectionsResult> GetNumberOfCollections(
+        Api.GetNumberOfCollectionsRequest request,
+        ServerCallContext context) =>
+        _operationExecutor.ExecuteAsync(
+            request,
+            context,
+            GetNumberOfCollectionsOperation.Descriptor,
+            GetNumberOfCollectionsOperation.CreateCommand,
+            GetNumberOfCollectionsOperation.OutputContracts,
+            GetNumberOfCollectionsOperation.CreateResult);
 }

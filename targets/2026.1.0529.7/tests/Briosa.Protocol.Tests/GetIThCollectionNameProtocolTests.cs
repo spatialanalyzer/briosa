@@ -11,8 +11,9 @@ public sealed partial class ProtocolSchemaTests
         Assert.Equal(
             "briosa.AnalysisOperations",
             Api.AnalysisOperations.Descriptor.FullName);
-        var method = Assert.Single(Api.AnalysisOperations.Descriptor.Methods);
-        Assert.Equal("GetIThCollectionName", method.Name);
+        var method = Assert.Single(
+            Api.AnalysisOperations.Descriptor.Methods,
+            candidate => candidate.Name == "GetIThCollectionName");
         Assert.Equal(
             Api.GetIThCollectionNameRequest.Descriptor,
             method.InputType);
