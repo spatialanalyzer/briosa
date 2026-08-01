@@ -241,8 +241,8 @@ try {
         throw "The packaged server wrote to standard error during the licensed test."
     }
 
-    Write-Host "Licensed SpatialAnalyzer GetWorkingDirectory smoke test passed."
-    Write-Host "The returned working-directory value was intentionally not logged."
+    Write-Host "Licensed SpatialAnalyzer read-only operation smoke tests passed."
+    Write-Host "Returned working-directory and collection-name values were intentionally not logged."
 }
 finally {
     if ($null -ne $serverProcess -and -not $serverProcess.HasExited) {

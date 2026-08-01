@@ -214,7 +214,6 @@ try {
         trimmed = $false
         spatialAnalyzerTarget = $targetVersion
         protocolPackage = "briosa"
-        implementedOperations = @("file_operations.get_working_directory")
         interopFingerprint = "sha256:$($interopProvenance.artifact.canonicalApiSha256)"
         spatialAnalyzerBundled = $false
         spatialAnalyzerLicenseRequired = $true

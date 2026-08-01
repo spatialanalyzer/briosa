@@ -13,6 +13,7 @@ The packaged configuration enables only:
     "Security": {
       "Operations": {
         "Allow": [
+          "analysis_operations.get_i_th_collection_name",
           "file_operations.get_working_directory"
         ],
         "Deny": []

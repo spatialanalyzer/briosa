@@ -1,22 +1,11 @@
 using System.Reflection;
 using Briosa.Server.Operations;
-using Briosa.Server.Operations.FileOperations;
 using Briosa.Server.Services;
 
 namespace Briosa.Server.Tests;
 
 public sealed class ImplementedOperationRegistryTests
 {
-    [Fact]
-    public void RegistryContainsOnlyTheHandwrittenGetWorkingDirectoryBaseline()
-    {
-        var operation = Assert.Single(SpatialAnalyzerApi.Operations);
-
-        Assert.Same(GetWorkingDirectoryOperation.Descriptor, operation);
-        Assert.Equal(GetWorkingDirectoryOperation.OperationId, operation.OperationId);
-        Assert.Equal(GetWorkingDirectoryOperation.StepName, operation.MpStep);
-    }
-
     [Fact]
     public void RegistryAndHandwrittenGrpcImplementationsStayInSync()
     {

@@ -95,8 +95,13 @@ public sealed class DevelopmentGrpcReflectionTests
             serverInfo.ConnectedSpatialAnalyzerIdentity.Source);
         var capabilities = await discovery.ListCapabilitiesAsync(
             new Api.ListCapabilitiesRequest()).ResponseAsync.ConfigureAwait(true);
-        var capability = Assert.Single(capabilities.Operations);
-        Assert.Equal("file_operations.get_working_directory", capability.OperationId);
+        Assert.Equal(
+            SpatialAnalyzerApi.Operations
+                .Select(operation => operation.OperationId)
+                .Order(StringComparer.Ordinal),
+            capabilities.Operations
+                .Select(operation => operation.OperationId)
+                .Order(StringComparer.Ordinal));
         Assert.DoesNotContain(
             capabilities.Operations,
             operation => operation.Effect == Api.OperationEffect.Mutating);

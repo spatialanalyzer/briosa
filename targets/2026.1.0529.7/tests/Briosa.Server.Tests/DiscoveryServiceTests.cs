@@ -215,20 +215,28 @@ public sealed class DiscoveryServiceTests
 
         Assert.Equal("2026.1.0529.7", response.SpatialAnalyzerTarget);
         Assert.Equal("briosa", response.ProtocolPackage);
-        var operation = Assert.Single(response.Operations);
-        Assert.Equal("file_operations.get_working_directory", operation.OperationId);
-        Assert.Equal(
-            "briosa.FileOperations",
-            operation.GrpcService);
-        Assert.Equal("GetWorkingDirectory", operation.Rpc);
-        Assert.Equal(
-            "/briosa.FileOperations/GetWorkingDirectory",
-            operation.FullyQualifiedMethod);
-        Assert.Equal(OperationEffect.ReadOnly, operation.Effect);
-        Assert.Equal(
-            OperationExecutionScope.GlobalStateRead,
-            operation.ExecutionScope);
-        Assert.Equal(ReplaySafety.Safe, operation.ReplaySafety);
+        Assert.Equal(SpatialAnalyzerApi.Operations.Count, response.Operations.Count);
+        foreach (var descriptor in SpatialAnalyzerApi.Operations)
+        {
+            var operation = Assert.Single(
+                response.Operations,
+                candidate => candidate.OperationId == descriptor.OperationId);
+            Assert.Equal(descriptor.GrpcService, operation.GrpcService);
+            Assert.Equal(descriptor.Rpc, operation.Rpc);
+            Assert.Equal(
+                descriptor.FullyQualifiedMethod,
+                operation.FullyQualifiedMethod);
+            Assert.Equal(
+                descriptor.Effect switch
+                {
+                    "read_only" => OperationEffect.ReadOnly,
+                    "mutating" => OperationEffect.Mutating,
+                    _ => OperationEffect.Unknown
+                },
+                operation.Effect);
+            Assert.Equal(descriptor.ExecutionScope, operation.ExecutionScope);
+            Assert.Equal(descriptor.ReplaySafety, operation.ReplaySafety);
+        }
     }
 
     [Fact]
@@ -263,9 +271,12 @@ public sealed class DiscoveryServiceTests
         var values = new Dictionary<string, string?>(StringComparer.Ordinal);
         if (allow)
         {
-            values.Add(
-                $"{OperationPolicy.AllowKey}:0",
-                "file_operations.get_working_directory");
+            for (var index = 0; index < SpatialAnalyzerApi.Operations.Count; index++)
+            {
+                values.Add(
+                    $"{OperationPolicy.AllowKey}:{index}",
+                    SpatialAnalyzerApi.Operations[index].OperationId);
+            }
         }
 
         var configuration = new ConfigurationBuilder()

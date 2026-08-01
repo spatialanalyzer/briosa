@@ -111,20 +111,23 @@ try {
     Assert-Condition -Condition ($manifest.protocolPackage -eq "briosa") -Message "The package protocol identity is incorrect."
     Assert-Condition -Condition ($null -eq $manifest.PSObject.Properties["coreProtocolPackage"] -and $null -eq $manifest.PSObject.Properties["targetProtocolPackage"]) -Message "A retired versioned protocol identity leaked into the package."
     Assert-Condition -Condition ($null -eq $manifest.PSObject.Properties["catalogRevision"]) -Message "The retired catalog revision leaked into the package."
-    Assert-Condition -Condition ($manifest.implementedOperations.Count -eq 1) -Message "The package must declare exactly one implemented operation."
-    Assert-Condition -Condition ($manifest.implementedOperations[0] -eq "file_operations.get_working_directory") -Message "The package implemented-operation declaration is incorrect."
+    Assert-Condition -Condition ($null -eq $manifest.PSObject.Properties["implementedOperations"]) -Message "Implemented operations belong to runtime discovery, not duplicated package metadata."
     Assert-Condition -Condition ($manifest.spatialAnalyzerTarget -eq "2026.1.0529.7") -Message "The package declares the wrong SpatialAnalyzer target."
     Assert-Condition -Condition ($null -eq $manifest.PSObject.Properties["supportedSpatialAnalyzerReleases"]) -Message "A multi-target release list leaked into the exact-target package."
     Assert-Condition -Condition (-not $manifest.spatialAnalyzerBundled) -Message "The package must not claim to bundle SpatialAnalyzer."
 
     $configuration = Get-Content -LiteralPath (Join-Path $packageRoot "appsettings.json") -Raw | ConvertFrom-Json
+    $sourceConfiguration = Get-Content -LiteralPath (Join-Path $repositoryRoot "src\Briosa.Server\appsettings.json") -Raw | ConvertFrom-Json
     Assert-Condition -Condition ($configuration.Briosa.Endpoint.Address -eq "127.0.0.1") -Message "The packaged loopback address is incorrect."
     Assert-Condition -Condition ($configuration.Briosa.Endpoint.Port -eq 50051) -Message "The packaged endpoint port is incorrect."
     Assert-Condition -Condition ($configuration.Briosa.SpatialAnalyzer.Host -eq "localhost") -Message "The packaged SpatialAnalyzer target must default to localhost."
     Assert-Condition -Condition ($configuration.Briosa.Worker.ExecutionWatchdogTimeout -eq "00:00:30") -Message "The packaged execution watchdog default is incorrect."
-    Assert-Condition -Condition ($configuration.Briosa.Security.Operations.Allow.Count -eq 1) -Message "The packaged operation allowlist must contain exactly one reviewed operation."
-    Assert-Condition -Condition ($configuration.Briosa.Security.Operations.Allow[0] -eq "file_operations.get_working_directory") -Message "The packaged operation allowlist is incorrect."
-    Assert-Condition -Condition ($configuration.Briosa.Security.Operations.Deny.Count -eq 0) -Message "The packaged operation denylist must be empty by default."
+    $packagedAllow = @($configuration.Briosa.Security.Operations.Allow)
+    $sourceAllow = @($sourceConfiguration.Briosa.Security.Operations.Allow)
+    Assert-Condition -Condition ($packagedAllow.Count -eq $sourceAllow.Count -and ($packagedAllow -join "`n") -eq ($sourceAllow -join "`n")) -Message "The packaged operation allowlist differs from the reviewed source configuration."
+    $packagedDeny = @($configuration.Briosa.Security.Operations.Deny)
+    $sourceDeny = @($sourceConfiguration.Briosa.Security.Operations.Deny)
+    Assert-Condition -Condition ($packagedDeny.Count -eq $sourceDeny.Count -and ($packagedDeny -join "`n") -eq ($sourceDeny -join "`n")) -Message "The packaged operation denylist differs from the reviewed source configuration."
 
     foreach ($requiredFile in @(
         "Briosa.Server.exe",

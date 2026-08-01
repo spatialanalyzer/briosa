@@ -1,6 +1,6 @@
 # Engineering scripts
 
-The scripts in this directory validate handwritten Briosa source, standard protobuf artifacts, Windows packaging, the supervised worker runtime, and the opt-in licensed `GetWorkingDirectory` path. None reconstructs or verifies a custom command catalog.
+The scripts in this directory validate handwritten Briosa source, standard protobuf artifacts, Windows packaging, the supervised worker runtime, and the opt-in licensed read-only operation paths. None reconstructs or verifies a custom command catalog.
 
 ## Ordinary validation
 
@@ -26,7 +26,7 @@ dotnet test Briosa.slnx -c Release --no-build --no-restore
   -PackagePath artifacts/package-smoke/briosa-0.1.0-local-sa-2026.1.0529.7-win-x64.zip
 ```
 
-- `New-WindowsPackage.ps1` creates the self-contained Briosa Windows package. It includes one implemented-operation declaration and interop provenance; it does not include a catalog.
+- `New-WindowsPackage.ps1` creates the self-contained Briosa Windows package. It includes build and interop provenance but does not duplicate the runtime operation registry or include a catalog.
 - `Test-WindowsPackage.ps1` builds twice, checks byte reproducibility, manifests, checksums, diagnostics, loopback startup, and rejection of unsafe endpoint binding.
 - `New-ProtocolArtifact.ps1` packages the handwritten `.proto` sources and Buf descriptor set for normal ecosystem client generation.
 - `Test-ProtocolArtifact.ps1` verifies reproducibility, manifests, checksums, and descriptor equivalence.
@@ -40,7 +40,7 @@ Do not run it merely to satisfy an ordinary build. Confirm redistribution approv
 
 ## Licensed SpatialAnalyzer
 
-`Test-LicensedSpatialAnalyzer.ps1` is the explicit local/package runner for the real `GetWorkingDirectory` RPC. It requires:
+`Test-LicensedSpatialAnalyzer.ps1` is the explicit local/package runner for the real `GetWorkingDirectory` and `GetIThCollectionName` RPCs. It requires:
 
 - Windows x64;
 - a separately installed and licensed SpatialAnalyzer `2026.1.0529.7`;
@@ -48,7 +48,7 @@ Do not run it merely to satisfy an ordinary build. Confirm redistribution approv
 - independent activated-SDK and connected-SA identity evidence; and
 - `-ConfirmLicensedSpatialAnalyzerTest`.
 
-It starts or uses only the explicitly authorized exact-target environment, exercises the public gRPC API, emits structural status only, and never prints the returned directory.
+It starts or uses only the explicitly authorized exact-target environment, exercises the public gRPC API, emits structural status only, and never prints the returned directory or collection name.
 
 `Test-LicensedRunnerState.ps1` and `Verify-LicensedRunnerWorkflow.ps1` protect the separately dispatched self-hosted runner workflow.
 

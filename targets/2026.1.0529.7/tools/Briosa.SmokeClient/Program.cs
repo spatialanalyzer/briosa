@@ -12,8 +12,10 @@ internal static class SmokeClientProgram
 {
     private const string ExpectedSpatialAnalyzerTarget = "2026.1.0529.7";
     private const string ExpectedProtocolPackage = "briosa";
-    private const string ExpectedOperation =
+    private const string ExpectedFileOperation =
         "/briosa.FileOperations/GetWorkingDirectory";
+    private const string ExpectedAnalysisOperation =
+        "/briosa.AnalysisOperations/GetIThCollectionName";
     private const string ErrorTrailerName = "briosa-operation-error-bin";
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -34,6 +36,8 @@ internal static class SmokeClientProgram
             using var channel = GrpcChannel.ForAddress(options.Address);
             var discoveryClient = new DiscoveryService.DiscoveryServiceClient(channel);
             var fileClient = new TargetProtocol.FileOperations.FileOperationsClient(channel);
+            var analysisClient =
+                new TargetProtocol.AnalysisOperations.AnalysisOperationsClient(channel);
             var deadline = DateTime.UtcNow.Add(options.Timeout);
             var serverInfo = await discoveryClient.GetServerInfoAsync(
                     new GetServerInfoRequest(),
@@ -54,6 +58,7 @@ internal static class SmokeClientProgram
                     options,
                     channel,
                     fileClient,
+                    analysisClient,
                     serverInfo,
                     timeout.Token)
                 .ConfigureAwait(false);
@@ -95,34 +100,42 @@ internal static class SmokeClientProgram
             throw new SmokeFailureException("capability-target-identity-mismatch");
         }
 
-        var operationAdvertised = capabilities.Operations.Any(operation =>
-            operation.FullyQualifiedMethod == ExpectedOperation);
-        if (operationAdvertised != expectOperation)
+        var fileOperationAdvertised = capabilities.Operations.Any(operation =>
+            operation.FullyQualifiedMethod == ExpectedFileOperation);
+        if (fileOperationAdvertised != expectOperation)
         {
             throw new SmokeFailureException("operation-policy-capability-mismatch");
+        }
+
+        if (!capabilities.Operations.Any(operation =>
+                operation.FullyQualifiedMethod == ExpectedAnalysisOperation))
+        {
+            throw new SmokeFailureException("analysis-operation-capability-missing");
         }
     }
 
     private static async Task<ScenarioOutcome> ExecuteScenario(
         SmokeOptions options,
         GrpcChannel channel,
-        TargetProtocol.FileOperations.FileOperationsClient client,
+        TargetProtocol.FileOperations.FileOperationsClient fileClient,
+        TargetProtocol.AnalysisOperations.AnalysisOperationsClient analysisClient,
         GetServerInfoResponse serverInfo,
         CancellationToken cancellationToken) =>
         options.Scenario switch
         {
             SmokeScenario.Ready => await ExecuteReady(
-                client,
+                fileClient,
+                analysisClient,
                 serverInfo,
                 options.Timeout,
                 cancellationToken).ConfigureAwait(false),
             SmokeScenario.Unavailable => await ExecuteUnavailable(
-                client,
+                fileClient,
                 serverInfo,
                 options.Timeout,
                 cancellationToken).ConfigureAwait(false),
             SmokeScenario.MpFailure => await ExecuteExpectedFailure(
-                client,
+                fileClient,
                 serverInfo,
                 options.Timeout,
                 StatusCode.FailedPrecondition,
@@ -130,7 +143,7 @@ internal static class SmokeClientProgram
                 OutputRetrievalState.NotAttempted,
                 cancellationToken).ConfigureAwait(false),
             SmokeScenario.OutputFailure => await ExecuteExpectedFailure(
-                client,
+                fileClient,
                 serverInfo,
                 options.Timeout,
                 StatusCode.DataLoss,
@@ -138,24 +151,24 @@ internal static class SmokeClientProgram
                 OutputRetrievalState.Failed,
                 cancellationToken).ConfigureAwait(false),
             SmokeScenario.Deadline => await ExecuteInterrupted(
-                client,
+                fileClient,
                 serverInfo,
                 useDeadline: true,
                 options.Timeout,
                 cancellationToken).ConfigureAwait(false),
             SmokeScenario.Cancellation => await ExecuteInterrupted(
-                client,
+                fileClient,
                 serverInfo,
                 useDeadline: false,
                 options.Timeout,
                 cancellationToken).ConfigureAwait(false),
             SmokeScenario.WatchdogRecovery => await ExecuteWatchdogRecovery(
-                client,
+                fileClient,
                 serverInfo,
                 options.Timeout,
                 cancellationToken).ConfigureAwait(false),
             SmokeScenario.PolicyDenied => await ExecutePolicyDenied(
-                client,
+                fileClient,
                 serverInfo,
                 options.Timeout,
                 cancellationToken).ConfigureAwait(false),
@@ -168,13 +181,19 @@ internal static class SmokeClientProgram
         };
 
     private static async Task<ScenarioOutcome> ExecuteReady(
-        TargetProtocol.FileOperations.FileOperationsClient client,
+        TargetProtocol.FileOperations.FileOperationsClient fileClient,
+        TargetProtocol.AnalysisOperations.AnalysisOperationsClient analysisClient,
         GetServerInfoResponse serverInfo,
         TimeSpan timeout,
         CancellationToken cancellationToken)
     {
         RequireReady(serverInfo);
-        await RequireSuccessfulOperation(client, timeout, cancellationToken)
+        await RequireSuccessfulOperation(fileClient, timeout, cancellationToken)
+            .ConfigureAwait(false);
+        await RequireSuccessfulCollectionName(
+                analysisClient,
+                timeout,
+                cancellationToken)
             .ConfigureAwait(false);
         return new ScenarioOutcome(
             OperationSucceeded: true,
@@ -418,6 +437,31 @@ internal static class SmokeClientProgram
                 OutputRetrievalState.Retrieved)
         {
             throw new SmokeFailureException("unexpected-operation-success-shape");
+        }
+    }
+
+    private static async Task RequireSuccessfulCollectionName(
+        TargetProtocol.AnalysisOperations.AnalysisOperationsClient client,
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
+    {
+        var result = await client.GetIThCollectionNameAsync(
+                new TargetProtocol.GetIThCollectionNameRequest
+                {
+                    CollectionIndex = 0
+                },
+                deadline: DateTime.UtcNow.Add(timeout),
+                cancellationToken: cancellationToken)
+            .ResponseAsync.ConfigureAwait(false);
+        if (!result.HasResultantName ||
+            result.Execution is null ||
+            result.Execution.State != MpExecutionState.Succeeded ||
+            result.Execution.OutputRetrievals.Count != 1 ||
+            result.Execution.OutputRetrievals[0].State !=
+                OutputRetrievalState.Retrieved)
+        {
+            throw new SmokeFailureException(
+                "unexpected-collection-name-success-shape");
         }
     }
 
