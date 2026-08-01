@@ -122,7 +122,7 @@ Raw installed documentation, raw View SDK Code, ObjectiveSA source, proprietary 
 
 ## Packaging and security
 
-The Windows package is self-contained for Briosa but does not bundle SpatialAnalyzer. It contains safe build coordinates, the approved interop provenance, and the exact implemented-operation declaration. See [Windows package](docs/operations/windows-package.md), [health and discovery](docs/operations/health-and-discovery.md), and [protocol artifacts](docs/operations/protocol-artifacts.md).
+The Windows package is self-contained for Briosa but does not bundle SpatialAnalyzer. It contains safe build coordinates and the approved interop provenance; the runtime discovery service reports the admitted operation surface. See [Windows package](docs/operations/windows-package.md), [health and discovery](docs/operations/health-and-discovery.md), and [protocol artifacts](docs/operations/protocol-artifacts.md).
 
 Remote authentication, authorization, TLS, and command-risk policy remain unresolved. Keep production bindings loopback-only.
 

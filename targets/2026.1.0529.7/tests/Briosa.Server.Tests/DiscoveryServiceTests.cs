@@ -215,41 +215,28 @@ public sealed class DiscoveryServiceTests
 
         Assert.Equal("2026.1.0529.7", response.SpatialAnalyzerTarget);
         Assert.Equal("briosa", response.ProtocolPackage);
-        Assert.Equal(2, response.Operations.Count);
-        var operation = Assert.Single(
-            response.Operations,
-            candidate =>
-                candidate.OperationId == "file_operations.get_working_directory");
-        Assert.Equal(
-            "briosa.FileOperations",
-            operation.GrpcService);
-        Assert.Equal("GetWorkingDirectory", operation.Rpc);
-        Assert.Equal(
-            "/briosa.FileOperations/GetWorkingDirectory",
-            operation.FullyQualifiedMethod);
-        Assert.Equal(OperationEffect.ReadOnly, operation.Effect);
-        Assert.Equal(
-            OperationExecutionScope.GlobalStateRead,
-            operation.ExecutionScope);
-        Assert.Equal(ReplaySafety.Safe, operation.ReplaySafety);
-
-        var analysisOperation = Assert.Single(
-            response.Operations,
-            candidate =>
-                candidate.OperationId ==
-                "analysis_operations.get_i_th_collection_name");
-        Assert.Equal(
-            "briosa.AnalysisOperations",
-            analysisOperation.GrpcService);
-        Assert.Equal("GetIThCollectionName", analysisOperation.Rpc);
-        Assert.Equal(
-            "/briosa.AnalysisOperations/GetIThCollectionName",
-            analysisOperation.FullyQualifiedMethod);
-        Assert.Equal(OperationEffect.ReadOnly, analysisOperation.Effect);
-        Assert.Equal(
-            OperationExecutionScope.GlobalStateRead,
-            analysisOperation.ExecutionScope);
-        Assert.Equal(ReplaySafety.Safe, analysisOperation.ReplaySafety);
+        Assert.Equal(SpatialAnalyzerApi.Operations.Count, response.Operations.Count);
+        foreach (var descriptor in SpatialAnalyzerApi.Operations)
+        {
+            var operation = Assert.Single(
+                response.Operations,
+                candidate => candidate.OperationId == descriptor.OperationId);
+            Assert.Equal(descriptor.GrpcService, operation.GrpcService);
+            Assert.Equal(descriptor.Rpc, operation.Rpc);
+            Assert.Equal(
+                descriptor.FullyQualifiedMethod,
+                operation.FullyQualifiedMethod);
+            Assert.Equal(
+                descriptor.Effect switch
+                {
+                    "read_only" => OperationEffect.ReadOnly,
+                    "mutating" => OperationEffect.Mutating,
+                    _ => OperationEffect.Unknown
+                },
+                operation.Effect);
+            Assert.Equal(descriptor.ExecutionScope, operation.ExecutionScope);
+            Assert.Equal(descriptor.ReplaySafety, operation.ReplaySafety);
+        }
     }
 
     [Fact]

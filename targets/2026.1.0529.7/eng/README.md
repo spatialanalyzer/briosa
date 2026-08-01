@@ -26,7 +26,7 @@ dotnet test Briosa.slnx -c Release --no-build --no-restore
   -PackagePath artifacts/package-smoke/briosa-0.1.0-local-sa-2026.1.0529.7-win-x64.zip
 ```
 
-- `New-WindowsPackage.ps1` creates the self-contained Briosa Windows package. It includes the reviewed implemented-operation declarations and interop provenance; it does not include a catalog.
+- `New-WindowsPackage.ps1` creates the self-contained Briosa Windows package. It includes build and interop provenance but does not duplicate the runtime operation registry or include a catalog.
 - `Test-WindowsPackage.ps1` builds twice, checks byte reproducibility, manifests, checksums, diagnostics, loopback startup, and rejection of unsafe endpoint binding.
 - `New-ProtocolArtifact.ps1` packages the handwritten `.proto` sources and Buf descriptor set for normal ecosystem client generation.
 - `Test-ProtocolArtifact.ps1` verifies reproducibility, manifests, checksums, and descriptor equivalence.

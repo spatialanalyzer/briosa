@@ -1,24 +1,11 @@
 using System.Reflection;
 using Briosa.Server.Operations;
-using Briosa.Server.Operations.AnalysisOperations;
-using Briosa.Server.Operations.FileOperations;
 using Briosa.Server.Services;
 
 namespace Briosa.Server.Tests;
 
 public sealed class ImplementedOperationRegistryTests
 {
-    [Fact]
-    public void RegistryContainsTheReviewedHandwrittenOperations()
-    {
-        Assert.Equal(
-            [
-                GetIThCollectionNameOperation.Descriptor,
-                GetWorkingDirectoryOperation.Descriptor
-            ],
-            SpatialAnalyzerApi.Operations);
-    }
-
     [Fact]
     public void RegistryAndHandwrittenGrpcImplementationsStayInSync()
     {

@@ -60,9 +60,11 @@ If startup reports `OPERATOR_RECOVERY_REQUIRED`, do not repeatedly restart Brios
 - runtime identifier and self-contained/trimming choices;
 - exact SpatialAnalyzer target;
 - stable protocol package;
-- the exact implemented operation IDs;
 - canonical interop fingerprint; and
 - explicit statements that SpatialAnalyzer is not bundled and requires a separate license.
+
+Implemented operations are reported by `DiscoveryService/ListCapabilities` after
+runtime policy is applied; they are not duplicated in package metadata.
 
 `metadata/` retains the approved interop provenance used to build the distribution.
 

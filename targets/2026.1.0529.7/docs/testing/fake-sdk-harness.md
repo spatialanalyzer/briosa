@@ -16,7 +16,7 @@ Reusable codec tests cover scalar, list, identity/reference, and structured valu
 
 ## In-process server fakes
 
-Server tests inject `IWorkerCommandExecutor` to exercise each handwritten operation's command and result mapping through `OperationExecutor`. They cover required input presence, valid zero values, success, MP failure, output retrieval failure, caller deadline, cancellation, result-mapping failure, typed error details, policy, capability discovery, and audit redaction.
+Focused operation tests exercise each handwritten command and result mapping directly, including required input presence and valid zero values. Shared `OperationExecutor` and outcome-mapper tests cover MP failure, output retrieval failure, caller deadline, cancellation, result-mapping failure, typed error details, policy, capability discovery, and audit redaction without repeating that infrastructure for every MP command.
 
 The outcome-mapper matrix validates present default-like values, failed retrieval, malformed results, uncertain completion, recovery guidance, and replay guidance independently from SpatialAnalyzer.
 

@@ -21,21 +21,4 @@ internal sealed class AnalysisOperationsService(OperationExecutor operationExecu
             GetIThCollectionNameOperation.CreateCommand,
             GetIThCollectionNameOperation.OutputContracts,
             GetIThCollectionNameOperation.CreateResult);
-
-    internal Task<Api.GetIThCollectionNameResult> ExecuteGetIThCollectionName(
-        Api.GetIThCollectionNameRequest request,
-        CancellationToken cancellationToken,
-        DateTime? deadline = null,
-        Guid? correlationId = null,
-        string actorCategory = "internal-unattributed") =>
-        _operationExecutor.ExecuteAsync(
-            request,
-            GetIThCollectionNameOperation.Descriptor,
-            GetIThCollectionNameOperation.CreateCommand,
-            GetIThCollectionNameOperation.OutputContracts,
-            GetIThCollectionNameOperation.CreateResult,
-            cancellationToken,
-            deadline,
-            correlationId,
-            actorCategory);
 }
