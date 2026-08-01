@@ -15,6 +15,7 @@ internal static class SpatialAnalyzerApi
     public static IReadOnlyList<OperationDescriptor> Operations { get; } =
         [
             GetIThCollectionNameOperation.Descriptor,
+            GetNumberOfCollectionsOperation.Descriptor,
             GetWorkingDirectoryOperation.Descriptor
         ];
 }

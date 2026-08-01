@@ -14,8 +14,10 @@ internal static class SmokeClientProgram
     private const string ExpectedProtocolPackage = "briosa";
     private const string ExpectedFileOperation =
         "/briosa.FileOperations/GetWorkingDirectory";
-    private const string ExpectedAnalysisOperation =
+    private const string ExpectedCollectionNameOperation =
         "/briosa.AnalysisOperations/GetIThCollectionName";
+    private const string ExpectedCollectionCountOperation =
+        "/briosa.AnalysisOperations/GetNumberOfCollections";
     private const string ErrorTrailerName = "briosa-operation-error-bin";
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -108,7 +110,9 @@ internal static class SmokeClientProgram
         }
 
         if (!capabilities.Operations.Any(operation =>
-                operation.FullyQualifiedMethod == ExpectedAnalysisOperation))
+                operation.FullyQualifiedMethod == ExpectedCollectionNameOperation) ||
+            !capabilities.Operations.Any(operation =>
+                operation.FullyQualifiedMethod == ExpectedCollectionCountOperation))
         {
             throw new SmokeFailureException("analysis-operation-capability-missing");
         }
@@ -190,7 +194,7 @@ internal static class SmokeClientProgram
         RequireReady(serverInfo);
         await RequireSuccessfulOperation(fileClient, timeout, cancellationToken)
             .ConfigureAwait(false);
-        await RequireSuccessfulCollectionName(
+        await RequireSuccessfulCollectionEnumeration(
                 analysisClient,
                 timeout,
                 cancellationToken)
@@ -440,12 +444,29 @@ internal static class SmokeClientProgram
         }
     }
 
-    private static async Task RequireSuccessfulCollectionName(
+    private static async Task RequireSuccessfulCollectionEnumeration(
         TargetProtocol.AnalysisOperations.AnalysisOperationsClient client,
         TimeSpan timeout,
         CancellationToken cancellationToken)
     {
-        var result = await client.GetIThCollectionNameAsync(
+        var countResult = await client.GetNumberOfCollectionsAsync(
+                new TargetProtocol.GetNumberOfCollectionsRequest(),
+                deadline: DateTime.UtcNow.Add(timeout),
+                cancellationToken: cancellationToken)
+            .ResponseAsync.ConfigureAwait(false);
+        if (!countResult.HasTotalCount ||
+            countResult.TotalCount <= 0 ||
+            countResult.Execution is null ||
+            countResult.Execution.State != MpExecutionState.Succeeded ||
+            countResult.Execution.OutputRetrievals.Count != 1 ||
+            countResult.Execution.OutputRetrievals[0].State !=
+                OutputRetrievalState.Retrieved)
+        {
+            throw new SmokeFailureException(
+                "unexpected-collection-count-success-shape");
+        }
+
+        var nameResult = await client.GetIThCollectionNameAsync(
                 new TargetProtocol.GetIThCollectionNameRequest
                 {
                     CollectionIndex = 0
@@ -453,11 +474,11 @@ internal static class SmokeClientProgram
                 deadline: DateTime.UtcNow.Add(timeout),
                 cancellationToken: cancellationToken)
             .ResponseAsync.ConfigureAwait(false);
-        if (!result.HasResultantName ||
-            result.Execution is null ||
-            result.Execution.State != MpExecutionState.Succeeded ||
-            result.Execution.OutputRetrievals.Count != 1 ||
-            result.Execution.OutputRetrievals[0].State !=
+        if (!nameResult.HasResultantName ||
+            nameResult.Execution is null ||
+            nameResult.Execution.State != MpExecutionState.Succeeded ||
+            nameResult.Execution.OutputRetrievals.Count != 1 ||
+            nameResult.Execution.OutputRetrievals[0].State !=
                 OutputRetrievalState.Retrieved)
         {
             throw new SmokeFailureException(

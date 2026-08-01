@@ -6,16 +6,17 @@ Briosa does not include SpatialAnalyzer, its SDK, or a license. SpatialAnalyzer 
 
 ## Current API
 
-The current exact target is SpatialAnalyzer `2026.1.0529.7`. Two MP operations are implemented:
+The current exact target is SpatialAnalyzer `2026.1.0529.7`. Three MP operations are implemented:
 
 | gRPC RPC | MP step | Request | Result |
 | --- | --- | --- | --- |
 | `AnalysisOperations/GetIThCollectionName` | `Get i-th Collection Name` | `collection_index` | `resultant_name` |
+| `AnalysisOperations/GetNumberOfCollections` | `Get Number of Collections` | none | `total_count` |
 | `FileOperations/GetWorkingDirectory` | `Get Working Directory` | none | `directory` |
 
 This is the complete supported MP surface. Inventory entries, retained evidence, former catalog entries, and code present only in Git history are not supported operations.
 
-The protobuf contracts are under [proto/briosa](proto/briosa). Their wire package is `briosa` and generated C# namespace is `Briosa`; the exact SA release belongs to this product and its artifact identity, not to public RPC or type names. The handwritten server mappings are under [src/Briosa.Server/Operations](src/Briosa.Server/Operations). See [GetIThCollectionName](docs/operations/get-i-th-collection-name.md) and [GetWorkingDirectory](docs/operations/get-working-directory.md) for the operation contracts.
+The protobuf contracts are under [proto/briosa](proto/briosa). Their wire package is `briosa` and generated C# namespace is `Briosa`; the exact SA release belongs to this product and its artifact identity, not to public RPC or type names. The handwritten server mappings are under [src/Briosa.Server/Operations](src/Briosa.Server/Operations). See [GetIThCollectionName](docs/operations/get-i-th-collection-name.md), [GetNumberOfCollections](docs/operations/get-number-of-collections.md), and [GetWorkingDirectory](docs/operations/get-working-directory.md) for the operation contracts.
 
 ## Operation strategy
 
@@ -93,11 +94,14 @@ In a second shell:
 grpcurl -plaintext -d '{}' 127.0.0.1:50051 `
   briosa.FileOperations/GetWorkingDirectory
 
+grpcurl -plaintext -d '{}' 127.0.0.1:50051 `
+  briosa.AnalysisOperations/GetNumberOfCollections
+
 grpcurl -plaintext -d '{"collectionIndex":0}' 127.0.0.1:50051 `
   briosa.AnalysisOperations/GetIThCollectionName
 ```
 
-Do not attach competing SDK clients. The protected licensed workflow and local runner intentionally report only structural success and never print the returned directory or collection name.
+Do not attach competing SDK clients. The protected licensed workflow and local runner intentionally report only structural success and never print the returned directory, collection count, or collection name.
 
 ## Adding an MP operation
 

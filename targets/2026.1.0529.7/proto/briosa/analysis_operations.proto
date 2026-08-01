@@ -9,6 +9,9 @@ option csharp_namespace = "Briosa";
 service AnalysisOperations {
   // Executes the "Get i-th Collection Name" MP command.
   rpc GetIThCollectionName(GetIThCollectionNameRequest) returns (GetIThCollectionNameResult);
+
+  // Executes the "Get Number of Collections" MP command.
+  rpc GetNumberOfCollections(GetNumberOfCollectionsRequest) returns (GetNumberOfCollectionsResult);
 }
 
 message GetIThCollectionNameRequest {
@@ -19,6 +22,15 @@ message GetIThCollectionNameRequest {
 message GetIThCollectionNameResult {
   // The MP return argument named "Resultant Name".
   optional string resultant_name = 1;
+  // Explicit MP and result-only argument retrieval outcome.
+  MpExecutionDetails execution = 1000;
+}
+
+message GetNumberOfCollectionsRequest {}
+
+message GetNumberOfCollectionsResult {
+  // The MP return argument named "Total Count".
+  optional int32 total_count = 1;
   // Explicit MP and result-only argument retrieval outcome.
   MpExecutionDetails execution = 1000;
 }

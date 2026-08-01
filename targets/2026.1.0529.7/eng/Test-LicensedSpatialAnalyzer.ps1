@@ -242,7 +242,7 @@ try {
     }
 
     Write-Host "Licensed SpatialAnalyzer read-only operation smoke tests passed."
-    Write-Host "Returned working-directory and collection-name values were intentionally not logged."
+    Write-Host "Returned working-directory, collection-count, and collection-name values were intentionally not logged."
 }
 finally {
     if ($null -ne $serverProcess -and -not $serverProcess.HasExited) {

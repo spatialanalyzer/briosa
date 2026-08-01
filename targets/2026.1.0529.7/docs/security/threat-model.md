@@ -2,7 +2,7 @@
 
 ## Scope and security posture
 
-This threat model covers the public gRPC host, development-only gRPC reflection, disposable SDK worker, SpatialAnalyzer SDK connection, handwritten `GetWorkingDirectory` and `GetIThCollectionName` operations, packaging, and operator configuration for exact target SA 2026.1.0529.7.
+This threat model covers the public gRPC host, development-only gRPC reflection, disposable SDK worker, SpatialAnalyzer SDK connection, handwritten read-only operations, packaging, and operator configuration for exact target SA 2026.1.0529.7.
 
 The supported v0.1 deployment is one trusted user on one Windows machine. Briosa accepts cleartext HTTP/2 only on an IP loopback address. It provides no client authentication or per-caller authorization. LAN, Internet, reverse-proxy, SSH-tunnel, port-forward, shared-host, container-host-bridge, and other remotely reachable deployments are unsupported.
 
