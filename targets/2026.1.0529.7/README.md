@@ -108,6 +108,11 @@ Do not attach competing SDK clients. The protected licensed workflow and local r
 
 Start with a focused GitHub issue for one command or a coherent command batch. Preserve each MP command's established names wherever protobuf and the implementation language permit it. A developer familiar with MP programming should recognize the RPC and fields directly.
 
+The [v1 command-surface planning guide](docs/development/v1-command-surface.md)
+defines how an operation is proposed, selected, classified, delivered through
+v0.x releases, and frozen for v1. Inventory or historical-candidate membership
+does not select an operation.
+
 A typical slice changes:
 
 - `proto/briosa/...`;
