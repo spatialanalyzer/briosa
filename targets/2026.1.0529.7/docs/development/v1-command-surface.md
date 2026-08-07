@@ -4,6 +4,8 @@
 - Exact target: SpatialAnalyzer `2026.1.0529.7`
 - Governing RFC: [#145](https://github.com/spatialanalyzer/briosa/issues/145)
 - Command-surface epic: [#42](https://github.com/spatialanalyzer/briosa/issues/42)
+- Complete-catalog disposition epic: [#152](https://github.com/spatialanalyzer/briosa/issues/152)
+- Public catalog epic: [briosa-docs#13](https://github.com/spatialanalyzer/briosa-docs/issues/13)
 
 ## Purpose
 
@@ -21,6 +23,11 @@ handwritten protobuf contracts, operation implementations,
 `SpatialAnalyzerApi.Operations`, and runtime policy remain the authorities for
 compiled and admitted operations.
 
+V1 implementation selection is separate from complete-catalog documentation.
+The public documentation site covers every retained MP command identity,
+including unsupported and not-yet-reviewed commands, without making those
+commands part of Briosa's API.
+
 ## Authority and evidence
 
 GitHub issues and the
@@ -33,6 +40,12 @@ are the planning source of truth:
 - its pull requests deliver complete handwritten vertical slices; and
 - its Project fields identify the intended v0.x delivery horizon.
 
+Complete-catalog dispositions are reviewed under #152 and published through
+[briosa-docs#13](https://github.com/spatialanalyzer/briosa-docs/issues/13).
+Every retained command receives a public documentation record even when it is
+not selected for implementation. The record explains its status, rationale,
+validation qualification, and recommended alternative or workaround.
+
 The retained exact-target inventory, bindings, and semantic-value files are
 non-authoritative evidence. Historical command dispositions and generated
 artifacts are available in Git history as review aids only. Neither source can
@@ -44,11 +57,30 @@ binding match can accelerate review, but exact-target evidence wins on conflict.
 ObjectiveSA cannot add a field, binding, choice, default, or compatibility claim
 that is absent from the exact target.
 
-## Planning dispositions
+## Two-track command review
 
-Only commands that a maintainer has deliberately reviewed receive a disposition.
-An inventory entry that has not been reviewed is simply unselected; it is not
-implicitly deferred or intentionally excluded.
+| Track | Planning authority | Completion condition |
+| --- | --- | --- |
+| V1 implementation selection | Native selected-operation and coherent-batch issues under #42; handwritten source remains runtime authority. | Every selected operation is implemented, validated, documented, and included in the frozen v1 surface. |
+| Complete public catalog | Reviewed disposition batches under #152 and public content under briosa-docs#13. | Every retained command identity has a final public status, rationale, and alternative/workaround where applicable. |
+
+The tracks share curated exact-target evidence and reviewed decisions, but their
+artifacts have different authority. A catalog record cannot select or implement
+an operation. An implemented operation still needs a catalog record so users can
+find its support and validation status alongside unsupported commands.
+
+The documentation track may use structured content, generate static site pages,
+and enforce documentation-only identity and coverage checks. The server,
+protobuf, clients, runtime policy, packaging, and Briosa build must never consume
+those artifacts.
+
+## Implementation planning dispositions
+
+For implementation planning, only commands that a maintainer has deliberately
+reviewed receive a selected, deferred, excluded, or SDK-unavailable disposition.
+An inventory entry that has not been reviewed is unselected and does not enter
+v1. Its public documentation status is `Under review`; it is not implicitly
+deferred or intentionally excluded.
 
 | Disposition | Meaning | GitHub placement |
 | --- | --- | --- |
@@ -59,11 +91,31 @@ implicitly deferred or intentionally excluded.
 | Intentional exclusion | A reviewed operation is outside Briosa's intended API because it conflicts with an accepted product, security, ownership, or architecture boundary. | The decision remains under #145 or another linked planning issue, with the governing reason. |
 | SDK unavailable | Exact-target evidence shows that a required MP step or input/output binding cannot be expressed through the approved SDK surface. | The evidence and missing binding remain in a focused issue under #145 or the relevant external dependency. |
 
+## Public catalog statuses
+
+Each retained command identity has exactly one public status for this exact
+target:
+
+| Status | Public meaning |
+| --- | --- |
+| Supported | A complete handwritten Briosa operation is present in authoritative source. The record links its stable operation ID and operation documentation. |
+| Selected for v1 | A reviewed native issue under #42 commits the command to v1, but its vertical slice is not yet supported. |
+| Under review | The command has not received a final implementation disposition. It is not Briosa API. |
+| Deferred beyond v1 | Maintainers reviewed the command and deliberately placed it outside this target's v1 scope, with a reconsideration trigger when known. |
+| Intentionally excluded | Maintainers reviewed the command and rejected it because of an accepted product, security, ownership, or architecture boundary. |
+| SDK unavailable | Exact-target evidence shows that the required MP step or binding cannot be expressed through the approved SDK surface. |
+
+Every record includes a concise project-authored rationale. Records other than
+`Supported` and `Selected for v1` also provide a recommended alternative,
+workaround, or an explicit statement that no alternative is currently known.
+The site must never reproduce vendor documentation wholesale.
+
 `At risk` is an orthogonal validation qualifier, not a reason to exclude a
-command. A selected or implemented operation is at risk when complete licensed
-validation depends on unavailable hardware, software, data, permissions, or
-fixtures. Its issue must name the gap and contain an opt-in validation plan. It
-must never claim that an unexecuted scenario passed.
+command or a primary public status. A selected or implemented operation is at
+risk when complete licensed validation depends on unavailable hardware,
+software, data, permissions, or fixtures. Its issue and catalog record must name
+the gap and the opt-in validation plan. They must never claim that an unexecuted
+scenario passed.
 
 An unresolved documentation/SDK discrepancy is not automatically `SDK
 unavailable`. Keep it proposed or deferred pending evidence unless the exact
@@ -200,9 +252,41 @@ Before the freeze, maintainers may evolve the v1 set through ordinary review:
    validation claims synchronized through their owning issues.
 
 Deferring, excluding, or declaring SDK unavailability requires a recorded reason
-only for commands that were actually reviewed. Briosa does not create one issue
-per retained inventory entry merely to prove that everything received a
-disposition.
+for commands that were actually reviewed. Reviews may cover coherent categories
+or workflow batches; Briosa does not require one GitHub issue per retained
+inventory entry. Every individual command still receives its own traceable public
+catalog record.
+
+## Complete public catalog documentation
+
+The public catalog covers all 1,412 retained command identities for exact target
+`2026.1.0529.7`. Initial site population may mark unreviewed records as `Under
+review`. Reviewed category or workflow batches progressively replace that
+temporary state with final public dispositions.
+
+Each catalog record contains at least:
+
+- exact SpatialAnalyzer target;
+- retained command identity, exact MP step, and category path;
+- public catalog status and at-risk qualifier;
+- concise project-authored rationale;
+- recommended alternative, workaround, or an explicit none-known statement when
+  the command is not supported or selected;
+- reviewed decision issue and safe curated evidence references;
+- stable Briosa operation ID and operation documentation when supported; and
+- last-reviewed revision or date.
+
+The documentation repository may use structured data, schemas, generated pages,
+search indexes, and completeness checks to guarantee one unique record per
+retained command identity. These are documentation-site implementation details.
+They cannot generate, register, admit, or claim a Briosa operation and cannot be
+consumed by any server, protocol, client, package, or Briosa build workflow.
+
+The complete-catalog disposition epic #152 owns reviewed decisions. The public
+catalog epic [briosa-docs#13](https://github.com/spatialanalyzer/briosa-docs/issues/13)
+owns the content model, initial `Under review` baseline, navigation, and staged
+publication. Affected catalog records are updated as part of each v0.x command
+wave rather than deferred until v1 stabilization.
 
 ## V1 scope freeze
 
@@ -219,6 +303,10 @@ surface growth and prepare the first v1 release candidate.
   slice; no selected delivery issue remains open.
 - Server, protocol, all three first-party clients, and public documentation agree
   on the selected surface.
+- Every retained command identity has a final public catalog status; no `Under
+  review` record remains.
+- Every unsupported command has a published rationale and alternative,
+  workaround, or explicit none-known statement.
 - Required portable validation passes.
 - Licensed validation status is explicit for every operation, including all
   accepted at-risk gaps.
@@ -232,6 +320,7 @@ The freeze Task records a reviewable snapshot containing:
 - the accepted direct operation/batch issue URLs;
 - each stable operation ID and exact MP step;
 - server, protocol, client, and documentation release coordinates;
+- the complete public catalog revision and coverage result;
 - portable and licensed validation evidence; and
 - accepted at-risk qualifications.
 
@@ -257,10 +346,11 @@ is required later.
 
 This process must not introduce or restore:
 
-- a generated or deterministic command catalog;
+- a generated or deterministic implementation command catalog;
 - a generated operation implementation or client facade;
-- a machine-readable release-membership manifest;
-- an inventory-wide disposition or implementation-completeness gate;
+- a machine-readable release-membership manifest consumed by Briosa runtime or
+  build workflows;
+- an inventory-wide implementation-completeness gate in `briosa`;
 - a generic public command executor or untyped argument bag; or
 - support claims derived from inventory counts, historical dispositions, or
   ObjectiveSA coverage.
@@ -268,3 +358,8 @@ This process must not introduce or restore:
 Standard protobuf/gRPC generation remains part of the build. Small human-authored
 tables inside a reviewed issue or release record are planning evidence, not
 runtime or build inputs.
+
+A complete structured documentation catalog, generated static documentation
+pages, and documentation-only identity and coverage checks are explicitly
+allowed in `briosa-docs`. Their dependency direction ends at the documentation
+site: no Briosa implementation or client artifact may consume them.

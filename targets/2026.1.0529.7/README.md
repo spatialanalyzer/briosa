@@ -111,7 +111,10 @@ Start with a focused GitHub issue for one command or a coherent command batch. P
 The [v1 command-surface planning guide](docs/development/v1-command-surface.md)
 defines how an operation is proposed, selected, classified, delivered through
 v0.x releases, and frozen for v1. Inventory or historical-candidate membership
-does not select an operation.
+does not select an operation. The separate
+[public MP catalog workstream](https://github.com/spatialanalyzer/briosa-docs/issues/13)
+documents every retained command—including unsupported commands—without becoming
+a runtime or implementation authority.
 
 A typical slice changes:
 
