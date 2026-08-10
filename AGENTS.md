@@ -19,6 +19,10 @@ The repository is licensed under Apache-2.0. SpatialAnalyzer, the SA SDK, their 
 - [Briosa Roadmap & Delivery](https://github.com/orgs/spatialanalyzer/projects/1): cross-repository planning source of truth.
 
 Keep public protocol design in `briosa`; do not let a client repository become the accidental source of truth for shared API semantics.
+Keep language-neutral first-party client behavior in
+[`docs/architecture/client-library-behavioral-contract.md`](docs/architecture/client-library-behavioral-contract.md).
+Client repositories own idiomatic syntax and types, but they must link to that
+contract rather than duplicating or silently redefining shared behavior.
 
 ## ObjectiveSA parity and at-risk commands
 

@@ -32,6 +32,10 @@ reintroduced merely because an old commit describes them.
 - [Operation and protocol model](operation-and-protocol-model.md) explains the
   strongly typed handwritten MP surface, evidence boundary, stable identifiers,
   and standard protobuf generation.
+- [First-party client behavioral contract](client-library-behavioral-contract.md)
+  explains the language-neutral behavior and safety guarantees shared by the
+  .NET, Python, and JavaScript/TypeScript clients while leaving idiomatic API
+  expression to their repositories.
 - [Exact-target product model](exact-target-product-model.md) explains isolated
   SA-release products, stable public namespaces, packaging, interop, and client
   version coordinates.
