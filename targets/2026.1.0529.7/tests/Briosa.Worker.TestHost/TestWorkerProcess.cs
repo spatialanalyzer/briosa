@@ -33,6 +33,11 @@ internal static class TestWorkerProcess
 
         try
         {
+            if (options.Scenario == TestWorkerScenario.HangBeforeReady)
+            {
+                Thread.Sleep(Timeout.Infinite);
+            }
+
             using var pipe = new NamedPipeClientStream(
                 ".",
                 options.PipeName,
@@ -40,12 +45,24 @@ internal static class TestWorkerProcess
                 PipeOptions.None);
             pipe.Connect(15_000);
             using var channel = new WorkerControlChannel(pipe, leaveOpen: true);
+            var connection = options.Scenario switch
+            {
+                TestWorkerScenario.SdkActivationFailed =>
+                    FaultedSnapshot("sdk-client-activation-failed"),
+                TestWorkerScenario.Disconnected or
+                    TestWorkerScenario.ConnectUnavailableOnce or
+                    TestWorkerScenario.HangOnConnect or
+                    TestWorkerScenario.SdkProcessExitOnPing =>
+                        DisconnectedSnapshot(),
+                _ => ConnectionSnapshot(
+                        WorkerExecutionReadinessState.Unverified,
+                        scenario: options.Scenario)
+            };
+            var connectCount = 0;
             channel.Send(
                 WorkerControlMessage.Ready(
                     Environment.ProcessId,
-                    ConnectionSnapshot(
-                        WorkerExecutionReadinessState.Unverified,
-                        scenario: options.Scenario)));
+                    connection));
 
             while (true)
             {
@@ -65,16 +82,17 @@ internal static class TestWorkerProcess
 
                         var verificationFailed =
                             options.Scenario == TestWorkerScenario.RejectVerify;
+                        connection = ConnectionSnapshot(
+                            verificationFailed
+                                ? WorkerExecutionReadinessState.OperatorRecoveryRequired
+                                : WorkerExecutionReadinessState.ExecutionReady,
+                            verificationFailed
+                                ? "execution-readiness-probe-mp-failed"
+                                : "execution-readiness-verified",
+                            options.Scenario);
                         channel.Send(WorkerControlMessage.ExecutionVerificationResult(
                             message.CorrelationId,
-                            ConnectionSnapshot(
-                                verificationFailed
-                                    ? WorkerExecutionReadinessState.OperatorRecoveryRequired
-                                    : WorkerExecutionReadinessState.ExecutionReady,
-                                verificationFailed
-                                    ? "execution-readiness-probe-mp-failed"
-                                    : "execution-readiness-verified",
-                                options.Scenario)));
+                            connection));
                         break;
                     case WorkerControlMessageKind.Ping:
                         if (options.Scenario == TestWorkerScenario.HangOnPing)
@@ -87,7 +105,22 @@ internal static class TestWorkerProcess
                             Environment.Exit(42);
                         }
 
-                        channel.Send(WorkerControlMessage.Pong(message.CorrelationId));
+                        if (options.Scenario == TestWorkerScenario.SdkProcessExitOnPing &&
+                            connection.State == WorkerConnectionState.Connected)
+                        {
+                            connection = connection with
+                            {
+                                State = WorkerConnectionState.Faulted,
+                                ExecutionReadinessState =
+                                    WorkerExecutionReadinessState.Unverified,
+                                DiagnosticCode = "sdk-process-exited",
+                                TransitionedAt = DateTimeOffset.UtcNow
+                            };
+                        }
+
+                        channel.Send(WorkerControlMessage.Pong(
+                            message.CorrelationId,
+                            connection));
                         break;
                     case WorkerControlMessageKind.Execute:
                         executionCount++;
@@ -126,6 +159,24 @@ internal static class TestWorkerProcess
                         }
 
                         channel.Send(completed);
+                        break;
+                    case WorkerControlMessageKind.Connect:
+                        if (options.Scenario == TestWorkerScenario.HangOnConnect)
+                        {
+                            Thread.Sleep(Timeout.Infinite);
+                        }
+
+                        connectCount++;
+                        connection = options.Scenario ==
+                                TestWorkerScenario.ConnectUnavailableOnce &&
+                            connectCount == 1
+                                ? FaultedSnapshot("connect-ex-unavailable")
+                                : ConnectionSnapshot(
+                                    WorkerExecutionReadinessState.Unverified,
+                                    scenario: options.Scenario);
+                        channel.Send(WorkerControlMessage.ConnectionResult(
+                            message.CorrelationId,
+                            connection));
                         break;
                     case WorkerControlMessageKind.Stop:
                         if (options.Scenario == TestWorkerScenario.IgnoreStop)
@@ -372,6 +423,40 @@ internal static class TestWorkerProcess
                         WorkerRuntimeIdentityEvidenceSource.Unavailable))
             });
 
+    private static WorkerConnectionSnapshot DisconnectedSnapshot() =>
+        new(
+            WorkerConnectionState.Disconnected,
+            WorkerExecutionReadinessState.Unverified,
+            StatusCode: null,
+            Attempt: 0,
+            MaximumAttempts: 1,
+            "sdk-started",
+            DateTimeOffset.UtcNow,
+            new WorkerRuntimeIdentitySnapshot(
+                new WorkerRuntimeIdentityEvidence(
+                    Version: null,
+                    WorkerRuntimeIdentityEvidenceSource.Unavailable),
+                new WorkerRuntimeIdentityEvidence(
+                    Version: null,
+                    WorkerRuntimeIdentityEvidenceSource.Unavailable)));
+
+    private static WorkerConnectionSnapshot FaultedSnapshot(string diagnosticCode) =>
+        new(
+            WorkerConnectionState.Faulted,
+            WorkerExecutionReadinessState.Unverified,
+            StatusCode: -1,
+            Attempt: 1,
+            MaximumAttempts: 1,
+            diagnosticCode,
+            DateTimeOffset.UtcNow,
+            new WorkerRuntimeIdentitySnapshot(
+                new WorkerRuntimeIdentityEvidence(
+                    Version: null,
+                    WorkerRuntimeIdentityEvidenceSource.Unavailable),
+                new WorkerRuntimeIdentityEvidence(
+                    Version: null,
+                    WorkerRuntimeIdentityEvidenceSource.Unavailable)));
+
     private static void WriteRecord(string? path, LifecycleRecord record)
     {
         if (path is null)
@@ -405,7 +490,13 @@ internal enum TestWorkerScenario
     CrashOnVerify,
     RejectVerify,
     RuntimeIdentityMismatch,
-    MalformedRuntimeIdentity
+    MalformedRuntimeIdentity,
+    Disconnected,
+    HangBeforeReady,
+    SdkActivationFailed,
+    ConnectUnavailableOnce,
+    HangOnConnect,
+    SdkProcessExitOnPing
 }
 
 internal sealed record TestWorkerOptions(
@@ -447,6 +538,12 @@ internal sealed record TestWorkerOptions(
             "reject-verify" => TestWorkerScenario.RejectVerify,
             "runtime-identity-mismatch" => TestWorkerScenario.RuntimeIdentityMismatch,
             "malformed-runtime-identity" => TestWorkerScenario.MalformedRuntimeIdentity,
+            "disconnected" => TestWorkerScenario.Disconnected,
+            "hang-before-ready" => TestWorkerScenario.HangBeforeReady,
+            "sdk-activation-failed" => TestWorkerScenario.SdkActivationFailed,
+            "connect-unavailable-once" => TestWorkerScenario.ConnectUnavailableOnce,
+            "hang-on-connect" => TestWorkerScenario.HangOnConnect,
+            "sdk-process-exit-on-ping" => TestWorkerScenario.SdkProcessExitOnPing,
             _ => throw new ArgumentOutOfRangeException(
                 nameof(value),
                 value,

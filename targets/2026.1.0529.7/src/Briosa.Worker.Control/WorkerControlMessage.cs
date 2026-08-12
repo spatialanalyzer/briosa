@@ -4,7 +4,7 @@ namespace Briosa.Worker.Control;
 
 public static class WorkerControlProtocol
 {
-    public const int CurrentVersion = 11;
+    public const int CurrentVersion = 13;
 
     public const int MaximumMessageBytes = 64 * 1024;
 }
@@ -19,6 +19,8 @@ public enum WorkerControlMessageKind
     Stopped,
     Execute,
     ExecutionResult,
+    Connect,
+    ConnectionResult,
     VerifyExecution,
     ExecutionVerificationResult
 }
@@ -496,8 +498,14 @@ public sealed record WorkerControlMessage(
     public static WorkerControlMessage Ping(Guid correlationId) =>
         new(WorkerControlProtocol.CurrentVersion, WorkerControlMessageKind.Ping, correlationId);
 
-    public static WorkerControlMessage Pong(Guid correlationId) =>
-        new(WorkerControlProtocol.CurrentVersion, WorkerControlMessageKind.Pong, correlationId);
+    public static WorkerControlMessage Pong(
+        Guid correlationId,
+        WorkerConnectionSnapshot connection) =>
+        new(
+            WorkerControlProtocol.CurrentVersion,
+            WorkerControlMessageKind.Pong,
+            correlationId,
+            Connection: connection ?? throw new ArgumentNullException(nameof(connection)));
 
     public static WorkerControlMessage Stop(Guid correlationId) =>
         new(WorkerControlProtocol.CurrentVersion, WorkerControlMessageKind.Stop, correlationId);
@@ -510,6 +518,21 @@ public sealed record WorkerControlMessage(
             WorkerControlProtocol.CurrentVersion,
             WorkerControlMessageKind.VerifyExecution,
             correlationId);
+
+    public static WorkerControlMessage Connect(Guid correlationId) =>
+        new(
+            WorkerControlProtocol.CurrentVersion,
+            WorkerControlMessageKind.Connect,
+            correlationId);
+
+    public static WorkerControlMessage ConnectionResult(
+        Guid correlationId,
+        WorkerConnectionSnapshot connection) =>
+        new(
+            WorkerControlProtocol.CurrentVersion,
+            WorkerControlMessageKind.ConnectionResult,
+            correlationId,
+            Connection: connection ?? throw new ArgumentNullException(nameof(connection)));
 
     public static WorkerControlMessage ExecutionVerificationResult(
         Guid correlationId,

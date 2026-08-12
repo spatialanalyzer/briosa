@@ -69,7 +69,7 @@ jobs:
           -SourceRevision $env:GITHUB_SHA
           -OutputDirectory artifacts/licensed-runner/package
 
-      - name: Build self-contained gRPC client
+      - name: Build self-contained gRPC clients
         shell: pwsh
         working-directory: ${{ env.BRIOSA_TARGET_ROOT }}
         run: |
@@ -79,6 +79,12 @@ jobs:
             -c Release -r win-x64 --self-contained true --no-restore `
             -p:PublishSingleFile=false -p:PublishTrimmed=false `
             -o artifacts/licensed-runner/payload/smoke-client
+          dotnet restore tools/Briosa.LifecycleClient/Briosa.LifecycleClient.csproj `
+            --locked-mode -r win-x64
+          dotnet publish tools/Briosa.LifecycleClient/Briosa.LifecycleClient.csproj `
+            -c Release -r win-x64 --self-contained true --no-restore `
+            -p:PublishSingleFile=false -p:PublishTrimmed=false `
+            -o artifacts/licensed-runner/payload/lifecycle-client
 
       - name: Assemble and hash trusted payload
         id: payload
@@ -202,6 +208,7 @@ jobs:
           & "$env:RUN_ROOT\payload\eng\Test-LicensedSpatialAnalyzer.ps1" `
             -PackagePath $package[0].FullName `
             -SmokeClientPath "$env:RUN_ROOT\payload\smoke-client\Briosa.SmokeClient.exe" `
+            -LifecycleClientPath "$env:RUN_ROOT\payload\lifecycle-client\Briosa.LifecycleClient.exe" `
             -ConfirmLicensedSpatialAnalyzerTest `
             -ActivatedSdkAttestedVersion $env:BRIOSA_ACTIVATED_SDK_ATTESTED_VERSION `
             -ActivatedSdkAttestationReference $env:BRIOSA_ACTIVATED_SDK_ATTESTATION_REFERENCE `

@@ -77,47 +77,19 @@ internal sealed partial class WorkerSupervisorHostedService(
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        var started = await _supervisor.StartAsync(cancellationToken).ConfigureAwait(false);
-        if (!started)
-        {
-            LogWorkerDegraded(_supervisor.Current.DiagnosticCode);
-            return;
-        }
-
-        var connection = _supervisor.Current.Connection!;
-        if (connection.State == WorkerConnectionState.Connected &&
-            connection.ExecutionReadinessState ==
-                WorkerExecutionReadinessState.ExecutionReady &&
-            _supervisor.Current.RuntimeIdentity?.AllowsExecution == true)
-        {
-            LogWorkerReady(
-                _supervisor.Current.Generation,
-                connection.StatusCode);
-        }
-        else if (connection.State == WorkerConnectionState.Connected &&
-            _supervisor.Current.RuntimeIdentity?.AllowsExecution != true)
-        {
-            var identity = _supervisor.Current.RuntimeIdentity!;
-            LogWorkerIdentityNotReady(
-                _supervisor.Current.Generation,
-                identity.ActivatedSdk.Source,
-                identity.ActivatedSdk.MatchState,
-                identity.ConnectedSpatialAnalyzer.Source,
-                identity.ConnectedSpatialAnalyzer.MatchState);
-        }
-        else
-        {
-            LogWorkerReadyWithoutSdk(
-                _supervisor.Current.Generation,
-                connection.State,
-                connection.ExecutionReadinessState,
-                connection.StatusCode,
-                connection.DiagnosticCode);
-        }
+        cancellationToken.ThrowIfCancellationRequested();
+        LogControlPlaneReady();
+        await Task.CompletedTask.ConfigureAwait(false);
     }
 
     public Task StopAsync(CancellationToken cancellationToken) =>
         _supervisor.StopAsync(cancellationToken);
+
+    [LoggerMessage(
+        EventId = 1000,
+        Level = LogLevel.Information,
+        Message = "Briosa control plane is ready; SpatialAnalyzer SDK startup awaits an explicit lifecycle RPC.")]
+    private partial void LogControlPlaneReady();
 
     [LoggerMessage(
         EventId = 1001,

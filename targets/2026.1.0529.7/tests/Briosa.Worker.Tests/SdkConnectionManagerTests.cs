@@ -15,6 +15,7 @@ public sealed class SdkConnectionManagerTests
         var manager = CreateManager("sa-lab", plan, maximumAttempts: 3);
         try
         {
+            var started = await manager.StartAsync();
             var attached = await manager.ConnectAsync();
             var rejected = await manager.ExecuteAsync(
                 new SdkCommand("before-verification"));
@@ -22,6 +23,8 @@ public sealed class SdkConnectionManagerTests
             var request = await manager.ExecuteAsync(
                 new SdkCommand("connected-operation"));
 
+            Assert.Equal(SdkConnectionState.Disconnected, started.State);
+            Assert.Equal("sdk-started", started.DiagnosticCode);
             Assert.Equal(SdkConnectionState.Connected, attached.State);
             Assert.Equal(
                 SdkExecutionReadinessState.Unverified,
@@ -68,6 +71,7 @@ public sealed class SdkConnectionManagerTests
             .ConnectsSuccessfully()
             .Then(ScriptedExecution.Hang(gate));
         await using var manager = CreateManager("localhost", plan, maximumAttempts: 1);
+        await manager.StartAsync();
         await manager.ConnectAsync();
 
         var verification = manager.VerifyExecutionAsync();
@@ -113,6 +117,7 @@ public sealed class SdkConnectionManagerTests
             .ConnectsSuccessfully()
             .Then(execution);
         await using var manager = CreateManager("localhost", plan, maximumAttempts: 1);
+        await manager.StartAsync();
         await manager.ConnectAsync();
 
         var connection = await manager.VerifyExecutionAsync();
@@ -137,6 +142,7 @@ public sealed class SdkConnectionManagerTests
         var manager = CreateManager("localhost", plan, maximumAttempts: 1);
         try
         {
+            await manager.StartAsync();
             AssertUnavailable(
                 await manager.ExecuteAsync(new SdkCommand("while-disconnected")),
                 SdkConnectionState.Disconnected);
@@ -182,6 +188,7 @@ public sealed class SdkConnectionManagerTests
             maximumAttempts: 3,
             transientStatusCodes: [11]);
 
+        await manager.StartAsync();
         var connection = await manager.ConnectAsync();
 
         Assert.Equal(SdkConnectionState.Connected, connection.State);
@@ -198,6 +205,7 @@ public sealed class SdkConnectionManagerTests
             .ConnectsSuccessfully(statusCode: 0);
         await using var manager = CreateManager("localhost", plan, maximumAttempts: 3);
 
+        await manager.StartAsync();
         var connection = await manager.ConnectAsync();
 
         Assert.Equal(SdkConnectionState.Faulted, connection.State);
@@ -214,6 +222,7 @@ public sealed class SdkConnectionManagerTests
             .ConnectsSuccessfully(statusCode: 0);
         await using var manager = CreateManager("localhost", plan, maximumAttempts: 2);
 
+        await manager.StartAsync();
         var firstCycle = await manager.ConnectAsync();
         var secondCycle = await manager.ConnectAsync();
 
@@ -231,6 +240,7 @@ public sealed class SdkConnectionManagerTests
         var plan = new ScriptedSdkPlan().DelaysConnection(gate, connected);
         await using var manager = CreateManager("localhost", plan, maximumAttempts: 1);
 
+        await manager.StartAsync();
         var first = manager.ConnectAsync();
         Assert.True(SpinWait.SpinUntil(
             () => manager.Current.State == SdkConnectionState.Connecting &&
@@ -266,10 +276,10 @@ public sealed class SdkConnectionManagerTests
                 throw new InvalidOperationException("scripted activation failure");
             });
 
-        var connection = await manager.ConnectAsync();
+        var connection = await manager.StartAsync();
 
         Assert.Equal(SdkConnectionState.Faulted, connection.State);
-        Assert.Equal(1, connection.Attempt);
+        Assert.Equal(0, connection.Attempt);
         Assert.Equal("sdk-client-activation-failed", connection.DiagnosticCode);
         Assert.Equal(1, activations);
     }

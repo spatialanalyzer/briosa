@@ -49,7 +49,7 @@ internal static partial class WorkerControlHost
                 : SpatialAnalyzerSdkAdapter.Create);
         try
         {
-            var connection = connectionOwner.ConnectAsync().GetAwaiter().GetResult();
+            var connection = connectionOwner.StartAsync().GetAwaiter().GetResult();
             using var pipe = new NamedPipeClientStream(
                 ".",
                 pipeName,
@@ -68,10 +68,17 @@ internal static partial class WorkerControlHost
                 switch (message.Kind)
                 {
                     case WorkerControlMessageKind.Ping:
-                        channel.Send(WorkerControlMessage.Pong(message.CorrelationId));
+                        var heartbeat = connectionOwner.ProbeLivenessAsync()
+                            .GetAwaiter().GetResult();
+                        channel.Send(WorkerControlMessage.Pong(
+                            message.CorrelationId,
+                            ToControlSnapshot(heartbeat)));
                         break;
                     case WorkerControlMessageKind.Execute:
                         channel.Send(Execute(connectionOwner, message));
+                        break;
+                    case WorkerControlMessageKind.Connect:
+                        channel.Send(Connect(connectionOwner, message));
                         break;
                     case WorkerControlMessageKind.VerifyExecution:
                         channel.Send(VerifyExecution(connectionOwner, message));
@@ -117,6 +124,16 @@ internal static partial class WorkerControlHost
             ToControlSnapshot(request.Connection),
             request.DiagnosticCode);
         return WorkerControlMessage.ExecutionResult(message.CorrelationId, response);
+    }
+
+    private static WorkerControlMessage Connect(
+        SdkConnectionManager connectionOwner,
+        WorkerControlMessage message)
+    {
+        var connection = connectionOwner.ConnectAsync().GetAwaiter().GetResult();
+        return WorkerControlMessage.ConnectionResult(
+            message.CorrelationId,
+            ToControlSnapshot(connection));
     }
 
     private static WorkerControlMessage VerifyExecution(

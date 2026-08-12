@@ -18,9 +18,12 @@ if (-not $IsWindows -or -not [Environment]::Is64BitProcess) {
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $resolvedPackage = [IO.Path]::GetFullPath($PackagePath, $repositoryRoot)
 $smokeClientProject = Join-Path $repositoryRoot "tools\Briosa.SmokeClient\Briosa.SmokeClient.csproj"
+$lifecycleClientProject = Join-Path $repositoryRoot "tools\Briosa.LifecycleClient\Briosa.LifecycleClient.csproj"
 $smokeWorkerProject = Join-Path $repositoryRoot "tests\Briosa.SmokeWorker\Briosa.SmokeWorker.csproj"
 $smokeClientDll = Join-Path $repositoryRoot "tools\Briosa.SmokeClient\bin\$Configuration\net10.0\Briosa.SmokeClient.dll"
+$lifecycleClientDll = Join-Path $repositoryRoot "tools\Briosa.LifecycleClient\bin\$Configuration\net10.0\Briosa.LifecycleClient.dll"
 $smokeWorkerExe = Join-Path $repositoryRoot "tests\Briosa.SmokeWorker\bin\$Configuration\net10.0-windows\Briosa.SmokeWorker.exe"
+$smokeWorkerOutput = Split-Path -Parent $smokeWorkerExe
 $temporaryBase = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
 $temporaryRoot = Join-Path $temporaryBase "briosa-client-scenarios-$([Guid]::NewGuid().ToString('N'))"
 $extractRoot = Join-Path $temporaryRoot "package"
@@ -85,6 +88,7 @@ function Start-ScenarioServer {
         [Parameter(Mandatory)][int]$Port,
         [Parameter(Mandatory)][string]$StandardOutput,
         [Parameter(Mandatory)][string]$StandardError,
+        [Parameter(Mandatory)][string]$SpatialAnalyzerExecutable,
         [string]$WatchdogTimeout,
         [switch]$DenyOperation
     )
@@ -100,6 +104,7 @@ function Start-ScenarioServer {
     }
     $environmentValues = [ordered]@{
         "Briosa__Worker__ExecutablePath" = $smokeWorkerExe
+        "Briosa__SpatialAnalyzer__ExecutablePath" = $SpatialAnalyzerExecutable
         "BRIOSA_TEST_WORKER_SCENARIO" = $WorkerScenario
         "BRIOSA_TEST_WORKER_STATE_PATH" = $StatePath
         "Briosa__Worker__ExecutionWatchdogTimeout" = $effectiveWatchdogTimeout
@@ -279,12 +284,18 @@ $scenarios = @(
 try {
     if (-not $NoBuild) {
         Invoke-DotNet @("restore", $smokeClientProject, "--locked-mode")
+        Invoke-DotNet @("restore", $lifecycleClientProject, "--locked-mode")
         Invoke-DotNet @("restore", $smokeWorkerProject, "--locked-mode")
         $clientBuild = @(
             "build", $smokeClientProject,
             "-c", $Configuration,
             "--no-restore")
         Invoke-DotNet $clientBuild
+        $lifecycleClientBuild = @(
+            "build", $lifecycleClientProject,
+            "-c", $Configuration,
+            "--no-restore")
+        Invoke-DotNet $lifecycleClientBuild
         $workerBuild = @(
             "build", $smokeWorkerProject,
             "-c", $Configuration,
@@ -293,8 +304,9 @@ try {
     }
 
     if (-not (Test-Path -LiteralPath $smokeClientDll -PathType Leaf) -or
+        -not (Test-Path -LiteralPath $lifecycleClientDll -PathType Leaf) -or
         -not (Test-Path -LiteralPath $smokeWorkerExe -PathType Leaf)) {
-        throw "The smoke client and worker must be built before running scenarios."
+        throw "The smoke client, lifecycle client, and worker must be built before running scenarios."
     }
 
     Expand-Archive -LiteralPath $resolvedPackage -DestinationPath $extractRoot
@@ -311,6 +323,7 @@ try {
 
     foreach ($scenario in $scenarios) {
         $serverProcess = $null
+        $fakeApplication = $null
         $beforeWorkers = @(
             Get-Process -Name "Briosa.SmokeWorker" -ErrorAction SilentlyContinue |
                 Select-Object -ExpandProperty Id)
@@ -319,8 +332,22 @@ try {
         $statePath = Join-Path $scenarioRoot "worker-state"
         $standardOutput = Join-Path $scenarioRoot "server.stdout.log"
         $standardError = Join-Path $scenarioRoot "server.stderr.log"
+        $fakeApplicationRoot = Join-Path $scenarioRoot "fake-spatial-analyzer"
+        [IO.Directory]::CreateDirectory($fakeApplicationRoot) | Out-Null
+        Copy-Item -LiteralPath (Join-Path $smokeWorkerOutput "Briosa.SmokeWorker.dll") -Destination $fakeApplicationRoot
+        Copy-Item -LiteralPath (Join-Path $smokeWorkerOutput "Briosa.SmokeWorker.deps.json") -Destination $fakeApplicationRoot
+        Copy-Item -LiteralPath (Join-Path $smokeWorkerOutput "Briosa.SmokeWorker.runtimeconfig.json") -Destination $fakeApplicationRoot
+        Copy-Item -LiteralPath (Join-Path $smokeWorkerOutput "Briosa.Worker.Control.dll") -Destination $fakeApplicationRoot
+        $fakeApplicationExecutable = Join-Path $fakeApplicationRoot "Spatial Analyzer64.exe"
+        Copy-Item -LiteralPath $smokeWorkerExe -Destination $fakeApplicationExecutable
         $port = Get-AvailablePort
         try {
+            $fakeApplication = Start-Process `
+                -FilePath $fakeApplicationExecutable `
+                -ArgumentList @("--hold") `
+                -WorkingDirectory $fakeApplicationRoot `
+                -WindowStyle Hidden `
+                -PassThru
             $serverArguments = @{
                 ServerExecutable = $serverExecutable
                 WorkingDirectory = $packageRoot
@@ -329,6 +356,7 @@ try {
                 Port = $port
                 StandardOutput = $standardOutput
                 StandardError = $standardError
+                SpatialAnalyzerExecutable = $fakeApplicationExecutable
                 WatchdogTimeout = $scenario.Watchdog
                 DenyOperation = $scenario.DenyOperation
             }
@@ -349,6 +377,24 @@ try {
                 }
 
                 throw "The packaged server did not listen for scenario '$($scenario.Client)'."
+            }
+
+            $lifecycleScenario = if ($scenario.Worker -eq "disconnected") {
+                "start-sdk"
+            }
+            else {
+                "external-connect"
+            }
+            $lifecycleArguments = @(
+                $lifecycleClientDll,
+                "--address", "http://127.0.0.1:$port",
+                "--scenario", $lifecycleScenario,
+                "--timeout-seconds", "15")
+            $lifecycleOutput = @(
+                & dotnet @lifecycleArguments 2>&1 |
+                    ForEach-Object { [string]$_ })
+            if ($LASTEXITCODE -ne 0) {
+                throw "Lifecycle setup failed scenario '$($scenario.Client)': $($lifecycleOutput -join ' ')"
             }
 
             $clientArguments = @(
@@ -391,6 +437,10 @@ try {
             if ($null -ne $serverProcess -and -not $serverProcess.HasExited) {
                 Stop-Process -Id $serverProcess.Id -Force
                 $serverProcess.WaitForExit()
+            }
+            if ($null -ne $fakeApplication -and -not $fakeApplication.HasExited) {
+                Stop-Process -Id $fakeApplication.Id -Force
+                $fakeApplication.WaitForExit()
             }
 
             Start-Sleep -Milliseconds 500

@@ -58,6 +58,10 @@ Do not create a Windows port proxy, reverse proxy, SSH tunnel, VPN publication, 
 
 Remote public access is not enabled by changing an address. It needs a reviewed design and implementation for TLS, certificate lifecycle, authentication, operation-level authorization, network policy, quotas, rate and queue controls, audit events, redaction, retention, and returned-data handling.
 
-The worker setting `Briosa:SpatialAnalyzer:Host` is separate. It selects the outbound SDK target and never widens the public endpoint. Remote SDK transport, ports, firewall, and licensing are under investigation in issue #23 and should not be treated as supported merely because `ConnectEx` can accept a hostname.
+The worker setting `Briosa:SpatialAnalyzer:Host` is separate, but the current
+contract accepts only `localhost`. Caller-selected SDK hosts, remote SDK
+transport, remote public endpoints, authentication, authorization, TLS, ports,
+firewall policy, and licensing are deferred to the remote-capability roadmap.
+`ConnectEx` accepting a hostname does not make remote execution supported.
 
 See the [current threat model](../security/threat-model.md) and [security architecture](../../../../docs/architecture/security-and-observability.md) for the complete boundary and unresolved policies.

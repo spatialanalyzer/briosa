@@ -77,6 +77,8 @@ public sealed class WorkerProcessRegistrationTests
     [InlineData("   ")]
     [InlineData(" localhost")]
     [InlineData("localhost\rforged")]
+    [InlineData("192.0.2.10")]
+    [InlineData("sa-lab")]
     public void InvalidSpatialAnalyzerHostFailsStartup(string value)
     {
         var configuration = new ConfigurationBuilder()

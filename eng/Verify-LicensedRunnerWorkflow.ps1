@@ -101,6 +101,8 @@ foreach ($requiredPattern in @(
         'actions/download-artifact@',
         'Test-LicensedRunnerState\.ps1',
         '-ConfirmLicensedSpatialAnalyzerTest',
+        '-LifecycleClientPath',
+        'lifecycle-client\\Briosa\.LifecycleClient\.exe',
         '-ActivatedSdkAttestedVersion',
         '-ActivatedSdkAttestationReference',
         '-ConnectedSpatialAnalyzerAttestedVersion',

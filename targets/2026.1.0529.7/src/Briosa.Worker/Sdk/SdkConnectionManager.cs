@@ -89,6 +89,53 @@ internal sealed class SdkConnectionManager : IAsyncDisposable
     [SuppressMessage(
         "Design",
         "CA1031:Do not catch general exception types",
+        Justification = "Vendor COM activation failures are converted into a safe lifecycle outcome.")]
+    public async Task<SdkConnectionSnapshot> StartAsync(
+        CancellationToken cancellationToken = default)
+    {
+        if (Current.State == SdkConnectionState.Stopping)
+        {
+            return Current;
+        }
+
+        await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            if (_executor is not null)
+            {
+                return Current;
+            }
+
+            try
+            {
+                _executor = new SerializedSdkExecutor(_sdkFactory);
+                Transition(
+                    SdkConnectionState.Disconnected,
+                    statusCode: null,
+                    attempt: 0,
+                    "sdk-started");
+            }
+            catch (Exception)
+            {
+                await ReleaseExecutor().ConfigureAwait(false);
+                Transition(
+                    SdkConnectionState.Faulted,
+                    statusCode: null,
+                    attempt: 0,
+                    "sdk-client-activation-failed");
+            }
+
+            return Current;
+        }
+        finally
+        {
+            _gate.Release();
+        }
+    }
+
+    [SuppressMessage(
+        "Design",
+        "CA1031:Do not catch general exception types",
         Justification = "Vendor activation and ConnectEx failures are converted into safe connection outcomes.")]
     public async Task<SdkConnectionSnapshot> ConnectAsync(
         CancellationToken cancellationToken = default)
@@ -121,8 +168,12 @@ internal sealed class SdkConnectionManager : IAsyncDisposable
                     var executor = _executor;
                     if (executor is null)
                     {
-                        executor = new SerializedSdkExecutor(_sdkFactory);
-                        _executor = executor;
+                        Transition(
+                            SdkConnectionState.Faulted,
+                            statusCode: null,
+                            attempt,
+                            "sdk-not-started");
+                        return Current;
                     }
 
                     result = await executor.ConnectAsync(_targetHost, CancellationToken.None).ConfigureAwait(false);
@@ -186,6 +237,55 @@ internal sealed class SdkConnectionManager : IAsyncDisposable
             }
 
             throw new UnreachableException();
+        }
+        finally
+        {
+            _gate.Release();
+        }
+    }
+
+    [SuppressMessage(
+        "Design",
+        "CA1031:Do not catch general exception types",
+        Justification = "SDK engine loss must become a stable lifecycle state instead of escaping the worker heartbeat.")]
+    public async Task<SdkConnectionSnapshot> ProbeLivenessAsync(
+        CancellationToken cancellationToken = default)
+    {
+        await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            var executor = _executor;
+            if (executor is null || Current.State == SdkConnectionState.Stopping)
+            {
+                return Current;
+            }
+
+            SdkLivenessStatus liveness;
+            try
+            {
+                liveness = await executor.GetLivenessAsync(cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (Exception)
+            {
+                liveness = SdkLivenessStatus.Unavailable;
+            }
+
+            if (liveness == SdkLivenessStatus.Alive)
+            {
+                return Current;
+            }
+
+            var observed = Current;
+            Transition(
+                SdkConnectionState.Faulted,
+                observed.StatusCode,
+                observed.Attempt,
+                liveness == SdkLivenessStatus.ProcessExited
+                    ? "sdk-process-exited"
+                    : "sdk-process-liveness-unavailable",
+                SdkExecutionReadinessState.Unverified);
+            return Current;
         }
         finally
         {

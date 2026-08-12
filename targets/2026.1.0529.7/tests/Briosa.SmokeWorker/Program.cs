@@ -1,6 +1,12 @@
 using System.IO.Pipes;
 using Briosa.Worker.Control;
 
+if (args.Contains("--hold", StringComparer.Ordinal))
+{
+    Thread.Sleep(Timeout.Infinite);
+    return 0;
+}
+
 return SmokeWorkerProgram.Run(args);
 
 internal static class SmokeWorkerProgram
@@ -31,11 +37,10 @@ internal static class SmokeWorkerProgram
                 PipeOptions.None);
             pipe.Connect(15_000);
             using var channel = new WorkerControlChannel(pipe, leaveOpen: true);
+            var connection = DisconnectedSnapshot();
             channel.Send(WorkerControlMessage.Ready(
                 Environment.ProcessId,
-                ConnectionSnapshot(
-                    options.Scenario,
-                    WorkerExecutionReadinessState.Unverified)));
+                connection));
             var executionCount = 0;
 
             while (true)
@@ -44,20 +49,36 @@ internal static class SmokeWorkerProgram
                 switch (message.Kind)
                 {
                     case WorkerControlMessageKind.VerifyExecution:
+                        connection = ConnectionSnapshot(
+                            options.Scenario,
+                            options.Scenario == SmokeWorkerScenario.Disconnected
+                                ? WorkerExecutionReadinessState.Unverified
+                                : WorkerExecutionReadinessState.ExecutionReady);
                         channel.Send(WorkerControlMessage.ExecutionVerificationResult(
                             message.CorrelationId,
-                            ConnectionSnapshot(
-                                options.Scenario,
-                                options.Scenario == SmokeWorkerScenario.Disconnected
-                                    ? WorkerExecutionReadinessState.Unverified
-                                    : WorkerExecutionReadinessState.ExecutionReady)));
+                            connection));
                         break;
                     case WorkerControlMessageKind.Ping:
-                        channel.Send(WorkerControlMessage.Pong(message.CorrelationId));
+                        channel.Send(WorkerControlMessage.Pong(
+                            message.CorrelationId,
+                            connection));
+                        break;
+                    case WorkerControlMessageKind.Connect:
+                        connection = ConnectionSnapshot(
+                            options.Scenario,
+                            WorkerExecutionReadinessState.Unverified);
+                        channel.Send(WorkerControlMessage.ConnectionResult(
+                            message.CorrelationId,
+                            connection));
                         break;
                     case WorkerControlMessageKind.Execute:
                         executionCount++;
-                        Execute(channel, message, options, executionCount);
+                        Execute(
+                            channel,
+                            message,
+                            options,
+                            executionCount,
+                            connection);
                         break;
                     case WorkerControlMessageKind.Stop:
                         channel.Send(WorkerControlMessage.Stopped(message.CorrelationId));
@@ -77,7 +98,8 @@ internal static class SmokeWorkerProgram
         WorkerControlChannel channel,
         WorkerControlMessage message,
         SmokeWorkerOptions options,
-        int executionCount)
+        int executionCount,
+        WorkerConnectionSnapshot connection)
     {
         if (options.Scenario == SmokeWorkerScenario.Disconnected)
         {
@@ -86,9 +108,7 @@ internal static class SmokeWorkerProgram
                 new WorkerExecutionResponse(
                     WorkerExecutionResponseStatus.Unavailable,
                     Execution: null,
-                    ConnectionSnapshot(
-                        options.Scenario,
-                        WorkerExecutionReadinessState.Unverified),
+                    connection,
                     "sdk-connection-not-ready")));
             return;
         }
@@ -129,9 +149,7 @@ internal static class SmokeWorkerProgram
                     DurationMilliseconds: 5,
                     outputs,
                     diagnosticCode),
-                ConnectionSnapshot(
-                    options.Scenario,
-                    WorkerExecutionReadinessState.ExecutionReady),
+                connection,
                 DiagnosticCode: null)));
     }
 
@@ -191,6 +209,23 @@ internal static class SmokeWorkerProgram
                     Version: null,
                     WorkerRuntimeIdentityEvidenceSource.Unavailable)));
     }
+
+    private static WorkerConnectionSnapshot DisconnectedSnapshot() =>
+        new(
+            WorkerConnectionState.Disconnected,
+            WorkerExecutionReadinessState.Unverified,
+            StatusCode: null,
+            Attempt: 0,
+            MaximumAttempts: 1,
+            "sdk-started",
+            DateTimeOffset.UtcNow,
+            new WorkerRuntimeIdentitySnapshot(
+                new WorkerRuntimeIdentityEvidence(
+                    Version: null,
+                    WorkerRuntimeIdentityEvidenceSource.Unavailable),
+                new WorkerRuntimeIdentityEvidence(
+                    Version: null,
+                    WorkerRuntimeIdentityEvidenceSource.Unavailable)));
 
     private static bool ClaimFirstExecution(string? statePath)
     {

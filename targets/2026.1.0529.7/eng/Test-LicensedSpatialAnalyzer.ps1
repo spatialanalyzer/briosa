@@ -5,6 +5,8 @@ param(
 
     [string]$SmokeClientPath,
 
+    [string]$LifecycleClientPath,
+
     [Parameter(Mandatory)]
     [switch]$ConfirmLicensedSpatialAnalyzerTest,
 
@@ -68,7 +70,9 @@ if (-not $IsWindows -or -not [Environment]::Is64BitProcess) {
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $resolvedPackage = [IO.Path]::GetFullPath($PackagePath, $repositoryRoot)
 $smokeClientProject = Join-Path $repositoryRoot "tools\Briosa.SmokeClient\Briosa.SmokeClient.csproj"
+$lifecycleClientProject = Join-Path $repositoryRoot "tools\Briosa.LifecycleClient\Briosa.LifecycleClient.csproj"
 $smokeClientDll = Join-Path $repositoryRoot "tools\Briosa.SmokeClient\bin\$Configuration\net10.0\Briosa.SmokeClient.dll"
+$lifecycleClientDll = Join-Path $repositoryRoot "tools\Briosa.LifecycleClient\bin\$Configuration\net10.0\Briosa.LifecycleClient.dll"
 $resolvedSmokeClient = if ([string]::IsNullOrWhiteSpace($SmokeClientPath)) {
     $smokeClientDll
 }
@@ -76,6 +80,13 @@ else {
     [IO.Path]::GetFullPath($SmokeClientPath, $repositoryRoot)
 }
 $usesPrebuiltSmokeClient = -not [string]::IsNullOrWhiteSpace($SmokeClientPath)
+$resolvedLifecycleClient = if ([string]::IsNullOrWhiteSpace($LifecycleClientPath)) {
+    $lifecycleClientDll
+}
+else {
+    [IO.Path]::GetFullPath($LifecycleClientPath, $repositoryRoot)
+}
+$usesPrebuiltLifecycleClient = -not [string]::IsNullOrWhiteSpace($LifecycleClientPath)
 $temporaryBase = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
 $temporaryRoot = Join-Path $temporaryBase "briosa-licensed-smoke-$([Guid]::NewGuid().ToString('N'))"
 $extractRoot = Join-Path $temporaryRoot "package"
@@ -165,8 +176,23 @@ try {
         }
     }
 
+    if (-not $NoBuild -and -not $usesPrebuiltLifecycleClient) {
+        & dotnet restore $lifecycleClientProject --locked-mode
+        if ($LASTEXITCODE -ne 0) {
+            throw "The lifecycle gRPC client restore failed."
+        }
+
+        & dotnet build $lifecycleClientProject -c $Configuration --no-restore
+        if ($LASTEXITCODE -ne 0) {
+            throw "The lifecycle gRPC client build failed."
+        }
+    }
+
     if (-not (Test-Path -LiteralPath $resolvedSmokeClient -PathType Leaf)) {
         throw "The standard gRPC smoke client must be built before the licensed test."
+    }
+    if (-not (Test-Path -LiteralPath $resolvedLifecycleClient -PathType Leaf)) {
+        throw "The lifecycle gRPC client must be built before the licensed test."
     }
 
     Expand-Archive -LiteralPath $resolvedPackage -DestinationPath $extractRoot
@@ -209,6 +235,24 @@ try {
         throw "The packaged Briosa server did not open its loopback endpoint."
     }
 
+    $lifecycleArguments = @(
+        "--address", "http://127.0.0.1:$Port",
+        "--scenario", "external-connect",
+        "--timeout-seconds", "90")
+    $lifecycleOutput = @(
+        & dotnet $resolvedLifecycleClient @lifecycleArguments 2>&1 |
+            ForEach-Object { [string]$_ })
+    if ($LASTEXITCODE -ne 0) {
+        throw "The public lifecycle RPCs did not establish SpatialAnalyzer readiness."
+    }
+    $lifecycleReport = ($lifecycleOutput -join [Environment]::NewLine) |
+        ConvertFrom-Json
+    if (-not $lifecycleReport.success -or
+        -not $lifecycleReport.ready_for_mp -or
+        $lifecycleReport.outcome -ne "external-connected") {
+        throw "The public lifecycle client did not report a ready SDK generation."
+    }
+
     $clientArguments = @(
         "--address", "http://127.0.0.1:$Port",
         "--scenario", "ready",
@@ -246,6 +290,17 @@ try {
         -not $report.ready_for_mp -or
         -not $report.operation_succeeded) {
         throw "The gRPC client reported an unsuccessful licensed smoke test."
+    }
+
+    $stopArguments = @(
+        "--address", "http://127.0.0.1:$Port",
+        "--scenario", "stop-sdk",
+        "--timeout-seconds", "90")
+    $stopOutput = @(
+        & dotnet $resolvedLifecycleClient @stopArguments 2>&1 |
+            ForEach-Object { [string]$_ })
+    if ($LASTEXITCODE -ne 0) {
+        throw "The public lifecycle RPCs did not stop the SDK after the smoke test."
     }
 
     $errorText = [string](

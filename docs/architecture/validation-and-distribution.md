@@ -1,7 +1,7 @@
 # Validation and distribution
 
 - Status: Current; protected infrastructure remains provisional
-- Last reviewed: 2026-08-01
+- Last reviewed: 2026-08-12
 
 ## Validation levels
 
@@ -10,7 +10,7 @@ Briosa uses the least privileged environment that can prove a claim:
 1. formatting, static analysis, protobuf lint/build, and source-structure checks;
 2. unit and contract tests against fake SDK abstractions;
 3. process-level tests with fake delay, hang, crash, malformed response, and
-   worker-replacement behavior;
+   SDK/worker-loss and explicit replacement behavior;
 4. packaged generated-client/server scenarios without SpatialAnalyzer; and
 5. explicitly authorized success-path validation against a separately installed
    and licensed exact-target SpatialAnalyzer.
@@ -30,7 +30,8 @@ redaction.
 Process-level tests use separate fake worker executables that speak the real
 private control protocol. They exercise queueing, cancellation before and after
 enqueue, heartbeat failure, watchdog expiry, worker crash, malformed responses,
-bounded restart, quarantine, and recovery without emulating SpatialAnalyzer.
+admission closure, quarantine, incident retention, and explicit recovery without
+emulating SpatialAnalyzer.
 
 Runtime performance tests use only fake workers and invented values. They establish
 regression evidence for the Briosa process/transport path, not SpatialAnalyzer
@@ -47,7 +48,8 @@ performance.
 - policy denial and unsupported services;
 - MP failure and output-getter failure;
 - caller deadline and cancellation; and
-- watchdog replacement followed by successful recovery.
+- watchdog fault state followed by explicit replacement, reconnect, and
+  successful recovery.
 
 The client validates response structure, retrieval state, canonical gRPC status,
 and typed value-free errors. It never logs returned SpatialAnalyzer values,

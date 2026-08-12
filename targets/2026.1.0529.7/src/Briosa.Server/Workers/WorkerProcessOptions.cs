@@ -100,17 +100,14 @@ internal sealed record SpatialAnalyzerConnectionOptions(
 
         var configuredHost = configuration[HostKey];
         var host = configuredHost is null ? DefaultHost : configuredHost;
-        if (string.IsNullOrWhiteSpace(host) ||
-            host.Length > 255 ||
-            !string.Equals(host, host.Trim(), StringComparison.Ordinal) ||
-            host.Any(char.IsControl))
+        if (!string.Equals(host, DefaultHost, StringComparison.OrdinalIgnoreCase))
         {
             throw new InvalidOperationException(
-                $"Configuration value '{HostKey}' must be a non-empty host name or address with a valid shape.");
+                $"Configuration value '{HostKey}' must be 'localhost' for the local-only lifecycle contract.");
         }
 
         return new SpatialAnalyzerConnectionOptions(
-            host,
+            DefaultHost,
             SpatialAnalyzerIdentityOptions.BindAndValidate(configuration));
     }
 }

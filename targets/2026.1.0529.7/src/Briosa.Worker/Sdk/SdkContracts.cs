@@ -1,5 +1,12 @@
 namespace Briosa.Worker.Sdk;
 
+internal enum SdkLivenessStatus
+{
+    Alive,
+    ProcessExited,
+    Unavailable
+}
+
 internal enum SdkConnectionStatus
 {
     Connected,

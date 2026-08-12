@@ -44,6 +44,10 @@ internal sealed class SerializedSdkExecutor : IAsyncDisposable
         return Enqueue(sdk => sdk.Connect(host), cancellationToken);
     }
 
+    public Task<SdkLivenessStatus> GetLivenessAsync(
+        CancellationToken cancellationToken = default) =>
+        Enqueue(static sdk => sdk.GetLiveness(), cancellationToken);
+
     public Task<SdkExecutionResult> ExecuteAsync(
         SdkCommand command,
         CancellationToken cancellationToken = default)
