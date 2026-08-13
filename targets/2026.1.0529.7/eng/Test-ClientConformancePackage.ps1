@@ -166,6 +166,42 @@ $definition = Get-Content -LiteralPath $Contract -Raw | ConvertFrom-Json
     }
     & $runnerPath @runnerArguments
 
+    $applicationRoot = Join-Path $temporaryRoot "launchable-fake-application"
+    [IO.Directory]::CreateDirectory($applicationRoot) | Out-Null
+    Copy-Item -Path (Join-Path $packageRoot "fake-worker\*") `
+        -Destination $applicationRoot -Recurse
+    $applicationPath = Join-Path $applicationRoot "Spatial Analyzer64.exe"
+    Move-Item -LiteralPath (Join-Path $applicationRoot "Briosa.SmokeWorker.exe") `
+        -Destination $applicationPath
+    $applicationProcess = $null
+    try {
+        $applicationProcess = Start-Process `
+            -FilePath $applicationPath `
+            -WorkingDirectory $applicationRoot `
+            -PassThru
+        $windowDeadline = [DateTimeOffset]::UtcNow.AddSeconds(5)
+        do {
+            Start-Sleep -Milliseconds 100
+            Assert-Condition (-not $applicationProcess.HasExited) `
+                "The packaged fake application did not survive a normal zero-argument launch."
+            $applicationProcess.Refresh()
+        } while (($applicationProcess.MainWindowHandle -eq [IntPtr]::Zero -or
+            [string]::IsNullOrWhiteSpace($applicationProcess.MainWindowTitle)) -and
+            [DateTimeOffset]::UtcNow -lt $windowDeadline)
+        Assert-Condition ($applicationProcess.MainWindowHandle -ne [IntPtr]::Zero -and
+            -not [string]::IsNullOrWhiteSpace($applicationProcess.MainWindowTitle)) `
+            "The packaged fake application did not expose the real host's required ready window."
+    }
+    finally {
+        if ($null -ne $applicationProcess -and -not $applicationProcess.HasExited) {
+            Stop-Process -Id $applicationProcess.Id -Force
+            $applicationProcess.WaitForExit()
+        }
+        if ($null -ne $applicationProcess) {
+            $applicationProcess.Dispose()
+        }
+    }
+
     Write-Host "Client conformance package reproducibility, contract, checksums, and runner tests passed."
 }
 finally {

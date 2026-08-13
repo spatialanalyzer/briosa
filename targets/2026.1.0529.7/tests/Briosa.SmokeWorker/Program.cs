@@ -1,13 +1,180 @@
 using System.IO.Pipes;
+using System.Runtime.InteropServices;
 using Briosa.Worker.Control;
 
-if (args.Contains("--hold", StringComparer.Ordinal))
+[assembly: DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+
+var executableName = Path.GetFileName(Environment.ProcessPath);
+if (args.Contains("--hold", StringComparer.Ordinal) ||
+    string.Equals(
+        executableName,
+        "Spatial Analyzer64.exe",
+        StringComparison.OrdinalIgnoreCase))
 {
-    Thread.Sleep(Timeout.Infinite);
+    FakeSpatialAnalyzerApplication.Run();
     return 0;
 }
 
 return SmokeWorkerProgram.Run(args);
+
+internal static class FakeSpatialAnalyzerApplication
+{
+    private const uint WindowStyle = 0x00CF0000;
+    private const int ShowNormal = 1;
+    private const uint DestroyMessage = 0x0002;
+    private const uint CloseMessage = 0x0010;
+    private static readonly WindowProcedure Procedure = ProcessMessage;
+
+    public static void Run()
+    {
+        var instance = GetModuleHandle(null);
+        var className = $"BriosaFakeSpatialAnalyzer{Environment.ProcessId}";
+        var windowClass = new WindowClass
+        {
+            Size = (uint)Marshal.SizeOf<WindowClass>(),
+            Instance = instance,
+            Procedure = Procedure,
+            ClassName = className
+        };
+        if (RegisterClassEx(ref windowClass) == 0)
+        {
+            throw new InvalidOperationException("Could not register the fake application window.");
+        }
+
+        var window = CreateWindowEx(
+            0,
+            className,
+            "SpatialAnalyzer Portable Conformance Host",
+            WindowStyle,
+            100,
+            100,
+            640,
+            480,
+            IntPtr.Zero,
+            IntPtr.Zero,
+            instance,
+            IntPtr.Zero);
+        if (window == IntPtr.Zero)
+        {
+            throw new InvalidOperationException("Could not create the fake application window.");
+        }
+
+        ShowWindow(window, ShowNormal);
+        while (GetMessage(out var message, IntPtr.Zero, 0, 0) > 0)
+        {
+            TranslateMessage(ref message);
+            DispatchMessage(ref message);
+        }
+    }
+
+    private static IntPtr ProcessMessage(
+        IntPtr window,
+        uint message,
+        IntPtr wordParameter,
+        IntPtr longParameter)
+    {
+        switch (message)
+        {
+            case CloseMessage:
+                DestroyWindow(window);
+                return IntPtr.Zero;
+            case DestroyMessage:
+                PostQuitMessage(0);
+                return IntPtr.Zero;
+            default:
+                return DefWindowProc(window, message, wordParameter, longParameter);
+        }
+    }
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    private struct WindowClass
+    {
+        public uint Size;
+        public uint Style;
+        public WindowProcedure? Procedure;
+        public int ClassExtra;
+        public int WindowExtra;
+        public IntPtr Instance;
+        public IntPtr Icon;
+        public IntPtr Cursor;
+        public IntPtr Background;
+        public string? MenuName;
+        public string? ClassName;
+        public IntPtr SmallIcon;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct Message
+    {
+        public IntPtr Window;
+        public uint Value;
+        public IntPtr WordParameter;
+        public IntPtr LongParameter;
+        public uint Time;
+        public int PointX;
+        public int PointY;
+        public uint Private;
+    }
+
+    private delegate IntPtr WindowProcedure(
+        IntPtr window,
+        uint message,
+        IntPtr wordParameter,
+        IntPtr longParameter);
+
+    [DllImport("kernel32.dll", EntryPoint = "GetModuleHandleW", CharSet = CharSet.Unicode)]
+    private static extern IntPtr GetModuleHandle(string? moduleName);
+
+    [DllImport("user32.dll", EntryPoint = "RegisterClassExW", CharSet = CharSet.Unicode)]
+    private static extern ushort RegisterClassEx(ref WindowClass windowClass);
+
+    [DllImport("user32.dll", EntryPoint = "CreateWindowExW", CharSet = CharSet.Unicode)]
+    private static extern IntPtr CreateWindowEx(
+        uint extendedStyle,
+        string className,
+        string windowName,
+        uint style,
+        int x,
+        int y,
+        int width,
+        int height,
+        IntPtr parent,
+        IntPtr menu,
+        IntPtr instance,
+        IntPtr parameter);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool ShowWindow(IntPtr window, int command);
+
+    [DllImport("user32.dll", EntryPoint = "GetMessageW")]
+    private static extern int GetMessage(
+        out Message message,
+        IntPtr window,
+        uint minimumMessage,
+        uint maximumMessage);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool TranslateMessage(ref Message message);
+
+    [DllImport("user32.dll", EntryPoint = "DispatchMessageW")]
+    private static extern IntPtr DispatchMessage(ref Message message);
+
+    [DllImport("user32.dll", EntryPoint = "DefWindowProcW")]
+    private static extern IntPtr DefWindowProc(
+        IntPtr window,
+        uint message,
+        IntPtr wordParameter,
+        IntPtr longParameter);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool DestroyWindow(IntPtr window);
+
+    [DllImport("user32.dll")]
+    private static extern void PostQuitMessage(int exitCode);
+}
 
 internal static class SmokeWorkerProgram
 {
