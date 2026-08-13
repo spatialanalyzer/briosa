@@ -178,7 +178,6 @@ $definition = Get-Content -LiteralPath $Contract -Raw | ConvertFrom-Json
         $applicationProcess = Start-Process `
             -FilePath $applicationPath `
             -WorkingDirectory $applicationRoot `
-            -WindowStyle Hidden `
             -PassThru
         $windowDeadline = [DateTimeOffset]::UtcNow.AddSeconds(5)
         do {
