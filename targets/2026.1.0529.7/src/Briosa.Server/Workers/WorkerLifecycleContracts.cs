@@ -1,4 +1,5 @@
 using Briosa.Worker.Control;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Briosa.Server.Workers;
 
@@ -27,7 +28,30 @@ internal sealed record WorkerLifecycleSnapshot(
     string DiagnosticCode,
     WorkerConnectionSnapshot? Connection,
     DateTimeOffset TransitionedAt,
-    ExactTargetIdentitySnapshot? RuntimeIdentity = null);
+    ExactTargetIdentitySnapshot? RuntimeIdentity = null,
+    long StateRevision = 0,
+    WorkerIncidentSnapshot? LastIncident = null);
+
+internal sealed record WorkerIncidentSnapshot(
+    int Generation,
+    WorkerTerminationKind Termination,
+    WorkerExecutionDisposition? ExecutionDisposition,
+    string? OperationId,
+    string DiagnosticCode);
+
+[SuppressMessage(
+    "Design",
+    "CA1032:Implement standard exception constructors",
+    Justification = "This internal exception must always retain both generation values.")]
+internal sealed class WorkerGenerationConflictException(
+    int expectedGeneration,
+    int actualGeneration) : InvalidOperationException(
+        $"Expected SDK generation '{expectedGeneration}', but the current generation is '{actualGeneration}'.")
+{
+    public int ExpectedGeneration { get; } = expectedGeneration;
+
+    public int ActualGeneration { get; } = actualGeneration;
+}
 
 internal sealed class WorkerRestartPolicy
 {

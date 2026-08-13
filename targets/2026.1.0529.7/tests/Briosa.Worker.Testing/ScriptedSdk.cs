@@ -180,6 +180,8 @@ internal sealed class ScriptedSdkPlan
     {
         private int _disposeState;
 
+        public SdkLivenessStatus GetLiveness() => SdkLivenessStatus.Alive;
+
         public SdkConnectionResult Connect(string host)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(host);

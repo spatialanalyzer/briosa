@@ -1,6 +1,6 @@
 # Health and discovery
 
-Briosa exposes the standard gRPC health service and a read-only core discovery service. Reading either service does not invoke another SpatialAnalyzer MP command; readiness reflects the startup verification already performed for the current worker generation.
+Briosa exposes the standard gRPC health service and a read-only core discovery service. Reading either service does not invoke another SpatialAnalyzer MP command. A freshly started server is live but not MP-ready; readiness reflects verification performed only after explicit SDK startup and connection for the current generation.
 
 ## Development-only reflection
 
@@ -23,7 +23,7 @@ The standard empty service name returns the aggregate health state. Deployment p
 
 Live SA 2026.1.0529.7 experiments showed that a second SDK client can report a successful `ConnectEx` while blocking indefinitely in `ExecuteStep`. Briosa therefore treats successful attachment as `Unverified` and does not admit ordinary MP work.
 
-After worker attachment and exact-match identity gating, the server sends a dedicated private verification request. The worker performs Get Working Directory through the normal SDK sequence on its owning STA, validates MP result code `2` and the expected output shape, then discards the path before replying. If either identity is unavailable or mismatched, Briosa does not issue the probe. The server watchdog bounds an issued exchange. A timeout, cancellation, worker exit, or lost response moves through `CompetingClientSuspected` to `OperatorRecoveryRequired`, terminates the worker, and does not start an automatic reconnect loop. Establish a clean SpatialAnalyzer/SDK state and restart Briosa before trying again.
+After an explicit connect request and exact-match identity gating, the server sends a dedicated private verification request. The worker performs Get Working Directory through the normal SDK sequence on its owning STA, validates MP result code `2` and the expected output shape, then discards the path before replying. If either identity is unavailable or mismatched, Briosa does not issue the probe. The server watchdog bounds an issued exchange. A timeout, cancellation, worker exit, SDK-engine exit, or lost response closes admission and records a faulted generation. After any required operator action, call `RecoverSpatialAnalyzerSdk` with that generation and `REPLACE_WITHOUT_REPLAY`, then explicitly connect the disconnected replacement. Recovery never replays the interrupted operation.
 
 ## Server information
 

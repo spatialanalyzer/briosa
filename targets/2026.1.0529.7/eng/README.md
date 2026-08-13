@@ -1,5 +1,8 @@
 # Engineering scripts
 
+Licensed local lifecycle validation is documented in
+[`../docs/licensed-local-lifecycle-validation.md`](../docs/licensed-local-lifecycle-validation.md).
+
 The scripts in this directory validate handwritten Briosa source, standard protobuf artifacts, Windows packaging, the supervised worker runtime, and the opt-in licensed read-only operation paths. None reconstructs or verifies a custom command catalog.
 
 ## Ordinary validation
@@ -30,7 +33,7 @@ dotnet test Briosa.slnx -c Release --no-build --no-restore
 - `Test-WindowsPackage.ps1` builds twice, checks byte reproducibility, manifests, checksums, diagnostics, loopback startup, and rejection of unsafe endpoint binding.
 - `New-ProtocolArtifact.ps1` packages the handwritten `.proto` sources and Buf descriptor set for normal ecosystem client generation.
 - `Test-ProtocolArtifact.ps1` verifies reproducibility, manifests, checksums, and descriptor equivalence.
-- `Test-ClientScenarios.ps1` runs a standard generated gRPC client against the packaged server and fake worker. It covers success, unavailability, policy rejection, MP failure, getter failure, deadlines, cancellation, watchdog recovery, and unsupported services.
+- `Test-ClientScenarios.ps1` starts the packaged server inert, uses the public lifecycle RPCs with a fake application and worker, and then runs standard generated gRPC scenarios. It covers success, unavailability, policy rejection, MP failure, getter failure, deadlines, cancellation, explicit watchdog recovery, and unsupported services.
 
 ## Interop provenance
 
@@ -49,6 +52,9 @@ Do not run it merely to satisfy an ordinary build. Confirm redistribution approv
 - `-ConfirmLicensedSpatialAnalyzerTest`.
 
 It starts or uses only the explicitly authorized exact-target environment, exercises the public gRPC API, emits structural status only, and never prints returned SpatialAnalyzer values.
+
+`Test-LocalLicensedLifecycle.ps1` is the serial opt-in lifecycle suite described
+in [`../docs/licensed-local-lifecycle-validation.md`](../docs/licensed-local-lifecycle-validation.md).
 
 `Test-LicensedRunnerState.ps1` and `Verify-LicensedRunnerWorkflow.ps1` protect the separately dispatched self-hosted runner workflow.
 

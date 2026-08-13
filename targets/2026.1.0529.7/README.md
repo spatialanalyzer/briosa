@@ -28,10 +28,11 @@ Generative-AI tools may draft a vertical slice from maintainer-provided MP and S
 ## Runtime architecture
 
 - The public ASP.NET Core host never owns COM state.
+- Starting the public host alone does not start the SDK or SpatialAnalyzer.
 - One supervised worker process owns one SDK connection.
 - One worker-owned STA serializes the full `SetStep` → setters → `ExecuteStep` → MP result → getters sequence.
 - A timeout or caller cancellation does not imply that an in-flight COM operation stopped.
-- Worker replacement restores availability but does not make ambiguous automatic replay safe.
+- SDK recovery is explicit, creates a disconnected replacement, and never automatically replays an ambiguous command.
 - Readiness requires exact-match SDK and connected-SA identity evidence plus a bounded execution-channel probe.
 - The initial target is single-tenant; queue serialization is not cross-client workflow isolation.
 - The endpoint binds to loopback by default.
@@ -68,13 +69,13 @@ Package and standard generated-client smoke validation:
   -PackagePath artifacts/package-smoke/briosa-0.1.0-local-sa-2026.1.0529.7-win-x64.zip
 ```
 
-The smoke scenarios use a separate fake worker and cover readiness, MP failure, output retrieval failure, policy rejection, caller deadline, cancellation, watchdog replacement, and unsupported services without starting SpatialAnalyzer.
+The smoke scenarios start the packaged server inert, drive public lifecycle RPCs with fake application and worker processes, and cover readiness, MP failure, output retrieval failure, policy rejection, caller deadline, cancellation, explicit watchdog recovery, and unsupported services without starting SpatialAnalyzer.
 
 ## Local licensed SpatialAnalyzer workflow
 
 The conventional source workflow is documented in [Local gRPC server development](docs/development/local-grpc-server.md). It requires a separately installed and licensed exact-target SpatialAnalyzer and independently established activated-SDK and connected-SA identity evidence.
 
-After configuring the documented user secrets and starting exactly one eligible SpatialAnalyzer instance:
+After configuring the documented identity evidence and starting exactly one eligible SpatialAnalyzer instance:
 
 ```powershell
 dotnet run --project src/Briosa.Server --launch-profile SpatialAnalyzer
@@ -83,6 +84,13 @@ dotnet run --project src/Briosa.Server --launch-profile SpatialAnalyzer
 In a second shell:
 
 ```powershell
+grpcurl -plaintext -d '{}' 127.0.0.1:50051 `
+  briosa.SpatialAnalyzerSdkLifecycle/StartSpatialAnalyzerSdk
+
+# Supply the sdkGeneration returned above.
+grpcurl -plaintext -d '{"expectedSdkGeneration":1}' 127.0.0.1:50051 `
+  briosa.SpatialAnalyzerSdkLifecycle/ConnectToSpatialAnalyzer
+
 grpcurl -plaintext -d '{}' 127.0.0.1:50051 `
   briosa.FileOperations/GetWorkingDirectory
 
@@ -103,6 +111,10 @@ grpcurl -plaintext -d '{}' 127.0.0.1:50051 `
 ```
 
 Do not attach competing SDK clients. The protected licensed workflow and local runner intentionally report only structural success and never print returned SpatialAnalyzer values.
+
+The opt-in server-owned, external-application, and unexpected-SDK-loss lifecycle
+scenarios are documented in
+[Licensed local lifecycle validation](docs/licensed-local-lifecycle-validation.md).
 
 ## Adding an MP operation
 

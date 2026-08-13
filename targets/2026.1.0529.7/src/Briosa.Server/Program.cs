@@ -22,6 +22,11 @@ builder.Services.AddBriosaDevelopmentGrpcReflection(builder.Environment);
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddWorkerProcessLifecycle(builder.Configuration);
 builder.Services.AddBriosaHealthAndDiscovery();
+builder.Services.AddSingleton<SpatialAnalyzerSdkLifecycleStateProjection>();
+builder.Services.AddSingleton<ISpatialAnalyzerSdkLifecycleStateProvider>(provider =>
+    provider.GetRequiredService<SpatialAnalyzerSdkLifecycleStateProjection>());
+builder.Services.AddSpatialAnalyzerLifecycle(builder.Configuration);
+builder.Services.AddSingleton<SpatialAnalyzerSdkLifecycleCoordinator>();
 builder.Services.AddSingleton<OperationExecutor>();
 
 var app = builder.Build();
@@ -31,6 +36,8 @@ app.MapGet("/", () => Results.Text(
 
 app.MapGrpcHealthChecksService();
 app.MapGrpcService<ServerDiscoveryService>();
+app.MapGrpcService<SpatialAnalyzerSdkLifecycleService>();
+app.MapGrpcService<SpatialAnalyzerLifecycleService>();
 app.MapSpatialAnalyzerServices();
 app.MapBriosaDevelopmentGrpcReflection();
 

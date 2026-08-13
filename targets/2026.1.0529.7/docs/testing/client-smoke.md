@@ -11,7 +11,12 @@ Run:
   -PackagePath artifacts/package-smoke/briosa-0.1.0-ci-sa-2026.1.0529.7-win-x64.zip
 ```
 
-The script starts the packaged server with a separate fake worker. The successful scenario performs the reviewed read-only workflow across the file, analysis, construction, and utility services, including collection enumeration and active collection, units, and working-frame reads. The failure scenarios reuse the established file-operation path. Its handwritten scenario table covers:
+The script first proves that the packaged server starts with no worker or SDK.
+It then starts a fake external application, uses the public lifecycle RPCs to
+start and connect a separate fake worker, and performs the reviewed read-only
+workflow across the file, analysis, construction, and utility services. The
+failure scenarios reuse the established file-operation path. Its handwritten
+scenario table covers:
 
 - successful execution and output retrieval;
 - disconnected SpatialAnalyzer;
@@ -20,7 +25,8 @@ The script starts the packaged server with a separate fake worker. The successfu
 - output getter failure;
 - caller deadline;
 - caller cancellation;
-- worker watchdog termination and replacement; and
+- worker watchdog termination, faulted lifecycle state, and explicit
+  replacement without replay; and
 - an unsupported exact-target service package.
 
 Every scenario validates structural status, typed error shape where applicable, readiness, recovery, and capability advertisement. It never prints command arguments or returned SpatialAnalyzer values.

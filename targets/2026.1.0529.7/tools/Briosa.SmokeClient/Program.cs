@@ -41,6 +41,8 @@ internal static class SmokeClientProgram
             using var timeout = new CancellationTokenSource(options.Timeout);
             using var channel = GrpcChannel.ForAddress(options.Address);
             var discoveryClient = new DiscoveryService.DiscoveryServiceClient(channel);
+            var sdkLifecycleClient = new TargetProtocol.SpatialAnalyzerSdkLifecycle
+                .SpatialAnalyzerSdkLifecycleClient(channel);
             var fileClient = new TargetProtocol.FileOperations.FileOperationsClient(channel);
             var analysisClient =
                 new TargetProtocol.AnalysisOperations.AnalysisOperationsClient(channel);
@@ -68,6 +70,7 @@ internal static class SmokeClientProgram
             var outcome = await ExecuteScenario(
                     options,
                     channel,
+                    sdkLifecycleClient,
                     fileClient,
                     analysisClient,
                     constructionClient,
@@ -132,6 +135,8 @@ internal static class SmokeClientProgram
     private static async Task<ScenarioOutcome> ExecuteScenario(
         SmokeOptions options,
         GrpcChannel channel,
+        TargetProtocol.SpatialAnalyzerSdkLifecycle
+            .SpatialAnalyzerSdkLifecycleClient sdkLifecycleClient,
         TargetProtocol.FileOperations.FileOperationsClient fileClient,
         TargetProtocol.AnalysisOperations.AnalysisOperationsClient analysisClient,
         TargetProtocol.ConstructionOperations.ConstructionOperationsClient
@@ -183,6 +188,7 @@ internal static class SmokeClientProgram
                 options.Timeout,
                 cancellationToken).ConfigureAwait(false),
             SmokeScenario.WatchdogRecovery => await ExecuteWatchdogRecovery(
+                sdkLifecycleClient,
                 fileClient,
                 serverInfo,
                 options.Timeout,
@@ -376,6 +382,8 @@ internal static class SmokeClientProgram
     }
 
     private static async Task<ScenarioOutcome> ExecuteWatchdogRecovery(
+        TargetProtocol.SpatialAnalyzerSdkLifecycle
+            .SpatialAnalyzerSdkLifecycleClient sdkLifecycleClient,
         TargetProtocol.FileOperations.FileOperationsClient client,
         GetServerInfoResponse serverInfo,
         TimeSpan timeout,
@@ -395,6 +403,39 @@ internal static class SmokeClientProgram
             error.ReplaySafety != ReplaySafety.Safe)
         {
             throw new SmokeFailureException("unexpected-watchdog-failure-shape");
+        }
+
+        var state = await sdkLifecycleClient.GetSpatialAnalyzerSdkStateAsync(
+                new TargetProtocol.GetSpatialAnalyzerSdkStateRequest(),
+                deadline: DateTime.UtcNow.Add(timeout),
+                cancellationToken: cancellationToken)
+            .ResponseAsync.ConfigureAwait(false);
+        if (state.State.SdkState != TargetProtocol.SpatialAnalyzerSdkState.Faulted ||
+            !state.State.HasSdkGeneration)
+        {
+            throw new SmokeFailureException("watchdog-sdk-state-not-faulted");
+        }
+
+        var recovered = await sdkLifecycleClient.RecoverSpatialAnalyzerSdkAsync(
+                new TargetProtocol.RecoverSpatialAnalyzerSdkRequest
+                {
+                    ExpectedSdkGeneration = state.State.SdkGeneration,
+                    Mode = TargetProtocol.SpatialAnalyzerSdkRecoveryMode.ReplaceWithoutReplay
+                },
+                deadline: DateTime.UtcNow.Add(timeout),
+                cancellationToken: cancellationToken)
+            .ResponseAsync.ConfigureAwait(false);
+        var connected = await sdkLifecycleClient.ConnectToSpatialAnalyzerAsync(
+                new TargetProtocol.ConnectToSpatialAnalyzerRequest
+                {
+                    ExpectedSdkGeneration = recovered.State.SdkGeneration
+                },
+                deadline: DateTime.UtcNow.Add(timeout),
+                cancellationToken: cancellationToken)
+            .ResponseAsync.ConfigureAwait(false);
+        if (!connected.State.ReadyForMp)
+        {
+            throw new SmokeFailureException("watchdog-sdk-recovery-not-ready");
         }
 
         await RequireSuccessfulOperation(client, timeout, cancellationToken)

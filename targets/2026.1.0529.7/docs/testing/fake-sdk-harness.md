@@ -28,7 +28,7 @@ The outcome-mapper matrix validates present default-like values, failed retrieva
 - disconnected or faulted SDK state;
 - retry and reconnect;
 - delayed execution;
-- hung execution and watchdog replacement;
+- hung execution, admission closure, and explicit watchdog recovery;
 - worker crash;
 - malformed responses;
 - MP failure; and
@@ -36,10 +36,14 @@ The outcome-mapper matrix validates present default-like values, failed retrieva
 
 These tests prove host survival, bounded shutdown, generation changes, queue serialization, cancellation before and after admission, uncertain completion, readiness, identity gating, and cleanup.
 
-Cancellation can stop a caller from entering the queue or waiting for a response. It does not claim to cancel a synchronous SDK call already in progress. Worker replacement restores availability but does not prove whether the command completed or make replay safe.
+Cancellation can stop a caller from entering the queue or waiting for a response. It does not claim to cancel a synchronous SDK call already in progress. A watchdog or worker loss faults the generation and leaves later calls unadmitted until explicit recovery. Replacement restores availability but does not prove whether the command completed or make replay safe.
 
 ## Packaged client boundary
 
-The [standard generated-client smoke workflow](client-smoke.md) starts the packaged server with a separate fake worker and crosses the actual loopback HTTP/2 endpoint. The licensed workflow uses the same public client for the authorized real-SA success paths.
+The [standard generated-client smoke workflow](client-smoke.md) starts the
+packaged server inert, drives the public lifecycle RPCs with fake application
+and worker processes, and crosses the actual loopback HTTP/2 endpoint. The
+licensed workflow uses the same public lifecycle and operation contracts for
+authorized real-SA paths.
 
 Mutating failure injection, competing-client experiments, hangs, and crashes remain fake-only unless a separate licensed test is explicitly authorized.

@@ -10,15 +10,32 @@ namespace Briosa.Worker.Sdk;
 /// </summary>
 internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
 {
+    private readonly ISpatialAnalyzerSdkProcessMonitor _processMonitor;
     private ISpatialAnalyzerSdkCalls? _sdk;
 
     internal SpatialAnalyzerSdkAdapter(ISpatialAnalyzerSdkCalls sdk)
+        : this(sdk, AlwaysAliveSpatialAnalyzerSdkProcessMonitor.Instance)
     {
-        _sdk = sdk;
     }
 
-    public static ISpatialAnalyzerSdk Create() =>
-        new SpatialAnalyzerSdkAdapter(new ComSdkCalls(new ComSdkClass()));
+    private SpatialAnalyzerSdkAdapter(
+        ISpatialAnalyzerSdkCalls sdk,
+        ISpatialAnalyzerSdkProcessMonitor processMonitor)
+    {
+        _sdk = sdk;
+        _processMonitor = processMonitor;
+    }
+
+    public static ISpatialAnalyzerSdk Create()
+    {
+        var activation = SpatialAnalyzerSdkProcessMonitor.Activate(
+            static () => new ComSdkCalls(new ComSdkClass()));
+        return new SpatialAnalyzerSdkAdapter(
+            activation.Sdk,
+            activation.ProcessMonitor);
+    }
+
+    public SdkLivenessStatus GetLiveness() => _processMonitor.GetLiveness();
 
     public SdkConnectionResult Connect(string host)
     {
@@ -103,7 +120,14 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
     {
         var sdk = _sdk;
         _sdk = null;
-        sdk?.Dispose();
+        try
+        {
+            sdk?.Dispose();
+        }
+        finally
+        {
+            _processMonitor.Dispose();
+        }
     }
 
     private static bool SetInputArgument(ISpatialAnalyzerSdkCalls sdk, SdkInputArgument argument) =>

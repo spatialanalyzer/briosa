@@ -10,6 +10,8 @@ namespace Briosa.Worker.Sdk;
 /// </remarks>
 internal interface ISpatialAnalyzerSdk : IDisposable
 {
+    SdkLivenessStatus GetLiveness();
+
     SdkConnectionResult Connect(string host);
 
     SdkExecutionResult Execute(SdkCommand command);

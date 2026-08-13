@@ -132,6 +132,13 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
                 "A worker ready message requires a process identifier and connection snapshot.");
         }
 
+        if (message.Kind == WorkerControlMessageKind.Pong &&
+            message.Connection is null)
+        {
+            throw new InvalidDataException(
+                "A worker heartbeat response requires a connection snapshot.");
+        }
+
         if (message.Connection is not null)
         {
             ValidateConnection(message.Connection);
@@ -145,6 +152,13 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
         if (message.Kind == WorkerControlMessageKind.ExecutionResult)
         {
             ValidateExecutionResponse(message.ExecutionResponse);
+        }
+
+        if (message.Kind == WorkerControlMessageKind.ConnectionResult &&
+            message.Connection is null)
+        {
+            throw new InvalidDataException(
+                "A connection result requires a connection snapshot.");
         }
 
         if (message.Kind == WorkerControlMessageKind.ExecutionVerificationResult &&

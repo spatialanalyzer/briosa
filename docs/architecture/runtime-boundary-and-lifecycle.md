@@ -1,7 +1,7 @@
 # Runtime boundary and lifecycle
 
 - Status: Current
-- Last reviewed: 2026-08-01
+- Last reviewed: 2026-08-12
 
 ## Process and COM ownership
 
@@ -9,7 +9,12 @@ SpatialAnalyzer exposes its SDK through the out-of-process
 `SpatialAnalyzerSDK.exe` OLE Automation/DCOM server. Briosa targets .NET 10 on
 Windows x64, but the public gRPC host never activates or owns the SDK COM object.
 
-`Briosa.Server` supervises one `Briosa.Worker` generation at a time. The worker
+Starting `Briosa.Server` brings up only the loopback gRPC control plane. It does
+not start a worker, activate the SDK, launch SpatialAnalyzer, or call
+`ConnectEx`. The public `SpatialAnalyzerSdkLifecycle` and
+`SpatialAnalyzerLifecycle` services perform those transitions explicitly.
+
+`Briosa.Server` supervises at most one `Briosa.Worker` generation at a time. The worker
 owns exactly one SDK client, creates it on one dedicated STA thread, executes every
 SDK call on that STA, and releases it there during graceful shutdown. The server
 communicates with the worker through a private randomly named Windows named pipe
@@ -17,9 +22,11 @@ using versioned, length-prefixed, correlated control messages. COM types never
 cross that pipe or enter public protobuf contracts.
 
 The process boundary is the recovery boundary. If a synchronous SDK call hangs,
-the server cannot safely cancel the COM call or reuse the worker. It terminates the
-worker process tree and may start a replacement within the configured bounded
-restart policy. Forced termination makes no claim that COM cleanup ran.
+the server cannot safely cancel the COM call or reuse the worker. It terminates
+that worker process tree, closes MP admission, records the incident and any
+known execution disposition, and waits for an explicit generation-guarded
+recovery request. Recovery creates a disconnected replacement and never replays
+the interrupted command. Forced termination makes no claim that COM cleanup ran.
 
 The worker exits if its parent server disappears. Normal server shutdown closes
 admission, drains bounded in-flight control exchanges, requests a graceful worker
@@ -30,14 +37,24 @@ SpatialAnalyzer process it did not start.
 ## SDK attachment and ownership
 
 SpatialAnalyzer must already be running before the worker calls
-`ConnectEx(host, statusCode)`. The target defaults to `localhost`; a remote host is
-an SDK connection coordinate and does not widen the public gRPC listener.
+`ConnectEx(host, statusCode)`. The current public lifecycle contract always uses
+`localhost`; caller-selected hosts and remote administration are deferred. The
+public gRPC listener remains loopback-only.
 
-One worker owns at most one active SDK adapter. Concurrent connection callers
-share that owner and cannot create competing adapters. Until exact `ConnectEx`
+`StartSpatialAnalyzerSdk` creates one disconnected worker/SDK generation and is
+valid before or after SpatialAnalyzer starts. Only `ConnectToSpatialAnalyzer`
+and `ReconnectToSpatialAnalyzer` call `ConnectEx`. One worker owns at most one
+active SDK adapter. Concurrent lifecycle transitions are serialized and cannot
+create competing adapters. Until exact `ConnectEx`
 status codes receive reviewed transient classifications, a completed connection
-failure is not retried speculatively. A later explicit recovery may start a new
-worker connection cycle.
+failure is not retried speculatively. Reconnect reuses a healthy SDK generation;
+recovery replaces a faulted generation without connecting it.
+
+The worker identifies the exact `SpatialAnalyzerSDK.exe` process created during
+COM activation and includes its liveness in the normal heartbeat. An unexpected
+SDK engine exit faults the current generation, closes admission, and remains
+observable through lifecycle state until explicit recovery. The server does not
+adopt or terminate SDK processes it cannot associate uniquely with its worker.
 
 A successful `ConnectEx` proves attachment only. Live testing showed that several
 SDK clients may report successful connections while only the first eligible client
@@ -91,6 +108,23 @@ Public readiness requires all of the following:
 - open command admission under runtime policy.
 
 Public liveness remains independent of worker and SpatialAnalyzer state.
+
+## SpatialAnalyzer application ownership
+
+The application lifecycle is independent from the server and SDK lifecycles.
+`LaunchSpatialAnalyzer` resolves the exact-target executable through trusted
+server configuration and accepts only the reviewed job, quick-start instrument,
+and minimized launch inputs. The server retains the launched process ID and
+creation time as an opaque application generation; public state never exposes
+the operating-system identity.
+
+An exact-target application observed by executable path but not launched by the
+current server is `External`. Multiple eligible applications are `Ambiguous`.
+Neither state grants close authority. `CloseOwnedSpatialAnalyzer` requires an
+exact current generation, server-launched ownership, and a stopped SDK. It asks
+the retained process to close normally and does not escalate to machine-wide or
+uncertain process termination. Server shutdown stops its SDK generation but
+does not close SpatialAnalyzer.
 
 ## Observability boundary
 

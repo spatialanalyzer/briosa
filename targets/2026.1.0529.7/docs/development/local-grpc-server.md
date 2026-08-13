@@ -1,8 +1,9 @@
 # Run the local gRPC server with SpatialAnalyzer
 
 This guide exercises Briosa's real public gRPC host and separately supervised
-worker from source against an already-running, licensed SpatialAnalyzer
-instance. It is a developer success-path check, not a portable test, a failure
+worker from source against a licensed SpatialAnalyzer instance. This guide uses
+an application the developer started before Briosa; the lifecycle API can also
+launch a server-owned instance. It is a developer success-path check, not a portable test, a failure
 injection environment, or protected release evidence.
 
 The workflow uses the Debug-only `SpatialAnalyzer` launch profile and
@@ -15,7 +16,8 @@ Before Briosa connects, confirm all of the following:
 
 - Use a Windows x64 workstation with the .NET SDK selected by the repository `global.json`.
 - Install and license SpatialAnalyzer 2026.1.0529.7 and its matching SDK
-  separately. Briosa does not install, start, license, or redistribute them.
+  separately. Briosa does not install, license, or redistribute them. The
+  lifecycle API can start the configured exact-target application and SDK.
 - Independently establish the activated SDK engine/type-library version and the
   connected SpatialAnalyzer application version. Both must be exactly
   `2026.1.0529.7` for this target.
@@ -69,17 +71,17 @@ connected software changes.
 ## Start the daily workflow
 
 After the prerequisite clean start of exactly one SpatialAnalyzer instance,
-start Briosa with one command:
+start the Briosa control plane with one command:
 
 ```powershell
 dotnet run --project src/Briosa.Server --launch-profile SpatialAnalyzer
 ```
 
 The profile sets `ASPNETCORE_ENVIRONMENT=Development`. A Debug build places the
-complete real `Briosa.Worker` cohort beside the server automatically, while the
-worker remains a separate supervised process that owns the SDK connection and
-STA. The profile does not start SpatialAnalyzer, supply identity evidence,
-change the endpoint, or widen the operation allowlist.
+complete real `Briosa.Worker` cohort beside the server, but it does not start
+that worker, activate the SDK, launch SpatialAnalyzer, or call `ConnectEx`.
+The profile does not supply identity evidence, change the endpoint, or widen
+the operation allowlist.
 
 Leave this terminal open. In another PowerShell terminal, use the commands in
 the following sections.
@@ -112,6 +114,23 @@ Inspect the value-free runtime summary and effective capabilities:
 grpcurl -plaintext -d '{}' 127.0.0.1:50051 briosa.DiscoveryService/GetServerInfo
 grpcurl -plaintext -d '{}' 127.0.0.1:50051 briosa.DiscoveryService/ListCapabilities
 ```
+
+The initial summary reports a stopped SDK generation and `readyForMp: false`.
+Start the SDK explicitly, retain its generation, and connect it to the
+already-running local application:
+
+```powershell
+grpcurl -plaintext -d '{}' 127.0.0.1:50051 `
+  briosa.SpatialAnalyzerSdkLifecycle/StartSpatialAnalyzerSdk
+
+# Replace 1 with the sdkGeneration returned above.
+grpcurl -plaintext -d '{"expectedSdkGeneration":1}' 127.0.0.1:50051 `
+  briosa.SpatialAnalyzerSdkLifecycle/ConnectToSpatialAnalyzer
+```
+
+Starting the SDK creates a disconnected generation. Only the second call uses
+`ConnectEx("localhost", ...)`, performs exact-target checks, and runs the MP
+readiness proof.
 
 A ready source run reports:
 
@@ -206,10 +225,11 @@ complete logs in a public report.
 
 | Observed safe state | Meaning | Operator action |
 | --- | --- | --- |
-| Liveness is `SERVING`; readiness is not `SERVING`; connection is `DISCONNECTED`, `CONNECTING`, or `FAULTED`; `readyForMp` is `false` | SpatialAnalyzer is absent, still starting, unreachable, or the worker could not attach during its bounded startup attempt. | Stop Briosa. Start one installed, licensed, exact-target SpatialAnalyzer instance, wait for it to finish starting, and restart Briosa. If ownership is uncertain, use the clean recovery sequence below. Do not invent identity evidence. |
+| Liveness is `SERVING`; readiness is not `SERVING`; SDK is `STOPPED` or connection is `DISCONNECTED` | The control plane is available but the explicit SDK startup/connect sequence has not completed. | Start one exact-target SpatialAnalyzer instance if needed, call `StartSpatialAnalyzerSdk`, then connect the returned generation. |
+| SDK is `FAULTED`; recovery is available; `readyForMp` is `false` | The SDK engine, worker, control channel, or bounded execution exchange was lost. | Reconcile any ambiguous operation outcome, call `RecoverSpatialAnalyzerSdk` with the faulted generation and `REPLACE_WITHOUT_REPLAY`, then explicitly connect the replacement. |
 | Either identity source or match state is `UNAVAILABLE`; execution readiness stays `UNVERIFIED`; `readyForMp` is `false` | Briosa lacks one independently established identity claim and does not issue the execution-channel probe. | Establish the missing claim and configure its complete user-secret pair, then restart Briosa. |
 | Either identity match state is `MISMATCH`; readiness is not `SERVING`; `readyForMp` is `false` | The activated SDK or connected application does not exactly match the configured target. | Correct the installation, COM registration, connection target, or independently established attestation. Never alter a claim or target to conceal the mismatch. |
-| Execution readiness is `COMPETING_CLIENT_SUSPECTED` or `OPERATOR_RECOVERY_REQUIRED`; readiness is not `SERVING` | An execution-channel probe timed out, failed ambiguously, or indicated unsafe SDK ownership. Automatic worker replacement cannot make replay or port ownership safe. | Stop Briosa. Close every SDK client and every SpatialAnalyzer instance, start exactly one clean matching instance, wait for it to acquire the ports, and restart Briosa. Reboot if ownership remains uncertain. |
+| Execution readiness is `COMPETING_CLIENT_SUSPECTED` or `OPERATOR_RECOVERY_REQUIRED`; readiness is not `SERVING` | An execution-channel probe timed out, failed ambiguously, or indicated unsafe SDK ownership. Replacement cannot make replay or port ownership safe. | Perform the required operator cleanup first. Then use the explicit recover-and-connect sequence; restart the control plane only if its own lifecycle is unhealthy. Reboot if ownership remains uncertain. |
 | Reflection or grpcui reports the reflection service as unimplemented | The host is not both a Debug build and in the `Development` environment. | Start the source host with the documented `SpatialAnalyzer` profile. Do not try to enable reflection in a Release package. |
 | An operation is reflected but returns `PERMISSION_DENIED` or is absent from `ListCapabilities` | Reflection described a compiled schema that runtime policy does not admit. | Leave it denied unless its exact operation has received a deliberate real-SA review. Do not broaden policy automatically. |
 
@@ -220,9 +240,10 @@ this manual real-SA workflow; use the portable fake harness instead.
 
 ## Shut down cleanly
 
-Press Ctrl+C once in the Briosa server terminal. Wait for server shutdown and
-bounded cleanup of the supervised `Briosa.Worker` process. Briosa does not stop
-SpatialAnalyzer. If a worker or SDK process appears to remain, do not start a
+Before ending a normal session, call `StopSpatialAnalyzerSdk` with the current
+SDK generation. Press Ctrl+C once in the Briosa server terminal and wait for
+bounded cleanup. Server shutdown also stops its owned SDK generation, but it
+does not stop SpatialAnalyzer. If a worker or SDK process appears to remain, do not start a
 second run; follow the clean recovery sequence before reconnecting.
 
 ## Understand what this run proves
