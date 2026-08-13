@@ -30,6 +30,7 @@ internal static class SmokeWorkerProgram
     {
         try
         {
+            StartExitSignalWatcher(options.ExitSignalPath);
             using var pipe = new NamedPipeClientStream(
                 ".",
                 options.PipeName,
@@ -92,6 +93,29 @@ internal static class SmokeWorkerProgram
         {
             return 3;
         }
+    }
+
+    private static void StartExitSignalWatcher(string? exitSignalPath)
+    {
+        if (string.IsNullOrWhiteSpace(exitSignalPath))
+        {
+            return;
+        }
+
+        var watcher = new Thread(() =>
+        {
+            while (!File.Exists(exitSignalPath))
+            {
+                Thread.Sleep(25);
+            }
+
+            Environment.Exit(37);
+        })
+        {
+            IsBackground = true,
+            Name = "Briosa smoke worker exit-signal watcher"
+        };
+        watcher.Start();
     }
 
     private static void Execute(
@@ -263,7 +287,8 @@ internal static class SmokeWorkerProgram
     private sealed record SmokeWorkerOptions(
         string PipeName,
         SmokeWorkerScenario Scenario,
-        string? StatePath)
+        string? StatePath,
+        string? ExitSignalPath)
     {
         public static SmokeWorkerOptions Parse(string[] arguments)
         {
@@ -294,7 +319,9 @@ internal static class SmokeWorkerProgram
                 pipeName,
                 scenario,
                 Environment.GetEnvironmentVariable(
-                    "BRIOSA_TEST_WORKER_STATE_PATH"));
+                    "BRIOSA_TEST_WORKER_STATE_PATH"),
+                Environment.GetEnvironmentVariable(
+                    "BRIOSA_TEST_WORKER_EXIT_SIGNAL_PATH"));
         }
 
         private static bool TryGetArgument(

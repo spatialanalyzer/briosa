@@ -25,6 +25,7 @@ dotnet test Briosa.slnx -c Release --no-build --no-restore
 ```powershell
 ./eng/Test-WindowsPackage.ps1 -Version 0.1.0-local
 ./eng/Test-ProtocolArtifact.ps1 -Version 0.1.0-local
+./eng/Test-ClientConformancePackage.ps1 -Version 0.1.0-local
 ./eng/Test-ClientScenarios.ps1 `
   -PackagePath artifacts/package-smoke/briosa-0.1.0-local-sa-2026.1.0529.7-win-x64.zip
 ```
@@ -33,6 +34,8 @@ dotnet test Briosa.slnx -c Release --no-build --no-restore
 - `Test-WindowsPackage.ps1` builds twice, checks byte reproducibility, manifests, checksums, diagnostics, loopback startup, and rejection of unsafe endpoint binding.
 - `New-ProtocolArtifact.ps1` packages the handwritten `.proto` sources and Buf descriptor set for normal ecosystem client generation.
 - `Test-ProtocolArtifact.ps1` verifies reproducibility, manifests, checksums, and descriptor equivalence.
+- `New-ClientConformancePackage.ps1` composes the real self-contained server, a deterministic fake worker, the handwritten scenario contract, and the language-neutral runner into a target-qualified first-party client test artifact.
+- `Test-ClientConformancePackage.ps1` builds that artifact twice, verifies its manifest, schema, checksums, and byte reproducibility, and exercises the runner with a minimal fixture. The artifact requires no SpatialAnalyzer installation, SDK binary, or license.
 - `Test-ClientScenarios.ps1` starts the packaged server inert, uses the public lifecycle RPCs with a fake application and worker, and then runs standard generated gRPC scenarios. It covers success, unavailability, policy rejection, MP failure, getter failure, deadlines, cancellation, explicit watchdog recovery, and unsupported services.
 
 ## Interop provenance

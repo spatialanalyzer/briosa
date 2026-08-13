@@ -33,6 +33,25 @@ Every scenario validates structural status, typed error shape where applicable, 
 
 These scenarios require Windows x64 and .NET but do not start SpatialAnalyzer or require a license.
 
+## First-party client conformance artifact
+
+`eng/New-ClientConformancePackage.ps1` packages this real server together with a
+deterministic fake worker, a versioned handwritten scenario contract, and a
+language-neutral runner. The .NET, Python, and JavaScript/TypeScript repositories
+each provide a thin fixture that uses only that client's public API. All three
+fixtures therefore exercise the same server behavior without duplicating fake MP
+semantics.
+
+Run the artifact's own reproducibility and runner validation with:
+
+```powershell
+./eng/Test-ClientConformancePackage.ps1 -Version 0.2.0-local
+```
+
+The artifact is a process-level test composition, not a SpatialAnalyzer emulator
+or a public protocol artifact. Its fake-worker exit signal and runner environment
+are test-only and do not enter the production server or protobuf surface.
+
 ## Real-SA validation
 
 `eng/Test-LicensedSpatialAnalyzer.ps1` runs the same standard generated client against a separately installed and licensed SpatialAnalyzer `2026.1.0529.7`. The caller must explicitly confirm the run and provide independently established activated-SDK and connected-SA identity evidence.
@@ -51,4 +70,4 @@ Returned SpatialAnalyzer data is developer-visible output but is never copied in
 
 ## Adding another operation
 
-An operation change adds focused portable client coverage when transport behavior or public request/response shape warrants it. Coherent batches may extend one workflow scenario rather than adding a scenario per command. Do not create a generated conformance manifest or extend a Briosa-specific operation generator. Test the behaviors that materially differ from existing coverage.
+An operation change adds focused portable client coverage when transport behavior or public request/response shape warrants it. Coherent batches may extend one workflow scenario rather than adding a scenario per command. Do not create a generated operation-conformance manifest or extend a Briosa-specific operation generator. Test the behaviors that materially differ from existing coverage.
