@@ -180,9 +180,18 @@ $definition = Get-Content -LiteralPath $Contract -Raw | ConvertFrom-Json
             -WorkingDirectory $applicationRoot `
             -WindowStyle Hidden `
             -PassThru
-        Start-Sleep -Milliseconds 500
-        Assert-Condition (-not $applicationProcess.HasExited) `
-            "The packaged fake application did not survive a normal zero-argument launch."
+        $windowDeadline = [DateTimeOffset]::UtcNow.AddSeconds(5)
+        do {
+            Start-Sleep -Milliseconds 100
+            Assert-Condition (-not $applicationProcess.HasExited) `
+                "The packaged fake application did not survive a normal zero-argument launch."
+            $applicationProcess.Refresh()
+        } while (($applicationProcess.MainWindowHandle -eq [IntPtr]::Zero -or
+            [string]::IsNullOrWhiteSpace($applicationProcess.MainWindowTitle)) -and
+            [DateTimeOffset]::UtcNow -lt $windowDeadline)
+        Assert-Condition ($applicationProcess.MainWindowHandle -ne [IntPtr]::Zero -and
+            -not [string]::IsNullOrWhiteSpace($applicationProcess.MainWindowTitle)) `
+            "The packaged fake application did not expose the real host's required ready window."
     }
     finally {
         if ($null -ne $applicationProcess -and -not $applicationProcess.HasExited) {
