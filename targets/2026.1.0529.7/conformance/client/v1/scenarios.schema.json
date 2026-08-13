@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spatialanalyzer.github.io/briosa/schemas/client-conformance-scenarios-v1.json",
+  "title": "Briosa first-party client conformance scenarios",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "contract_id", "spatial_analyzer_target", "scenarios"],
+  "properties": {
+    "$schema": { "const": "scenarios.schema.json" },
+    "schema_version": { "const": 1 },
+    "contract_id": { "const": "briosa.first-party-client.v1" },
+    "spatial_analyzer_target": { "const": "2026.1.0529.7" },
+    "scenarios": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "startup_mode",
+          "worker_scenario",
+          "start_external_application",
+          "activated_sdk_version",
+          "connected_sa_version",
+          "deny_get_working_directory",
+          "watchdog_timeout",
+          "exercise"
+        ],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9-]{1,64}$" },
+          "startup_mode": {
+            "enum": ["default", "control-plane-only", "attach-existing"]
+          },
+          "worker_scenario": {
+            "enum": [
+              "ready",
+              "disconnected",
+              "mp-failure",
+              "output-failure",
+              "delay-first-execute",
+              "hang-first-execute"
+            ]
+          },
+          "start_external_application": { "type": "boolean" },
+          "activated_sdk_version": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "connected_sa_version": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "deny_get_working_directory": { "type": "boolean" },
+          "watchdog_timeout": {
+            "type": ["string", "null"],
+            "pattern": "^\\d{2}:\\d{2}:\\d{2}\\.\\d{3}$"
+          },
+          "exercise": {
+            "enum": [
+              "lifecycle",
+              "compatibility",
+              "capability",
+              "operation-success",
+              "typed-failure",
+              "caller-interruption",
+              "worker-loss",
+              "cleanup"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

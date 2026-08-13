@@ -1,0 +1,140 @@
+{
+  "$schema": "scenarios.schema.json",
+  "schema_version": 1,
+  "contract_id": "briosa.first-party-client.v1",
+  "spatial_analyzer_target": "2026.1.0529.7",
+  "scenarios": [
+    {
+      "id": "control-plane-only",
+      "startup_mode": "control-plane-only",
+      "worker_scenario": "ready",
+      "start_external_application": false,
+      "activated_sdk_version": "2026.1.0529.7",
+      "connected_sa_version": "2026.1.0529.7",
+      "deny_get_working_directory": false,
+      "watchdog_timeout": null,
+      "exercise": "lifecycle"
+    },
+    {
+      "id": "default-ready",
+      "startup_mode": "default",
+      "worker_scenario": "ready",
+      "start_external_application": false,
+      "activated_sdk_version": "2026.1.0529.7",
+      "connected_sa_version": "2026.1.0529.7",
+      "deny_get_working_directory": false,
+      "watchdog_timeout": null,
+      "exercise": "operation-success"
+    },
+    {
+      "id": "attach-existing",
+      "startup_mode": "attach-existing",
+      "worker_scenario": "ready",
+      "start_external_application": true,
+      "activated_sdk_version": "2026.1.0529.7",
+      "connected_sa_version": "2026.1.0529.7",
+      "deny_get_working_directory": false,
+      "watchdog_timeout": null,
+      "exercise": "lifecycle"
+    },
+    {
+      "id": "identity-mismatch",
+      "startup_mode": "default",
+      "worker_scenario": "ready",
+      "start_external_application": false,
+      "activated_sdk_version": "2026.1.0529.7",
+      "connected_sa_version": "1900.1.0000.0",
+      "deny_get_working_directory": false,
+      "watchdog_timeout": null,
+      "exercise": "compatibility"
+    },
+    {
+      "id": "capability-denied",
+      "startup_mode": "default",
+      "worker_scenario": "ready",
+      "start_external_application": false,
+      "activated_sdk_version": "2026.1.0529.7",
+      "connected_sa_version": "2026.1.0529.7",
+      "deny_get_working_directory": true,
+      "watchdog_timeout": null,
+      "exercise": "capability"
+    },
+    {
+      "id": "mp-failure",
+      "startup_mode": "default",
+      "worker_scenario": "mp-failure",
+      "start_external_application": false,
+      "activated_sdk_version": "2026.1.0529.7",
+      "connected_sa_version": "2026.1.0529.7",
+      "deny_get_working_directory": false,
+      "watchdog_timeout": null,
+      "exercise": "typed-failure"
+    },
+    {
+      "id": "output-failure",
+      "startup_mode": "default",
+      "worker_scenario": "output-failure",
+      "start_external_application": false,
+      "activated_sdk_version": "2026.1.0529.7",
+      "connected_sa_version": "2026.1.0529.7",
+      "deny_get_working_directory": false,
+      "watchdog_timeout": null,
+      "exercise": "typed-failure"
+    },
+    {
+      "id": "deadline",
+      "startup_mode": "default",
+      "worker_scenario": "delay-first-execute",
+      "start_external_application": false,
+      "activated_sdk_version": "2026.1.0529.7",
+      "connected_sa_version": "2026.1.0529.7",
+      "deny_get_working_directory": false,
+      "watchdog_timeout": null,
+      "exercise": "caller-interruption"
+    },
+    {
+      "id": "cancellation",
+      "startup_mode": "default",
+      "worker_scenario": "delay-first-execute",
+      "start_external_application": false,
+      "activated_sdk_version": "2026.1.0529.7",
+      "connected_sa_version": "2026.1.0529.7",
+      "deny_get_working_directory": false,
+      "watchdog_timeout": null,
+      "exercise": "caller-interruption"
+    },
+    {
+      "id": "watchdog-recovery",
+      "startup_mode": "default",
+      "worker_scenario": "hang-first-execute",
+      "start_external_application": false,
+      "activated_sdk_version": "2026.1.0529.7",
+      "connected_sa_version": "2026.1.0529.7",
+      "deny_get_working_directory": false,
+      "watchdog_timeout": "00:00:00.250",
+      "exercise": "worker-loss"
+    },
+    {
+      "id": "sdk-loss-recovery",
+      "startup_mode": "default",
+      "worker_scenario": "ready",
+      "start_external_application": false,
+      "activated_sdk_version": "2026.1.0529.7",
+      "connected_sa_version": "2026.1.0529.7",
+      "deny_get_working_directory": false,
+      "watchdog_timeout": null,
+      "exercise": "worker-loss"
+    },
+    {
+      "id": "owned-cleanup",
+      "startup_mode": "default",
+      "worker_scenario": "ready",
+      "start_external_application": false,
+      "activated_sdk_version": "2026.1.0529.7",
+      "connected_sa_version": "2026.1.0529.7",
+      "deny_get_working_directory": false,
+      "watchdog_timeout": null,
+      "exercise": "cleanup"
+    }
+  ]
+}

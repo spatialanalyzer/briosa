@@ -291,28 +291,29 @@ coordinates as described by the
 ## Shared conformance testing
 
 All first-party clients use one versioned, target-specific, language-neutral test
-host owned by `spatialanalyzer/briosa`. The host implements the real public gRPC
-contract over deterministic fake-worker scenarios for:
+host owned by `spatialanalyzer/briosa`. The host runs the real packaged public
+gRPC server over deterministic fake-worker scenarios for:
 
 - lifecycle and readiness;
 - exact-target and protocol compatibility;
 - capability subsets;
-- presence and default-like values;
-- typed failures and malformed details;
+- typed operation failures;
 - deadlines and cancellation;
 - disconnection, worker crash, and watchdog replacement;
 - completion ambiguity, replay guidance, and recovery; and
 - shutdown and partial-startup cleanup.
 
 Each client repository owns only a thin idiomatic fixture plus local unit tests for
-its public mappings and validation. It does not independently recreate fake MP
-semantics. The shared host requires no SpatialAnalyzer installation, license, SDK
-binary, vendor documentation, or proprietary data and is not a SpatialAnalyzer
-emulator.
+its public mappings, presence/default handling, malformed transport details, and
+validation. It does not independently recreate fake MP semantics. The shared host
+requires no SpatialAnalyzer installation, license, SDK binary, vendor
+documentation, or proprietary data and is not a SpatialAnalyzer emulator.
 
-The host, scenario contract, and artifact are implemented under
-[issue #148](https://github.com/spatialanalyzer/briosa/issues/148). Test-only
-controls must remain structurally isolated from the production server.
+The host, scenario contract, and artifact are delivered as the remaining shared
+conformance scope of
+[issue #147](https://github.com/spatialanalyzer/briosa/issues/147). Test-only
+controls remain isolated in the fake worker and artifact runner; they do not enter
+the production server or public protocol.
 
 ## Language-owned API choices
 

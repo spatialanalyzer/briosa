@@ -160,6 +160,10 @@ jobs:
         shell: pwsh
         run: ./eng/Test-ProtocolArtifact.ps1 -Version 0.2.0-ci
 
+      - name: Build twice and verify client conformance artifact
+        shell: pwsh
+        run: ./eng/Test-ClientConformancePackage.ps1 -Version 0.2.0-ci
+
       - name: Run packaged client scenarios
         shell: pwsh
         run: >

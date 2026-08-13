@@ -65,11 +65,12 @@ Package and standard generated-client smoke validation:
 ```powershell
 ./eng/Test-WindowsPackage.ps1 -Version 0.1.0-local
 ./eng/Test-ProtocolArtifact.ps1 -Version 0.1.0-local
+./eng/Test-ClientConformancePackage.ps1 -Version 0.2.0-local
 ./eng/Test-ClientScenarios.ps1 `
   -PackagePath artifacts/package-smoke/briosa-0.1.0-local-sa-2026.1.0529.7-win-x64.zip
 ```
 
-The smoke scenarios start the packaged server inert, drive public lifecycle RPCs with fake application and worker processes, and cover readiness, MP failure, output retrieval failure, policy rejection, caller deadline, cancellation, explicit watchdog recovery, and unsupported services without starting SpatialAnalyzer.
+The smoke scenarios start the packaged server inert, drive public lifecycle RPCs with fake application and worker processes, and cover readiness, MP failure, output retrieval failure, policy rejection, caller deadline, cancellation, explicit watchdog recovery, and unsupported services without starting SpatialAnalyzer. The separate first-party client conformance artifact lets each language client run a shared versioned set of lifecycle, failure, recovery, and cleanup scenarios against the same real packaged server.
 
 ## Local licensed SpatialAnalyzer workflow
 

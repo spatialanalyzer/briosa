@@ -95,6 +95,13 @@ jobs:
           -Version "${{ needs.version.outputs.value }}"
           -OutputDirectory artifacts/release
 
+      - name: Build twice and verify client conformance artifact
+        shell: pwsh
+        run: >
+          ./eng/Test-ClientConformancePackage.ps1
+          -Version "${{ needs.version.outputs.value }}"
+          -OutputDirectory artifacts/release
+
       - name: Run packaged client scenarios
         shell: pwsh
         run: >
