@@ -166,6 +166,34 @@ $definition = Get-Content -LiteralPath $Contract -Raw | ConvertFrom-Json
     }
     & $runnerPath @runnerArguments
 
+    $applicationRoot = Join-Path $temporaryRoot "launchable-fake-application"
+    [IO.Directory]::CreateDirectory($applicationRoot) | Out-Null
+    Copy-Item -Path (Join-Path $packageRoot "fake-worker\*") `
+        -Destination $applicationRoot -Recurse
+    $applicationPath = Join-Path $applicationRoot "Spatial Analyzer64.exe"
+    Move-Item -LiteralPath (Join-Path $applicationRoot "Briosa.SmokeWorker.exe") `
+        -Destination $applicationPath
+    $applicationProcess = $null
+    try {
+        $applicationProcess = Start-Process `
+            -FilePath $applicationPath `
+            -WorkingDirectory $applicationRoot `
+            -WindowStyle Hidden `
+            -PassThru
+        Start-Sleep -Milliseconds 500
+        Assert-Condition (-not $applicationProcess.HasExited) `
+            "The packaged fake application did not survive a normal zero-argument launch."
+    }
+    finally {
+        if ($null -ne $applicationProcess -and -not $applicationProcess.HasExited) {
+            Stop-Process -Id $applicationProcess.Id -Force
+            $applicationProcess.WaitForExit()
+        }
+        if ($null -ne $applicationProcess) {
+            $applicationProcess.Dispose()
+        }
+    }
+
     Write-Host "Client conformance package reproducibility, contract, checksums, and runner tests passed."
 }
 finally {

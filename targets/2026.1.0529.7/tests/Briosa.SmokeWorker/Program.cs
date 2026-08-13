@@ -1,7 +1,12 @@
 using System.IO.Pipes;
 using Briosa.Worker.Control;
 
-if (args.Contains("--hold", StringComparer.Ordinal))
+var executableName = Path.GetFileName(Environment.ProcessPath);
+if (args.Contains("--hold", StringComparer.Ordinal) ||
+    string.Equals(
+        executableName,
+        "Spatial Analyzer64.exe",
+        StringComparison.OrdinalIgnoreCase))
 {
     Thread.Sleep(Timeout.Infinite);
     return 0;
