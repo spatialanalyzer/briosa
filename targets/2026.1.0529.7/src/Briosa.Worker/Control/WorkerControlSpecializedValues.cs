@@ -46,6 +46,18 @@ internal static partial class WorkerControlHost
                 WorkerMpValueKind.SurfaceDissectionModeType => ToSdkEnum<SdkSurfaceDissectionModeTypeValue>(argument.SpecializedEnumValue),
                 WorkerMpValueKind.TargetComputationMethod => ToSdkEnum<SdkTargetComputationMethodValue>(argument.SpecializedEnumValue),
                 WorkerMpValueKind.TranslucencyType => ToSdkEnum<SdkTranslucencyTypeValue>(argument.SpecializedEnumValue),
+                WorkerMpValueKind.CompTechnique => ToSdkEnum<SdkCompTechniqueValue>(argument.SpecializedEnumValue),
+                WorkerMpValueKind.DegreeOfFreedom => ToSdkEnum<SdkDegreeOfFreedomValue>(argument.SpecializedEnumValue),
+                WorkerMpValueKind.FitMethod => ToSdkEnum<SdkFitMethodValue>(argument.SpecializedEnumValue),
+                WorkerMpValueKind.MeasuredSideForPlanarOffset => ToSdkEnum<SdkMeasuredSideForPlanarOffsetValue>(argument.SpecializedEnumValue),
+                WorkerMpValueKind.MeasuredSideForRadialOffset => ToSdkEnum<SdkMeasuredSideForRadialOffsetValue>(argument.SpecializedEnumValue),
+                WorkerMpValueKind.MpDialogInteractionMode => ToSdkEnum<SdkMpDialogInteractionModeValue>(argument.SpecializedEnumValue),
+                WorkerMpValueKind.MpInteractionMode => ToSdkEnum<SdkMpInteractionModeValue>(argument.SpecializedEnumValue),
+                WorkerMpValueKind.NormalDirection => ToSdkEnum<SdkNormalDirectionValue>(argument.SpecializedEnumValue),
+                WorkerMpValueKind.SaInteractionMode => ToSdkEnum<SdkSaInteractionModeValue>(argument.SpecializedEnumValue),
+                WorkerMpValueKind.SlotType => ToSdkEnum<SdkSlotTypeValue>(argument.SpecializedEnumValue),
+                WorkerMpValueKind.SphereFitComputationMode => ToSdkEnum<SdkSphereFitComputationModeValue>(argument.SpecializedEnumValue),
+                WorkerMpValueKind.WindowState => ToSdkEnum<SdkWindowStateValue>(argument.SpecializedEnumValue),
                 _ => null
             };
 
@@ -112,6 +124,20 @@ internal static partial class WorkerControlHost
             WorkerMpValueKind.TargetComputationMethod => SdkValueKind.TargetComputationMethod,
             WorkerMpValueKind.ToleranceScalarOptions => SdkValueKind.ToleranceScalarOptions,
             WorkerMpValueKind.TranslucencyType => SdkValueKind.TranslucencyType,
+            WorkerMpValueKind.CompTechnique => SdkValueKind.CompTechnique,
+            WorkerMpValueKind.DegreeOfFreedom => SdkValueKind.DegreeOfFreedom,
+            WorkerMpValueKind.FitMethod => SdkValueKind.FitMethod,
+            WorkerMpValueKind.MeasuredSideForPlanarOffset => SdkValueKind.MeasuredSideForPlanarOffset,
+            WorkerMpValueKind.MeasuredSideForRadialOffset => SdkValueKind.MeasuredSideForRadialOffset,
+            WorkerMpValueKind.MpDialogInteractionMode => SdkValueKind.MpDialogInteractionMode,
+            WorkerMpValueKind.MpInteractionMode => SdkValueKind.MpInteractionMode,
+            WorkerMpValueKind.NormalDirection => SdkValueKind.NormalDirection,
+            WorkerMpValueKind.SaInteractionMode => SdkValueKind.SaInteractionMode,
+            WorkerMpValueKind.SlotType => SdkValueKind.SlotType,
+            WorkerMpValueKind.SphereFitComputationMode => SdkValueKind.SphereFitComputationMode,
+            WorkerMpValueKind.WindowState => SdkValueKind.WindowState,
+            WorkerMpValueKind.ProjectionOptions => SdkValueKind.ProjectionOptions,
+            WorkerMpValueKind.PointDeltaReportOptions => SdkValueKind.PointDeltaReportOptions,
             _ => throw new UnreachableException()
         };
 
@@ -161,6 +187,20 @@ internal static partial class WorkerControlHost
             SdkValueKind.TargetComputationMethod => WorkerMpValueKind.TargetComputationMethod,
             SdkValueKind.ToleranceScalarOptions => WorkerMpValueKind.ToleranceScalarOptions,
             SdkValueKind.TranslucencyType => WorkerMpValueKind.TranslucencyType,
+            SdkValueKind.CompTechnique => WorkerMpValueKind.CompTechnique,
+            SdkValueKind.DegreeOfFreedom => WorkerMpValueKind.DegreeOfFreedom,
+            SdkValueKind.FitMethod => WorkerMpValueKind.FitMethod,
+            SdkValueKind.MeasuredSideForPlanarOffset => WorkerMpValueKind.MeasuredSideForPlanarOffset,
+            SdkValueKind.MeasuredSideForRadialOffset => WorkerMpValueKind.MeasuredSideForRadialOffset,
+            SdkValueKind.MpDialogInteractionMode => WorkerMpValueKind.MpDialogInteractionMode,
+            SdkValueKind.MpInteractionMode => WorkerMpValueKind.MpInteractionMode,
+            SdkValueKind.NormalDirection => WorkerMpValueKind.NormalDirection,
+            SdkValueKind.SaInteractionMode => WorkerMpValueKind.SaInteractionMode,
+            SdkValueKind.SlotType => WorkerMpValueKind.SlotType,
+            SdkValueKind.SphereFitComputationMode => WorkerMpValueKind.SphereFitComputationMode,
+            SdkValueKind.WindowState => WorkerMpValueKind.WindowState,
+            SdkValueKind.ProjectionOptions => WorkerMpValueKind.ProjectionOptions,
+            SdkValueKind.PointDeltaReportOptions => WorkerMpValueKind.PointDeltaReportOptions,
             _ => throw new UnreachableException()
         };
 
@@ -250,6 +290,36 @@ internal static partial class WorkerControlHost
     private static SdkToleranceScalarOptionsValue? ToSdkToleranceScalar(
         WorkerToleranceScalarOptionsValue? value) =>
         value is null ? null : new(ToSdkScalarToleranceLimit(value.High), ToSdkScalarToleranceLimit(value.Low));
+
+    private static SdkProjectionOptionsValue? ToSdkProjection(
+        WorkerProjectionOptionsValue? value) =>
+        value is null
+            ? null
+            : new(
+                value.ProjectionType,
+                value.IgnoreEdgeProjections,
+                value.OverrideTargetOffsets,
+                value.OverrideTargetOffsetsValue,
+                value.AddExtraMaterialThickness,
+                value.ExtraMaterialThicknessValue);
+
+    private static SdkPointDeltaReportOptionsValue? ToSdkPointDeltaReport(
+        WorkerPointDeltaReportOptionsValue? value) =>
+        value is null
+            ? null
+            : new(
+                ToSdkEnumValue<SdkCoordinateSystemTypeValue>(value.CoordinateSystem),
+                value.DetailsFormat,
+                value.ShowPointA,
+                value.ShowPointB,
+                value.ShowDelta,
+                value.ShowMagnitude,
+                value.ShowComponent1,
+                value.ShowComponent2,
+                value.ShowComponent3,
+                value.SortPointNames,
+                value.ShowToleranceFields,
+                value.ColorizeInToleranceFields);
 
     private static SdkToleranceLimit ToSdkScalarToleranceLimit(WorkerScalarToleranceLimit value) =>
         new(value.Enabled, value.Value);

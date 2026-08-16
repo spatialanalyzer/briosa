@@ -3,34 +3,1295 @@ syntax = "proto3";
 package briosa;
 
 import "briosa/operation_outcomes.proto";
+import "briosa/spatial_analyzer_values.proto";
 
 option csharp_namespace = "Briosa";
 
 service AnalysisOperations {
-  // Executes the "Get i-th Collection Name" MP command.
-  rpc GetIThCollectionName(GetIThCollectionNameRequest) returns (GetIThCollectionNameResult);
-
-  // Executes the "Get Number of Collections" MP command.
+  rpc AngleBetweenLineAndPlane(AngleBetweenLineAndPlaneRequest) returns (AngleBetweenLineAndPlaneResult);
+  rpc AngleBetweenTwoLines(AngleBetweenTwoLinesRequest) returns (AngleBetweenTwoLinesResult);
+  rpc AngleBetweenTwoPlanesNormals(AngleBetweenTwoPlanesNormalsRequest) returns (AngleBetweenTwoPlanesNormalsResult);
+  rpc BestFitTransformationGroupToGroup(BestFitTransformationGroupToGroupRequest) returns (BestFitTransformationGroupToGroupResult);
+  rpc ComputeGroupToGroupOrientationRxRyRz(ComputeGroupToGroupOrientationRxRyRzRequest) returns (ComputeGroupToGroupOrientationRxRyRzResult);
+  rpc CreatePointUncertaintyCloudPointSets(CreatePointUncertaintyCloudPointSetsRequest) returns (CreatePointUncertaintyCloudPointSetsResult);
+  rpc CreatePointUncertaintyFields(CreatePointUncertaintyFieldsRequest) returns (CreatePointUncertaintyFieldsResult);
+  rpc FitGeometryToPointGroup(FitGeometryToPointGroupRequest) returns (FitGeometryToPointGroupResult);
+  rpc FitGeometryToPointGroupProjectedToPlane(FitGeometryToPointGroupProjectedToPlaneRequest) returns (FitGeometryToPointGroupProjectedToPlaneResult);
+  rpc FitGeometryToPoints(FitGeometryToPointsRequest) returns (FitGeometryToPointsResult);
+  rpc GetBSplineProperties(GetBSplinePropertiesRequest) returns (GetBSplinePropertiesResult);
+  rpc GetCircleProperties(GetCirclePropertiesRequest) returns (GetCirclePropertiesResult);
+  rpc GetConeProperties(GetConePropertiesRequest) returns (GetConePropertiesResult);
+  rpc GetCoordinateForIthPointInPointSet(GetCoordinateForIthPointInPointSetRequest) returns (GetCoordinateForIthPointInPointSetResult);
+  rpc GetCylinderProperties(GetCylinderPropertiesRequest) returns (GetCylinderPropertiesResult);
+  rpc GetEllipseProperties(GetEllipsePropertiesRequest) returns (GetEllipsePropertiesResult);
+  rpc GetEulerParametersForFrame(GetEulerParametersForFrameRequest) returns (GetEulerParametersForFrameResult);
+  rpc GetEulerParametersForIthFrameInFrameSet(GetEulerParametersForIthFrameInFrameSetRequest) returns (GetEulerParametersForIthFrameInFrameSetResult);
+  rpc GetIthCollectionName(GetIthCollectionNameRequest) returns (GetIthCollectionNameResult);
+  rpc GetIthPointFromGroup(GetIthPointFromGroupRequest) returns (GetIthPointFromGroupResult);
+  rpc GetLineProperties(GetLinePropertiesRequest) returns (GetLinePropertiesResult);
+  rpc GetMeasurementAuxiliaryData(GetMeasurementAuxiliaryDataRequest) returns (GetMeasurementAuxiliaryDataResult);
+  rpc GetMeasurementInfoData(GetMeasurementInfoDataRequest) returns (GetMeasurementInfoDataResult);
+  rpc GetMeasurementWeatherData(GetMeasurementWeatherDataRequest) returns (GetMeasurementWeatherDataResult);
   rpc GetNumberOfCollections(GetNumberOfCollectionsRequest) returns (GetNumberOfCollectionsResult);
+  rpc GetNumberOfFramesInFrameSet(GetNumberOfFramesInFrameSetRequest) returns (GetNumberOfFramesInFrameSetResult);
+  rpc GetNumberOfPointsInGroup(GetNumberOfPointsInGroupRequest) returns (GetNumberOfPointsInGroupResult);
+  rpc GetNumberOfPointsInPointSet(GetNumberOfPointsInPointSetRequest) returns (GetNumberOfPointsInPointSetResult);
+  rpc GetObjectReportingFrame(GetObjectReportingFrameRequest) returns (GetObjectReportingFrameResult);
+  rpc GetPlaneProperties(GetPlanePropertiesRequest) returns (GetPlanePropertiesResult);
+  rpc GetPointCoordinate(GetPointCoordinateRequest) returns (GetPointCoordinateResult);
+  rpc GetPointCoordinateCylindrical(GetPointCoordinateCylindricalRequest) returns (GetPointCoordinateCylindricalResult);
+  rpc GetPointCoordinatePolar(GetPointCoordinatePolarRequest) returns (GetPointCoordinatePolarResult);
+  rpc GetPointProperties(GetPointPropertiesRequest) returns (GetPointPropertiesResult);
+  rpc GetPointToLineDistance(GetPointToLineDistanceRequest) returns (GetPointToLineDistanceResult);
+  rpc GetPointToPointDistance(GetPointToPointDistanceRequest) returns (GetPointToPointDistanceResult);
+  rpc GetPointTolerance(GetPointToleranceRequest) returns (GetPointToleranceResult);
+  rpc GetSlotProperties(GetSlotPropertiesRequest) returns (GetSlotPropertiesResult);
+  rpc GetSphereProperties(GetSpherePropertiesRequest) returns (GetSpherePropertiesResult);
+  rpc GetSurfacePhysicalStats(GetSurfacePhysicalStatsRequest) returns (GetSurfacePhysicalStatsResult);
+  rpc GetTimestampForIthFrameInFrameSet(GetTimestampForIthFrameInFrameSetRequest) returns (GetTimestampForIthFrameInFrameSetResult);
+  rpc GetTimestampForIthPointInPointSet(GetTimestampForIthPointInPointSetRequest) returns (GetTimestampForIthPointInPointSetResult);
+  rpc GetTorusProperties(GetTorusPropertiesRequest) returns (GetTorusPropertiesResult);
+  rpc GetTransformForIthFrameInFrameSet(GetTransformForIthFrameInFrameSetRequest) returns (GetTransformForIthFrameInFrameSetResult);
+  rpc GroupToSurfaceFit(GroupToSurfaceFitRequest) returns (GroupToSurfaceFitResult);
+  rpc ImportGeometryFitProfiles(ImportGeometryFitProfilesRequest) returns (ImportGeometryFitProfilesResult);
+  rpc IsObjectOfType(IsObjectOfTypeRequest) returns (IsObjectOfTypeResult);
+  rpc MakeCircleFitProfile(MakeCircleFitProfileRequest) returns (MakeCircleFitProfileResult);
+  rpc MakeConeFitProfile(MakeConeFitProfileRequest) returns (MakeConeFitProfileResult);
+  rpc MakeCylinderFitProfile(MakeCylinderFitProfileRequest) returns (MakeCylinderFitProfileResult);
+  rpc MakeEllipseFitProfile(MakeEllipseFitProfileRequest) returns (MakeEllipseFitProfileResult);
+  rpc MakeLineFitProfile(MakeLineFitProfileRequest) returns (MakeLineFitProfileResult);
+  rpc MakeParaboloidFitProfile(MakeParaboloidFitProfileRequest) returns (MakeParaboloidFitProfileResult);
+  rpc MakePlaneFitProfile(MakePlaneFitProfileRequest) returns (MakePlaneFitProfileResult);
+  rpc MakeSlotFitProfile(MakeSlotFitProfileRequest) returns (MakeSlotFitProfileResult);
+  rpc MakeSphereFitProfile(MakeSphereFitProfileRequest) returns (MakeSphereFitProfileResult);
+  rpc MushroomTargetHoleInspection(MushroomTargetHoleInspectionRequest) returns (MushroomTargetHoleInspectionResult);
+  rpc PatchNormalShiftHolePin(PatchNormalShiftHolePinRequest) returns (PatchNormalShiftHolePinResult);
+  rpc PatchNormalShiftPoint(PatchNormalShiftPointRequest) returns (PatchNormalShiftPointResult);
+  rpc QueryCloudsToObjects(QueryCloudsToObjectsRequest) returns (QueryCloudsToObjectsResult);
+  rpc QueryCloudsToSurface(QueryCloudsToSurfaceRequest) returns (QueryCloudsToSurfaceResult);
+  rpc QueryFrameToFrame(QueryFrameToFrameRequest) returns (QueryFrameToFrameResult);
+  rpc QueryGroupsToObjects(QueryGroupsToObjectsRequest) returns (QueryGroupsToObjectsResult);
+  rpc QueryPointToObjects(QueryPointToObjectsRequest) returns (QueryPointToObjectsResult);
+  rpc QueryPointToPointAlongCurve(QueryPointToPointAlongCurveRequest) returns (QueryPointToPointAlongCurveResult);
+  rpc QueryPointsToCircle(QueryPointsToCircleRequest) returns (QueryPointsToCircleResult);
+  rpc QueryPointsToObjects(QueryPointsToObjectsRequest) returns (QueryPointsToObjectsResult);
+  rpc QueryPointsToSinglePoint(QueryPointsToSinglePointRequest) returns (QueryPointsToSinglePointResult);
+  rpc ReComputeCalculatedItems(ReComputeCalculatedItemsRequest) returns (ReComputeCalculatedItemsResult);
+  rpc RenamePointsBasedOnInterPointDistanceToReferencePoints(RenamePointsBasedOnInterPointDistanceToReferencePointsRequest) returns (RenamePointsBasedOnInterPointDistanceToReferencePointsResult);
+  rpc RenamePointsBasedOnProximityToReferencePoints(RenamePointsBasedOnProximityToReferencePointsRequest) returns (RenamePointsBasedOnProximityToReferencePointsResult);
+  rpc ReverseBSplines(ReverseBSplinesRequest) returns (ReverseBSplinesResult);
+  rpc ReversePlaneNormals(ReversePlaneNormalsRequest) returns (ReversePlaneNormalsResult);
+  rpc ReverseSurfaceNormals(ReverseSurfaceNormalsRequest) returns (ReverseSurfaceNormalsResult);
+  rpc SetCircleProperties(SetCirclePropertiesRequest) returns (SetCirclePropertiesResult);
+  rpc SetConeProperties(SetConePropertiesRequest) returns (SetConePropertiesResult);
+  rpc SetCylinderProperties(SetCylinderPropertiesRequest) returns (SetCylinderPropertiesResult);
+  rpc SetDefaultColorizationOptions(SetDefaultColorizationOptionsRequest) returns (SetDefaultColorizationOptionsResult);
+  rpc SetEllipseProperties(SetEllipsePropertiesRequest) returns (SetEllipsePropertiesResult);
+  rpc SetGeometryRelationshipFitProfile(SetGeometryRelationshipFitProfileRequest) returns (SetGeometryRelationshipFitProfileResult);
+  rpc SetLineProperties(SetLinePropertiesRequest) returns (SetLinePropertiesResult);
+  rpc SetMeasurementAuxiliaryData(SetMeasurementAuxiliaryDataRequest) returns (SetMeasurementAuxiliaryDataResult);
+  rpc SetObjectReportingFrame(SetObjectReportingFrameRequest) returns (SetObjectReportingFrameResult);
+  rpc SetPointProperties(SetPointPropertiesRequest) returns (SetPointPropertiesResult);
+  rpc SetPointWeightsFromUncertainties(SetPointWeightsFromUncertaintiesRequest) returns (SetPointWeightsFromUncertaintiesResult);
+  rpc SetTransformForIthFrameInFrameSet(SetTransformForIthFrameInFrameSetRequest) returns (SetTransformForIthFrameInFrameSetResult);
+  rpc SphereAxisCheck(SphereAxisCheckRequest) returns (SphereAxisCheckResult);
+  rpc TemperatureCompensateAGroup(TemperatureCompensateAGroupRequest) returns (TemperatureCompensateAGroupResult);
+  rpc TransformObjectsFrameToFrame(TransformObjectsFrameToFrameRequest) returns (TransformObjectsFrameToFrameResult);
+  rpc TransformObjectsByDeltaAboutWorkingFrame(TransformObjectsByDeltaAboutWorkingFrameRequest) returns (TransformObjectsByDeltaAboutWorkingFrameResult);
+  rpc TransformObjectsByDeltaWorldTransformOperator(TransformObjectsByDeltaWorldTransformOperatorRequest) returns (TransformObjectsByDeltaWorldTransformOperatorResult);
+  rpc TranslateObjectsByDelta(TranslateObjectsByDeltaRequest) returns (TranslateObjectsByDeltaResult);
 }
 
-message GetIThCollectionNameRequest {
-  // The zero-based MP argument named "Collection Index".
-  optional int32 collection_index = 1;
+message AngleBetweenLineAndPlaneRequest {
+  optional CollectionObjectName selected_line = 1;
+  optional CollectionObjectName selected_plane = 2;
+  optional double nominal_angle = 3;
+  optional double angle_tolerance_0_0_for_none = 4;
 }
 
-message GetIThCollectionNameResult {
-  // The MP return argument named "Resultant Name".
-  optional string resultant_name = 1;
-  // Explicit MP and result-only argument retrieval outcome.
+message AngleBetweenLineAndPlaneResult {
+  optional double angle = 1;
   MpExecutionDetails execution = 1000;
 }
 
-message GetNumberOfCollectionsRequest {}
+message AngleBetweenTwoLinesRequest {
+  optional CollectionObjectName line_1 = 1;
+  optional CollectionObjectName line_2 = 2;
+  optional double nominal_angle = 3;
+  optional double angle_tolerance_0_0_for_none = 4;
+}
+
+message AngleBetweenTwoLinesResult {
+  optional double angle = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message AngleBetweenTwoPlanesNormalsRequest {
+  optional CollectionObjectName plane_a = 1;
+  optional CollectionObjectName plane_b = 2;
+  optional double nominal_angle = 3;
+  optional double angle_tolerance_0_0_for_none = 4;
+}
+
+message AngleBetweenTwoPlanesNormalsResult {
+  optional double angle = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message BestFitTransformationGroupToGroupRequest {
+  optional CollectionObjectName reference_group = 1;
+  optional CollectionObjectName corresponding_group = 2;
+  optional bool show_interface = 3;
+  optional double rms_tolerance_0_0_for_none = 4;
+  optional double maximum_absolute_tolerance_0_0_for_none = 5;
+  optional bool allow_scale = 6;
+  optional bool allow_x = 7;
+  optional bool allow_y = 8;
+  optional bool allow_z = 9;
+  optional bool allow_rx = 10;
+  optional bool allow_ry = 11;
+  optional bool allow_rz = 12;
+  optional bool lock_degrees_of_freedom = 13;
+  optional bool generate_event = 14;
+  optional FileReference file_path_for_csv_text_report_requires_show_interface_true = 15;
+}
+
+message BestFitTransformationGroupToGroupResult {
+  optional Transform transform_in_working = 1;
+  optional WorldTransform optimum_transform = 2;
+  optional double rms_deviation = 3;
+  optional double maximum_absolute_deviation = 4;
+  optional int32 number_of_unknowns = 5;
+  optional int32 number_of_equations = 6;
+  optional double robustness = 7;
+  MpExecutionDetails execution = 1000;
+}
+
+message ComputeGroupToGroupOrientationRxRyRzRequest {
+  optional CollectionObjectName reference_group = 1;
+  optional CollectionObjectName corresponding_group = 2;
+}
+
+message ComputeGroupToGroupOrientationRxRyRzResult {
+  optional double rx = 1;
+  optional double ry = 2;
+  optional double rz = 3;
+  MpExecutionDetails execution = 1000;
+}
+
+message CreatePointUncertaintyCloudPointSetsRequest {
+  repeated PointName point_name_list = 1;
+  optional int32 number_of_samples = 2;
+  optional string uncertainty_reference_frame_mode = 3;
+  optional string grouping_mode = 4;
+  optional string point_set_mode = 5;
+}
+
+message CreatePointUncertaintyCloudPointSetsResult {
+  repeated CollectionObjectName point_groups = 1;
+  repeated CollectionObjectName point_sets = 2;
+  repeated CollectionObjectName point_clouds = 3;
+  MpExecutionDetails execution = 1000;
+}
+
+message CreatePointUncertaintyFieldsRequest {
+  repeated PointName point_name_list = 1;
+  optional int32 number_of_samples = 2;
+}
+
+message CreatePointUncertaintyFieldsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message FitGeometryToPointGroupRequest {
+  optional GeometryType geometry_type = 1;
+  optional CollectionObjectName group_to_fit = 2;
+  optional CollectionObjectName resulting_object_name = 3;
+  optional string fit_profile_name = 4;
+  optional bool report_deviations = 5;
+  optional double fit_interface_tolerance_1_0_use_profile = 6;
+  optional bool ignore_out_of_tolerance_points = 7;
+  optional CollectionObjectName starting_condition_geometry_optional = 8;
+}
+
+message FitGeometryToPointGroupResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message FitGeometryToPointGroupProjectedToPlaneRequest {
+  optional GeometryType geometry_type = 1;
+  optional CollectionObjectName group_to_fit = 2;
+  optional CollectionObjectName plane_name = 3;
+  optional CollectionObjectName resulting_object_name = 4;
+  optional string fit_profile_name = 5;
+  optional bool report_deviations = 6;
+  optional double fit_interface_tolerance_1_0_use_profile = 7;
+  optional bool ignore_out_of_tolerance_points = 8;
+  optional CollectionObjectName starting_condition_geometry_optional = 9;
+}
+
+message FitGeometryToPointGroupProjectedToPlaneResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message FitGeometryToPointsRequest {
+  optional GeometryType geometry_type = 1;
+  repeated PointName points_to_fit = 2;
+  optional CollectionObjectName resulting_object_name = 3;
+  optional string fit_profile_name = 4;
+  optional bool report_deviations = 5;
+  optional double fit_interface_tolerance_1_0_use_profile = 6;
+  optional bool ignore_out_of_tolerance_points = 7;
+  optional CollectionObjectName starting_condition_geometry_optional = 8;
+}
+
+message FitGeometryToPointsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message GetBSplinePropertiesRequest {
+  optional CollectionObjectName b_spline_name = 1;
+}
+
+message GetBSplinePropertiesResult {
+  optional int32 degree = 1;
+  optional int32 knots = 2;
+  optional int32 control_points = 3;
+  optional double range_min = 4;
+  optional double range_max = 5;
+  optional double length = 6;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetCirclePropertiesRequest {
+  optional CollectionObjectName circle_name = 1;
+}
+
+message GetCirclePropertiesResult {
+  optional Vector center_coordinate = 1;
+  optional Vector normal_direction = 2;
+  optional double radius = 3;
+  optional double diameter = 4;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetConePropertiesRequest {
+  optional CollectionObjectName cone_name = 1;
+}
+
+message GetConePropertiesResult {
+  optional Vector cone_end_point_in_working_coordinates = 1;
+  optional Vector cone_axis_in_working_coordinates = 2;
+  optional double cone_length = 3;
+  optional double cone_theta_start = 4;
+  optional double cone_theta_span = 5;
+  optional double cone_included_angle = 6;
+  optional double cut_length_from_apex = 7;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetCoordinateForIthPointInPointSetRequest {
+  optional CollectionObjectName point_set = 1;
+  optional int32 point_set_index = 2;
+}
+
+message GetCoordinateForIthPointInPointSetResult {
+  optional string point_name = 1;
+  optional Vector point_coordinates = 2;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetCylinderPropertiesRequest {
+  optional CollectionObjectName cylinder_name = 1;
+}
+
+message GetCylinderPropertiesResult {
+  optional Vector begin_coordinate = 1;
+  optional Vector end_coordinate = 2;
+  optional Vector axis_direction = 3;
+  optional double length = 4;
+  optional double radius = 5;
+  optional double diameter = 6;
+  optional bool nominals_point_inward = 7;
+  optional int32 facets = 8;
+  optional bool enable_theta_extent_display_mode = 9;
+  optional double theta_start_in_degrees = 10;
+  optional double theta_span_in_degrees = 11;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetEllipsePropertiesRequest {
+  optional CollectionObjectName ellipse_name = 1;
+}
+
+message GetEllipsePropertiesResult {
+  optional Vector center_coordinate = 1;
+  optional Vector normal_direction = 2;
+  optional double major_axis_radius = 3;
+  optional double minor_axis_radius = 4;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetEulerParametersForFrameRequest {
+  optional CollectionObjectName frame = 1;
+}
+
+message GetEulerParametersForFrameResult {
+  optional double x = 1;
+  optional double y = 2;
+  optional double z = 3;
+  optional double e1 = 4;
+  optional double e2 = 5;
+  optional double e3 = 6;
+  optional double e4 = 7;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetEulerParametersForIthFrameInFrameSetRequest {
+  optional CollectionObjectName frame_set = 1;
+  optional int32 frame_set_index = 2;
+}
+
+message GetEulerParametersForIthFrameInFrameSetResult {
+  optional double x = 1;
+  optional double y = 2;
+  optional double z = 3;
+  optional double e1 = 4;
+  optional double e2 = 5;
+  optional double e3 = 6;
+  optional double e4 = 7;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetIthCollectionNameRequest {
+  optional int32 collection_index = 1;
+}
+
+message GetIthCollectionNameResult {
+  optional string resultant_name = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetIthPointFromGroupRequest {
+  optional CollectionObjectName group_name = 1;
+  optional int32 point_index = 2;
+}
+
+message GetIthPointFromGroupResult {
+  optional PointName complete_point_name = 1;
+  optional string point_name_only = 2;
+  optional Vector vector_in_working = 3;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetLinePropertiesRequest {
+  optional CollectionObjectName line_name = 1;
+}
+
+message GetLinePropertiesResult {
+  optional Vector begin_coordinate = 1;
+  optional Vector end_coordinate = 2;
+  optional Vector delta_components = 3;
+  optional double length = 4;
+  optional double angle_about_x_from_y_in_yz_plane = 5;
+  optional double angle_about_y_from_z_in_xz_plane = 6;
+  optional double angle_about_z_from_x_in_xy_plane = 7;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetMeasurementAuxiliaryDataRequest {
+  optional PointName point_name = 1;
+  optional string auxiliary_name = 2;
+}
+
+message GetMeasurementAuxiliaryDataResult {
+  optional double value = 1;
+  optional string units = 2;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetMeasurementInfoDataRequest {
+  optional PointName point_name = 1;
+}
+
+message GetMeasurementInfoDataResult {
+  optional string info_data = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetMeasurementWeatherDataRequest {
+  optional PointName point_name = 1;
+}
+
+message GetMeasurementWeatherDataResult {
+  optional double temperature_deg_f = 1;
+  optional double pressure_in_hg = 2;
+  optional double humidity_rh = 3;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetNumberOfCollectionsRequest {
+  // No MP inputs.
+}
 
 message GetNumberOfCollectionsResult {
-  // The MP return argument named "Total Count".
   optional int32 total_count = 1;
-  // Explicit MP and result-only argument retrieval outcome.
+  MpExecutionDetails execution = 1000;
+}
+
+message GetNumberOfFramesInFrameSetRequest {
+  optional CollectionObjectName frame_set_container = 1;
+}
+
+message GetNumberOfFramesInFrameSetResult {
+  optional int32 total_count = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetNumberOfPointsInGroupRequest {
+  optional CollectionObjectName group_name = 1;
+}
+
+message GetNumberOfPointsInGroupResult {
+  optional int32 total_count = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetNumberOfPointsInPointSetRequest {
+  optional CollectionObjectName point_set_container = 1;
+}
+
+message GetNumberOfPointsInPointSetResult {
+  optional int32 total_count = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetObjectReportingFrameRequest {
+  optional CollectionObjectName object_name = 1;
+}
+
+message GetObjectReportingFrameResult {
+  optional CollectionObjectName reporting_frame = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetPlanePropertiesRequest {
+  optional CollectionObjectName plane_name = 1;
+}
+
+message GetPlanePropertiesResult {
+  optional Vector normal_direction = 1;
+  optional Vector point_on_plane = 2;
+  optional double d_parameter = 3;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetPointCoordinateRequest {
+  optional PointName point_name = 1;
+}
+
+message GetPointCoordinateResult {
+  optional Vector vector_representation = 1;
+  optional double x_value = 2;
+  optional double y_value = 3;
+  optional double z_value = 4;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetPointCoordinateCylindricalRequest {
+  optional PointName point_name = 1;
+}
+
+message GetPointCoordinateCylindricalResult {
+  optional double radius_value = 1;
+  optional double theta_value = 2;
+  optional double z_value = 3;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetPointCoordinatePolarRequest {
+  optional PointName point_name = 1;
+}
+
+message GetPointCoordinatePolarResult {
+  optional double radius_value = 1;
+  optional double theta_value = 2;
+  optional double phi_value = 3;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetPointPropertiesRequest {
+  optional PointName point_name = 1;
+}
+
+message GetPointPropertiesResult {
+  optional double planar_offset = 1;
+  optional double radial_offset = 2;
+  optional double ux = 3;
+  optional double uy = 4;
+  optional double uz = 5;
+  optional double umag = 6;
+  optional ToleranceVectorOptions position_tolerance = 7;
+  optional Vector component_weights = 8;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetPointToLineDistanceRequest {
+  optional PointName point = 1;
+  optional CollectionObjectName line = 2;
+}
+
+message GetPointToLineDistanceResult {
+  optional Vector vector_representation = 1;
+  optional double x_value = 2;
+  optional double y_value = 3;
+  optional double z_value = 4;
+  optional double magnitude = 5;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetPointToPointDistanceRequest {
+  optional PointName first_point = 1;
+  optional PointName second_point = 2;
+}
+
+message GetPointToPointDistanceResult {
+  optional Vector vector_representation = 1;
+  optional double x_value = 2;
+  optional double y_value = 3;
+  optional double z_value = 4;
+  optional double magnitude = 5;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetPointToleranceRequest {
+  optional PointName point_name = 1;
+}
+
+message GetPointToleranceResult {
+  optional bool use_high_x_tolerance = 1;
+  optional double high_x_tolerance = 2;
+  optional bool use_high_y_tolerance = 3;
+  optional double high_y_tolerance = 4;
+  optional bool use_high_z_tolerance = 5;
+  optional double high_z_tolerance = 6;
+  optional bool use_high_mag_tolerance = 7;
+  optional double high_mag_tolerance = 8;
+  optional bool use_low_x_tolerance = 9;
+  optional double low_x_tolerance = 10;
+  optional bool use_low_y_tolerance = 11;
+  optional double low_y_tolerance = 12;
+  optional bool use_low_z_tolerance = 13;
+  optional double low_z_tolerance = 14;
+  optional bool use_low_mag_tolerance = 15;
+  optional double low_mag_tolerance = 16;
+  optional ToleranceVectorOptions vector_tolerance = 17;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetSlotPropertiesRequest {
+  optional CollectionObjectName slot_name = 1;
+}
+
+message GetSlotPropertiesResult {
+  optional Transform slot_transform_in_working_coordinates = 1;
+  optional Vector center_in_working_coordinates = 2;
+  optional Vector normal_direction_in_working_coordinates = 3;
+  optional double slot_length = 4;
+  optional double slot_width = 5;
+  optional bool round_slot_type = 6;
+  optional Vector centerline_pt_1_in_working_coordinates = 7;
+  optional Vector centerline_pt_2_in_working_coordinates = 8;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetSpherePropertiesRequest {
+  optional CollectionObjectName sphere_name = 1;
+}
+
+message GetSpherePropertiesResult {
+  optional Vector center_coordinate = 1;
+  optional double radius = 2;
+  optional double diameter = 3;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetSurfacePhysicalStatsRequest {
+  optional CollectionObjectName surface_name = 1;
+}
+
+message GetSurfacePhysicalStatsResult {
+  optional double volume = 1;
+  optional double area = 2;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetTimestampForIthFrameInFrameSetRequest {
+  optional CollectionObjectName frame_set = 1;
+  optional int32 frame_set_index = 2;
+}
+
+message GetTimestampForIthFrameInFrameSetResult {
+  optional double timestamp = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetTimestampForIthPointInPointSetRequest {
+  optional CollectionObjectName point_set = 1;
+  optional int32 point_set_index = 2;
+}
+
+message GetTimestampForIthPointInPointSetResult {
+  optional double timestamp = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetTorusPropertiesRequest {
+  optional CollectionObjectName torus_name = 1;
+}
+
+message GetTorusPropertiesResult {
+  optional Vector center_coordinate = 1;
+  optional Vector normal_direction = 2;
+  optional double major_radius = 3;
+  optional double minor_radius = 4;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetTransformForIthFrameInFrameSetRequest {
+  optional CollectionObjectName frame_set = 1;
+  optional int32 frame_set_index = 2;
+}
+
+message GetTransformForIthFrameInFrameSetResult {
+  optional Transform transform_in_working = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GroupToSurfaceFitRequest {
+  optional CollectionObjectName group_to_fit = 1;
+  optional CollectionObjectName surface = 2;
+  optional bool do_conventional_fit = 3;
+  optional double rms_tolerance_0_0_for_none = 4;
+  optional double maximum_absolute_tolerance_0_0_for_none = 5;
+}
+
+message GroupToSurfaceFitResult {
+  optional WorldTransform optimum_transform = 1;
+  optional double rms_deviation = 2;
+  optional double maximum_absolute_deviation = 3;
+  MpExecutionDetails execution = 1000;
+}
+
+message ImportGeometryFitProfilesRequest {
+  optional FileReference geometry_fit_profiles_file_path = 1;
+  optional bool overwrite_profiles_with_same_name = 2;
+}
+
+message ImportGeometryFitProfilesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message IsObjectOfTypeRequest {
+  optional CollectionObjectName object_name = 1;
+  optional ObjectType object_type = 2;
+}
+
+message IsObjectOfTypeResult {
+  optional bool resultant = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeCircleFitProfileRequest {
+  optional string fit_profile_name = 1;
+  optional MeasuredSideForRadialOffset measured_side_for_radial_offset = 2;
+  optional double override_radial_offset_1_0_use_current = 3;
+  optional MeasuredSideForPlanarOffset measured_side_for_planar_offset = 4;
+  optional double override_planar_offset_1_0_use_current = 5;
+  optional NormalDirection planar_offset_direction = 6;
+  optional double lock_radius_1_0_do_not_lock = 7;
+  optional CompTechnique circle_computation_technique = 8;
+  optional bool reverse_normal_vector_after_fit = 9;
+  optional bool make_cardinal_points = 10;
+  optional bool cardinal_pt_1_center = 11;
+  optional bool cardinal_pt_2_point_on_normal = 12;
+}
+
+message MakeCircleFitProfileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeConeFitProfileRequest {
+  optional string fit_profile_name = 1;
+  optional MeasuredSideForRadialOffset measured_side_for_radial_offset = 2;
+  optional double override_radial_offset_1_0_use_current = 3;
+  optional double lock_angle_in_degrees_1_0_do_not_lock = 4;
+  optional bool use_exhaustive_search = 5;
+  optional bool make_cardinal_points = 6;
+  optional bool cardinal_pt_1_vertex = 7;
+  optional bool cardinal_pt_2_point_on_axis = 8;
+  optional bool cardinal_pt_3_cut_point_on_axis = 9;
+}
+
+message MakeConeFitProfileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeCylinderFitProfileRequest {
+  optional string fit_profile_name = 1;
+  optional MeasuredSideForRadialOffset measured_side_for_radial_offset = 2;
+  optional double override_radial_offset_1_0_use_current = 3;
+  optional double lock_radius_1_0_do_not_lock = 4;
+  optional FitMethod locked_radius_fit_method = 5;
+  optional bool constrain_to_nominal_axis = 6;
+  optional bool constrain_to_nominal_orientation = 7;
+  optional bool align_with_nominal = 8;
+  optional bool reverse_axis = 9;
+  optional bool set_axis_first_to_last_point = 10;
+  optional CompTechnique cylinder_computation_technique = 11;
+  optional bool use_exhaustive_search = 12;
+  optional bool make_cardinal_points = 13;
+  optional bool cardinal_pt_1_begin_pt = 14;
+  optional bool cardinal_pt_2_end_pt = 15;
+  optional bool cardinal_pt_3_center = 16;
+}
+
+message MakeCylinderFitProfileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeEllipseFitProfileRequest {
+  optional string fit_profile_name = 1;
+  optional MeasuredSideForRadialOffset measured_side_for_radial_offset = 2;
+  optional double override_radial_offset_1_0_use_current = 3;
+  optional MeasuredSideForPlanarOffset measured_side_for_planar_offset = 4;
+  optional double override_planar_offset_1_0_use_current = 5;
+  optional NormalDirection planar_offset_direction = 6;
+  optional bool reverse_normal_vector_after_fit = 7;
+  optional bool make_cardinal_points = 8;
+  optional bool cardinal_pt_1_center = 9;
+  optional bool cardinal_pt_2_point_on_normal = 10;
+  optional bool cardinal_pt_3_focal_pt_1 = 11;
+  optional bool cardinal_pt_4_focal_pt_2 = 12;
+}
+
+message MakeEllipseFitProfileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeLineFitProfileRequest {
+  optional string fit_profile_name = 1;
+  optional bool reverse_normal_vector_after_fit = 2;
+  optional bool make_cardinal_points = 3;
+  optional bool cardinal_pt_1_point_a = 4;
+  optional bool cardinal_pt_2_point_b = 5;
+  optional bool cardinal_pt_3_mid_point = 6;
+}
+
+message MakeLineFitProfileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeParaboloidFitProfileRequest {
+  optional string fit_profile_name = 1;
+  optional MeasuredSideForRadialOffset measured_side_for_radial_offset = 2;
+  optional double override_radial_offset_1_0_use_current = 3;
+  optional double lock_focal_length_1_0_do_not_lock = 4;
+  optional DegreeOfFreedom degree_of_freedom = 5;
+  optional bool make_cardinal_points = 6;
+  optional bool cardinal_pt_1_vertex = 7;
+  optional bool cardinal_pt_2_focal_point = 8;
+}
+
+message MakeParaboloidFitProfileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MakePlaneFitProfileRequest {
+  optional string fit_profile_name = 1;
+  optional MeasuredSideForPlanarOffset measured_side_for_planar_offset = 2;
+  optional double override_planar_offset_1_0_use_current = 3;
+  optional NormalDirection planar_offset_direction = 4;
+  optional bool reverse_normal_vector_after_fit = 5;
+  optional bool make_cardinal_points = 6;
+  optional bool cardinal_pt_1_centroid = 7;
+  optional bool cardinal_pt_2_point_on_normal = 8;
+}
+
+message MakePlaneFitProfileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeSlotFitProfileRequest {
+  optional string fit_profile_name = 1;
+  optional MeasuredSideForRadialOffset measured_side_for_radial_offset = 2;
+  optional double override_radial_offset_1_0_use_current = 3;
+  optional MeasuredSideForPlanarOffset measured_side_for_planar_offset = 4;
+  optional double override_planar_offset_1_0_use_current = 5;
+  optional NormalDirection planar_offset_direction = 6;
+  optional SlotType slot_type = 7;
+  optional CompTechnique slot_computation_technique = 8;
+  optional bool reverse_normal_vector_after_fit = 9;
+  optional bool make_cardinal_points = 10;
+  optional bool cardinal_pt_1_center = 11;
+  optional bool cardinal_pt_2_point_on_normal = 12;
+  optional bool cardinal_pt_3_centerline_pt_1 = 13;
+  optional bool cardinal_pt_4_centerline_pt_2 = 14;
+}
+
+message MakeSlotFitProfileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeSphereFitProfileRequest {
+  optional string fit_profile_name = 1;
+  optional MeasuredSideForRadialOffset measured_side_for_radial_offset = 2;
+  optional double override_radial_offset_1_0_use_current = 3;
+  optional double lock_radius_1_0_do_not_lock = 4;
+  optional bool make_cardinal_points = 5;
+  optional bool cardinal_pt_1_center = 6;
+  optional SphereFitComputationMode computation_method = 7;
+}
+
+message MakeSphereFitProfileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MushroomTargetHoleInspectionRequest {
+  optional string name_prefix_for_intermediate_constructions = 1;
+  optional CollectionObjectName sphere_points_group_name = 2;
+  optional double sphere_target_radius = 3;
+  optional CollectionObjectName target_contact_plane = 4;
+  optional PointName point_to_create_at_hole = 5;
+}
+
+message MushroomTargetHoleInspectionResult {
+  optional double sphere_fit_rms_error = 1;
+  optional double sphere_fit_max_error = 2;
+  MpExecutionDetails execution = 1000;
+}
+
+message PatchNormalShiftHolePinRequest {
+  optional CollectionObjectName plane_points_group_name = 1;
+  optional CollectionObjectName perimeter_points_group_name = 2;
+  optional PointName resulting_point_name = 3;
+  optional double additional_material_thickness = 4;
+}
+
+message PatchNormalShiftHolePinResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message PatchNormalShiftPointRequest {
+  optional CollectionObjectName plane_points_group_name = 1;
+  optional PointName point_to_shift = 2;
+  optional PointName resulting_point_name = 3;
+  optional double additional_material_thickness = 4;
+}
+
+message PatchNormalShiftPointResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message QueryCloudsToObjectsRequest {
+  repeated CollectionObjectName cloud_names = 1;
+  repeated CollectionObjectName object_names = 2;
+  optional CollectionObjectName resulting_object_name = 3;
+  optional ProjectionOptions projection_options = 4;
+  optional double proximity = 5;
+  optional int32 skip_factor = 6;
+  optional double rms_tolerance_0_0_for_none = 7;
+  optional double maximum_absolute_tolerance_0_0_for_none = 8;
+}
+
+message QueryCloudsToObjectsResult {
+  optional double rms_deviation = 1;
+  optional double maximum_absolute_deviation = 2;
+  MpExecutionDetails execution = 1000;
+}
+
+message QueryCloudsToSurfaceRequest {
+  repeated CollectionObjectName cloud_names = 1;
+  optional CollectionObjectName filter_surface_name = 2;
+  optional CollectionObjectName resulting_object_name = 3;
+  optional ProjectionOptions projection_options = 4;
+  optional double proximity = 5;
+  optional int32 skip_factor = 6;
+  optional double rms_tolerance_0_0_for_none = 7;
+  optional double maximum_absolute_tolerance_0_0_for_none = 8;
+}
+
+message QueryCloudsToSurfaceResult {
+  optional double rms_deviation = 1;
+  optional double maximum_absolute_deviation = 2;
+  MpExecutionDetails execution = 1000;
+}
+
+message QueryFrameToFrameRequest {
+  optional CollectionObjectName reference_frame_name = 1;
+  optional CollectionObjectName corresponding_frame_name = 2;
+}
+
+message QueryFrameToFrameResult {
+  optional double x = 1;
+  optional double y = 2;
+  optional double z = 3;
+  optional double rx_roll = 4;
+  optional double ry_pitch = 5;
+  optional double rz_yaw = 6;
+  MpExecutionDetails execution = 1000;
+}
+
+message QueryGroupsToObjectsRequest {
+  repeated CollectionObjectName group_name_list_groups_to_project = 1;
+  repeated CollectionObjectName object_name_list_objects_to_project_to = 2;
+  optional CollectionObjectName resulting_object_name = 3;
+  optional ProjectionOptions projection_options = 4;
+  optional double rms_tolerance_0_0_for_none = 5;
+  optional double maximum_absolute_tolerance_0_0_for_none = 6;
+  optional bool show_results_dialog = 7;
+}
+
+message QueryGroupsToObjectsResult {
+  optional double rms_deviation = 1;
+  optional double max_absolute_deviation = 2;
+  optional double average_deviation = 3;
+  optional double standard_deviation = 4;
+  MpExecutionDetails execution = 1000;
+}
+
+message QueryPointToObjectsRequest {
+  optional PointName point_name = 1;
+  repeated CollectionObjectName objects = 2;
+  optional bool ignore_target_offset = 3;
+}
+
+message QueryPointToObjectsResult {
+  optional double d_x = 1;
+  optional double d_y = 2;
+  optional double d_z = 3;
+  optional double d_mag = 4;
+  optional CollectionObjectName resultant_object = 5;
+  MpExecutionDetails execution = 1000;
+}
+
+message QueryPointToPointAlongCurveRequest {
+  optional PointName value_1st_point = 1;
+  optional PointName value_2nd_point = 2;
+  optional CollectionObjectName curve = 3;
+}
+
+message QueryPointToPointAlongCurveResult {
+  optional double distance_along_curve = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message QueryPointsToCircleRequest {
+  optional CollectionObjectName circle_name = 1;
+  optional CollectionObjectName point_group_name = 2;
+  optional bool is_inside_measurement = 3;
+  optional int32 auto_scale_vectors_to_of_radius = 4;
+  optional CollectionObjectName vector_group_name_for_radial = 5;
+  optional CollectionObjectName vector_group_name_for_planar = 6;
+  optional CollectionObjectName vector_group_name_for_combined = 7;
+}
+
+message QueryPointsToCircleResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message QueryPointsToObjectsRequest {
+  repeated PointName point_names = 1;
+  repeated CollectionObjectName object_name_list_objects_to_project_to = 2;
+  optional CollectionObjectName resulting_object_name = 3;
+  optional ProjectionOptions projection_options = 4;
+  optional double rms_tolerance_0_0_for_none = 5;
+  optional double maximum_absolute_tolerance_0_0_for_none = 6;
+  optional bool show_results_dialog = 7;
+}
+
+message QueryPointsToObjectsResult {
+  optional double rms_deviation = 1;
+  optional double max_absolute_deviation = 2;
+  optional double average_deviation = 3;
+  optional double standard_deviation = 4;
+  MpExecutionDetails execution = 1000;
+}
+
+message QueryPointsToSinglePointRequest {
+  repeated PointName point_names = 1;
+  optional PointName single_point = 2;
+  optional bool show_vector_properties = 3;
+}
+
+message QueryPointsToSinglePointResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ReComputeCalculatedItemsRequest {
+  optional bool targets_from_shots = 1;
+  optional bool hidden_points = 2;
+  optional bool relationships = 3;
+  optional bool refresh_filtered_cloud_data = 4;
+}
+
+message ReComputeCalculatedItemsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message RenamePointsBasedOnInterPointDistanceToReferencePointsRequest {
+  optional CollectionObjectName reference_group_name = 1;
+  optional CollectionObjectName group_to_rename_points = 2;
+  optional double distance_threshold = 3;
+  optional bool verify_results = 4;
+}
+
+message RenamePointsBasedOnInterPointDistanceToReferencePointsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message RenamePointsBasedOnProximityToReferencePointsRequest {
+  optional CollectionObjectName reference_group_name = 1;
+  optional CollectionObjectName group_to_rename_points = 2;
+  optional double proximity_threshold = 3;
+  optional bool verify_results = 4;
+  optional bool rename_all_proximate_points = 5;
+}
+
+message RenamePointsBasedOnProximityToReferencePointsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ReverseBSplinesRequest {
+  repeated CollectionObjectName b_spline_list = 1;
+}
+
+message ReverseBSplinesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ReversePlaneNormalsRequest {
+  repeated CollectionObjectName plane_list = 1;
+}
+
+message ReversePlaneNormalsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ReverseSurfaceNormalsRequest {
+  repeated CollectionObjectName surface_list = 1;
+}
+
+message ReverseSurfaceNormalsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetCirclePropertiesRequest {
+  optional CollectionObjectName circle_name = 1;
+  optional Vector center_coordinate = 2;
+  optional Vector normal_direction = 3;
+  optional double radius = 4;
+}
+
+message SetCirclePropertiesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetConePropertiesRequest {
+  optional CollectionObjectName cone_name = 1;
+  optional Vector cone_end_point_in_working_coordinates = 2;
+  optional Vector cone_axis_in_working_coordinates = 3;
+  optional double cone_length = 4;
+  optional double cone_theta_start = 5;
+  optional double cone_theta_span = 6;
+  optional double cone_included_angle = 7;
+  optional double cut_length_from_apex = 8;
+}
+
+message SetConePropertiesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetCylinderPropertiesRequest {
+  optional CollectionObjectName cylinder_name = 1;
+  optional Vector begin_coordinate = 2;
+  optional Vector axis_direction = 3;
+  optional double length = 4;
+  optional double diameter = 5;
+  optional bool nominals_point_inward = 6;
+  optional int32 facets = 7;
+  optional bool enable_theta_extent_display_mode = 8;
+  optional double theta_start_in_degrees = 9;
+  optional double theta_span_in_degrees = 10;
+}
+
+message SetCylinderPropertiesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetDefaultColorizationOptionsRequest {
+  optional ColorizationOptions colorization_options = 1;
+}
+
+message SetDefaultColorizationOptionsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetEllipsePropertiesRequest {
+  optional CollectionObjectName ellipse_name = 1;
+  optional Vector center_coordinate = 2;
+  optional Vector normal_direction = 3;
+  optional double major_axis_radius = 4;
+  optional double minor_axis_radius = 5;
+}
+
+message SetEllipsePropertiesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetGeometryRelationshipFitProfileRequest {
+  optional GeometryType geometry_type = 1;
+  repeated CollectionItemName relationship_ref_list = 2;
+  optional string fit_profile_name = 3;
+  optional bool apply_cardinal_point_settings = 4;
+}
+
+message SetGeometryRelationshipFitProfileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetLinePropertiesRequest {
+  optional CollectionObjectName line_name = 1;
+  optional Vector begin_coordinate = 2;
+  optional Vector end_coordinate = 3;
+  optional double length_optional = 4;
+}
+
+message SetLinePropertiesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetMeasurementAuxiliaryDataRequest {
+  optional PointName point_name = 1;
+  optional string auxiliary_name = 2;
+  optional double value = 3;
+  optional string units = 4;
+}
+
+message SetMeasurementAuxiliaryDataResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetObjectReportingFrameRequest {
+  optional CollectionObjectName object_name = 1;
+  optional CollectionObjectName reporting_frame = 2;
+}
+
+message SetObjectReportingFrameResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetPointPropertiesRequest {
+  repeated PointName point_name_list = 1;
+  optional double planar_offset = 2;
+  optional double radial_offset = 3;
+  optional ToleranceVectorOptions position_tolerance = 4;
+  optional Vector component_weights = 5;
+}
+
+message SetPointPropertiesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetPointWeightsFromUncertaintiesRequest {
+  repeated PointName point_name_list = 1;
+  optional string uncertainty_reference_frame_mode = 2;
+  optional CollectionObjectName reporting_frame = 3;
+  optional string weight_normalization_mode = 4;
+  optional double fixed_weight_value = 5;
+  optional CollectionObjectName output_weighted_point_group = 6;
+}
+
+message SetPointWeightsFromUncertaintiesResult {
+  repeated PointName output_weighted_point_list = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message SetTransformForIthFrameInFrameSetRequest {
+  optional CollectionObjectName frame_set = 1;
+  optional int32 frame_set_index = 2;
+  optional Transform transform_in_working = 3;
+}
+
+message SetTransformForIthFrameInFrameSetResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SphereAxisCheckRequest {
+  optional CollectionObjectName sphere_points_group_name = 1;
+  optional double sphere_target_radius = 2;
+  optional PointName point_to_create_at_sphere_center = 3;
+  optional CollectionObjectName line_defining_the_axis = 4;
+}
+
+message SphereAxisCheckResult {
+  optional double sphere_fit_rms_error = 1;
+  optional double sphere_fit_max_error = 2;
+  optional Vector vector_representation = 3;
+  optional double x_value = 4;
+  optional double y_value = 5;
+  optional double z_value = 6;
+  optional double magnitude = 7;
+  MpExecutionDetails execution = 1000;
+}
+
+message TemperatureCompensateAGroupRequest {
+  optional CollectionObjectName original_group = 1;
+  optional FrameName scaling_origin_coordinate_frame = 2;
+  optional double material_cte_1_deg_f = 3;
+  optional double initial_temperature_f = 4;
+  optional double final_temperature_f = 5;
+  optional CollectionObjectName scaled_group_name = 6;
+}
+
+message TemperatureCompensateAGroupResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message TransformObjectsFrameToFrameRequest {
+  repeated CollectionObjectName object_name_list = 1;
+  optional CollectionObjectName initial_frame_name = 2;
+  optional CollectionObjectName destination_frame_name = 3;
+  optional int32 number_of_steps = 4;
+}
+
+message TransformObjectsFrameToFrameResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message TransformObjectsByDeltaAboutWorkingFrameRequest {
+  repeated CollectionObjectName objects_to_transform = 1;
+  optional Transform delta_transform = 2;
+}
+
+message TransformObjectsByDeltaAboutWorkingFrameResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message TransformObjectsByDeltaWorldTransformOperatorRequest {
+  repeated CollectionObjectName objects_to_transform = 1;
+  optional WorldTransform delta_transform = 2;
+}
+
+message TransformObjectsByDeltaWorldTransformOperatorResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message TranslateObjectsByDeltaRequest {
+  repeated CollectionObjectName objects_to_translate = 1;
+  optional Vector delta_translation = 2;
+}
+
+message TranslateObjectsByDeltaResult {
   MpExecutionDetails execution = 1000;
 }

@@ -34,7 +34,33 @@ public sealed class WorkerControlSpecializedValueValidationTests
                         WorkerMpValueKind.ToleranceScalarOptions,
                         ToleranceScalarOptionsValue: new(
                             new(true, 1.25),
-                            new(false, -2.5)))
+                            new(false, -2.5))),
+                    new(
+                        "Projection",
+                        WorkerMpValueKind.ProjectionOptions,
+                        ProjectionOptionsValue: new(
+                            "Object To Probe Vectors",
+                            true,
+                            true,
+                            1.5,
+                            false,
+                            0)),
+                    new(
+                        "Point Delta",
+                        WorkerMpValueKind.PointDeltaReportOptions,
+                        PointDeltaReportOptionsValue: new(
+                            0,
+                            "Single",
+                            true,
+                            true,
+                            true,
+                            true,
+                            true,
+                            true,
+                            true,
+                            false,
+                            true,
+                            true))
                 ],
                 []));
 
@@ -47,6 +73,8 @@ public sealed class WorkerControlSpecializedValueValidationTests
         Assert.Equal(2, inputs[0].SpecializedEnumValue!.Value);
         Assert.Equal(2, inputs[1].AutoFilterProximitySettingsValue!.RadialProximityMode);
         Assert.Equal(-2.5, inputs[2].ToleranceScalarOptionsValue!.Low.Value);
+        Assert.Equal(1.5, inputs[3].ProjectionOptionsValue!.OverrideTargetOffsetsValue);
+        Assert.Equal("Single", inputs[4].PointDeltaReportOptionsValue!.DetailsFormat);
         Assert.DoesNotContain(
             inputs.SelectMany(input => input.GetType().GetProperties()),
             property => property.PropertyType == typeof(object));
@@ -73,6 +101,18 @@ public sealed class WorkerControlSpecializedValueValidationTests
     [InlineData(WorkerMpValueKind.WcfAxisIdentifier, 2, 3)]
     [InlineData(WorkerMpValueKind.VectorComponent, 3, 4)]
     [InlineData(WorkerMpValueKind.ObjectType, 25, 26)]
+    [InlineData(WorkerMpValueKind.CompTechnique, 2, 3)]
+    [InlineData(WorkerMpValueKind.DegreeOfFreedom, 2, 3)]
+    [InlineData(WorkerMpValueKind.FitMethod, 1, 2)]
+    [InlineData(WorkerMpValueKind.MeasuredSideForPlanarOffset, 2, 3)]
+    [InlineData(WorkerMpValueKind.MeasuredSideForRadialOffset, 2, 3)]
+    [InlineData(WorkerMpValueKind.MpDialogInteractionMode, 1, 2)]
+    [InlineData(WorkerMpValueKind.MpInteractionMode, 2, 3)]
+    [InlineData(WorkerMpValueKind.NormalDirection, 2, 3)]
+    [InlineData(WorkerMpValueKind.SaInteractionMode, 2, 3)]
+    [InlineData(WorkerMpValueKind.SlotType, 1, 2)]
+    [InlineData(WorkerMpValueKind.SphereFitComputationMode, 2, 3)]
+    [InlineData(WorkerMpValueKind.WindowState, 4, 5)]
     public void ExactEnumDomainBoundariesAreEnforced(
         WorkerMpValueKind kind,
         int maximumValidValue,

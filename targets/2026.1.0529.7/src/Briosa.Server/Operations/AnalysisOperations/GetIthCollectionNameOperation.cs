@@ -8,9 +8,9 @@ namespace Briosa.Server.Operations.AnalysisOperations;
 /// <summary>
 /// Implements the exact "Get i-th Collection Name" MP command contract.
 /// </summary>
-internal static class GetIThCollectionNameOperation
+internal static class GetIthCollectionNameOperation
 {
-    public const string OperationId = "analysis_operations.get_i_th_collection_name";
+    public const string OperationId = "analysis_operations.get_ith_collection_name";
     public const string StepName = "Get i-th Collection Name";
     public const string CollectionIndexArgumentName = "Collection Index";
     public const string CollectionIndexSetter = "SetIntegerArg";
@@ -21,8 +21,8 @@ internal static class GetIThCollectionNameOperation
         OperationId,
         StepName,
         "briosa.AnalysisOperations",
-        "GetIThCollectionName",
-        "/briosa.AnalysisOperations/GetIThCollectionName",
+        "GetIthCollectionName",
+        "/briosa.AnalysisOperations/GetIthCollectionName",
         "read_only",
         Api.OperationExecutionScope.GlobalStateRead,
         Api.ReplaySafety.Safe,
@@ -31,7 +31,7 @@ internal static class GetIThCollectionNameOperation
     public static IReadOnlyList<OperationOutputContract> OutputContracts { get; } =
         [new("resultant_name", ResultantNameArgumentName, WorkerMpValueKind.CollectionName)];
 
-    public static WorkerMpCommand CreateCommand(Api.GetIThCollectionNameRequest request)
+    public static WorkerMpCommand CreateCommand(Api.GetIthCollectionNameRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
         if (!request.HasCollectionIndex)
@@ -61,14 +61,14 @@ internal static class GetIThCollectionNameOperation
             ]);
     }
 
-    public static Api.GetIThCollectionNameResult CreateResult(
+    public static Api.GetIthCollectionNameResult CreateResult(
         SuccessfulOperationExecution completed)
     {
         ArgumentNullException.ThrowIfNull(completed);
         var resultantName = completed.Execution.OutputValues.Single(value =>
             value.Name == ResultantNameArgumentName &&
             value.Kind == WorkerMpValueKind.CollectionName);
-        return new Api.GetIThCollectionNameResult
+        return new Api.GetIthCollectionNameResult
         {
             ResultantName = resultantName.StringValue!,
             Execution = completed.Details

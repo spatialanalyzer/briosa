@@ -4,7 +4,7 @@ namespace Briosa.Worker.Control;
 
 public static class WorkerControlProtocol
 {
-    public const int CurrentVersion = 13;
+    public const int CurrentVersion = 14;
 
     public const int MaximumMessageBytes = 64 * 1024;
 }
@@ -84,6 +84,20 @@ public enum WorkerMpValueKind
     TargetComputationMethod,
     ToleranceScalarOptions,
     TranslucencyType,
+    CompTechnique,
+    DegreeOfFreedom,
+    FitMethod,
+    MeasuredSideForPlanarOffset,
+    MeasuredSideForRadialOffset,
+    MpDialogInteractionMode,
+    MpInteractionMode,
+    NormalDirection,
+    SaInteractionMode,
+    SlotType,
+    SphereFitComputationMode,
+    WindowState,
+    ProjectionOptions,
+    PointDeltaReportOptions,
     PointName,
     Vector,
     ToleranceVectorOptions,
@@ -395,6 +409,8 @@ public sealed record WorkerMpInputArgument(
     WorkerReportOutputOptionsValue? ReportOutputOptionsValue = null,
     WorkerReportViewOptionsValue? ReportViewOptionsValue = null,
     WorkerToleranceScalarOptionsValue? ToleranceScalarOptionsValue = null,
+    WorkerProjectionOptionsValue? ProjectionOptionsValue = null,
+    WorkerPointDeltaReportOptionsValue? PointDeltaReportOptionsValue = null,
     string? SdkBinding = null);
 public sealed record WorkerMpOutputArgument(
     string Name,

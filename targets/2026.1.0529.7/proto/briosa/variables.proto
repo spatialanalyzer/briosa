@@ -1,0 +1,369 @@
+syntax = "proto3";
+
+package briosa;
+
+import "briosa/operation_outcomes.proto";
+import "briosa/spatial_analyzer_values.proto";
+
+option csharp_namespace = "Briosa";
+
+service Variables {
+  rpc AddDoubleToNamedDoubleListVariable(AddDoubleToNamedDoubleListVariableRequest) returns (AddDoubleToNamedDoubleListVariableResult);
+  rpc ClearNamedDoubleListVariable(ClearNamedDoubleListVariableRequest) returns (ClearNamedDoubleListVariableResult);
+  rpc DeleteVariable(DeleteVariableRequest) returns (DeleteVariableResult);
+  rpc DeleteVariablesWildcardMatch(DeleteVariablesWildcardMatchRequest) returns (DeleteVariablesWildcardMatchResult);
+  rpc GetBooleanVariable(GetBooleanVariableRequest) returns (GetBooleanVariableResult);
+  rpc GetCollectionObjectNameVariable(GetCollectionObjectNameVariableRequest) returns (GetCollectionObjectNameVariableResult);
+  rpc GetCollectionObjectRefListVariable(GetCollectionObjectRefListVariableRequest) returns (GetCollectionObjectRefListVariableResult);
+  rpc GetDoubleVariable(GetDoubleVariableRequest) returns (GetDoubleVariableResult);
+  rpc GetIntegerVariable(GetIntegerVariableRequest) returns (GetIntegerVariableResult);
+  rpc GetNamedDoubleListVariable(GetNamedDoubleListVariableRequest) returns (GetNamedDoubleListVariableResult);
+  rpc GetNamedDoubleListVariableMinMax(GetNamedDoubleListVariableMinMaxRequest) returns (GetNamedDoubleListVariableMinMaxResult);
+  rpc GetPointNameRefListVariable(GetPointNameRefListVariableRequest) returns (GetPointNameRefListVariableResult);
+  rpc GetPointNameVariable(GetPointNameVariableRequest) returns (GetPointNameVariableResult);
+  rpc GetRelationshipRefListVariable(GetRelationshipRefListVariableRequest) returns (GetRelationshipRefListVariableResult);
+  rpc GetReportItemsReferenceListVariable(GetReportItemsReferenceListVariableRequest) returns (GetReportItemsReferenceListVariableResult);
+  rpc GetStringRefListVariable(GetStringRefListVariableRequest) returns (GetStringRefListVariableResult);
+  rpc GetStringVariable(GetStringVariableRequest) returns (GetStringVariableResult);
+  rpc GetTransformVariable(GetTransformVariableRequest) returns (GetTransformVariableResult);
+  rpc GetVectorNameRefListVariable(GetVectorNameRefListVariableRequest) returns (GetVectorNameRefListVariableResult);
+  rpc GetVectorVariable(GetVectorVariableRequest) returns (GetVectorVariableResult);
+  rpc SetBooleanVariable(SetBooleanVariableRequest) returns (SetBooleanVariableResult);
+  rpc SetCollectionObjectNameVariable(SetCollectionObjectNameVariableRequest) returns (SetCollectionObjectNameVariableResult);
+  rpc SetCollectionObjectRefListVariable(SetCollectionObjectRefListVariableRequest) returns (SetCollectionObjectRefListVariableResult);
+  rpc SetDoubleVariable(SetDoubleVariableRequest) returns (SetDoubleVariableResult);
+  rpc SetFontVariable(SetFontVariableRequest) returns (SetFontVariableResult);
+  rpc SetIntegerVariable(SetIntegerVariableRequest) returns (SetIntegerVariableResult);
+  rpc SetNamedDoubleListVariable(SetNamedDoubleListVariableRequest) returns (SetNamedDoubleListVariableResult);
+  rpc SetPointNameRefListVariable(SetPointNameRefListVariableRequest) returns (SetPointNameRefListVariableResult);
+  rpc SetPointNameVariable(SetPointNameVariableRequest) returns (SetPointNameVariableResult);
+  rpc SetRelationshipRefListVariable(SetRelationshipRefListVariableRequest) returns (SetRelationshipRefListVariableResult);
+  rpc SetReportItemsReferenceListVariable(SetReportItemsReferenceListVariableRequest) returns (SetReportItemsReferenceListVariableResult);
+  rpc SetStringRefListVariable(SetStringRefListVariableRequest) returns (SetStringRefListVariableResult);
+  rpc SetStringVariable(SetStringVariableRequest) returns (SetStringVariableResult);
+  rpc SetTransformVariable(SetTransformVariableRequest) returns (SetTransformVariableResult);
+  rpc SetVectorNameRefListVariable(SetVectorNameRefListVariableRequest) returns (SetVectorNameRefListVariableResult);
+  rpc SetVectorVariable(SetVectorVariableRequest) returns (SetVectorVariableResult);
+}
+
+message AddDoubleToNamedDoubleListVariableRequest {
+  optional string name = 1;
+  optional double double_value = 2;
+}
+
+message AddDoubleToNamedDoubleListVariableResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ClearNamedDoubleListVariableRequest {
+  optional string name = 1;
+}
+
+message ClearNamedDoubleListVariableResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message DeleteVariableRequest {
+  optional string name = 1;
+}
+
+message DeleteVariableResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message DeleteVariablesWildcardMatchRequest {
+  optional string variable_wildcard_criteria = 1;
+}
+
+message DeleteVariablesWildcardMatchResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message GetBooleanVariableRequest {
+  optional string name = 1;
+}
+
+message GetBooleanVariableResult {
+  optional bool value = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetCollectionObjectNameVariableRequest {
+  optional string name = 1;
+}
+
+message GetCollectionObjectNameVariableResult {
+  optional CollectionObjectName value = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetCollectionObjectRefListVariableRequest {
+  optional string name = 1;
+}
+
+message GetCollectionObjectRefListVariableResult {
+  repeated CollectionObjectName value = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetDoubleVariableRequest {
+  optional string name = 1;
+}
+
+message GetDoubleVariableResult {
+  optional double value = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetIntegerVariableRequest {
+  optional string name = 1;
+}
+
+message GetIntegerVariableResult {
+  optional int32 value = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetNamedDoubleListVariableRequest {
+  optional string name = 1;
+}
+
+message GetNamedDoubleListVariableResult {
+  repeated double double_list_variable = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetNamedDoubleListVariableMinMaxRequest {
+  optional string name = 1;
+}
+
+message GetNamedDoubleListVariableMinMaxResult {
+  optional double minimum_value = 1;
+  optional double maximum_value = 2;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetPointNameRefListVariableRequest {
+  optional string name = 1;
+}
+
+message GetPointNameRefListVariableResult {
+  repeated PointName value = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetPointNameVariableRequest {
+  optional string name = 1;
+}
+
+message GetPointNameVariableResult {
+  optional PointName value = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetRelationshipRefListVariableRequest {
+  optional string name = 1;
+}
+
+message GetRelationshipRefListVariableResult {
+  repeated CollectionItemName value = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetReportItemsReferenceListVariableRequest {
+  optional string name = 1;
+}
+
+message GetReportItemsReferenceListVariableResult {
+  repeated CollectionItemName value = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetStringRefListVariableRequest {
+  optional string name = 1;
+}
+
+message GetStringRefListVariableResult {
+  repeated string value = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetStringVariableRequest {
+  optional string name = 1;
+}
+
+message GetStringVariableResult {
+  optional string value = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetTransformVariableRequest {
+  optional string name = 1;
+}
+
+message GetTransformVariableResult {
+  optional Transform value = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetVectorNameRefListVariableRequest {
+  optional string name = 1;
+}
+
+message GetVectorNameRefListVariableResult {
+  repeated VectorName value = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetVectorVariableRequest {
+  optional string name = 1;
+}
+
+message GetVectorVariableResult {
+  optional Vector value = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message SetBooleanVariableRequest {
+  optional string name = 1;
+  optional bool value = 2;
+}
+
+message SetBooleanVariableResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetCollectionObjectNameVariableRequest {
+  optional string name = 1;
+  optional CollectionObjectName value = 2;
+}
+
+message SetCollectionObjectNameVariableResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetCollectionObjectRefListVariableRequest {
+  optional string name = 1;
+  repeated CollectionObjectName value = 2;
+}
+
+message SetCollectionObjectRefListVariableResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetDoubleVariableRequest {
+  optional string name = 1;
+  optional double value = 2;
+}
+
+message SetDoubleVariableResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetFontVariableRequest {
+  optional string name = 1;
+  optional Font value = 2;
+}
+
+message SetFontVariableResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetIntegerVariableRequest {
+  optional string name = 1;
+  optional int32 value = 2;
+}
+
+message SetIntegerVariableResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetNamedDoubleListVariableRequest {
+  optional string name = 1;
+  repeated double double_list_variable = 2;
+}
+
+message SetNamedDoubleListVariableResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetPointNameRefListVariableRequest {
+  optional string name = 1;
+  repeated PointName value = 2;
+}
+
+message SetPointNameRefListVariableResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetPointNameVariableRequest {
+  optional string name = 1;
+  optional PointName value = 2;
+}
+
+message SetPointNameVariableResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetRelationshipRefListVariableRequest {
+  optional string name = 1;
+  repeated CollectionItemName value = 2;
+}
+
+message SetRelationshipRefListVariableResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetReportItemsReferenceListVariableRequest {
+  optional string name = 1;
+  repeated CollectionItemName value = 2;
+}
+
+message SetReportItemsReferenceListVariableResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetStringRefListVariableRequest {
+  optional string name = 1;
+  repeated string value = 2;
+}
+
+message SetStringRefListVariableResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetStringVariableRequest {
+  optional string name = 1;
+  optional string value = 2;
+}
+
+message SetStringVariableResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetTransformVariableRequest {
+  optional string name = 1;
+  optional Transform value = 2;
+}
+
+message SetTransformVariableResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetVectorNameRefListVariableRequest {
+  optional string name = 1;
+  repeated VectorName value = 2;
+}
+
+message SetVectorNameRefListVariableResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetVectorVariableRequest {
+  optional string name = 1;
+  optional Vector value = 2;
+}
+
+message SetVectorVariableResult {
+  MpExecutionDetails execution = 1000;
+}

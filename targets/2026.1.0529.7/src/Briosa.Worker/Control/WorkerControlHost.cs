@@ -277,6 +277,8 @@ internal static partial class WorkerControlHost
             ReportOutputOptionsValue: ToSdkReportOutput(argument.ReportOutputOptionsValue),
             ReportViewOptionsValue: ToSdkReportView(argument.ReportViewOptionsValue),
             ToleranceScalarOptionsValue: ToSdkToleranceScalar(argument.ToleranceScalarOptionsValue),
+            ProjectionOptionsValue: ToSdkProjection(argument.ProjectionOptionsValue),
+            PointDeltaReportOptionsValue: ToSdkPointDeltaReport(argument.PointDeltaReportOptionsValue),
             SdkBinding: argument.SdkBinding);
     private static SdkOutputArgument ToSdkOutputArgument(WorkerMpOutputArgument argument) =>
         new(

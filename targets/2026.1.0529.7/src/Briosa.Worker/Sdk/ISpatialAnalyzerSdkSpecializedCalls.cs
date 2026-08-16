@@ -35,6 +35,18 @@ internal partial interface ISpatialAnalyzerSdkCalls
     bool SetSurfDissectModeTypeArg(string name, string value);
     bool SetTargetComputationMethodArg(string name, string value);
     bool SetTranslucencyTypeArg(string name, string value);
+    bool SetCompTechniqueArg(string name, string value);
+    bool SetDegreeOfFreedomArg(string name, string value);
+    bool SetFitMethodArg(string name, string value);
+    bool SetMeasuredSideForPlanarOffsetArg(string name, string value);
+    bool SetMeasuredSideForRadialOffsetArg(string name, string value);
+    bool SetMPDialogInteractionModeArg(string name, string value);
+    bool SetMPInteractionModeArg(string name, string value);
+    bool SetNormalDirectionArg(string name, string value);
+    bool SetSAInteractionModeArg(string name, string value);
+    bool SetSlotTypeArg(string name, string value);
+    bool SetSphereFitComputationModeArg(string name, string value);
+    bool SetWindowStateArg(string name, string value);
 
     bool SetAutoFilterProximitySettingsArg(
         string name,
@@ -109,6 +121,30 @@ internal partial interface ISpatialAnalyzerSdkCalls
         double highTolerance,
         bool useLow,
         double lowTolerance);
+
+    bool SetProjectionOptionsArg(
+        string name,
+        string projectionType,
+        bool ignoreEdgeProjections,
+        bool overrideTargetOffsets,
+        double overrideTargetOffsetsValue,
+        bool addExtraMaterialThickness,
+        double extraMaterialThicknessValue);
+
+    bool SetPointDeltaReportOptionsArg(
+        string name,
+        string coordinateSystem,
+        string detailsFormat,
+        bool showPointA,
+        bool showPointB,
+        bool showDelta,
+        bool showMagnitude,
+        bool showComponent1,
+        bool showComponent2,
+        bool showComponent3,
+        bool sortPointNames,
+        bool showToleranceFields,
+        bool colorizeInToleranceFields);
 
     bool GetFitConstraintScalarOptionsArg(
         string name,

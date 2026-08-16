@@ -1,0 +1,716 @@
+syntax = "proto3";
+
+package briosa;
+
+import "briosa/operation_outcomes.proto";
+import "briosa/spatial_analyzer_values.proto";
+
+option csharp_namespace = "Briosa";
+
+service ReportingOperations {
+  rpc AddChartsToReportBar(AddChartsToReportBarRequest) returns (AddChartsToReportBarResult);
+  rpc AddCustomTableToSaReport(AddCustomTableToSaReportRequest) returns (AddCustomTableToSaReportResult);
+  rpc AddCustomTablesToReportBar(AddCustomTablesToReportBarRequest) returns (AddCustomTablesToReportBarResult);
+  rpc AddDatumsToReportBar(AddDatumsToReportBarRequest) returns (AddDatumsToReportBarResult);
+  rpc AddEventsToReportBar(AddEventsToReportBarRequest) returns (AddEventsToReportBarResult);
+  rpc AddFeatureChecksToReportBar(AddFeatureChecksToReportBarRequest) returns (AddFeatureChecksToReportBarResult);
+  rpc AddItemToSaReportAtLocation(AddItemToSaReportAtLocationRequest) returns (AddItemToSaReportAtLocationResult);
+  rpc AddObjectsToReportBar(AddObjectsToReportBarRequest) returns (AddObjectsToReportBarResult);
+  rpc AddPicturesToReportBar(AddPicturesToReportBarRequest) returns (AddPicturesToReportBarResult);
+  rpc AddRelationshipsToReportBar(AddRelationshipsToReportBarRequest) returns (AddRelationshipsToReportBarResult);
+  rpc AppendItemsToSaReport(AppendItemsToSaReportRequest) returns (AppendItemsToSaReportResult);
+  rpc CaptureCurrentView(CaptureCurrentViewRequest) returns (CaptureCurrentViewResult);
+  rpc CaptureScreenToFileBmpJpgPngGifTiff(CaptureScreenToFileBmpJpgPngGifTiffRequest) returns (CaptureScreenToFileBmpJpgPngGifTiffResult);
+  rpc ClearCustomTable(ClearCustomTableRequest) returns (ClearCustomTableResult);
+  rpc CloseAllReports(CloseAllReportsRequest) returns (CloseAllReportsResult);
+  rpc CloseHtmlDisplayBoard(CloseHtmlDisplayBoardRequest) returns (CloseHtmlDisplayBoardResult);
+  rpc CombineSaReports(CombineSaReportsRequest) returns (CombineSaReportsResult);
+  rpc CreateChartFromVectorGroup(CreateChartFromVectorGroupRequest) returns (CreateChartFromVectorGroupResult);
+  rpc DefineReportTemplate(DefineReportTemplateRequest) returns (DefineReportTemplateResult);
+  rpc DeleteChart(DeleteChartRequest) returns (DeleteChartResult);
+  rpc DeleteCustomTable(DeleteCustomTableRequest) returns (DeleteCustomTableResult);
+  rpc DeletePicture(DeletePictureRequest) returns (DeletePictureResult);
+  rpc DeleteSaDoc(DeleteSaDocRequest) returns (DeleteSaDocResult);
+  rpc DeleteSaReport(DeleteSaReportRequest) returns (DeleteSaReportResult);
+  rpc DeleteSaReportTemplate(DeleteSaReportTemplateRequest) returns (DeleteSaReportTemplateResult);
+  rpc GenerateQuickReportFromTabOrder(GenerateQuickReportFromTabOrderRequest) returns (GenerateQuickReportFromTabOrderResult);
+  rpc GenerateStandardHtmlReport(GenerateStandardHtmlReportRequest) returns (GenerateStandardHtmlReportResult);
+  rpc GenerateUpdateTemplatedReport(GenerateUpdateTemplatedReportRequest) returns (GenerateUpdateTemplatedReportResult);
+  rpc GetCustomTableCellDouble(GetCustomTableCellDoubleRequest) returns (GetCustomTableCellDoubleResult);
+  rpc GetCustomTableCellString(GetCustomTableCellStringRequest) returns (GetCustomTableCellStringResult);
+  rpc GetDefinedReportTags(GetDefinedReportTagsRequest) returns (GetDefinedReportTagsResult);
+  rpc GetReportTagValue(GetReportTagValueRequest) returns (GetReportTagValueResult);
+  rpc HtmlDisplayBoard(HtmlDisplayBoardRequest) returns (HtmlDisplayBoardResult);
+  rpc MakeCustomTable(MakeCustomTableRequest) returns (MakeCustomTableResult);
+  rpc MakeNewSaReport(MakeNewSaReportRequest) returns (MakeNewSaReportResult);
+  rpc MakeUtilityChart(MakeUtilityChartRequest) returns (MakeUtilityChartResult);
+  rpc NotifyUserDouble(NotifyUserDoubleRequest) returns (NotifyUserDoubleResult);
+  rpc NotifyUserHtml(NotifyUserHtmlRequest) returns (NotifyUserHtmlResult);
+  rpc NotifyUserInteger(NotifyUserIntegerRequest) returns (NotifyUserIntegerResult);
+  rpc NotifyUserTextArray(NotifyUserTextArrayRequest) returns (NotifyUserTextArrayResult);
+  rpc OutputSaReportToExcel(OutputSaReportToExcelRequest) returns (OutputSaReportToExcelResult);
+  rpc OutputSaReportToPdf(OutputSaReportToPdfRequest) returns (OutputSaReportToPdfResult);
+  rpc QuickReport(QuickReportRequest) returns (QuickReportResult);
+  rpc RefreshCalloutViewsInSaReport(RefreshCalloutViewsInSaReportRequest) returns (RefreshCalloutViewsInSaReportResult);
+  rpc RefreshReportBar(RefreshReportBarRequest) returns (RefreshReportBarResult);
+  rpc RemoveReportTag(RemoveReportTagRequest) returns (RemoveReportTagResult);
+  rpc RenamePicture(RenamePictureRequest) returns (RenamePictureResult);
+  rpc SaveChartToJPegFile(SaveChartToJPegFileRequest) returns (SaveChartToJPegFileResult);
+  rpc SaveCurrentViewBmpJpgPngGifTiff(SaveCurrentViewBmpJpgPngGifTiffRequest) returns (SaveCurrentViewBmpJpgPngGifTiffResult);
+  rpc SetCustomTableCellColor(SetCustomTableCellColorRequest) returns (SetCustomTableCellColorResult);
+  rpc SetCustomTableCellDouble(SetCustomTableCellDoubleRequest) returns (SetCustomTableCellDoubleResult);
+  rpc SetCustomTableCellFont(SetCustomTableCellFontRequest) returns (SetCustomTableCellFontResult);
+  rpc SetCustomTableCellString(SetCustomTableCellStringRequest) returns (SetCustomTableCellStringResult);
+  rpc SetCustomTableHeaderCell(SetCustomTableHeaderCellRequest) returns (SetCustomTableHeaderCellResult);
+  rpc SetCustomTableHeaderRow(SetCustomTableHeaderRowRequest) returns (SetCustomTableHeaderRowResult);
+  rpc SetCustomTableTitle(SetCustomTableTitleRequest) returns (SetCustomTableTitleResult);
+  rpc SetPointGroupReportOptions(SetPointGroupReportOptionsRequest) returns (SetPointGroupReportOptionsResult);
+  rpc SetRelationshipReportOptions(SetRelationshipReportOptionsRequest) returns (SetRelationshipReportOptionsResult);
+  rpc SetReportBarVisibility(SetReportBarVisibilityRequest) returns (SetReportBarVisibilityResult);
+  rpc SetReportOptionsForObject(SetReportOptionsForObjectRequest) returns (SetReportOptionsForObjectResult);
+  rpc SetReportTagValueFromDouble(SetReportTagValueFromDoubleRequest) returns (SetReportTagValueFromDoubleResult);
+  rpc SetReportTagValueFromInteger(SetReportTagValueFromIntegerRequest) returns (SetReportTagValueFromIntegerResult);
+  rpc SetReportTagValueFromString(SetReportTagValueFromStringRequest) returns (SetReportTagValueFromStringResult);
+  rpc SetScaleForPicture(SetScaleForPictureRequest) returns (SetScaleForPictureResult);
+  rpc SetVectorGroupReportOptions(SetVectorGroupReportOptionsRequest) returns (SetVectorGroupReportOptionsResult);
+}
+
+message AddChartsToReportBarRequest {
+  repeated CollectionItemName charts = 1;
+  optional bool clear_existing = 2;
+}
+
+message AddChartsToReportBarResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message AddCustomTableToSaReportRequest {
+  optional CollectionObjectName table_name = 1;
+  optional CollectionObjectName report_name = 2;
+  optional bool show_report = 3;
+}
+
+message AddCustomTableToSaReportResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message AddCustomTablesToReportBarRequest {
+  repeated CollectionItemName custom_tables_to_report = 1;
+  optional bool clear_existing = 2;
+}
+
+message AddCustomTablesToReportBarResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message AddDatumsToReportBarRequest {
+  repeated CollectionObjectName datums = 1;
+  optional bool clear_existing = 2;
+}
+
+message AddDatumsToReportBarResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message AddEventsToReportBarRequest {
+  repeated CollectionItemName events = 1;
+  optional bool clear_existing = 2;
+}
+
+message AddEventsToReportBarResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message AddFeatureChecksToReportBarRequest {
+  repeated CollectionItemName feature_checks = 1;
+  optional bool clear_existing = 2;
+}
+
+message AddFeatureChecksToReportBarResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message AddItemToSaReportAtLocationRequest {
+  optional CollectionObjectName report_name = 1;
+  optional CollectionObjectName item_name = 2;
+  optional int32 page_number = 3;
+  optional double horizontal_location = 4;
+  optional double vertical_location = 5;
+  optional bool show_report = 6;
+}
+
+message AddItemToSaReportAtLocationResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message AddObjectsToReportBarRequest {
+  repeated CollectionObjectName objects = 1;
+  optional bool clear_existing = 2;
+}
+
+message AddObjectsToReportBarResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message AddPicturesToReportBarRequest {
+  repeated CollectionItemName pictures = 1;
+  optional bool clear_existing = 2;
+}
+
+message AddPicturesToReportBarResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message AddRelationshipsToReportBarRequest {
+  repeated CollectionItemName relationships = 1;
+  optional bool clear_existing = 2;
+}
+
+message AddRelationshipsToReportBarResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message AppendItemsToSaReportRequest {
+  optional CollectionObjectName report_name = 1;
+  repeated CollectionObjectName items_to_report = 2;
+  optional bool show_report = 3;
+  optional bool begin_on_new_page = 4;
+}
+
+message AppendItemsToSaReportResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message CaptureCurrentViewRequest {
+  optional CollectionItemName picture_name = 1;
+}
+
+message CaptureCurrentViewResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message CaptureScreenToFileBmpJpgPngGifTiffRequest {
+  optional FileReference file_to_save_to = 1;
+}
+
+message CaptureScreenToFileBmpJpgPngGifTiffResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ClearCustomTableRequest {
+  optional CollectionObjectName table_name = 1;
+}
+
+message ClearCustomTableResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message CloseAllReportsRequest {
+  // No MP inputs.
+}
+
+message CloseAllReportsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message CloseHtmlDisplayBoardRequest {
+  // No MP inputs.
+}
+
+message CloseHtmlDisplayBoardResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message CombineSaReportsRequest {
+  repeated CollectionItemName sa_reports_to_combine = 1;
+  optional CollectionObjectName output_sa_report_name = 2;
+  optional bool show_report = 3;
+}
+
+message CombineSaReportsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message CreateChartFromVectorGroupRequest {
+  optional ChartName new_chart_name = 1;
+  optional CollectionObjectName vector_group_name = 2;
+  optional ChartType chart_type = 3;
+  optional DatasetType data_set_to_chart = 4;
+  optional DatasetType aux_data_set_to_chart = 5;
+  optional ChartName template_chart_name_optional = 6;
+  optional bool show_interface = 7;
+}
+
+message CreateChartFromVectorGroupResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message DefineReportTemplateRequest {
+  optional CollectionObjectName report_template_name = 1;
+  repeated string title = 2;
+  optional ReportViewOptions graphical_view_options = 3;
+  repeated CollectionObjectName items_to_report = 4;
+  repeated CollectionItemName relationships_to_report = 5;
+  repeated CollectionItemName events_to_report = 6;
+  optional ReportOutputOptions report_output_options = 7;
+  optional ReportPageSettings report_page_settings_sa_report_only = 8;
+  optional bool generate_now = 9;
+  optional bool show_generated_report = 10;
+}
+
+message DefineReportTemplateResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message DeleteChartRequest {
+  optional CollectionObjectName chart_name = 1;
+}
+
+message DeleteChartResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message DeleteCustomTableRequest {
+  optional CollectionObjectName table_name = 1;
+}
+
+message DeleteCustomTableResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message DeletePictureRequest {
+  optional CollectionItemName picture_name = 1;
+}
+
+message DeletePictureResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message DeleteSaDocRequest {
+  optional CollectionObjectName doc_name = 1;
+}
+
+message DeleteSaDocResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message DeleteSaReportRequest {
+  optional CollectionObjectName report_name = 1;
+}
+
+message DeleteSaReportResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message DeleteSaReportTemplateRequest {
+  optional CollectionObjectName report_template_name = 1;
+}
+
+message DeleteSaReportTemplateResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message GenerateQuickReportFromTabOrderRequest {
+  optional ReportOutputOptions report_output_options = 1;
+  optional bool open_report = 2;
+}
+
+message GenerateQuickReportFromTabOrderResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message GenerateStandardHtmlReportRequest {
+  optional FileReference html_output_file = 1;
+  optional int32 decimal_precision = 2;
+}
+
+message GenerateStandardHtmlReportResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message GenerateUpdateTemplatedReportRequest {
+  optional CollectionObjectName report_template = 1;
+}
+
+message GenerateUpdateTemplatedReportResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message GetCustomTableCellDoubleRequest {
+  optional CollectionObjectName table_name = 1;
+  optional int32 row = 2;
+  optional int32 column = 3;
+}
+
+message GetCustomTableCellDoubleResult {
+  optional double value = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetCustomTableCellStringRequest {
+  optional CollectionObjectName table_name = 1;
+  optional int32 row = 2;
+  optional int32 column = 3;
+}
+
+message GetCustomTableCellStringResult {
+  optional string value = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetDefinedReportTagsRequest {
+  // No MP inputs.
+}
+
+message GetDefinedReportTagsResult {
+  repeated string defined_tags = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetReportTagValueRequest {
+  optional string tag_name = 1;
+}
+
+message GetReportTagValueResult {
+  optional string tag_value_as_string = 1;
+  optional int32 tag_value_as_integer = 2;
+  optional double tag_value_as_double = 3;
+  MpExecutionDetails execution = 1000;
+}
+
+message HtmlDisplayBoardRequest {
+  optional FileReference input_html_file = 1;
+  optional bool show_board = 2;
+}
+
+message HtmlDisplayBoardResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeCustomTableRequest {
+  optional CollectionObjectName table_name = 1;
+  optional int32 decimal_precision = 2;
+}
+
+message MakeCustomTableResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeNewSaReportRequest {
+  optional CollectionObjectName new_sa_report_name = 1;
+  optional CollectionObjectName sa_report_template_optional = 2;
+}
+
+message MakeNewSaReportResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeUtilityChartRequest {
+  optional FileReference ascii_file_path = 1;
+  optional string chart_title_override = 2;
+  optional CollectionItemName output_picture_name = 3;
+  optional bool show_chart_dialog = 4;
+  optional bool plot_additional_xy_value = 5;
+  optional double x_value = 6;
+  optional double y_value = 7;
+}
+
+message MakeUtilityChartResult {
+  optional bool is_point_inside = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message NotifyUserDoubleRequest {
+  optional string leading_text = 1;
+  optional Font font = 2;
+  optional double reported_value = 3;
+  optional int32 decimal_precision = 4;
+  optional int32 display_timeout = 5;
+}
+
+message NotifyUserDoubleResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message NotifyUserHtmlRequest {
+  optional FileReference html_file = 1;
+}
+
+message NotifyUserHtmlResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message NotifyUserIntegerRequest {
+  optional string leading_text = 1;
+  optional Font font = 2;
+  optional int32 reported_value = 3;
+  optional int32 display_timeout = 4;
+}
+
+message NotifyUserIntegerResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message NotifyUserTextArrayRequest {
+  repeated string notification_text = 1;
+  optional Font font = 2;
+  optional bool auto_expand_to_fit_text = 3;
+  optional int32 display_timeout = 4;
+}
+
+message NotifyUserTextArrayResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message OutputSaReportToExcelRequest {
+  optional CollectionObjectName report_name = 1;
+  optional FileReference file_name = 2;
+  optional bool show_file = 3;
+}
+
+message OutputSaReportToExcelResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message OutputSaReportToPdfRequest {
+  optional CollectionObjectName report_name = 1;
+  optional FileReference file_name = 2;
+  optional bool show_pdf = 3;
+}
+
+message OutputSaReportToPdfResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message QuickReportRequest {
+  optional CollectionObjectName item_name = 1;
+  optional string report_name_optional = 2;
+  optional bool open_report = 3;
+}
+
+message QuickReportResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message RefreshCalloutViewsInSaReportRequest {
+  optional CollectionItemName report_name = 1;
+}
+
+message RefreshCalloutViewsInSaReportResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message RefreshReportBarRequest {
+  // No MP inputs.
+}
+
+message RefreshReportBarResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message RemoveReportTagRequest {
+  optional string tag_name = 1;
+}
+
+message RemoveReportTagResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message RenamePictureRequest {
+  optional CollectionItemName original_picture_name = 1;
+  optional CollectionItemName new_picture_name = 2;
+  optional bool overwrite_if_exists = 3;
+}
+
+message RenamePictureResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SaveChartToJPegFileRequest {
+  optional ChartName chart_to_save = 1;
+  optional FileReference file_to_save_to = 2;
+}
+
+message SaveChartToJPegFileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SaveCurrentViewBmpJpgPngGifTiffRequest {
+  optional FileReference file_to_save_to = 1;
+  optional double render_scale_factor_1_0_uses_window_size = 2;
+}
+
+message SaveCurrentViewBmpJpgPngGifTiffResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetCustomTableCellColorRequest {
+  optional CollectionObjectName table_name = 1;
+  optional int32 row = 2;
+  optional int32 column = 3;
+  optional Color foreground_color_name = 4;
+  optional Color background_color_name = 5;
+}
+
+message SetCustomTableCellColorResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetCustomTableCellDoubleRequest {
+  optional CollectionObjectName table_name = 1;
+  optional int32 row = 2;
+  optional int32 column = 3;
+  optional double value = 4;
+  optional int32 span = 5;
+  optional int32 decimal_precision = 6;
+}
+
+message SetCustomTableCellDoubleResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetCustomTableCellFontRequest {
+  optional CollectionObjectName table_name = 1;
+  optional int32 row = 2;
+  optional int32 column = 3;
+  optional Font font = 4;
+}
+
+message SetCustomTableCellFontResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetCustomTableCellStringRequest {
+  optional CollectionObjectName table_name = 1;
+  optional int32 row = 2;
+  optional int32 column = 3;
+  optional string value = 4;
+  optional int32 span = 5;
+}
+
+message SetCustomTableCellStringResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetCustomTableHeaderCellRequest {
+  optional CollectionObjectName table_name = 1;
+  optional int32 row = 2;
+  optional int32 column = 3;
+  optional string header_text = 4;
+  optional int32 span = 5;
+}
+
+message SetCustomTableHeaderCellResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetCustomTableHeaderRowRequest {
+  optional CollectionObjectName table_name = 1;
+  optional int32 row = 2;
+  optional string value = 3;
+}
+
+message SetCustomTableHeaderRowResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetCustomTableTitleRequest {
+  optional CollectionObjectName table_name = 1;
+  optional string title_line_1 = 2;
+  optional string title_line_2 = 3;
+}
+
+message SetCustomTableTitleResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetPointGroupReportOptionsRequest {
+  optional CollectionObjectName point_group = 1;
+  optional CoordinateSystemType coordinate_system = 2;
+  optional bool show_x_component = 3;
+  optional bool show_y_component = 4;
+  optional bool show_z_component = 5;
+  optional bool show_offsets = 6;
+  optional bool show_uncertainty = 7;
+  optional bool show_notes = 8;
+  optional bool show_measurements = 9;
+  optional bool show_measurement_details = 10;
+  optional bool show_pointing_error_worst_angle = 11;
+  optional bool sort_by_point_names = 12;
+  optional bool make_default = 13;
+  optional bool apply_to_all = 14;
+}
+
+message SetPointGroupReportOptionsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetRelationshipReportOptionsRequest {
+  optional CollectionObjectName relationship_name = 1;
+  optional PointDeltaReportOptions report_options = 2;
+}
+
+message SetRelationshipReportOptionsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetReportBarVisibilityRequest {
+  optional bool show_report_bar = 1;
+}
+
+message SetReportBarVisibilityResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetReportOptionsForObjectRequest {
+  optional CollectionObjectName object = 1;
+}
+
+message SetReportOptionsForObjectResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetReportTagValueFromDoubleRequest {
+  optional string tag_name = 1;
+  optional double tag_value = 2;
+}
+
+message SetReportTagValueFromDoubleResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetReportTagValueFromIntegerRequest {
+  optional string tag_name = 1;
+  optional int32 tag_value = 2;
+}
+
+message SetReportTagValueFromIntegerResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetReportTagValueFromStringRequest {
+  optional string tag_name = 1;
+  optional string tag_value = 2;
+}
+
+message SetReportTagValueFromStringResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetScaleForPictureRequest {
+  optional CollectionItemName picture_name = 1;
+  optional double scale = 2;
+}
+
+message SetScaleForPictureResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetVectorGroupReportOptionsRequest {
+  optional CollectionObjectName vector_group = 1;
+  optional PointDeltaReportOptions report_options = 2;
+}
+
+message SetVectorGroupReportOptionsResult {
+  MpExecutionDetails execution = 1000;
+}

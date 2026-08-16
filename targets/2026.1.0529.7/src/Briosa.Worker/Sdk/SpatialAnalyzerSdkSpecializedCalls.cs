@@ -70,6 +70,30 @@ internal sealed partial class SpatialAnalyzerSdkAdapter
             Sdk.SetTargetComputationMethodArg(name, value);
         public bool SetTranslucencyTypeArg(string name, string value) =>
             Sdk.SetTranslucencyTypeArg(name, value);
+        public bool SetCompTechniqueArg(string name, string value) =>
+            Sdk.SetCompTechniqueArg(name, value);
+        public bool SetDegreeOfFreedomArg(string name, string value) =>
+            Sdk.SetDegreeOfFreedomArg(name, value);
+        public bool SetFitMethodArg(string name, string value) =>
+            Sdk.SetFitMethodArg(name, value);
+        public bool SetMeasuredSideForPlanarOffsetArg(string name, string value) =>
+            Sdk.SetMeasuredSideForPlanarOffsetArg(name, value);
+        public bool SetMeasuredSideForRadialOffsetArg(string name, string value) =>
+            Sdk.SetMeasuredSideForRadialOffsetArg(name, value);
+        public bool SetMPDialogInteractionModeArg(string name, string value) =>
+            Sdk.SetMPDialogInteractionModeArg(name, value);
+        public bool SetMPInteractionModeArg(string name, string value) =>
+            Sdk.SetMPInteractionModeArg(name, value);
+        public bool SetNormalDirectionArg(string name, string value) =>
+            Sdk.SetNormalDirectionArg(name, value);
+        public bool SetSAInteractionModeArg(string name, string value) =>
+            Sdk.SetSAInteractionModeArg(name, value);
+        public bool SetSlotTypeArg(string name, string value) =>
+            Sdk.SetSlotTypeArg(name, value);
+        public bool SetSphereFitComputationModeArg(string name, string value) =>
+            Sdk.SetSphereFitComputationModeArg(name, value);
+        public bool SetWindowStateArg(string name, string value) =>
+            Sdk.SetWindowStateArg(name, value);
 
         public bool SetAutoFilterProximitySettingsArg(
             string name,
@@ -215,6 +239,52 @@ internal sealed partial class SpatialAnalyzerSdkAdapter
                 highTolerance,
                 useLow,
                 lowTolerance);
+
+        public bool SetProjectionOptionsArg(
+            string name,
+            string projectionType,
+            bool ignoreEdgeProjections,
+            bool overrideTargetOffsets,
+            double overrideTargetOffsetsValue,
+            bool addExtraMaterialThickness,
+            double extraMaterialThicknessValue) =>
+            Sdk.SetProjectionOptionsArg(
+                name,
+                projectionType,
+                ignoreEdgeProjections,
+                overrideTargetOffsets,
+                overrideTargetOffsetsValue,
+                addExtraMaterialThickness,
+                extraMaterialThicknessValue);
+
+        public bool SetPointDeltaReportOptionsArg(
+            string name,
+            string coordinateSystem,
+            string detailsFormat,
+            bool showPointA,
+            bool showPointB,
+            bool showDelta,
+            bool showMagnitude,
+            bool showComponent1,
+            bool showComponent2,
+            bool showComponent3,
+            bool sortPointNames,
+            bool showToleranceFields,
+            bool colorizeInToleranceFields) =>
+            Sdk.SetPointDeltaReportOptionsArg(
+                name,
+                coordinateSystem,
+                detailsFormat,
+                showPointA,
+                showPointB,
+                showDelta,
+                showMagnitude,
+                showComponent1,
+                showComponent2,
+                showComponent3,
+                sortPointNames,
+                showToleranceFields,
+                colorizeInToleranceFields);
 
         public bool GetFitConstraintScalarOptionsArg(
             string name,

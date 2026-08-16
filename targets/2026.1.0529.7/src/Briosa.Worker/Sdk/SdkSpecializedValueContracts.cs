@@ -377,6 +377,18 @@ internal enum SdkSurfaceAnalysisModeValue { None, Relationship, Normals, Curvatu
 internal enum SdkSurfaceDissectionModeTypeValue { EntireSolid, SelectFaces }
 internal enum SdkTargetComputationMethodValue { UseMostRecentShotFromEachFace, UseOnlyMostRecentShot, DoNotChangePriorMeasurements, ForceNewPointForEachMeasurement, RemoveAllPriorShots, DeactivateAllPriorShots }
 internal enum SdkTranslucencyTypeValue { Solid, Translucent, Wireframe }
+internal enum SdkCompTechniqueValue { Standard, MaxInscribed, MinCircumscribed }
+internal enum SdkDegreeOfFreedomValue { Any, LockFocusLocation, LockVertexLocation }
+internal enum SdkFitMethodValue { MinimumRms, BestAxis }
+internal enum SdkMeasuredSideForPlanarOffsetValue { AbovePlane, ProbeCenter, BelowPlane }
+internal enum SdkMeasuredSideForRadialOffsetValue { Inside, ProbeCenter, Outside }
+internal enum SdkMpDialogInteractionModeValue { BlockApplicationInteraction, AllowApplicationInteraction }
+internal enum SdkMpInteractionModeValue { HaltOnFailureOnly, HaltOnFailureOrPartialSuccess, NeverHalt }
+internal enum SdkNormalDirectionValue { ProbingDirection, WorkingOriginPositive, RightHandRule }
+internal enum SdkSaInteractionModeValue { Manual, Automatic, Silent }
+internal enum SdkSlotTypeValue { Round, Square }
+internal enum SdkSphereFitComputationModeValue { Standard, MaxInscribed, MinCircumscribed }
+internal enum SdkWindowStateValue { Maximize, Minimize, Restore, Show, Hide }
 
 internal enum SdkCloudThinningModeValue { None, Random, NthPoint }
 
@@ -454,3 +466,25 @@ internal sealed record SdkReportViewOptionsValue(
 internal sealed record SdkToleranceScalarOptionsValue(
     SdkToleranceLimit High,
     SdkToleranceLimit Low);
+
+internal sealed record SdkProjectionOptionsValue(
+    string ProjectionType,
+    bool IgnoreEdgeProjections,
+    bool OverrideTargetOffsets,
+    double OverrideTargetOffsetsValue,
+    bool AddExtraMaterialThickness,
+    double ExtraMaterialThicknessValue);
+
+internal sealed record SdkPointDeltaReportOptionsValue(
+    SdkCoordinateSystemTypeValue CoordinateSystem,
+    string DetailsFormat,
+    bool ShowPointA,
+    bool ShowPointB,
+    bool ShowDelta,
+    bool ShowMagnitude,
+    bool ShowComponent1,
+    bool ShowComponent2,
+    bool ShowComponent3,
+    bool SortPointNames,
+    bool ShowToleranceFields,
+    bool ColorizeInToleranceFields);

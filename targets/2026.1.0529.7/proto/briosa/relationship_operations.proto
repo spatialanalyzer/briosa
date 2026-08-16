@@ -1,0 +1,677 @@
+syntax = "proto3";
+
+package briosa;
+
+import "briosa/operation_outcomes.proto";
+import "briosa/spatial_analyzer_values.proto";
+
+option csharp_namespace = "Briosa";
+
+service RelationshipOperations {
+  rpc EnableDisableRelationshipsForOptimization(EnableDisableRelationshipsForOptimizationRequest) returns (EnableDisableRelationshipsForOptimizationResult);
+  rpc GeomRelationshipIgnoreInputPoints(GeomRelationshipIgnoreInputPointsRequest) returns (GeomRelationshipIgnoreInputPointsResult);
+  rpc GeomRelationshipReuseIgnoredInputPoints(GeomRelationshipReuseIgnoredInputPointsRequest) returns (GeomRelationshipReuseIgnoredInputPointsResult);
+  rpc GetGeomRelationshipAutoVectors(GetGeomRelationshipAutoVectorsRequest) returns (GetGeomRelationshipAutoVectorsResult);
+  rpc GetGeomRelationshipCardinalPoints(GetGeomRelationshipCardinalPointsRequest) returns (GetGeomRelationshipCardinalPointsResult);
+  rpc GetGeomRelationshipCriteria(GetGeomRelationshipCriteriaRequest) returns (GetGeomRelationshipCriteriaResult);
+  rpc GetGeomRelationshipMeasuredAvgPoint(GetGeomRelationshipMeasuredAvgPointRequest) returns (GetGeomRelationshipMeasuredAvgPointResult);
+  rpc GetGeomRelationshipMeasuredGeometry(GetGeomRelationshipMeasuredGeometryRequest) returns (GetGeomRelationshipMeasuredGeometryResult);
+  rpc GetGeomRelationshipNominalAvgPoint(GetGeomRelationshipNominalAvgPointRequest) returns (GetGeomRelationshipNominalAvgPointResult);
+  rpc GetGeomRelationshipNominalGeometry(GetGeomRelationshipNominalGeometryRequest) returns (GetGeomRelationshipNominalGeometryResult);
+  rpc GetGeomRelationshipPointList(GetGeomRelationshipPointListRequest) returns (GetGeomRelationshipPointListResult);
+  rpc GetGeomRelationshipProjectionPlane(GetGeomRelationshipProjectionPlaneRequest) returns (GetGeomRelationshipProjectionPlaneResult);
+  rpc GetPipeRelationshipCutStatus(GetPipeRelationshipCutStatusRequest) returns (GetPipeRelationshipCutStatusResult);
+  rpc GetPipeRelationshipProperties(GetPipeRelationshipPropertiesRequest) returns (GetPipeRelationshipPropertiesResult);
+  rpc GetPipeRelationshipWeights(GetPipeRelationshipWeightsRequest) returns (GetPipeRelationshipWeightsResult);
+  rpc GetRelationshipFitConstraintsScalarType(GetRelationshipFitConstraintsScalarTypeRequest) returns (GetRelationshipFitConstraintsScalarTypeResult);
+  rpc GetRelationshipOutlierRejectionScalarType(GetRelationshipOutlierRejectionScalarTypeRequest) returns (GetRelationshipOutlierRejectionScalarTypeResult);
+  rpc GetRelationshipProjectionOptions(GetRelationshipProjectionOptionsRequest) returns (GetRelationshipProjectionOptionsResult);
+  rpc GetRelationshipReportingFrame(GetRelationshipReportingFrameRequest) returns (GetRelationshipReportingFrameResult);
+  rpc GetRelationshipSubSamplingOptions(GetRelationshipSubSamplingOptionsRequest) returns (GetRelationshipSubSamplingOptionsResult);
+  rpc GetRelationshipToleranceScalarType(GetRelationshipToleranceScalarTypeRequest) returns (GetRelationshipToleranceScalarTypeResult);
+  rpc GetRelationshipToleranceVectorType(GetRelationshipToleranceVectorTypeRequest) returns (GetRelationshipToleranceVectorTypeResult);
+  rpc GetRelationshipType(GetRelationshipTypeRequest) returns (GetRelationshipTypeResult);
+  rpc GetRelationshipWeighting(GetRelationshipWeightingRequest) returns (GetRelationshipWeightingResult);
+  rpc MakePipeFittingRelationship(MakePipeFittingRelationshipRequest) returns (MakePipeFittingRelationshipResult);
+  rpc MakePipeRelationshipCut(MakePipeRelationshipCutRequest) returns (MakePipeRelationshipCutResult);
+  rpc PipeRelationshipForceCutToFrame(PipeRelationshipForceCutToFrameRequest) returns (PipeRelationshipForceCutToFrameResult);
+  rpc SetGeomRelationshipAutoMeasureNominalFeature(SetGeomRelationshipAutoMeasureNominalFeatureRequest) returns (SetGeomRelationshipAutoMeasureNominalFeatureResult);
+  rpc SetGeomRelationshipAutoVectorsNominalAvn(SetGeomRelationshipAutoVectorsNominalAvnRequest) returns (SetGeomRelationshipAutoVectorsNominalAvnResult);
+  rpc SetGeomRelationshipCardinalPoints(SetGeomRelationshipCardinalPointsRequest) returns (SetGeomRelationshipCardinalPointsResult);
+  rpc SetGeomRelationshipCriteria(SetGeomRelationshipCriteriaRequest) returns (SetGeomRelationshipCriteriaResult);
+  rpc SetGeomRelationshipMeasuredGeometry(SetGeomRelationshipMeasuredGeometryRequest) returns (SetGeomRelationshipMeasuredGeometryResult);
+  rpc SetGeomRelationshipNominalAvgPoint(SetGeomRelationshipNominalAvgPointRequest) returns (SetGeomRelationshipNominalAvgPointResult);
+  rpc SetGeomRelationshipNominalGeometry(SetGeomRelationshipNominalGeometryRequest) returns (SetGeomRelationshipNominalGeometryResult);
+  rpc SetGeomRelationshipProjectionPlane(SetGeomRelationshipProjectionPlaneRequest) returns (SetGeomRelationshipProjectionPlaneResult);
+  rpc SetObjectToObjectDirectionRelationshipFitConstraints(SetObjectToObjectDirectionRelationshipFitConstraintsRequest) returns (SetObjectToObjectDirectionRelationshipFitConstraintsResult);
+  rpc SetPipeRelationshipSegmentProperties(SetPipeRelationshipSegmentPropertiesRequest) returns (SetPipeRelationshipSegmentPropertiesResult);
+  rpc SetPipeRelationshipWeights(SetPipeRelationshipWeightsRequest) returns (SetPipeRelationshipWeightsResult);
+  rpc SetRelationshipAutoVectorsFitAvf(SetRelationshipAutoVectorsFitAvfRequest) returns (SetRelationshipAutoVectorsFitAvfResult);
+  rpc SetRelationshipAutoVectorsGroupDefaultPrefix(SetRelationshipAutoVectorsGroupDefaultPrefixRequest) returns (SetRelationshipAutoVectorsGroupDefaultPrefixResult);
+  rpc SetRelationshipDesiredMeasCount(SetRelationshipDesiredMeasCountRequest) returns (SetRelationshipDesiredMeasCountResult);
+  rpc SetRelationshipDormantStatus(SetRelationshipDormantStatusRequest) returns (SetRelationshipDormantStatusResult);
+  rpc SetRelationshipFitConstraintsScalarType(SetRelationshipFitConstraintsScalarTypeRequest) returns (SetRelationshipFitConstraintsScalarTypeResult);
+  rpc SetRelationshipOrientationFitConstraintsVectorType(SetRelationshipOrientationFitConstraintsVectorTypeRequest) returns (SetRelationshipOrientationFitConstraintsVectorTypeResult);
+  rpc SetRelationshipOutlierRejectionScalarType(SetRelationshipOutlierRejectionScalarTypeRequest) returns (SetRelationshipOutlierRejectionScalarTypeResult);
+  rpc SetRelationshipPositionFitConstraintsVectorType(SetRelationshipPositionFitConstraintsVectorTypeRequest) returns (SetRelationshipPositionFitConstraintsVectorTypeResult);
+  rpc SetRelationshipProjectionOptions(SetRelationshipProjectionOptionsRequest) returns (SetRelationshipProjectionOptionsResult);
+  rpc SetRelationshipReportingFrame(SetRelationshipReportingFrameRequest) returns (SetRelationshipReportingFrameResult);
+  rpc SetRelationshipSigmoidalGapFitConstraints(SetRelationshipSigmoidalGapFitConstraintsRequest) returns (SetRelationshipSigmoidalGapFitConstraintsResult);
+  rpc SetRelationshipSubSamplingOptions(SetRelationshipSubSamplingOptionsRequest) returns (SetRelationshipSubSamplingOptionsResult);
+  rpc SetRelationshipToleranceScalarType(SetRelationshipToleranceScalarTypeRequest) returns (SetRelationshipToleranceScalarTypeResult);
+  rpc SetRelationshipToleranceVectorType(SetRelationshipToleranceVectorTypeRequest) returns (SetRelationshipToleranceVectorTypeResult);
+  rpc SetRelationshipVoxelCloudDisplay(SetRelationshipVoxelCloudDisplayRequest) returns (SetRelationshipVoxelCloudDisplayResult);
+  rpc SetRelationshipWeighting(SetRelationshipWeightingRequest) returns (SetRelationshipWeightingResult);
+  rpc SetRelationshipWeightsNormalized(SetRelationshipWeightsNormalizedRequest) returns (SetRelationshipWeightsNormalizedResult);
+}
+
+message EnableDisableRelationshipsForOptimizationRequest {
+  repeated CollectionItemName relationships = 1;
+  optional bool enable = 2;
+}
+
+message EnableDisableRelationshipsForOptimizationResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message GeomRelationshipIgnoreInputPointsRequest {
+  optional CollectionObjectName relationship_name = 1;
+}
+
+message GeomRelationshipIgnoreInputPointsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message GeomRelationshipReuseIgnoredInputPointsRequest {
+  optional CollectionObjectName relationship_name = 1;
+}
+
+message GeomRelationshipReuseIgnoredInputPointsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message GetGeomRelationshipAutoVectorsRequest {
+  optional CollectionObjectName relationship_name = 1;
+}
+
+message GetGeomRelationshipAutoVectorsResult {
+  optional bool auto_vectors_nominal_avn_enabled = 1;
+  optional CollectionObjectName auto_vectors_nominal_avn_name = 2;
+  optional bool auto_vectors_fit_avf_enabled = 3;
+  optional CollectionObjectName auto_vectors_fit_avf_name = 4;
+  optional string points_type = 5;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetGeomRelationshipCardinalPointsRequest {
+  optional CollectionObjectName relationship_name = 1;
+}
+
+message GetGeomRelationshipCardinalPointsResult {
+  repeated PointName cardinal_point_name_list = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetGeomRelationshipCriteriaRequest {
+  optional CollectionObjectName relationship_name = 1;
+  optional string criteria = 2;
+}
+
+message GetGeomRelationshipCriteriaResult {
+  optional double nominal = 1;
+  optional double measured = 2;
+  optional double delta = 3;
+  optional double low_tolerance = 4;
+  optional double high_tolerance = 5;
+  optional double optimization_delta_weight = 6;
+  optional double optimization_out_of_tolerance_weight = 7;
+  optional string is_within_tolerance = 8;
+  optional bool has_uncertainty = 9;
+  double uncertainty = 10;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetGeomRelationshipMeasuredAvgPointRequest {
+  optional CollectionObjectName relationship_name = 1;
+}
+
+message GetGeomRelationshipMeasuredAvgPointResult {
+  optional PointName measured_average_point = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetGeomRelationshipMeasuredGeometryRequest {
+  optional CollectionObjectName relationship_name = 1;
+}
+
+message GetGeomRelationshipMeasuredGeometryResult {
+  optional CollectionObjectName measured_geometry = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetGeomRelationshipNominalAvgPointRequest {
+  optional CollectionObjectName relationship_name = 1;
+}
+
+message GetGeomRelationshipNominalAvgPointResult {
+  optional PointName nominal_average_point = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetGeomRelationshipNominalGeometryRequest {
+  optional CollectionObjectName relationship_name = 1;
+}
+
+message GetGeomRelationshipNominalGeometryResult {
+  optional CollectionObjectName nominal_geometry = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetGeomRelationshipPointListRequest {
+  optional CollectionObjectName relationship_name = 1;
+}
+
+message GetGeomRelationshipPointListResult {
+  repeated PointName all_points = 1;
+  repeated PointName used_points = 2;
+  repeated PointName ignored_points = 3;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetGeomRelationshipProjectionPlaneRequest {
+  optional CollectionObjectName relationship_name = 1;
+}
+
+message GetGeomRelationshipProjectionPlaneResult {
+  optional CollectionObjectName projection_plane_name = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetPipeRelationshipCutStatusRequest {
+  optional CollectionObjectName relationship_name = 1;
+}
+
+message GetPipeRelationshipCutStatusResult {
+  optional bool pipe_1_cut_available = 1;
+  optional bool pipe_1_cut_active = 2;
+  optional bool pipe_2_cut_available = 3;
+  optional bool pipe_2_cut_active = 4;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetPipeRelationshipPropertiesRequest {
+  optional CollectionObjectName relationship_name = 1;
+}
+
+message GetPipeRelationshipPropertiesResult {
+  optional CollectionObjectName pipe_1_object_name = 1;
+  optional double pipe_1_inner_diameter = 2;
+  optional double pipe_1_outer_diameter = 3;
+  optional double pipe_1_cut_begin = 4;
+  optional double pipe_1_cut_end = 5;
+  optional CollectionObjectName pipe_2_object_name = 6;
+  optional double pipe_2_inner_diameter = 7;
+  optional double pipe_2_outer_diameter = 8;
+  optional double pipe_2_cut_begin = 9;
+  optional double pipe_2_cut_end = 10;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetPipeRelationshipWeightsRequest {
+  optional CollectionObjectName relationship_name = 1;
+}
+
+message GetPipeRelationshipWeightsResult {
+  optional double overall_weight = 1;
+  optional double axis_offset = 2;
+  optional double axis_alignment = 3;
+  optional double center_pull = 4;
+  optional double out_of_material_weight = 5;
+  optional double out_of_material_static_offset = 6;
+  optional bool constrain_region_at_od = 7;
+  optional bool constrain_id_od_overlap = 8;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetRelationshipFitConstraintsScalarTypeRequest {
+  optional CollectionObjectName relationship_name = 1;
+}
+
+message GetRelationshipFitConstraintsScalarTypeResult {
+  optional bool use_high_tolerance = 1;
+  optional double high_tolerance = 2;
+  optional bool use_low_tolerance = 3;
+  optional double low_tolerance = 4;
+  optional FitConstraintScalarOptions fit_constraint_options = 5;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetRelationshipOutlierRejectionScalarTypeRequest {
+  optional CollectionObjectName relationship_name = 1;
+}
+
+message GetRelationshipOutlierRejectionScalarTypeResult {
+  optional bool use_high_limit = 1;
+  optional double high_limit = 2;
+  optional bool use_low_limit = 3;
+  optional double low_limit = 4;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetRelationshipProjectionOptionsRequest {
+  optional CollectionObjectName relationship_name = 1;
+}
+
+message GetRelationshipProjectionOptionsResult {
+  optional bool ignore_edge_projections = 1;
+  optional bool probe_offsets_override_target_values = 2;
+  optional double probe_offsets_override_value = 3;
+  optional bool add_extra_material = 4;
+  optional double extra_material_thickness = 5;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetRelationshipReportingFrameRequest {
+  optional CollectionObjectName relationship_name = 1;
+}
+
+message GetRelationshipReportingFrameResult {
+  optional CollectionObjectName reporting_frame = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetRelationshipSubSamplingOptionsRequest {
+  optional CollectionObjectName relationship_name = 1;
+}
+
+message GetRelationshipSubSamplingOptionsResult {
+  optional bool use_every_ith_point = 1;
+  optional int32 i_value = 2;
+  optional bool use_no_more_than_n_points = 3;
+  optional int32 n_value = 4;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetRelationshipToleranceScalarTypeRequest {
+  optional CollectionObjectName relationship_name = 1;
+}
+
+message GetRelationshipToleranceScalarTypeResult {
+  optional bool use_high_tolerance = 1;
+  optional double high_tolerance = 2;
+  optional bool use_low_tolerance = 3;
+  optional double low_tolerance = 4;
+  optional ToleranceScalarOptions tolerance_options = 5;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetRelationshipToleranceVectorTypeRequest {
+  optional CollectionObjectName relationship_name = 1;
+}
+
+message GetRelationshipToleranceVectorTypeResult {
+  optional bool use_high_x_tolerance = 1;
+  optional double high_x_tolerance = 2;
+  optional bool use_high_y_tolerance = 3;
+  optional double high_y_tolerance = 4;
+  optional bool use_high_z_tolerance = 5;
+  optional double high_z_tolerance = 6;
+  optional bool use_high_mag_tolerance = 7;
+  optional double high_mag_tolerance = 8;
+  optional bool use_low_x_tolerance = 9;
+  optional double low_x_tolerance = 10;
+  optional bool use_low_y_tolerance = 11;
+  optional double low_y_tolerance = 12;
+  optional bool use_low_z_tolerance = 13;
+  optional double low_z_tolerance = 14;
+  optional bool use_low_mag_tolerance = 15;
+  optional double low_mag_tolerance = 16;
+  optional ToleranceVectorOptions vector_tolerance = 17;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetRelationshipTypeRequest {
+  optional CollectionObjectName relationship_name = 1;
+}
+
+message GetRelationshipTypeResult {
+  optional string relationship_type = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetRelationshipWeightingRequest {
+  optional CollectionObjectName relationship_name = 1;
+}
+
+message GetRelationshipWeightingResult {
+  optional double weight = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message MakePipeFittingRelationshipRequest {
+  optional CollectionObjectName relationship_name = 1;
+  optional CollectionObjectName pipe_1_object_name = 2;
+  optional CollectionObjectName pipe_2_object_name = 3;
+}
+
+message MakePipeFittingRelationshipResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MakePipeRelationshipCutRequest {
+  optional CollectionObjectName relationship_name = 1;
+  optional bool pipe_1_make_cut = 2;
+  optional bool pipe_1_create_frame = 3;
+  optional CollectionObjectName pipe_1_frame_name = 4;
+  optional bool pipe_2_make_cut = 5;
+  optional bool pipe_2_create_frame = 6;
+  optional CollectionObjectName pipe_2_frame_name = 7;
+}
+
+message MakePipeRelationshipCutResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message PipeRelationshipForceCutToFrameRequest {
+  optional CollectionObjectName relationship_name = 1;
+  optional bool pipe_1_force_cut_to_frame = 2;
+  optional CollectionObjectName pipe_1_frame_name = 3;
+  optional bool pipe_2_force_cut_to_frame = 4;
+  optional CollectionObjectName pipe_2_frame_name = 5;
+}
+
+message PipeRelationshipForceCutToFrameResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetGeomRelationshipAutoMeasureNominalFeatureRequest {
+  optional CollectionObjectName relationship_name = 1;
+  optional bool trap_clouds_false_geometry = 2;
+  optional CollectionInstrumentId instrument_id = 3;
+  optional string measurement_mode = 4;
+}
+
+message SetGeomRelationshipAutoMeasureNominalFeatureResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetGeomRelationshipAutoVectorsNominalAvnRequest {
+  optional CollectionObjectName relationship_name = 1;
+  optional bool create_auto_vectors_avn = 2;
+  optional PointFilterInputType points_type = 3;
+  optional bool use_vector_group_custom_prefix = 4;
+  optional string vector_group_custom_prefix = 5;
+}
+
+message SetGeomRelationshipAutoVectorsNominalAvnResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetGeomRelationshipCardinalPointsRequest {
+  optional CollectionObjectName relationship_name = 1;
+  optional bool create_cardinal_pts_when_fitting = 2;
+  optional bool prefix_cardinal_pts_name_with_rel_name = 3;
+  optional string cardinal_pts_group_name = 4;
+}
+
+message SetGeomRelationshipCardinalPointsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetGeomRelationshipCriteriaRequest {
+  optional CollectionObjectName relationship_name = 1;
+  optional string criteria = 2;
+  optional bool show_in_report = 3;
+  optional ToleranceScalarOptions tolerance_options = 4;
+  optional double optimization_delta_weight = 5;
+  optional double optimization_out_of_tolerance_weight = 6;
+}
+
+message SetGeomRelationshipCriteriaResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetGeomRelationshipMeasuredGeometryRequest {
+  optional CollectionObjectName relationship_name = 1;
+  optional CollectionObjectName measured_geometry = 2;
+}
+
+message SetGeomRelationshipMeasuredGeometryResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetGeomRelationshipNominalAvgPointRequest {
+  optional CollectionObjectName relationship_name = 1;
+  optional bool compare_to_nominal = 2;
+  optional PointName nominal_average_point = 3;
+}
+
+message SetGeomRelationshipNominalAvgPointResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetGeomRelationshipNominalGeometryRequest {
+  optional CollectionObjectName relationship_name = 1;
+  optional bool compare_to_nominal = 2;
+  optional CollectionObjectName nominal_geometry = 3;
+}
+
+message SetGeomRelationshipNominalGeometryResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetGeomRelationshipProjectionPlaneRequest {
+  optional CollectionObjectName relationship_name = 1;
+  optional bool project_to_plane = 2;
+  optional CollectionObjectName projection_plane_name = 3;
+}
+
+message SetGeomRelationshipProjectionPlaneResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetObjectToObjectDirectionRelationshipFitConstraintsRequest {
+  optional CollectionObjectName relationship_name = 1;
+  optional FitConstraintScalarOptions angle_between_vectors_fit_constraints = 2;
+  optional FitConstraintScalarOptions mutual_perpendicular_length_fit_constraints = 3;
+}
+
+message SetObjectToObjectDirectionRelationshipFitConstraintsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetPipeRelationshipSegmentPropertiesRequest {
+  optional CollectionObjectName relationship_name = 1;
+  optional double pipe_1_inner_diameter = 2;
+  optional double pipe_1_outer_diameter = 3;
+  optional double pipe_1_cut_begin = 4;
+  optional double pipe_1_cut_end = 5;
+  optional double pipe_2_inner_diameter = 6;
+  optional double pipe_2_outer_diameter = 7;
+  optional double pipe_2_cut_begin = 8;
+  optional double pipe_2_cut_end = 9;
+}
+
+message SetPipeRelationshipSegmentPropertiesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetPipeRelationshipWeightsRequest {
+  optional CollectionObjectName relationship_name = 1;
+  optional double overall_weight = 2;
+  optional double axis_offset = 3;
+  optional double axis_alignment = 4;
+  optional double center_pull = 5;
+  optional double out_of_material_weight = 6;
+  optional double out_of_material_offset = 7;
+  optional bool constrain_region_at_od = 8;
+  optional bool constrain_id_od_overlap = 9;
+}
+
+message SetPipeRelationshipWeightsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetRelationshipAutoVectorsFitAvfRequest {
+  optional CollectionObjectName relationship_name = 1;
+  optional bool create_auto_vectors_avf = 2;
+  optional bool use_vector_group_custom_prefix = 3;
+  optional string vector_group_custom_prefix = 4;
+}
+
+message SetRelationshipAutoVectorsFitAvfResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetRelationshipAutoVectorsGroupDefaultPrefixRequest {
+  optional string geom_rel_avn_vg_default_prefix = 1;
+  optional string geom_rel_avf_vg_default_prefix = 2;
+  optional string non_geom_rel_vg_default_prefix = 3;
+}
+
+message SetRelationshipAutoVectorsGroupDefaultPrefixResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetRelationshipDesiredMeasCountRequest {
+  optional CollectionObjectName relationship_name = 1;
+  optional int32 desired_measurement_count = 2;
+}
+
+message SetRelationshipDesiredMeasCountResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetRelationshipDormantStatusRequest {
+  repeated CollectionItemName relationships = 1;
+  optional bool dormant_status = 2;
+}
+
+message SetRelationshipDormantStatusResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetRelationshipFitConstraintsScalarTypeRequest {
+  optional CollectionObjectName relationship_name = 1;
+  optional FitConstraintScalarOptions fit_constraint_options = 2;
+}
+
+message SetRelationshipFitConstraintsScalarTypeResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetRelationshipOrientationFitConstraintsVectorTypeRequest {
+  optional CollectionObjectName relationship_name = 1;
+  optional ToleranceVectorOptions orientation_vector_constraint = 2;
+}
+
+message SetRelationshipOrientationFitConstraintsVectorTypeResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetRelationshipOutlierRejectionScalarTypeRequest {
+  optional CollectionObjectName relationship_name = 1;
+}
+
+message SetRelationshipOutlierRejectionScalarTypeResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetRelationshipPositionFitConstraintsVectorTypeRequest {
+  optional CollectionObjectName relationship_name = 1;
+  optional ToleranceVectorOptions position_vector_constraint = 2;
+}
+
+message SetRelationshipPositionFitConstraintsVectorTypeResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetRelationshipProjectionOptionsRequest {
+  optional CollectionObjectName relationship_name = 1;
+  optional ProjectionOptions projection_options = 2;
+}
+
+message SetRelationshipProjectionOptionsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetRelationshipReportingFrameRequest {
+  optional CollectionObjectName relationship_name = 1;
+  optional CollectionObjectName reporting_frame = 2;
+}
+
+message SetRelationshipReportingFrameResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetRelationshipSigmoidalGapFitConstraintsRequest {
+  optional CollectionObjectName relationship_name = 1;
+  optional bool use_sigmoidal_gap_constraints = 2;
+}
+
+message SetRelationshipSigmoidalGapFitConstraintsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetRelationshipSubSamplingOptionsRequest {
+  optional CollectionObjectName relationship_name = 1;
+  optional bool use_every_ith_point = 2;
+  optional int32 i_value = 3;
+  optional bool use_no_more_than_n_points = 4;
+  optional int32 n_value = 5;
+}
+
+message SetRelationshipSubSamplingOptionsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetRelationshipToleranceScalarTypeRequest {
+  optional CollectionObjectName relationship_name = 1;
+  optional ToleranceScalarOptions tolerance_options = 2;
+}
+
+message SetRelationshipToleranceScalarTypeResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetRelationshipToleranceVectorTypeRequest {
+  optional CollectionObjectName relationship_name = 1;
+  optional ToleranceVectorOptions vector_tolerance = 2;
+}
+
+message SetRelationshipToleranceVectorTypeResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetRelationshipVoxelCloudDisplayRequest {
+  optional CollectionObjectName relationship_name = 1;
+  optional bool enable_voxel_cloud_display = 2;
+  optional double voxel_size_1_0_autodetect = 3;
+  optional int32 min_pts_count_per_voxel = 4;
+  optional double voxel_rendering_diameter_1_0_fast = 5;
+  optional SurfaceAnalysisMode surface_analysis_mode = 6;
+  optional ColorizationOptions colorization_options = 7;
+  optional bool show_color_bar_in_view = 8;
+}
+
+message SetRelationshipVoxelCloudDisplayResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetRelationshipWeightingRequest {
+  optional CollectionObjectName relationship_name = 1;
+  optional double weight = 2;
+}
+
+message SetRelationshipWeightingResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetRelationshipWeightsNormalizedRequest {
+  optional CollectionName collection_name = 1;
+  optional RelWeightingMode pick_weighting_mode = 2;
+}
+
+message SetRelationshipWeightsNormalizedResult {
+  MpExecutionDetails execution = 1000;
+}

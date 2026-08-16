@@ -10,7 +10,9 @@ public sealed partial class ProtocolSchemaTests
         Assert.Equal(
             "briosa.FileOperations",
             Api.FileOperations.Descriptor.FullName);
-        var method = Assert.Single(Api.FileOperations.Descriptor.Methods);
+        var method = Assert.Single(
+            Api.FileOperations.Descriptor.Methods,
+            candidate => candidate.Name == "GetWorkingDirectory");
         Assert.Equal("GetWorkingDirectory", method.Name);
         Assert.Equal(
             Api.GetWorkingDirectoryRequest.Descriptor,

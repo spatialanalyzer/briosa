@@ -3,19 +3,918 @@ syntax = "proto3";
 package briosa;
 
 import "briosa/operation_outcomes.proto";
+import "briosa/spatial_analyzer_values.proto";
 
 option csharp_namespace = "Briosa";
 
 service FileOperations {
-  // Executes the "Get Working Directory" MP command.
+  rpc BackupNow(BackupNowRequest) returns (BackupNowResult);
+  rpc CopyGeneralFile(CopyGeneralFileRequest) returns (CopyGeneralFileResult);
+  rpc DeleteGeneralFile(DeleteGeneralFileRequest) returns (DeleteGeneralFileResult);
+  rpc DirectCadAccess(DirectCadAccessRequest) returns (DirectCadAccessResult);
+  rpc ExportAsciiFrameSet(ExportAsciiFrameSetRequest) returns (ExportAsciiFrameSetResult);
+  rpc ExportAsciiFrames(ExportAsciiFramesRequest) returns (ExportAsciiFramesResult);
+  rpc ExportAsciiPointClouds(ExportAsciiPointCloudsRequest) returns (ExportAsciiPointCloudsResult);
+  rpc ExportAsciiPointSet(ExportAsciiPointSetRequest) returns (ExportAsciiPointSetResult);
+  rpc ExportAsciiPoints(ExportAsciiPointsRequest) returns (ExportAsciiPointsResult);
+  rpc ExportDxf(ExportDxfRequest) returns (ExportDxfResult);
+  rpc ExportEmbeddedFile(ExportEmbeddedFileRequest) returns (ExportEmbeddedFileResult);
+  rpc ExportHiddenPointBarXmlFile(ExportHiddenPointBarXmlFileRequest) returns (ExportHiddenPointBarXmlFileResult);
+  rpc ExportIgesFileEntireModel(ExportIgesFileEntireModelRequest) returns (ExportIgesFileEntireModelResult);
+  rpc ExportIgesFilePartialModel(ExportIgesFilePartialModelRequest) returns (ExportIgesFilePartialModelResult);
+  rpc ExportPtxPointClouds(ExportPtxPointCloudsRequest) returns (ExportPtxPointCloudsResult);
+  rpc ExportQdasCharacteristics(ExportQdasCharacteristicsRequest) returns (ExportQdasCharacteristicsResult);
+  rpc ExportQdasDataList(ExportQdasDataListRequest) returns (ExportQdasDataListResult);
+  rpc ExportScanStripeMeshToStlFile(ExportScanStripeMeshToStlFileRequest) returns (ExportScanStripeMeshToStlFileResult);
+  rpc ExportStepFileEntireModel(ExportStepFileEntireModelRequest) returns (ExportStepFileEntireModelResult);
+  rpc ExportStepFilePartialModel(ExportStepFilePartialModelRequest) returns (ExportStepFilePartialModelResult);
+  rpc ExportVdaFsFileEntireModel(ExportVdaFsFileEntireModelRequest) returns (ExportVdaFsFileEntireModelResult);
+  rpc ExportVdaFsFilePartialModel(ExportVdaFsFilePartialModelRequest) returns (ExportVdaFsFilePartialModelResult);
+  rpc ExportVectorContainerToAsciiFile(ExportVectorContainerToAsciiFileRequest) returns (ExportVectorContainerToAsciiFileResult);
+  rpc FindFilesInDirectory(FindFilesInDirectoryRequest) returns (FindFilesInDirectoryResult);
+  rpc FindSubDirectoriesInDirectory(FindSubDirectoriesInDirectoryRequest) returns (FindSubDirectoriesInDirectoryResult);
+  rpc GetBooleanFromDataShareFile(GetBooleanFromDataShareFileRequest) returns (GetBooleanFromDataShareFileResult);
+  rpc GetDoubleFromDataShareFile(GetDoubleFromDataShareFileRequest) returns (GetDoubleFromDataShareFileResult);
+  rpc GetIntegerFromDataShareFile(GetIntegerFromDataShareFileRequest) returns (GetIntegerFromDataShareFileResult);
+  rpc GetQdasCatalogEntries(GetQdasCatalogEntriesRequest) returns (GetQdasCatalogEntriesResult);
+  rpc GetStringFromDataShareFile(GetStringFromDataShareFileRequest) returns (GetStringFromDataShareFileResult);
+  rpc GetTransformFromDataShareFile(GetTransformFromDataShareFileRequest) returns (GetTransformFromDataShareFileResult);
+  rpc GetVectorFromDataShareFile(GetVectorFromDataShareFileRequest) returns (GetVectorFromDataShareFileResult);
   rpc GetWorkingDirectory(GetWorkingDirectoryRequest) returns (GetWorkingDirectoryResult);
+  rpc ImportAsciiPredefinedFormats(ImportAsciiPredefinedFormatsRequest) returns (ImportAsciiPredefinedFormatsResult);
+  rpc ImportAsciiPredefinedFrameSetFormats(ImportAsciiPredefinedFrameSetFormatsRequest) returns (ImportAsciiPredefinedFrameSetFormatsResult);
+  rpc ImportE57File(ImportE57FileRequest) returns (ImportE57FileResult);
+  rpc ImportFileAsEmbeddedFile(ImportFileAsEmbeddedFileRequest) returns (ImportFileAsEmbeddedFileResult);
+  rpc ImportFileAsPicture(ImportFileAsPictureRequest) returns (ImportFileAsPictureResult);
+  rpc ImportHiddenPointBarXmlFile(ImportHiddenPointBarXmlFileRequest) returns (ImportHiddenPointBarXmlFileResult);
+  rpc ImportIgesFile(ImportIgesFileRequest) returns (ImportIgesFileResult);
+  rpc ImportLeicaGsiFile(ImportLeicaGsiFileRequest) returns (ImportLeicaGsiFileResult);
+  rpc ImportLeicaSdbFile(ImportLeicaSdbFileRequest) returns (ImportLeicaSdbFileResult);
+  rpc ImportMpFileAsEmbeddedMp(ImportMpFileAsEmbeddedMpRequest) returns (ImportMpFileAsEmbeddedMpResult);
+  rpc ImportNominalsFromXmlFile(ImportNominalsFromXmlFileRequest) returns (ImportNominalsFromXmlFileResult);
+  rpc ImportPolyworksFile(ImportPolyworksFileRequest) returns (ImportPolyworksFileResult);
+  rpc ImportQdasCatalogFile(ImportQdasCatalogFileRequest) returns (ImportQdasCatalogFileResult);
+  rpc ImportSaFile(ImportSaFileRequest) returns (ImportSaFileResult);
+  rpc ImportSaWindowsPlacement(ImportSaWindowsPlacementRequest) returns (ImportSaWindowsPlacementResult);
+  rpc ImportSatFile(ImportSatFileRequest) returns (ImportSatFileResult);
+  rpc ImportStepFile(ImportStepFileRequest) returns (ImportStepFileResult);
+  rpc ImportStlFile(ImportStlFileRequest) returns (ImportStlFileResult);
+  rpc ImportVdaFsFile(ImportVdaFsFileRequest) returns (ImportVdaFsFileResult);
+  rpc ImportVstarsXyzFile(ImportVstarsXyzFileRequest) returns (ImportVstarsXyzFileResult);
+  rpc ImportVstarsCameras(ImportVstarsCamerasRequest) returns (ImportVstarsCamerasResult);
+  rpc LoadHtmlForm(LoadHtmlFormRequest) returns (LoadHtmlFormResult);
+  rpc LoadHtmlFormInEdgeBrowser(LoadHtmlFormInEdgeBrowserRequest) returns (LoadHtmlFormInEdgeBrowserResult);
+  rpc MakeEmbeddedFileNameList(MakeEmbeddedFileNameListRequest) returns (MakeEmbeddedFileNameListResult);
+  rpc MergeMeasurementsIntoXmlFile(MergeMeasurementsIntoXmlFileRequest) returns (MergeMeasurementsIntoXmlFileResult);
+  rpc NewSaFile(NewSaFileRequest) returns (NewSaFileResult);
+  rpc OpenSaFile(OpenSaFileRequest) returns (OpenSaFileResult);
+  rpc OpenTemplateFile(OpenTemplateFileRequest) returns (OpenTemplateFileResult);
+  rpc PopPolyBayAnalysisWindow(PopPolyBayAnalysisWindowRequest) returns (PopPolyBayAnalysisWindowResult);
+  rpc PrepareQdasDataList(PrepareQdasDataListRequest) returns (PrepareQdasDataListResult);
+  rpc RenameGeneralFile(RenameGeneralFileRequest) returns (RenameGeneralFileResult);
+  rpc Save(SaveRequest) returns (SaveResult);
+  rpc SaveAsReadOnlyTemplate(SaveAsReadOnlyTemplateRequest) returns (SaveAsReadOnlyTemplateResult);
+  rpc SaveAs(SaveAsRequest) returns (SaveAsResult);
+  rpc SetBooleanInDataShareFile(SetBooleanInDataShareFileRequest) returns (SetBooleanInDataShareFileResult);
+  rpc SetDoubleInDataShareFile(SetDoubleInDataShareFileRequest) returns (SetDoubleInDataShareFileResult);
+  rpc SetIntegerInDataShareFile(SetIntegerInDataShareFileRequest) returns (SetIntegerInDataShareFileResult);
+  rpc SetStringInDataShareFile(SetStringInDataShareFileRequest) returns (SetStringInDataShareFileResult);
+  rpc SetTransformInDataShareFile(SetTransformInDataShareFileRequest) returns (SetTransformInDataShareFileResult);
+  rpc SetVectorInDataShareFile(SetVectorInDataShareFileRequest) returns (SetVectorInDataShareFileResult);
+  rpc TerminateAllRunningMPs(TerminateAllRunningMPsRequest) returns (TerminateAllRunningMPsResult);
+  rpc UseNrkxmlLibrary(UseNrkxmlLibraryRequest) returns (UseNrkxmlLibraryResult);
+  rpc VerifyGeneralFileExists(VerifyGeneralFileExistsRequest) returns (VerifyGeneralFileExistsResult);
+  rpc VerifyMpFileExists(VerifyMpFileExistsRequest) returns (VerifyMpFileExistsResult);
 }
 
-message GetWorkingDirectoryRequest {}
+message BackupNowRequest {
+  // No MP inputs.
+}
+
+message BackupNowResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message CopyGeneralFileRequest {
+  optional FileReference source_file_name = 1;
+  optional FileReference destination_file_name = 2;
+  optional bool overwrite = 3;
+}
+
+message CopyGeneralFileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message DeleteGeneralFileRequest {
+  optional FileReference file_name = 1;
+}
+
+message DeleteGeneralFileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message DirectCadAccessRequest {
+  optional FileReference cad_file_name = 1;
+  optional bool import_solids = 2;
+  optional bool import_surfaces = 3;
+  optional bool import_polygonized_surfaces = 4;
+  optional bool import_annotations = 5;
+  optional bool import_vectors = 6;
+  optional bool import_points = 7;
+  optional string point_group_name = 8;
+  optional bool import_attributes_metadata = 9;
+  optional bool import_cooordinate_frames = 10;
+  optional bool import_planes = 11;
+  optional bool import_3d_curves_lines = 12;
+  optional bool import_3d_curves_circles = 13;
+  optional bool import_3d_curves_general_curves = 14;
+  optional bool import_construction_geometry = 15;
+  optional bool import_hidden_entities = 16;
+  optional bool import_all_surfaces_as_mesh_graphical_entities = 17;
+  optional bool do_not_import_fillets = 18;
+  optional bool do_not_import_dittos = 19;
+  optional int32 ditto_threshold = 20;
+  optional bool center_view_on_imported_objects = 21;
+  optional bool import_into_folders_matching_cad_file_hierarchy = 22;
+  optional bool remove_empty_folders = 23;
+  optional int32 surface_normals_mode_1_or_2 = 24;
+  optional bool prompt_on_missing_components = 25;
+  optional bool selective_import = 26;
+  optional bool surface_compatibility_mode = 27;
+  optional bool explode_surfaces = 28;
+  optional string cad_file_units_leave_blank_to_use_the_units_specified_in_the_file = 29;
+  optional bool build_callout_views = 30;
+}
+
+message DirectCadAccessResult {
+  optional bool import_warnings = 1;
+  optional string import_warning_messages = 2;
+  optional Vector extents_min = 3;
+  optional Vector extents_max = 4;
+  MpExecutionDetails execution = 1000;
+}
+
+message ExportAsciiFrameSetRequest {
+  optional FileReference ascii_file_path = 1;
+  optional CollectionObjectName frame_set_container = 2;
+  optional ExportDataDelimeterType data_delimiter = 3;
+  optional AsciiFileFormat file_format = 4;
+  optional bool include_export_format_info = 5;
+  optional int32 decimal_precision = 6;
+  optional bool append = 7;
+}
+
+message ExportAsciiFrameSetResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ExportAsciiFramesRequest {
+  optional FileReference ascii_file_path = 1;
+  repeated CollectionObjectName object_list = 2;
+  optional string export_frame_mode = 3;
+  optional bool overwrite_existing_file = 4;
+}
+
+message ExportAsciiFramesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ExportAsciiPointCloudsRequest {
+  optional FileReference ascii_file_path = 1;
+  repeated CollectionObjectName point_cloud_list = 2;
+  optional ExportDataDelimeterType data_delimiter = 3;
+  optional bool overwrite_existing_file = 4;
+  optional bool show_progress_dialog = 5;
+  optional bool include_cloud_point_labeling = 6;
+  optional bool include_scan_direction_vector = 7;
+}
+
+message ExportAsciiPointCloudsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ExportAsciiPointSetRequest {
+  optional FileReference ascii_file_path = 1;
+  optional CollectionObjectName point_set_container = 2;
+  optional ExportDataDelimeterType data_delimiter = 3;
+  optional ExportTargetNameFormat target_name_format = 4;
+  optional CoordinateSystemType desired_coordinate_system = 5;
+  optional bool include_target_offsets = 6;
+  optional bool include_timestamps = 7;
+  optional bool include_sa_version_and_frame_comments = 8;
+  optional bool include_axis_comments = 9;
+  optional bool include_export_format_info = 10;
+  optional bool maximum_precision_scientific_notation = 11;
+  optional int32 decimal_precision = 12;
+  optional bool append = 13;
+}
+
+message ExportAsciiPointSetResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ExportAsciiPointsRequest {
+  optional FileReference ascii_file_path = 1;
+  repeated CollectionGroupName group_names_to_export = 2;
+  optional ExportDataDelimeterType data_delimiter = 3;
+  optional ExportTargetNameFormat target_name_format = 4;
+  optional CoordinateSystemType desired_coordinate_system = 5;
+  optional bool include_target_offsets = 6;
+  optional bool include_target_comments = 7;
+  optional bool include_timestamps = 8;
+  optional bool include_tolerances = 9;
+  optional bool include_coordinate_uncertainties = 10;
+  optional bool include_sa_version_and_frame_comments = 11;
+  optional bool include_axis_comments = 12;
+  optional bool include_export_format_info = 13;
+  optional bool include_weights = 14;
+  optional bool include_measurement_details = 15;
+  optional bool maximum_precision_scientific_notation = 16;
+  optional int32 decimal_precision = 17;
+  optional bool append = 18;
+}
+
+message ExportAsciiPointsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ExportDxfRequest {
+  optional FileReference dxf_file_path = 1;
+  repeated PointName point_names = 2;
+  repeated CollectionObjectName cloud_names = 3;
+  optional bool include_point_labels = 4;
+}
+
+message ExportDxfResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ExportEmbeddedFileRequest {
+  optional CollectionName embedded_file_collection_name = 1;
+  optional string embedded_file_name = 2;
+  optional FileReference external_file_name = 3;
+  optional bool replace_existing = 4;
+}
+
+message ExportEmbeddedFileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ExportHiddenPointBarXmlFileRequest {
+  optional FileReference xml_file_path = 1;
+}
+
+message ExportHiddenPointBarXmlFileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ExportIgesFileEntireModelRequest {
+  optional FileReference iges_file_path = 1;
+}
+
+message ExportIgesFileEntireModelResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ExportIgesFilePartialModelRequest {
+  optional FileReference iges_file_path = 1;
+  repeated CollectionObjectName object_name_list = 2;
+}
+
+message ExportIgesFilePartialModelResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ExportPtxPointCloudsRequest {
+  optional FileReference ptx_file_path = 1;
+  repeated CollectionObjectName point_cloud_list = 2;
+  optional bool overwrite_existing_file = 3;
+  optional bool show_progress_dialog = 4;
+}
+
+message ExportPtxPointCloudsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ExportQdasCharacteristicsRequest {
+  optional FileReference qdas_export_file_path = 1;
+  optional string k1001_part_number = 2;
+  optional string k1002_part_description = 3;
+  optional string k1071_supplier_number = 4;
+  optional string k1072_supplier_description = 5;
+  optional string k1203_reason_for_test = 6;
+  optional string k1303_plant = 7;
+  optional string k1900_part_remark = 8;
+  optional string k0006_batch_number = 9;
+  optional string k0014_part_id = 10;
+  optional string k0053_order_number = 11;
+  optional string k0004_date_time_stamp = 12;
+  optional int32 k0008_operator_identifier = 13;
+  optional int32 k0010_machine_identifier = 14;
+  optional int32 k0012_gage_identifier = 15;
+  repeated CollectionItemName relationship_list = 16;
+  repeated CollectionItemName feature_check_list = 17;
+  repeated CollectionObjectName vector_group_list = 18;
+}
+
+message ExportQdasCharacteristicsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ExportQdasDataListRequest {
+  optional FileReference qdas_export_file_path = 1;
+}
+
+message ExportQdasDataListResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ExportScanStripeMeshToStlFileRequest {
+  optional FileReference stl_file_path = 1;
+  optional CollectionObjectName mesh = 2;
+}
+
+message ExportScanStripeMeshToStlFileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ExportStepFileEntireModelRequest {
+  optional FileReference step_file_path = 1;
+}
+
+message ExportStepFileEntireModelResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ExportStepFilePartialModelRequest {
+  optional FileReference step_file_path = 1;
+  repeated CollectionObjectName object_name_list = 2;
+}
+
+message ExportStepFilePartialModelResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ExportVdaFsFileEntireModelRequest {
+  optional FileReference vda_fs_file_path = 1;
+}
+
+message ExportVdaFsFileEntireModelResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ExportVdaFsFilePartialModelRequest {
+  optional FileReference vda_fs_file_path = 1;
+  repeated CollectionObjectName object_name_list = 2;
+}
+
+message ExportVdaFsFilePartialModelResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ExportVectorContainerToAsciiFileRequest {
+  optional FileReference ascii_file_path = 1;
+  repeated CollectionVectorGroupName vector_groups_to_export = 2;
+  optional bool overwrite_existing_file_false_append = 3;
+  optional bool use_full_precision_scientific_notation = 4;
+  optional ExportVectorNameFormat vector_name_format = 5;
+  optional bool include_vector_length = 6;
+}
+
+message ExportVectorContainerToAsciiFileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message FindFilesInDirectoryRequest {
+  optional string directory = 1;
+  optional string file_name_pattern = 2;
+  optional bool recursive = 3;
+}
+
+message FindFilesInDirectoryResult {
+  repeated string files = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message FindSubDirectoriesInDirectoryRequest {
+  optional string directory = 1;
+  optional bool recursive = 2;
+}
+
+message FindSubDirectoriesInDirectoryResult {
+  repeated string sub_directories = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetBooleanFromDataShareFileRequest {
+  optional FileReference data_share_file_path = 1;
+  optional string boolean_name = 2;
+}
+
+message GetBooleanFromDataShareFileResult {
+  optional bool boolean_value = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetDoubleFromDataShareFileRequest {
+  optional FileReference data_share_file_path = 1;
+  optional string double_name = 2;
+}
+
+message GetDoubleFromDataShareFileResult {
+  optional double double_value = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetIntegerFromDataShareFileRequest {
+  optional FileReference data_share_file_path = 1;
+  optional string integer_name = 2;
+}
+
+message GetIntegerFromDataShareFileResult {
+  optional int32 integer_value = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetQdasCatalogEntriesRequest {
+  optional string k_field_target = 1;
+}
+
+message GetQdasCatalogEntriesResult {
+  repeated string catalog_entries = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetStringFromDataShareFileRequest {
+  optional FileReference data_share_file_path = 1;
+  optional string string_name = 2;
+}
+
+message GetStringFromDataShareFileResult {
+  optional string string_value = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetTransformFromDataShareFileRequest {
+  optional FileReference data_share_file_path = 1;
+  optional string transform_name = 2;
+}
+
+message GetTransformFromDataShareFileResult {
+  optional Transform transform_value = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetVectorFromDataShareFileRequest {
+  optional FileReference data_share_file_path = 1;
+  optional string vector_name = 2;
+}
+
+message GetVectorFromDataShareFileResult {
+  optional Vector vector_value = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetWorkingDirectoryRequest {
+  // No MP inputs.
+}
 
 message GetWorkingDirectoryResult {
-  // The MP return argument named "Directory".
   optional string directory = 1;
-  // Explicit MP and result-only argument retrieval outcome.
+  MpExecutionDetails execution = 1000;
+}
+
+message ImportAsciiPredefinedFormatsRequest {
+  optional FileReference ascii_file_path = 1;
+  optional AsciiFileFormat file_format = 2;
+  optional DistanceUnits units = 3;
+  optional AngularUnits angular_units = 4;
+  optional CollectionObjectName group_name = 5;
+  optional bool import_as_cloud = 6;
+  optional bool ensure_new_point_group = 7;
+  optional bool ensure_unique_names = 8;
+}
+
+message ImportAsciiPredefinedFormatsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ImportAsciiPredefinedFrameSetFormatsRequest {
+  optional FileReference ascii_file_path = 1;
+  optional AsciiFileFormat file_format = 2;
+  optional DistanceUnits units = 3;
+  optional AngularUnits angular_units = 4;
+  optional CollectionObjectName frame_set_container_name = 5;
+  optional bool ensure_unique_name = 6;
+}
+
+message ImportAsciiPredefinedFrameSetFormatsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ImportE57FileRequest {
+  optional FileReference e57_file_path = 1;
+  optional bool save_converted_file = 2;
+  optional bool use_square_root_of_intensity = 3;
+  optional bool automatically_close_converter = 4;
+  optional bool prioritize_color_over_intensity = 5;
+  optional bool import_scan_blocks_as_separate_clouds = 6;
+  optional DistanceUnits units = 7;
+}
+
+message ImportE57FileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ImportFileAsEmbeddedFileRequest {
+  optional FileReference external_file_name = 1;
+  optional bool replace_existing = 2;
+}
+
+message ImportFileAsEmbeddedFileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ImportFileAsPictureRequest {
+  optional FileReference external_file_name = 1;
+  optional bool replace_existing = 2;
+}
+
+message ImportFileAsPictureResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ImportHiddenPointBarXmlFileRequest {
+  optional FileReference xml_file_path = 1;
+  optional bool replace_existing_entries = 2;
+}
+
+message ImportHiddenPointBarXmlFileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ImportIgesFileRequest {
+  optional FileReference iges_file_path = 1;
+}
+
+message ImportIgesFileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ImportLeicaGsiFileRequest {
+  optional CollectionInstrumentId instrument_id = 1;
+  optional CollectionObjectName group_name = 2;
+  optional FileReference file_path = 3;
+}
+
+message ImportLeicaGsiFileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ImportLeicaSdbFileRequest {
+  optional CollectionInstrumentId instrument_id = 1;
+  optional CollectionObjectName scan_cloud_name = 2;
+  optional FileReference file_path = 3;
+}
+
+message ImportLeicaSdbFileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ImportMpFileAsEmbeddedMpRequest {
+  optional FileReference external_mp_file_name = 1;
+  optional bool replace_existing = 2;
+}
+
+message ImportMpFileAsEmbeddedMpResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ImportNominalsFromXmlFileRequest {
+  optional FileReference file_path = 1;
+}
+
+message ImportNominalsFromXmlFileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ImportPolyworksFileRequest {
+  optional CollectionObjectName cloud_name = 1;
+  optional FileReference file_path = 2;
+}
+
+message ImportPolyworksFileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ImportQdasCatalogFileRequest {
+  optional FileReference qdas_dfd_file_path = 1;
+}
+
+message ImportQdasCatalogFileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ImportSaFileRequest {
+  optional FileReference sa_file_name = 1;
+  optional bool allow_operator_selections = 2;
+  repeated string selected_collections_optional = 3;
+}
+
+message ImportSaFileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ImportSaWindowsPlacementRequest {
+  optional FileReference file_path = 1;
+}
+
+message ImportSaWindowsPlacementResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ImportSatFileRequest {
+  optional FileReference sat_file_path = 1;
+}
+
+message ImportSatFileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ImportStepFileRequest {
+  optional FileReference step_file_path = 1;
+  optional bool display_entity_filters = 2;
+  optional bool display_residuals = 3;
+}
+
+message ImportStepFileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ImportStlFileRequest {
+  optional FileReference stl_file_path = 1;
+  optional DistanceUnits units = 2;
+  optional bool import_mesh = 3;
+  optional bool import_point_cloud = 4;
+}
+
+message ImportStlFileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ImportVdaFsFileRequest {
+  optional FileReference vda_fs_file_path = 1;
+}
+
+message ImportVdaFsFileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ImportVstarsXyzFileRequest {
+  optional FileReference file_path = 1;
+}
+
+message ImportVstarsXyzFileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ImportVstarsCamerasRequest {
+  optional FileReference file_path = 1;
+}
+
+message ImportVstarsCamerasResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message LoadHtmlFormRequest {
+  optional FileReference input_html_form_path = 1;
+  optional int32 window_width = 2;
+  optional int32 window_height = 3;
+  optional FileReference input_data_share_file_path = 4;
+  optional FileReference output_data_share_file_path = 5;
+  optional bool save_in_binary_format = 6;
+  optional string save_button_text = 7;
+  optional string cancel_button_text = 8;
+  optional bool hide_save_and_cancel_buttons = 9;
+}
+
+message LoadHtmlFormResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message LoadHtmlFormInEdgeBrowserRequest {
+  optional FileReference input_html_form_path = 1;
+  optional int32 window_width = 2;
+  optional int32 window_height = 3;
+  optional FileReference input_data_share_file_path = 4;
+  optional FileReference output_data_share_file_path = 5;
+  optional bool save_in_binary_format = 6;
+}
+
+message LoadHtmlFormInEdgeBrowserResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeEmbeddedFileNameListRequest {
+  optional string collection_wildcard_criteria = 1;
+  optional string file_name_pattern = 2;
+}
+
+message MakeEmbeddedFileNameListResult {
+  repeated string embedded_files = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message MergeMeasurementsIntoXmlFileRequest {
+  optional FileReference file_path = 1;
+  optional CollectionObjectName group_name = 2;
+}
+
+message MergeMeasurementsIntoXmlFileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message NewSaFileRequest {
+  // No MP inputs.
+}
+
+message NewSaFileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message OpenSaFileRequest {
+  optional FileReference sa_file_name = 1;
+}
+
+message OpenSaFileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message OpenTemplateFileRequest {
+  optional FileReference template_file_name = 1;
+}
+
+message OpenTemplateFileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message PopPolyBayAnalysisWindowRequest {
+  optional string materials_file_path = 1;
+  optional string bay_file_path = 2;
+}
+
+message PopPolyBayAnalysisWindowResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message PrepareQdasDataListRequest {
+  optional string k1001_part_number = 1;
+  optional string k1002_part_description = 2;
+  optional string k1071_supplier_number = 3;
+  optional string k1072_supplier_description = 4;
+  optional string k1203_reason_for_test = 5;
+  optional string k1303_plant = 6;
+  optional string k1900_part_remark = 7;
+  optional string k0006_batch_number = 8;
+  optional string k0014_part_id = 9;
+  optional string k0053_order_number = 10;
+  optional string k0004_date_time_stamp = 11;
+  optional int32 k0008_operator_identifier = 12;
+  optional int32 k0010_machine_identifier = 13;
+  optional int32 k0012_gage_identifier = 14;
+  repeated CollectionItemName relationship_list = 15;
+  repeated CollectionItemName feature_check_list = 16;
+  repeated CollectionObjectName vector_group_list = 17;
+}
+
+message PrepareQdasDataListResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message RenameGeneralFileRequest {
+  optional FileReference source_file_name = 1;
+  optional FileReference destination_file_name = 2;
+  optional bool overwrite = 3;
+}
+
+message RenameGeneralFileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SaveRequest {
+  // No MP inputs.
+}
+
+message SaveResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SaveAsReadOnlyTemplateRequest {
+  optional FileReference template_file_name = 1;
+}
+
+message SaveAsReadOnlyTemplateResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SaveAsRequest {
+  optional FileReference file_name = 1;
+  optional bool add_serial_number = 2;
+  optional int32 optional_number = 3;
+}
+
+message SaveAsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetBooleanInDataShareFileRequest {
+  optional FileReference data_share_file_path = 1;
+  optional string boolean_name = 2;
+  optional bool boolean_value = 3;
+}
+
+message SetBooleanInDataShareFileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetDoubleInDataShareFileRequest {
+  optional FileReference data_share_file_path = 1;
+  optional string double_name = 2;
+  optional double double_value = 3;
+}
+
+message SetDoubleInDataShareFileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetIntegerInDataShareFileRequest {
+  optional FileReference data_share_file_path = 1;
+  optional string integer_name = 2;
+  optional int32 integer_value = 3;
+}
+
+message SetIntegerInDataShareFileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetStringInDataShareFileRequest {
+  optional FileReference data_share_file_path = 1;
+  optional string string_name = 2;
+  optional string string_value = 3;
+}
+
+message SetStringInDataShareFileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetTransformInDataShareFileRequest {
+  optional FileReference data_share_file_path = 1;
+  optional string transform_name = 2;
+  optional Transform transform_value = 3;
+}
+
+message SetTransformInDataShareFileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetVectorInDataShareFileRequest {
+  optional FileReference data_share_file_path = 1;
+  optional string vector_name = 2;
+  optional Vector vector_value = 3;
+}
+
+message SetVectorInDataShareFileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message TerminateAllRunningMPsRequest {
+  // No MP inputs.
+}
+
+message TerminateAllRunningMPsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message UseNrkxmlLibraryRequest {
+  optional bool use_library = 1;
+}
+
+message UseNrkxmlLibraryResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message VerifyGeneralFileExistsRequest {
+  optional FileReference file_name = 1;
+}
+
+message VerifyGeneralFileExistsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message VerifyMpFileExistsRequest {
+  optional FileReference mp_file_name = 1;
+}
+
+message VerifyMpFileExistsResult {
   MpExecutionDetails execution = 1000;
 }

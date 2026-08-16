@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+package briosa;
+
+import "briosa/operation_outcomes.proto";
+import "briosa/spatial_analyzer_values.proto";
+
+option csharp_namespace = "Briosa";
+
+service EventOperations {
+  rpc DeleteEvent(DeleteEventRequest) returns (DeleteEventResult);
+  rpc ExportEventRefList(ExportEventRefListRequest) returns (ExportEventRefListResult);
+  rpc GetIthEventFromEventRefList(GetIthEventFromEventRefListRequest) returns (GetIthEventFromEventRefListResult);
+  rpc GetNumberOfEventsInEventRefList(GetNumberOfEventsInEventRefListRequest) returns (GetNumberOfEventsInEventRefListResult);
+  rpc RenameEvent(RenameEventRequest) returns (RenameEventResult);
+}
+
+message DeleteEventRequest {
+  optional CollectionObjectName event_name = 1;
+}
+
+message DeleteEventResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ExportEventRefListRequest {
+  repeated CollectionItemName event_list = 1;
+  optional FileReference file_path = 2;
+  optional int32 decimal_precision = 3;
+  optional bool overwrite_existing_file = 4;
+}
+
+message ExportEventRefListResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message GetIthEventFromEventRefListRequest {
+  repeated CollectionItemName event_list = 1;
+  optional int32 event_index = 2;
+}
+
+message GetIthEventFromEventRefListResult {
+  optional CollectionItemName resultant_item = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetNumberOfEventsInEventRefListRequest {
+  repeated CollectionItemName event_list = 1;
+}
+
+message GetNumberOfEventsInEventRefListResult {
+  optional int32 total_count = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message RenameEventRequest {
+  optional CollectionObjectName original_event_name = 1;
+  optional CollectionObjectName new_event_name = 2;
+  optional bool overwrite_if_exists = 3;
+}
+
+message RenameEventResult {
+  MpExecutionDetails execution = 1000;
+}

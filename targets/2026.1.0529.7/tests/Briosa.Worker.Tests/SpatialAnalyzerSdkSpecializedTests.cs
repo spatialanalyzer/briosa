@@ -42,7 +42,19 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             { SdkValueKind.SurfaceAnalysisMode, new SdkSpecializedEnumValue<SdkSurfaceAnalysisModeValue>(SdkSurfaceAnalysisModeValue.DeviationRms), "SetSurfaceAnalysisModeArg", "Deviation RMS" },
             { SdkValueKind.SurfaceDissectionModeType, new SdkSpecializedEnumValue<SdkSurfaceDissectionModeTypeValue>(SdkSurfaceDissectionModeTypeValue.SelectFaces), "SetSurfDissectModeTypeArg", "Select Faces" },
             { SdkValueKind.TargetComputationMethod, new SdkSpecializedEnumValue<SdkTargetComputationMethodValue>(SdkTargetComputationMethodValue.UseOnlyMostRecentShot), "SetTargetComputationMethodArg", "Use only most recent shot" },
-            { SdkValueKind.TranslucencyType, new SdkSpecializedEnumValue<SdkTranslucencyTypeValue>(SdkTranslucencyTypeValue.Translucent), "SetTranslucencyTypeArg", "Translucent" }
+            { SdkValueKind.TranslucencyType, new SdkSpecializedEnumValue<SdkTranslucencyTypeValue>(SdkTranslucencyTypeValue.Translucent), "SetTranslucencyTypeArg", "Translucent" },
+            { SdkValueKind.CompTechnique, new SdkSpecializedEnumValue<SdkCompTechniqueValue>(SdkCompTechniqueValue.MaxInscribed), "SetCompTechniqueArg", "Max Inscribed" },
+            { SdkValueKind.DegreeOfFreedom, new SdkSpecializedEnumValue<SdkDegreeOfFreedomValue>(SdkDegreeOfFreedomValue.LockFocusLocation), "SetDegreeOfFreedomArg", "Lock Focus Location" },
+            { SdkValueKind.FitMethod, new SdkSpecializedEnumValue<SdkFitMethodValue>(SdkFitMethodValue.MinimumRms), "SetFitMethodArg", "Minimum RMS" },
+            { SdkValueKind.MeasuredSideForPlanarOffset, new SdkSpecializedEnumValue<SdkMeasuredSideForPlanarOffsetValue>(SdkMeasuredSideForPlanarOffsetValue.AbovePlane), "SetMeasuredSideForPlanarOffsetArg", "Above Plane" },
+            { SdkValueKind.MeasuredSideForRadialOffset, new SdkSpecializedEnumValue<SdkMeasuredSideForRadialOffsetValue>(SdkMeasuredSideForRadialOffsetValue.Outside), "SetMeasuredSideForRadialOffsetArg", "Outside" },
+            { SdkValueKind.MpDialogInteractionMode, new SdkSpecializedEnumValue<SdkMpDialogInteractionModeValue>(SdkMpDialogInteractionModeValue.AllowApplicationInteraction), "SetMPDialogInteractionModeArg", "Allow Application Interaction" },
+            { SdkValueKind.MpInteractionMode, new SdkSpecializedEnumValue<SdkMpInteractionModeValue>(SdkMpInteractionModeValue.NeverHalt), "SetMPInteractionModeArg", "Never Halt" },
+            { SdkValueKind.NormalDirection, new SdkSpecializedEnumValue<SdkNormalDirectionValue>(SdkNormalDirectionValue.ProbingDirection), "SetNormalDirectionArg", "Probing Direction" },
+            { SdkValueKind.SaInteractionMode, new SdkSpecializedEnumValue<SdkSaInteractionModeValue>(SdkSaInteractionModeValue.Silent), "SetSAInteractionModeArg", "Silent" },
+            { SdkValueKind.SlotType, new SdkSpecializedEnumValue<SdkSlotTypeValue>(SdkSlotTypeValue.Round), "SetSlotTypeArg", "Round" },
+            { SdkValueKind.SphereFitComputationMode, new SdkSpecializedEnumValue<SdkSphereFitComputationModeValue>(SdkSphereFitComputationModeValue.MinCircumscribed), "SetSphereFitComputationModeArg", "Min Circumscribed" },
+            { SdkValueKind.WindowState, new SdkSpecializedEnumValue<SdkWindowStateValue>(SdkWindowStateValue.Hide), "SetWindowStateArg", "Hide" }
         };
 
     [Theory]
@@ -91,7 +103,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             }
         }
 
-        Assert.Equal(454, mappedValueCount);
+        Assert.Equal(489, mappedValueCount);
     }
 
     [Fact]
@@ -123,7 +135,9 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
                 new("Output", SdkValueKind.ReportOutputOptions, ReportOutputOptionsValue: new(SdkReportOutputTypeValue.Pdf, "report.pdf", null), SdkBinding: "SetReportOutputOptionsArg"),
                 new("Embedded Output", SdkValueKind.ReportOutputOptions, ReportOutputOptionsValue: new(SdkReportOutputTypeValue.SaReport, null, new("Collection", "Report")), SdkBinding: "SetReportOutputOptionsArg"),
                 new("View", SdkValueKind.ReportViewOptions, ReportViewOptionsValue: new(SdkReportViewTypeValue.CalloutView, "Collection", "Callout"), SdkBinding: "SetReportViewOptionsArg"),
-                new("Tolerance", SdkValueKind.ToleranceScalarOptions, ToleranceScalarOptionsValue: new(high, low), SdkBinding: "SetToleranceScalarOptionsArg")
+                new("Tolerance", SdkValueKind.ToleranceScalarOptions, ToleranceScalarOptionsValue: new(high, low), SdkBinding: "SetToleranceScalarOptionsArg"),
+                new("Projection", SdkValueKind.ProjectionOptions, ProjectionOptionsValue: new("Object To Probe Vectors", true, true, 1.5, false, 0), SdkBinding: "SetProjectionOptionsArg"),
+                new("Point Delta", SdkValueKind.PointDeltaReportOptions, PointDeltaReportOptionsValue: new(SdkCoordinateSystemTypeValue.Cartesian, "Single", true, true, true, true, true, true, true, false, true, true), SdkBinding: "SetPointDeltaReportOptionsArg")
             ],
             [
                 new("Constraint Result", SdkValueKind.FitConstraintScalarOptions, "GetFitConstraintScalarOptionsArg"),
@@ -133,13 +147,15 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         var result = adapter.Execute(command);
 
         Assert.True(result.MpResult.Succeeded);
-        Assert.Equal(9, calls.SpecializedArguments.Count);
+        Assert.Equal(11, calls.SpecializedArguments.Count);
         Assert.Equal([0, 1, 2], calls.SpecializedArguments["Auto"][6..9]);
         Assert.Equal("Nth Point", calls.SpecializedArguments["Thin"][0]);
         Assert.Equal("PDF", calls.SpecializedArguments["Output"][0]);
         Assert.Equal("report.pdf", calls.SpecializedArguments["Output"][1]);
         Assert.Equal("SAReport", calls.SpecializedArguments["Embedded Output"][0]);
         Assert.Equal("Collection::Report", calls.SpecializedArguments["Embedded Output"][1]);
+        Assert.Equal("Object To Probe Vectors", calls.SpecializedArguments["Projection"][0]);
+        Assert.Equal("Cartesian", calls.SpecializedArguments["Point Delta"][0]);
         Assert.All(result.OutputValues, output => Assert.True(output.Retrieved));
         Assert.Equal(1.25, result.OutputValues[0].FitConstraintScalarOptionsValue!.High.Value);
         Assert.Equal(-2.5, result.OutputValues[1].ToleranceScalarOptionsValue!.Low.Value);

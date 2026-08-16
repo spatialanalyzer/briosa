@@ -1,12 +1,12 @@
-# GetIThCollectionName
+# GetIthCollectionName
 
-`GetIThCollectionName` implements the SpatialAnalyzer MP command `Get i-th Collection Name` for exact target `2026.1.0529.7`. Its naming deliberately stays recognizable to developers who already program MPs.
+`GetIthCollectionName` implements the SpatialAnalyzer MP command `Get i-th Collection Name` for exact target `2026.1.0529.7`. Its naming deliberately stays recognizable to developers who already program MPs.
 
 ## gRPC contract
 
 - Service: `briosa.AnalysisOperations`
-- RPC: `GetIThCollectionName`
-- Operation ID: `analysis_operations.get_i_th_collection_name`
+- RPC: `GetIthCollectionName`
+- Operation ID: `analysis_operations.get_ith_collection_name`
 - Required request field: optional-presence `int32 collection_index`
 - Result: optional string `resultant_name` plus shared `execution` details
 
@@ -16,7 +16,7 @@ Example with a Development source host:
 
 ```powershell
 grpcurl -plaintext -d '{"collectionIndex":0}' 127.0.0.1:50051 `
-  briosa.AnalysisOperations/GetIThCollectionName
+  briosa.AnalysisOperations/GetIthCollectionName
 ```
 
 The returned collection name is application data. Briosa returns it to the caller but does not log it.

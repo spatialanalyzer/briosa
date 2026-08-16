@@ -5,18 +5,18 @@ using Api = global::Briosa;
 
 namespace Briosa.Server.Tests;
 
-public sealed class GetIThCollectionNameOperationTests
+public sealed class GetIthCollectionNameOperationTests
 {
     [Fact]
     public void CommandMappingPreservesTheExactMpContract()
     {
-        var command = GetIThCollectionNameOperation.CreateCommand(
-            new Api.GetIThCollectionNameRequest
+        var command = GetIthCollectionNameOperation.CreateCommand(
+            new Api.GetIthCollectionNameRequest
             {
                 CollectionIndex = 0
             });
 
-        Assert.Equal(GetIThCollectionNameOperation.OperationId, command.OperationId);
+        Assert.Equal(GetIthCollectionNameOperation.OperationId, command.OperationId);
         Assert.Equal("Get i-th Collection Name", command.StepName);
 
         var input = Assert.Single(command.InputArguments);
@@ -31,7 +31,7 @@ public sealed class GetIThCollectionNameOperationTests
         Assert.Equal("GetCollectionNameArg", output.SdkBinding);
 
         var outputContract = Assert.Single(
-            GetIThCollectionNameOperation.OutputContracts);
+            GetIthCollectionNameOperation.OutputContracts);
         Assert.Equal("resultant_name", outputContract.FieldName);
         Assert.Equal(output.Name, outputContract.ArgumentName);
         Assert.Equal(output.Kind, outputContract.Kind);
@@ -41,8 +41,8 @@ public sealed class GetIThCollectionNameOperationTests
     public void CommandMappingRequiresCollectionIndexPresence()
     {
         var exception = Assert.Throws<ArgumentException>(() =>
-            GetIThCollectionNameOperation.CreateCommand(
-                new Api.GetIThCollectionNameRequest()));
+            GetIthCollectionNameOperation.CreateCommand(
+                new Api.GetIthCollectionNameRequest()));
 
         Assert.Contains(
             "Collection Index",
@@ -74,7 +74,7 @@ public sealed class GetIThCollectionNameOperationTests
             MpResultCode = 2
         };
 
-        var result = GetIThCollectionNameOperation.CreateResult(
+        var result = GetIthCollectionNameOperation.CreateResult(
             new SuccessfulOperationExecution(execution, details));
 
         Assert.True(result.HasResultantName);

@@ -219,22 +219,15 @@ in the [operation and protocol model](../../../../docs/architecture/operation-an
 
 ## Current implemented baseline
 
-The following six operations are already complete handwritten vertical slices and
-form the initial v1 baseline. Their implementation source and runtime registry,
-not this table, remain the support authority.
+The initial read-only slices delivered by #132, #134, #139, and #141 are now
+joined by the reviewed Wave A operation set delivered through #154. The
+handwritten protobuf contracts, server operation registry, and runtime
+capability discovery remain the support authority; this planning document does
+not maintain a duplicate operation list or count.
 
-| Operation ID | MP step | Delivery issue |
-| --- | --- | --- |
-| `file_operations.get_working_directory` | `Get Working Directory` | [#132](https://github.com/spatialanalyzer/briosa/issues/132) |
-| `analysis_operations.get_i_th_collection_name` | `Get i-th Collection Name` | [#134](https://github.com/spatialanalyzer/briosa/issues/134) |
-| `analysis_operations.get_number_of_collections` | `Get Number of Collections` | [#139](https://github.com/spatialanalyzer/briosa/issues/139) |
-| `construction_operations.get_active_collection_name` | `Get Active Collection Name` | [#141](https://github.com/spatialanalyzer/briosa/issues/141) |
-| `utility_operations.get_active_units` | `Get Active Units` | [#141](https://github.com/spatialanalyzer/briosa/issues/141) |
-| `utility_operations.get_working_frame_properties` | `Get Working Frame Properties` | [#141](https://github.com/spatialanalyzer/briosa/issues/141) |
-
-This baseline does not imply that v1 is complete at six operations. Additional
-operations enter the evolving v1 set only through the selection procedure above.
-No other inventory entry or historical candidate is selected by this document.
+This expanded baseline does not imply that v1 is complete. Additional operations
+enter the evolving v1 set only through the selection procedure above. No other
+inventory entry or historical candidate is selected by this document.
 
 ## V0.x scope changes
 

@@ -1,0 +1,204 @@
+syntax = "proto3";
+
+package briosa;
+
+import "briosa/operation_outcomes.proto";
+import "briosa/spatial_analyzer_values.proto";
+
+option csharp_namespace = "Briosa";
+
+service VectorOperations {
+  rpc AddAVectorToVectorNameRefList(AddAVectorToVectorNameRefListRequest) returns (AddAVectorToVectorNameRefListResult);
+  rpc AutoRangeAndSetVectorGroupColorizationAll(AutoRangeAndSetVectorGroupColorizationAllRequest) returns (AutoRangeAndSetVectorGroupColorizationAllResult);
+  rpc AutoRangeAndSetVectorGroupColorizationSelected(AutoRangeAndSetVectorGroupColorizationSelectedRequest) returns (AutoRangeAndSetVectorGroupColorizationSelectedResult);
+  rpc DeleteIthVectorFromVectorGroup(DeleteIthVectorFromVectorGroupRequest) returns (DeleteIthVectorFromVectorGroupResult);
+  rpc DeleteVectorByName(DeleteVectorByNameRequest) returns (DeleteVectorByNameResult);
+  rpc DeleteVectors(DeleteVectorsRequest) returns (DeleteVectorsResult);
+  rpc GetIthVectorFromVectorGroup(GetIthVectorFromVectorGroupRequest) returns (GetIthVectorFromVectorGroupResult);
+  rpc GetIthVectorFromVectorNameRefList(GetIthVectorFromVectorNameRefListRequest) returns (GetIthVectorFromVectorNameRefListResult);
+  rpc GetNumberOfVectorsInVectorGroup(GetNumberOfVectorsInVectorGroupRequest) returns (GetNumberOfVectorsInVectorGroupResult);
+  rpc GetNumberOfVectorsInVectorNameRefList(GetNumberOfVectorsInVectorNameRefListRequest) returns (GetNumberOfVectorsInVectorNameRefListResult);
+  rpc GetVectorFromVectorGroupByName(GetVectorFromVectorGroupByNameRequest) returns (GetVectorFromVectorGroupByNameResult);
+  rpc GetVectorGroupProperties(GetVectorGroupPropertiesRequest) returns (GetVectorGroupPropertiesResult);
+  rpc SetVectorGroupColorizationOptionsAll(SetVectorGroupColorizationOptionsAllRequest) returns (SetVectorGroupColorizationOptionsAllResult);
+  rpc SetVectorGroupColorizationOptionsSelected(SetVectorGroupColorizationOptionsSelectedRequest) returns (SetVectorGroupColorizationOptionsSelectedResult);
+  rpc SortVectors(SortVectorsRequest) returns (SortVectorsResult);
+}
+
+message AddAVectorToVectorNameRefListRequest {
+  optional CollectionObjectName vector_group_name = 1;
+  optional string vector_name = 2;
+  repeated VectorName vector_name_list = 3;
+}
+
+message AddAVectorToVectorNameRefListResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message AutoRangeAndSetVectorGroupColorizationAllRequest {
+  optional bool treat_individually = 1;
+  optional ColorizationOptions colorization_options_uses_mode_only = 2;
+}
+
+message AutoRangeAndSetVectorGroupColorizationAllResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message AutoRangeAndSetVectorGroupColorizationSelectedRequest {
+  repeated CollectionVectorGroupName vector_groups_to_be_set = 1;
+  optional bool treat_individually = 2;
+  optional ColorizationOptions colorization_options_uses_mode_only = 3;
+}
+
+message AutoRangeAndSetVectorGroupColorizationSelectedResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message DeleteIthVectorFromVectorGroupRequest {
+  optional CollectionObjectName vector_group_name = 1;
+  optional int32 vector_index = 2;
+}
+
+message DeleteIthVectorFromVectorGroupResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message DeleteVectorByNameRequest {
+  optional CollectionObjectName vector_group_name = 1;
+  optional string vector_name = 2;
+}
+
+message DeleteVectorByNameResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message DeleteVectorsRequest {
+  repeated VectorName vector_name_list = 1;
+}
+
+message DeleteVectorsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message GetIthVectorFromVectorGroupRequest {
+  optional CollectionObjectName vector_group_name = 1;
+  optional int32 vector_index = 2;
+}
+
+message GetIthVectorFromVectorGroupResult {
+  optional string vector_name = 1;
+  optional Vector begin_in_working = 2;
+  optional Vector end_in_working = 3;
+  optional Vector total_delta_in_working = 4;
+  optional Vector ijk_unit_vector_in_working = 5;
+  optional double magnitude = 6;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetIthVectorFromVectorNameRefListRequest {
+  repeated VectorName vector_name_list = 1;
+  optional int32 vector_index = 2;
+}
+
+message GetIthVectorFromVectorNameRefListResult {
+  optional CollectionObjectName vector_group_name = 1;
+  optional string vector_name = 2;
+  optional Vector begin_in_working = 3;
+  optional Vector end_in_working = 4;
+  optional Vector total_delta_in_working = 5;
+  optional Vector ijk_unit_vector_in_working = 6;
+  optional double magnitude = 7;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetNumberOfVectorsInVectorGroupRequest {
+  optional CollectionObjectName vector_group_name = 1;
+}
+
+message GetNumberOfVectorsInVectorGroupResult {
+  optional int32 total_count = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetNumberOfVectorsInVectorNameRefListRequest {
+  repeated VectorName vector_name_list = 1;
+}
+
+message GetNumberOfVectorsInVectorNameRefListResult {
+  optional int32 total_count = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetVectorFromVectorGroupByNameRequest {
+  optional CollectionObjectName vector_group_name = 1;
+  optional string vector_name = 2;
+}
+
+message GetVectorFromVectorGroupByNameResult {
+  optional Vector begin_in_working = 1;
+  optional Vector end_in_working = 2;
+  optional Vector total_delta_in_working = 3;
+  optional Vector ijk_unit_vector_in_working = 4;
+  optional double magnitude = 5;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetVectorGroupPropertiesRequest {
+  optional CollectionObjectName vector_group_name = 1;
+}
+
+message GetVectorGroupPropertiesResult {
+  optional int32 total_vectors = 1;
+  optional int32 vectors_in_tolerance = 2;
+  optional int32 vectors_out_of_tolerance = 3;
+  optional int32 invalid_vectors = 4;
+  optional double vectors_in_tolerance_2 = 5;
+  optional double vectors_out_of_tolerance_2 = 6;
+  optional double absolute_max_magnitude = 7;
+  optional double absolute_min_magnitude = 8;
+  optional double max_magnitude = 9;
+  optional double min_magnitude = 10;
+  optional double standard_deviation_from_zero = 11;
+  optional double standard_deviation_from_mean = 12;
+  optional double avg_magnitude = 13;
+  optional double avg_of_abs_magnitude = 14;
+  optional double high_tolerance_value = 15;
+  optional double low_tolerance_value = 16;
+  optional double rms_value = 17;
+  MpExecutionDetails execution = 1000;
+}
+
+message SetVectorGroupColorizationOptionsAllRequest {
+  optional ColorizationOptions colorization_options = 1;
+}
+
+message SetVectorGroupColorizationOptionsAllResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetVectorGroupColorizationOptionsSelectedRequest {
+  repeated CollectionVectorGroupName vector_groups_to_be_set = 1;
+  optional ColorizationOptions colorization_options = 2;
+}
+
+message SetVectorGroupColorizationOptionsSelectedResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SortVectorsRequest {
+  repeated VectorName source_vectors = 1;
+  optional string sort_method = 2;
+  optional CoordinateSystemType coordinate_system = 3;
+  optional string primary_sort_coordinate = 4;
+  optional string secondary_sort_coordinate = 5;
+  optional string tertiary_sort_coordinate = 6;
+  optional double primary_coordinate_granularity = 7;
+  optional double secondary_coordinate_granularity = 8;
+  optional double tertiary_coordinate_granularity = 9;
+  optional bool ascending = 10;
+}
+
+message SortVectorsResult {
+  repeated VectorName sorted_vectors = 1;
+  MpExecutionDetails execution = 1000;
+}

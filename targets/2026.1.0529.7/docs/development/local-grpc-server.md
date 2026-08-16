@@ -154,7 +154,7 @@ grpcurl -plaintext -d '{}' 127.0.0.1:50051 briosa.FileOperations/GetWorkingDirec
 
 grpcurl -plaintext -d '{}' 127.0.0.1:50051 briosa.AnalysisOperations/GetNumberOfCollections
 
-grpcurl -plaintext -d '{"collectionIndex":0}' 127.0.0.1:50051 briosa.AnalysisOperations/GetIThCollectionName
+grpcurl -plaintext -d '{"collectionIndex":0}' 127.0.0.1:50051 briosa.AnalysisOperations/GetIthCollectionName
 
 grpcurl -plaintext -d '{}' 127.0.0.1:50051 briosa.ConstructionOperations/GetActiveCollectionName
 
@@ -185,7 +185,7 @@ the UI to make the same calls:
 | `briosa.DiscoveryService/GetServerInfo` | `{}` |
 | `briosa.DiscoveryService/ListCapabilities` | `{}` |
 | `briosa.AnalysisOperations/GetNumberOfCollections` | `{}` |
-| `briosa.AnalysisOperations/GetIThCollectionName` | `{"collectionIndex":0}` |
+| `briosa.AnalysisOperations/GetIthCollectionName` | `{"collectionIndex":0}` |
 | `briosa.ConstructionOperations/GetActiveCollectionName` | `{}` |
 | `briosa.FileOperations/GetWorkingDirectory` | `{}` |
 | `briosa.UtilityOperations/GetActiveUnits` | `{}` |

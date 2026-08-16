@@ -19,7 +19,9 @@ public sealed partial class ProtocolSchemaTests
     {
         var file = GetWorkingDirectoryRequest.Descriptor.File;
         var service = Assert.Single(file.Services);
-        var method = Assert.Single(service.Methods);
+        var method = Assert.Single(
+            service.Methods,
+            candidate => candidate.Name == "GetWorkingDirectory");
         var directory = GetWorkingDirectoryResult.Descriptor.FindFieldByName("directory");
         var execution = GetWorkingDirectoryResult.Descriptor.FindFieldByName("execution");
 

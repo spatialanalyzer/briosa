@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package briosa;
+
+import "briosa/operation_outcomes.proto";
+import "briosa/spatial_analyzer_values.proto";
+
+option csharp_namespace = "Briosa";
+
+service MpSubroutines {
+  rpc RunSubroutine(RunSubroutineRequest) returns (RunSubroutineResult);
+}
+
+message RunSubroutineRequest {
+  optional FileReference mp_subroutine_file_path = 1;
+  optional bool share_parent_variables = 2;
+}
+
+message RunSubroutineResult {
+  MpExecutionDetails execution = 1000;
+}
