@@ -20,8 +20,19 @@ internal static class SmokeClientProgram
         [
             TargetProtocol.AnalysisOperations.Descriptor,
             TargetProtocol.ConstructionOperations.Descriptor,
+            TargetProtocol.DimensionOperations.Descriptor,
+            TargetProtocol.EventOperations.Descriptor,
             TargetProtocol.FileOperations.Descriptor,
-            TargetProtocol.UtilityOperations.Descriptor
+            TargetProtocol.MpSubroutines.Descriptor,
+            TargetProtocol.MpTaskOverview.Descriptor,
+            TargetProtocol.ProcessFlowOperations.Descriptor,
+            TargetProtocol.RelationshipOperations.Descriptor,
+            TargetProtocol.ReportingOperations.Descriptor,
+            TargetProtocol.ScaleBarOperations.Descriptor,
+            TargetProtocol.UtilityOperations.Descriptor,
+            TargetProtocol.Variables.Descriptor,
+            TargetProtocol.VectorOperations.Descriptor,
+            TargetProtocol.ViewControl.Descriptor
         ];
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -532,8 +543,8 @@ internal static class SmokeClientProgram
                 "unexpected-collection-count-success-shape");
         }
 
-        var nameResult = await client.GetIThCollectionNameAsync(
-                new TargetProtocol.GetIThCollectionNameRequest
+        var nameResult = await client.GetIthCollectionNameAsync(
+                new TargetProtocol.GetIthCollectionNameRequest
                 {
                     CollectionIndex = 0
                 },

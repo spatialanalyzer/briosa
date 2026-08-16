@@ -39,6 +39,18 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         public bool SetSurfDissectModeTypeArg(string name, string value) => RecordStringSetter(nameof(SetSurfDissectModeTypeArg), name, value);
         public bool SetTargetComputationMethodArg(string name, string value) => RecordStringSetter(nameof(SetTargetComputationMethodArg), name, value);
         public bool SetTranslucencyTypeArg(string name, string value) => RecordStringSetter(nameof(SetTranslucencyTypeArg), name, value);
+        public bool SetCompTechniqueArg(string name, string value) => RecordStringSetter(nameof(SetCompTechniqueArg), name, value);
+        public bool SetDegreeOfFreedomArg(string name, string value) => RecordStringSetter(nameof(SetDegreeOfFreedomArg), name, value);
+        public bool SetFitMethodArg(string name, string value) => RecordStringSetter(nameof(SetFitMethodArg), name, value);
+        public bool SetMeasuredSideForPlanarOffsetArg(string name, string value) => RecordStringSetter(nameof(SetMeasuredSideForPlanarOffsetArg), name, value);
+        public bool SetMeasuredSideForRadialOffsetArg(string name, string value) => RecordStringSetter(nameof(SetMeasuredSideForRadialOffsetArg), name, value);
+        public bool SetMPDialogInteractionModeArg(string name, string value) => RecordStringSetter(nameof(SetMPDialogInteractionModeArg), name, value);
+        public bool SetMPInteractionModeArg(string name, string value) => RecordStringSetter(nameof(SetMPInteractionModeArg), name, value);
+        public bool SetNormalDirectionArg(string name, string value) => RecordStringSetter(nameof(SetNormalDirectionArg), name, value);
+        public bool SetSAInteractionModeArg(string name, string value) => RecordStringSetter(nameof(SetSAInteractionModeArg), name, value);
+        public bool SetSlotTypeArg(string name, string value) => RecordStringSetter(nameof(SetSlotTypeArg), name, value);
+        public bool SetSphereFitComputationModeArg(string name, string value) => RecordStringSetter(nameof(SetSphereFitComputationModeArg), name, value);
+        public bool SetWindowStateArg(string name, string value) => RecordStringSetter(nameof(SetWindowStateArg), name, value);
 
         public bool SetAutoFilterProximitySettingsArg(string name, double sip, double eep, double pip, double pep, double rip, double gt, int spm, int ppm, int rpm, bool pp, bool apb) =>
             RecordSpecialized(nameof(SetAutoFilterProximitySettingsArg), name, sip, eep, pip, pep, rip, gt, spm, ppm, rpm, pp, apb);
@@ -63,6 +75,12 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
 
         public bool SetToleranceScalarOptionsArg(string name, bool useHigh, double high, bool useLow, double low) =>
             RecordSpecialized(nameof(SetToleranceScalarOptionsArg), name, useHigh, high, useLow, low);
+
+        public bool SetProjectionOptionsArg(string name, string projectionType, bool ignoreEdges, bool overrideOffsets, double offsetValue, bool addThickness, double thicknessValue) =>
+            RecordSpecialized(nameof(SetProjectionOptionsArg), name, projectionType, ignoreEdges, overrideOffsets, offsetValue, addThickness, thicknessValue);
+
+        public bool SetPointDeltaReportOptionsArg(string name, string coordinateSystem, string detailsFormat, bool showPointA, bool showPointB, bool showDelta, bool showMagnitude, bool showComponent1, bool showComponent2, bool showComponent3, bool sortPointNames, bool showToleranceFields, bool colorizeInToleranceFields) =>
+            RecordSpecialized(nameof(SetPointDeltaReportOptionsArg), name, coordinateSystem, detailsFormat, showPointA, showPointB, showDelta, showMagnitude, showComponent1, showComponent2, showComponent3, sortPointNames, showToleranceFields, colorizeInToleranceFields);
 
         public bool GetFitConstraintScalarOptionsArg(string name, ref bool useHigh, ref double high, ref bool useLow, ref double low) =>
             ReturnScalarOptions(nameof(GetFitConstraintScalarOptionsArg), name, ref useHigh, ref high, ref useLow, ref low);

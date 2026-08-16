@@ -157,10 +157,10 @@ internal sealed class SpatialAnalyzerSdkLifecycleStateProjection(
                 StringComparison.Ordinal) => global::Briosa.SpatialAnalyzerSdkState.Connecting,
             WorkerLifecycleState.Starting => global::Briosa.SpatialAnalyzerSdkState.Starting,
             WorkerLifecycleState.Ready when snapshot.Connection is
-                {
-                    State: WorkerConnectionState.Connected,
-                    ExecutionReadinessState: WorkerExecutionReadinessState.ExecutionReady
-                } && snapshot.RuntimeIdentity?.AllowsExecution == true =>
+            {
+                State: WorkerConnectionState.Connected,
+                ExecutionReadinessState: WorkerExecutionReadinessState.ExecutionReady
+            } && snapshot.RuntimeIdentity?.AllowsExecution == true =>
                     global::Briosa.SpatialAnalyzerSdkState.Ready,
             WorkerLifecycleState.Ready => global::Briosa.SpatialAnalyzerSdkState.Running,
             WorkerLifecycleState.Degraded => global::Briosa.SpatialAnalyzerSdkState.Faulted,

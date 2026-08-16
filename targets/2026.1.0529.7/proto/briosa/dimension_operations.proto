@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package briosa;
+
+import "briosa/operation_outcomes.proto";
+import "briosa/spatial_analyzer_values.proto";
+
+option csharp_namespace = "Briosa";
+
+service DimensionOperations {
+  rpc DeleteDimension(DeleteDimensionRequest) returns (DeleteDimensionResult);
+  rpc GetDimensionValue(GetDimensionValueRequest) returns (GetDimensionValueResult);
+  rpc SetDimensionTolerance(SetDimensionToleranceRequest) returns (SetDimensionToleranceResult);
+}
+
+message DeleteDimensionRequest {
+  optional CollectionObjectName dimension_name = 1;
+}
+
+message DeleteDimensionResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message GetDimensionValueRequest {
+  optional CollectionObjectName dimension_name = 1;
+}
+
+message GetDimensionValueResult {
+  optional double dimensions_value = 1;
+  optional bool nominal_value_enabled = 2;
+  optional bool high_tolerance_enabled = 3;
+  optional bool low_tolerance_enabled = 4;
+  optional double nominal_value = 5;
+  optional double high_tolerance = 6;
+  optional double low_tolerance = 7;
+  MpExecutionDetails execution = 1000;
+}
+
+message SetDimensionToleranceRequest {
+  optional CollectionItemName dimension_name = 1;
+  optional bool enable_nominal = 2;
+  optional bool enable_high = 3;
+  optional bool enable_low = 4;
+  optional double nominal = 5;
+  optional double high_tolerance = 6;
+  optional double low_tolerance = 7;
+}
+
+message SetDimensionToleranceResult {
+  MpExecutionDetails execution = 1000;
+}

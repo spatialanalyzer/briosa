@@ -4,14 +4,162 @@ package briosa;
 
 option csharp_namespace = "Briosa";
 
-// An object in a SpatialAnalyzer collection.
-message CollectionObjectName {
-  optional string collection_name = 1;
-  optional string object_name = 2;
-  ObjectType object_type = 3;
+// Shared exact-target values used by the Wave A MP contracts.
+
+enum AngularUnits {
+  ANGULAR_UNITS_UNSPECIFIED = 0;
+  ANGULAR_UNITS_DEGREES = 1;
+  ANGULAR_UNITS_DEGREES_MINUTES_SECONDS = 2;
+  ANGULAR_UNITS_RADIANS = 3;
+  ANGULAR_UNITS_MILLIRADIANS = 4;
+  ANGULAR_UNITS_GONS_GRAD = 5;
+  ANGULAR_UNITS_MILS = 6;
+  ANGULAR_UNITS_ARCSECONDS = 7;
+  ANGULAR_UNITS_DEGREES_MINUTES = 8;
 }
 
-// The exact object-type domain accepted by collection-object MP arguments.
+enum AsciiFileFormat {
+  ASCII_FILE_FORMAT_UNSPECIFIED = 0;
+  ASCII_FILE_FORMAT_X_Y_Z = 1;
+  ASCII_FILE_FORMAT_X_Y_Z_OFFSET_OFFSET2 = 2;
+  ASCII_FILE_FORMAT_X_Y_Z_NOTES = 3;
+  ASCII_FILE_FORMAT_RADIUS_THETA_PHI = 4;
+  ASCII_FILE_FORMAT_RADIUS_THETA_Z = 5;
+  ASCII_FILE_FORMAT_POINT_NAME_X_Y_Z = 6;
+  ASCII_FILE_FORMAT_POINT_NAME_X_Y_Z_NOTES = 7;
+  ASCII_FILE_FORMAT_POINT_NAME_X_Y_Z_OFFSET_OFFSET2 = 8;
+  ASCII_FILE_FORMAT_POINT_NAME_X_Y_Z_UX_UY_UZ = 9;
+  ASCII_FILE_FORMAT_POINT_NAME_X_Y_Z_TX_TY_TZ_TD = 10;
+  ASCII_FILE_FORMAT_POINT_NAME_X_Y_Z_WX_WY_WZ_WMAG = 11;
+  ASCII_FILE_FORMAT_POINT_NAME_X_Y_Z_HIGH_LOW_TOLERANCE = 12;
+  ASCII_FILE_FORMAT_POINT_NAME_X_Y_Z_TX_TY_TZ_TD_WX_WY_WZ = 13;
+  ASCII_FILE_FORMAT_POINT_NAME_X_Y_Z_WX_WY_WZ_TX_TY_TZ_TD = 14;
+  ASCII_FILE_FORMAT_POINT_NAME_X_Y_Z_HIGH_LOW_TOLERANCE_WX_WY_WZ = 15;
+  ASCII_FILE_FORMAT_POINT_NAME_X_Y_Z_WX_WY_WZ_HIGH_LOW_TOLERANCE = 16;
+  ASCII_FILE_FORMAT_POINT_NAME_RADIUS_THETA_PHI = 17;
+  ASCII_FILE_FORMAT_POINT_NAME_RADIUS_THETA_Z = 18;
+  ASCII_FILE_FORMAT_POINT_NAME_X_Y_Z_GROUP_NAME = 19;
+  ASCII_FILE_FORMAT_POINT_NAME_Y_X_Z_GROUP_NAME = 20;
+  ASCII_FILE_FORMAT_GROUP_NAME_POINT_NAME_X_Y_Z = 21;
+  ASCII_FILE_FORMAT_GROUP_NAME_POINT_NAME_X_Y_Z_OFFSET_OFFSET2 = 22;
+  ASCII_FILE_FORMAT_GROUP_NAME_POINT_NAME_X_Y_Z_NOTES = 23;
+  ASCII_FILE_FORMAT_GROUP_NAME_POINT_NAME_X_Y_Z_UX_UY_UZ = 24;
+  ASCII_FILE_FORMAT_GROUP_NAME_POINT_NAME_RADIUS_THETA_PHI = 25;
+  ASCII_FILE_FORMAT_GROUP_NAME_POINT_NAME_RADIUS_THETA_Z = 26;
+  ASCII_FILE_FORMAT_COLLECTION_GROUP_POINT_X_Y_Z = 27;
+  ASCII_FILE_FORMAT_COLLECTION_GROUP_POINT_X_Y_Z_NOTES = 28;
+  ASCII_FILE_FORMAT_COLLECTION_GROUP_POINT_RADIUS_THETA_PHI = 29;
+  ASCII_FILE_FORMAT_COLLECTION_GROUP_POINT_RADIUS_THETA_Z = 30;
+  ASCII_FILE_FORMAT_X_Y_Z_I_J_K = 31;
+  ASCII_FILE_FORMAT_VECTOR_NAME_X_Y_Z_I_J_K = 32;
+  ASCII_FILE_FORMAT_VECTOR_NAME_X_Y_Z_DX_DY_DZ_SIGNED_MAGNITUDE = 33;
+  ASCII_FILE_FORMAT_VECTOR_GROUP_NAME_VECTOR_NAME_X_Y_Z_I_J_K = 34;
+  ASCII_FILE_FORMAT_VECTOR_GROUP_NAME_VECTOR_NAME_X_Y_Z_DX_DY_DZ_SIGNED_MAGNITUDE = 35;
+  ASCII_FILE_FORMAT_FRAME_NAME_X_Y_Z_RX_RY_RZ_TIMESTAMP = 36;
+  ASCII_FILE_FORMAT_FRAME_NAME_X_Y_Z_EULER_X_Y_Z_TIMESTAMP = 37;
+  ASCII_FILE_FORMAT_FRAME_NAME_X_Y_Z_EULER_Z_Y_X_TIMESTAMP = 38;
+  ASCII_FILE_FORMAT_FRAME_NAME_X_Y_Z_EULER_Z_Y_Z_TIMESTAMP = 39;
+  ASCII_FILE_FORMAT_FRAME_NAME_X_Y_Z_EULER_Z_X_Z_TIMESTAMP = 40;
+  ASCII_FILE_FORMAT_FRAME_NAME_TRANSFORMATION_MATRIX_TIMESTAMP = 41;
+  ASCII_FILE_FORMAT_TRANSFORMATION_MATRIX_TIMESTAMP = 42;
+  ASCII_FILE_FORMAT_FRAME_NAME_X_Y_Z_QUATERNION_TIMESTAMP = 43;
+  ASCII_FILE_FORMAT_PLANE_NAME_X_Y_Z_DX_DY_DZ_PLANE_SIZE = 44;
+}
+
+enum ChartType {
+  CHART_TYPE_UNSPECIFIED = 0;
+  CHART_TYPE_RUN_CHART = 1;
+  CHART_TYPE_INDIVIDUAL_X_MOVING_RANGE = 2;
+  CHART_TYPE_BULLSEYE_CHART = 3;
+}
+
+enum CoordinateSystemType {
+  COORDINATE_SYSTEM_TYPE_UNSPECIFIED = 0;
+  COORDINATE_SYSTEM_TYPE_CARTESIAN = 1;
+  COORDINATE_SYSTEM_TYPE_CYLINDRIC = 2;
+  COORDINATE_SYSTEM_TYPE_POLAR = 3;
+}
+
+enum DatasetType {
+  DATASET_TYPE_UNSPECIFIED = 0;
+  DATASET_TYPE_X = 1;
+  DATASET_TYPE_Y = 2;
+  DATASET_TYPE_Z = 3;
+  DATASET_TYPE_MAGNITUDE = 4;
+}
+
+enum DistanceUnits {
+  DISTANCE_UNITS_UNSPECIFIED = 0;
+  DISTANCE_UNITS_METERS = 1;
+  DISTANCE_UNITS_CENTIMETERS = 2;
+  DISTANCE_UNITS_MILLIMETERS = 3;
+  DISTANCE_UNITS_FEET = 4;
+  DISTANCE_UNITS_INCHES = 5;
+  DISTANCE_UNITS_US_SURVEY_FEET = 6;
+}
+
+enum ExportDataDelimeterType {
+  EXPORT_DATA_DELIMETER_TYPE_UNSPECIFIED = 0;
+  EXPORT_DATA_DELIMETER_TYPE_SPACE = 1;
+  EXPORT_DATA_DELIMETER_TYPE_COMMA = 2;
+  EXPORT_DATA_DELIMETER_TYPE_TAB = 3;
+}
+
+enum ExportTargetNameFormat {
+  EXPORT_TARGET_NAME_FORMAT_UNSPECIFIED = 0;
+  EXPORT_TARGET_NAME_FORMAT_COLLECTION_GROUP_TARGET = 1;
+  EXPORT_TARGET_NAME_FORMAT_GROUP_TARGET = 2;
+  EXPORT_TARGET_NAME_FORMAT_TARGET = 3;
+  EXPORT_TARGET_NAME_FORMAT_NONE = 4;
+}
+
+enum ExportVectorNameFormat {
+  EXPORT_VECTOR_NAME_FORMAT_UNSPECIFIED = 0;
+  EXPORT_VECTOR_NAME_FORMAT_COLLECTION_GROUP_VECTOR = 1;
+  EXPORT_VECTOR_NAME_FORMAT_GROUP_VECTOR = 2;
+  EXPORT_VECTOR_NAME_FORMAT_VECTOR = 3;
+  EXPORT_VECTOR_NAME_FORMAT_NONE = 4;
+}
+
+enum BaseColorType {
+  BASE_COLOR_TYPE_UNSPECIFIED = 0;
+  BASE_COLOR_TYPE_RED = 1;
+  BASE_COLOR_TYPE_GREEN = 2;
+  BASE_COLOR_TYPE_BLUE = 3;
+}
+
+enum BaseMidColorType {
+  BASE_MID_COLOR_TYPE_UNSPECIFIED = 0;
+  BASE_MID_COLOR_TYPE_RED = 1;
+  BASE_MID_COLOR_TYPE_GREEN = 2;
+  BASE_MID_COLOR_TYPE_GRAY = 3;
+  BASE_MID_COLOR_TYPE_BLUE = 4;
+}
+
+enum ColorRangeMethod {
+  COLOR_RANGE_METHOD_UNSPECIFIED = 0;
+  COLOR_RANGE_METHOD_SINGLE_COLOR = 1;
+  COLOR_RANGE_METHOD_CONTINUOUS = 2;
+  COLOR_RANGE_METHOD_TOLERANCED_CONTINUOUS = 3;
+  COLOR_RANGE_METHOD_TOLERANCED_GO_NO_GO = 4;
+  COLOR_RANGE_METHOD_TOLERANCED_GO_NO_GO_WITH_WARNING = 5;
+  COLOR_RANGE_METHOD_DISCRETE_COLORS = 6;
+}
+
+enum GeometryType {
+  GEOMETRY_TYPE_UNSPECIFIED = 0;
+  GEOMETRY_TYPE_LINE = 1;
+  GEOMETRY_TYPE_PLANE = 2;
+  GEOMETRY_TYPE_CIRCLE = 3;
+  GEOMETRY_TYPE_SPHERE = 4;
+  GEOMETRY_TYPE_CYLINDER = 5;
+  GEOMETRY_TYPE_CONE = 6;
+  GEOMETRY_TYPE_PARABOLOID = 7;
+  GEOMETRY_TYPE_ELLIPSE = 8;
+  GEOMETRY_TYPE_SLOT = 9;
+  GEOMETRY_TYPE_TORUS = 10;
+}
+
 enum ObjectType {
   OBJECT_TYPE_UNSPECIFIED = 0;
   OBJECT_TYPE_ANY = 1;
@@ -40,4 +188,391 @@ enum ObjectType {
   OBJECT_TYPE_SURFACE = 24;
   OBJECT_TYPE_TORUS = 25;
   OBJECT_TYPE_VECTOR_GROUP = 26;
+}
+
+enum ItemType {
+  ITEM_TYPE_UNSPECIFIED = 0;
+  ITEM_TYPE_ANY = 1;
+  ITEM_TYPE_ALIGNMENT = 2;
+  ITEM_TYPE_ANNOTATION = 3;
+  ITEM_TYPE_B_SPLINE = 4;
+  ITEM_TYPE_CALIBRATION_APPLIANCE_NODE = 5;
+  ITEM_TYPE_CALLOUT_VIEW = 6;
+  ITEM_TYPE_CHART = 7;
+  ITEM_TYPE_CIRCLE = 8;
+  ITEM_TYPE_CLOUD = 9;
+  ITEM_TYPE_ENHANCED_CLOUD = 10;
+  ITEM_TYPE_SCAN_STRIPE_CLOUD = 11;
+  ITEM_TYPE_CROSS_SECTION_CLOUD = 12;
+  ITEM_TYPE_CONE = 13;
+  ITEM_TYPE_CYLINDER = 14;
+  ITEM_TYPE_DATUM = 15;
+  ITEM_TYPE_DIMENSION = 16;
+  ITEM_TYPE_ELLIPSE = 17;
+  ITEM_TYPE_EVENT = 18;
+  ITEM_TYPE_FEATURE_CHECK = 19;
+  ITEM_TYPE_FRAME = 20;
+  ITEM_TYPE_FRAME_SET = 21;
+  ITEM_TYPE_LINE = 22;
+  ITEM_TYPE_PARABOLOID = 23;
+  ITEM_TYPE_PERIMETER = 24;
+  ITEM_TYPE_PICTURE = 25;
+  ITEM_TYPE_PLANE = 26;
+  ITEM_TYPE_POINT_GROUP = 27;
+  ITEM_TYPE_POINT_SET = 28;
+  ITEM_TYPE_POLY_SURFACE = 29;
+  ITEM_TYPE_RELATIONSHIP = 30;
+  ITEM_TYPE_SA_DOC = 31;
+  ITEM_TYPE_SA_REPORT = 32;
+  ITEM_TYPE_SA_REPORT_TEMPLATE = 33;
+  ITEM_TYPE_SCALE_BAR = 34;
+  ITEM_TYPE_SCAN_STRIPE_MESH = 35;
+  ITEM_TYPE_SLOT = 36;
+  ITEM_TYPE_SPHERE = 37;
+  ITEM_TYPE_SURFACE = 38;
+  ITEM_TYPE_TABLE = 39;
+  ITEM_TYPE_TCP_FIXTURE = 40;
+  ITEM_TYPE_TORUS = 41;
+  ITEM_TYPE_VECTOR_GROUP = 42;
+}
+
+enum PointFilterInputType {
+  POINT_FILTER_INPUT_TYPE_UNSPECIFIED = 0;
+  POINT_FILTER_INPUT_TYPE_CARDINAL_POINTS = 1;
+  POINT_FILTER_INPUT_TYPE_INPUT_POINTS = 2;
+  POINT_FILTER_INPUT_TYPE_NOMINAL_CARDINAL_POINTS = 3;
+}
+
+enum RelWeightingMode {
+  REL_WEIGHTING_MODE_UNSPECIFIED = 0;
+  REL_WEIGHTING_MODE_NORMALIZE_EQUATION_COUNT = 1;
+  REL_WEIGHTING_MODE_NORMALIZE_EQUATION_COUNT_AND_TOLERANCE_WIDTH = 2;
+  REL_WEIGHTING_MODE_RESET_ALL_WEIGHTS = 3;
+  REL_WEIGHTING_MODE_NORMALIZE_SQUARE_ROOT_EQUATION_COUNT = 4;
+  REL_WEIGHTING_MODE_NORMALIZE_SQUARE_ROOT_AND_TOLERANCE_WIDTH = 5;
+}
+
+enum RenderModeType {
+  RENDER_MODE_TYPE_UNSPECIFIED = 0;
+  RENDER_MODE_TYPE_WIREFRAME = 1;
+  RENDER_MODE_TYPE_HIDDEN_LINE_REMOVED = 2;
+  RENDER_MODE_TYPE_SOLID_AND_EDGES = 3;
+  RENDER_MODE_TYPE_SOLID = 4;
+}
+
+enum ReportOutputType {
+  REPORT_OUTPUT_TYPE_UNSPECIFIED = 0;
+  REPORT_OUTPUT_TYPE_NONE = 1;
+  REPORT_OUTPUT_TYPE_SA_REPORT = 2;
+  REPORT_OUTPUT_TYPE_SA_DOCUMENT = 3;
+  REPORT_OUTPUT_TYPE_PDF = 4;
+  REPORT_OUTPUT_TYPE_RTF = 5;
+}
+
+enum ReportPageSettings {
+  REPORT_PAGE_SETTINGS_UNSPECIFIED = 0;
+  REPORT_PAGE_SETTINGS_PORTRAIT = 1;
+  REPORT_PAGE_SETTINGS_LANDSCAPE = 2;
+}
+
+enum ReportViewType {
+  REPORT_VIEW_TYPE_UNSPECIFIED = 0;
+  REPORT_VIEW_TYPE_NONE = 1;
+  REPORT_VIEW_TYPE_CURRENT_VIEW = 2;
+  REPORT_VIEW_TYPE_CALLOUT_VIEW = 3;
+}
+
+enum SurfaceAnalysisMode {
+  SURFACE_ANALYSIS_MODE_UNSPECIFIED = 0;
+  SURFACE_ANALYSIS_MODE_NONE = 1;
+  SURFACE_ANALYSIS_MODE_RELATIONSHIP = 2;
+  SURFACE_ANALYSIS_MODE_NORMALS = 3;
+  SURFACE_ANALYSIS_MODE_CURVATURE = 4;
+  SURFACE_ANALYSIS_MODE_DEVIATION_RMS = 5;
+  SURFACE_ANALYSIS_MODE_DEVIATION_MAX = 6;
+  SURFACE_ANALYSIS_MODE_DEVIATION_AVERAGE = 7;
+  SURFACE_ANALYSIS_MODE_DEVIATION_MIN = 8;
+  SURFACE_ANALYSIS_MODE_DEVIATION_MAX_ABSOLUTE = 9;
+  SURFACE_ANALYSIS_MODE_DEVIATION_MAX_DELTA = 10;
+  SURFACE_ANALYSIS_MODE_PSEUDO_SURFACE = 11;
+}
+
+enum TemperatureUnits {
+  TEMPERATURE_UNITS_UNSPECIFIED = 0;
+  TEMPERATURE_UNITS_FAHRENHEIT = 1;
+  TEMPERATURE_UNITS_CELSIUS = 2;
+}
+
+enum TranslucencyType {
+  TRANSLUCENCY_TYPE_UNSPECIFIED = 0;
+  TRANSLUCENCY_TYPE_SOLID = 1;
+  TRANSLUCENCY_TYPE_TRANSLUCENT = 2;
+  TRANSLUCENCY_TYPE_WIREFRAME = 3;
+}
+
+// Exact-target choices used by fit-profile commands.
+enum CompTechnique {
+  COMP_TECHNIQUE_UNSPECIFIED = 0;
+  COMP_TECHNIQUE_STANDARD = 1;
+  COMP_TECHNIQUE_MAX_INSCRIBED = 2;
+  COMP_TECHNIQUE_MIN_CIRCUMSCRIBED = 3;
+}
+
+enum DegreeOfFreedom {
+  DEGREE_OF_FREEDOM_UNSPECIFIED = 0;
+  DEGREE_OF_FREEDOM_ANY = 1;
+  DEGREE_OF_FREEDOM_LOCK_FOCUS_LOCATION = 2;
+  DEGREE_OF_FREEDOM_LOCK_VERTEX_LOCATION = 3;
+}
+
+enum FitMethod {
+  FIT_METHOD_UNSPECIFIED = 0;
+  FIT_METHOD_MINIMUM_RMS = 1;
+  FIT_METHOD_BEST_AXIS = 2;
+}
+
+enum MeasuredSideForPlanarOffset {
+  MEASURED_SIDE_FOR_PLANAR_OFFSET_UNSPECIFIED = 0;
+  MEASURED_SIDE_FOR_PLANAR_OFFSET_ABOVE_PLANE = 1;
+  MEASURED_SIDE_FOR_PLANAR_OFFSET_PROBE_CENTER = 2;
+  MEASURED_SIDE_FOR_PLANAR_OFFSET_BELOW_PLANE = 3;
+}
+
+enum MeasuredSideForRadialOffset {
+  MEASURED_SIDE_FOR_RADIAL_OFFSET_UNSPECIFIED = 0;
+  MEASURED_SIDE_FOR_RADIAL_OFFSET_INSIDE = 1;
+  MEASURED_SIDE_FOR_RADIAL_OFFSET_PROBE_CENTER = 2;
+  MEASURED_SIDE_FOR_RADIAL_OFFSET_OUTSIDE = 3;
+}
+
+enum MpDialogInteractionMode {
+  MP_DIALOG_INTERACTION_MODE_UNSPECIFIED = 0;
+  MP_DIALOG_INTERACTION_MODE_BLOCK_APPLICATION_INTERACTION = 1;
+  MP_DIALOG_INTERACTION_MODE_ALLOW_APPLICATION_INTERACTION = 2;
+}
+
+enum MpInteractionMode {
+  MP_INTERACTION_MODE_UNSPECIFIED = 0;
+  MP_INTERACTION_MODE_HALT_ON_FAILURE_ONLY = 1;
+  MP_INTERACTION_MODE_HALT_ON_FAILURE_OR_PARTIAL_SUCCESS = 2;
+  MP_INTERACTION_MODE_NEVER_HALT = 3;
+}
+
+enum NormalDirection {
+  NORMAL_DIRECTION_UNSPECIFIED = 0;
+  NORMAL_DIRECTION_PROBING_DIRECTION = 1;
+  NORMAL_DIRECTION_WORKING_ORIGIN_POSITIVE = 2;
+  NORMAL_DIRECTION_RIGHT_HAND_RULE = 3;
+}
+
+enum SaInteractionMode {
+  SA_INTERACTION_MODE_UNSPECIFIED = 0;
+  SA_INTERACTION_MODE_MANUAL = 1;
+  SA_INTERACTION_MODE_AUTOMATIC = 2;
+  SA_INTERACTION_MODE_SILENT = 3;
+}
+
+enum SlotType {
+  SLOT_TYPE_UNSPECIFIED = 0;
+  SLOT_TYPE_ROUND = 1;
+  SLOT_TYPE_SQUARE = 2;
+}
+
+enum SphereFitComputationMode {
+  SPHERE_FIT_COMPUTATION_MODE_UNSPECIFIED = 0;
+  SPHERE_FIT_COMPUTATION_MODE_STANDARD = 1;
+  SPHERE_FIT_COMPUTATION_MODE_MAX_INSCRIBED = 2;
+  SPHERE_FIT_COMPUTATION_MODE_MIN_CIRCUMSCRIBED = 3;
+}
+
+enum WindowState {
+  WINDOW_STATE_UNSPECIFIED = 0;
+  WINDOW_STATE_MAXIMIZE = 1;
+  WINDOW_STATE_MINIMIZE = 2;
+  WINDOW_STATE_RESTORE = 3;
+  WINDOW_STATE_SHOW = 4;
+  WINDOW_STATE_HIDE = 5;
+}
+
+message ChartName {
+  optional string name = 1;
+}
+
+message CollectionName {
+  optional string name = 1;
+}
+
+message FrameName {
+  optional string name = 1;
+}
+
+message ViewName {
+  optional string name = 1;
+}
+
+message PointName {
+  optional string collection_name = 1;
+  optional string group_name = 2;
+  optional string target_name = 3;
+}
+
+message CollectionInstrumentId {
+  optional string collection_name = 1;
+  optional int32 instrument_id = 2;
+}
+
+message CollectionGroupName {
+  optional string collection_name = 1;
+  optional string group_name = 2;
+}
+
+message CollectionObjectName {
+  optional string collection_name = 1;
+  optional string object_name = 2;
+  ObjectType object_type = 3;
+}
+
+message CollectionItemName {
+  optional string collection_name = 1;
+  optional string item_name = 2;
+  optional ItemType item_type = 3;
+}
+
+message CollectionVectorGroupName {
+  optional string collection_name = 1;
+  optional string vector_group_name = 2;
+}
+
+message VectorName {
+  optional string collection_name = 1;
+  optional string group_name = 2;
+  optional string name = 3;
+}
+
+message Vector {
+  optional double x = 1;
+  optional double y = 2;
+  optional double z = 3;
+}
+
+message Transform {
+  repeated double values = 1;
+}
+
+message WorldTransform {
+  optional Transform transform = 1;
+  optional double scale_factor = 2;
+}
+
+message Color {
+  optional uint32 red = 1;
+  optional uint32 green = 2;
+  optional uint32 blue = 3;
+}
+
+message ColorizationOptions {
+  optional ColorRangeMethod color_range_method = 1;
+  optional BaseColorType base_high_color = 2;
+  optional BaseMidColorType base_mid_color = 3;
+  optional BaseColorType base_low_color = 4;
+  optional bool draw_tubes = 5;
+  optional bool draw_arrowheads = 6;
+  optional bool indicate_values = 7;
+  optional double vector_magnification = 8;
+  optional int32 vector_width = 9;
+  optional bool draw_blotches = 10;
+  optional double blotch_size = 11;
+  optional bool show_out_of_tolerance_only = 12;
+  optional bool show_color_bar_in_view = 13;
+  optional bool show_color_bar_percentages = 14;
+  optional bool show_color_bar_fractions = 15;
+  optional double high_saturation_limit = 16;
+  optional double low_saturation_limit = 17;
+  optional double high_tolerance = 18;
+  optional double low_tolerance = 19;
+}
+
+message FileReference {
+  optional string path = 1;
+  optional bool embedded_file = 2;
+}
+
+message Font {
+  optional string font_name = 1;
+  optional uint32 size = 2;
+  Color color = 3;
+}
+
+message ScalarToleranceLimit {
+  optional bool enabled = 1;
+  optional double value = 2;
+}
+
+message ToleranceLimit {
+  optional bool enabled = 1;
+  optional double value = 2;
+}
+
+message ToleranceVectorOptions {
+  optional ToleranceLimit high_x = 1;
+  optional ToleranceLimit high_y = 2;
+  optional ToleranceLimit high_z = 3;
+  optional ToleranceLimit high_magnitude = 4;
+  optional ToleranceLimit low_x = 5;
+  optional ToleranceLimit low_y = 6;
+  optional ToleranceLimit low_z = 7;
+  optional ToleranceLimit low_magnitude = 8;
+}
+
+message FitConstraintScalarOptions {
+  ScalarToleranceLimit high = 1;
+  ScalarToleranceLimit low = 2;
+}
+
+message ToleranceScalarOptions {
+  ScalarToleranceLimit high = 1;
+  ScalarToleranceLimit low = 2;
+}
+
+message EmbeddedReportFile {
+  optional string collection_name = 1;
+  optional string file_name = 2;
+}
+
+message ReportOutputOptions {
+  optional ReportOutputType output_type = 1;
+  oneof destination {
+    string external_path = 2;
+    EmbeddedReportFile embedded_file = 3;
+  }
+}
+
+message ReportViewOptions {
+  optional ReportViewType view_type = 1;
+  optional string collection_name = 2;
+  optional string callout_name = 3;
+}
+
+message ProjectionOptions {
+  optional string projection_type = 1;
+  optional bool ignore_edge_projections = 2;
+  optional bool override_target_offsets = 3;
+  optional double override_target_offsets_value = 4;
+  optional bool add_extra_material_thickness = 5;
+  optional double extra_material_thickness_value = 6;
+}
+
+message PointDeltaReportOptions {
+  optional CoordinateSystemType coordinate_system = 1;
+  optional string details_format = 2;
+  optional bool show_point_a = 3;
+  optional bool show_point_b = 4;
+  optional bool show_delta = 5;
+  optional bool show_magnitude = 6;
+  optional bool show_component_1 = 7;
+  optional bool show_component_2 = 8;
+  optional bool show_component_3 = 9;
+  optional bool sort_point_names = 10;
+  optional bool show_tolerance_fields = 11;
+  optional bool colorize_in_tolerance_fields = 12;
 }

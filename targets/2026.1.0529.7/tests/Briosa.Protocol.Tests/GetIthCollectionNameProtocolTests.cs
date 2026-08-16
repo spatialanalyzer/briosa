@@ -6,27 +6,27 @@ namespace Briosa.Protocol.Tests;
 public sealed partial class ProtocolSchemaTests
 {
     [Fact]
-    public void GetIThCollectionNameRetainsMpCompatibleIdentityAndPresence()
+    public void GetIthCollectionNameRetainsMpCompatibleIdentityAndPresence()
     {
         Assert.Equal(
             "briosa.AnalysisOperations",
             Api.AnalysisOperations.Descriptor.FullName);
         var method = Assert.Single(
             Api.AnalysisOperations.Descriptor.Methods,
-            candidate => candidate.Name == "GetIThCollectionName");
+            candidate => candidate.Name == "GetIthCollectionName");
         Assert.Equal(
-            Api.GetIThCollectionNameRequest.Descriptor,
+            Api.GetIthCollectionNameRequest.Descriptor,
             method.InputType);
         Assert.Equal(
-            Api.GetIThCollectionNameResult.Descriptor,
+            Api.GetIthCollectionNameResult.Descriptor,
             method.OutputType);
 
-        var collectionIndex = Api.GetIThCollectionNameRequest.Descriptor
+        var collectionIndex = Api.GetIthCollectionNameRequest.Descriptor
             .FindFieldByName("collection_index");
         Assert.Equal(FieldType.Int32, collectionIndex.FieldType);
         Assert.True(collectionIndex.HasPresence);
 
-        var request = new Api.GetIThCollectionNameRequest
+        var request = new Api.GetIthCollectionNameRequest
         {
             CollectionIndex = 0
         };
@@ -35,13 +35,13 @@ public sealed partial class ProtocolSchemaTests
         request.ClearCollectionIndex();
         Assert.False(request.HasCollectionIndex);
 
-        var resultantName = Api.GetIThCollectionNameResult.Descriptor
+        var resultantName = Api.GetIthCollectionNameResult.Descriptor
             .FindFieldByName("resultant_name");
         Assert.Equal(FieldType.String, resultantName.FieldType);
         Assert.True(resultantName.HasPresence);
         Assert.Equal(
             1000,
-            Api.GetIThCollectionNameResult.Descriptor
+            Api.GetIthCollectionNameResult.Descriptor
                 .FindFieldByName("execution").FieldNumber);
     }
 }

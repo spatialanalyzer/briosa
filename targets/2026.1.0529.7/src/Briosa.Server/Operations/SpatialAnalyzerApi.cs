@@ -1,7 +1,5 @@
-using Briosa.Server.Operations.AnalysisOperations;
 using Briosa.Server.Operations.ConstructionOperations;
-using Briosa.Server.Operations.FileOperations;
-using Briosa.Server.Operations.UtilityOperations;
+using Briosa.Server.Operations.WaveA;
 using Briosa.Server.Security;
 
 namespace Briosa.Server.Operations;
@@ -16,11 +14,7 @@ internal static class SpatialAnalyzerApi
 
     public static IReadOnlyList<OperationDescriptor> Operations { get; } =
         [
-            GetIThCollectionNameOperation.Descriptor,
-            GetNumberOfCollectionsOperation.Descriptor,
-            GetWorkingDirectoryOperation.Descriptor,
+            .. WaveAOperationCatalog.Operations.Select(operation => operation.Descriptor),
             GetActiveCollectionNameOperation.Descriptor,
-            GetActiveUnitsOperation.Descriptor,
-            GetWorkingFramePropertiesOperation.Descriptor
         ];
 }

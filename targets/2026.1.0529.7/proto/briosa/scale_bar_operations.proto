@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package briosa;
+
+import "briosa/operation_outcomes.proto";
+import "briosa/spatial_analyzer_values.proto";
+
+option csharp_namespace = "Briosa";
+
+service ScaleBarOperations {
+  rpc DeleteScaleBar(DeleteScaleBarRequest) returns (DeleteScaleBarResult);
+  rpc GetScaleBarStats(GetScaleBarStatsRequest) returns (GetScaleBarStatsResult);
+  rpc ScaleBarCheck(ScaleBarCheckRequest) returns (ScaleBarCheckResult);
+  rpc SetInwardPositiveNormal(SetInwardPositiveNormalRequest) returns (SetInwardPositiveNormalResult);
+}
+
+message DeleteScaleBarRequest {
+  optional CollectionObjectName scale_bar_name = 1;
+}
+
+message DeleteScaleBarResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message GetScaleBarStatsRequest {
+  optional CollectionObjectName scale_bar_name = 1;
+}
+
+message GetScaleBarStatsResult {
+  optional double nominal_length = 1;
+  optional double actual_length = 2;
+  optional double deviation = 3;
+  MpExecutionDetails execution = 1000;
+}
+
+message ScaleBarCheckRequest {
+  optional PointName scale_bar_point_a = 1;
+  optional PointName scale_bar_point_b = 2;
+  optional double current_temperature_f = 3;
+  optional double length_of_bar_at_68f = 4;
+  optional double material_cte_ppm_f = 5;
+  optional double tolerance = 6;
+}
+
+message ScaleBarCheckResult {
+  optional double deviation_at_68f = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message SetInwardPositiveNormalRequest {
+  optional CollectionObjectName object_name = 1;
+  optional bool inward_positive = 2;
+}
+
+message SetInwardPositiveNormalResult {
+  MpExecutionDetails execution = 1000;
+}

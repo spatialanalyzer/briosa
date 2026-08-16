@@ -40,6 +40,18 @@ internal static class WorkerSpecializedValueValidation
             WorkerMpValueKind.SurfaceDissectionModeType => IsEnum(argument, 2),
             WorkerMpValueKind.TargetComputationMethod => IsEnum(argument, 6),
             WorkerMpValueKind.TranslucencyType => IsEnum(argument, 3),
+            WorkerMpValueKind.CompTechnique => IsEnum(argument, 3),
+            WorkerMpValueKind.DegreeOfFreedom => IsEnum(argument, 3),
+            WorkerMpValueKind.FitMethod => IsEnum(argument, 2),
+            WorkerMpValueKind.MeasuredSideForPlanarOffset => IsEnum(argument, 3),
+            WorkerMpValueKind.MeasuredSideForRadialOffset => IsEnum(argument, 3),
+            WorkerMpValueKind.MpDialogInteractionMode => IsEnum(argument, 2),
+            WorkerMpValueKind.MpInteractionMode => IsEnum(argument, 3),
+            WorkerMpValueKind.NormalDirection => IsEnum(argument, 3),
+            WorkerMpValueKind.SaInteractionMode => IsEnum(argument, 3),
+            WorkerMpValueKind.SlotType => IsEnum(argument, 2),
+            WorkerMpValueKind.SphereFitComputationMode => IsEnum(argument, 3),
+            WorkerMpValueKind.WindowState => IsEnum(argument, 5),
             WorkerMpValueKind.AutoFilterProximitySettings =>
                 IsValid(argument.AutoFilterProximitySettingsValue),
             WorkerMpValueKind.CloudThinningOptions =>
@@ -57,6 +69,10 @@ internal static class WorkerSpecializedValueValidation
                 IsValid(argument.ReportViewOptionsValue),
             WorkerMpValueKind.ToleranceScalarOptions =>
                 IsValid(argument.ToleranceScalarOptionsValue),
+            WorkerMpValueKind.ProjectionOptions =>
+                IsValid(argument.ProjectionOptionsValue),
+            WorkerMpValueKind.PointDeltaReportOptions =>
+                IsValid(argument.PointDeltaReportOptionsValue),
             _ => false
         };
 
@@ -110,6 +126,14 @@ internal static class WorkerSpecializedValueValidation
 
     private static bool IsValid(WorkerToleranceScalarOptionsValue? value) =>
         value is { High: not null, Low: not null };
+
+    private static bool IsValid(WorkerProjectionOptionsValue? value) =>
+        value?.ProjectionType is not null;
+
+    private static bool IsValid(WorkerPointDeltaReportOptionsValue? value) =>
+        value is not null &&
+        IsEnumValue(value.CoordinateSystem, 3) &&
+        value.DetailsFormat is not null;
 
     private static bool IsEnumValue(int value, int valueCount) =>
         (uint)value < (uint)valueCount;

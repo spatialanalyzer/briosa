@@ -8,35 +8,528 @@ import "briosa/spatial_analyzer_values.proto";
 option csharp_namespace = "Briosa";
 
 service UtilityOperations {
-  // Executes the "Get Active Units" MP command.
+  rpc CloseAllWatchWindows(CloseAllWatchWindowsRequest) returns (CloseAllWatchWindowsResult);
+  rpc DeleteFolder(DeleteFolderRequest) returns (DeleteFolderResult);
+  rpc DeleteItems(DeleteItemsRequest) returns (DeleteItemsResult);
+  rpc DeleteObjects(DeleteObjectsRequest) returns (DeleteObjectsResult);
+  rpc GetActiveLanguage(GetActiveLanguageRequest) returns (GetActiveLanguageResult);
   rpc GetActiveUnits(GetActiveUnitsRequest) returns (GetActiveUnitsResult);
-
-  // Executes the "Get Working Frame Properties" MP command.
+  rpc GetAngularRepresentation(GetAngularRepresentationRequest) returns (GetAngularRepresentationResult);
+  rpc GetCollectionNotes(GetCollectionNotesRequest) returns (GetCollectionNotesResult);
+  rpc GetFolderCollections(GetFolderCollectionsRequest) returns (GetFolderCollectionsResult);
+  rpc GetFolderNotes(GetFolderNotesRequest) returns (GetFolderNotesResult);
+  rpc GetFoldersByWildcard(GetFoldersByWildcardRequest) returns (GetFoldersByWildcardResult);
+  rpc GetObjectNotes(GetObjectNotesRequest) returns (GetObjectNotesResult);
+  rpc GetOpcDaTagValueDouble(GetOpcDaTagValueDoubleRequest) returns (GetOpcDaTagValueDoubleResult);
+  rpc GetOpcDaTagValueInteger(GetOpcDaTagValueIntegerRequest) returns (GetOpcDaTagValueIntegerResult);
+  rpc GetOpcDaTagValueString(GetOpcDaTagValueStringRequest) returns (GetOpcDaTagValueStringResult);
+  rpc GetPointNotes(GetPointNotesRequest) returns (GetPointNotesResult);
+  rpc GetScreenResolution(GetScreenResolutionRequest) returns (GetScreenResolutionResult);
   rpc GetWorkingFrameProperties(GetWorkingFramePropertiesRequest) returns (GetWorkingFramePropertiesResult);
+  rpc IncrementPointName(IncrementPointNameRequest) returns (IncrementPointNameResult);
+  rpc LockImportedItems(LockImportedItemsRequest) returns (LockImportedItemsResult);
+  rpc LockUnlockSelectedItems(LockUnlockSelectedItemsRequest) returns (LockUnlockSelectedItemsResult);
+  rpc LockUnlockTrappingControl(LockUnlockTrappingControlRequest) returns (LockUnlockTrappingControlResult);
+  rpc MoveCollectionToFolder(MoveCollectionToFolderRequest) returns (MoveCollectionToFolderResult);
+  rpc MoveFolderToFolder(MoveFolderToFolderRequest) returns (MoveFolderToFolderResult);
+  rpc MoveInstrumentsDragGraphically(MoveInstrumentsDragGraphicallyRequest) returns (MoveInstrumentsDragGraphicallyResult);
+  rpc MoveObjectsDragGraphically(MoveObjectsDragGraphicallyRequest) returns (MoveObjectsDragGraphicallyResult);
+  rpc ScaleObjects(ScaleObjectsRequest) returns (ScaleObjectsResult);
+  rpc SetActiveCustomLanguage(SetActiveCustomLanguageRequest) returns (SetActiveCustomLanguageResult);
+  rpc SetActiveUnits(SetActiveUnitsRequest) returns (SetActiveUnitsResult);
+  rpc SetAngularRepresentation(SetAngularRepresentationRequest) returns (SetAngularRepresentationResult);
+  rpc SetAutoEventCreation(SetAutoEventCreationRequest) returns (SetAutoEventCreationResult);
+  rpc SetAutomaticBackupState(SetAutomaticBackupStateRequest) returns (SetAutomaticBackupStateResult);
+  rpc SetAutomaticRelationshipConstructionState(SetAutomaticRelationshipConstructionStateRequest) returns (SetAutomaticRelationshipConstructionStateResult);
+  rpc SetCollectionNotes(SetCollectionNotesRequest) returns (SetCollectionNotesResult);
+  rpc SetDecimalDigitsForDisplay(SetDecimalDigitsForDisplayRequest) returns (SetDecimalDigitsForDisplayResult);
+  rpc SetFolderNotes(SetFolderNotesRequest) returns (SetFolderNotesResult);
+  rpc SetInteractionMode(SetInteractionModeRequest) returns (SetInteractionModeResult);
+  rpc SetLoggingState(SetLoggingStateRequest) returns (SetLoggingStateResult);
+  rpc SetNotificationCancelOverride(SetNotificationCancelOverrideRequest) returns (SetNotificationCancelOverrideResult);
+  rpc SetObjectNotes(SetObjectNotesRequest) returns (SetObjectNotesResult);
+  rpc SetOpcDaTagValueDouble(SetOpcDaTagValueDoubleRequest) returns (SetOpcDaTagValueDoubleResult);
+  rpc SetOpcDaTagValueInteger(SetOpcDaTagValueIntegerRequest) returns (SetOpcDaTagValueIntegerResult);
+  rpc SetOpcDaTagValueString(SetOpcDaTagValueStringRequest) returns (SetOpcDaTagValueStringResult);
+  rpc SetPointNotes(SetPointNotesRequest) returns (SetPointNotesResult);
+  rpc SetUserInterfaceProfile(SetUserInterfaceProfileRequest) returns (SetUserInterfaceProfileResult);
+  rpc SetViewIdleUpdateFrequency(SetViewIdleUpdateFrequencyRequest) returns (SetViewIdleUpdateFrequencyResult);
+  rpc SetWildCardAsteriskMode(SetWildCardAsteriskModeRequest) returns (SetWildCardAsteriskModeResult);
+  rpc SetWorkingFrame(SetWorkingFrameRequest) returns (SetWorkingFrameResult);
+  rpc StatusDialog(StatusDialogRequest) returns (StatusDialogResult);
+  rpc TrimLogFile(TrimLogFileRequest) returns (TrimLogFileResult);
+  rpc WriteToLog(WriteToLogRequest) returns (WriteToLogResult);
 }
 
-message GetActiveUnitsRequest {}
+message CloseAllWatchWindowsRequest {
+  // No MP inputs.
+}
 
-message GetActiveUnitsResult {
-  // The MP return argument named "Length".
-  optional string length = 1;
-  // The MP return argument named "Angular".
-  optional string angular = 2;
-  // The MP return argument named "Temperature".
-  optional string temperature = 3;
-  // Explicit MP and result-only argument retrieval outcomes.
+message CloseAllWatchWindowsResult {
   MpExecutionDetails execution = 1000;
 }
 
-message GetWorkingFramePropertiesRequest {}
+message DeleteFolderRequest {
+  optional string folder_path = 1;
+}
+
+message DeleteFolderResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message DeleteItemsRequest {
+  repeated CollectionItemName item_list = 1;
+}
+
+message DeleteItemsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message DeleteObjectsRequest {
+  repeated CollectionObjectName object_names = 1;
+}
+
+message DeleteObjectsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message GetActiveLanguageRequest {
+  // No MP inputs.
+}
+
+message GetActiveLanguageResult {
+  optional FileReference language_file_name = 1;
+  optional bool custom_language = 2;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetActiveUnitsRequest {
+  // No MP inputs.
+}
+
+message GetActiveUnitsResult {
+  optional string length = 1;
+  optional string angular = 2;
+  optional string temperature = 3;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetAngularRepresentationRequest {
+  // No MP inputs.
+}
+
+message GetAngularRepresentationResult {
+  optional bool value_0_360_false_180 = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetCollectionNotesRequest {
+  optional CollectionName collection = 1;
+}
+
+message GetCollectionNotesResult {
+  repeated string notes = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetFolderCollectionsRequest {
+  optional string folder_path = 1;
+}
+
+message GetFolderCollectionsResult {
+  repeated string collection_list = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetFolderNotesRequest {
+  optional string folder_path = 1;
+}
+
+message GetFolderNotesResult {
+  repeated string notes = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetFoldersByWildcardRequest {
+  optional string search_string = 1;
+  optional bool case_sensitive_search = 2;
+}
+
+message GetFoldersByWildcardResult {
+  repeated string folder_list = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetObjectNotesRequest {
+  optional CollectionObjectName object = 1;
+}
+
+message GetObjectNotesResult {
+  repeated string notes = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetOpcDaTagValueDoubleRequest {
+  optional string opc_server_da_tag_name = 1;
+}
+
+message GetOpcDaTagValueDoubleResult {
+  optional double value = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetOpcDaTagValueIntegerRequest {
+  optional string opc_server_da_tag_name = 1;
+}
+
+message GetOpcDaTagValueIntegerResult {
+  optional int32 value = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetOpcDaTagValueStringRequest {
+  optional string opc_server_da_tag_name = 1;
+}
+
+message GetOpcDaTagValueStringResult {
+  optional string value = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetPointNotesRequest {
+  optional PointName point = 1;
+}
+
+message GetPointNotesResult {
+  repeated string notes = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetScreenResolutionRequest {
+  optional int32 display_1_primary = 1;
+}
+
+message GetScreenResolutionResult {
+  optional int32 integer_window_top_left_x_position = 1;
+  optional int32 integer_window_top_left_y_position = 2;
+  optional int32 integer_width = 3;
+  optional int32 integer_height = 4;
+  optional int32 view_width = 5;
+  optional int32 view_height = 6;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetWorkingFramePropertiesRequest {
+  // No MP inputs.
+}
 
 message GetWorkingFramePropertiesResult {
-  // The MP return argument named "Frame Name".
   optional string frame_name = 1;
-  // The MP return argument named "Collection Name".
   optional string collection_name = 2;
-  // The MP return argument named "Working Frame".
-  CollectionObjectName working_frame = 3;
-  // Explicit MP and result-only argument retrieval outcomes.
+  optional CollectionObjectName working_frame = 3;
+  MpExecutionDetails execution = 1000;
+}
+
+message IncrementPointNameRequest {
+  optional PointName base_point_name = 1;
+  optional int32 increment = 2;
+}
+
+message IncrementPointNameResult {
+  optional PointName resultant_point_name = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message LockImportedItemsRequest {
+  optional bool lock_items = 1;
+}
+
+message LockImportedItemsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message LockUnlockSelectedItemsRequest {
+  repeated CollectionItemName item_list = 1;
+  repeated CollectionInstrumentId instruments = 2;
+  optional bool lock_items = 3;
+}
+
+message LockUnlockSelectedItemsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message LockUnlockTrappingControlRequest {
+  repeated CollectionItemName relationship_ref_list = 1;
+  repeated CollectionItemName feature_check_ref_list = 2;
+  repeated CollectionObjectName datum_ref_list = 3;
+  optional bool lock_out_trapping = 4;
+}
+
+message LockUnlockTrappingControlResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MoveCollectionToFolderRequest {
+  optional CollectionName collection = 1;
+  optional string folder_path = 2;
+}
+
+message MoveCollectionToFolderResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MoveFolderToFolderRequest {
+  optional string source_folder_path = 1;
+  optional string destination_folder_path = 2;
+}
+
+message MoveFolderToFolderResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MoveInstrumentsDragGraphicallyRequest {
+  repeated CollectionInstrumentId instruments = 1;
+}
+
+message MoveInstrumentsDragGraphicallyResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MoveObjectsDragGraphicallyRequest {
+  repeated CollectionObjectName objects = 1;
+}
+
+message MoveObjectsDragGraphicallyResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ScaleObjectsRequest {
+  repeated CollectionObjectName objects = 1;
+  optional double scale_factor = 2;
+}
+
+message ScaleObjectsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetActiveCustomLanguageRequest {
+  optional FileReference language_file_name = 1;
+  optional Font font = 2;
+}
+
+message SetActiveCustomLanguageResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetActiveUnitsRequest {
+  optional DistanceUnits length = 1;
+  optional bool display_inch_fractions = 2;
+  optional double inch_fraction_denominator = 3;
+  optional bool simplify_inch_fraction = 4;
+  optional TemperatureUnits temperature = 5;
+  optional AngularUnits angular = 6;
+}
+
+message SetActiveUnitsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetAngularRepresentationRequest {
+  optional bool value_0_360_false_180 = 1;
+}
+
+message SetAngularRepresentationResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetAutoEventCreationRequest {
+  optional bool active = 1;
+}
+
+message SetAutoEventCreationResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetAutomaticBackupStateRequest {
+  optional bool auto_job_file_restore_points_active = 1;
+  optional bool auto_measurements_backup_active = 2;
+}
+
+message SetAutomaticBackupStateResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetAutomaticRelationshipConstructionStateRequest {
+  optional bool active = 1;
+}
+
+message SetAutomaticRelationshipConstructionStateResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetCollectionNotesRequest {
+  optional CollectionName collection = 1;
+  repeated string notes = 2;
+  optional bool append_false_overwrite = 3;
+}
+
+message SetCollectionNotesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetDecimalDigitsForDisplayRequest {
+  optional int32 length = 1;
+  optional int32 angle = 2;
+  optional int32 scale = 3;
+  optional int32 unit_vector = 4;
+  optional int32 weight = 5;
+}
+
+message SetDecimalDigitsForDisplayResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetFolderNotesRequest {
+  optional string folder_path = 1;
+  repeated string notes = 2;
+  optional bool append_false_overwrite = 3;
+}
+
+message SetFolderNotesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetInteractionModeRequest {
+  optional SaInteractionMode sa_interaction_mode = 1;
+  optional MpInteractionMode measurement_plan_interaction_mode = 2;
+  optional MpDialogInteractionMode measurement_plan_dialog_interaction_mode = 3;
+}
+
+message SetInteractionModeResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetLoggingStateRequest {
+  optional bool active = 1;
+}
+
+message SetLoggingStateResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetNotificationCancelOverrideRequest {
+  optional bool prohibit_cancel = 1;
+}
+
+message SetNotificationCancelOverrideResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetObjectNotesRequest {
+  optional CollectionObjectName object = 1;
+  repeated string notes = 2;
+  optional bool append_false_overwrite = 3;
+}
+
+message SetObjectNotesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetOpcDaTagValueDoubleRequest {
+  optional string opc_server_da_tag_name = 1;
+  optional double value = 2;
+}
+
+message SetOpcDaTagValueDoubleResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetOpcDaTagValueIntegerRequest {
+  optional string opc_server_da_tag_name = 1;
+  optional int32 value = 2;
+}
+
+message SetOpcDaTagValueIntegerResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetOpcDaTagValueStringRequest {
+  optional string opc_server_da_tag_name = 1;
+  optional string value = 2;
+}
+
+message SetOpcDaTagValueStringResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetPointNotesRequest {
+  optional PointName point = 1;
+  repeated string notes = 2;
+  optional bool append_false_overwrite = 3;
+}
+
+message SetPointNotesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetUserInterfaceProfileRequest {
+  optional string profile_name = 1;
+  optional FileReference profile_file_name_optional = 2;
+}
+
+message SetUserInterfaceProfileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetViewIdleUpdateFrequencyRequest {
+  optional int32 idle_count = 1;
+}
+
+message SetViewIdleUpdateFrequencyResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetWildCardAsteriskModeRequest {
+  optional bool auto_wrap_search_string = 1;
+}
+
+message SetWildCardAsteriskModeResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetWorkingFrameRequest {
+  optional CollectionObjectName new_working_frame_name = 1;
+}
+
+message SetWorkingFrameResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message StatusDialogRequest {
+  optional string dialog_title = 1;
+  optional string text_message = 2;
+  optional int32 current_position = 3;
+  optional int32 upper_limit = 4;
+  optional bool suppress_time_remaining = 5;
+  optional bool close_dialog = 6;
+}
+
+message StatusDialogResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message TrimLogFileRequest {
+  optional int32 number_of_entries_to_keep = 1;
+}
+
+message TrimLogFileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message WriteToLogRequest {
+  optional string log_entry = 1;
+}
+
+message WriteToLogResult {
   MpExecutionDetails execution = 1000;
 }

@@ -79,6 +79,30 @@ internal sealed partial class SpatialAnalyzerSdkAdapter
                 sdk.SetTargetComputationMethodArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
             SdkValueKind.TranslucencyType when EnumValue<SdkTranslucencyTypeValue>(argument) is { } value =>
                 sdk.SetTranslucencyTypeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
+            SdkValueKind.CompTechnique when EnumValue<SdkCompTechniqueValue>(argument) is { } value =>
+                sdk.SetCompTechniqueArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
+            SdkValueKind.DegreeOfFreedom when EnumValue<SdkDegreeOfFreedomValue>(argument) is { } value =>
+                sdk.SetDegreeOfFreedomArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
+            SdkValueKind.FitMethod when EnumValue<SdkFitMethodValue>(argument) is { } value =>
+                sdk.SetFitMethodArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
+            SdkValueKind.MeasuredSideForPlanarOffset when EnumValue<SdkMeasuredSideForPlanarOffsetValue>(argument) is { } value =>
+                sdk.SetMeasuredSideForPlanarOffsetArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
+            SdkValueKind.MeasuredSideForRadialOffset when EnumValue<SdkMeasuredSideForRadialOffsetValue>(argument) is { } value =>
+                sdk.SetMeasuredSideForRadialOffsetArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
+            SdkValueKind.MpDialogInteractionMode when EnumValue<SdkMpDialogInteractionModeValue>(argument) is { } value =>
+                sdk.SetMPDialogInteractionModeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
+            SdkValueKind.MpInteractionMode when EnumValue<SdkMpInteractionModeValue>(argument) is { } value =>
+                sdk.SetMPInteractionModeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
+            SdkValueKind.NormalDirection when EnumValue<SdkNormalDirectionValue>(argument) is { } value =>
+                sdk.SetNormalDirectionArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
+            SdkValueKind.SaInteractionMode when EnumValue<SdkSaInteractionModeValue>(argument) is { } value =>
+                sdk.SetSAInteractionModeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
+            SdkValueKind.SlotType when EnumValue<SdkSlotTypeValue>(argument) is { } value =>
+                sdk.SetSlotTypeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
+            SdkValueKind.SphereFitComputationMode when EnumValue<SdkSphereFitComputationModeValue>(argument) is { } value =>
+                sdk.SetSphereFitComputationModeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
+            SdkValueKind.WindowState when EnumValue<SdkWindowStateValue>(argument) is { } value =>
+                sdk.SetWindowStateArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
             SdkValueKind.AutoFilterProximitySettings when argument.AutoFilterProximitySettingsValue is { } value =>
                 SetAutoFilterProximitySettings(sdk, argument.Name, value),
             SdkValueKind.CloudThinningOptions when argument.CloudThinningOptionsValue is { } value =>
@@ -128,6 +152,30 @@ internal sealed partial class SpatialAnalyzerSdkAdapter
                     value.High.Value,
                     value.Low.Enabled,
                     value.Low.Value),
+            SdkValueKind.ProjectionOptions when argument.ProjectionOptionsValue is { } value =>
+                sdk.SetProjectionOptionsArg(
+                    argument.Name,
+                    value.ProjectionType,
+                    value.IgnoreEdgeProjections,
+                    value.OverrideTargetOffsets,
+                    value.OverrideTargetOffsetsValue,
+                    value.AddExtraMaterialThickness,
+                    value.ExtraMaterialThicknessValue),
+            SdkValueKind.PointDeltaReportOptions when argument.PointDeltaReportOptionsValue is { } value =>
+                sdk.SetPointDeltaReportOptionsArg(
+                    argument.Name,
+                    SdkSpecializedValueCodec.ToSdkString(value.CoordinateSystem),
+                    value.DetailsFormat,
+                    value.ShowPointA,
+                    value.ShowPointB,
+                    value.ShowDelta,
+                    value.ShowMagnitude,
+                    value.ShowComponent1,
+                    value.ShowComponent2,
+                    value.ShowComponent3,
+                    value.SortPointNames,
+                    value.ShowToleranceFields,
+                    value.ColorizeInToleranceFields),
             _ => false
         };
 
@@ -188,6 +236,20 @@ internal sealed partial class SpatialAnalyzerSdkAdapter
         SdkValueKind.TargetComputationMethod => "SetTargetComputationMethodArg",
         SdkValueKind.ToleranceScalarOptions => "SetToleranceScalarOptionsArg",
         SdkValueKind.TranslucencyType => "SetTranslucencyTypeArg",
+        SdkValueKind.CompTechnique => "SetCompTechniqueArg",
+        SdkValueKind.DegreeOfFreedom => "SetDegreeOfFreedomArg",
+        SdkValueKind.FitMethod => "SetFitMethodArg",
+        SdkValueKind.MeasuredSideForPlanarOffset => "SetMeasuredSideForPlanarOffsetArg",
+        SdkValueKind.MeasuredSideForRadialOffset => "SetMeasuredSideForRadialOffsetArg",
+        SdkValueKind.MpDialogInteractionMode => "SetMPDialogInteractionModeArg",
+        SdkValueKind.MpInteractionMode => "SetMPInteractionModeArg",
+        SdkValueKind.NormalDirection => "SetNormalDirectionArg",
+        SdkValueKind.SaInteractionMode => "SetSAInteractionModeArg",
+        SdkValueKind.SlotType => "SetSlotTypeArg",
+        SdkValueKind.SphereFitComputationMode => "SetSphereFitComputationModeArg",
+        SdkValueKind.WindowState => "SetWindowStateArg",
+        SdkValueKind.ProjectionOptions => "SetProjectionOptionsArg",
+        SdkValueKind.PointDeltaReportOptions => "SetPointDeltaReportOptionsArg",
         _ => throw new UnreachableException()
     };
 

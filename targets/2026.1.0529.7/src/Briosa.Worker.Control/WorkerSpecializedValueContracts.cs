@@ -74,3 +74,25 @@ public sealed record WorkerReportViewOptionsValue(
 public sealed record WorkerToleranceScalarOptionsValue(
     WorkerScalarToleranceLimit High,
     WorkerScalarToleranceLimit Low);
+
+public sealed record WorkerProjectionOptionsValue(
+    string ProjectionType,
+    bool IgnoreEdgeProjections,
+    bool OverrideTargetOffsets,
+    double OverrideTargetOffsetsValue,
+    bool AddExtraMaterialThickness,
+    double ExtraMaterialThicknessValue);
+
+public sealed record WorkerPointDeltaReportOptionsValue(
+    int CoordinateSystem,
+    string DetailsFormat,
+    bool ShowPointA,
+    bool ShowPointB,
+    bool ShowDelta,
+    bool ShowMagnitude,
+    bool ShowComponent1,
+    bool ShowComponent2,
+    bool ShowComponent3,
+    bool SortPointNames,
+    bool ShowToleranceFields,
+    bool ColorizeInToleranceFields);

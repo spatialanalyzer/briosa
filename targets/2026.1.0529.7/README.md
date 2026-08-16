@@ -99,7 +99,7 @@ grpcurl -plaintext -d '{}' 127.0.0.1:50051 `
   briosa.AnalysisOperations/GetNumberOfCollections
 
 grpcurl -plaintext -d '{"collectionIndex":0}' 127.0.0.1:50051 `
-  briosa.AnalysisOperations/GetIThCollectionName
+  briosa.AnalysisOperations/GetIthCollectionName
 
 grpcurl -plaintext -d '{}' 127.0.0.1:50051 `
   briosa.ConstructionOperations/GetActiveCollectionName
