@@ -11,6 +11,7 @@ if (args is ["diagnostics"] or ["--diagnostics"])
     return;
 }
 var builder = WebApplication.CreateBuilder(args);
+builder.Logging.AddBriosaLogging();
 var publicEndpoint = PublicEndpointConfiguration.Resolve(builder.Configuration);
 builder.WebHost.ConfigureKestrel(options =>
     options.Listen(
