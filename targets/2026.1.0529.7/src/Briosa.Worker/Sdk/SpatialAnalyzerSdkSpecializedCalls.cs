@@ -44,6 +44,10 @@ internal sealed partial class SpatialAnalyzerSdkAdapter
             Sdk.SetExportVectorNameFormatArg(name, value);
         public bool SetGeometryTypeArg(string name, string value) =>
             Sdk.SetGeometryTypeArg(name, value);
+        public bool SetMPGDTOptionsDistanceBetweenModeArg(string name, string value) =>
+            ((dynamic)Sdk).SetMPGDTOptionsDistanceBetweenModeArg(name, value);
+        public bool SetMPGDTOptionsCheckValidatorTypeArg(string name, string value) =>
+            ((dynamic)Sdk).SetMPGDTOptionsCheckValidatorTypeArg(name, value);
         public bool SetInstTypeNameArg(string name, string value) =>
             Sdk.SetInstTypeNameArg(name, value);
         public bool SetObjectTypeArg(string name, string value) =>
@@ -94,6 +98,10 @@ internal sealed partial class SpatialAnalyzerSdkAdapter
             Sdk.SetSphereFitComputationModeArg(name, value);
         public bool SetWindowStateArg(string name, string value) =>
             Sdk.SetWindowStateArg(name, value);
+        public bool SetSystemStringArg(string name, string value) =>
+            Sdk.SetSystemStringArg(name, value);
+        public bool SetUdpTransmitSettingsArg(string name, bool enabled, bool broadcast, string ipAddress, int port) =>
+            Sdk.SetUdpTransmitSettingsArg(name, enabled, broadcast, ipAddress, port);
 
         public bool SetAutoFilterProximitySettingsArg(
             string name,
@@ -134,6 +142,39 @@ internal sealed partial class SpatialAnalyzerSdkAdapter
                 pointIncrement,
                 minimumNumberOfPoints,
                 maximumNumberOfPoints);
+
+        public bool SetBSplineFitOptionsArg(
+            string name,
+            bool useInterpolationFit,
+            bool openCurve,
+            int sortMethod,
+            int terminateMethod,
+            int degree,
+            double terminateLength,
+            double terminateAverageMultiplier,
+            int numberOfControlPoints,
+            bool uniqueCheck,
+            double uniqueThreshold,
+            double extension,
+            bool useGlobalTessellationOptions,
+            double maximumChordalDeviation,
+            double maximumTrimEdgeAngle) =>
+            Sdk.SetBSplineFitOptionsArg(
+                name,
+                useInterpolationFit,
+                openCurve,
+                sortMethod,
+                terminateMethod,
+                degree,
+                terminateLength,
+                terminateAverageMultiplier,
+                numberOfControlPoints,
+                uniqueCheck,
+                uniqueThreshold,
+                extension,
+                useGlobalTessellationOptions,
+                maximumChordalDeviation,
+                maximumTrimEdgeAngle);
 
         public bool SetColorizationOptionsArg(
             string name,

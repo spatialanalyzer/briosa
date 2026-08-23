@@ -123,7 +123,11 @@ try {
 
     $descriptorPath = Join-Path $bundleRoot "descriptor\briosa.protoset"
     [IO.Directory]::CreateDirectory((Split-Path -Parent $descriptorPath)) | Out-Null
-    Push-Location $repositoryRoot
+    # Generate the descriptor from the normalized sources that are actually
+    # shipped in the bundle. Building from the working tree can produce a
+    # different descriptor on Windows when Git checks text files out with
+    # CRLF line endings but the artifact normalizes them to LF.
+    Push-Location $bundleRoot
     try {
         & $bufCommand.Source build `
             --as-file-descriptor-set `

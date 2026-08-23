@@ -270,6 +270,7 @@ internal static partial class WorkerControlHost
                         argument.FontValue.Color.Blue)),
             SpecializedEnumValue: ToSdkSpecializedEnum(argument),
             AutoFilterProximitySettingsValue: ToSdkAutoFilter(argument.AutoFilterProximitySettingsValue),
+            BSplineFitOptionsValue: ToSdkBSplineFit(argument.BSplineFitOptionsValue),
             CloudThinningOptionsValue: ToSdkCloudThinning(argument.CloudThinningOptionsValue),
             ColorizationOptionsValue: ToSdkColorization(argument.ColorizationOptionsValue),
             FitConstraintScalarOptionsValue: ToSdkFitConstraintScalar(argument.FitConstraintScalarOptionsValue),
@@ -279,6 +280,13 @@ internal static partial class WorkerControlHost
             ToleranceScalarOptionsValue: ToSdkToleranceScalar(argument.ToleranceScalarOptionsValue),
             ProjectionOptionsValue: ToSdkProjection(argument.ProjectionOptionsValue),
             PointDeltaReportOptionsValue: ToSdkPointDeltaReport(argument.PointDeltaReportOptionsValue),
+            UdpTransmitSettingsValue: argument.UdpTransmitSettingsValue is null
+                ? null
+                : new SdkUdpTransmitSettingsValue(
+                    argument.UdpTransmitSettingsValue.Enabled,
+                    argument.UdpTransmitSettingsValue.Broadcast,
+                    argument.UdpTransmitSettingsValue.IpAddress,
+                    argument.UdpTransmitSettingsValue.Port),
             SdkBinding: argument.SdkBinding);
     private static SdkOutputArgument ToSdkOutputArgument(WorkerMpOutputArgument argument) =>
         new(
@@ -287,7 +295,8 @@ internal static partial class WorkerControlHost
             argument.SdkBinding,
             argument.ObjectTypeWhenOmitted is { } objectType
                 ? (SdkObjectTypeValue)((int)objectType - 1)
-                : null);
+                : null,
+            argument.ArraySize);
 
     private static SdkValueKind ToSdkValueKind(WorkerMpValueKind kind) =>
         kind switch
@@ -296,6 +305,7 @@ internal static partial class WorkerControlHost
             WorkerMpValueKind.WholeNumber => SdkValueKind.WholeNumber,
             WorkerMpValueKind.FloatingPoint => SdkValueKind.FloatingPoint,
             WorkerMpValueKind.Text => SdkValueKind.Text,
+            WorkerMpValueKind.InstrumentTypeName => SdkValueKind.InstrumentTypeName,
             WorkerMpValueKind.DoubleArray => SdkValueKind.DoubleArray,
             WorkerMpValueKind.EditText => SdkValueKind.EditText,
             WorkerMpValueKind.Transform => SdkValueKind.Transform,
@@ -480,6 +490,7 @@ internal static partial class WorkerControlHost
             SdkValueKind.WholeNumber => WorkerMpValueKind.WholeNumber,
             SdkValueKind.FloatingPoint => WorkerMpValueKind.FloatingPoint,
             SdkValueKind.Text => WorkerMpValueKind.Text,
+            SdkValueKind.InstrumentTypeName => WorkerMpValueKind.InstrumentTypeName,
             SdkValueKind.DoubleArray => WorkerMpValueKind.DoubleArray,
             SdkValueKind.EditText => WorkerMpValueKind.EditText,
             SdkValueKind.Transform => WorkerMpValueKind.Transform,

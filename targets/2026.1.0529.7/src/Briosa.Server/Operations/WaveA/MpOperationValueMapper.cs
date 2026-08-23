@@ -10,16 +10,79 @@ namespace Briosa.Server.Operations.WaveA;
 
 internal static class MpOperationValueMapper
 {
-    public static WorkerMpInputArgument ToInput(
+    public static int GetRequiredPositiveInt32(IMessage request, string fieldName)
+    {
+        var field = request.Descriptor.FindFieldByName(fieldName) ??
+            throw new InvalidOperationException(
+                $"Request field '{fieldName}' does not exist.");
+        var (provided, value) = ReadValue(request, field);
+        if (!provided || value is not int result || result <= 0)
+        {
+            throw new ArgumentException(
+                $"Request field '{fieldName}' must be greater than zero.",
+                nameof(request));
+        }
+
+        return result;
+    }
+
+    public static WorkerMpInputArgument? ToInput(
         IMessage request,
         MpArgumentContract contract)
     {
-        var field = request.Descriptor.FindFieldByName(contract.FieldName) ??
+        var outerField = request.Descriptor.FindFieldByName(contract.FieldName) ??
             throw new InvalidOperationException(
                 $"Request field '{contract.FieldName}' does not exist.");
-        var (provided, value) = ReadValue(request, field);
+        var field = outerField;
+        var source = request;
+        var (provided, value) = ReadValue(request, outerField);
+        if (contract.NestedFieldName is not null)
+        {
+            source = provided && value is IMessage outerNested
+                ? outerNested
+                : (IMessage?)Activator.CreateInstance(outerField.MessageType.ClrType) ??
+                    throw new InvalidOperationException(
+                        $"Cannot create request field '{contract.FieldName}'.");
+            var segments = contract.NestedFieldName.Split('.');
+            for (var index = 0; index < segments.Length; index++)
+            {
+                var segment = segments[index];
+                field = source.Descriptor.FindFieldByName(segment) ??
+                    throw new InvalidOperationException(
+                        $"Request field '{contract.FieldName}.{contract.NestedFieldName}' does not exist.");
+                if (provided)
+                {
+                    (provided, value) = ReadValue(source, field);
+                }
+                else
+                {
+                    value = null;
+                }
+
+                if (index < segments.Length - 1)
+                {
+                    if (provided && value is IMessage nested)
+                    {
+                        source = nested;
+                    }
+                    else
+                    {
+                        source = (IMessage?)Activator.CreateInstance(field.MessageType.ClrType) ??
+                            throw new InvalidOperationException(
+                                $"Cannot create request field '{contract.FieldName}.{segment}'.");
+                        provided = false;
+                        value = null;
+                    }
+                }
+            }
+        }
         if (!provided)
         {
+            if (contract.OmitWhenAbsent)
+            {
+                return null;
+            }
+
             if (contract.Required)
             {
                 throw new ArgumentException(
@@ -30,9 +93,52 @@ internal static class MpOperationValueMapper
             value = CreateDefault(field, contract);
         }
 
-        ValidateRequiredValue(value, field, contract, request);
-        return CreateInput(contract, value);
+        ValidateRequiredValue(value, field, contract, source);
+        return CreateInput(contract, NormalizeInputValue(value, field, contract));
     }
+
+    private static object? NormalizeInputValue(
+        object? value,
+        FieldDescriptor field,
+        MpArgumentContract contract)
+    {
+        if (IsListKind(contract.Kind) &&
+            value is IMessage wrapper &&
+            wrapper.Descriptor.FindFieldByName("values") is
+                { IsRepeated: true } valuesField)
+        {
+            return ((IEnumerable)valuesField.Accessor.GetValue(wrapper))
+                .Cast<object>()
+                .ToArray();
+        }
+
+        if (field.FieldType != FieldType.Enum || contract.EnumTextValues is null)
+        {
+            return value;
+        }
+
+        var number = Convert.ToInt32(value, CultureInfo.InvariantCulture);
+        if (number <= 0 ||
+            number > contract.EnumTextValues.Count ||
+            string.IsNullOrWhiteSpace(contract.EnumTextValues[number - 1]))
+        {
+            throw new ArgumentException(
+                $"Request field '{contract.FieldName}' must specify a supported value.");
+        }
+
+        return contract.EnumTextValues[number - 1];
+    }
+
+    private static bool IsListKind(WorkerMpValueKind kind) =>
+        kind is WorkerMpValueKind.DoubleArray or
+            WorkerMpValueKind.CollectionInstrumentIdList or
+            WorkerMpValueKind.CollectionItemNameList or
+            WorkerMpValueKind.CollectionObjectNameList or
+            WorkerMpValueKind.CollectionGroupNameList or
+            WorkerMpValueKind.CollectionVectorGroupNameList or
+            WorkerMpValueKind.PointNameList or
+            WorkerMpValueKind.StringList or
+            WorkerMpValueKind.VectorNameList;
 
     public static TResponse ToResult<TResponse>(
         SuccessfulOperationExecution completed,
@@ -41,14 +147,65 @@ internal static class MpOperationValueMapper
     {
         ArgumentNullException.ThrowIfNull(completed);
         var result = new TResponse();
-        foreach (var contract in outputs)
+        if (completed.Execution.OutputValues.Count != outputs.Count)
         {
-            var field = result.Descriptor.FindFieldByName(contract.FieldName) ??
+            throw new InvalidOperationException(
+                "Worker output count does not match the operation contract.");
+        }
+
+        for (var outputIndex = 0; outputIndex < outputs.Count; outputIndex++)
+        {
+            var contract = outputs[outputIndex];
+            var outerField = result.Descriptor.FindFieldByName(contract.FieldName) ??
                 throw new InvalidOperationException(
                     $"Result field '{contract.FieldName}' does not exist.");
-            var output = completed.Execution.OutputValues.Single(value =>
-                value.Name == contract.MpName && value.Kind == contract.Kind);
-            SetResultField(result, field, ToProtocolValue(output, field));
+            var target = (IMessage)result;
+            var field = outerField;
+            if (contract.NestedFieldName is not null)
+            {
+                var outerNested = outerField.Accessor.GetValue(result) as IMessage;
+                if (outerNested is null)
+                {
+                    outerNested = (IMessage?)Activator.CreateInstance(outerField.MessageType.ClrType) ??
+                        throw new InvalidOperationException(
+                            $"Cannot create result field '{contract.FieldName}'.");
+                    outerField.Accessor.SetValue(result, outerNested);
+                }
+
+                target = outerNested;
+                var segments = contract.NestedFieldName.Split('.');
+                for (var index = 0; index < segments.Length; index++)
+                {
+                    var segment = segments[index];
+                    field = target.Descriptor.FindFieldByName(segment) ??
+                        throw new InvalidOperationException(
+                            $"Result field '{contract.FieldName}.{contract.NestedFieldName}' does not exist.");
+                    if (index == segments.Length - 1)
+                    {
+                        break;
+                    }
+
+                    var nested = field.Accessor.GetValue(target) as IMessage;
+                    if (nested is null)
+                    {
+                        nested = (IMessage?)Activator.CreateInstance(field.MessageType.ClrType) ??
+                            throw new InvalidOperationException(
+                                $"Cannot create result field '{contract.FieldName}.{segment}'.");
+                        field.Accessor.SetValue(target, nested);
+                    }
+
+                    target = nested;
+                }
+            }
+            var output = completed.Execution.OutputValues[outputIndex];
+            if (output.Name != contract.MpName || output.Kind != contract.Kind)
+            {
+                throw new InvalidOperationException(
+                    $"Worker output at index {outputIndex} does not match " +
+                    $"'{contract.MpName}' ({contract.Kind}).");
+            }
+
+            SetResultField(target, field, ToProtocolValue(output, field, contract));
         }
 
         var execution = result.Descriptor.FindFieldByName("execution") ??
@@ -92,6 +249,9 @@ internal static class MpOperationValueMapper
                 ? string.Empty
                 : value,
             FieldType.Enum => ResolveEnumDefault(field.EnumType, value),
+            FieldType.Message when contract.Kind is
+                WorkerMpValueKind.Text or WorkerMpValueKind.InstrumentTypeName =>
+                CreateStringWrapperDefault(field.MessageType, value),
             FieldType.Message => CreateMessageDefault(contract.Kind, value),
             _ => throw new InvalidOperationException(
                 $"Unsupported default for field '{field.Name}'.")
@@ -119,7 +279,7 @@ internal static class MpOperationValueMapper
         string value) =>
         kind switch
         {
-            WorkerMpValueKind.RgbColor => new Api.Color { Red = 255 },
+            WorkerMpValueKind.RgbColor => DefaultColor(value),
             WorkerMpValueKind.Font => new Api.Font
             {
                 FontName = "MS Shell Dlg",
@@ -127,6 +287,14 @@ internal static class MpOperationValueMapper
                 Color = new Api.Color()
             },
             WorkerMpValueKind.ColorizationOptions => DefaultColorization(),
+            WorkerMpValueKind.CloudThinningOptions => new Api.CloudThinningOptions
+            {
+                Mode = Api.CloudThinningMode.None,
+                PointIncrement = 1,
+                MinimumNumberOfPoints = 0,
+                MaximumNumberOfPoints = 0
+            },
+            WorkerMpValueKind.BSplineFitOptions => DefaultBSplineFitOptions(),
             WorkerMpValueKind.FitConstraintScalarOptions =>
                 new Api.FitConstraintScalarOptions(),
             WorkerMpValueKind.ToleranceScalarOptions =>
@@ -137,11 +305,70 @@ internal static class MpOperationValueMapper
             },
             WorkerMpValueKind.PointDeltaReportOptions =>
                 DefaultPointDeltaReportOptions(),
+            WorkerMpValueKind.UdpTransmitSettings => new Api.RelationshipWatchWindowUdpSettings
+            {
+                Enabled = false,
+                Broadcast = true,
+                IpAddress = string.Empty,
+                Port = 10000
+            },
             WorkerMpValueKind.ReportOutputOptions =>
                 DefaultReportOutput(value),
             _ => throw new InvalidOperationException(
                 $"No message default exists for {kind}.")
         };
+
+    private static IMessage CreateStringWrapperDefault(
+        MessageDescriptor descriptor,
+        string value)
+    {
+        var message = descriptor.Parser.ParseFrom(Array.Empty<byte>());
+        var field = descriptor.FindFieldByName("value");
+        if (field is null || field.FieldType != FieldType.String)
+        {
+            throw new InvalidOperationException(
+                $"Message '{descriptor.FullName}' is not a string wrapper.");
+        }
+
+        field.Accessor.SetValue(
+            message,
+            string.Equals(value, "Empty", StringComparison.Ordinal) ? string.Empty : value);
+        return message;
+    }
+
+    private static Api.Color DefaultColor(string value)
+    {
+        var parts = value.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 3 && parts.All(part => uint.TryParse(part, out _)))
+        {
+            return new Api.Color
+            {
+                Red = uint.Parse(parts[0], CultureInfo.InvariantCulture),
+                Green = uint.Parse(parts[1], CultureInfo.InvariantCulture),
+                Blue = uint.Parse(parts[2], CultureInfo.InvariantCulture)
+            };
+        }
+
+        return new Api.Color { Red = 255 };
+    }
+
+    private static Api.BSplineFitOptions DefaultBSplineFitOptions() => new()
+    {
+        OpenCurve = true,
+        UseInterpolationForFit = true,
+        NumberOfControlPoints = 8,
+        DegreeOfCurve = 3,
+        SortMethod = Api.BSplinePointSortMode.UseSelectionOrder,
+        SpanAnyGap = true,
+        TerminationGapLength = 0,
+        IgnoreProximatePoints = false,
+        ProximatePointThreshold = 0,
+        UseGlobalTessellationOptions = true,
+        MaximumChordalDeviation = 0.05,
+        MaximumTrimEdgeAngle = 15,
+        TerminationAverageMultiplier = 10,
+        Extension = 0
+    };
 
     private static Api.ColorizationOptions DefaultColorization() => new()
     {
@@ -216,6 +443,8 @@ internal static class MpOperationValueMapper
             Api.PointName point => string.IsNullOrWhiteSpace(point.TargetName),
             Api.CollectionInstrumentId instrument =>
                 string.IsNullOrWhiteSpace(instrument.CollectionName),
+            Api.CollectionMachineId machine =>
+                string.IsNullOrWhiteSpace(machine.CollectionName),
             Api.CollectionName collection => string.IsNullOrWhiteSpace(collection.Name),
             Api.CollectionItemName item => string.IsNullOrWhiteSpace(item.ItemName),
             Api.CollectionObjectName item => string.IsNullOrWhiteSpace(item.ObjectName),
@@ -264,19 +493,29 @@ internal static class MpOperationValueMapper
                         item.CollectionName,
                         item.InstrumentId)).ToArray())
                 : null,
-            CollectionObjectNameValue: value is Api.CollectionObjectName item
-                ? ObjectName(item, contract.ObjectTypeWhenOmitted)
+            CollectionMachineIdValue: value is Api.CollectionMachineId machine
+                ? new(machine.CollectionName, machine.MachineId)
                 : null,
+            CollectionObjectNameValue: value switch
+            {
+                Api.CollectionObjectName item => ObjectName(item, contract.ObjectTypeWhenOmitted),
+                Api.CollectionItemName item => ObjectName(item, contract.ObjectTypeWhenOmitted),
+                _ => null
+            },
             CollectionObjectNameListValue: kind == WorkerMpValueKind.CollectionObjectNameList
-                ? new(values!.Cast<Api.CollectionObjectName>()
-                    .Select(item => ObjectName(item, contract.ObjectTypeWhenOmitted)).ToArray())
+                ? new(values!.Select(item => item switch
+                    {
+                        Api.CollectionObjectName objectName => ObjectName(objectName, contract.ObjectTypeWhenOmitted),
+                        Api.CollectionItemName itemName => ObjectName(itemName, contract.ObjectTypeWhenOmitted),
+                        _ => throw new ArgumentException($"Field '{contract.FieldName}' contains an unsupported object identity.")
+                    }).ToArray())
                 : null,
             CollectionItemNameValue: value is Api.CollectionItemName collectionItem
-                ? ItemName(collectionItem)
+                ? ItemName(collectionItem, contract.ItemTypeWhenOmitted)
                 : null,
             CollectionItemNameListValue: kind == WorkerMpValueKind.CollectionItemNameList
                 ? new(values!.Cast<Api.CollectionItemName>()
-                    .Select(ItemName).ToArray())
+                    .Select(item => ItemName(item, contract.ItemTypeWhenOmitted)).ToArray())
                 : null,
             CollectionGroupNameListValue: kind == WorkerMpValueKind.CollectionGroupNameList
                 ? new(values!.Cast<Api.CollectionGroupName>()
@@ -338,6 +577,12 @@ internal static class MpOperationValueMapper
             ColorizationOptionsValue: value is Api.ColorizationOptions colorization
                 ? Colorization(colorization)
                 : null,
+            CloudThinningOptionsValue: value is Api.CloudThinningOptions cloudThinning
+                ? CloudThinning(cloudThinning)
+                : null,
+            BSplineFitOptionsValue: value is Api.BSplineFitOptions bSplineFit
+                ? BSplineFit(bSplineFit)
+                : null,
             FitConstraintScalarOptionsValue: value is Api.FitConstraintScalarOptions fit
                 ? new(Tolerance(fit.High), Tolerance(fit.Low))
                 : null,
@@ -359,11 +604,18 @@ internal static class MpOperationValueMapper
             PointDeltaReportOptionsValue: value is Api.PointDeltaReportOptions pointDelta
                 ? PointDelta(pointDelta)
                 : null,
+            UdpTransmitSettingsValue: value is Api.RelationshipWatchWindowUdpSettings udp
+                ? new WorkerUdpTransmitSettingsValue(
+                    udp.HasEnabled && udp.Enabled,
+                    !udp.HasBroadcast || udp.Broadcast,
+                    udp.HasIpAddress ? udp.IpAddress : string.Empty,
+                    udp.HasPort ? udp.Port : 10000)
+                : null,
             SdkBinding: contract.SdkBinding);
     }
 
     private static string? ToStringValue(WorkerMpValueKind kind, object? value) =>
-        kind is WorkerMpValueKind.Text or WorkerMpValueKind.ChartName or
+        kind is WorkerMpValueKind.Text or WorkerMpValueKind.InstrumentTypeName or WorkerMpValueKind.ChartName or
             WorkerMpValueKind.CollectionName or WorkerMpValueKind.FrameName or
             WorkerMpValueKind.ViewName
             ? value switch
@@ -372,6 +624,10 @@ internal static class MpOperationValueMapper
                 Api.CollectionName item => item.Name,
                 Api.FrameName item => item.Name,
                 Api.ViewName item => item.Name,
+                Api.InstrumentTypeName item => item.Value,
+                Api.FileReference file => file.Path,
+                IMessage wrapper when wrapper.Descriptor.FindFieldByName("value") is { FieldType: FieldType.String } wrapperField =>
+                    Convert.ToString(wrapperField.Accessor.GetValue(wrapper), CultureInfo.InvariantCulture),
                 _ => Convert.ToString(value, CultureInfo.InvariantCulture)
             }
             : null;
@@ -392,13 +648,23 @@ internal static class MpOperationValueMapper
         return new(value.CollectionName, value.ObjectName, type);
     }
 
-    private static WorkerCollectionItemNameValue ItemName(Api.CollectionItemName value) =>
+    private static WorkerCollectionItemNameValue ItemName(
+        Api.CollectionItemName value,
+        WorkerItemTypeValue? fallback = null) =>
         new(
             value.CollectionName,
             value.ItemName,
             value.HasItemType
                 ? (WorkerItemTypeValue)(int)value.ItemType
-                : WorkerItemTypeValue.Any);
+                : fallback ?? WorkerItemTypeValue.Any);
+
+    private static WorkerCollectionObjectNameValue ObjectName(
+        Api.CollectionItemName value,
+        WorkerObjectTypeValue? fallback) =>
+        new(
+            value.CollectionName,
+            value.ItemName,
+            fallback ?? WorkerObjectTypeValue.Any);
 
     private static WorkerTransformValue Transform(Api.Transform value)
     {
@@ -437,6 +703,38 @@ internal static class MpOperationValueMapper
             value.HasFontName ? value.FontName : "MS Shell Dlg",
             (byte)(value.HasSize ? value.Size : 8),
             value.Color is null ? new(0, 0, 0) : Color(value.Color));
+    }
+
+    private static WorkerCloudThinningOptionsValue CloudThinning(Api.CloudThinningOptions value)
+    {
+        var defaults = (Api.CloudThinningOptions)CreateMessageDefault(
+            WorkerMpValueKind.CloudThinningOptions,
+            string.Empty);
+        return new(
+            (int)(value.HasMode ? value.Mode : defaults.Mode) - 1,
+            value.HasPointIncrement ? value.PointIncrement : defaults.PointIncrement,
+            value.HasMinimumNumberOfPoints ? value.MinimumNumberOfPoints : defaults.MinimumNumberOfPoints,
+            value.HasMaximumNumberOfPoints ? value.MaximumNumberOfPoints : defaults.MaximumNumberOfPoints);
+    }
+
+    private static WorkerBSplineFitOptionsValue BSplineFit(Api.BSplineFitOptions value)
+    {
+        var defaults = DefaultBSplineFitOptions();
+        return new(
+            value.HasUseInterpolationForFit ? value.UseInterpolationForFit : defaults.UseInterpolationForFit,
+            value.HasOpenCurve ? value.OpenCurve : defaults.OpenCurve,
+            (int)(value.HasSortMethod ? value.SortMethod : defaults.SortMethod) - 1,
+            value.HasSpanAnyGap ? (value.SpanAnyGap ? 0 : 1) : 0,
+            value.HasDegreeOfCurve ? value.DegreeOfCurve : defaults.DegreeOfCurve,
+            value.HasTerminationGapLength ? value.TerminationGapLength : defaults.TerminationGapLength,
+            value.HasTerminationAverageMultiplier ? value.TerminationAverageMultiplier : defaults.TerminationAverageMultiplier,
+            value.HasNumberOfControlPoints ? value.NumberOfControlPoints : defaults.NumberOfControlPoints,
+            value.HasIgnoreProximatePoints ? value.IgnoreProximatePoints : defaults.IgnoreProximatePoints,
+            value.HasProximatePointThreshold ? value.ProximatePointThreshold : defaults.ProximatePointThreshold,
+            value.HasExtension ? value.Extension : defaults.Extension,
+            value.HasUseGlobalTessellationOptions ? value.UseGlobalTessellationOptions : defaults.UseGlobalTessellationOptions,
+            value.HasMaximumChordalDeviation ? value.MaximumChordalDeviation : defaults.MaximumChordalDeviation,
+            value.HasMaximumTrimEdgeAngle ? value.MaximumTrimEdgeAngle : defaults.MaximumTrimEdgeAngle);
     }
 
     private static WorkerToleranceVectorOptionsValue ToleranceVector(
@@ -531,20 +829,40 @@ internal static class MpOperationValueMapper
     private static bool IsSpecializedEnum(WorkerMpValueKind kind) =>
         kind is WorkerMpValueKind.AsciiImportFileFormat or
             WorkerMpValueKind.AsciiFrameSetFormat or
+            WorkerMpValueKind.AxisIdentifier or
+            WorkerMpValueKind.WcfAxisIdentifier or
+            WorkerMpValueKind.BaseColorType or
+            WorkerMpValueKind.BaseMidColorType or
             WorkerMpValueKind.ChartType or
+            WorkerMpValueKind.CollimationBaselineType or
+            WorkerMpValueKind.CollimationType or
+            WorkerMpValueKind.ColorRangeMethod or
             WorkerMpValueKind.CoordinateSystemType or
             WorkerMpValueKind.VectorComponent or
+            WorkerMpValueKind.DynamicCircleMode or
+            WorkerMpValueKind.DynamicEllipseMode or
+            WorkerMpValueKind.DynamicLineMode or
+            WorkerMpValueKind.DynamicPlaneMode or
+            WorkerMpValueKind.DynamicPointMode or
+            WorkerMpValueKind.EdgeMode or
             WorkerMpValueKind.ExportDataDelimiterType or
             WorkerMpValueKind.ExportTargetNameFormat or
             WorkerMpValueKind.ExportVectorNameFormat or
             WorkerMpValueKind.GeometryType or
+            WorkerMpValueKind.GdtDistanceBetweenMode or
+            WorkerMpValueKind.GdtEvaluationMethod or
+            WorkerMpValueKind.InstrumentType or
             WorkerMpValueKind.ObjectType or
+            WorkerMpValueKind.OffsetDirectionType or
             WorkerMpValueKind.PointFilterInputType or
             WorkerMpValueKind.RelationshipWeightingMode or
             WorkerMpValueKind.RenderModeType or
             WorkerMpValueKind.ReportPageOrientation or
-            WorkerMpValueKind.ReportPageOrientation or
+            WorkerMpValueKind.SaturationLimitType or
+            WorkerMpValueKind.ShowUsmnDialogType or
             WorkerMpValueKind.SurfaceAnalysisMode or
+            WorkerMpValueKind.SurfaceDissectionModeType or
+            WorkerMpValueKind.TargetComputationMethod or
             WorkerMpValueKind.TranslucencyType or
             WorkerMpValueKind.CompTechnique or
             WorkerMpValueKind.DegreeOfFreedom or
@@ -557,11 +875,13 @@ internal static class MpOperationValueMapper
             WorkerMpValueKind.SaInteractionMode or
             WorkerMpValueKind.SlotType or
             WorkerMpValueKind.SphereFitComputationMode or
-            WorkerMpValueKind.WindowState;
+            WorkerMpValueKind.WindowState or
+            WorkerMpValueKind.SystemString;
 
     private static object ToProtocolValue(
         WorkerMpOutputValue output,
-        FieldDescriptor field) =>
+        FieldDescriptor field,
+        MpArgumentContract contract) =>
         output.Kind switch
         {
             WorkerMpValueKind.Logical => output.BooleanValue!.Value,
@@ -569,14 +889,25 @@ internal static class MpOperationValueMapper
                 Convert.ToDouble(output.IntegerValue!.Value, CultureInfo.InvariantCulture),
             WorkerMpValueKind.WholeNumber => output.IntegerValue!.Value,
             WorkerMpValueKind.FloatingPoint => output.DoubleValue!.Value,
+            WorkerMpValueKind.Text when field.FieldType == FieldType.Enum =>
+                ProtocolEnumValue(field.EnumType, output.StringValue!, contract.EnumTextValues),
+            WorkerMpValueKind.Text when field.FieldType == FieldType.Message =>
+                ProtocolStringMessage(field.MessageType, output.StringValue!),
+            WorkerMpValueKind.CollectionName when field.FieldType == FieldType.Message =>
+                new Api.CollectionName { Name = output.StringValue! },
             WorkerMpValueKind.Text or WorkerMpValueKind.CollectionName =>
                 output.StringValue!,
+            WorkerMpValueKind.DoubleArray when field.FieldType == FieldType.Message =>
+                ProtocolDoubleArrayMessage(field.MessageType, output.DoubleArrayValue!.Values),
             WorkerMpValueKind.DoubleArray => output.DoubleArrayValue!.Values.Cast<object>().ToArray(),
             WorkerMpValueKind.EditText or WorkerMpValueKind.StringList =>
                 output.StringListValue!.Values.Cast<object>().ToArray(),
             WorkerMpValueKind.PointName => ProtocolPoint(output.PointNameValue!),
             WorkerMpValueKind.PointNameList =>
                 output.PointNameListValue!.Values.Select(ProtocolPoint).Cast<object>().ToArray(),
+            WorkerMpValueKind.Vector when field.FieldType == FieldType.Message &&
+                field.MessageType.FullName != "briosa.Vector" =>
+                ProtocolVectorMessage(field.MessageType, output.VectorValue!),
             WorkerMpValueKind.Vector => new Api.Vector
             {
                 X = output.VectorValue!.X,
@@ -607,11 +938,50 @@ internal static class MpOperationValueMapper
             WorkerMpValueKind.CollectionObjectNameList =>
                 output.CollectionObjectNameListValue!.Values
                     .Select(ProtocolObject).Cast<object>().ToArray(),
+            WorkerMpValueKind.CollectionInstrumentId =>
+                new Api.CollectionInstrumentId
+                {
+                    CollectionName = output.CollectionInstrumentIdValue!.CollectionName,
+                    InstrumentId = output.CollectionInstrumentIdValue.InstrumentId
+                },
+            WorkerMpValueKind.CollectionInstrumentIdList =>
+                output.CollectionInstrumentIdListValue!.Values.Select(item =>
+                    new Api.CollectionInstrumentId
+                    {
+                        CollectionName = item.CollectionName,
+                        InstrumentId = item.InstrumentId
+                    }).Cast<object>().ToArray(),
+            WorkerMpValueKind.CollectionMachineId =>
+                new Api.CollectionMachineId
+                {
+                    CollectionName = output.CollectionMachineIdValue!.CollectionName,
+                    MachineId = output.CollectionMachineIdValue.MachineId
+                },
             WorkerMpValueKind.CollectionItemName =>
                 ProtocolItem(output.CollectionItemNameValue!),
             WorkerMpValueKind.CollectionItemNameList =>
                 output.CollectionItemNameListValue!.Values
                     .Select(ProtocolItem).Cast<object>().ToArray(),
+            WorkerMpValueKind.CollectionGroupNameList =>
+                output.CollectionGroupNameListValue!.Values.Select(item =>
+                    new Api.CollectionGroupName
+                    {
+                        CollectionName = item.CollectionName,
+                        GroupName = item.GroupName
+                    }).Cast<object>().ToArray(),
+            WorkerMpValueKind.CollectionVectorGroupName =>
+                new Api.CollectionVectorGroupName
+                {
+                    CollectionName = output.CollectionVectorGroupNameValue!.CollectionName,
+                    VectorGroupName = output.CollectionVectorGroupNameValue.VectorGroupName
+                },
+            WorkerMpValueKind.CollectionVectorGroupNameList =>
+                output.CollectionVectorGroupNameListValue!.Values.Select(item =>
+                    new Api.CollectionVectorGroupName
+                    {
+                        CollectionName = item.CollectionName,
+                        VectorGroupName = item.VectorGroupName
+                    }).Cast<object>().ToArray(),
             WorkerMpValueKind.VectorNameList =>
                 output.VectorNameListValue!.Values.Select(item => new Api.VectorName
                 {
@@ -626,6 +996,80 @@ internal static class MpOperationValueMapper
             _ => throw new InvalidOperationException(
                 $"No result mapper exists for {output.Kind}.")
         };
+
+    private static int ProtocolEnumValue(
+        EnumDescriptor descriptor,
+        string value,
+        IReadOnlyList<string>? sdkValues)
+    {
+        if (sdkValues is null)
+        {
+            throw new InvalidOperationException(
+                $"No SDK text mapping exists for {descriptor.FullName}.");
+        }
+
+        var index = -1;
+        for (var candidate = 0; candidate < sdkValues.Count; candidate++)
+        {
+            if (string.Equals(sdkValues[candidate], value, StringComparison.Ordinal))
+            {
+                index = candidate;
+                break;
+            }
+        }
+        if (index < 0 || index + 1 >= descriptor.Values.Count)
+        {
+            throw new InvalidOperationException(
+                $"SDK returned unknown {descriptor.FullName} value '{value}'.");
+        }
+
+        return descriptor.Values[index + 1].Number;
+    }
+
+    private static IMessage ProtocolStringMessage(
+        MessageDescriptor descriptor,
+        string value)
+    {
+        var message = descriptor.Parser.ParseFrom(Array.Empty<byte>());
+        var field = descriptor.Fields.InFieldNumberOrder().Single(candidate =>
+            candidate.FieldType == FieldType.String);
+        field.Accessor.SetValue(message, value);
+        return message;
+    }
+
+    private static IMessage ProtocolDoubleArrayMessage(
+        MessageDescriptor descriptor,
+        IReadOnlyList<double> values)
+    {
+        var message = (IMessage?)Activator.CreateInstance(descriptor.ClrType) ??
+            throw new InvalidOperationException($"Cannot create {descriptor.FullName}.");
+        var field = descriptor.Fields.InFieldNumberOrder().Single(candidate =>
+            candidate.IsRepeated && candidate.FieldType == FieldType.Double);
+        SetResultField(message, field, values.Cast<object>().ToArray());
+        return message;
+    }
+
+    private static IMessage ProtocolVectorMessage(
+        MessageDescriptor descriptor,
+        WorkerVectorValue value)
+    {
+        var message = (IMessage?)Activator.CreateInstance(descriptor.ClrType) ??
+            throw new InvalidOperationException($"Cannot create {descriptor.FullName}.");
+        var fields = descriptor.Fields.InFieldNumberOrder()
+            .Where(candidate => candidate.FieldType == FieldType.Double)
+            .Take(3)
+            .ToArray();
+        if (fields.Length != 3)
+        {
+            throw new InvalidOperationException(
+                $"{descriptor.FullName} cannot receive a three-component SDK vector.");
+        }
+
+        fields[0].Accessor.SetValue(message, value.X);
+        fields[1].Accessor.SetValue(message, value.Y);
+        fields[2].Accessor.SetValue(message, value.Z);
+        return message;
+    }
 
     private static Api.PointName ProtocolPoint(WorkerPointNameValue value) => new()
     {

@@ -160,6 +160,13 @@ enum GeometryType {
   GEOMETRY_TYPE_TORUS = 10;
 }
 
+enum OffsetDirectionType {
+  OFFSET_DIRECTION_TYPE_UNSPECIFIED = 0;
+  OFFSET_DIRECTION_TYPE_BOTH = 1;
+  OFFSET_DIRECTION_TYPE_POSITIVE_ONLY = 2;
+  OFFSET_DIRECTION_TYPE_NEGATIVE_ONLY = 3;
+}
+
 enum ObjectType {
   OBJECT_TYPE_UNSPECIFIED = 0;
   OBJECT_TYPE_ANY = 1;
@@ -421,6 +428,11 @@ message CollectionInstrumentId {
   optional int32 instrument_id = 2;
 }
 
+message CollectionMachineId {
+  optional string collection_name = 1;
+  optional int32 machine_id = 2;
+}
+
 message CollectionGroupName {
   optional string collection_name = 1;
   optional string group_name = 2;
@@ -575,4 +587,23 @@ message PointDeltaReportOptions {
   optional bool sort_point_names = 10;
   optional bool show_tolerance_fields = 11;
   optional bool colorize_in_tolerance_fields = 12;
+}
+
+// Carries the opaque surface-face selection encoding used by SpatialAnalyzer MP commands.
+message SurfaceFaceList {
+  string value = 1;
+}
+
+enum CloudThinningMode {
+  CLOUD_THINNING_MODE_UNSPECIFIED = 0;
+  CLOUD_THINNING_MODE_NONE = 1;
+  CLOUD_THINNING_MODE_RANDOM = 2;
+  CLOUD_THINNING_MODE_NTH_POINT = 3;
+}
+
+message CloudThinningOptions {
+  optional CloudThinningMode mode = 1;
+  optional int32 point_increment = 2;
+  optional int32 minimum_number_of_points = 3;
+  optional int32 maximum_number_of_points = 4;
 }

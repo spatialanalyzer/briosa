@@ -33,6 +33,8 @@ internal static partial class WorkerControlHost
                 WorkerMpValueKind.ExportTargetNameFormat => ToSdkEnum<SdkExportTargetNameFormatValue>(argument.SpecializedEnumValue),
                 WorkerMpValueKind.ExportVectorNameFormat => ToSdkEnum<SdkExportVectorNameFormatValue>(argument.SpecializedEnumValue),
                 WorkerMpValueKind.GeometryType => ToSdkEnum<SdkGeometryTypeValue>(argument.SpecializedEnumValue),
+                WorkerMpValueKind.GdtDistanceBetweenMode => ToSdkEnum<SdkGdtDistanceBetweenModeValue>(argument.SpecializedEnumValue),
+                WorkerMpValueKind.GdtEvaluationMethod => ToSdkEnum<SdkGdtEvaluationMethodValue>(argument.SpecializedEnumValue),
                 WorkerMpValueKind.InstrumentType => ToSdkEnum<SdkInstrumentTypeValue>(argument.SpecializedEnumValue),
                 WorkerMpValueKind.ObjectType => ToSdkEnum<SdkObjectTypeValue>(argument.SpecializedEnumValue),
                 WorkerMpValueKind.OffsetDirectionType => ToSdkEnum<SdkOffsetDirectionTypeValue>(argument.SpecializedEnumValue),
@@ -58,6 +60,7 @@ internal static partial class WorkerControlHost
                 WorkerMpValueKind.SlotType => ToSdkEnum<SdkSlotTypeValue>(argument.SpecializedEnumValue),
                 WorkerMpValueKind.SphereFitComputationMode => ToSdkEnum<SdkSphereFitComputationModeValue>(argument.SpecializedEnumValue),
                 WorkerMpValueKind.WindowState => ToSdkEnum<SdkWindowStateValue>(argument.SpecializedEnumValue),
+                WorkerMpValueKind.SystemString => ToSdkEnum<SdkSystemStringValue>(argument.SpecializedEnumValue),
                 _ => null
             };
 
@@ -89,6 +92,7 @@ internal static partial class WorkerControlHost
             WorkerMpValueKind.BaseColorType => SdkValueKind.BaseColorType,
             WorkerMpValueKind.BaseMidColorType => SdkValueKind.BaseMidColorType,
             WorkerMpValueKind.ChartType => SdkValueKind.ChartType,
+            WorkerMpValueKind.BSplineFitOptions => SdkValueKind.BSplineFitOptions,
             WorkerMpValueKind.CloudThinningOptions => SdkValueKind.CloudThinningOptions,
             WorkerMpValueKind.CollimationBaselineType => SdkValueKind.CollimationBaselineType,
             WorkerMpValueKind.CollimationType => SdkValueKind.CollimationType,
@@ -108,6 +112,8 @@ internal static partial class WorkerControlHost
             WorkerMpValueKind.FitConstraintScalarOptions => SdkValueKind.FitConstraintScalarOptions,
             WorkerMpValueKind.FitDegreeOfFreedomOptions => SdkValueKind.FitDegreeOfFreedomOptions,
             WorkerMpValueKind.GeometryType => SdkValueKind.GeometryType,
+            WorkerMpValueKind.GdtDistanceBetweenMode => SdkValueKind.GdtDistanceBetweenMode,
+            WorkerMpValueKind.GdtEvaluationMethod => SdkValueKind.GdtEvaluationMethod,
             WorkerMpValueKind.InstrumentType => SdkValueKind.InstrumentType,
             WorkerMpValueKind.ObjectType => SdkValueKind.ObjectType,
             WorkerMpValueKind.OffsetDirectionType => SdkValueKind.OffsetDirectionType,
@@ -136,8 +142,10 @@ internal static partial class WorkerControlHost
             WorkerMpValueKind.SlotType => SdkValueKind.SlotType,
             WorkerMpValueKind.SphereFitComputationMode => SdkValueKind.SphereFitComputationMode,
             WorkerMpValueKind.WindowState => SdkValueKind.WindowState,
+            WorkerMpValueKind.SystemString => SdkValueKind.SystemString,
             WorkerMpValueKind.ProjectionOptions => SdkValueKind.ProjectionOptions,
             WorkerMpValueKind.PointDeltaReportOptions => SdkValueKind.PointDeltaReportOptions,
+            WorkerMpValueKind.UdpTransmitSettings => SdkValueKind.UdpTransmitSettings,
             _ => throw new UnreachableException()
         };
 
@@ -152,6 +160,7 @@ internal static partial class WorkerControlHost
             SdkValueKind.BaseColorType => WorkerMpValueKind.BaseColorType,
             SdkValueKind.BaseMidColorType => WorkerMpValueKind.BaseMidColorType,
             SdkValueKind.ChartType => WorkerMpValueKind.ChartType,
+            SdkValueKind.BSplineFitOptions => WorkerMpValueKind.BSplineFitOptions,
             SdkValueKind.CloudThinningOptions => WorkerMpValueKind.CloudThinningOptions,
             SdkValueKind.CollimationBaselineType => WorkerMpValueKind.CollimationBaselineType,
             SdkValueKind.CollimationType => WorkerMpValueKind.CollimationType,
@@ -171,6 +180,8 @@ internal static partial class WorkerControlHost
             SdkValueKind.FitConstraintScalarOptions => WorkerMpValueKind.FitConstraintScalarOptions,
             SdkValueKind.FitDegreeOfFreedomOptions => WorkerMpValueKind.FitDegreeOfFreedomOptions,
             SdkValueKind.GeometryType => WorkerMpValueKind.GeometryType,
+            SdkValueKind.GdtDistanceBetweenMode => WorkerMpValueKind.GdtDistanceBetweenMode,
+            SdkValueKind.GdtEvaluationMethod => WorkerMpValueKind.GdtEvaluationMethod,
             SdkValueKind.InstrumentType => WorkerMpValueKind.InstrumentType,
             SdkValueKind.ObjectType => WorkerMpValueKind.ObjectType,
             SdkValueKind.OffsetDirectionType => WorkerMpValueKind.OffsetDirectionType,
@@ -199,8 +210,10 @@ internal static partial class WorkerControlHost
             SdkValueKind.SlotType => WorkerMpValueKind.SlotType,
             SdkValueKind.SphereFitComputationMode => WorkerMpValueKind.SphereFitComputationMode,
             SdkValueKind.WindowState => WorkerMpValueKind.WindowState,
+            SdkValueKind.SystemString => WorkerMpValueKind.SystemString,
             SdkValueKind.ProjectionOptions => WorkerMpValueKind.ProjectionOptions,
             SdkValueKind.PointDeltaReportOptions => WorkerMpValueKind.PointDeltaReportOptions,
+            SdkValueKind.UdpTransmitSettings => WorkerMpValueKind.UdpTransmitSettings,
             _ => throw new UnreachableException()
         };
 
@@ -230,6 +243,26 @@ internal static partial class WorkerControlHost
                 value.PointIncrement,
                 value.MinimumNumberOfPoints,
                 value.MaximumNumberOfPoints);
+
+    private static SdkBSplineFitOptionsValue? ToSdkBSplineFit(
+        WorkerBSplineFitOptionsValue? value) =>
+        value is null
+            ? null
+            : new(
+                value.UseInterpolationFit,
+                value.OpenCurve,
+                value.SortMethod,
+                value.TerminateMethod,
+                value.Degree,
+                value.TerminateLength,
+                value.TerminateAverageMultiplier,
+                value.NumberOfControlPoints,
+                value.UniqueCheck,
+                value.UniqueThreshold,
+                value.Extension,
+                value.UseGlobalTessellationOptions,
+                value.MaximumChordalDeviation,
+                value.MaximumTrimEdgeAngle);
 
     private static SdkColorizationOptionsValue? ToSdkColorization(
         WorkerColorizationOptionsValue? value) =>

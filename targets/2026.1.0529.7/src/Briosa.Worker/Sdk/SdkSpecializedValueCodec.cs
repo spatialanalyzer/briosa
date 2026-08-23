@@ -404,6 +404,43 @@ internal static class SdkSpecializedValueCodec
     public static string ToSdkString(SdkSlotTypeValue value) => value switch { SdkSlotTypeValue.Round => "Round", SdkSlotTypeValue.Square => "Square", _ => throw Unknown(value) };
     public static string ToSdkString(SdkSphereFitComputationModeValue value) => value switch { SdkSphereFitComputationModeValue.Standard => "Standard", SdkSphereFitComputationModeValue.MaxInscribed => "Max Inscribed", SdkSphereFitComputationModeValue.MinCircumscribed => "Min Circumscribed", _ => throw Unknown(value) };
     public static string ToSdkString(SdkWindowStateValue value) => value switch { SdkWindowStateValue.Maximize => "Maximize", SdkWindowStateValue.Minimize => "Minimize", SdkWindowStateValue.Restore => "Restore", SdkWindowStateValue.Show => "Show", SdkWindowStateValue.Hide => "Hide", _ => throw Unknown(value) };
+    public static string ToSdkString(SdkSystemStringValue value) => value switch
+    {
+        SdkSystemStringValue.SaVersion => "SA Version",
+        SdkSystemStringValue.XitFilename => "XIT Filename",
+        SdkSystemStringValue.MpFilename => "MP Filename",
+        SdkSystemStringValue.MpFilenameFullPath => "MP Filename Full Path",
+        SdkSystemStringValue.DateAndTime => "Date and Time",
+        SdkSystemStringValue.Date => "Date",
+        SdkSystemStringValue.DateShort => "Date Short",
+        SdkSystemStringValue.Time => "Time",
+        SdkSystemStringValue.KeySerialNumber => "Key Serial Number",
+        SdkSystemStringValue.CompanyName => "Company Name",
+        SdkSystemStringValue.UserName => "User Name",
+        SdkSystemStringValue.LicenseUserName => "License User Name",
+        SdkSystemStringValue.WindowsUserName => "Windows User Name",
+        SdkSystemStringValue.ComputerName => "Computer Name",
+        _ => throw Unknown(value)
+    };
+    public static string ToSdkString(SdkGdtDistanceBetweenModeValue value) => value switch
+    {
+        SdkGdtDistanceBetweenModeValue.Centroid => "Centroid",
+        SdkGdtDistanceBetweenModeValue.MinMax => "Min/Max",
+        _ => throw Unknown(value)
+    };
+
+    public static string ToSdkString(SdkGdtEvaluationMethodValue value) => value switch
+    {
+        SdkGdtEvaluationMethodValue.None => "None",
+        SdkGdtEvaluationMethodValue.Asme1994 => "ASME 1994",
+        SdkGdtEvaluationMethodValue.Asme2009 => "ASME 2009",
+        SdkGdtEvaluationMethodValue.Asme2018 => "ASME 2018",
+        SdkGdtEvaluationMethodValue.Iso1983 => "ISO 1983",
+        SdkGdtEvaluationMethodValue.Iso2004 => "ISO 2004",
+        SdkGdtEvaluationMethodValue.Iso2017 => "ISO 2017",
+        _ => throw Unknown(value)
+    };
+
     public static string ToSdkString(SdkCloudThinningModeValue value) => value switch { SdkCloudThinningModeValue.None => "None", SdkCloudThinningModeValue.Random => "Random", SdkCloudThinningModeValue.NthPoint => "Nth Point", _ => throw Unknown(value) };
 
     public static string ToSdkString(SdkReportOutputTypeValue value) => value switch { SdkReportOutputTypeValue.None => "None", SdkReportOutputTypeValue.SaReport => "SAReport", SdkReportOutputTypeValue.SaDocument => "SADoc", SdkReportOutputTypeValue.Pdf => "PDF", SdkReportOutputTypeValue.Rtf => "RTF", _ => throw Unknown(value) };

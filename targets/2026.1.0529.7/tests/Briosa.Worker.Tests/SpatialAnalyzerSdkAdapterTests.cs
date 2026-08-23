@@ -420,7 +420,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
                     SdkBinding: "SetFontTypeArg")
             ],
             [
-                new("Array Result", SdkValueKind.DoubleArray, "GetDoubleArrayArg"),
+                new("Array Result", SdkValueKind.DoubleArray, "GetDoubleArrayArg", ArraySize: 3),
                 new("Edit Result", SdkValueKind.EditText, "GetEditTextArg"),
                 new("Transform Result", SdkValueKind.Transform, "GetTransformArg"),
                 new("World Result", SdkValueKind.WorldTransform, "GetWorldTransformArg"),
@@ -449,6 +449,8 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         Assert.Equal(@"C:\sensitive\model.xit", result.OutputValues[4].FileReferenceValue!.Path);
         Assert.True(result.OutputValues[4].FileReferenceValue!.EmbeddedFile);
         Assert.True(calls.ContainerGettersReceivedVariantWrapper);
+        Assert.Equal(3, calls.DoubleArrayRequestedSizes["Array Result"]);
+        Assert.Equal(3, calls.DoubleArrayBufferSizes["Array Result"]);
     }
 
     [Theory]
@@ -553,6 +555,10 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         public Dictionary<string, (string Path, bool Embedded)> FileArguments { get; } = [];
 
         public Dictionary<string, double> ScaleArguments { get; } = [];
+
+        public Dictionary<string, int> DoubleArrayRequestedSizes { get; } = [];
+
+        public Dictionary<string, int> DoubleArrayBufferSizes { get; } = [];
 
         public (string Name, byte Size, byte Red, byte Green, byte Blue)? FontArgument { get; private set; }
 
@@ -906,6 +912,11 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             ref object values)
         {
             ContainerGettersReceivedVariantWrapper &= values is VariantWrapper;
+            DoubleArrayRequestedSizes[name] = arraySize;
+            DoubleArrayBufferSizes[name] = values is VariantWrapper wrapper &&
+                wrapper.WrappedObject is double[] buffer
+                    ? buffer.Length
+                    : 0;
             Events.Add($"GetDoubleArrayArg:{name}");
             values = name == MalformedOutputName
                 ? new double[] { 1, 2 }

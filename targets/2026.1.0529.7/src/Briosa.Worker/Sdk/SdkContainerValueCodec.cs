@@ -12,6 +12,9 @@ internal static class SdkContainerValueCodec
     public static object EmptyArrayBuffer() =>
         new VariantWrapper(Array.Empty<object>());
 
+    public static object DoubleArrayBuffer(int size) =>
+        new VariantWrapper(new double[size]);
+
     public static object TransformBuffer() =>
         new VariantWrapper(new double[4, 4]);
 

@@ -116,6 +116,7 @@ internal enum SdkValueKind
     BaseColorType,
     BaseMidColorType,
     ChartType,
+    BSplineFitOptions,
     CloudThinningOptions,
     CollimationBaselineType,
     CollimationType,
@@ -135,7 +136,10 @@ internal enum SdkValueKind
     FitConstraintScalarOptions,
     FitDegreeOfFreedomOptions,
     GeometryType,
+    GdtDistanceBetweenMode,
+    GdtEvaluationMethod,
     InstrumentType,
+    InstrumentTypeName,
     ObjectType,
     OffsetDirectionType,
     PointFilterInputType,
@@ -163,8 +167,10 @@ internal enum SdkValueKind
     SlotType,
     SphereFitComputationMode,
     WindowState,
+    SystemString,
     ProjectionOptions,
     PointDeltaReportOptions,
+    UdpTransmitSettings,
     PointName,
     Vector,
     ToleranceVectorOptions,
@@ -341,6 +347,7 @@ internal sealed record SdkInputArgument(
     SdkFontValue? FontValue = null,
     ISdkSpecializedEnumValue? SpecializedEnumValue = null,
     SdkAutoFilterProximitySettingsValue? AutoFilterProximitySettingsValue = null,
+    SdkBSplineFitOptionsValue? BSplineFitOptionsValue = null,
     SdkCloudThinningOptionsValue? CloudThinningOptionsValue = null,
     SdkColorizationOptionsValue? ColorizationOptionsValue = null,
     SdkFitConstraintScalarOptionsValue? FitConstraintScalarOptionsValue = null,
@@ -350,12 +357,14 @@ internal sealed record SdkInputArgument(
     SdkToleranceScalarOptionsValue? ToleranceScalarOptionsValue = null,
     SdkProjectionOptionsValue? ProjectionOptionsValue = null,
     SdkPointDeltaReportOptionsValue? PointDeltaReportOptionsValue = null,
+    SdkUdpTransmitSettingsValue? UdpTransmitSettingsValue = null,
     string? SdkBinding = null);
 internal sealed record SdkOutputArgument(
     string Name,
     SdkValueKind Kind,
     string? SdkBinding = null,
-    SdkObjectTypeValue? ObjectTypeWhenOmitted = null);
+    SdkObjectTypeValue? ObjectTypeWhenOmitted = null,
+    int? ArraySize = null);
 
 internal sealed record SdkOutputValue(
     string Name,

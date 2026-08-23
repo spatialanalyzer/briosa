@@ -30,6 +30,8 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             { SdkValueKind.ExportTargetNameFormat, new SdkSpecializedEnumValue<SdkExportTargetNameFormatValue>(SdkExportTargetNameFormatValue.Target), "SetExportTargetNameFormatArg", "Target" },
             { SdkValueKind.ExportVectorNameFormat, new SdkSpecializedEnumValue<SdkExportVectorNameFormatValue>(SdkExportVectorNameFormatValue.Vector), "SetExportVectorNameFormatArg", "Vector" },
             { SdkValueKind.GeometryType, new SdkSpecializedEnumValue<SdkGeometryTypeValue>(SdkGeometryTypeValue.Line), "SetGeometryTypeArg", "Line" },
+            { SdkValueKind.GdtDistanceBetweenMode, new SdkSpecializedEnumValue<SdkGdtDistanceBetweenModeValue>(SdkGdtDistanceBetweenModeValue.MinMax), "SetMPGDTOptionsDistanceBetweenModeArg", "Min/Max" },
+            { SdkValueKind.GdtEvaluationMethod, new SdkSpecializedEnumValue<SdkGdtEvaluationMethodValue>(SdkGdtEvaluationMethodValue.Iso2017), "SetMPGDTOptionsCheckValidatorTypeArg", "ISO 2017" },
             { SdkValueKind.InstrumentType, new SdkSpecializedEnumValue<SdkInstrumentTypeValue>(SdkInstrumentTypeValue.CreaformVxElements), "SetInstTypeNameArg", "Creaform VXelements" },
             { SdkValueKind.ObjectType, new SdkSpecializedEnumValue<SdkObjectTypeValue>(SdkObjectTypeValue.Cone), "SetObjectTypeArg", "Cone" },
             { SdkValueKind.OffsetDirectionType, new SdkSpecializedEnumValue<SdkOffsetDirectionTypeValue>(SdkOffsetDirectionTypeValue.PositiveOnly), "SetOffsetDirectionTypeArg", "Positive only" },
@@ -103,7 +105,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             }
         }
 
-        Assert.Equal(489, mappedValueCount);
+        Assert.Equal(512, mappedValueCount);
     }
 
     [Fact]
@@ -137,7 +139,8 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
                 new("View", SdkValueKind.ReportViewOptions, ReportViewOptionsValue: new(SdkReportViewTypeValue.CalloutView, "Collection", "Callout"), SdkBinding: "SetReportViewOptionsArg"),
                 new("Tolerance", SdkValueKind.ToleranceScalarOptions, ToleranceScalarOptionsValue: new(high, low), SdkBinding: "SetToleranceScalarOptionsArg"),
                 new("Projection", SdkValueKind.ProjectionOptions, ProjectionOptionsValue: new("Object To Probe Vectors", true, true, 1.5, false, 0), SdkBinding: "SetProjectionOptionsArg"),
-                new("Point Delta", SdkValueKind.PointDeltaReportOptions, PointDeltaReportOptionsValue: new(SdkCoordinateSystemTypeValue.Cartesian, "Single", true, true, true, true, true, true, true, false, true, true), SdkBinding: "SetPointDeltaReportOptionsArg")
+                new("Point Delta", SdkValueKind.PointDeltaReportOptions, PointDeltaReportOptionsValue: new(SdkCoordinateSystemTypeValue.Cartesian, "Single", true, true, true, true, true, true, true, false, true, true), SdkBinding: "SetPointDeltaReportOptionsArg"),
+                new("UDP", SdkValueKind.UdpTransmitSettings, UdpTransmitSettingsValue: new(true, false, "127.0.0.1", 12000), SdkBinding: "SetUdpTransmitSettingsArg")
             ],
             [
                 new("Constraint Result", SdkValueKind.FitConstraintScalarOptions, "GetFitConstraintScalarOptionsArg"),
@@ -147,7 +150,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         var result = adapter.Execute(command);
 
         Assert.True(result.MpResult.Succeeded);
-        Assert.Equal(11, calls.SpecializedArguments.Count);
+        Assert.Equal(12, calls.SpecializedArguments.Count);
         Assert.Equal([0, 1, 2], calls.SpecializedArguments["Auto"][6..9]);
         Assert.Equal("Nth Point", calls.SpecializedArguments["Thin"][0]);
         Assert.Equal("PDF", calls.SpecializedArguments["Output"][0]);
@@ -156,6 +159,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         Assert.Equal("Collection::Report", calls.SpecializedArguments["Embedded Output"][1]);
         Assert.Equal("Object To Probe Vectors", calls.SpecializedArguments["Projection"][0]);
         Assert.Equal("Cartesian", calls.SpecializedArguments["Point Delta"][0]);
+        Assert.Equal([true, false, "127.0.0.1", 12000], calls.SpecializedArguments["UDP"]);
         Assert.All(result.OutputValues, output => Assert.True(output.Retrieved));
         Assert.Equal(1.25, result.OutputValues[0].FitConstraintScalarOptionsValue!.High.Value);
         Assert.Equal(-2.5, result.OutputValues[1].ToleranceScalarOptionsValue!.Low.Value);

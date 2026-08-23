@@ -63,6 +63,60 @@ service RelationshipOperations {
   rpc SetRelationshipVoxelCloudDisplay(SetRelationshipVoxelCloudDisplayRequest) returns (SetRelationshipVoxelCloudDisplayResult);
   rpc SetRelationshipWeighting(SetRelationshipWeightingRequest) returns (SetRelationshipWeightingResult);
   rpc SetRelationshipWeightsNormalized(SetRelationshipWeightsNormalizedRequest) returns (SetRelationshipWeightsNormalizedResult);
+  rpc SetRelationshipAssociatedData(SetRelationshipAssociatedDataRequest) returns (SetRelationshipAssociatedDataResult);
+  rpc MakeVectorGroupToVectorGroupRelationship(MakeVectorGroupToVectorGroupRelationshipRequest) returns (MakeVectorGroupToVectorGroupRelationshipResult);
+  rpc FilterGeometryRelationshipOutlierCloudPoints(FilterGeometryRelationshipOutlierCloudPointsRequest) returns (FilterGeometryRelationshipOutlierCloudPointsResult);
+  rpc SetVectorGroupToVectorGroupCylindricalZone(SetVectorGroupToVectorGroupCylindricalZoneRequest) returns (SetVectorGroupToVectorGroupCylindricalZoneResult);
+  rpc DoRelationshipFit(DoRelationshipFitRequest) returns (DoRelationshipFitResult);
+  rpc GetGeomRelationshipCriteriaNameList(GetGeomRelationshipCriteriaNameListRequest) returns (GetGeomRelationshipCriteriaNameListResult);
+  rpc SetGroupToNominalGroupViewZooming(SetGroupToNominalGroupViewZoomingRequest) returns (SetGroupToNominalGroupViewZoomingResult);
+  rpc SetVectorGroupToVectorGroupFitWeights(SetVectorGroupToVectorGroupFitWeightsRequest) returns (SetVectorGroupToVectorGroupFitWeightsResult);
+  rpc MakeDynamicEllipseRelationship(MakeDynamicEllipseRelationshipRequest) returns (MakeDynamicEllipseRelationshipResult);
+  rpc SetObjectToObjectDirectionRelationshipTolerances(SetObjectToObjectDirectionRelationshipTolerancesRequest) returns (SetObjectToObjectDirectionRelationshipTolerancesResult);
+  rpc SetVectorGroupToVectorGroupFitGradientFactor(SetVectorGroupToVectorGroupFitGradientFactorRequest) returns (SetVectorGroupToVectorGroupFitGradientFactorResult);
+  rpc StartStopRelationshipTrapping(StartStopRelationshipTrappingRequest) returns (StartStopRelationshipTrappingResult);
+  rpc MakeDynamicCircleRelationship(MakeDynamicCircleRelationshipRequest) returns (MakeDynamicCircleRelationshipResult);
+  rpc GetRelationshipAssociatedData(GetRelationshipAssociatedDataRequest) returns (GetRelationshipAssociatedDataResult);
+  rpc MakeDynamicPlaneRelationship(MakeDynamicPlaneRelationshipRequest) returns (MakeDynamicPlaneRelationshipResult);
+  rpc MakePointToPointRelationship(MakePointToPointRelationshipRequest) returns (MakePointToPointRelationshipResult);
+  rpc AutoFilterPointsGroupsCloudsToSurfaceFaces(AutoFilterPointsGroupsCloudsToSurfaceFacesRequest) returns (AutoFilterPointsGroupsCloudsToSurfaceFacesResult);
+  rpc MakeGeometryFitAndCompareToNominalRelationship(MakeGeometryFitAndCompareToNominalRelationshipRequest) returns (MakeGeometryFitAndCompareToNominalRelationshipResult);
+  rpc CreatePointsToObjectsMap(CreatePointsToObjectsMapRequest) returns (CreatePointsToObjectsMapResult);
+  rpc MakeCloudToSwatchRelationship(MakeCloudToSwatchRelationshipRequest) returns (MakeCloudToSwatchRelationshipResult);
+  rpc MakeGeometryCompareOnlyRelationship(MakeGeometryCompareOnlyRelationshipRequest) returns (MakeGeometryCompareOnlyRelationshipResult);
+  rpc MakeDynamicLineRelationship(MakeDynamicLineRelationshipRequest) returns (MakeDynamicLineRelationshipResult);
+  rpc AutoFilterCloudsToNominalGeometry2D(AutoFilterCloudsToNominalGeometry2DRequest) returns (AutoFilterCloudsToNominalGeometry2DResult);
+  rpc MakeDynamicPointRelationship(MakeDynamicPointRelationshipRequest) returns (MakeDynamicPointRelationshipResult);
+  rpc MakeObjectToObjectDirectionRelationship(MakeObjectToObjectDirectionRelationshipRequest) returns (MakeObjectToObjectDirectionRelationshipResult);
+  rpc GetPointsToPointsRelationshipAssociatedData(GetPointsToPointsRelationshipAssociatedDataRequest) returns (GetPointsToPointsRelationshipAssociatedDataResult);
+  rpc SetPointsToPointsRelationshipAssociatedData(SetPointsToPointsRelationshipAssociatedDataRequest) returns (SetPointsToPointsRelationshipAssociatedDataResult);
+  rpc GetPointToPointRelationshipStatistics(GetPointToPointRelationshipStatisticsRequest) returns (GetPointToPointRelationshipStatisticsResult);
+  rpc MakeFrameToFrameRelationship(MakeFrameToFrameRelationshipRequest) returns (MakeFrameToFrameRelationshipResult);
+  rpc SetVectorGroupToVectorGroupRelativePolarity(SetVectorGroupToVectorGroupRelativePolarityRequest) returns (SetVectorGroupToVectorGroupRelativePolarityResult);
+  rpc MakePointsToObjectsRelationship(MakePointsToObjectsRelationshipRequest) returns (MakePointsToObjectsRelationshipResult);
+  rpc MakeGroupToGroupRelationship(MakeGroupToGroupRelationshipRequest) returns (MakeGroupToGroupRelationshipResult);
+  rpc DeleteRelationship(DeleteRelationshipRequest) returns (DeleteRelationshipResult);
+  rpc MakeAveragePointRelationship(MakeAveragePointRelationshipRequest) returns (MakeAveragePointRelationshipResult);
+  rpc SetOptimizationPerturbationParameters(SetOptimizationPerturbationParametersRequest) returns (SetOptimizationPerturbationParametersResult);
+  rpc GetObjectsFromPointsToObjectsMapPointList(GetObjectsFromPointsToObjectsMapPointListRequest) returns (GetObjectsFromPointsToObjectsMapPointListResult);
+  rpc SetOptimizationSearchOptions(SetOptimizationSearchOptionsRequest) returns (SetOptimizationSearchOptionsResult);
+  rpc GetRelationshipSigmoidalGapFitConstraints(GetRelationshipSigmoidalGapFitConstraintsRequest) returns (GetRelationshipSigmoidalGapFitConstraintsResult);
+  rpc RelationshipWatchWindowTemplate(RelationshipWatchWindowTemplateRequest) returns (RelationshipWatchWindowTemplateResult);
+  rpc ExtractGeometryFromPointClouds(ExtractGeometryFromPointCloudsRequest) returns (ExtractGeometryFromPointCloudsResult);
+  rpc MakeGroupsToObjectsRelationship(MakeGroupsToObjectsRelationshipRequest) returns (MakeGroupsToObjectsRelationshipResult);
+  rpc ComputeGeometryRelationshipUncertainties(ComputeGeometryRelationshipUncertaintiesRequest) returns (ComputeGeometryRelationshipUncertaintiesResult);
+  rpc GetPointsToObjectsRelationshipStatistics(GetPointsToObjectsRelationshipStatisticsRequest) returns (GetPointsToObjectsRelationshipStatisticsResult);
+  rpc GetRelationshipStatus(GetRelationshipStatusRequest) returns (GetRelationshipStatusResult);
+  rpc AutoFilterPointsToNominalGeometry3D(AutoFilterPointsToNominalGeometry3DRequest) returns (AutoFilterPointsToNominalGeometry3DResult);
+  rpc MakeGeometryFitOnlyRelationship(MakeGeometryFitOnlyRelationshipRequest) returns (MakeGeometryFitOnlyRelationshipResult);
+  rpc MakePointCloudsToObjectsRelationship(MakePointCloudsToObjectsRelationshipRequest) returns (MakePointCloudsToObjectsRelationshipResult);
+  rpc EditGeometryRelationshipPointList(EditGeometryRelationshipPointListRequest) returns (EditGeometryRelationshipPointListResult);
+  rpc GetGeneralRelationshipStatistics(GetGeneralRelationshipStatisticsRequest) returns (GetGeneralRelationshipStatisticsResult);
+  rpc MakeGroupToNominalGroupRelationship(MakeGroupToNominalGroupRelationshipRequest) returns (MakeGroupToNominalGroupRelationshipResult);
+  rpc GenerateGeometryRelationshipSummary(GenerateGeometryRelationshipSummaryRequest) returns (GenerateGeometryRelationshipSummaryResult);
+  rpc MoveCollectionsByMinimizingRelationships(MoveCollectionsByMinimizingRelationshipsRequest) returns (MoveCollectionsByMinimizingRelationshipsResult);
+  rpc MakePointsToPointsRelationship(MakePointsToPointsRelationshipRequest) returns (MakePointsToPointsRelationshipResult);
+  rpc AutoFilterCloudsToNominalGeometry3D(AutoFilterCloudsToNominalGeometry3DRequest) returns (AutoFilterCloudsToNominalGeometry3DResult);
 }
 
 message EnableDisableRelationshipsForOptimizationRequest {
@@ -673,5 +727,792 @@ message SetRelationshipWeightsNormalizedRequest {
 }
 
 message SetRelationshipWeightsNormalizedResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message AutoFilterCloudsToNominalGeometry2DRequest {
+  repeated CollectionItemName auto_filter_target_relationships = 1;
+  repeated CollectionObjectName clouds = 2;
+  optional CloudThinningOptions cloud_thinning_settings = 3;
+  optional FilterProximitySettings filter_proximity_settings_2d = 4;
+  optional double geometry_extraction_tolerance = 5;
+  optional bool use_feature_specific_filter_settings = 6;
+}
+
+message AutoFilterCloudsToNominalGeometry2DResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message AutoFilterCloudsToNominalGeometry3DRequest {
+  repeated CollectionItemName auto_filter_target_relationships = 1;
+  repeated CollectionObjectName clouds = 2;
+  optional CloudThinningOptions cloud_thinning_settings = 3;
+  optional FilterProximitySettings filter_proximity_settings_3d = 4;
+  optional bool use_feature_specific_filter_settings = 5;
+}
+
+message AutoFilterCloudsToNominalGeometry3DResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message AutoFilterPointsGroupsCloudsToSurfaceFacesRequest {
+  optional PointNameList points = 1;
+  optional CollectionObjectNameList groups = 2;
+  optional CollectionObjectNameList clouds = 3;
+  optional double surface_offset = 4;
+  optional double edge_offset = 5;
+  optional OffsetDirectionType offset_direction = 6;
+  optional bool enforce_max_points_per_face_in_output = 7;
+  optional int32 max_points_per_face = 8;
+  repeated CollectionObjectName surfaces = 9;
+  optional CloudThinningOptions cloud_thinning_settings = 10;
+  optional string output_cloud_base_name = 11;
+  optional bool use_face_ids_for_suffix = 12;
+}
+
+message AutoFilterPointsGroupsCloudsToSurfaceFacesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message AutoFilterPointsToNominalGeometry3DRequest {
+  repeated CollectionItemName auto_filter_target_relationships = 1;
+  repeated PointName points = 2;
+  optional FilterProximitySettings filter_proximity_settings_3d = 3;
+}
+
+message AutoFilterPointsToNominalGeometry3DResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message CollectionObjectNameList {
+  repeated CollectionObjectName values = 1;
+}
+
+message ComputeGeometryRelationshipUncertaintiesRequest {
+  optional CollectionItemName relationship_name = 1;
+  optional bool display_results = 2;
+}
+
+message ComputeGeometryRelationshipUncertaintiesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message CreatePointsToObjectsMapRequest {
+  optional PointNameList points = 1;
+  optional CollectionObjectNameList groups = 2;
+  repeated CollectionObjectName objects = 3;
+  optional double proximity_tolerance = 4;
+  optional string points_to_objects_map_name = 5;
+}
+
+message CreatePointsToObjectsMapResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message DeleteRelationshipRequest {
+  optional CollectionItemName relationship_name = 1;
+}
+
+message DeleteRelationshipResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message DoRelationshipFitRequest {
+  optional string collection_containing_relationships = 1;
+  repeated CollectionObjectName objects_to_move = 2;
+  repeated CollectionInstrumentId instruments_to_move = 3;
+  optional SolverMode solver_mode = 4;
+  optional FitDofOptions motion_to_allow = 5;
+  optional bool enable_randomized_start = 6;
+  optional bool use_fit_dialog = 7;
+}
+
+message DoRelationshipFitResult {
+  optional Transform transform_in_reference = 1;
+  optional WorldTransform transform_in_working = 2;
+  optional WorldTransform transform_in_world = 3;
+  optional double fit_objective_value = 4;
+  MpExecutionDetails execution = 1000;
+}
+
+enum DynamicCircleMode {
+  DYNAMIC_CIRCLE_MODE_UNSPECIFIED = 0;
+  DYNAMIC_CIRCLE_MODE_CYLINDER_AND_PLANE_HOLD_PLANE_NORMAL = 1;
+  DYNAMIC_CIRCLE_MODE_CYLINDER_AND_PLANE_HOLD_CYLINDER_AXIS = 2;
+  DYNAMIC_CIRCLE_MODE_CONE_AND_PLANE_HOLD_PLANE_NORMAL = 3;
+  DYNAMIC_CIRCLE_MODE_CONE_AND_PLANE_HOLD_CONE_AXIS = 4;
+  DYNAMIC_CIRCLE_MODE_SPHERE_AND_PLANE_INTERSECTION = 5;
+  DYNAMIC_CIRCLE_MODE_TWO_CONES_INTERSECTION = 6;
+  DYNAMIC_CIRCLE_MODE_CONE_AND_CYLINDER_INTERSECTION = 7;
+}
+
+enum DynamicEllipseMode {
+  DYNAMIC_ELLIPSE_MODE_UNSPECIFIED = 0;
+  DYNAMIC_ELLIPSE_MODE_CYLINDER_AND_PLANE_INTERSECTION = 1;
+  DYNAMIC_ELLIPSE_MODE_CONE_AND_PLANE_INTERSECTION = 2;
+}
+
+enum DynamicLineMode {
+  DYNAMIC_LINE_MODE_UNSPECIFIED = 0;
+  DYNAMIC_LINE_MODE_CONE_AXIS = 1;
+  DYNAMIC_LINE_MODE_CYLINDER_AXIS = 2;
+  DYNAMIC_LINE_MODE_INTERSECTION_OF_TWO_PLANES = 3;
+  DYNAMIC_LINE_MODE_BISECT_TWO_LINES = 4;
+  DYNAMIC_LINE_MODE_SLOT_CENTERLINE_ALONG_LENGTH = 5;
+}
+
+enum DynamicPlaneMode {
+  DYNAMIC_PLANE_MODE_UNSPECIFIED = 0;
+  DYNAMIC_PLANE_MODE_BISECT_TWO_PLANES = 1;
+  DYNAMIC_PLANE_MODE_TWO_CONES_HOLD_NORMAL_TO_BEST_FIT_PLANE = 2;
+  DYNAMIC_PLANE_MODE_TWO_CONES_HOLD_NORMAL_TO_FIRST_CONE_AXIS = 3;
+  DYNAMIC_PLANE_MODE_TWO_CONES_HOLD_NORMAL_TO_SECOND_CONE_AXIS = 4;
+  DYNAMIC_PLANE_MODE_CONE_AND_CYLINDER_HOLD_NORMAL_TO_BEST_FIT_PLANE = 5;
+  DYNAMIC_PLANE_MODE_CONE_AND_CYLINDER_HOLD_NORMAL_TO_CONE_AXIS = 6;
+  DYNAMIC_PLANE_MODE_CONE_AND_CYLINDER_HOLD_NORMAL_TO_CYLINDER_AXIS = 7;
+  DYNAMIC_PLANE_MODE_OFFSET_PLANE_FROM_PLANE = 8;
+}
+
+enum DynamicPointMode {
+  DYNAMIC_POINT_MODE_UNSPECIFIED = 0;
+  DYNAMIC_POINT_MODE_INTERSECTION_LINE_AND_PLANE = 1;
+  DYNAMIC_POINT_MODE_INTERSECTION_CYLINDER_AND_PLANE = 2;
+  DYNAMIC_POINT_MODE_INTERSECTION_CONE_AND_PLANE = 3;
+  DYNAMIC_POINT_MODE_INTERSECTION_THREE_PLANES = 4;
+  DYNAMIC_POINT_MODE_MID_POINT_PERPENDICULAR_TO_TWO_LINES = 5;
+}
+
+message EditGeometryRelationshipPointListRequest {
+  optional CollectionItemName relationship_name = 1;
+  optional GeometryRelationshipPointEditMode point_edit_mode = 2;
+}
+
+message EditGeometryRelationshipPointListResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ExtractGeometryFromPointCloudsRequest {
+  optional CollectionItemName relationship_name = 1;
+  optional GeometryType geometry_type = 2;
+  optional CollectionObjectName cloud_name = 3;
+  optional PointNameList bounding_points = 4;
+  repeated PointName seed_points = 5;
+  optional double tolerance = 6;
+  optional bool reverse_normal = 7;
+  optional int32 planar_point_count = 8;
+}
+
+message ExtractGeometryFromPointCloudsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message FilterGeometryRelationshipOutlierCloudPointsRequest {
+  optional CollectionItemName relationship_name = 1;
+  optional double sigma_threshold = 2;
+  optional bool modify_existing_input_clouds = 3;
+}
+
+message FilterGeometryRelationshipOutlierCloudPointsResult {
+  optional GeometryRelationshipOutlierFilterMetrics metrics = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message FilterProximitySettings {
+  optional double surface_inclusion_proximity = 1;
+  optional double edge_exclusion_proximity = 2;
+  optional double planar_inclusion_proximity = 3;
+  optional double planar_exclusion_proximity = 4;
+  optional double radial_inclusion_proximity = 5;
+  optional double geometry_extraction_tolerance = 6;
+  optional OffsetDirectionType surface_proximity_mode = 7;
+  optional OffsetDirectionType planar_proximity_mode = 8;
+  optional OffsetDirectionType radial_proximity_mode = 9;
+  optional bool project_to_plane = 10;
+  optional bool assert_plane_boundaries = 11;
+}
+
+message FitDofOptions {
+  optional bool allow_x = 1;
+  optional bool allow_y = 2;
+  optional bool allow_z = 3;
+  optional bool allow_rx = 4;
+  optional bool allow_ry = 5;
+  optional bool allow_rz = 6;
+  optional bool rotate_about_centroid = 7;
+}
+
+message GenerateGeometryRelationshipSummaryRequest {
+  repeated CollectionItemName relationship_ref_list = 1;
+  optional string summary_table_name = 2;
+}
+
+message GenerateGeometryRelationshipSummaryResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message GeometryRelationshipOutlierFilterMetrics {
+  double first_pass_rms_error = 1;
+  double first_pass_maximum_error = 2;
+  double first_pass_minimum_error = 3;
+  double first_pass_average_error = 4;
+  double final_pass_rms_error = 5;
+  double final_pass_maximum_error = 6;
+  double final_pass_minimum_error = 7;
+  double final_pass_average_error = 8;
+  int32 total_input_point_count = 9;
+  int32 exclude_point_count = 10;
+}
+
+enum GeometryRelationshipPointEditMode {
+  GEOMETRY_RELATIONSHIP_POINT_EDIT_MODE_UNSPECIFIED = 0;
+  GEOMETRY_RELATIONSHIP_POINT_EDIT_MODE_POINT_LIST = 1;
+  GEOMETRY_RELATIONSHIP_POINT_EDIT_MODE_POINT_GRAPH = 2;
+  GEOMETRY_RELATIONSHIP_POINT_EDIT_MODE_SUB_SAMPLER_SETTINGS = 3;
+}
+
+message GetGeneralRelationshipStatisticsRequest {
+  optional CollectionItemName relationship_name = 1;
+}
+
+message GetGeneralRelationshipStatisticsResult {
+  optional double absolute_max_deviation = 1;
+  optional double rms = 2;
+  optional bool has_signed_deviation = 3;
+  optional double signed_max_deviation = 4;
+  optional double signed_min_deviation = 5;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetGeomRelationshipCriteriaNameListRequest {
+  optional CollectionItemName relationship_name = 1;
+  optional bool include_all_criteria = 2;
+}
+
+message GetGeomRelationshipCriteriaNameListResult {
+  repeated string criteria_name_list = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetObjectsFromPointsToObjectsMapPointListRequest {
+  optional string points_to_objects_map_name = 1;
+  repeated PointName points = 2;
+}
+
+message GetObjectsFromPointsToObjectsMapPointListResult {
+  repeated CollectionObjectName objects = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetPointsToObjectsRelationshipStatisticsRequest {
+  optional CollectionItemName relationship_name = 1;
+}
+
+message GetPointsToObjectsRelationshipStatisticsResult {
+  optional double absolute_max_deviation = 1;
+  optional double max_deviation = 2;
+  optional double min_deviation = 3;
+  optional double avg_deviation = 4;
+  optional double rms = 5;
+  optional int32 candidate_point_count = 6;
+  optional int32 sampled_point_count = 7;
+  optional int32 rejected_point_count = 8;
+  optional int32 used_point_count = 9;
+  optional int32 out_of_tolerance_point_count = 10;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetPointsToPointsRelationshipAssociatedDataRequest {
+  optional CollectionItemName relationship_name = 1;
+}
+
+message GetPointsToPointsRelationshipAssociatedDataResult {
+  optional PointsToPointsRelationshipAssociatedData associated_data = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetPointToPointRelationshipStatisticsRequest {
+  optional CollectionItemName relationship_name = 1;
+}
+
+message GetPointToPointRelationshipStatisticsResult {
+  optional double delta_x = 1;
+  optional double delta_y = 2;
+  optional double delta_z = 3;
+  optional double delta_magnitude = 4;
+  optional CollectionObjectName reference_frame = 5;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetRelationshipAssociatedDataRequest {
+  optional CollectionItemName relationship_name = 1;
+}
+
+message GetRelationshipAssociatedDataResult {
+  optional RelationshipAssociatedData associated_data = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetRelationshipSigmoidalGapFitConstraintsRequest {
+  optional CollectionItemName relationship_name = 1;
+}
+
+message GetRelationshipSigmoidalGapFitConstraintsResult {
+  optional SigmoidalGapFitConstraints constraints = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetRelationshipStatusRequest {
+  optional CollectionItemName relationship_name = 1;
+}
+
+message GetRelationshipStatusResult {
+  optional RelationshipStatusFlags status = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeAveragePointRelationshipRequest {
+  optional CollectionItemName relationship_name = 1;
+  repeated PointName points_in_relationship = 2;
+  optional PointName average_point_name = 3;
+  optional PointName nominal_point_name = 4;
+}
+
+message MakeAveragePointRelationshipResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeCloudToSwatchRelationshipRequest {
+  optional CollectionItemName relationship_name = 1;
+  optional CollectionObjectName input_cloud_name = 2;
+  optional string surface_face_list = 3;
+  optional PointName reference_point = 4;
+  optional double maximum_radial_offset = 5;
+  optional double minimum_axial_offset = 6;
+  optional double maximum_axial_offset = 7;
+  optional CollectionObjectName cardinal_point_group_name = 8;
+}
+
+message MakeCloudToSwatchRelationshipResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeDynamicCircleRelationshipRequest {
+  optional CollectionItemName relationship_name = 1;
+  optional DynamicCircleMode construction_mode = 2;
+  optional CollectionObjectName first_reference_geometry = 3;
+  optional CollectionObjectName second_reference_geometry = 4;
+}
+
+message MakeDynamicCircleRelationshipResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeDynamicEllipseRelationshipRequest {
+  optional CollectionItemName relationship_name = 1;
+  optional DynamicEllipseMode construction_mode = 2;
+  optional CollectionObjectName first_reference_geometry = 3;
+  optional CollectionObjectName second_reference_geometry = 4;
+}
+
+message MakeDynamicEllipseRelationshipResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeDynamicLineRelationshipRequest {
+  optional CollectionItemName relationship_name = 1;
+  optional DynamicLineMode construction_mode = 2;
+  optional CollectionObjectName first_reference_geometry = 3;
+  optional CollectionObjectName second_reference_geometry = 4;
+}
+
+message MakeDynamicLineRelationshipResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeDynamicPlaneRelationshipRequest {
+  optional CollectionItemName relationship_name = 1;
+  optional DynamicPlaneMode construction_mode = 2;
+  optional CollectionObjectName first_reference_geometry = 3;
+  optional CollectionObjectName second_reference_geometry = 4;
+  optional double offset_plane_offset = 5;
+}
+
+message MakeDynamicPlaneRelationshipResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeDynamicPointRelationshipRequest {
+  optional CollectionItemName relationship_name = 1;
+  optional DynamicPointMode construction_mode = 2;
+  optional CollectionObjectName first_reference_geometry = 3;
+  optional CollectionObjectName second_reference_geometry = 4;
+  optional CollectionObjectName third_reference_geometry = 5;
+}
+
+message MakeDynamicPointRelationshipResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeFrameToFrameRelationshipRequest {
+  optional CollectionItemName relationship_name = 1;
+  optional CollectionObjectName first_frame_name = 2;
+  optional CollectionObjectName second_frame_name = 3;
+  optional ToleranceScalarOptions orientation_tolerance = 4;
+  optional ToleranceVectorOptions position_tolerance = 5;
+}
+
+message MakeFrameToFrameRelationshipResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeGeometryCompareOnlyRelationshipRequest {
+  optional CollectionItemName relationship_name = 1;
+  optional CollectionObjectName nominal_geometry = 2;
+  optional CollectionObjectName measured_geometry = 3;
+}
+
+message MakeGeometryCompareOnlyRelationshipResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeGeometryFitAndCompareToNominalRelationshipRequest {
+  optional CollectionItemName relationship_name = 1;
+  optional CollectionObjectName nominal_geometry = 2;
+  repeated CollectionObjectName point_groups_to_fit = 3;
+  optional CollectionObjectName resulting_object_name = 4;
+  optional string fit_profile_name = 5;
+}
+
+message MakeGeometryFitAndCompareToNominalRelationshipResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeGeometryFitOnlyRelationshipRequest {
+  optional CollectionItemName relationship_name = 1;
+  repeated CollectionObjectName point_groups_to_fit = 2;
+  optional GeometryType geometry_type = 3;
+  optional CollectionObjectName resulting_object_name = 4;
+  optional string fit_profile_name = 5;
+}
+
+message MakeGeometryFitOnlyRelationshipResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeGroupsToObjectsRelationshipRequest {
+  optional CollectionItemName relationship_name = 1;
+  repeated CollectionObjectName point_groups_in_relationship = 2;
+  repeated CollectionObjectName objects_in_relationship = 3;
+  optional ProjectionOptions projection_options = 4;
+  optional bool auto_update_a_vector_group = 5;
+}
+
+message MakeGroupsToObjectsRelationshipResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeGroupToGroupRelationshipRequest {
+  optional CollectionItemName relationship_name = 1;
+  optional CollectionObjectName first_group_name = 2;
+  optional CollectionObjectName second_group_name = 3;
+  optional bool auto_update_a_vector_group = 4;
+  optional ToleranceVectorOptions tolerance = 5;
+  optional ToleranceVectorOptions constraint = 6;
+}
+
+message MakeGroupToGroupRelationshipResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeGroupToNominalGroupRelationshipRequest {
+  optional CollectionItemName relationship_name = 1;
+  optional CollectionObjectName nominal_group_name = 2;
+  optional CollectionObjectName measured_group_name = 3;
+  optional bool auto_update_a_vector_group = 4;
+  optional bool use_closest_point = 5;
+  optional bool display_closest_point_watch_window = 6;
+  optional bool use_view_zooming_with_proximity = 7;
+  optional bool ignore_points_beyond_threshold = 8;
+  optional double proximity_threshold = 9;
+  optional ToleranceVectorOptions tolerance = 10;
+  optional ToleranceVectorOptions constraint = 11;
+  optional double fit_weight = 12;
+}
+
+message MakeGroupToNominalGroupRelationshipResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeObjectToObjectDirectionRelationshipRequest {
+  optional CollectionItemName relationship_name = 1;
+  optional CollectionObjectName first_object_in_relationship = 2;
+  optional CollectionObjectName second_object_in_relationship = 3;
+  optional double nominal_angle = 4;
+}
+
+message MakeObjectToObjectDirectionRelationshipResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MakePointCloudsToObjectsRelationshipRequest {
+  optional CollectionItemName relationship_name = 1;
+  repeated CollectionObjectName point_clouds_in_relationship = 2;
+  repeated CollectionObjectName objects_in_relationship = 3;
+  optional ProjectionOptions projection_options = 4;
+  optional bool auto_update_a_vector_group = 5;
+}
+
+message MakePointCloudsToObjectsRelationshipResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MakePointsToObjectsRelationshipRequest {
+  optional CollectionItemName relationship_name = 1;
+  repeated PointName points_in_relationship = 2;
+  repeated CollectionObjectName objects_in_relationship = 3;
+  optional ProjectionOptions projection_options = 4;
+  optional bool auto_update_a_vector_group = 5;
+}
+
+message MakePointsToObjectsRelationshipResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MakePointsToPointsRelationshipRequest {
+  optional CollectionItemName relationship_name = 1;
+  repeated PointName nominal_points = 2;
+  repeated PointName measured_points = 3;
+  optional bool auto_update_a_vector_group = 4;
+  optional ToleranceVectorOptions tolerance = 5;
+  optional ToleranceVectorOptions constraint = 6;
+}
+
+message MakePointsToPointsRelationshipResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MakePointToPointRelationshipRequest {
+  optional CollectionItemName relationship_name = 1;
+  optional PointName first_point_name = 2;
+  optional PointName second_point_name = 3;
+  optional ToleranceVectorOptions tolerance = 4;
+  optional ToleranceVectorOptions constraint = 5;
+}
+
+message MakePointToPointRelationshipResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeVectorGroupToVectorGroupRelationshipRequest {
+  optional CollectionItemName new_vg_to_vg_relationship = 1;
+  optional CollectionObjectName reference_vector_group = 2;
+  optional CollectionObjectName corresponding_vector_group = 3;
+  optional bool set_opposing_vector_group_polarity = 4;
+}
+
+message MakeVectorGroupToVectorGroupRelationshipResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MoveCollectionsByMinimizingRelationshipsRequest {
+  repeated string collections_to_move = 1;
+  repeated CollectionItemName relationships_to_minimize = 2;
+  optional SolverMode solver_mode = 3;
+  optional FitDofOptions motion_to_allow = 4;
+  optional bool use_fit_dialog = 5;
+  optional double convergence_threshold = 6;
+}
+
+message MoveCollectionsByMinimizingRelationshipsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message PointNameList {
+  repeated PointName values = 1;
+}
+
+message PointsToPointsRelationshipAssociatedData {
+  repeated PointName nominal_points = 1;
+  repeated PointName actual_points = 2;
+}
+
+message RelationshipAssociatedData {
+  string relationship_type = 1;
+  repeated PointName individual_points = 2;
+  repeated CollectionObjectName point_groups = 3;
+  repeated CollectionObjectName point_clouds = 4;
+  repeated CollectionObjectName objects = 5;
+}
+
+message RelationshipStatusFlags {
+  bool dormant = 1;
+  bool success = 2;
+  bool measured = 3;
+  bool failed = 4;
+  bool unmeasured = 5;
+}
+
+message RelationshipWatchWindowTemplateRequest {
+  optional CollectionObjectName watch_window_template_name = 1;
+  optional int32 linear_precision = 2;
+  optional int32 angular_precision = 3;
+  optional Font font = 4;
+  optional Color text_color = 5;
+  optional Color background_color = 6;
+  optional Color highlight_color = 7;
+  optional bool show_deviation_x_rx = 8;
+  optional bool show_deviation_y_ry = 9;
+  optional bool show_deviation_z_rz = 10;
+  optional bool show_deviation_magnitude = 11;
+  optional RelationshipWatchWindowUdpSettings udp_network_transmit_settings = 12;
+  optional bool transparent_background = 13;
+  optional bool hide_units = 14;
+}
+
+message RelationshipWatchWindowTemplateResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message RelationshipWatchWindowUdpSettings {
+  optional bool enabled = 1;
+  optional bool broadcast = 2;
+  optional string ip_address = 3;
+  optional int32 port = 4;
+}
+
+message SetGroupToNominalGroupViewZoomingRequest {
+  optional CollectionItemName relationship_name = 1;
+  optional bool use_closest_point = 2;
+  optional bool show_closest_point_watch_window = 3;
+  optional bool use_view_zooming = 4;
+  optional bool ignore_points_beyond_threshold = 5;
+  optional double proximity_threshold = 6;
+}
+
+message SetGroupToNominalGroupViewZoomingResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetObjectToObjectDirectionRelationshipTolerancesRequest {
+  optional CollectionItemName relationship_name = 1;
+  optional ToleranceScalarOptions angle_between_vectors_tolerances = 2;
+  optional ToleranceScalarOptions mutual_perpendicular_length_tolerances = 3;
+}
+
+message SetObjectToObjectDirectionRelationshipTolerancesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetOptimizationPerturbationParametersRequest {
+  optional double length_perturbation = 1;
+  optional double angular_perturbation = 2;
+  optional double damping = 3;
+}
+
+message SetOptimizationPerturbationParametersResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetOptimizationSearchOptionsRequest {
+  optional int32 max_number_of_step_size_reduction = 1;
+}
+
+message SetOptimizationSearchOptionsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetPointsToPointsRelationshipAssociatedDataRequest {
+  optional CollectionItemName relationship_name = 1;
+  optional PointNameList nominal_points = 2;
+  optional PointNameList actual_points = 3;
+  optional bool ignore_empty_arguments = 4;
+}
+
+message SetPointsToPointsRelationshipAssociatedDataResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetRelationshipAssociatedDataRequest {
+  optional CollectionItemName relationship_name = 1;
+  optional PointNameList individual_points = 2;
+  optional CollectionObjectNameList point_groups = 3;
+  optional CollectionObjectNameList point_clouds = 4;
+  optional CollectionObjectNameList objects = 5;
+  optional bool ignore_empty_arguments = 6;
+}
+
+message SetRelationshipAssociatedDataResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetVectorGroupToVectorGroupCylindricalZoneRequest {
+  optional CollectionItemName vg_to_vg_relationship = 1;
+  optional double radial_offset = 2;
+  optional double minimum_axial_offset = 3;
+  optional double maximum_axial_offset = 4;
+}
+
+message SetVectorGroupToVectorGroupCylindricalZoneResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetVectorGroupToVectorGroupFitGradientFactorRequest {
+  optional CollectionItemName vg_to_vg_relationship = 1;
+  optional double fit_gradient_factor = 2;
+}
+
+message SetVectorGroupToVectorGroupFitGradientFactorResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetVectorGroupToVectorGroupFitWeightsRequest {
+  optional CollectionItemName vg_to_vg_relationship = 1;
+  optional double minimum_gap = 2;
+  optional double minimum_gap_fit_weight = 3;
+  optional double maximum_gap = 4;
+  optional double maximum_gap_fit_weight = 5;
+  optional double nominal_gap = 6;
+  optional double nominal_gap_fit_weight = 7;
+}
+
+message SetVectorGroupToVectorGroupFitWeightsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetVectorGroupToVectorGroupRelativePolarityRequest {
+  optional CollectionItemName vg_to_vg_relationship = 1;
+  optional bool set_opposing_vector_group_polarity = 2;
+}
+
+message SetVectorGroupToVectorGroupRelativePolarityResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SigmoidalGapFitConstraints {
+  bool use_sigmoidal_gap_constraints = 1;
+  double minimum_gap_boundary = 2;
+  double minimum_gap_weight = 3;
+  double maximum_gap_boundary = 4;
+  double maximum_gap_weight = 5;
+  double nominal_gap = 6;
+  double nominal_gap_weight = 7;
+  double gradient_steepness_factor = 8;
+}
+
+enum SolverMode {
+  SOLVER_MODE_UNSPECIFIED = 0;
+  SOLVER_MODE_GAUSS_NEWTON = 1;
+  SOLVER_MODE_LEVENBERG_MARQUARDT = 2;
+  SOLVER_MODE_GAUSS_NEWTON_WITH_GRADIENT_SEARCH = 3;
+  SOLVER_MODE_DIRECT_SEARCH = 4;
+}
+
+message StartStopRelationshipTrappingRequest {
+  optional CollectionItemName relationship_name = 1;
+  optional CollectionInstrumentId instrument_id = 2;
+  optional bool start_trapping = 3;
+}
+
+message StartStopRelationshipTrappingResult {
   MpExecutionDetails execution = 1000;
 }
