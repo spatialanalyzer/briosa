@@ -13,7 +13,12 @@ internal sealed record MpArgumentContract(
     string SdkBinding,
     string DefaultValue,
     bool Required,
-    WorkerObjectTypeValue? ObjectTypeWhenOmitted = null);
+    WorkerObjectTypeValue? ObjectTypeWhenOmitted = null,
+    IReadOnlyList<string>? EnumTextValues = null,
+    bool OmitWhenAbsent = false,
+    string? NestedFieldName = null,
+    WorkerItemTypeValue? ItemTypeWhenOmitted = null,
+    string? ArraySizeFieldName = null);
 
 internal sealed class MpOperationContract
 {
@@ -27,7 +32,8 @@ internal sealed class MpOperationContract
         global::Briosa.ReplaySafety replaySafety,
         IReadOnlyList<string> riskFlags,
         IReadOnlyList<MpArgumentContract> inputs,
-        IReadOnlyList<MpArgumentContract> outputs)
+        IReadOnlyList<MpArgumentContract> outputs,
+        Action<IMessage>? validateRequest = null)
     {
         Inputs = [.. inputs];
         Outputs = [.. outputs];
@@ -46,6 +52,7 @@ internal sealed class MpOperationContract
             .. Outputs.Select(output =>
                 new OperationOutputContract(output.FieldName, output.MpName, output.Kind))
         ];
+        ValidateRequest = validateRequest;
     }
 
     public OperationDescriptor Descriptor { get; }
@@ -56,19 +63,28 @@ internal sealed class MpOperationContract
 
     public IReadOnlyList<OperationOutputContract> OutputContracts { get; }
 
+    private Action<IMessage>? ValidateRequest { get; }
+
     public WorkerMpCommand CreateCommand(IMessage request)
     {
         ArgumentNullException.ThrowIfNull(request);
+        ValidateRequest?.Invoke(request);
         return new WorkerMpCommand(
             Descriptor.OperationId,
             Descriptor.MpStep,
-            [.. Inputs.Select(input => MpOperationValueMapper.ToInput(request, input))],
+            [.. Inputs.Select(input => MpOperationValueMapper.ToInput(request, input))
+                .OfType<WorkerMpInputArgument>()],
             [
-                .. Outputs.Select(output => new WorkerMpOutputArgument(
+            .. Outputs.Select(output => new WorkerMpOutputArgument(
                     output.MpName,
                     output.Kind,
                     output.SdkBinding,
-                    output.ObjectTypeWhenOmitted))
+                    output.ObjectTypeWhenOmitted,
+                    output.ArraySizeFieldName is null
+                        ? null
+                        : MpOperationValueMapper.GetRequiredPositiveInt32(
+                            request,
+                            output.ArraySizeFieldName)))
             ]);
     }
 
@@ -89,7 +105,7 @@ internal static class MpOperationServiceExecutor
         where TResponse : class, IMessage<TResponse>, new()
     {
         ArgumentNullException.ThrowIfNull(executor);
-        var operation = WaveAOperationCatalog.Get(operationId);
+        var operation = MpOperationCatalog.Get(operationId);
         return executor.ExecuteAsync(
             request,
             context,

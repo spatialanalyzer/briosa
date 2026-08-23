@@ -21,6 +21,22 @@ public sealed record WorkerCloudThinningOptionsValue(
     int MinimumNumberOfPoints,
     int MaximumNumberOfPoints);
 
+public sealed record WorkerBSplineFitOptionsValue(
+    bool UseInterpolationFit,
+    bool OpenCurve,
+    int SortMethod,
+    int TerminateMethod,
+    int Degree,
+    double TerminateLength,
+    double TerminateAverageMultiplier,
+    int NumberOfControlPoints,
+    bool UniqueCheck,
+    double UniqueThreshold,
+    double Extension,
+    bool UseGlobalTessellationOptions,
+    double MaximumChordalDeviation,
+    double MaximumTrimEdgeAngle);
+
 public sealed record WorkerColorizationOptionsValue(
     int ColorRangeMethod,
     int BaseHighColor,
@@ -96,3 +112,9 @@ public sealed record WorkerPointDeltaReportOptionsValue(
     bool SortPointNames,
     bool ShowToleranceFields,
     bool ColorizeInToleranceFields);
+
+public sealed record WorkerUdpTransmitSettingsValue(
+    bool Enabled,
+    bool Broadcast,
+    string IpAddress,
+    int Port);

@@ -53,6 +53,10 @@ internal sealed partial class SpatialAnalyzerSdkAdapter
                 sdk.SetExportVectorNameFormatArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
             SdkValueKind.GeometryType when EnumValue<SdkGeometryTypeValue>(argument) is { } value =>
                 sdk.SetGeometryTypeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
+            SdkValueKind.GdtDistanceBetweenMode when EnumValue<SdkGdtDistanceBetweenModeValue>(argument) is { } value =>
+                sdk.SetMPGDTOptionsDistanceBetweenModeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
+            SdkValueKind.GdtEvaluationMethod when EnumValue<SdkGdtEvaluationMethodValue>(argument) is { } value =>
+                sdk.SetMPGDTOptionsCheckValidatorTypeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
             SdkValueKind.InstrumentType when EnumValue<SdkInstrumentTypeValue>(argument) is { } value =>
                 sdk.SetInstTypeNameArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
             SdkValueKind.ObjectType when EnumValue<SdkObjectTypeValue>(argument) is { } value =>
@@ -103,6 +107,10 @@ internal sealed partial class SpatialAnalyzerSdkAdapter
                 sdk.SetSphereFitComputationModeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
             SdkValueKind.WindowState when EnumValue<SdkWindowStateValue>(argument) is { } value =>
                 sdk.SetWindowStateArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
+            SdkValueKind.SystemString when EnumValue<SdkSystemStringValue>(argument) is { } value =>
+                sdk.SetSystemStringArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
+            SdkValueKind.UdpTransmitSettings when argument.UdpTransmitSettingsValue is { } value =>
+                sdk.SetUdpTransmitSettingsArg(argument.Name, value.Enabled, value.Broadcast, value.IpAddress, value.Port),
             SdkValueKind.AutoFilterProximitySettings when argument.AutoFilterProximitySettingsValue is { } value =>
                 SetAutoFilterProximitySettings(sdk, argument.Name, value),
             SdkValueKind.CloudThinningOptions when argument.CloudThinningOptionsValue is { } value =>
@@ -112,6 +120,23 @@ internal sealed partial class SpatialAnalyzerSdkAdapter
                     value.PointIncrement,
                     value.MinimumNumberOfPoints,
                     value.MaximumNumberOfPoints),
+            SdkValueKind.BSplineFitOptions when argument.BSplineFitOptionsValue is { } value =>
+                sdk.SetBSplineFitOptionsArg(
+                    argument.Name,
+                    value.UseInterpolationFit,
+                    value.OpenCurve,
+                    value.SortMethod,
+                    value.TerminateMethod,
+                    value.Degree,
+                    value.TerminateLength,
+                    value.TerminateAverageMultiplier,
+                    value.NumberOfControlPoints,
+                    value.UniqueCheck,
+                    value.UniqueThreshold,
+                    value.Extension,
+                    value.UseGlobalTessellationOptions,
+                    value.MaximumChordalDeviation,
+                    value.MaximumTrimEdgeAngle),
             SdkValueKind.ColorizationOptions when argument.ColorizationOptionsValue is { } value =>
                 SetColorizationOptions(sdk, argument.Name, value),
             SdkValueKind.FitConstraintScalarOptions when argument.FitConstraintScalarOptionsValue is { } value =>
@@ -199,6 +224,7 @@ internal sealed partial class SpatialAnalyzerSdkAdapter
         SdkValueKind.BaseColorType => "SetBaseColorTypeArg",
         SdkValueKind.BaseMidColorType => "SetBaseMidColorTypeArg",
         SdkValueKind.ChartType => "SetChartTypeArg",
+        SdkValueKind.BSplineFitOptions => "SetBSplineFitOptionsArg",
         SdkValueKind.CloudThinningOptions => "SetCloudThinningOptionsArg",
         SdkValueKind.CollimationBaselineType => "SetCollimationBaselineTypeArg",
         SdkValueKind.CollimationType => "SetCollimationTypeArg",
@@ -218,6 +244,8 @@ internal sealed partial class SpatialAnalyzerSdkAdapter
         SdkValueKind.FitConstraintScalarOptions => "SetFitConstraintScalarOptionsArg",
         SdkValueKind.FitDegreeOfFreedomOptions => "SetFitDofOptionsArg",
         SdkValueKind.GeometryType => "SetGeometryTypeArg",
+        SdkValueKind.GdtDistanceBetweenMode => "SetMPGDTOptionsDistanceBetweenModeArg",
+        SdkValueKind.GdtEvaluationMethod => "SetMPGDTOptionsCheckValidatorTypeArg",
         SdkValueKind.InstrumentType => "SetInstTypeNameArg",
         SdkValueKind.ObjectType => "SetObjectTypeArg",
         SdkValueKind.OffsetDirectionType => "SetOffsetDirectionTypeArg",
@@ -248,6 +276,8 @@ internal sealed partial class SpatialAnalyzerSdkAdapter
         SdkValueKind.SlotType => "SetSlotTypeArg",
         SdkValueKind.SphereFitComputationMode => "SetSphereFitComputationModeArg",
         SdkValueKind.WindowState => "SetWindowStateArg",
+        SdkValueKind.SystemString => "SetSystemStringArg",
+        SdkValueKind.UdpTransmitSettings => "SetUdpTransmitSettingsArg",
         SdkValueKind.ProjectionOptions => "SetProjectionOptionsArg",
         SdkValueKind.PointDeltaReportOptions => "SetPointDeltaReportOptionsArg",
         _ => throw new UnreachableException()

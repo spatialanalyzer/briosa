@@ -6,7 +6,7 @@ using Api = global::Briosa;
 
 namespace Briosa.Server.Operations.RelationshipOperations;
 
-internal sealed class RelationshipOperationsService(OperationExecutor executor)
+internal sealed partial class RelationshipOperationsService(OperationExecutor executor)
     : Api.RelationshipOperations.RelationshipOperationsBase
 {
     [OperationImplementation("relationship_operations.enable_disable_relationships_for_optimization")]

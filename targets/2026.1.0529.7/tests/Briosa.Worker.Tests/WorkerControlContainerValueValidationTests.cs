@@ -37,7 +37,7 @@ public sealed class WorkerControlContainerValueValidationTests
                     new("Font", WorkerMpValueKind.Font,
                         FontValue: new("Segoe UI", 12, new(1, 2, 3)))
                 ],
-                []));
+                [new("Array Result", WorkerMpValueKind.DoubleArray, ArraySize: 6)]));
 
         sender.Send(message);
         stream.Position = 0;
@@ -45,6 +45,7 @@ public sealed class WorkerControlContainerValueValidationTests
 
         var roundTrip = receiver.Receive();
         var inputs = roundTrip.Command!.InputArguments;
+        var output = Assert.Single(roundTrip.Command.OutputArguments);
 
         Assert.Equal(10, inputs.Count);
         Assert.Equal([1d, 2d], inputs[0].DoubleArrayValue!.Values);
@@ -58,6 +59,7 @@ public sealed class WorkerControlContainerValueValidationTests
             WorkerAngularUnitValue.DegreesMinutesSeconds,
             inputs[6].AngularUnitValue);
         Assert.Equal("Segoe UI", inputs[9].FontValue!.FontName);
+        Assert.Equal(6, output.ArraySize);
         Assert.DoesNotContain(
             inputs.SelectMany(input => input.GetType().GetProperties()),
             property => property.PropertyType == typeof(object));
@@ -81,6 +83,20 @@ public sealed class WorkerControlContainerValueValidationTests
             "Units",
             WorkerMpValueKind.DistanceUnit,
             DistanceUnitValue: WorkerDistanceUnitValue.Unspecified));
+
+        AssertRejected(message);
+    }
+
+    [Fact]
+    public void ArraySizeOnANonArrayOutputIsRejectedBeforeTransport()
+    {
+        var message = WorkerControlMessage.Execute(
+            Guid.NewGuid(),
+            new WorkerMpCommand(
+                "invalid",
+                "Invalid",
+                [],
+                [new("Value", WorkerMpValueKind.FloatingPoint, ArraySize: 3)]));
 
         AssertRejected(message);
     }

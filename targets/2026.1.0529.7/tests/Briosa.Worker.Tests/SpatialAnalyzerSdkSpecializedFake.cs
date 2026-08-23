@@ -26,6 +26,8 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         public bool SetExportTargetNameFormatArg(string name, string value) => RecordStringSetter(nameof(SetExportTargetNameFormatArg), name, value);
         public bool SetExportVectorNameFormatArg(string name, string value) => RecordStringSetter(nameof(SetExportVectorNameFormatArg), name, value);
         public bool SetGeometryTypeArg(string name, string value) => RecordStringSetter(nameof(SetGeometryTypeArg), name, value);
+        public bool SetMPGDTOptionsDistanceBetweenModeArg(string name, string value) => RecordStringSetter(nameof(SetMPGDTOptionsDistanceBetweenModeArg), name, value);
+        public bool SetMPGDTOptionsCheckValidatorTypeArg(string name, string value) => RecordStringSetter(nameof(SetMPGDTOptionsCheckValidatorTypeArg), name, value);
         public bool SetInstTypeNameArg(string name, string value) => RecordStringSetter(nameof(SetInstTypeNameArg), name, value);
         public bool SetObjectTypeArg(string name, string value) => RecordStringSetter(nameof(SetObjectTypeArg), name, value);
         public bool SetOffsetDirectionTypeArg(string name, string value) => RecordStringSetter(nameof(SetOffsetDirectionTypeArg), name, value);
@@ -51,12 +53,18 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         public bool SetSlotTypeArg(string name, string value) => RecordStringSetter(nameof(SetSlotTypeArg), name, value);
         public bool SetSphereFitComputationModeArg(string name, string value) => RecordStringSetter(nameof(SetSphereFitComputationModeArg), name, value);
         public bool SetWindowStateArg(string name, string value) => RecordStringSetter(nameof(SetWindowStateArg), name, value);
+        public bool SetSystemStringArg(string name, string value) => RecordStringSetter(nameof(SetSystemStringArg), name, value);
+        public bool SetUdpTransmitSettingsArg(string name, bool enabled, bool broadcast, string ipAddress, int port) =>
+            RecordSpecialized(nameof(SetUdpTransmitSettingsArg), name, enabled, broadcast, ipAddress, port);
 
         public bool SetAutoFilterProximitySettingsArg(string name, double sip, double eep, double pip, double pep, double rip, double gt, int spm, int ppm, int rpm, bool pp, bool apb) =>
             RecordSpecialized(nameof(SetAutoFilterProximitySettingsArg), name, sip, eep, pip, pep, rip, gt, spm, ppm, rpm, pp, apb);
 
         public bool SetCloudThinningOptionsArg(string name, string mode, int increment, int minimum, int maximum) =>
             RecordSpecialized(nameof(SetCloudThinningOptionsArg), name, mode, increment, minimum, maximum);
+
+        public bool SetBSplineFitOptionsArg(string name, bool fit, bool open, int sort, int terminate, int degree, double terminateLength, double terminateAverageMultiplier, int controlPoints, bool uniqueCheck, double uniqueThreshold, double extension, bool globalTessellation, double chordalDeviation, double trimEdgeAngle) =>
+            RecordSpecialized(nameof(SetBSplineFitOptionsArg), name, fit, open, sort, terminate, degree, terminateLength, terminateAverageMultiplier, controlPoints, uniqueCheck, uniqueThreshold, extension, globalTessellation, chordalDeviation, trimEdgeAngle);
 
         public bool SetColorizationOptionsArg(string name, string range, string high, string mid, string low, bool tubes, bool arrows, bool values, double magnification, int width, bool blotches, double blotchSize, bool outOfToleranceOnly, bool colorBar, bool percentages, bool fractions, double highSaturation, double lowSaturation, double highTolerance, double lowTolerance) =>
             RecordSpecialized(nameof(SetColorizationOptionsArg), name, range, high, mid, low, tubes, arrows, values, magnification, width, blotches, blotchSize, outOfToleranceOnly, colorBar, percentages, fractions, highSaturation, lowSaturation, highTolerance, lowTolerance);

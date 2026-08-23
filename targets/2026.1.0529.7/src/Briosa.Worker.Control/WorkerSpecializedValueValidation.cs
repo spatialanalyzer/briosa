@@ -27,6 +27,8 @@ internal static class WorkerSpecializedValueValidation
             WorkerMpValueKind.ExportTargetNameFormat => IsEnum(argument, 4),
             WorkerMpValueKind.ExportVectorNameFormat => IsEnum(argument, 4),
             WorkerMpValueKind.GeometryType => IsEnum(argument, 10),
+            WorkerMpValueKind.GdtDistanceBetweenMode => IsEnum(argument, 2),
+            WorkerMpValueKind.GdtEvaluationMethod => IsEnum(argument, 7),
             WorkerMpValueKind.InstrumentType => IsEnum(argument, 190),
             WorkerMpValueKind.ObjectType => IsEnum(argument, 26),
             WorkerMpValueKind.OffsetDirectionType => IsEnum(argument, 3),
@@ -52,8 +54,11 @@ internal static class WorkerSpecializedValueValidation
             WorkerMpValueKind.SlotType => IsEnum(argument, 2),
             WorkerMpValueKind.SphereFitComputationMode => IsEnum(argument, 3),
             WorkerMpValueKind.WindowState => IsEnum(argument, 5),
+            WorkerMpValueKind.SystemString => IsEnum(argument, 14),
             WorkerMpValueKind.AutoFilterProximitySettings =>
                 IsValid(argument.AutoFilterProximitySettingsValue),
+            WorkerMpValueKind.BSplineFitOptions =>
+                IsValid(argument.BSplineFitOptionsValue),
             WorkerMpValueKind.CloudThinningOptions =>
                 IsValid(argument.CloudThinningOptionsValue),
             WorkerMpValueKind.ColorizationOptions =>
@@ -73,6 +78,8 @@ internal static class WorkerSpecializedValueValidation
                 IsValid(argument.ProjectionOptionsValue),
             WorkerMpValueKind.PointDeltaReportOptions =>
                 IsValid(argument.PointDeltaReportOptionsValue),
+            WorkerMpValueKind.UdpTransmitSettings =>
+                argument.UdpTransmitSettingsValue is { IpAddress: not null, Port: >= 0 and <= 65535 },
             _ => false
         };
 
@@ -98,6 +105,10 @@ internal static class WorkerSpecializedValueValidation
 
     private static bool IsValid(WorkerCloudThinningOptionsValue? value) =>
         value is not null && IsEnumValue(value.Mode, 3);
+
+    private static bool IsValid(WorkerBSplineFitOptionsValue? value) =>
+        value is not null && IsEnumValue(value.SortMethod, 3) &&
+        IsEnumValue(value.TerminateMethod, 2);
 
     private static bool IsValid(WorkerColorizationOptionsValue? value) =>
         value is not null &&

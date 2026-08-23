@@ -320,6 +320,47 @@ internal enum SdkObjectTypeValue
     VectorGroup
 }
 
+internal enum SdkSystemStringValue
+{
+    SaVersion,
+    XitFilename,
+    MpFilename,
+    MpFilenameFullPath,
+    DateAndTime,
+    Date,
+    DateShort,
+    Time,
+    KeySerialNumber,
+    CompanyName,
+    UserName,
+    LicenseUserName,
+    WindowsUserName,
+    ComputerName
+}
+
+internal enum SdkGdtDistanceBetweenModeValue
+{
+    Centroid,
+    MinMax
+}
+
+internal enum SdkGdtEvaluationMethodValue
+{
+    None,
+    Asme1994,
+    Asme2009,
+    Asme2018,
+    Iso1983,
+    Iso2004,
+    Iso2017
+}
+
+internal sealed record SdkUdpTransmitSettingsValue(
+    bool Enabled,
+    bool Broadcast,
+    string IpAddress,
+    int Port);
+
 internal enum SdkItemTypeValue
 {
     Any,
@@ -413,6 +454,22 @@ internal sealed record SdkCloudThinningOptionsValue(
     int PointIncrement,
     int MinimumNumberOfPoints,
     int MaximumNumberOfPoints);
+
+internal sealed record SdkBSplineFitOptionsValue(
+    bool UseInterpolationFit,
+    bool OpenCurve,
+    int SortMethod,
+    int TerminateMethod,
+    int Degree,
+    double TerminateLength,
+    double TerminateAverageMultiplier,
+    int NumberOfControlPoints,
+    bool UniqueCheck,
+    double UniqueThreshold,
+    double Extension,
+    bool UseGlobalTessellationOptions,
+    double MaximumChordalDeviation,
+    double MaximumTrimEdgeAngle);
 
 internal sealed record SdkColorizationOptionsValue(
     SdkColorRangeMethodValue ColorRangeMethod,

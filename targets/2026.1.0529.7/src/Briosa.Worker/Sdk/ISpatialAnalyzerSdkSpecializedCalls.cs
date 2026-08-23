@@ -22,6 +22,8 @@ internal partial interface ISpatialAnalyzerSdkCalls
     bool SetExportTargetNameFormatArg(string name, string value);
     bool SetExportVectorNameFormatArg(string name, string value);
     bool SetGeometryTypeArg(string name, string value);
+    bool SetMPGDTOptionsDistanceBetweenModeArg(string name, string value);
+    bool SetMPGDTOptionsCheckValidatorTypeArg(string name, string value);
     bool SetInstTypeNameArg(string name, string value);
     bool SetObjectTypeArg(string name, string value);
     bool SetOffsetDirectionTypeArg(string name, string value);
@@ -47,6 +49,8 @@ internal partial interface ISpatialAnalyzerSdkCalls
     bool SetSlotTypeArg(string name, string value);
     bool SetSphereFitComputationModeArg(string name, string value);
     bool SetWindowStateArg(string name, string value);
+    bool SetSystemStringArg(string name, string value);
+    bool SetUdpTransmitSettingsArg(string name, bool enabled, bool broadcast, string ipAddress, int port);
 
     bool SetAutoFilterProximitySettingsArg(
         string name,
@@ -68,6 +72,23 @@ internal partial interface ISpatialAnalyzerSdkCalls
         int pointIncrement,
         int minimumNumberOfPoints,
         int maximumNumberOfPoints);
+
+    bool SetBSplineFitOptionsArg(
+        string name,
+        bool useInterpolationFit,
+        bool openCurve,
+        int sortMethod,
+        int terminateMethod,
+        int degree,
+        double terminateLength,
+        double terminateAverageMultiplier,
+        int numberOfControlPoints,
+        bool uniqueCheck,
+        double uniqueThreshold,
+        double extension,
+        bool useGlobalTessellationOptions,
+        double maximumChordalDeviation,
+        double maximumTrimEdgeAngle);
 
     bool SetColorizationOptionsArg(
         string name,

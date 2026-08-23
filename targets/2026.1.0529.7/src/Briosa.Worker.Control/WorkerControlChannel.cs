@@ -228,6 +228,8 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
             command.OutputArguments.Any(argument =>
                 string.IsNullOrWhiteSpace(argument.Name) ||
                 !Enum.IsDefined(argument.Kind) ||
+                argument.ArraySize is < 0 or > 1_000_000 ||
+                argument.ArraySize.HasValue && argument.Kind != WorkerMpValueKind.DoubleArray ||
                 argument.ObjectTypeWhenOmitted is { } objectType &&
                 (argument.Kind != WorkerMpValueKind.CollectionObjectName ||
                  objectType == WorkerObjectTypeValue.Unspecified ||
@@ -257,6 +259,7 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
                 IsValid(argument.TemperatureUnitValue, WorkerTemperatureUnitValue.Unspecified),
             WorkerMpValueKind.Font => IsValid(argument.FontValue),
             WorkerMpValueKind.Text or
+            WorkerMpValueKind.InstrumentTypeName or
             WorkerMpValueKind.ChartName or
             WorkerMpValueKind.CloudName or
             WorkerMpValueKind.CollectionName or
@@ -306,6 +309,7 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
             WorkerMpValueKind.WorldTransform => IsValid(output.WorldTransformValue),
             WorkerMpValueKind.FileReference => IsValid(output.FileReferenceValue),
             WorkerMpValueKind.Text or
+            WorkerMpValueKind.InstrumentTypeName or
             WorkerMpValueKind.ChartName or
             WorkerMpValueKind.CloudName or
             WorkerMpValueKind.CollectionName or

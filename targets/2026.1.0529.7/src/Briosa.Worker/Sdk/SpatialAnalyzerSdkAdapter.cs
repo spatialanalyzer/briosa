@@ -141,6 +141,8 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
                 sdk.SetDoubleArg(argument.Name, value),
             SdkValueKind.Text when argument.StringValue is { } value =>
                 sdk.SetStringArg(argument.Name, value),
+            SdkValueKind.InstrumentTypeName when argument.StringValue is { } value =>
+                sdk.SetInstTypeNameArg(argument.Name, value),
             SdkValueKind.DoubleArray when argument.DoubleArrayValue is { } value =>
                 SetDoubleArray(sdk, argument.Name, value),
             SdkValueKind.EditText when argument.StringListValue is { } value =>
@@ -513,8 +515,10 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
         ISpatialAnalyzerSdkCalls sdk,
         SdkOutputArgument argument)
     {
-        var size = 0;
-        var sdkValue = SdkContainerValueCodec.EmptyArrayBuffer();
+        var size = argument.ArraySize ?? 0;
+        var sdkValue = argument.ArraySize.HasValue
+            ? SdkContainerValueCodec.DoubleArrayBuffer(size)
+            : SdkContainerValueCodec.EmptyArrayBuffer();
         SdkDoubleArrayValue? value = null;
         var retrieved = sdk.GetDoubleArrayArg(argument.Name, ref size, ref sdkValue) &&
             SdkContainerValueCodec.TryParseDoubleArray(sdkValue, size, out value);
@@ -898,6 +902,7 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
             SdkValueKind.WholeNumber => "SetIntegerArg",
             SdkValueKind.FloatingPoint => "SetDoubleArg",
             SdkValueKind.Text => "SetStringArg",
+            SdkValueKind.InstrumentTypeName => "SetInstTypeNameArg",
             SdkValueKind.DoubleArray => "SetDoubleArrayArg",
             SdkValueKind.EditText => "SetEditTextArg",
             SdkValueKind.Transform => "SetTransformArg",

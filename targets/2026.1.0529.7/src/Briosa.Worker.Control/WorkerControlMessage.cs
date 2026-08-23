@@ -4,7 +4,7 @@ namespace Briosa.Worker.Control;
 
 public static class WorkerControlProtocol
 {
-    public const int CurrentVersion = 14;
+    public const int CurrentVersion = 16;
 
     public const int MaximumMessageBytes = 64 * 1024;
 }
@@ -49,6 +49,7 @@ public enum WorkerMpValueKind
     BaseColorType,
     BaseMidColorType,
     ChartType,
+    BSplineFitOptions,
     CloudThinningOptions,
     CollimationBaselineType,
     CollimationType,
@@ -68,7 +69,10 @@ public enum WorkerMpValueKind
     FitConstraintScalarOptions,
     FitDegreeOfFreedomOptions,
     GeometryType,
+    GdtDistanceBetweenMode,
+    GdtEvaluationMethod,
     InstrumentType,
+    InstrumentTypeName,
     ObjectType,
     OffsetDirectionType,
     PointFilterInputType,
@@ -96,8 +100,10 @@ public enum WorkerMpValueKind
     SlotType,
     SphereFitComputationMode,
     WindowState,
+    SystemString,
     ProjectionOptions,
     PointDeltaReportOptions,
+    UdpTransmitSettings,
     PointName,
     Vector,
     ToleranceVectorOptions,
@@ -402,6 +408,7 @@ public sealed record WorkerMpInputArgument(
     WorkerFontValue? FontValue = null,
     WorkerSpecializedEnumValue? SpecializedEnumValue = null,
     WorkerAutoFilterProximitySettingsValue? AutoFilterProximitySettingsValue = null,
+    WorkerBSplineFitOptionsValue? BSplineFitOptionsValue = null,
     WorkerCloudThinningOptionsValue? CloudThinningOptionsValue = null,
     WorkerColorizationOptionsValue? ColorizationOptionsValue = null,
     WorkerFitConstraintScalarOptionsValue? FitConstraintScalarOptionsValue = null,
@@ -411,12 +418,14 @@ public sealed record WorkerMpInputArgument(
     WorkerToleranceScalarOptionsValue? ToleranceScalarOptionsValue = null,
     WorkerProjectionOptionsValue? ProjectionOptionsValue = null,
     WorkerPointDeltaReportOptionsValue? PointDeltaReportOptionsValue = null,
+    WorkerUdpTransmitSettingsValue? UdpTransmitSettingsValue = null,
     string? SdkBinding = null);
 public sealed record WorkerMpOutputArgument(
     string Name,
     WorkerMpValueKind Kind,
     string? SdkBinding = null,
-    WorkerObjectTypeValue? ObjectTypeWhenOmitted = null);
+    WorkerObjectTypeValue? ObjectTypeWhenOmitted = null,
+    int? ArraySize = null);
 
 public sealed record WorkerMpOutputValue(
     string Name,

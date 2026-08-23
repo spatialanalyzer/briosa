@@ -14,7 +14,7 @@ internal static class SpatialAnalyzerApi
 
     public static IReadOnlyList<OperationDescriptor> Operations { get; } =
         [
-            .. WaveAOperationCatalog.Operations.Select(operation => operation.Descriptor),
+            .. MpOperationCatalog.Operations.Select(operation => operation.Descriptor),
             GetActiveCollectionNameOperation.Descriptor,
         ];
 }
