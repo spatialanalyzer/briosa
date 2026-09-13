@@ -1,110 +1,117 @@
-# Mirrorable release catalog — preview contract
+# Mirrorable release catalog and publisher signatures
 
-- Date: 2026-09-08
-- Status: Implementation candidate for read-only discovery and package previews.
-- Scope: Shared release metadata owned by `briosa`; not authorization to install.
+- Date: 2026-09-12
+- Status: Implemented by the Briosa Installer local review build.
+- Scope: Shared metadata/signature contract; production hosting and key custody remain release work.
 - Related: [exact-target products](exact-target-product-model.md),
   [distribution](validation-and-distribution.md), and
-  [Community Discussion #8](https://github.com/orgs/spatialanalyzer/discussions/8).
+  [Discussion #8](https://github.com/orgs/spatialanalyzer/discussions/8).
 
 ## Purpose and ownership
 
-Expose ordinary immutable release artifacts through a small JSON catalog that
-can be copied unchanged to Artifactory or an offline directory. The installer
-selects the catalog location; it must not scrape GitHub releases, infer supported
-products from installed SA versions, or embed public artifact URLs in mirrored
-metadata. The schema lives in [schemas/releases/v1](../../schemas/releases/v1/catalog.schema.json).
+Expose immutable artifacts through a small JSON catalog that can be mirrored
+unchanged to Artifactory or an offline directory. The installer selects its source;
+it does not scrape GitHub, infer support from installed SA versions, or embed public
+artifact URLs in mirrored metadata. The shared schema lives in
+[schemas/releases/v1](../../schemas/releases/v1/catalog.schema.json).
 
-Existing server distributions retain their target-qualified ZIP, adjacent
-checksum, and schema-2 provenance manifest. This catalog adds discovery metadata;
-it does not change package contents, protobuf names, runtime identity checks,
-SDK compatibility, or client runtime selection.
+Existing servers retain their target-qualified ZIP, checksum, and schema-2 provenance.
+This adds discovery and publisher verification without changing protobuf names,
+runtime identity gates, SDK compatibility, or client runtime selection. Installer
+UI/administration instructions belong in `briosa-installer`.
 
-## Fields and interpretation
+## Metadata
 
 The root contains `schemaVersion: 1` and `packages`. Each package has an opaque
-`id`, `component` (`server` or `installer`), semantic `version`,
-`runtimeIdentifier`, and `artifact`. A server additionally requires the exact
-`spatialAnalyzerTarget` and `provenance`; installer entries must not carry an SA
-target. Installer and server versions remain independent.
+`id`, `component` (server or installer), semantic `version`, `runtimeIdentifier`,
+and `artifact`. Servers require an exact `spatialAnalyzerTarget` and `provenance`.
+Installers must not carry an SA target; their versions remain independent.
 
-An artifact or provenance reference contains a relative `path`, byte `size`,
-and lowercase `sha256`. Server provenance points to the existing external
-`.provenance.json`. An installer provenance reference is optional until its
-packaging contract exists. File extensions on installer entries do not select
-an executable installer technology or authorize launching a file.
+Artifact/provenance references contain relative `path`, integer byte `size`, and
+lowercase `sha256`. Installer provenance is optional in the catalog schema; current
+packaging emits it. See [the installed-store contract](installed-package-store.md)
+for installer ZIP contents and package discovery.
 
-These are catalog declarations, not observations of downloaded packages or local
-SA installations. Do not infer SDK compatibility or MP readiness from membership.
-An empty catalog, or no entries for a selected component, is valid. Do not
-automatically select the greatest version, fall back to another component's
-catalog, or prune an older product from a machine.
-
-## Structural and location validation
+Membership declares availability, not SDK compatibility or MP readiness. Empty
+catalogs/components are valid. Do not automatically select the greatest version,
+fall back to a different source, or prune older products.
 
 Reject unknown/duplicate JSON properties, unsupported schemas, malformed fields,
-duplicate IDs, and duplicate `(component, version, SA target, runtime identifier)`
-coordinates. IDs compare case-insensitively to avoid Windows ambiguity. Versions
-and exact SA release strings compare exactly, without normalization. An artifact
-path reused anywhere in a catalog must declare the same size and digest.
-Integer fields use integer JSON tokens, without fractional or exponent notation.
-JSON Schema alone does not express this reader constraint or duplicate-property
-and cross-entry consistency checks.
+duplicate IDs, and duplicate component/version/target/RID coordinates. IDs compare
+case-insensitively for Windows; version and SA release strings compare exactly.
+A reused artifact path must declare identical size/digest. Integer fields require
+integer tokens without fraction/exponent notation. JSON Schema does not express
+all these reader checks.
 
-The preview caps catalogs at 1 MiB and 1,000 entries. In addition to the JSON
-schema, every reference path must have nonempty segments no longer than 128
-characters, no trailing dot, and no reserved Windows device basename (`CON`,
-`PRN`, `AUX`, `NUL`, `COM1`–`COM9`, `LPT1`–`LPT9`). Allowed ASCII characters and
-relative syntax exclude absolute URLs, drive/share roots, backslashes, percent
-encoding, query strings, fragments, and `.`/`..` traversal segments.
+Catalogs are bounded to 1 MiB and 1,000 entries. Paths have nonempty segments at most
+128 characters, no trailing dot or Windows device basename (CON, PRN, AUX, NUL,
+COM1–COM9, LPT1–LPT9), and only the schema's ASCII characters. Absolute URLs,
+drive/share roots, backslashes, percent encoding, query strings, fragments, and
+dot traversal are rejected. Resolve references beneath the catalog's directory.
 
-Resolve references against the catalog's containing directory. This keeps
-server and installer metadata and their payload references inside the selected
-mirror layout. Catalog GET redirects are rejected in the initial reader; point
-configuration at the final permitted catalog URL. No redirect or failed read
-triggers public fallback. Each explicit refresh uses its selected source and
-has no cross-source cache. Authentication-required responses are reported;
-automatic HTTP credentials, cookies, and an authentication plugin are not
-introduced by this preview.
+All source requests reject redirects, cookies, and public fallback. Authentication
+is explicitly configured per source in the installer; secrets never enter catalog
+metadata. An updater override owns its metadata and every payload request.
+Payload access repeats path checks and rejects filesystem reparse points.
 
-Future payload acquisition must validate locations again and handle filesystem
-junctions, redirects, and authorization at the point of access. Lexical path
-validation in a preview is not proof of the eventual destination of a file read.
+## Publisher verification
 
-## Integrity and trust boundary
+Hash the exact received catalog bytes. Artifact hashes remain declarations until
+verified acquisition. HTTPS alone does not establish an approved publisher.
+Without an approved public key, browsing is permitted, verification is reported
+as not performed, and installation is disabled.
 
-The reader hashes the received catalog bytes so a preview can identify its exact
-metadata snapshot. Artifact hashes and sizes are *declared* until payloads are
-downloaded and checked. Neither a self-declared hash nor successful HTTPS access
-establishes approved publisher identity. The reader reports publisher verification
-as not performed, and this increment has no install, extract, launch, or update
-application action.
+The detached signature is `<catalog-filename>.signature.json`. Its fields are
+`schemaVersion: 1`, `algorithm: "RSA-PSS-SHA256"`, lowercase `catalogSha256`,
+integer Unix-second `issuedAt`/`expiresAt`, and Base64 `signature`. See the
+[signature schema](../../schemas/releases/v1/catalog-signature.schema.json).
+An approved distribution, fingerprint-confirmed import, or enterprise configuration
+provides the SPKI PEM RSA public key separately. Keys are 3072–8192 bits. Fingerprints
+are lowercase SHA-256 of SPKI DER bytes.
 
-Signing keys, trusted publishers, approval policy, revocation/offline behavior,
-catalog freshness/rollback rules, and payload/provenance verification must be
-settled before actionable installation plans. This unsigned preview schema does
-not silently decide a production trust policy.
+Sign with RSA-PSS/SHA-256 over these exact UTF-8 bytes, with LF endings and final LF:
 
-## Producing a server catalog
+```text
+Briosa release catalog signature v1
+<lowercase SHA-256 of exact catalog bytes>
+<issuedAt as invariant decimal integer>
+<expiresAt as invariant decimal integer>
+```
 
-From the repository root, after existing package verification has produced its
-artifacts, run:
+Bound the signature envelope to 16 KiB. Reject duplicate/unknown fields, differing
+digest/algorithm, invalid signatures, issue times over five minutes ahead of the
+local clock, expired catalogs, and validity intervals exceeding 90 days.
+Each package store records the greatest accepted issuedAt per exact source/publisher
+and rejects older catalogs for acquisition. Repair needs the original publisher
+and artifact in a current signed catalog. Deliberately selecting an older package
+listed in a current catalog remains valid.
+
+Local clock/history controls are not a global revocation service or transparency
+log. Installed packages can be verified and selected offline; current administrator
+publisher restrictions still apply to managed installer selection/launch. Clearing
+a source key prevents future acquisition, not arbitrary execution of existing files.
+Production key custody, rotation, hosting, and initial executable code signing
+require release provisioning. No test identity becomes a production trust root.
+
+## Produce, sign, and mirror
 
 ```powershell
 ./eng/New-ReleaseCatalog.ps1 -ArtifactDirectory ./artifacts/release -OutputPath ./artifacts/release/catalog.json
+./eng/Sign-ReleaseCatalog.ps1 -CatalogPath ./artifacts/release/catalog.json -PrivateKeyPath <protected-key-file> -ValidDays 7
 ```
 
-The producer reads only matching target-qualified server provenance files and
-ZIPs, verifies the adjacent ZIP checksum, and calculates reference sizes/hashes.
-Protocol and client-conformance assets are not server packages. Put the output
-catalog beside or above its artifacts so all references remain relative children.
-Moving that complete directory tree preserves the catalog bytes.
+The producer accepts matching server and installer provenance/ZIPs, verifies adjacent
+checksums, and calculates sizes/digests. Protocol and client-conformance assets are
+excluded. Put the catalog beside/above artifacts so all references are children.
+The signer prints only a public fingerprint; protect and never commit its private key.
+Neither script fetches assets, inspects SA, or publishes a GitHub release.
 
-The script does not fetch assets, inspect SA, produce a signature, or modify a
-GitHub release. Integrating it into public release publication and maintaining
-the public catalog remain subsequent work. Test it with
-`./eng/Test-ReleaseCatalog.ps1`, which uses invented ZIP/manifest fixtures only.
-To exercise the matching installer consumer too, pass
-`-ConsumerCliAssembly <path-to-Briosa.Installer.Cli.dll>` from a built installer
-checkout. This reads a generated offline mirror catalog without acquiring its
-payloads and checks the reader's unverified metadata status.
+Mirror exact catalog/signature/artifact bytes together, refreshing before expiry.
+Publish payloads before metadata/signature. A partially updated pair fails closed;
+retry after mirror synchronization. Changing the catalog requires a new signature.
+
+`./eng/Test-ReleaseCatalog.ps1` uses invented fixtures to validate production,
+determinism, relocation, signature verification, and failure preservation.
+Optionally pass `-ConsumerCliAssembly <built-Briosa.Installer.Cli.dll>` to verify
+both unsigned and signed interpretation by the installer. Full packaged acquisition
+is exercised by `briosa-installer/eng/Test-InstallerPackage.ps1`.

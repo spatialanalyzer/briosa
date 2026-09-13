@@ -36,18 +36,21 @@ function Get-Reference([string]$Path) {
 
 $packages = [Collections.Generic.Dictionary[string, object]]::new([StringComparer]::OrdinalIgnoreCase)
 $provenanceFiles = @(Get-ChildItem -LiteralPath $artifactRoot -Recurse -File -Filter '*.provenance.json' |
-    Where-Object Name -Match '^briosa-[0-9].*-sa-.*-win-.*\.provenance\.json$')
+    Where-Object Name -Match '^briosa-([0-9].*-sa-.*|installer-[0-9].*)-win-.*\.provenance\.json$')
 if ($provenanceFiles.Count -eq 0) { throw 'No target-qualified server provenance files were found.' }
 foreach ($file in $provenanceFiles) {
     if ($file.Length -gt 1MB) { throw 'Server provenance exceeds the 1 MiB metadata limit.' }
     $manifest = Get-Content -LiteralPath $file.FullName -Raw | ConvertFrom-Json
-    if ($manifest.schemaVersion -ne 2 -or $manifest.briosaVersion -isnot [string] -or
+    $isInstaller = $file.Name.StartsWith('briosa-installer-', [StringComparison]::Ordinal)
+    if (($isInstaller -and ($manifest.schemaVersion -ne 1 -or $manifest.component -cne 'installer')) -or
+        (-not $isInstaller -and $manifest.schemaVersion -ne 2) -or $manifest.briosaVersion -isnot [string] -or
         $manifest.briosaVersion.Length -gt 128 -or $manifest.briosaVersion -cnotmatch $schema.'$defs'.version.pattern -or
-        $manifest.spatialAnalyzerTarget -cnotmatch $schema.'$defs'.package.properties.spatialAnalyzerTarget.pattern -or
+        (-not $isInstaller -and $manifest.spatialAnalyzerTarget -cnotmatch $schema.'$defs'.package.properties.spatialAnalyzerTarget.pattern) -or
         $manifest.runtimeIdentifier -cnotmatch $schema.'$defs'.package.properties.runtimeIdentifier.pattern) {
         throw 'Server provenance does not match the supported product metadata contract.'
     }
-    $artifactName = "briosa-$($manifest.briosaVersion)-sa-$($manifest.spatialAnalyzerTarget)-$($manifest.runtimeIdentifier)"
+    $artifactName = if ($isInstaller) { "briosa-installer-$($manifest.briosaVersion)-$($manifest.runtimeIdentifier)" }
+        else { "briosa-$($manifest.briosaVersion)-sa-$($manifest.spatialAnalyzerTarget)-$($manifest.runtimeIdentifier)" }
     if ($manifest.artifactName -cne $artifactName -or $file.Name -cne "$artifactName.provenance.json") {
         throw 'Server provenance identity and artifact filename disagree.'
     }
@@ -61,13 +64,13 @@ foreach ($file in $provenanceFiles) {
     }
     $entry = [ordered]@{
         id = $artifactName
-        component = 'server'
+        component = $(if ($isInstaller) { 'installer' } else { 'server' })
         version = $manifest.briosaVersion
         runtimeIdentifier = $manifest.runtimeIdentifier
-        spatialAnalyzerTarget = $manifest.spatialAnalyzerTarget
         artifact = $reference
         provenance = (Get-Reference $file.FullName)
     }
+    if (-not $isInstaller) { $entry.spatialAnalyzerTarget = $manifest.spatialAnalyzerTarget }
     if (-not $packages.TryAdd($artifactName, $entry)) { throw 'Duplicate product identity in release inputs.' }
 }
 [string[]]$ids = @($packages.Keys)
@@ -85,4 +88,4 @@ try {
 finally {
     if (Test-Path -LiteralPath $temporaryPath) { Remove-Item -LiteralPath $temporaryPath }
 }
-Write-Output "Created unsigned preview catalog with $($packages.Count) server packages."
+Write-Output "Created catalog with $($packages.Count) packages. Sign it before installation use."

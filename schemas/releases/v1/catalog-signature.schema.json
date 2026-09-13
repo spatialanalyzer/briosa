@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Briosa release catalog signature v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "algorithm", "catalogSha256", "issuedAt", "expiresAt", "signature"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "algorithm": { "const": "RSA-PSS-SHA256" },
+    "catalogSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "issuedAt": { "type": "integer", "minimum": 0 },
+    "expiresAt": { "type": "integer", "minimum": 1 },
+    "signature": { "type": "string", "minLength": 512, "maxLength": 1368, "pattern": "^[A-Za-z0-9+/]+={0,2}$" }
+  }
+}
