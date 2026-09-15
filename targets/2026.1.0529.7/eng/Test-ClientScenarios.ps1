@@ -128,7 +128,10 @@ function Start-ScenarioServer {
     try {
         $processArguments = @{
             FilePath = $ServerExecutable
-            ArgumentList = @("--Briosa:Endpoint:Port=$Port")
+            # This harness force-stops its API hosts. A tray monitor would outlive
+            # them and retain redirected log handles. Desktop lifecycle coverage
+            # runs separately in Test-WindowsPackage.ps1.
+            ArgumentList = @("--Briosa:Endpoint:Port=$Port", "--Briosa:Desktop:Mode=Disabled")
             WorkingDirectory = $WorkingDirectory
             WindowStyle = "Hidden"
             RedirectStandardOutput = $StandardOutput
