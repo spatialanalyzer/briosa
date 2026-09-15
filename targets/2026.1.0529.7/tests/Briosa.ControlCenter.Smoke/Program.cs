@@ -94,19 +94,21 @@ internal static class Program
         window.Arrange(new Rect(0, 0, width, height));
         window.UpdateLayout();
         window.Dispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
-        var peers = new Queue<AutomationPeer>();
-        peers.Enqueue(UIElementAutomationPeer.CreatePeerForElement(window));
-        var controls = new List<string>();
-        while (peers.TryDequeue(out var peer))
-        {
-            controls.Add(peer.GetName());
-            foreach (var child in peer.GetChildren() ?? []) peers.Enqueue(child);
-        }
         var selected = ((ListBox)window.FindName("Navigation")).SelectedIndex;
-        // ScrollViewer omits controls below the viewport from its automation tree.
-        // Verify an on-screen control on each page, including on CI's larger system text metrics.
-        var expected = selected switch { 0 => "Start server", 1 => "Search activity", 2 => "Distribution and runtime details", _ => "Connected SA version" };
-        if (!controls.Contains(expected)) throw new InvalidOperationException("Page controls are missing from the window automation tree: " + expected);
+        // This render harness deliberately places its window outside the desktop.
+        // ScrollViewer's automation child projection depends on screen visibility and
+        // peer caches, so check each selected page's visible control and label directly.
+        var (name, expected) = selected switch
+        {
+            0 => ("StartButton", "Start server"),
+            1 => ("SearchBox", "Search activity"),
+            2 => ("VersionText", "Distribution and runtime details"),
+            _ => ("ApplicationVersionBox", "Connected SA version")
+        };
+        var control = (FrameworkElement)window.FindName(name);
+        var peer = UIElementAutomationPeer.CreatePeerForElement(control);
+        if (!control.IsVisible || control.ActualWidth <= 0 || control.ActualHeight <= 0 || peer.GetName() != expected)
+            throw new InvalidOperationException("The selected page control is hidden, unarranged, or missing its automation label: " + expected);
         var visual = (Visual)window.Content;
         var bitmap = new RenderTargetBitmap((int)(width * scale), (int)(height * scale), 96 * scale, 96 * scale, PixelFormats.Pbgra32);
         var canvas = new DrawingVisual();
