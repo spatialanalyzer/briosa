@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "packages": [
+    {
+      "id": "briosa-0.4.0-sa-2026.1.0529.7-win-x64",
+      "component": "server",
+      "version": "0.4.0",
+      "runtimeIdentifier": "win-x64",
+      "artifact": {
+        "path": "packages/server/2026.1.0529.7/0.4.0/briosa-0.4.0-sa-2026.1.0529.7-win-x64.zip",
+        "size": 53669792,
+        "sha256": "059d7de820d16a22d6c09f59bd96300e11c4aacc9525d51b8ec9f1cefc994862"
+      },
+      "provenance": {
+        "path": "packages/server/2026.1.0529.7/0.4.0/briosa-0.4.0-sa-2026.1.0529.7-win-x64.provenance.json",
+        "size": 519,
+        "sha256": "f2ba2199caba9ec7d4687a19fffe1502c93bcaf16dc9f1da816fab1abd062bd4"
+      },
+      "spatialAnalyzerTarget": "2026.1.0529.7"
+    }
+  ]
+}

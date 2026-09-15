@@ -1,0 +1,74 @@
+name: Publish and maintain R2 downloads
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Publish reviewed release assets, renew unchanged metadata, or check public metadata
+        required: true
+        type: choice
+        options: [publish, renew, check]
+        default: check
+  schedule:
+    - cron: '17 6 * * 1'
+    - cron: '47 6 * * *'
+concurrency:
+  group: briosa-r2-publication
+  cancel-in-progress: false
+permissions:
+  contents: read
+jobs:
+  check:
+    if: github.ref == 'refs/heads/main' && (inputs.mode == 'check' || github.event.schedule == '47 6 * * *')
+    runs-on: windows-2025
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Verify public catalog and expiry without credentials
+        shell: pwsh
+        run: ./eng/Publish-R2.ps1 -Mode check
+  publish:
+    if: github.ref == 'refs/heads/main' && (inputs.mode == 'publish' || inputs.mode == 'renew' || github.event.schedule == '17 6 * * 1')
+    runs-on: windows-2025
+    timeout-minutes: 30
+    environment: release-signing
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Install pinned R2 client
+        shell: pwsh
+        run: python -m pip install --disable-pip-version-check -r eng/publishing/requirements.txt
+      - uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906 # v3
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Publish verified release files or renew the unchanged catalog
+        shell: pwsh
+        env:
+          REQUESTED_MODE: ${{ inputs.mode || 'renew' }}
+          GH_TOKEN: ${{ github.token }}
+          R2_ACCOUNT_ID: ${{ vars.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AZURE_CATALOG_KEY_ID: ${{ vars.AZURE_CATALOG_KEY_ID }}
+        run: ./eng/Publish-R2.ps1 -Mode $env:REQUESTED_MODE
+      - name: Retain metadata snapshots for recovery
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: r2-publication-metadata
+          if-no-files-found: ignore
+          path: |
+            artifacts/r2-publication/state.json
+            artifacts/r2-publication/prior/*
+            artifacts/r2-publication/public/catalog.json
+            artifacts/r2-publication/public/catalog.json.signature.json
+            artifacts/r2-publication/public/index.html
