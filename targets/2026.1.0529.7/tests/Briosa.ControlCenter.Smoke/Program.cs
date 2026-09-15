@@ -55,14 +55,14 @@ internal static class Program
         window.Render(state.Unavailable());
         if (stop.IsEnabled) throw new InvalidOperationException("Stale status enabled management.");
         Save(window, Path.Combine(output, "stale-150-percent.png"), 800, 680, 1.5);
-        ((TabControl)window.FindName("Tabs")).SelectedIndex = 1;
+        ((ListBox)window.FindName("Navigation")).SelectedIndex = 1;
         ((DataGrid)window.FindName("ActivityGrid")).ItemsSource = new[]
         {
             new ActivityEntry(DateTimeOffset.Now, "Error", "Execution", "Command execution observation recorded.", "", "GetWorkingFrameProperties", "ExecutionDisposition: StartedOutcomeUnknown"),
             new ActivityEntry(DateTimeOffset.Now.AddMinutes(-2), "Information", "Server", "Server started.", "", "", "")
         };
         Save(window, Path.Combine(output, "activity.png"), 1000, 760, 1);
-        ((TabControl)window.FindName("Tabs")).SelectedIndex = 2;
+        ((ListBox)window.FindName("Navigation")).SelectedIndex = 2;
         Save(window, Path.Combine(output, "support.png"), 1000, 760, 1);
         BrandTheme.Apply(app, dark: false, highContrast: true);
         if (app.Resources["BriosaWorkspaceBrush"] is not SolidColorBrush contrast || contrast.Color != SystemColors.WindowColor)
@@ -92,6 +92,17 @@ internal static class Program
         window.Arrange(new Rect(0, 0, width, height));
         window.UpdateLayout();
         window.Dispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+        var peers = new Queue<AutomationPeer>();
+        peers.Enqueue(UIElementAutomationPeer.CreatePeerForElement(window));
+        var controls = new List<string>();
+        while (peers.TryDequeue(out var peer))
+        {
+            controls.Add(peer.GetName());
+            foreach (var child in peer.GetChildren() ?? []) peers.Enqueue(child);
+        }
+        var selected = ((ListBox)window.FindName("Navigation")).SelectedIndex;
+        var expected = selected switch { 0 => "Start server", 1 => "Search activity", _ => "App theme" };
+        if (!controls.Contains(expected)) throw new InvalidOperationException("Page controls are missing from the window automation tree: " + expected);
         var visual = (Visual)window.Content;
         var bitmap = new RenderTargetBitmap((int)(width * scale), (int)(height * scale), 96 * scale, 96 * scale, PixelFormats.Pbgra32);
         var canvas = new DrawingVisual();

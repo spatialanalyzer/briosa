@@ -109,8 +109,16 @@ public partial class MainWindow : Window
         finally { _busy = false; if (!_exiting) Render(_session.State); }
     }
 
-    public void ShowOverview() { Tabs.SelectedIndex = 0; ShowWindow(); }
-    public void ShowActivity() { Tabs.SelectedIndex = 1; ShowWindow(); }
+    private void NavigationChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!_initialized) return;
+        OverviewPage.Visibility = Navigation.SelectedIndex == 0 ? Visibility.Visible : Visibility.Collapsed;
+        ActivityPage.Visibility = Navigation.SelectedIndex == 1 ? Visibility.Visible : Visibility.Collapsed;
+        DetailsPage.Visibility = Navigation.SelectedIndex == 2 ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    public void ShowOverview() { Navigation.SelectedIndex = 0; ShowWindow(); }
+    public void ShowActivity() { Navigation.SelectedIndex = 1; ShowWindow(); }
     public void ShowWindow() { Show(); WindowState = System.Windows.WindowState.Normal; Activate(); }
     public Task StartServerAsync() => RunAsync(_session.StartAsync);
     public Task StopServerAsync() => Confirm("Stop this Briosa server? Connected clients will lose access. In-flight commands may have an unknown outcome. SpatialAnalyzer will remain open.")

@@ -13,7 +13,7 @@
           <TextBlock Text="Control Center" Margin="12,6,0,0" />
         </StackPanel>
         <StackPanel DockPanel.Dock="Bottom" Margin="12,20,0,0"><TextBlock Text="Briosa server" FontSize="12" /><TextBlock Text="SA 2026.1.0529.7" FontSize="11" Margin="0,4,0,0" /></StackPanel>
-        <ListBox x:Name="Navigation" SelectedIndex="{Binding SelectedIndex, ElementName=Tabs, Mode=TwoWay}" ItemContainerStyle="{StaticResource NavigationItem}" Background="Transparent" BorderThickness="0" VerticalAlignment="Top" AutomationProperties.Name="Control Center navigation">
+        <ListBox x:Name="Navigation" SelectedIndex="0" SelectionChanged="NavigationChanged" ItemContainerStyle="{StaticResource NavigationItem}" Background="Transparent" BorderThickness="0" VerticalAlignment="Top" AutomationProperties.Name="Control Center navigation">
           <ListBox.Resources>
             <SolidColorBrush x:Key="ListBoxItemSelectedBackgroundThemeBrush" Color="{DynamicResource BriosaNavigationSelectedColor}" />
             <SolidColorBrush x:Key="ListBoxItemSelectedBackgroundPointerOverThemeBrush" Color="{DynamicResource BriosaNavigationSelectedHoverColor}" />
@@ -44,10 +44,9 @@
         <TextBlock x:Name="IncidentText" Margin="0,7,0,0" FontWeight="SemiBold" />
       </StackPanel>
     </Border>
-    <TabControl x:Name="Tabs" Grid.Row="2" SelectedIndex="0" BorderThickness="0" Background="Transparent">
-      <TabControl.Resources><Style TargetType="TextBlock"><Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" /><Setter Property="TextWrapping" Value="Wrap" /></Style></TabControl.Resources>
-      <TabControl.Template><ControlTemplate TargetType="TabControl"><ContentPresenter ContentSource="SelectedContent" /></ControlTemplate></TabControl.Template>
-      <TabItem Header="_Overview">
+    <Grid Grid.Row="2">
+      <Grid.Resources><Style TargetType="TextBlock"><Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" /><Setter Property="TextWrapping" Value="Wrap" /></Style></Grid.Resources>
+      <Grid x:Name="OverviewPage">
         <ScrollViewer VerticalScrollBarVisibility="Auto">
           <StackPanel Margin="0,8,0,0">
             <TextBlock x:Name="OwnershipText" Margin="0,0,0,14" />
@@ -75,11 +74,10 @@
                 <TextBlock x:Name="IdentityText" />
               </StackPanel></Border>
             </Grid>
-            <TextBlock x:Name="ActionText" Margin="0,8,0,0" FontWeight="SemiBold" AutomationProperties.LiveSetting="Polite" />
           </StackPanel>
         </ScrollViewer>
-      </TabItem>
-      <TabItem Header="_Activity">
+      </Grid>
+      <Grid x:Name="ActivityPage" Visibility="Collapsed">
         <Grid Margin="0,8,0,0">
           <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
           <DockPanel Margin="0,0,0,12">
@@ -102,8 +100,8 @@
           </DataGrid>
           <DockPanel Grid.Row="2" Margin="0,12,0,0"><Button Content="Jump to latest" Click="LatestClicked" /><TextBlock x:Name="ActivityStatus" VerticalAlignment="Center" /></DockPanel>
         </Grid>
-      </TabItem>
-      <TabItem Header="_Details &amp; support">
+      </Grid>
+      <Grid x:Name="DetailsPage" Visibility="Collapsed">
         <ScrollViewer VerticalScrollBarVisibility="Auto"><Border Style="{StaticResource Card}"><StackPanel>
           <TextBlock Text="This distribution" Style="{StaticResource SectionTitle}" />
           <TextBox x:Name="VersionText" IsReadOnly="True" TextWrapping="Wrap" BorderThickness="0" Background="Transparent" Margin="0,0,0,20" AutomationProperties.Name="Distribution and runtime details" />
@@ -117,11 +115,14 @@
           <CheckBox x:Name="NotificationsBox" Content="Notify me when attention is required" Checked="NotificationsChanged" Unchecked="NotificationsChanged" />
           <TextBlock Text="Closing this window hides it to the tray. Exit tray application leaves a running server available. Updates and removal are managed through the Briosa installer." Margin="0,20,0,0" />
         </StackPanel></Border></ScrollViewer>
-      </TabItem>
-    </TabControl>
+      </Grid>
+    </Grid>
     <DockPanel Grid.Row="3" Margin="0,16,0,0">
       <Button Content="Exit tray application" Click="ExitClicked" DockPanel.Dock="Right" Margin="12,0,0,0" />
-      <TextBlock x:Name="ObservedText" VerticalAlignment="Center" Text="No server observation yet." />
+      <StackPanel VerticalAlignment="Center">
+        <TextBlock x:Name="ObservedText" Text="No server observation yet." />
+        <TextBlock x:Name="ActionText" Margin="0,4,0,0" FontWeight="SemiBold" AutomationProperties.LiveSetting="Polite" />
+      </StackPanel>
     </DockPanel>
     </Grid>
   </Grid>
