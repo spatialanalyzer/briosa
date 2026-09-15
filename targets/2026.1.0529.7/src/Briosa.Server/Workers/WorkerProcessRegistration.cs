@@ -48,7 +48,8 @@ internal static class WorkerProcessRegistration
                 policy,
                 executionPolicy,
                 logger: provider.GetRequiredService<ILogger<WorkerProcessSupervisor>>(),
-                identityPolicy: provider.GetRequiredService<ExactTargetIdentityPolicy>());
+                identityPolicy: provider.GetRequiredService<ExactTargetIdentityPolicy>(),
+                telemetry: provider.GetService<BriosaTelemetry>());
         });
         services.TryAddSingleton<OperationAuditLogger>();
         services.TryAddSingleton(_ => OperationPolicy.Create(

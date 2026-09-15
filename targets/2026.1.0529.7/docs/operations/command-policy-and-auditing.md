@@ -13,6 +13,11 @@ An allowlist cannot create an operation that is absent from handwritten source. 
 
 ## Audit events
 
+See [server observability](server-observability.md) for persistent log location,
+startup configuration, event levels, metrics, and optional tracing. These records
+are operational evidence with bounded best-effort delivery. Caller completion
+and eventual worker execution resolution are separate correlated events.
+
 For each admitted or rejected request, Briosa records structural metadata:
 
 - correlation ID;

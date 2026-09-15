@@ -1,8 +1,10 @@
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Threading.Channels;
 using Briosa.Server.Operations;
+using Briosa.Server.Services;
 using Briosa.Worker.Control;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -20,6 +22,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
     private readonly Queue<DateTimeOffset> _restartTimes = new();
     private readonly TimeProvider _timeProvider;
     private readonly ILogger<WorkerProcessSupervisor> _logger;
+    private readonly BriosaTelemetry? _telemetry;
     [SuppressMessage(
         "Reliability",
         "CA2213:Disposable fields should be disposed",
@@ -58,7 +61,8 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         WorkerExecutionPolicy? executionPolicy = null,
         TimeProvider? timeProvider = null,
         ILogger<WorkerProcessSupervisor>? logger = null,
-        ExactTargetIdentityPolicy? identityPolicy = null)
+        ExactTargetIdentityPolicy? identityPolicy = null,
+        BriosaTelemetry? telemetry = null)
     {
         ArgumentNullException.ThrowIfNull(processFactory);
         ArgumentNullException.ThrowIfNull(policy);
@@ -71,6 +75,8 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
             SpatialAnalyzerApi.TargetVersion);
         _timeProvider = timeProvider ?? TimeProvider.System;
         _logger = logger ?? NullLogger<WorkerProcessSupervisor>.Instance;
+        _telemetry = telemetry;
+        telemetry?.Attach(this);
         _current = new WorkerLifecycleSnapshot(
             WorkerLifecycleState.Stopped,
             Generation: 0,
@@ -366,7 +372,10 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                 effectiveCorrelationId);
         }
 
-        var item = new ExecutionWorkItem(command, effectiveCorrelationId);
+        var item = new ExecutionWorkItem(command, effectiveCorrelationId, Current.Generation,
+            Activity.Current?.Context ?? default);
+        var admissionStarted = _timeProvider.GetTimestamp();
+        using var admissionActivity = BriosaTelemetry.Start("briosa.admission", command.OperationId);
         try
         {
             using var admissionCancellation =
@@ -390,6 +399,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                     effectiveCorrelationId);
             }
 
+            item.AdmissionMilliseconds = _timeProvider.GetElapsedTime(admissionStarted).TotalMilliseconds;
             MarkAdmitted(item);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -403,6 +413,12 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         {
             return Unavailable("worker-execution-queue-closed", effectiveCorrelationId);
         }
+        finally
+        {
+            item.AdmissionMilliseconds = _timeProvider.GetElapsedTime(admissionStarted).TotalMilliseconds;
+            _telemetry?.Admission(command.OperationId, item.AdmissionMilliseconds);
+            admissionActivity?.Stop();
+        }
         try
         {
             return await item.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
@@ -412,7 +428,8 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
             Interlocked.Increment(ref _clientCancellationAfterAdmissionCount);
             return ClientCancelled(
                 effectiveCorrelationId,
-                WorkerExecutionDisposition.StartedOutcomeUnknown);
+                WorkerExecutionDisposition.StartedOutcomeUnknown) with
+            { Generation = item.Generation };
         }
     }
 
@@ -501,8 +518,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                 try
                 {
                     outcome = await ExecuteWorker(
-                        item.Command,
-                        item.CorrelationId,
+                        item,
                         cancellationToken).ConfigureAwait(false);
                 }
                 finally
@@ -532,6 +548,8 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
 
     private void MarkAdmitted(ExecutionWorkItem item)
     {
+        item.AdmittedAt = _timeProvider.GetTimestamp();
+        item.AdmittedUtc = _timeProvider.GetUtcNow();
         Interlocked.Increment(ref _admittedRequestCount);
         var queueDepth = Interlocked.Increment(ref _queuedRequestCount);
         var observedPeak = Volatile.Read(ref _peakQueuedRequestCount);
@@ -564,6 +582,27 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
             Interlocked.Increment(ref _workerFailureCount);
         }
 
+        // The queue owns this event even after the RPC caller has stopped waiting.
+        // Restore only correlation context, never request objects or ambient scopes.
+        using var resolution = BriosaTelemetry.Start("briosa.execution.resolved",
+            item.Command.OperationId, item.ParentContext);
+        _telemetry?.Resolved(item.Command.OperationId, outcome);
+        var summary = OperationAuditSummary.Create(outcome);
+        var level = outcome.Status is WorkerExecutionStatus.WorkerFailure or WorkerExecutionStatus.WatchdogTimeout
+            ? LogLevel.Error
+            : summary.MpOutcome == "succeeded" && summary.OutputRetrievalOutcome == "retrieved"
+                ? LogLevel.Information : LogLevel.Warning;
+        if (_logger.IsEnabled(level))
+        {
+            var replaySafety = BriosaTelemetry.ReplaySafety(item.Command.OperationId);
+            LogExecutionResolved(level, item.CorrelationId, item.Command.OperationId,
+            outcome.Generation == 0 ? item.Generation : outcome.Generation, summary.ExecutionDisposition,
+            outcome.Execution?.MpResultRetrieved, summary.MpResultCode, summary.MpOutcome,
+            summary.OutputRetrievalOutcome, summary.SdkDurationMilliseconds,
+            item.AdmissionMilliseconds, item.QueueMilliseconds, item.ExchangeMilliseconds,
+            replaySafety,
+                outcome.DiagnosticCode);
+        }
         item.TrySetResult(outcome);
     }
 
@@ -589,16 +628,27 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
     }
 
     private async Task<WorkerExecutionOutcome> ExecuteWorker(
-        WorkerMpCommand command,
-        Guid correlationId,
+        ExecutionWorkItem item,
         CancellationToken cancellationToken)
     {
+        var command = item.Command;
+        var correlationId = item.CorrelationId;
         var acquired = false;
         var requestMayHaveStarted = false;
+        long? exchangeStarted = null;
+        Activity? exchange = null;
         try
         {
             await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
             acquired = true;
+            item.QueueMilliseconds = _timeProvider.GetElapsedTime(item.AdmittedAt).TotalMilliseconds;
+            _telemetry?.Queue(command.OperationId, item.QueueMilliseconds);
+            using (var queueActivity = BriosaTelemetry.Activities.StartActivity(
+                "briosa.queue", ActivityKind.Internal, item.ParentContext,
+                startTime: item.AdmittedUtc))
+            {
+                queueActivity?.SetTag("briosa.operation", BriosaTelemetry.OperationId(command.OperationId));
+            }
             var generation = Current.Generation;
             var worker = _worker;
             if (Current.State != WorkerLifecycleState.Ready || worker is null ||
@@ -618,6 +668,9 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                 _executionPolicy.WatchdogTimeout);
             try
             {
+                exchangeStarted = _timeProvider.GetTimestamp();
+                exchange = BriosaTelemetry.Start("briosa.worker.exchange", command.OperationId, item.ParentContext);
+                LogExecutionDispatched(correlationId, command.OperationId, generation);
                 requestMayHaveStarted = true;
                 await worker.SendAsync(
                     WorkerControlMessage.Execute(correlationId, command),
@@ -707,6 +760,12 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         }
         finally
         {
+            if (exchangeStarted is { } started)
+            {
+                item.ExchangeMilliseconds = _timeProvider.GetElapsedTime(started).TotalMilliseconds;
+                _telemetry?.Exchange(command.OperationId, item.ExchangeMilliseconds);
+            }
+            exchange?.Dispose();
             if (acquired)
             {
                 _gate.Release();
@@ -1234,6 +1293,9 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
             }
         }
         LogWorkerTransition(
+            snapshot.State == WorkerLifecycleState.Degraded ? LogLevel.Error :
+                snapshot.Connection?.State == WorkerConnectionState.Connected &&
+                snapshot.RuntimeIdentity?.AllowsExecution == false ? LogLevel.Warning : LogLevel.Information,
             snapshot.State,
             snapshot.Generation,
             snapshot.RestartCount,
@@ -1249,9 +1311,9 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
     }
     [LoggerMessage(
         EventId = 1201,
-        Level = LogLevel.Information,
         Message = "Worker transitioned to {WorkerState} at generation {Generation} with restart count {RestartCount}, termination {Termination}, diagnostic {DiagnosticCode}, connection state {ConnectionState}, execution readiness {ExecutionReadinessState}, ConnectEx status {StatusCode}, activated SDK identity {ActivatedSdkIdentitySource}/{ActivatedSdkIdentityMatchState}, and connected SA identity {ConnectedSaIdentitySource}/{ConnectedSaIdentityMatchState}.")]
     private partial void LogWorkerTransition(
+        LogLevel level,
         WorkerLifecycleState workerState,
         int generation,
         int restartCount,
@@ -1314,7 +1376,20 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
             : execution.MpResultRetrieved
                 ? WorkerExecutionDisposition.Completed
                 : WorkerExecutionDisposition.StartedOutcomeUnknown;
-    private sealed class ExecutionWorkItem(WorkerMpCommand command, Guid correlationId)
+    [LoggerMessage(EventId = 1300, Level = LogLevel.Information,
+        Message = "Dispatch {CorrelationId} operation {OperationId} on generation {Generation}.")]
+    private partial void LogExecutionDispatched(Guid correlationId, string operationId, int generation);
+
+    [LoggerMessage(EventId = 1301,
+        Message = "Execution resolved {CorrelationId} operation {OperationId} generation {Generation}: disposition {ExecutionDisposition}, MP retrieved {MpResultRetrieved}, code {MpResultCode}, outcome {MpOutcome}, outputs {OutputRetrievalOutcome}, SDK {SdkDurationMilliseconds} ms, admission {AdmissionMilliseconds} ms, queue {QueueMilliseconds} ms, exchange {ExchangeMilliseconds} ms, replay {ReplaySafety}, diagnostic {DiagnosticCode}.")]
+    private partial void LogExecutionResolved(LogLevel level, Guid correlationId, string operationId,
+        int generation, string executionDisposition, bool? mpResultRetrieved, int? mpResultCode,
+        string mpOutcome, string outputRetrievalOutcome, long? sdkDurationMilliseconds,
+        double admissionMilliseconds, double queueMilliseconds, double exchangeMilliseconds,
+        global::Briosa.ReplaySafety replaySafety, string diagnosticCode);
+
+    private sealed class ExecutionWorkItem(WorkerMpCommand command, Guid correlationId,
+        int generation, ActivityContext parentContext)
     {
         private readonly TaskCompletionSource _admitted =
             new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -1327,6 +1402,13 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
             [.. command.InputArguments],
             [.. command.OutputArguments]);
         public Guid CorrelationId { get; } = correlationId;
+        public int Generation { get; } = generation;
+        public ActivityContext ParentContext { get; } = parentContext;
+        public long AdmittedAt { get; set; }
+        public DateTimeOffset AdmittedUtc { get; set; }
+        public double AdmissionMilliseconds { get; set; }
+        public double QueueMilliseconds { get; set; }
+        public double ExchangeMilliseconds { get; set; }
 
 
         public Task<WorkerExecutionOutcome> Task => _completion.Task;

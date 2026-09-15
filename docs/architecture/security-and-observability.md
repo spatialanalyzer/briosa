@@ -66,6 +66,14 @@ debug logs, traces, status messages, discovery, and error metadata exclude:
 Operators own log sink access, collection, and retention. Retention should be no
 longer than operational or compliance requirements demand.
 
+The current exact-target host provides bounded asynchronous JSONL files and a
+nonblocking console sink, plus cached-state metrics and optional host-side OTLP
+tracing. The supervisor records eventual execution resolution independently of
+caller completion. File delivery is best effort; it is not a durable audit ledger.
+Provider failure never changes execution disposition or replay guidance. See the
+[server observability guide](../../targets/2026.1.0529.7/docs/operations/server-observability.md)
+for defaults, retention, metadata boundaries, and opt-in export.
+
 ## Protected licensed validation
 
 Real-SA validation executes repository-produced code on a Windows machine with a

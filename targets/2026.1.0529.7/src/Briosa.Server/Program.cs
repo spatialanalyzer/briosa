@@ -11,7 +11,20 @@ if (args is ["diagnostics"] or ["--diagnostics"])
     return;
 }
 var builder = WebApplication.CreateBuilder(args);
-builder.Logging.AddBriosaLogging();
+try
+{
+    builder.Logging.AddBriosaLogging(builder.Configuration);
+    builder.Services.AddSingleton(BriosaTelemetryOptions.Bind(builder.Configuration));
+}
+catch (InvalidOperationException)
+{
+    Console.Error.WriteLine("Invalid Briosa observability configuration.");
+    Environment.ExitCode = 2;
+    return;
+}
+builder.Services.AddSingleton<BriosaTelemetry>();
+builder.Services.AddSingleton<LifecycleAuditLogger>();
+builder.Services.AddHostedService<BriosaTelemetryExport>();
 var publicEndpoint = PublicEndpointConfiguration.Resolve(builder.Configuration);
 builder.WebHost.ConfigureKestrel(options =>
     options.Listen(

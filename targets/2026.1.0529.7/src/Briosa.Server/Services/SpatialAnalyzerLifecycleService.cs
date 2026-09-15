@@ -4,7 +4,7 @@ using Grpc.Core;
 namespace Briosa.Server.Services;
 
 internal sealed class SpatialAnalyzerLifecycleService(
-    SpatialAnalyzerLifecycleCoordinator coordinator)
+    SpatialAnalyzerLifecycleCoordinator coordinator, LifecycleAuditLogger? auditLogger = null)
     : global::Briosa.SpatialAnalyzerLifecycle.SpatialAnalyzerLifecycleBase
 {
     private const string ErrorMetadataKey =
@@ -40,7 +40,7 @@ internal sealed class SpatialAnalyzerLifecycleService(
                 context.CancellationToken),
             state => new global::Briosa.CloseOwnedSpatialAnalyzerResponse { State = state });
 
-    private static async Task<TResponse> Execute<TResponse>(
+    private async Task<TResponse> Execute<TResponse>(
         string rpc,
         Func<Task<global::Briosa.SpatialAnalyzerLifecycleState>> action,
         Func<global::Briosa.SpatialAnalyzerLifecycleState, TResponse> responseFactory)
@@ -51,6 +51,7 @@ internal sealed class SpatialAnalyzerLifecycleService(
         }
         catch (SpatialAnalyzerLifecycleException exception)
         {
+            auditLogger?.Rejected(rpc, exception.StatusCode, exception.Detail.DiagnosticCode);
             exception.Detail.Rpc = rpc;
             var metadata = new Metadata
             {

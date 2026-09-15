@@ -3,7 +3,7 @@ using Briosa.Server.Workers;
 
 namespace Briosa.Server.Services;
 
-internal sealed record OperationAuditSummary(
+internal readonly record struct OperationAuditSummary(
     string ExecutionDisposition,
     string MpOutcome,
     string OutputRetrievalOutcome,
@@ -100,7 +100,7 @@ internal sealed partial class OperationAuditLogger(ILogger<OperationAuditLogger>
         string actorCategory)
     {
         ArgumentNullException.ThrowIfNull(operation);
-        if (!_logger.IsEnabled(LogLevel.Information))
+        if (!_logger.IsEnabled(LogLevel.Debug))
         {
             return;
         }
@@ -125,7 +125,7 @@ internal sealed partial class OperationAuditLogger(ILogger<OperationAuditLogger>
             global::Briosa.OperationExecutionScope.Unspecified;
         if (decision.Kind == OperationPolicyDecisionKind.Allowed)
         {
-            if (!_logger.IsEnabled(LogLevel.Information))
+            if (!_logger.IsEnabled(LogLevel.Debug))
             {
                 return;
             }
@@ -211,7 +211,7 @@ internal sealed partial class OperationAuditLogger(ILogger<OperationAuditLogger>
     [LoggerMessage(
         EventId = 2001,
         SkipEnabledCheck = true,
-        Level = LogLevel.Information,
+        Level = LogLevel.Debug,
         Message = "Request {CorrelationId} received from {ActorCategory} for endpoint {Endpoint}, operation {OperationId}, effect {Effect}, execution scope {ExecutionScope}, risk flags {RiskFlags}.")]
     private partial void LogRequestStarted(
         Guid correlationId,
@@ -224,7 +224,7 @@ internal sealed partial class OperationAuditLogger(ILogger<OperationAuditLogger>
 
     [LoggerMessage(
         EventId = 2002,
-        Level = LogLevel.Information,
+        Level = LogLevel.Debug,
         SkipEnabledCheck = true,
         Message = "Request {CorrelationId} policy allowed operation {OperationId}, effect {Effect}, execution scope {ExecutionScope}, risk flags {RiskFlags}, diagnostic {DiagnosticCode}.")]
     private partial void LogPolicyAllowed(

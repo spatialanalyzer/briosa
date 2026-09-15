@@ -33,6 +33,30 @@ cross-language review that established this boundary.
 
 ## Contract layers
 
+### Server logging startup controls
+
+First-party StartOptions expose optional typed server logging overrides: global
+minimum level, category minimum levels, console/file enablement, absolute log
+directory, maximum file size in MiB, retained file count, maximum age in days,
+and total directory size in MiB. Omitted fields preserve server configuration;
+default client launches use the same logging defaults as a manual server launch.
+
+Levels are Trace, Debug, Information, Warning, Error, Critical, and None. Category
+keys contain 1–256 ASCII letters, digits, underscores or periods. The client
+validates bounds and path qualification before spawning; the server validates
+the effective configuration again. Bounds are 1–1024 MiB per file, 1–1000 files,
+1–365 days and at most 10240 MiB total, with total at least the maximum file size.
+These controls become standard Logging:LogLevel and Briosa:Logging startup
+configuration through an argument list, never a shell command. Clients do not
+parse records, select arbitrary providers, or change running-server logging.
+
+Higher verbosity never unlocks payloads, SDK exceptions, or sensitive values.
+The SpatialAnalyzer MP Set Logging State is independent of server logging.
+The [target guide](../../targets/2026.1.0529.7/docs/operations/server-observability.md)
+owns the server's defaults, metrics, and delivery semantics.
+
+### Behavioral layers
+
 Briosa client design has three distinct layers:
 
 1. The server and protocol own MP operations, inputs, outputs, presence, fixed

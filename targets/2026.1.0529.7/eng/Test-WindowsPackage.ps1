@@ -196,6 +196,9 @@ try {
 
     $standardOutput = Join-Path $temporaryRoot "server.stdout.log"
     $standardError = Join-Path $temporaryRoot "server.stderr.log"
+    $defaultLogDirectory = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'Briosa\logs\2026.1.0529.7'
+    $previousLogs = @(Get-ChildItem -LiteralPath $defaultLogDirectory -Filter 'briosa-*.jsonl' -ErrorAction SilentlyContinue |
+        Select-Object -ExpandProperty Name)
     $workerVariable = "Briosa__Worker__ExecutablePath"
     $previousWorkerPath = [Environment]::GetEnvironmentVariable($workerVariable)
     [Environment]::SetEnvironmentVariable(
@@ -244,6 +247,28 @@ try {
 
     $startupStopwatch.Stop()
     Assert-Condition -Condition $listening -Message "The packaged host did not open its configured loopback endpoint without SpatialAnalyzer."
+    # The file writer is asynchronous: an open listener does not imply that its
+    # startup record has reached disk. Verify the hidden host's default sink.
+    $loggedStartup = $false
+    $logDeadline = [DateTimeOffset]::UtcNow.AddSeconds(15)
+    while (-not $loggedStartup -and [DateTimeOffset]::UtcNow -lt $logDeadline) {
+        foreach ($file in Get-ChildItem -LiteralPath $defaultLogDirectory -Filter 'briosa-*.jsonl' -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -notin $previousLogs }) {
+            try {
+                foreach ($line in Get-Content -LiteralPath $file.FullName -ErrorAction Stop) {
+                    $record = $line | ConvertFrom-Json -ErrorAction Stop
+                    if ($record.MessageTemplate -eq 'ControlPlaneReady' -and
+                        $record.Properties.SchemaVersion -eq 1 -and
+                        $file.Name.Contains($record.Properties.ServerInstanceId)) {
+                        $loggedStartup = $true
+                    }
+                }
+            }
+            catch { } # A writer may still be completing its first JSONL record.
+        }
+        if (-not $loggedStartup) { Start-Sleep -Milliseconds 100 }
+    }
+    Assert-Condition -Condition $loggedStartup -Message "The hidden packaged host did not persist a structured startup record in its default per-user log directory."
     $serverProcess.Refresh()
 
     if (-not $serverProcess.HasExited) {

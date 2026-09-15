@@ -13,17 +13,20 @@ internal interface ISpatialAnalyzerLifecycleStateProvider
     "Reliability",
     "CA2213:Disposable fields should be disposed",
     Justification = "The SDK coordinator and process platform are separately owned singletons.")]
-internal sealed class SpatialAnalyzerLifecycleCoordinator(
+internal sealed partial class SpatialAnalyzerLifecycleCoordinator(
     SpatialAnalyzerApplicationOptions options,
     ISpatialAnalyzerProcessPlatform processPlatform,
     ISpatialAnalyzerSdkLifecycleStateProvider sdkStateProvider,
-    TimeProvider timeProvider) : ISpatialAnalyzerLifecycleStateProvider, IDisposable
+    TimeProvider timeProvider,
+    ILogger<SpatialAnalyzerLifecycleCoordinator>? logger = null) : ISpatialAnalyzerLifecycleStateProvider, IDisposable
 {
     private readonly SemaphoreSlim _gate = new(1, 1);
     private readonly SpatialAnalyzerApplicationOptions _options = options;
     private readonly ISpatialAnalyzerProcessPlatform _processPlatform = processPlatform;
     private readonly ISpatialAnalyzerSdkLifecycleStateProvider _sdkStateProvider = sdkStateProvider;
     private readonly TimeProvider _timeProvider = timeProvider;
+    private readonly ILogger<SpatialAnalyzerLifecycleCoordinator> _logger =
+        logger ?? Microsoft.Extensions.Logging.Abstractions.NullLogger<SpatialAnalyzerLifecycleCoordinator>.Instance;
     private ISpatialAnalyzerOwnedProcess? _ownedProcess;
     private SpatialAnalyzerProcessIdentity? _selectedIdentity;
     private global::Briosa.SpatialAnalyzerLifecycleState _current = new()
@@ -495,7 +498,16 @@ internal sealed class SpatialAnalyzerLifecycleCoordinator(
         }
 
         _current = state;
+        LogApplicationTransition(
+            applicationState == global::Briosa.SpatialAnalyzerApplicationState.Faulted ? LogLevel.Warning : LogLevel.Information,
+            applicationState, ownership, applicationGeneration, diagnosticCode);
     }
+
+    [LoggerMessage(EventId = 1400,
+        Message = "Application transitioned to {ApplicationState}, ownership {Ownership}, generation {Generation}, diagnostic {DiagnosticCode}.")]
+    private partial void LogApplicationTransition(LogLevel level,
+        global::Briosa.SpatialAnalyzerApplicationState applicationState,
+        global::Briosa.SpatialAnalyzerOwnership ownership, int? generation, string diagnosticCode);
 }
 
 [SuppressMessage(

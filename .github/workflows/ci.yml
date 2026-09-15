@@ -122,12 +122,18 @@ jobs:
         shell: pwsh
         run: ./eng/Test-RuntimePerformance.ps1 -NoBuild
 
+      - name: Measure bounded logging pipeline
+        shell: pwsh
+        run: ./eng/Test-ObservabilityPerformance.ps1 -NoBuild
+
       - name: Upload runtime evidence
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: runtime-performance-evidence-sa-${{ matrix.target.sa_version }}
-          path: ${{ matrix.target.path }}/artifacts/ci-metrics/runtime-performance
+          path: |
+            ${{ matrix.target.path }}/artifacts/ci-metrics/runtime-performance
+            ${{ matrix.target.path }}/artifacts/ci-metrics/observability
           if-no-files-found: warn
 
   package-smoke:

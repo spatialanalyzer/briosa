@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-09-15",
+  "environment": ".NET 10, Windows x64, Release build",
+  "notes": [
+    "One local diagnostic run; not a product latency guarantee or sustained disk-throughput test.",
+    "Console disabled in all modes. Allocations are process-wide. Queue depth is measured before drain; drops and failures include warmup and shutdown."
+  ],
+  "modes": [
+    {
+      "schema_version": 1,
+      "mode": "disabled",
+      "requests": 512,
+      "boundary": "OperationExecutor through fake named-pipe worker and configured logging provider; no SpatialAnalyzer",
+      "p50_ms": 0.1834,
+      "p95_ms": 0.2115,
+      "p99_ms": 0.2406,
+      "requests_per_second": 5400.997707740621,
+      "allocated_bytes": 3157760,
+      "retained_managed_bytes_delta": 608,
+      "queued_at_end": 0,
+      "dropped_records": 0,
+      "sink_failures": 0
+    },
+    {
+      "schema_version": 1,
+      "mode": "failed",
+      "requests": 512,
+      "boundary": "OperationExecutor through fake named-pipe worker and configured logging provider; no SpatialAnalyzer",
+      "p50_ms": 0.2252,
+      "p95_ms": 0.2801,
+      "p99_ms": 0.3374,
+      "requests_per_second": 4275.549119963391,
+      "allocated_bytes": 8205352,
+      "retained_managed_bytes_delta": -200,
+      "queued_at_end": 0,
+      "dropped_records": 0,
+      "sink_failures": 1732
+    },
+    {
+      "schema_version": 1,
+      "mode": "normal",
+      "requests": 512,
+      "boundary": "OperationExecutor through fake named-pipe worker and configured logging provider; no SpatialAnalyzer",
+      "p50_ms": 0.2115,
+      "p95_ms": 0.2593,
+      "p99_ms": 0.3174,
+      "requests_per_second": 4430.062124699327,
+      "allocated_bytes": 11107656,
+      "retained_managed_bytes_delta": 1555456,
+      "queued_at_end": 1325,
+      "dropped_records": 0,
+      "sink_failures": 0
+    },
+    {
+      "schema_version": 1,
+      "mode": "slow",
+      "requests": 512,
+      "boundary": "OperationExecutor through fake named-pipe worker and configured logging provider; no SpatialAnalyzer",
+      "p50_ms": 0.2139,
+      "p95_ms": 0.2633,
+      "p99_ms": 0.3106,
+      "requests_per_second": 4536.0112337153205,
+      "allocated_bytes": 4912224,
+      "retained_managed_bytes_delta": -504,
+      "queued_at_end": 28,
+      "dropped_records": 1703,
+      "sink_failures": 0
+    }
+  ]
+}
