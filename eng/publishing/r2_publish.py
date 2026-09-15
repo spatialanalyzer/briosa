@@ -169,7 +169,10 @@ class NoRedirect(HTTPRedirectHandler):
 
 
 def public_read(base, key, limit, fresh=False):
-    request = Request(base + key, headers={"Accept-Encoding": "identity"})
+    request = Request(base + key, headers={
+        "Accept-Encoding": "identity",
+        "User-Agent": "Briosa-Release-Publisher/1.0 (+https://github.com/spatialanalyzer/briosa)",
+    })
     with build_opener(NoRedirect).open(request, timeout=120) as response:
         if response.status != 200:
             raise ValueError("Public download did not return HTTP 200.")
