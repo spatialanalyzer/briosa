@@ -22,13 +22,7 @@ $checksums = Get-ChildItem -LiteralPath $root -File -Recurse | Where-Object Full
 [IO.File]::WriteAllText($checksumFile, ($checksums -join "`n") + "`n", [Text.UTF8Encoding]::new($false))
 Assert-ReleaseChecksums $root
 $zip = Join-Path $output "$name.zip"
-$archive = [IO.Compression.ZipFile]::Open($zip, [IO.Compression.ZipArchiveMode]::Create)
-try {
-    foreach ($file in Get-ChildItem -LiteralPath $root -File -Recurse | Sort-Object FullName) {
-        $entry = [IO.Compression.ZipFileExtensions]::CreateEntryFromFile($archive, $file.FullName, "$name/$([IO.Path]::GetRelativePath($root, $file.FullName).Replace('\', '/'))", [IO.Compression.CompressionLevel]::Optimal)
-        $entry.LastWriteTime = [DateTimeOffset]::new(1980, 1, 1, 0, 0, 0, [TimeSpan]::Zero)
-    }
-} finally { $archive.Dispose() }
+New-ReleaseArchive -PackageRoot $root -ArchivePath $zip
 $hash = (Get-FileHash -LiteralPath $zip).Hash.ToLowerInvariant()
 [IO.File]::WriteAllText("$zip.sha256", "$hash  $name.zip`n", [Text.UTF8Encoding]::new($false))
 Copy-Item -LiteralPath (Join-Path $root 'manifest.json') -Destination (Join-Path $output "$name.provenance.json")

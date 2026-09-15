@@ -53,9 +53,11 @@ try {
     $tree = Join-Path $root "source/$name"
     $null = [IO.Directory]::CreateDirectory($tree)
     foreach ($leaf in @('Briosa.Server.exe','Briosa.Worker.exe','ThirdParty.dll')) { [IO.File]::WriteAllText((Join-Path $tree $leaf), 'Inert signing test fixture.') }
+    $null = [IO.Directory]::CreateDirectory((Join-Path $tree 'support files'))
+    [IO.File]::WriteAllText((Join-Path $tree 'support files/readme.txt'), 'Nested archive fixture.')
     $manifest = @{schemaVersion=2;artifactName=$name;briosaVersion='0.0.0-signing-test';spatialAnalyzerTarget='2099.1.0101.1';runtimeIdentifier='win-x64'} | ConvertTo-Json
     [IO.File]::WriteAllText((Join-Path $tree 'manifest.json'), $manifest)
-    $lines = Get-ChildItem $tree -File | ForEach-Object { "$((Get-FileHash -LiteralPath $_.FullName).Hash)  $($_.Name)" }
+    $lines = Get-ChildItem $tree -File -Recurse | ForEach-Object { "$((Get-FileHash -LiteralPath $_.FullName).Hash)  $([IO.Path]::GetRelativePath($tree, $_.FullName).Replace('\', '/'))" }
     [IO.File]::WriteAllText((Join-Path $tree 'files.sha256'), ($lines -join "`n") + "`n")
     $zip = Join-Path $root "$name.zip"
     [IO.Compression.ZipFile]::CreateFromDirectory((Split-Path -Parent $tree), $zip)
@@ -66,6 +68,25 @@ try {
     $selected = @(Get-Content (Join-Path $staging 'authenticode-files.txt'))
     if ($selected.Count -ne 2 -or ($selected -match 'ThirdParty')) { throw 'Signing included third-party content or omitted entry points.' }
     Assert-Fails { & "$PSScriptRoot/Complete-SignedPackage.ps1" -PackageRoot (Join-Path $staging $name) -OutputDirectory (Join-Path $root 'signed') -ExpectedPublisher 'Fixture' } 'Unsigned product could be finalized.'
+    # Exercise archive finalization separately from production certificate access.
+    Import-Module "$PSScriptRoot/ReleasePackageSigning.psm1" -Force
+    $repacked = Join-Path $root "repacked/$name.zip"
+    $null = [IO.Directory]::CreateDirectory((Split-Path -Parent $repacked))
+    New-ReleaseArchive -PackageRoot $tree -ArchivePath $repacked
+    $archive = [IO.Compression.ZipFile]::OpenRead($repacked)
+    try {
+        if ($archive.Entries.Count -ne 6) { throw 'Repacked archive omitted files.' }
+        foreach ($entry in $archive.Entries) {
+            if ($entry.LastWriteTime.ToString('yyyy-MM-dd HH:mm:ss') -cne '1980-01-01 00:00:00') { throw 'Archive timestamp is not normalized.' }
+        }
+        if (-not $archive.GetEntry("$name/support files/readme.txt")) { throw 'Nested archive path was not preserved.' }
+    } finally { $archive.Dispose() }
+    $repackedHash = (Get-FileHash -LiteralPath $repacked).Hash
+    Assert-Fails { New-ReleaseArchive -PackageRoot $tree -ArchivePath $repacked } 'Existing archive was overwritten.'
+    if ((Get-FileHash -LiteralPath $repacked).Hash -cne $repackedHash) { throw 'Existing archive changed after rejected overwrite.' }
+    [IO.File]::WriteAllText("$repacked.sha256", "$repackedHash  $name.zip`n")
+    [IO.File]::WriteAllText((Join-Path (Split-Path -Parent $repacked) "$name.provenance.json"), $manifest)
+    & "$PSScriptRoot/Prepare-SignedPackage.ps1" -PackagePath $repacked -OutputDirectory (Join-Path $root 'repacked-verification')
     [IO.File]::AppendAllText((Join-Path $staging "$name/Briosa.Server.exe"), 'corruption')
     Import-Module "$PSScriptRoot/ReleasePackageSigning.psm1" -Force
     Assert-Fails { Assert-ReleaseChecksums (Join-Path $staging $name) } 'Corrupt internal payload accepted.'
@@ -76,7 +97,7 @@ try {
     [IO.File]::WriteAllText("$malicious.sha256", "$((Get-FileHash -LiteralPath $malicious).Hash)  $name.zip`n")
     Assert-Fails { & "$PSScriptRoot/Prepare-SignedPackage.ps1" -PackagePath $malicious -OutputDirectory (Join-Path $root 'bad-staging') } 'Archive traversal was accepted.'
     if (Test-Path -LiteralPath (Join-Path $root 'escape.txt')) { throw 'Unsafe archive wrote outside staging.' }
-    Write-Host 'Signing adapter, pinned-key verification, failure preservation, expiry, checksums, archive containment, and unsigned-release rejection passed.'
+    Write-Host 'Signing adapter, pinned-key verification, failure preservation, expiry, checksums, archive round-trip and containment, and unsigned-release rejection passed.'
 } finally {
     Remove-Item Function:\az
     $global:BriosaSigningFixtureKey.Dispose()
