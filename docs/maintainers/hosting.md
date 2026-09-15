@@ -400,4 +400,3 @@ In the installer, open **Settings → Package sources**, enter the internal URL,
 Validate both server installation and installer updates from a test workstation whose permitted network access is internal only. Check that every request stays on the configured source. Also test metadata renewal after the cache interval; stale or expired signatures must not be accepted. A first successful installation does not prove future updates will work.
 
 For offline distribution, copy a complete catalog/signature/package tree before disconnecting. Cached files alone do not extend signature validity. Plan fresh signed metadata before expiry for future acquisition and repair; already installed packages remain separately verifiable offline.
-
