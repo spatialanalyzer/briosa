@@ -414,6 +414,14 @@ R2's conditional object writes and metadata support are documented in
 Object Read & Write credentials apply to the S3 API; they are not a general
 Cloudflare management token. [R2 authentication](https://developers.cloudflare.com/r2/api/tokens/)
 
+The publisher identifies itself with a Briosa User-Agent header. During the first
+publication, Cloudflare returned HTTP 403 / error 1010 for Python's generic
+urllib header, while the identified publisher and the installer's native .NET
+HTTP client returned HTTP 200 for the same package. Keep that client identity;
+do not impersonate a browser or disable zone-wide protections to work around a
+publisher failure. Error 1010 identifies Browser Integrity Check rejection.
+[Cloudflare error 1010](https://developers.cloudflare.com/support/troubleshooting/http-status-codes/cloudflare-1xxx-errors/error-1010/)
+
 | Cadence | Maintenance |
 | --- | --- |
 | Every release | Verify final public bytes, signatures, mirror behavior, and install instructions |
