@@ -51,8 +51,8 @@ record; it never blocks an RPC. Each write checks age, count and total-byte boun
 and prunes eligible closed Briosa files, including earlier instances. Active files
 owned by other instances and unrelated files are untouched. A writer can close
 and reclaim its own file to continue within a one-file budget. If other active
-files fill the budget, new records are dropped. Expired idle files are removed on the next write, not by a resident
-cleanup process. Processes sharing a directory should use the same retention
+files fill the budget, new records are dropped. Expired idle files are removed on
+the next write, not by a resident cleanup process. Processes sharing a directory should use the same retention
 settings; use separate directories for independent policies.
 
 Writes flush to the OS cache before releasing the quota lock so another instance

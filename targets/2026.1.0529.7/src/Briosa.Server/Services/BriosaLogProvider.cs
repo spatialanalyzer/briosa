@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Buffers;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Briosa.Server.Operations;
@@ -162,6 +163,7 @@ internal sealed class BriosaLogProvider : ILoggerProvider
 
 internal sealed class SafeLogState : IReadOnlyList<KeyValuePair<string, object?>>
 {
+    private static readonly SearchValues<char> HexDigits = SearchValues.Create("0123456789abcdefABCDEF");
     private readonly List<KeyValuePair<string, object?>> _values;
     private SafeLogState(EventId eventId, List<KeyValuePair<string, object?>> values)
     {
@@ -207,7 +209,8 @@ internal sealed class SafeLogState : IReadOnlyList<KeyValuePair<string, object?>
         {
             foreach (var (key, value) in properties)
             {
-                if (AllowedProperty(key) && SafeValue(value)) values.Add(new(key, value));
+                if (AllowedProperty(key) && (key == "PolicyFingerprint" ? SafeFingerprint(value) : SafeValue(value)))
+                    values.Add(new(key, value));
             }
         }
         if (Activity.Current is { } activity)
@@ -221,6 +224,10 @@ internal sealed class SafeLogState : IReadOnlyList<KeyValuePair<string, object?>
     private static bool SafeValue(object? value) => value is null or bool or int or long or double or Guid or Enum ||
         value is string text && text.Length <= 256 &&
         text.All(character => char.IsAsciiLetterOrDigit(character) || character is '_' or '-' or '.' or ',' or '/');
+
+    private static bool SafeFingerprint(object? value) => value is string text &&
+        text.Length == 71 && text.StartsWith("sha256:", StringComparison.Ordinal) &&
+        !text.AsSpan(7).ContainsAnyExcept(HexDigits);
 
     private static bool AllowedProperty(string name) => name is
         "CorrelationId" or "ActorCategory" or "Endpoint" or "OperationId" or "Effect" or

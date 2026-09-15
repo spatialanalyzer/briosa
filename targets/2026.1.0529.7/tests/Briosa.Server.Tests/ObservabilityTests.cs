@@ -137,6 +137,7 @@ public sealed class ObservabilityTests
             {
                 ["OperationId"] = GetWorkingDirectoryOperation.OperationId,
                 ["Generation"] = 4,
+                ["PolicyFingerprint"] = "sha256:" + new string('a', 64),
                 ["Request"] = Sensitive,
                 ["Response"] = Sensitive,
                 ["DiagnosticCode"] = Sensitive,
@@ -153,6 +154,7 @@ public sealed class ObservabilityTests
         Assert.DoesNotContain(Sensitive, text, StringComparison.Ordinal);
         Assert.Contains(GetWorkingDirectoryOperation.OperationId, text, StringComparison.Ordinal);
         Assert.Contains("RpcCompleted", text, StringComparison.Ordinal);
+        Assert.Contains("sha256:" + new string('a', 64), text, StringComparison.Ordinal);
         Assert.Contains("FrameworkEvent", text, StringComparison.Ordinal);
         Assert.DoesNotContain("Exception", text, StringComparison.Ordinal);
     }
