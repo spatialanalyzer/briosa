@@ -17,6 +17,22 @@
         "sha256": "f2ba2199caba9ec7d4687a19fffe1502c93bcaf16dc9f1da816fab1abd062bd4"
       },
       "spatialAnalyzerTarget": "2026.1.0529.7"
+    },
+    {
+      "id": "briosa-installer-0.1.0-win-x64",
+      "component": "installer",
+      "version": "0.1.0",
+      "runtimeIdentifier": "win-x64",
+      "artifact": {
+        "path": "packages/installer/0.1.0/briosa-installer-0.1.0-win-x64.zip",
+        "size": 127737614,
+        "sha256": "869f269de4bc8191a271d6844df2f6c9ad2c9583a1b65a982d90afe7297fa80a"
+      },
+      "provenance": {
+        "path": "packages/installer/0.1.0/briosa-installer-0.1.0-win-x64.provenance.json",
+        "size": 199,
+        "sha256": "e5a21210d356c687155fa66d0499813b77b70b8ee131b273f8dc305ae97a68f2"
+      }
     }
   ]
 }
