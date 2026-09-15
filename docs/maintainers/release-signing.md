@@ -241,11 +241,12 @@ For a catalog committed and reviewed on an allowed repository ref, dispatch
 The original `-PrivateKeyPath` option remains only for disposable local tests and
 explicitly managed nonproduction signing; production workflows use Key Vault.
 
-Current signatures last 30 days. Refresh before expiry even when package entries
-do not change; a weekly cadence provides margin. The R2 publisher and automatic
-refresh/expiry monitoring are separate hosting work and are not installed by these
-signing workflows. Until those exist, the publishing maintainer must renew the
-hosted signature manually. Never leave a first catalog live without arranging renewal.
+Current signatures last 30 days. The separate
+[R2 publication workflow](../../.github/workflows/publish-r2.yml) renews the unchanged
+reviewed catalog weekly and checks public metadata daily. See the
+[hosting runbook](hosting.md) for credentials, publication, failure notifications,
+and recovery. New package entries require an explicit publication after review;
+the renewal schedule does not publish pending catalog changes.
 
 ## Validate and troubleshoot
 

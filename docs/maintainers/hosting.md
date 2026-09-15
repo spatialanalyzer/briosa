@@ -9,8 +9,9 @@ See [Azure signing](release-signing.md) for the independent signing infrastructu
 
 ## Deployment record and remaining checks
 
-The maintainer reports completing the DNS, GitHub Pages, Cloudflare routing, and
-R2 setup. External HTTPS checks on 15 September 2026 confirmed:
+Before the first R2 publication, external HTTPS checks on 15 September 2026
+confirmed the following baseline. For current publication and renewal results, see
+[Publish and maintain R2 downloads](https://github.com/spatialanalyzer/briosa/actions/workflows/publish-r2.yml).
 
 | URL | Observed response |
 | --- | --- |
@@ -27,7 +28,14 @@ both origin and public responses to validate the downloads route. Dashboard-only
 properties such as DNSSEC, Full (strict), cache rules, bucket settings, and renewal
 ownership still need a maintainer check; they cannot be inferred from HTTP alone.
 
-The following sections record the intended configuration and recreation procedure.
+Dashboard inspection on 15 September confirmed the bucket was empty, used Standard
+storage in Eastern North America, had an active public custom domain
+objects.briosa.dev, and had its public development URL disabled. The initial
+signed server release selected for R2 is Briosa 0.4.0 for SA 2026.1.0529.7.
+Its runtime operation surface is unchanged from 0.3.0; the distinct version
+identifies the new Authenticode-signed distribution.
+
+The following sections record configuration and the recreation procedure.
 Do not treat every checkpoint as a claim that it has been completed.
 ## What you will have
 
@@ -343,12 +351,68 @@ runbook. Never upload a private key or local test signing identity.
    hashes, publisher, expiry, HTTPS, and absence of redirects. Repeat through the
    enterprise mirror. Update `/install` only after a real release is available.
 
-The workflows in this change sign and create GitHub artifacts/releases; they do
-not upload to R2. A single serialized publisher must eventually own updates from
-both repositories so parallel releases cannot replace one another's catalog.
-Automatic R2 publishing, weekly renewal, and expiry monitoring remain to be deployed.
-Until then, arrange an explicit manual publishing/renewal owner before exposing a
-catalog that expires. Hosting the signed files is a separate operation from signing them.
+The signing workflows create GitHub releases. The separate
+[R2 workflow](../../.github/workflows/publish-r2.yml) publishes the reviewed
+[canonical catalog](../../eng/publishing/catalog.json) and its referenced release
+files. All server and future installer entries share this one publisher and
+concurrency group. Do not add another repository-owned catalog writer.
+
+### Configure publishing access
+
+Create an R2 Object Read & Write token scoped only to briosa-downloads. Store
+its S3 Access Key ID and Secret Access Key as R2_ACCESS_KEY_ID and
+R2_SECRET_ACCESS_KEY secrets in the briosa repository's release-signing
+environment. Set the R2_ACCOUNT_ID environment variable to the owning account
+ID. Never commit the token, its S3 secret, or a credentials export. The existing
+Azure OIDC identity and version-pinned key sign the catalog; the R2 token cannot
+sign a trusted catalog by itself. The workflow has no object-deletion operation.
+
+### Publish or renew
+
+1. Publish an approved stable signed GitHub release. Use a new version when signed
+   package bytes change; never replace an existing release's ZIP with a new build.
+2. Stage its ZIP, checksum, and provenance under the bucket-relative package path
+   in a local public directory. Include retained releases. Generate catalog.json
+   there using New-ReleaseCatalog.ps1, then copy its exact bytes into
+   eng/publishing/catalog.json and review the change through a PR.
+3. Merge the catalog update and dispatch publish-r2.yml on main with mode publish.
+   The workflow downloads the exact GitHub release assets, checks Windows publisher
+   signatures and all checksums, and reproduces the canonical catalog before upload.
+4. Immutable objects use conditional creation. Existing objects must contain
+   identical bytes. The workflow verifies them through the public downloads route
+   before updating any catalog metadata.
+5. The catalog, its 30-day Azure signature, and the browser index publish last with
+   no-store cache headers. Conditional ETag writes reject concurrent changes.
+   Both public and origin metadata URLs must return the exact bytes without redirects.
+
+The publisher also supplies hosting-check.txt, keys/catalog-public.pem, and
+keys/catalog-publisher-sha256.txt. The fingerprint is SHA-256 of the key's SPKI DER
+bytes, rather than the PEM file text. The downloads index links release notes and
+developer artifacts on GitHub; only actual release packages enter the catalog.
+Installer validation builds are not public installer releases.
+
+Every Monday at 06:17 UTC, mode renew re-signs the unchanged catalog for another
+30 days. Renewal refuses to publish a changed canonical catalog. At 06:47 UTC
+daily, a separate credential-free check verifies the public signature, exact
+catalog bytes, cache headers, and at least seven remaining days of validity.
+Maintainers should enable GitHub Actions failure notifications for these workflows
+and inspect failures promptly. GitHub schedules can be delayed and can be disabled
+after repository inactivity; the schedule alone is not a service availability guarantee.
+
+The workflow retains before/after metadata snapshots as run artifacts. A failure
+between catalog and signature writes leaves a temporarily mismatched pair that
+clients reject. Rerun publish from a fresh working directory: when the remote
+catalog matches the reviewed canonical bytes, the publisher can repair the
+signature, including an expired signature. A different existing catalog must
+verify before it can be replaced, and all its entries must be retained unchanged.
+The publisher never automatically removes releases or rolls the catalog back.
+If an immutable object contains unexpected bytes, stop and investigate instead
+of deleting or overwriting it.
+
+R2's conditional object writes and metadata support are documented in
+[S3 compatibility](https://developers.cloudflare.com/r2/api/s3/api/).
+Object Read & Write credentials apply to the S3 API; they are not a general
+Cloudflare management token. [R2 authentication](https://developers.cloudflare.com/r2/api/tokens/)
 
 | Cadence | Maintenance |
 | --- | --- |
@@ -364,7 +428,7 @@ Check GitHub Pages certificate renewal as well as the public edge. If origin
 renewal needs temporary DNS-only access, schedule that maintenance: downloads
 routing requires the Cloudflare proxy. Never disable origin certificate validation
 as a workaround. [GitHub custom-domain troubleshooting](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/troubleshooting-custom-domains-and-github-pages)
-## Enterprise mirrors Configure and test an enterprise Artifactory mirror
+## Enterprise mirrors
 
 Engineers use the ordinary installer. Enterprise repository administrators configure the mirror once; they do not need to build a customized installer or distribute custom configuration as the primary workflow.
 

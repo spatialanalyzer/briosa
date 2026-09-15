@@ -45,6 +45,14 @@ jobs:
         shell: pwsh
         run: ./eng/Test-ReleaseSigning.ps1
 
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Test R2 publication boundaries without production credentials
+        shell: pwsh
+        run: python -m unittest discover -s eng/publishing -p test_*.py
+
   build-and-test:
     name: SA ${{ matrix.target.sa_version }} Windows x64 build and test
     runs-on: windows-latest
