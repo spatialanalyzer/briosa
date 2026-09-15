@@ -14,6 +14,10 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v6
+      - name: Install SDK required by the signing tools
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
       - name: Create inert signing probe
         shell: pwsh
         run: |

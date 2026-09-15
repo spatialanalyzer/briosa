@@ -273,6 +273,10 @@ the public feed. Also run dispatch-only product workflows to validate real PE fi
 - Windows verification failure: inspect publisher, timestamp, chain status, and
   first-party file selection. Preserve third-party signatures; never bypass TLS or
   trust validation to make a release pass.
+- Signing-tool installation failure: each signing job must install the SDK pinned
+  in `global.json`, even when it only signs files built by another job. Microsoft's
+  signing action installs a .NET tool and resolves the SDK from the checkout;
+  installing the SDK in the build job does not prepare the separate signing runner.
 - Catalog failure: compare exact bytes, public fingerprint, versioned key URI,
   system clock, and expiry. A format-valid catalog is not evidence of a valid signature.
 - Enterprise acquisition failure: verify the mirror carries the current catalog,
