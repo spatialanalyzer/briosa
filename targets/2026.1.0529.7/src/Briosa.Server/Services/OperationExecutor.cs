@@ -11,7 +11,8 @@ namespace Briosa.Server.Services;
 internal sealed class OperationExecutor(
     IWorkerCommandExecutor executor,
     OperationAuditLogger auditLogger,
-    TimeProvider timeProvider)
+    TimeProvider timeProvider,
+    BriosaTelemetry? telemetry = null)
 {
     private readonly OperationAuditLogger _auditLogger =
         auditLogger ?? throw new ArgumentNullException(nameof(auditLogger));
@@ -65,8 +66,10 @@ internal sealed class OperationExecutor(
         var effectiveCorrelationId = correlationId is { } value && value != Guid.Empty
             ? value
             : Guid.NewGuid();
+        using var activity = BriosaTelemetry.Start("briosa.rpc", operation.OperationId);
         _auditLogger.RequestStarted(effectiveCorrelationId, operation, actorCategory);
         var startedAt = _timeProvider.GetTimestamp();
+        var rpcStatus = StatusCode.Internal;
         WorkerExecutionOutcome? outcome = null;
         try
         {
@@ -118,10 +121,12 @@ internal sealed class OperationExecutor(
                 outcome.Generation,
                 RequestDurationMilliseconds(startedAt),
                 OperationAuditSummary.Create(outcome));
+            rpcStatus = StatusCode.OK;
             return result;
         }
         catch (RpcException exception)
         {
+            rpcStatus = exception.StatusCode;
             _auditLogger.OperationFailed(
                 EffectiveCorrelationId(outcome, effectiveCorrelationId),
                 operation.OperationId,
@@ -131,6 +136,12 @@ internal sealed class OperationExecutor(
                 exception.StatusCode,
                 GrpcOperationOutcomeMapper.GetDiagnosticCode(exception));
             throw;
+        }
+        finally
+        {
+            activity?.SetTag("rpc.status", rpcStatus.ToString());
+            telemetry?.RpcCompleted(operation.OperationId, rpcStatus.ToString(),
+                _timeProvider.GetElapsedTime(startedAt).TotalMilliseconds);
         }
     }
 
