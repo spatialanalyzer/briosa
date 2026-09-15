@@ -72,4 +72,27 @@ function Assert-ReleaseSignatures {
     }
 }
 
-Export-ModuleMember -Function Get-ReleaseSigningFiles, Assert-ReleaseTree, Assert-ReleaseChecksums, Assert-ReleaseSignatures
+function New-ReleaseArchive {
+    param([Parameter(Mandatory)][string]$PackageRoot, [Parameter(Mandatory)][string]$ArchivePath)
+    Assert-ReleaseTree $PackageRoot
+    $root = (Resolve-Path -LiteralPath $PackageRoot).Path
+    $name = Split-Path -Leaf $root
+    $stream = [IO.File]::Open([IO.Path]::GetFullPath($ArchivePath), [IO.FileMode]::CreateNew, [IO.FileAccess]::ReadWrite, [IO.FileShare]::None)
+    try {
+        $archive = [IO.Compression.ZipArchive]::new($stream, [IO.Compression.ZipArchiveMode]::Create, $true)
+        try {
+            foreach ($file in Get-ChildItem -LiteralPath $root -File -Recurse | Sort-Object FullName) {
+                $entry = $archive.CreateEntry("$name/$([IO.Path]::GetRelativePath($root, $file.FullName).Replace('\', '/'))", [IO.Compression.CompressionLevel]::Optimal)
+                # ZIP Create mode requires metadata before the entry is opened for writing.
+                $entry.LastWriteTime = [DateTimeOffset]::new(1980, 1, 1, 0, 0, 0, [TimeSpan]::Zero)
+                $source = $file.OpenRead()
+                try {
+                    $destination = $entry.Open()
+                    try { $source.CopyTo($destination) } finally { $destination.Dispose() }
+                } finally { $source.Dispose() }
+            }
+        } finally { $archive.Dispose() }
+    } finally { $stream.Dispose() }
+}
+
+Export-ModuleMember -Function Get-ReleaseSigningFiles, Assert-ReleaseTree, Assert-ReleaseChecksums, Assert-ReleaseSignatures, New-ReleaseArchive
