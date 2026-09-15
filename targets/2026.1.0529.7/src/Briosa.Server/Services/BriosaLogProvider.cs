@@ -102,12 +102,15 @@ internal sealed class BriosaLogProvider : ILoggerProvider
     [SuppressMessage("Design", "CA1031:Do not catch general exception types",
         Justification = "Logging failures must not replace execution outcomes; exception text is discarded.")]
     private void Emit<TState>(string category, LogLevel level, EventId eventId, TState state,
-        Microsoft.Extensions.Logging.ILogger? file, Microsoft.Extensions.Logging.ILogger? console)
+        Exception? exception, Microsoft.Extensions.Logging.ILogger? file, Microsoft.Extensions.Logging.ILogger? console)
     {
         if (Volatile.Read(ref _disposed) != 0) return;
         try
         {
-            var safe = SafeLogState.Create(category, eventId, state, InstanceId);
+            var readinessReport = IsExpectedReadinessReport(category, eventId, state, exception);
+            var safe = readinessReport ? SafeLogState.Create("Briosa.Server.Readiness", new EventId(1500), Array.Empty<KeyValuePair<string, object?>>(), InstanceId)
+                : SafeLogState.Create(category, eventId, state, InstanceId);
+            if (readinessReport) level = LogLevel.Information;
             try
             {
                 if (file is not null && level < LogLevel.Warning && _health.Queued >= _normalQueueLimit)
@@ -121,6 +124,12 @@ internal sealed class BriosaLogProvider : ILoggerProvider
         }
         catch (Exception) { _health.Failed(); }
     }
+
+    private static bool IsExpectedReadinessReport<TState>(string category, EventId eventId, TState state, Exception? exception) =>
+        exception is null && category == "Microsoft.Extensions.Diagnostics.HealthChecks.DefaultHealthCheckService" &&
+        eventId.Id == 103 && eventId.Name == "HealthCheckEnd" && state is IEnumerable<KeyValuePair<string, object?>> values &&
+        values.Any(pair => pair.Key == "HealthCheckName" && pair.Value is WorkerReadinessHealthCheck.ReadinessServiceName) &&
+        values.Any(pair => pair.Key == "HealthStatus" && pair.Value is Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Unhealthy);
 
     [SuppressMessage("Design", "CA1031:Do not catch general exception types",
         Justification = "Shutdown is bounded best effort, including failed or stalled providers.")]
@@ -145,7 +154,7 @@ internal sealed class BriosaLogProvider : ILoggerProvider
         public bool IsEnabled(LogLevel logLevel) => logLevel != LogLevel.None && (file is not null || console is not null);
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state,
             Exception? exception, Func<TState, Exception?, string> formatter) =>
-            owner.Emit(category, logLevel, eventId, state, file, console);
+            owner.Emit(category, logLevel, eventId, state, exception, file, console);
     }
 
     private sealed class ContainedSink(ILogEventSink sink, BriosaLogHealth health) : ILogEventSink, IDisposable
@@ -181,7 +190,7 @@ internal sealed class SafeLogState : IReadOnlyList<KeyValuePair<string, object?>
     public static SafeLogState Create<TState>(string category, EventId eventId, TState state, string instanceId)
     {
         var trusted = category.StartsWith("Briosa.Server.", StringComparison.Ordinal) &&
-            eventId.Id is 1000 or 1201 or 1300 or 1301 or 1302 or 1400 or 1401 or 2000 or 2001 or 2002 or 2003 or 2004 or 2005;
+            eventId.Id is 1000 or 1201 or 1300 or 1301 or 1302 or 1400 or 1401 or 1500 or 2000 or 2001 or 2002 or 2003 or 2004 or 2005;
         var name = trusted ? eventId.Id switch
         {
             1000 => "ControlPlaneReady",
@@ -191,6 +200,7 @@ internal sealed class SafeLogState : IReadOnlyList<KeyValuePair<string, object?>
             1302 => "LifecycleRejected",
             1400 => "ApplicationTransition",
             1401 => "LogSinkDegraded",
+            1500 => "ReadinessNotReady",
             2000 => "PolicyLoaded",
             2001 => "RequestStarted",
             2002 => "PolicyAllowed",

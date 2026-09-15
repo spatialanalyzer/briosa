@@ -37,6 +37,7 @@ internal sealed class SdkConnectionManager : IAsyncDisposable
     private readonly TimeProvider _timeProvider;
     private SerializedSdkExecutor? _executor;
     private SdkConnectionSnapshot _current;
+    private string? _activatedSdkVersion;
     private int _disposeState;
 
     public SdkConnectionManager(
@@ -109,6 +110,7 @@ internal sealed class SdkConnectionManager : IAsyncDisposable
             try
             {
                 _executor = new SerializedSdkExecutor(_sdkFactory);
+                _activatedSdkVersion = await _executor.GetActivatedSdkVersionAsync(cancellationToken).ConfigureAwait(false);
                 Transition(
                     SdkConnectionState.Disconnected,
                     statusCode: null,
@@ -452,7 +454,8 @@ internal sealed class SdkConnectionManager : IAsyncDisposable
             _policy.MaximumAttempts,
             diagnosticCode,
             _timeProvider.GetUtcNow(),
-            executionReadinessState ?? Current.ExecutionReadinessState);
+            executionReadinessState ?? Current.ExecutionReadinessState,
+            _activatedSdkVersion);
         lock (_historyLock)
         {
             _current = snapshot;

@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
+    <Description>Private exact-target desktop management and presentation model.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Briosa.Protocol/Briosa.Protocol.csproj" />
+  </ItemGroup>
+</Project>

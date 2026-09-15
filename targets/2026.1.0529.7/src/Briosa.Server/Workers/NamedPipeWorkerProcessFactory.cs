@@ -64,6 +64,7 @@ internal sealed class NamedPipeWorkerProcessFactory(
             CreateNoWindow = true,
             WorkingDirectory = launch.WorkingDirectory ?? Environment.CurrentDirectory
         };
+        RemoveIdentityConfiguration(startInfo.Environment);
 
         foreach (var argument in launch.Arguments)
         {
@@ -76,6 +77,14 @@ internal sealed class NamedPipeWorkerProcessFactory(
         startInfo.ArgumentList.Add(Environment.ProcessId.ToString(
             System.Globalization.CultureInfo.InvariantCulture));
         return startInfo;
+    }
+
+    internal static void RemoveIdentityConfiguration(IDictionary<string, string?> environment)
+    {
+        // Operator evidence is server policy, not an input to the SDK process.
+        foreach (var key in environment.Keys.Where(key => key.Replace("__", ":", StringComparison.Ordinal)
+            .StartsWith("Briosa:SpatialAnalyzer:Identity:", StringComparison.OrdinalIgnoreCase)).ToArray())
+            environment.Remove(key);
     }
 
     private static async Task TerminateProcess(Process process)

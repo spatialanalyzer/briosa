@@ -331,6 +331,12 @@
           "xunit.extensibility.core": "[2.9.3]"
         }
       },
+      "briosa.desktop": {
+        "type": "Project",
+        "dependencies": {
+          "Briosa.Protocol": "[1.0.0, )"
+        }
+      },
       "briosa.protocol": {
         "type": "Project",
         "dependencies": {
@@ -341,6 +347,7 @@
       "briosa.server": {
         "type": "Project",
         "dependencies": {
+          "Briosa.Desktop": "[1.0.0, )",
           "Briosa.Protocol": "[1.0.0, )",
           "Briosa.Worker.Control": "[1.0.0, )",
           "Grpc.AspNetCore": "[2.80.0, )",

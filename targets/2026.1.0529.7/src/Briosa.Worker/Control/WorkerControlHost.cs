@@ -565,7 +565,7 @@ internal static partial class WorkerControlHost
     private static WorkerToleranceLimit ToControlToleranceLimit(SdkToleranceLimit value) =>
         new(value.Enabled, value.Value);
 
-    private static WorkerConnectionSnapshot ToControlSnapshot(
+    internal static WorkerConnectionSnapshot ToControlSnapshot(
         SdkConnectionSnapshot connection) =>
         new(
             connection.State switch
@@ -598,8 +598,8 @@ internal static partial class WorkerControlHost
             connection.TransitionedAt,
             new WorkerRuntimeIdentitySnapshot(
                 new WorkerRuntimeIdentityEvidence(
-                    Version: null,
-                    WorkerRuntimeIdentityEvidenceSource.Unavailable),
+                    connection.ActivatedSdkVersion,
+                    connection.ActivatedSdkVersion is null ? WorkerRuntimeIdentityEvidenceSource.Unavailable : WorkerRuntimeIdentityEvidenceSource.RuntimeVerified),
                 new WorkerRuntimeIdentityEvidence(
                     Version: null,
                     WorkerRuntimeIdentityEvidenceSource.Unavailable)));

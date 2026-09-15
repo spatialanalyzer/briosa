@@ -131,6 +131,13 @@ try {
 
     foreach ($requiredFile in @(
         "Briosa.Server.exe",
+        "Briosa.ControlCenter.exe",
+        "Briosa.ControlCenter.dll",
+        "Briosa.ControlCenter.runtimeconfig.json",
+        "Briosa.Desktop.dll",
+        "desktop/Briosa.ControlCenter.App.exe",
+        "desktop/PresentationFramework.dll",
+        "CONTROL-CENTER.md",
         "Briosa.Worker.exe",
         "Briosa.Worker.dll",
         "Briosa.Worker.deps.json",
@@ -207,7 +214,7 @@ try {
     try {
         $processArguments = @{
             FilePath = $serverExecutable
-            ArgumentList = @("--Briosa:Endpoint:Port=$port")
+            ArgumentList = @("--Briosa:Endpoint:Port=$port", "--Briosa:Desktop:Mode=Disabled")
             WorkingDirectory = $packageRoot
             WindowStyle = "Hidden"
             RedirectStandardOutput = $standardOutput
@@ -284,6 +291,7 @@ try {
         FilePath = $serverExecutable
         ArgumentList = @(
             "--Briosa:Endpoint:Address=0.0.0.0",
+            "--Briosa:Desktop:Mode=Disabled",
             "--Briosa:Endpoint:Port=$port")
         WorkingDirectory = $packageRoot
         WindowStyle = "Hidden"
@@ -302,7 +310,12 @@ try {
         -Message "The packaged host accepted a non-loopback endpoint."
     $serverProcess.Dispose()
     $serverProcess = $null
-    Write-Host "Package reproducibility, checksums, diagnostics, and launch smoke tests passed."
+    $desktopSmoke = Join-Path $repositoryRoot "tests/Briosa.ControlCenter.Smoke/Briosa.ControlCenter.Smoke.csproj"
+    Invoke-DotNet @("restore", $desktopSmoke, "--locked-mode")
+    Invoke-DotNet @("build", $desktopSmoke, "-c", "Release", "--no-restore")
+    Invoke-DotNet @("run", "--project", $desktopSmoke, "-c", "Release", "--no-build", "--no-restore", "--",
+        "--package", $packageRoot, (Join-Path $workerTestHostOutput "Briosa.Worker.TestHost.exe"))
+    Write-Host "Package reproducibility, checksums, diagnostics, desktop ownership, and launch smoke tests passed."
 }
 finally {
     if ($null -ne $serverProcess -and -not $serverProcess.HasExited) {

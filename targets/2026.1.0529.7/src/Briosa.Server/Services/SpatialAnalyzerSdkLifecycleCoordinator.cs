@@ -108,6 +108,13 @@ internal sealed class SpatialAnalyzerSdkLifecycleCoordinator(
             }
 
             var connection = current.Connection;
+            if (current.RuntimeIdentity?.ActivatedSdk.MatchState == Workers.RuntimeIdentityMatchState.Mismatch)
+            {
+                throw SdkLifecycleException.FailedPrecondition(
+                    global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.IdentityMismatch,
+                    "activated-sdk-version-mismatch", Current,
+                    global::Briosa.LifecycleRecoveryGuidance.CorrectEnvironment);
+            }
             if (!reconnect && connection?.State == WorkerConnectionState.Connected)
             {
                 throw SdkLifecycleException.FailedPrecondition(

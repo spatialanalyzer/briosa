@@ -11,6 +11,35 @@ namespace Briosa.Server.Tests;
 public sealed class SpatialAnalyzerSdkLifecycleCoordinatorTests
 {
     [Fact]
+    public async Task RuntimeSdkMismatchRejectsConnectAndReconnectEvenWithMatchingAttestation()
+    {
+        await using var supervisor = CreateSupervisor(_ => "runtime-identity-mismatch");
+        await using var coordinator = new SpatialAnalyzerSdkLifecycleCoordinator(supervisor,
+            new SpatialAnalyzerSdkLifecycleStateProjection(supervisor), new FakeApplicationStateProvider(RunningApplication(1)));
+        var started = await coordinator.StartAsync(CancellationToken.None);
+        foreach (var reconnect in new[] { false, true })
+        {
+            var failure = await Assert.ThrowsAsync<SdkLifecycleException>(() => coordinator.ConnectAsync(started.SdkGeneration, reconnect, CancellationToken.None));
+            Assert.Equal("activated-sdk-version-mismatch", failure.Detail.DiagnosticCode);
+            Assert.False(failure.Detail.State.ReadyForMp);
+        }
+    }
+
+    [Fact]
+    public void WorkerEnvironmentDoesNotInheritOperatorEvidence()
+    {
+        var environment = new Dictionary<string, string?>
+        {
+            ["Briosa__SpatialAnalyzer__Identity__ActivatedSdk__OperatorAttestation__Reference"] = "private-evidence",
+            ["Briosa:SpatialAnalyzer:Identity:ConnectedSpatialAnalyzer:OperatorAttestation:Version"] = "2026.1.0529.7",
+            ["PATH"] = "unchanged"
+        };
+        NamedPipeWorkerProcessFactory.RemoveIdentityConfiguration(environment);
+        Assert.Single(environment);
+        Assert.Equal("unchanged", environment["PATH"]);
+    }
+
+    [Fact]
     public async Task ExplicitLifecycleStartsDisconnectedThenConnectsAndStops()
     {
         await using var supervisor = CreateSupervisor(_ => "disconnected");

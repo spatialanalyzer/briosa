@@ -20,6 +20,32 @@ namespace Briosa.Server.Tests;
 [Collection("Worker process lifecycle")]
 public sealed class ObservabilityTests
 {
+    [Fact]
+    public void ExpectedNotReadyHealthReportsAreInformationalButExceptionsRemainErrors()
+    {
+        var sink = new CaptureSink();
+        using var provider = new BriosaLogProvider(Options(), new BriosaLogHealth(), sink);
+        var logger = provider.CreateLogger("Microsoft.Extensions.Diagnostics.HealthChecks.DefaultHealthCheckService");
+        var state = new Dictionary<string, object?>
+        {
+            ["HealthCheckName"] = "briosa.readiness",
+            ["HealthStatus"] = Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Unhealthy,
+            ["HealthCheckDescription"] = Sensitive
+        };
+        logger.Log(LogLevel.Error, new EventId(103, "HealthCheckEnd"), state, null, (_, _) => Sensitive);
+        logger.Log(LogLevel.Error, new EventId(103, "HealthCheckEnd"), state, new IOException(Sensitive), (_, _) => Sensitive);
+        logger.Log(LogLevel.Error, new EventId(104, "HealthCheckError"), state, new IOException(Sensitive), (_, _) => Sensitive);
+        state["HealthCheckName"] = "another-check";
+        logger.Log(LogLevel.Error, new EventId(103, "HealthCheckEnd"), state, null, (_, _) => Sensitive);
+        provider.Dispose();
+        var events = sink.Events.ToArray();
+        Assert.Equal(4, events.Length);
+        Assert.Equal(LogEventLevel.Information, events[0].Level);
+        Assert.Equal("ReadinessNotReady", EventName(events[0]));
+        Assert.All(events.Skip(1), entry => Assert.Equal(LogEventLevel.Error, entry.Level));
+        Assert.DoesNotContain(Sensitive, string.Join("\n", events.Select(Serialize)), StringComparison.Ordinal);
+    }
+
     private const string Sensitive = @"C:\Customers\Secret\geometry.xit";
 
     [Fact]

@@ -34,6 +34,11 @@ It prints JSON containing Briosa, protocol, target-SA, source, and interop ident
 
 ## Start the server
 
+The package also includes `Briosa.ControlCenter.exe`. Interactive launches show
+an optional tray companion; use `--Briosa:Desktop:Mode=Disabled` for headless use.
+See [Control Center](control-center.md) (or `CONTROL-CENTER.md` in the ZIP) for
+ownership, lifecycle controls, activity, and support export.
+
 The packaged default binds unencrypted HTTP/2 to loopback only at `127.0.0.1:50051`:
 
 ```powershell

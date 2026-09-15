@@ -82,9 +82,20 @@ identity evidence fails closed. Evidence references are configuration inputs onl
 they are not sent to the worker, returned by discovery, or written to default
 logs.
 
-Authoritative SDK and connected-application version probes remain provisional
-pending reviewed vendor guidance. Operator attestation is an explicit reversible
-minimum, not an inferred compatibility guarantee.
+For the initial target, the worker reads matching file/product version resources
+from the specific live SDK process already identified during COM activation.
+It preserves vendor build padding, reports unavailable on failed or conflicting
+observations, and never substitutes the installed target or registry path. This
+is process-executable evidence; it does not inspect or execute an MP and makes no
+claim about the connected SA application's identity. A mismatched activated SDK
+blocks lifecycle attachment as well as execution. The local 2026 desktop validation
+observed Windows activating a registered 2024 SDK, motivating this check.
+
+An authoritative connected-application version probe remains provisional pending
+reviewed vendor guidance. Its operator attestation remains an explicit reversible
+minimum, not an inferred compatibility guarantee. Control Center can store
+explicit evidence outside the package and pass it to future managed host launches;
+the host removes identity configuration from worker environments.
 
 ## Execution-channel verification
 

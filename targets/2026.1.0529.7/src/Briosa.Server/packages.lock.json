@@ -138,6 +138,12 @@
         "resolved": "4.2.0",
         "contentHash": "gmoWVOvKgbME8TYR+gwMf7osROiWAURterc6Rt2dQyX7wtjZYpqFiA/pY6ztjGQKKV62GGCyOcmtP1UKMHgSmA=="
       },
+      "briosa.desktop": {
+        "type": "Project",
+        "dependencies": {
+          "Briosa.Protocol": "[1.0.0, )"
+        }
+      },
       "briosa.protocol": {
         "type": "Project",
         "dependencies": {
