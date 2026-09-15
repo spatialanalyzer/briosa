@@ -35,6 +35,9 @@ The updated Windows package was exercised through its actual Control Center UI:
   units, and working frame. Returned values were not retained in this report.
 - Routine pre-readiness health reports appeared as `ReadinessNotReady` at
   Information level, rather than generic framework errors.
+- Restart from the ready state completed gracefully, kept the external SA
+  application open, and left the replacement SDK stopped. Cached activity is
+  cleared when the selected server instance changes.
 
 Portable validation passed 399 target tests (214 server, 160 worker, 25 protocol),
 plus the WPF layout/accessibility smoke. After final desktop refinements, the 44

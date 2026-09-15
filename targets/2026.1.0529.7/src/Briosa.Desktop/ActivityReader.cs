@@ -10,11 +10,17 @@ public sealed record ActivityEntry(DateTimeOffset Time, string Level, string Cat
 public sealed class ActivityReader
 {
     private readonly Dictionary<string, ActivityEntry> _entries = new(StringComparer.Ordinal);
+    private string? _instance;
     public IReadOnlyList<ActivityEntry> Entries => _entries.Values.OrderBy(entry => entry.Time).ToArray();
     public string Status { get; private set; } = "No activity observed yet.";
 
     public void ReadRecent(string? directory, string instance)
     {
+        if (_instance != instance)
+        {
+            _entries.Clear();
+            _instance = instance;
+        }
         if (directory is null || !DesktopProtocol.IsInstance(instance))
         { Status = "File diagnostics are unavailable for this server."; return; }
         try

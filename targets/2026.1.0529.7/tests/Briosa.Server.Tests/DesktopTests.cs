@@ -93,6 +93,27 @@ public sealed class DesktopTests
     }
 
     [Fact]
+    public void RestartedServersDoNotInheritCachedActivityFromThePreviousInstance()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), "briosa-activity-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(directory);
+        var first = DesktopProtocol.NewInstance();
+        var second = DesktopProtocol.NewInstance();
+        var path = Path.Combine(directory, "briosa-" + first + "-20260915.jsonl");
+        try
+        {
+            File.WriteAllText(path, LogRecord(first) + "\n");
+            var reader = new ActivityReader();
+            reader.ReadRecent(directory, first);
+            Assert.Single(reader.Entries);
+            reader.ReadRecent(directory, second);
+            Assert.Empty(reader.Entries);
+            Assert.Equal("No log file is available yet.", reader.Status);
+        }
+        finally { File.Delete(path); Directory.Delete(directory); }
+    }
+
+    [Fact]
     public void SupportBundleContainsOnlyProjectedFieldsAndCanReplaceAnExport()
     {
         var directory = Path.Combine(Path.GetTempPath(), "briosa-desktop-test-" + Guid.NewGuid().ToString("N"));
