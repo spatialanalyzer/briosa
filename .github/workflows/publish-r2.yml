@@ -71,4 +71,5 @@ jobs:
             artifacts/r2-publication/prior/*
             artifacts/r2-publication/public/catalog.json
             artifacts/r2-publication/public/catalog.json.signature.json
+            artifacts/r2-publication/public/installer-setups.json
             artifacts/r2-publication/public/index.html

@@ -17,6 +17,7 @@ $schema = Join-Path $repository 'schemas/releases/v1/catalog.schema.json'
 $config = Get-Content (Join-Path $PSScriptRoot 'signing/azure.json') -Raw | ConvertFrom-Json
 if (-not (Test-Json -Json (Get-Content $catalogSource -Raw) -SchemaFile $schema)) { throw 'Invalid reviewed catalog.' }
 Copy-Item -LiteralPath $catalogSource -Destination $catalogPath
+Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'publishing/installer-setups.json') -Destination (Join-Path $work 'public/installer-setups.json')
 $catalog = Get-Content $catalogPath -Raw | ConvertFrom-Json
 if ($catalog.packages.Count -eq 0) { throw 'Refusing to publish an empty catalog.' }
 function Invoke-Publisher([string]$Command) {
@@ -63,6 +64,22 @@ if ($Mode -eq 'publish') {
         & "$PSScriptRoot/Prepare-SignedPackage.ps1" -PackagePath $zip -OutputDirectory $stage
         Import-Module "$PSScriptRoot/ReleasePackageSigning.psm1" -Force
         Assert-ReleaseSignatures -PackageRoot (Join-Path $stage $package.id) -ExpectedPublisher $config.expectedPublisher
+    }
+    $setups = Get-Content (Join-Path $work 'public/installer-setups.json') -Raw | ConvertFrom-Json
+    foreach ($setup in $setups.setups) {
+        $directory = Join-Path $work ("public/" + [IO.Path]::GetDirectoryName($setup.artifact.path))
+        $name = [IO.Path]::GetFileName($setup.artifact.path)
+        foreach ($asset in @($name, "$name.sha256")) {
+            & gh release download "v$($setup.version)" --repo spatialanalyzer/briosa-installer --pattern $asset --dir $directory
+            if ($LASTEXITCODE -ne 0) { throw 'Installer setup asset download failed.' }
+        }
+        $file = Join-Path $directory $name
+        $signature = Get-AuthenticodeSignature -LiteralPath $file
+        if ($signature.Status -ne 'Valid' -or $null -eq $signature.TimeStamperCertificate -or
+            $signature.SignerCertificate.GetNameInfo('SimpleName', $false) -cne $config.expectedPublisher) {
+            throw 'Setup publisher signature is invalid.'
+        }
+        if ((Get-Item $file).VersionInfo.ProductVersion.Trim() -cne $setup.version) { throw 'Setup version differs from its reviewed release.' }
     }
     # Prove catalog coordinates and hashes from the final downloaded release assets.
     $regenerated = Join-Path $work 'public/regenerated.json'

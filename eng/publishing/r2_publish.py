@@ -18,6 +18,8 @@ FRESH = "no-store, no-cache, max-age=0, must-revalidate"
 IMMUTABLE = "public, max-age=31536000, immutable"
 CATALOG = "catalog.json"
 SIGNATURE = "catalog.json.signature.json"
+SETUPS = "installer-setups.json"
+METADATA = (CATALOG, SIGNATURE, SETUPS, "index.html")
 MAX_METADATA = 1024 * 1024
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -92,6 +94,8 @@ def assert_retained(previous, current):
 
 
 def content_type(key):
+    if key.endswith(".exe"):
+        return "application/octet-stream"
     if key.endswith(".zip"):
         return "application/zip"
     if key.endswith(".json"):
@@ -193,7 +197,31 @@ def references(catalog):
         yield package["provenance"]
 
 
+def parse_setups(data, catalog):
+    if len(data) > MAX_METADATA:
+        raise ValueError("Setup metadata exceeds limit.")
+    manifest = json.loads(data, object_pairs_hook=unique_object)
+    if set(manifest) != {"schemaVersion", "setups"} or manifest["schemaVersion"] != 1 or not isinstance(manifest["setups"], list):
+        raise ValueError("Invalid reviewed setup metadata.")
+    versions = {p["version"] for p in catalog["packages"] if p["component"] == "installer"}
+    seen = set()
+    for setup in manifest["setups"]:
+        if set(setup) != {"version", "artifact"} or setup["version"] not in versions or setup["version"] in seen:
+            raise ValueError("Setup must name one retained installer release.")
+        version = setup["version"]
+        seen.add(version)
+        reference = setup["artifact"]
+        if set(reference) != {"path", "size", "sha256"} or reference["path"] != f"packages/installer/{version}/briosa-installer-{version}-win-x64-setup.exe":
+            raise ValueError("Unexpected setup object path.")
+        if type(reference["size"]) is not int or not 0 < reference["size"] <= 1024**3 or not re.fullmatch(r"[0-9a-f]{64}", reference["sha256"]):
+            raise ValueError("Invalid setup size or digest.")
+    return manifest
+
+
 def support_files(public, catalog):
+    setups_path = public / SETUPS
+    setups = parse_setups(setups_path.read_bytes(), catalog)["setups"] if setups_path.exists() else []
+    setup_versions = {s["version"]: s["artifact"]["path"] for s in setups}
     key = ROOT / "eng/signing/catalog-public.pem"
     fingerprint = json.loads((ROOT / "eng/signing/azure.json").read_text())["catalogPublisherSha256"]
     (public / "keys").mkdir(exist_ok=True)
@@ -206,8 +234,12 @@ def support_files(public, catalog):
     for package in catalog["packages"]:
         path = "/downloads/" + package["artifact"]["path"]
         target = package.get("spatialAnalyzerTarget", "Installer")
+        setup_link = ""
+        if package["component"] == "installer" and package["version"] in setup_versions:
+            setup_path = "/downloads/" + setup_versions[package["version"]]
+            setup_link = '<a href="' + html.escape(setup_path, quote=True) + '">Windows setup EXE</a> · '
         rows.append("<tr><td>" + html.escape(target) + "</td><td>" + html.escape(package["version"])
-                    + '</td><td><a href="' + html.escape(path, quote=True) + '">Windows x64 ZIP</a>'
+                    + '</td><td>' + setup_link + '<a href="' + html.escape(path, quote=True) + '">Windows x64 ZIP</a>'
                     + ' · <a href="' + html.escape(path + ".sha256", quote=True) + '">SHA-256</a></td></tr>')
     page = """<!doctype html><html lang="en"><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>Briosa downloads</title>
@@ -232,7 +264,7 @@ def snapshot(store, work):
     prior = work / "prior"
     prior.mkdir()
     state = {}
-    for key in (CATALOG, SIGNATURE, "index.html"):
+    for key in METADATA:
         current = store.read(key, MAX_METADATA)
         state[key] = current["etag"] if current else None
         if current:
@@ -251,6 +283,18 @@ def guard_prior(work, mode):
             raise ValueError("Renewal cannot publish a changed catalog; publish the reviewed release first.")
     elif mode == "renew":
         raise ValueError("Nothing has been published to renew.")
+    setup_path = work / "public" / SETUPS
+    if not setup_path.exists():
+        setup_path.write_bytes(b'{"schemaVersion":1,"setups":[]}\n')
+    setups = parse_setups(setup_path.read_bytes(), current)
+    previous_setups = work / "prior" / SETUPS
+    if previous_setups.exists():
+        previous = parse_setups(previous_setups.read_bytes(), current)
+        retained = {s["version"]: s for s in setups["setups"]}
+        if any(retained.get(s["version"]) != s for s in previous["setups"]):
+            raise ValueError("Publication would remove or change a retained setup.")
+    if mode == "renew" and (not previous_setups.exists() or previous_setups.read_bytes() != setup_path.read_bytes()):
+        raise ValueError("Renewal cannot publish changed setup metadata; publish first.")
     support_files(work / "public", current)
 
 
@@ -263,6 +307,15 @@ def upload_payloads(store, work):
         if path.stat().st_size != reference["size"] or file_digest(path) != reference["sha256"]:
             raise ValueError("Staged package differs from the reviewed catalog.")
         files.append(reference["path"])
+    for setup in parse_setups((public / SETUPS).read_bytes(), catalog)["setups"]:
+        reference = setup["artifact"]
+        path = public / reference["path"]
+        if path.stat().st_size != reference["size"] or file_digest(path) != reference["sha256"]:
+            raise ValueError("Staged setup differs from reviewed metadata.")
+        checksum = reference["path"] + ".sha256"
+        if (public / checksum).read_text().strip() != reference["sha256"] + "  " + path.name:
+            raise ValueError("Setup checksum differs from reviewed metadata.")
+        files += [reference["path"], checksum]
     for package in catalog["packages"]:
         ref = package["artifact"]
         checksum = ref["path"] + ".sha256"
@@ -287,11 +340,11 @@ def commit_metadata(store, work):
     public = work / "public"
     state = json.loads((work / "state.json").read_text())
     # Conditional writes also guard against writers outside the workflow concurrency group.
-    for key in (CATALOG, SIGNATURE, "index.html"):
+    for key in METADATA:
         current = store.read(key, MAX_METADATA)
         if (current["etag"] if current else None) != state[key]:
             raise ValueError("Published metadata changed during preparation; start a fresh run.")
-    for key in (CATALOG, SIGNATURE, "index.html"):
+    for key in METADATA:
         data = (public / key).read_bytes()
         store.put(key, data, state[key], FRESH)
         for base in (PUBLIC, ORIGIN):
@@ -308,6 +361,10 @@ def check_public(work):
     public.mkdir(parents=True, exist_ok=True)
     (public / CATALOG).write_bytes(expected)
     (public / SIGNATURE).write_bytes(public_read(PUBLIC, SIGNATURE, 16384, fresh=True))
+    setups = (ROOT / "eng/publishing" / SETUPS).read_bytes()
+    parse_setups(setups, parse_catalog(expected))
+    if public_read(PUBLIC, SETUPS, MAX_METADATA, fresh=True) != setups:
+        raise ValueError("Public setup metadata differs from the reviewed source.")
 
 
 def main():

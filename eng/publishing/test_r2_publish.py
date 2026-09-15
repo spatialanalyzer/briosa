@@ -123,6 +123,7 @@ class PublishingTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             r2.guard_prior(self.root, "renew")
         (self.root / "prior" / r2.CATALOG).write_bytes(encoded(catalog()))
+        (self.root / "prior" / r2.SETUPS).write_bytes(b'{"schemaVersion":1,"setups":[]}\n')
         r2.guard_prior(self.root, "renew")
         newer = catalog()
         newer["packages"] += catalog("0.5.0")["packages"]
@@ -146,7 +147,7 @@ class PublishingTests(unittest.TestCase):
         (self.public / r2.SIGNATURE).write_bytes(b"signature verified by PowerShell")
         with patch.object(r2, "public_read", side_effect=lambda base, key, limit, fresh=False: self.client.objects[key]):
             r2.commit_metadata(self.store, self.root)
-        self.assertEqual([x["Key"] for x in self.client.writes], [r2.CATALOG, r2.SIGNATURE, "index.html"])
+        self.assertEqual([x["Key"] for x in self.client.writes], list(r2.METADATA))
         self.assertTrue(all(x["CacheControl"] == r2.FRESH for x in self.client.writes))
         self.assertEqual(self.client.objects[r2.SIGNATURE], (self.public / r2.SIGNATURE).read_bytes())
 
@@ -164,6 +165,65 @@ class PublishingTests(unittest.TestCase):
     def test_public_redirects_are_rejected(self):
         with self.assertRaises(ValueError):
             r2.NoRedirect().redirect_request(None, None, 302, "", {}, "https://elsewhere.invalid/")
+
+    def test_setup_requires_a_matching_installer_and_exact_safe_coordinates(self):
+        installer = copy.deepcopy(self.data["packages"][0])
+        installer.update(id="briosa-installer-0.1.0-win-x64", component="installer", version="0.1.0")
+        self.data["packages"].append(installer)
+        setup = {"version": "0.1.0", "artifact": {"path": "packages/installer/0.1.0/briosa-installer-0.1.0-win-x64-setup.exe", "size": 5, "sha256": r2.digest(b"setup")}}
+        manifest = {"schemaVersion": 1, "setups": [setup]}
+        self.assertEqual(r2.parse_setups(encoded(manifest), self.data), manifest)
+        for path in ("../setup.exe", "/setup.exe", "https://elsewhere.invalid/setup.exe", "packages/installer/0.2.0/setup.exe"):
+            changed = copy.deepcopy(manifest)
+            changed["setups"][0]["artifact"]["path"] = path
+            with self.assertRaises(ValueError):
+                r2.parse_setups(encoded(changed), self.data)
+        with self.assertRaises(ValueError):
+            r2.parse_setups(encoded(manifest), catalog())
+        manifest["setups"] *= 2
+        with self.assertRaises(ValueError):
+            r2.parse_setups(encoded(manifest), self.data)
+
+    def test_renewal_cannot_publish_changed_setup_metadata(self):
+        self.client.objects[r2.CATALOG] = encoded(self.data)
+        self.client.objects[r2.SETUPS] = b'{"schemaVersion":1,"setups":[]}\n'
+        r2.snapshot(self.store, self.root)
+        (self.public / r2.SETUPS).write_bytes(self.client.objects[r2.SETUPS])
+        r2.guard_prior(self.root, "renew")
+        (self.public / r2.SETUPS).write_bytes(encoded({"schemaVersion": 1, "setups": []}))
+        with self.assertRaises(ValueError):
+            r2.guard_prior(self.root, "renew")
+
+    def test_setup_integrity_is_checked_before_any_object_is_written(self):
+        package = self.data["packages"][0]
+        package.update(id="briosa-installer-0.1.0-win-x64", component="installer", version="0.1.0")
+        del package["spatialAnalyzerTarget"]
+        prefix = "packages/installer/0.1.0/" + package["id"]
+        package["artifact"]["path"] = prefix + ".zip"
+        package["provenance"]["path"] = prefix + ".provenance.json"
+        setup = {"version": "0.1.0", "artifact": {"path": prefix + "-setup.exe", "size": 5, "sha256": r2.digest(b"setup")}}
+        (self.public / r2.CATALOG).write_bytes(encoded(self.data))
+        (self.public / r2.SETUPS).write_bytes(encoded({"schemaVersion": 1, "setups": [setup]}))
+        r2.snapshot(self.store, self.root)
+        r2.guard_prior(self.root, "publish")
+        for reference, data in ((package["artifact"], b"zip"), (package["provenance"], b"{}"), (setup["artifact"], b"WRONG")):
+            path = self.public / reference["path"]
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(data)
+        for reference in (package["artifact"], setup["artifact"]):
+            (self.public / (reference["path"] + ".sha256")).write_text(reference["sha256"] + "  " + Path(reference["path"]).name + "\n")
+        with self.assertRaises(ValueError):
+            r2.upload_payloads(self.store, self.root)
+        self.assertEqual(self.client.writes, [])
+        (self.public / setup["artifact"]["path"]).write_bytes(b"setup")
+        with patch.object(r2, "public_read", side_effect=lambda base, key, limit, fresh=False: self.client.objects[key]):
+            r2.upload_payloads(self.store, self.root)
+        self.assertEqual(self.client.objects[setup["artifact"]["path"]], b"setup")
+        self.assertEqual(r2.content_type(setup["artifact"]["path"]), "application/octet-stream")
+        (self.root / "prior" / r2.SETUPS).write_bytes((self.public / r2.SETUPS).read_bytes())
+        (self.public / r2.SETUPS).write_bytes(encoded({"schemaVersion": 1, "setups": []}))
+        with self.assertRaises(ValueError):
+            r2.guard_prior(self.root, "publish")
 
     def test_existing_metadata_uses_conditional_writes(self):
         self.client.objects[r2.CATALOG] = b"old"
