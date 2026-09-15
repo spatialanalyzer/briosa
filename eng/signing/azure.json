@@ -1,0 +1,8 @@
+{
+  "endpoint": "https://eus.codesigning.azure.net/",
+  "account": "briosasigning",
+  "certificateProfile": "briosa-public",
+  "expectedPublisher": "David Lucas",
+  "catalogKeyId": "https://briosa-release-kv.vault.azure.net/keys/briosa-catalog/e83170c136674f2497ade2532565f099",
+  "catalogPublisherSha256": "2081345a3be37cdfa00f8b8e111fdd57b45397836d998f7515875e72187f593d"
+}

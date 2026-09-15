@@ -42,6 +42,11 @@ Adding a target is an explicit product fork, not a shared-project extension:
 
 Repository-wide governance, current architecture, workflow policy, and release orchestration remain at the root. See the [exact-target product model](docs/architecture/exact-target-product-model.md).
 
+## Maintainer Infrastructure
+
+See the [maintainer runbooks](docs/maintainers/README.md) for Azure release signing
+and the `briosa.dev` domain, documentation, and download hosting setup.
+
 ## License
 
 Briosa is licensed under Apache-2.0. SpatialAnalyzer, the SA SDK, their brands, proprietary binaries, and proprietary implementation remain Hexagon intellectual property.

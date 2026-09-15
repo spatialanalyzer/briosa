@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Briosa release catalog v1 (preview)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "packages"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "packages": {
+      "type": "array",
+      "maxItems": 1000,
+      "items": { "$ref": "#/$defs/package" }
+    }
+  },
+  "$defs": {
+    "version": {
+      "type": "string",
+      "maxLength": 128,
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)(\\.(0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*))*))?(\\+[0-9A-Za-z-]+(\\.[0-9A-Za-z-]+)*)?$"
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "size", "sha256"],
+      "properties": {
+        "path": { "type": "string", "maxLength": 512, "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*(/[A-Za-z0-9][A-Za-z0-9._-]*)*$" },
+        "size": { "type": "integer", "minimum": 1, "maximum": 9007199254740991 },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+      }
+    },
+    "package": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "component", "version", "runtimeIdentifier", "artifact"],
+      "properties": {
+        "id": { "type": "string", "maxLength": 200, "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$" },
+        "component": { "enum": ["server", "installer"] },
+        "version": { "$ref": "#/$defs/version" },
+        "runtimeIdentifier": { "type": "string", "maxLength": 64, "pattern": "^[a-z0-9]+(-[a-z0-9]+)+$" },
+        "spatialAnalyzerTarget": { "type": "string", "maxLength": 40, "pattern": "^[0-9]{4}\\.[0-9]{1,8}\\.[0-9]{1,8}\\.[0-9]{1,8}$" },
+        "artifact": { "$ref": "#/$defs/artifact" },
+        "provenance": { "$ref": "#/$defs/artifact" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "component": { "const": "server" } } },
+          "then": { "required": ["spatialAnalyzerTarget", "provenance"] },
+          "else": { "not": { "required": ["spatialAnalyzerTarget"] } }
+        }
+      ]
+    }
+  }
+}

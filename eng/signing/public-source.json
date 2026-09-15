@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "catalog": "https://briosa.dev/downloads/catalog.json",
+    "authentication": "anonymous",
+    "publisherKey": "-----BEGIN PUBLIC KEY-----\nMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA7n+Lz4/RajT1nRLHtnRY\n+NTiG6XkU+9c4o0HMTWRuxSHszGCQw+aKCdfusJAeP3g+/65ESAAsrhv1T2Qoxco\nClJCpJ4S1Afc+HoT1hV6oFqUp8Q1pJs3N4uUxQDColcv+LPDujhbQze57uYmk6wK\nsaPAfea0cwEcERzXQYtWFGQSneDZ/x5+wUGVGdKDTf7uS1oWrqMY127l7EqmA168\nk4uQAIcEDO3RHCBIbNp5aPlHH5tQf4G8tfY57+430kW3U3f7JIYZcB/FHTgQvDFt\nnoZiSY1TcWe12dkK331S3YU23ce+GgliY3R7ow43RWdt29XJjGX5VQ3H9jD8T4e1\nJ/FUTFNb1HPneoAx7XL+U5pbVT1O5Pk7ZuprSosDgWWSSK/7obKR3rYYig49dQz5\nf9utfRwAY7bghAS/xYW5ItwVuW8SjktMUEzDzoMFiby+wPlYXowo5A7A12e67nqV\nJtoW6oAqwlGkRpHOAemttoMgK5cX6DWyptcO1+WXvnVO1K7OujKyhbgb905/bFwb\n/4llDtmKRlOjasqCSa1hzXmE1SGHaWLC6GuRMIg8ndb8hpHedJnzDV8LHEPj9wo5\na2ci5ow1nfEk1pXRY7BeruPDXt2LzxvLoEmdsvLmEzm6eXjH3qeG8orjefwPJW0d\nei8OwIYmQiyjd3t/r0cpoP0CAwEAAQ==\n-----END PUBLIC KEY-----\n"
+  }
+}

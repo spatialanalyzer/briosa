@@ -37,6 +37,14 @@ jobs:
         shell: pwsh
         run: ./eng/Verify-TargetIsolation.ps1
 
+      - name: Test mirrorable release catalog producer
+        shell: pwsh
+        run: ./eng/Test-ReleaseCatalog.ps1
+
+      - name: Test signing boundaries without production credentials
+        shell: pwsh
+        run: ./eng/Test-ReleaseSigning.ps1
+
   build-and-test:
     name: SA ${{ matrix.target.sa_version }} Windows x64 build and test
     runs-on: windows-latest
