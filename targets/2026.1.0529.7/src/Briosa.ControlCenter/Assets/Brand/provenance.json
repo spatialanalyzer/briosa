@@ -1,0 +1,40 @@
+{
+  "source": "spatialanalyzer/briosa-brand@v1",
+  "commit": "0a86718f66164e4a773bea37f738888a57c6bce0",
+  "release": "https://github.com/spatialanalyzer/briosa-brand/releases/tag/v1",
+  "packSha256": "96242b1cecea687b89a35b83658d8f8fa8fa93cf7fd7c73ca8c2dc0e67b29b5a",
+  "assets": [
+    {
+      "path": "fonts/Inter-Variable.ttf",
+      "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    },
+    {
+      "path": "fonts/OFL.txt",
+      "sha256": "5b9321a4298cfeb6b34354164a1c3afc3db114569984c502b9b35d988fd58c57"
+    },
+    {
+      "path": "LICENSE",
+      "sha256": "1eb85fc97224598dad1852b5d6483bbcf0aa8608790dcc657a5a2a761ae9c8c6"
+    },
+    {
+      "path": "png/logos/briosa-horizontal-black.png",
+      "sha256": "8a5079ac56e49e2b80a63f2cdc190029e4e42fbce2b7fe18e10a6a92c3da3a11"
+    },
+    {
+      "path": "png/logos/briosa-horizontal-inverse.png",
+      "sha256": "c4dfae27875f6fd5dd4659ddd969c525eb80af4ee201bec19c98e35a133ddce7"
+    },
+    {
+      "path": "png/logos/briosa-horizontal-white.png",
+      "sha256": "05575060f310a96c629fb2e57b3a2e17013623773efd30c3f175359b9993ce29"
+    },
+    {
+      "path": "THIRD-PARTY-NOTICES.md",
+      "sha256": "1a8bc74044a23208c9782ecaae06eadf42a9a4433b88f17c3338b6c32a95123b"
+    },
+    {
+      "path": "png/logos/briosa-horizontal-color.png",
+      "sha256": "d7273be8ab85cb397296783405447f28e8a2d6412b7fcf9234d63dde4ed25e59"
+    }
+  ]
+}

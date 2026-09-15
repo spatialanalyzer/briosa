@@ -21,6 +21,8 @@ $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $monorepoRoot = [IO.Path]::GetFullPath((Join-Path $repositoryRoot "..\.."))
 $serverProject = Join-Path $repositoryRoot "src\Briosa.Server\Briosa.Server.csproj"
 $workerProject = Join-Path $repositoryRoot "src\Briosa.Worker\Briosa.Worker.csproj"
+$desktopProject = Join-Path $repositoryRoot "src\Briosa.ControlCenter\Briosa.ControlCenter.csproj"
+$desktopLauncherProject = Join-Path $repositoryRoot "src\Briosa.ControlCenter.Launcher\Briosa.ControlCenter.Launcher.csproj"
 $targetVersion = "2026.1.0529.7"
 $interopRoot = Join-Path $repositoryRoot "interop\SpatialAnalyzer\2026.1.0529.7"
 $interopProvenancePath = Join-Path $interopRoot "Briosa.SpatialAnalyzer.Interop.provenance.json"
@@ -148,6 +150,8 @@ $externalProvenancePath = Join-Path $outputRoot "$artifactBase.provenance.json"
 try {
     $serverOutput = Join-Path $temporaryRoot "server"
     $workerOutput = Join-Path $temporaryRoot "worker"
+    $desktopOutput = Join-Path $temporaryRoot "desktop"
+    $desktopLauncherOutput = Join-Path $temporaryRoot "desktop-launcher"
     $packageRoot = Join-Path $temporaryRoot "package"
     [IO.Directory]::CreateDirectory($serverOutput) | Out-Null
     [IO.Directory]::CreateDirectory($workerOutput) | Out-Null
@@ -158,6 +162,10 @@ try {
             "restore", $serverProject, "--locked-mode", "-r", "win-x64")
         Invoke-DotNet @(
             "restore", $workerProject, "--locked-mode", "-r", "win-x64")
+        Invoke-DotNet @(
+            "restore", $desktopProject, "--locked-mode", "-r", "win-x64")
+        Invoke-DotNet @(
+            "restore", $desktopLauncherProject, "--locked-mode", "-r", "win-x64")
     }
 
     $publishProperties = @(
@@ -189,9 +197,30 @@ try {
         "-o", $workerOutput
     ) + $publishProperties
     Invoke-DotNet $workerPublishArguments
+    Invoke-DotNet (@("publish", $desktopProject, "-c", $Configuration, "-r", "win-x64",
+        "--self-contained", "true", "--no-restore", "-o", $desktopOutput) + $publishProperties)
+    Invoke-DotNet (@("publish", $desktopLauncherProject, "-c", $Configuration, "-r", "win-x64",
+        "--self-contained", "true", "--no-restore", "-o", $desktopLauncherOutput) + $publishProperties)
 
     Copy-PublishTree $serverOutput $packageRoot
     Copy-PublishTree $workerOutput $packageRoot
+    Copy-PublishTree $desktopLauncherOutput $packageRoot
+    Copy-PublishTree $desktopOutput (Join-Path $packageRoot "desktop")
+    Copy-Item -LiteralPath (Join-Path $repositoryRoot "docs\operations\control-center.md") `
+        -Destination (Join-Path $packageRoot "CONTROL-CENTER.md")
+    $brandMetadata = Join-Path $packageRoot "metadata\desktop-brand"
+    [IO.Directory]::CreateDirectory($brandMetadata) | Out-Null
+    [IO.Directory]::CreateDirectory((Join-Path $brandMetadata "fonts")) | Out-Null
+    Copy-Item -LiteralPath (Join-Path $repositoryRoot "src\Briosa.ControlCenter\Assets\Brand\fonts\OFL.txt") `
+        -Destination (Join-Path $brandMetadata "fonts\OFL.txt")
+    Copy-Item -LiteralPath (Join-Path $repositoryRoot "src\Briosa.ControlCenter\Assets\Brand\THIRD-PARTY-NOTICES.md") `
+        -Destination (Join-Path $brandMetadata "THIRD-PARTY-NOTICES.md")
+    Copy-Item -LiteralPath (Join-Path $repositoryRoot "src\Briosa.ControlCenter\Assets\Brand\LICENSE") `
+        -Destination (Join-Path $brandMetadata "LICENSE")
+    Copy-Item -LiteralPath (Join-Path $repositoryRoot "src\Briosa.ControlCenter\Assets\Brand\provenance.json") `
+        -Destination (Join-Path $brandMetadata "provenance.json")
+    Copy-Item -LiteralPath (Join-Path $repositoryRoot "src\Briosa.ControlCenter\Assets\AppIcon\derivation.json") `
+        -Destination (Join-Path $brandMetadata "icon-derivation.json")
     Copy-Item -LiteralPath (Join-Path $monorepoRoot "LICENSE") `
         -Destination (Join-Path $packageRoot "LICENSE.txt")
     Copy-Item -LiteralPath (Join-Path $repositoryRoot "docs\operations\windows-package.md") `

@@ -26,6 +26,7 @@
     <PackageReference Include="Serilog.Sinks.File" />
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
     <ProjectReference Include="..\Briosa.Protocol\Briosa.Protocol.csproj" />
+    <ProjectReference Include="..\Briosa.Desktop\Briosa.Desktop.csproj" />
     <ProjectReference Include="..\Briosa.Worker.Control\Briosa.Worker.Control.csproj" />
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)' == 'Debug'">

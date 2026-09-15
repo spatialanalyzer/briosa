@@ -1,0 +1,26 @@
+{
+  "source": "spatialanalyzer/briosa-brand@v1",
+  "commit": "0a86718f66164e4a773bea37f738888a57c6bce0",
+  "inputs": {
+    "marks/briosa-symbol-inverse.svg": "d0354692f40583d995b216d19b392bdc91adfd969f8c8537a08ece86d1cf0c66"
+  },
+  "modification": "Rasterize the unmodified transparent inverse symbol (white, silver-gray and cyan-blue) into centered square ICO frames using contain fit. Preserve aspect ratio, original geometry, colors and equal left/right padding. No background tile or optical translation.",
+  "generator": "https://github.com/spatialanalyzer/briosa-installer/blob/main/eng/Build-AppIcon.cjs",
+  "renderer": {
+    "sharp": "0.35.4",
+    "vips": "8.18.6"
+  },
+  "sizes": [
+    16,
+    20,
+    24,
+    32,
+    40,
+    48,
+    64,
+    96,
+    128,
+    256
+  ],
+  "sha256": "b2d47240a435abd0b84acf134ae456c9496c6ed724df4dcaf0c43bef4aef6ae3"
+}

@@ -11,6 +11,8 @@ if (args is ["diagnostics"] or ["--diagnostics"])
     return;
 }
 var builder = WebApplication.CreateBuilder(args);
+var desktopOptions = DesktopHostOptions.Create(builder.Configuration);
+using var desktopAnnouncement = new DesktopAnnouncement(desktopOptions);
 try
 {
     builder.Logging.AddBriosaLogging(builder.Configuration);
@@ -42,6 +44,9 @@ builder.Services.AddSingleton<ISpatialAnalyzerSdkLifecycleStateProvider>(provide
 builder.Services.AddSpatialAnalyzerLifecycle(builder.Configuration);
 builder.Services.AddSingleton<SpatialAnalyzerSdkLifecycleCoordinator>();
 builder.Services.AddSingleton<OperationExecutor>();
+builder.Services.AddSingleton(desktopOptions with { Announced = true });
+builder.Services.AddSingleton<ServerDiscoveryService>();
+builder.Services.AddHostedService<DesktopHost>();
 
 var app = builder.Build();
 
@@ -56,5 +61,6 @@ app.MapSpatialAnalyzerServices();
 app.MapBriosaDevelopmentGrpcReflection();
 
 app.Run();
+desktopAnnouncement.Complete();
 
 internal partial class Program;
