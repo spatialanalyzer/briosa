@@ -1,0 +1,75 @@
+name: Sign a Briosa Windows package
+description: Verify staged inputs, timestamp first-party files, and rebuild final package hashes.
+inputs:
+  package-path:
+    required: true
+    description: Validated unsigned product ZIP with adjacent checksum and provenance
+  staging-directory:
+    required: true
+    description: New directory for signing
+  output-directory:
+    required: true
+    description: Final signed assets directory
+  client-id:
+    required: true
+    description: Environment-scoped Azure application ID
+  tenant-id:
+    required: true
+    description: Azure directory ID
+  subscription-id:
+    required: true
+    description: Azure subscription ID
+outputs:
+  package-root:
+    description: Signed unpacked product directory
+    value: ${{ steps.prepare.outputs.package-root }}
+runs:
+  using: composite
+  steps:
+    - name: Prepare and validate unsigned package
+      id: prepare
+      shell: pwsh
+      env:
+        SIGNING_TOOLS: ${{ github.action_path }}/../../../eng
+        PACKAGE_PATH: ${{ inputs.package-path }}
+        STAGING_DIRECTORY: ${{ inputs.staging-directory }}
+      run: '& "$env:SIGNING_TOOLS/Prepare-SignedPackage.ps1" -PackagePath $env:PACKAGE_PATH -OutputDirectory $env:STAGING_DIRECTORY'
+    - name: Read reviewed signing configuration
+      id: config
+      shell: pwsh
+      env:
+        SIGNING_TOOLS: ${{ github.action_path }}/../../../eng
+      run: |
+        $config = Get-Content -LiteralPath "$env:SIGNING_TOOLS/signing/azure.json" -Raw | ConvertFrom-Json
+        "endpoint=$($config.endpoint)" >> $env:GITHUB_OUTPUT
+        "account=$($config.account)" >> $env:GITHUB_OUTPUT
+        "profile=$($config.certificateProfile)" >> $env:GITHUB_OUTPUT
+        "publisher=$($config.expectedPublisher)" >> $env:GITHUB_OUTPUT
+    - name: Authenticate using GitHub OIDC
+      uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906 # v3
+      with:
+        client-id: ${{ inputs.client-id }}
+        tenant-id: ${{ inputs.tenant-id }}
+        subscription-id: ${{ inputs.subscription-id }}
+    - name: Timestamp first-party code with Azure Artifact Signing
+      uses: azure/artifact-signing-action@c7ab2a863ab5f9a846ddb8265964877ef296ee82 # v2
+      with:
+        endpoint: ${{ steps.config.outputs.endpoint }}
+        signing-account-name: ${{ steps.config.outputs.account }}
+        certificate-profile-name: ${{ steps.config.outputs.profile }}
+        files-catalog: ${{ steps.prepare.outputs.files-catalog }}
+        file-digest: SHA256
+        timestamp-rfc3161: http://timestamp.acs.microsoft.com
+        timestamp-digest: SHA256
+        description: Briosa
+        description-url: https://briosa.dev
+        exclude-environment-credential: true
+        cache-dependencies: false
+    - name: Verify signatures and finalize package
+      shell: pwsh
+      env:
+        SIGNING_TOOLS: ${{ github.action_path }}/../../../eng
+        PACKAGE_ROOT: ${{ steps.prepare.outputs.package-root }}
+        OUTPUT_DIRECTORY: ${{ inputs.output-directory }}
+        EXPECTED_PUBLISHER: ${{ steps.config.outputs.publisher }}
+      run: '& "$env:SIGNING_TOOLS/Complete-SignedPackage.ps1" -PackageRoot $env:PACKAGE_ROOT -OutputDirectory $env:OUTPUT_DIRECTORY -ExpectedPublisher $env:EXPECTED_PUBLISHER'

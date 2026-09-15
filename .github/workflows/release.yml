@@ -111,14 +111,59 @@ jobs:
       - name: Upload exact-target release assets
         uses: actions/upload-artifact@v7
         with:
-          name: briosa-${{ needs.version.outputs.value }}-sa-${{ matrix.target.sa_version }}-release-assets
+          name: unsigned-briosa-${{ needs.version.outputs.value }}-sa-${{ matrix.target.sa_version }}-release-assets
           path: ${{ matrix.target.path }}/artifacts/release/*
+          if-no-files-found: error
+
+  sign:
+    name: Sign SA ${{ matrix.sa_version }} product
+    needs: [version, package]
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+    runs-on: windows-2025
+    timeout-minutes: 20
+    environment: release-signing
+    permissions:
+      contents: read
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        sa_version: [2026.1.0529.7]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/download-artifact@v8
+        with:
+          name: unsigned-briosa-${{ needs.version.outputs.value }}-sa-${{ matrix.sa_version }}-release-assets
+          path: artifacts/unsigned
+      - name: Sign verified Windows product
+        id: sign
+        uses: ./.github/actions/sign-package
+        with:
+          package-path: artifacts/unsigned/briosa-${{ needs.version.outputs.value }}-sa-${{ matrix.sa_version }}-win-x64.zip
+          staging-directory: artifacts/signing
+          output-directory: artifacts/signed
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Verify final archive and retain developer artifacts
+        shell: pwsh
+        env:
+          PRODUCT: briosa-${{ needs.version.outputs.value }}-sa-${{ matrix.sa_version }}-win-x64
+        run: |
+          ./eng/Prepare-SignedPackage.ps1 -PackagePath "artifacts/signed/$env:PRODUCT.zip" -OutputDirectory artifacts/final-verification
+          Import-Module ./eng/ReleasePackageSigning.psm1
+          Assert-ReleaseSignatures "artifacts/final-verification/$env:PRODUCT" 'David Lucas'
+          Get-ChildItem artifacts/unsigned -File | Where-Object { -not $_.Name.StartsWith($env:PRODUCT + '.') } | Copy-Item -Destination artifacts/signed
+      - uses: actions/upload-artifact@v7
+        with:
+          name: briosa-${{ needs.version.outputs.value }}-sa-${{ matrix.sa_version }}-release-assets
+          path: artifacts/signed/*
           if-no-files-found: error
 
   publish:
     name: Publish GitHub Release
     if: github.event_name == 'push' && github.ref_type == 'tag'
-    needs: [version, package]
+    needs: [version, sign]
     runs-on: windows-latest
     timeout-minutes: 10
     permissions:

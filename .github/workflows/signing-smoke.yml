@@ -1,0 +1,59 @@
+name: Verify Azure signing
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  signing:
+    if: github.ref == 'refs/heads/main'
+    runs-on: windows-2025
+    timeout-minutes: 20
+    environment: release-signing
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+      - name: Create inert signing probe
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory artifacts/signing-smoke -Force | Out-Null
+          [IO.File]::WriteAllText("$PWD/artifacts/signing-smoke/Briosa.SigningProbe.ps1", "Write-Output 'Briosa signing probe. No product functionality.'`r`n", [Text.UTF8Encoding]::new($true))
+          [IO.File]::WriteAllText("$PWD/artifacts/signing-smoke/catalog.json", '{"schemaVersion":1,"packages":[]}' + "`n", [Text.UTF8Encoding]::new($false))
+      - uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906 # v3
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - uses: azure/artifact-signing-action@c7ab2a863ab5f9a846ddb8265964877ef296ee82 # v2
+        with:
+          endpoint: ${{ vars.AZURE_SIGNING_ENDPOINT }}
+          signing-account-name: ${{ vars.AZURE_SIGNING_ACCOUNT }}
+          certificate-profile-name: ${{ vars.AZURE_SIGNING_CERTIFICATE_PROFILE }}
+          files-folder: ${{ github.workspace }}/artifacts/signing-smoke
+          files-folder-filter: ps1
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+          exclude-environment-credential: true
+          cache-dependencies: false
+      - name: Sign catalog using version-pinned Key Vault key
+        shell: pwsh
+        env:
+          AZURE_CATALOG_KEY_ID: ${{ vars.AZURE_CATALOG_KEY_ID }}
+        run: |
+          $config = Get-Content eng/signing/azure.json -Raw | ConvertFrom-Json
+          if ($env:AZURE_CATALOG_KEY_ID -cne $config.catalogKeyId) { throw 'Catalog key configuration differs from the reviewed key version.' }
+          ./eng/Sign-ReleaseCatalog.ps1 -CatalogPath artifacts/signing-smoke/catalog.json -AzureKeyId $env:AZURE_CATALOG_KEY_ID -PublicKeyPath eng/signing/catalog-public.pem -ValidDays 30
+          ./eng/Test-CatalogSignature.ps1 -CatalogPath artifacts/signing-smoke/catalog.json -PublicKeyPath eng/signing/catalog-public.pem
+      - name: Verify Windows publisher and timestamp
+        shell: pwsh
+        run: |
+          $signature = Get-AuthenticodeSignature artifacts/signing-smoke/Briosa.SigningProbe.ps1
+          if ($signature.Status -ne 'Valid' -or -not $signature.TimeStamperCertificate -or $signature.SignerCertificate.GetNameInfo('SimpleName', $false) -cne 'David Lucas') { throw 'Authenticode validation failed.' }
+          "Verified GitHub OIDC, timestamped Authenticode, and the pinned catalog signature." >> $env:GITHUB_STEP_SUMMARY
+      - uses: actions/upload-artifact@v7
+        with:
+          name: signing-verification-only
+          path: artifacts/signing-smoke/*
+          retention-days: 7

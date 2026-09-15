@@ -1,0 +1,50 @@
+name: Sign reviewed release catalog
+on:
+  workflow_dispatch:
+    inputs:
+      catalog_path:
+        description: Repository-relative path to the reviewed catalog on this main or v* ref
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  sign:
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+    runs-on: windows-2025
+    timeout-minutes: 10
+    environment: release-signing
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+      - name: Stage reviewed catalog
+        shell: pwsh
+        env:
+          CATALOG_PATH: ${{ inputs.catalog_path }}
+        run: |
+          $root = [IO.Path]::GetFullPath($env:GITHUB_WORKSPACE)
+          $path = [IO.Path]::GetFullPath((Join-Path $root $env:CATALOG_PATH))
+          if (-not $path.StartsWith($root + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase) -or [IO.Path]::GetExtension($path) -cne '.json') { throw 'Choose a JSON catalog inside this checkout.' }
+          New-Item -ItemType Directory artifacts/catalog-signing -Force | Out-Null
+          Copy-Item -LiteralPath $path -Destination artifacts/catalog-signing/catalog.json
+      - uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906 # v3
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Sign and verify exact catalog bytes
+        shell: pwsh
+        env:
+          KEY_ID: ${{ vars.AZURE_CATALOG_KEY_ID }}
+        run: |
+          $config = Get-Content eng/signing/azure.json -Raw | ConvertFrom-Json
+          if ($env:KEY_ID -cne $config.catalogKeyId) { throw 'Unexpected catalog key version.' }
+          ./eng/Sign-ReleaseCatalog.ps1 -CatalogPath artifacts/catalog-signing/catalog.json -AzureKeyId $env:KEY_ID -PublicKeyPath eng/signing/catalog-public.pem -ValidDays 30
+          ./eng/Test-CatalogSignature.ps1 -CatalogPath artifacts/catalog-signing/catalog.json -PublicKeyPath eng/signing/catalog-public.pem
+      - uses: actions/upload-artifact@v7
+        with:
+          name: signed-release-catalog
+          path: artifacts/catalog-signing/*
+          if-no-files-found: error

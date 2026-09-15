@@ -2,7 +2,7 @@
 
 - Date: 2026-09-12
 - Status: Implemented by the Briosa Installer local review build.
-- Scope: Shared metadata/signature contract; production hosting and key custody remain release work.
+- Scope: Shared metadata/signature contract; see the [Azure signing runbook](../maintainers/release-signing.md) for production key custody and workflows.
 - Related: [exact-target products](exact-target-product-model.md),
   [distribution](validation-and-distribution.md), and
   [Discussion #8](https://github.com/orgs/spatialanalyzer/discussions/8).
@@ -90,8 +90,9 @@ Local clock/history controls are not a global revocation service or transparency
 log. Installed packages can be verified and selected offline; current administrator
 publisher restrictions still apply to managed installer selection/launch. Clearing
 a source key prevents future acquisition, not arbitrary execution of existing files.
-Production key custody, rotation, hosting, and initial executable code signing
-require release provisioning. No test identity becomes a production trust root.
+Production key custody and initial executable signing use the reviewed
+[Azure setup](../maintainers/release-signing.md). Rotation and hosting remain
+explicit release operations. No test identity becomes a production trust root.
 
 ## Produce, sign, and mirror
 
@@ -99,6 +100,11 @@ require release provisioning. No test identity becomes a production trust root.
 ./eng/New-ReleaseCatalog.ps1 -ArtifactDirectory ./artifacts/release -OutputPath ./artifacts/release/catalog.json
 ./eng/Sign-ReleaseCatalog.ps1 -CatalogPath ./artifacts/release/catalog.json -PrivateKeyPath <protected-key-file> -ValidDays 7
 ```
+
+The private-PEM example is for disposable local tests. Production uses a versioned
+Azure Key Vault key with `-AzureKeyId` and a pinned `-PublicKeyPath`; the signer
+verifies the returned PS256 signature before replacing the envelope. See the
+[maintainer signing commands](../maintainers/release-signing.md#sign-a-reviewed-catalog).
 
 The producer accepts matching server and installer provenance/ZIPs, verifies adjacent
 checksums, and calculates sizes/digests. Protocol and client-conformance assets are
