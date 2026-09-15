@@ -45,7 +45,7 @@ The packaged default binds unencrypted HTTP/2 to loopback only at `127.0.0.1:500
 ./Briosa.Server.exe
 ```
 
-The default SpatialAnalyzer SDK target is `localhost`. That configured target identifies where Briosa connects; it does not identify the activated SDK or connected application release. The current adapter has no reviewed runtime version query, so an ordinary deployment must supply the independent version/reference attestations documented in [the health and discovery guide](health-and-discovery.md). Missing evidence remains live but not ready; a verified mismatch cannot be overridden.
+The default SpatialAnalyzer SDK target is `localhost`. That configured target identifies where Briosa connects; it does not identify the activated SDK or connected application release. The worker observes the file/product version of the SDK process uniquely created during activation. The connected SA version still requires independent operator evidence; an SDK attestation is also needed when its runtime version cannot be observed. Supply the version/reference pairs through Control Center's Connection setup or the configuration documented in [the health and discovery guide](health-and-discovery.md). Missing evidence remains live but not ready; a verified mismatch cannot be overridden.
 
 The public endpoint has one authoritative configuration surface: `Briosa:Endpoint:Address` and `Briosa:Endpoint:Port`. The address must be an IPv4 or IPv6 loopback IP literal. Generic ASP.NET Core URL settings, configured Kestrel endpoints, hostnames, wildcards, LAN addresses, and public addresses are rejected at startup.
 

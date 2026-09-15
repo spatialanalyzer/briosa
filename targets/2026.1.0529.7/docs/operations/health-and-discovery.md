@@ -45,7 +45,7 @@ The configured target is never substituted for an unobserved runtime version. Ru
 
 ### Operator attestation when runtime evidence is unavailable
 
-The current production adapter has no reviewed runtime query for either identity. With no explicit evidence, Briosa remains live but fails readiness and rejects MP admission with a not-started unavailable outcome. An operator may attest either missing claim independently:
+The production adapter observes the file/product version of the SDK process uniquely created during activation. It does not infer that version from COM registration or the configured target, and it has no reviewed runtime query for the connected SA application's version. If either effective identity is missing, Briosa remains live but fails readiness and rejects MP admission with a not-started unavailable outcome. An operator may attest either missing claim independently; omit the SDK pair when its runtime version is already observed:
 
 ```json
 {
