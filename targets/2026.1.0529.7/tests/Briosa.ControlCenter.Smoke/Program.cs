@@ -64,6 +64,8 @@ internal static class Program
         Save(window, Path.Combine(output, "activity.png"), 1000, 760, 1);
         ((ListBox)window.FindName("Navigation")).SelectedIndex = 2;
         Save(window, Path.Combine(output, "support.png"), 1000, 760, 1);
+        ((ListBox)window.FindName("Navigation")).SelectedIndex = 3;
+        Save(window, Path.Combine(output, "connection-setup.png"), 1140, 800, 1);
         BrandTheme.Apply(app, dark: false, highContrast: true);
         if (app.Resources["BriosaWorkspaceBrush"] is not SolidColorBrush contrast || contrast.Color != SystemColors.WindowColor)
             throw new InvalidOperationException("High contrast retained decorative planes.");
@@ -101,7 +103,9 @@ internal static class Program
             foreach (var child in peer.GetChildren() ?? []) peers.Enqueue(child);
         }
         var selected = ((ListBox)window.FindName("Navigation")).SelectedIndex;
-        var expected = selected switch { 0 => "Start server", 1 => "Search activity", _ => "App theme" };
+        // ScrollViewer omits controls below the viewport from its automation tree.
+        // Verify an on-screen control on each page, including on CI's larger system text metrics.
+        var expected = selected switch { 0 => "Start server", 1 => "Search activity", 2 => "Distribution and runtime details", _ => "Connected SA version" };
         if (!controls.Contains(expected)) throw new InvalidOperationException("Page controls are missing from the window automation tree: " + expected);
         var visual = (Visual)window.Content;
         var bitmap = new RenderTargetBitmap((int)(width * scale), (int)(height * scale), 96 * scale, 96 * scale, PixelFormats.Pbgra32);

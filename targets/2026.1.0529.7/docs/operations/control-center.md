@@ -24,9 +24,29 @@ API host and its worker; SpatialAnalyzer remains open.
 
 Starting the API host does not start SpatialAnalyzer or its SDK. Open the
 separately installed and licensed exact-target SpatialAnalyzer application,
-select **Start SDK**, and then **Connect**. Existing server configuration supplies
-the worker, endpoint, operation policy, and independent identity evidence.
-Control Center does not infer identity from installed files or edit attestations.
+select **Start SDK**, and then **Connect**. The worker observes the file/product
+version of the exact SDK process created during activation. Windows can activate
+an older registered SDK even when the correct SA application is running.
+
+**Connection setup** accepts independent operator evidence. With the server
+stopped, enter the connected SA version and a non-sensitive reference to your
+verification record, then save. Check the actual running application and its SDK
+communication ownership; an installed package alone does not establish which
+application is connected. Leave the optional SDK fallback fields empty when its
+version is observed automatically. Each claim needs both a version and reference,
+or neither. Runtime observations take precedence and cannot be overridden.
+
+Evidence is stored privately per distribution and applied to future managed
+server launches. It does not edit the installed package or another launcher's
+server. Empty pairs preserve existing server/environment configuration. Recheck
+saved evidence after changing SDK registration or the SA application. References
+are not sent to the worker, logged, or exported.
+
+If **Version mismatch** identifies an older SDK, stop the SDK and use the matching
+SA installation's `SpatialAnalyzerSDK-register-server.bat` with administrator
+rights. This changes COM registration for other SDK clients too. Briosa does not
+change it automatically. Start a new SDK generation afterward. Reconnecting the
+same generation cannot change the SDK executable or supply missing evidence.
 
 Only **Ready for commands** means that current execution readiness is established.
 Inspect **Overview** for attachment, SDK/SA evidence sources and match states,
@@ -63,6 +83,9 @@ through crashes, quota limits, or provider failure. Missing logs do not establis
 whether a command ran. File diagnostics can be disabled or inaccessible while
 the API remains available.
 
+Routine health reports while commands are unavailable appear as informational
+readiness entries. Exceptions in health checks remain errors.
+
 **Details & support** provides offline package diagnostics, endpoint copying,
 notification preferences, an app theme selector, and a sanitized ZIP export.
 Appearance matches Briosa Installer: select Windows, Light, or Dark; Windows
@@ -91,6 +114,7 @@ automatic update. Close the controller and stop its owned server before removal.
 Per-user preferences live outside the package under
 `%LOCALAPPDATA%\Briosa\ControlCenter\2026.1.0529.7`; package removal preserves them.
 
-This initial implementation is validated with fake workers and Windows package/UI
-tests. Real SpatialAnalyzer startup/connection/recovery through the desktop flow
-requires separate licensed validation before it is claimed as release evidence.
+The implementation has fake-worker and Windows package/UI coverage. The
+[2026-09-15 local licensed check](../testing/evidence/control-center-local-2026-09-15.md)
+also exercised desktop connection and read-only commands against the exact target.
+It does not establish live fault-recovery behavior or compatibility with other SA releases.

@@ -132,6 +132,24 @@ public static class DesktopStore
     public static void SavePreferences(DesktopPreferences preferences) =>
         Write(Path.Combine(EnsurePrivateDirectory(Root), "preferences.json"), preferences);
 
+    private static string IdentitySettingsName(string packageDirectory) => "identity-" + Convert.ToHexString(
+        System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(
+            Path.TrimEndingDirectorySeparator(Path.GetFullPath(packageDirectory)).ToUpperInvariant()))) + ".json";
+
+    public static DesktopIdentitySettings ReadIdentitySettings(string packageDirectory)
+    {
+        var settings = Read<DesktopIdentitySettings>(Path.Combine(Root, IdentitySettingsName(packageDirectory))) ?? new();
+        settings.Validate();
+        return settings;
+    }
+
+    public static void SaveIdentitySettings(string packageDirectory, DesktopIdentitySettings settings)
+    {
+        ArgumentNullException.ThrowIfNull(settings);
+        settings.Validate();
+        Write(Path.Combine(EnsurePrivateDirectory(Root), IdentitySettingsName(packageDirectory)), settings);
+    }
+
     private static T? Read<T>(string path)
     {
         if (!File.Exists(path)) return default;

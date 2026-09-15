@@ -18,10 +18,14 @@ public sealed record DesktopState
     public SpatialAnalyzerLifecycleState? Application { get; init; }
 
     public bool CanStartSdk => CanManage && Available && Sdk?.SdkState == SpatialAnalyzerSdkState.Stopped;
-    public bool CanConnect => CanManage && Available && Sdk is { SdkState: SpatialAnalyzerSdkState.Running,
+    public bool IdentityMismatch => Info?.ActivatedSdkIdentity?.MatchState == RuntimeIdentityMatchState.Mismatch ||
+        Info?.ConnectedSpatialAnalyzerIdentity?.MatchState == RuntimeIdentityMatchState.Mismatch;
+    public bool CanConnect => CanManage && Available && !IdentityMismatch && Sdk is { SdkState: SpatialAnalyzerSdkState.Running,
         ConnectionState: SpatialAnalyzerConnectionState.Disconnected, RecoveryState: SpatialAnalyzerSdkRecoveryState.NotRequired };
-    public bool CanReconnect => CanManage && Available && !Ready && Sdk is { SdkState: SpatialAnalyzerSdkState.Running,
-        ConnectionState: SpatialAnalyzerConnectionState.Connected, RecoveryState: SpatialAnalyzerSdkRecoveryState.NotRequired };
+    public bool CanReconnect => CanManage && Available && !Ready && !IdentityMismatch &&
+        Info?.ActivatedSdkIdentity?.MatchState == RuntimeIdentityMatchState.ExactMatch &&
+        Info?.ConnectedSpatialAnalyzerIdentity?.MatchState == RuntimeIdentityMatchState.ExactMatch && Sdk is { SdkState: SpatialAnalyzerSdkState.Running,
+        ConnectionState: SpatialAnalyzerConnectionState.Connected or SpatialAnalyzerConnectionState.Faulted, RecoveryState: SpatialAnalyzerSdkRecoveryState.NotRequired };
     public bool CanRecover => CanManage && Available && Sdk?.RecoveryState is SpatialAnalyzerSdkRecoveryState.RecoveryAvailable
         or SpatialAnalyzerSdkRecoveryState.OperatorActionRequired;
     public bool CanStopSdk => CanManage && Available && Sdk is { HasSdkGeneration: true } &&
@@ -67,13 +71,14 @@ public sealed record DesktopState
         if (ready) return ("Ready for commands", "The SDK connection, both version identities, and execution channel meet readiness requirements for this generation.", false);
         if (sdk.SdkState == SpatialAnalyzerSdkState.Stopped)
             return ("Server running · SDK stopped", "Start the SDK, then connect to the separately running SpatialAnalyzer application.", false);
-        if (info.ActivatedSdkIdentity?.MatchState == RuntimeIdentityMatchState.Mismatch ||
-            info.ConnectedSpatialAnalyzerIdentity?.MatchState == RuntimeIdentityMatchState.Mismatch)
-            return ("Version mismatch", "The activated SDK and connected SpatialAnalyzer must both match this exact target. Correct the environment before connecting again.", true);
+        if (info.ActivatedSdkIdentity?.MatchState == RuntimeIdentityMatchState.Mismatch)
+            return ("Version mismatch", "The activated SDK and connected SpatialAnalyzer must both be " + DesktopProtocol.Target + ". Stop the SDK and register the matching SDK using the vendor's installation tools. Review Connection setup before starting again.", true);
+        if (info.ConnectedSpatialAnalyzerIdentity?.MatchState == RuntimeIdentityMatchState.Mismatch)
+            return ("Version mismatch", "The connected SpatialAnalyzer must be " + DesktopProtocol.Target + ". Stop the server, verify the running SA application, and review its evidence in Connection setup before starting again.", true);
         if (sdk.ConnectionState == SpatialAnalyzerConnectionState.Connected &&
             (info.ActivatedSdkIdentity?.MatchState != RuntimeIdentityMatchState.ExactMatch ||
              info.ConnectedSpatialAnalyzerIdentity?.MatchState != RuntimeIdentityMatchState.ExactMatch))
-            return ("Version identity unavailable", "Review independent SDK and SpatialAnalyzer identity evidence in server configuration. An installed package alone does not establish runtime identity.", true);
+            return ("Version identity unavailable", "Attachment succeeded, but commands are blocked. Stop the server, open Connection setup, and supply the missing operator evidence. Start the server and SDK, then connect again.", true);
         if (application.ApplicationState == SpatialAnalyzerApplicationState.NotRunning)
             return ("Waiting for SpatialAnalyzer", "Open the exact-target SpatialAnalyzer application, then connect the SDK.", false);
         if (sdk.ConnectionState == SpatialAnalyzerConnectionState.Disconnected)
@@ -83,6 +88,19 @@ public sealed record DesktopState
 
     public static string IdentityText(RuntimeIdentityEvidence? identity) => identity is null ? "Unavailable" :
         $"{SafeText.Version(identity.Version)} · {SafeText.Label(identity.Source)} · {SafeText.Label(identity.MatchState)}";
+}
+
+public static class DesktopActionFeedback
+{
+    public static string Rejected(string? diagnostic) => diagnostic switch
+    {
+        "runtime-identity-not-ready" => "Attachment succeeded; commands remain blocked by version checks. Review Connection setup. Reconnecting cannot supply missing evidence.",
+        "activated-sdk-version-mismatch" => "Connection was blocked because Windows activated a different SDK release. Stop the SDK and register the matching SDK using the vendor's installation tools.",
+        "spatial-analyzer-application-not-found" => "The matching SpatialAnalyzer application was not found. Open it, then connect again.",
+        "sdk-client-activation-failed" => "Windows could not activate the SDK. Check the matching SpatialAnalyzer installation and SDK registration before recovery.",
+        "sdk-reconnect-not-required" => "The SDK is already ready. Reconnection is unnecessary.",
+        _ => "The server rejected the action. Review its current state. Diagnostic: " + SafeText.Code(diagnostic)
+    };
 }
 
 public static class SafeText

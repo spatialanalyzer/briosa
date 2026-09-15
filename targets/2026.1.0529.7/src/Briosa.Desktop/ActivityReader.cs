@@ -75,6 +75,7 @@ public sealed class ActivityReader
                 "RpcCompleted" => ("Request", "RPC completed. Check the execution observation for the MP outcome."),
                 "RpcFailed" => ("Request", "RPC failed. This alone does not establish command completion."),
                 "FrameworkEvent" => ("Host", "Host framework diagnostic recorded."),
+                "ReadinessNotReady" => ("Readiness", "Commands are not ready. Review SDK connection and version evidence on Overview."),
                 _ => ("", "")
             };
             if (message.Length == 0) return null;

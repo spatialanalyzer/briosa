@@ -2,6 +2,12 @@ using System.Diagnostics;
 
 namespace Briosa.Desktop;
 
+[System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1032:Implement standard exception constructors", Justification = "A desktop rejection requires a safe server diagnostic, never arbitrary exception text.")]
+public sealed class DesktopActionRejectedException(string diagnostic) : InvalidOperationException("The server rejected the desktop action.")
+{
+    public string Diagnostic { get; } = SafeText.Code(diagnostic);
+}
+
 public sealed class DesktopSession : IDisposable
 {
     private readonly string _packageDirectory;
@@ -13,6 +19,13 @@ public sealed class DesktopSession : IDisposable
     public bool HistoricalUnknownOutcome { get; private set; }
     public bool HasServer => Instance is not null;
     public event EventHandler? InstanceSelected;
+
+    public DesktopIdentitySettings ReadIdentitySettings() => DesktopStore.ReadIdentitySettings(_packageDirectory);
+    public void SaveIdentitySettings(DesktopIdentitySettings settings)
+    {
+        if (HasServer) throw new InvalidOperationException("Stop the selected server before changing connection setup.");
+        DesktopStore.SaveIdentitySettings(_packageDirectory, settings);
+    }
 
     public DesktopSession(string packageDirectory, string? monitorInstance = null)
     {
@@ -33,6 +46,7 @@ public sealed class DesktopSession : IDisposable
             await RefreshAsync(cancellationToken).ConfigureAwait(false);
             return;
         }
+        var identitySettings = ReadIdentitySettings();
         Instance = DesktopProtocol.NewInstance();
         _ownership = new(Instance, DesktopProtocol.NewCredential());
         DesktopStore.SaveOwnership(_ownership);
@@ -45,6 +59,7 @@ public sealed class DesktopSession : IDisposable
         start.Environment[DesktopProtocol.ModeVariable] = "Owned";
         start.Environment[DesktopProtocol.InstanceVariable] = Instance;
         start.Environment[DesktopProtocol.CredentialVariable] = _ownership.Credential;
+        identitySettings.ApplyTo(start);
         try
         {
             _ownedProcess = Process.Start(start) ?? throw new IOException("Server launch failed.");
@@ -109,7 +124,7 @@ public sealed class DesktopSession : IDisposable
         LastReply = reply;
         State = DesktopState.FromReply(reply);
         HistoricalUnknownOutcome |= State.OutcomeUnknown;
-        if (!reply.Accepted) throw new InvalidOperationException("Action was rejected: " + SafeText.Code(reply.Diagnostic));
+        if (!reply.Accepted) throw new DesktopActionRejectedException(reply.Diagnostic);
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)

@@ -48,6 +48,9 @@ internal sealed class SerializedSdkExecutor : IAsyncDisposable
         CancellationToken cancellationToken = default) =>
         Enqueue(static sdk => sdk.GetLiveness(), cancellationToken);
 
+    public Task<string?> GetActivatedSdkVersionAsync(CancellationToken cancellationToken = default) =>
+        Enqueue(static sdk => sdk.GetActivatedSdkVersion(), cancellationToken);
+
     public Task<SdkExecutionResult> ExecuteAsync(
         SdkCommand command,
         CancellationToken cancellationToken = default)

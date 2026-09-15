@@ -45,7 +45,8 @@ internal sealed record SdkConnectionSnapshot(
     string DiagnosticCode,
     DateTimeOffset TransitionedAt,
     SdkExecutionReadinessState ExecutionReadinessState =
-        SdkExecutionReadinessState.Unverified);
+        SdkExecutionReadinessState.Unverified,
+    string? ActivatedSdkVersion = null);
 
 internal sealed class SdkConnectionPolicy
 {

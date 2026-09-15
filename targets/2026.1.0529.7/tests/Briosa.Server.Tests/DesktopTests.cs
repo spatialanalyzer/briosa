@@ -9,6 +9,42 @@ namespace Briosa.Server.Tests;
 public sealed class DesktopTests
 {
     [Fact]
+    public void ConnectionSetupRequiresIndependentCompleteEvidenceAndUsesOnlyChildEnvironment()
+    {
+        Assert.Throws<ArgumentException>(() => new DesktopIdentitySettings(ApplicationVersion: DesktopProtocol.Target).Validate());
+        Assert.Throws<ArgumentException>(() => new DesktopIdentitySettings(ApplicationReference: "record").Validate());
+        Assert.Throws<ArgumentException>(() => new DesktopIdentitySettings(ApplicationVersion: DesktopProtocol.Target, ApplicationReference: "line\nbreak").Validate());
+        var settings = new DesktopIdentitySettings(ApplicationVersion: DesktopProtocol.Target, ApplicationReference: "local-verification-record");
+        var start = new System.Diagnostics.ProcessStartInfo();
+        var key = "Briosa__SpatialAnalyzer__Identity__ConnectedSpatialAnalyzer__OperatorAttestation__Version";
+        start.Environment.Remove(key);
+        settings.ApplyTo(start);
+        Assert.Equal(DesktopProtocol.Target, start.Environment[key]);
+        new DesktopIdentitySettings().ApplyTo(start);
+        Assert.Equal(DesktopProtocol.Target, start.Environment[key]);
+    }
+
+    [Fact]
+    public void MismatchedSdkCannotConnectAndMissingEvidenceDoesNotOfferFutileReconnect()
+    {
+        var sdk = new SpatialAnalyzerSdkLifecycleState { SdkState = SpatialAnalyzerSdkState.Running,
+            SdkGeneration = 1, ConnectionState = SpatialAnalyzerConnectionState.Disconnected, RecoveryState = SpatialAnalyzerSdkRecoveryState.NotRequired };
+        var info = new GetServerInfoResponse { ActivatedSdkIdentity = new() { Version = "2024.1.0508.5",
+            Source = RuntimeIdentityEvidenceSource.RuntimeVerification, MatchState = RuntimeIdentityMatchState.Mismatch } };
+        var state = DesktopState.FromReply(Reply(info, sdk));
+        Assert.Equal("Version mismatch", state.Heading);
+        Assert.False(state.CanConnect);
+        Assert.True(state.CanStopSdk);
+        info.ActivatedSdkIdentity.MatchState = RuntimeIdentityMatchState.ExactMatch;
+        sdk.ConnectionState = SpatialAnalyzerConnectionState.Connected;
+        Assert.False(DesktopState.FromReply(Reply(info, sdk)).CanReconnect);
+        info.ConnectedSpatialAnalyzerIdentity = new() { MatchState = RuntimeIdentityMatchState.ExactMatch };
+        sdk.ConnectionState = SpatialAnalyzerConnectionState.Faulted;
+        Assert.True(DesktopState.FromReply(Reply(info, sdk)).CanReconnect);
+        Assert.Contains("Attachment succeeded", DesktopActionFeedback.Rejected("runtime-identity-not-ready"), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void AttachmentAndPartialReadinessNeverProduceReady()
     {
         var sdk = new SpatialAnalyzerSdkLifecycleState { SdkState = SpatialAnalyzerSdkState.Running,

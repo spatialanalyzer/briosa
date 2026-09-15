@@ -7,6 +7,7 @@ namespace Briosa.Worker.Sdk;
 internal interface ISpatialAnalyzerSdkProcessMonitor : IDisposable
 {
     SdkLivenessStatus GetLiveness();
+    string? GetVersion() => null;
 }
 
 internal sealed record SpatialAnalyzerSdkActivation(
@@ -126,10 +127,35 @@ internal static class SpatialAnalyzerSdkProcessMonitor
 
     private sealed record ProcessIdentity(int ProcessId, long StartTimeUtcTicks);
 
+    internal static string? NormalizeVersion(string? value)
+    {
+        if (value is null || value.Length > 128) return null;
+        var parts = value.Split([',', '.'], StringSplitOptions.TrimEntries);
+        // Preserve the vendor's build padding (0529); Version.ToString loses it.
+        return parts.Length == 4 && parts.All(part => part.Length is > 0 and <= 8 && part.All(char.IsAsciiDigit))
+            ? string.Join('.', parts) : null;
+    }
+
+    private static string? ReadVersion(Process process)
+    {
+        try
+        {
+            if (process.HasExited || process.MainModule?.FileName is not { } path) return null;
+            var file = FileVersionInfo.GetVersionInfo(path);
+            var version = NormalizeVersion(file.FileVersion);
+            return !process.HasExited && version == NormalizeVersion(file.ProductVersion) ? version : null;
+        }
+        catch (Exception exception) when (exception is Win32Exception or InvalidOperationException or IOException or UnauthorizedAccessException)
+        { return null; }
+    }
+
     private sealed class OwnedSpatialAnalyzerSdkProcessMonitor(Process process)
         : ISpatialAnalyzerSdkProcessMonitor
     {
         private readonly Process _process = process;
+        private readonly string? _version = ReadVersion(process);
+
+        public string? GetVersion() => GetLiveness() == SdkLivenessStatus.Alive ? _version : null;
 
         public SdkLivenessStatus GetLiveness()
         {

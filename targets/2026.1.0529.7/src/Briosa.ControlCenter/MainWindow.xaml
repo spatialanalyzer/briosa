@@ -20,7 +20,7 @@
             <SolidColorBrush x:Key="ListBoxItemSelectedForegroundThemeBrush" Color="{DynamicResource BriosaNavigationSelectedTextColor}" />
             <SolidColorBrush x:Key="ListBoxItemUnselectedBackgroundPointerOverThemeBrush" Color="{DynamicResource BriosaNavigationHoverColor}" />
           </ListBox.Resources>
-          <ListBoxItem Content="Overview" /><ListBoxItem Content="Activity" /><ListBoxItem Content="Details &amp; support" />
+          <ListBoxItem Content="Overview" /><ListBoxItem Content="Activity" /><ListBoxItem Content="Details &amp; support" /><ListBoxItem Content="Connection setup" />
         </ListBox>
       </DockPanel>
     </Border>
@@ -72,6 +72,7 @@
               <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource StatusCard}"><StackPanel>
                 <TextBlock Text="Version identity &amp; readiness" Style="{StaticResource SectionTitle}" />
                 <TextBlock x:Name="IdentityText" />
+                <Button Content="Connection setup" Click="SetupClicked" HorizontalAlignment="Left" Margin="0,12,0,0" />
               </StackPanel></Border>
             </Grid>
           </StackPanel>
@@ -114,6 +115,30 @@
           </ComboBox>
           <CheckBox x:Name="NotificationsBox" Content="Notify me when attention is required" Checked="NotificationsChanged" Unchecked="NotificationsChanged" />
           <TextBlock Text="Closing this window hides it to the tray. Exit tray application leaves a running server available. Updates and removal are managed through the Briosa installer." Margin="0,20,0,0" />
+        </StackPanel></Border></ScrollViewer>
+      </Grid>
+      <Grid x:Name="SetupPage" Visibility="Collapsed">
+        <ScrollViewer VerticalScrollBarVisibility="Auto"><Border Style="{StaticResource Card}"><StackPanel>
+          <TextBlock Text="Version evidence" Style="{StaticResource SectionTitle}" />
+          <TextBlock Text="Briosa reads the activated SDK executable version. The connected SA version still requires independent operator evidence. Verify the actual running application; an installed package alone is insufficient. Runtime evidence takes precedence over entries below." Margin="0,0,0,12" />
+          <TextBlock x:Name="SetupStatus" Margin="0,0,0,12" FontWeight="SemiBold" />
+          <StackPanel x:Name="IdentityFields">
+            <TextBlock Text="Connected SpatialAnalyzer" Style="{StaticResource SectionTitle}" />
+            <Label Content="SA _version" Target="{Binding ElementName=ApplicationVersionBox}" />
+            <TextBox x:Name="ApplicationVersionBox" MaxLength="96" AutomationProperties.Name="Connected SA version" />
+            <Label Content="SA evidence _reference" Target="{Binding ElementName=ApplicationReferenceBox}" />
+            <TextBox x:Name="ApplicationReferenceBox" MaxLength="256" AutomationProperties.Name="Connected SA evidence reference" />
+            <TextBlock Text="Use a non-sensitive reference to your verification record. Verify the SDK communication owner when several SA instances are running." Margin="0,8,0,20" />
+            <Expander Header="Activated SDK fallback · optional" Margin="0,0,0,4"><StackPanel Margin="0,12,0,0">
+            <TextBlock Text="Leave both fields empty when the SDK version is observed automatically. These fields cannot override an observed mismatch." />
+            <Label Content="SDK v_ersion" Target="{Binding ElementName=SdkVersionBox}" />
+            <TextBox x:Name="SdkVersionBox" MaxLength="96" AutomationProperties.Name="Activated SDK version" />
+            <Label Content="SDK evidence re_ference" Target="{Binding ElementName=SdkReferenceBox}" />
+            <TextBox x:Name="SdkReferenceBox" MaxLength="256" AutomationProperties.Name="Activated SDK evidence reference" />
+            </StackPanel></Expander>
+            <Button x:Name="SaveSetupButton" Content="Save connection setup" Click="SaveSetupClicked" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Left" Margin="0,20,0,12" />
+          </StackPanel>
+          <TextBlock Text="Saved privately for this distribution and applied to future servers launched by this Control Center. Recheck evidence after changing SDK registration or the SA application. Empty pairs use existing server configuration. Evidence references are excluded from logs and support exports." />
         </StackPanel></Border></ScrollViewer>
       </Grid>
     </Grid>

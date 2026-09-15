@@ -36,6 +36,7 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
     }
 
     public SdkLivenessStatus GetLiveness() => _processMonitor.GetLiveness();
+    public string? GetActivatedSdkVersion() => _processMonitor.GetVersion();
 
     public SdkConnectionResult Connect(string host)
     {

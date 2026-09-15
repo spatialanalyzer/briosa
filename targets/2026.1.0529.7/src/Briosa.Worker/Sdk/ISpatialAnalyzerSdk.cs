@@ -10,6 +10,9 @@ namespace Briosa.Worker.Sdk;
 /// </remarks>
 internal interface ISpatialAnalyzerSdk : IDisposable
 {
+    // Null means no runtime observation; never substitute the configured target.
+    string? GetActivatedSdkVersion() => null;
+
     SdkLivenessStatus GetLiveness();
 
     SdkConnectionResult Connect(string host);

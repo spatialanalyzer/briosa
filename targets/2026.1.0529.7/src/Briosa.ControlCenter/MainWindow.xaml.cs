@@ -34,6 +34,14 @@ public partial class MainWindow : Window
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or System.Text.Json.JsonException)
         { NotificationsBox.IsChecked = true; }
         _initialized = true;
+        try
+        {
+            var settings = _session.ReadIdentitySettings();
+            SdkVersionBox.Text = settings.SdkVersion; SdkReferenceBox.Text = settings.SdkReference;
+            ApplicationVersionBox.Text = settings.ApplicationVersion; ApplicationReferenceBox.Text = settings.ApplicationReference;
+        }
+        catch (Exception exception) when (ExpectedFailure(exception))
+        { ActionText.Text = "Saved connection setup could not be read. Review and save valid version evidence before starting."; }
         ApplyTheme();
         Render(_session.State);
     }
@@ -62,6 +70,9 @@ public partial class MainWindow : Window
         ReconnectButton.IsEnabled = !_busy && state.CanReconnect;
         StopSdkButton.IsEnabled = !_busy && state.CanStopSdk;
         RecoverButton.IsEnabled = !_busy && state.CanRecover;
+        IdentityFields.IsEnabled = !_busy && !_session.HasServer;
+        SetupStatus.Text = _session.HasServer ? "Stop the server before editing connection setup. SpatialAnalyzer stays open."
+            : "Save evidence, then start the server and SDK from Overview and connect.";
         ServerStateChanged?.Invoke(this, EventArgs.Empty);
     }
 
@@ -104,7 +115,7 @@ public partial class MainWindow : Window
         catch (Exception exception) when (ExpectedFailure(exception))
         {
             ActionText.Text = "The action could not be confirmed. Refresh and review server state before trying again. No action was retried.";
-            if (_session.LastReply is { Accepted: false } reply) ActionText.Text += " Diagnostic: " + SafeText.Code(reply.Diagnostic);
+            if (exception is DesktopActionRejectedException rejection) ActionText.Text = DesktopActionFeedback.Rejected(rejection.Diagnostic);
         }
         finally { _busy = false; if (!_exiting) Render(_session.State); }
     }
@@ -115,6 +126,7 @@ public partial class MainWindow : Window
         OverviewPage.Visibility = Navigation.SelectedIndex == 0 ? Visibility.Visible : Visibility.Collapsed;
         ActivityPage.Visibility = Navigation.SelectedIndex == 1 ? Visibility.Visible : Visibility.Collapsed;
         DetailsPage.Visibility = Navigation.SelectedIndex == 2 ? Visibility.Visible : Visibility.Collapsed;
+        SetupPage.Visibility = Navigation.SelectedIndex == 3 ? Visibility.Visible : Visibility.Collapsed;
     }
 
     public void ShowOverview() { Navigation.SelectedIndex = 0; ShowWindow(); }
@@ -198,6 +210,20 @@ public partial class MainWindow : Window
             await RunAsync(token => _session.ActAsync(DesktopAction.StopSdk, token));
     }
     private void CopyEndpointClicked(object sender, RoutedEventArgs e) => CopyEndpoint();
+    private void SetupClicked(object sender, RoutedEventArgs e) => Navigation.SelectedIndex = 3;
+    private void SaveSetupClicked(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            _session.SaveIdentitySettings(new(SdkVersionBox.Text.Trim(), SdkReferenceBox.Text.Trim(),
+                ApplicationVersionBox.Text.Trim(), ApplicationReferenceBox.Text.Trim()));
+            ActionText.Text = "Connection setup saved. Start the server from Overview to use it.";
+        }
+        catch (ArgumentException)
+        { ActionText.Text = "Enter both a numeric version and a non-sensitive evidence reference for each claim, or leave both empty."; }
+        catch (Exception exception) when (ExpectedFailure(exception))
+        { ActionText.Text = "Connection setup could not be saved. Stop the server and check access to your Briosa settings."; }
+    }
     private async void ExportClicked(object sender, RoutedEventArgs e) => await ExportAsync();
     private async void DiagnosticsClicked(object sender, RoutedEventArgs e) => await DiagnosticsAsync();
     private void FilterChanged(object sender, RoutedEventArgs e) => ApplyFilter();

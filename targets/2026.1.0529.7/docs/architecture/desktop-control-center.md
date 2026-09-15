@@ -65,6 +65,15 @@ timeout is reported as unconfirmed and is not automatically retried.
 
 ## Activity and local data
 
+Connection setup stores two independent, optional version/evidence-reference
+pairs keyed by distribution path in the protected per-user directory. Editing
+requires the selected host to be stopped. Saved pairs enter only future managed
+host environments; empty pairs retain existing host configuration. References
+are removed from worker environments and excluded from diagnostics/exports.
+The SDK's observed process version wins over an attestation, including on a
+mismatch. The controller never infers evidence from its own target or changes
+SDK registration. Operators must recheck evidence when their SA environment changes.
+
 The activity reader tails at most three files and 256 KiB per file, retains at
 most 2,000 projected events, and accepts only schema-1 records for the selected
 log instance and exact target. It handles partial writes and rotation. Unknown
