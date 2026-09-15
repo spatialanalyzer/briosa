@@ -286,12 +286,13 @@ Create two **Cache Rules**. Use original paths for public requests and root path
  and raw.http.request.uri.path in {
    "/downloads/catalog.json"
    "/downloads/catalog.json.signature.json"
+   "/downloads/installer-setups.json"
    "/downloads" "/downloads/" "/downloads/index.html"
  })
 or
 (http.host eq "objects.briosa.dev"
  and raw.http.request.uri.path in {
-   "/catalog.json" "/catalog.json.signature.json" "/" "/index.html"
+   "/catalog.json" "/catalog.json.signature.json" "/installer-setups.json" "/" "/index.html"
  })
 ```
 
@@ -311,9 +312,10 @@ Set these HTTP metadata values when uploading objects:
 
 | Objects | Content-Type | Cache-Control |
 | --- | --- | --- |
-| Catalog and signature | `application/json` | `no-store` |
+| Catalog, signature, and setup metadata | `application/json` | `no-store` |
 | Optional file index | `text/html; charset=utf-8` | `no-store` |
 | Versioned ZIPs | `application/zip` | `public, max-age=31536000, immutable` |
+| Versioned setup EXEs | `application/octet-stream` | `public, max-age=31536000, immutable` |
 | Versioned provenance | `application/json` | `public, max-age=31536000, immutable` |
 | Versioned checksum files | `text/plain` | `public, max-age=31536000, immutable` |
 
@@ -356,6 +358,33 @@ The signing workflows create GitHub releases. The separate
 [canonical catalog](../../eng/publishing/catalog.json) and its referenced release
 files. All server and future installer entries share this one publisher and
 concurrency group. Do not add another repository-owned catalog writer.
+
+### Conventional installer setup
+
+The installer release also supplies
+`briosa-installer-<version>-win-x64-setup.exe` and its `.exe.sha256` file.
+Stage them beside the installer ZIP under `packages/installer/<version>/`.
+Record the exact version, object path, size, and SHA-256 in
+[`eng/publishing/installer-setups.json`](../../eng/publishing/installer-setups.json),
+in the same reviewed change that adds the installer ZIP to the canonical catalog.
+Every setup must correspond to a retained installer package. The publisher downloads
+the stable GitHub release, validates the setup's timestamped Windows publisher and
+version, checks its reviewed hash and adjacent checksum, and uploads it immutably
+before publishing download links. It never replaces an existing setup with new bytes.
+
+The public `installer-setups.json` supplies browser download metadata. Initial
+setup trust comes from Windows Authenticode; this file is not covered by the
+catalog's detached signature. Catalog-driven updates continue to use the verified
+ZIP and the existing signed-catalog contract. Setup metadata is checked against
+the reviewed repository file, served with no-store headers, retained across
+publication, and cannot be changed by scheduled renewal. Include it in any explicit
+Cloudflare metadata-cache bypass rule. A first deployment of this metadata requires
+mode `publish`, even when its list is initially empty.
+
+The conventional setup installs per-user, creates a Start menu shortcut and
+Installed apps uninstaller, and retains settings and package stores on uninstall.
+The `/install` button should link directly to the immutable public setup object
+only after that object is verified. Portable ZIP downloads remain available.
 
 ### Configure publishing access
 

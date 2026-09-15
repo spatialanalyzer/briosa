@@ -78,6 +78,13 @@ Activation verifies files and atomically replaces that pointer. The launcher ver
 the selected package on each launch. Invalid selected state fails closed; only
 absence of a selection permits the adjacent initial installer fallback.
 
+A completed conventional installer setup may clear an older selected installer
+under the same store lock so the newly installed adjacent version takes effect.
+It preserves equal/newer selections and every downloaded product, rejects invalid
+selection state, and respects policy. This is an explicit setup action, not a
+launcher-time version floor: users can still deliberately select an older version
+afterward. Uninstalling the application does not remove the package store or settings.
+
 Settings remain outside payloads. Explicit configuration/store arguments survive
 restart. Selecting an installer never upgrades/removes server packages. An older
 installed installer can be deliberately selected, subject to configuration-schema
