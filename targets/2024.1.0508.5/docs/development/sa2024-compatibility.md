@@ -5,8 +5,9 @@
 This initial, unreleased product implements the 996 operations selected by the
 completed [SA 2024 review](https://briosa.dev/mp-command-catalog/2024.1.0508.5/review-notes).
 The compiled protobuf services, handwritten operation registry, and runtime
-capability discovery define availability. No command has been runtime-validated
-against licensed SA 2024 as part of this port.
+capability discovery define availability. Six read-only operations and basic
+lifecycle behavior passed [local licensed checks](../testing/evidence/local-functional-2026-09-17.md).
+The remaining operations have no 2024 runtime validation from this port.
 
 The server, worker, Control Center, protocol, tests, interop metadata, and package
 tools belong to this target. They have no project or source references to the
@@ -84,9 +85,10 @@ The port does not carry the 2026 default-evidence files as 2024 observations.
   timestamps are not defaults.
 - All seven surface-construction selectors require explicit presence.
 - `Get Working Frame Properties` retains its operation-specific `Frame` fallback
-  when a returned object-type literal is absent. This compatibility policy has
-  portable coverage but has not been observed in a live 2024 session. Unknown
-  nonempty literals still fail closed.
+  when a returned object-type literal is absent. The fallback has portable
+  coverage. The full operation passed local 2024 smoke checks, which did not
+  separately capture the raw type literal. Unknown nonempty literals still fail
+  closed.
 
 MP result retrieval and the raw result code remain separate from transport
 completion. Only retrieved MP code `2` establishes success. Non-success results
@@ -104,7 +106,11 @@ See the [target guide](../../README.md) for commands and
 unexecuted hardware-dependent checks.
 
 The [initial port validation record](../testing/initial-port-validation.md)
-summarizes the local results and their limits.
+summarizes portable results. The subsequent
+[local functional record](../testing/evidence/local-functional-2026-09-17.md)
+covers exact SDK identity, mismatch rejection, six read-only commands, clean
+restart, and shutdown against licensed SA 2024. It does not establish coverage
+for other operations, instruments, or failure recovery under load.
 
 Ordinary CI and release matrices explicitly include this target. The separate
 `licensed-sa-2024.yml` workflow accepts manual dispatch from trusted `main` only,
@@ -112,7 +118,8 @@ uses the `licensed-sa-2024-1-0508-5` environment and exact-target runner label,
 and consumes a hashed payload built on a hosted runner. Configuring this workflow
 does not provision a licensed runner or constitute a passing runtime test.
 
-Before a v1.0 promotion, licensed runtime validation and enterprise Artifactory
-integration verification remain outstanding. First-party .NET, Python, and
+Before a v1.0 promotion, broader licensed runtime validation, the protected CI
+environment, and enterprise Artifactory integration verification remain
+outstanding. First-party .NET, Python, and
 JavaScript client products for 2024 follow the reviewed server/protocol contract;
 this implementation does not claim those packages have shipped.

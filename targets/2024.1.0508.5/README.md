@@ -6,7 +6,7 @@ Briosa does not include SpatialAnalyzer, its SDK, or a license. SpatialAnalyzer 
 
 ## Validation status
 
-This is the initial implementation for SA 2024.1.0508.5. It is unreleased and has no licensed 2024 runtime validation. The [compatibility review](docs/development/sa2024-compatibility.md) explains the selected surface, exact-target differences, evidence provenance, and remaining release gates. The [instrument guide](docs/operations/legacy-instruments.md) documents the three additional instrument operations and their unexecuted opt-in scenarios.
+This is the initial, unreleased implementation for SA 2024.1.0508.5. Six read-only operations and basic lifecycle behavior passed [local licensed checks](docs/testing/evidence/local-functional-2026-09-17.md); broader runtime coverage remains outstanding. The [compatibility review](docs/development/sa2024-compatibility.md) explains the selected surface, exact-target differences, evidence provenance, and remaining release gates. The [instrument guide](docs/operations/legacy-instruments.md) documents the three additional instrument operations and their unexecuted opt-in scenarios.
 
 ## Current API
 

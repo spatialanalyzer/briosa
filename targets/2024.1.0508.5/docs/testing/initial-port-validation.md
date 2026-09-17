@@ -41,11 +41,15 @@ were then removed. The signing key was disposable and deleted after signing.
 Normal installer settings, installed products, and SDK registration were not
 changed. This checks package compatibility, not enterprise Artifactory behavior.
 
-## Not executed
+## Subsequent licensed checks and remaining gaps
 
-No live SpatialAnalyzer process was controlled, no SDK COM instance was activated,
-and no licensed integration or physical-instrument scenario was run. The
-protected 2024 runner and environment still need provisioning. All 996 operations
-retain an unvalidated 2024 runtime status; the three new crib-sheet/projection
-operations have additional hardware-fixture gaps. Enterprise Artifactory
-verification also remains outstanding before the currently planned v1.0 gate.
+The portable and Installer checks above did not activate SDK COM or control a
+live SpatialAnalyzer process. A subsequent maintainer-authorized
+[local functional check](evidence/local-functional-2026-09-17.md) passed six
+read-only operations and basic lifecycle behavior against licensed SA 2024.
+
+The other 990 operations remain unvalidated against the 2024 runtime, including
+the three new crib-sheet/projection operations with hardware-fixture gaps. The
+protected 2024 runner and environment still need provisioning. Broader licensed
+coverage and enterprise Artifactory verification remain outstanding before the
+currently planned v1.0 gate.
