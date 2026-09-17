@@ -1,0 +1,467 @@
+syntax = "proto3";
+
+package briosa;
+
+import "briosa/operation_outcomes.proto";
+import "briosa/spatial_analyzer_values.proto";
+
+option csharp_namespace = "Briosa";
+
+service RobotOperations {
+  rpc GetCalibrationApplianceData(GetCalibrationApplianceDataRequest) returns (GetCalibrationApplianceDataResult);
+  rpc PerformRobotCalibration(PerformRobotCalibrationRequest) returns (PerformRobotCalibrationResult);
+  rpc GetCalibrationApplianceRealValue(GetCalibrationApplianceRealValueRequest) returns (GetCalibrationApplianceRealValueResult);
+  rpc MoveRobotMachineThroughPath(MoveRobotMachineThroughPathRequest) returns (MoveRobotMachineThroughPathResult);
+  rpc GetRobotPoseForAFrame(GetRobotPoseForAFrameRequest) returns (GetRobotPoseForAFrameResult);
+  rpc SetCalibrationApplianceIntegerValue(SetCalibrationApplianceIntegerValueRequest) returns (SetCalibrationApplianceIntegerValueResult);
+  rpc DeleteRobotMachine(DeleteRobotMachineRequest) returns (DeleteRobotMachineResult);
+  rpc SetRobotMachineBaseTransform(SetRobotMachineBaseTransformRequest) returns (SetRobotMachineBaseTransformResult);
+  rpc SetRobotCalibrationToolFrame(SetRobotCalibrationToolFrameRequest) returns (SetRobotCalibrationToolFrameResult);
+  rpc SetRobotCalibrationMeasurementOffsetInToolFrame(SetRobotCalibrationMeasurementOffsetInToolFrameRequest) returns (SetRobotCalibrationMeasurementOffsetInToolFrameResult);
+  rpc ImportPosesMatchToFrames(ImportPosesMatchToFramesRequest) returns (ImportPosesMatchToFramesResult);
+  rpc PerformRobotCalibrationAlternate(PerformRobotCalibrationAlternateRequest) returns (PerformRobotCalibrationAlternateResult);
+  rpc DeleteRobotCalibration(DeleteRobotCalibrationRequest) returns (DeleteRobotCalibrationResult);
+  rpc ImportPosesMatchToMeasurements(ImportPosesMatchToMeasurementsRequest) returns (ImportPosesMatchToMeasurementsResult);
+  rpc StartRobotMachineInterface(StartRobotMachineInterfaceRequest) returns (StartRobotMachineInterfaceResult);
+  rpc SetCalibrationApplianceData(SetCalibrationApplianceDataRequest) returns (SetCalibrationApplianceDataResult);
+  rpc SetRobotMachineModelLinkParameters(SetRobotMachineModelLinkParametersRequest) returns (SetRobotMachineModelLinkParametersResult);
+  rpc AddRobotMachineManipKin(AddRobotMachineManipKinRequest) returns (AddRobotMachineManipKinResult);
+  rpc SimulateRobotMachinePathOutputCsvFile(SimulateRobotMachinePathOutputCsvFileRequest) returns (SimulateRobotMachinePathOutputCsvFileResult);
+  rpc GetCalibrationApplianceIntegerValue(GetCalibrationApplianceIntegerValueRequest) returns (GetCalibrationApplianceIntegerValueResult);
+  rpc ComputeRobotMachineAdjustedGoalFrame(ComputeRobotMachineAdjustedGoalFrameRequest) returns (ComputeRobotMachineAdjustedGoalFrameResult);
+  rpc CreateRobotCalibration(CreateRobotCalibrationRequest) returns (CreateRobotCalibrationResult);
+  rpc GetRobotMachineParameter(GetRobotMachineParameterRequest) returns (GetRobotMachineParameterResult);
+  rpc StopRobotMachineInterface(StopRobotMachineInterfaceRequest) returns (StopRobotMachineInterfaceResult);
+  rpc SetCalibrationApplianceRealValue(SetCalibrationApplianceRealValueRequest) returns (SetCalibrationApplianceRealValueResult);
+  rpc MoveRobotMachineToFrame(MoveRobotMachineToFrameRequest) returns (MoveRobotMachineToFrameResult);
+  rpc SetRobotMachineParameter(SetRobotMachineParameterRequest) returns (SetRobotMachineParameterResult);
+  rpc GetRobotMachineModelLinkParameters(GetRobotMachineModelLinkParametersRequest) returns (GetRobotMachineModelLinkParametersResult);
+  rpc SetActiveRobotCalibration(SetActiveRobotCalibrationRequest) returns (SetActiveRobotCalibrationResult);
+  rpc MoveRobotMachineToNamedDestination(MoveRobotMachineToNamedDestinationRequest) returns (MoveRobotMachineToNamedDestinationResult);
+  rpc StartStopRobotCalibrationTrapping(StartStopRobotCalibrationTrappingRequest) returns (StartStopRobotCalibrationTrappingResult);
+  rpc AddRobotMachineSaMachine(AddRobotMachineSaMachineRequest) returns (AddRobotMachineSaMachineResult);
+  rpc MoveRobotMachineToJointPoseSixDof(MoveRobotMachineToJointPoseSixDofRequest) returns (MoveRobotMachineToJointPoseSixDofResult);
+}
+
+message AddRobotMachineManipKinRequest {
+  optional FileReference manip_kin_file = 1;
+}
+
+message AddRobotMachineManipKinResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message AddRobotMachineSaMachineRequest {
+  optional FileReference sa_machine_file = 1;
+}
+
+message AddRobotMachineSaMachineResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ComputeRobotMachineAdjustedGoalFrameRequest {
+  optional CollectionObjectName original_goal_frame = 1;
+  optional CollectionObjectName last_adjusted_goal_frame = 2;
+  optional CollectionObjectName actual_measured_frame = 3;
+  optional CollectionObjectName modified_goal_frame = 4;
+}
+
+message ComputeRobotMachineAdjustedGoalFrameResult {
+  optional Transform transform_value = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message CreateRobotCalibrationRequest {
+  optional CollectionMachineId machine_id = 1;
+  optional string calibration_name = 2;
+}
+
+message CreateRobotCalibrationResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message DeleteRobotCalibrationRequest {
+  optional CollectionMachineId machine_id = 1;
+  optional string calibration_name = 2;
+}
+
+message DeleteRobotCalibrationResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message DeleteRobotMachineRequest {
+  optional CollectionMachineId machine_id = 1;
+}
+
+message DeleteRobotMachineResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message GetCalibrationApplianceDataRequest {
+  optional int32 real_value_count = 1;
+}
+
+message GetCalibrationApplianceDataResult {
+  repeated double real_values = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetCalibrationApplianceIntegerValueRequest {
+  optional int32 index_offset = 1;
+}
+
+message GetCalibrationApplianceIntegerValueResult {
+  optional int32 integer_value = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetCalibrationApplianceRealValueRequest {
+  optional int32 index_offset = 1;
+}
+
+message GetCalibrationApplianceRealValueResult {
+  optional double real_value = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetRobotMachineModelLinkParametersRequest {
+  optional CollectionMachineId machine_id = 1;
+  optional string link_name = 2;
+}
+
+message GetRobotMachineModelLinkParametersResult {
+  optional RobotModelLinkType link_type = 1;
+  optional double dh_alpha_component = 2;
+  optional double dh_a_component = 3;
+  optional double dh_d_component = 4;
+  optional double dh_theta_component = 5;
+  optional double dh_x_axis_deflection_factor = 6;
+  optional double dh_y_axis_deflection_factor = 7;
+  optional double dh_z_axis_deflection_factor = 8;
+  optional double six_dof_x_component = 9;
+  optional double six_dof_y_component = 10;
+  optional double six_dof_z_component = 11;
+  optional double six_dof_rx_component = 12;
+  optional double six_dof_ry_component = 13;
+  optional double six_dof_rz_component = 14;
+  optional RobotActiveJointComponent active_joint_component = 15;
+  optional double encoder_value = 16;
+  optional double encoder_offset_value = 17;
+  optional double minimum_encoder_limit = 18;
+  optional double maximum_encoder_limit = 19;
+  optional bool encoder_sense_negative = 20;
+  optional bool include_additional_encoder = 21;
+  optional int32 additional_encoder_index_offset = 22;
+  optional bool additional_encoder_sense_negative = 23;
+  optional double segment_origin_mass_kg = 24;
+  optional double segment_cg_mass_kg = 25;
+  optional Vector segment_cg_in_segment = 26;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetRobotMachineParameterRequest {
+  optional CollectionMachineId machine_id = 1;
+  optional string parameter_name = 2;
+}
+
+message GetRobotMachineParameterResult {
+  optional double parameter_value = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetRobotPoseForAFrameRequest {
+  optional CollectionMachineId machine_id = 1;
+  optional CollectionObjectName goal_frame = 2;
+  repeated double reference_pose = 3;
+  optional int32 goal_pose_count = 4;
+}
+
+message GetRobotPoseForAFrameResult {
+  repeated double goal_pose = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message ImportPosesMatchToFramesRequest {
+  optional CollectionMachineId machine_id = 1;
+  optional string calibration_name = 2;
+  repeated CollectionObjectName frame_names = 3;
+  optional FileReference csv_joint_set_file = 4;
+}
+
+message ImportPosesMatchToFramesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ImportPosesMatchToMeasurementsRequest {
+  optional CollectionMachineId machine_id = 1;
+  optional string calibration_name = 2;
+  repeated PointName point_names = 3;
+  optional FileReference csv_joint_set_file = 4;
+}
+
+message ImportPosesMatchToMeasurementsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MoveRobotMachineThroughPathRequest {
+  optional CollectionMachineId machine_id = 1;
+  repeated CollectionObjectName path_frames = 2;
+  optional bool use_sa_kinematics = 3;
+  optional bool linear_segments = 4;
+  optional bool acknowledge_arrival = 5;
+}
+
+message MoveRobotMachineThroughPathResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MoveRobotMachineToFrameRequest {
+  optional CollectionMachineId machine_id = 1;
+  optional CollectionObjectName destination_frame = 2;
+  optional bool use_sa_kinematics = 3;
+  optional bool acknowledge_arrival = 4;
+}
+
+message MoveRobotMachineToFrameResult {
+  optional Transform actual_transform_in_working = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message MoveRobotMachineToJointPoseSixDofRequest {
+  optional CollectionMachineId machine_id = 1;
+  optional double joint_1 = 2;
+  optional double joint_2 = 3;
+  optional double joint_3 = 4;
+  optional double joint_4 = 5;
+  optional double joint_5 = 6;
+  optional double joint_6 = 7;
+}
+
+message MoveRobotMachineToJointPoseSixDofResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MoveRobotMachineToNamedDestinationRequest {
+  optional CollectionMachineId machine_id = 1;
+  optional string destination_name = 2;
+  optional bool acknowledge_arrival = 3;
+}
+
+message MoveRobotMachineToNamedDestinationResult {
+  optional Transform actual_transform_in_working = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message PerformRobotCalibrationAlternateRequest {
+  optional CollectionMachineId machine_id = 1;
+  optional string calibration_name = 2;
+  optional bool set_current_base_as_nominal = 3;
+  optional string base_degrees_of_freedom = 4;
+  optional string robot_degrees_of_freedom = 5;
+  optional string tool_degrees_of_freedom = 6;
+  optional bool show_interface = 7;
+  optional int32 allowed_outlier_rejection_count = 8;
+  optional double allowable_maximum_error = 9;
+  optional double allowable_average_error = 10;
+}
+
+message PerformRobotCalibrationAlternateResult {
+  optional RobotCalibrationMetrics metrics = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message PerformRobotCalibrationRequest {
+  optional CollectionMachineId machine_id = 1;
+  optional string calibration_name = 2;
+  optional bool set_current_base_as_nominal = 3;
+  // Field 4 remains available for the SDK-unavailable Degrees of Freedom input.
+  optional bool show_interface = 5;
+  optional int32 allowed_outlier_rejection_count = 6;
+  optional double allowable_maximum_error = 7;
+  optional double allowable_average_error = 8;
+}
+
+message PerformRobotCalibrationResult {
+  optional RobotCalibrationMetrics metrics = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+enum RobotActiveJointComponent {
+  ROBOT_ACTIVE_JOINT_COMPONENT_UNSPECIFIED = 0;
+  ROBOT_ACTIVE_JOINT_COMPONENT_NONE = 1;
+  ROBOT_ACTIVE_JOINT_COMPONENT_X = 2;
+  ROBOT_ACTIVE_JOINT_COMPONENT_Y = 3;
+  ROBOT_ACTIVE_JOINT_COMPONENT_Z = 4;
+  ROBOT_ACTIVE_JOINT_COMPONENT_RX = 5;
+  ROBOT_ACTIVE_JOINT_COMPONENT_RY = 6;
+  ROBOT_ACTIVE_JOINT_COMPONENT_RZ = 7;
+  ROBOT_ACTIVE_JOINT_COMPONENT_ALPHA = 8;
+  ROBOT_ACTIVE_JOINT_COMPONENT_A = 9;
+  ROBOT_ACTIVE_JOINT_COMPONENT_D = 10;
+  ROBOT_ACTIVE_JOINT_COMPONENT_THETA = 11;
+}
+
+message RobotCalibrationMetrics {
+  double xyz_max = 1;
+  double xyz_average = 2;
+  double xyz_rms = 3;
+  double orient_max = 4;
+  double orient_average = 5;
+  double orient_rms = 6;
+  double robustness = 7;
+}
+
+enum RobotModelLinkType {
+  ROBOT_MODEL_LINK_TYPE_UNSPECIFIED = 0;
+  ROBOT_MODEL_LINK_TYPE_DH = 1;
+  ROBOT_MODEL_LINK_TYPE_SIX_DOF = 2;
+}
+
+message SetActiveRobotCalibrationRequest {
+  optional CollectionMachineId machine_id = 1;
+  optional string calibration_name = 2;
+}
+
+message SetActiveRobotCalibrationResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetCalibrationApplianceDataRequest {
+  repeated double real_values = 1;
+}
+
+message SetCalibrationApplianceDataResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetCalibrationApplianceIntegerValueRequest {
+  optional int32 index_offset = 1;
+  optional int32 integer_value = 2;
+}
+
+message SetCalibrationApplianceIntegerValueResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetCalibrationApplianceRealValueRequest {
+  optional int32 index_offset = 1;
+  optional double real_value = 2;
+}
+
+message SetCalibrationApplianceRealValueResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetRobotCalibrationMeasurementOffsetInToolFrameRequest {
+  optional CollectionMachineId machine_id = 1;
+  optional string calibration_name = 2;
+  optional Transform measurement_frame_relative_to_tool = 3;
+}
+
+message SetRobotCalibrationMeasurementOffsetInToolFrameResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetRobotCalibrationToolFrameRequest {
+  optional CollectionMachineId machine_id = 1;
+  optional string calibration_name = 2;
+  optional Transform tool_frame_relative_to_flange = 3;
+}
+
+message SetRobotCalibrationToolFrameResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetRobotMachineBaseTransformRequest {
+  optional CollectionMachineId machine_id = 1;
+  optional Transform destination_transform = 2;
+  optional CollectionObjectName reference_frame = 3;
+  optional int32 number_of_steps = 4;
+}
+
+message SetRobotMachineBaseTransformResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetRobotMachineModelLinkParametersRequest {
+  optional CollectionMachineId machine_id = 1;
+  optional string link_name = 2;
+  optional RobotModelLinkType link_type = 3;
+  optional double dh_alpha_component = 4;
+  optional double dh_a_component = 5;
+  optional double dh_d_component = 6;
+  optional double dh_theta_component = 7;
+  optional double dh_x_axis_deflection_factor = 8;
+  optional double dh_y_axis_deflection_factor = 9;
+  optional double dh_z_axis_deflection_factor = 10;
+  optional double six_dof_x_component = 11;
+  optional double six_dof_y_component = 12;
+  optional double six_dof_z_component = 13;
+  optional double six_dof_rx_component = 14;
+  optional double six_dof_ry_component = 15;
+  optional double six_dof_rz_component = 16;
+  optional RobotActiveJointComponent active_joint_component = 17;
+  optional double encoder_offset_value = 18;
+  optional double minimum_encoder_limit = 19;
+  optional double maximum_encoder_limit = 20;
+  optional bool encoder_sense_negative = 21;
+  optional bool include_additional_encoder = 22;
+  optional int32 additional_encoder_index_offset = 23;
+  optional bool additional_encoder_sense_negative = 24;
+  optional double segment_origin_mass_kg = 25;
+  optional double segment_cg_mass_kg = 26;
+  optional Vector segment_cg_in_segment = 27;
+}
+
+message SetRobotMachineModelLinkParametersResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetRobotMachineParameterRequest {
+  optional CollectionMachineId machine_id = 1;
+  optional string parameter_name = 2;
+  optional double parameter_value = 3;
+}
+
+message SetRobotMachineParameterResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SimulateRobotMachinePathOutputCsvFileRequest {
+  optional CollectionMachineId machine_id = 1;
+  repeated CollectionObjectName path_frames = 2;
+  optional FileReference output_csv_file = 3;
+}
+
+message SimulateRobotMachinePathOutputCsvFileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message StartRobotMachineInterfaceRequest {
+  optional CollectionMachineId machine_id = 1;
+  optional int32 interface_type = 2;
+  optional bool run_in_simulation = 3;
+}
+
+message StartRobotMachineInterfaceResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message StartStopRobotCalibrationTrappingRequest {
+  optional CollectionMachineId machine_id = 1;
+  optional string calibration_name = 2;
+  optional CollectionInstrumentId instrument_id = 3;
+  optional bool start_trapping = 4;
+}
+
+message StartStopRobotCalibrationTrappingResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message StopRobotMachineInterfaceRequest {
+  optional CollectionMachineId machine_id = 1;
+}
+
+message StopRobotMachineInterfaceResult {
+  MpExecutionDetails execution = 1000;
+}

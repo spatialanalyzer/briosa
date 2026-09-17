@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package briosa;
+
+option csharp_namespace = "Briosa";
+
+// Identifies one reproducible, SA-version-locked Briosa server distribution.
+message VersionCoordinates {
+  // Briosa's semantic version, such as 0.3.2.
+  optional string briosa_version = 1;
+
+  // The stable protobuf package implemented by the distribution.
+  optional string protocol_package = 2;
+
+  // The exact SpatialAnalyzer release for which the server was built.
+  optional string spatial_analyzer_target = 3;
+
+  reserved 4, 5;
+  reserved "core_protocol_package", "target_protocol_package", "catalog_revision";
+
+  // Fingerprint of the approved generated interop metadata.
+  optional string interop_fingerprint = 6;
+
+  // Source-control revision from which the distribution was built.
+  optional string source_revision = 7;
+}

@@ -53,6 +53,8 @@ jobs:
         target:
           - sa_version: 2026.1.0529.7
             path: targets/2026.1.0529.7
+          - sa_version: 2024.1.0508.5
+            path: targets/2024.1.0508.5
 
     defaults:
       run:
@@ -128,7 +130,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        sa_version: [2026.1.0529.7]
+        sa_version: [2026.1.0529.7, 2024.1.0508.5]
     steps:
       - uses: actions/checkout@v6
       - uses: actions/download-artifact@v8

@@ -1,0 +1,109 @@
+syntax = "proto3";
+
+package briosa;
+
+import "briosa/operation_outcomes.proto";
+import "briosa/spatial_analyzer_values.proto";
+
+option csharp_namespace = "Briosa";
+
+service MpTaskOverview {
+  rpc AddTaskOverviewItem(AddTaskOverviewItemRequest) returns (AddTaskOverviewItemResult);
+  rpc CreateClearTaskOverviewList(CreateClearTaskOverviewListRequest) returns (CreateClearTaskOverviewListResult);
+  rpc SetCurrentTask(SetCurrentTaskRequest) returns (SetCurrentTaskResult);
+  rpc SetOverviewImage(SetOverviewImageRequest) returns (SetOverviewImageResult);
+  rpc SetOverviewTitle(SetOverviewTitleRequest) returns (SetOverviewTitleResult);
+  rpc SetTaskItemComment(SetTaskItemCommentRequest) returns (SetTaskItemCommentResult);
+  rpc SetTaskItemCompletionValues(SetTaskItemCompletionValuesRequest) returns (SetTaskItemCompletionValuesResult);
+  rpc SetTaskItemName(SetTaskItemNameRequest) returns (SetTaskItemNameResult);
+  rpc ShowProgressForTaskItem(ShowProgressForTaskItemRequest) returns (ShowProgressForTaskItemResult);
+  rpc ShowTaskOverviewList(ShowTaskOverviewListRequest) returns (ShowTaskOverviewListResult);
+}
+
+message AddTaskOverviewItemRequest {
+  optional string task_name = 1;
+  optional string comment_text = 2;
+  optional double effort_index = 3;
+}
+
+message AddTaskOverviewItemResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message CreateClearTaskOverviewListRequest {
+  optional Font task_name_font = 1;
+  optional Font task_comment_font = 2;
+}
+
+message CreateClearTaskOverviewListResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetCurrentTaskRequest {
+  optional int32 task_index = 1;
+}
+
+message SetCurrentTaskResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetOverviewImageRequest {
+  optional FileReference image_path = 1;
+}
+
+message SetOverviewImageResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetOverviewTitleRequest {
+  optional string overview_title = 1;
+}
+
+message SetOverviewTitleResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetTaskItemCommentRequest {
+  optional int32 task_index = 1;
+  optional string task_comment = 2;
+}
+
+message SetTaskItemCommentResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetTaskItemCompletionValuesRequest {
+  optional int32 task_index = 1;
+  optional int32 increments_completed = 2;
+  optional int32 total_increments = 3;
+}
+
+message SetTaskItemCompletionValuesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetTaskItemNameRequest {
+  optional int32 task_item_index = 1;
+  optional string task_name = 2;
+}
+
+message SetTaskItemNameResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ShowProgressForTaskItemRequest {
+  optional int32 task_index = 1;
+  optional bool show_progress = 2;
+}
+
+message ShowProgressForTaskItemResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ShowTaskOverviewListRequest {
+  optional bool show = 1;
+}
+
+message ShowTaskOverviewListResult {
+  MpExecutionDetails execution = 1000;
+}

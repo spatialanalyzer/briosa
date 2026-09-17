@@ -1,0 +1,20 @@
+using Briosa.Server.Operations.ConstructionOperations;
+using Briosa.Server.Operations.WaveA;
+using Briosa.Server.Security;
+
+namespace Briosa.Server.Operations;
+
+/// <summary>
+/// Identifies the exact SpatialAnalyzer API implemented by this Briosa build.
+/// </summary>
+internal static class SpatialAnalyzerApi
+{
+    public const string TargetVersion = "2024.1.0508.5";
+    public const string ProtocolPackage = "briosa";
+
+    public static IReadOnlyList<OperationDescriptor> Operations { get; } =
+        [
+            .. MpOperationCatalog.Operations.Select(operation => operation.Descriptor),
+            GetActiveCollectionNameOperation.Descriptor,
+        ];
+}

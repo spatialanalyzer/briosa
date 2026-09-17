@@ -1,0 +1,2570 @@
+syntax = "proto3";
+
+package briosa;
+
+import "briosa/operation_outcomes.proto";
+import "briosa/spatial_analyzer_values.proto";
+
+option csharp_namespace = "Briosa";
+
+service ConstructionOperations {
+  // Executes the "Get Active Collection Name" MP command.
+  rpc GetActiveCollectionName(GetActiveCollectionNameRequest) returns (GetActiveCollectionNameResult);
+  rpc AddCollectionInstrumentsToRefListWildcardSelection(AddCollectionInstrumentsToRefListWildcardSelectionRequest) returns (AddCollectionInstrumentsToRefListWildcardSelectionResult);
+  rpc AddSurfaceToMeshOffsetAlongReferenceDirection(AddSurfaceToMeshOffsetAlongReferenceDirectionRequest) returns (AddSurfaceToMeshOffsetAlongReferenceDirectionResult);
+  rpc AutoArrangeCalloutView(AutoArrangeCalloutViewRequest) returns (AutoArrangeCalloutViewResult);
+  rpc AverageSetOfGroups(AverageSetOfGroupsRequest) returns (AverageSetOfGroupsResult);
+  rpc ClearHiddenPointBarDatabase(ClearHiddenPointBarDatabaseRequest) returns (ClearHiddenPointBarDatabaseResult);
+  rpc ConstructBoundaryPointsFromCloud(ConstructBoundaryPointsFromCloudRequest) returns (ConstructBoundaryPointsFromCloudResult);
+  rpc ConstructBSplineFromIntersectionOfPlaneAndSurface(ConstructBSplineFromIntersectionOfPlaneAndSurfaceRequest) returns (ConstructBSplineFromIntersectionOfPlaneAndSurfaceResult);
+  rpc ConstructBSplineFromIntersectionOfSurfaces(ConstructBSplineFromIntersectionOfSurfacesRequest) returns (ConstructBSplineFromIntersectionOfSurfacesResult);
+  rpc ConstructBSplineFromPoints(ConstructBSplineFromPointsRequest) returns (ConstructBSplineFromPointsResult);
+  rpc ConstructBSplineFromPointSet(ConstructBSplineFromPointSetRequest) returns (ConstructBSplineFromPointSetResult);
+  rpc ConstructBSplineFromSeveralBSplines(ConstructBSplineFromSeveralBSplinesRequest) returns (ConstructBSplineFromSeveralBSplinesResult);
+  rpc ConstructBSplinesFromIntersectionOfPlaneAndMesh(ConstructBSplinesFromIntersectionOfPlaneAndMeshRequest) returns (ConstructBSplinesFromIntersectionOfPlaneAndMeshResult);
+  rpc ConstructBSplinesFromLines(ConstructBSplinesFromLinesRequest) returns (ConstructBSplinesFromLinesResult);
+  rpc ConstructBSplinesFromSurfaces(ConstructBSplinesFromSurfacesRequest) returns (ConstructBSplinesFromSurfacesResult);
+  rpc ConstructCircle(ConstructCircleRequest) returns (ConstructCircleResult);
+  rpc ConstructCirclesFromSurfaceFacesRuntimeSelect(ConstructCirclesFromSurfaceFacesRuntimeSelectRequest) returns (ConstructCirclesFromSurfaceFacesRuntimeSelectResult);
+  rpc ConstructCirclesLinesFromSurfaces(ConstructCirclesLinesFromSurfacesRequest) returns (ConstructCirclesLinesFromSurfacesResult);
+  rpc ConstructCollection(ConstructCollectionRequest) returns (ConstructCollectionResult);
+  rpc ConstructCone(ConstructConeRequest) returns (ConstructConeResult);
+  rpc ConstructConesFromSurfaceFacesRuntimeSelect(ConstructConesFromSurfaceFacesRuntimeSelectRequest) returns (ConstructConesFromSurfaceFacesRuntimeSelectResult);
+  rpc ConstructCrossSectionCloud(ConstructCrossSectionCloudRequest) returns (ConstructCrossSectionCloudResult);
+  rpc ConstructCrossSectionCloudUserSelect(ConstructCrossSectionCloudUserSelectRequest) returns (ConstructCrossSectionCloudUserSelectResult);
+  rpc ConstructCylinder(ConstructCylinderRequest) returns (ConstructCylinderResult);
+  rpc ConstructCylinderFromEndPoints(ConstructCylinderFromEndPointsRequest) returns (ConstructCylinderFromEndPointsResult);
+  rpc ConstructCylindersFromSurfaceFacesRuntimeSelect(ConstructCylindersFromSurfaceFacesRuntimeSelectRequest) returns (ConstructCylindersFromSurfaceFacesRuntimeSelectResult);
+  rpc ConstructEllipsoid(ConstructEllipsoidRequest) returns (ConstructEllipsoidResult);
+  rpc ConstructFolders(ConstructFoldersRequest) returns (ConstructFoldersResult);
+  rpc ConstructFrame(ConstructFrameRequest) returns (ConstructFrameResult);
+  rpc ConstructFrameAtPointWithWorkingZAndClockedAxis(ConstructFrameAtPointWithWorkingZAndClockedAxisRequest) returns (ConstructFrameAtPointWithWorkingZAndClockedAxisResult);
+  rpc ConstructFrameAtRobotLink(ConstructFrameAtRobotLinkRequest) returns (ConstructFrameAtRobotLinkResult);
+  rpc ConstructFrameAverageOfOtherObjectFrames(ConstructFrameAverageOfOtherObjectFramesRequest) returns (ConstructFrameAverageOfOtherObjectFramesResult);
+  rpc ConstructFrameCopyAndMakeLeftHanded(ConstructFrameCopyAndMakeLeftHandedRequest) returns (ConstructFrameCopyAndMakeLeftHandedResult);
+  rpc ConstructFrameFromPointMeasurementProbingFrames(ConstructFrameFromPointMeasurementProbingFramesRequest) returns (ConstructFrameFromPointMeasurementProbingFramesResult);
+  rpc ConstructFrameFromTransformInWorld(ConstructFrameFromTransformInWorldRequest) returns (ConstructFrameFromTransformInWorldResult);
+  rpc ConstructFrameKnownOriginObjectDirectionObjectDirection(ConstructFrameKnownOriginObjectDirectionObjectDirectionRequest) returns (ConstructFrameKnownOriginObjectDirectionObjectDirectionResult);
+  rpc ConstructFrameOnInstrumentBase(ConstructFrameOnInstrumentBaseRequest) returns (ConstructFrameOnInstrumentBaseResult);
+  rpc ConstructFrameOnObject(ConstructFrameOnObjectRequest) returns (ConstructFrameOnObjectResult);
+  rpc ConstructFramePickOriginAndPointOnXAxisClockZAlongWorkingZ(ConstructFramePickOriginAndPointOnXAxisClockZAlongWorkingZRequest) returns (ConstructFramePickOriginAndPointOnXAxisClockZAlongWorkingZResult);
+  rpc ConstructFramesByProjectingFramesOnMeshAlongFrameDirection(ConstructFramesByProjectingFramesOnMeshAlongFrameDirectionRequest) returns (ConstructFramesByProjectingFramesOnMeshAlongFrameDirectionResult);
+  rpc ConstructFramesByProjectingFramesOnMeshAlongReferenceDirection(ConstructFramesByProjectingFramesOnMeshAlongReferenceDirectionRequest) returns (ConstructFramesByProjectingFramesOnMeshAlongReferenceDirectionResult);
+  rpc ConstructFrameThreePlanes(ConstructFrameThreePlanesRequest) returns (ConstructFrameThreePlanesResult);
+  rpc ConstructFrameThreePoints(ConstructFrameThreePointsRequest) returns (ConstructFrameThreePointsResult);
+  rpc ConstructFrameWithWizard(ConstructFrameWithWizardRequest) returns (ConstructFrameWithWizardResult);
+  rpc ConstructGeometryFromSurfaces(ConstructGeometryFromSurfacesRequest) returns (ConstructGeometryFromSurfacesResult);
+  rpc ConstructLineCenterOfSlot(ConstructLineCenterOfSlotRequest) returns (ConstructLineCenterOfSlotResult);
+  rpc ConstructLineFromInstrumentShot(ConstructLineFromInstrumentShotRequest) returns (ConstructLineFromInstrumentShotResult);
+  rpc ConstructLineNormalToObject(ConstructLineNormalToObjectRequest) returns (ConstructLineNormalToObjectResult);
+  rpc ConstructLineNormalToObjectThroughPoint(ConstructLineNormalToObjectThroughPointRequest) returns (ConstructLineNormalToObjectThroughPointResult);
+  rpc ConstructLineProjectLineToObjectReferencePlane(ConstructLineProjectLineToObjectReferencePlaneRequest) returns (ConstructLineProjectLineToObjectReferencePlaneResult);
+  rpc ConstructLinesFromSurfaceFacesRuntimeSelect(ConstructLinesFromSurfaceFacesRuntimeSelectRequest) returns (ConstructLinesFromSurfaceFacesRuntimeSelectResult);
+  rpc ConstructLineTwoPlaneIntersection(ConstructLineTwoPlaneIntersectionRequest) returns (ConstructLineTwoPlaneIntersectionResult);
+  rpc ConstructLineTwoPoints(ConstructLineTwoPointsRequest) returns (ConstructLineTwoPointsResult);
+  rpc ConstructLineTwoPointsVectorNotation(ConstructLineTwoPointsVectorNotationRequest) returns (ConstructLineTwoPointsVectorNotationResult);
+  rpc ConstructMirrorCubeFrame(ConstructMirrorCubeFrameRequest) returns (ConstructMirrorCubeFrameResult);
+  rpc ConstructObjectsFromSurfaceFacesRuntimeSelect(ConstructObjectsFromSurfaceFacesRuntimeSelectRequest) returns (ConstructObjectsFromSurfaceFacesRuntimeSelectResult);
+  rpc ConstructPerimeterFromPoints(ConstructPerimeterFromPointsRequest) returns (ConstructPerimeterFromPointsResult);
+  rpc ConstructPlane(ConstructPlaneRequest) returns (ConstructPlaneResult);
+  rpc ConstructPlaneNormalToObjectThroughPoint(ConstructPlaneNormalToObjectThroughPointRequest) returns (ConstructPlaneNormalToObjectThroughPointResult);
+  rpc ConstructPlanesBisectTwoPlanes(ConstructPlanesBisectTwoPlanesRequest) returns (ConstructPlanesBisectTwoPlanesResult);
+  rpc ConstructPlanesBoundingPointGroup(ConstructPlanesBoundingPointGroupRequest) returns (ConstructPlanesBoundingPointGroupResult);
+  rpc ConstructPlanesFromSurfaceFacesRuntimeSelect(ConstructPlanesFromSurfaceFacesRuntimeSelectRequest) returns (ConstructPlanesFromSurfaceFacesRuntimeSelectResult);
+  rpc ConstructPointAtCircleCenter(ConstructPointAtCircleCenterRequest) returns (ConstructPointAtCircleCenterResult);
+  rpc ConstructPointAtIntersectionOfBSplineAndSurfaces(ConstructPointAtIntersectionOfBSplineAndSurfacesRequest) returns (ConstructPointAtIntersectionOfBSplineAndSurfacesResult);
+  rpc ConstructPointAtIntersectionOfPlaneAndLine(ConstructPointAtIntersectionOfPlaneAndLineRequest) returns (ConstructPointAtIntersectionOfPlaneAndLineResult);
+  rpc ConstructPointAtIntersectionOfPlanes(ConstructPointAtIntersectionOfPlanesRequest) returns (ConstructPointAtIntersectionOfPlanesResult);
+  rpc ConstructPointAtIntersectionOfTwoBSplines(ConstructPointAtIntersectionOfTwoBSplinesRequest) returns (ConstructPointAtIntersectionOfTwoBSplinesResult);
+  rpc ConstructPointAtIntersectionOfTwoLines(ConstructPointAtIntersectionOfTwoLinesRequest) returns (ConstructPointAtIntersectionOfTwoLinesResult);
+  rpc ConstructPointAtLineMidpoint(ConstructPointAtLineMidpointRequest) returns (ConstructPointAtLineMidpointResult);
+  rpc ConstructPointAtObjectOrigin(ConstructPointAtObjectOriginRequest) returns (ConstructPointAtObjectOriginResult);
+  rpc ConstructPointAtProjectionOfPointOntoObject(ConstructPointAtProjectionOfPointOntoObjectRequest) returns (ConstructPointAtProjectionOfPointOntoObjectResult);
+  rpc ConstructPointCloudFromExistingClouds(ConstructPointCloudFromExistingCloudsRequest) returns (ConstructPointCloudFromExistingCloudsResult);
+  rpc ConstructPointCloudFromVisibleCloudPoints(ConstructPointCloudFromVisibleCloudPointsRequest) returns (ConstructPointCloudFromVisibleCloudPointsResult);
+  rpc ConstructPointCloudLimitingProbingDirections(ConstructPointCloudLimitingProbingDirectionsRequest) returns (ConstructPointCloudLimitingProbingDirectionsResult);
+  rpc ConstructPointCloudsFromExistingCloudPointsRuntimeSelect(ConstructPointCloudsFromExistingCloudPointsRuntimeSelectRequest) returns (ConstructPointCloudsFromExistingCloudPointsRuntimeSelectResult);
+  rpc ConstructPointCloudsFromExistingCloudsUniformSpacing(ConstructPointCloudsFromExistingCloudsUniformSpacingRequest) returns (ConstructPointCloudsFromExistingCloudsUniformSpacingResult);
+  rpc ConstructPointCloudsFromExistingPointGroup(ConstructPointCloudsFromExistingPointGroupRequest) returns (ConstructPointCloudsFromExistingPointGroupResult);
+  rpc ConstructPointFitToPoints(ConstructPointFitToPointsRequest) returns (ConstructPointFitToPointsResult);
+  rpc ConstructPointFromCloudPointRuntimeSelect(ConstructPointFromCloudPointRuntimeSelectRequest) returns (ConstructPointFromCloudPointRuntimeSelectResult);
+  rpc ConstructPointFromSurveyTargetCenter(ConstructPointFromSurveyTargetCenterRequest) returns (ConstructPointFromSurveyTargetCenterResult);
+  rpc ConstructPointGroupFromPointCloud(ConstructPointGroupFromPointCloudRequest) returns (ConstructPointGroupFromPointCloudResult);
+  rpc ConstructPointGroupFromPointNameRefList(ConstructPointGroupFromPointNameRefListRequest) returns (ConstructPointGroupFromPointNameRefListResult);
+  rpc ConstructPointGroupsFromVectorGroups(ConstructPointGroupsFromVectorGroupsRequest) returns (ConstructPointGroupsFromVectorGroupsResult);
+  rpc ConstructPointInWorkingCoordinates(ConstructPointInWorkingCoordinatesRequest) returns (ConstructPointInWorkingCoordinatesResult);
+  rpc ConstructPointsAtIntersectionOfCircleAndLine(ConstructPointsAtIntersectionOfCircleAndLineRequest) returns (ConstructPointsAtIntersectionOfCircleAndLineResult);
+  rpc ConstructPointsAtIntersectionOfPrincipalObjectAxesAndSurfaces(ConstructPointsAtIntersectionOfPrincipalObjectAxesAndSurfacesRequest) returns (ConstructPointsAtIntersectionOfPrincipalObjectAxesAndSurfacesResult);
+  rpc ConstructPointsAtProjectionOnSurfacesParallelToWcfAxis(ConstructPointsAtProjectionOnSurfacesParallelToWcfAxisRequest) returns (ConstructPointsAtProjectionOnSurfacesParallelToWcfAxisResult);
+  rpc ConstructPointsAtProjectionOnSurfacesRadialFromWcfAxis(ConstructPointsAtProjectionOnSurfacesRadialFromWcfAxisRequest) returns (ConstructPointsAtProjectionOnSurfacesRadialFromWcfAxisResult);
+  rpc ConstructPointsAtProjectionOnSurfacesSphericalFromWcfOrigin(ConstructPointsAtProjectionOnSurfacesSphericalFromWcfOriginRequest) returns (ConstructPointsAtProjectionOnSurfacesSphericalFromWcfOriginResult);
+  rpc ConstructPointsAutoCorrespondTwoGroupsInterPointDistance(ConstructPointsAutoCorrespondTwoGroupsInterPointDistanceRequest) returns (ConstructPointsAutoCorrespondTwoGroupsInterPointDistanceResult);
+  rpc ConstructPointsAutoCorrespondTwoGroupsProximity(ConstructPointsAutoCorrespondTwoGroupsProximityRequest) returns (ConstructPointsAutoCorrespondTwoGroupsProximityResult);
+  rpc ConstructPointsByProjectingPointsOnMeshAlongDirection(ConstructPointsByProjectingPointsOnMeshAlongDirectionRequest) returns (ConstructPointsByProjectingPointsOnMeshAlongDirectionResult);
+  rpc ConstructPointsCylindricallyShifted(ConstructPointsCylindricallyShiftedRequest) returns (ConstructPointsCylindricallyShiftedResult);
+  rpc ConstructPointsFromCylinder(ConstructPointsFromCylinderRequest) returns (ConstructPointsFromCylinderResult);
+  rpc ConstructPointsFromSurfaceFacesRuntimeSelect(ConstructPointsFromSurfaceFacesRuntimeSelectRequest) returns (ConstructPointsFromSurfaceFacesRuntimeSelectResult);
+  rpc ConstructPointsFromSurfacesOnUvGrid(ConstructPointsFromSurfacesOnUvGridRequest) returns (ConstructPointsFromSurfacesOnUvGridResult);
+  rpc ConstructPointsLayoutOnGrid(ConstructPointsLayoutOnGridRequest) returns (ConstructPointsLayoutOnGridResult);
+  rpc ConstructPointsNSpacedOnCurves(ConstructPointsNSpacedOnCurvesRequest) returns (ConstructPointsNSpacedOnCurvesResult);
+  rpc ConstructPointsOnCurvesUsingMaxChordalDeviation(ConstructPointsOnCurvesUsingMaxChordalDeviationRequest) returns (ConstructPointsOnCurvesUsingMaxChordalDeviationResult);
+  rpc ConstructPointsOnObjectVertices(ConstructPointsOnObjectVerticesRequest) returns (ConstructPointsOnObjectVerticesResult);
+  rpc ConstructPointsOnSurfacesByClicking(ConstructPointsOnSurfacesByClickingRequest) returns (ConstructPointsOnSurfacesByClickingResult);
+  rpc ConstructPointsShiftedInWorkingFrame(ConstructPointsShiftedInWorkingFrameRequest) returns (ConstructPointsShiftedInWorkingFrameResult);
+  rpc ConstructPointsSpacedAtDistanceOnCurves(ConstructPointsSpacedAtDistanceOnCurvesRequest) returns (ConstructPointsSpacedAtDistanceOnCurvesResult);
+  rpc ConstructPointsSubsetWithGreatestSpacing(ConstructPointsSubsetWithGreatestSpacingRequest) returns (ConstructPointsSubsetWithGreatestSpacingResult);
+  rpc ConstructPointsWildcardSelection(ConstructPointsWildcardSelectionRequest) returns (ConstructPointsWildcardSelectionResult);
+  rpc ConstructPolygonizedSurfaceFromPointClouds(ConstructPolygonizedSurfaceFromPointCloudsRequest) returns (ConstructPolygonizedSurfaceFromPointCloudsResult);
+  rpc ConstructScaleBar(ConstructScaleBarRequest) returns (ConstructScaleBarResult);
+  rpc ConstructSphere(ConstructSphereRequest) returns (ConstructSphereResult);
+  rpc ConstructSpheresFromSurfaceFacesRuntimeSelect(ConstructSpheresFromSurfaceFacesRuntimeSelectRequest) returns (ConstructSpheresFromSurfaceFacesRuntimeSelectResult);
+  rpc ConstructSurfaceByDissectingSurfaces(ConstructSurfaceByDissectingSurfacesRequest) returns (ConstructSurfaceByDissectingSurfacesResult);
+  rpc ConstructSurfaceByOffsettingSurface(ConstructSurfaceByOffsettingSurfaceRequest) returns (ConstructSurfaceByOffsettingSurfaceResult);
+  rpc ConstructSurfaceFitFromNominalSurfacesAndActualData(ConstructSurfaceFitFromNominalSurfacesAndActualDataRequest) returns (ConstructSurfaceFitFromNominalSurfacesAndActualDataResult);
+  rpc ConstructSurfaceFromAnnotationLinks(ConstructSurfaceFromAnnotationLinksRequest) returns (ConstructSurfaceFromAnnotationLinksResult);
+  rpc ConstructSurfaceFromBSplines(ConstructSurfaceFromBSplinesRequest) returns (ConstructSurfaceFromBSplinesResult);
+  rpc ConstructSurfaceFromCollectionOfSurfaces(ConstructSurfaceFromCollectionOfSurfacesRequest) returns (ConstructSurfaceFromCollectionOfSurfacesResult);
+  rpc ConstructSurfaceFromCone(ConstructSurfaceFromConeRequest) returns (ConstructSurfaceFromConeResult);
+  rpc ConstructSurfaceFromCylinder(ConstructSurfaceFromCylinderRequest) returns (ConstructSurfaceFromCylinderResult);
+  rpc ConstructSurfaceFromPlane(ConstructSurfaceFromPlaneRequest) returns (ConstructSurfaceFromPlaneResult);
+  rpc ConstructSurfaceFromPointGroups(ConstructSurfaceFromPointGroupsRequest) returns (ConstructSurfaceFromPointGroupsResult);
+  rpc ConstructSurfaceFromSphere(ConstructSurfaceFromSphereRequest) returns (ConstructSurfaceFromSphereResult);
+  rpc ConstructSurfacesByDissectingSurfacesFromRefList(ConstructSurfacesByDissectingSurfacesFromRefListRequest) returns (ConstructSurfacesByDissectingSurfacesFromRefListResult);
+  rpc ConstructSurfacesByProjectingPoints(ConstructSurfacesByProjectingPointsRequest) returns (ConstructSurfacesByProjectingPointsResult);
+  rpc ConstructSurfacesFromObjects(ConstructSurfacesFromObjectsRequest) returns (ConstructSurfacesFromObjectsResult);
+  rpc ConstructVectorGroupAreaProfileCheck(ConstructVectorGroupAreaProfileCheckRequest) returns (ConstructVectorGroupAreaProfileCheckResult);
+  rpc ConstructVectorGroupFromRelationship(ConstructVectorGroupFromRelationshipRequest) returns (ConstructVectorGroupFromRelationshipResult);
+  rpc ConstructVectorGroupFromVectorNameRefList(ConstructVectorGroupFromVectorNameRefListRequest) returns (ConstructVectorGroupFromVectorNameRefListResult);
+  rpc ConstructVectorGroupGroupToGroupCompare(ConstructVectorGroupGroupToGroupCompareRequest) returns (ConstructVectorGroupGroupToGroupCompareResult);
+  rpc ConstructVectorInWorkingCoordinatesBeginDelta(ConstructVectorInWorkingCoordinatesBeginDeltaRequest) returns (ConstructVectorInWorkingCoordinatesBeginDeltaResult);
+  rpc ConstructVectorInWorkingCoordinatesBeginDirectionMagnitude(ConstructVectorInWorkingCoordinatesBeginDirectionMagnitudeRequest) returns (ConstructVectorInWorkingCoordinatesBeginDirectionMagnitudeResult);
+  rpc CopyGroupsExcludingObscuredPoints(CopyGroupsExcludingObscuredPointsRequest) returns (CopyGroupsExcludingObscuredPointsResult);
+  rpc CopyObject(CopyObjectRequest) returns (CopyObjectResult);
+  rpc CopyObjectsPointToPointDelta(CopyObjectsPointToPointDeltaRequest) returns (CopyObjectsPointToPointDeltaResult);
+  rpc CopyObjectsToACollection(CopyObjectsToACollectionRequest) returns (CopyObjectsToACollectionResult);
+  rpc CreateHiddenPoint(CreateHiddenPointRequest) returns (CreateHiddenPointResult);
+  rpc CreateHiddenPointRod(CreateHiddenPointRodRequest) returns (CreateHiddenPointRodResult);
+  rpc CreateMinMaxVectorGroupCallout(CreateMinMaxVectorGroupCalloutRequest) returns (CreateMinMaxVectorGroupCalloutResult);
+  rpc CreatePictureCallout(CreatePictureCalloutRequest) returns (CreatePictureCalloutResult);
+  rpc CreatePointCallout(CreatePointCalloutRequest) returns (CreatePointCalloutResult);
+  rpc CreatePointComparisonCallout(CreatePointComparisonCalloutRequest) returns (CreatePointComparisonCalloutResult);
+  rpc CreateRelationshipCallout(CreateRelationshipCalloutRequest) returns (CreateRelationshipCalloutResult);
+  rpc CreateTextCallout(CreateTextCalloutRequest) returns (CreateTextCalloutResult);
+  rpc CreateVectorCallout(CreateVectorCalloutRequest) returns (CreateVectorCalloutResult);
+  rpc DecomposeTransformIntoDoublesEulerXyz(DecomposeTransformIntoDoublesEulerXyzRequest) returns (DecomposeTransformIntoDoublesEulerXyzResult);
+  rpc DecomposeTransformIntoDoublesEulerZxz(DecomposeTransformIntoDoublesEulerZxzRequest) returns (DecomposeTransformIntoDoublesEulerZxzResult);
+  rpc DecomposeTransformIntoDoublesEulerZyx(DecomposeTransformIntoDoublesEulerZyxRequest) returns (DecomposeTransformIntoDoublesEulerZyxResult);
+  rpc DecomposeTransformIntoDoublesEulerZyz(DecomposeTransformIntoDoublesEulerZyzRequest) returns (DecomposeTransformIntoDoublesEulerZyzResult);
+  rpc DecomposeTransformIntoDoublesFixedXyz(DecomposeTransformIntoDoublesFixedXyzRequest) returns (DecomposeTransformIntoDoublesFixedXyzResult);
+  rpc DecomposeTransformIntoVectorsFixedXyz(DecomposeTransformIntoVectorsFixedXyzRequest) returns (DecomposeTransformIntoVectorsFixedXyzResult);
+  rpc DecomposeTransformIntoVectorsOriginAndAxes(DecomposeTransformIntoVectorsOriginAndAxesRequest) returns (DecomposeTransformIntoVectorsOriginAndAxesResult);
+  rpc DecomposeWorldTransformOperatorIntoDoublesFixedXyzInWorld(DecomposeWorldTransformOperatorIntoDoublesFixedXyzInWorldRequest) returns (DecomposeWorldTransformOperatorIntoDoublesFixedXyzInWorldResult);
+  rpc DecomposeWorldTransformOperatorIntoVectorsFixedXyzInWorld(DecomposeWorldTransformOperatorIntoVectorsFixedXyzInWorldRequest) returns (DecomposeWorldTransformOperatorIntoVectorsFixedXyzInWorldResult);
+  rpc DeleteCalloutView(DeleteCalloutViewRequest) returns (DeleteCalloutViewResult);
+  rpc DeleteCollection(DeleteCollectionRequest) returns (DeleteCollectionResult);
+  rpc DeleteCollectionsByWildcard(DeleteCollectionsByWildcardRequest) returns (DeleteCollectionsByWildcardResult);
+  rpc DeleteFoldersByWildcard(DeleteFoldersByWildcardRequest) returns (DeleteFoldersByWildcardResult);
+  rpc DeleteHiddenPointRod(DeleteHiddenPointRodRequest) returns (DeleteHiddenPointRodResult);
+  rpc DeletePoints(DeletePointsRequest) returns (DeletePointsResult);
+  rpc DeletePointsWildcardSelection(DeletePointsWildcardSelectionRequest) returns (DeletePointsWildcardSelectionResult);
+  rpc ExtractSphereCentersFromPointCloud(ExtractSphereCentersFromPointCloudRequest) returns (ExtractSphereCentersFromPointCloudResult);
+  rpc GetCollectionInstrumentRefListVariable(GetCollectionInstrumentRefListVariableRequest) returns (GetCollectionInstrumentRefListVariableResult);
+  rpc GetGradientAtProjectedPointOnSurface(GetGradientAtProjectedPointOnSurfaceRequest) returns (GetGradientAtProjectedPointOnSurfaceResult);
+  rpc GetGradientAtProjectedPointOnSurfaceEdge(GetGradientAtProjectedPointOnSurfaceEdgeRequest) returns (GetGradientAtProjectedPointOnSurfaceEdgeResult);
+  rpc GetHiddenPointRodIndexByName(GetHiddenPointRodIndexByNameRequest) returns (GetHiddenPointRodIndexByNameResult);
+  rpc GetIthCalloutPositionInCalloutView(GetIthCalloutPositionInCalloutViewRequest) returns (GetIthCalloutPositionInCalloutViewResult);
+  rpc GetNumberOfCalloutsInCalloutView(GetNumberOfCalloutsInCalloutViewRequest) returns (GetNumberOfCalloutsInCalloutViewResult);
+  rpc GetWorkingTransformOfObjectFixedXyz(GetWorkingTransformOfObjectFixedXyzRequest) returns (GetWorkingTransformOfObjectFixedXyzResult);
+  rpc InvertTransform(InvertTransformRequest) returns (InvertTransformResult);
+  rpc MakeCalloutViewRefListWildcardSelection(MakeCalloutViewRefListWildcardSelectionRequest) returns (MakeCalloutViewRefListWildcardSelectionResult);
+  rpc MakeCollectionInstrumentIdRuntimeSelect(MakeCollectionInstrumentIdRuntimeSelectRequest) returns (MakeCollectionInstrumentIdRuntimeSelectResult);
+  rpc MakeCollectionInstrumentRefListRuntimeSelect(MakeCollectionInstrumentRefListRuntimeSelectRequest) returns (MakeCollectionInstrumentRefListRuntimeSelectResult);
+  rpc MakeCollectionItemNameRefListWildcardSelection(MakeCollectionItemNameRefListWildcardSelectionRequest) returns (MakeCollectionItemNameRefListWildcardSelectionResult);
+  rpc MakeCollectionNameRuntimeSelect(MakeCollectionNameRuntimeSelectRequest) returns (MakeCollectionNameRuntimeSelectResult);
+  rpc MakeCollectionObjectNameEnsureUnique(MakeCollectionObjectNameEnsureUniqueRequest) returns (MakeCollectionObjectNameEnsureUniqueResult);
+  rpc MakeCollectionObjectNameRefListByType(MakeCollectionObjectNameRefListByTypeRequest) returns (MakeCollectionObjectNameRefListByTypeResult);
+  rpc MakeCollectionObjectNameRefListByTypeAndColor(MakeCollectionObjectNameRefListByTypeAndColorRequest) returns (MakeCollectionObjectNameRefListByTypeAndColorResult);
+  rpc MakeCollectionObjectNameRefListFromAllGroupsInCollection(MakeCollectionObjectNameRefListFromAllGroupsInCollectionRequest) returns (MakeCollectionObjectNameRefListFromAllGroupsInCollectionResult);
+  rpc MakeCollectionObjectNameRefListRuntimeSelect(MakeCollectionObjectNameRefListRuntimeSelectRequest) returns (MakeCollectionObjectNameRefListRuntimeSelectResult);
+  rpc MakeCollectionObjectNameRefListWildcardSelection(MakeCollectionObjectNameRefListWildcardSelectionRequest) returns (MakeCollectionObjectNameRefListWildcardSelectionResult);
+  rpc MakeCollectionObjectNameRuntimeSelect(MakeCollectionObjectNameRuntimeSelectRequest) returns (MakeCollectionObjectNameRuntimeSelectResult);
+  rpc MakeCollectionVectorGroupNameRefListRuntimeSelect(MakeCollectionVectorGroupNameRefListRuntimeSelectRequest) returns (MakeCollectionVectorGroupNameRefListRuntimeSelectResult);
+  rpc MakeEventRefListWildcardSelection(MakeEventRefListWildcardSelectionRequest) returns (MakeEventRefListWildcardSelectionResult);
+  rpc MakePictureNameRefListRuntimeSelect(MakePictureNameRefListRuntimeSelectRequest) returns (MakePictureNameRefListRuntimeSelectResult);
+  rpc MakePointNameEnsureUnique(MakePointNameEnsureUniqueRequest) returns (MakePointNameEnsureUniqueResult);
+  rpc MakePointNameRefListFromGroup(MakePointNameRefListFromGroupRequest) returns (MakePointNameRefListFromGroupResult);
+  rpc MakePointNameRefListRuntimeSelect(MakePointNameRefListRuntimeSelectRequest) returns (MakePointNameRefListRuntimeSelectResult);
+  rpc MakePointNameRefListWildcardSelect(MakePointNameRefListWildcardSelectRequest) returns (MakePointNameRefListWildcardSelectResult);
+  rpc MakePointNameRuntimeSelect(MakePointNameRuntimeSelectRequest) returns (MakePointNameRuntimeSelectResult);
+  rpc MakeRelationshipRefListRuntimeSelect(MakeRelationshipRefListRuntimeSelectRequest) returns (MakeRelationshipRefListRuntimeSelectResult);
+  rpc MakeRelationshipRefListWildcardSelection(MakeRelationshipRefListWildcardSelectionRequest) returns (MakeRelationshipRefListWildcardSelectionResult);
+  rpc MakeReportRefListFromCollection(MakeReportRefListFromCollectionRequest) returns (MakeReportRefListFromCollectionResult);
+  rpc MakeReportRefListRuntimeSelect(MakeReportRefListRuntimeSelectRequest) returns (MakeReportRefListRuntimeSelectResult);
+  rpc MakeSystemString(MakeSystemStringRequest) returns (MakeSystemStringResult);
+  rpc MakeTransformFromDoublesEulerParameters(MakeTransformFromDoublesEulerParametersRequest) returns (MakeTransformFromDoublesEulerParametersResult);
+  rpc MakeTransformFromDoublesFixedXyz(MakeTransformFromDoublesFixedXyzRequest) returns (MakeTransformFromDoublesFixedXyzResult);
+  rpc MakeVectorNameRefListFromVectorGroup(MakeVectorNameRefListFromVectorGroupRequest) returns (MakeVectorNameRefListFromVectorGroupResult);
+  rpc MakeVectorNameRefListRuntimeSelect(MakeVectorNameRefListRuntimeSelectRequest) returns (MakeVectorNameRefListRuntimeSelectResult);
+  rpc MakeVectorNamesUniqueInVectorGroup(MakeVectorNamesUniqueInVectorGroupRequest) returns (MakeVectorNamesUniqueInVectorGroupResult);
+  rpc MirrorObjects(MirrorObjectsRequest) returns (MirrorObjectsResult);
+  rpc MoveObjectsPointToPointDelta(MoveObjectsPointToPointDeltaRequest) returns (MoveObjectsPointToPointDeltaResult);
+  rpc MoveObjectsToACollection(MoveObjectsToACollectionRequest) returns (MoveObjectsToACollectionResult);
+  rpc RenameCalloutView(RenameCalloutViewRequest) returns (RenameCalloutViewResult);
+  rpc RenameCollection(RenameCollectionRequest) returns (RenameCollectionResult);
+  rpc RenameItem(RenameItemRequest) returns (RenameItemResult);
+  rpc RenameObject(RenameObjectRequest) returns (RenameObjectResult);
+  rpc RenamePoint(RenamePointRequest) returns (RenamePointResult);
+  rpc RenamePointsWithNamePattern(RenamePointsWithNamePatternRequest) returns (RenamePointsWithNamePatternResult);
+  rpc SetCalloutViewProperties(SetCalloutViewPropertiesRequest) returns (SetCalloutViewPropertiesResult);
+  rpc SetCollectionInstrumentRefListVariable(SetCollectionInstrumentRefListVariableRequest) returns (SetCollectionInstrumentRefListVariableResult);
+  rpc SetDefaultCalloutViewProperties(SetDefaultCalloutViewPropertiesRequest) returns (SetDefaultCalloutViewPropertiesResult);
+  rpc SetIthCalloutPositionInCalloutView(SetIthCalloutPositionInCalloutViewRequest) returns (SetIthCalloutPositionInCalloutViewResult);
+  rpc SetOrConstructDefaultCollection(SetOrConstructDefaultCollectionRequest) returns (SetOrConstructDefaultCollectionResult);
+  rpc SetPointPositionInWorkingCoordinates(SetPointPositionInWorkingCoordinatesRequest) returns (SetPointPositionInWorkingCoordinatesResult);
+  rpc ShiftPlane(ShiftPlaneRequest) returns (ShiftPlaneResult);
+  rpc TransformPointsByDeltaAboutWorkingFrame(TransformPointsByDeltaAboutWorkingFrameRequest) returns (TransformPointsByDeltaAboutWorkingFrameResult);
+}
+
+message GetActiveCollectionNameRequest {}
+
+message GetActiveCollectionNameResult {
+  // The MP return argument named "Currently Active Collection Name".
+  optional string currently_active_collection_name = 1;
+  // Explicit MP and result-only argument retrieval outcome.
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructCirclesFromSurfaceFacesRuntimeSelectRequest {}
+message ConstructCirclesFromSurfaceFacesRuntimeSelectResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructConesFromSurfaceFacesRuntimeSelectRequest {}
+message ConstructConesFromSurfaceFacesRuntimeSelectResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructCylindersFromSurfaceFacesRuntimeSelectRequest {}
+message ConstructCylindersFromSurfaceFacesRuntimeSelectResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message CreateVectorCalloutRequest {
+  optional CollectionItemName destination_callout_view = 1;
+  optional CollectionObjectName vector_group_name = 2;
+  optional string vector_name = 3;
+  optional double view_x_position = 4;
+  optional double view_y_position = 5;
+  optional bool show_collection = 6;
+  optional bool show_vector_group = 7;
+  optional bool show_vector_name = 8;
+  optional bool show_dx = 9;
+  optional bool show_dy = 10;
+  optional bool show_dz = 11;
+  optional bool show_d_mag = 12;
+  optional bool show_tolerance_color = 13;
+  optional bool show_out_of_tolerance_value = 14;
+  optional bool show_tolerance_range = 15;
+  optional bool show_vector_color = 16;
+  optional bool show_start_point = 17;
+  optional bool show_end_point = 18;
+  optional bool show_units = 19;
+  repeated string additional_notes = 20;
+  optional bool attach_callout_to_end_point = 21;
+  optional bool use_default_placement = 22;
+}
+
+message CreateVectorCalloutResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message CreateMinMaxVectorGroupCalloutRequest {
+  optional CollectionItemName destination_callout_view = 1;
+  optional CollectionObjectName vector_group_name = 2;
+  optional int32 number_of_vectors_with_highest_mag = 3;
+  optional int32 number_of_vectors_with_lowest_mag = 4;
+  optional bool show_collection = 5;
+  optional bool show_vector_group = 6;
+  optional bool show_vector_name = 7;
+  optional bool show_dx = 8;
+  optional bool show_dy = 9;
+  optional bool show_dz = 10;
+  optional bool show_d_mag = 11;
+  optional bool show_tolerance_color = 12;
+  optional bool tolerance_color_blue_green_red = 13;
+  optional bool show_out_of_tolerance_value = 14;
+  optional bool show_tolerance_range = 15;
+  optional bool show_vector_color = 16;
+  optional bool show_start_point = 17;
+  optional bool show_end_point = 18;
+  optional bool show_units = 19;
+  optional bool attach_callout_to_end_point = 20;
+  optional bool use_default_placement = 21;
+}
+
+message CreateMinMaxVectorGroupCalloutResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message CreatePointCalloutRequest {
+  optional CollectionItemName destination_callout_view = 1;
+  optional PointName point = 2;
+  optional double view_x_position = 3;
+  optional double view_y_position = 4;
+  optional bool show_point_collection = 5;
+  optional bool show_point_group = 6;
+  optional bool show_point_target = 7;
+  optional bool show_x_r = 8;
+  optional bool show_y_theta = 9;
+  optional bool show_z_phi = 10;
+  optional bool show_units = 11;
+  optional bool show_ux_ur = 12;
+  optional bool show_uy_utheta = 13;
+  optional bool show_uz_uphi = 14;
+  optional bool show_umag = 15;
+  optional CoordinateSystemType desired_coordinate_system = 16;
+  repeated string notes = 17;
+  optional bool use_default_placement = 18;
+}
+
+message CreatePointCalloutResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message CreatePointComparisonCalloutRequest {
+  optional CollectionItemName destination_callout_view = 1;
+  optional PointName first_point = 2;
+  optional PointName second_point = 3;
+  optional double view_x_position = 4;
+  optional double view_y_position = 5;
+  optional bool show_first_point_collection = 6;
+  optional bool show_first_point_group = 7;
+  optional bool show_first_point_target = 8;
+  optional bool show_first_point_coordinates = 9;
+  optional bool show_second_point_collection = 10;
+  optional bool show_second_point_group = 11;
+  optional bool show_second_point_target = 12;
+  optional bool show_second_point_coordinates = 13;
+  optional bool show_dx = 14;
+  optional bool show_dy = 15;
+  optional bool show_dz = 16;
+  optional bool show_d_mag = 17;
+  optional string additional_x_comments = 18;
+  optional string additional_y_comments = 19;
+  optional string additional_z_comments = 20;
+  repeated string additional_notes = 21;
+  optional bool use_default_placement = 22;
+}
+
+message CreatePointComparisonCalloutResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message CreateRelationshipCalloutRequest {
+  optional CollectionItemName destination_callout_view = 1;
+  optional CollectionItemName relationship_name = 2;
+  optional double view_x_position = 3;
+  optional double view_y_position = 4;
+  repeated string additional_notes = 5;
+}
+
+message CreateRelationshipCalloutResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message CreatePictureCalloutRequest {
+  optional CollectionItemName destination_callout_view = 1;
+  optional CollectionItemName picture_name = 2;
+  optional double view_x_position = 3;
+  optional double view_y_position = 4;
+  optional int32 scale_image_percent = 5;
+  optional CollectionItemName object_for_callout_anchor_point = 6;
+}
+
+message CreatePictureCalloutResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message CreateTextCalloutRequest {
+  optional CollectionItemName destination_callout_view = 1;
+  repeated string text = 2;
+  optional double view_x_position = 3;
+  optional double view_y_position = 4;
+  optional PointName callout_anchor_point = 5;
+}
+
+message CreateTextCalloutResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetDefaultCalloutViewPropertiesRequest {
+  optional string default_callout_view_name = 1;
+  optional CalloutViewProperties properties = 2;
+}
+
+message SetDefaultCalloutViewPropertiesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetCalloutViewPropertiesRequest {
+  repeated CollectionItemName callout_views = 1;
+  optional CalloutViewProperties properties = 2;
+}
+
+message SetCalloutViewPropertiesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message DeleteCalloutViewRequest {
+  optional CollectionItemName callout_view = 1;
+}
+message DeleteCalloutViewResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message RenameCalloutViewRequest {
+  optional CollectionItemName original_callout_view_name = 1;
+  optional CollectionItemName new_callout_view_name = 2;
+  optional bool overwrite_if_exists = 3;
+}
+
+message RenameCalloutViewResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message AutoArrangeCalloutViewRequest {
+  optional CollectionItemName callout_view = 1;
+}
+message AutoArrangeCalloutViewResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message GetNumberOfCalloutsInCalloutViewRequest {
+  optional CollectionItemName callout_view = 1;
+}
+
+message GetNumberOfCalloutsInCalloutViewResult {
+  optional int32 callouts_count = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetIthCalloutPositionInCalloutViewRequest {
+  optional CollectionItemName callout_view = 1;
+  optional int32 callout_view_index = 2;
+}
+
+message GetIthCalloutPositionInCalloutViewResult {
+  optional int32 x_position = 1;
+  optional int32 y_position = 2;
+  optional int32 x_anchor_position = 3;
+  optional int32 y_anchor_position = 4;
+  optional int32 callout_width = 5;
+  optional int32 callout_height = 6;
+  MpExecutionDetails execution = 1000;
+}
+
+message SetIthCalloutPositionInCalloutViewRequest {
+  optional CollectionItemName callout_view = 1;
+  optional int32 callout_view_index = 2;
+  optional int32 x_position = 3;
+  optional int32 y_position = 4;
+}
+
+message SetIthCalloutPositionInCalloutViewResult {
+  MpExecutionDetails execution = 1000;
+}
+
+enum BSplinePointSortMode {
+  B_SPLINE_POINT_SORT_MODE_UNSPECIFIED = 0;
+  B_SPLINE_POINT_SORT_MODE_USE_SELECTION_ORDER = 1;
+  B_SPLINE_POINT_SORT_MODE_CLOSEST_NEIGHBORS_FROM_FIRST_SELECTION = 2;
+  B_SPLINE_POINT_SORT_MODE_CLOSEST_NEIGHBORS_IN_CURVE_DIRECTION = 3;
+}
+
+message BSplineFitOptions {
+  optional bool open_curve = 1;
+  optional bool use_interpolation_for_fit = 2;
+  optional int32 number_of_control_points = 3;
+  optional int32 degree_of_curve = 4;
+  optional BSplinePointSortMode sort_method = 5;
+  optional bool span_any_gap = 6;
+  optional double termination_gap_length = 7;
+  optional bool ignore_proximate_points = 8;
+  optional double proximate_point_threshold = 9;
+  optional bool use_global_tessellation_options = 10;
+  optional double maximum_chordal_deviation = 11;
+  optional double maximum_trim_edge_angle = 12;
+  optional double termination_average_multiplier = 13;
+  optional double extension = 14;
+}
+
+message ConstructBSplineFromPointsRequest {
+  optional CollectionObjectName resulting_b_spline_name = 1;
+  optional BSplineFitOptions b_spline_fit_options = 2;
+  repeated PointName point_list = 3;
+}
+
+message ConstructBSplineFromPointsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructBSplineFromPointSetRequest {
+  optional CollectionObjectName resulting_b_spline_name = 1;
+  optional BSplineFitOptions b_spline_fit_options = 2;
+  optional CollectionObjectName point_set_container = 3;
+}
+
+message ConstructBSplineFromPointSetResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructBSplineFromSeveralBSplinesRequest {
+  optional CollectionObjectName resulting_b_spline_name = 1;
+  repeated CollectionObjectName b_spline_list = 2;
+  optional bool close_resulting_b_spline = 3;
+}
+
+message ConstructBSplineFromSeveralBSplinesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructBSplineFromIntersectionOfPlaneAndSurfaceRequest {
+  optional CollectionObjectName resulting_b_spline_name = 1;
+  optional CollectionObjectName plane_name = 2;
+  optional CollectionObjectName surface_name = 3;
+  optional double approximation_tolerance = 4;
+}
+
+message ConstructBSplineFromIntersectionOfPlaneAndSurfaceResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructBSplineFromIntersectionOfSurfacesRequest {
+  optional CollectionObjectName resulting_b_spline_name = 1;
+  optional CollectionObjectName first_surface_name = 2;
+  optional CollectionObjectName second_surface_name = 3;
+  optional double approximation_tolerance = 4;
+}
+
+message ConstructBSplineFromIntersectionOfSurfacesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructBSplinesFromSurfacesRequest {
+  optional string resulting_b_spline_name_prefix = 1;
+  repeated CollectionObjectName surface_list = 2;
+}
+
+message ConstructBSplinesFromSurfacesResult {
+  repeated CollectionObjectName b_spline_list = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructBSplinesFromLinesRequest {
+  optional string resulting_b_spline_name_prefix = 1;
+  repeated CollectionObjectName line_list = 2;
+}
+
+message ConstructBSplinesFromLinesResult {
+  repeated CollectionObjectName b_spline_list = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructBSplinesFromIntersectionOfPlaneAndMeshRequest {
+  optional CollectionObjectName resulting_b_spline_name = 1;
+  optional CollectionObjectName plane_name = 2;
+  optional CollectionObjectName mesh_name = 3;
+  optional int32 closed_line_segment_limit = 4;
+  optional int32 unclosed_line_segment_limit = 5;
+  optional bool create_intersection_points = 6;
+}
+
+message ConstructBSplinesFromIntersectionOfPlaneAndMeshResult {
+  repeated CollectionObjectName b_spline_list = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message CalloutViewProperties {
+  optional bool lock_view_point = 1;
+  optional bool recall_working_frame = 2;
+  optional bool recall_visible_layer = 3;
+  optional int32 callout_leader_thickness = 4;
+  optional Color callout_leader_color = 5;
+  optional int32 callout_border_thickness = 6;
+  optional Color callout_border_color = 7;
+  optional bool divide_text_with_lines = 8;
+  optional Font font = 9;
+}
+
+message MakeCalloutViewRefListWildcardSelectionRequest {
+  optional string collection_wildcard_criteria = 1; // default "*"
+  optional string callout_view_wildcard_criteria = 2; // default "*"
+}
+
+message MakeCalloutViewRefListWildcardSelectionResult {
+  repeated CollectionItemName callout_views = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructCircleRequest {
+  optional CollectionObjectName circle_name = 1;
+  optional Vector circle_center = 2;
+  optional Vector circle_normal = 3;
+  optional double circle_radius = 4;
+}
+message ConstructCircleResult {
+  MpExecutionDetails execution = 1000;
+}
+
+enum CircleLineMode {
+  CIRCLE_LINE_MODE_UNSPECIFIED = 0;
+  CIRCLE_LINE_MODE_CIRCLE = 1;
+  CIRCLE_LINE_MODE_LINE = 2;
+}
+message ConstructCirclesLinesFromSurfacesRequest {
+  repeated CollectionObjectName surfaces = 1;
+  optional double minimum_diameter = 2;
+  optional double maximum_diameter = 3;
+  optional double tolerance = 4;
+  optional bool single_surface = 5;
+  optional CircleLineMode circle_line_mode = 6;
+  optional CollectionName destination_collection_name = 7;
+  optional string base_name = 8;
+}
+message ConstructCirclesLinesFromSurfacesResult {
+  repeated CollectionObjectName geometry_objects = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message SetOrConstructDefaultCollectionRequest {
+  optional CollectionName collection_name = 1;
+}
+message SetOrConstructDefaultCollectionResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructCollectionRequest {
+  optional CollectionName collection_name = 1;
+  optional string folder_path = 2;
+  optional bool make_default_collection = 3;
+}
+message ConstructCollectionResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message DeleteCollectionRequest {
+  optional CollectionName collection_name = 1;
+}
+message DeleteCollectionResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message DeleteCollectionsByWildcardRequest {
+  optional string search_string = 1;
+  optional bool case_sensitive_search = 2;
+  optional bool allow_deleting_all_collections = 3;
+}
+message DeleteCollectionsByWildcardResult {
+  optional int32 num_deleted = 1;
+  optional int32 num_failed = 2;
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructConeRequest {
+  optional CollectionObjectName cone_name = 1;
+  optional Vector cone_end_point = 2;
+  optional Vector cone_axis = 3;
+  optional double cone_length = 4;
+  optional double cone_theta_start = 5;
+  optional double cone_theta_span = 6;
+  optional double cone_included_angle = 7;
+}
+message ConstructConeResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructCylinderRequest {
+  optional CollectionObjectName cylinder_name = 1;
+  optional Vector cylinder_end_point = 2;
+  optional Vector cylinder_axis = 3;
+  optional double cylinder_diameter = 4;
+  optional double cylinder_length = 5;
+}
+message ConstructCylinderResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructCylinderFromEndPointsRequest {
+  optional CollectionObjectName cylinder_name = 1;
+  optional Vector cylinder_end_point_a = 2;
+  optional Vector cylinder_end_point_b = 3;
+  optional double cylinder_diameter = 4;
+}
+message ConstructCylinderFromEndPointsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructEllipsoidRequest {
+  optional CollectionObjectName ellipse_name = 1;
+  optional double x_axis_radius = 2;
+  optional double y_axis_radius = 3;
+  optional double z_axis_radius = 4;
+  optional double magnification = 5;
+  optional bool uncertainty_ellipsoid = 6;
+  optional Transform transform_in_working_coordinates = 7;
+  optional Color ellipse_color = 8;
+}
+message ConstructEllipsoidResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructFoldersRequest {
+  optional string folder_path = 1;
+}
+message ConstructFoldersResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message DeleteFoldersByWildcardRequest {
+  optional string search_string = 1;
+  optional bool case_sensitive_search = 2;
+  optional bool allow_deleting_all_folders = 3;
+}
+message DeleteFoldersByWildcardResult {
+  optional int32 num_deleted = 1;
+  optional int32 num_failed = 2;
+  MpExecutionDetails execution = 1000;
+}
+
+enum FrameConstructionMethod {
+  FRAME_CONSTRUCTION_METHOD_UNSPECIFIED = 0;
+  FRAME_CONSTRUCTION_METHOD_ORIGIN_X_XY = 1;
+  FRAME_CONSTRUCTION_METHOD_ORIGIN_X_XZ = 2;
+  FRAME_CONSTRUCTION_METHOD_ORIGIN_Y_YX = 3;
+  FRAME_CONSTRUCTION_METHOD_ORIGIN_Y_YZ = 4;
+  FRAME_CONSTRUCTION_METHOD_ORIGIN_Z_ZX = 5;
+  FRAME_CONSTRUCTION_METHOD_ORIGIN_X_ZY = 6;
+}
+
+enum AxisIdentifier {
+  AXIS_IDENTIFIER_UNSPECIFIED = 0;
+  AXIS_IDENTIFIER_POSITIVE_X = 1;
+  AXIS_IDENTIFIER_NEGATIVE_X = 2;
+  AXIS_IDENTIFIER_POSITIVE_Y = 3;
+  AXIS_IDENTIFIER_NEGATIVE_Y = 4;
+  AXIS_IDENTIFIER_POSITIVE_Z = 5;
+  AXIS_IDENTIFIER_NEGATIVE_Z = 6;
+}
+
+enum FrameAxis {
+  FRAME_AXIS_UNSPECIFIED = 0;
+  FRAME_AXIS_X = 1;
+  FRAME_AXIS_Y = 2;
+  FRAME_AXIS_Z = 3;
+}
+
+message ConstructFrameWithWizardRequest {
+  optional CollectionObjectName new_frame_name = 1;
+  optional bool wait_for_completion = 2;
+}
+message ConstructFrameWithWizardResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructFrameRequest {
+  optional CollectionObjectName new_frame_name = 1;
+  optional Transform transform_in_working_coordinates = 2;
+}
+message ConstructFrameResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructFrameFromTransformInWorldRequest {
+  optional CollectionObjectName new_frame_name = 1;
+  optional Transform transform_in_world_coordinates = 2;
+}
+message ConstructFrameFromTransformInWorldResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructFrameOnInstrumentBaseRequest {
+  optional CollectionInstrumentId instrument_id = 1;
+  optional string frame_name = 2;
+}
+message ConstructFrameOnInstrumentBaseResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructFrameOnObjectRequest {
+  optional CollectionObjectName reference_object = 1;
+  optional CollectionObjectName frame_name = 2;
+}
+message ConstructFrameOnObjectResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructFrameThreePointsRequest {
+  optional FrameConstructionMethod construction_method = 1;
+  optional PointName origin_point = 2;
+  optional PointName primary_axis_point = 3;
+  optional PointName secondary_axis_point = 4;
+  optional string frame_name = 5;
+}
+message ConstructFrameThreePointsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructFrameAtPointWithWorkingZAndClockedAxisRequest {
+  optional PointName origin_point = 1;
+  optional AxisIdentifier clocked_axis = 2;
+  optional PointName clocking_point = 3;
+  optional string frame_name = 4;
+}
+message ConstructFrameAtPointWithWorkingZAndClockedAxisResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructFramePickOriginAndPointOnXAxisClockZAlongWorkingZRequest {
+  optional PointName origin_point = 1;
+  optional PointName point_on_x_axis = 2;
+  optional string frame_name = 3;
+}
+message ConstructFramePickOriginAndPointOnXAxisClockZAlongWorkingZResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructFrameKnownOriginObjectDirectionObjectDirectionRequest {
+  optional PointName known_point = 1;
+  optional Vector known_point_value_in_new_frame = 2;
+  optional CollectionObjectName primary_axis_object = 3;
+  optional AxisIdentifier primary_axis_defines_which_axis = 4;
+  optional CollectionObjectName secondary_axis_object = 5;
+  optional AxisIdentifier secondary_axis_defines_which_axis = 6;
+  optional CollectionObjectName frame_name = 7;
+}
+message ConstructFrameKnownOriginObjectDirectionObjectDirectionResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructFrameThreePlanesRequest {
+  optional CollectionObjectName x_plane = 1;
+  optional double x_value_on_plane = 2;
+  optional CollectionObjectName y_plane = 3;
+  optional double y_value_on_plane = 4;
+  optional CollectionObjectName z_plane = 5;
+  optional double z_value_on_plane = 6;
+  optional CollectionObjectName frame_name = 7;
+}
+message ConstructFrameThreePlanesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructFrameCopyAndMakeLeftHandedRequest {
+  optional CollectionObjectName reference_frame = 1;
+  optional CollectionObjectName frame_name = 2;
+  optional FrameAxis axis_to_reverse = 3;
+}
+message ConstructFrameCopyAndMakeLeftHandedResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructFrameAverageOfOtherObjectFramesRequest {
+  repeated CollectionObjectName objects = 1;
+  optional CollectionObjectName frame_name = 2;
+}
+message ConstructFrameAverageOfOtherObjectFramesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructFrameAtRobotLinkRequest {
+  optional CollectionMachineId machine_id = 1;
+  optional string link_name = 2;
+  optional CollectionObjectName resulting_frame = 3;
+}
+message ConstructFrameAtRobotLinkResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructFrameFromPointMeasurementProbingFramesRequest {
+  repeated PointName point_list = 1;
+  optional bool show_frame = 2;
+}
+message ConstructFrameFromPointMeasurementProbingFramesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructMirrorCubeFrameRequest {
+  optional CollectionObjectName mirror_cube_frame_name = 1;
+  optional PointName point_name = 2;
+  optional bool use_current_measurements_marked_as_mirror_shots = 3;
+  optional double nominal_cube_face_angle = 4;
+}
+message ConstructMirrorCubeFrameResult {
+  optional double total_angular_error = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructFramesByProjectingFramesOnMeshAlongFrameDirectionRequest {
+  repeated CollectionObjectName reference_frame_names = 1;
+  optional CollectionObjectName base_name_for_projected_frames = 2;
+  optional bool bi_directional_projection = 3;
+  optional CollectionObjectName mesh_serving_as_projection_target = 4;
+}
+message ConstructFramesByProjectingFramesOnMeshAlongFrameDirectionResult {
+  repeated CollectionObjectName resultant_frame_name_list = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructFramesByProjectingFramesOnMeshAlongReferenceDirectionRequest {
+  repeated CollectionObjectName reference_frame_names = 1;
+  optional CollectionObjectName base_name_for_projected_frames = 2;
+  optional CollectionObjectName object_providing_direction_reference = 3;
+  optional bool bi_directional_projection = 4;
+  optional CollectionObjectName mesh_serving_as_projection_target = 5;
+}
+message ConstructFramesByProjectingFramesOnMeshAlongReferenceDirectionResult {
+  repeated CollectionObjectName resultant_frame_name_list = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message AddSurfaceToMeshOffsetAlongReferenceDirectionRequest {
+  repeated CollectionObjectName reference_frame_names = 1;
+  optional CollectionObjectName surface_for_offset_distance_computation = 2;
+  optional double surface_offset_range = 3;
+  optional string collection_for_result_frames = 4;
+  optional CollectionObjectName object_providing_direction_reference = 5;
+  optional bool bi_directional_projection = 6;
+  optional CollectionObjectName mesh_serving_as_projection_target = 7;
+}
+message AddSurfaceToMeshOffsetAlongReferenceDirectionResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructLineTwoPointsRequest {
+  optional CollectionObjectName line_name = 1;
+  optional PointName first_point = 2;
+  optional PointName second_point = 3;
+}
+message ConstructLineTwoPointsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructLineTwoPointsVectorNotationRequest {
+  optional CollectionObjectName line_name = 1;
+  optional Vector first_vector = 2;
+  optional Vector second_vector = 3;
+}
+message ConstructLineTwoPointsVectorNotationResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructLineNormalToObjectRequest {
+  optional CollectionObjectName line_name = 1;
+  optional double line_length = 2;
+  optional CollectionObjectName object = 3;
+}
+message ConstructLineNormalToObjectResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructLineProjectLineToObjectReferencePlaneRequest {
+  optional CollectionObjectName line_to_create = 1;
+  optional CollectionObjectName line_to_project = 2;
+  optional CollectionObjectName object_to_project_to = 3;
+}
+message ConstructLineProjectLineToObjectReferencePlaneResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructLineNormalToObjectThroughPointRequest {
+  optional CollectionObjectName line_to_create = 1;
+  optional CollectionObjectName object_name = 2;
+  optional PointName point_name = 3;
+}
+message ConstructLineNormalToObjectThroughPointResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructLineTwoPlaneIntersectionRequest {
+  optional CollectionObjectName line_name = 1;
+  optional CollectionObjectName first_plane = 2;
+  optional CollectionObjectName second_plane = 3;
+}
+message ConstructLineTwoPlaneIntersectionResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructLinesFromSurfaceFacesRuntimeSelectRequest {}
+message ConstructLinesFromSurfaceFacesRuntimeSelectResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructLineCenterOfSlotRequest {
+  optional CollectionObjectName line_name = 1;
+  optional CollectionObjectName slot_name = 2;
+}
+message ConstructLineCenterOfSlotResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructLineFromInstrumentShotRequest {
+  optional PointName point_name = 1;
+  optional int32 observation_index = 2;
+  optional CollectionObjectName line_name = 3;
+}
+message ConstructLineFromInstrumentShotResult {
+  MpExecutionDetails execution = 1000;
+}
+
+enum SystemString {
+  reserved 12 to 14;
+  reserved "SYSTEM_STRING_LICENSE_USER_NAME", "SYSTEM_STRING_WINDOWS_USER_NAME", "SYSTEM_STRING_COMPUTER_NAME";
+  SYSTEM_STRING_UNSPECIFIED = 0;
+  SYSTEM_STRING_SA_VERSION = 1;
+  SYSTEM_STRING_XIT_FILENAME = 2;
+  SYSTEM_STRING_MP_FILENAME = 3;
+  SYSTEM_STRING_MP_FILENAME_FULL_PATH = 4;
+  SYSTEM_STRING_DATE_AND_TIME = 5;
+  SYSTEM_STRING_DATE = 6;
+  SYSTEM_STRING_DATE_SHORT = 7;
+  SYSTEM_STRING_TIME = 8;
+  SYSTEM_STRING_KEY_SERIAL_NUMBER = 9;
+  SYSTEM_STRING_COMPANY_NAME = 10;
+  SYSTEM_STRING_USER_NAME = 11;
+}
+
+message MakeSystemStringRequest {
+  optional SystemString string_content = 1;
+  optional string format_string = 2;
+}
+message MakeSystemStringResult {
+  optional string resultant_string = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeCollectionNameRuntimeSelectRequest {
+  optional string user_prompt = 1;
+}
+message MakeCollectionNameRuntimeSelectResult {
+  optional CollectionName resultant_collection_name = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeCollectionItemNameRefListWildcardSelectionRequest {
+  optional string collection_wildcard_criteria = 1;
+  optional string item_wildcard_criteria = 2;
+  optional ItemType item_type = 3;
+}
+message MakeCollectionItemNameRefListWildcardSelectionResult {
+  repeated CollectionItemName resultant_collection_item_name_ref_list = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeCollectionObjectNameRuntimeSelectRequest {
+  optional string user_prompt = 1;
+  optional ObjectType object_type = 2;
+}
+message MakeCollectionObjectNameRuntimeSelectResult {
+  optional CollectionObjectName resultant_collection_object_name = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeCollectionObjectNameEnsureUniqueRequest {
+  optional CollectionObjectName collection_object_name = 1;
+  optional bool use_number_suffix = 2;
+}
+message MakeCollectionObjectNameEnsureUniqueResult {
+  optional CollectionObjectName collection_object_name = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeCollectionObjectNameRefListRuntimeSelectRequest {
+  optional string user_prompt = 1;
+  optional ObjectType object_type = 2;
+}
+message MakeCollectionObjectNameRefListRuntimeSelectResult {
+  repeated CollectionObjectName resultant_collection_object_name_ref_list = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeCollectionObjectNameRefListWildcardSelectionRequest {
+  optional string collection_wildcard_criteria = 1;
+  optional string object_wildcard_criteria = 2;
+  optional ObjectType object_type = 3;
+}
+message MakeCollectionObjectNameRefListWildcardSelectionResult {
+  repeated CollectionObjectName resultant_collection_object_name_ref_list = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeCollectionObjectNameRefListByTypeRequest {
+  optional string collection = 1;
+  optional ObjectType object_type = 2;
+}
+message MakeCollectionObjectNameRefListByTypeResult {
+  repeated CollectionObjectName resultant_collection_object_name_list = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeCollectionObjectNameRefListByTypeAndColorRequest {
+  optional string collection = 1;
+  optional ObjectType object_type = 2;
+  optional Color object_color = 3;
+}
+message MakeCollectionObjectNameRefListByTypeAndColorResult {
+  repeated CollectionObjectName resultant_collection_object_name_list = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeCollectionObjectNameRefListFromAllGroupsInCollectionRequest {
+  optional CollectionName collection_name = 1;
+}
+message MakeCollectionObjectNameRefListFromAllGroupsInCollectionResult {
+  repeated CollectionObjectName collection_object_name_list = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetCollectionInstrumentRefListVariableRequest {
+  optional string name = 1;
+}
+message GetCollectionInstrumentRefListVariableResult {
+  repeated CollectionInstrumentId value = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message SetCollectionInstrumentRefListVariableRequest {
+  optional string name = 1;
+  repeated CollectionInstrumentId value = 2;
+}
+message SetCollectionInstrumentRefListVariableResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message AddCollectionInstrumentsToRefListWildcardSelectionRequest {
+  repeated CollectionInstrumentId collection_instrument_ref_list = 1;
+  optional string collection_wildcard_criteria = 2;
+  optional string instrument_wildcard_criteria = 3;
+}
+message AddCollectionInstrumentsToRefListWildcardSelectionResult {
+  repeated CollectionInstrumentId collection_instrument_ref_list = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeCollectionInstrumentRefListRuntimeSelectRequest {
+  optional string user_prompt = 1;
+}
+message MakeCollectionInstrumentRefListRuntimeSelectResult {
+  repeated CollectionInstrumentId resultant_collection_instrument_ref_list = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeRelationshipRefListWildcardSelectionRequest {
+  optional string collection_wildcard_criteria = 1;
+  optional string relationship_wildcard_criteria = 2;
+}
+message MakeRelationshipRefListWildcardSelectionResult {
+  repeated CollectionItemName resultant_relationship_ref_list = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeRelationshipRefListRuntimeSelectRequest {
+  optional string user_prompt = 1;
+}
+message MakeRelationshipRefListRuntimeSelectResult {
+  repeated CollectionItemName resultant_relationship_ref_list = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeEventRefListWildcardSelectionRequest {
+  optional string collection_wildcard_criteria = 1;
+  optional string event_wildcard_criteria = 2;
+}
+message MakeEventRefListWildcardSelectionResult {
+  repeated CollectionItemName resultant_event_ref_list = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeCollectionInstrumentIdRuntimeSelectRequest {
+  optional string user_prompt = 1;
+}
+message MakeCollectionInstrumentIdRuntimeSelectResult {
+  optional CollectionInstrumentId instrument_id = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeReportRefListFromCollectionRequest {
+  optional CollectionName collection_name = 1;
+}
+message MakeReportRefListFromCollectionResult {
+  repeated CollectionItemName report_list = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeReportRefListRuntimeSelectRequest {
+  optional string user_prompt = 1;
+}
+message MakeReportRefListRuntimeSelectResult {
+  repeated CollectionItemName report_list = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message MakePictureNameRefListRuntimeSelectRequest {
+  optional string user_prompt = 1;
+}
+message MakePictureNameRefListRuntimeSelectResult {
+  repeated CollectionItemName picture_name_list = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeTransformFromDoublesFixedXyzRequest {
+  optional double x = 1;
+  optional double y = 2;
+  optional double z = 3;
+  optional double rx = 4;
+  optional double ry = 5;
+  optional double rz = 6;
+}
+message MakeTransformFromDoublesFixedXyzResult {
+  optional Transform resultant_transform = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeTransformFromDoublesEulerParametersRequest {
+  optional double x = 1;
+  optional double y = 2;
+  optional double z = 3;
+  optional double e1 = 4;
+  optional double e2 = 5;
+  optional double e3 = 6;
+  optional double e4 = 7;
+}
+message MakeTransformFromDoublesEulerParametersResult {
+  optional Transform resultant_transform = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetWorkingTransformOfObjectFixedXyzRequest {
+  optional CollectionObjectName object_name = 1;
+}
+message GetWorkingTransformOfObjectFixedXyzResult {
+  optional Transform transform = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message InvertTransformRequest {
+  optional Transform transform = 1;
+}
+message InvertTransformResult {
+  optional Transform inverse_transform = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message DecomposeTransformIntoDoublesFixedXyzRequest {
+  optional Transform input_transform = 1;
+}
+message DecomposeTransformIntoDoublesFixedXyzResult {
+  optional double x = 1;
+  optional double y = 2;
+  optional double z = 3;
+  optional double rx = 4;
+  optional double ry = 5;
+  optional double rz = 6;
+  MpExecutionDetails execution = 1000;
+}
+
+message DecomposeTransformIntoVectorsFixedXyzRequest {
+  optional Transform input_transform = 1;
+}
+message DecomposeTransformIntoVectorsFixedXyzResult {
+  optional Vector position_in_working = 1;
+  optional Vector orientation_in_working = 2;
+  MpExecutionDetails execution = 1000;
+}
+
+message DecomposeTransformIntoVectorsOriginAndAxesRequest {
+  optional Transform transform = 1;
+}
+message DecomposeTransformIntoVectorsOriginAndAxesResult {
+  optional Vector origin = 1;
+  optional Vector x_axis = 2;
+  optional Vector y_axis = 3;
+  optional Vector z_axis = 4;
+  MpExecutionDetails execution = 1000;
+}
+
+message DecomposeWorldTransformOperatorIntoDoublesFixedXyzInWorldRequest {
+  optional WorldTransform input_world_transform_operator = 1;
+}
+message DecomposeWorldTransformOperatorIntoDoublesFixedXyzInWorldResult {
+  optional double x = 1;
+  optional double y = 2;
+  optional double z = 3;
+  optional double rx = 4;
+  optional double ry = 5;
+  optional double rz = 6;
+  optional double scale = 7;
+  MpExecutionDetails execution = 1000;
+}
+
+message DecomposeTransformIntoDoublesEulerXyzRequest {
+  optional Transform input_transform = 1;
+}
+message DecomposeTransformIntoDoublesEulerXyzResult {
+  optional double x = 1;
+  optional double y = 2;
+  optional double z = 3;
+  optional double rx = 4;
+  optional double ry = 5;
+  optional double rz = 6;
+  MpExecutionDetails execution = 1000;
+}
+
+message DecomposeTransformIntoDoublesEulerZyxRequest {
+  optional Transform input_transform = 1;
+}
+message DecomposeTransformIntoDoublesEulerZyxResult {
+  optional double x = 1;
+  optional double y = 2;
+  optional double z = 3;
+  optional double rz = 4;
+  optional double ry = 5;
+  optional double rx = 6;
+  MpExecutionDetails execution = 1000;
+}
+
+message DecomposeTransformIntoDoublesEulerZyzRequest {
+  optional Transform input_transform = 1;
+}
+message DecomposeTransformIntoDoublesEulerZyzResult {
+  optional double x = 1;
+  optional double y = 2;
+  optional double z = 3;
+  optional double first_rz = 4;
+  optional double ry = 5;
+  optional double second_rz = 6;
+  MpExecutionDetails execution = 1000;
+}
+
+message DecomposeTransformIntoDoublesEulerZxzRequest {
+  optional Transform input_transform = 1;
+}
+message DecomposeTransformIntoDoublesEulerZxzResult {
+  optional double x = 1;
+  optional double y = 2;
+  optional double z = 3;
+  optional double first_rz = 4;
+  optional double rx = 5;
+  optional double second_rz = 6;
+  MpExecutionDetails execution = 1000;
+}
+
+message DecomposeWorldTransformOperatorIntoVectorsFixedXyzInWorldRequest {
+  optional WorldTransform input_world_transform_operator = 1;
+}
+message DecomposeWorldTransformOperatorIntoVectorsFixedXyzInWorldResult {
+  optional Vector position_in_working = 1;
+  optional Vector orientation_in_working = 2;
+  optional double scale = 3;
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPerimeterFromPointsRequest {
+  optional CollectionObjectName resulting_perimeter_name = 1;
+  repeated PointName point_list = 2;
+  optional bool open_perimeter = 3;
+}
+
+message ConstructPerimeterFromPointsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPlaneRequest {
+  optional CollectionObjectName plane_name = 1;
+  optional Vector plane_center = 2;
+  optional Vector plane_normal = 3;
+  optional double plane_edge_dimension = 4;
+}
+message ConstructPlaneResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPlaneNormalToObjectThroughPointRequest {
+  optional CollectionObjectName resultant_plane_name = 1;
+  optional CollectionObjectName normal_to_object_name = 2;
+  optional PointName through_point_name = 3;
+  optional double plane_edge_dimension = 4;
+}
+message ConstructPlaneNormalToObjectThroughPointResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPlanesBoundingPointGroupRequest {
+  optional CollectionObjectName reference_plane_name = 1;
+  optional CollectionObjectName group_to_bound = 2;
+  optional CollectionObjectName resulting_high_plane_name = 3;
+  optional CollectionObjectName resulting_low_plane_name = 4;
+  optional bool override_target_point_offsets = 5;
+  optional double offset_value = 6;
+}
+message ConstructPlanesBoundingPointGroupResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPlanesBisectTwoPlanesRequest {
+  optional CollectionObjectName resultant_plane_name = 1;
+  optional CollectionObjectName first_plane = 2;
+  optional CollectionObjectName second_plane = 3;
+}
+message ConstructPlanesBisectTwoPlanesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ShiftPlaneRequest {
+  optional CollectionObjectName plane = 1;
+  optional double shift_along_normal = 2;
+  optional double grow_bounds_by_factor = 3;
+}
+message ShiftPlaneResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPlanesFromSurfaceFacesRuntimeSelectRequest {}
+message ConstructPlanesFromSurfaceFacesRuntimeSelectResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPointCloudsFromExistingPointGroupRequest {
+  optional CollectionObjectName point_group_name = 1;
+  optional CollectionObjectName cloud_name = 2;
+}
+message ConstructPointCloudsFromExistingPointGroupResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPointCloudsFromExistingCloudPointsRuntimeSelectRequest {
+  optional CollectionObjectName cloud_name = 1;
+}
+message ConstructPointCloudsFromExistingCloudPointsRuntimeSelectResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPointCloudsFromExistingCloudsUniformSpacingRequest {
+  repeated CollectionObjectName existing_point_cloud_list = 1;
+  optional double desired_point_spacing = 2;
+  optional int32 minimum_points_per_output_point = 3;
+  optional CollectionObjectName new_cloud_name = 4;
+  optional bool hide_original_point_clouds = 5;
+}
+message ConstructPointCloudsFromExistingCloudsUniformSpacingResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPointCloudFromExistingCloudsRequest {
+  repeated CollectionObjectName existing_point_cloud_list = 1;
+  optional CollectionObjectName new_cloud_name = 2;
+  optional CloudThinningOptions cloud_thinning_settings = 3;
+  optional bool hide_original_point_clouds = 4;
+}
+message ConstructPointCloudFromExistingCloudsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPointCloudFromVisibleCloudPointsRequest {
+  repeated CollectionObjectName source_clouds = 1;
+  optional CollectionObjectName destination_cloud_name = 2;
+}
+message ConstructPointCloudFromVisibleCloudPointsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructBoundaryPointsFromCloudRequest {
+  optional CollectionObjectName source_cloud_name = 1;
+  optional CollectionObjectName destination_cloud_name = 2;
+}
+message ConstructBoundaryPointsFromCloudResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPointCloudLimitingProbingDirectionsRequest {
+  optional CollectionObjectName source_cloud_name = 1;
+  optional CollectionObjectName normal_to_object_name = 2;
+  optional double acceptance_angle = 3;
+  optional CollectionObjectName destination_cloud_name = 4;
+  optional bool hide_source_cloud = 5;
+}
+message ConstructPointCloudLimitingProbingDirectionsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructCrossSectionCloudRequest {
+  optional CollectionObjectName cross_section_cloud_name = 1;
+  optional bool cylindrical_cross_section_mode = 2;
+  optional double start_distance = 3;
+  optional double section_spacing = 4;
+  optional double proximity_threshold = 5;
+  optional int32 maximum_section_count = 6;
+  optional bool limit_cross_section_extent = 7;
+  optional double radius_limit = 8;
+  optional bool project_to_reference_surface = 9;
+  optional CollectionObjectName reference_object = 10;
+  repeated CollectionObjectName input_clouds = 11;
+  optional CloudThinningOptions cloud_thinning_settings = 12;
+  optional bool update_existing_cloud = 13;
+}
+message ConstructCrossSectionCloudResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructCrossSectionCloudUserSelectRequest {
+  optional CollectionObjectName cross_section_cloud_name = 1;
+  optional double proximity_threshold = 2;
+  optional bool limit_cross_section_extent = 3;
+  optional double radius_limit = 4;
+  optional bool project_to_reference_surface = 5;
+  repeated CollectionObjectName reference_planes = 6;
+  repeated CollectionObjectName input_clouds = 7;
+  optional CloudThinningOptions cloud_thinning_settings = 8;
+  optional bool update_existing_cloud = 9;
+}
+message ConstructCrossSectionCloudUserSelectResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ExtractSphereCentersFromPointCloudRequest {
+  optional CollectionObjectName cloud_name = 1;
+  optional double desired_diameter = 2;
+  optional double extraction_tolerance = 3;
+  optional int32 minimum_point_count = 4;
+  optional CollectionObjectName group_name_for_points = 5;
+  optional bool perform_final_fit = 6;
+  optional double final_fit_cone_angle = 7;
+}
+message ExtractSphereCentersFromPointCloudResult {
+  int32 number_of_points_extracted = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+enum SurveyTargetType {
+  SURVEY_TARGET_TYPE_UNSPECIFIED = 0;
+  SURVEY_TARGET_TYPE_TRIANGLE = 1;
+  SURVEY_TARGET_TYPE_CIRCLE = 2;
+}
+
+enum WcfAxis {
+  WCF_AXIS_UNSPECIFIED = 0;
+  WCF_AXIS_X = 1;
+  WCF_AXIS_Y = 2;
+  WCF_AXIS_Z = 3;
+}
+
+enum EdgePointMode {
+  EDGE_POINT_MODE_UNSPECIFIED = 0;
+  EDGE_POINT_MODE_INCLUDE_EDGES = 1;
+  EDGE_POINT_MODE_EXCLUDE_EDGES = 2;
+  EDGE_POINT_MODE_EDGES_ONLY = 3;
+}
+
+message ProjectedPointGradient {
+  Vector projected_point = 1;
+  Vector normal_vector = 2;
+  Vector u_direction = 3;
+  Vector v_direction = 4;
+}
+
+message ObjectOriginResult {
+  Vector vector_representation = 1;
+  double x_value = 2;
+  double y_value = 3;
+  double z_value = 4;
+}
+
+message GroupAverageResult {
+  double rms_deviation = 1;
+  double max_absolute_deviation = 2;
+  double average_deviation = 3;
+}
+
+message ConstructPointFitToPointsRequest {
+  repeated PointName point_names = 1;
+  optional PointName resulting_point_name = 2;
+}
+message ConstructPointFitToPointsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPointInWorkingCoordinatesRequest {
+  optional PointName point_name = 1;
+  optional Vector working_coordinates = 2;
+}
+message ConstructPointInWorkingCoordinatesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPointFromSurveyTargetCenterRequest {
+  optional CollectionObjectName cloud_containing_target = 1;
+  optional PointName reference_seed_point = 2;
+  optional SurveyTargetType survey_target_type = 3;
+  optional double search_diameter = 4;
+  optional PointName result_center_point_name = 5;
+}
+message ConstructPointFromSurveyTargetCenterResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetPointPositionInWorkingCoordinatesRequest {
+  optional PointName point_name = 1;
+  optional Vector position_in_working_coordinates = 2;
+}
+message SetPointPositionInWorkingCoordinatesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message TransformPointsByDeltaAboutWorkingFrameRequest {
+  repeated PointName point_name_list = 1;
+  optional Vector delta_in_working_coordinates = 2;
+}
+message TransformPointsByDeltaAboutWorkingFrameResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPointAtLineMidpointRequest {
+  optional CollectionObjectName line_name = 1;
+  optional PointName point_name = 2;
+}
+message ConstructPointAtLineMidpointResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPointGroupFromPointNameRefListRequest {
+  repeated PointName point_name_list = 1;
+  optional CollectionObjectName group_name = 2;
+}
+message ConstructPointGroupFromPointNameRefListResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPointGroupsFromVectorGroupsRequest {
+  repeated CollectionObjectName vector_groups = 1;
+  optional string optional_group_name_suffix = 2;
+  optional bool make_vector_begin_points = 3;
+  optional bool make_vector_end_points = 4;
+}
+message ConstructPointGroupsFromVectorGroupsResult {
+  repeated CollectionObjectName point_groups = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPointGroupFromPointCloudRequest {
+  optional CollectionObjectName cloud_name = 1;
+  optional CollectionObjectName point_group_name = 2;
+  optional string point_prefix = 3;
+  optional int32 starting_point_number = 4;
+  optional double point_offset = 5;
+  optional bool sub_sampling = 6;
+  optional double sub_sampling_distance = 7;
+  optional bool show_progress = 8;
+}
+message ConstructPointGroupFromPointCloudResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPointFromCloudPointRuntimeSelectRequest {
+  optional string selection_prompt = 1;
+  optional bool construct_point = 2;
+  optional PointName constructed_point_name = 3;
+}
+message ConstructPointFromCloudPointRuntimeSelectResult {
+  Vector selection_cloud_point_coordinates = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPointAtCircleCenterRequest {
+  optional CollectionObjectName circle_name = 1;
+  optional PointName point_name = 2;
+}
+message ConstructPointAtCircleCenterResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPointAtIntersectionOfPlanesRequest {
+  optional CollectionObjectName plane_1_name = 1;
+  optional CollectionObjectName plane_2_name = 2;
+  optional CollectionObjectName plane_3_name = 3;
+  optional PointName point_name = 4;
+}
+message ConstructPointAtIntersectionOfPlanesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPointAtIntersectionOfTwoLinesRequest {
+  optional CollectionObjectName first_line_name = 1;
+  optional CollectionObjectName second_line_name = 2;
+  optional PointName resulting_point_name = 3;
+}
+message ConstructPointAtIntersectionOfTwoLinesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPointAtIntersectionOfPlaneAndLineRequest {
+  optional CollectionObjectName plane_name = 1;
+  optional CollectionObjectName line_name = 2;
+  optional PointName resulting_point_name = 3;
+}
+message ConstructPointAtIntersectionOfPlaneAndLineResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPointAtIntersectionOfTwoBSplinesRequest {
+  optional CollectionObjectName first_b_spline_name = 1;
+  optional CollectionObjectName second_b_spline_name = 2;
+  optional PointName point_name = 3;
+}
+message ConstructPointAtIntersectionOfTwoBSplinesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPointAtIntersectionOfBSplineAndSurfacesRequest {
+  optional CollectionObjectName b_spline_name = 1;
+  repeated CollectionObjectName surface_list = 2;
+  optional double approximation_tolerance = 3;
+  optional PointName point_name = 4;
+}
+message ConstructPointAtIntersectionOfBSplineAndSurfacesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPointsAtIntersectionOfCircleAndLineRequest {
+  optional CollectionObjectName circle_name = 1;
+  optional CollectionObjectName line_name = 2;
+  optional PointName base_point_name_for_results = 3;
+}
+message ConstructPointsAtIntersectionOfCircleAndLineResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPointsAtIntersectionOfPrincipalObjectAxesAndSurfacesRequest {
+  repeated CollectionObjectName axis_object_list = 1;
+  repeated CollectionObjectName surface_list = 2;
+  optional string point_suffix = 3;
+  optional CollectionObjectName resultant_group_name = 4;
+}
+message ConstructPointsAtIntersectionOfPrincipalObjectAxesAndSurfacesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPointsFromCylinderRequest {
+  optional CollectionObjectName cylinder_name = 1;
+  optional CollectionObjectName group_name = 2;
+}
+message ConstructPointsFromCylinderResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPointAtProjectionOfPointOntoObjectRequest {
+  optional PointName point_to_project = 1;
+  optional CollectionObjectName object_name = 2;
+  optional PointName resulting_point_name = 3;
+}
+message ConstructPointAtProjectionOfPointOntoObjectResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPointsAtProjectionOnSurfacesParallelToWcfAxisRequest {
+  repeated CollectionObjectName surface_list = 1;
+  repeated PointName point_names = 2;
+  optional string group_name_to_contain_new_points = 3;
+  optional string point_name_prefix = 4;
+  optional string point_name_suffix = 5;
+  optional WcfAxis axis = 6;
+}
+message ConstructPointsAtProjectionOnSurfacesParallelToWcfAxisResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPointsAtProjectionOnSurfacesRadialFromWcfAxisRequest {
+  repeated CollectionObjectName surface_list = 1;
+  repeated PointName point_names = 2;
+  optional string group_name_to_contain_new_points = 3;
+  optional string point_name_prefix = 4;
+  optional string point_name_suffix = 5;
+  optional WcfAxis axis = 6;
+}
+message ConstructPointsAtProjectionOnSurfacesRadialFromWcfAxisResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPointsAtProjectionOnSurfacesSphericalFromWcfOriginRequest {
+  repeated CollectionObjectName surface_list = 1;
+  repeated PointName point_names = 2;
+  optional string group_name_to_contain_new_points = 3;
+  optional string point_name_prefix = 4;
+  optional string point_name_suffix = 5;
+}
+message ConstructPointsAtProjectionOnSurfacesSphericalFromWcfOriginResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message GetGradientAtProjectedPointOnSurfaceRequest {
+  optional PointName point_to_project = 1;
+  optional CollectionObjectName surface_name = 2;
+  optional bool generate_output_vector_lines = 3;
+}
+message GetGradientAtProjectedPointOnSurfaceResult {
+  ProjectedPointGradient gradient = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetGradientAtProjectedPointOnSurfaceEdgeRequest {
+  optional PointName point_to_project = 1;
+  optional CollectionObjectName surface_edge_b_spline = 2;
+  optional CollectionObjectName surface_name = 3;
+  optional Vector edge_offset_direction = 4;
+  optional double edge_offset_distance = 5;
+  optional bool generate_output_vector_lines = 6;
+}
+message GetGradientAtProjectedPointOnSurfaceEdgeResult {
+  ProjectedPointGradient gradient = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPointsByProjectingPointsOnMeshAlongDirectionRequest {
+  repeated PointName reference_point_names = 1;
+  optional CollectionObjectName group_name_for_projected_points = 2;
+  optional CollectionObjectName object_providing_direction_reference = 3;
+  optional bool bi_directional_projection = 4;
+  optional CollectionObjectName mesh_serving_as_projection_target = 5;
+}
+message ConstructPointsByProjectingPointsOnMeshAlongDirectionResult {
+  repeated PointName resultant_point_name_list = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPointsSpacedAtDistanceOnCurvesRequest {
+  repeated CollectionObjectName b_spline_list = 1;
+  optional double distance_between_points = 2;
+  optional CollectionObjectName resultant_group_name = 3;
+  optional string resultant_point_name_prefix = 4;
+}
+message ConstructPointsSpacedAtDistanceOnCurvesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPointsNSpacedOnCurvesRequest {
+  repeated CollectionObjectName b_spline_list = 1;
+  optional int32 number_of_evenly_spaced_points = 2;
+  optional CollectionObjectName resultant_group_name = 3;
+  optional string resultant_point_name_prefix = 4;
+}
+message ConstructPointsNSpacedOnCurvesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPointsOnCurvesUsingMaxChordalDeviationRequest {
+  repeated CollectionObjectName b_spline_list = 1;
+  optional double maximum_chordal_deviation = 2;
+  optional double maximum_trim_edge_angle = 3;
+  optional double maximum_chord_length = 4;
+  optional CollectionObjectName resultant_group_name = 5;
+  optional string resultant_point_name_prefix = 6;
+}
+message ConstructPointsOnCurvesUsingMaxChordalDeviationResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPointsOnObjectVerticesRequest {
+  repeated CollectionObjectName object_name_list = 1;
+  optional CollectionObjectName resultant_group_name = 2;
+}
+message ConstructPointsOnObjectVerticesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPointsOnSurfacesByClickingRequest {
+  optional CollectionObjectName group_name_for_points = 1;
+  optional string first_point_name = 2;
+}
+message ConstructPointsOnSurfacesByClickingResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPointsFromSurfaceFacesRuntimeSelectRequest {}
+message ConstructPointsFromSurfaceFacesRuntimeSelectResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPointsFromSurfacesOnUvGridRequest {
+  repeated CollectionObjectName surface_list = 1;
+  optional string uv_point_group_base_name = 2;
+  optional bool make_each_line_separate_group = 3;
+  optional int32 number_of_u_grids = 4;
+  optional int32 number_of_v_grids = 5;
+  optional EdgePointMode edge_point_mode = 6;
+}
+message ConstructPointsFromSurfacesOnUvGridResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPointAtObjectOriginRequest {
+  optional CollectionObjectName object_name = 1;
+  optional PointName resultant_point_name = 2;
+}
+message ConstructPointAtObjectOriginResult {
+  ObjectOriginResult origin = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPointsShiftedInWorkingFrameRequest {
+  repeated PointName original_points = 1;
+  optional CollectionObjectName group_for_new_points = 2;
+  optional Vector shift_vector = 3;
+}
+message ConstructPointsShiftedInWorkingFrameResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPointsCylindricallyShiftedRequest {
+  optional CollectionObjectName reference_object_name = 1;
+  repeated PointName original_points = 2;
+  optional CollectionObjectName group_for_new_points = 3;
+  optional double radial_shift = 4;
+  optional double theta_shift_degrees = 5;
+  optional double planar_shift = 6;
+}
+message ConstructPointsCylindricallyShiftedResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPointsWildcardSelectionRequest {
+  repeated CollectionObjectName groups_to_select_from = 1;
+  optional PointName wildcard_selection_names = 2;
+  optional CollectionObjectName group_for_new_points = 3;
+  optional bool include_prior_complete_name = 4;
+}
+message ConstructPointsWildcardSelectionResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPointsSubsetWithGreatestSpacingRequest {
+  repeated PointName points_to_subsample = 1;
+  optional int32 subset_size = 2;
+  optional CollectionObjectName group_for_subset = 3;
+}
+message ConstructPointsSubsetWithGreatestSpacingResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPointsLayoutOnGridRequest {
+  optional CollectionObjectName group_name = 1;
+  optional string point_prefix = 2;
+  optional double x_min = 3;
+  optional double x_max = 4;
+  optional int32 x_count = 5;
+  optional double y_min = 6;
+  optional double y_max = 7;
+  optional int32 y_count = 8;
+  optional double z_min = 9;
+  optional double z_max = 10;
+  optional int32 z_count = 11;
+}
+message ConstructPointsLayoutOnGridResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPointsAutoCorrespondTwoGroupsProximityRequest {
+  optional CollectionObjectName reference_group = 1;
+  optional CollectionObjectName group_to_be_copied = 2;
+  optional double same_point_tolerance = 3;
+  optional CollectionObjectName group_to_contain_matched_points = 4;
+}
+message ConstructPointsAutoCorrespondTwoGroupsProximityResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPointsAutoCorrespondTwoGroupsInterPointDistanceRequest {
+  optional CollectionObjectName reference_group = 1;
+  optional CollectionObjectName group_to_be_copied = 2;
+  optional double same_point_tolerance = 3;
+  optional CollectionObjectName group_to_contain_matched_points = 4;
+}
+message ConstructPointsAutoCorrespondTwoGroupsInterPointDistanceResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message AverageSetOfGroupsRequest {
+  repeated CollectionObjectName group_names = 1;
+  optional CollectionObjectName resulting_group_name = 2;
+  optional double rms_tolerance = 3;
+  optional double maximum_absolute_tolerance = 4;
+  optional double maximum_average_tolerance = 5;
+}
+message AverageSetOfGroupsResult {
+  GroupAverageResult statistics = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message CopyGroupsExcludingObscuredPointsRequest {
+  optional CollectionInstrumentId instrument_id = 1;
+  repeated CollectionObjectName group_names = 2;
+  optional CollectionName new_collection_name = 3;
+}
+message CopyGroupsExcludingObscuredPointsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MakePointNameRuntimeSelectRequest {
+  optional string user_prompt = 1;
+}
+message MakePointNameRuntimeSelectResult {
+  PointName resultant_point_name = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message MakePointNameEnsureUniqueRequest {
+  optional PointName point_name = 1;
+  optional bool use_number_suffix = 2;
+}
+message MakePointNameEnsureUniqueResult {
+  PointName resultant_point_name = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message MakePointNameRefListFromGroupRequest {
+  optional CollectionObjectName group_name = 1;
+}
+message MakePointNameRefListFromGroupResult {
+  repeated PointName resultant_point_name_list = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message MakePointNameRefListRuntimeSelectRequest {
+  optional string user_prompt = 1;
+}
+message MakePointNameRefListRuntimeSelectResult {
+  repeated PointName resultant_point_name_list = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message MakePointNameRefListWildcardSelectRequest {
+  optional string collection_wildcard_criteria = 1;
+  optional string group_name_wildcard_criteria = 2;
+  optional string point_name_wildcard_criteria = 3;
+}
+message MakePointNameRefListWildcardSelectResult {
+  repeated PointName resultant_point_name_list = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message ClearHiddenPointBarDatabaseRequest {}
+message ClearHiddenPointBarDatabaseResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message CreateHiddenPointRodRequest {
+  optional string hidden_point_rod_name = 1;
+  optional double target_to_target_distance = 2;
+  optional double target_to_tip_distance = 3;
+  optional double inter_point_tolerance = 4;
+}
+message CreateHiddenPointRodResult {
+  int32 hidden_point_rod_index = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetHiddenPointRodIndexByNameRequest {
+  optional string hidden_point_rod_name = 1;
+}
+message GetHiddenPointRodIndexByNameResult {
+  int32 hidden_point_rod_index = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message DeleteHiddenPointRodRequest {
+  optional int32 hidden_point_rod_index = 1;
+}
+message DeleteHiddenPointRodResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message CreateHiddenPointRequest {
+  optional PointName end_a_point_name = 1;
+  optional PointName end_b_point_name = 2;
+  optional int32 hidden_point_rod_index = 3;
+  optional bool overwrite_existing_point = 4;
+  optional PointName point_name_to_create = 5;
+}
+message CreateHiddenPointResult {
+  MpExecutionDetails execution = 1000;
+}
+
+enum MeshOrientationType {
+  MESH_ORIENTATION_TYPE_UNSPECIFIED = 0;
+  MESH_ORIENTATION_TYPE_USE_CURRENT_POINT_OF_VIEW = 1;
+  MESH_ORIENTATION_TYPE_USE_CURRENT_WORKING_FRAME = 2;
+}
+
+message ConstructPolygonizedSurfaceFromPointCloudsRequest {
+  repeated CollectionObjectName point_cloud_list = 1;
+  optional MeshOrientationType mesh_orientation = 2;
+  optional double grid_resolution = 3;
+  optional CollectionObjectName polygonized_surface_name = 4;
+}
+
+message ConstructPolygonizedSurfaceFromPointCloudsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructScaleBarRequest {
+  optional CollectionItemName scale_bar_name = 1;
+  optional PointName begin_target = 2;
+  optional PointName end_target = 3;
+  optional double length = 4;
+  optional double uncertainty = 5;
+  optional bool use_relative_tolerances = 6;
+  optional bool use_high_tolerances = 7;
+  optional bool use_low_tolerances = 8;
+  optional double high_tolerance = 9;
+  optional double low_tolerance = 10;
+}
+
+message ConstructScaleBarResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructSphereRequest {
+  optional CollectionObjectName sphere_name = 1;
+  optional Vector sphere_center_in_working_coordinates = 2;
+  optional double sphere_radius = 3;
+}
+
+message ConstructSphereResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructSpheresFromSurfaceFacesRuntimeSelectRequest {}
+
+message ConstructSpheresFromSurfaceFacesRuntimeSelectResult {
+  MpExecutionDetails execution = 1000;
+}
+
+enum SurfaceDissectionMode {
+  SURFACE_DISSECTION_MODE_UNSPECIFIED = 0;
+  SURFACE_DISSECTION_MODE_ENTIRE_SOLID = 1;
+  SURFACE_DISSECTION_MODE_SELECT_FACES = 2;
+}
+
+message ConstructSurfacesFromObjectsRequest {
+  repeated CollectionObjectName objects = 1;
+}
+
+message ConstructSurfacesFromObjectsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructSurfaceFromBSplinesRequest {
+  optional CollectionObjectName resulting_surface_name = 1;
+  repeated CollectionObjectName b_spline_list = 2;
+}
+
+message ConstructSurfaceFromBSplinesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructSurfaceFromCylinderRequest {
+  optional CollectionObjectName resulting_surface_name = 1;
+  optional CollectionObjectName cylinder_name = 2;
+  optional bool internal_cylinder = 3;
+  optional bool use_theta_extent_mode = 4;
+}
+
+message ConstructSurfaceFromCylinderResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructSurfaceFromPlaneRequest {
+  optional CollectionObjectName resulting_surface_name = 1;
+  optional CollectionObjectName plane_name = 2;
+}
+
+message ConstructSurfaceFromPlaneResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructSurfaceFromSphereRequest {
+  optional CollectionObjectName resulting_surface_name = 1;
+  optional CollectionObjectName sphere_name = 2;
+}
+
+message ConstructSurfaceFromSphereResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructSurfaceFromConeRequest {
+  optional CollectionObjectName resulting_surface_name = 1;
+  optional CollectionObjectName cone_name = 2;
+}
+
+message ConstructSurfaceFromConeResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructSurfaceFromCollectionOfSurfacesRequest {
+  repeated CollectionObjectName surfaces_to_combine = 1;
+  optional CollectionObjectName resulting_surface_name = 2;
+  optional bool hide_original_surfaces = 3;
+  optional bool delete_original_surfaces = 4;
+  optional bool enable_sewing_tolerance = 5;
+  optional double sewing_tolerance = 6;
+}
+
+message ConstructSurfaceFromCollectionOfSurfacesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructSurfaceFitFromNominalSurfacesAndActualDataRequest {
+  optional CollectionObjectName nominal_surface = 1;
+  repeated PointName actual_data_point_list = 2;
+  optional CollectionObjectName resulting_surface_name = 3;
+}
+
+message ConstructSurfaceFitFromNominalSurfacesAndActualDataResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructSurfaceByDissectingSurfacesRequest {
+  optional SurfaceDissectionMode dissection_mode = 1;
+}
+
+message ConstructSurfaceByDissectingSurfacesResult {
+  repeated CollectionObjectName resultant_surfaces_list = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructSurfacesByDissectingSurfacesFromRefListRequest {
+  repeated CollectionObjectName surfaces_to_dissect = 1;
+}
+
+message ConstructSurfacesByDissectingSurfacesFromRefListResult {
+  repeated CollectionObjectName resultant_surfaces_list = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructSurfaceFromPointGroupsRequest {
+  repeated CollectionObjectName group_name_list = 1;
+  optional BSplineFitOptions b_spline_fit_options = 2;
+  optional CollectionObjectName resulting_surface_name = 3;
+}
+
+message ConstructSurfaceFromPointGroupsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructSurfacesByProjectingPointsRequest {
+  repeated CollectionObjectName projection_target_name_list = 1;
+  repeated PointName point_list = 2;
+  optional CollectionObjectName resulting_surface_name = 3;
+}
+
+message ConstructSurfacesByProjectingPointsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructSurfaceByOffsettingSurfaceRequest {
+  repeated CollectionObjectName reference_surface = 1;
+  optional double surface_offset = 2;
+  optional bool hide_original_surface = 3;
+}
+
+message ConstructSurfaceByOffsettingSurfaceResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructSurfaceFromAnnotationLinksRequest {
+  repeated CollectionObjectName annotation_list = 1;
+  optional CollectionObjectName resulting_surface_name = 2;
+}
+
+message ConstructSurfaceFromAnnotationLinksResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructGeometryFromSurfacesRequest {
+  repeated CollectionObjectName surfaces = 1;
+  optional double minimum_diameter = 2;
+  optional double maximum_diameter = 3;
+  optional CollectionObjectName reference_frame = 4;
+  optional CollectionName destination_collection_name = 5;
+  optional string base_name = 6;
+}
+
+message ConstructGeometryFromSurfacesResult {
+  repeated CollectionObjectName geometry_objects = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructVectorGroupGroupToGroupCompareRequest {
+  optional CollectionObjectName vector_group_name = 1;
+  optional CollectionObjectName group_a = 2;
+  optional CollectionObjectName group_b = 3;
+  optional double rms_deviation_tolerance = 4;
+  optional double max_absolute_deviation_tolerance = 5;
+  optional double average_deviation_tolerance = 6;
+}
+
+message ConstructVectorGroupGroupToGroupCompareResult {
+  int32 vector_count = 1;
+  double rms_deviation = 2;
+  double max_absolute_deviation = 3;
+  double average_deviation = 4;
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructVectorGroupAreaProfileCheckRequest {
+  repeated VectorName reference_vectors = 1;
+  repeated CollectionVectorGroupName vector_groups_to_check = 2;
+  optional double area_radius = 3;
+  optional double area_tolerance = 4;
+  optional CollectionVectorGroupName resultant_vector_group_name = 5;
+}
+
+message ConstructVectorGroupAreaProfileCheckResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructVectorGroupFromVectorNameRefListRequest {
+  repeated VectorName vector_name_list = 1;
+  optional CollectionVectorGroupName resultant_vector_group_name = 2;
+}
+
+message ConstructVectorGroupFromVectorNameRefListResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructVectorInWorkingCoordinatesBeginDeltaRequest {
+  optional CollectionObjectName vector_group_name = 1;
+  optional string new_vector_name = 2;
+  optional Vector begin_in_working_coordinates = 3;
+  optional Vector delta_in_working_coordinates = 4;
+  optional bool is_magnitude_negative = 5;
+}
+
+message ConstructVectorInWorkingCoordinatesBeginDeltaResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructVectorInWorkingCoordinatesBeginDirectionMagnitudeRequest {
+  optional CollectionObjectName vector_group_name = 1;
+  optional string new_vector_name = 2;
+  optional Vector begin_in_working_coordinates = 3;
+  optional Vector direction_in_working_coordinates = 4;
+  optional double signed_magnitude = 5;
+}
+
+message ConstructVectorInWorkingCoordinatesBeginDirectionMagnitudeResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructVectorGroupFromRelationshipRequest {
+  optional CollectionObjectName relationship_name = 1;
+  optional CollectionVectorGroupName vector_group_name = 2;
+}
+
+message ConstructVectorGroupFromRelationshipResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeVectorNameRefListFromVectorGroupRequest {
+  optional CollectionObjectName vector_group_name = 1;
+}
+
+message MakeVectorNameRefListFromVectorGroupResult {
+  repeated VectorName resultant_vector_name_list = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeVectorNameRefListRuntimeSelectRequest {
+  optional string user_prompt = 1;
+}
+
+message MakeVectorNameRefListRuntimeSelectResult {
+  repeated VectorName resultant_vector_name_list = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeCollectionVectorGroupNameRefListRuntimeSelectRequest {
+  optional string user_prompt = 1;
+}
+
+message MakeCollectionVectorGroupNameRefListRuntimeSelectResult {
+  repeated CollectionVectorGroupName resultant_collection_vector_group_name_reference_list = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeVectorNamesUniqueInVectorGroupRequest {
+  optional CollectionObjectName vector_group_name = 1;
+}
+
+message MakeVectorNamesUniqueInVectorGroupResult {
+  MpExecutionDetails execution = 1000;
+}
+
+enum MirrorFramePlane {
+  MIRROR_FRAME_PLANE_UNSPECIFIED = 0;
+  MIRROR_FRAME_PLANE_XY = 1;
+  MIRROR_FRAME_PLANE_XZ = 2;
+  MIRROR_FRAME_PLANE_YZ = 3;
+}
+
+message MirrorObjectsRequest {
+  repeated CollectionObjectName objects = 1;
+  optional CollectionObjectName frame_name = 2;
+  optional MirrorFramePlane frame_plane_to_mirror_around = 3;
+  optional bool copy = 4;
+}
+
+message MirrorObjectsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message CopyObjectRequest {
+  optional CollectionObjectName source_object = 1;
+  optional CollectionObjectName new_object_name = 2;
+  optional bool overwrite_if_exists = 3;
+}
+
+message CopyObjectResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message CopyObjectsToACollectionRequest {
+  repeated CollectionObjectName source_objects = 1;
+  optional CollectionName destination_collection_name = 2;
+}
+
+message CopyObjectsToACollectionResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MoveObjectsToACollectionRequest {
+  repeated CollectionObjectName source_objects = 1;
+  optional CollectionName destination_collection_name = 2;
+}
+
+message MoveObjectsToACollectionResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message CopyObjectsPointToPointDeltaRequest {
+  repeated CollectionObjectName objects_to_copy = 1;
+  optional PointName first_delta_point = 2;
+  optional PointName second_delta_point = 3;
+  optional CollectionName destination_collection_name = 4;
+}
+
+message CopyObjectsPointToPointDeltaResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MoveObjectsPointToPointDeltaRequest {
+  repeated CollectionObjectName objects_to_move = 1;
+  optional PointName first_delta_point = 2;
+  optional PointName second_delta_point = 3;
+}
+
+message MoveObjectsPointToPointDeltaResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message RenamePointRequest {
+  optional PointName original_point_name = 1;
+  optional PointName new_point_name = 2;
+  optional bool overwrite_if_exists = 3;
+}
+
+message RenamePointResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message RenamePointsWithNamePatternRequest {
+  repeated PointName point_names = 1;
+  optional string name_pattern = 2;
+  optional int32 start_value = 3;
+}
+
+message RenamePointsWithNamePatternResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message RenameCollectionRequest {
+  optional CollectionName original_collection_name = 1;
+  optional CollectionName new_collection_name = 2;
+}
+
+message RenameCollectionResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message RenameObjectRequest {
+  optional CollectionObjectName original_object_name = 1;
+  optional CollectionObjectName new_object_name = 2;
+  optional bool overwrite_if_exists = 3;
+}
+
+message RenameObjectResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message RenameItemRequest {
+  optional CollectionItemName original_item_name = 1;
+  optional CollectionItemName new_item_name = 2;
+  optional bool overwrite_if_exists = 3;
+}
+
+message RenameItemResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message DeletePointsRequest {
+  repeated PointName point_names = 1;
+}
+message DeletePointsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message DeletePointsWildcardSelectionRequest {
+  repeated CollectionObjectName groups_to_delete_from = 1;
+  optional PointName wildcard_selection_names = 2;
+}
+
+message DeletePointsWildcardSelectionResult {
+  MpExecutionDetails execution = 1000;
+}
+
+enum ConstructObjectType {
+  CONSTRUCT_OBJECT_TYPE_UNSPECIFIED = 0;
+  CONSTRUCT_OBJECT_TYPE_ANY = 1;
+  CONSTRUCT_OBJECT_TYPE_CIRCLES = 2;
+  CONSTRUCT_OBJECT_TYPE_CONES = 3;
+  CONSTRUCT_OBJECT_TYPE_CYLINDERS = 4;
+  CONSTRUCT_OBJECT_TYPE_LINES = 5;
+  CONSTRUCT_OBJECT_TYPE_PLANES = 6;
+  CONSTRUCT_OBJECT_TYPE_SLOTS = 7;
+  CONSTRUCT_OBJECT_TYPE_SPHERES = 8;
+  CONSTRUCT_OBJECT_TYPE_CENTER_POINTS = 9;
+  CONSTRUCT_OBJECT_TYPE_SURFACE_POINTS = 10;
+  CONSTRUCT_OBJECT_TYPE_VERTEX_POINTS = 11;
+}
+
+message ConstructObjectsFromSurfaceFacesRuntimeSelectRequest {
+  // Explicit choices are required; captured examples do not establish omission defaults.
+  optional bool construct_planes = 1;
+  optional bool construct_cylinders = 2;
+  optional bool construct_spheres = 3;
+  optional bool construct_cones = 4;
+  optional bool construct_lines = 5;
+  optional bool construct_points = 6;
+  optional bool construct_circles = 7;
+}
+
+message ConstructObjectsFromSurfaceFacesRuntimeSelectResult {
+  MpExecutionDetails execution = 1000;
+}

@@ -1,0 +1,2059 @@
+syntax = "proto3";
+
+package briosa;
+
+import "briosa/operation_outcomes.proto";
+import "briosa/spatial_analyzer_values.proto";
+
+option csharp_namespace = "Briosa";
+
+service InstrumentOperations {
+  // Starts the named crib sheet. A deadline does not prove that the instrument stopped.
+  rpc RunCribSheet(RunCribSheetRequest) returns (RunCribSheetResult);
+  // MP result details retain the raw result code, including partial projection outcomes.
+  rpc ProjectObjects(ProjectObjectsRequest) returns (ProjectObjectsResult);
+  // Independent stop request; no prior request from this caller is required.
+  rpc StopProjection(StopProjectionRequest) returns (StopProjectionResult);
+  rpc LocateInstrumentsUsmn(LocateInstrumentsUsmnRequest) returns (LocateInstrumentsUsmnResult);
+  rpc SetPcmmInstrumentXyzUncertainties(SetPcmmInstrumentXyzUncertaintiesRequest) returns (SetPcmmInstrumentXyzUncertaintiesResult);
+  rpc SetWrtlChannel(SetWrtlChannelRequest) returns (SetWrtlChannelResult);
+  rpc GetTrackerEdmTheodoliteUncertainties(GetTrackerEdmTheodoliteUncertaintiesRequest) returns (GetTrackerEdmTheodoliteUncertaintiesResult);
+  rpc GetInstrumentModel(GetInstrumentModelRequest) returns (GetInstrumentModelResult);
+  rpc LrHardwareDisconnect(LrHardwareDisconnectRequest) returns (LrHardwareDisconnectResult);
+  rpc SetObservationMirrorCubeShotFace(SetObservationMirrorCubeShotFaceRequest) returns (SetObservationMirrorCubeShotFaceResult);
+  rpc ConstructMirrorFromTwoPoints(ConstructMirrorFromTwoPointsRequest) returns (ConstructMirrorFromTwoPointsResult);
+  rpc TransformInstrumentFrameToFrame(TransformInstrumentFrameToFrameRequest) returns (TransformInstrumentFrameToFrameResult);
+  rpc AddNominalPointToTcpFixture(AddNominalPointToTcpFixtureRequest) returns (AddNominalPointToTcpFixtureResult);
+  rpc LocateInstrumentBestFitNominalGeometry(LocateInstrumentBestFitNominalGeometryRequest) returns (LocateInstrumentBestFitNominalGeometryResult);
+  rpc MultiMeasurementInitiate(MultiMeasurementInitiateRequest) returns (MultiMeasurementInitiateResult);
+  rpc DockInstrumentInterface(DockInstrumentInterfaceRequest) returns (DockInstrumentInterfaceResult);
+  rpc LrApdisPerformMcmCalibration(LrApdisPerformMcmCalibrationRequest) returns (LrApdisPerformMcmCalibrationResult);
+  rpc GetWrtlChannelAndStatus(GetWrtlChannelAndStatusRequest) returns (GetWrtlChannelAndStatusResult);
+  rpc MoveMeasurementObservation(MoveMeasurementObservationRequest) returns (MoveMeasurementObservationResult);
+  rpc SynchronizedMeasurementMasterSlave(SynchronizedMeasurementMasterSlaveRequest) returns (SynchronizedMeasurementMasterSlaveResult);
+  rpc LrApdisActivateMcmCalibration(LrApdisActivateMcmCalibrationRequest) returns (LrApdisActivateMcmCalibrationResult);
+  rpc DeleteMeasurements(DeleteMeasurementsRequest) returns (DeleteMeasurementsResult);
+  rpc WatchInstrument(WatchInstrumentRequest) returns (WatchInstrumentResult);
+  rpc SetAlignmentProjector(SetAlignmentProjectorRequest) returns (SetAlignmentProjectorResult);
+  rpc ConstructTcpFixture(ConstructTcpFixtureRequest) returns (ConstructTcpFixtureResult);
+  rpc StopInstrumentInterface(StopInstrumentInterfaceRequest) returns (StopInstrumentInterfaceResult);
+  rpc RenameInstrument(RenameInstrumentRequest) returns (RenameInstrumentResult);
+  rpc AutoMeasureSpecifiedGeometry(AutoMeasureSpecifiedGeometryRequest) returns (AutoMeasureSpecifiedGeometryResult);
+  rpc SetInstrumentGroupAndTarget(SetInstrumentGroupAndTargetRequest) returns (SetInstrumentGroupAndTargetResult);
+  rpc AutoMeasurePoints(AutoMeasurePointsRequest) returns (AutoMeasurePointsResult);
+  rpc StartGdtInspection(StartGdtInspectionRequest) returns (StartGdtInspectionResult);
+  rpc SetInstrumentTargeting(SetInstrumentTargetingRequest) returns (SetInstrumentTargetingResult);
+  rpc ComputeCteScaleFactor(ComputeCteScaleFactorRequest) returns (ComputeCteScaleFactorResult);
+  rpc WatchPointToObjects(WatchPointToObjectsRequest) returns (WatchPointToObjectsResult);
+  rpc EnableDisableFrameSetScanModeByInstrument(EnableDisableFrameSetScanModeByInstrumentRequest) returns (EnableDisableFrameSetScanModeByInstrumentResult);
+  rpc SetInstrumentBaseUncertaintyCovarianceMatrixWrtWorld(SetInstrumentBaseUncertaintyCovarianceMatrixWrtWorldRequest) returns (SetInstrumentBaseUncertaintyCovarianceMatrixWrtWorldResult);
+  rpc DeleteInstrument(DeleteInstrumentRequest) returns (DeleteInstrumentResult);
+  rpc CombinePointGroups(CombinePointGroupsRequest) returns (CombinePointGroupsResult);
+  rpc SetCloudViewerFilter(SetCloudViewerFilterRequest) returns (SetCloudViewerFilterResult);
+  rpc TransformInstrumentByDelta(TransformInstrumentByDeltaRequest) returns (TransformInstrumentByDeltaResult);
+  rpc MakeSurfaceFaceListFromPointProximity(MakeSurfaceFaceListFromPointProximityRequest) returns (MakeSurfaceFaceListFromPointProximityResult);
+  rpc GetObservationInfo(GetObservationInfoRequest) returns (GetObservationInfoResult);
+  rpc GetInstrumentInterfaceResponseTimeout(GetInstrumentInterfaceResponseTimeoutRequest) returns (GetInstrumentInterfaceResponseTimeoutResult);
+  rpc SetInstrumentAxes(SetInstrumentAxesRequest) returns (SetInstrumentAxesResult);
+  rpc SetRemeasureFailedChecksOnly(SetRemeasureFailedChecksOnlyRequest) returns (SetRemeasureFailedChecksOnlyResult);
+  rpc GetInstrumentTargetStatus(GetInstrumentTargetStatusRequest) returns (GetInstrumentTargetStatusResult);
+  rpc LrSelfTestLinearization(LrSelfTestLinearizationRequest) returns (LrSelfTestLinearizationResult);
+  rpc AlignCloudToCad(AlignCloudToCadRequest) returns (AlignCloudToCadResult);
+  rpc WatchPointToPoint(WatchPointToPointRequest) returns (WatchPointToPointResult);
+  rpc GetCurrentTrappingStatus(GetCurrentTrappingStatusRequest) returns (GetCurrentTrappingStatusResult);
+  rpc LrVerifyHardwareConnection(LrVerifyHardwareConnectionRequest) returns (LrVerifyHardwareConnectionResult);
+  rpc SetInstrumentInterfaceResponseTimeout(SetInstrumentInterfaceResponseTimeoutRequest) returns (SetInstrumentInterfaceResponseTimeoutResult);
+  rpc LoadInstrumentConfiguration(LoadInstrumentConfigurationRequest) returns (LoadInstrumentConfigurationResult);
+  rpc PointAtTarget(PointAtTargetRequest) returns (PointAtTargetResult);
+  rpc MoveObjectsIn6dUsingInstrumentUpdates(MoveObjectsIn6dUsingInstrumentUpdatesRequest) returns (MoveObjectsIn6dUsingInstrumentUpdatesResult);
+  rpc GetInstrumentBaseUncertaintyCovarianceMatrixWrtWorld(GetInstrumentBaseUncertaintyCovarianceMatrixWrtWorldRequest) returns (GetInstrumentBaseUncertaintyCovarianceMatrixWrtWorldResult);
+  rpc AutoCorrespondClosestPoint(AutoCorrespondClosestPointRequest) returns (AutoCorrespondClosestPointResult);
+  rpc FabricateObservations(FabricateObservationsRequest) returns (FabricateObservationsResult);
+  rpc GetInstrumentWeatherSetting(GetInstrumentWeatherSettingRequest) returns (GetInstrumentWeatherSettingResult);
+  rpc GetCurrentInstrumentPositionUpdate(GetCurrentInstrumentPositionUpdateRequest) returns (GetCurrentInstrumentPositionUpdateResult);
+  rpc Collimation(CollimationRequest) returns (CollimationResult);
+  rpc AlignTwoTargetsWithAxisWcfX(AlignTwoTargetsWithAxisWcfXRequest) returns (AlignTwoTargetsWithAxisWcfXResult);
+  rpc ConstructMeasuredPointUncertaintyEllipsoids(ConstructMeasuredPointUncertaintyEllipsoidsRequest) returns (ConstructMeasuredPointUncertaintyEllipsoidsResult);
+  rpc SetProbeOffsetFrameOnline(SetProbeOffsetFrameOnlineRequest) returns (SetProbeOffsetFrameOnlineResult);
+  rpc DeleteMeasurementObservation(DeleteMeasurementObservationRequest) returns (DeleteMeasurementObservationResult);
+  rpc WatchPointToPointWithViewZooming(WatchPointToPointWithViewZoomingRequest) returns (WatchPointToPointWithViewZoomingResult);
+  rpc GetPcmmInstrumentXyzUncertainties(GetPcmmInstrumentXyzUncertaintiesRequest) returns (GetPcmmInstrumentXyzUncertaintiesResult);
+  rpc MeasureExistingSinglePoint(MeasureExistingSinglePointRequest) returns (MeasureExistingSinglePointResult);
+  rpc VerifyInstrumentConnection(VerifyInstrumentConnectionRequest) returns (VerifyInstrumentConnectionResult);
+  rpc SetInstrumentBaseUncertaintyCovarianceMatrixWrtBase(SetInstrumentBaseUncertaintyCovarianceMatrixWrtBaseRequest) returns (SetInstrumentBaseUncertaintyCovarianceMatrixWrtBaseResult);
+  rpc ConstructMirrorFromPlane(ConstructMirrorFromPlaneRequest) returns (ConstructMirrorFromPlaneResult);
+  rpc QuickAlign(QuickAlignRequest) returns (QuickAlignResult);
+  rpc AutoMeasureBatchOfFeatures(AutoMeasureBatchOfFeaturesRequest) returns (AutoMeasureBatchOfFeaturesResult);
+  rpc WaitForTrappingToComplete(WaitForTrappingToCompleteRequest) returns (WaitForTrappingToCompleteResult);
+  rpc AlignLaserProjector(AlignLaserProjectorRequest) returns (AlignLaserProjectorResult);
+  rpc CreateNewDynamicReference(CreateNewDynamicReferenceRequest) returns (CreateNewDynamicReferenceResult);
+  rpc GetInstrumentIdFromName(GetInstrumentIdFromNameRequest) returns (GetInstrumentIdFromNameResult);
+  rpc MakeCollectionObjectNameRefListFromObjectsAssociatedWithInstruments(MakeCollectionObjectNameRefListFromObjectsAssociatedWithInstrumentsRequest) returns (MakeCollectionObjectNameRefListFromObjectsAssociatedWithInstrumentsResult);
+  rpc LrHardwareConnect(LrHardwareConnectRequest) returns (LrHardwareConnectResult);
+  rpc GetInstrumentScaleFactor(GetInstrumentScaleFactorRequest) returns (GetInstrumentScaleFactorResult);
+  rpc BuildTarget(BuildTargetRequest) returns (BuildTargetResult);
+  rpc DisassociateObjectsFromInstrument(DisassociateObjectsFromInstrumentRequest) returns (DisassociateObjectsFromInstrumentResult);
+  rpc LoadCloudViewerPointCloudFile(LoadCloudViewerPointCloudFileRequest) returns (LoadCloudViewerPointCloudFileResult);
+  rpc MeasureNominalFeature(MeasureNominalFeatureRequest) returns (MeasureNominalFeatureResult);
+  rpc AutoCorrespondWithProximityTrigger(AutoCorrespondWithProximityTriggerRequest) returns (AutoCorrespondWithProximityTriggerResult);
+  rpc EdgeScanMeasurement(EdgeScanMeasurementRequest) returns (EdgeScanMeasurementResult);
+  rpc LrSetRedLaserIntensity(LrSetRedLaserIntensityRequest) returns (LrSetRedLaserIntensityResult);
+  rpc SetTrackerEdmTheodoliteUncertainties(SetTrackerEdmTheodoliteUncertaintiesRequest) returns (SetTrackerEdmTheodoliteUncertaintiesResult);
+  rpc EnableDisableFrameSetScanModeAllInstruments(EnableDisableFrameSetScanModeAllInstrumentsRequest) returns (EnableDisableFrameSetScanModeAllInstrumentsResult);
+  rpc SetTargetComputationOptions(SetTargetComputationOptionsRequest) returns (SetTargetComputationOptionsResult);
+  rpc Measure(MeasureRequest) returns (MeasureResult);
+  rpc SetObservationCollimationShotOptions(SetObservationCollimationShotOptionsRequest) returns (SetObservationCollimationShotOptionsResult);
+  rpc SaveInstrumentConfiguration(SaveInstrumentConfigurationRequest) returns (SaveInstrumentConfigurationResult);
+  rpc ExportInstrumentHistoryToXmlFile(ExportInstrumentHistoryToXmlFileRequest) returns (ExportInstrumentHistoryToXmlFileResult);
+  rpc LrSelfTestFlipTest(LrSelfTestFlipTestRequest) returns (LrSelfTestFlipTestResult);
+  rpc SaveCloudViewerPointCloudFile(SaveCloudViewerPointCloudFileRequest) returns (SaveCloudViewerPointCloudFileResult);
+  rpc ClearCloudViewer(ClearCloudViewerRequest) returns (ClearCloudViewerResult);
+  rpc TrackTapeMeasurement(TrackTapeMeasurementRequest) returns (TrackTapeMeasurementResult);
+  rpc GetObscuredPointsFromInstrument(GetObscuredPointsFromInstrumentRequest) returns (GetObscuredPointsFromInstrumentResult);
+  rpc AssociateObjectsWithInstrument(AssociateObjectsWithInstrumentRequest) returns (AssociateObjectsWithInstrumentResult);
+  rpc ActivateDeactivateInstrumentToolbar(ActivateDeactivateInstrumentToolbarRequest) returns (ActivateDeactivateInstrumentToolbarResult);
+  rpc JumpInstrumentToNewLocation(JumpInstrumentToNewLocationRequest) returns (JumpInstrumentToNewLocationResult);
+  rpc AutoMeasureSurfaceVectorIntersections(AutoMeasureSurfaceVectorIntersectionsRequest) returns (AutoMeasureSurfaceVectorIntersectionsResult);
+  rpc StartGdtInspectionRehearse(StartGdtInspectionRehearseRequest) returns (StartGdtInspectionRehearseResult);
+  rpc ConfigureAndMeasure(ConfigureAndMeasureRequest) returns (ConfigureAndMeasureResult);
+  rpc GetInstrumentTargetsAndModeProfiles(GetInstrumentTargetsAndModeProfilesRequest) returns (GetInstrumentTargetsAndModeProfilesResult);
+  rpc MoveInstrumentToAnotherCollection(MoveInstrumentToAnotherCollectionRequest) returns (MoveInstrumentToAnotherCollectionResult);
+  rpc MeasureSinglePointHere(MeasureSinglePointHereRequest) returns (MeasureSinglePointHereResult);
+  rpc IssueInstrumentActuatorCommand(IssueInstrumentActuatorCommandRequest) returns (IssueInstrumentActuatorCommandResult);
+  rpc AddNewInstrument(AddNewInstrumentRequest) returns (AddNewInstrumentResult);
+  rpc WatchClosestPoint(WatchClosestPointRequest) returns (WatchClosestPointResult);
+  rpc TransformMultipleInstrumentsByDelta(TransformMultipleInstrumentsByDeltaRequest) returns (TransformMultipleInstrumentsByDeltaResult);
+  rpc GuideObjectsIn6dBasedOnPointMeasurements(GuideObjectsIn6dBasedOnPointMeasurementsRequest) returns (GuideObjectsIn6dBasedOnPointMeasurementsResult);
+  rpc LocateInstrumentRefTieIn(LocateInstrumentRefTieInRequest) returns (LocateInstrumentRefTieInResult);
+  rpc DriftCheck(DriftCheckRequest) returns (DriftCheckResult);
+  rpc ConstructPerimetersFromSurfaceFaceList(ConstructPerimetersFromSurfaceFaceListRequest) returns (ConstructPerimetersFromSurfaceFaceListResult);
+  rpc DissectPointGroup(DissectPointGroupRequest) returns (DissectPointGroupResult);
+  rpc LrSelfTest(LrSelfTestRequest) returns (LrSelfTestResult);
+  rpc GetLastInstrumentIndex(GetLastInstrumentIndexRequest) returns (GetLastInstrumentIndexResult);
+  rpc SetAbsoluteInstrumentScaleFactor(SetAbsoluteInstrumentScaleFactorRequest) returns (SetAbsoluteInstrumentScaleFactorResult);
+  rpc SendCloudToSa(SendCloudToSaRequest) returns (SendCloudToSaResult);
+  rpc GetEstimatedScanTime(GetEstimatedScanTimeRequest) returns (GetEstimatedScanTimeResult);
+  rpc LocateInstrumentBestFitGroupToGroup(LocateInstrumentBestFitGroupToGroupRequest) returns (LocateInstrumentBestFitGroupToGroupResult);
+  rpc GetInstrumentsWithObservationsOnTarget(GetInstrumentsWithObservationsOnTargetRequest) returns (GetInstrumentsWithObservationsOnTargetResult);
+  rpc SetInstrumentMeasurementModeProfile(SetInstrumentMeasurementModeProfileRequest) returns (SetInstrumentMeasurementModeProfileResult);
+  rpc WatchPointToEdge(WatchPointToEdgeRequest) returns (WatchPointToEdgeResult);
+  rpc GetNumberOfObservationsOnTarget(GetNumberOfObservationsOnTargetRequest) returns (GetNumberOfObservationsOnTargetResult);
+  rpc SetMultiplyInstrumentScaleFactor(SetMultiplyInstrumentScaleFactorRequest) returns (SetMultiplyInstrumentScaleFactorResult);
+  rpc GetInstrumentTransform(GetInstrumentTransformRequest) returns (GetInstrumentTransformResult);
+  rpc AutoMeasureVectors(AutoMeasureVectorsRequest) returns (AutoMeasureVectorsResult);
+  rpc MultiMeasurementStop(MultiMeasurementStopRequest) returns (MultiMeasurementStopResult);
+  rpc SetObservationStatus(SetObservationStatusRequest) returns (SetObservationStatusResult);
+  rpc StartGdtInspectionDesign(StartGdtInspectionDesignRequest) returns (StartGdtInspectionDesignResult);
+  rpc GetInstrumentPartTemperature(GetInstrumentPartTemperatureRequest) returns (GetInstrumentPartTemperatureResult);
+  rpc InitiateServoGuide(InitiateServoGuideRequest) returns (InitiateServoGuideResult);
+  rpc GetTargetsMeasuredByInstrument(GetTargetsMeasuredByInstrumentRequest) returns (GetTargetsMeasuredByInstrumentResult);
+  rpc SetXyzInstrumentUncertainties(SetXyzInstrumentUncertaintiesRequest) returns (SetXyzInstrumentUncertaintiesResult);
+  rpc CalculateTcpFixtureUncertainties(CalculateTcpFixtureUncertaintiesRequest) returns (CalculateTcpFixtureUncertaintiesResult);
+  rpc SetInstrumentWeatherSetting(SetInstrumentWeatherSettingRequest) returns (SetInstrumentWeatherSettingResult);
+  rpc SetXyzReferenceFrameInstrumentBaseAnchorFrame(SetXyzReferenceFrameInstrumentBaseAnchorFrameRequest) returns (SetXyzReferenceFrameInstrumentBaseAnchorFrameResult);
+  rpc LrApdisGetActiveMcmCalibration(LrApdisGetActiveMcmCalibrationRequest) returns (LrApdisGetActiveMcmCalibrationResult);
+  rpc GetXyzInstrumentUncertainties(GetXyzInstrumentUncertaintiesRequest) returns (GetXyzInstrumentUncertaintiesResult);
+  rpc StartInstrumentInterface(StartInstrumentInterfaceRequest) returns (StartInstrumentInterfaceResult);
+  rpc StartTheodoliteInterface(StartTheodoliteInterfaceRequest) returns (StartTheodoliteInterfaceResult);
+  rpc EnableDisablePointSetScanMode(EnableDisablePointSetScanModeRequest) returns (EnableDisablePointSetScanModeResult);
+  rpc CreateTemplatedInstrumentUsmn(CreateTemplatedInstrumentUsmnRequest) returns (CreateTemplatedInstrumentUsmnResult);
+  rpc SetInstrumentTransform(SetInstrumentTransformRequest) returns (SetInstrumentTransformResult);
+  rpc StopActiveMeasurementMode(StopActiveMeasurementModeRequest) returns (StopActiveMeasurementModeResult);
+  rpc LrSelfTestLoSep(LrSelfTestLoSepRequest) returns (LrSelfTestLoSepResult);
+  rpc GetLastSolvedTcpFixtureUncertaintyCovarianceMatrix(GetLastSolvedTcpFixtureUncertaintyCovarianceMatrixRequest) returns (GetLastSolvedTcpFixtureUncertaintyCovarianceMatrixResult);
+  rpc MeasureExistingSinglePointAndCompare(MeasureExistingSinglePointAndCompareRequest) returns (MeasureExistingSinglePointAndCompareResult);
+  rpc SetProbeOffsetFrameOffline(SetProbeOffsetFrameOfflineRequest) returns (SetProbeOffsetFrameOfflineResult);
+  rpc LocateInstrumentGroupToSurfaceQuickFit(LocateInstrumentGroupToSurfaceQuickFitRequest) returns (LocateInstrumentGroupToSurfaceQuickFitResult);
+  rpc LrGetMostRecentSnrInfo(LrGetMostRecentSnrInfoRequest) returns (LrGetMostRecentSnrInfoResult);
+  rpc MeasureExistingSinglePointManualGuide(MeasureExistingSinglePointManualGuideRequest) returns (MeasureExistingSinglePointManualGuideResult);
+  rpc InstrumentOperationalCheck(InstrumentOperationalCheckRequest) returns (InstrumentOperationalCheckResult);
+  rpc CloseAutoCorrespondClosestPointDialog(CloseAutoCorrespondClosestPointDialogRequest) returns (CloseAutoCorrespondClosestPointDialogResult);
+}
+
+message ActivateDeactivateInstrumentToolbarRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional bool deactivate_toolbar = 2;
+}
+
+message ActivateDeactivateInstrumentToolbarResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message AddNewInstrumentRequest {
+  optional InstrumentTypeName instrument_type = 1;
+}
+
+message AddNewInstrumentResult {
+  optional CollectionInstrumentId instrument_added = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message AddNominalPointToTcpFixtureRequest {
+  optional CollectionObjectName tcp_fixture = 1;
+  optional string nominal_point_name = 2;
+  optional Vector nominal_point_location = 3;
+  optional double var_xx = 4;
+  optional double var_yy = 5;
+  optional double var_zz = 6;
+  optional double covar_xy = 7;
+  optional double covar_xz = 8;
+  optional double covar_yz = 9;
+}
+
+message AddNominalPointToTcpFixtureResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message AlignCloudToCadRequest {
+  optional CollectionObjectName cloud = 1;
+  repeated CollectionObjectName surfaces = 2;
+  optional double maximum_coarse_cad_mesh_edge_length = 3;
+  optional bool use_fine_cad_mesh = 4;
+  optional bool execute_alignment = 5;
+}
+
+message AlignCloudToCadResult {
+  optional CloudToCadAlignmentResult alignment = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message AlignLaserProjectorRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional CollectionObjectName group = 2;
+}
+
+message AlignLaserProjectorResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message AlignTwoTargetsWithAxisWcfXRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional PointName first_point_on_axis = 2;
+  optional PointName second_point_on_axis = 3;
+  optional CollectionObjectName initial_measured_group = 4;
+  optional ToleranceVectorOptions rotational_tolerance = 5;
+}
+
+message AlignTwoTargetsWithAxisWcfXResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message AssociateObjectsWithInstrumentRequest {
+  optional CollectionInstrumentId instrument = 1;
+  repeated CollectionObjectName objects = 2;
+}
+
+message AssociateObjectsWithInstrumentResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message AutoCorrespondClosestPointRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional CollectionObjectName reference_group = 2;
+  optional CollectionObjectName actuals_group = 3;
+  optional bool wait_for_completion = 4;
+}
+
+message AutoCorrespondClosestPointResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message AutoCorrespondWithProximityTriggerRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional CollectionObjectName nominal_group = 2;
+  optional CollectionObjectName results_group = 3;
+  optional double point_distance_threshold = 4;
+  optional double vector_axis_threshold = 5;
+  optional bool project_results_to_nominal_vector = 6;
+  optional double warbler_ramp_start_distance = 7;
+  optional bool show_watch_window = 8;
+  optional string deviation_vector_group_name = 9;
+  optional bool make_unmeasured_group = 10;
+  optional bool measure_each_point_only_once = 11;
+}
+
+message AutoCorrespondWithProximityTriggerResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message AutoMeasureBatchOfFeaturesRequest {
+  optional CollectionInstrumentId instrument = 1;
+  repeated CollectionItemName features = 2;
+  optional bool wait_for_complete = 3;
+}
+
+message AutoMeasureBatchOfFeaturesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message AutoMeasurePointsRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional CollectionObjectName reference_group = 2;
+  optional CollectionObjectName actuals_group = 3;
+  optional bool force_existing_group = 4;
+  optional bool show_complete_dialog = 5;
+  optional bool wait_for_completion = 6;
+  optional bool auto_start = 7;
+}
+
+message AutoMeasurePointsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message AutoMeasureSpecifiedGeometryRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional CollectionObjectName geometry = 2;
+  optional string mode_profile = 3;
+  optional bool wait_for_complete = 4;
+}
+
+message AutoMeasureSpecifiedGeometryResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message AutoMeasureSurfaceVectorIntersectionsRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional CollectionObjectName vector_group = 2;
+  optional CollectionObjectName resultant_group = 3;
+  optional bool wait_for_complete = 4;
+}
+
+message AutoMeasureSurfaceVectorIntersectionsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message AutoMeasureVectorsRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional CollectionObjectName vector_group = 2;
+  optional CollectionObjectName actuals_group = 3;
+  optional bool project_point_to_vector = 4;
+  optional double angle_tolerance = 5;
+  optional double high_tolerance = 6;
+  optional double low_tolerance = 7;
+}
+
+message AutoMeasureVectorsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message BuildTargetRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional PointName output_target_name = 2;
+  optional PointName nominal_point = 3;
+  optional ToleranceVectorOptions tolerance = 4;
+  optional FileReference html_prompt_file = 5;
+}
+
+message BuildTargetResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message CalculateTcpFixtureUncertaintiesRequest {
+  optional CollectionObjectName tcp_fixture = 1;
+  optional Transform tcp_in_working = 2;
+  repeated PointName tcp_measurements = 3;
+}
+
+message CalculateTcpFixtureUncertaintiesResult {
+  optional TcpFixtureUncertainties uncertainties = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message ClearCloudViewerRequest {
+  optional CollectionInstrumentId instrument = 1;
+}
+
+message ClearCloudViewerResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message CloseAutoCorrespondClosestPointDialogRequest {
+  optional CollectionInstrumentId instrument = 1;
+}
+
+message CloseAutoCorrespondClosestPointDialogResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message CloudToCadAlignmentResult {
+  double rms_deviation = 1;
+  double average_deviation = 2;
+  double maximum_absolute_deviation = 3;
+  optional Transform resultant_transform_in_working = 4;
+}
+
+enum CollimationBaselineMethod {
+  COLLIMATION_BASELINE_METHOD_UNSPECIFIED = 0;
+  COLLIMATION_BASELINE_METHOD_DETERMINED_BY_VALUE = 1;
+  COLLIMATION_BASELINE_METHOD_DETERMINED_FROM_SCALE = 2;
+  COLLIMATION_BASELINE_METHOD_DETERMINED_FROM_KNOWN_POINT = 3;
+}
+
+message CollimationRequest {
+  optional CollectionInstrumentId stationary_instrument = 1;
+  optional CollectionInstrumentId moving_instrument = 2;
+  optional PointName collimation_point = 3;
+  optional bool zero_moving_instrument = 4;
+  optional CollimationTiltMode tilt_mode = 5;
+  optional CollimationBaselineMethod baseline_method = 6;
+  optional double baseline_distance = 7;
+  optional PointName scale_point_1 = 8;
+  optional PointName scale_point_2 = 9;
+  optional PointName not_measured_by_moving_instrument = 10;
+  optional PointName as_measured_by_moving_instrument = 11;
+}
+
+message CollimationResult {
+  MpExecutionDetails execution = 1000;
+}
+
+enum CollimationTiltMode {
+  COLLIMATION_TILT_MODE_UNSPECIFIED = 0;
+  COLLIMATION_TILT_MODE_FULL_COLLIMATION = 1;
+  COLLIMATION_TILT_MODE_NO_TILT_COLLIMATION = 2;
+}
+
+message CombinePointGroupsRequest {
+  repeated CollectionObjectName groups_to_combine = 1;
+  optional CollectionObjectName combined_point_group = 2;
+}
+
+message CombinePointGroupsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ComputeCteScaleFactorRequest {
+  optional double material_cte_per_degree_fahrenheit = 1;
+  optional double initial_temperature_fahrenheit = 2;
+  optional double final_temperature_fahrenheit = 3;
+}
+
+message ComputeCteScaleFactorResult {
+  optional double scale_factor = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message ConfigureAndMeasureRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional PointName target = 2;
+  optional string measurement_mode = 3;
+  optional bool measure_immediately = 4;
+  optional bool wait_for_completion = 5;
+  optional double timeout_seconds = 6;
+}
+
+message ConfigureAndMeasureResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructMeasuredPointUncertaintyEllipsoidsRequest {
+  repeated PointName measurements = 1;
+}
+
+message ConstructMeasuredPointUncertaintyEllipsoidsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructMirrorFromPlaneRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional string mirror_name = 2;
+  optional CollectionObjectName plane = 3;
+}
+
+message ConstructMirrorFromPlaneResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructMirrorFromTwoPointsRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional string mirror_name = 2;
+  optional PointName point_measured_directly = 3;
+  optional PointName point_measured_through_mirror = 4;
+  optional bool send_mirror_to_instrument = 5;
+}
+
+message ConstructMirrorFromTwoPointsResult {
+  optional CollectionObjectName mirror_plane = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructPerimetersFromSurfaceFaceListRequest {
+  optional SurfaceFaceList surface_faces = 1;
+}
+
+message ConstructPerimetersFromSurfaceFaceListResult {
+  optional PerimeterLists perimeters = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message ConstructTcpFixtureRequest {
+  optional CollectionObjectName requested_tcp_fixture = 1;
+  optional double point_match_threshold = 2;
+  optional bool replace_existing_tcp_fixture = 3;
+}
+
+message ConstructTcpFixtureResult {
+  optional CollectionObjectName resulting_tcp_fixture = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message CreateNewDynamicReferenceRequest {
+  optional CollectionInstrumentId instrument = 1;
+  repeated PointName points_defining_dynamic_reference = 2;
+  optional string dynamic_reference_name = 3;
+}
+
+message CreateNewDynamicReferenceResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message CreateTemplatedInstrumentUsmnRequest {
+  optional CollectionObjectName instrument_template_name = 1;
+  optional CollectionInstrumentId instrument = 2;
+  optional double overall_instrument_weight = 3;
+  optional bool moving = 4;
+  optional bool enable_x = 5;
+  optional bool enable_y = 6;
+  optional bool enable_z = 7;
+  optional bool enable_rx = 8;
+  optional bool enable_ry = 9;
+  optional bool enable_rz = 10;
+  optional bool enable_scale = 11;
+  optional bool enable_component_weights = 12;
+  optional double azimuth_weight = 13;
+  optional double elevation_weight = 14;
+  optional double distance_weight = 15;
+}
+
+message CreateTemplatedInstrumentUsmnResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message CurrentTrappingStatus {
+  bool active = 1;
+  optional CollectionItemName focused_item = 2;
+  optional CollectionInstrumentId instrument = 3;
+}
+
+message DeleteInstrumentRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional bool prompt_user_to_confirm = 2;
+  optional bool keep_resulting_points = 3;
+}
+
+message DeleteInstrumentResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message DeleteMeasurementObservationRequest {
+  optional PointName point_name = 1;
+  optional int32 observation_index = 2;
+  optional bool delete_point_if_no_measurements_remain = 3;
+}
+
+message DeleteMeasurementObservationResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message DeleteMeasurementsRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional PointName point_name = 2;
+  optional bool delete_point_if_no_measurements_remain = 3;
+}
+
+message DeleteMeasurementsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message DisassociateObjectsFromInstrumentRequest {
+  repeated CollectionObjectName objects = 1;
+}
+
+message DisassociateObjectsFromInstrumentResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message DissectPointGroupRequest {
+  optional CollectionObjectName group_to_dissect = 1;
+  optional string base_name_for_dissected_groups = 2;
+}
+
+message DissectPointGroupResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message DockInstrumentInterfaceRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional bool dock_interface = 2;
+}
+
+message DockInstrumentInterfaceResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message DoubleVector6 {
+  repeated double values = 1; // exactly six values
+}
+
+message DriftCheckRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional CollectionObjectName reference_group = 2;
+  optional CollectionObjectName actuals_group = 3;
+  optional double tolerance = 4;
+  optional int32 minimum_point_count = 5;
+  optional bool use_closest_reference_point = 6;
+}
+
+message DriftCheckResult {
+  double maximum_error = 1;
+  double rms_error = 2;
+  bool instrument_added = 3;
+  optional CollectionInstrumentId new_instrument = 4;
+  MpExecutionDetails execution = 1000;
+}
+
+message EdgeScanMeasurementRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional PointName point_near_edge = 2;
+  optional PointName edge_search_direction_point = 3;
+  optional string parameter_set_name = 4;
+  optional CollectionObjectName point_group = 5;
+  optional string target_name = 6;
+}
+
+message EdgeScanMeasurementResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message EnableDisableFrameSetScanModeAllInstrumentsRequest {
+  optional bool enable_frame_set_scan_mode = 1;
+}
+
+message EnableDisableFrameSetScanModeAllInstrumentsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message EnableDisableFrameSetScanModeByInstrumentRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional bool enable_frame_set_scan_mode = 2;
+}
+
+message EnableDisableFrameSetScanModeByInstrumentResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message EnableDisablePointSetScanModeRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional bool enable_point_set_scan_mode = 2;
+}
+
+message EnableDisablePointSetScanModeResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ExportInstrumentHistoryToXmlFileRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional FileReference file_path = 2;
+}
+
+message ExportInstrumentHistoryToXmlFileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message FabricateObservationsRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional CollectionObjectName point_group = 2;
+  optional bool introduce_instrument_error = 3;
+  optional bool limit_distance = 4;
+  optional double minimum_distance = 5;
+  optional double maximum_distance = 6;
+}
+
+message FabricateObservationsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message GetCurrentInstrumentPositionUpdateRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional InstrumentPositionReportingFrame reporting_frame = 2;
+  optional bool polar_coordinates = 3;
+}
+
+message GetCurrentInstrumentPositionUpdateResult {
+  double x_or_r = 1;
+  double y_or_theta_degrees = 2;
+  double z_or_phi_degrees = 3;
+  double time_since_update_seconds = 4;
+  string timestamp_approximate = 5;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetCurrentTrappingStatusRequest {}
+
+message GetCurrentTrappingStatusResult {
+  optional CurrentTrappingStatus status = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetEstimatedScanTimeRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional string profile_name = 2;
+}
+
+message GetEstimatedScanTimeResult {
+  double estimated_scan_time = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetInspectionVerificationModeRequest {}
+
+message GetInstrumentBaseUncertaintyCovarianceMatrixWrtWorldRequest {
+  optional CollectionInstrumentId instrument = 1;
+}
+
+message GetInstrumentBaseUncertaintyCovarianceMatrixWrtWorldResult {
+  optional UncertaintyCovarianceMatrix covariance_matrix = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetInstrumentIdFromNameRequest {
+  string name = 1;
+}
+
+message GetInstrumentIdFromNameResult {
+  optional CollectionInstrumentId instrument = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetInstrumentInterfaceResponseTimeoutRequest {
+  optional CollectionInstrumentId instrument = 1;
+}
+
+message GetInstrumentInterfaceResponseTimeoutResult {
+  double timeout_seconds = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetInstrumentModelRequest {
+  optional CollectionInstrumentId instrument = 1;
+}
+
+message GetInstrumentModelResult {
+  string name = 1;
+  string model = 2;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetInstrumentPartTemperatureRequest {
+  optional CollectionInstrumentId instrument = 1;
+}
+
+message GetInstrumentPartTemperatureResult {
+  optional double part_temperature_fahrenheit = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetInstrumentScaleFactorRequest {
+  optional CollectionInstrumentId instrument = 1;
+}
+
+message GetInstrumentScaleFactorResult {
+  optional double scale_factor = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetInstrumentsWithObservationsOnTargetRequest {
+  optional PointName point = 1;
+}
+
+message GetInstrumentsWithObservationsOnTargetResult {
+  repeated CollectionInstrumentId instruments = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetInstrumentTargetsAndModeProfilesRequest {
+  optional CollectionInstrumentId instrument = 1;
+}
+
+message GetInstrumentTargetsAndModeProfilesResult {
+  repeated string mode_profiles = 1;
+  repeated string target_names = 2;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetInstrumentTargetStatusRequest {
+  optional CollectionInstrumentId instrument = 1;
+}
+
+message GetInstrumentTargetStatusResult {
+  optional InstrumentTargetStatus status = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetInstrumentTransformRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional CollectionObjectName reference_frame = 2;
+}
+
+message GetInstrumentTransformResult {
+  optional Transform transform = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetInstrumentWeatherSettingRequest {
+  optional CollectionInstrumentId instrument = 1;
+}
+
+message GetInstrumentWeatherSettingResult {
+  optional double temperature_fahrenheit = 1;
+  optional double pressure_mmhg = 2;
+  optional double relative_humidity_percent = 3;
+  optional bool set_automatically = 4;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetLastInstrumentIndexRequest {}
+
+message GetLastInstrumentIndexResult {
+  int32 instrument_index = 1;
+  optional CollectionInstrumentId instrument = 2;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetLastSolvedTcpFixtureUncertaintyCovarianceMatrixRequest {
+  optional CollectionObjectName tcp_fixture = 1;
+}
+
+message GetLastSolvedTcpFixtureUncertaintyCovarianceMatrixResult {
+  optional UncertaintyCovarianceMatrix covariance_matrix = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetNumberOfObservationsOnTargetRequest {
+  optional PointName point = 1;
+}
+
+message GetNumberOfObservationsOnTargetResult {
+  int32 observation_count = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetObscuredPointsFromInstrumentRequest {
+  optional CollectionInstrumentId instrument = 1;
+  repeated PointName candidate_points = 2;
+  optional bool show_obscured_shots = 3;
+}
+
+message GetObscuredPointsFromInstrumentResult {
+  repeated PointName obscured_points = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetObservationInfoRequest {
+  optional PointName point = 1;
+  optional int32 observation_index = 2;
+}
+
+message GetObservationInfoResult {
+  optional ObservationInfo observation = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetPcmmInstrumentXyzUncertaintiesRequest {
+  optional CollectionInstrumentId instrument = 1;
+}
+
+message GetPcmmInstrumentXyzUncertaintiesResult {
+  optional double x_uncertainty = 1;
+  optional double y_uncertainty = 2;
+  optional double z_uncertainty = 3;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetTargetsMeasuredByInstrumentRequest {
+  optional CollectionInstrumentId instrument = 1;
+}
+
+message GetTargetsMeasuredByInstrumentResult {
+  repeated PointName targets = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetTrackerEdmTheodoliteUncertaintiesRequest {
+  optional CollectionInstrumentId instrument = 1;
+}
+
+message GetTrackerEdmTheodoliteUncertaintiesResult {
+  optional double theta_dispersion_arcseconds = 1;
+  optional double theta_threshold = 2;
+  optional double phi_dispersion_arcseconds = 3;
+  optional double phi_threshold = 4;
+  optional double distance_ppm = 5;
+  optional double distance_threshold = 6;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetWrtlChannelAndStatusRequest {
+  optional CollectionInstrumentId instrument = 1;
+}
+
+message GetWrtlChannelAndStatusResult {
+  optional WrtlChannelStatus status = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetXyzInstrumentUncertaintiesRequest {
+  optional CollectionInstrumentId instrument = 1;
+}
+
+message GetXyzInstrumentUncertaintiesResult {
+  optional double x_uncertainty = 1;
+  optional double y_uncertainty = 2;
+  optional double z_uncertainty = 3;
+  MpExecutionDetails execution = 1000;
+}
+
+message GuideObjectsIn6dBasedOnPointMeasurementsRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional CollectionObjectName destination_group = 2;
+  optional CollectionObjectName moving_reference_group = 3;
+  repeated CollectionObjectName objects_to_move = 4;
+  optional CollectionObjectName initial_survey_group = 5;
+  optional ToleranceVectorOptions positional_tolerance = 6;
+  optional ToleranceVectorOptions rotational_tolerance = 7;
+}
+
+message GuideObjectsIn6dBasedOnPointMeasurementsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message InitiateServoGuideRequest {
+  optional CollectionInstrumentId instrument = 1;
+  repeated PointName nominal_points = 2;
+  optional string group_name_suffix = 3;
+  optional string target_name_suffix = 4;
+  optional double tolerance = 5;
+}
+
+message InitiateServoGuideResult {
+  MpExecutionDetails execution = 1000;
+}
+
+enum InspectionFilter {
+  INSPECTION_FILTER_UNSPECIFIED = 0;
+  INSPECTION_FILTER_ALL = 1;
+  INSPECTION_FILTER_CHECKS = 2;
+  INSPECTION_FILTER_DATUMS = 3;
+}
+
+message InstrumentOperationalCheckRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional string check_type = 2;
+}
+
+message InstrumentOperationalCheckResult {
+  MpExecutionDetails execution = 1000;
+}
+
+enum InstrumentPositionReportingFrame {
+  INSTRUMENT_POSITION_REPORTING_FRAME_UNSPECIFIED = 0;
+  INSTRUMENT_POSITION_REPORTING_FRAME_INSTRUMENT_BASE = 1;
+  INSTRUMENT_POSITION_REPORTING_FRAME_WORLD = 2;
+  INSTRUMENT_POSITION_REPORTING_FRAME_WORKING = 3;
+}
+
+message InstrumentTargetStatus {
+  bool is_locked = 1;
+  string name = 2;
+  int32 number_of_faces = 3;
+  int32 locked_face = 4;
+}
+
+message InstrumentTypeName {
+  string value = 1;
+}
+
+message IssueInstrumentActuatorCommandRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional string command = 2;
+}
+
+message IssueInstrumentActuatorCommandResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message JumpInstrumentToNewLocationRequest {
+  optional CollectionInstrumentId live_instrument = 1;
+  optional bool hide_previous_instrument = 2;
+}
+
+message JumpInstrumentToNewLocationResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message LoadCloudViewerPointCloudFileRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional string file_path = 2;
+}
+
+message LoadCloudViewerPointCloudFileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message LoadInstrumentConfigurationRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional FileReference configuration_file = 2;
+}
+
+message LoadInstrumentConfigurationResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message LocateInstrumentBestFitGroupToGroupRequest {
+  optional CollectionObjectName reference_group = 1;
+  optional CollectionObjectName corresponding_group = 2;
+  optional bool show_interface = 3;
+  optional double rms_tolerance = 4;
+  optional double maximum_absolute_tolerance = 5;
+  optional bool allow_scale = 6;
+  optional bool allow_x = 7;
+  optional bool allow_y = 8;
+  optional bool allow_z = 9;
+  optional bool allow_rx = 10;
+  optional bool allow_ry = 11;
+  optional bool allow_rz = 12;
+  optional bool lock_degrees_of_freedom = 13;
+  optional bool generate_event = 14;
+  optional FileReference csv_report = 15;
+}
+
+message LocateInstrumentBestFitGroupToGroupResult {
+  optional Transform transform_in_working = 1;
+  optional WorldTransform optimum_transform = 2;
+  optional double rms_deviation = 3;
+  optional double maximum_absolute_deviation = 4;
+  optional int32 number_of_unknowns = 5;
+  optional int32 number_of_equations = 6;
+  optional double robustness = 7;
+  MpExecutionDetails execution = 1000;
+}
+
+message LocateInstrumentBestFitNominalGeometryRequest {
+  optional CollectionInstrumentId instrument = 1;
+  repeated CollectionObjectName geometry_relationships = 2;
+  optional bool show_interface = 3;
+  optional double rms_tolerance = 4;
+  optional double maximum_absolute_tolerance = 5;
+  optional bool allow_scale = 6;
+  optional bool allow_x = 7;
+  optional bool allow_y = 8;
+  optional bool allow_z = 9;
+  optional bool allow_rx = 10;
+  optional bool allow_ry = 11;
+  optional bool allow_rz = 12;
+  optional bool lock_degrees_of_freedom = 13;
+  optional bool generate_event = 14;
+  optional FileReference csv_report = 15;
+}
+
+message LocateInstrumentBestFitNominalGeometryResult {
+  optional Transform transform_in_working = 1;
+  optional WorldTransform optimum_transform = 2;
+  optional double rms_deviation = 3;
+  optional double maximum_absolute_deviation = 4;
+  optional int32 number_of_unknowns = 5;
+  optional int32 number_of_equations = 6;
+  optional double robustness = 7;
+  MpExecutionDetails execution = 1000;
+}
+
+message LocateInstrumentGroupToSurfaceQuickFitRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional CollectionObjectName measured_group = 2;
+  optional CollectionObjectName surface_points_group = 3;
+  optional CollectionObjectName surface_to_fit = 4;
+  repeated CollectionObjectName other_objects_to_transform = 5;
+  optional double rms_tolerance = 6;
+  optional double maximum_absolute_tolerance = 7;
+}
+
+message LocateInstrumentGroupToSurfaceQuickFitResult {
+  optional double rms_error = 1;
+  optional double maximum_absolute_error = 2;
+  MpExecutionDetails execution = 1000;
+}
+
+message LocateInstrumentRefTieInRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional CollectionObjectName reference_group = 2;
+  optional CollectionObjectName actuals_group = 3;
+  optional double tolerance = 4;
+  optional bool auto_survey = 5;
+}
+
+message LocateInstrumentRefTieInResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message LocateInstrumentsUsmnRequest {
+  repeated CollectionInstrumentId instruments = 1;
+  optional CollectionObjectName nominals_group = 2;
+  optional CollectionObjectName output_group = 3;
+  optional bool move_in_working_frame = 4;
+  optional bool auto_reject_outliers_and_resolve = 5;
+  optional ShowUsmnDialog show_usmn_dialog = 6;
+  optional double maximum_acceptable_rms_error = 7;
+  optional double maximum_acceptable_error = 8;
+  repeated CollectionObjectName excluded_groups = 9;
+  optional bool exclude_single_instrument_points = 10;
+  optional bool run_uncertainty_field_analysis = 11;
+  optional int32 analysis_samples = 12;
+  optional double analysis_time_limit_minutes = 13;
+}
+
+message LocateInstrumentsUsmnResult {
+  optional double rms_error = 1;
+  optional double maximum_error = 2;
+  MpExecutionDetails execution = 1000;
+}
+
+message LrApdisActivateMcmCalibrationRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional string calibration_name = 2;
+  optional int32 calibration_id = 3;
+}
+
+message LrApdisActivateMcmCalibrationResult {
+  string active_mcm_name = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message LrApdisGetActiveMcmCalibrationRequest {
+  optional CollectionInstrumentId instrument = 1;
+}
+
+message LrApdisGetActiveMcmCalibrationResult {
+  string active_mcm_name = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message LrApdisPerformMcmCalibrationRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional CollectionObjectName nominal_group = 2;
+  optional bool use_matte_tooling_ball = 3;
+  optional string new_calibration_name = 4;
+}
+
+message LrApdisPerformMcmCalibrationResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message LrFlipTestResult {
+  double front_range_inches = 1;
+  double front_azimuth_degrees = 2;
+  double front_elevation_degrees = 3;
+  double front_quality = 4;
+  double back_range_inches = 5;
+  double back_azimuth_degrees = 6;
+  double back_elevation_degrees = 7;
+  double back_quality = 8;
+  double front_back_difference_range_inches = 9;
+  double front_back_difference_azimuth_degrees = 10;
+  double front_back_difference_elevation_degrees = 11;
+}
+
+message LrGetMostRecentSnrInfoRequest {
+  optional CollectionInstrumentId instrument = 1;
+}
+
+message LrGetMostRecentSnrInfoResult {
+  optional LrSnrInfo info = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message LrHardwareConnectRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional string host = 2;
+  optional int32 port = 3;
+}
+
+message LrHardwareConnectResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message LrHardwareDisconnectRequest {
+  optional CollectionInstrumentId instrument = 1;
+}
+
+message LrHardwareDisconnectResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message LrLoSeparationTestResult {
+  int32 primary_lo_index = 1;
+  int32 secondary_lo_index = 2;
+  int32 primary_lo_measurement_count = 3;
+  double primary_lo_range_mean_inches = 4;
+  double primary_lo_range_standard_deviation_inches = 5;
+  double primary_lo_quality_mean = 6;
+  double primary_lo_quality_standard_deviation = 7;
+  int32 secondary_lo_measurement_count = 8;
+  double secondary_lo_range_mean_inches = 9;
+  double secondary_lo_range_standard_deviation_inches = 10;
+  double secondary_lo_quality_mean = 11;
+  double secondary_lo_quality_standard_deviation = 12;
+}
+
+message LrSelfTestFlipTestRequest {
+  optional CollectionInstrumentId instrument = 1;
+}
+
+message LrSelfTestFlipTestResult {
+  optional LrFlipTestResult result = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message LrSelfTestLinearizationRequest {
+  optional CollectionInstrumentId instrument = 1;
+}
+
+message LrSelfTestLinearizationResult {
+  double linearity_khz = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message LrSelfTestLoSepRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional int32 region = 2;
+  optional int32 num_range_measurements = 3;
+}
+
+message LrSelfTestLoSepResult {
+  optional LrLoSeparationTestResult result = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message LrSelfTestRequest {
+  optional CollectionInstrumentId instrument = 1;
+}
+
+message LrSelfTestResult {
+  double reference_arm_length_inches = 1;
+  double reference_arm_quality = 2;
+  int32 mirror_measurement_count = 3;
+  double mirror_measurement_range_mean_inches = 4;
+  double mirror_measurement_range_standard_deviation_inches = 5;
+  double mirror_measurement_quality_mean = 6;
+  double mirror_measurement_quality_standard_deviation = 7;
+  bool passed_reference_arm_quality_threshold = 8;
+  bool passed_mirror_offset_delta_threshold = 9;
+  bool passed_mirror_offset_standard_deviation_threshold = 10;
+  bool passed_mirror_mean_quality_threshold = 11;
+  bool passed_overall = 12;
+  MpExecutionDetails execution = 1000;
+}
+
+message LrSetRedLaserIntensityRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional int32 intensity = 2;
+}
+
+message LrSetRedLaserIntensityResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message LrSnrInfo {
+  double snr = 1;
+  int32 size_of_data_array = 2;
+  int32 peak_value_index = 3;
+  double peak_value_db = 4;
+  double measured_range_meters = 5;
+}
+
+message LrVerifyHardwareConnectionRequest {
+  optional CollectionInstrumentId instrument = 1;
+}
+
+message LrVerifyHardwareConnectionResult {
+  bool connected_to_hardware = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeCollectionObjectNameRefListFromObjectsAssociatedWithInstrumentsRequest {
+  repeated CollectionInstrumentId instruments = 1;
+}
+
+message MakeCollectionObjectNameRefListFromObjectsAssociatedWithInstrumentsResult {
+  repeated CollectionObjectName objects = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeSurfaceFaceListFromPointProximityRequest {
+  repeated PointName measured_points = 1;
+}
+
+message MakeSurfaceFaceListFromPointProximityResult {
+  optional SurfaceFaceList surface_faces = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message MeasureExistingSinglePointAndCompareRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional PointName existing_target_id = 2;
+  optional CollectionObjectName group_name_for_new_point = 3;
+  optional bool measure_immediately = 4;
+  optional FileReference html_prompt_file = 5;
+  optional double tolerance = 6;
+}
+
+message MeasureExistingSinglePointAndCompareResult {
+  optional Vector vector_representation = 1;
+  double x_value = 2;
+  double y_value = 3;
+  double z_value = 4;
+  double magnitude = 5;
+  optional PointName resulting_point_name = 6;
+  MpExecutionDetails execution = 1000;
+}
+
+message MeasureExistingSinglePointManualGuideRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional PointName existing_target_id = 2;
+  optional CollectionObjectName group_name_for_new_point = 3;
+  optional bool measure_immediately = 4;
+  optional FileReference html_prompt_file = 5;
+}
+
+message MeasureExistingSinglePointManualGuideResult {
+  optional PointName resulting_point_name = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message MeasureExistingSinglePointRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional PointName existing_target_id = 2;
+  optional CollectionObjectName group_name_for_new_point = 3;
+  optional bool measure_immediately = 4;
+  optional FileReference html_prompt_file = 5;
+}
+
+message MeasureExistingSinglePointResult {
+  optional PointName resulting_point_name = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message MeasureNominalFeatureRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional CollectionObjectName feature = 2;
+  optional PointName resulting_point = 3;
+}
+
+message MeasureNominalFeatureResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MeasureRequest {
+  optional CollectionInstrumentId instrument = 1;
+}
+
+message MeasureResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MeasureSinglePointHereRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional PointName target_id = 2;
+  optional bool measure_immediately = 3;
+  optional FileReference html_prompt_file = 4;
+}
+
+message MeasureSinglePointHereResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MoveInstrumentToAnotherCollectionRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional CollectionName collection_name = 2;
+}
+
+message MoveInstrumentToAnotherCollectionResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MoveMeasurementObservationRequest {
+  optional PointName source_point_name = 1;
+  optional int32 observation_index = 2;
+  optional bool delete_point_if_no_measurements_remain = 3;
+  optional PointName destination_point_name = 4;
+  optional bool force_observation_active = 5;
+}
+
+message MoveMeasurementObservationResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MoveObjectsIn6dUsingInstrumentUpdatesRequest {
+  optional CollectionInstrumentId instrument = 1;
+  repeated CollectionObjectName objects_to_move = 2;
+  optional string measurement_mode = 3;
+}
+
+message MoveObjectsIn6dUsingInstrumentUpdatesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MultiMeasurementInitiateRequest {
+  repeated CollectionInstrumentId instruments = 1;
+  optional string measurement_mode = 2;
+  optional bool wait_for_completion = 3;
+}
+
+message MultiMeasurementInitiateResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MultiMeasurementStopRequest {
+  repeated CollectionInstrumentId instruments = 1;
+}
+
+message MultiMeasurementStopResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ObservationInfo {
+  optional CollectionInstrumentId instrument = 1;
+  optional ObservationSphericalValues spherical_values = 2;
+  bool active = 3;
+  string timestamp = 4;
+  double rms_error = 5;
+  double temperature_fahrenheit = 6;
+  double pressure_in_hg = 7;
+  double relative_humidity_percent = 8;
+  string info_data = 9;
+}
+
+message ObservationSphericalValues {
+  double distance = 1;
+  double azimuth = 2;
+  double elevation = 3;
+}
+
+message PerimeterLists {
+  repeated CollectionObjectName scan_perimeters = 1;
+  repeated CollectionObjectName exclusion_perimeters = 2;
+}
+
+message PointAtTargetRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional PointName target_id = 2;
+  optional FileReference html_prompt_file = 3;
+}
+
+message PointAtTargetResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ProjectObjectsRequest {
+  optional CollectionInstrumentId instrument = 1;
+  repeated CollectionObjectName objects_to_project = 2;
+}
+
+message ProjectObjectsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message QuickAlignRequest {
+  repeated CollectionInstrumentId instruments = 1;
+  repeated CollectionObjectName objects = 2;
+  repeated PointName nominal_points = 3;
+  repeated string nominal_point_of_view_names = 4;
+  optional bool align_to_individual_faces_only = 5;
+}
+
+message QuickAlignResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message RenameInstrumentRequest {
+  optional CollectionInstrumentId instrument = 1;
+  string new_name = 2;
+}
+
+message RenameInstrumentResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message RunCribSheetRequest {
+  optional CollectionName collection = 1;
+  optional string crib_sheet_name = 2;
+  optional CollectionInstrumentId instrument = 3;
+}
+
+message RunCribSheetResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SaveCloudViewerPointCloudFileRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional string file_path = 2;
+  optional bool save_as_ascii = 3;
+}
+
+message SaveCloudViewerPointCloudFileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SaveInstrumentConfigurationRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional FileReference configuration_file = 2;
+}
+
+message SaveInstrumentConfigurationResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SendCloudToSaRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional string cloud_name = 2;
+}
+
+message SendCloudToSaResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetAbsoluteInstrumentScaleFactorRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional double scale_factor = 2;
+}
+
+message SetAbsoluteInstrumentScaleFactorResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetAlignmentProjectorRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional string projector_profile = 2;
+  optional string user_prompt = 3;
+}
+
+message SetAlignmentProjectorResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetCloudViewerFilterRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional int32 filter_value = 2;
+}
+
+message SetCloudViewerFilterResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetInstrumentAxesRequest {
+  optional CollectionInstrumentId instrument_to_adjust = 1;
+  repeated double axis_values = 2;
+  optional int32 number_of_steps = 3;
+}
+
+message SetInstrumentAxesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetInstrumentBaseUncertaintyCovarianceMatrixWrtBaseRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional UncertaintyCovarianceMatrix covariance_matrix = 2;
+}
+
+message SetInstrumentBaseUncertaintyCovarianceMatrixWrtBaseResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetInstrumentBaseUncertaintyCovarianceMatrixWrtWorldRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional UncertaintyCovarianceMatrix covariance_matrix = 2;
+}
+
+message SetInstrumentBaseUncertaintyCovarianceMatrixWrtWorldResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetInstrumentGroupAndTargetRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional PointName point = 2;
+}
+
+message SetInstrumentGroupAndTargetResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetInstrumentInterfaceResponseTimeoutRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional double timeout_seconds = 2;
+}
+
+message SetInstrumentInterfaceResponseTimeoutResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetInstrumentMeasurementModeProfileRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional string mode_profile = 2;
+}
+
+message SetInstrumentMeasurementModeProfileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetInstrumentTargetingRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional string targeting_name = 2;
+}
+
+message SetInstrumentTargetingResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetInstrumentTransformRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional Transform destination_transform = 2;
+  optional CollectionObjectName reference_frame = 3;
+  optional int32 number_of_steps = 4;
+}
+
+message SetInstrumentTransformResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetInstrumentWeatherSettingRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional double temperature_fahrenheit = 2;
+  optional double pressure_mmhg = 3;
+  optional double relative_humidity_percent = 4;
+  optional bool set_automatically = 5;
+}
+
+message SetInstrumentWeatherSettingResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetMultiplyInstrumentScaleFactorRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional double scale_factor = 2;
+}
+
+message SetMultiplyInstrumentScaleFactorResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetObservationCollimationShotOptionsRequest {
+  optional PointName point = 1;
+  optional int32 observation_index = 2;
+  optional bool is_collimation_shot = 3;
+  optional CollectionInstrumentId targeted_instrument = 4;
+}
+
+message SetObservationCollimationShotOptionsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetObservationMirrorCubeShotFaceRequest {
+  optional PointName point = 1;
+  optional int32 observation_index = 2;
+  optional bool is_mirror_cube_shot = 3;
+  optional int32 mirror_cube_shot_face = 4;
+}
+
+message SetObservationMirrorCubeShotFaceResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetObservationStatusRequest {
+  optional PointName point = 1;
+  optional int32 observation_index = 2;
+  optional bool active = 3;
+}
+
+message SetObservationStatusResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetPcmmInstrumentXyzUncertaintiesRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional double x_uncertainty = 2;
+  optional double y_uncertainty = 3;
+  optional double z_uncertainty = 4;
+}
+
+message SetPcmmInstrumentXyzUncertaintiesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetProbeOffsetFrameOfflineRequest {
+  optional CollectionInstrumentId instrument = 1;
+  string probe_name = 2;
+  optional int32 face_id = 3;
+  optional CollectionObjectName raw_measured_frame = 4;
+  optional CollectionObjectName offset_frame = 5;
+}
+
+message SetProbeOffsetFrameOfflineResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetProbeOffsetFrameOnlineRequest {
+  optional CollectionInstrumentId instrument = 1;
+  string probe_name = 2;
+  optional int32 face_id = 3;
+  optional string measure_profile_name = 4;
+  optional double timeout_seconds = 5;
+  optional CollectionObjectName offset_frame = 6;
+}
+
+message SetProbeOffsetFrameOnlineResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetRemeasureFailedChecksOnlyRequest {
+  optional CollectionName collection = 1;
+}
+
+message SetRemeasureFailedChecksOnlyResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetTargetComputationOptionsRequest {
+  optional TargetComputationMethod computation_method = 1;
+  optional bool ignore_distance_measurements = 2;
+}
+
+message SetTargetComputationOptionsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetTrackerEdmTheodoliteUncertaintiesRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional double theta_dispersion_arcseconds = 2;
+  optional double theta_threshold = 3;
+  optional double phi_dispersion_arcseconds = 4;
+  optional double phi_threshold = 5;
+  optional double distance_ppm = 6;
+  optional double distance_threshold = 7;
+}
+
+message SetTrackerEdmTheodoliteUncertaintiesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetWrtlChannelRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional int32 channel = 2;
+}
+
+message SetWrtlChannelResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetXyzInstrumentUncertaintiesRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional double x_uncertainty = 2;
+  optional double y_uncertainty = 3;
+  optional double z_uncertainty = 4;
+}
+
+message SetXyzInstrumentUncertaintiesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetXyzReferenceFrameInstrumentBaseAnchorFrameRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional CollectionObjectName anchor_frame = 2;
+}
+
+message SetXyzReferenceFrameInstrumentBaseAnchorFrameResult {
+  MpExecutionDetails execution = 1000;
+}
+
+enum ShowUsmnDialog {
+  SHOW_USMN_DIALOG_UNSPECIFIED = 0;
+  SHOW_USMN_DIALOG_NO = 1;
+  SHOW_USMN_DIALOG_YES = 2;
+  SHOW_USMN_DIALOG_ON_TOLERANCE_VIOLATION = 3;
+}
+
+message StartGdtInspectionDesignRequest {
+  optional CollectionName collection = 1;
+  optional InspectionFilter filter = 2;
+}
+
+message StartGdtInspectionDesignResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message StartGdtInspectionRehearseRequest {
+  optional CollectionName collection = 1;
+  optional InspectionFilter filter = 2;
+}
+
+message StartGdtInspectionRehearseResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message StartGdtInspectionRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional CollectionName collection = 2;
+  optional InspectionFilter filter = 3;
+}
+
+message StartGdtInspectionResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message StartInstrumentInterfaceRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional bool initialize_at_startup = 2;
+  optional string device_ip_address = 3;
+  optional int32 interface_type = 4;
+  optional bool run_in_simulation = 5;
+  optional bool allow_start_without_initialization_requirements = 6;
+}
+
+message StartInstrumentInterfaceResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message StartTheodoliteInterfaceRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional string theodolite_type = 2;
+  optional int32 comm_port = 3;
+  optional string device_ip_address = 4;
+  optional bool simulation = 5;
+}
+
+message StartTheodoliteInterfaceResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message StopActiveMeasurementModeRequest {
+  optional CollectionInstrumentId instrument = 1;
+}
+
+message StopActiveMeasurementModeResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message StopInstrumentInterfaceRequest {
+  optional CollectionInstrumentId instrument = 1;
+}
+
+message StopInstrumentInterfaceResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message StopProjectionRequest {
+  optional CollectionInstrumentId instrument = 1;
+}
+
+message StopProjectionResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SynchronizedMeasurementMasterSlaveRequest {
+  optional CollectionInstrumentId master_instrument = 1;
+  optional CollectionInstrumentId slave_instrument = 2;
+  optional string slave_group_suffix = 3;
+  optional bool locate_one_of_the_instruments = 4;
+  optional bool locate_master = 5;
+  optional bool wait_for_completion = 6;
+}
+
+message SynchronizedMeasurementMasterSlaveResult {
+  MpExecutionDetails execution = 1000;
+}
+
+enum TargetComputationMethod {
+  TARGET_COMPUTATION_METHOD_UNSPECIFIED = 0;
+  TARGET_COMPUTATION_METHOD_USE_MOST_RECENT_SHOT_FROM_EACH_FACE = 1;
+  TARGET_COMPUTATION_METHOD_USE_ONLY_MOST_RECENT_SHOT = 2;
+  TARGET_COMPUTATION_METHOD_DO_NOT_CHANGE_PRIOR_MEASUREMENTS = 3;
+  TARGET_COMPUTATION_METHOD_FORCE_NEW_POINT_FOR_EACH_MEASUREMENT = 4;
+  TARGET_COMPUTATION_METHOD_REMOVE_ALL_PRIOR_SHOTS = 5;
+  TARGET_COMPUTATION_METHOD_DEACTIVATE_ALL_PRIOR_SHOTS = 6;
+}
+
+message TcpFixtureUncertainties {
+  bool solution_valid = 1;
+  optional Transform refined_tcp_in_working = 2;
+  optional DoubleVector6 uncertainties_in_tcp_fixture_frame = 3;
+  optional DoubleVector6 uncertainties_in_working_frame = 4;
+  double rms_error = 5;
+  double maximum_absolute_error = 6;
+  double goodness_of_fit = 7;
+  double robustness = 8;
+  repeated string result_notes = 9;
+}
+
+message TrackTapeMeasurementRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional PointName point_on_tape = 2;
+  optional PointName point_on_part = 3;
+  optional PointName direction_point = 4;
+  optional PointName termination_point = 5;
+  optional string parameter_set_name = 6;
+  optional CollectionObjectName point_group = 7;
+  optional string initial_target_name = 8;
+}
+
+message TrackTapeMeasurementResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message TransformInstrumentByDeltaRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional WorldTransform delta_transform = 2;
+  optional bool apply_scale_to_instrument = 3;
+}
+
+message TransformInstrumentByDeltaResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message TransformInstrumentFrameToFrameRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional CollectionObjectName initial_frame = 2;
+  optional CollectionObjectName destination_frame = 3;
+  optional int32 number_of_steps = 4;
+}
+
+message TransformInstrumentFrameToFrameResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message TransformMultipleInstrumentsByDeltaRequest {
+  repeated CollectionInstrumentId instruments = 1;
+  optional WorldTransform delta_transform = 2;
+  optional bool apply_scale_to_instruments = 3;
+}
+
+message TransformMultipleInstrumentsByDeltaResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message UncertaintyCovarianceMatrix {
+  optional DoubleVector6 row_1 = 1;
+  optional DoubleVector6 row_2 = 2;
+  optional DoubleVector6 row_3 = 3;
+  optional DoubleVector6 row_4 = 4;
+  optional DoubleVector6 row_5 = 5;
+  optional DoubleVector6 row_6 = 6;
+}
+
+message VerifyInstrumentConnectionRequest {
+  optional CollectionInstrumentId instrument = 1;
+}
+
+message VerifyInstrumentConnectionResult {
+  optional bool connected = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message WaitForTrappingToCompleteRequest {}
+
+message WaitForTrappingToCompleteResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message WatchClosestPointRequest {
+  optional CollectionInstrumentId instrument = 1;
+  repeated CollectionObjectName groups_to_consider = 2;
+  optional CollectionObjectName watch_window_properties = 3;
+  optional string measurement_mode = 4;
+  optional bool pause_mp_until_closed = 5;
+  optional int32 window_top_left_x = 6;
+  optional int32 window_top_left_y = 7;
+  optional int32 window_width = 8;
+  optional int32 window_height = 9;
+}
+
+message WatchClosestPointResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message WatchInstrumentRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional bool pause_mp_until_closed = 2;
+  optional CollectionObjectName watch_window_properties = 3;
+  optional int32 window_top_left_x = 4;
+  optional int32 window_top_left_y = 5;
+  optional int32 window_width = 6;
+  optional int32 window_height = 7;
+}
+
+message WatchInstrumentResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message WatchPointToEdgeRequest {
+  optional CollectionInstrumentId instrument = 1;
+  repeated CollectionObjectName projection_reference_objects = 2;
+  repeated CollectionObjectName measurement_reference_objects = 3;
+  optional ProjectionOptions projection_options = 4;
+  optional CollectionObjectName watch_window_properties = 5;
+  optional string measurement_mode = 6;
+  optional bool pause_mp_until_closed = 7;
+  optional int32 window_top_left_x = 8;
+  optional int32 window_top_left_y = 9;
+  optional int32 window_width = 10;
+  optional int32 window_height = 11;
+}
+
+message WatchPointToEdgeResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message WatchPointToObjectsRequest {
+  optional CollectionInstrumentId instrument = 1;
+  repeated CollectionObjectName objects_to_consider = 2;
+  optional ProjectionOptions projection_options = 3;
+  optional CollectionObjectName watch_window_properties = 4;
+  optional string measurement_mode = 5;
+  optional bool pause_mp_until_closed = 6;
+  optional int32 window_top_left_x = 7;
+  optional int32 window_top_left_y = 8;
+  optional int32 window_width = 9;
+  optional int32 window_height = 10;
+}
+
+message WatchPointToObjectsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message WatchPointToPointRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional PointName reference_point = 2;
+  optional CollectionObjectName watch_window_properties = 3;
+  optional string measurement_mode = 4;
+  optional bool pause_mp_until_closed = 5;
+  optional int32 window_top_left_x = 6;
+  optional int32 window_top_left_y = 7;
+  optional int32 window_width = 8;
+  optional int32 window_height = 9;
+}
+
+message WatchPointToPointResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message WatchPointToPointWithViewZoomingRequest {
+  optional CollectionInstrumentId instrument = 1;
+  optional PointName reference_point = 2;
+  optional bool update = 3;
+}
+
+message WatchPointToPointWithViewZoomingResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message WrtlChannelStatus {
+  bool connection_status = 1;
+  int32 active_channel = 2;
+}

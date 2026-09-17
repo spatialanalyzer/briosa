@@ -1,0 +1,240 @@
+syntax = "proto3";
+
+package briosa;
+
+import "briosa/discovery.proto";
+import "briosa/operation_outcomes.proto";
+
+option csharp_namespace = "Briosa";
+
+service SpatialAnalyzerLifecycle {
+  rpc GetSpatialAnalyzerState(GetSpatialAnalyzerStateRequest) returns (GetSpatialAnalyzerStateResponse);
+  rpc LaunchSpatialAnalyzer(LaunchSpatialAnalyzerRequest) returns (LaunchSpatialAnalyzerResponse);
+  rpc CloseOwnedSpatialAnalyzer(CloseOwnedSpatialAnalyzerRequest) returns (CloseOwnedSpatialAnalyzerResponse);
+}
+
+service SpatialAnalyzerSdkLifecycle {
+  rpc GetSpatialAnalyzerSdkState(GetSpatialAnalyzerSdkStateRequest) returns (GetSpatialAnalyzerSdkStateResponse);
+  rpc StartSpatialAnalyzerSdk(StartSpatialAnalyzerSdkRequest) returns (StartSpatialAnalyzerSdkResponse);
+  rpc ConnectToSpatialAnalyzer(ConnectToSpatialAnalyzerRequest) returns (ConnectToSpatialAnalyzerResponse);
+  rpc ReconnectToSpatialAnalyzer(ReconnectToSpatialAnalyzerRequest) returns (ReconnectToSpatialAnalyzerResponse);
+  rpc StopSpatialAnalyzerSdk(StopSpatialAnalyzerSdkRequest) returns (StopSpatialAnalyzerSdkResponse);
+  rpc RecoverSpatialAnalyzerSdk(RecoverSpatialAnalyzerSdkRequest) returns (RecoverSpatialAnalyzerSdkResponse);
+}
+
+message GetSpatialAnalyzerStateRequest {}
+
+message GetSpatialAnalyzerStateResponse {
+  SpatialAnalyzerLifecycleState state = 1;
+}
+
+message LaunchSpatialAnalyzerRequest {
+  oneof initial_content {
+    string job_file_path = 1;
+    string quick_start_instrument_name = 2;
+  }
+
+  bool start_minimized = 3;
+}
+
+message LaunchSpatialAnalyzerResponse {
+  SpatialAnalyzerLifecycleState state = 1;
+}
+
+message CloseOwnedSpatialAnalyzerRequest {
+  int32 expected_application_generation = 1;
+}
+
+message CloseOwnedSpatialAnalyzerResponse {
+  SpatialAnalyzerLifecycleState state = 1;
+}
+
+message SpatialAnalyzerLifecycleState {
+  uint64 state_revision = 1;
+  SpatialAnalyzerApplicationState application_state = 2;
+  SpatialAnalyzerOwnership ownership = 3;
+  optional int32 application_generation = 4;
+  optional string diagnostic_code = 5;
+}
+
+enum SpatialAnalyzerApplicationState {
+  SPATIAL_ANALYZER_APPLICATION_STATE_UNSPECIFIED = 0;
+  SPATIAL_ANALYZER_APPLICATION_STATE_NOT_RUNNING = 1;
+  SPATIAL_ANALYZER_APPLICATION_STATE_STARTING = 2;
+  SPATIAL_ANALYZER_APPLICATION_STATE_RUNNING = 3;
+  SPATIAL_ANALYZER_APPLICATION_STATE_CLOSING = 4;
+  SPATIAL_ANALYZER_APPLICATION_STATE_EXITED = 5;
+  SPATIAL_ANALYZER_APPLICATION_STATE_AMBIGUOUS = 6;
+  SPATIAL_ANALYZER_APPLICATION_STATE_FAULTED = 7;
+}
+
+enum SpatialAnalyzerOwnership {
+  SPATIAL_ANALYZER_OWNERSHIP_UNSPECIFIED = 0;
+  SPATIAL_ANALYZER_OWNERSHIP_NONE = 1;
+  SPATIAL_ANALYZER_OWNERSHIP_EXTERNAL = 2;
+  SPATIAL_ANALYZER_OWNERSHIP_SERVER_LAUNCHED = 3;
+}
+
+message GetSpatialAnalyzerSdkStateRequest {}
+
+message GetSpatialAnalyzerSdkStateResponse {
+  SpatialAnalyzerSdkLifecycleState state = 1;
+}
+
+message StartSpatialAnalyzerSdkRequest {}
+
+message StartSpatialAnalyzerSdkResponse {
+  SpatialAnalyzerSdkLifecycleState state = 1;
+}
+
+message ConnectToSpatialAnalyzerRequest {
+  int32 expected_sdk_generation = 1;
+}
+
+message ConnectToSpatialAnalyzerResponse {
+  SpatialAnalyzerSdkLifecycleState state = 1;
+}
+
+message ReconnectToSpatialAnalyzerRequest {
+  int32 expected_sdk_generation = 1;
+}
+
+message ReconnectToSpatialAnalyzerResponse {
+  SpatialAnalyzerSdkLifecycleState state = 1;
+}
+
+message StopSpatialAnalyzerSdkRequest {
+  int32 expected_sdk_generation = 1;
+}
+
+message StopSpatialAnalyzerSdkResponse {
+  SpatialAnalyzerSdkLifecycleState state = 1;
+}
+
+message RecoverSpatialAnalyzerSdkRequest {
+  int32 expected_sdk_generation = 1;
+  SpatialAnalyzerSdkRecoveryMode mode = 2;
+}
+
+message RecoverSpatialAnalyzerSdkResponse {
+  SpatialAnalyzerSdkLifecycleState state = 1;
+}
+
+message SpatialAnalyzerSdkLifecycleState {
+  uint64 state_revision = 1;
+  SpatialAnalyzerSdkState sdk_state = 2;
+  optional int32 sdk_generation = 3;
+  optional int32 application_generation = 4;
+  SpatialAnalyzerConnectionState connection_state = 5;
+  SpatialAnalyzerExecutionReadinessState execution_readiness_state = 6;
+  bool ready_for_mp = 7;
+  SpatialAnalyzerSdkRecoveryState recovery_state = 8;
+  optional SpatialAnalyzerSdkIncident last_incident = 9;
+  optional string diagnostic_code = 10;
+}
+
+message SpatialAnalyzerSdkIncident {
+  int32 sdk_generation = 1;
+  SpatialAnalyzerSdkTerminationKind termination_kind = 2;
+  optional ExecutionDisposition execution_disposition = 3;
+  optional string operation_id = 4;
+  optional string diagnostic_code = 5;
+}
+
+enum SpatialAnalyzerSdkState {
+  SPATIAL_ANALYZER_SDK_STATE_UNSPECIFIED = 0;
+  SPATIAL_ANALYZER_SDK_STATE_STOPPED = 1;
+  SPATIAL_ANALYZER_SDK_STATE_STARTING = 2;
+  SPATIAL_ANALYZER_SDK_STATE_RUNNING = 3;
+  SPATIAL_ANALYZER_SDK_STATE_CONNECTING = 4;
+  SPATIAL_ANALYZER_SDK_STATE_VERIFYING = 5;
+  SPATIAL_ANALYZER_SDK_STATE_READY = 6;
+  SPATIAL_ANALYZER_SDK_STATE_STOPPING = 7;
+  SPATIAL_ANALYZER_SDK_STATE_RECOVERING = 8;
+  SPATIAL_ANALYZER_SDK_STATE_FAULTED = 9;
+}
+
+enum SpatialAnalyzerSdkRecoveryState {
+  SPATIAL_ANALYZER_SDK_RECOVERY_STATE_UNSPECIFIED = 0;
+  SPATIAL_ANALYZER_SDK_RECOVERY_STATE_NOT_REQUIRED = 1;
+  SPATIAL_ANALYZER_SDK_RECOVERY_STATE_RECOVERY_AVAILABLE = 2;
+  SPATIAL_ANALYZER_SDK_RECOVERY_STATE_OPERATOR_ACTION_REQUIRED = 3;
+  SPATIAL_ANALYZER_SDK_RECOVERY_STATE_BLOCKED = 4;
+}
+
+enum SpatialAnalyzerSdkTerminationKind {
+  SPATIAL_ANALYZER_SDK_TERMINATION_KIND_UNSPECIFIED = 0;
+  SPATIAL_ANALYZER_SDK_TERMINATION_KIND_START_FAILED = 1;
+  SPATIAL_ANALYZER_SDK_TERMINATION_KIND_SDK_PROCESS_EXITED = 2;
+  SPATIAL_ANALYZER_SDK_TERMINATION_KIND_SDK_CONNECTION_LOST = 3;
+  SPATIAL_ANALYZER_SDK_TERMINATION_KIND_WORKER_PROCESS_EXITED = 4;
+  SPATIAL_ANALYZER_SDK_TERMINATION_KIND_CONTROL_CHANNEL_LOST = 5;
+  SPATIAL_ANALYZER_SDK_TERMINATION_KIND_WATCHDOG_TERMINATED = 6;
+}
+
+enum SpatialAnalyzerSdkRecoveryMode {
+  SPATIAL_ANALYZER_SDK_RECOVERY_MODE_UNSPECIFIED = 0;
+  SPATIAL_ANALYZER_SDK_RECOVERY_MODE_REPLACE_WITHOUT_REPLAY = 1;
+}
+
+message SpatialAnalyzerLifecycleError {
+  string rpc = 1;
+  SpatialAnalyzerLifecycleFailureKind kind = 2;
+  string diagnostic_code = 3;
+  SpatialAnalyzerLifecycleState state = 4;
+  LifecycleRecoveryGuidance recovery_guidance = 5;
+}
+
+enum SpatialAnalyzerLifecycleFailureKind {
+  SPATIAL_ANALYZER_LIFECYCLE_FAILURE_KIND_UNSPECIFIED = 0;
+  SPATIAL_ANALYZER_LIFECYCLE_FAILURE_KIND_VALIDATION = 1;
+  SPATIAL_ANALYZER_LIFECYCLE_FAILURE_KIND_STATE_CONFLICT = 2;
+  SPATIAL_ANALYZER_LIFECYCLE_FAILURE_KIND_APPLICATION_NOT_FOUND = 3;
+  SPATIAL_ANALYZER_LIFECYCLE_FAILURE_KIND_APPLICATION_AMBIGUOUS = 4;
+  SPATIAL_ANALYZER_LIFECYCLE_FAILURE_KIND_LAUNCH_FAILED = 5;
+  SPATIAL_ANALYZER_LIFECYCLE_FAILURE_KIND_NOT_OWNED = 6;
+  SPATIAL_ANALYZER_LIFECYCLE_FAILURE_KIND_SDK_NOT_STOPPED = 7;
+  SPATIAL_ANALYZER_LIFECYCLE_FAILURE_KIND_TIMEOUT = 8;
+  SPATIAL_ANALYZER_LIFECYCLE_FAILURE_KIND_INTERNAL = 9;
+}
+
+message SpatialAnalyzerSdkLifecycleError {
+  string rpc = 1;
+  SpatialAnalyzerSdkLifecycleFailureKind kind = 2;
+  string diagnostic_code = 3;
+  SpatialAnalyzerSdkLifecycleState state = 4;
+  LifecycleRecoveryGuidance recovery_guidance = 5;
+}
+
+enum SpatialAnalyzerSdkLifecycleFailureKind {
+  SPATIAL_ANALYZER_SDK_LIFECYCLE_FAILURE_KIND_UNSPECIFIED = 0;
+  SPATIAL_ANALYZER_SDK_LIFECYCLE_FAILURE_KIND_VALIDATION = 1;
+  SPATIAL_ANALYZER_SDK_LIFECYCLE_FAILURE_KIND_STATE_CONFLICT = 2;
+  SPATIAL_ANALYZER_SDK_LIFECYCLE_FAILURE_KIND_APPLICATION_NOT_FOUND = 3;
+  SPATIAL_ANALYZER_SDK_LIFECYCLE_FAILURE_KIND_APPLICATION_AMBIGUOUS = 4;
+  SPATIAL_ANALYZER_SDK_LIFECYCLE_FAILURE_KIND_SDK_ALREADY_ACTIVE = 5;
+  SPATIAL_ANALYZER_SDK_LIFECYCLE_FAILURE_KIND_SDK_NOT_RUNNING = 6;
+  SPATIAL_ANALYZER_SDK_LIFECYCLE_FAILURE_KIND_SDK_START_FAILED = 7;
+  SPATIAL_ANALYZER_SDK_LIFECYCLE_FAILURE_KIND_SDK_STOP_FAILED = 8;
+  SPATIAL_ANALYZER_SDK_LIFECYCLE_FAILURE_KIND_RECOVERY_NOT_REQUIRED = 9;
+  SPATIAL_ANALYZER_SDK_LIFECYCLE_FAILURE_KIND_SDK_RECOVERY_FAILED = 10;
+  SPATIAL_ANALYZER_SDK_LIFECYCLE_FAILURE_KIND_IDENTITY_MISMATCH = 11;
+  SPATIAL_ANALYZER_SDK_LIFECYCLE_FAILURE_KIND_OPERATOR_ACTION_REQUIRED = 12;
+  SPATIAL_ANALYZER_SDK_LIFECYCLE_FAILURE_KIND_TIMEOUT = 13;
+  SPATIAL_ANALYZER_SDK_LIFECYCLE_FAILURE_KIND_INTERNAL = 14;
+  SPATIAL_ANALYZER_SDK_LIFECYCLE_FAILURE_KIND_SDK_ALREADY_CONNECTED = 15;
+  SPATIAL_ANALYZER_SDK_LIFECYCLE_FAILURE_KIND_SDK_CONNECTION_FAILED = 16;
+  SPATIAL_ANALYZER_SDK_LIFECYCLE_FAILURE_KIND_RECONNECT_NOT_REQUIRED = 17;
+  SPATIAL_ANALYZER_SDK_LIFECYCLE_FAILURE_KIND_SDK_RECOVERY_REQUIRED = 18;
+}
+
+enum LifecycleRecoveryGuidance {
+  LIFECYCLE_RECOVERY_GUIDANCE_UNSPECIFIED = 0;
+  LIFECYCLE_RECOVERY_GUIDANCE_NONE = 1;
+  LIFECYCLE_RECOVERY_GUIDANCE_REFRESH_STATE = 2;
+  LIFECYCLE_RECOVERY_GUIDANCE_RETRY_AFTER_STATE_CHANGE = 3;
+  LIFECYCLE_RECOVERY_GUIDANCE_CORRECT_ENVIRONMENT = 4;
+  LIFECYCLE_RECOVERY_GUIDANCE_STOP_SDK_FIRST = 5;
+  LIFECYCLE_RECOVERY_GUIDANCE_RECOVER_SDK_WITHOUT_REPLAY = 6;
+  LIFECYCLE_RECOVERY_GUIDANCE_OPERATOR_ACTION_REQUIRED = 7;
+}
