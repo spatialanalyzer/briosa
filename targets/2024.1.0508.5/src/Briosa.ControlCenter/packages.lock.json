@@ -1,0 +1,33 @@
+{
+  "version": 2,
+  "dependencies": {
+    "net10.0-windows7.0": {
+      "briosa.desktop": {
+        "type": "Project",
+        "dependencies": {
+          "Briosa.Protocol": "[1.0.0, )"
+        }
+      },
+      "briosa.protocol": {
+        "type": "Project",
+        "dependencies": {
+          "Google.Protobuf": "[3.31.1, )",
+          "Grpc.Core.Api": "[2.80.0, )"
+        }
+      },
+      "Google.Protobuf": {
+        "type": "CentralTransitive",
+        "requested": "[3.31.1, )",
+        "resolved": "3.31.1",
+        "contentHash": "gSnJbUmGiOTdWddPhqzrEscHq9Ls6sqRDPB9WptckyjTUyx70JOOAaDLkFff8gManZNN3hllQ4aQInnQyq/Z/A=="
+      },
+      "Grpc.Core.Api": {
+        "type": "CentralTransitive",
+        "requested": "[2.80.0, )",
+        "resolved": "2.80.0",
+        "contentHash": "i/8s+MOrYa6n7BmZ5bilcbHk+EMJDQHm2MKLhwGAT+urQqlZ6cpjvSivYvuULjebuX+UKieLYZbLRCmVQxFRkw=="
+      }
+    },
+    "net10.0-windows7.0/win-x64": {}
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "fileName": "SpatialAnalyzerSDK.exe",
+    "sha256": "C541D41E7D6A6D696B65F5CB99514EEB8CB4F4EFD135FAC17CAE7B0AC0A0D302",
+    "productVersion": "2024.1.0508.5",
+    "typeLibrary": {
+      "name": "SpatialAnalyzerSDK",
+      "id": "860f748c-c80b-4216-9386-187357f520f7",
+      "majorVersion": 1,
+      "minorVersion": 0,
+      "lcid": 0,
+      "systemKind": 1,
+      "flags": 8
+    }
+  },
+  "importer": {
+    "fileName": "TlbImp.exe",
+    "fileVersion": "4.8.3928.0 built by: NET48REL1",
+    "sha256": "66EB7AE95E623AA3925F680C8F4F8DA6AA27BF8C9115C873DA609CCA2429FCB4",
+    "arguments": [
+      "<installed-type-library>",
+      "/out:<staging-output>",
+      "/namespace:Briosa.SpatialAnalyzer.Interop",
+      "/asmversion:2024.1.508.5",
+      "/machine:Agnostic",
+      "/strictref:nopia",
+      "/nologo"
+    ]
+  },
+  "artifact": {
+    "fileName": "Briosa.SpatialAnalyzer.Interop.dll",
+    "assemblyName": "Briosa.SpatialAnalyzer.Interop",
+    "assemblyVersion": "2024.1.508.5",
+    "sha256": "209174556060BEE0117A7B2D4565A49D758E7C904162DCBBB06C96EA6E5B47E3",
+    "canonicalApiFileName": "Briosa.SpatialAnalyzer.Interop.PublicApi.txt",
+    "canonicalApiSha256": "98F7CA51055497263B3C36384D390784920257ABF3D70C8F1A40CEB6A8FDCFE2"
+  },
+  "determinism": {
+    "byteForByteAcrossProbeRuns": false,
+    "canonicalApiSha256AcrossProbeRuns": "98F7CA51055497263B3C36384D390784920257ABF3D70C8F1A40CEB6A8FDCFE2",
+    "excludedVolatileFields": [
+      "PE headers",
+      "module MVID"
+    ]
+  }
+}

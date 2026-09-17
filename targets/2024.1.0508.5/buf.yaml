@@ -1,0 +1,15 @@
+version: v2
+modules:
+  - path: proto
+lint:
+  use:
+    - STANDARD
+  # MP-compatible service/result names and the stable unversioned package are
+  # intentional public API choices documented in ADRs 0024 and 0025.
+  except:
+    - SERVICE_SUFFIX
+    - RPC_RESPONSE_STANDARD_NAME
+    - PACKAGE_VERSION_SUFFIX
+breaking:
+  use:
+    - FILE

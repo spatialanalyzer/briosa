@@ -1,0 +1,345 @@
+syntax = "proto3";
+
+package briosa;
+
+import "briosa/operation_outcomes.proto";
+import "briosa/spatial_analyzer_values.proto";
+
+option csharp_namespace = "Briosa";
+
+enum CloudBoxType {
+  CLOUD_BOX_TYPE_UNSPECIFIED = 0;
+  CLOUD_BOX_TYPE_WORLD_AXIS_ALIGNED_BOX = 1;
+  CLOUD_BOX_TYPE_WORK_AXIS_ALIGNED_BOX = 2;
+  CLOUD_BOX_TYPE_MINIMUM_ORIENTED_BOX_UNCONDITIONAL = 3;
+  CLOUD_BOX_TYPE_MINIMUM_ORIENTED_BOX_VERIFY_VOLUME = 4;
+}
+
+enum PointOutputType {
+  POINT_OUTPUT_TYPE_UNSPECIFIED = 0;
+  POINT_OUTPUT_TYPE_POINTS = 1;
+  POINT_OUTPUT_TYPE_CLOUD_POINTS = 2;
+}
+
+enum RGBFilterOperation {
+  RGB_FILTER_OPERATION_UNSPECIFIED = 0;
+  RGB_FILTER_OPERATION_INCREMENTALLY_APPLY_FILTER = 1;
+  RGB_FILTER_OPERATION_RESET_AND_APPLY_FILTER = 2;
+  RGB_FILTER_OPERATION_RESET_ALL_CLOUD_POINTS_VISIBLE = 3;
+}
+
+enum RGBColorChannel {
+  RGB_COLOR_CHANNEL_UNSPECIFIED = 0;
+  RGB_COLOR_CHANNEL_RED = 1;
+  RGB_COLOR_CHANNEL_GREEN = 2;
+  RGB_COLOR_CHANNEL_BLUE = 3;
+  RGB_COLOR_CHANNEL_INTENSITY = 4;
+}
+
+service CloudAndMeshOperations {
+  rpc CloudDisplayControl(CloudDisplayControlRequest) returns (CloudDisplayControlResult);
+  rpc ResetCloudBoundingBox(ResetCloudBoundingBoxRequest) returns (ResetCloudBoundingBoxResult);
+  rpc GetCloudPointCount(GetCloudPointCountRequest) returns (GetCloudPointCountResult);
+  rpc SetCloudDefaultClippingPlane(SetCloudDefaultClippingPlaneRequest) returns (SetCloudDefaultClippingPlaneResult);
+  rpc RasterScanEdgeInspection(RasterScanEdgeInspectionRequest) returns (RasterScanEdgeInspectionResult);
+  rpc NewRasterScanEdgeInspection(NewRasterScanEdgeInspectionRequest) returns (NewRasterScanEdgeInspectionResult);
+  rpc EnableAllCloudCrossSections(EnableAllCloudCrossSectionsRequest) returns (EnableAllCloudCrossSectionsResult);
+  rpc EnableDisableCloudCrossSections(EnableDisableCloudCrossSectionsRequest) returns (EnableDisableCloudCrossSectionsResult);
+  rpc EnableSingleCloudCrossSection(EnableSingleCloudCrossSectionRequest) returns (EnableSingleCloudCrossSectionResult);
+  rpc GetNumberOfCrossSectionsInCrossSectionCloud(GetNumberOfCrossSectionsInCrossSectionCloudRequest) returns (GetNumberOfCrossSectionsInCrossSectionCloudResult);
+  rpc FilterCloudsToPlane(FilterCloudsToPlaneRequest) returns (FilterCloudsToPlaneResult);
+  rpc FilterCloudsToGroup(FilterCloudsToGroupRequest) returns (FilterCloudsToGroupResult);
+  rpc FilterCloudsToSurface(FilterCloudsToSurfaceRequest) returns (FilterCloudsToSurfaceResult);
+  rpc FilterCloudsToBSplines(FilterCloudsToBSplinesRequest) returns (FilterCloudsToBSplinesResult);
+  rpc FilterCloudsToLineSegment(FilterCloudsToLineSegmentRequest) returns (FilterCloudsToLineSegmentResult);
+  rpc FilterCloudsToVectorGroupsResolvePoints(FilterCloudsToVectorGroupsResolvePointsRequest) returns (FilterCloudsToVectorGroupsResolvePointsResult);
+  rpc RGBCloudPointFilter(RGBCloudPointFilterRequest) returns (RGBCloudPointFilterResult);
+  rpc DeleteCloudPointsByRadialDistanceFromPoints(DeleteCloudPointsByRadialDistanceFromPointsRequest) returns (DeleteCloudPointsByRadialDistanceFromPointsResult);
+  rpc DeleteCloudPointsByXYZRange(DeleteCloudPointsByXYZRangeRequest) returns (DeleteCloudPointsByXYZRangeResult);
+  rpc GenerateGeneralMesh(GenerateGeneralMeshRequest) returns (GenerateGeneralMeshResult);
+  rpc MeshVolume(MeshVolumeRequest) returns (MeshVolumeResult);
+}
+
+message CloudDisplayControlRequest {
+  optional int32 thin_draw_increment = 1;
+  optional int32 point_size = 2;
+}
+
+message CloudDisplayControlResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ResetCloudBoundingBoxRequest {
+  optional CollectionObjectName cloud_name = 1;
+  optional CloudBoxType cloud_box_type = 2;
+  optional bool show_bounding_box = 3;
+  optional bool use_all_points = 4;
+  optional int32 desired_point_count = 5;
+}
+
+message ResetCloudBoundingBoxResult {
+  optional double x_axis_dimension = 1;
+  optional double y_axis_dimension = 2;
+  optional double z_axis_dimension = 3;
+  optional Vector x_axis_in_world = 4;
+  optional Vector y_axis_in_world = 5;
+  optional Vector z_axis_in_world = 6;
+  optional Vector centroid_in_world = 7;
+  optional Transform reference_transform_in_world = 8;
+  optional Transform reference_transform_in_working = 9;
+  optional int32 points_used_for_bounding_box = 10;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetCloudPointCountRequest {
+  optional CollectionObjectName cloud_name = 1;
+}
+
+message GetCloudPointCountResult {
+  optional int32 points_count = 1;
+  optional double planar_offset = 2;
+  optional double radial_offset = 3;
+  optional int32 active_clipping_planes = 4;
+  MpExecutionDetails execution = 1000;
+}
+
+message SetCloudDefaultClippingPlaneRequest {
+  optional bool enable_cloud_clipping = 1;
+  optional CollectionObjectName reference_object = 2;
+}
+
+message SetCloudDefaultClippingPlaneResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message RasterScanEdgeInspectionRequest {
+  repeated CollectionObjectName cloud_names = 1;
+  optional CollectionObjectName edge_surface_name = 2;
+  repeated CollectionObjectName b_spline_edge_list = 3;
+  optional CollectionObjectName prefix_for_output_groups = 4;
+  optional double tolerance = 5;
+  optional int32 minimum_good_points_per_unit_length = 6;
+  optional double maximum_bad_points_percentage = 7;
+}
+
+message RasterScanEdgeInspectionResult {
+  optional string summary_result = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message NewRasterScanEdgeInspectionRequest {
+  repeated CollectionObjectName edge_cloud_names = 1;
+  optional CollectionObjectName edge_surface_name = 2;
+  optional CollectionObjectName edge_b_spline_name = 3;
+  optional CollectionObjectName output_prefix = 4;
+  optional double inspection_increment = 5;
+  optional double proximity_filter_distance = 6;
+  optional double edge_bias_value = 7;
+  optional double error_tolerance = 8;
+  optional bool use_cosine_projection_method = 9;
+  optional int32 minimum_edge_points_per_segment = 10;
+  optional FileReference intermediate_calculation_results_file = 11;
+}
+
+message NewRasterScanEdgeInspectionResult {
+  optional string summary_result = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message EnableAllCloudCrossSectionsRequest {
+  optional CollectionObjectName cross_section_cloud_name = 1;
+}
+message EnableAllCloudCrossSectionsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message EnableDisableCloudCrossSectionsRequest {
+  optional CollectionObjectName cross_section_cloud_name = 1;
+  optional int32 cross_section_id = 2;
+  optional bool enable = 3;
+}
+
+message EnableDisableCloudCrossSectionsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message EnableSingleCloudCrossSectionRequest {
+  optional CollectionObjectName cross_section_cloud_name = 1;
+  optional int32 cross_section_id = 2;
+}
+
+message EnableSingleCloudCrossSectionResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message GetNumberOfCrossSectionsInCrossSectionCloudRequest {
+  optional CollectionObjectName cross_section_cloud_name = 1;
+}
+
+message GetNumberOfCrossSectionsInCrossSectionCloudResult {
+  optional int32 cross_section_count = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message FilterCloudsToPlaneRequest {
+  repeated CollectionObjectName cloud_names = 1;
+  optional CollectionObjectName filter_plane_name = 2;
+  optional CollectionObjectName output_group_name = 3;
+  optional double proximity = 4;
+  optional OffsetDirectionType allowable_offset_direction = 5;
+  optional PointOutputType output_type = 6;
+}
+
+message FilterCloudsToPlaneResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message FilterCloudsToGroupRequest {
+  repeated CollectionObjectName cloud_names = 1;
+  optional CollectionObjectName filter_group_name = 2;
+  optional CollectionObjectName output_group_name = 3;
+  optional double proximity = 4;
+  optional int32 maximum_number_of_points = 5;
+  optional PointOutputType output_type = 6;
+}
+
+message FilterCloudsToGroupResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message FilterCloudsToSurfaceRequest {
+  repeated CollectionObjectName cloud_names = 1;
+  optional CollectionObjectName filter_surface_name = 2;
+  optional CollectionObjectName output_group_name = 3;
+  optional double low_proximity = 4;
+  optional double high_proximity = 5;
+  optional int32 skip_factor = 6;
+  optional PointOutputType output_type = 7;
+}
+
+message FilterCloudsToSurfaceResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message FilterCloudsToBSplinesRequest {
+  repeated CollectionObjectName cloud_names = 1;
+  repeated CollectionObjectName filter_b_spline_names = 2;
+  optional CollectionObjectName output_group_name = 3;
+  optional double minimum_proximity = 4;
+  optional double maximum_proximity = 5;
+  optional PointOutputType output_type = 6;
+}
+
+message FilterCloudsToBSplinesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message FilterCloudsToLineSegmentRequest {
+  repeated CollectionObjectName cloud_names = 1;
+  optional PointName first_line_end_point = 2;
+  optional PointName second_line_end_point = 3;
+  optional CollectionObjectName output_group_name = 4;
+  optional double minimum_proximity = 5;
+  optional double maximum_proximity = 6;
+  optional PointOutputType output_type = 7;
+}
+
+message FilterCloudsToLineSegmentResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message FilterCloudsToVectorGroupsResolvePointsRequest {
+  repeated CollectionObjectName cloud_names = 1;
+  repeated CollectionObjectName vector_group_names = 2;
+  optional CollectionObjectName output_group_name = 3;
+  optional double minimum_proximity = 4;
+  optional double maximum_proximity = 5;
+  optional double maximum_distance_from_vector_begin = 6;
+  optional int32 minimum_number_of_required_points = 7;
+  optional PointOutputType output_type = 8;
+}
+
+message FilterCloudsToVectorGroupsResolvePointsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message RGBCloudPointFilterRequest {
+  optional string filter_name = 1;
+  repeated CollectionObjectName clouds_to_be_filtered = 2;
+  optional bool red_enabled = 3;
+  optional bool red_high_enabled = 4;
+  optional int32 red_high_threshold = 5;
+  optional bool red_low_enabled = 6;
+  optional int32 red_low_threshold = 7;
+  optional bool green_enabled = 8;
+  optional bool green_high_enabled = 9;
+  optional int32 green_high_threshold = 10;
+  optional bool green_low_enabled = 11;
+  optional int32 green_low_threshold = 12;
+  optional bool blue_enabled = 13;
+  optional bool blue_high_enabled = 14;
+  optional int32 blue_high_threshold = 15;
+  optional bool blue_low_enabled = 16;
+  optional int32 blue_low_threshold = 17;
+  optional bool gray_scale_enabled = 18;
+  optional bool gray_scale_high_enabled = 19;
+  optional int32 gray_scale_high_threshold = 20;
+  optional bool gray_scale_low_enabled = 21;
+  optional int32 gray_scale_low_threshold = 22;
+  optional RGBFilterOperation rgb_filter_operation = 23;
+}
+
+message RGBCloudPointFilterResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message DeleteCloudPointsByRadialDistanceFromPointsRequest {
+  repeated CollectionObjectName cloud_names = 1;
+  repeated PointName points = 2;
+  optional double radius = 3;
+  optional bool delete_inside = 4;
+}
+
+message DeleteCloudPointsByRadialDistanceFromPointsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message DeleteCloudPointsByXYZRangeRequest {
+  repeated CollectionObjectName cloud_names = 1;
+  optional double x_min = 2;
+  optional double x_max = 3;
+  optional double y_min = 4;
+  optional double y_max = 5;
+  optional double z_min = 6;
+  optional double z_max = 7;
+  optional bool delete_inside = 8;
+}
+
+message DeleteCloudPointsByXYZRangeResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message GenerateGeneralMeshRequest {
+  optional CollectionObjectName output_mesh_name = 1;
+  repeated CollectionObjectName clouds_to_mesh = 2;
+  optional double maximum_triangle_size = 3;
+  optional double smallest_hole_diameter = 4;
+  optional bool finalize = 5;
+  optional bool use_scan_direction_for_point_normal = 6;
+  optional FileReference json_file = 7;
+}
+
+message GenerateGeneralMeshResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MeshVolumeRequest {
+  optional CollectionObjectName mesh = 1;
+  optional CollectionObjectName plane = 2;
+}
+
+message MeshVolumeResult {
+  optional double above = 1;
+  optional double below = 2;
+  MpExecutionDetails execution = 1000;
+}

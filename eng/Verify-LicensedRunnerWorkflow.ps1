@@ -1,11 +1,22 @@
 [CmdletBinding()]
 param(
-    [string]$WorkflowPath =
-        (Join-Path $PSScriptRoot "../.github/workflows/licensed-sa.yml")
+    [string]$WorkflowPath,
+    [ValidateSet("2026.1.0529.7", "2024.1.0508.5")]
+    [string]$SpatialAnalyzerVersion = "2026.1.0529.7"
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
+
+if (-not $WorkflowPath) {
+    $workflowName = if ($SpatialAnalyzerVersion -eq "2024.1.0508.5") {
+        "licensed-sa-2024.yml"
+    } else {
+        "licensed-sa.yml"
+    }
+    $WorkflowPath = Join-Path $PSScriptRoot "../.github/workflows/$workflowName"
+}
+$targetSlug = $SpatialAnalyzerVersion.Replace('.', '-')
 
 $resolvedWorkflowPath = [IO.Path]::GetFullPath($WorkflowPath)
 if (-not (Test-Path -LiteralPath $resolvedWorkflowPath -PathType Leaf)) {
@@ -46,8 +57,12 @@ Assert-WorkflowPattern "github\.ref == 'refs/heads/main'" `
     "The licensed workflow must reject non-main refs."
 Assert-WorkflowPattern "github\.event_name == 'workflow_dispatch'" `
     "The licensed workflow must reject other event types."
-Assert-WorkflowPattern '(?m)^  group: licensed-sa-2026-1-0529-7\s*$' `
+Assert-WorkflowPattern "(?m)^  group: licensed-sa-$targetSlug\s*$" `
     "The licensed workflow must serialize exact-target runs."
+Assert-WorkflowPattern ("(?m)^      BRIOSA_TARGET_ROOT: targets/" + [regex]::Escape($SpatialAnalyzerVersion) + "\s*$") `
+    "The licensed workflow must build the selected exact-target product."
+Assert-WorkflowPattern ("spatial_analyzer_target = '" + [regex]::Escape($SpatialAnalyzerVersion) + "'") `
+    "The trusted payload manifest must identify the selected exact target."
 Assert-WorkflowPattern '(?m)^  cancel-in-progress: false\s*$' `
     "An in-flight licensed run must never be cancelled by a later dispatch."
 
@@ -95,9 +110,9 @@ foreach ($requiredInitializerPattern in @(
 }
 
 foreach ($requiredPattern in @(
-        '(?m)^    environment: licensed-sa-2026-1-0529-7\s*$',
+        "(?m)^    environment: licensed-sa-$targetSlug\s*$",
         '(?m)^      group: briosa-licensed-sa\s*$',
-        '(?m)^      labels: \[self-hosted, windows, x64, briosa-licensed, sa-2026-1-0529-7\]\s*$',
+        "(?m)^      labels: \[self-hosted, windows, x64, briosa-licensed, sa-$targetSlug\]\s*$",
         'actions/download-artifact@',
         'Test-LicensedRunnerState\.ps1',
         '-ConfirmLicensedSpatialAnalyzerTest',

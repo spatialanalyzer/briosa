@@ -1,0 +1,542 @@
+syntax = "proto3";
+
+package briosa;
+
+import "briosa/operation_outcomes.proto";
+import "briosa/spatial_analyzer_values.proto";
+
+option csharp_namespace = "Briosa";
+
+service GdtOperations {
+  rpc MakeFeatureChecks(MakeFeatureChecksRequest) returns (MakeFeatureChecksResult);
+  rpc GetFeatureCheckReportingFrame(GetFeatureCheckReportingFrameRequest) returns (GetFeatureCheckReportingFrameResult);
+  rpc FeatureInspectionAutoFilter(FeatureInspectionAutoFilterRequest) returns (FeatureInspectionAutoFilterResult);
+  rpc GetFeatureCheckReportingOptions(GetFeatureCheckReportingOptionsRequest) returns (GetFeatureCheckReportingOptionsResult);
+  rpc MakeSurfaceFaceListRuntimeSelect(MakeSurfaceFaceListRuntimeSelectRequest) returns (MakeSurfaceFaceListRuntimeSelectResult);
+  rpc GetGdtOptions(GetGdtOptionsRequest) returns (GetGdtOptionsResult);
+  rpc MakeGdtFeatureCheckAnnotation(MakeGdtFeatureCheckAnnotationRequest) returns (MakeGdtFeatureCheckAnnotationResult);
+  rpc MakeSurfaceFaceListFromSurface(MakeSurfaceFaceListFromSurfaceRequest) returns (MakeSurfaceFaceListFromSurfaceResult);
+  rpc EvaluateFeatureCheck(EvaluateFeatureCheckRequest) returns (EvaluateFeatureCheckResult);
+  rpc SetGdtOptions(SetGdtOptionsRequest) returns (SetGdtOptionsResult);
+  rpc MakeFeatureCheckRefListFromCollection(MakeFeatureCheckRefListFromCollectionRequest) returns (MakeFeatureCheckRefListFromCollectionResult);
+  rpc MakeDatumRefListFromCollection(MakeDatumRefListFromCollectionRequest) returns (MakeDatumRefListFromCollectionResult);
+  rpc MakeAnnotationRefListFromCollection(MakeAnnotationRefListFromCollectionRequest) returns (MakeAnnotationRefListFromCollectionResult);
+  rpc GetFeatureCheckDatumReferences(GetFeatureCheckDatumReferencesRequest) returns (GetFeatureCheckDatumReferencesResult);
+  rpc GetFeatureCheckMeasurements(GetFeatureCheckMeasurementsRequest) returns (GetFeatureCheckMeasurementsResult);
+  rpc GetDatumMeasurements(GetDatumMeasurementsRequest) returns (GetDatumMeasurementsResult);
+  rpc SetGlobalForceSimultaneousEvaluation(SetGlobalForceSimultaneousEvaluationRequest) returns (SetGlobalForceSimultaneousEvaluationResult);
+  rpc SetDatumMeasurements(SetDatumMeasurementsRequest) returns (SetDatumMeasurementsResult);
+  rpc GetFeatureCheckCylinderEvalOptions(GetFeatureCheckCylinderEvalOptionsRequest) returns (GetFeatureCheckCylinderEvalOptionsResult);
+  rpc EvaluateFeatureChecks(EvaluateFeatureChecksRequest) returns (EvaluateFeatureChecksResult);
+  rpc DeleteFeatureChecks(DeleteFeatureChecksRequest) returns (DeleteFeatureChecksResult);
+  rpc SetFeatureCheckReportingOptions(SetFeatureCheckReportingOptionsRequest) returns (SetFeatureCheckReportingOptionsResult);
+  rpc MakeGdtDatumAnnotation(MakeGdtDatumAnnotationRequest) returns (MakeGdtDatumAnnotationResult);
+  rpc RefreshDatumsFeatureChecksFromAnnotations(RefreshDatumsFeatureChecksFromAnnotationsRequest) returns (RefreshDatumsFeatureChecksFromAnnotationsResult);
+  rpc EnableDisableDatumAlignmentForFeatureCheck(EnableDisableDatumAlignmentForFeatureCheckRequest) returns (EnableDisableDatumAlignmentForFeatureCheckResult);
+  rpc MakeFeatureCheckReferenceListWildcardSelection(MakeFeatureCheckReferenceListWildcardSelectionRequest) returns (MakeFeatureCheckReferenceListWildcardSelectionResult);
+  rpc GenerateFeatureCheckSummary(GenerateFeatureCheckSummaryRequest) returns (GenerateFeatureCheckSummaryResult);
+  rpc SetFeatureCheckReportingFrame(SetFeatureCheckReportingFrameRequest) returns (SetFeatureCheckReportingFrameResult);
+  rpc StartStopFeatureCheckTrapping(StartStopFeatureCheckTrappingRequest) returns (StartStopFeatureCheckTrappingResult);
+  rpc SetFeatureCheckCylinderEvalOptions(SetFeatureCheckCylinderEvalOptionsRequest) returns (SetFeatureCheckCylinderEvalOptionsResult);
+  rpc SetFeatureCheckMeasurements(SetFeatureCheckMeasurementsRequest) returns (SetFeatureCheckMeasurementsResult);
+  rpc MakeAnnotationRefListWildcardSelection(MakeAnnotationRefListWildcardSelectionRequest) returns (MakeAnnotationRefListWildcardSelectionResult);
+  rpc DatumAlignment(DatumAlignmentRequest) returns (DatumAlignmentResult);
+}
+
+message DatumAlignmentRequest {
+  optional CollectionItemName feature_check = 1;
+  repeated CollectionObjectName objects_to_move = 2;
+  repeated CollectionInstrumentId instruments_to_move = 3;
+  optional bool apply_feature_check_transform = 4;
+}
+
+message DatumAlignmentResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message DeleteFeatureChecksRequest {
+  repeated CollectionItemName feature_checks = 1;
+}
+
+message DeleteFeatureChecksResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message EnableDisableDatumAlignmentForFeatureCheckRequest {
+  optional CollectionItemName feature_check = 1;
+  optional bool enable_datum_alignment = 2;
+  optional bool enable_custom_initial_alignment = 3;
+  optional bool enable_initial_datum_alignment = 4;
+  optional CollectionItemName alignment = 5;
+}
+
+message EnableDisableDatumAlignmentForFeatureCheckResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message EvaluateFeatureCheckRequest {
+  optional CollectionItemName feature_check = 1;
+  optional bool perform_evaluation = 2;
+  optional bool simultaneous_evaluation = 3;
+}
+
+message EvaluateFeatureCheckResult {
+  bool check_evaluated = 1;
+  string check_result = 2;
+  bool non_unique_result = 3;
+  double measured_deviation_upper = 4;
+  double distance_out_of_tolerance_upper = 5;
+  optional WorldTransform eval_delta_transform_upper = 6;
+  double measured_deviation_lower = 7;
+  double distance_out_of_tolerance_lower = 8;
+  optional WorldTransform eval_delta_transform_lower = 9;
+  string check_type = 10;
+  string tolerance_type = 11;
+  double tolerance_simple = 12;
+  double tolerance_composite_upper = 13;
+  double tolerance_composite_lower = 14;
+  double tolerance_range_min = 15;
+  double tolerance_range_max = 16;
+  double tolerance_nominal_plus_minus_nominal = 17;
+  double tolerance_nominal_plus_minus_minus = 18;
+  double tolerance_nominal_plus_minus_plus = 19;
+  MpExecutionDetails execution = 1000;
+}
+
+message EvaluateFeatureChecksRequest {
+  repeated CollectionItemName feature_check_list = 1;
+  optional bool simultaneous_evaluation = 2;
+  optional bool restrict_evaluations_to_listed_checks = 3;
+}
+
+message EvaluateFeatureChecksResult {
+  int32 total_passed = 1;
+  int32 total_failed = 2;
+  int32 total_incomplete = 3;
+  MpExecutionDetails execution = 1000;
+}
+
+message FeatureCheckCylinderEvalOptions {
+  bool enable_actual_diameter_override = 1;
+  double actual_diameter_override = 2;
+}
+
+message FeatureCheckDatumReference {
+  string reference_string = 1;
+  string cad_faces = 2;
+  repeated CollectionObjectName sa_objects = 3;
+  repeated CollectionObjectName auxiliary_sa_objects = 4;
+  repeated CollectionItemName geometry_relationships = 5;
+  repeated CollectionItemName auxiliary_geometry_relationships = 6;
+}
+
+message FeatureCheckReportingOptions {
+  bool show_feature_control_frame_summary = 1;
+  bool include_title = 2;
+  bool show_datum_and_tolerance_summary = 3;
+  bool show_feature_summary = 4;
+  reserved 5;
+  reserved "only_create_failed_vectors";
+  bool show_point_details = 6;
+  bool show_lower_tier_tables = 7;
+}
+
+message FeatureInspectionAutoFilterRequest {
+  repeated PointName point_names = 1;
+  repeated CollectionObjectName group_names = 2;
+  repeated CollectionObjectName cloud_names = 3;
+  optional double surface_offset = 4;
+  optional double edge_offset = 5;
+  optional OffsetDirectionType offset_direction = 6;
+  optional bool include_points_within_cylinder_axis_proximity = 7;
+  optional bool enforce_max_points_per_face_in_output = 8;
+  optional int32 max_points_per_face = 9;
+  repeated CollectionItemName feature_check_name_list = 10;
+  optional bool include_datums = 11;
+  optional bool create_cloud_for_each_datum_or_check = 12;
+}
+
+message FeatureInspectionAutoFilterResult {
+  MpExecutionDetails execution = 1000;
+}
+
+enum GdtDistanceBetweenMode {
+  GDT_DISTANCE_BETWEEN_MODE_UNSPECIFIED = 0;
+  GDT_DISTANCE_BETWEEN_MODE_CENTROID = 1;
+  GDT_DISTANCE_BETWEEN_MODE_MIN_MAX = 2;
+}
+
+enum GdtEvaluationMethod {
+  GDT_EVALUATION_METHOD_UNSPECIFIED = 0;
+  GDT_EVALUATION_METHOD_NONE = 1;
+  GDT_EVALUATION_METHOD_ASME_1994 = 2;
+  GDT_EVALUATION_METHOD_ASME_2009 = 3;
+  GDT_EVALUATION_METHOD_ASME_2018 = 4;
+  GDT_EVALUATION_METHOD_ISO_1983 = 5;
+  GDT_EVALUATION_METHOD_ISO_2004 = 6;
+  GDT_EVALUATION_METHOD_ISO_2017 = 7;
+}
+
+enum GdtExtendedEvaluationMethod {
+  GDT_EXTENDED_EVALUATION_METHOD_UNSPECIFIED = 0;
+  GDT_EXTENDED_EVALUATION_METHOD_LEAST_SQUARES = 1;
+  GDT_EXTENDED_EVALUATION_METHOD_HIGH_POINT = 2;
+  GDT_EXTENDED_EVALUATION_METHOD_MINIMUM_SEPARATION = 3;
+  GDT_EXTENDED_EVALUATION_METHOD_LEAST_SQUARES_HIGH_POINT = 4;
+  GDT_EXTENDED_EVALUATION_METHOD_LEAST_SQUARES_3D = 5;
+  GDT_EXTENDED_EVALUATION_METHOD_LEAST_SQUARES_HIGH_POINT_1_STD_DEV = 6;
+  GDT_EXTENDED_EVALUATION_METHOD_LEAST_SQUARES_HIGH_POINT_2_STD_DEV = 7;
+  GDT_EXTENDED_EVALUATION_METHOD_LEAST_SQUARES_HIGH_POINT_HALFWAY = 8;
+  GDT_EXTENDED_EVALUATION_METHOD_MINIMUM_SEPARATION_HIGH_POINT = 9;
+  GDT_EXTENDED_EVALUATION_METHOD_EQUALIZED_HIGH_POINT = 10;
+  GDT_EXTENDED_EVALUATION_METHOD_EQUALIZED_LSQ_HIGH_POINT = 11;
+}
+
+enum GdtFeatureType {
+  GDT_FEATURE_TYPE_UNSPECIFIED = 0;
+  GDT_FEATURE_TYPE_DIAMETER = 1;
+  GDT_FEATURE_TYPE_RADIUS = 2;
+  GDT_FEATURE_TYPE_DISTANCE_BETWEEN = 3;
+  GDT_FEATURE_TYPE_WIDTH = 4;
+  GDT_FEATURE_TYPE_LENGTH = 5;
+  GDT_FEATURE_TYPE_ANGLE_BETWEEN = 6;
+  GDT_FEATURE_TYPE_ANGULARITY = 7;
+  GDT_FEATURE_TYPE_PERPENDICULARITY = 8;
+  GDT_FEATURE_TYPE_PARALLELISM = 9;
+  GDT_FEATURE_TYPE_CIRCULARITY = 10;
+  GDT_FEATURE_TYPE_CONCENTRICITY = 11;
+  GDT_FEATURE_TYPE_CYLINDRICITY = 12;
+  GDT_FEATURE_TYPE_STRAIGHTNESS = 13;
+  GDT_FEATURE_TYPE_SURFACE_PROFILE = 14;
+  GDT_FEATURE_TYPE_LINE_PROFILE = 15;
+  GDT_FEATURE_TYPE_COMPOSITE_SURFACE_PROFILE = 16;
+  GDT_FEATURE_TYPE_FLATNESS = 17;
+  GDT_FEATURE_TYPE_TRUE_POSITION = 18;
+  GDT_FEATURE_TYPE_COMPOSITE_TRUE_POSITION = 19;
+  GDT_FEATURE_TYPE_CIRCULAR_RUNOUT = 20;
+  GDT_FEATURE_TYPE_TOTAL_RUNOUT = 21;
+}
+
+message GdtMeasurements {
+  repeated PointName point_names = 1;
+  repeated CollectionObjectName cloud_names = 2;
+}
+
+message GdtOptions {
+  bool use_high_points = 1;
+  bool extrapolate_axial_extent = 2;
+  bool exclude_from_auto_evaluation = 3;
+  optional GdtDistanceBetweenMode distance_between_mode = 4;
+  optional GdtEvaluationMethod evaluation_method = 5;
+  bool create_actual_features = 6;
+  bool create_solved_points = 7;
+  double cross_section_criteria = 8;
+  bool enable_auto_feature_detection = 9;
+}
+
+enum GdtToleranceZoneType {
+  GDT_TOLERANCE_ZONE_TYPE_UNSPECIFIED = 0;
+  GDT_TOLERANCE_ZONE_TYPE_NONE = 1;
+  GDT_TOLERANCE_ZONE_TYPE_CYLINDRICAL = 2;
+  GDT_TOLERANCE_ZONE_TYPE_PLANAR = 3;
+  GDT_TOLERANCE_ZONE_TYPE_SPHERICAL = 4;
+  GDT_TOLERANCE_ZONE_TYPE_RADIAL_ARC = 5;
+  GDT_TOLERANCE_ZONE_TYPE_RADIAL_PLANAR = 6;
+  GDT_TOLERANCE_ZONE_TYPE_BOUNDARY = 7;
+  GDT_TOLERANCE_ZONE_TYPE_PLANAR_MEDIAN = 8;
+  GDT_TOLERANCE_ZONE_TYPE_SURFACE = 9;
+}
+
+message GenerateFeatureCheckSummaryRequest {
+  repeated CollectionItemName feature_check_list = 1;
+  optional string summary_table_name = 2;
+}
+
+message GenerateFeatureCheckSummaryResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message GetDatumMeasurementsRequest {
+  optional CollectionItemName datum = 1;
+}
+
+message GetDatumMeasurementsResult {
+  optional GdtMeasurements measurements = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetFeatureCheckCylinderEvalOptionsRequest {
+  optional CollectionItemName feature_check = 1;
+}
+
+message GetFeatureCheckCylinderEvalOptionsResult {
+  optional FeatureCheckCylinderEvalOptions options = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetFeatureCheckDatumReferencesRequest {
+  optional CollectionItemName feature_check = 1;
+}
+
+message GetFeatureCheckDatumReferencesResult {
+  optional FeatureCheckDatumReference datum_1 = 1;
+  optional FeatureCheckDatumReference datum_2 = 2;
+  optional FeatureCheckDatumReference datum_3 = 3;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetFeatureCheckMeasurementsRequest {
+  optional CollectionItemName feature_check = 1;
+}
+
+message GetFeatureCheckMeasurementsResult {
+  optional GdtMeasurements measurements = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetFeatureCheckReportingFrameRequest {
+  optional CollectionItemName feature_check = 1;
+}
+
+message GetFeatureCheckReportingFrameResult {
+  optional CollectionObjectName reporting_frame = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetFeatureCheckReportingOptionsRequest {
+  optional CollectionItemName feature_check = 1;
+}
+
+message GetFeatureCheckReportingOptionsResult {
+  optional FeatureCheckReportingOptions options = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetGdtExtendedOptionsRequest {}
+
+message GetGdtOptionsRequest {}
+
+message GetGdtOptionsResult {
+  optional GdtOptions options = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeAnnotationRefListFromCollectionRequest {
+  optional CollectionName collection = 1;
+}
+
+message MakeAnnotationRefListFromCollectionResult {
+  repeated CollectionItemName annotations = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeAnnotationRefListWildcardSelectionRequest {
+  optional string collection_wildcard_criteria = 1;
+  optional string annotation_wildcard_criteria = 2;
+}
+
+message MakeAnnotationRefListWildcardSelectionResult {
+  repeated CollectionItemName annotations = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeDatumRefListFromCollectionRequest {
+  optional CollectionName collection = 1;
+}
+
+message MakeDatumRefListFromCollectionResult {
+  repeated CollectionObjectName datums = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeFeatureCheckReferenceListWildcardSelectionRequest {
+  optional string collection_wildcard_criteria = 1;
+  optional string feature_check_wildcard_criteria = 2;
+}
+
+message MakeFeatureCheckReferenceListWildcardSelectionResult {
+  repeated CollectionItemName feature_checks = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeFeatureCheckRefListFromCollectionRequest {
+  optional CollectionName collection = 1;
+}
+
+message MakeFeatureCheckRefListFromCollectionResult {
+  repeated CollectionItemName feature_checks = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeFeatureChecksRequest {
+  optional CollectionName collection = 1;
+}
+
+message MakeFeatureChecksResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeGdtDatumAnnotationRequest {
+  string datum_name = 1;
+  repeated CollectionObjectName objects = 2;
+  repeated CollectionItemName geometry_relationships = 3;
+  optional SurfaceFaceList surface_faces = 4;
+  optional CollectionObjectName auxiliary_object = 5;
+  optional CollectionItemName auxiliary_geometry_relationship = 6;
+  optional bool is_slot = 7;
+  optional bool force_surface_feature = 8;
+}
+
+message MakeGdtDatumAnnotationResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeGdtFeatureCheckAnnotationRequest {
+  string feature_annotation_name = 1;
+  optional GdtFeatureType feature_type = 2;
+  repeated CollectionObjectName objects = 3;
+  repeated CollectionItemName geometry_relationships = 4;
+  optional SurfaceFaceList surface_faces = 5;
+  optional bool decompose_multiple_features = 6;
+  optional bool auto_create_diameter_checks = 7;
+  optional bool auto_create_slot_width_checks = 8;
+  optional bool auto_create_slot_length_checks = 9;
+  optional string datum_references = 10;
+  optional string tolerance = 11;
+  optional bool is_slot = 12;
+  optional bool per_unit_length_or_area = 13;
+  optional bool circular_area = 14;
+  optional double per_unit_area_length_distance = 15;
+  optional double per_unit_area_length_step_over_percent = 16;
+  optional double per_unit_area_width_distance = 17;
+  optional double per_unit_area_width_step_over_percent = 18;
+  optional double per_unit_area_circle_diameter = 19;
+  optional double per_unit_area_diameter_step_over = 20;
+  optional CollectionObjectName auxiliary_object = 21;
+  optional CollectionItemName auxiliary_geometry_relationship = 22;
+  optional bool use_nominal_for_dimension_tolerance = 23;
+  optional bool use_reference_object_for_nominal = 24;
+  optional double nominal_dimension_tolerance = 25;
+  optional double low_dimension_tolerance = 26;
+  optional double high_dimension_tolerance = 27;
+  optional GdtToleranceZoneType tolerance_zone_type = 28;
+  optional bool use_projected_tolerance_zone = 29;
+  optional double projected_tolerance_zone = 30;
+}
+
+message MakeGdtFeatureCheckAnnotationResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeSurfaceFaceListFromSurfaceRequest {
+  optional CollectionObjectName surface = 1;
+}
+
+message MakeSurfaceFaceListFromSurfaceResult {
+  optional SurfaceFaceList surface_faces = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message MakeSurfaceFaceListRuntimeSelectRequest {}
+
+message MakeSurfaceFaceListRuntimeSelectResult {
+  optional SurfaceFaceList surface_faces = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message RefreshDatumsFeatureChecksFromAnnotationsRequest {
+  optional CollectionName collection = 1;
+}
+
+message RefreshDatumsFeatureChecksFromAnnotationsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetDatumMeasurementsRequest {
+  optional CollectionItemName datum = 1;
+  repeated PointName point_names = 2;
+  repeated CollectionObjectName cloud_names = 3;
+  optional bool replace_existing_measurements = 4;
+}
+
+message SetDatumMeasurementsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetFeatureCheckCylinderEvalOptionsRequest {
+  optional CollectionItemName feature_check = 1;
+  optional bool enable_actual_diameter_override = 2;
+  optional double actual_diameter_override = 3;
+}
+
+message SetFeatureCheckCylinderEvalOptionsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetFeatureCheckMeasurementsRequest {
+  optional CollectionItemName feature_check = 1;
+  repeated PointName point_names = 2;
+  repeated CollectionObjectName cloud_names = 3;
+  optional bool replace_existing_measurements = 4;
+}
+
+message SetFeatureCheckMeasurementsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetFeatureCheckReportingFrameRequest {
+  optional CollectionItemName feature_check = 1;
+  optional CollectionObjectName reporting_frame = 2;
+}
+
+message SetFeatureCheckReportingFrameResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetFeatureCheckReportingOptionsRequest {
+  optional CollectionItemName feature_check = 1;
+  optional bool show_feature_control_frame_summary = 2;
+  optional bool include_title = 3;
+  optional bool show_datum_and_tolerance_summary = 4;
+  optional bool show_feature_summary = 5;
+  optional bool show_point_details_summary = 7;
+  optional bool show_lower_tier_tables = 8;
+}
+
+message SetFeatureCheckReportingOptionsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetGdtOptionsRequest {
+  optional bool use_high_points = 1;
+  optional bool extrapolate_axial_extent = 2;
+  optional bool exclude_from_auto_evaluation = 3;
+  optional GdtDistanceBetweenMode distance_between_mode = 4;
+  optional GdtEvaluationMethod evaluation_method = 5;
+  optional bool create_actual_features = 6;
+  optional bool create_solved_points = 7;
+  optional double cross_section_criteria = 8;
+  optional bool enable_auto_feature_detection = 9;
+}
+
+message SetGdtOptionsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetGlobalForceSimultaneousEvaluationRequest {
+  optional bool global_simultaneous_evaluation = 1;
+}
+
+message SetGlobalForceSimultaneousEvaluationResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message StartStopFeatureCheckTrappingRequest {
+  optional CollectionItemName feature_check = 1;
+  optional CollectionInstrumentId instrument_id = 2;
+  optional bool start_trapping = 3;
+}
+
+message StartStopFeatureCheckTrappingResult {
+  MpExecutionDetails execution = 1000;
+}

@@ -1,0 +1,263 @@
+syntax = "proto3";
+
+package briosa;
+
+import "briosa/operation_outcomes.proto";
+import "briosa/spatial_analyzer_values.proto";
+
+option csharp_namespace = "Briosa";
+
+service RobotCalibrationApplianceNodeOperations {
+  rpc SetCalibrationApplianceNodeMeasurementOffsetTransform(SetCalibrationApplianceNodeMeasurementOffsetTransformRequest) returns (SetCalibrationApplianceNodeMeasurementOffsetTransformResult);
+  rpc EnableDisableCalibrationApplianceNodeTrapManager(EnableDisableCalibrationApplianceNodeTrapManagerRequest) returns (EnableDisableCalibrationApplianceNodeTrapManagerResult);
+  rpc SetCalibrationApplianceNodeIntegerValue(SetCalibrationApplianceNodeIntegerValueRequest) returns (SetCalibrationApplianceNodeIntegerValueResult);
+  rpc SetCalibrationApplianceNodeTrappingNodeId(SetCalibrationApplianceNodeTrappingNodeIdRequest) returns (SetCalibrationApplianceNodeTrappingNodeIdResult);
+  rpc SetCalibrationApplianceNodeCalibrationApplianceIpAddress(SetCalibrationApplianceNodeCalibrationApplianceIpAddressRequest) returns (SetCalibrationApplianceNodeCalibrationApplianceIpAddressResult);
+  rpc GetCalibrationApplianceNodeRealValue(GetCalibrationApplianceNodeRealValueRequest) returns (GetCalibrationApplianceNodeRealValueResult);
+  rpc SetCalibrationApplianceNodeMeasurementFrame(SetCalibrationApplianceNodeMeasurementFrameRequest) returns (SetCalibrationApplianceNodeMeasurementFrameResult);
+  rpc SkipCalibrationApplianceNodeMeasurement(SkipCalibrationApplianceNodeMeasurementRequest) returns (SkipCalibrationApplianceNodeMeasurementResult);
+  rpc SetCalibrationApplianceNodeMeasurementPointGroup(SetCalibrationApplianceNodeMeasurementPointGroupRequest) returns (SetCalibrationApplianceNodeMeasurementPointGroupResult);
+  rpc SetCalibrationApplianceNodeData(SetCalibrationApplianceNodeDataRequest) returns (SetCalibrationApplianceNodeDataResult);
+  rpc ConnectDisconnectCalibrationApplianceNode(ConnectDisconnectCalibrationApplianceNodeRequest) returns (ConnectDisconnectCalibrationApplianceNodeResult);
+  rpc GetCalibrationApplianceNodeStatus(GetCalibrationApplianceNodeStatusRequest) returns (GetCalibrationApplianceNodeStatusResult);
+  rpc SetCalibrationApplianceNodeRealValue(SetCalibrationApplianceNodeRealValueRequest) returns (SetCalibrationApplianceNodeRealValueResult);
+  rpc DeleteCalibrationApplianceNode(DeleteCalibrationApplianceNodeRequest) returns (DeleteCalibrationApplianceNodeResult);
+  rpc UpdateCalibrationApplianceNodeDisplayRobotJoints(UpdateCalibrationApplianceNodeDisplayRobotJointsRequest) returns (UpdateCalibrationApplianceNodeDisplayRobotJointsResult);
+  rpc GetCalibrationApplianceNodeData(GetCalibrationApplianceNodeDataRequest) returns (GetCalibrationApplianceNodeDataResult);
+  rpc SetCalibrationApplianceNodeInstrument(SetCalibrationApplianceNodeInstrumentRequest) returns (SetCalibrationApplianceNodeInstrumentResult);
+  rpc SetCalibrationApplianceNodeMeasurementProfile(SetCalibrationApplianceNodeMeasurementProfileRequest) returns (SetCalibrationApplianceNodeMeasurementProfileResult);
+  rpc AddCalibrationApplianceNode(AddCalibrationApplianceNodeRequest) returns (AddCalibrationApplianceNodeResult);
+  rpc GetCalibrationApplianceNodeIntegerValue(GetCalibrationApplianceNodeIntegerValueRequest) returns (GetCalibrationApplianceNodeIntegerValueResult);
+  rpc SetCalibrationApplianceNodeInstrumentDwellTime(SetCalibrationApplianceNodeInstrumentDwellTimeRequest) returns (SetCalibrationApplianceNodeInstrumentDwellTimeResult);
+  rpc EnableDisableCalibrationApplianceNodeInstrumentAutoPoint(EnableDisableCalibrationApplianceNodeInstrumentAutoPointRequest) returns (EnableDisableCalibrationApplianceNodeInstrumentAutoPointResult);
+  rpc SetCalibrationApplianceNodeMeasurementTarget(SetCalibrationApplianceNodeMeasurementTargetRequest) returns (SetCalibrationApplianceNodeMeasurementTargetResult);
+  rpc ClearCalibrationApplianceNodeTrapManagerRequests(ClearCalibrationApplianceNodeTrapManagerRequestsRequest) returns (ClearCalibrationApplianceNodeTrapManagerRequestsResult);
+  rpc SetCalibrationApplianceNodeDisplayRobot(SetCalibrationApplianceNodeDisplayRobotRequest) returns (SetCalibrationApplianceNodeDisplayRobotResult);
+}
+
+message AddCalibrationApplianceNodeRequest {
+  optional CollectionObjectName calibration_appliance_node_to_add = 1;
+}
+
+message AddCalibrationApplianceNodeResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ClearCalibrationApplianceNodeTrapManagerRequestsRequest {
+  optional CollectionObjectName calibration_appliance_node = 1;
+}
+
+message ClearCalibrationApplianceNodeTrapManagerRequestsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ConnectDisconnectCalibrationApplianceNodeRequest {
+  optional CollectionObjectName calibration_appliance_node = 1;
+  optional bool connect = 2;
+}
+
+message ConnectDisconnectCalibrationApplianceNodeResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message DeleteCalibrationApplianceNodeRequest {
+  optional CollectionObjectName calibration_appliance_node_to_delete = 1;
+}
+
+message DeleteCalibrationApplianceNodeResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message EnableDisableCalibrationApplianceNodeInstrumentAutoPointRequest {
+  optional CollectionObjectName calibration_appliance_node = 1;
+  optional bool enable_instrument_auto_point = 2;
+}
+
+message EnableDisableCalibrationApplianceNodeInstrumentAutoPointResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message EnableDisableCalibrationApplianceNodeTrapManagerRequest {
+  optional CollectionObjectName calibration_appliance_node = 1;
+  optional bool enable = 2;
+}
+
+message EnableDisableCalibrationApplianceNodeTrapManagerResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message GetCalibrationApplianceNodeDataRequest {
+  optional CollectionObjectName calibration_appliance_node = 1;
+  optional int32 real_value_count = 2;
+}
+
+message GetCalibrationApplianceNodeDataResult {
+  repeated double real_values = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetCalibrationApplianceNodeIntegerValueRequest {
+  optional CollectionObjectName calibration_appliance_node = 1;
+  optional int32 index_offset = 2;
+}
+
+message GetCalibrationApplianceNodeIntegerValueResult {
+  optional int32 integer_value = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetCalibrationApplianceNodeRealValueRequest {
+  optional CollectionObjectName calibration_appliance_node = 1;
+  optional int32 index_offset = 2;
+}
+
+message GetCalibrationApplianceNodeRealValueResult {
+  optional double real_value = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetCalibrationApplianceNodeStatusRequest {
+  optional CollectionObjectName calibration_appliance_node = 1;
+}
+
+message GetCalibrationApplianceNodeStatusResult {
+  optional bool instrument_connected = 1;
+  optional bool calibration_appliance_connected = 2;
+  MpExecutionDetails execution = 1000;
+}
+
+message SetCalibrationApplianceNodeCalibrationApplianceIpAddressRequest {
+  optional CollectionObjectName calibration_appliance_node = 1;
+  optional string calibration_appliance_ip_address = 2;
+}
+
+message SetCalibrationApplianceNodeCalibrationApplianceIpAddressResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetCalibrationApplianceNodeDataRequest {
+  optional CollectionObjectName calibration_appliance_node = 1;
+  repeated double real_values = 2;
+}
+
+message SetCalibrationApplianceNodeDataResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetCalibrationApplianceNodeDisplayRobotRequest {
+  optional CollectionObjectName calibration_appliance_node = 1;
+  optional CollectionMachineId machine_id = 2;
+}
+
+message SetCalibrationApplianceNodeDisplayRobotResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetCalibrationApplianceNodeInstrumentDwellTimeRequest {
+  optional CollectionObjectName calibration_appliance_node = 1;
+  optional double measurement_dwell_time_seconds = 2;
+}
+
+message SetCalibrationApplianceNodeInstrumentDwellTimeResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetCalibrationApplianceNodeInstrumentRequest {
+  optional CollectionObjectName calibration_appliance_node = 1;
+  optional CollectionInstrumentId instrument = 2;
+}
+
+message SetCalibrationApplianceNodeInstrumentResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetCalibrationApplianceNodeIntegerValueRequest {
+  optional CollectionObjectName calibration_appliance_node = 1;
+  optional int32 index_offset = 2;
+  optional int32 integer_value = 3;
+}
+
+message SetCalibrationApplianceNodeIntegerValueResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetCalibrationApplianceNodeMeasurementFrameRequest {
+  optional CollectionObjectName calibration_appliance_node = 1;
+  optional CollectionObjectName measurement_reference_frame = 2;
+}
+
+message SetCalibrationApplianceNodeMeasurementFrameResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetCalibrationApplianceNodeMeasurementOffsetTransformRequest {
+  optional CollectionObjectName calibration_appliance_node = 1;
+  optional Transform measurement_offset_transform = 2;
+}
+
+message SetCalibrationApplianceNodeMeasurementOffsetTransformResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetCalibrationApplianceNodeMeasurementPointGroupRequest {
+  optional CollectionObjectName calibration_appliance_node = 1;
+  optional CollectionObjectName point_group_name = 2;
+}
+
+message SetCalibrationApplianceNodeMeasurementPointGroupResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetCalibrationApplianceNodeMeasurementProfileRequest {
+  optional CollectionObjectName calibration_appliance_node = 1;
+  optional string measurement_profile = 2;
+}
+
+message SetCalibrationApplianceNodeMeasurementProfileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetCalibrationApplianceNodeMeasurementTargetRequest {
+  optional CollectionObjectName calibration_appliance_node = 1;
+  optional string measurement_target = 2;
+}
+
+message SetCalibrationApplianceNodeMeasurementTargetResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetCalibrationApplianceNodeRealValueRequest {
+  optional CollectionObjectName calibration_appliance_node = 1;
+  optional int32 index_offset = 2;
+  optional double real_value = 3;
+}
+
+message SetCalibrationApplianceNodeRealValueResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetCalibrationApplianceNodeTrappingNodeIdRequest {
+  optional CollectionObjectName calibration_appliance_node = 1;
+  optional int32 trapping_node_id = 2;
+}
+
+message SetCalibrationApplianceNodeTrappingNodeIdResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SkipCalibrationApplianceNodeMeasurementRequest {
+  optional CollectionObjectName calibration_appliance_node = 1;
+}
+
+message SkipCalibrationApplianceNodeMeasurementResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message UpdateCalibrationApplianceNodeDisplayRobotJointsRequest {
+  optional CollectionObjectName calibration_appliance_node = 1;
+  optional bool enable_display_robot_joint_updates = 2;
+}
+
+message UpdateCalibrationApplianceNodeDisplayRobotJointsResult {
+  MpExecutionDetails execution = 1000;
+}

@@ -1,0 +1,25 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Briosa.Desktop/Briosa.Desktop.csproj" />
+    <Project Path="src/Briosa.ControlCenter/Briosa.ControlCenter.csproj" />
+    <Project Path="src/Briosa.ControlCenter.Launcher/Briosa.ControlCenter.Launcher.csproj" />
+    <Project Path="src/Briosa.Protocol/Briosa.Protocol.csproj" />
+    <Project Path="src/Briosa.Server/Briosa.Server.csproj" />
+    <Project Path="src/Briosa.Worker.Control/Briosa.Worker.Control.csproj" />
+    <Project Path="src/Briosa.Worker/Briosa.Worker.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Briosa.ControlCenter.Smoke/Briosa.ControlCenter.Smoke.csproj" />
+    <Project Path="tests/Briosa.Protocol.Tests/Briosa.Protocol.Tests.csproj" />
+    <Project Path="tests/Briosa.Server.Tests/Briosa.Server.Tests.csproj" />
+    <Project Path="tests/Briosa.SmokeWorker/Briosa.SmokeWorker.csproj" />
+    <Project Path="tests/Briosa.Worker.TestHost/Briosa.Worker.TestHost.csproj" />
+    <Project Path="tests/Briosa.Worker.Testing/Briosa.Worker.Testing.csproj" />
+    <Project Path="tests/Briosa.Worker.Tests/Briosa.Worker.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/Briosa.InteropInspector/Briosa.InteropInspector.csproj" />
+    <Project Path="tools/Briosa.LifecycleClient/Briosa.LifecycleClient.csproj" />
+    <Project Path="tools/Briosa.SmokeClient/Briosa.SmokeClient.csproj" />
+  </Folder>
+</Solution>

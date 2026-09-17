@@ -9,6 +9,9 @@ Briosa does not include SpatialAnalyzer, its SDK, or a license. SpatialAnalyzer 
 | SpatialAnalyzer target | Product source | Public protobuf package | Generated C# namespace |
 | --- | --- | --- | --- |
 | `2026.1.0529.7` | [`targets/2026.1.0529.7`](targets/2026.1.0529.7) | `briosa` | `Briosa` |
+| `2024.1.0508.5` (initial implementation) | [`targets/2024.1.0508.5`](targets/2024.1.0508.5) | `briosa` | `Briosa` |
+
+The 2024 target is unreleased and has no licensed runtime validation; see its [compatibility and validation record](targets/2024.1.0508.5/docs/development/sa2024-compatibility.md).
 
 Each target subtree owns its solution, protobuf contract, server, worker, tests, tools, dependency pins, interop boundary, reference evidence, packaging scripts, and target-specific documentation. Target projects must not reference projects or source from another target. A running server is built for exactly one SA release and controls one active SDK/SA instance; there is no runtime SA-version selector.
 

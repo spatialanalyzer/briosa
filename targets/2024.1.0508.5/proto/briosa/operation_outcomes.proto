@@ -1,0 +1,106 @@
+syntax = "proto3";
+
+package briosa;
+
+option csharp_namespace = "Briosa";
+
+// Describes whether the MP command itself completed successfully.
+enum MpExecutionState {
+  MP_EXECUTION_STATE_UNSPECIFIED = 0;
+  MP_EXECUTION_STATE_SUCCEEDED = 1;
+  MP_EXECUTION_STATE_EXECUTE_STEP_REJECTED = 2;
+  MP_EXECUTION_STATE_FAILED = 3;
+  MP_EXECUTION_STATE_RESULT_UNAVAILABLE = 4;
+  MP_EXECUTION_STATE_ARGUMENT_REJECTED = 5;
+}
+
+// Describes what happened when Briosa requested one result-only argument.
+enum OutputRetrievalState {
+  OUTPUT_RETRIEVAL_STATE_UNSPECIFIED = 0;
+  OUTPUT_RETRIEVAL_STATE_RETRIEVED = 1;
+  OUTPUT_RETRIEVAL_STATE_NOT_ATTEMPTED = 2;
+  OUTPUT_RETRIEVAL_STATE_FAILED = 3;
+}
+
+// States what Briosa can prove about whether the MP command ran.
+enum ExecutionDisposition {
+  EXECUTION_DISPOSITION_UNSPECIFIED = 0;
+  EXECUTION_DISPOSITION_NOT_STARTED = 1;
+  EXECUTION_DISPOSITION_STARTED_OUTCOME_UNKNOWN = 2;
+  EXECUTION_DISPOSITION_COMPLETED = 3;
+}
+
+// Describes the availability action independently from replaying the command.
+enum RecoveryGuidance {
+  RECOVERY_GUIDANCE_UNSPECIFIED = 0;
+  RECOVERY_GUIDANCE_NONE = 1;
+  RECOVERY_GUIDANCE_WAIT_FOR_READINESS = 2;
+  RECOVERY_GUIDANCE_WORKER_REPLACEMENT = 3;
+  RECOVERY_GUIDANCE_OPERATOR_INTERVENTION_REQUIRED = 4;
+}
+
+// Tells a client whether issuing the same command again is appropriate.
+enum ReplayGuidance {
+  REPLAY_GUIDANCE_UNSPECIFIED = 0;
+  REPLAY_GUIDANCE_DO_NOT_REPLAY = 1;
+  REPLAY_GUIDANCE_MAY_REPLAY = 2;
+  REPLAY_GUIDANCE_RECONCILE_BEFORE_REPLAY = 3;
+}
+
+// Records the reviewed exact-target replay classification for an operation.
+enum ReplaySafety {
+  REPLAY_SAFETY_UNSPECIFIED = 0;
+  REPLAY_SAFETY_SAFE = 1;
+  REPLAY_SAFETY_UNSAFE = 2;
+  REPLAY_SAFETY_UNKNOWN = 3;
+}
+
+// Classifies one failed operation independently of its gRPC status code.
+enum OperationFailureKind {
+  OPERATION_FAILURE_KIND_UNSPECIFIED = 0;
+  OPERATION_FAILURE_KIND_VALIDATION = 1;
+  OPERATION_FAILURE_KIND_UNSUPPORTED = 2;
+  OPERATION_FAILURE_KIND_SPATIAL_ANALYZER_UNAVAILABLE = 3;
+  OPERATION_FAILURE_KIND_WORKER_UNAVAILABLE = 4;
+  OPERATION_FAILURE_KIND_CALLER_CANCELLED = 5;
+  OPERATION_FAILURE_KIND_CALLER_DEADLINE_EXCEEDED = 6;
+  OPERATION_FAILURE_KIND_WORKER_WATCHDOG_TIMEOUT = 7;
+  OPERATION_FAILURE_KIND_WORKER_FAILURE = 8;
+  OPERATION_FAILURE_KIND_EXECUTE_STEP_REJECTED = 9;
+  OPERATION_FAILURE_KIND_MP_FAILURE = 10;
+  OPERATION_FAILURE_KIND_OUTPUT_RETRIEVAL_FAILURE = 11;
+  OPERATION_FAILURE_KIND_INTERNAL = 12;
+  OPERATION_FAILURE_KIND_POLICY_DENIED = 13;
+  OPERATION_FAILURE_KIND_MP_RESULT_RETRIEVAL_FAILURE = 14;
+  OPERATION_FAILURE_KIND_SDK_ARGUMENT_REJECTED = 15;
+}
+
+// Records retrieval state by the public operation result field name.
+message OutputRetrievalDetails {
+  string field_name = 1;
+  OutputRetrievalState state = 2;
+  optional string diagnostic_code = 3;
+}
+
+// Accompanies every successful MP result and MP-related error detail.
+message MpExecutionDetails {
+  MpExecutionState state = 1;
+  optional int32 mp_result_code = 2;
+  repeated OutputRetrievalDetails output_retrievals = 3;
+}
+
+// Typed, value-free detail carried in briosa-operation-error-bin metadata.
+message OperationError {
+  reserved 4;
+  reserved "retry_guidance";
+
+  string operation_id = 1;
+  OperationFailureKind kind = 2;
+  string diagnostic_code = 3;
+  optional int32 worker_generation = 5;
+  optional MpExecutionDetails mp_execution = 6;
+  ExecutionDisposition execution_disposition = 7;
+  RecoveryGuidance recovery_guidance = 8;
+  ReplayGuidance replay_guidance = 9;
+  ReplaySafety replay_safety = 10;
+}

@@ -135,4 +135,6 @@ When work encounters one of these questions, implement only a reversible minimum
 
 The current baseline product is `targets/2026.1.0529.7`. It provides a production-shaped .NET 10 foundation with one supervised, serialized SDK connection, handwritten read-only MP operations, standard generated-client smoke coverage, and safe diagnostics. The handwritten protobuf contracts, `SpatialAnalyzerApi.Operations`, and runtime capability discovery—not a prose count or inventory—define the supported surface.
 
+`targets/2024.1.0508.5` is the independent legacy product established by the completed command-difference review. Its initial implementation has no licensed 2024 runtime validation. Preserve its exact-target argument and choice differences, and do not transfer 2026 runtime observations into its validation record. See its [compatibility record](targets/2024.1.0508.5/docs/development/sa2024-compatibility.md).
+
 Add operations through coherent implementation issues and pull requests, batching related commands when useful. Reference inventory, bindings, values, or ObjectiveSA wrappers may accelerate review, but none is an implementation queue, public allowlist, or completeness requirement.

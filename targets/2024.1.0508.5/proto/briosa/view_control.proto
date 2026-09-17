@@ -1,0 +1,509 @@
+syntax = "proto3";
+
+package briosa;
+
+import "briosa/operation_outcomes.proto";
+import "briosa/spatial_analyzer_values.proto";
+
+option csharp_namespace = "Briosa";
+
+service ViewControl {
+  rpc AutoScale(AutoScaleRequest) returns (AutoScaleResult);
+  rpc CenterGraphicsAboutObjects(CenterGraphicsAboutObjectsRequest) returns (CenterGraphicsAboutObjectsResult);
+  rpc CenterGraphicsAboutPoint(CenterGraphicsAboutPointRequest) returns (CenterGraphicsAboutPointResult);
+  rpc DefinePointOfView(DefinePointOfViewRequest) returns (DefinePointOfViewResult);
+  rpc GetActiveClippingPlanes(GetActiveClippingPlanesRequest) returns (GetActiveClippingPlanesResult);
+  rpc GetPointOfViewParameters(GetPointOfViewParametersRequest) returns (GetPointOfViewParametersResult);
+  rpc HideAllCalloutViews(HideAllCalloutViewsRequest) returns (HideAllCalloutViewsResult);
+  rpc HideObjects(HideObjectsRequest) returns (HideObjectsResult);
+  rpc HighlightObjects(HighlightObjectsRequest) returns (HighlightObjectsResult);
+  rpc HighlightPoint(HighlightPointRequest) returns (HighlightPointResult);
+  rpc HighlightRelationships(HighlightRelationshipsRequest) returns (HighlightRelationshipsResult);
+  rpc LoadRibbonBarFromXmlFile(LoadRibbonBarFromXmlFileRequest) returns (LoadRibbonBarFromXmlFileResult);
+  rpc RefreshViews(RefreshViewsRequest) returns (RefreshViewsResult);
+  rpc ResetRibbonBarToDefault(ResetRibbonBarToDefaultRequest) returns (ResetRibbonBarToDefaultResult);
+  rpc SavePointOfView(SavePointOfViewRequest) returns (SavePointOfViewResult);
+  rpc SetBackgroundColor(SetBackgroundColorRequest) returns (SetBackgroundColorResult);
+  rpc SetMpWindowState(SetMpWindowStateRequest) returns (SetMpWindowStateResult);
+  rpc SetObjectsColor(SetObjectsColorRequest) returns (SetObjectsColorResult);
+  rpc SetObjectsTranslucency(SetObjectsTranslucencyRequest) returns (SetObjectsTranslucencyResult);
+  rpc SetPointOfView(SetPointOfViewRequest) returns (SetPointOfViewResult);
+  rpc SetPointOfViewFromFrame(SetPointOfViewFromFrameRequest) returns (SetPointOfViewFromFrameResult);
+  rpc SetPointOfViewFromInstrumentUpdates(SetPointOfViewFromInstrumentUpdatesRequest) returns (SetPointOfViewFromInstrumentUpdatesResult);
+  rpc SetRenderModeType(SetRenderModeTypeRequest) returns (SetRenderModeTypeResult);
+  rpc SetSaWindowPos(SetSaWindowPosRequest) returns (SetSaWindowPosResult);
+  rpc SetSaWindowSize(SetSaWindowSizeRequest) returns (SetSaWindowSizeResult);
+  rpc SetSaWindowState(SetSaWindowStateRequest) returns (SetSaWindowStateResult);
+  rpc SetTargetLabelsUseFullNames(SetTargetLabelsUseFullNamesRequest) returns (SetTargetLabelsUseFullNamesResult);
+  rpc SetToolkitVisibility(SetToolkitVisibilityRequest) returns (SetToolkitVisibilityResult);
+  rpc SetViewClippingPlane(SetViewClippingPlaneRequest) returns (SetViewClippingPlaneResult);
+  rpc SetWorkingColor(SetWorkingColorRequest) returns (SetWorkingColorResult);
+  rpc SetWorkingColorAutoIncrement(SetWorkingColorAutoIncrementRequest) returns (SetWorkingColorAutoIncrementResult);
+  rpc ShowHideByObjectType(ShowHideByObjectTypeRequest) returns (ShowHideByObjectTypeResult);
+  rpc ShowHideCalloutView(ShowHideCalloutViewRequest) returns (ShowHideCalloutViewResult);
+  rpc ShowHideDimension(ShowHideDimensionRequest) returns (ShowHideDimensionResult);
+  rpc ShowHidePoints(ShowHidePointsRequest) returns (ShowHidePointsResult);
+  rpc ShowByObjectType(ShowByObjectTypeRequest) returns (ShowByObjectTypeResult);
+  rpc ShowItemsInTree(ShowItemsInTreeRequest) returns (ShowItemsInTreeResult);
+  rpc ShowLabels(ShowLabelsRequest) returns (ShowLabelsResult);
+  rpc ShowObjects(ShowObjectsRequest) returns (ShowObjectsResult);
+  rpc ShowHideAnnotationsForDatums(ShowHideAnnotationsForDatumsRequest) returns (ShowHideAnnotationsForDatumsResult);
+  rpc ShowHideAnnotationsForFeatureChecks(ShowHideAnnotationsForFeatureChecksRequest) returns (ShowHideAnnotationsForFeatureChecksResult);
+  rpc ShowHideInspectionBar(ShowHideInspectionBarRequest) returns (ShowHideInspectionBarResult);
+  rpc ShowHideInstrumentInterface(ShowHideInstrumentInterfaceRequest) returns (ShowHideInstrumentInterfaceResult);
+  rpc ShowHideInstrumentProbeTip(ShowHideInstrumentProbeTipRequest) returns (ShowHideInstrumentProbeTipResult);
+  rpc ShowHideInstruments(ShowHideInstrumentsRequest) returns (ShowHideInstrumentsResult);
+  rpc ShowHideRelationshipReport(ShowHideRelationshipReportRequest) returns (ShowHideRelationshipReportResult);
+  rpc ShowHideRelationshipWatch(ShowHideRelationshipWatchRequest) returns (ShowHideRelationshipWatchResult);
+}
+
+message AutoScaleRequest {
+  // No MP inputs.
+}
+
+message AutoScaleResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message CenterGraphicsAboutObjectsRequest {
+  optional ObjectType object_type = 1;
+  optional string collection_wildcard_criteria = 2;
+  optional string object_wildcard_criteria = 3;
+}
+
+message CenterGraphicsAboutObjectsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message CenterGraphicsAboutPointRequest {
+  optional PointName point_name = 1;
+}
+
+message CenterGraphicsAboutPointResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message DefinePointOfViewRequest {
+  optional ViewName view_name = 1;
+  optional double rotation_x = 2;
+  optional double rotation_y = 3;
+  optional double rotation_z = 4;
+  optional bool restore_zoom_settings = 5;
+  optional double scale_factor = 6;
+  optional double origin_x = 7;
+  optional double origin_y = 8;
+  optional bool restore_render_mode = 9;
+  optional RenderModeType rendering_mode = 10;
+}
+
+message DefinePointOfViewResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message GetActiveClippingPlanesRequest {
+  // No MP inputs.
+}
+
+message GetActiveClippingPlanesResult {
+  repeated CollectionObjectName objects = 1;
+  MpExecutionDetails execution = 1000;
+}
+
+message GetPointOfViewParametersRequest {
+  optional ViewName view_name = 1;
+}
+
+message GetPointOfViewParametersResult {
+  optional double rotation_x = 1;
+  optional double rotation_y = 2;
+  optional double rotation_z = 3;
+  optional bool restore_zoom_settings = 4;
+  optional double scale_factor = 5;
+  optional double origin_x = 6;
+  optional double origin_y = 7;
+  optional bool restore_render_mode = 8;
+  MpExecutionDetails execution = 1000;
+}
+
+message HideAllCalloutViewsRequest {
+  // No MP inputs.
+}
+
+message HideAllCalloutViewsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message HideObjectsRequest {
+  repeated CollectionObjectName objects_to_hide = 1;
+}
+
+message HideObjectsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message HighlightObjectsRequest {
+  repeated CollectionObjectName object_names_empty_to_clear_all = 1;
+  optional bool high_light_objects = 2;
+}
+
+message HighlightObjectsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message HighlightPointRequest {
+  optional PointName point_name_empty_to_clear_all = 1;
+  optional bool show_point = 2;
+}
+
+message HighlightPointResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message HighlightRelationshipsRequest {
+  repeated CollectionItemName relationships_empty_to_clear_all = 1;
+  optional bool high_light_relationships = 2;
+}
+
+message HighlightRelationshipsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message LoadRibbonBarFromXmlFileRequest {
+  optional FileReference file_path = 1;
+}
+
+message LoadRibbonBarFromXmlFileResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message RefreshViewsRequest {
+  // No MP inputs.
+}
+
+message RefreshViewsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ResetRibbonBarToDefaultRequest {
+  // No MP inputs.
+}
+
+message ResetRibbonBarToDefaultResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SavePointOfViewRequest {
+  optional ViewName view_name = 1;
+  optional bool restore_zoom_settings = 2;
+}
+
+message SavePointOfViewResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetBackgroundColorRequest {
+  optional Color solid_color_name = 1;
+  optional Color gradient_start_color_name = 2;
+  optional Color gradient_end_color_name = 3;
+  optional Color highlight_color = 4;
+}
+
+message SetBackgroundColorResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetMpWindowStateRequest {
+  optional WindowState mp_window_state = 1;
+}
+
+message SetMpWindowStateResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetObjectsColorRequest {
+  repeated CollectionObjectName objects_to_change = 1;
+  optional Color new_working_color_name = 2;
+  optional bool auto_increment = 3;
+}
+
+message SetObjectsColorResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetObjectsTranslucencyRequest {
+  repeated CollectionObjectName objects_to_change = 1;
+  optional TranslucencyType rendering_type = 2;
+  optional double opacity_value = 3;
+}
+
+message SetObjectsTranslucencyResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetPointOfViewRequest {
+  optional ViewName view_name = 1;
+}
+
+message SetPointOfViewResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetPointOfViewFromFrameRequest {
+  optional CollectionObjectName frame = 1;
+}
+
+message SetPointOfViewFromFrameResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetPointOfViewFromInstrumentUpdatesRequest {
+  optional CollectionInstrumentId instrument_id = 1;
+  optional bool display_view_control = 2;
+  optional bool enable_set_viewpoint_from_instrument_updates = 3;
+  optional double update_view_percent = 4;
+  optional bool clip_behind_probe = 5;
+  optional bool automatic_zoom_when_trapping = 6;
+  optional bool enable_directional_cloud_points = 7;
+  optional double angle_reset_threshold = 8;
+  optional int32 animation_steps = 9;
+  optional CollectionObjectName reference_frame_object = 10;
+  optional bool use_scan_stripe_for_view_focus = 11;
+  optional double zoom_factor = 12;
+}
+
+message SetPointOfViewFromInstrumentUpdatesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetRenderModeTypeRequest {
+  optional RenderModeType rendering_mode = 1;
+}
+
+message SetRenderModeTypeResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetSaWindowPosRequest {
+  optional int32 pos_x = 1;
+  optional int32 pos_y = 2;
+}
+
+message SetSaWindowPosResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetSaWindowSizeRequest {
+  optional int32 width = 1;
+  optional int32 height = 2;
+}
+
+message SetSaWindowSizeResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetSaWindowStateRequest {
+  optional WindowState sa_window_state = 1;
+}
+
+message SetSaWindowStateResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetTargetLabelsUseFullNamesRequest {
+  optional bool use_full_names = 1;
+}
+
+message SetTargetLabelsUseFullNamesResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetToolkitVisibilityRequest {
+  optional bool show_toolkit = 1;
+}
+
+message SetToolkitVisibilityResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetViewClippingPlaneRequest {
+  optional CollectionObjectName object = 1;
+  optional bool remove_clipping_plane = 2;
+}
+
+message SetViewClippingPlaneResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetWorkingColorRequest {
+  optional Color new_working_color_name = 1;
+}
+
+message SetWorkingColorResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message SetWorkingColorAutoIncrementRequest {
+  optional bool auto_increment = 1;
+}
+
+message SetWorkingColorAutoIncrementResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ShowHideByObjectTypeRequest {
+  optional bool all_collections = 1;
+  optional CollectionName specific_collection = 2;
+  optional ObjectType object_type_to_show_hide = 3;
+  optional bool hide_show_false = 4;
+}
+
+message ShowHideByObjectTypeResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ShowHideCalloutViewRequest {
+  optional CollectionItemName callout_view_to_show = 1;
+  optional bool show_callout_view = 2;
+}
+
+message ShowHideCalloutViewResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ShowHideDimensionRequest {
+  optional CollectionItemName dimension_name = 1;
+  optional bool show_dimension = 2;
+}
+
+message ShowHideDimensionResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ShowHidePointsRequest {
+  repeated PointName point_names = 1;
+  optional bool show_hide_false = 2;
+}
+
+message ShowHidePointsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ShowByObjectTypeRequest {
+  optional CollectionObjectName object_type_to_show = 1;
+  optional bool all_collections = 2;
+}
+
+message ShowByObjectTypeResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ShowItemsInTreeRequest {
+  optional bool collapse_all_other_items = 1;
+  repeated PointName points = 2;
+  repeated CollectionObjectName objects = 3;
+  repeated CollectionInstrumentId instruments = 4;
+  repeated CollectionItemName feature_checks = 5;
+  repeated CollectionObjectName datums = 6;
+  repeated string collections = 7;
+}
+
+message ShowItemsInTreeResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ShowLabelsRequest {
+  optional bool point_labels_on = 1;
+  optional bool objects_labels_on = 2;
+}
+
+message ShowLabelsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ShowObjectsRequest {
+  repeated CollectionObjectName objects_to_show = 1;
+}
+
+message ShowObjectsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ShowHideAnnotationsForDatumsRequest {
+  repeated CollectionObjectName datum_name_list = 1;
+  optional bool show = 2;
+  optional bool highlight = 3;
+  optional bool set_inspection_view = 4;
+}
+
+message ShowHideAnnotationsForDatumsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ShowHideAnnotationsForFeatureChecksRequest {
+  repeated CollectionItemName feature_check_name_list = 1;
+  optional bool show = 2;
+  optional bool highlight = 3;
+  optional bool set_inspection_view = 4;
+}
+
+message ShowHideAnnotationsForFeatureChecksResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ShowHideInspectionBarRequest {
+  optional bool show_inspection_bar = 1;
+}
+
+message ShowHideInspectionBarResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ShowHideInstrumentInterfaceRequest {
+  optional CollectionInstrumentId instrument_id = 1;
+  optional bool minimize_interface = 2;
+  optional bool hide_interface = 3;
+}
+
+message ShowHideInstrumentInterfaceResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ShowHideInstrumentProbeTipRequest {
+  optional bool show_instrument_probe_tip = 1;
+}
+
+message ShowHideInstrumentProbeTipResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ShowHideInstrumentsRequest {
+  repeated CollectionInstrumentId instrument_i_ds = 1;
+  optional bool show_instruments = 2;
+}
+
+message ShowHideInstrumentsResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ShowHideRelationshipReportRequest {
+  optional CollectionName collection_name = 1;
+  optional bool show_relationship_report = 2;
+}
+
+message ShowHideRelationshipReportResult {
+  MpExecutionDetails execution = 1000;
+}
+
+message ShowHideRelationshipWatchRequest {
+  optional CollectionObjectName relationship_name = 1;
+  optional bool show_relationship_watch = 2;
+  optional CollectionObjectName relationship_watch_window_properties = 3;
+  optional int32 window_top_left_x_position = 4;
+  optional int32 window_top_left_y_position = 5;
+  optional int32 window_width = 6;
+  optional int32 window_height = 7;
+}
+
+message ShowHideRelationshipWatchResult {
+  MpExecutionDetails execution = 1000;
+}

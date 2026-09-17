@@ -18,3 +18,6 @@
 
 # Preserve the upstream Inter license byte-for-byte, including its original trailing space.
 targets/2026.1.0529.7/src/Briosa.ControlCenter/Assets/Brand/fonts/OFL.txt -text whitespace=-blank-at-eol
+targets/2024.1.0508.5/src/Briosa.ControlCenter/Assets/Brand/fonts/OFL.txt -text whitespace=-blank-at-eol
+# Preserve the new target's upstream brand license bytes and provenance hash.
+targets/2024.1.0508.5/src/Briosa.ControlCenter/Assets/Brand/LICENSE -text whitespace=cr-at-eol

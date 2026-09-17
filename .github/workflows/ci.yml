@@ -31,7 +31,9 @@ jobs:
 
       - name: Verify licensed runner workflow policy
         shell: pwsh
-        run: ./eng/Verify-LicensedRunnerWorkflow.ps1
+        run: |
+          ./eng/Verify-LicensedRunnerWorkflow.ps1
+          ./eng/Verify-LicensedRunnerWorkflow.ps1 -SpatialAnalyzerVersion 2024.1.0508.5
 
       - name: Verify exact-target product isolation
         shell: pwsh
@@ -63,6 +65,8 @@ jobs:
         target:
           - sa_version: 2026.1.0529.7
             path: targets/2026.1.0529.7
+          - sa_version: 2024.1.0508.5
+            path: targets/2024.1.0508.5
 
     defaults:
       run:
@@ -151,6 +155,8 @@ jobs:
         target:
           - sa_version: 2026.1.0529.7
             path: targets/2026.1.0529.7
+          - sa_version: 2024.1.0508.5
+            path: targets/2024.1.0508.5
 
     defaults:
       run:
