@@ -652,6 +652,11 @@ internal static class MpOperationValueMapper
         Api.CollectionObjectName value,
         WorkerObjectTypeValue? fallback)
     {
+        if (!Enum.IsDefined(value.ObjectType))
+        {
+            throw new ArgumentException("Object type is not supported by this SA target.", nameof(value));
+        }
+
         var type = (WorkerObjectTypeValue)(int)value.ObjectType;
         if (type == WorkerObjectTypeValue.Unspecified)
         {
@@ -663,21 +668,35 @@ internal static class MpOperationValueMapper
 
     private static WorkerCollectionItemNameValue ItemName(
         Api.CollectionItemName value,
-        WorkerItemTypeValue? fallback = null) =>
-        new(
+        WorkerItemTypeValue? fallback = null)
+    {
+        ValidateItemType(value);
+        return new(
             value.CollectionName,
             value.ItemName,
             value.HasItemType
                 ? (WorkerItemTypeValue)(int)value.ItemType
                 : fallback ?? WorkerItemTypeValue.Any);
+    }
 
     private static WorkerCollectionObjectNameValue ObjectName(
         Api.CollectionItemName value,
-        WorkerObjectTypeValue? fallback) =>
-        new(
+        WorkerObjectTypeValue? fallback)
+    {
+        ValidateItemType(value);
+        return new(
             value.CollectionName,
             value.ItemName,
             fallback ?? WorkerObjectTypeValue.Any);
+    }
+
+    private static void ValidateItemType(Api.CollectionItemName value)
+    {
+        if (value.HasItemType && !Enum.IsDefined(value.ItemType))
+        {
+            throw new ArgumentException("Item type is not supported by this SA target.", nameof(value));
+        }
+    }
 
     private static WorkerTransformValue Transform(Api.Transform value)
     {

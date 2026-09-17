@@ -108,6 +108,30 @@ public sealed class LegacyTargetCompatibilityTests
     }
 
     [Fact]
+    public void LaterObjectAndItemTypesAreRejectedBeforeWorkerAdmission()
+    {
+        var project = MpOperationCatalog.Get("instrument_operations.project_objects");
+        var request = new Api.ProjectObjectsRequest
+        {
+            Instrument = new Api.CollectionInstrumentId { CollectionName = "fixture", InstrumentId = 1 }
+        };
+        request.ObjectsToProject.Add(new Api.CollectionObjectName
+        {
+            CollectionName = "fixture", ObjectName = "cloud", ObjectType = (Api.ObjectType)5
+        });
+        Assert.Throws<ArgumentException>(() => project.CreateCommand(request));
+
+        var statistics = MpOperationCatalog.Get("relationship_operations.get_general_relationship_statistics");
+        Assert.Throws<ArgumentException>(() => statistics.CreateCommand(new Api.GetGeneralRelationshipStatisticsRequest
+        {
+            RelationshipName = new Api.CollectionItemName
+            {
+                CollectionName = "fixture", ItemName = "relationship", ItemType = (Api.ItemType)10
+            }
+        }));
+    }
+
+    [Fact]
     public void CribSheetAndProjectionUseCompleteExactBindingsWithoutWorkflowOwnership()
     {
         var instrument = new Api.CollectionInstrumentId { CollectionName = "fixture", InstrumentId = 1 };

@@ -13,7 +13,7 @@ for the uncommitted port; release CI must rebuild from the reviewed commit.
 
 | Check | Result |
 | --- | --- |
-| Release protocol, server, and worker tests | Passed: 25 protocol, 236 server, 177 worker cases, including targeted reruns after the final policy and enum tests. |
+| Release protocol, server, and worker tests | Passed: 25 protocol, 237 server, 177 worker cases in the final full-suite run. |
 | Existing 2026 target regression | Passed: 400 portable cases. |
 | Debug source-host composition | Passed with SDK activation disabled. |
 | Development reflection | Passed: three Debug cases. |
