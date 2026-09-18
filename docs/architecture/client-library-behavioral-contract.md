@@ -33,6 +33,13 @@ cross-language review that established this boundary.
 
 ## Contract layers
 
+### Installed server discovery
+
+First-party clients use the ordered, exact-target lookup and installation checks
+in the [installed package store contract](installed-package-store.md#client-server-discovery).
+Discovery never downloads a package, selects a newer server version, or replaces
+the runtime compatibility and readiness checks.
+
 ### Server logging startup controls
 
 First-party StartOptions expose optional typed server logging overrides: global
