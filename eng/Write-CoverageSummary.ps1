@@ -1,6 +1,7 @@
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory)][string]$ResultsDirectory
+    [Parameter(Mandatory)][string]$ResultsDirectory,
+    [string[]]$RequiredAssemblies = @('Briosa.Desktop', 'Briosa.Server', 'Briosa.Worker', 'Briosa.Worker.Control')
 )
 
 Set-StrictMode -Version Latest
@@ -29,6 +30,12 @@ foreach ($report in $reports) {
                 $lines[$key] = $covered -or ($lines.ContainsKey($key) -and $lines[$key])
             }
         }
+    }
+}
+
+foreach ($requiredAssembly in $RequiredAssemblies) {
+    if (-not $modules.ContainsKey($requiredAssembly) -or $modules[$requiredAssembly].Count -eq 0) {
+        throw "No measured source lines for required assembly '$requiredAssembly'. Check coverage instrumentation."
     }
 }
 

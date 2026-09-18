@@ -10,6 +10,8 @@ Enable dependency alerts, Dependabot security updates, secret scanning and secre
 push protection. Enable automatic dependency submission on standard GitHub-hosted
 runners so the dependency graph includes centrally managed NuGet dependencies.
 The `nuget` entries in `dependabot.yml` trigger GitHub's managed .NET submission.
+`EnableWindowsTargeting` permits its Linux runner to restore Windows reference
+packs; supported product execution and ordinary CI remain Windows x64.
 NuGet Audit also checks resolved direct and transitive dependencies
 at restore time, with warnings treated as errors. Repository settings live in
 GitHub rather than this checkout.
@@ -27,6 +29,8 @@ it does not modify protection for other repositories.
 - The existing Coverlet collector emits Cobertura XML alongside TRX results.
   The job summary unions measured source lines across test assemblies per target,
   and the `test-results-sa-<release>` artifact retains reports for seven days.
+  The summary fails if Desktop, Server, Worker or Worker.Control has no measured
+  lines, catching silent collector failures without imposing a percentage target.
   Generated protobuf code and test helpers are excluded. Coverage measures code
   loaded in test processes: it does not measure child-worker execution, desktop
   smoke processes or licensed SA integration. Unreported assemblies are not

@@ -15,11 +15,13 @@ jobs:
   dependency-review:
     name: Dependency review
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 15
     steps:
       - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5
         with:
           fail-on-severity: high
+          retry-on-snapshot-warnings: true
+          retry-on-snapshot-warnings-timeout: 600
           # No project-wide license allowlist has been adopted.
           license-check: false
           comment-summary-in-pr: never
