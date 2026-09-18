@@ -1,0 +1,41 @@
+name: Dependency review
+
+on:
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: dependency-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-review:
+    name: Dependency review
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5
+        with:
+          fail-on-severity: high
+          retry-on-snapshot-warnings: true
+          retry-on-snapshot-warnings-timeout: 600
+          # No project-wide license allowlist has been adopted.
+          license-check: false
+          comment-summary-in-pr: never
+          show-openssf-scorecard: false
+      - name: Reject incomplete dependency comparisons
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          $comparison = gh api "repos/$env:GITHUB_REPOSITORY/dependency-graph/compare/$env:BASE_SHA...$env:HEAD_SHA" --include
+          if ($LASTEXITCODE -ne 0) { throw 'Could not verify dependency snapshot completeness.' }
+          $warning = @($comparison | Where-Object { $_ -match '^X-GitHub-Dependency-Graph-Snapshot-Warnings:\s*\S' })
+          if ($warning.Count -gt 0) {
+            throw 'Dependency snapshots are incomplete. Resolve submission failures, then rerun dependency review.'
+          }

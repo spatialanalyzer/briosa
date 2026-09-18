@@ -1,0 +1,52 @@
+name: Dependency snapshots
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: dependency-snapshots-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  nuget:
+    name: NuGet dependencies SA ${{ matrix.sa_version }}
+    runs-on: windows-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        sa_version: ['2026.1.0529.7', '2024.1.0508.5']
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+        with:
+          global-json-file: global.json
+      - name: Restore this exact-target product
+        working-directory: targets/${{ matrix.sa_version }}
+        run: dotnet restore Briosa.slnx --locked-mode
+      - name: Capture resolved dependency metadata
+        shell: pwsh
+        env:
+          SNAPSHOT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          SNAPSHOT_REF: ${{ github.event.pull_request.number && format('refs/pull/{0}/head', github.event.pull_request.number) || github.ref }}
+          SA_VERSION: ${{ matrix.sa_version }}
+        run: >-
+          ./eng/Write-DependencySnapshot.ps1
+          -TargetDirectory "targets/$env:SA_VERSION"
+          -OutputPath artifacts/dependency-snapshot.json
+          -CommitSha $env:SNAPSHOT_SHA -GitRef $env:SNAPSHOT_REF
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: dependency-snapshot-sa-${{ matrix.sa_version }}
+          path: artifacts/dependency-snapshot.json
+          retention-days: 1
+          if-no-files-found: error

@@ -66,18 +66,18 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           fetch-depth: 0
 
       - name: Install Buf
-        uses: bufbuild/buf-setup-action@v1.50.0
+        uses: bufbuild/buf-setup-action@a47c93e0b1648d5651a065437926377d060baa99 # v1.50.0
         with:
           version: 1.72.0
           github_token: ${{ github.token }}
 
       - name: Install .NET SDK
-        uses: actions/setup-dotnet@v5
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
         with:
           global-json-file: global.json
           cache: true
@@ -111,7 +111,7 @@ jobs:
           -PackagePath "artifacts/release/briosa-${{ needs.version.outputs.value }}-sa-${{ matrix.target.sa_version }}-win-x64.zip"
 
       - name: Upload exact-target release assets
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: unsigned-briosa-${{ needs.version.outputs.value }}-sa-${{ matrix.target.sa_version }}-release-assets
           path: ${{ matrix.target.path }}/artifacts/release/*
@@ -132,8 +132,8 @@ jobs:
       matrix:
         sa_version: [2026.1.0529.7, 2024.1.0508.5]
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/download-artifact@v8
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: unsigned-briosa-${{ needs.version.outputs.value }}-sa-${{ matrix.sa_version }}-release-assets
           path: artifacts/unsigned
@@ -156,7 +156,7 @@ jobs:
           Import-Module ./eng/ReleasePackageSigning.psm1
           Assert-ReleaseSignatures "artifacts/final-verification/$env:PRODUCT" 'David Lucas'
           Get-ChildItem artifacts/unsigned -File | Where-Object { -not $_.Name.StartsWith($env:PRODUCT + '.') } | Copy-Item -Destination artifacts/signed
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: briosa-${{ needs.version.outputs.value }}-sa-${{ matrix.sa_version }}-release-assets
           path: artifacts/signed/*
@@ -173,12 +173,12 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           fetch-depth: 0
 
       - name: Download all exact-target release assets
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           pattern: briosa-${{ needs.version.outputs.value }}-sa-*-release-assets
           path: artifacts/release

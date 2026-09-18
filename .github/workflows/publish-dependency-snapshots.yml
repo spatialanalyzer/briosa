@@ -1,0 +1,67 @@
+name: Publish dependency snapshots
+
+on:
+  workflow_run:
+    workflows: ['Dependency snapshots']
+    types: [completed]
+
+permissions:
+  actions: read
+  contents: write
+  pull-requests: read
+
+jobs:
+  publish:
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # Never check out or execute source from the triggering PR. The only
+      # untrusted input is JSON submitted to GitHub's dependency graph API.
+      - name: Validate snapshot identity and submit metadata
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          SOURCE_RUN: ${{ github.event.workflow_run.id }}
+          SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
+          SOURCE_EVENT: ${{ github.event.workflow_run.event }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $combined = $null
+          foreach ($version in @('2026.1.0529.7', '2024.1.0508.5')) {
+            $directory = "snapshots/$version"
+            gh run download $env:SOURCE_RUN --name "dependency-snapshot-sa-$version" --dir $directory
+            if ($LASTEXITCODE -ne 0) { throw 'Could not download dependency metadata.' }
+            $path = "$directory/dependency-snapshot.json"
+            $snapshot = Get-Content -LiteralPath $path -Raw | ConvertFrom-Json -AsHashtable
+            if ($snapshot.sha -cne $env:SOURCE_SHA) { throw 'Snapshot commit does not match its workflow run.' }
+            if ($env:SOURCE_EVENT -eq 'push') {
+              if ($snapshot.ref -cne 'refs/heads/main') { throw 'Unexpected push ref.' }
+            } elseif ($env:SOURCE_EVENT -eq 'pull_request') {
+              if ($snapshot.ref -notmatch '^refs/pull/(\d+)/head$') { throw 'Unexpected PR ref.' }
+              $pull = gh api "repos/$env:GH_REPO/pulls/$($Matches[1])" | ConvertFrom-Json
+              if ($LASTEXITCODE -ne 0 -or $pull.head.sha -cne $env:SOURCE_SHA -or
+                  $pull.base.repo.full_name -cne $env:GH_REPO -or $pull.base.ref -cne 'main') {
+                throw 'Snapshot no longer matches the pull request.'
+              }
+            } else { throw 'Unexpected source event.' }
+            if ($snapshot.manifests.Count -eq 0) { throw 'Snapshot has no project manifests.' }
+            foreach ($manifest in $snapshot.manifests.Values) {
+              if (-not $manifest.file.source_location.StartsWith("targets/$version/", [StringComparison]::Ordinal)) {
+                throw 'Snapshot contains a manifest outside its target.'
+              }
+            }
+            if ($null -eq $combined) { $combined = $snapshot }
+            else {
+              foreach ($entry in $snapshot.manifests.GetEnumerator()) {
+                $combined.manifests[$entry.Key] = $entry.Value
+              }
+            }
+          }
+          $combined.version = 0
+          $combined.detector = @{ name = 'Briosa NuGet assets'; version = '1'; url = 'https://github.com/spatialanalyzer/briosa' }
+          $combined.job = @{ id = $env:SOURCE_RUN; correlator = 'nuget-all-targets' }
+          $combined | ConvertTo-Json -Depth 30 | Set-Content snapshot.json -Encoding utf8
+          gh api --method POST "repos/$env:GH_REPO/dependency-graph/snapshots" --input snapshot.json
+          if ($LASTEXITCODE -ne 0) { throw 'Dependency submission failed.' }
