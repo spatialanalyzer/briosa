@@ -45,6 +45,19 @@ for ($index = 0; $index -lt $expectedPrefix.Count; $index++) {
     }
 }
 
+$githubDirectory = Join-Path (Split-Path -Parent $PSScriptRoot) '.github'
+foreach ($file in Get-ChildItem -LiteralPath $githubDirectory -Recurse -File -Include '*.yml', '*.yaml') {
+    $actionReferences = [regex]::Matches(
+        (Get-Content -LiteralPath $file.FullName -Raw),
+        '(?m)^\s*-?\s*uses:\s+[^@\s]+@(?<reference>[^\s#]+)')
+    foreach ($actionReference in $actionReferences) {
+        if ($actionReference.Groups['reference'].Value -notmatch '^[0-9a-f]{40}$') {
+            throw "External actions in '$($file.Name)' must use immutable commit SHAs."
+        }
+    }
+}
+
 Write-Host (
     "Ordinary CI workflow runs pull-request validation once, limits push validation to main, " +
-    "cancels superseded runs, and retains read-only contents permission.")
+    "cancels superseded runs, and retains read-only contents permission. " +
+    "External workflow and composite actions use immutable commit SHAs.")

@@ -1,0 +1,26 @@
+name: Dependency review
+
+on:
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: dependency-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-review:
+    name: Dependency review
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5
+        with:
+          fail-on-severity: high
+          # No project-wide license allowlist has been adopted.
+          license-check: false
+          comment-summary-in-pr: never
+          show-openssf-scorecard: false

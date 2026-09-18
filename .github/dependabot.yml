@@ -1,0 +1,43 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ['*']
+
+  # Keep the independently shipped SA products in separate update PRs.
+  - package-ecosystem: nuget
+    directory: /targets/2026.1.0529.7
+    schedule:
+      interval: weekly
+    groups:
+      nuget:
+        patterns: ['*']
+        update-types: [minor, patch]
+      security:
+        applies-to: security-updates
+        patterns: ['*']
+
+  - package-ecosystem: nuget
+    directory: /targets/2024.1.0508.5
+    schedule:
+      interval: weekly
+    groups:
+      nuget:
+        patterns: ['*']
+        update-types: [minor, patch]
+      security:
+        applies-to: security-updates
+        patterns: ['*']
+
+  - package-ecosystem: pip
+    directory: /eng/publishing
+    schedule:
+      interval: weekly
+    groups:
+      publishing:
+        patterns: ['*']
+        update-types: [minor, patch]
