@@ -12,9 +12,25 @@ runners so the dependency graph includes centrally managed NuGet dependencies.
 The `nuget` entries in `dependabot.yml` trigger GitHub's managed .NET submission.
 `EnableWindowsTargeting` permits its Linux runner to restore Windows reference
 packs; supported product execution and ordinary CI remain Windows x64.
+The root `DependencySubmission.sln` is a restore-only compatibility entry point
+for GitHub's scanner, which currently ignores `.slnx` and stops after 20 files.
+It lists both products without adding any cross-target project references.
+The repository policy check verifies its membership against the target `.slnx`
+files. When adding a project, also use `dotnet sln DependencySubmission.sln add
+--solution-folder <exact-sa-release> <project-path>`. Continue building and testing
+each product from its own target directory.
 NuGet Audit also checks resolved direct and transitive dependencies
 at restore time, with warnings treated as errors. Repository settings live in
 GitHub rather than this checkout.
+
+`global.json` pins SDK 10.0.401, including runtime 10.0.12. This replaces the
+10.0.10 runtime that the initial graph identified as affected by Microsoft's
+[.NET runtime advisory](https://github.com/advisories/GHSA-c494-m2fq-59mx) and
+[Windows Desktop advisory](https://github.com/advisories/GHSA-jqhp-238x-qhgf).
+Install the pinned SDK when updating a development or licensed-validation host.
+Previously published self-contained packages need rebuilding and republishing
+before they contain the patched runtime; changing this repository does not patch
+already installed distributions.
 
 The repository-specific ruleset requires the validated ordinary CI jobs,
 dependency review and all four CodeQL jobs. Code scanning additionally blocks new
