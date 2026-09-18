@@ -113,7 +113,7 @@ try {
     $bundleRoot = Join-Path $extractRoot $artifactBase
     $manifestPath = Join-Path $bundleRoot "manifest.json"
     $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
-    Assert-Condition -Condition ($manifest.schema_version -eq 2) `
+    Assert-Condition -Condition ($manifest.schema_version -eq 3) `
         -Message "The protocol manifest schema version is incorrect."
     Assert-Condition -Condition ($manifest.artifact_kind -eq "briosa_protocol") `
         -Message "The protocol artifact kind is incorrect."

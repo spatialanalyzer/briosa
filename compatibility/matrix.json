@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "contract": {
+    "major": 1,
+    "revision": 0
+  },
+  "status": "implementation-in-progress",
+  "targets": [
+    "2026.1.0529.7",
+    "2024.1.0508.5"
+  ],
+  "testedPairs": [],
+  "legacyBaseline": {
+    "serverVersion": "0.6.1",
+    "sourceRevision": "32a3b56ba4ae31ea5ec6ec3b2aa051eb61c866aa",
+    "validation": "pending-new-client-conformance"
+  },
+  "licensedValidation": "not-run-for-this-change"
+}

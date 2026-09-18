@@ -5,7 +5,9 @@ namespace Briosa.Server.Services;
 internal sealed record SpatialAnalyzerApplicationOptions(
     string ExecutablePath,
     TimeSpan StartupTimeout,
-    TimeSpan ShutdownTimeout)
+    TimeSpan ShutdownTimeout,
+    bool RequireInstalledIdentity = false,
+    string? InstallationDiagnostic = null)
 {
     internal const string ExecutablePathKey =
         "Briosa:SpatialAnalyzer:ExecutablePath";
@@ -19,18 +21,21 @@ internal sealed record SpatialAnalyzerApplicationOptions(
     {
         ArgumentNullException.ThrowIfNull(configuration);
         var configuredPath = configuration[ExecutablePathKey];
-        var executablePath = string.IsNullOrWhiteSpace(configuredPath)
-            ? Path.Combine(
+        var defaultPath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),
                 "New River Kinematics",
                 "SpatialAnalyzer 2024.1.0508.5",
                 "x64",
-                "Spatial Analyzer64.exe")
-            : ResolveAbsolutePath(configuredPath, ExecutablePathKey);
+                "Spatial Analyzer64.exe");
+        var explicitPath = string.IsNullOrWhiteSpace(configuredPath)
+            ? null : ResolveAbsolutePath(configuredPath, ExecutablePathKey);
+        var installation = SpatialAnalyzerInstallationDiscovery.Resolve(explicitPath, defaultPath);
         return new SpatialAnalyzerApplicationOptions(
-            executablePath,
+            installation.ExecutablePath ?? explicitPath ?? defaultPath,
             ReadTimeout(configuration, StartupTimeoutKey, TimeSpan.FromSeconds(30)),
-            ReadTimeout(configuration, ShutdownTimeoutKey, TimeSpan.FromSeconds(30)));
+            ReadTimeout(configuration, ShutdownTimeoutKey, TimeSpan.FromSeconds(30)),
+            RequireInstalledIdentity: true,
+            InstallationDiagnostic: installation.DiagnosticCode);
     }
 
     private static string ResolveAbsolutePath(string path, string key)
@@ -38,7 +43,7 @@ internal sealed record SpatialAnalyzerApplicationOptions(
         try
         {
             var fullPath = Path.GetFullPath(path);
-            if (!Path.IsPathFullyQualified(fullPath) ||
+            if (!Path.IsPathFullyQualified(path) ||
                 !string.Equals(
                     Path.GetFileName(fullPath),
                     "Spatial Analyzer64.exe",

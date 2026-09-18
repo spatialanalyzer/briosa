@@ -47,6 +47,7 @@ internal sealed class ServerDiscoveryService(
         var response = new Api.GetServerInfoResponse
         {
             Version = _buildIdentity.CreateVersionCoordinates(),
+            Compatibility = ServerCompatibility.Create(),
             WorkerState = ToProtocolState(snapshot.State),
             SpatialAnalyzerConnectionState = ToProtocolState(snapshot.Connection?.State),
             SpatialAnalyzerExecutionReadinessState =

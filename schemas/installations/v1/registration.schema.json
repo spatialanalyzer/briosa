@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Briosa installation registration v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "installationId",
+    "productDirectory",
+    "packageId",
+    "serverVersion",
+    "spatialAnalyzerTarget",
+    "runtimeIdentifier"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "installationId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "productDirectory": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 32768
+    },
+    "packageId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "serverVersion": {
+      "type": "string",
+      "minLength": 5,
+      "maxLength": 128
+    },
+    "spatialAnalyzerTarget": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "runtimeIdentifier": {
+      "const": "win-x64"
+    }
+  }
+}

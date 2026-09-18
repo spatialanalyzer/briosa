@@ -140,6 +140,10 @@ try {
         Pop-Location
     }
 
+    $compatibilityRoot = Join-Path $bundleRoot "compatibility"
+    [IO.Directory]::CreateDirectory($compatibilityRoot) | Out-Null
+    Copy-NormalizedTextFile -Source (Join-Path $repositoryRoot "compatibility.json") -Destination (Join-Path $compatibilityRoot "contract.json")
+    Copy-NormalizedTextFile -Source (Join-Path $monorepoRoot "conformance/installation-selection/v1/cases.json") -Destination (Join-Path $compatibilityRoot "selection-cases.json")
     $contentFiles = Get-ContentFiles -Root $bundleRoot
     $protocolFiles = @($contentFiles | Where-Object {
         $_.path -eq "buf.yaml" -or
@@ -148,7 +152,8 @@ try {
     $descriptorFile = $contentFiles |
         Where-Object path -EQ "descriptor/briosa.protoset"
     $manifest = [ordered]@{
-        schema_version = 2
+        schema_version = 3
+        compatibility = (Get-Content -LiteralPath (Join-Path $repositoryRoot "compatibility.json") -Raw | ConvertFrom-Json | Select-Object major, revision)
         artifact_kind = "briosa_protocol"
         artifact_name = $artifactBase
         briosa_version = $Version

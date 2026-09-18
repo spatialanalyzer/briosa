@@ -16,7 +16,7 @@ function Get-ReleaseSigningFiles {
         if ($manifest.schemaVersion -ne 1 -or -not $name.StartsWith('briosa-installer-')) { throw 'Invalid installer manifest.' }
     } else {
         $required = @('Briosa.Server.exe', 'Briosa.Worker.exe')
-        if ($manifest.schemaVersion -ne 2 -or $name -cne "briosa-$($manifest.briosaVersion)-sa-$($manifest.spatialAnalyzerTarget)-win-x64") { throw 'Invalid server manifest.' }
+        if ($manifest.schemaVersion -notin @(2, 3) -or $name -cne "briosa-$($manifest.briosaVersion)-sa-$($manifest.spatialAnalyzerTarget)-win-x64") { throw 'Invalid server manifest.' }
     }
     foreach ($requiredName in $required) {
         if (-not (Test-Path -LiteralPath (Join-Path $root $requiredName) -PathType Leaf)) { throw "Missing first-party release file: $requiredName" }

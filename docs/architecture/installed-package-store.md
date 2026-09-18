@@ -6,9 +6,9 @@
 
 The shared layout exposes complete, independently versioned products. It contains
 no record of consuming clients, engineering projects, leases, or application impact.
-Application teams own selecting the exact server distribution. Client discovery
-uses the identity pinned by the selected client package and preserves runtime
-SDK/SA identity gates.
+Application teams own their server selection constraints. Contract-aware clients
+use [installation selection and compatibility](installation-selection-and-compatibility.md)
+and preserve runtime SDK/SA identity gates. Published older clients keep exact pins.
 
 ## Roots and immutable products
 
@@ -56,7 +56,7 @@ application processes. An active installer or in-use files block removal.
 
 Server ZIPs contain exactly one root:
 `briosa-<version>-sa-<exact-sa-release>-win-x64`.
-The existing schema-2 manifest must match exact identity, `protocolPackage: "briosa"`,
+Schema-2 legacy and schema-3 contract-aware manifests must match exact identity, `protocolPackage: "briosa"`,
 and `spatialAnalyzerBundled: false`. Required entry points are
 `Briosa.Server.exe` and `Briosa.Worker.exe`; external provenance matches the embedded
 manifest byte-for-byte. No vendor binaries are added by the installer.
@@ -73,6 +73,13 @@ The installer runs no package scripts/executables during acquisition or extracti
 Selecting a verified installer for launch is a separate action.
 
 ## Client server discovery
+
+The rules below describe published exact-pinned clients through 0.1.1. New
+contract-aware clients follow [the accepted selection contract](installation-selection-and-compatibility.md),
+which supersedes the exact-build lookup and ambient environment-variable precedence.
+Schema-3 manifests add a `compatibility` object; old manifests are eligible only
+through the specified legacy exception. Registry indexing leaves receipts and
+filesystem transactions authoritative for committed installation state.
 
 First-party clients select the first eligible executable in this order:
 

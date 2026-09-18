@@ -43,7 +43,7 @@ foreach ($file in $provenanceFiles) {
     $manifest = Get-Content -LiteralPath $file.FullName -Raw | ConvertFrom-Json
     $isInstaller = $file.Name.StartsWith('briosa-installer-', [StringComparison]::Ordinal)
     if (($isInstaller -and ($manifest.schemaVersion -ne 1 -or $manifest.component -cne 'installer')) -or
-        (-not $isInstaller -and $manifest.schemaVersion -ne 2) -or $manifest.briosaVersion -isnot [string] -or
+        (-not $isInstaller -and $manifest.schemaVersion -notin @(2, 3)) -or $manifest.briosaVersion -isnot [string] -or
         $manifest.briosaVersion.Length -gt 128 -or $manifest.briosaVersion -cnotmatch $schema.'$defs'.version.pattern -or
         (-not $isInstaller -and $manifest.spatialAnalyzerTarget -cnotmatch $schema.'$defs'.package.properties.spatialAnalyzerTarget.pattern) -or
         $manifest.runtimeIdentifier -cnotmatch $schema.'$defs'.package.properties.runtimeIdentifier.pattern) {
