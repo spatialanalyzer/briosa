@@ -1,13 +1,14 @@
 # Installed package store contract
 
 - Date: 2026-09-12
-- Status: Implemented by the installer; client discovery integration remains separate.
+- Status: Installer layout implemented; first-party client discovery specified in #191.
 - Related: [release catalog](release-catalog.md), [exact-target products](exact-target-product-model.md).
 
 The shared layout exposes complete, independently versioned products. It contains
 no record of consuming clients, engineering projects, leases, or application impact.
-Application teams own selecting the exact server distribution. This document does
-not implement a new client resolver or relax runtime SDK/SA identity gates.
+Application teams own selecting the exact server distribution. Client discovery
+uses the identity pinned by the selected client package and preserves runtime
+SDK/SA identity gates.
 
 ## Roots and immutable products
 
@@ -70,6 +71,62 @@ runtime licenses and contains no SA target. Versioning is independent of servers
 
 The installer runs no package scripts/executables during acquisition or extraction.
 Selecting a verified installer for launch is a separate action.
+
+## Client server discovery
+
+First-party clients select the first eligible executable in this order:
+
+1. `BRIOSA_SERVER_PATH`, pointing to `Briosa.Server.exe`.
+2. The client's existing local `briosa-server/Briosa.Server.exe` location
+   (the application base directory for .NET; the client module directory for Node.js
+   and Python).
+3. The canonical current-user store.
+4. The canonical all-users store.
+5. The legacy current-user path
+   `%LOCALAPPDATA%/Briosa/servers/<briosa-version>/sa-<exact-sa-release>/Briosa.Server.exe`.
+
+Managed candidates are exactly
+`<store>/products/briosa-<briosa-version>-sa-<exact-sa-release>-win-x64/payload/Briosa.Server.exe`.
+Use the server version, exact SA target, and source revision pinned by the client
+protocol artifact, independently of the client package version. Do not enumerate
+versions, select `latest`, search transaction directories, or cross SA targets.
+An unavailable canonical root contributes no candidate; never resolve it relative
+to the working directory. .NET obtains roots from Windows special folders;
+Node.js and Python use `LOCALAPPDATA` (falling back to the user's `AppData/Local`)
+and `PROGRAMDATA` (no relative fallback).
+
+A managed candidate is eligible only when:
+
+- `receipt.json` is a JSON object with schemaVersion 1 and a package object whose
+  id, component (`server`), version, runtimeIdentifier (`win-x64`), and
+  spatialAnalyzerTarget exactly match the requested product;
+- `payload/manifest.json` is a JSON object with schemaVersion 2 and matching
+  artifactName, briosaVersion, spatialAnalyzerTarget, runtimeIdentifier,
+  sourceRevision, protocolPackage (`briosa`), and spatialAnalyzerBundled (`false`);
+- the payload contains files named `manifest.json`, `Briosa.Server.exe`, and
+  `Briosa.Worker.exe`, each recorded in the receipt's files object with a lowercase
+  64-character hexadecimal digest.
+
+Missing, unreadable, malformed, or mismatched candidates are skipped. If none is
+eligible, startup reports `server-distribution-not-found`. Explicit, client-local,
+and legacy paths retain their existing executable-file lookup and subsequent
+runtime compatibility checks; they do not require Installer receipts. Merely
+setting an unavailable explicit path continues to permit the remaining fallbacks.
+
+These are discovery checks for a committed installation, not package integrity or
+publisher verification. They do not rehash the complete payload or authenticate
+locally owned receipt metadata. Use Installer package verification/repair for
+damaged installations. Catalog trust, freshness, acquisition policy, and protected
+machine-store permissions remain Installer responsibilities. Runtime server
+identity, activated SDK identity, connected SA identity, and execution readiness
+remain separate checks; installation evidence establishes none of them.
+
+Custom stores are not searched automatically. Set `BRIOSA_SERVER_PATH` to the
+desired custom product's `payload/Briosa.Server.exe`. Clients do not read Installer
+settings, active-installer selection, or catalog history to change server selection.
+
+See the [client discovery validation record](client-server-discovery-validation.md)
+for the released-package smoke checks and their limits.
 
 ## Installer selection and bootstrap
 
