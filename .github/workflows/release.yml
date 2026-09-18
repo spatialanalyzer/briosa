@@ -167,7 +167,9 @@ jobs:
     if: github.event_name == 'push' && github.ref_type == 'tag'
     needs: [version, sign]
     runs-on: windows-latest
-    timeout-minutes: 10
+    # Both products include large self-contained developer bundles. The 0.6.0
+    # upload exceeded ten minutes after building and signing successfully.
+    timeout-minutes: 30
     permissions:
       contents: write
 
