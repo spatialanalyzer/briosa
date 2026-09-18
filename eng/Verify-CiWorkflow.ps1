@@ -57,23 +57,6 @@ foreach ($file in Get-ChildItem -LiteralPath $githubDirectory -Recurse -File -In
     }
 }
 
-# GitHub's managed restore currently scans only the first 20 project/solution
-# files and does not recognize slnx. Keep its restore entry point complete.
-$repositoryRoot = Split-Path -Parent $PSScriptRoot
-$expectedProjects = @(foreach ($solutionFile in Get-ChildItem (Join-Path $repositoryRoot 'targets/*/Briosa.slnx')) {
-    [xml]$solution = Get-Content -LiteralPath $solutionFile.FullName -Raw
-    foreach ($project in $solution.SelectNodes('//Project')) {
-        'targets/{0}/{1}' -f $solutionFile.Directory.Name, $project.Path.Replace('\', '/')
-    }
-})
-$dependencySolution = Get-Content (Join-Path $repositoryRoot 'DependencySubmission.sln') -Raw
-$actualProjects = @([regex]::Matches($dependencySolution, '"(?<path>targets[^"\r\n]+\.csproj)"') |
-    ForEach-Object { $_.Groups['path'].Value.Replace('\', '/') })
-if ($actualProjects.Count -ne $expectedProjects.Count -or
-    @(Compare-Object ($expectedProjects | Sort-Object) ($actualProjects | Sort-Object)).Count -gt 0) {
-    throw 'DependencySubmission.sln must contain every project from the target solutions exactly once.'
-}
-
 Write-Host (
     "Ordinary CI workflow runs pull-request validation once, limits push validation to main, " +
     "cancels superseded runs, and retains read-only contents permission. " +

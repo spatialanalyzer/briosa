@@ -7,18 +7,11 @@ service, paid GitHub security upgrade, or metered AI feature is required.
 ## Repository settings
 
 Enable dependency alerts, Dependabot security updates, secret scanning and secret
-push protection. Enable automatic dependency submission on standard GitHub-hosted
-runners so the dependency graph includes centrally managed NuGet dependencies.
-The `nuget` entries in `dependabot.yml` trigger GitHub's managed .NET submission.
-`EnableWindowsTargeting` permits its Linux runner to restore Windows reference
-packs; supported product execution and ordinary CI remain Windows x64.
-The root `DependencySubmission.sln` is a restore-only compatibility entry point
-for GitHub's scanner, which currently ignores `.slnx` and stops after 20 files.
-It lists both products without adding any cross-target project references.
-The repository policy check verifies its membership against the target `.slnx`
-files. When adding a project, also use `dotnet sln DependencySubmission.sln add
---solution-folder <exact-sa-release> <project-path>`. Continue building and testing
-each product from its own target directory.
+push protection. Leave GitHub-managed automatic dependency submission disabled:
+its current .NET discovery stops after 20 files and does not support this
+repository's complete two-product layout. The checked-in dependency workflows
+submit all projects instead, using the existing .NET restore output and GitHub's
+dependency submission API. No additional scanner or package is installed.
 NuGet Audit also checks resolved direct and transitive dependencies
 at restore time, with warnings treated as errors. Repository settings live in
 GitHub rather than this checkout.
@@ -33,7 +26,7 @@ before they contain the patched runtime; changing this repository does not patch
 already installed distributions.
 
 The repository-specific ruleset requires the validated ordinary CI jobs,
-dependency review and all four CodeQL jobs. Code scanning additionally blocks new
+dependency review, both dependency capture jobs and all four CodeQL jobs. Code scanning additionally blocks new
 high/critical security findings. It supplements the inherited organization rule;
 it does not modify protection for other repositories.
 
@@ -57,6 +50,17 @@ it does not modify protection for other repositories.
 - `dependency-review.yml` rejects dependency changes with known high/critical
   vulnerabilities. It requires no repository checkout or PR comment permission.
   A license allowlist is not imposed; adopting one requires a project decision.
+- `dependency-snapshots.yml` restores each target on Windows with a read-only
+  token and captures every solution project's direct/transitive NuGet packages,
+  dependency edges and runtime packs from `project.assets.json`. It checks out
+  the exact PR head, matching the commit used by dependency review.
+- `publish-dependency-snapshots.yml` runs from the default branch after capture
+  succeeds. It verifies artifact commit/ref/target identity and submits JSON to
+  GitHub. It never checks out or executes PR code, including on fork PRs. Its
+  write permission is isolated from restore. It combines both targets into one
+  complete snapshot. Dependency review waits up to ten minutes for snapshots,
+  then fails if GitHub still reports an incomplete comparison. Resolve submission
+  failures and rerun dependency review before merging.
 - Dependabot checks weekly for Actions, each target's NuGet packages, and the
   Python publishing requirements. Routine minor/patch updates are grouped;
   NuGet security fixes have separate groups. Maintainers review and merge updates.

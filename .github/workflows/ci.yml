@@ -43,6 +43,10 @@ jobs:
         shell: pwsh
         run: ./eng/Test-ReleaseCatalog.ps1
 
+      - name: Test dependency snapshot generation
+        shell: pwsh
+        run: ./eng/Test-DependencySnapshot.ps1
+
       - name: Test signing boundaries without production credentials
         shell: pwsh
         run: ./eng/Test-ReleaseSigning.ps1
