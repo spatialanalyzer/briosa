@@ -6,6 +6,8 @@
     <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
     <Prefer32Bit>false</Prefer32Bit>
     <IsPackable>false</IsPackable>
+    <!-- This inert executable also supplies exact-target file evidence in lifecycle tests. -->
+    <FileVersion>2026.1.0529.7</FileVersion>
     <Description>Fake worker process for packaged generated-client smoke scenarios.</Description>
   </PropertyGroup>
 

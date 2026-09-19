@@ -6,6 +6,7 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+Import-Module (Join-Path $PSScriptRoot 'ReleasePackageSigning.psm1') -Force
 $artifactRoot = (Resolve-Path -LiteralPath $ArtifactDirectory).Path
 $catalogPath = [IO.Path]::GetFullPath($OutputPath)
 $catalogDirectory = [IO.Path]::GetDirectoryName($catalogPath)
@@ -51,6 +52,7 @@ foreach ($file in $provenanceFiles) {
     }
     $artifactName = if ($isInstaller) { "briosa-installer-$($manifest.briosaVersion)-$($manifest.runtimeIdentifier)" }
         else { "briosa-$($manifest.briosaVersion)-sa-$($manifest.spatialAnalyzerTarget)-$($manifest.runtimeIdentifier)" }
+    if (-not $isInstaller) { Assert-ServerCompatibilityMetadata $manifest }
     if ($manifest.artifactName -cne $artifactName -or $file.Name -cne "$artifactName.provenance.json") {
         throw 'Server provenance identity and artifact filename disagree.'
     }

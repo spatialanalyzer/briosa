@@ -646,6 +646,132 @@
         }
       ],
       "selectedId": "machine"
+    },
+    {
+      "name": "unicode-path-order",
+      "target": "2026.1.0529.7",
+      "requiredMajor": 1,
+      "minimumRevision": 0,
+      "options": {},
+      "candidates": [
+        {
+          "version": "0.7.0",
+          "target": "2026.1.0529.7",
+          "rid": "win-x64",
+          "major": 1,
+          "revision": 0,
+          "sourceRevision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "manifestSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "scope": "user",
+          "id": "sharp",
+          "path": "C:/Briosa/ß/Briosa.Server.exe"
+        },
+        {
+          "version": "0.7.0",
+          "target": "2026.1.0529.7",
+          "rid": "win-x64",
+          "major": 1,
+          "revision": 0,
+          "sourceRevision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "manifestSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "scope": "user",
+          "id": "ascii",
+          "path": "C:/Briosa/SS/Briosa.Server.exe"
+        }
+      ],
+      "selectedId": "ascii"
+    },
+    {
+      "name": "explicit-path-normalization",
+      "target": "2026.1.0529.7",
+      "requiredMajor": 1,
+      "minimumRevision": 0,
+      "options": {
+        "executablePath": "C:/Briosa/temporary/../same/Briosa.Server.exe"
+      },
+      "candidates": [
+        {
+          "version": "0.7.0",
+          "target": "2026.1.0529.7",
+          "rid": "win-x64",
+          "major": 1,
+          "revision": 0,
+          "sourceRevision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "manifestSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "scope": "user",
+          "id": "same",
+          "path": "C:/Briosa/same/Briosa.Server.exe"
+        }
+      ],
+      "selectedId": "same"
+    },
+    {
+      "name": "reviewed-legacy-build",
+      "target": "2026.1.0529.7",
+      "requiredMajor": 1,
+      "minimumRevision": 0,
+      "options": {},
+      "candidates": [
+        {
+          "version": "0.6.1",
+          "target": "2026.1.0529.7",
+          "rid": "win-x64",
+          "major": 0,
+          "revision": 0,
+          "sourceRevision": "32a3b56ba4ae31ea5ec6ec3b2aa051eb61c866aa",
+          "manifestSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "scope": "user",
+          "id": "legacy",
+          "path": "C:/Briosa/legacy/Briosa.Server.exe"
+        }
+      ],
+      "selectedId": "legacy"
+    },
+    {
+      "name": "unreviewed-legacy-build",
+      "target": "2026.1.0529.7",
+      "requiredMajor": 1,
+      "minimumRevision": 0,
+      "options": {},
+      "candidates": [
+        {
+          "version": "0.6.1",
+          "target": "2026.1.0529.7",
+          "rid": "win-x64",
+          "major": 0,
+          "revision": 0,
+          "sourceRevision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "manifestSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "scope": "user",
+          "id": "legacy",
+          "path": "C:/Briosa/legacy/Briosa.Server.exe"
+        }
+      ],
+      "selectedId": null,
+      "error": "server-installation-incompatible"
+    },
+    {
+      "name": "legacy-revision-cannot-be-invented",
+      "target": "2026.1.0529.7",
+      "requiredMajor": 1,
+      "minimumRevision": 0,
+      "options": {},
+      "candidates": [
+        {
+          "version": "0.6.1",
+          "target": "2026.1.0529.7",
+          "rid": "win-x64",
+          "major": 0,
+          "revision": 1,
+          "sourceRevision": "32a3b56ba4ae31ea5ec6ec3b2aa051eb61c866aa",
+          "manifestSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "scope": "user",
+          "id": "legacy",
+          "path": "C:/Briosa/legacy/Briosa.Server.exe"
+        }
+      ],
+      "selectedId": null,
+      "error": "server-installation-incompatible"
     }
   ]
 }

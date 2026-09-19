@@ -66,7 +66,10 @@ an invalid explicit selection never falls back. Automatic resolution:
    policy, allowed scopes, exact version and inclusive minimum/exclusive maximum.
 3. Choose highest eligible SemVer precedence. Prereleases require opt-in. Conflicting
    provenance for the same release is ambiguous. Identical copies prefer machine,
-   user, portable scope, then normalized ordinal path. Ignore build metadata for
+   user, portable scope, then the ordinal UTF-8 bytes of the normalized absolute
+   path (slashes normalized, trailing slashes removed, ASCII A-Z lowercased).
+   Use that path normalization for deduplication and explicit path comparison;
+   do not apply language-specific Unicode case folding. Ignore build metadata for
    SemVer precedence.
 4. Revalidate before launch; compare live discovery against the selected manifest
    before SDK/SA actions. Do not fall back after runtime admission begins.
@@ -87,6 +90,9 @@ installations from a running-server identity mismatch.
 Resolve the exact SA application from an explicit executable or corroborated
 installed-product/file evidence. Ambiguous copies require explicit selection.
 The default layout is only a candidate requiring file-version evidence. Installed
+application discovery excludes user Registry evidence and writable executables
+when an elevated host automatically selects an application. Explicit paths remain
+deliberate per-process choices and must still match the target. Installed
 application, activated SDK and connected SA remain independent claims; existing
 identity/attestation and bounded execution-readiness gates are unchanged.
 Discovery never activates COM or runs registration commands. Side-by-side installation
@@ -104,4 +110,3 @@ client or explicit application-policy update.
 Installer readers support both manifest generations before modern servers ship.
 Retain older immutable products for exact-pinned clients. Rollback is per application;
 never relabel a published artifact or change a running session's selection.
-

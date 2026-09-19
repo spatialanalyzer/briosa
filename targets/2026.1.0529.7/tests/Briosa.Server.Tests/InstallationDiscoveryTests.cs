@@ -6,6 +6,18 @@ namespace Briosa.Server.Tests;
 public sealed class InstallationDiscoveryTests
 {
     [Fact]
+    public void AutomaticApplicationSelectionHonorsScopeProtectionAndRejectsNetworkPaths()
+    {
+        var selected = SpatialAnalyzerInstallationDiscovery.Select(null, @"C:\SA\Spatial Analyzer64.exe",
+            [@"C:\SA"], _ => true, _ => SpatialAnalyzerApi.TargetVersion, _ => false);
+        Assert.Null(selected.ExecutablePath);
+        var explicitNetwork = SpatialAnalyzerInstallationDiscovery.Select("//host/share/Spatial Analyzer64.exe",
+            @"C:\SA\Spatial Analyzer64.exe", [], _ => throw new InvalidOperationException("Network I/O attempted"),
+            _ => throw new InvalidOperationException("Network I/O attempted"));
+        Assert.Equal("spatial-analyzer-executable-invalid", explicitNetwork.DiagnosticCode);
+    }
+
+    [Fact]
     public void MissingSaDoesNotPreventInertHostDiscovery()
     {
         var selected = SpatialAnalyzerInstallationDiscovery.Select(null, @"C:\missing\Spatial Analyzer64.exe",
@@ -59,4 +71,3 @@ public sealed class InstallationDiscoveryTests
         Assert.Equal(0U, ServerCompatibility.Create().Revision);
     }
 }
-

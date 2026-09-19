@@ -1,5 +1,7 @@
 using System.Diagnostics;
 using System.Security;
+using System.Security.AccessControl;
+using System.Security.Principal;
 using Microsoft.Win32;
 using Briosa.Server.Operations;
 
@@ -11,15 +13,22 @@ internal static class SpatialAnalyzerInstallationDiscovery
 {
     private const string ExecutableName = "Spatial Analyzer64.exe";
 
-    internal static SpatialAnalyzerInstallation Resolve(string? explicitPath, string defaultPath) =>
-        Select(explicitPath, defaultPath, ReadInstalledDirectories(), File.Exists, FileVersion);
+    internal static SpatialAnalyzerInstallation Resolve(string? explicitPath, string defaultPath)
+    {
+        if (explicitPath is not null) return Check(explicitPath);
+        var elevated = OperatingSystem.IsWindows() &&
+            new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator);
+        return Select(null, defaultPath, ReadInstalledDirectories(elevated), File.Exists, FileVersion,
+            elevated ? ProtectedExecutable : null);
+    }
 
     internal static SpatialAnalyzerInstallation Select(
         string? explicitPath,
         string defaultPath,
         IEnumerable<string> directories,
         Func<string, bool> exists,
-        Func<string, string?> version)
+        Func<string, string?> version,
+        Func<string, bool>? automaticCandidateAllowed = null)
     {
         if (explicitPath is not null)
         {
@@ -37,6 +46,7 @@ internal static class SpatialAnalyzerInstallationDiscovery
             .Select(Path.GetFullPath)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .Where(path => Check(path, exists, version).DiagnosticCode is null)
+            .Where(path => automaticCandidateAllowed?.Invoke(path) ?? true)
             .ToArray();
         return candidates.Length switch
         {
@@ -75,7 +85,7 @@ internal static class SpatialAnalyzerInstallationDiscovery
         actual == Version.Parse(SpatialAnalyzerApi.TargetVersion);
 
     private static bool IsAbsoluteLocalPath(string path) =>
-        Path.IsPathFullyQualified(path) && !path.StartsWith(@"\\", StringComparison.Ordinal);
+        Path.IsPathFullyQualified(path) && !path.StartsWith(@"\\", StringComparison.Ordinal) && !path.StartsWith("//", StringComparison.Ordinal);
 
     private static string? FileVersion(string path)
     {
@@ -89,7 +99,7 @@ internal static class SpatialAnalyzerInstallationDiscovery
         }
     }
 
-    private static List<string> ReadInstalledDirectories()
+    private static List<string> ReadInstalledDirectories(bool machineOnly)
     {
         if (!OperatingSystem.IsWindows())
         {
@@ -101,6 +111,7 @@ internal static class SpatialAnalyzerInstallationDiscovery
         {
             foreach (var hive in new[] { RegistryHive.CurrentUser, RegistryHive.LocalMachine })
             {
+                if (machineOnly && hive == RegistryHive.CurrentUser) continue;
                 try
                 {
                     using var root = RegistryKey.OpenBaseKey(hive, view);
@@ -151,6 +162,31 @@ internal static class SpatialAnalyzerInstallationDiscovery
         }
 
         return result;
+    }
+
+    private static bool ProtectedExecutable(string path)
+    {
+        if (!OperatingSystem.IsWindows()) return false;
+        try
+        {
+            const FileSystemRights changes = FileSystemRights.Write | FileSystemRights.Delete |
+                FileSystemRights.DeleteSubdirectoriesAndFiles | FileSystemRights.ChangePermissions | FileSystemRights.TakeOwnership;
+            static bool Trusted(string sid) => sid is "S-1-5-32-544" or "S-1-5-18" or
+                "S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464";
+            FileSystemInfo item = new FileInfo(path);
+            while (item is not DirectoryInfo { Parent: null })
+            {
+                if ((item.Attributes & FileAttributes.ReparsePoint) != 0) return false;
+                var acl = item is FileInfo file ? (FileSystemSecurity)file.GetAccessControl() : ((DirectoryInfo)item).GetAccessControl();
+                if (acl.GetOwner(typeof(SecurityIdentifier)) is not SecurityIdentifier owner || !Trusted(owner.Value)) return false;
+                foreach (FileSystemAccessRule rule in acl.GetAccessRules(true, true, typeof(SecurityIdentifier)))
+                    if (rule.AccessControlType == AccessControlType.Allow && (rule.FileSystemRights & changes) != 0 &&
+                        !Trusted(rule.IdentityReference.Value)) return false;
+                item = item is FileInfo leaf ? leaf.Directory! : ((DirectoryInfo)item).Parent!;
+            }
+            return true;
+        }
+        catch (Exception exception) when (ReadFailure(exception)) { return false; }
     }
 
     internal static string? IconPath(string value)

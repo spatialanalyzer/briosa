@@ -122,6 +122,7 @@ try {
         "--no-restore",
         "-o", $workerOutput,
         "-p:Version=$Version",
+        "-p:FileVersion=$targetVersion",
         "-p:InformationalVersion=$Version",
         "-p:SourceRevisionId=$SourceRevision",
         "-p:IncludeSourceRevisionInInformationalVersion=false",
