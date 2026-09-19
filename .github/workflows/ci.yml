@@ -51,6 +51,10 @@ jobs:
         shell: pwsh
         run: ./eng/Test-ReleaseSigning.ps1
 
+      - name: Verify retained-client bootstrap boundary
+        shell: pwsh
+        run: ./eng/Test-RetainedClientPolicy.ps1
+
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: '3.12'
@@ -226,8 +230,22 @@ jobs:
         shell: pwsh
         run: ./eng/Test-ClientConformancePackage.ps1 -Version 0.2.0-ci
 
+      - name: Retain packaged server for published-client gate
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: compatibility-server-${{ matrix.target.sa_version }}
+          path: ${{ matrix.target.path }}/artifacts/client-conformance-smoke/briosa-client-conformance-*
+          if-no-files-found: error
+
       - name: Run packaged client scenarios
         shell: pwsh
         run: >
           ./eng/Test-ClientScenarios.ps1
           -PackagePath artifacts/package-smoke/briosa-0.1.0-ci-sa-${{ matrix.target.sa_version }}-win-x64.zip
+
+  retained-client-compatibility:
+    needs: package-smoke
+    uses: ./.github/workflows/retained-client-compatibility.yml
+    with:
+      server-version: 0.2.0-ci
+      pull-request-bootstrap: true

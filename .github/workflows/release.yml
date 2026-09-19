@@ -117,9 +117,22 @@ jobs:
           path: ${{ matrix.target.path }}/artifacts/release/*
           if-no-files-found: error
 
+      - name: Retain packaged server for published-client gate
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: compatibility-server-${{ matrix.target.sa_version }}
+          path: ${{ matrix.target.path }}/artifacts/release/briosa-client-conformance-*
+          if-no-files-found: error
+
+  retained-client-compatibility:
+    needs: [version, package]
+    uses: ./.github/workflows/retained-client-compatibility.yml
+    with:
+      server-version: ${{ needs.version.outputs.value }}
+
   sign:
     name: Sign SA ${{ matrix.sa_version }} product
-    needs: [version, package]
+    needs: [version, package, retained-client-compatibility]
     if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
     runs-on: windows-2025
     timeout-minutes: 20
