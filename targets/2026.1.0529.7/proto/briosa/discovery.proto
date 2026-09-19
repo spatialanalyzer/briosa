@@ -31,6 +31,14 @@ message GetServerInfoResponse {
   TargetIsolationMode target_isolation_mode = 8;
   RuntimeIdentityEvidence activated_sdk_identity = 9;
   RuntimeIdentityEvidence connected_spatial_analyzer_identity = 10;
+  // Behavioral promise, independent of release and source identity.
+  CompatibilityContract compatibility = 11;
+}
+
+// Scoped to the exact SA target. Revisions preserve earlier behavior.
+message CompatibilityContract {
+  uint32 major = 1;
+  uint32 revision = 2;
 }
 
 message RuntimeIdentityEvidence {

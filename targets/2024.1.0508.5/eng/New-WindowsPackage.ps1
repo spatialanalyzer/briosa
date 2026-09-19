@@ -234,7 +234,8 @@ try {
         -Destination (Join-Path $metadataRoot "interop-provenance.json")
 
     $manifest = [ordered]@{
-        schemaVersion = 2
+        schemaVersion = 3
+        compatibility = (Get-Content -LiteralPath (Join-Path $repositoryRoot "compatibility.json") -Raw | ConvertFrom-Json | Select-Object major, revision)
         artifactName = $artifactBase
         briosaVersion = $Version
         sourceRevision = $SourceRevision.ToLowerInvariant()

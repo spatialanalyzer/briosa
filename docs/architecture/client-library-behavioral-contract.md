@@ -35,10 +35,13 @@ cross-language review that established this boundary.
 
 ### Installed server discovery
 
-First-party clients use the ordered, exact-target lookup and installation checks
-in the [installed package store contract](installed-package-store.md#client-server-discovery).
-Discovery never downloads a package, selects a newer server version, or replaces
-the runtime compatibility and readiness checks.
+Contract-aware first-party clients use the deterministic, exact-target selection in
+[installation selection and compatibility](installation-selection-and-compatibility.md).
+They discover registered and committed installations, choose a compatible stable
+build within application constraints, and freeze that choice for the session.
+Discovery never downloads a package or replaces runtime identity/readiness checks.
+The [installed-store contract](installed-package-store.md#client-server-discovery)
+also records the older exact-pinned client behavior for migration.
 
 ### Server logging startup controls
 
@@ -304,9 +307,12 @@ SpatialAnalyzer startup assumptions, and detailed ownership state machine.
 ## Compatibility and capabilities
 
 First-party packages are target-specific and lock one reviewed target-qualified
-protocol artifact. Startup verifies the server identity coordinates actually
-published by discovery against the exact target and locked artifact. A client does
-not invent or require a runtime fingerprint that the server does not publish.
+protocol artifact for reproducible generation. Contract-aware startup validates
+the runtime behavioral major/minimum revision and exact target, then compares
+server build coordinates against the selected installation's manifest. Compatible
+servers need not equal the generation artifact's release or source revision.
+Only the documented exact 0.6.1 legacy entry permits absent contract metadata.
+Published exact-pinned clients retain their original checks.
 
 The client captures the admitted capability set for each generation. Runtime
 policy may expose a supported subset, so startup does not infer that every RPC

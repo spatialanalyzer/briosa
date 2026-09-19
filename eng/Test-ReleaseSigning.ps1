@@ -29,6 +29,13 @@ function global:az {
     @{keyId=$global:BriosaSigningFixtureKeyId;algorithm='PS256';signature=[Convert]::ToBase64String($signature).TrimEnd('=').Replace('+','-').Replace('/','_')} | ConvertTo-Json -Compress
 }
 try {
+    Import-Module (Join-Path $PSScriptRoot 'ReleasePackageSigning.psm1') -Force
+    Assert-ServerCompatibilityMetadata ([pscustomobject]@{schemaVersion=2})
+    Assert-ServerCompatibilityMetadata ([pscustomobject]@{schemaVersion=3;compatibility=@{major=1;revision=0}})
+    foreach ($bad in @($null, @{major=0;revision=0}, @{major=1;revision=-1}, @{major='1';revision=0},
+        @{major=1;revision=$true}, @{major=1;revision=4294967296})) {
+        Assert-Fails { Assert-ServerCompatibilityMetadata ([pscustomobject]@{schemaVersion=3;compatibility=$bad}) } 'Invalid compatibility metadata was accepted.'
+    }
     $catalog = Join-Path $root 'catalog.json'
     $publicKey = Join-Path $root 'public.pem'
     [IO.File]::WriteAllText($catalog, '{"schemaVersion":1,"packages":[]}')

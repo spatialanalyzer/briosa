@@ -107,7 +107,9 @@ try {
     Assert-Condition -Condition ($manifest.sourceRevision -eq $sourceRevision.ToLowerInvariant()) -Message "The manifest source revision is incorrect."
     Assert-Condition -Condition ($manifest.runtimeIdentifier -eq "win-x64") -Message "The manifest runtime identifier is incorrect."
     Assert-Condition -Condition ($manifest.selfContained -and -not $manifest.trimmed) -Message "The package must be self-contained and untrimmed."
-    Assert-Condition -Condition ($manifest.schemaVersion -eq 2) -Message "The package manifest schema version is incorrect."
+    Assert-Condition -Condition ($manifest.schemaVersion -eq 3) -Message "The package manifest schema version is incorrect."
+    $contract = Get-Content (Join-Path $repositoryRoot "compatibility.json") -Raw | ConvertFrom-Json
+    Assert-Condition -Condition ($manifest.compatibility.major -eq $contract.major -and $manifest.compatibility.revision -eq $contract.revision) -Message "The package compatibility declaration is incorrect."
     Assert-Condition -Condition ($manifest.protocolPackage -eq "briosa") -Message "The package protocol identity is incorrect."
     Assert-Condition -Condition ($null -eq $manifest.PSObject.Properties["coreProtocolPackage"] -and $null -eq $manifest.PSObject.Properties["targetProtocolPackage"]) -Message "A retired versioned protocol identity leaked into the package."
     Assert-Condition -Condition ($null -eq $manifest.PSObject.Properties["catalogRevision"]) -Message "The retired catalog revision leaked into the package."

@@ -52,6 +52,7 @@ These coordinates are independent:
 - Briosa repository/server semantic version;
 - exact SpatialAnalyzer target release;
 - Windows runtime architecture;
+- behavioral compatibility major and revision;
 - protocol artifact snapshot; and
 - language-specific client package version.
 
@@ -64,6 +65,11 @@ Client repositories publish one package per exact SA target, such as
 language namespaces remain release-neutral. Matching public names ease source
 migration; they do not claim that contracts from different targets are wire- or
 behavior-compatible.
+
+Within one exact SA target, contract-aware clients select compatible server builds
+using the [installation and compatibility contract](installation-selection-and-compatibility.md).
+The generation artifact remains pinned for reproducibility. It is independent of
+the selected runtime build, whose manifest and live identity must agree.
 
 ## Windows server package
 

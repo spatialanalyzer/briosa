@@ -81,6 +81,19 @@ internal sealed partial class SpatialAnalyzerLifecycleCoordinator(
             }
 
             var startInfo = CreateStartInfo(request);
+            var installationDiagnostic = _options.InstallationDiagnostic ??
+                (_options.RequireInstalledIdentity
+                    ? SpatialAnalyzerInstallationDiscovery.Check(_options.ExecutablePath).DiagnosticCode
+                    : null);
+            if (installationDiagnostic is not null)
+            {
+                throw SpatialAnalyzerLifecycleException.FailedPrecondition(
+                    global::Briosa.SpatialAnalyzerLifecycleFailureKind.LaunchFailed,
+                    installationDiagnostic,
+                    _current.Clone(),
+                    global::Briosa.LifecycleRecoveryGuidance.CorrectEnvironment);
+            }
+
             if (!File.Exists(_options.ExecutablePath))
             {
                 throw SpatialAnalyzerLifecycleException.NotFound(

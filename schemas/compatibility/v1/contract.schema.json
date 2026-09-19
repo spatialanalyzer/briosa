@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Briosa behavioral compatibility contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "major",
+    "revision"
+  ],
+  "properties": {
+    "major": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 4294967295
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4294967295
+    }
+  }
+}

@@ -1,6 +1,20 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
+function Assert-ServerCompatibilityMetadata {
+    param([Parameter(Mandatory)]$Manifest)
+    if ($Manifest.schemaVersion -eq 2) { return }
+    if ($Manifest.schemaVersion -ne 3) { throw 'Unsupported server manifest schema.' }
+    $major = $Manifest.compatibility.major
+    $revision = $Manifest.compatibility.revision
+    foreach ($value in @($major, $revision)) {
+        if (($value -isnot [int] -and $value -isnot [long]) -or $value -lt 0 -or $value -gt [uint32]::MaxValue) {
+            throw 'Invalid server compatibility coordinates.'
+        }
+    }
+    if ($major -eq 0) { throw 'Compatibility major zero is reserved for legacy metadata.' }
+}
+
 function Get-ReleaseSigningFiles {
     param([Parameter(Mandatory)][string]$PackageRoot)
     $root = (Resolve-Path -LiteralPath $PackageRoot).Path
@@ -16,7 +30,8 @@ function Get-ReleaseSigningFiles {
         if ($manifest.schemaVersion -ne 1 -or -not $name.StartsWith('briosa-installer-')) { throw 'Invalid installer manifest.' }
     } else {
         $required = @('Briosa.Server.exe', 'Briosa.Worker.exe')
-        if ($manifest.schemaVersion -ne 2 -or $name -cne "briosa-$($manifest.briosaVersion)-sa-$($manifest.spatialAnalyzerTarget)-win-x64") { throw 'Invalid server manifest.' }
+        if ($manifest.schemaVersion -notin @(2, 3) -or $name -cne "briosa-$($manifest.briosaVersion)-sa-$($manifest.spatialAnalyzerTarget)-win-x64") { throw 'Invalid server manifest.' }
+        Assert-ServerCompatibilityMetadata $manifest
     }
     foreach ($requiredName in $required) {
         if (-not (Test-Path -LiteralPath (Join-Path $root $requiredName) -PathType Leaf)) { throw "Missing first-party release file: $requiredName" }
@@ -95,4 +110,4 @@ function New-ReleaseArchive {
     } finally { $stream.Dispose() }
 }
 
-Export-ModuleMember -Function Get-ReleaseSigningFiles, Assert-ReleaseTree, Assert-ReleaseChecksums, Assert-ReleaseSignatures, New-ReleaseArchive
+Export-ModuleMember -Function Get-ReleaseSigningFiles, Assert-ServerCompatibilityMetadata, Assert-ReleaseTree, Assert-ReleaseChecksums, Assert-ReleaseSignatures, New-ReleaseArchive

@@ -19,6 +19,7 @@
     </AssemblyAttribute>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="../../compatibility.json" LogicalName="Briosa.Compatibility" />
     <PackageReference Include="Grpc.AspNetCore" />
     <PackageReference Include="Grpc.AspNetCore.HealthChecks" />
     <PackageReference Include="Serilog.Extensions.Logging" />
