@@ -103,7 +103,11 @@ jobs:
             PublishedPackageUrl = $env:CLIENT_URL; ArtifactPath = $artifact; LockPath = $lockPath
             EvidencePath = (Join-Path $PWD 'compatibility-evidence.json')
           }
-          & "./retained-client/targets/$env:SA_TARGET/eng/Test-PublishedClientConformance.ps1" @arguments
+          # Resolve tooling from the retained client's target, including its global.json.
+          # The server checkout may require a different SDK from the published client.
+          Push-Location (Join-Path $PWD "retained-client/targets/$env:SA_TARGET")
+          try { & ./eng/Test-PublishedClientConformance.ps1 @arguments }
+          finally { Pop-Location }
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: retained-${{ matrix.language }}-${{ matrix.target }}-${{ matrix.version }}
@@ -124,4 +128,3 @@ jobs:
           if ($env:POLICY -ne 'success' -or ($env:BOOTSTRAP -ne 'true' -and $env:CONFORMANCE -ne 'success')) {
             throw 'Retained-client compatibility gate failed.'
           }
-
