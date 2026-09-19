@@ -1,33 +1,33 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-09-19T00:27:47.3463949+00:00",
+  "generatedAt": "2026-09-19T06:58:36.8032470+00:00",
   "validationKind": "packaged-client-and-server-fake-sdk",
   "passed": true,
   "licensedSpatialAnalyzer": false,
   "client": {
-    "repository": "https://github.com/spatialanalyzer/briosa-dotnet",
+    "requiredContract": {
+      "minimumRevision": 0,
+      "major": 1
+    },
+    "sourceRevision": "9e9d8e9c56abcc576058d3c0087d8e6086dc4b45",
     "version": "0.2.0",
+    "uncommittedChanges": false,
+    "protocolArtifact": {
+      "name": "briosa-protocol-0.7.0-sa-2024.1.0508.5",
+      "file_name": "briosa-protocol-0.7.0-sa-2024.1.0508.5.zip",
+      "sha256": "ed3e5cdab5718327c3c644d441b18faf18a34e95fa4407fa177ed305c75f687f",
+      "briosa_version": "0.7.0",
+      "source_revision": "4303a3322074869b35a3f16f9e35484a7bd5c830",
+      "source_repository": "https://github.com/spatialanalyzer/briosa",
+      "source_channel": "github_release"
+    },
+    "repository": "https://github.com/spatialanalyzer/briosa-dotnet",
     "package": {
       "name": "Briosa.2024.1.0508.5",
-      "sha256": "1c1cc5f885f014142acabcc9c2eb105ad0dde657927b51601b93cef3a2e6637c",
       "version": "0.2.0",
-      "publishedUrl": ""
-    },
-    "sourceRevision": "f00e5adca5ecb83147b0e580eda50dcb1a2f3d40",
-    "protocolArtifact": {
-      "name": "briosa-protocol-0.7.0-preview.2-sa-2024.1.0508.5",
-      "file_name": "briosa-protocol-0.7.0-preview.2-sa-2024.1.0508.5.zip",
-      "sha256": "da57d4404e419fd55bee5c20534222cf77563f900de9a1d2e286d9d36a55ac0c",
-      "briosa_version": "0.7.0-preview.2",
-      "source_revision": "53e97e2f5fc0eeba953b99e5bfaded91ed859828",
-      "source_repository": "https://github.com/spatialanalyzer/briosa",
-      "source_channel": "source_commit_bootstrap"
-    },
-    "requiredContract": {
-      "major": 1,
-      "minimumRevision": 0
-    },
-    "uncommittedChanges": false
+      "publishedUrl": "https://api.nuget.org/v3-flatcontainer/briosa.2024.1.0508.5/0.2.0/briosa.2024.1.0508.5.0.2.0.nupkg",
+      "sha256": "34e69aec999a3ff631c8198671745fa8cd2dac830e8a6d83f734038fc50433b6"
+    }
   },
   "server": {
     "name": "briosa-client-conformance-0.6.1-sa-2024.1.0508.5-win-x64",

@@ -66,6 +66,14 @@ class PublishingTests(unittest.TestCase):
     def tearDown(self):
         self.temp.cleanup()
 
+    def test_reviewed_catalog_matches_producer_order_and_encoding(self):
+        # Publication regenerates this file and requires identical bytes before upload.
+        raw = Path(__file__).with_name("catalog.json").read_bytes()
+        reviewed = r2.parse_catalog(raw)
+        identifiers = [package["id"] for package in reviewed["packages"]]
+        self.assertEqual(identifiers, sorted(identifiers))
+        self.assertEqual(raw, encoded(reviewed))
+
     def test_catalog_validates_exact_product_paths(self):
         self.assertEqual(r2.parse_catalog(encoded(self.data)), self.data)
         for value in ("../escape.zip", "/absolute.zip", "packages/other.zip", "https://evil.invalid/x"):

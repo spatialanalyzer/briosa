@@ -104,6 +104,40 @@
       "spatialAnalyzerTarget": "2026.1.0529.7"
     },
     {
+      "id": "briosa-0.7.0-sa-2024.1.0508.5-win-x64",
+      "component": "server",
+      "version": "0.7.0",
+      "runtimeIdentifier": "win-x64",
+      "artifact": {
+        "path": "packages/server/2024.1.0508.5/0.7.0/briosa-0.7.0-sa-2024.1.0508.5-win-x64.zip",
+        "size": 133595067,
+        "sha256": "91d68fec619b5af437437d4e4332c6c89a41a1df1e50eb1e6cdbeafe62e93911"
+      },
+      "provenance": {
+        "path": "packages/server/2024.1.0508.5/0.7.0/briosa-0.7.0-sa-2024.1.0508.5-win-x64.provenance.json",
+        "size": 583,
+        "sha256": "561305d05b6af02d1abde8819977e0eb7c95878edde04898433d557c2ab20948"
+      },
+      "spatialAnalyzerTarget": "2024.1.0508.5"
+    },
+    {
+      "id": "briosa-0.7.0-sa-2026.1.0529.7-win-x64",
+      "component": "server",
+      "version": "0.7.0",
+      "runtimeIdentifier": "win-x64",
+      "artifact": {
+        "path": "packages/server/2026.1.0529.7/0.7.0/briosa-0.7.0-sa-2026.1.0529.7-win-x64.zip",
+        "size": 133749968,
+        "sha256": "4eae4e02524a0175fbb4a2064576ff250b0054d05964a765391578f7a50b81d9"
+      },
+      "provenance": {
+        "path": "packages/server/2026.1.0529.7/0.7.0/briosa-0.7.0-sa-2026.1.0529.7-win-x64.provenance.json",
+        "size": 583,
+        "sha256": "0c0d4bceb5ac15f9792d21dbe74b2bd6b6199f92cad37c0780e9c1c5b403021c"
+      },
+      "spatialAnalyzerTarget": "2026.1.0529.7"
+    },
+    {
       "id": "briosa-installer-0.1.0-win-x64",
       "component": "installer",
       "version": "0.1.0",
@@ -149,6 +183,22 @@
         "path": "packages/installer/0.2.2/briosa-installer-0.2.2-win-x64.provenance.json",
         "size": 199,
         "sha256": "b20b78af5f4bd3b5ca45441024c8dafff9fdacbea793dadf45bda15fa39b96a8"
+      }
+    },
+    {
+      "id": "briosa-installer-0.3.0-win-x64",
+      "component": "installer",
+      "version": "0.3.0",
+      "runtimeIdentifier": "win-x64",
+      "artifact": {
+        "path": "packages/installer/0.3.0/briosa-installer-0.3.0-win-x64.zip",
+        "size": 127774010,
+        "sha256": "828c33c42c67bfb2d76ec61066af9a27cef907d03f6d3551dc374d095badecc5"
+      },
+      "provenance": {
+        "path": "packages/installer/0.3.0/briosa-installer-0.3.0-win-x64.provenance.json",
+        "size": 199,
+        "sha256": "7dbf571c154fc750b9a69af7ad877ca6876d35f2f9be05b06a582949b4f9734b"
       }
     }
   ]
