@@ -1,33 +1,33 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-09-19T00:26:06.5383787+00:00",
+  "generatedAt": "2026-09-19T06:57:43.0226675+00:00",
   "validationKind": "packaged-client-and-server-fake-sdk",
   "passed": true,
   "licensedSpatialAnalyzer": false,
   "client": {
-    "sourceRevision": "b9ab25dfec6f90d46350b9520837d4feb3289ef5",
+    "version": "0.2.0",
+    "sourceRevision": "840f1777011815de6cb88d3206360bbd33545741",
+    "repository": "https://github.com/spatialanalyzer/briosa-js",
+    "uncommittedChanges": false,
     "protocolArtifact": {
-      "name": "briosa-protocol-0.7.0-preview.2-sa-2026.1.0529.7",
-      "file_name": "briosa-protocol-0.7.0-preview.2-sa-2026.1.0529.7.zip",
-      "sha256": "68a5a1accd604ca74381ec4c42fcca4bd8caa5d0d1413d3200d8a41c50d1720a",
-      "briosa_version": "0.7.0-preview.2",
-      "source_revision": "53e97e2f5fc0eeba953b99e5bfaded91ed859828",
+      "name": "briosa-protocol-0.7.0-sa-2026.1.0529.7",
+      "file_name": "briosa-protocol-0.7.0-sa-2026.1.0529.7.zip",
+      "sha256": "cba09edd7c0403c0026f2b7301c8a8161ef0c1cf74b0c8caf022a56f318d2677",
+      "briosa_version": "0.7.0",
+      "source_revision": "4303a3322074869b35a3f16f9e35484a7bd5c830",
       "source_repository": "https://github.com/spatialanalyzer/briosa",
-      "source_channel": "source_commit_bootstrap"
+      "source_channel": "github_release"
     },
     "requiredContract": {
-      "minimumRevision": 0,
-      "major": 1
+      "major": 1,
+      "minimumRevision": 0
     },
     "package": {
-      "sha256": "03e0ef5eb7fd02a29d94792ca0cb3f078bd8ced25a0e3f772f5a5487a80c8f0f",
+      "version": "0.2.0",
       "name": "@spatialanalyzer/briosa-2026.1.0529.7",
-      "publishedUrl": "",
-      "version": "0.2.0"
-    },
-    "uncommittedChanges": false,
-    "version": "0.2.0",
-    "repository": "https://github.com/spatialanalyzer/briosa-js"
+      "publishedUrl": "https://registry.npmjs.org/@spatialanalyzer/briosa-2026.1.0529.7/-/briosa-2026.1.0529.7-0.2.0.tgz",
+      "sha256": "f9d413a1adea1e95371c6fd23d1539e6476be88ef3525ae75455ae4557fe1591"
+    }
   },
   "server": {
     "name": "briosa-client-conformance-0.6.1-sa-2026.1.0529.7-win-x64",

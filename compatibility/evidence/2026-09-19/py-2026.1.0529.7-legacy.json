@@ -1,32 +1,32 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-09-19T00:26:21.0220650+00:00",
+  "generatedAt": "2026-09-19T06:54:58.8703702+00:00",
   "validationKind": "packaged-client-and-server-fake-sdk",
   "passed": true,
   "licensedSpatialAnalyzer": false,
   "client": {
-    "repository": "https://github.com/spatialanalyzer/briosa-py",
-    "version": "0.2.0",
     "uncommittedChanges": false,
-    "sourceRevision": "53befddaa544b80f71a2982cf3d576d576b0b480",
-    "protocolArtifact": {
-      "name": "briosa-protocol-0.7.0-preview.2-sa-2026.1.0529.7",
-      "file_name": "briosa-protocol-0.7.0-preview.2-sa-2026.1.0529.7.zip",
-      "sha256": "68a5a1accd604ca74381ec4c42fcca4bd8caa5d0d1413d3200d8a41c50d1720a",
-      "briosa_version": "0.7.0-preview.2",
-      "source_revision": "53e97e2f5fc0eeba953b99e5bfaded91ed859828",
-      "source_repository": "https://github.com/spatialanalyzer/briosa",
-      "source_channel": "source_commit_bootstrap"
-    },
-    "package": {
-      "version": "0.2.0",
-      "publishedUrl": "",
-      "name": "briosa-2026-1-0529-7",
-      "sha256": "ec04ace0d8beae7ce555565576c130929ceb40c8b3fff8b77072fb82c1f9e69c"
-    },
     "requiredContract": {
       "major": 1,
       "minimumRevision": 0
+    },
+    "sourceRevision": "79ee1146bdb25948ec60e0b56fa86d3a6494b809",
+    "package": {
+      "publishedUrl": "https://files.pythonhosted.org/packages/f2/08/1735e06a34266e275b4312e2e481ff5effcfd96b34b18087dd4550a9d961/briosa_2026_1_0529_7-0.2.0-py3-none-any.whl",
+      "version": "0.2.0",
+      "sha256": "94015aadb4a8b1797f39c65f42fa4f80bc13800bf8c6df1ceb7c85dcc2384de7",
+      "name": "briosa-2026-1-0529-7"
+    },
+    "repository": "https://github.com/spatialanalyzer/briosa-py",
+    "version": "0.2.0",
+    "protocolArtifact": {
+      "name": "briosa-protocol-0.7.0-sa-2026.1.0529.7",
+      "file_name": "briosa-protocol-0.7.0-sa-2026.1.0529.7.zip",
+      "sha256": "cba09edd7c0403c0026f2b7301c8a8161ef0c1cf74b0c8caf022a56f318d2677",
+      "briosa_version": "0.7.0",
+      "source_revision": "4303a3322074869b35a3f16f9e35484a7bd5c830",
+      "source_repository": "https://github.com/spatialanalyzer/briosa",
+      "source_channel": "github_release"
     }
   },
   "server": {

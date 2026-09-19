@@ -8,11 +8,11 @@
     "2026.1.0529.7",
     "2024.1.0508.5"
   ],
-  "status": "development-packages-validated",
+  "status": "published-packages-validated",
   "legacyBaseline": {
     "sourceRevision": "32a3b56ba4ae31ea5ec6ec3b2aa051eb61c866aa",
     "serverVersion": "0.6.1",
-    "validation": "all-six-development-client-packages-passed"
+    "validation": "all-six-published-client-packages-passed"
   },
   "testedPairs": [
     {
@@ -21,11 +21,11 @@
         "minimumRevision": 0,
         "major": 1
       },
-      "clientPublished": false,
+      "clientPublished": true,
       "clientVersion": "0.2.0",
-      "clientSourceRevision": "f00e5adca5ecb83147b0e580eda50dcb1a2f3d40",
-      "evidenceSha256": "f2e49a0fb1ec910ca246051c205e380b71adc99ecdb730789a47f655914dfe92",
-      "clientPackageSha256": "4e5e99362a8e05b93cb9b3ad132bb023fbba8a344e2ca79722b697cc91c1dfd8",
+      "clientSourceRevision": "9e9d8e9c56abcc576058d3c0087d8e6086dc4b45",
+      "evidenceSha256": "659f84811b0b7a501ca8cbb9af54a80973d07243560d055c4d73ea1cba9d372e",
+      "clientPackageSha256": "edad2ebd5cad07c73ac2f6417c3cd1d6c06af82bbed30c480160ba847b55a7e3",
       "validationKind": "packaged-client-and-server-fake-sdk",
       "target": "2026.1.0529.7",
       "serverSourceRevision": "32a3b56ba4ae31ea5ec6ec3b2aa051eb61c866aa",
@@ -40,15 +40,15 @@
         "minimumRevision": 0,
         "major": 1
       },
-      "clientPublished": false,
+      "clientPublished": true,
       "clientVersion": "0.2.0",
-      "clientSourceRevision": "f00e5adca5ecb83147b0e580eda50dcb1a2f3d40",
-      "evidenceSha256": "e9e30a7034ceda5502a35be7cc879ae7ca357df4fb2cdeebd8c3c1ef6fc68e4e",
-      "clientPackageSha256": "4e5e99362a8e05b93cb9b3ad132bb023fbba8a344e2ca79722b697cc91c1dfd8",
+      "clientSourceRevision": "9e9d8e9c56abcc576058d3c0087d8e6086dc4b45",
+      "evidenceSha256": "fbd0151dbf4f90d461fdbd7406af5ed15d246544ff53738ceab23473842ec1b7",
+      "clientPackageSha256": "edad2ebd5cad07c73ac2f6417c3cd1d6c06af82bbed30c480160ba847b55a7e3",
       "validationKind": "packaged-client-and-server-fake-sdk",
       "target": "2026.1.0529.7",
-      "serverSourceRevision": "53e97e2f5fc0eeba953b99e5bfaded91ed859828",
-      "serverVersion": "0.7.0-preview.2",
+      "serverSourceRevision": "4303a3322074869b35a3f16f9e35484a7bd5c830",
+      "serverVersion": "0.7.0",
       "serverContract": {
         "revision": 0,
         "major": 1
@@ -62,11 +62,11 @@
         "minimumRevision": 0,
         "major": 1
       },
-      "clientPublished": false,
+      "clientPublished": true,
       "clientVersion": "0.2.0",
-      "clientSourceRevision": "f00e5adca5ecb83147b0e580eda50dcb1a2f3d40",
-      "evidenceSha256": "189d99186579944138aca8915d8b04bb5d8176f0e162a93577205bf2b683742c",
-      "clientPackageSha256": "1c1cc5f885f014142acabcc9c2eb105ad0dde657927b51601b93cef3a2e6637c",
+      "clientSourceRevision": "9e9d8e9c56abcc576058d3c0087d8e6086dc4b45",
+      "evidenceSha256": "ed0c79132647396652f39ef8b2e2bc7537e0eb1fe64048798f91f0c2201464e6",
+      "clientPackageSha256": "34e69aec999a3ff631c8198671745fa8cd2dac830e8a6d83f734038fc50433b6",
       "validationKind": "packaged-client-and-server-fake-sdk",
       "target": "2024.1.0508.5",
       "serverSourceRevision": "32a3b56ba4ae31ea5ec6ec3b2aa051eb61c866aa",
@@ -81,15 +81,15 @@
         "minimumRevision": 0,
         "major": 1
       },
-      "clientPublished": false,
+      "clientPublished": true,
       "clientVersion": "0.2.0",
-      "clientSourceRevision": "f00e5adca5ecb83147b0e580eda50dcb1a2f3d40",
-      "evidenceSha256": "8e5ffcc050d302563fa01f4a6358661f63d0963aa459ea7b05355f93dc3edffe",
-      "clientPackageSha256": "1c1cc5f885f014142acabcc9c2eb105ad0dde657927b51601b93cef3a2e6637c",
+      "clientSourceRevision": "9e9d8e9c56abcc576058d3c0087d8e6086dc4b45",
+      "evidenceSha256": "4288f6425b58c0e32b272d000f392d0441478b4eef58e3037c1241d57f79a0e4",
+      "clientPackageSha256": "34e69aec999a3ff631c8198671745fa8cd2dac830e8a6d83f734038fc50433b6",
       "validationKind": "packaged-client-and-server-fake-sdk",
       "target": "2024.1.0508.5",
-      "serverSourceRevision": "53e97e2f5fc0eeba953b99e5bfaded91ed859828",
-      "serverVersion": "0.7.0-preview.2",
+      "serverSourceRevision": "4303a3322074869b35a3f16f9e35484a7bd5c830",
+      "serverVersion": "0.7.0",
       "serverContract": {
         "revision": 0,
         "major": 1
@@ -103,11 +103,11 @@
         "minimumRevision": 0,
         "major": 1
       },
-      "clientPublished": false,
+      "clientPublished": true,
       "clientVersion": "0.2.0",
-      "clientSourceRevision": "b9ab25dfec6f90d46350b9520837d4feb3289ef5",
-      "evidenceSha256": "d592f906fb222660dfcc0b09a6278a8ebb8a172550dc689b641f1512fd534998",
-      "clientPackageSha256": "03e0ef5eb7fd02a29d94792ca0cb3f078bd8ced25a0e3f772f5a5487a80c8f0f",
+      "clientSourceRevision": "840f1777011815de6cb88d3206360bbd33545741",
+      "evidenceSha256": "6d2496f79fad11a9e3441ec717732189eac1e8a025367986e4f999c8f2c7a70d",
+      "clientPackageSha256": "f9d413a1adea1e95371c6fd23d1539e6476be88ef3525ae75455ae4557fe1591",
       "validationKind": "packaged-client-and-server-fake-sdk",
       "target": "2026.1.0529.7",
       "serverSourceRevision": "32a3b56ba4ae31ea5ec6ec3b2aa051eb61c866aa",
@@ -122,15 +122,15 @@
         "minimumRevision": 0,
         "major": 1
       },
-      "clientPublished": false,
+      "clientPublished": true,
       "clientVersion": "0.2.0",
-      "clientSourceRevision": "b9ab25dfec6f90d46350b9520837d4feb3289ef5",
-      "evidenceSha256": "828fe1549cfc836f629c0f369da25fe641e6909999d2d604e55f32b0842061e3",
-      "clientPackageSha256": "03e0ef5eb7fd02a29d94792ca0cb3f078bd8ced25a0e3f772f5a5487a80c8f0f",
+      "clientSourceRevision": "840f1777011815de6cb88d3206360bbd33545741",
+      "evidenceSha256": "1d9a4a5cf56221c09bf81aebcf3442a6c79323c7d1ec401ed114c567c7ef83b6",
+      "clientPackageSha256": "f9d413a1adea1e95371c6fd23d1539e6476be88ef3525ae75455ae4557fe1591",
       "validationKind": "packaged-client-and-server-fake-sdk",
       "target": "2026.1.0529.7",
-      "serverSourceRevision": "53e97e2f5fc0eeba953b99e5bfaded91ed859828",
-      "serverVersion": "0.7.0-preview.2",
+      "serverSourceRevision": "4303a3322074869b35a3f16f9e35484a7bd5c830",
+      "serverVersion": "0.7.0",
       "serverContract": {
         "revision": 0,
         "major": 1
@@ -144,11 +144,11 @@
         "minimumRevision": 0,
         "major": 1
       },
-      "clientPublished": false,
+      "clientPublished": true,
       "clientVersion": "0.2.0",
-      "clientSourceRevision": "b9ab25dfec6f90d46350b9520837d4feb3289ef5",
-      "evidenceSha256": "412acf594cf05a90b65e9f0515c890084ca356c29787b3bcc2e40a2ac715e5b9",
-      "clientPackageSha256": "1f14fbac89291dad474d4b2bd7a9d90279b14da065b08b00ff4416a5073dc97a",
+      "clientSourceRevision": "840f1777011815de6cb88d3206360bbd33545741",
+      "evidenceSha256": "efdbe6bcbe802cde67a6fa192d4a1616cf36845360a5703e94f3a4ff35caffed",
+      "clientPackageSha256": "a4dd954af2b8e7a8defef2579b191c6c321df563251f4cc554de97ee13e248fb",
       "validationKind": "packaged-client-and-server-fake-sdk",
       "target": "2024.1.0508.5",
       "serverSourceRevision": "32a3b56ba4ae31ea5ec6ec3b2aa051eb61c866aa",
@@ -163,15 +163,15 @@
         "minimumRevision": 0,
         "major": 1
       },
-      "clientPublished": false,
+      "clientPublished": true,
       "clientVersion": "0.2.0",
-      "clientSourceRevision": "b9ab25dfec6f90d46350b9520837d4feb3289ef5",
-      "evidenceSha256": "fe65c6067b24694cf0c38070eccddfb8a5db936049a05eba95525944c00b6800",
-      "clientPackageSha256": "1f14fbac89291dad474d4b2bd7a9d90279b14da065b08b00ff4416a5073dc97a",
+      "clientSourceRevision": "840f1777011815de6cb88d3206360bbd33545741",
+      "evidenceSha256": "c62aeb1af8132a8e25bebbff10de34f0bd337a9fcbe1cfa9cc40ca7753f57ca0",
+      "clientPackageSha256": "a4dd954af2b8e7a8defef2579b191c6c321df563251f4cc554de97ee13e248fb",
       "validationKind": "packaged-client-and-server-fake-sdk",
       "target": "2024.1.0508.5",
-      "serverSourceRevision": "53e97e2f5fc0eeba953b99e5bfaded91ed859828",
-      "serverVersion": "0.7.0-preview.2",
+      "serverSourceRevision": "4303a3322074869b35a3f16f9e35484a7bd5c830",
+      "serverVersion": "0.7.0",
       "serverContract": {
         "revision": 0,
         "major": 1
@@ -185,11 +185,11 @@
         "minimumRevision": 0,
         "major": 1
       },
-      "clientPublished": false,
+      "clientPublished": true,
       "clientVersion": "0.2.0",
-      "clientSourceRevision": "53befddaa544b80f71a2982cf3d576d576b0b480",
-      "evidenceSha256": "8cfa554c42e4a4386f7aa87f9e452afeb51cfd9ce2365391a768e19e25e05fb7",
-      "clientPackageSha256": "ec04ace0d8beae7ce555565576c130929ceb40c8b3fff8b77072fb82c1f9e69c",
+      "clientSourceRevision": "79ee1146bdb25948ec60e0b56fa86d3a6494b809",
+      "evidenceSha256": "f83249692ef70efe4b808767af495906a5708580b73e9bcd71cae28d26d52c92",
+      "clientPackageSha256": "94015aadb4a8b1797f39c65f42fa4f80bc13800bf8c6df1ceb7c85dcc2384de7",
       "validationKind": "packaged-client-and-server-fake-sdk",
       "target": "2026.1.0529.7",
       "serverSourceRevision": "32a3b56ba4ae31ea5ec6ec3b2aa051eb61c866aa",
@@ -204,15 +204,15 @@
         "minimumRevision": 0,
         "major": 1
       },
-      "clientPublished": false,
+      "clientPublished": true,
       "clientVersion": "0.2.0",
-      "clientSourceRevision": "53befddaa544b80f71a2982cf3d576d576b0b480",
-      "evidenceSha256": "5adb286a99a8ed1168ca56afb0d2bd52a1d0994b83c5820339467fd55cf501da",
-      "clientPackageSha256": "ec04ace0d8beae7ce555565576c130929ceb40c8b3fff8b77072fb82c1f9e69c",
+      "clientSourceRevision": "79ee1146bdb25948ec60e0b56fa86d3a6494b809",
+      "evidenceSha256": "0f8a2088b610dbcaad0eb562b08b674c46b216149da08316e5c63fed8e5925c2",
+      "clientPackageSha256": "94015aadb4a8b1797f39c65f42fa4f80bc13800bf8c6df1ceb7c85dcc2384de7",
       "validationKind": "packaged-client-and-server-fake-sdk",
       "target": "2026.1.0529.7",
-      "serverSourceRevision": "53e97e2f5fc0eeba953b99e5bfaded91ed859828",
-      "serverVersion": "0.7.0-preview.2",
+      "serverSourceRevision": "4303a3322074869b35a3f16f9e35484a7bd5c830",
+      "serverVersion": "0.7.0",
       "serverContract": {
         "revision": 0,
         "major": 1
@@ -226,11 +226,11 @@
         "minimumRevision": 0,
         "major": 1
       },
-      "clientPublished": false,
+      "clientPublished": true,
       "clientVersion": "0.2.0",
-      "clientSourceRevision": "53befddaa544b80f71a2982cf3d576d576b0b480",
-      "evidenceSha256": "1dd78c2fc357aec622e8ebcdfba6e361bffaa4d4d9c36246b532da68ba529fec",
-      "clientPackageSha256": "ffe5bc8b8336dd1a53397e59e26197260285248ccaa816e7a09340ed2b0752ac",
+      "clientSourceRevision": "79ee1146bdb25948ec60e0b56fa86d3a6494b809",
+      "evidenceSha256": "a6eda94de19ca85d0f393959e0bf7b48cf62cfdbcf5d0b27f8e983e5f390b665",
+      "clientPackageSha256": "a15e688db2b51b7e33feca973dd0c9ee272f0da4e5ec60352b9291a9133b6339",
       "validationKind": "packaged-client-and-server-fake-sdk",
       "target": "2024.1.0508.5",
       "serverSourceRevision": "32a3b56ba4ae31ea5ec6ec3b2aa051eb61c866aa",
@@ -245,15 +245,15 @@
         "minimumRevision": 0,
         "major": 1
       },
-      "clientPublished": false,
+      "clientPublished": true,
       "clientVersion": "0.2.0",
-      "clientSourceRevision": "53befddaa544b80f71a2982cf3d576d576b0b480",
-      "evidenceSha256": "96a94c0828fef3efdd8d2eb46b946ada04c1c0ecb3108d8638768083a1a84b4b",
-      "clientPackageSha256": "ffe5bc8b8336dd1a53397e59e26197260285248ccaa816e7a09340ed2b0752ac",
+      "clientSourceRevision": "79ee1146bdb25948ec60e0b56fa86d3a6494b809",
+      "evidenceSha256": "f41de0b6382894e62a1f20173dd4cfb1acacf13adc7aa56a0a9d95d10a65c71c",
+      "clientPackageSha256": "a15e688db2b51b7e33feca973dd0c9ee272f0da4e5ec60352b9291a9133b6339",
       "validationKind": "packaged-client-and-server-fake-sdk",
       "target": "2024.1.0508.5",
-      "serverSourceRevision": "53e97e2f5fc0eeba953b99e5bfaded91ed859828",
-      "serverVersion": "0.7.0-preview.2",
+      "serverSourceRevision": "4303a3322074869b35a3f16f9e35484a7bd5c830",
+      "serverVersion": "0.7.0",
       "serverContract": {
         "revision": 0,
         "major": 1
@@ -263,5 +263,47 @@
     }
   ],
   "schemaVersion": 1,
-  "releaseValidation": "Repeat with published Server 0.7.0 and all six published client 0.2.0 packages; populate retained-clients.json from their actual registry artifacts."
+  "releaseValidation": "All six registry-downloaded client 0.2.0 packages passed 12 scenarios against each public Server 0.6.1 and 0.7.0 conformance bundle. Retained client artifacts match their successful publishing workflows; NuGet repository signatures are excluded only when comparing archive payloads. Licensed SpatialAnalyzer validation was not run for this change.",
+  "declaredCompatibility": {
+    "clients": [
+      {
+        "version": "0.2.0",
+        "language": "dotnet"
+      },
+      {
+        "version": "0.2.0",
+        "language": "js"
+      },
+      {
+        "version": "0.2.0",
+        "language": "py"
+      }
+    ],
+    "exactTargets": [
+      "2026.1.0529.7",
+      "2024.1.0508.5"
+    ],
+    "runtimeIdentifier": "win-x64",
+    "requiredServerContract": {
+      "major": 1,
+      "minimumRevision": 0
+    },
+    "serverVersions": {
+      "minimumInclusive": null,
+      "maximumExclusive": null,
+      "prereleaseRequiresOptIn": true
+    },
+    "excludedServerBuilds": [],
+    "legacyExceptions": [
+      {
+        "serverVersion": "0.6.1",
+        "sourceRevision": "32a3b56ba4ae31ea5ec6ec3b2aa051eb61c866aa",
+        "exactTargets": [
+          "2026.1.0529.7",
+          "2024.1.0508.5"
+        ]
+      }
+    ],
+    "applicationMayNarrowSelection": true
+  }
 }
