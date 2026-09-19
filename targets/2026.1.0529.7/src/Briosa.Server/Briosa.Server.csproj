@@ -31,6 +31,7 @@
     <ProjectReference Include="..\Briosa.Worker.Control\Briosa.Worker.Control.csproj" />
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+    <PackageReference Include="Grpc.Tools" />
     <ProjectReference Include="..\Briosa.Worker\Briosa.Worker.csproj"
                       ReferenceOutputAssembly="false" />
     <PackageReference Include="Grpc.AspNetCore.Server.Reflection" />
