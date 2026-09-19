@@ -16,8 +16,7 @@ internal static class SpatialAnalyzerInstallationDiscovery
     internal static SpatialAnalyzerInstallation Resolve(string? explicitPath, string defaultPath)
     {
         if (explicitPath is not null) return Check(explicitPath);
-        var elevated = OperatingSystem.IsWindows() &&
-            new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator);
+        var elevated = IsElevated();
         return Select(null, defaultPath, ReadInstalledDirectories(elevated), File.Exists, FileVersion,
             elevated ? ProtectedExecutable : null);
     }
@@ -164,24 +163,25 @@ internal static class SpatialAnalyzerInstallationDiscovery
         return result;
     }
 
+    private static bool IsElevated()
+    {
+        if (!OperatingSystem.IsWindows()) return false;
+        using var identity = WindowsIdentity.GetCurrent();
+        return identity.IsSystem || new WindowsPrincipal(identity).IsInRole(WindowsBuiltInRole.Administrator);
+    }
+
     private static bool ProtectedExecutable(string path)
     {
         if (!OperatingSystem.IsWindows()) return false;
         try
         {
-            const FileSystemRights changes = FileSystemRights.Write | FileSystemRights.Delete |
-                FileSystemRights.DeleteSubdirectoriesAndFiles | FileSystemRights.ChangePermissions | FileSystemRights.TakeOwnership;
-            static bool Trusted(string sid) => sid is "S-1-5-32-544" or "S-1-5-18" or
-                "S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464";
+            var applicationDirectory = Path.GetDirectoryName(path);
             FileSystemInfo item = new FileInfo(path);
             while (item is not DirectoryInfo { Parent: null })
             {
                 if ((item.Attributes & FileAttributes.ReparsePoint) != 0) return false;
                 var acl = item is FileInfo file ? (FileSystemSecurity)file.GetAccessControl() : ((DirectoryInfo)item).GetAccessControl();
-                if (acl.GetOwner(typeof(SecurityIdentifier)) is not SecurityIdentifier owner || !Trusted(owner.Value)) return false;
-                foreach (FileSystemAccessRule rule in acl.GetAccessRules(true, true, typeof(SecurityIdentifier)))
-                    if (rule.AccessControlType == AccessControlType.Allow && (rule.FileSystemRights & changes) != 0 &&
-                        !Trusted(rule.IdentityReference.Value)) return false;
+                if (!InstallationProtection.Allows(acl, item is FileInfo || item.FullName == applicationDirectory)) return false;
                 item = item is FileInfo leaf ? leaf.Directory! : ((DirectoryInfo)item).Parent!;
             }
             return true;

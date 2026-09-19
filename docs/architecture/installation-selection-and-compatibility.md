@@ -75,7 +75,13 @@ an invalid explicit selection never falls back. Automatic resolution:
    before SDK/SA actions. Do not fall back after runtime admission begins.
 5. Freeze selection for the session and its recovery; resolve again on fresh start.
 
-Elevated automatic discovery excludes user-writable candidates. Explicit paths are
+Elevated automatic discovery excludes user-writable candidates. Payload files and
+directories require trusted ownership (SYSTEM, Administrators or TrustedInstaller)
+and no effective untrusted write, delete or permission-change grants. Ancestors must
+prevent replacement or permission changes; permission to create unrelated siblings
+(such as the normal ProgramData ACL) does not make a protected child writable.
+Inherit-only rules do not grant access to the current object. These rules match the
+installer's Windows registration policy. Explicit paths are
 deliberate choices but cannot bypass compatibility or exact-target gates. Registry
 claims cannot relax scope policy. Detailed diagnostics expose paths only on explicit
 request; routine logs remain low-sensitivity.
