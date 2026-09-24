@@ -1,6 +1,6 @@
 # MP Argument Name Migration
 
-The next server and client releases remove parenthetical MP-label qualifiers from public argument and result names. For example, `angle_tolerance_0_0_for_none` becomes `angle_tolerance` (`angleTolerance` in .NET and JavaScript). **0.0 still disables angle tolerance.** Units, defaults, presence, omission behavior, and SDK bindings do not change.
+Server 0.8.0 and client 0.3.0 remove parenthetical MP-label qualifiers from public argument and result names. For example, `angle_tolerance_0_0_for_none` becomes `angle_tolerance` (`angleTolerance` in .NET and JavaScript). **0.0 still disables angle tolerance.** Units, defaults, presence, omission behavior, and SDK bindings do not change.
 
 This is a source and JSON naming change. Update named arguments, result properties, object keys, keyword arguments, JSON/TextFormat payloads, and reflection-based lookups when adopting the new packages. Regenerate custom transport clients from the matching new protocol artifact. Binary protobuf field numbers, types, and presence remain unchanged. Runtime admission continues to use the existing exact-SA-target and behavioral compatibility rules independently of package versions.
 

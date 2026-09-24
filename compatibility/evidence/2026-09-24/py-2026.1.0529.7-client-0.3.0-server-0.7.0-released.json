@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-24T21:31:24.7415729+00:00",
+  "validationKind": "packaged-client-and-server-fake-sdk",
+  "passed": true,
+  "licensedSpatialAnalyzer": false,
+  "client": {
+    "version": "0.3.0",
+    "protocolArtifact": {
+      "name": "briosa-protocol-0.8.0-sa-2026.1.0529.7",
+      "file_name": "briosa-protocol-0.8.0-sa-2026.1.0529.7.zip",
+      "sha256": "19c2eb8fd96a675322aa300c33086f73ad9e163751d44104dacd769ba90f279f",
+      "briosa_version": "0.8.0",
+      "source_revision": "e986a3ba91cb501416126eb5f3ecaeb7f9d97c05",
+      "source_repository": "https://github.com/spatialanalyzer/briosa",
+      "source_channel": "github_release"
+    },
+    "requiredContract": {
+      "minimumRevision": 0,
+      "major": 1
+    },
+    "package": {
+      "version": "0.3.0",
+      "name": "briosa-2026-1-0529-7",
+      "publishedUrl": "https://files.pythonhosted.org/packages/61/17/9bdc01c491b37aab99968b69876e35431fed3f0f46c5b691eeac291926cf/briosa_2026_1_0529_7-0.3.0-py3-none-any.whl",
+      "sha256": "4978b0bc3e5e2d51b8ea688a19818d6a8338d72c991543e64dd4458150f0855f"
+    },
+    "sourceRevision": "08f5db6ab36fb3ad5fbfc269d4576bc4e3225ccd",
+    "uncommittedChanges": false,
+    "repository": "https://github.com/spatialanalyzer/briosa-py"
+  },
+  "server": {
+    "name": "briosa-client-conformance-0.7.0-sa-2026.1.0529.7-win-x64",
+    "file_name": "briosa-client-conformance-0.7.0-sa-2026.1.0529.7-win-x64.zip",
+    "sha256": "a6dab43974b084c6390998a8b3367ebf2c83efd498ab3e2bdad053f0926cb682",
+    "briosa_version": "0.7.0",
+    "source_revision": "4303a3322074869b35a3f16f9e35484a7bd5c830",
+    "source_repository": "https://github.com/spatialanalyzer/briosa",
+    "source_channel": "github_release"
+  },
+  "target": {
+    "spatial_analyzer": "2026.1.0529.7",
+    "runtime_identifier": "win-x64"
+  },
+  "scenarioContract": {
+    "id": "briosa.first-party-client.v1",
+    "schema_version": 1
+  },
+  "scenarios": [
+    "control-plane-only",
+    "default-ready",
+    "attach-existing",
+    "identity-mismatch",
+    "capability-denied",
+    "mp-failure",
+    "output-failure",
+    "deadline",
+    "cancellation",
+    "watchdog-recovery",
+    "sdk-loss-recovery",
+    "owned-cleanup"
+  ]
+}

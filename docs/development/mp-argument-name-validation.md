@@ -21,11 +21,11 @@ This records portable validation for [the naming migration](mp-argument-name-mig
 
 Protocol and server candidates were produced from clean source revision `3306d43253a1e4e41b75b83360ad4f6f2b7f60b7`, with version `0.8.0-dev.1`. Client 0.3.0 package evidence records each clean client source revision and artifact digest. Candidate package evidence is explicitly unpublished; published 0.2.0 evidence is matched to the retained registry artifacts. The behavioral contract remains major 1, revision 0. Binary compatibility does not remove the documented source/JSON migration requirement.
 
-This work prepares reviewed source and local candidate packages, not a public release. The coordinated release sequence is:
+The candidate validation above preceded publication. The coordinated release sequence is recorded below; final released-package evidence is in [the release record](mp-argument-name-release.md).
 
 1. Merge the server change and produce the approved immutable server/protocol release through its normal signing and release gates.
 2. Reimport that released protocol artifact into each client, replacing the explicit `source_commit_bootstrap` candidate pins. Recheck drift, packages, and retained-client compatibility before publishing the six client packages.
 3. Update the release catalog through the normal signed publication workflow. The existing installer consumes it without an installer application upgrade.
 4. Cut new documentation snapshots from the updated working references, with final package identities and release links. Keep old snapshots and published example pins until a separate coordinated dependency update.
 
-No production signing credentials, public package registries, public catalog, real SDK registration, or licensed SA process were used or changed for this validation.
+The candidate validation did not use production signing credentials or change public registries/catalogs. Subsequent publication uses the existing gated release workflows. No real SDK registration or licensed SA process was changed or exercised for this task.

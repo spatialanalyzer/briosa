@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-24T20:46:48.6814992+00:00",
+  "validationKind": "packaged-client-and-server-fake-sdk",
+  "passed": true,
+  "licensedSpatialAnalyzer": false,
+  "client": {
+    "package": {
+      "name": "briosa-2024-1-0508-5",
+      "sha256": "a15e688db2b51b7e33feca973dd0c9ee272f0da4e5ec60352b9291a9133b6339",
+      "version": "0.2.0",
+      "publishedUrl": "https://files.pythonhosted.org/packages/32/82/c2cf3c70acfcbadc55ed5422ef8f258494c2bfbc08fbfc93a1ec92b8c9af/briosa_2024_1_0508_5-0.2.0-py3-none-any.whl"
+    },
+    "sourceRevision": "79ee1146bdb25948ec60e0b56fa86d3a6494b809",
+    "protocolArtifact": {
+      "name": "briosa-protocol-0.7.0-sa-2024.1.0508.5",
+      "file_name": "briosa-protocol-0.7.0-sa-2024.1.0508.5.zip",
+      "sha256": "ed3e5cdab5718327c3c644d441b18faf18a34e95fa4407fa177ed305c75f687f",
+      "briosa_version": "0.7.0",
+      "source_revision": "4303a3322074869b35a3f16f9e35484a7bd5c830",
+      "source_repository": "https://github.com/spatialanalyzer/briosa",
+      "source_channel": "github_release"
+    },
+    "version": "0.2.0",
+    "repository": "https://github.com/spatialanalyzer/briosa-py",
+    "requiredContract": {
+      "minimumRevision": 0,
+      "major": 1
+    },
+    "uncommittedChanges": false
+  },
+  "server": {
+    "source_channel": "release_candidate",
+    "source_revision": "e986a3ba91cb501416126eb5f3ecaeb7f9d97c05",
+    "name": "briosa-client-conformance-0.8.0-sa-2024.1.0508.5-win-x64",
+    "source_repository": "https://github.com/spatialanalyzer/briosa",
+    "file_name": "briosa-client-conformance-0.8.0-sa-2024.1.0508.5-win-x64.zip",
+    "sha256": "bfcbb24b9202f9cee0a64d4b9164dca0151f8e2f73bef735ef2c05441b70cc1d",
+    "briosa_version": "0.8.0"
+  },
+  "target": {
+    "runtime_identifier": "win-x64",
+    "spatial_analyzer": "2024.1.0508.5"
+  },
+  "scenarioContract": {
+    "schema_version": 1,
+    "id": "briosa.first-party-client.v1"
+  },
+  "scenarios": [
+    "control-plane-only",
+    "default-ready",
+    "attach-existing",
+    "identity-mismatch",
+    "capability-denied",
+    "mp-failure",
+    "output-failure",
+    "deadline",
+    "cancellation",
+    "watchdog-recovery",
+    "sdk-loss-recovery",
+    "owned-cleanup"
+  ]
+}
