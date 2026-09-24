@@ -37,7 +37,8 @@ message AddAVectorToVectorNameRefListResult {
 
 message AutoRangeAndSetVectorGroupColorizationAllRequest {
   optional bool treat_individually = 1;
-  optional ColorizationOptions colorization_options_uses_mode_only = 2;
+  // MP qualifier: Uses Mode Only.
+  optional ColorizationOptions colorization_options = 2;
 }
 
 message AutoRangeAndSetVectorGroupColorizationAllResult {
@@ -47,7 +48,8 @@ message AutoRangeAndSetVectorGroupColorizationAllResult {
 message AutoRangeAndSetVectorGroupColorizationSelectedRequest {
   repeated CollectionVectorGroupName vector_groups_to_be_set = 1;
   optional bool treat_individually = 2;
-  optional ColorizationOptions colorization_options_uses_mode_only = 3;
+  // MP qualifier: Uses Mode Only.
+  optional ColorizationOptions colorization_options = 3;
 }
 
 message AutoRangeAndSetVectorGroupColorizationSelectedResult {

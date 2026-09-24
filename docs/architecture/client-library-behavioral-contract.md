@@ -401,3 +401,9 @@ shared authority.
 If a future language cannot express a shared guarantee without distorting its
 normal API, maintainers review that tension centrally before granting an exception.
 No one client repository may silently redefine cross-language behavior.
+
+## MP Argument Qualifiers
+
+Public MP input and output identifiers omit text enclosed in parentheses in the MP editor label. Keep the qualifier's meaning in parameter/result documentation, including units, sentinel values, coordinate systems, and conditional behavior. Preserve exact SDK label strings and all existing presence/default behavior. Retain identifier conventions outside the qualifier, including required prefixes for numeric labels.
+
+If removing qualifiers causes a collision, preserve every existing argument and result name for that method. The current exceptions are Evaluate Feature Check, Reset Cloud Bounding Box, Define point of view, and Get point of view parameters. Apply this rule consistently to both exact-target server contracts and the first-party clients. See the [migration record](../development/mp-argument-name-migration.md) for this intentional source/JSON naming change.

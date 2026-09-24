@@ -237,7 +237,8 @@ message CreateChartFromVectorGroupRequest {
   optional ChartType chart_type = 3;
   optional DatasetType data_set_to_chart = 4;
   optional DatasetType aux_data_set_to_chart = 5;
-  optional ChartName template_chart_name_optional = 6;
+  // Optional in the MP editor; the existing API presence and omission behavior is unchanged.
+  optional ChartName template_chart_name = 6;
   optional bool show_interface = 7;
 }
 
@@ -253,7 +254,8 @@ message DefineReportTemplateRequest {
   repeated CollectionItemName relationships_to_report = 5;
   repeated CollectionItemName events_to_report = 6;
   optional ReportOutputOptions report_output_options = 7;
-  optional ReportPageSettings report_page_settings_sa_report_only = 8;
+  // MP qualifier: SA Report only.
+  optional ReportPageSettings report_page_settings = 8;
   optional bool generate_now = 9;
   optional bool show_generated_report = 10;
 }
@@ -398,7 +400,8 @@ message MakeCustomTableResult {
 
 message MakeNewSaReportRequest {
   optional CollectionObjectName new_sa_report_name = 1;
-  optional CollectionObjectName sa_report_template_optional = 2;
+  // Optional in the MP editor; the existing API presence and omission behavior is unchanged.
+  optional CollectionObjectName sa_report_template = 2;
 }
 
 message MakeNewSaReportResult {
@@ -484,7 +487,8 @@ message OutputSaReportToPdfResult {
 
 message QuickReportRequest {
   optional CollectionObjectName item_name = 1;
-  optional string report_name_optional = 2;
+  // Optional in the MP editor; the existing API presence and omission behavior is unchanged.
+  optional string report_name = 2;
   optional bool open_report = 3;
 }
 
@@ -537,7 +541,8 @@ message SaveChartToJPegFileResult {
 
 message SaveCurrentViewBmpJpgPngGifTiffRequest {
   optional FileReference file_to_save_to = 1;
-  optional double render_scale_factor_1_0_uses_window_size = 2;
+  // 1.0 uses the window size.
+  optional double render_scale_factor = 2;
 }
 
 message SaveCurrentViewBmpJpgPngGifTiffResult {

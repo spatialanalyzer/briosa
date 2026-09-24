@@ -232,7 +232,7 @@ internal static class RobotWaveBOperationCatalog
             [
                 new("machine_id", "Machine ID", WorkerMpValueKind.CollectionMachineId, "SetColMachineIdArg", "Required", true),
                 new("calibration_name", "Calibration Name", WorkerMpValueKind.Text, "SetStringArg", "Empty", false),
-                new("measurement_frame_relative_to_tool", "Measurement Frame (relative to tool)", WorkerMpValueKind.Transform, "SetTransformArg", "Required", true)]),
+                new("measurement_frame", "Measurement Frame (relative to tool)", WorkerMpValueKind.Transform, "SetTransformArg", "Required", true)]),
         Mutating(
             "robot_operations.set_robot_calibration_tool_frame",
             "Set Robot Calibration Tool Frame",
@@ -240,7 +240,7 @@ internal static class RobotWaveBOperationCatalog
             [
                 new("machine_id", "Machine ID", WorkerMpValueKind.CollectionMachineId, "SetColMachineIdArg", "Required", true),
                 new("calibration_name", "Calibration Name", WorkerMpValueKind.Text, "SetStringArg", "Empty", false),
-                new("tool_frame_relative_to_flange", "Tool Frame (relative to flange)", WorkerMpValueKind.Transform, "SetTransformArg", "Required", true)]),
+                new("tool_frame", "Tool Frame (relative to flange)", WorkerMpValueKind.Transform, "SetTransformArg", "Required", true)]),
         Mutating(
             "robot_operations.set_robot_machine_base_transform",
             "Set Robot/Machine Base Transform",

@@ -93,11 +93,9 @@ try {
         $hasBaseline = $baselinePath -contains $baselineProtoPath
 
         if ($hasBaseline) {
-            Invoke-BufCommand -CommandArguments @(
-                "breaking",
-                "--against",
-                "$gitDirectory#ref=$AgainstRef,subdir=$targetSubdirectory"
-            )
+            & (Join-Path $PSScriptRoot "Test-MpArgumentNameMigration.ps1") `
+                -BufPath $bufCommand.Source `
+                -Against "$gitDirectory#ref=$AgainstRef,subdir=$targetSubdirectory"
         }
         else {
             Write-Host "No protobuf baseline exists at $AgainstRef; skipping the breaking comparison."

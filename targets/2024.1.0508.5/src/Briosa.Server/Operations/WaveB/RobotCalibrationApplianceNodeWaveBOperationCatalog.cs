@@ -112,7 +112,7 @@ internal static class RobotCalibrationApplianceNodeWaveBOperationCatalog
             "SetCalibrationApplianceNodeInstrumentDwellTime",
             [
                 new("calibration_appliance_node", "Calibration Appliance Node", WorkerMpValueKind.CollectionObjectName, "SetCollectionObjectNameArg2", "Required", true),
-                new("measurement_dwell_time_seconds", "Measurement Dwell Time (Seconds)", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "0.000000", false)]),
+                new("measurement_dwell_time", "Measurement Dwell Time (Seconds)", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "0.000000", false)]),
         Mutating(
             "robot_calibration_appliance_node_operations.set_calibration_appliance_node_integer_value",
             "Set Calibration Appliance Node Integer Value",

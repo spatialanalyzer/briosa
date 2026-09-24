@@ -142,7 +142,8 @@ message HideObjectsResult {
 }
 
 message HighlightObjectsRequest {
-  repeated CollectionObjectName object_names_empty_to_clear_all = 1;
+  // An empty selection clears all highlights.
+  repeated CollectionObjectName object_names = 1;
   optional bool high_light_objects = 2;
 }
 
@@ -151,7 +152,8 @@ message HighlightObjectsResult {
 }
 
 message HighlightPointRequest {
-  optional PointName point_name_empty_to_clear_all = 1;
+  // An empty selection clears all highlights.
+  optional PointName point_name = 1;
   optional bool show_point = 2;
 }
 
@@ -160,7 +162,8 @@ message HighlightPointResult {
 }
 
 message HighlightRelationshipsRequest {
-  repeated CollectionItemName relationships_empty_to_clear_all = 1;
+  // An empty selection clears all highlights.
+  repeated CollectionItemName relationships = 1;
   optional bool high_light_relationships = 2;
 }
 
@@ -354,7 +357,8 @@ message ShowHideByObjectTypeRequest {
   optional bool all_collections = 1;
   optional CollectionName specific_collection = 2;
   optional ObjectType object_type_to_show_hide = 3;
-  optional bool hide_show_false = 4;
+  // False shows the objects.
+  optional bool hide = 4;
 }
 
 message ShowHideByObjectTypeResult {
@@ -381,7 +385,8 @@ message ShowHideDimensionResult {
 
 message ShowHidePointsRequest {
   repeated PointName point_names = 1;
-  optional bool show_hide_false = 2;
+  // False hides the points.
+  optional bool show = 2;
 }
 
 message ShowHidePointsResult {
