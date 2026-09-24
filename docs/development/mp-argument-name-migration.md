@@ -12,6 +12,8 @@ The 2024 product has 168 renamed members in 83 commands. The 2026 product has 17
 
 Names preserve established abbreviations and identifier conventions unrelated to parentheses. For example, `value_0_360` retains its necessary identifier prefix, and percent outside parentheses remains part of `per_unit_length_step_over_percent`.
 
+See the [cross-product validation record and release sequence](mp-argument-name-validation.md) for package compatibility evidence and rollout status.
+
 ## Rename Table
 
 | Command | Direction | Previous Member | New Member | Meaning | Availability |

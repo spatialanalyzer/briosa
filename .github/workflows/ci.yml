@@ -127,6 +127,10 @@ jobs:
           PROTOCOL_BASE_REF: ${{ github.event.pull_request.base.sha }}
         run: ./eng/Verify-Protocol.ps1 -AgainstRef $env:PROTOCOL_BASE_REF
 
+      - name: Test reviewed MP naming compatibility exceptions
+        shell: pwsh
+        run: ../../eng/Test-MpArgumentNameMigrationPolicy.ps1 -TargetDirectory .
+
       - name: Build solution
         run: dotnet build Briosa.slnx -c Release --no-restore
 
