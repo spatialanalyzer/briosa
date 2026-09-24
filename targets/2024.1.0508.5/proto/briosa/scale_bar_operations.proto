@@ -36,9 +36,11 @@ message GetScaleBarStatsResult {
 message ScaleBarCheckRequest {
   optional PointName scale_bar_point_a = 1;
   optional PointName scale_bar_point_b = 2;
-  optional double current_temperature_f = 3;
+  // Temperature in degrees Fahrenheit.
+  optional double current_temperature = 3;
   optional double length_of_bar_at_68f = 4;
-  optional double material_cte_ppm_f = 5;
+  // Coefficient in parts per million per degree Fahrenheit.
+  optional double material_cte = 5;
   optional double tolerance = 6;
 }
 

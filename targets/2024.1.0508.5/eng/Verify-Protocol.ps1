@@ -73,7 +73,7 @@ try {
         $gitDirectory = (& git `
             -c "safe.directory=$safeWorktreeRoot" `
             -C $worktreeRoot `
-            rev-parse --absolute-git-dir).Trim().Replace('\', '/')
+            rev-parse --path-format=absolute --git-common-dir).Trim().Replace('\', '/')
         if ($LASTEXITCODE -ne 0) {
             throw "Could not locate the Git directory for $worktreeRoot."
         }
@@ -93,11 +93,9 @@ try {
         $hasBaseline = $baselinePath -contains $baselineProtoPath
 
         if ($hasBaseline) {
-            Invoke-BufCommand -CommandArguments @(
-                "breaking",
-                "--against",
-                "$gitDirectory#ref=$AgainstRef,subdir=$targetSubdirectory"
-            )
+            & (Join-Path $PSScriptRoot "Test-MpArgumentNameMigration.ps1") `
+                -BufPath $bufCommand.Source `
+                -Against "$gitDirectory#ref=$AgainstRef,subdir=$targetSubdirectory"
         }
         else {
             Write-Host "No protobuf baseline exists at $AgainstRef; skipping the breaking comparison."

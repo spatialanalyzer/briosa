@@ -94,7 +94,7 @@ internal static partial class ConstructionWaveBOperationCatalog
             "GetGradientAtProjectedPointOnSurfaceEdge",
             [
                 new("point_to_project", "Point to Project", WorkerMpValueKind.PointName, "SetPointNameArg", "Required", true),
-                new("surface_edge_b_spline", "Surface Edge (B-Spline)", WorkerMpValueKind.CollectionObjectName, "SetCollectionObjectNameArg2", "Required", true, WorkerObjectTypeValue.BSpline),
+                new("surface_edge", "Surface Edge (B-Spline)", WorkerMpValueKind.CollectionObjectName, "SetCollectionObjectNameArg2", "Required", true, WorkerObjectTypeValue.BSpline),
                 new("surface_name", "Surface Name", WorkerMpValueKind.CollectionObjectName, "SetCollectionObjectNameArg2", "Required", true, WorkerObjectTypeValue.Surface),
                 new("edge_offset_direction", "Edge Offset Direction", WorkerMpValueKind.Vector, "SetVectorArg", "Required", true),
                 new("edge_offset_distance", "Edge Offset Distance", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "0.01", false),

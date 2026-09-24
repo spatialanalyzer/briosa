@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-24T20:03:17.3471406+00:00",
+  "validationKind": "packaged-client-and-server-fake-sdk",
+  "passed": true,
+  "licensedSpatialAnalyzer": false,
+  "client": {
+    "protocolArtifact": {
+      "name": "briosa-protocol-0.8.0-dev.1-sa-2024.1.0508.5",
+      "file_name": "briosa-protocol-0.8.0-dev.1-sa-2024.1.0508.5.zip",
+      "sha256": "d573a93e84b3d555be2acec3de0821e86e1897a2b60c438aa1686b1e51adb2ce",
+      "briosa_version": "0.8.0-dev.1",
+      "source_revision": "3306d43253a1e4e41b75b83360ad4f6f2b7f60b7",
+      "source_repository": "https://github.com/spatialanalyzer/briosa",
+      "source_channel": "source_commit_bootstrap"
+    },
+    "repository": "https://github.com/spatialanalyzer/briosa-js",
+    "version": "0.3.0",
+    "uncommittedChanges": false,
+    "requiredContract": {
+      "major": 1,
+      "minimumRevision": 0
+    },
+    "package": {
+      "name": "@spatialanalyzer/briosa-2024.1.0508.5",
+      "version": "0.3.0",
+      "sha256": "3281a3dfe26737f868aa520a393b98fdf3bc8b4928e53b4f887fa3030a79fd8f",
+      "publishedUrl": ""
+    },
+    "sourceRevision": "f98eef683c941bf289c1d0ec411c13a1903bcca4"
+  },
+  "server": {
+    "name": "briosa-client-conformance-0.6.1-sa-2024.1.0508.5-win-x64",
+    "file_name": "briosa-client-conformance-0.6.1-sa-2024.1.0508.5-win-x64.zip",
+    "sha256": "86c2ed40e45cb5eaa4309a486a3e6213d929e10193f504651ce5c83c7e102ba4",
+    "briosa_version": "0.6.1",
+    "source_revision": "32a3b56ba4ae31ea5ec6ec3b2aa051eb61c866aa",
+    "source_repository": "https://github.com/spatialanalyzer/briosa",
+    "source_channel": "github_release"
+  },
+  "target": {
+    "spatial_analyzer": "2024.1.0508.5",
+    "runtime_identifier": "win-x64"
+  },
+  "scenarioContract": {
+    "id": "briosa.first-party-client.v1",
+    "schema_version": 1
+  },
+  "scenarios": [
+    "control-plane-only",
+    "default-ready",
+    "attach-existing",
+    "identity-mismatch",
+    "capability-denied",
+    "mp-failure",
+    "output-failure",
+    "deadline",
+    "cancellation",
+    "watchdog-recovery",
+    "sdk-loss-recovery",
+    "owned-cleanup"
+  ]
+}

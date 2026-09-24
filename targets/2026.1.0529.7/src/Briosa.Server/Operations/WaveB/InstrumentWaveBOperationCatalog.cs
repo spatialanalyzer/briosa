@@ -222,9 +222,9 @@ internal static class InstrumentWaveBOperationCatalog
             "Compute CTE Scale Factor",
             "ComputeCteScaleFactor",
             [
-                new("material_cte_per_degree_fahrenheit", "Material CTE (1/Deg F)", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "0.000000", false),
-                new("initial_temperature_fahrenheit", "Initial Temperature (F)", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "0.000000", false),
-                new("final_temperature_fahrenheit", "Final Temperature (F)", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "0.000000", false)],
+                new("material_cte", "Material CTE (1/Deg F)", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "0.000000", false),
+                new("initial_temperature", "Initial Temperature (F)", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "0.000000", false),
+                new("final_temperature", "Final Temperature (F)", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "0.000000", false)],
             [
                 new("scale_factor", "Scale Factor", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false)]),
         Mutating(
@@ -308,9 +308,9 @@ internal static class InstrumentWaveBOperationCatalog
                 new("enable_rz", "Enable Rz", WorkerMpValueKind.Logical, "SetBoolArg", "true", false),
                 new("enable_scale", "Enable Scale", WorkerMpValueKind.Logical, "SetBoolArg", "false", false),
                 new("enable_component_weights", "Enable Component Weights", WorkerMpValueKind.Logical, "SetBoolArg", "true", false),
-                new("azimuth_weight", "Component 1 (Azimuth) Weight", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "1.000000", false),
-                new("elevation_weight", "Component 2 (Elevation) Weight", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "1.000000", false),
-                new("distance_weight", "Component 3 (Distance) Weight", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "1.000000", false)]),
+                new("component_1_weight", "Component 1 (Azimuth) Weight", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "1.000000", false),
+                new("component_2_weight", "Component 2 (Elevation) Weight", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "1.000000", false),
+                new("component_3_weight", "Component 3 (Distance) Weight", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "1.000000", false)]),
         Mutating(
             "instrument_operations.delete_instrument",
             "Delete Instrument",
@@ -442,10 +442,10 @@ internal static class InstrumentWaveBOperationCatalog
                 new("polar_coordinates", "Polar Coordinates?", WorkerMpValueKind.Logical, "SetBoolArg", "false", false)],
             [
                 new("x_or_r", "X / R", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false),
-                new("y_or_theta_degrees", "Y / Theta (Degrees)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false),
-                new("z_or_phi_degrees", "Z / Phi (Degrees)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false),
-                new("time_since_update_seconds", "Time Since Update (sec)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false),
-                new("timestamp_approximate", "Timestamp (Approximate)", WorkerMpValueKind.Text, "GetStringArg", "—", false)]),
+                new("y_or_theta", "Y / Theta (Degrees)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false),
+                new("z_or_phi", "Z / Phi (Degrees)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false),
+                new("time_since_update", "Time Since Update (sec)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false),
+                new("timestamp", "Timestamp (Approximate)", WorkerMpValueKind.Text, "GetStringArg", "—", false)]),
         ReadOnly(
             "instrument_operations.get_current_trapping_status",
             "Get Current Trapping Status",
@@ -507,7 +507,7 @@ internal static class InstrumentWaveBOperationCatalog
             [
                 new("instrument", "Instrument ID", WorkerMpValueKind.CollectionInstrumentId, "SetColInstIdArg", "Required", true)],
             [
-                new("timeout_seconds", "Resulting Timeout Value (secs)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false)]),
+                new("timeout", "Resulting Timeout Value (secs)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false)]),
         ReadOnly(
             "instrument_operations.get_instrument_measurement_mode_profile",
             "Get Instrument Measurement Mode/Profile",
@@ -532,7 +532,7 @@ internal static class InstrumentWaveBOperationCatalog
             [
                 new("instrument", "Instrument's ID", WorkerMpValueKind.CollectionInstrumentId, "SetColInstIdArg", "Required", true)],
             [
-                new("part_temperature_fahrenheit", "Part Temperature (F)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false)]),
+                new("part_temperature", "Part Temperature (F)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false)]),
         ReadOnly(
             "instrument_operations.get_instrument_scale_factor",
             "Get Instrument Scale Factor",
@@ -585,9 +585,9 @@ internal static class InstrumentWaveBOperationCatalog
             [
                 new("instrument", "Instrument's ID", WorkerMpValueKind.CollectionInstrumentId, "SetColInstIdArg", "Required", true)],
             [
-                new("temperature_fahrenheit", "Temperature (F)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false),
-                new("pressure_mmhg", "Pressure (mmHg)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false),
-                new("relative_humidity_percent", "Humidity (%Rel)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false),
+                new("temperature", "Temperature (F)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false),
+                new("pressure", "Pressure (mmHg)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false),
+                new("relative_humidity", "Humidity (%Rel)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false),
                 new("set_automatically", "Was Set Automatically? (using Inst or external sensor", WorkerMpValueKind.Logical, "GetBoolArg", "—", false)]),
         ReadOnly(
             "instrument_operations.get_instruments_with_observations_on_target",
@@ -649,9 +649,9 @@ internal static class InstrumentWaveBOperationCatalog
                 new("observation", "Active?", WorkerMpValueKind.Logical, "GetBoolArg", "—", false, null, null, false, "active"),
                 new("observation", "Timestamp", WorkerMpValueKind.Text, "GetStringArg", "—", false, null, null, false, "timestamp"),
                 new("observation", "RMS Error", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false, null, null, false, "rms_error"),
-                new("observation", "Temperature (deg F)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false, null, null, false, "temperature_fahrenheit"),
-                new("observation", "Pressure (in. Hg)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false, null, null, false, "pressure_in_hg"),
-                new("observation", "Humidity (% RH)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false, null, null, false, "relative_humidity_percent"),
+                new("observation", "Temperature (deg F)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false, null, null, false, "temperature"),
+                new("observation", "Pressure (in. Hg)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false, null, null, false, "pressure"),
+                new("observation", "Humidity (% RH)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false, null, null, false, "relative_humidity"),
                 new("observation", "Info Data", WorkerMpValueKind.Text, "GetStringArg", "—", false, null, null, false, "info_data")]),
         ReadOnly(
             "instrument_operations.get_pcmm_instrument_xyz_uncertainties",
@@ -678,11 +678,11 @@ internal static class InstrumentWaveBOperationCatalog
             [
                 new("instrument", "Instrument's ID", WorkerMpValueKind.CollectionInstrumentId, "SetColInstIdArg", "Required", true)],
             [
-                new("theta_dispersion_arcseconds", "Theta Dispersion (arcseconds)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false),
+                new("theta_dispersion", "Theta Dispersion (arcseconds)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false),
                 new("theta_threshold", "Theta Threshold (linear units)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false),
-                new("phi_dispersion_arcseconds", "Phi Dispersion (arcseconds)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false),
+                new("phi_dispersion", "Phi Dispersion (arcseconds)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false),
                 new("phi_threshold", "Phi Threshold (linear units)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false),
-                new("distance_ppm", "Distance (PPM)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false),
+                new("distance", "Distance (PPM)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false),
                 new("distance_threshold", "Distance Threshold (linear units)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false)]),
         ReadOnly(
             "instrument_operations.get_wrtl_channel_and_status",
@@ -858,7 +858,7 @@ internal static class InstrumentWaveBOperationCatalog
                 new("exclude_single_instrument_points", "Exclude Points Measured By Only One Instrument", WorkerMpValueKind.Logical, "SetBoolArg", "false", false),
                 new("run_uncertainty_field_analysis", "Run Uncertainty Field Analysis?", WorkerMpValueKind.Logical, "SetBoolArg", "false", false),
                 new("analysis_samples", "Analysis Samples", WorkerMpValueKind.WholeNumber, "SetIntegerArg", "300", false),
-                new("analysis_time_limit_minutes", "Analysis Time Limit (Minutes - 0 for none)", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "4.000000", false)],
+                new("analysis_time_limit", "Analysis Time Limit (Minutes - 0 for none)", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "4.000000", false)],
             [
                 new("rms_error", "RMS Error Value", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false),
                 new("maximum_error", "Max Error Value", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false)]),
@@ -899,8 +899,8 @@ internal static class InstrumentWaveBOperationCatalog
                 new("info", "SNR", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false, null, null, false, "snr"),
                 new("info", "Size of Data Array", WorkerMpValueKind.WholeNumber, "GetIntegerArg", "—", false, null, null, false, "size_of_data_array"),
                 new("info", "Peak Value Index", WorkerMpValueKind.WholeNumber, "GetIntegerArg", "—", false, null, null, false, "peak_value_index"),
-                new("info", "Peak Value (dB)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false, null, null, false, "peak_value_db"),
-                new("info", "Measured Range (m)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false, null, null, false, "measured_range_meters")]),
+                new("info", "Peak Value (dB)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false, null, null, false, "peak_value"),
+                new("info", "Measured Range (m)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false, null, null, false, "measured_range")]),
         Mutating(
             "instrument_operations.lr_hardware_connect",
             "LR Hardware Connect",
@@ -922,11 +922,11 @@ internal static class InstrumentWaveBOperationCatalog
             [
                 new("instrument", "Instrument ID", WorkerMpValueKind.CollectionInstrumentId, "SetColInstIdArg", "Required", true)],
             [
-                new("reference_arm_length_inches", "Ref Arm Length (Inches)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false),
+                new("reference_arm_length", "Ref Arm Length (Inches)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false),
                 new("reference_arm_quality", "Ref Arm Quality", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false),
                 new("mirror_measurement_count", "Mirror Measurement Count", WorkerMpValueKind.WholeNumber, "GetIntegerArg", "—", false),
-                new("mirror_measurement_range_mean_inches", "Mirror Measurement Range - Mean (Inches)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false),
-                new("mirror_measurement_range_standard_deviation_inches", "Mirror Measurement Range - StdDev (Inches)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false),
+                new("mirror_measurement_range_mean", "Mirror Measurement Range - Mean (Inches)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false),
+                new("mirror_measurement_range_standard_deviation", "Mirror Measurement Range - StdDev (Inches)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false),
                 new("mirror_measurement_quality_mean", "Mirror Measurement Quality - Mean", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false),
                 new("mirror_measurement_quality_standard_deviation", "Mirror Measurement Quality - StdDev", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false),
                 new("passed_reference_arm_quality_threshold", "Passed Ref Arm Quality Threshold?", WorkerMpValueKind.Logical, "GetBoolArg", "—", false),
@@ -941,17 +941,17 @@ internal static class InstrumentWaveBOperationCatalog
             [
                 new("instrument", "Instrument ID", WorkerMpValueKind.CollectionInstrumentId, "SetColInstIdArg", "Required", true)],
             [
-                new("result", "Front Measurement - Range (Inches)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false, null, null, false, "front_range_inches"),
-                new("result", "Front Measurement - Azimuth (Degs)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false, null, null, false, "front_azimuth_degrees"),
-                new("result", "Front Measurement - Elevation (Degs)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false, null, null, false, "front_elevation_degrees"),
+                new("result", "Front Measurement - Range (Inches)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false, null, null, false, "front_range"),
+                new("result", "Front Measurement - Azimuth (Degs)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false, null, null, false, "front_azimuth"),
+                new("result", "Front Measurement - Elevation (Degs)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false, null, null, false, "front_elevation"),
                 new("result", "Front Measurement - Quality", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false, null, null, false, "front_quality"),
-                new("result", "Back Measurement - Range (Inches)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false, null, null, false, "back_range_inches"),
-                new("result", "Back Measurement - Azimuth (Degs)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false, null, null, false, "back_azimuth_degrees"),
-                new("result", "Back Measurement - Elevation (Degs)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false, null, null, false, "back_elevation_degrees"),
+                new("result", "Back Measurement - Range (Inches)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false, null, null, false, "back_range"),
+                new("result", "Back Measurement - Azimuth (Degs)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false, null, null, false, "back_azimuth"),
+                new("result", "Back Measurement - Elevation (Degs)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false, null, null, false, "back_elevation"),
                 new("result", "Back Measurement - Quality", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false, null, null, false, "back_quality"),
-                new("result", "Front/Back Difference - Range (Inches)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false, null, null, false, "front_back_difference_range_inches"),
-                new("result", "Front/Back Difference - Azimuth (Degs)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false, null, null, false, "front_back_difference_azimuth_degrees"),
-                new("result", "Front/Back Difference - Elevation (Degs)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false, null, null, false, "front_back_difference_elevation_degrees")]),
+                new("result", "Front/Back Difference - Range (Inches)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false, null, null, false, "front_back_difference_range"),
+                new("result", "Front/Back Difference - Azimuth (Degs)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false, null, null, false, "front_back_difference_azimuth"),
+                new("result", "Front/Back Difference - Elevation (Degs)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false, null, null, false, "front_back_difference_elevation")]),
         Mutating(
             "instrument_operations.lr_self_test_linearization",
             "LR Self Test - Linearization",
@@ -959,7 +959,7 @@ internal static class InstrumentWaveBOperationCatalog
             [
                 new("instrument", "Instrument ID", WorkerMpValueKind.CollectionInstrumentId, "SetColInstIdArg", "Required", true)],
             [
-                new("linearity_khz", "Linearity (kHz)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false)]),
+                new("linearity", "Linearity (kHz)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false)]),
         Mutating(
             "instrument_operations.lr_self_test_lo_sep",
             "LR Self Test - LO Sep",
@@ -969,16 +969,16 @@ internal static class InstrumentWaveBOperationCatalog
                 new("region", "Region (1=Region12,2=Region23,3=Region34)", WorkerMpValueKind.WholeNumber, "SetIntegerArg", "0", false),
                 new("num_range_measurements", "Num Range Measurements", WorkerMpValueKind.WholeNumber, "SetIntegerArg", "0", false)],
             [
-                new("result", "Primary LO (indexed from 1)", WorkerMpValueKind.WholeNumber, "GetIntegerArg", "—", false, null, null, false, "primary_lo_index"),
-                new("result", "Secondary LO (indexed from 1)", WorkerMpValueKind.WholeNumber, "GetIntegerArg", "—", false, null, null, false, "secondary_lo_index"),
+                new("result", "Primary LO (indexed from 1)", WorkerMpValueKind.WholeNumber, "GetIntegerArg", "—", false, null, null, false, "primary_lo"),
+                new("result", "Secondary LO (indexed from 1)", WorkerMpValueKind.WholeNumber, "GetIntegerArg", "—", false, null, null, false, "secondary_lo"),
                 new("result", "Primary LO Measurement Count", WorkerMpValueKind.WholeNumber, "GetIntegerArg", "—", false, null, null, false, "primary_lo_measurement_count"),
-                new("result", "Primary LO Measurement Range - Mean (Inches)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false, null, null, false, "primary_lo_range_mean_inches"),
-                new("result", "Primary LO Measurement Range - StdDev (Inches)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false, null, null, false, "primary_lo_range_standard_deviation_inches"),
+                new("result", "Primary LO Measurement Range - Mean (Inches)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false, null, null, false, "primary_lo_range_mean"),
+                new("result", "Primary LO Measurement Range - StdDev (Inches)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false, null, null, false, "primary_lo_range_standard_deviation"),
                 new("result", "Primary LO Measurement Quality - Mean", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false, null, null, false, "primary_lo_quality_mean"),
                 new("result", "Primary LO Measurement Quality - StdDev", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false, null, null, false, "primary_lo_quality_standard_deviation"),
                 new("result", "Secondary LO Measurement Count", WorkerMpValueKind.WholeNumber, "GetIntegerArg", "—", false, null, null, false, "secondary_lo_measurement_count"),
-                new("result", "Secondary LO Measurement Range - Mean (Inches)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false, null, null, false, "secondary_lo_range_mean_inches"),
-                new("result", "Secondary LO Measurement Range - StdDev (Inches)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false, null, null, false, "secondary_lo_range_standard_deviation_inches"),
+                new("result", "Secondary LO Measurement Range - Mean (Inches)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false, null, null, false, "secondary_lo_range_mean"),
+                new("result", "Secondary LO Measurement Range - StdDev (Inches)", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false, null, null, false, "secondary_lo_range_standard_deviation"),
                 new("result", "Secondary LO Measurement Quality - Mean", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false, null, null, false, "secondary_lo_quality_mean"),
                 new("result", "Secondary LO Measurement Quality - StdDev", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false, null, null, false, "secondary_lo_quality_standard_deviation")]),
         Mutating(
@@ -1257,7 +1257,7 @@ internal static class InstrumentWaveBOperationCatalog
             "SetInstrumentInterfaceResponseTimeout",
             [
                 new("instrument", "Instrument ID", WorkerMpValueKind.CollectionInstrumentId, "SetColInstIdArg", "Required", true),
-                new("timeout_seconds", "Timeout (secs)", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "0.000000", false)]),
+                new("timeout", "Timeout (secs)", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "0.000000", false)]),
         Mutating(
             "instrument_operations.set_instrument_measurement_mode_profile",
             "Set Instrument Measurement Mode/Profile",
@@ -1287,9 +1287,9 @@ internal static class InstrumentWaveBOperationCatalog
             "SetInstrumentWeatherSetting",
             [
                 new("instrument", "Instrument's ID", WorkerMpValueKind.CollectionInstrumentId, "SetColInstIdArg", "Required", true),
-                new("temperature_fahrenheit", "Temperature (F)", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "0.000000", false),
-                new("pressure_mmhg", "Pressure (mmHg)", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "0.000000", false),
-                new("relative_humidity_percent", "Humidity (%Rel)", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "0.000000", false),
+                new("temperature", "Temperature (F)", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "0.000000", false),
+                new("pressure", "Pressure (mmHg)", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "0.000000", false),
+                new("relative_humidity", "Humidity (%Rel)", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "0.000000", false),
                 new("set_automatically", "Set Automatically? (Ignore above values)", WorkerMpValueKind.Logical, "SetBoolArg", "false", false)]),
         Mutating(
             "instrument_operations.set_ladar_auto_meas_point",
@@ -1422,11 +1422,11 @@ internal static class InstrumentWaveBOperationCatalog
             "SetTrackerEdmTheodoliteUncertainties",
             [
                 new("instrument", "Instrument's ID", WorkerMpValueKind.CollectionInstrumentId, "SetColInstIdArg", "Required", true),
-                new("theta_dispersion_arcseconds", "Theta Dispersion (arcseconds)", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "1.000000", false),
+                new("theta_dispersion", "Theta Dispersion (arcseconds)", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "1.000000", false),
                 new("theta_threshold", "Theta Threshold (linear units)", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "0.001000", false),
-                new("phi_dispersion_arcseconds", "Phi Dispersion(arcseconds)", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "1.000000", false),
+                new("phi_dispersion", "Phi Dispersion(arcseconds)", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "1.000000", false),
                 new("phi_threshold", "Phi Threshold(linear units)", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "0.001000", false),
-                new("distance_ppm", "Distance (PPM)", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "2.500000", false),
+                new("distance", "Distance (PPM)", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "2.500000", false),
                 new("distance_threshold", "Distance Threshold (linear units)", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "0.000300", false)]),
         Mutating(
             "instrument_operations.set_wrtl_channel",

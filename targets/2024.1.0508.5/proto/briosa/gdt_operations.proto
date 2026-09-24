@@ -406,8 +406,10 @@ message MakeGdtFeatureCheckAnnotationRequest {
   optional bool is_slot = 12;
   optional bool per_unit_length_or_area = 13;
   optional bool circular_area = 14;
-  optional double per_unit_area_length_distance = 15;
-  optional double per_unit_area_length_step_over_percent = 16;
+  // MP qualifier: area.
+  optional double per_unit_length_distance = 15;
+  // MP qualifier: area.
+  optional double per_unit_length_step_over_percent = 16;
   optional double per_unit_area_width_distance = 17;
   optional double per_unit_area_width_step_over_percent = 18;
   optional double per_unit_area_circle_diameter = 19;

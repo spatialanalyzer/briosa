@@ -431,9 +431,12 @@ message CombinePointGroupsResult {
 }
 
 message ComputeCteScaleFactorRequest {
-  optional double material_cte_per_degree_fahrenheit = 1;
-  optional double initial_temperature_fahrenheit = 2;
-  optional double final_temperature_fahrenheit = 3;
+  // Coefficient per degree Fahrenheit.
+  optional double material_cte = 1;
+  // Temperature in degrees Fahrenheit.
+  optional double initial_temperature = 2;
+  // Temperature in degrees Fahrenheit.
+  optional double final_temperature = 3;
 }
 
 message ComputeCteScaleFactorResult {
@@ -528,9 +531,12 @@ message CreateTemplatedInstrumentUsmnRequest {
   optional bool enable_rz = 10;
   optional bool enable_scale = 11;
   optional bool enable_component_weights = 12;
-  optional double azimuth_weight = 13;
-  optional double elevation_weight = 14;
-  optional double distance_weight = 15;
+  // MP qualifier: Azimuth.
+  optional double component_1_weight = 13;
+  // MP qualifier: Elevation.
+  optional double component_2_weight = 14;
+  // MP qualifier: Distance.
+  optional double component_3_weight = 15;
 }
 
 message CreateTemplatedInstrumentUsmnResult {
@@ -703,10 +709,14 @@ message GetCurrentInstrumentPositionUpdateRequest {
 
 message GetCurrentInstrumentPositionUpdateResult {
   double x_or_r = 1;
-  double y_or_theta_degrees = 2;
-  double z_or_phi_degrees = 3;
-  double time_since_update_seconds = 4;
-  string timestamp_approximate = 5;
+  // Angle in degrees.
+  double y_or_theta = 2;
+  // Angle in degrees.
+  double z_or_phi = 3;
+  // Time in seconds.
+  double time_since_update = 4;
+  // MP qualifier: Approximate.
+  string timestamp = 5;
   MpExecutionDetails execution = 1000;
 }
 
@@ -766,7 +776,8 @@ message GetInstrumentInterfaceResponseTimeoutRequest {
 }
 
 message GetInstrumentInterfaceResponseTimeoutResult {
-  double timeout_seconds = 1;
+  // Time in seconds.
+  double timeout = 1;
   MpExecutionDetails execution = 1000;
 }
 
@@ -794,7 +805,8 @@ message GetInstrumentPartTemperatureRequest {
 }
 
 message GetInstrumentPartTemperatureResult {
-  optional double part_temperature_fahrenheit = 1;
+  // Temperature in degrees Fahrenheit.
+  optional double part_temperature = 1;
   MpExecutionDetails execution = 1000;
 }
 
@@ -859,9 +871,12 @@ message GetInstrumentWeatherSettingRequest {
 }
 
 message GetInstrumentWeatherSettingResult {
-  optional double temperature_fahrenheit = 1;
-  optional double pressure_mmhg = 2;
-  optional double relative_humidity_percent = 3;
+  // Temperature in degrees Fahrenheit.
+  optional double temperature = 1;
+  // Pressure in millimeters of mercury.
+  optional double pressure = 2;
+  // Relative humidity in percent.
+  optional double relative_humidity = 3;
   optional bool set_automatically = 4;
   MpExecutionDetails execution = 1000;
 }
@@ -938,11 +953,14 @@ message GetTrackerEdmTheodoliteUncertaintiesRequest {
 }
 
 message GetTrackerEdmTheodoliteUncertaintiesResult {
-  optional double theta_dispersion_arcseconds = 1;
+  // Angle in arcseconds.
+  optional double theta_dispersion = 1;
   optional double theta_threshold = 2;
-  optional double phi_dispersion_arcseconds = 3;
+  // Angle in arcseconds.
+  optional double phi_dispersion = 3;
   optional double phi_threshold = 4;
-  optional double distance_ppm = 5;
+  // Value in parts per million.
+  optional double distance = 5;
   optional double distance_threshold = 6;
   MpExecutionDetails execution = 1000;
 }
@@ -1162,7 +1180,8 @@ message LocateInstrumentsUsmnRequest {
   optional bool exclude_single_instrument_points = 10;
   optional bool run_uncertainty_field_analysis = 11;
   optional int32 analysis_samples = 12;
-  optional double analysis_time_limit_minutes = 13;
+  // Time in minutes; 0 disables the time limit.
+  optional double analysis_time_limit = 13;
 }
 
 message LocateInstrumentsUsmnResult {
@@ -1203,17 +1222,26 @@ message LrApdisPerformMcmCalibrationResult {
 }
 
 message LrFlipTestResult {
-  double front_range_inches = 1;
-  double front_azimuth_degrees = 2;
-  double front_elevation_degrees = 3;
+  // Length in inches.
+  double front_range = 1;
+  // Angle in degrees.
+  double front_azimuth = 2;
+  // Angle in degrees.
+  double front_elevation = 3;
   double front_quality = 4;
-  double back_range_inches = 5;
-  double back_azimuth_degrees = 6;
-  double back_elevation_degrees = 7;
+  // Length in inches.
+  double back_range = 5;
+  // Angle in degrees.
+  double back_azimuth = 6;
+  // Angle in degrees.
+  double back_elevation = 7;
   double back_quality = 8;
-  double front_back_difference_range_inches = 9;
-  double front_back_difference_azimuth_degrees = 10;
-  double front_back_difference_elevation_degrees = 11;
+  // Length in inches.
+  double front_back_difference_range = 9;
+  // Angle in degrees.
+  double front_back_difference_azimuth = 10;
+  // Angle in degrees.
+  double front_back_difference_elevation = 11;
 }
 
 message LrGetMostRecentSnrInfoRequest {
@@ -1244,16 +1272,22 @@ message LrHardwareDisconnectResult {
 }
 
 message LrLoSeparationTestResult {
-  int32 primary_lo_index = 1;
-  int32 secondary_lo_index = 2;
+  // Indexing starts at 1.
+  int32 primary_lo = 1;
+  // Indexing starts at 1.
+  int32 secondary_lo = 2;
   int32 primary_lo_measurement_count = 3;
-  double primary_lo_range_mean_inches = 4;
-  double primary_lo_range_standard_deviation_inches = 5;
+  // Length in inches.
+  double primary_lo_range_mean = 4;
+  // Length in inches.
+  double primary_lo_range_standard_deviation = 5;
   double primary_lo_quality_mean = 6;
   double primary_lo_quality_standard_deviation = 7;
   int32 secondary_lo_measurement_count = 8;
-  double secondary_lo_range_mean_inches = 9;
-  double secondary_lo_range_standard_deviation_inches = 10;
+  // Length in inches.
+  double secondary_lo_range_mean = 9;
+  // Length in inches.
+  double secondary_lo_range_standard_deviation = 10;
   double secondary_lo_quality_mean = 11;
   double secondary_lo_quality_standard_deviation = 12;
 }
@@ -1272,7 +1306,8 @@ message LrSelfTestLinearizationRequest {
 }
 
 message LrSelfTestLinearizationResult {
-  double linearity_khz = 1;
+  // Frequency in kilohertz.
+  double linearity = 1;
   MpExecutionDetails execution = 1000;
 }
 
@@ -1292,11 +1327,14 @@ message LrSelfTestRequest {
 }
 
 message LrSelfTestResult {
-  double reference_arm_length_inches = 1;
+  // Length in inches.
+  double reference_arm_length = 1;
   double reference_arm_quality = 2;
   int32 mirror_measurement_count = 3;
-  double mirror_measurement_range_mean_inches = 4;
-  double mirror_measurement_range_standard_deviation_inches = 5;
+  // Length in inches.
+  double mirror_measurement_range_mean = 4;
+  // Length in inches.
+  double mirror_measurement_range_standard_deviation = 5;
   double mirror_measurement_quality_mean = 6;
   double mirror_measurement_quality_standard_deviation = 7;
   bool passed_reference_arm_quality_threshold = 8;
@@ -1320,8 +1358,10 @@ message LrSnrInfo {
   double snr = 1;
   int32 size_of_data_array = 2;
   int32 peak_value_index = 3;
-  double peak_value_db = 4;
-  double measured_range_meters = 5;
+  // Value in decibels.
+  double peak_value = 4;
+  // Range in meters.
+  double measured_range = 5;
 }
 
 message LrVerifyHardwareConnectionRequest {
@@ -1480,9 +1520,12 @@ message ObservationInfo {
   bool active = 3;
   string timestamp = 4;
   double rms_error = 5;
-  double temperature_fahrenheit = 6;
-  double pressure_in_hg = 7;
-  double relative_humidity_percent = 8;
+  // Temperature in degrees Fahrenheit.
+  double temperature = 6;
+  // Pressure in inches of mercury.
+  double pressure = 7;
+  // Relative humidity in percent.
+  double relative_humidity = 8;
   string info_data = 9;
 }
 
@@ -1675,7 +1718,8 @@ message SetInstrumentGroupAndTargetResult {
 
 message SetInstrumentInterfaceResponseTimeoutRequest {
   optional CollectionInstrumentId instrument = 1;
-  optional double timeout_seconds = 2;
+  // Time in seconds.
+  optional double timeout = 2;
 }
 
 message SetInstrumentInterfaceResponseTimeoutResult {
@@ -1713,9 +1757,12 @@ message SetInstrumentTransformResult {
 
 message SetInstrumentWeatherSettingRequest {
   optional CollectionInstrumentId instrument = 1;
-  optional double temperature_fahrenheit = 2;
-  optional double pressure_mmhg = 3;
-  optional double relative_humidity_percent = 4;
+  // Temperature in degrees Fahrenheit.
+  optional double temperature = 2;
+  // Pressure in millimeters of mercury.
+  optional double pressure = 3;
+  // Relative humidity in percent.
+  optional double relative_humidity = 4;
   optional bool set_automatically = 5;
 }
 
@@ -1880,11 +1927,14 @@ message SetTargetComputationOptionsResult {
 
 message SetTrackerEdmTheodoliteUncertaintiesRequest {
   optional CollectionInstrumentId instrument = 1;
-  optional double theta_dispersion_arcseconds = 2;
+  // Angle in arcseconds.
+  optional double theta_dispersion = 2;
   optional double theta_threshold = 3;
-  optional double phi_dispersion_arcseconds = 4;
+  // Angle in arcseconds.
+  optional double phi_dispersion = 4;
   optional double phi_threshold = 5;
-  optional double distance_ppm = 6;
+  // Value in parts per million.
+  optional double distance = 6;
   optional double distance_threshold = 7;
 }
 

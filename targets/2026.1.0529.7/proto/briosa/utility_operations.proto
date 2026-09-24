@@ -119,7 +119,8 @@ message GetAngularRepresentationRequest {
 }
 
 message GetAngularRepresentationResult {
-  optional bool value_0_360_false_180 = 1;
+  // False selects the +/-180 angular representation.
+  optional bool value_0_360 = 1;
   MpExecutionDetails execution = 1000;
 }
 
@@ -206,7 +207,8 @@ message GetPointNotesResult {
 }
 
 message GetScreenResolutionRequest {
-  optional int32 display_1_primary = 1;
+  // -1 selects the primary display.
+  optional int32 display = 1;
 }
 
 message GetScreenResolutionResult {
@@ -335,7 +337,8 @@ message SetActiveUnitsResult {
 }
 
 message SetAngularRepresentationRequest {
-  optional bool value_0_360_false_180 = 1;
+  // False selects the +/-180 angular representation.
+  optional bool value_0_360 = 1;
 }
 
 message SetAngularRepresentationResult {
@@ -370,7 +373,8 @@ message SetAutomaticRelationshipConstructionStateResult {
 message SetCollectionNotesRequest {
   optional CollectionName collection = 1;
   repeated string notes = 2;
-  optional bool append_false_overwrite = 3;
+  // False overwrites existing notes.
+  optional bool append = 3;
 }
 
 message SetCollectionNotesResult {
@@ -392,7 +396,8 @@ message SetDecimalDigitsForDisplayResult {
 message SetFolderNotesRequest {
   optional string folder_path = 1;
   repeated string notes = 2;
-  optional bool append_false_overwrite = 3;
+  // False overwrites existing notes.
+  optional bool append = 3;
 }
 
 message SetFolderNotesResult {
@@ -428,7 +433,8 @@ message SetNotificationCancelOverrideResult {
 message SetObjectNotesRequest {
   optional CollectionObjectName object = 1;
   repeated string notes = 2;
-  optional bool append_false_overwrite = 3;
+  // False overwrites existing notes.
+  optional bool append = 3;
 }
 
 message SetObjectNotesResult {
@@ -465,7 +471,8 @@ message SetOpcDaTagValueStringResult {
 message SetPointNotesRequest {
   optional PointName point = 1;
   repeated string notes = 2;
-  optional bool append_false_overwrite = 3;
+  // False overwrites existing notes.
+  optional bool append = 3;
 }
 
 message SetPointNotesResult {
@@ -474,7 +481,8 @@ message SetPointNotesResult {
 
 message SetUserInterfaceProfileRequest {
   optional string profile_name = 1;
-  optional FileReference profile_file_name_optional = 2;
+  // Optional in the MP editor; the existing API presence and omission behavior is unchanged.
+  optional FileReference profile_file_name = 2;
 }
 
 message SetUserInterfaceProfileResult {

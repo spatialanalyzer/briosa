@@ -143,10 +143,14 @@ message GetGeomRelationshipAutoVectorsRequest {
 }
 
 message GetGeomRelationshipAutoVectorsResult {
-  optional bool auto_vectors_nominal_avn_enabled = 1;
-  optional CollectionObjectName auto_vectors_nominal_avn_name = 2;
-  optional bool auto_vectors_fit_avf_enabled = 3;
-  optional CollectionObjectName auto_vectors_fit_avf_name = 4;
+  // MP qualifier: AVN.
+  optional bool auto_vectors_nominal_enabled = 1;
+  // MP qualifier: AVN.
+  optional CollectionObjectName auto_vectors_nominal_name = 2;
+  // MP qualifier: AVF.
+  optional bool auto_vectors_fit_enabled = 3;
+  // MP qualifier: AVF.
+  optional CollectionObjectName auto_vectors_fit_name = 4;
   optional string points_type = 5;
   MpExecutionDetails execution = 1000;
 }
@@ -660,9 +664,11 @@ message SetRelationshipToleranceVectorTypeResult {
 message SetRelationshipVoxelCloudDisplayRequest {
   optional CollectionObjectName relationship_name = 1;
   optional bool enable_voxel_cloud_display = 2;
-  optional double voxel_size_1_0_autodetect = 3;
+  // -1.0 selects automatic detection.
+  optional double voxel_size = 3;
   optional int32 min_pts_count_per_voxel = 4;
-  optional double voxel_rendering_diameter_1_0_fast = 5;
+  // -1.0 selects fast rendering.
+  optional double voxel_rendering_diameter = 5;
   optional SurfaceAnalysisMode surface_analysis_mode = 6;
   optional ColorizationOptions colorization_options = 7;
   optional bool show_color_bar_in_view = 8;
@@ -1277,9 +1283,12 @@ message RelationshipWatchWindowTemplateRequest {
   optional Color text_color = 5;
   optional Color background_color = 6;
   optional Color highlight_color = 7;
-  optional bool show_deviation_x_rx = 8;
-  optional bool show_deviation_y_ry = 9;
-  optional bool show_deviation_z_rz = 10;
+  // MP qualifier: Rx.
+  optional bool show_deviation_x = 8;
+  // MP qualifier: Ry.
+  optional bool show_deviation_y = 9;
+  // MP qualifier: Rz.
+  optional bool show_deviation_z = 10;
   optional bool show_deviation_magnitude = 11;
   optional RelationshipWatchWindowUdpSettings udp_network_transmit_settings = 12;
   optional bool transparent_background = 13;

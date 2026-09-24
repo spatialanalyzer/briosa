@@ -68,7 +68,8 @@ service CloudAndMeshOperations {
 }
 
 message CloudDisplayControlRequest {
-  optional int32 thin_draw_increment = 1;
+  // MP qualifier: Draw Increment.
+  optional int32 thin = 1;
   optional int32 point_size = 2;
 }
 

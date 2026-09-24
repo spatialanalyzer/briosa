@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-24T20:00:24.4423125+00:00",
+  "validationKind": "packaged-client-and-server-fake-sdk",
+  "passed": true,
+  "licensedSpatialAnalyzer": false,
+  "client": {
+    "version": "0.2.0",
+    "requiredContract": {
+      "major": 1,
+      "minimumRevision": 0
+    },
+    "uncommittedChanges": false,
+    "sourceRevision": "9e9d8e9c56abcc576058d3c0087d8e6086dc4b45",
+    "protocolArtifact": {
+      "name": "briosa-protocol-0.7.0-sa-2024.1.0508.5",
+      "file_name": "briosa-protocol-0.7.0-sa-2024.1.0508.5.zip",
+      "sha256": "ed3e5cdab5718327c3c644d441b18faf18a34e95fa4407fa177ed305c75f687f",
+      "briosa_version": "0.7.0",
+      "source_revision": "4303a3322074869b35a3f16f9e35484a7bd5c830",
+      "source_repository": "https://github.com/spatialanalyzer/briosa",
+      "source_channel": "github_release"
+    },
+    "repository": "https://github.com/spatialanalyzer/briosa-dotnet",
+    "package": {
+      "name": "Briosa.2024.1.0508.5",
+      "version": "0.2.0",
+      "publishedUrl": "https://api.nuget.org/v3-flatcontainer/briosa.2024.1.0508.5/0.2.0/briosa.2024.1.0508.5.0.2.0.nupkg",
+      "sha256": "34e69aec999a3ff631c8198671745fa8cd2dac830e8a6d83f734038fc50433b6"
+    }
+  },
+  "server": {
+    "name": "briosa-client-conformance-0.8.0-dev.1-sa-2024.1.0508.5-win-x64",
+    "file_name": "briosa-client-conformance-0.8.0-dev.1-sa-2024.1.0508.5-win-x64.zip",
+    "sha256": "1caf3ce060db9397dcf8026e5d7a3905b2f08f9a1df54fae26e7dcb70da217ef",
+    "briosa_version": "0.8.0-dev.1",
+    "source_revision": "3306d43253a1e4e41b75b83360ad4f6f2b7f60b7",
+    "source_repository": "https://github.com/spatialanalyzer/briosa",
+    "source_channel": "source_commit_bootstrap"
+  },
+  "target": {
+    "spatial_analyzer": "2024.1.0508.5",
+    "runtime_identifier": "win-x64"
+  },
+  "scenarioContract": {
+    "id": "briosa.first-party-client.v1",
+    "schema_version": 1
+  },
+  "scenarios": [
+    "control-plane-only",
+    "default-ready",
+    "attach-existing",
+    "identity-mismatch",
+    "capability-denied",
+    "mp-failure",
+    "output-failure",
+    "deadline",
+    "cancellation",
+    "watchdog-recovery",
+    "sdk-loss-recovery",
+    "owned-cleanup"
+  ]
+}

@@ -122,6 +122,32 @@ public sealed class WaveAOperationCatalogTests
     }
 
     [Fact]
+    public void RenamedAngleTolerancePreservesTheSdkLabelAndZeroSentinel()
+    {
+        var operation = WaveAOperationCatalog.Get("analysis_operations.angle_between_line_and_plane");
+        var request = new Api.AngleBetweenLineAndPlaneRequest
+        {
+            SelectedLine = new Api.CollectionObjectName
+            {
+                CollectionName = "Collection", ObjectName = "Line", ObjectType = Api.ObjectType.Line
+            },
+            SelectedPlane = new Api.CollectionObjectName
+            {
+                CollectionName = "Collection", ObjectName = "Plane", ObjectType = Api.ObjectType.Plane
+            },
+            AngleTolerance = 0
+        };
+
+        var command = operation.CreateCommand(request);
+        var tolerance = Assert.Single(command.InputArguments, value => value.Name == "Angle Tolerance (0.0 for none)");
+        Assert.Equal("SetDoubleArg", tolerance.SdkBinding);
+        Assert.Equal(0, tolerance.DoubleValue);
+        request.AngleTolerance = 0.25;
+        Assert.Equal(0.25, Assert.Single(operation.CreateCommand(request).InputArguments,
+            value => value.Name == "Angle Tolerance (0.0 for none)").DoubleValue);
+    }
+
+    [Fact]
     public void SetDecimalDigitsUsesTheReviewedSpatialAnalyzerDefaults()
     {
         var command = WaveAOperationCatalog

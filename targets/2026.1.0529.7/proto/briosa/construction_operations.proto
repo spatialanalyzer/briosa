@@ -315,13 +315,19 @@ message CreatePointCalloutRequest {
   optional bool show_point_collection = 5;
   optional bool show_point_group = 6;
   optional bool show_point_target = 7;
-  optional bool show_x_r = 8;
-  optional bool show_y_theta = 9;
-  optional bool show_z_phi = 10;
+  // MP qualifier: R.
+  optional bool show_x = 8;
+  // MP qualifier: Theta.
+  optional bool show_y = 9;
+  // MP qualifier: Phi.
+  optional bool show_z = 10;
   optional bool show_units = 11;
-  optional bool show_ux_ur = 12;
-  optional bool show_uy_utheta = 13;
-  optional bool show_uz_uphi = 14;
+  // MP qualifier: Ur.
+  optional bool show_ux = 12;
+  // MP qualifier: Utheta.
+  optional bool show_uy = 13;
+  // MP qualifier: Uphi.
+  optional bool show_uz = 14;
   optional bool show_umag = 15;
   optional CoordinateSystemType desired_coordinate_system = 16;
   repeated string notes = 17;
@@ -1830,7 +1836,8 @@ message GetGradientAtProjectedPointOnSurfaceResult {
 
 message GetGradientAtProjectedPointOnSurfaceEdgeRequest {
   optional PointName point_to_project = 1;
-  optional CollectionObjectName surface_edge_b_spline = 2;
+  // MP qualifier: B-Spline.
+  optional CollectionObjectName surface_edge = 2;
   optional CollectionObjectName surface_name = 3;
   optional Vector edge_offset_direction = 4;
   optional double edge_offset_distance = 5;
@@ -1941,7 +1948,8 @@ message ConstructPointsCylindricallyShiftedRequest {
   repeated PointName original_points = 2;
   optional CollectionObjectName group_for_new_points = 3;
   optional double radial_shift = 4;
-  optional double theta_shift_degrees = 5;
+  // Angle in degrees.
+  optional double theta_shift = 5;
   optional double planar_shift = 6;
 }
 message ConstructPointsCylindricallyShiftedResult {
@@ -2075,8 +2083,10 @@ message ClearHiddenPointBarDatabaseResult {
 
 message CreateHiddenPointRodRequest {
   optional string hidden_point_rod_name = 1;
-  optional double target_to_target_distance = 2;
-  optional double target_to_tip_distance = 3;
+  // MP qualifier: Target to Target.
+  optional double a_to_b_distance = 2;
+  // MP qualifier: Target to Tip.
+  optional double a_to_c_distance = 3;
   optional double inter_point_tolerance = 4;
 }
 message CreateHiddenPointRodResult {
@@ -2146,7 +2156,8 @@ message ConstructScaleBarResult {
 
 message ConstructSphereRequest {
   optional CollectionObjectName sphere_name = 1;
-  optional Vector sphere_center_in_working_coordinates = 2;
+  // Expressed in working coordinates.
+  optional Vector sphere_center = 2;
   optional double sphere_radius = 3;
 }
 

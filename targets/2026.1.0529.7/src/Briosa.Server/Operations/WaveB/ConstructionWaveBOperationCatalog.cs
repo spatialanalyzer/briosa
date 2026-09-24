@@ -788,7 +788,7 @@ internal static partial class ConstructionWaveBOperationCatalog
                 new("original_points", "Original Points", WorkerMpValueKind.PointNameList, "SetPointNameRefListArg", "Required", true),
                 new("group_for_new_points", "Group for New Points", WorkerMpValueKind.CollectionObjectName, "SetCollectionObjectNameArg2", "Required", true, WorkerObjectTypeValue.PointGroup),
                 new("radial_shift", "Radial Shift", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "0.000000", false),
-                new("theta_shift_degrees", "Theta Shift (degrees)", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "0.000000", false),
+                new("theta_shift", "Theta Shift (degrees)", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "0.000000", false),
                 new("planar_shift", "Planar Shift", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "0.000000", false)]),
         Mutating(
             "construction_operations.construct_points_from_cylinder",
@@ -903,7 +903,7 @@ internal static partial class ConstructionWaveBOperationCatalog
             "ConstructSphere",
             [
                 new("sphere_name", "Sphere Name", WorkerMpValueKind.CollectionObjectName, "SetCollectionObjectNameArg2", "Required", true, WorkerObjectTypeValue.Sphere),
-                new("sphere_center_in_working_coordinates", "Sphere Center (in working coordinates)", WorkerMpValueKind.Vector, "SetVectorArg", "Required", true),
+                new("sphere_center", "Sphere Center (in working coordinates)", WorkerMpValueKind.Vector, "SetVectorArg", "Required", true),
                 new("sphere_radius", "Sphere Radius", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "0.000000", false)]),
         Mutating(
             "construction_operations.construct_spheres_from_surface_faces_runtime_select",
@@ -1127,8 +1127,8 @@ internal static partial class ConstructionWaveBOperationCatalog
             "CreateHiddenPointRod",
             [
                 new("hidden_point_rod_name", "Hidden Point Rod Name", WorkerMpValueKind.Text, "SetStringArg", "Empty", false),
-                new("target_to_target_distance", "A to B (Target to Target) Distance", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "0.000000", false),
-                new("target_to_tip_distance", "A to C (Target to Tip) Distance", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "0.000000", false),
+                new("a_to_b_distance", "A to B (Target to Target) Distance", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "0.000000", false),
+                new("a_to_c_distance", "A to C (Target to Tip) Distance", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "0.000000", false),
                 new("inter_point_tolerance", "A to B Inter-point Tolerance (0.0 for none)", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "0.000000", false)],
             [
                 new("hidden_point_rod_index", "Hidden Point Rod Index", WorkerMpValueKind.WholeNumber, "GetIntegerArg", "—", false)]),
@@ -1181,13 +1181,13 @@ internal static partial class ConstructionWaveBOperationCatalog
                 new("show_point_collection", "Show Point Collection?", WorkerMpValueKind.Logical, "SetBoolArg", "false", false),
                 new("show_point_group", "Show Point Group?", WorkerMpValueKind.Logical, "SetBoolArg", "true", false),
                 new("show_point_target", "Show Point Target?", WorkerMpValueKind.Logical, "SetBoolArg", "true", false),
-                new("show_x_r", "Show X (R)?", WorkerMpValueKind.Logical, "SetBoolArg", "true", false),
-                new("show_y_theta", "Show Y (Theta)?", WorkerMpValueKind.Logical, "SetBoolArg", "true", false),
-                new("show_z_phi", "Show Z (Phi)?", WorkerMpValueKind.Logical, "SetBoolArg", "true", false),
+                new("show_x", "Show X (R)?", WorkerMpValueKind.Logical, "SetBoolArg", "true", false),
+                new("show_y", "Show Y (Theta)?", WorkerMpValueKind.Logical, "SetBoolArg", "true", false),
+                new("show_z", "Show Z (Phi)?", WorkerMpValueKind.Logical, "SetBoolArg", "true", false),
                 new("show_units", "Show Units?", WorkerMpValueKind.Logical, "SetBoolArg", "false", false),
-                new("show_ux_ur", "Show Ux (Ur)?", WorkerMpValueKind.Logical, "SetBoolArg", "false", false),
-                new("show_uy_utheta", "Show Uy (Utheta)?", WorkerMpValueKind.Logical, "SetBoolArg", "false", false),
-                new("show_uz_uphi", "Show Uz (Uphi)?", WorkerMpValueKind.Logical, "SetBoolArg", "false", false),
+                new("show_ux", "Show Ux (Ur)?", WorkerMpValueKind.Logical, "SetBoolArg", "false", false),
+                new("show_uy", "Show Uy (Utheta)?", WorkerMpValueKind.Logical, "SetBoolArg", "false", false),
+                new("show_uz", "Show Uz (Uphi)?", WorkerMpValueKind.Logical, "SetBoolArg", "false", false),
                 new("show_umag", "Show Umag?", WorkerMpValueKind.Logical, "SetBoolArg", "false", false),
                 new("desired_coordinate_system", "Desired Coordinate System", WorkerMpValueKind.CoordinateSystemType, "SetCoordinateSystemTypeArg", "Required", true),
                 new("notes", "Notes (blank for none)", WorkerMpValueKind.StringList, "SetEditTextArg", "Empty", false),

@@ -32,7 +32,7 @@ internal static class CloudAndMeshOperationCatalog
             "cloud_and_mesh_operations.cloud_display_control",
             "Cloud Display Control",
             "CloudDisplayControl",
-            [new("thin_draw_increment", "Thin (Draw Increment)", WorkerMpValueKind.WholeNumber, "SetIntegerArg", "1", false),
+            [new("thin", "Thin (Draw Increment)", WorkerMpValueKind.WholeNumber, "SetIntegerArg", "1", false),
                 new("point_size", "Point Size", WorkerMpValueKind.WholeNumber, "SetIntegerArg", "1", false)]),
         Mutating(
             "cloud_and_mesh_operations.reset_cloud_bounding_box",

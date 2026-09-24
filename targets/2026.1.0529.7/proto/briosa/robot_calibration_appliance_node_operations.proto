@@ -155,7 +155,8 @@ message SetCalibrationApplianceNodeDisplayRobotResult {
 
 message SetCalibrationApplianceNodeInstrumentDwellTimeRequest {
   optional CollectionObjectName calibration_appliance_node = 1;
-  optional double measurement_dwell_time_seconds = 2;
+  // Time in seconds.
+  optional double measurement_dwell_time = 2;
 }
 
 message SetCalibrationApplianceNodeInstrumentDwellTimeResult {

@@ -8,7 +8,7 @@
     "2026.1.0529.7",
     "2024.1.0508.5"
   ],
-  "status": "published-packages-validated",
+  "status": "published-and-local-candidate-packages-validated",
   "legacyBaseline": {
     "sourceRevision": "32a3b56ba4ae31ea5ec6ec3b2aa051eb61c866aa",
     "serverVersion": "0.6.1",
@@ -260,6 +260,516 @@
       },
       "language": "py",
       "evidence": "evidence/2026-09-19/py-2024.1.0508.5-current.json"
+    },
+    {
+      "scenariosPassed": 12,
+      "requiredContract": {
+        "major": 1,
+        "minimumRevision": 0
+      },
+      "clientPublished": true,
+      "clientVersion": "0.2.0",
+      "clientSourceRevision": "9e9d8e9c56abcc576058d3c0087d8e6086dc4b45",
+      "evidenceSha256": "8177f3ff83c6dbe9dcb3ab9a87d8b9fc1a75150f97f1a44093527465daef84f5",
+      "clientPackageSha256": "34e69aec999a3ff631c8198671745fa8cd2dac830e8a6d83f734038fc50433b6",
+      "validationKind": "packaged-client-and-server-fake-sdk",
+      "target": "2024.1.0508.5",
+      "serverSourceRevision": "3306d43253a1e4e41b75b83360ad4f6f2b7f60b7",
+      "serverVersion": "0.8.0-dev.1",
+      "serverContract": {
+        "major": 1,
+        "revision": 0
+      },
+      "language": "dotnet",
+      "evidence": "evidence/2026-09-24/dotnet-2024.1.0508.5-client-0.2.0-server-0.8.0-dev.1.json"
+    },
+    {
+      "scenariosPassed": 12,
+      "requiredContract": {
+        "major": 1,
+        "minimumRevision": 0
+      },
+      "clientPublished": false,
+      "clientVersion": "0.3.0",
+      "clientSourceRevision": "d9dc263acf3e41fe8fea6e88533a954394eb9ad4",
+      "evidenceSha256": "b0fc0e900a3fb04a9162f893ced10014551dd36b70e2d8a7b2ca88e60fdf9843",
+      "clientPackageSha256": "f2e8c917bc475f2f889c0229c40904cbe91d1310a1af2055b441bcbff21d1141",
+      "validationKind": "packaged-client-and-server-fake-sdk",
+      "target": "2024.1.0508.5",
+      "serverSourceRevision": "32a3b56ba4ae31ea5ec6ec3b2aa051eb61c866aa",
+      "serverVersion": "0.6.1",
+      "serverContract": null,
+      "language": "dotnet",
+      "evidence": "evidence/2026-09-24/dotnet-2024.1.0508.5-client-0.3.0-server-0.6.1.json"
+    },
+    {
+      "scenariosPassed": 12,
+      "requiredContract": {
+        "major": 1,
+        "minimumRevision": 0
+      },
+      "clientPublished": false,
+      "clientVersion": "0.3.0",
+      "clientSourceRevision": "d9dc263acf3e41fe8fea6e88533a954394eb9ad4",
+      "evidenceSha256": "f8f42902eb00cbbcaba066d1e77172dac0df0f012b5320785381d2052964e426",
+      "clientPackageSha256": "f2e8c917bc475f2f889c0229c40904cbe91d1310a1af2055b441bcbff21d1141",
+      "validationKind": "packaged-client-and-server-fake-sdk",
+      "target": "2024.1.0508.5",
+      "serverSourceRevision": "4303a3322074869b35a3f16f9e35484a7bd5c830",
+      "serverVersion": "0.7.0",
+      "serverContract": {
+        "major": 1,
+        "revision": 0
+      },
+      "language": "dotnet",
+      "evidence": "evidence/2026-09-24/dotnet-2024.1.0508.5-client-0.3.0-server-0.7.0.json"
+    },
+    {
+      "scenariosPassed": 12,
+      "requiredContract": {
+        "major": 1,
+        "minimumRevision": 0
+      },
+      "clientPublished": false,
+      "clientVersion": "0.3.0",
+      "clientSourceRevision": "d9dc263acf3e41fe8fea6e88533a954394eb9ad4",
+      "evidenceSha256": "254dfc9c1907ea4051fc861ffc52bdcd8af269625817e80740fe0e350a893f60",
+      "clientPackageSha256": "f2e8c917bc475f2f889c0229c40904cbe91d1310a1af2055b441bcbff21d1141",
+      "validationKind": "packaged-client-and-server-fake-sdk",
+      "target": "2024.1.0508.5",
+      "serverSourceRevision": "3306d43253a1e4e41b75b83360ad4f6f2b7f60b7",
+      "serverVersion": "0.8.0-dev.1",
+      "serverContract": {
+        "major": 1,
+        "revision": 0
+      },
+      "language": "dotnet",
+      "evidence": "evidence/2026-09-24/dotnet-2024.1.0508.5-client-0.3.0-server-0.8.0-dev.1.json"
+    },
+    {
+      "scenariosPassed": 12,
+      "requiredContract": {
+        "major": 1,
+        "minimumRevision": 0
+      },
+      "clientPublished": true,
+      "clientVersion": "0.2.0",
+      "clientSourceRevision": "9e9d8e9c56abcc576058d3c0087d8e6086dc4b45",
+      "evidenceSha256": "d0a390fc23ad5e5b21538dceee86459eb49ddc14f69bcaf246778d2fdc1c6f62",
+      "clientPackageSha256": "edad2ebd5cad07c73ac2f6417c3cd1d6c06af82bbed30c480160ba847b55a7e3",
+      "validationKind": "packaged-client-and-server-fake-sdk",
+      "target": "2026.1.0529.7",
+      "serverSourceRevision": "3306d43253a1e4e41b75b83360ad4f6f2b7f60b7",
+      "serverVersion": "0.8.0-dev.1",
+      "serverContract": {
+        "major": 1,
+        "revision": 0
+      },
+      "language": "dotnet",
+      "evidence": "evidence/2026-09-24/dotnet-2026.1.0529.7-client-0.2.0-server-0.8.0-dev.1.json"
+    },
+    {
+      "scenariosPassed": 12,
+      "requiredContract": {
+        "major": 1,
+        "minimumRevision": 0
+      },
+      "clientPublished": false,
+      "clientVersion": "0.3.0",
+      "clientSourceRevision": "d9dc263acf3e41fe8fea6e88533a954394eb9ad4",
+      "evidenceSha256": "c9cf3c54b47b0baf176a444096e3cb4ee2eeabf342c06aa95dfae1d051686e2b",
+      "clientPackageSha256": "a610614208d65833292035dc79e46a517ad9385750d40eb23b5da4957ec26785",
+      "validationKind": "packaged-client-and-server-fake-sdk",
+      "target": "2026.1.0529.7",
+      "serverSourceRevision": "32a3b56ba4ae31ea5ec6ec3b2aa051eb61c866aa",
+      "serverVersion": "0.6.1",
+      "serverContract": null,
+      "language": "dotnet",
+      "evidence": "evidence/2026-09-24/dotnet-2026.1.0529.7-client-0.3.0-server-0.6.1.json"
+    },
+    {
+      "scenariosPassed": 12,
+      "requiredContract": {
+        "major": 1,
+        "minimumRevision": 0
+      },
+      "clientPublished": false,
+      "clientVersion": "0.3.0",
+      "clientSourceRevision": "d9dc263acf3e41fe8fea6e88533a954394eb9ad4",
+      "evidenceSha256": "3f8f8eae818fa4fdbb314d12a7bc2c9132d7778366c8f05be94ab9e5f2c574fa",
+      "clientPackageSha256": "a610614208d65833292035dc79e46a517ad9385750d40eb23b5da4957ec26785",
+      "validationKind": "packaged-client-and-server-fake-sdk",
+      "target": "2026.1.0529.7",
+      "serverSourceRevision": "4303a3322074869b35a3f16f9e35484a7bd5c830",
+      "serverVersion": "0.7.0",
+      "serverContract": {
+        "major": 1,
+        "revision": 0
+      },
+      "language": "dotnet",
+      "evidence": "evidence/2026-09-24/dotnet-2026.1.0529.7-client-0.3.0-server-0.7.0.json"
+    },
+    {
+      "scenariosPassed": 12,
+      "requiredContract": {
+        "major": 1,
+        "minimumRevision": 0
+      },
+      "clientPublished": false,
+      "clientVersion": "0.3.0",
+      "clientSourceRevision": "d9dc263acf3e41fe8fea6e88533a954394eb9ad4",
+      "evidenceSha256": "c118b7b4231de91de25b1532520266cfaba2c44325e8bdf260bcfa72e98f649d",
+      "clientPackageSha256": "a610614208d65833292035dc79e46a517ad9385750d40eb23b5da4957ec26785",
+      "validationKind": "packaged-client-and-server-fake-sdk",
+      "target": "2026.1.0529.7",
+      "serverSourceRevision": "3306d43253a1e4e41b75b83360ad4f6f2b7f60b7",
+      "serverVersion": "0.8.0-dev.1",
+      "serverContract": {
+        "major": 1,
+        "revision": 0
+      },
+      "language": "dotnet",
+      "evidence": "evidence/2026-09-24/dotnet-2026.1.0529.7-client-0.3.0-server-0.8.0-dev.1.json"
+    },
+    {
+      "scenariosPassed": 12,
+      "requiredContract": {
+        "major": 1,
+        "minimumRevision": 0
+      },
+      "clientPublished": true,
+      "clientVersion": "0.2.0",
+      "clientSourceRevision": "840f1777011815de6cb88d3206360bbd33545741",
+      "evidenceSha256": "3467cd6b50050f50fa894a564e0f205fa02d8af6fdefa3b7359c92fb4c59a218",
+      "clientPackageSha256": "a4dd954af2b8e7a8defef2579b191c6c321df563251f4cc554de97ee13e248fb",
+      "validationKind": "packaged-client-and-server-fake-sdk",
+      "target": "2024.1.0508.5",
+      "serverSourceRevision": "3306d43253a1e4e41b75b83360ad4f6f2b7f60b7",
+      "serverVersion": "0.8.0-dev.1",
+      "serverContract": {
+        "major": 1,
+        "revision": 0
+      },
+      "language": "js",
+      "evidence": "evidence/2026-09-24/js-2024.1.0508.5-client-0.2.0-server-0.8.0-dev.1.json"
+    },
+    {
+      "scenariosPassed": 12,
+      "requiredContract": {
+        "major": 1,
+        "minimumRevision": 0
+      },
+      "clientPublished": false,
+      "clientVersion": "0.3.0",
+      "clientSourceRevision": "f98eef683c941bf289c1d0ec411c13a1903bcca4",
+      "evidenceSha256": "493326baa28b3b792dabd32dc1ac02b7ab0ae22c0e66a43ae69e73efcee689d4",
+      "clientPackageSha256": "3281a3dfe26737f868aa520a393b98fdf3bc8b4928e53b4f887fa3030a79fd8f",
+      "validationKind": "packaged-client-and-server-fake-sdk",
+      "target": "2024.1.0508.5",
+      "serverSourceRevision": "32a3b56ba4ae31ea5ec6ec3b2aa051eb61c866aa",
+      "serverVersion": "0.6.1",
+      "serverContract": null,
+      "language": "js",
+      "evidence": "evidence/2026-09-24/js-2024.1.0508.5-client-0.3.0-server-0.6.1.json"
+    },
+    {
+      "scenariosPassed": 12,
+      "requiredContract": {
+        "major": 1,
+        "minimumRevision": 0
+      },
+      "clientPublished": false,
+      "clientVersion": "0.3.0",
+      "clientSourceRevision": "f98eef683c941bf289c1d0ec411c13a1903bcca4",
+      "evidenceSha256": "be51c8f38c9464268cfce7a841cd0279531115d46b46361ee7d558ff92adb03d",
+      "clientPackageSha256": "3281a3dfe26737f868aa520a393b98fdf3bc8b4928e53b4f887fa3030a79fd8f",
+      "validationKind": "packaged-client-and-server-fake-sdk",
+      "target": "2024.1.0508.5",
+      "serverSourceRevision": "4303a3322074869b35a3f16f9e35484a7bd5c830",
+      "serverVersion": "0.7.0",
+      "serverContract": {
+        "major": 1,
+        "revision": 0
+      },
+      "language": "js",
+      "evidence": "evidence/2026-09-24/js-2024.1.0508.5-client-0.3.0-server-0.7.0.json"
+    },
+    {
+      "scenariosPassed": 12,
+      "requiredContract": {
+        "major": 1,
+        "minimumRevision": 0
+      },
+      "clientPublished": false,
+      "clientVersion": "0.3.0",
+      "clientSourceRevision": "f98eef683c941bf289c1d0ec411c13a1903bcca4",
+      "evidenceSha256": "4e6e6dc997484841e14219e6c5d70aa1a1a74b2b550e127ea61588b829556b84",
+      "clientPackageSha256": "3281a3dfe26737f868aa520a393b98fdf3bc8b4928e53b4f887fa3030a79fd8f",
+      "validationKind": "packaged-client-and-server-fake-sdk",
+      "target": "2024.1.0508.5",
+      "serverSourceRevision": "3306d43253a1e4e41b75b83360ad4f6f2b7f60b7",
+      "serverVersion": "0.8.0-dev.1",
+      "serverContract": {
+        "major": 1,
+        "revision": 0
+      },
+      "language": "js",
+      "evidence": "evidence/2026-09-24/js-2024.1.0508.5-client-0.3.0-server-0.8.0-dev.1.json"
+    },
+    {
+      "scenariosPassed": 12,
+      "requiredContract": {
+        "major": 1,
+        "minimumRevision": 0
+      },
+      "clientPublished": true,
+      "clientVersion": "0.2.0",
+      "clientSourceRevision": "840f1777011815de6cb88d3206360bbd33545741",
+      "evidenceSha256": "e4debde019083a7265235fbe5175275618b293e87ab812e47258ab7d767b35cf",
+      "clientPackageSha256": "f9d413a1adea1e95371c6fd23d1539e6476be88ef3525ae75455ae4557fe1591",
+      "validationKind": "packaged-client-and-server-fake-sdk",
+      "target": "2026.1.0529.7",
+      "serverSourceRevision": "3306d43253a1e4e41b75b83360ad4f6f2b7f60b7",
+      "serverVersion": "0.8.0-dev.1",
+      "serverContract": {
+        "major": 1,
+        "revision": 0
+      },
+      "language": "js",
+      "evidence": "evidence/2026-09-24/js-2026.1.0529.7-client-0.2.0-server-0.8.0-dev.1.json"
+    },
+    {
+      "scenariosPassed": 12,
+      "requiredContract": {
+        "major": 1,
+        "minimumRevision": 0
+      },
+      "clientPublished": false,
+      "clientVersion": "0.3.0",
+      "clientSourceRevision": "f98eef683c941bf289c1d0ec411c13a1903bcca4",
+      "evidenceSha256": "827637b101a3c7fe9365fbf646e09f9657614b937daf11f0a9d6138185b3ad80",
+      "clientPackageSha256": "bb61de0fb4e2d4f5c599209c25af4cf99d56d2256f58104172692a6e625754a8",
+      "validationKind": "packaged-client-and-server-fake-sdk",
+      "target": "2026.1.0529.7",
+      "serverSourceRevision": "32a3b56ba4ae31ea5ec6ec3b2aa051eb61c866aa",
+      "serverVersion": "0.6.1",
+      "serverContract": null,
+      "language": "js",
+      "evidence": "evidence/2026-09-24/js-2026.1.0529.7-client-0.3.0-server-0.6.1.json"
+    },
+    {
+      "scenariosPassed": 12,
+      "requiredContract": {
+        "major": 1,
+        "minimumRevision": 0
+      },
+      "clientPublished": false,
+      "clientVersion": "0.3.0",
+      "clientSourceRevision": "f98eef683c941bf289c1d0ec411c13a1903bcca4",
+      "evidenceSha256": "9f1fe2ad75a85a4c2c821948a4e56c596d55b8a2d02a628fd40fda547e8c98e3",
+      "clientPackageSha256": "bb61de0fb4e2d4f5c599209c25af4cf99d56d2256f58104172692a6e625754a8",
+      "validationKind": "packaged-client-and-server-fake-sdk",
+      "target": "2026.1.0529.7",
+      "serverSourceRevision": "4303a3322074869b35a3f16f9e35484a7bd5c830",
+      "serverVersion": "0.7.0",
+      "serverContract": {
+        "major": 1,
+        "revision": 0
+      },
+      "language": "js",
+      "evidence": "evidence/2026-09-24/js-2026.1.0529.7-client-0.3.0-server-0.7.0.json"
+    },
+    {
+      "scenariosPassed": 12,
+      "requiredContract": {
+        "major": 1,
+        "minimumRevision": 0
+      },
+      "clientPublished": false,
+      "clientVersion": "0.3.0",
+      "clientSourceRevision": "f98eef683c941bf289c1d0ec411c13a1903bcca4",
+      "evidenceSha256": "4749fda90b1eb28d64fbced952da0d5b7fcc70cca77e5fbb55927b2eb7066798",
+      "clientPackageSha256": "bb61de0fb4e2d4f5c599209c25af4cf99d56d2256f58104172692a6e625754a8",
+      "validationKind": "packaged-client-and-server-fake-sdk",
+      "target": "2026.1.0529.7",
+      "serverSourceRevision": "3306d43253a1e4e41b75b83360ad4f6f2b7f60b7",
+      "serverVersion": "0.8.0-dev.1",
+      "serverContract": {
+        "major": 1,
+        "revision": 0
+      },
+      "language": "js",
+      "evidence": "evidence/2026-09-24/js-2026.1.0529.7-client-0.3.0-server-0.8.0-dev.1.json"
+    },
+    {
+      "scenariosPassed": 12,
+      "requiredContract": {
+        "major": 1,
+        "minimumRevision": 0
+      },
+      "clientPublished": true,
+      "clientVersion": "0.2.0",
+      "clientSourceRevision": "79ee1146bdb25948ec60e0b56fa86d3a6494b809",
+      "evidenceSha256": "23d32ce16c5928c0a54c93a4d3e9c5120e6350ae147d15c81e0b0b9db79e3815",
+      "clientPackageSha256": "a15e688db2b51b7e33feca973dd0c9ee272f0da4e5ec60352b9291a9133b6339",
+      "validationKind": "packaged-client-and-server-fake-sdk",
+      "target": "2024.1.0508.5",
+      "serverSourceRevision": "3306d43253a1e4e41b75b83360ad4f6f2b7f60b7",
+      "serverVersion": "0.8.0-dev.1",
+      "serverContract": {
+        "major": 1,
+        "revision": 0
+      },
+      "language": "py",
+      "evidence": "evidence/2026-09-24/py-2024.1.0508.5-client-0.2.0-server-0.8.0-dev.1.json"
+    },
+    {
+      "scenariosPassed": 12,
+      "requiredContract": {
+        "major": 1,
+        "minimumRevision": 0
+      },
+      "clientPublished": false,
+      "clientVersion": "0.3.0",
+      "clientSourceRevision": "62742ed39d1ce8508664c585c906948122e7517d",
+      "evidenceSha256": "bdc8d00b2867d5df57e2dd2493361474b428494c64c61f3e3e8ceffa7349ad4f",
+      "clientPackageSha256": "6f67f2d22bee7633d0dc557f30154a3beeb37b3b66d7ef1fb463c07c35aff08e",
+      "validationKind": "packaged-client-and-server-fake-sdk",
+      "target": "2024.1.0508.5",
+      "serverSourceRevision": "32a3b56ba4ae31ea5ec6ec3b2aa051eb61c866aa",
+      "serverVersion": "0.6.1",
+      "serverContract": null,
+      "language": "py",
+      "evidence": "evidence/2026-09-24/py-2024.1.0508.5-client-0.3.0-server-0.6.1.json"
+    },
+    {
+      "scenariosPassed": 12,
+      "requiredContract": {
+        "major": 1,
+        "minimumRevision": 0
+      },
+      "clientPublished": false,
+      "clientVersion": "0.3.0",
+      "clientSourceRevision": "62742ed39d1ce8508664c585c906948122e7517d",
+      "evidenceSha256": "050d7832f07c438a5082f0c8ff4b6191efdb9318b0e7314141f91b5d7d85c57a",
+      "clientPackageSha256": "6f67f2d22bee7633d0dc557f30154a3beeb37b3b66d7ef1fb463c07c35aff08e",
+      "validationKind": "packaged-client-and-server-fake-sdk",
+      "target": "2024.1.0508.5",
+      "serverSourceRevision": "4303a3322074869b35a3f16f9e35484a7bd5c830",
+      "serverVersion": "0.7.0",
+      "serverContract": {
+        "major": 1,
+        "revision": 0
+      },
+      "language": "py",
+      "evidence": "evidence/2026-09-24/py-2024.1.0508.5-client-0.3.0-server-0.7.0.json"
+    },
+    {
+      "scenariosPassed": 12,
+      "requiredContract": {
+        "major": 1,
+        "minimumRevision": 0
+      },
+      "clientPublished": false,
+      "clientVersion": "0.3.0",
+      "clientSourceRevision": "62742ed39d1ce8508664c585c906948122e7517d",
+      "evidenceSha256": "62561dd0844fb4135bf520b9cf7411c805c67545ce0139f40cf8d7f2af0a7a31",
+      "clientPackageSha256": "6f67f2d22bee7633d0dc557f30154a3beeb37b3b66d7ef1fb463c07c35aff08e",
+      "validationKind": "packaged-client-and-server-fake-sdk",
+      "target": "2024.1.0508.5",
+      "serverSourceRevision": "3306d43253a1e4e41b75b83360ad4f6f2b7f60b7",
+      "serverVersion": "0.8.0-dev.1",
+      "serverContract": {
+        "major": 1,
+        "revision": 0
+      },
+      "language": "py",
+      "evidence": "evidence/2026-09-24/py-2024.1.0508.5-client-0.3.0-server-0.8.0-dev.1.json"
+    },
+    {
+      "scenariosPassed": 12,
+      "requiredContract": {
+        "major": 1,
+        "minimumRevision": 0
+      },
+      "clientPublished": true,
+      "clientVersion": "0.2.0",
+      "clientSourceRevision": "79ee1146bdb25948ec60e0b56fa86d3a6494b809",
+      "evidenceSha256": "a7d8045d1c95ee971ff58ea9e9dcc6555a715cbd8c22fd820c941e313ce7efc8",
+      "clientPackageSha256": "94015aadb4a8b1797f39c65f42fa4f80bc13800bf8c6df1ceb7c85dcc2384de7",
+      "validationKind": "packaged-client-and-server-fake-sdk",
+      "target": "2026.1.0529.7",
+      "serverSourceRevision": "3306d43253a1e4e41b75b83360ad4f6f2b7f60b7",
+      "serverVersion": "0.8.0-dev.1",
+      "serverContract": {
+        "major": 1,
+        "revision": 0
+      },
+      "language": "py",
+      "evidence": "evidence/2026-09-24/py-2026.1.0529.7-client-0.2.0-server-0.8.0-dev.1.json"
+    },
+    {
+      "scenariosPassed": 12,
+      "requiredContract": {
+        "major": 1,
+        "minimumRevision": 0
+      },
+      "clientPublished": false,
+      "clientVersion": "0.3.0",
+      "clientSourceRevision": "62742ed39d1ce8508664c585c906948122e7517d",
+      "evidenceSha256": "6f3ee0887c67708b4eb272bd1c308bd11ca7591c3e2c2ac7282e203c31b84f9f",
+      "clientPackageSha256": "18d10290ce40f47bbe367f25de5c69e8325b50fa8d2e9653f2186163dbe12906",
+      "validationKind": "packaged-client-and-server-fake-sdk",
+      "target": "2026.1.0529.7",
+      "serverSourceRevision": "32a3b56ba4ae31ea5ec6ec3b2aa051eb61c866aa",
+      "serverVersion": "0.6.1",
+      "serverContract": null,
+      "language": "py",
+      "evidence": "evidence/2026-09-24/py-2026.1.0529.7-client-0.3.0-server-0.6.1.json"
+    },
+    {
+      "scenariosPassed": 12,
+      "requiredContract": {
+        "major": 1,
+        "minimumRevision": 0
+      },
+      "clientPublished": false,
+      "clientVersion": "0.3.0",
+      "clientSourceRevision": "62742ed39d1ce8508664c585c906948122e7517d",
+      "evidenceSha256": "aa78c948001f52ec1e4116586c8795a37426a9d3ffbd16615789259312cc4071",
+      "clientPackageSha256": "18d10290ce40f47bbe367f25de5c69e8325b50fa8d2e9653f2186163dbe12906",
+      "validationKind": "packaged-client-and-server-fake-sdk",
+      "target": "2026.1.0529.7",
+      "serverSourceRevision": "4303a3322074869b35a3f16f9e35484a7bd5c830",
+      "serverVersion": "0.7.0",
+      "serverContract": {
+        "major": 1,
+        "revision": 0
+      },
+      "language": "py",
+      "evidence": "evidence/2026-09-24/py-2026.1.0529.7-client-0.3.0-server-0.7.0.json"
+    },
+    {
+      "scenariosPassed": 12,
+      "requiredContract": {
+        "major": 1,
+        "minimumRevision": 0
+      },
+      "clientPublished": false,
+      "clientVersion": "0.3.0",
+      "clientSourceRevision": "62742ed39d1ce8508664c585c906948122e7517d",
+      "evidenceSha256": "bb5427c37bd2ab40432aaba0eeaa377d405447a86313dded924245378bf00066",
+      "clientPackageSha256": "18d10290ce40f47bbe367f25de5c69e8325b50fa8d2e9653f2186163dbe12906",
+      "validationKind": "packaged-client-and-server-fake-sdk",
+      "target": "2026.1.0529.7",
+      "serverSourceRevision": "3306d43253a1e4e41b75b83360ad4f6f2b7f60b7",
+      "serverVersion": "0.8.0-dev.1",
+      "serverContract": {
+        "major": 1,
+        "revision": 0
+      },
+      "language": "py",
+      "evidence": "evidence/2026-09-24/py-2026.1.0529.7-client-0.3.0-server-0.8.0-dev.1.json"
     }
   ],
   "schemaVersion": 1,

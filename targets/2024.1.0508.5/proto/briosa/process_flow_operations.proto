@@ -85,8 +85,10 @@ message AskForUserDecisionFromImageRequest {
   optional FileReference image_file = 1;
   optional FileReference image_map_xml_file = 2;
   optional string window_caption = 3;
-  optional int32 window_width_0_default = 4;
-  optional int32 window_height_0_default = 5;
+  // 0 uses the default window dimension.
+  optional int32 window_width = 4;
+  // 0 uses the default window dimension.
+  optional int32 window_height = 5;
 }
 
 message AskForUserDecisionFromImageResult {
@@ -97,9 +99,12 @@ message AskForUserDecisionFromImageResult {
 message AskForUserDecisionFromStringsRequest {
   repeated string question_or_statement = 1;
   optional Font font = 2;
-  optional string button1_text_empty_to_hide_button = 3;
-  optional string button2_text_empty_to_hide_button = 4;
-  optional string button3_text_empty_to_hide_button = 5;
+  // An empty string hides the button.
+  optional string button1_text = 3;
+  // An empty string hides the button.
+  optional string button2_text = 4;
+  // An empty string hides the button.
+  optional string button3_text = 5;
 }
 
 message AskForUserDecisionFromStringsResult {

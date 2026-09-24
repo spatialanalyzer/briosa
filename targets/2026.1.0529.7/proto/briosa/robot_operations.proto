@@ -355,7 +355,8 @@ message SetCalibrationApplianceRealValueResult {
 message SetRobotCalibrationMeasurementOffsetInToolFrameRequest {
   optional CollectionMachineId machine_id = 1;
   optional string calibration_name = 2;
-  optional Transform measurement_frame_relative_to_tool = 3;
+  // MP qualifier: relative to tool.
+  optional Transform measurement_frame = 3;
 }
 
 message SetRobotCalibrationMeasurementOffsetInToolFrameResult {
@@ -365,7 +366,8 @@ message SetRobotCalibrationMeasurementOffsetInToolFrameResult {
 message SetRobotCalibrationToolFrameRequest {
   optional CollectionMachineId machine_id = 1;
   optional string calibration_name = 2;
-  optional Transform tool_frame_relative_to_flange = 3;
+  // MP qualifier: relative to flange.
+  optional Transform tool_frame = 3;
 }
 
 message SetRobotCalibrationToolFrameResult {

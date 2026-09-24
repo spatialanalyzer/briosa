@@ -106,7 +106,8 @@ message AngleBetweenLineAndPlaneRequest {
   optional CollectionObjectName selected_line = 1;
   optional CollectionObjectName selected_plane = 2;
   optional double nominal_angle = 3;
-  optional double angle_tolerance_0_0_for_none = 4;
+  // 0.0 disables this tolerance.
+  optional double angle_tolerance = 4;
 }
 
 message AngleBetweenLineAndPlaneResult {
@@ -118,7 +119,8 @@ message AngleBetweenTwoLinesRequest {
   optional CollectionObjectName line_1 = 1;
   optional CollectionObjectName line_2 = 2;
   optional double nominal_angle = 3;
-  optional double angle_tolerance_0_0_for_none = 4;
+  // 0.0 disables this tolerance.
+  optional double angle_tolerance = 4;
 }
 
 message AngleBetweenTwoLinesResult {
@@ -130,7 +132,8 @@ message AngleBetweenTwoPlanesNormalsRequest {
   optional CollectionObjectName plane_a = 1;
   optional CollectionObjectName plane_b = 2;
   optional double nominal_angle = 3;
-  optional double angle_tolerance_0_0_for_none = 4;
+  // 0.0 disables this tolerance.
+  optional double angle_tolerance = 4;
 }
 
 message AngleBetweenTwoPlanesNormalsResult {
@@ -142,8 +145,10 @@ message BestFitTransformationGroupToGroupRequest {
   optional CollectionObjectName reference_group = 1;
   optional CollectionObjectName corresponding_group = 2;
   optional bool show_interface = 3;
-  optional double rms_tolerance_0_0_for_none = 4;
-  optional double maximum_absolute_tolerance_0_0_for_none = 5;
+  // 0.0 disables this tolerance.
+  optional double rms_tolerance = 4;
+  // 0.0 disables this tolerance.
+  optional double maximum_absolute_tolerance = 5;
   optional bool allow_scale = 6;
   optional bool allow_x = 7;
   optional bool allow_y = 8;
@@ -153,7 +158,8 @@ message BestFitTransformationGroupToGroupRequest {
   optional bool allow_rz = 12;
   optional bool lock_degrees_of_freedom = 13;
   optional bool generate_event = 14;
-  optional FileReference file_path_for_csv_text_report_requires_show_interface_true = 15;
+  // Requires Show Interface to be true.
+  optional FileReference file_path_for_csv_text_report = 15;
 }
 
 message BestFitTransformationGroupToGroupResult {
@@ -209,9 +215,11 @@ message FitGeometryToPointGroupRequest {
   optional CollectionObjectName resulting_object_name = 3;
   optional string fit_profile_name = 4;
   optional bool report_deviations = 5;
-  optional double fit_interface_tolerance_1_0_use_profile = 6;
+  // -1.0 uses the profile tolerance.
+  optional double fit_interface_tolerance = 6;
   optional bool ignore_out_of_tolerance_points = 7;
-  optional CollectionObjectName starting_condition_geometry_optional = 8;
+  // Optional in the MP editor; the existing API presence and omission behavior is unchanged.
+  optional CollectionObjectName starting_condition_geometry = 8;
 }
 
 message FitGeometryToPointGroupResult {
@@ -225,9 +233,11 @@ message FitGeometryToPointGroupProjectedToPlaneRequest {
   optional CollectionObjectName resulting_object_name = 4;
   optional string fit_profile_name = 5;
   optional bool report_deviations = 6;
-  optional double fit_interface_tolerance_1_0_use_profile = 7;
+  // -1.0 uses the profile tolerance.
+  optional double fit_interface_tolerance = 7;
   optional bool ignore_out_of_tolerance_points = 8;
-  optional CollectionObjectName starting_condition_geometry_optional = 9;
+  // Optional in the MP editor; the existing API presence and omission behavior is unchanged.
+  optional CollectionObjectName starting_condition_geometry = 9;
 }
 
 message FitGeometryToPointGroupProjectedToPlaneResult {
@@ -240,9 +250,11 @@ message FitGeometryToPointsRequest {
   optional CollectionObjectName resulting_object_name = 3;
   optional string fit_profile_name = 4;
   optional bool report_deviations = 5;
-  optional double fit_interface_tolerance_1_0_use_profile = 6;
+  // -1.0 uses the profile tolerance.
+  optional double fit_interface_tolerance = 6;
   optional bool ignore_out_of_tolerance_points = 7;
-  optional CollectionObjectName starting_condition_geometry_optional = 8;
+  // Optional in the MP editor; the existing API presence and omission behavior is unchanged.
+  optional CollectionObjectName starting_condition_geometry = 8;
 }
 
 message FitGeometryToPointsResult {
@@ -280,8 +292,10 @@ message GetConePropertiesRequest {
 }
 
 message GetConePropertiesResult {
-  optional Vector cone_end_point_in_working_coordinates = 1;
-  optional Vector cone_axis_in_working_coordinates = 2;
+  // Expressed in working coordinates.
+  optional Vector cone_end_point = 1;
+  // Expressed in working coordinates.
+  optional Vector cone_axis = 2;
   optional double cone_length = 3;
   optional double cone_theta_start = 4;
   optional double cone_theta_span = 5;
@@ -424,9 +438,12 @@ message GetMeasurementWeatherDataRequest {
 }
 
 message GetMeasurementWeatherDataResult {
-  optional double temperature_deg_f = 1;
-  optional double pressure_in_hg = 2;
-  optional double humidity_rh = 3;
+  // Temperature in degrees Fahrenheit.
+  optional double temperature = 1;
+  // Pressure in inches of mercury.
+  optional double pressure = 2;
+  // Relative humidity in percent.
+  optional double humidity = 3;
   MpExecutionDetails execution = 1000;
 }
 
@@ -594,14 +611,19 @@ message GetSlotPropertiesRequest {
 }
 
 message GetSlotPropertiesResult {
-  optional Transform slot_transform_in_working_coordinates = 1;
-  optional Vector center_in_working_coordinates = 2;
-  optional Vector normal_direction_in_working_coordinates = 3;
+  // Expressed in working coordinates.
+  optional Transform slot_transform = 1;
+  // Expressed in working coordinates.
+  optional Vector center = 2;
+  // Expressed in working coordinates.
+  optional Vector normal_direction = 3;
   optional double slot_length = 4;
   optional double slot_width = 5;
   optional bool round_slot_type = 6;
-  optional Vector centerline_pt_1_in_working_coordinates = 7;
-  optional Vector centerline_pt_2_in_working_coordinates = 8;
+  // Expressed in working coordinates.
+  optional Vector centerline_pt_1 = 7;
+  // Expressed in working coordinates.
+  optional Vector centerline_pt_2 = 8;
   MpExecutionDetails execution = 1000;
 }
 
@@ -672,8 +694,10 @@ message GroupToSurfaceFitRequest {
   optional CollectionObjectName group_to_fit = 1;
   optional CollectionObjectName surface = 2;
   optional bool do_conventional_fit = 3;
-  optional double rms_tolerance_0_0_for_none = 4;
-  optional double maximum_absolute_tolerance_0_0_for_none = 5;
+  // 0.0 disables this tolerance.
+  optional double rms_tolerance = 4;
+  // 0.0 disables this tolerance.
+  optional double maximum_absolute_tolerance = 5;
 }
 
 message GroupToSurfaceFitResult {
@@ -705,11 +729,14 @@ message IsObjectOfTypeResult {
 message MakeCircleFitProfileRequest {
   optional string fit_profile_name = 1;
   optional MeasuredSideForRadialOffset measured_side_for_radial_offset = 2;
-  optional double override_radial_offset_1_0_use_current = 3;
+  // -1.0 uses the current offset.
+  optional double override_radial_offset = 3;
   optional MeasuredSideForPlanarOffset measured_side_for_planar_offset = 4;
-  optional double override_planar_offset_1_0_use_current = 5;
+  // -1.0 uses the current offset.
+  optional double override_planar_offset = 5;
   optional NormalDirection planar_offset_direction = 6;
-  optional double lock_radius_1_0_do_not_lock = 7;
+  // -1.0 leaves this dimension unlocked.
+  optional double lock_radius = 7;
   optional CompTechnique circle_computation_technique = 8;
   optional bool reverse_normal_vector_after_fit = 9;
   optional bool make_cardinal_points = 10;
@@ -724,8 +751,10 @@ message MakeCircleFitProfileResult {
 message MakeConeFitProfileRequest {
   optional string fit_profile_name = 1;
   optional MeasuredSideForRadialOffset measured_side_for_radial_offset = 2;
-  optional double override_radial_offset_1_0_use_current = 3;
-  optional double lock_angle_in_degrees_1_0_do_not_lock = 4;
+  // -1.0 uses the current offset.
+  optional double override_radial_offset = 3;
+  // -1.0 leaves this dimension unlocked.
+  optional double lock_angle_in_degrees = 4;
   optional bool use_exhaustive_search = 5;
   optional bool make_cardinal_points = 6;
   optional bool cardinal_pt_1_vertex = 7;
@@ -740,8 +769,10 @@ message MakeConeFitProfileResult {
 message MakeCylinderFitProfileRequest {
   optional string fit_profile_name = 1;
   optional MeasuredSideForRadialOffset measured_side_for_radial_offset = 2;
-  optional double override_radial_offset_1_0_use_current = 3;
-  optional double lock_radius_1_0_do_not_lock = 4;
+  // -1.0 uses the current offset.
+  optional double override_radial_offset = 3;
+  // -1.0 leaves this dimension unlocked.
+  optional double lock_radius = 4;
   optional FitMethod locked_radius_fit_method = 5;
   optional bool constrain_to_nominal_axis = 6;
   optional bool constrain_to_nominal_orientation = 7;
@@ -763,9 +794,11 @@ message MakeCylinderFitProfileResult {
 message MakeEllipseFitProfileRequest {
   optional string fit_profile_name = 1;
   optional MeasuredSideForRadialOffset measured_side_for_radial_offset = 2;
-  optional double override_radial_offset_1_0_use_current = 3;
+  // -1.0 uses the current offset.
+  optional double override_radial_offset = 3;
   optional MeasuredSideForPlanarOffset measured_side_for_planar_offset = 4;
-  optional double override_planar_offset_1_0_use_current = 5;
+  // -1.0 uses the current offset.
+  optional double override_planar_offset = 5;
   optional NormalDirection planar_offset_direction = 6;
   optional bool reverse_normal_vector_after_fit = 7;
   optional bool make_cardinal_points = 8;
@@ -795,8 +828,10 @@ message MakeLineFitProfileResult {
 message MakeParaboloidFitProfileRequest {
   optional string fit_profile_name = 1;
   optional MeasuredSideForRadialOffset measured_side_for_radial_offset = 2;
-  optional double override_radial_offset_1_0_use_current = 3;
-  optional double lock_focal_length_1_0_do_not_lock = 4;
+  // -1.0 uses the current offset.
+  optional double override_radial_offset = 3;
+  // -1.0 leaves this dimension unlocked.
+  optional double lock_focal_length = 4;
   optional DegreeOfFreedom degree_of_freedom = 5;
   optional bool make_cardinal_points = 6;
   optional bool cardinal_pt_1_vertex = 7;
@@ -810,7 +845,8 @@ message MakeParaboloidFitProfileResult {
 message MakePlaneFitProfileRequest {
   optional string fit_profile_name = 1;
   optional MeasuredSideForPlanarOffset measured_side_for_planar_offset = 2;
-  optional double override_planar_offset_1_0_use_current = 3;
+  // -1.0 uses the current offset.
+  optional double override_planar_offset = 3;
   optional NormalDirection planar_offset_direction = 4;
   optional bool reverse_normal_vector_after_fit = 5;
   optional bool make_cardinal_points = 6;
@@ -825,9 +861,11 @@ message MakePlaneFitProfileResult {
 message MakeSlotFitProfileRequest {
   optional string fit_profile_name = 1;
   optional MeasuredSideForRadialOffset measured_side_for_radial_offset = 2;
-  optional double override_radial_offset_1_0_use_current = 3;
+  // -1.0 uses the current offset.
+  optional double override_radial_offset = 3;
   optional MeasuredSideForPlanarOffset measured_side_for_planar_offset = 4;
-  optional double override_planar_offset_1_0_use_current = 5;
+  // -1.0 uses the current offset.
+  optional double override_planar_offset = 5;
   optional NormalDirection planar_offset_direction = 6;
   optional SlotType slot_type = 7;
   optional CompTechnique slot_computation_technique = 8;
@@ -846,8 +884,10 @@ message MakeSlotFitProfileResult {
 message MakeSphereFitProfileRequest {
   optional string fit_profile_name = 1;
   optional MeasuredSideForRadialOffset measured_side_for_radial_offset = 2;
-  optional double override_radial_offset_1_0_use_current = 3;
-  optional double lock_radius_1_0_do_not_lock = 4;
+  // -1.0 uses the current offset.
+  optional double override_radial_offset = 3;
+  // -1.0 leaves this dimension unlocked.
+  optional double lock_radius = 4;
   optional bool make_cardinal_points = 5;
   optional bool cardinal_pt_1_center = 6;
   optional SphereFitComputationMode computation_method = 7;
@@ -900,8 +940,10 @@ message QueryCloudsToObjectsRequest {
   optional ProjectionOptions projection_options = 4;
   optional double proximity = 5;
   optional int32 skip_factor = 6;
-  optional double rms_tolerance_0_0_for_none = 7;
-  optional double maximum_absolute_tolerance_0_0_for_none = 8;
+  // 0.0 disables this tolerance.
+  optional double rms_tolerance = 7;
+  // 0.0 disables this tolerance.
+  optional double maximum_absolute_tolerance = 8;
 }
 
 message QueryCloudsToObjectsResult {
@@ -917,8 +959,10 @@ message QueryCloudsToSurfaceRequest {
   optional ProjectionOptions projection_options = 4;
   optional double proximity = 5;
   optional int32 skip_factor = 6;
-  optional double rms_tolerance_0_0_for_none = 7;
-  optional double maximum_absolute_tolerance_0_0_for_none = 8;
+  // 0.0 disables this tolerance.
+  optional double rms_tolerance = 7;
+  // 0.0 disables this tolerance.
+  optional double maximum_absolute_tolerance = 8;
 }
 
 message QueryCloudsToSurfaceResult {
@@ -936,19 +980,26 @@ message QueryFrameToFrameResult {
   optional double x = 1;
   optional double y = 2;
   optional double z = 3;
-  optional double rx_roll = 4;
-  optional double ry_pitch = 5;
-  optional double rz_yaw = 6;
+  // MP qualifier: Roll.
+  optional double rx = 4;
+  // MP qualifier: Pitch.
+  optional double ry = 5;
+  // MP qualifier: Yaw.
+  optional double rz = 6;
   MpExecutionDetails execution = 1000;
 }
 
 message QueryGroupsToObjectsRequest {
-  repeated CollectionObjectName group_name_list_groups_to_project = 1;
-  repeated CollectionObjectName object_name_list_objects_to_project_to = 2;
+  // MP qualifier: Groups to Project.
+  repeated CollectionObjectName group_name_list = 1;
+  // MP qualifier: Objects to Project to.
+  repeated CollectionObjectName object_name_list = 2;
   optional CollectionObjectName resulting_object_name = 3;
   optional ProjectionOptions projection_options = 4;
-  optional double rms_tolerance_0_0_for_none = 5;
-  optional double maximum_absolute_tolerance_0_0_for_none = 6;
+  // 0.0 disables this tolerance.
+  optional double rms_tolerance = 5;
+  // 0.0 disables this tolerance.
+  optional double maximum_absolute_tolerance = 6;
   optional bool show_results_dialog = 7;
 }
 
@@ -1002,11 +1053,14 @@ message QueryPointsToCircleResult {
 
 message QueryPointsToObjectsRequest {
   repeated PointName point_names = 1;
-  repeated CollectionObjectName object_name_list_objects_to_project_to = 2;
+  // MP qualifier: Objects to Project to.
+  repeated CollectionObjectName object_name_list = 2;
   optional CollectionObjectName resulting_object_name = 3;
   optional ProjectionOptions projection_options = 4;
-  optional double rms_tolerance_0_0_for_none = 5;
-  optional double maximum_absolute_tolerance_0_0_for_none = 6;
+  // 0.0 disables this tolerance.
+  optional double rms_tolerance = 5;
+  // 0.0 disables this tolerance.
+  optional double maximum_absolute_tolerance = 6;
   optional bool show_results_dialog = 7;
 }
 
@@ -1099,8 +1153,10 @@ message SetCirclePropertiesResult {
 
 message SetConePropertiesRequest {
   optional CollectionObjectName cone_name = 1;
-  optional Vector cone_end_point_in_working_coordinates = 2;
-  optional Vector cone_axis_in_working_coordinates = 3;
+  // Expressed in working coordinates.
+  optional Vector cone_end_point = 2;
+  // Expressed in working coordinates.
+  optional Vector cone_axis = 3;
   optional double cone_length = 4;
   optional double cone_theta_start = 5;
   optional double cone_theta_span = 6;
@@ -1164,7 +1220,8 @@ message SetLinePropertiesRequest {
   optional CollectionObjectName line_name = 1;
   optional Vector begin_coordinate = 2;
   optional Vector end_coordinate = 3;
-  optional double length_optional = 4;
+  // Optional in the MP editor; the existing API presence and omission behavior is unchanged.
+  optional double length = 4;
 }
 
 message SetLinePropertiesResult {
@@ -1247,10 +1304,14 @@ message SphereAxisCheckResult {
 
 message TemperatureCompensateAGroupRequest {
   optional CollectionObjectName original_group = 1;
-  optional FrameName scaling_origin_coordinate_frame = 2;
-  optional double material_cte_1_deg_f = 3;
-  optional double initial_temperature_f = 4;
-  optional double final_temperature_f = 5;
+  // MP qualifier: coordinate frame.
+  optional FrameName scaling_origin = 2;
+  // Coefficient per degree Fahrenheit.
+  optional double material_cte = 3;
+  // Temperature in degrees Fahrenheit.
+  optional double initial_temperature = 4;
+  // Temperature in degrees Fahrenheit.
+  optional double final_temperature = 5;
   optional CollectionObjectName scaled_group_name = 6;
 }
 
