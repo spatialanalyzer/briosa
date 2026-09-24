@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-24T21:35:27.2257924+00:00",
+  "validationKind": "packaged-client-and-server-fake-sdk",
+  "passed": true,
+  "licensedSpatialAnalyzer": false,
+  "client": {
+    "repository": "https://github.com/spatialanalyzer/briosa-dotnet",
+    "requiredContract": {
+      "minimumRevision": 0,
+      "major": 1
+    },
+    "uncommittedChanges": false,
+    "sourceRevision": "34f79fe722d353a31d563360a5551b3cf5407a07",
+    "version": "0.3.0",
+    "protocolArtifact": {
+      "name": "briosa-protocol-0.8.0-sa-2024.1.0508.5",
+      "file_name": "briosa-protocol-0.8.0-sa-2024.1.0508.5.zip",
+      "sha256": "5606a3eda4ba04704371620672e5b8db10b616ed00c2731185f1c3a453defb22",
+      "briosa_version": "0.8.0",
+      "source_revision": "e986a3ba91cb501416126eb5f3ecaeb7f9d97c05",
+      "source_repository": "https://github.com/spatialanalyzer/briosa",
+      "source_channel": "github_release"
+    },
+    "package": {
+      "sha256": "dc2366840afd14c84ec293f9db30cc8fba0516243f5f8937cfb411281fcccbd9",
+      "version": "0.3.0",
+      "publishedUrl": "https://api.nuget.org/v3-flatcontainer/briosa.2024.1.0508.5/0.3.0/briosa.2024.1.0508.5.0.3.0.nupkg",
+      "name": "Briosa.2024.1.0508.5"
+    }
+  },
+  "server": {
+    "name": "briosa-client-conformance-0.6.1-sa-2024.1.0508.5-win-x64",
+    "file_name": "briosa-client-conformance-0.6.1-sa-2024.1.0508.5-win-x64.zip",
+    "sha256": "86c2ed40e45cb5eaa4309a486a3e6213d929e10193f504651ce5c83c7e102ba4",
+    "briosa_version": "0.6.1",
+    "source_revision": "32a3b56ba4ae31ea5ec6ec3b2aa051eb61c866aa",
+    "source_repository": "https://github.com/spatialanalyzer/briosa",
+    "source_channel": "github_release"
+  },
+  "target": {
+    "spatial_analyzer": "2024.1.0508.5",
+    "runtime_identifier": "win-x64"
+  },
+  "scenarioContract": {
+    "id": "briosa.first-party-client.v1",
+    "schema_version": 1
+  },
+  "scenarios": [
+    "control-plane-only",
+    "default-ready",
+    "attach-existing",
+    "identity-mismatch",
+    "capability-denied",
+    "mp-failure",
+    "output-failure",
+    "deadline",
+    "cancellation",
+    "watchdog-recovery",
+    "sdk-loss-recovery",
+    "owned-cleanup"
+  ]
+}

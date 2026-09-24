@@ -22,12 +22,20 @@ for a retained package.
 The first contract-aware server, **0.7.0 only**, must precede client publication
 because clients consume its immutable protocol artifact. Its empty-inventory
 bootstrap is explicit in CI evidence. No later release can sign with an empty
-inventory. All six published 0.2.0 products are now retained with their actual
-registry artifacts. Each passed all 12 scenarios against both public Server
-0.6.1 and 0.7.0 conformance bundles, giving 12 tested pairs and 144 passing
-scenario runs. NuGet payload entries were compared with the successful release
-builds while allowing the added registry signature; npm and PyPI artifacts
-matched their release builds byte for byte. No licensed-SA coverage is implied.
+inventory. All twelve published 0.2.0 and 0.3.0 products are retained with their
+actual registry artifacts. Each passed all 12 scenarios against released Server
+0.6.1, 0.7.0, and 0.8.0 conformance bundles: 36 released-package pairs and 432
+scenario runs. The 0.8.0 release gate supplied the six retained-client reports;
+their server artifact hashes match the published conformance ZIPs. The matrix
+also preserves 24 development-candidate pairs with their original identities.
+No licensed-SA coverage is implied.
+
+The earlier 0.2.0 NuGet payloads were compared with their successful release
+builds while allowing the registry signature; npm and PyPI artifacts matched
+those release builds byte for byte. The 0.3.0 downloads likewise match their successful publishing artifacts
+(byte-identical npm/wheels; NuGet archive payloads identical except for the
+registry signature). The checks install these actual registry downloads into
+isolated consumers. See the [package comparison](evidence/2026-09-24/client-0.3.0-registry-comparison.json).
 
 The reusable release gate installs the verified NuGet, npm, or wheel artifact in
 an isolated consumer and exercises the packaged server with a fake SDK. The

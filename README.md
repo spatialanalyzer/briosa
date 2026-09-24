@@ -11,13 +11,13 @@ Briosa does not include SpatialAnalyzer, its SDK, or a license. SpatialAnalyzer 
 | SpatialAnalyzer target | Product source | Public protobuf package | Generated C# namespace |
 | --- | --- | --- | --- |
 | `2026.1.0529.7` | [`targets/2026.1.0529.7`](targets/2026.1.0529.7) | `briosa` | `Briosa` |
-| `2024.1.0508.5` (initial implementation) | [`targets/2024.1.0508.5`](targets/2024.1.0508.5) | `briosa` | `Briosa` |
+| `2024.1.0508.5` | [`targets/2024.1.0508.5`](targets/2024.1.0508.5) | `briosa` | `Briosa` |
 
-The 2024 target is unreleased. Six read-only operations and basic lifecycle behavior passed local licensed checks; broader runtime coverage remains outstanding. See its [compatibility and validation record](targets/2024.1.0508.5/docs/development/sa2024-compatibility.md).
+Server [0.8.0](https://github.com/spatialanalyzer/briosa/releases/tag/v0.8.0) is released for both targets. Its [MP argument name migration](docs/development/mp-argument-name-migration.md) shortens public names while retaining qualifier meaning in documentation. For the 2024 target, six read-only operations and basic lifecycle behavior passed local licensed checks; broader runtime coverage remains outstanding. See its [compatibility and validation record](targets/2024.1.0508.5/docs/development/sa2024-compatibility.md).
 
 Each target subtree owns its solution, protobuf contract, server, worker, tests, tools, dependency pins, interop boundary, reference evidence, packaging scripts, and target-specific documentation. Target projects must not reference projects or source from another target. A running server is built for exactly one SA release and controls one active SDK/SA instance; there is no runtime SA-version selector.
 
-A Briosa semantic release such as `1.2.3` produces one server artifact and one protocol artifact per supported target. Artifact and future client-package names carry the SA release, while public RPC names and generated language namespaces remain stable to make ordinary SA upgrades straightforward.
+A Briosa semantic release such as `1.2.3` produces one server artifact and one protocol artifact per supported target. Artifact and client-package names carry the SA release, while public RPC names and generated language namespaces remain stable to make ordinary SA upgrades straightforward.
 
 ## Build a target
 
