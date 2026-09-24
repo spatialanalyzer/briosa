@@ -73,7 +73,7 @@ try {
         $gitDirectory = (& git `
             -c "safe.directory=$safeWorktreeRoot" `
             -C $worktreeRoot `
-            rev-parse --absolute-git-dir).Trim().Replace('\', '/')
+            rev-parse --path-format=absolute --git-common-dir).Trim().Replace('\', '/')
         if ($LASTEXITCODE -ne 0) {
             throw "Could not locate the Git directory for $worktreeRoot."
         }
