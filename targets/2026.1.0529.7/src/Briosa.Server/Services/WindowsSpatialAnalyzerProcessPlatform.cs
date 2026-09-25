@@ -3,34 +3,6 @@ using System.Diagnostics;
 
 namespace Briosa.Server.Services;
 
-internal sealed record SpatialAnalyzerProcessIdentity(int ProcessId, long StartTimeUtcTicks);
-
-internal sealed record SpatialAnalyzerProcessObservation(
-    SpatialAnalyzerProcessIdentity Identity);
-
-internal interface ISpatialAnalyzerOwnedProcess : IDisposable
-{
-    SpatialAnalyzerProcessIdentity Identity { get; }
-
-    bool HasExited { get; }
-
-    bool IsApplicationWindowReady { get; }
-
-    bool RequestClose();
-
-    Task WaitForExitAsync(CancellationToken cancellationToken);
-
-    void Refresh();
-}
-
-internal interface ISpatialAnalyzerProcessPlatform
-{
-    IReadOnlyList<SpatialAnalyzerProcessObservation> ObserveEligibleProcesses(
-        string executablePath);
-
-    ISpatialAnalyzerOwnedProcess Start(ProcessStartInfo startInfo);
-}
-
 internal sealed class WindowsSpatialAnalyzerProcessPlatform : ISpatialAnalyzerProcessPlatform
 {
     public IReadOnlyList<SpatialAnalyzerProcessObservation> ObserveEligibleProcesses(

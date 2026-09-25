@@ -5,11 +5,6 @@ using System.Text.Json;
 
 namespace Briosa.Desktop;
 
-public sealed record DesktopRegistration(string Instance, string PackageDirectory, int ProcessId, long StartTimeUtcTicks);
-public sealed record DesktopOwnership(string Instance, string Credential);
-public sealed record DesktopPreferences(bool Notifications = true, string Theme = "system");
-public sealed record DesktopExit(string Instance, bool Clean);
-
 /// <summary>Private rendezvous and preferences, separate from immutable product files and exports.</summary>
 public static class DesktopStore
 {

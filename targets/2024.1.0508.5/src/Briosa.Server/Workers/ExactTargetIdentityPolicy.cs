@@ -2,34 +2,6 @@ using Briosa.Worker.Control;
 
 namespace Briosa.Server.Workers;
 
-internal enum RuntimeIdentityEvidenceSource
-{
-    Unavailable,
-    RuntimeVerification,
-    OperatorAttestation
-}
-
-internal enum RuntimeIdentityMatchState
-{
-    Unavailable,
-    ExactMatch,
-    Mismatch
-}
-
-internal sealed record RuntimeIdentityEvidence(
-    string? Version,
-    RuntimeIdentityEvidenceSource Source,
-    RuntimeIdentityMatchState MatchState);
-
-internal sealed record ExactTargetIdentitySnapshot(
-    RuntimeIdentityEvidence ActivatedSdk,
-    RuntimeIdentityEvidence ConnectedSpatialAnalyzer)
-{
-    public bool AllowsExecution =>
-        ActivatedSdk.MatchState == RuntimeIdentityMatchState.ExactMatch &&
-        ConnectedSpatialAnalyzer.MatchState == RuntimeIdentityMatchState.ExactMatch;
-}
-
 internal sealed class ExactTargetIdentityPolicy
 {
     internal const string ActivatedSdkVersionKey =

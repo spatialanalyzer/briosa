@@ -204,16 +204,3 @@ internal sealed partial class OperationAuditLogger(ILogger<OperationAuditLogger>
         Grpc.Core.StatusCode grpcStatus,
         string diagnosticCode);
 }
-
-internal sealed class OperationPolicyAuditHostedService(
-    OperationPolicy policy,
-    OperationAuditLogger auditLogger) : IHostedService
-{
-    public Task StartAsync(CancellationToken cancellationToken)
-    {
-        auditLogger.PolicyLoaded(policy);
-        return Task.CompletedTask;
-    }
-
-    public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
-}
