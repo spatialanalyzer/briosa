@@ -15,7 +15,7 @@ public sealed class WorkerControlRejectionTests
         using var stream = new MemoryStream();
         using var channel = new WorkerControlChannel(stream, leaveOpen: true);
         var command = new WorkerMpCommand("regression", "Regression",
-            [new("Value", WorkerMpValueKind.FloatingPoint, DoubleValue: value)], []);
+            [new WorkerMpInputArgument("Value", WorkerMpValueKind.FloatingPoint, new WorkerDoubleValue(value))], []);
 
         Assert.Throws<WorkerMessageRejectedException>(() =>
             channel.Send(WorkerControlMessage.Execute(Guid.NewGuid(), command)));

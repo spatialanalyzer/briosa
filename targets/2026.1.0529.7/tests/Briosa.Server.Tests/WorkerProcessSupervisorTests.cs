@@ -20,7 +20,7 @@ public sealed class WorkerProcessSupervisorTests
                 _ => CreateLaunch("normal", lifecycleRecordPath),
                 CreatePolicy());
 
-            Assert.True(await supervisor.StartAsync());
+            Assert.True((await supervisor.StartAsync()).Succeeded, supervisor.Current.DiagnosticCode);
             var ready = supervisor.Current;
             await supervisor.StopAsync();
 
@@ -62,7 +62,7 @@ public sealed class WorkerProcessSupervisorTests
             _ => CreateLaunch("runtime-identity-mismatch"),
             CreatePolicy());
 
-        Assert.True(await supervisor.StartAsync());
+        Assert.True((await supervisor.StartAsync()).Succeeded, supervisor.Current.DiagnosticCode);
         var current = supervisor.Current;
         var outcome = await supervisor.ExecuteAsync(CreateCommand("blocked-by-identity"));
 
@@ -89,7 +89,7 @@ public sealed class WorkerProcessSupervisorTests
             _ => CreateLaunch("malformed-runtime-identity"),
             CreatePolicy());
 
-        Assert.False(await supervisor.StartAsync());
+        Assert.False((await supervisor.StartAsync()).Succeeded);
 
         Assert.Equal(WorkerLifecycleState.Degraded, supervisor.Current.State);
         Assert.Equal("worker-startup-failed", supervisor.Current.DiagnosticCode);
@@ -104,7 +104,7 @@ public sealed class WorkerProcessSupervisorTests
             identityPolicy: ExactTargetIdentityPolicy.CreateForTesting(
                 "2026.1.0529.7"));
 
-        Assert.True(await supervisor.StartAsync());
+        Assert.True((await supervisor.StartAsync()).Succeeded, supervisor.Current.DiagnosticCode);
         var outcome = await supervisor.ExecuteAsync(CreateCommand("unattested"));
 
         Assert.False(supervisor.Current.RuntimeIdentity!.AllowsExecution);
@@ -120,7 +120,7 @@ public sealed class WorkerProcessSupervisorTests
             generation => CreateLaunch(generation == 1 ? "hang-on-ping" : "normal"),
             CreatePolicy());
 
-        Assert.True(await supervisor.StartAsync());
+        Assert.True((await supervisor.StartAsync()).Succeeded, supervisor.Current.DiagnosticCode);
         var faulted = await WaitFor(
             supervisor,
             snapshot => snapshot.State == WorkerLifecycleState.Degraded &&
@@ -134,7 +134,7 @@ public sealed class WorkerProcessSupervisorTests
                 snapshot.LastTermination == WorkerTerminationKind.Forced &&
                 snapshot.DiagnosticCode == "worker-heartbeat-timeout");
 
-        Assert.True(await supervisor.RecoverSdkAsync(faulted.Generation));
+        Assert.True((await supervisor.RecoverSdkAsync(faulted.Generation)).Succeeded);
         Assert.Equal(2, supervisor.Current.Generation);
         Assert.Equal(1, supervisor.Current.RecoveryCount);
         Assert.Equal(WorkerLifecycleState.Ready, supervisor.Current.State);
@@ -150,7 +150,7 @@ public sealed class WorkerProcessSupervisorTests
             generation => CreateLaunch(generation == 1 ? "crash-on-ping" : "normal"),
             CreatePolicy());
 
-        Assert.True(await supervisor.StartAsync());
+        Assert.True((await supervisor.StartAsync()).Succeeded, supervisor.Current.DiagnosticCode);
         var faulted = await WaitFor(
             supervisor,
             snapshot => snapshot.State == WorkerLifecycleState.Degraded);
@@ -162,7 +162,7 @@ public sealed class WorkerProcessSupervisorTests
             snapshot => snapshot.State == WorkerLifecycleState.Degraded &&
                 snapshot.LastTermination == WorkerTerminationKind.Crash);
 
-        Assert.True(await supervisor.RecoverSdkAsync(faulted.Generation));
+        Assert.True((await supervisor.RecoverSdkAsync(faulted.Generation)).Succeeded);
         Assert.Equal(2, supervisor.Current.Generation);
 
         await supervisor.StopAsync();
@@ -181,19 +181,20 @@ public sealed class WorkerProcessSupervisorTests
             CreatePolicy(),
             CreateExecutionPolicy(TimeSpan.FromMilliseconds(150)));
 
-        Assert.True(await supervisor.StartAsync());
+        Assert.True((await supervisor.StartAsync()).Succeeded, supervisor.Current.DiagnosticCode);
         var quarantined = await WaitFor(
             supervisor,
             snapshot => snapshot.Generation == 1 &&
                 snapshot.State == WorkerLifecycleState.Degraded);
 
         Assert.Equal(0, quarantined.RecoveryCount);
-        Assert.False(await supervisor.RecoverSdkAsync(quarantined.Generation));
+        Assert.False((await supervisor.RecoverSdkAsync(quarantined.Generation)).Succeeded);
         Assert.Equal(2, supervisor.Current.Generation);
         Assert.Equal(
             WorkerExecutionReadinessState.OperatorRecoveryRequired,
             supervisor.Current.Connection?.ExecutionReadinessState);
-        Assert.True(await supervisor.RecoverSdkAsync(supervisor.Current.Generation));
+        Assert.True((await supervisor.RecoverSdkAsync(supervisor.Current.Generation)).Succeeded,
+            supervisor.Current.DiagnosticCode);
         var completed = await supervisor.ExecuteAsync(CreateCommand("after-recovery"));
 
         Assert.Equal(3, supervisor.Current.Generation);
@@ -220,7 +221,7 @@ public sealed class WorkerProcessSupervisorTests
             CreatePolicy(heartbeatInterval: TimeSpan.FromSeconds(10)),
             CreateExecutionPolicy(TimeSpan.FromMilliseconds(150)));
 
-        Assert.False(await supervisor.StartAsync());
+        Assert.False((await supervisor.StartAsync()).Succeeded);
         await Task.Delay(TimeSpan.FromMilliseconds(250));
 
         Assert.Equal(1, supervisor.Current.Generation);
@@ -242,7 +243,8 @@ public sealed class WorkerProcessSupervisorTests
             supervisor.History.Count(snapshot =>
                 snapshot.DiagnosticCode == "worker-starting"));
 
-        Assert.True(await supervisor.RecoverSdkAsync(supervisor.Current.Generation));
+        Assert.True((await supervisor.RecoverSdkAsync(supervisor.Current.Generation)).Succeeded,
+            supervisor.Current.DiagnosticCode);
         Assert.Equal(2, supervisor.Current.Generation);
         Assert.Equal(
             WorkerExecutionReadinessState.ExecutionReady,
@@ -256,7 +258,7 @@ public sealed class WorkerProcessSupervisorTests
             generation => CreateLaunch(generation == 1 ? "reject-verify" : "normal"),
             CreatePolicy(heartbeatInterval: TimeSpan.FromSeconds(10)));
 
-        Assert.False(await supervisor.StartAsync());
+        Assert.False((await supervisor.StartAsync()).Succeeded);
 
         Assert.Equal(1, supervisor.Current.Generation);
         Assert.Equal("execution-readiness-probe-mp-failed", supervisor.Current.DiagnosticCode);
@@ -267,7 +269,8 @@ public sealed class WorkerProcessSupervisorTests
             supervisor.History,
             snapshot => snapshot.Connection?.ExecutionReadinessState ==
                 WorkerExecutionReadinessState.CompetingClientSuspected);
-        Assert.True(await supervisor.RecoverSdkAsync(supervisor.Current.Generation));
+        Assert.True((await supervisor.RecoverSdkAsync(supervisor.Current.Generation)).Succeeded,
+            supervisor.Current.DiagnosticCode);
     }
 
     [Fact]
@@ -301,7 +304,7 @@ public sealed class WorkerProcessSupervisorTests
             _ => CreateLaunch("crash-on-ping"),
             CreatePolicy());
 
-        Assert.True(await supervisor.StartAsync());
+        Assert.True((await supervisor.StartAsync()).Succeeded, supervisor.Current.DiagnosticCode);
         var faulted = await WaitFor(
             supervisor,
             snapshot => snapshot.State == WorkerLifecycleState.Degraded);
@@ -327,7 +330,7 @@ public sealed class WorkerProcessSupervisorTests
             _ => CreateLaunch("ignore-stop"),
             policy);
 
-        Assert.True(await supervisor.StartAsync());
+        Assert.True((await supervisor.StartAsync()).Succeeded, supervisor.Current.DiagnosticCode);
         await supervisor.StopAsync();
 
         Assert.Equal(WorkerLifecycleState.Stopped, supervisor.Current.State);
@@ -350,7 +353,7 @@ public sealed class WorkerProcessSupervisorTests
                 activatedSdkVersion: "2026.1.0529.7",
                 connectedSpatialAnalyzerVersion: "2026.1.0529.7"));
 
-        Assert.True(await supervisor.StartAsync());
+        Assert.True((await supervisor.StartAsync()).Succeeded, supervisor.Current.DiagnosticCode);
         await process.PingStarted.WaitAsync(TimeSpan.FromSeconds(5));
 
         var stopping = supervisor.StopAsync();
@@ -381,7 +384,7 @@ public sealed class WorkerProcessSupervisorTests
             CreatePolicy(heartbeatInterval: TimeSpan.FromSeconds(10)),
             CreateExecutionPolicy(queueCapacity: 2));
 
-        Assert.True(await supervisor.StartAsync());
+        Assert.True((await supervisor.StartAsync()).Succeeded, supervisor.Current.DiagnosticCode);
         var active = supervisor.ExecuteAsync(CreateCommand("active"));
         _ = await WaitForExecution(
             supervisor,
@@ -426,7 +429,7 @@ public sealed class WorkerProcessSupervisorTests
             CreatePolicy(heartbeatInterval: TimeSpan.FromSeconds(10)),
             CreateExecutionPolicy(queueCapacity: 2));
 
-        Assert.True(await supervisor.StartAsync());
+        Assert.True((await supervisor.StartAsync()).Succeeded, supervisor.Current.DiagnosticCode);
         var active = supervisor.ExecuteAsync(CreateCommand("active"));
         _ = await WaitForExecution(
             supervisor,
@@ -465,7 +468,7 @@ public sealed class WorkerProcessSupervisorTests
             CreatePolicy(heartbeatInterval: TimeSpan.FromSeconds(10)),
             CreateExecutionPolicy(queueCapacity: 1));
 
-        Assert.True(await supervisor.StartAsync());
+        Assert.True((await supervisor.StartAsync()).Succeeded, supervisor.Current.DiagnosticCode);
         var active = supervisor.ExecuteAsync(CreateCommand("active"));
         _ = await WaitForExecution(
             supervisor,
@@ -510,7 +513,7 @@ public sealed class WorkerProcessSupervisorTests
                 watchdogTimeout: TimeSpan.FromMilliseconds(150),
                 queueCapacity: 2));
 
-        Assert.True(await supervisor.StartAsync());
+        Assert.True((await supervisor.StartAsync()).Succeeded, supervisor.Current.DiagnosticCode);
         var active = supervisor.ExecuteAsync(CreateCommand("watchdog-active"));
         var queued = supervisor.ExecuteAsync(CreateCommand("watchdog-queued"));
         var failures = await Task.WhenAll(active, queued);
@@ -533,7 +536,8 @@ public sealed class WorkerProcessSupervisorTests
             WorkerExecutionDisposition.StartedOutcomeUnknown,
             supervisor.Current.LastIncident.ExecutionDisposition);
 
-        Assert.True(await supervisor.RecoverSdkAsync(supervisor.Current.Generation));
+        Assert.True((await supervisor.RecoverSdkAsync(supervisor.Current.Generation)).Succeeded,
+            supervisor.Current.DiagnosticCode);
         var recovered = await supervisor.ExecuteAsync(CreateCommand("recovered"));
         Assert.Equal(WorkerExecutionStatus.Completed, recovered.Status);
         Assert.Equal(2, recovered.Generation);
@@ -556,7 +560,7 @@ public sealed class WorkerProcessSupervisorTests
                 lifecycleHistoryCapacity: 16),
             CreateExecutionPolicy(queueCapacity: 2));
 
-        Assert.True(await supervisor.StartAsync());
+        Assert.True((await supervisor.StartAsync()).Succeeded, supervisor.Current.DiagnosticCode);
         var active = supervisor.ExecuteAsync(CreateCommand("crash-active"));
         var queued = supervisor.ExecuteAsync(CreateCommand("crash-queued"));
         var failures = await Task.WhenAll(active, queued);
@@ -572,7 +576,8 @@ public sealed class WorkerProcessSupervisorTests
         Assert.Equal(WorkerLifecycleState.Degraded, supervisor.Current.State);
         Assert.Equal(1, supervisor.Current.Generation);
 
-        Assert.True(await supervisor.RecoverSdkAsync(supervisor.Current.Generation));
+        Assert.True((await supervisor.RecoverSdkAsync(supervisor.Current.Generation)).Succeeded,
+            supervisor.Current.DiagnosticCode);
         var recovered = await supervisor.ExecuteAsync(CreateCommand("recovered"));
         Assert.Equal(WorkerExecutionStatus.Completed, recovered.Status);
         Assert.Equal(2, recovered.Generation);
@@ -595,7 +600,7 @@ public sealed class WorkerProcessSupervisorTests
 
         for (var cycle = 0; cycle < 5; cycle++)
         {
-            Assert.True(await supervisor.StartAsync());
+            Assert.True((await supervisor.StartAsync()).Succeeded, supervisor.Current.DiagnosticCode);
             await supervisor.StopAsync();
             Assert.InRange(supervisor.History.Count, 1, historyCapacity);
             Assert.Equal(supervisor.Current, supervisor.History[^1]);
@@ -615,7 +620,7 @@ public sealed class WorkerProcessSupervisorTests
             _ => CreateLaunch("delay-first-execute"),
             CreatePolicy(heartbeatInterval: TimeSpan.FromSeconds(10)));
 
-        Assert.True(await supervisor.StartAsync());
+        Assert.True((await supervisor.StartAsync()).Succeeded, supervisor.Current.DiagnosticCode);
         var first = supervisor.ExecuteAsync(CreateCommand("first"));
         await Task.Delay(TimeSpan.FromMilliseconds(25));
         var second = supervisor.ExecuteAsync(CreateCommand("second"));
@@ -639,7 +644,7 @@ public sealed class WorkerProcessSupervisorTests
             _ => CreateLaunch("delay-first-execute"),
             CreatePolicy(heartbeatInterval: TimeSpan.FromSeconds(10)));
 
-        Assert.True(await supervisor.StartAsync());
+        Assert.True((await supervisor.StartAsync()).Succeeded, supervisor.Current.DiagnosticCode);
         using var clientCancellation = new CancellationTokenSource(
             TimeSpan.FromMilliseconds(50));
         var cancelled = await supervisor.ExecuteAsync(
@@ -664,7 +669,7 @@ public sealed class WorkerProcessSupervisorTests
             _ => CreateLaunch("normal"),
             CreatePolicy(heartbeatInterval: TimeSpan.FromSeconds(10)));
 
-        Assert.True(await supervisor.StartAsync());
+        Assert.True((await supervisor.StartAsync()).Succeeded, supervisor.Current.DiagnosticCode);
         using var clientCancellation = new CancellationTokenSource();
         await clientCancellation.CancelAsync();
 
@@ -685,10 +690,11 @@ public sealed class WorkerProcessSupervisorTests
             CreatePolicy(heartbeatInterval: TimeSpan.FromSeconds(10)),
             CreateExecutionPolicy(TimeSpan.FromMilliseconds(150)));
 
-        Assert.True(await supervisor.StartAsync());
+        Assert.True((await supervisor.StartAsync()).Succeeded, supervisor.Current.DiagnosticCode);
         var timedOut = await supervisor.ExecuteAsync(CreateCommand("hang"));
         var blocked = await supervisor.ExecuteAsync(CreateCommand("before-recovery"));
-        Assert.True(await supervisor.RecoverSdkAsync(supervisor.Current.Generation));
+        Assert.True((await supervisor.RecoverSdkAsync(supervisor.Current.Generation)).Succeeded,
+            supervisor.Current.DiagnosticCode);
         var recovered = await supervisor.ExecuteAsync(CreateCommand("after-hang"));
 
         Assert.Equal(WorkerExecutionStatus.WatchdogTimeout, timedOut.Status);
@@ -716,10 +722,11 @@ public sealed class WorkerProcessSupervisorTests
                 generation == 1 ? "crash-on-execute" : "normal"),
             CreatePolicy(heartbeatInterval: TimeSpan.FromSeconds(10)));
 
-        Assert.True(await supervisor.StartAsync());
+        Assert.True((await supervisor.StartAsync()).Succeeded, supervisor.Current.DiagnosticCode);
         var failed = await supervisor.ExecuteAsync(CreateCommand("crash"));
         var blocked = await supervisor.ExecuteAsync(CreateCommand("before-recovery"));
-        Assert.True(await supervisor.RecoverSdkAsync(supervisor.Current.Generation));
+        Assert.True((await supervisor.RecoverSdkAsync(supervisor.Current.Generation)).Succeeded,
+            supervisor.Current.DiagnosticCode);
         var recovered = await supervisor.ExecuteAsync(CreateCommand("after-crash"));
 
         Assert.Equal(WorkerExecutionStatus.WorkerFailure, failed.Status);
@@ -748,10 +755,11 @@ public sealed class WorkerProcessSupervisorTests
             CreatePolicy(heartbeatInterval: TimeSpan.FromSeconds(10)),
             CreateExecutionPolicy(TimeSpan.FromMilliseconds(150)));
 
-        Assert.True(await supervisor.StartAsync());
+        Assert.True((await supervisor.StartAsync()).Succeeded, supervisor.Current.DiagnosticCode);
         var ambiguous = await supervisor.ExecuteAsync(CreateCommand("ambiguous-completion"));
         var blocked = await supervisor.ExecuteAsync(CreateCommand("before-recovery"));
-        Assert.True(await supervisor.RecoverSdkAsync(supervisor.Current.Generation));
+        Assert.True((await supervisor.RecoverSdkAsync(supervisor.Current.Generation)).Succeeded,
+            supervisor.Current.DiagnosticCode);
         var recovered = await supervisor.ExecuteAsync(CreateCommand("after-ambiguous-completion"));
 
         Assert.Equal((WorkerExecutionStatus)expectedStatus, ambiguous.Status);
@@ -774,7 +782,7 @@ public sealed class WorkerProcessSupervisorTests
             _ => CreateLaunch("normal"),
             CreatePolicy(heartbeatInterval: TimeSpan.FromSeconds(10)));
 
-        Assert.True(await supervisor.StartAsync());
+        Assert.True((await supervisor.StartAsync()).Succeeded, supervisor.Current.DiagnosticCode);
         var result = await supervisor.ExecuteAsync(CreateCommand("mixed-outputs"));
 
         Assert.Equal(WorkerExecutionStatus.Completed, result.Status);
@@ -783,28 +791,24 @@ public sealed class WorkerProcessSupervisorTests
         Assert.All(outputs, output => Assert.True(output.Retrieved));
         Assert.Equal(
             1.25,
-            Assert.Single(outputs, output => output.Name == "Planar Offset")
-                .DoubleValue);
+            ((Assert.Single(outputs, output => output.Name == "Planar Offset").ReadValue() as WorkerDoubleValue)?.Value));
         Assert.Equal(
             "scripted-output",
-            Assert.Single(outputs, output => output.Name == "Working Directory")
-                .StringValue);
+            ((Assert.Single(outputs, output => output.Name == "Working Directory").ReadValue() as WorkerTextValue)?.Value));
 
-        var point = Assert.Single(outputs, output => output.Name == "Point Name")
-            .PointNameValue;
+        var point = (Assert.Single(outputs, output => output.Name == "Point Name").ReadValue() as WorkerPointNameValue);
         Assert.Equal("Collection", point!.CollectionName);
         Assert.Equal("Group", point.GroupName);
         Assert.Equal("Point", point.TargetName);
 
-        var vector = Assert.Single(
+        var vector = (Assert.Single(
             outputs,
-            output => output.Name == "Component Weights").VectorValue;
+            output => output.Name == "Component Weights").ReadValue() as WorkerVectorValue);
         Assert.Equal(new WorkerVectorValue(1, 2, 3), vector);
 
-        var tolerance = Assert.Single(
+        var tolerance = (Assert.Single(
             outputs,
-            output => output.Name == "Position Tolerance")
-            .ToleranceVectorOptionsValue;
+            output => output.Name == "Position Tolerance").ReadValue() as WorkerToleranceVectorOptionsValue);
         Assert.True(tolerance!.HighX.Enabled);
         Assert.Equal(1, tolerance.HighX.Value);
         Assert.False(tolerance.LowMagnitude.Enabled);
@@ -818,7 +822,7 @@ public sealed class WorkerProcessSupervisorTests
             _ => CreateLaunch("normal"),
             CreatePolicy(heartbeatInterval: TimeSpan.FromSeconds(10)));
 
-        Assert.True(await supervisor.StartAsync());
+        Assert.True((await supervisor.StartAsync()).Succeeded, supervisor.Current.DiagnosticCode);
         var result = await supervisor.ExecuteAsync(CreateIdentityReferenceCommand());
 
         Assert.Equal(WorkerExecutionStatus.Completed, result.Status);
@@ -827,32 +831,25 @@ public sealed class WorkerProcessSupervisorTests
         Assert.All(outputs, output => Assert.True(output.Retrieved));
         Assert.Equal(
             17,
-            outputs.Single(value => value.Kind == WorkerMpValueKind.CollectionInstrumentId)
-                .CollectionInstrumentIdValue!.InstrumentId);
+            (outputs.Single(value => value.Kind == WorkerMpValueKind.CollectionInstrumentId).ReadValue() as WorkerCollectionInstrumentIdValue)!.InstrumentId);
         Assert.Equal(
             WorkerItemTypeValue.Picture,
-            outputs.Single(value => value.Kind == WorkerMpValueKind.CollectionItemName)
-                .CollectionItemNameValue!.ItemType);
+            (outputs.Single(value => value.Kind == WorkerMpValueKind.CollectionItemName).ReadValue() as WorkerCollectionItemNameValue)!.ItemType);
         Assert.Equal(
             WorkerItemTypeValue.SaReport,
-            outputs.Single(value => value.Kind == WorkerMpValueKind.CollectionItemNameList)
-                .CollectionItemNameListValue!.Values[0].ItemType);
+            (outputs.Single(value => value.Kind == WorkerMpValueKind.CollectionItemNameList).ReadValue() as WorkerCollectionItemNameListValue)!.Values[0].ItemType);
         Assert.Equal(
             WorkerObjectTypeValue.PointGroup,
-            outputs.Single(value => value.Kind == WorkerMpValueKind.CollectionObjectName)
-                .CollectionObjectNameValue!.ObjectType);
+            (outputs.Single(value => value.Kind == WorkerMpValueKind.CollectionObjectName).ReadValue() as WorkerCollectionObjectNameValue)!.ObjectType);
         Assert.Equal(
             "Point",
-            outputs.Single(value => value.Kind == WorkerMpValueKind.PointNameList)
-                .PointNameListValue!.Values[0].TargetName);
+            (outputs.Single(value => value.Kind == WorkerMpValueKind.PointNameList).ReadValue() as WorkerPointNameListValue)!.Values[0].TargetName);
         Assert.Equal(
             ["A", "B"],
-            outputs.Single(value => value.Kind == WorkerMpValueKind.StringList)
-                .StringListValue!.Values);
+            (outputs.Single(value => value.Kind == WorkerMpValueKind.StringList).ReadValue() as WorkerStringListValue)!.Values);
         Assert.Equal(
             "Vector",
-            outputs.Single(value => value.Kind == WorkerMpValueKind.VectorNameList)
-                .VectorNameListValue!.Values[0].VectorName);
+            (outputs.Single(value => value.Kind == WorkerMpValueKind.VectorNameList).ReadValue() as WorkerVectorNameListValue)!.Values[0].VectorName);
     }
     [Fact]
     public async Task MpFailureIsPreservedWhenExecuteStepReturnsTrue()
@@ -861,7 +858,7 @@ public sealed class WorkerProcessSupervisorTests
             _ => CreateLaunch("mp-failure"),
             CreatePolicy(heartbeatInterval: TimeSpan.FromSeconds(10)));
 
-        Assert.True(await supervisor.StartAsync());
+        Assert.True((await supervisor.StartAsync()).Succeeded, supervisor.Current.DiagnosticCode);
         var result = await supervisor.ExecuteAsync(CreateCommand("mp-failure"));
 
         Assert.Equal(WorkerExecutionStatus.Completed, result.Status);
@@ -878,10 +875,10 @@ public sealed class WorkerProcessSupervisorTests
             _ => CreateLaunch("connect-unavailable-once"),
             CreatePolicy());
 
-        Assert.True(await supervisor.StartAsync());
+        Assert.True((await supervisor.StartAsync()).Succeeded, supervisor.Current.DiagnosticCode);
         var generation = supervisor.Current.Generation;
 
-        Assert.False(await supervisor.ConnectAsync(generation));
+        Assert.False((await supervisor.ConnectAsync(generation)).Succeeded);
         Assert.Equal(WorkerLifecycleState.Ready, supervisor.Current.State);
         Assert.Equal(
             WorkerConnectionState.Faulted,
@@ -894,7 +891,7 @@ public sealed class WorkerProcessSupervisorTests
 
         Assert.Equal(WorkerLifecycleState.Ready, supervisor.Current.State);
         Assert.Equal(generation, supervisor.Current.Generation);
-        Assert.True(await supervisor.ConnectAsync(generation));
+        Assert.True((await supervisor.ConnectAsync(generation)).Succeeded);
         Assert.Equal(WorkerLifecycleState.Ready, supervisor.Current.State);
         Assert.Equal(
             WorkerConnectionState.Connected,
@@ -925,7 +922,7 @@ public sealed class WorkerProcessSupervisorTests
                 workingDirectory: Path.GetDirectoryName(executable)),
             CreatePolicy(shutdownTimeout: TimeSpan.FromSeconds(5)));
 
-        Assert.False(await supervisor.StartAsync());
+        Assert.False((await supervisor.StartAsync()).Succeeded);
         Assert.Equal(WorkerLifecycleState.Degraded, supervisor.Current.State);
         Assert.Equal(WorkerConnectionState.Faulted, supervisor.Current.Connection!.State);
         Assert.Equal(
@@ -950,6 +947,66 @@ public sealed class WorkerProcessSupervisorTests
 
         Assert.Equal(WorkerLifecycleState.Stopped, supervisor.Current.State);
         Assert.Equal(WorkerTerminationKind.Forced, supervisor.Current.LastTermination);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task StartupOwnsAndTerminatesAChildThatNeverConnects(bool cancelCaller)
+    {
+        var factory = new StartupTrackingFactory(new NamedPipeWorkerProcessFactory(
+            _ => CreateLaunch("hang-before-ready")));
+        var supervisor = new WorkerProcessSupervisor(factory,
+            new WorkerLifecyclePolicy(TimeSpan.FromMinutes(5), TimeSpan.FromSeconds(1),
+                TimeSpan.FromMilliseconds(500), TimeSpan.FromSeconds(3)));
+        await using var supervisorScope = supervisor.ConfigureAwait(true);
+        using var caller = new CancellationTokenSource();
+        var starting = supervisor.StartAsync(caller.Token);
+        await factory.Started.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        if (cancelCaller)
+        {
+            await caller.CancelAsync();
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => starting);
+            Assert.Equal(WorkerLifecycleState.Stopped, supervisor.Current.State);
+        }
+        else
+        {
+            Assert.False((await starting.WaitAsync(TimeSpan.FromSeconds(6))).Succeeded);
+            Assert.Equal("worker-startup-timeout", supervisor.Current.DiagnosticCode);
+        }
+        Assert.NotNull(factory.Child);
+        Assert.True(factory.Child.ExitConfirmedBeforeDisposal);
+        Assert.False(supervisor.Current.ReadyForExecution);
+    }
+
+    private sealed class StartupTrackingFactory(IWorkerProcessFactory factory) : IWorkerProcessFactory
+    {
+        public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public StartupTrackingProcess? Child { get; private set; }
+        public async ValueTask<IWorkerProcess> StartAsync(int generation, CancellationToken cancellationToken = default)
+        {
+            Child = new StartupTrackingProcess(await factory.StartAsync(generation, cancellationToken).ConfigureAwait(false));
+            Started.TrySetResult();
+            return Child;
+        }
+    }
+
+    private sealed class StartupTrackingProcess(IWorkerProcess inner) : IWorkerProcess
+    {
+        public bool ExitConfirmedBeforeDisposal { get; private set; }
+        public bool HasExited => inner.HasExited;
+        public int? ExitCode => inner.ExitCode;
+        public ValueTask SendAsync(WorkerControlMessage message, CancellationToken cancellationToken = default) =>
+            inner.SendAsync(message, cancellationToken);
+        public ValueTask<WorkerControlMessage> ReceiveAsync(CancellationToken cancellationToken = default) =>
+            inner.ReceiveAsync(cancellationToken);
+        public Task WaitForExitAsync(CancellationToken cancellationToken = default) => inner.WaitForExitAsync(cancellationToken);
+        public ValueTask TerminateAsync(CancellationToken cancellationToken = default) => inner.TerminateAsync(cancellationToken);
+        public ValueTask DisposeAsync()
+        {
+            ExitConfirmedBeforeDisposal = inner.HasExited;
+            return inner.DisposeAsync();
+        }
     }
 
     private static WorkerProcessSupervisor CreateSupervisor(
@@ -1000,42 +1057,23 @@ public sealed class WorkerProcessSupervisorTests
             "identity-reference-pipe",
             "Identity Reference Pipe",
             [
-                new WorkerMpInputArgument(
-                    "Item",
-                    WorkerMpValueKind.CollectionItemName,
-                    CollectionItemNameValue: new WorkerCollectionItemNameValue(
+                new WorkerMpInputArgument("Item", WorkerMpValueKind.CollectionItemName, new WorkerCollectionItemNameValue(
                         "Collection",
                         "Picture",
                         WorkerItemTypeValue.Picture)),
-                new WorkerMpInputArgument(
-                    "Items",
-                    WorkerMpValueKind.CollectionItemNameList,
-                    CollectionItemNameListValue: new WorkerCollectionItemNameListValue(
+                new WorkerMpInputArgument("Items", WorkerMpValueKind.CollectionItemNameList, new WorkerCollectionItemNameListValue(
                         [new WorkerCollectionItemNameValue(
                             "Collection",
                             "Report",
                             WorkerItemTypeValue.SaReport)])),
-                new WorkerMpInputArgument(
-                    "Object",
-                    WorkerMpValueKind.CollectionObjectName,
-                    CollectionObjectNameValue: new WorkerCollectionObjectNameValue(
+                new WorkerMpInputArgument("Object", WorkerMpValueKind.CollectionObjectName, new WorkerCollectionObjectNameValue(
                         "Collection",
                         "Object",
                         WorkerObjectTypeValue.PointGroup)),
-                new WorkerMpInputArgument(
-                    "Points",
-                    WorkerMpValueKind.PointNameList,
-                    PointNameListValue: new WorkerPointNameListValue(
+                new WorkerMpInputArgument("Points", WorkerMpValueKind.PointNameList, new WorkerPointNameListValue(
                         [new WorkerPointNameValue("Collection", "Group", "Point")])),
-                new WorkerMpInputArgument(
-                    "Strings",
-                    WorkerMpValueKind.StringList,
-                    StringListValue: new WorkerStringListValue([])),
-                new WorkerMpInputArgument(
-                    "Machine",
-                    WorkerMpValueKind.CollectionMachineId,
-                    CollectionMachineIdValue:
-                        new WorkerCollectionMachineIdValue("Collection", 4))
+                new WorkerMpInputArgument("Strings", WorkerMpValueKind.StringList, new WorkerStringListValue([])),
+                new WorkerMpInputArgument("Machine", WorkerMpValueKind.CollectionMachineId, new WorkerCollectionMachineIdValue("Collection", 4))
             ],
             [
                 new WorkerMpOutputArgument(
@@ -1065,34 +1103,13 @@ public sealed class WorkerProcessSupervisorTests
             operationId,
             "Scripted Step",
             [
-                new WorkerMpInputArgument(
-                    "Enabled",
-                    WorkerMpValueKind.Logical,
-                    BooleanValue: true),
-                new WorkerMpInputArgument(
-                    "Count",
-                    WorkerMpValueKind.WholeNumber,
-                    IntegerValue: 2),
-                new WorkerMpInputArgument(
-                    "Tolerance",
-                    WorkerMpValueKind.FloatingPoint,
-                    DoubleValue: 0.01),
-                new WorkerMpInputArgument(
-                    "Label",
-                    WorkerMpValueKind.Text,
-                    StringValue: "portable-test"),
-                new WorkerMpInputArgument(
-                    "Point Name",
-                    WorkerMpValueKind.PointName,
-                    PointNameValue: new WorkerPointNameValue("", "", "")),
-                new WorkerMpInputArgument(
-                    "Direction",
-                    WorkerMpValueKind.Vector,
-                    VectorValue: new WorkerVectorValue(1, 0, 0)),
-                new WorkerMpInputArgument(
-                    "Position Tolerance",
-                    WorkerMpValueKind.ToleranceVectorOptions,
-                    ToleranceVectorOptionsValue: CreateToleranceVectorOptions())
+                new WorkerMpInputArgument("Enabled", WorkerMpValueKind.Logical, new WorkerBooleanValue(true)),
+                new WorkerMpInputArgument("Count", WorkerMpValueKind.WholeNumber, new WorkerIntegerValue(2)),
+                new WorkerMpInputArgument("Tolerance", WorkerMpValueKind.FloatingPoint, new WorkerDoubleValue(0.01)),
+                new WorkerMpInputArgument("Label", WorkerMpValueKind.Text, new WorkerTextValue("portable-test")),
+                new WorkerMpInputArgument("Point Name", WorkerMpValueKind.PointName, new WorkerPointNameValue("", "", "")),
+                new WorkerMpInputArgument("Direction", WorkerMpValueKind.Vector, new WorkerVectorValue(1, 0, 0)),
+                new WorkerMpInputArgument("Position Tolerance", WorkerMpValueKind.ToleranceVectorOptions, CreateToleranceVectorOptions())
             ],
             [
                 new WorkerMpOutputArgument("Enabled Result", WorkerMpValueKind.Logical),

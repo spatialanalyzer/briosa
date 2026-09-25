@@ -15,8 +15,7 @@ public sealed class ServerDiagnosticsCommandTests
 
             var exitCode = ServerDiagnosticsCommand.Run(
                 output,
-                directory,
-                typeof(Program).Assembly);
+                directory);
 
             using var report = JsonDocument.Parse(output.ToString());
             var root = report.RootElement;
@@ -49,8 +48,7 @@ public sealed class ServerDiagnosticsCommandTests
 
             var exitCode = ServerDiagnosticsCommand.Run(
                 output,
-                directory,
-                typeof(Program).Assembly);
+                directory);
 
             using var report = JsonDocument.Parse(output.ToString());
             Assert.Equal(2, exitCode);

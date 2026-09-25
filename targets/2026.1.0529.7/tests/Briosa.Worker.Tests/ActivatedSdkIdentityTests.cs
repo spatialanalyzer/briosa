@@ -45,7 +45,7 @@ public sealed class ActivatedSdkIdentityTests
         public string? GetActivatedSdkVersion() { IdentityApartment = Thread.CurrentThread.GetApartmentState(); return version; }
         public SdkLivenessStatus GetLiveness() => SdkLivenessStatus.Alive;
         public SdkConnectionResult Connect(string host) => new(SdkConnectionStatus.Connected, 0, null);
-        public SdkExecutionResult Execute(SdkCommand command) { Executed = true; throw new InvalidOperationException("No probe is authorized by identity observation."); }
+        public WorkerMpExecutionResult Execute(WorkerMpCommand command) { Executed = true; throw new InvalidOperationException("No probe is authorized by identity observation."); }
         public void Dispose() { }
     }
 }

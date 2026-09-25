@@ -1,8 +1,6 @@
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
-using System.Threading.Channels;
 using Briosa.Server.Operations;
 using Briosa.Server.Services;
 using Briosa.Worker.Control;
@@ -23,21 +21,10 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
     private readonly TimeProvider _timeProvider;
     private readonly ILogger<WorkerProcessSupervisor> _logger;
     private readonly BriosaTelemetry? _telemetry;
-    [SuppressMessage(
-        "Reliability",
-        "CA2213:Disposable fields should be disposed",
-        Justification = "ExecuteAsync callers capture the generation-scoped source while mapping a reserved request. Disposal can race their token checks; cancellation plus garbage collection safely retires it because Briosa never requests its wait handle.")]
-    private CancellationTokenSource? _executionCancellation;
-    private Channel<ExecutionWorkItem>? _executionQueue;
-    [SuppressMessage(
-        "Reliability",
-        "CA2213:Disposable fields should be disposed",
-        Justification = "A generation-scoped semaphore can still be observed by ExecuteAsync callers after runtime-loop shutdown; disposing it would race those callers. SemaphoreSlim allocates no wait handle unless AvailableWaitHandle is requested, which Briosa never does, and the retired instance is reclaimed after those callers return.")]
-    private SemaphoreSlim? _executionQueueSlots;
-    private Task? _executionTask;
-    private CancellationTokenSource? _monitorCancellation;
-    private Task? _monitorTask;
-    private IWorkerProcess? _worker;
+    private WorkerExecutionQueue? _executionQueue;
+    private WorkerHeartbeatMonitor? _heartbeatMonitor;
+    private WorkerProcessLifetime? _processLifetime;
+    private IWorkerProcess? Worker => _processLifetime?.Process;
     private WorkerLifecycleSnapshot _current;
     private int _generation;
     private int _reportedProcessId;
@@ -52,7 +39,8 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
     private long _clientCancellationAfterAdmissionCount;
     private long _watchdogTimeoutCount;
     private long _workerFailureCount;
-    private long _stateRevision;
+    private long _stateRevision = 1;
+    private long _lastSuccessfulExchange;
 
     public WorkerProcessSupervisor(
         IWorkerProcessFactory processFactory,
@@ -84,7 +72,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
             WorkerTerminationKind.None,
             "not-started",
             Connection: null,
-            _timeProvider.GetUtcNow());
+            _timeProvider.GetUtcNow(), StateRevision: _stateRevision);
         _history.Add(_current);
     }
 
@@ -123,16 +111,17 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         Interlocked.Read(ref _watchdogTimeoutCount),
         Interlocked.Read(ref _workerFailureCount));
 
-    public Task<bool> StartAsync(CancellationToken cancellationToken = default) =>
+    public Task<WorkerLifecycleResult> StartAsync(CancellationToken cancellationToken = default) =>
         RunLifecycle(StartCore, cancellationToken);
 
-    public Task<bool> ConnectAsync(int expectedGeneration, CancellationToken cancellationToken = default) =>
+    public Task<WorkerLifecycleResult> ConnectAsync(int expectedGeneration, CancellationToken cancellationToken = default) =>
         RunLifecycle(token => ConnectCore(expectedGeneration, token), cancellationToken);
 
-    public Task<bool> RecoverSdkAsync(int expectedGeneration, CancellationToken cancellationToken = default) =>
+    public Task<WorkerLifecycleResult> RecoverSdkAsync(int expectedGeneration, CancellationToken cancellationToken = default) =>
         RunLifecycle(token => RecoverSdkCore(expectedGeneration, token), cancellationToken);
 
-    private async Task<bool> RunLifecycle(Func<CancellationToken, Task<bool>> action, CancellationToken cancellationToken)
+    private async Task<WorkerLifecycleResult> RunLifecycle(
+        Func<CancellationToken, Task<WorkerLifecycleResult>> action, CancellationToken cancellationToken)
     {
         ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposeState) != 0, this);
         await _lifecycleGate.WaitAsync(cancellationToken).ConfigureAwait(false);
@@ -146,7 +135,28 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         }
     }
 
-    private async Task<bool> StartCore(CancellationToken cancellationToken)
+    // Called under _gate: neither another lifecycle action nor a monitor/execution
+    // transition can replace the snapshot between deciding the result and capturing it.
+    private WorkerLifecycleResult CaptureLifecycleResult(bool succeeded) =>
+        succeeded ? new WorkerLifecycleSucceeded(Current) : new WorkerLifecycleFailed(Current);
+
+    // Callers hold _gate while checking and acting on this generation.
+    private WorkerLifecycleSnapshot RequireExpectedGeneration(int expectedGeneration)
+    {
+        var current = Current;
+        if (expectedGeneration <= 0 || current.Generation != expectedGeneration)
+            throw new WorkerGenerationConflictException(expectedGeneration, current.Generation);
+        return current;
+    }
+
+    private async Task<bool> StartGeneration(CancellationToken cancellationToken)
+    {
+        var started = await StartWorker(cancellationToken).ConfigureAwait(false);
+        if (started) StartRuntimeLoops();
+        return started;
+    }
+
+    private async Task<WorkerLifecycleResult> StartCore(CancellationToken cancellationToken)
     {
         ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposeState) != 0, this);
         await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
@@ -158,13 +168,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
             }
 
             _recoveryCount = 0;
-            var started = await StartWorker(cancellationToken).ConfigureAwait(false);
-            if (started)
-            {
-                StartRuntimeLoops();
-            }
-
-            return started;
+            return CaptureLifecycleResult(await StartGeneration(cancellationToken).ConfigureAwait(false));
         }
         finally
         {
@@ -172,7 +176,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         }
     }
 
-    private async Task<bool> ConnectCore(
+    private async Task<WorkerLifecycleResult> ConnectCore(
         int expectedGeneration,
         CancellationToken cancellationToken = default)
     {
@@ -180,15 +184,9 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            var current = Current;
-            if (expectedGeneration <= 0 || current.Generation != expectedGeneration)
-            {
-                throw new WorkerGenerationConflictException(
-                    expectedGeneration,
-                    current.Generation);
-            }
+            var current = RequireExpectedGeneration(expectedGeneration);
 
-            var worker = _worker;
+            var worker = Worker;
             if (current.State != WorkerLifecycleState.Ready || worker is null)
             {
                 throw new InvalidOperationException(
@@ -206,6 +204,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                 State = WorkerConnectionState.Connecting,
                 ExecutionReadinessState = WorkerExecutionReadinessState.Unverified,
                 DiagnosticCode = "connect-ex-started",
+                Failure = WorkerConnectionFailure.None,
                 TransitionedAt = _timeProvider.GetUtcNow()
             };
             Transition(
@@ -239,14 +238,14 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
             {
                 await RetireWorker(
                     "connect-ex-timeout",
-                    connecting).ConfigureAwait(false);
-                return false;
+                    connecting, lifecycleFailure: WorkerLifecycleFailure.ConnectionTimeout).ConfigureAwait(false);
+                return CaptureLifecycleResult(false);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
                 await RetireWorker(
                     "connect-ex-cancelled",
-                    connecting).ConfigureAwait(false);
+                    connecting, lifecycleFailure: WorkerLifecycleFailure.Cancelled).ConfigureAwait(false);
                 throw;
             }
             catch (Exception exception) when (IsRecoverableProcessFailure(exception))
@@ -255,60 +254,11 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                     worker.HasExited
                         ? "worker-exited-during-connect"
                         : "sdk-connection-control-failed",
-                    connecting).ConfigureAwait(false);
-                return false;
+                    connecting, lifecycleFailure: WorkerLifecycleFailure.ConnectionFailed).ConfigureAwait(false);
+                return CaptureLifecycleResult(false);
             }
 
-            var connection = response.Connection!;
-            if (connection.State != WorkerConnectionState.Connected)
-            {
-                if (RequiresSdkRecovery(connection))
-                {
-                    await RetireWorker(
-                        connection.DiagnosticCode,
-                        connection).ConfigureAwait(false);
-                }
-                else
-                {
-                    Transition(
-                        WorkerLifecycleState.Ready,
-                        _reportedProcessId,
-                        current.LastTermination,
-                        connection.DiagnosticCode,
-                        connection);
-                }
-
-                return false;
-            }
-
-            if (!_identityPolicy.Evaluate(connection.RuntimeIdentity).AllowsExecution)
-            {
-                Transition(
-                    WorkerLifecycleState.Ready,
-                    _reportedProcessId,
-                    current.LastTermination,
-                    "runtime-identity-not-ready",
-                    connection with
-                    {
-                        ExecutionReadinessState = WorkerExecutionReadinessState.Unverified,
-                        DiagnosticCode = "runtime-identity-not-ready",
-                        TransitionedAt = _timeProvider.GetUtcNow()
-                    });
-                return false;
-            }
-
-            Transition(
-                WorkerLifecycleState.Starting,
-                _reportedProcessId,
-                current.LastTermination,
-                "execution-readiness-probe-started",
-                connection with
-                {
-                    ExecutionReadinessState = WorkerExecutionReadinessState.Verifying,
-                    DiagnosticCode = "execution-readiness-probe-started",
-                    TransitionedAt = _timeProvider.GetUtcNow()
-                });
-            return await VerifyWorkerExecution(connection, cancellationToken)
+            return await ApplyConnectionResult(response.Connection!, current, cancellationToken)
                 .ConfigureAwait(false);
         }
         finally
@@ -317,7 +267,66 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         }
     }
 
-    private async Task<bool> RecoverSdkCore(
+    // Called with _gate held; the returned result captures the transition it describes.
+    private async Task<WorkerLifecycleResult> ApplyConnectionResult(
+        WorkerConnectionSnapshot connection,
+        WorkerLifecycleSnapshot beforeConnection,
+        CancellationToken cancellationToken)
+    {
+        if (connection.State != WorkerConnectionState.Connected)
+        {
+            if (RequiresSdkRecovery(connection))
+            {
+                await RetireWorker(
+                    connection.DiagnosticCode,
+                    connection, lifecycleFailure: WorkerLifecycleFailure.ConnectionFailed).ConfigureAwait(false);
+            }
+            else
+            {
+                Transition(
+                    WorkerLifecycleState.Ready,
+                    _reportedProcessId,
+                    beforeConnection.LastTermination,
+                    connection.DiagnosticCode,
+                    connection, lifecycleFailure: WorkerLifecycleFailure.ConnectionFailed);
+            }
+
+            return CaptureLifecycleResult(false);
+        }
+
+        if (!_identityPolicy.Evaluate(connection.RuntimeIdentity).AllowsExecution)
+        {
+            Transition(
+                WorkerLifecycleState.Ready,
+                _reportedProcessId,
+                beforeConnection.LastTermination,
+                "runtime-identity-not-ready",
+                connection with
+                {
+                    ExecutionReadinessState = WorkerExecutionReadinessState.Unverified,
+                    DiagnosticCode = "runtime-identity-not-ready",
+                    TransitionedAt = _timeProvider.GetUtcNow()
+                }, lifecycleFailure: WorkerLifecycleFailure.IdentityRejected);
+            return CaptureLifecycleResult(false);
+        }
+
+        Transition(
+            WorkerLifecycleState.Starting,
+            _reportedProcessId,
+            beforeConnection.LastTermination,
+            "execution-readiness-probe-started",
+            connection with
+            {
+                ExecutionReadinessState = WorkerExecutionReadinessState.Verifying,
+                DiagnosticCode = "execution-readiness-probe-started",
+                TransitionedAt = _timeProvider.GetUtcNow()
+            });
+        var verified = await VerifyWorkerExecution(connection, cancellationToken)
+            .ConfigureAwait(false);
+        return CaptureLifecycleResult(verified);
+    }
+
+    private async Task<WorkerLifecycleResult> RecoverSdkCore(
         int expectedGeneration,
         CancellationToken cancellationToken = default)
     {
@@ -325,13 +334,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            var current = Current;
-            if (expectedGeneration <= 0 || current.Generation != expectedGeneration)
-            {
-                throw new WorkerGenerationConflictException(
-                    expectedGeneration,
-                    current.Generation);
-            }
+            var current = RequireExpectedGeneration(expectedGeneration);
 
             if (current.State != WorkerLifecycleState.Degraded)
             {
@@ -350,20 +353,121 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         await _gate.WaitAsync(CancellationToken.None).ConfigureAwait(false);
         try
         {
-            await CleanupWorker(force: true).ConfigureAwait(false);
+            if (!await CleanupWorker(force: true).ConfigureAwait(false)) return CaptureLifecycleResult(false);
             _recoveryCount++;
-            var started = await StartWorker(cancellationToken).ConfigureAwait(false);
-            if (started)
-            {
-                StartRuntimeLoops();
-            }
-
-            return started;
+            return CaptureLifecycleResult(await StartGeneration(cancellationToken).ConfigureAwait(false));
         }
         finally
         {
             _gate.Release();
         }
+    }
+
+
+    public async Task<WorkerLifecycleSnapshot> AssociateApplicationGenerationAsync(int expectedGeneration,
+        int? applicationGeneration, CancellationToken cancellationToken = default)
+    {
+        await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            var current = Current;
+            if (current.Generation != expectedGeneration)
+                throw new WorkerGenerationConflictException(expectedGeneration, current.Generation);
+            if (current.State != WorkerLifecycleState.Ready ||
+                current.Connection?.State != WorkerConnectionState.Connected ||
+                current.ApplicationGeneration == applicationGeneration) return current;
+            PublishSnapshot(current with
+            {
+                ApplicationGeneration = applicationGeneration,
+                StateRevision = Interlocked.Increment(ref _stateRevision),
+                TransitionedAt = _timeProvider.GetUtcNow()
+            });
+            return Current;
+        }
+        finally
+        {
+            _gate.Release();
+        }
+    }
+
+    public Task<WorkerLifecycleResult> StopAsync(CancellationToken cancellationToken = default) =>
+        RunLifecycle(StopCore, cancellationToken);
+
+    private async Task<WorkerLifecycleResult> StopCore(CancellationToken cancellationToken)
+    {
+        // Cancellation may abandon waiting to begin, but never leave an accepted
+        // teardown half complete. Acquire ownership before closing admission.
+        await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var current = Current;
+            Transition(WorkerLifecycleState.Stopping, current.ProcessId,
+                current.LastTermination, "worker-stopping", current.Connection);
+        }
+        finally
+        {
+            _gate.Release();
+        }
+
+        await StopRuntimeLoops().ConfigureAwait(false);
+
+        await _gate.WaitAsync(CancellationToken.None).ConfigureAwait(false);
+        try
+        {
+            await StopWorker().ConfigureAwait(false);
+            return CaptureLifecycleResult(Current.State == WorkerLifecycleState.Stopped &&
+                Current.LifecycleFailure == WorkerLifecycleFailure.None);
+        }
+        finally
+        {
+            _gate.Release();
+        }
+    }
+
+    private async Task StopRuntimeLoops()
+    {
+        var executionQueue = _executionQueue;
+        _executionQueue = null;
+        if (executionQueue is not null)
+        {
+            await executionQueue.CloseAsync().ConfigureAwait(false);
+        }
+
+        var monitor = _heartbeatMonitor;
+        _heartbeatMonitor = null;
+        try
+        {
+            if (monitor is not null)
+                await monitor.DisposeAsync().ConfigureAwait(false);
+        }
+        finally
+        {
+            // A monitor fault cannot strand the generation's queued work.
+            if (executionQueue is not null)
+                await executionQueue.Completion.ConfigureAwait(false);
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (Interlocked.Exchange(ref _disposeState, 1) != 0)
+        {
+            return;
+        }
+
+        // Disposal has already closed the public lifecycle entry points.
+        await _lifecycleGate.WaitAsync(CancellationToken.None).ConfigureAwait(false);
+        try
+        {
+            await StopCore(CancellationToken.None).ConfigureAwait(false);
+        }
+        finally
+        {
+            _lifecycleGate.Release();
+        }
+        _gate.Dispose();
+        _lifecycleGate.Dispose();
     }
 
 
@@ -397,22 +501,17 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         }
 
         var queue = _executionQueue;
-        var queueSlots = _executionQueueSlots;
-        var executionCancellation = _executionCancellation;
-        if (queue is null || queueSlots is null || executionCancellation is null ||
-            Current.State != WorkerLifecycleState.Ready ||
-            !IsReadyForExecution(Current))
+        var snapshot = Current;
+        if (queue is null || queue.IsClosed || queue.Generation != snapshot.Generation ||
+            !snapshot.ReadyForExecution)
         {
-            return Unavailable(
-                Current.State == WorkerLifecycleState.Ready
-                    ? GetExecutionNotReadyDiagnostic(Current)
-                    : "worker-not-ready",
-                effectiveCorrelationId);
+            return Unavailable(snapshot.State == WorkerLifecycleState.Ready
+                ? GetExecutionNotReadyDiagnostic(snapshot) : "worker-not-ready", effectiveCorrelationId);
         }
 
         // A reservation covers both mapping and queue handoff. There are no
         // capacity waiters retaining requests outside the bounded queue.
-        if (!queueSlots.Wait(0, CancellationToken.None))
+        if (!queue.TryReserve())
         {
             return new WorkerExecutionOutcome(WorkerExecutionStatus.Overloaded,
                 WorkerExecutionDisposition.NotStarted, null, Current.Connection,
@@ -426,15 +525,15 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
-            executionCancellation.Token.ThrowIfCancellationRequested();
+            queue.CancellationToken.ThrowIfCancellationRequested();
             var command = submission.CreateCommand();
             if (command.OperationId != submission.OperationId)
                 throw new ArgumentException("The operation command does not match its submission.");
             cancellationToken.ThrowIfCancellationRequested();
-            executionCancellation.Token.ThrowIfCancellationRequested();
-            item = new ExecutionWorkItem(command, effectiveCorrelationId, Current.Generation,
+            queue.CancellationToken.ThrowIfCancellationRequested();
+            item = new ExecutionWorkItem(command, effectiveCorrelationId, queue.Generation,
                 Activity.Current?.Context ?? default);
-            if (!queue.Writer.TryWrite(item))
+            if (!queue.TryWrite(item))
             {
                 return Unavailable(
                     "worker-execution-queue-closed",
@@ -452,13 +551,13 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                 effectiveCorrelationId,
                 WorkerExecutionDisposition.NotStarted);
         }
-        catch (OperationCanceledException) when (executionCancellation.IsCancellationRequested)
+        catch (OperationCanceledException) when (queue.IsClosed)
         {
-            return Unavailable("worker-execution-queue-closed", effectiveCorrelationId);
+            return Unavailable("worker-execution-queue-closed", effectiveCorrelationId) with { Generation = queue.Generation };
         }
         finally
         {
-            if (!handedOff) queueSlots.Release();
+            if (!handedOff) queue.ReleaseReservation();
             _telemetry?.Admission(submission.OperationId,
                 _timeProvider.GetElapsedTime(admissionStarted).TotalMilliseconds);
             admissionActivity?.Stop();
@@ -477,128 +576,38 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         }
     }
 
-    public async Task StopAsync(CancellationToken cancellationToken = default)
+    private async Task ProcessExecutions(WorkerExecutionQueue queue)
     {
-        await _lifecycleGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        var cancellationToken = queue.CancellationToken;
         try
         {
-            await StopCore(cancellationToken).ConfigureAwait(false);
-        }
-        finally
-        {
-            _lifecycleGate.Release();
-        }
-    }
-
-    private async Task StopCore(CancellationToken cancellationToken)
-    {
-        // Cancellation may abandon waiting to begin, but never leave an accepted
-        // teardown half complete. Acquire ownership before closing admission.
-        await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
-        try
-        {
-            var current = Current;
-            Transition(WorkerLifecycleState.Stopping, current.ProcessId,
-                current.LastTermination, "worker-stopping", current.Connection);
-        }
-        finally
-        {
-            _gate.Release();
-        }
-
-        await StopRuntimeLoops().ConfigureAwait(false);
-
-        await _gate.WaitAsync(CancellationToken.None).ConfigureAwait(false);
-        try
-        {
-            await StopWorker().ConfigureAwait(false);
-        }
-        finally
-        {
-            _gate.Release();
-        }
-    }
-
-    private async Task StopRuntimeLoops()
-    {
-        var executionCancellation = _executionCancellation;
-        var executionQueue = _executionQueue;
-        var executionTask = _executionTask;
-        _executionCancellation = null;
-        _executionQueue = null;
-        _executionQueueSlots = null;
-        _executionTask = null;
-        executionQueue?.Writer.TryComplete();
-        if (executionCancellation is not null)
-        {
-            await executionCancellation.CancelAsync().ConfigureAwait(false);
-        }
-
-        var monitorCancellation = _monitorCancellation;
-        var monitorTask = _monitorTask;
-        if (monitorCancellation is not null)
-        {
-            await monitorCancellation.CancelAsync().ConfigureAwait(false);
-        }
-        if (monitorTask is not null)
-        {
-            try
-            {
-                await monitorTask.ConfigureAwait(false);
-            }
-            catch (OperationCanceledException)
-            {
-            }
-        }
-        if (executionTask is not null)
-        {
-            await executionTask.ConfigureAwait(false);
-        }
-
-        _monitorTask = null;
-        _monitorCancellation = null;
-        monitorCancellation?.Dispose();
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        if (Interlocked.Exchange(ref _disposeState, 1) != 0)
-        {
-            return;
-        }
-
-        await StopAsync().ConfigureAwait(false);
-        _gate.Dispose();
-        _lifecycleGate.Dispose();
-    }
-
-
-    private async Task ProcessExecutions(
-        ChannelReader<ExecutionWorkItem> reader,
-        SemaphoreSlim queueSlots,
-        CancellationToken cancellationToken)
-    {
-        try
-        {
-            await foreach (var item in reader.ReadAllAsync(cancellationToken).ConfigureAwait(false))
+            await foreach (var item in queue.Reader.ReadAllAsync(cancellationToken).ConfigureAwait(false))
             {
                 await item.WaitUntilAdmitted().ConfigureAwait(false);
                 Interlocked.Decrement(ref _queuedRequestCount);
-                queueSlots.Release();
+                queue.ReleaseReservation();
                 Interlocked.Increment(ref _activeExecutionCount);
-                WorkerExecutionOutcome outcome;
                 try
                 {
-                    outcome = await ExecuteWorker(
-                        item,
-                        cancellationToken).ConfigureAwait(false);
+                    WorkerExecutionOutcome outcome;
+                    try
+                    {
+                        outcome = await ExecuteWorker(item, cancellationToken).ConfigureAwait(false);
+                    }
+                    finally
+                    {
+                        Interlocked.Decrement(ref _activeExecutionCount);
+                    }
+                    Complete(item, outcome);
                 }
-                finally
+                catch (Exception exception) when (exception is not OutOfMemoryException)
                 {
-                    Interlocked.Decrement(ref _activeExecutionCount);
+                    // The consumer owns resolution even if a programming or
+                    // observer error escapes the exchange path. Never replay it.
+                    await FailConsumer(queue, item).ConfigureAwait(false);
+                    break;
                 }
 
-                Complete(item, outcome);
             }
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -606,15 +615,38 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         }
         finally
         {
-            while (reader.TryRead(out var item))
+            await queue.CloseAsync().ConfigureAwait(false);
+            while (queue.Reader.TryRead(out var item))
             {
                 await item.WaitUntilAdmitted().ConfigureAwait(false);
                 Interlocked.Decrement(ref _queuedRequestCount);
-                queueSlots.Release();
-                Complete(
-                    item,
-                    Unavailable("worker-supervisor-stopping", item.CorrelationId));
+                queue.ReleaseReservation();
+                Complete(item, Unavailable("worker-execution-queue-closed", item.CorrelationId) with { Generation = item.Generation });
             }
+        }
+    }
+
+    private async Task FailConsumer(WorkerExecutionQueue queue, ExecutionWorkItem item)
+    {
+        const string diagnostic = "worker-execution-consumer-failed";
+        await queue.CloseAsync().ConfigureAwait(false);
+        await _gate.WaitAsync(CancellationToken.None).ConfigureAwait(false);
+        try
+        {
+            if (Current.Generation == queue.Generation)
+            {
+                await RetireWorker(diagnostic, operationId: item.Command.OperationId,
+                    executionDisposition: item.ResolvedOutcome?.ExecutionDisposition ??
+                        item.DispatchDisposition).ConfigureAwait(false);
+            }
+        }
+        finally
+        {
+            _gate.Release();
+            if (!item.Task.IsCompleted)
+                Complete(item, item.ResolvedOutcome ?? new WorkerExecutionOutcome(
+                    WorkerExecutionStatus.WorkerFailure, item.DispatchDisposition,
+                    null, null, diagnostic, item.Generation, item.CorrelationId));
         }
     }
 
@@ -654,6 +686,8 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
             Interlocked.Increment(ref _workerFailureCount);
         }
 
+        try
+        {
         // The queue owns this event even after the RPC caller has stopped waiting.
         // Restore only correlation context, never request objects or ambient scopes.
         using var resolution = BriosaTelemetry.Start("briosa.execution.resolved",
@@ -675,28 +709,23 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
             replaySafety,
                 outcome.DiagnosticCode);
         }
-        item.TrySetResult(outcome);
+        }
+        finally
+        {
+            item.TrySetResult(outcome);
+        }
     }
 
     private void StartRuntimeLoops()
     {
-        _executionCancellation = new CancellationTokenSource();
-        _executionQueue = Channel.CreateBounded<ExecutionWorkItem>(
-            new BoundedChannelOptions(_executionPolicy.QueueCapacity)
-            {
-                FullMode = BoundedChannelFullMode.Wait,
-                SingleReader = true,
-                SingleWriter = false
-            });
-        _executionQueueSlots = new SemaphoreSlim(
-            _executionPolicy.QueueCapacity,
-            _executionPolicy.QueueCapacity);
-        _executionTask = ProcessExecutions(
-            _executionQueue.Reader,
-            _executionQueueSlots,
-            _executionCancellation.Token);
-        _monitorCancellation = new CancellationTokenSource();
-        _monitorTask = MonitorWorker(_monitorCancellation.Token);
+        var queue = new WorkerExecutionQueue(_generation, _executionPolicy.QueueCapacity);
+        _executionQueue = queue;
+        queue.Completion = ProcessExecutions(queue);
+        _lastSuccessfulExchange = _timeProvider.GetTimestamp();
+        _heartbeatMonitor = new WorkerHeartbeatMonitor(_policy.HeartbeatInterval, _timeProvider, ProbeIdleWorker);
+        var current = Current;
+        Transition(current.State, current.ProcessId, current.LastTermination,
+            current.DiagnosticCode, current.Connection);
     }
 
     private async Task<WorkerExecutionOutcome> ExecuteWorker(
@@ -723,9 +752,9 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                 queueActivity?.SetTag("briosa.operation", BriosaTelemetry.OperationId(command.OperationId));
             }
             var generation = Current.Generation;
-            var worker = _worker;
-            if (Current.State != WorkerLifecycleState.Ready || worker is null ||
-                !IsReadyForExecution(Current))
+            var worker = Worker;
+            if (Current.State != WorkerLifecycleState.Ready || worker is null || item.Generation != Current.Generation ||
+                !Current.ReadyForExecution)
             {
                 return Unavailable(
                     Current.State == WorkerLifecycleState.Ready && worker is not null
@@ -745,6 +774,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                 exchange = BriosaTelemetry.Start("briosa.worker.exchange", command.OperationId, item.ParentContext);
                 LogExecutionDispatched(correlationId, command.OperationId, generation);
                 requestMayHaveStarted = true;
+                item.DispatchDisposition = WorkerExecutionDisposition.StartedOutcomeUnknown;
                 await worker.SendAsync(
                     WorkerControlMessage.Execute(correlationId, command),
                     watchdog.Token).ConfigureAwait(false);
@@ -764,14 +794,15 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                     (executionResponse.Execution is not null) ||
                     executionResponse.Connection.RuntimeIdentity !=
                         Current.Connection?.RuntimeIdentity ||
-                    executionResponse.Execution is { ExecuteStepReturned: true, MpSucceeded: true } execution &&
+                    executionResponse.Execution is WorkerMpResultAvailable { ResultCode: 2 } execution &&
                     !OutputsMatch(command.OutputArguments, execution.OutputValues))
                 {
                     throw new InvalidDataException(
                         "The worker execution response has an invalid result shape.");
                 }
 
-                return new WorkerExecutionOutcome(
+                _lastSuccessfulExchange = _timeProvider.GetTimestamp();
+                item.ResolvedOutcome = new WorkerExecutionOutcome(
                     executionResponse.Status == WorkerExecutionResponseStatus.Completed
                         ? WorkerExecutionStatus.Completed
                         : WorkerExecutionStatus.Unavailable,
@@ -785,11 +816,13 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                         "worker-execution-completed",
                     generation,
                     correlationId);
+                return item.ResolvedOutcome;
             }
             catch (OperationCanceledException) when (watchdog.IsCancellationRequested)
             {
                 await RetireWorker(
                     "worker-execution-watchdog-timeout",
+                    incidentKind: WorkerIncidentKind.WatchdogTerminated,
                     operationId: command.OperationId,
                     executionDisposition:
                         WorkerExecutionDisposition.StartedOutcomeUnknown)
@@ -806,6 +839,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
             catch (WorkerMessageRejectedException) when (!requestSent)
             {
                 // The channel guarantees no header/payload bytes were written.
+                item.DispatchDisposition = WorkerExecutionDisposition.NotStarted;
                 return new WorkerExecutionOutcome(
                     WorkerExecutionStatus.RequestRejected,
                     WorkerExecutionDisposition.NotStarted,
@@ -885,49 +919,48 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
             Current.Generation,
             correlationId);
 
-    private async Task MonitorWorker(CancellationToken cancellationToken)
+    private async Task<bool> ProbeIdleWorker(CancellationToken cancellationToken)
     {
+        if (!await _gate.WaitAsync(0, cancellationToken).ConfigureAwait(false)) return true;
         try
         {
-            while (true)
+            if (Current.State is WorkerLifecycleState.Degraded or WorkerLifecycleState.Stopped or WorkerLifecycleState.Stopping)
+                return false;
+            if (Current.State != WorkerLifecycleState.Ready ||
+                Volatile.Read(ref _activeExecutionCount) != 0 ||
+                _executionQueue is { Reservations: > 0 } ||
+                _timeProvider.GetElapsedTime(_lastSuccessfulExchange) < _policy.HeartbeatInterval)
+                return true;
+
+            cancellationToken.ThrowIfCancellationRequested();
+            (bool healthy, string diagnosticCode, WorkerConnectionSnapshot? connection) probe;
+            try
             {
-                await Task.Delay(
-                    _policy.HeartbeatInterval,
-                    _timeProvider,
-                    cancellationToken).ConfigureAwait(false);
-                await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
-                try
-                {
-                    if (Current.State != WorkerLifecycleState.Ready)
-                    {
-                        return;
-                    }
-
-                    if (cancellationToken.IsCancellationRequested)
-                    {
-                        return;
-                    }
-
-                    var (healthy, diagnosticCode) = await ProbeWorker().ConfigureAwait(false);
-                    if (!healthy)
-                    {
-                        await RetireWorker(diagnosticCode).ConfigureAwait(false);
-                        return;
-                    }
-                }
-                finally
-                {
-                    _gate.Release();
-                }
+                probe = await ProbeWorker().ConfigureAwait(false);
             }
+            catch (Exception exception) when (exception is not OutOfMemoryException &&
+                (exception is not OperationCanceledException || !cancellationToken.IsCancellationRequested))
+            {
+                // An unexpected monitor failure must not silently leave a ready
+                // generation without supervision. The controller owns retirement.
+                await RetireWorker("worker-heartbeat-monitor-failed").ConfigureAwait(false);
+                return false;
+            }
+            var (healthy, diagnosticCode, connection) = probe;
+            if (!healthy)
+                await RetireWorker(diagnosticCode, connection).ConfigureAwait(false);
+            return healthy;
         }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        finally
         {
+            _gate.Release();
         }
     }
 
     private async Task<bool> StartWorker(CancellationToken cancellationToken)
     {
+        if (_processLifetime is not null)
+            throw new InvalidOperationException("The previous worker has not been released.");
         _generation++;
         Transition(
             WorkerLifecycleState.Starting,
@@ -941,9 +974,10 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
             timeout.CancelAfter(_policy.StartupTimeout);
             try
             {
-                _worker = await _processFactory.StartAsync(_generation, timeout.Token)
+                var worker = await _processFactory.StartAsync(_generation, timeout.Token)
                     .ConfigureAwait(false);
-                ready = await _worker.ReceiveAsync(timeout.Token).ConfigureAwait(false);
+                _processLifetime = new WorkerProcessLifetime(worker);
+                ready = await worker.ReceiveAsync(timeout.Token).ConfigureAwait(false);
                 if (ready.Kind != WorkerControlMessageKind.Ready ||
                     ready.ProcessId is not > 0 ||
                     ready.Connection is null ||
@@ -959,35 +993,41 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
-                await CleanupWorker(force: true).ConfigureAwait(false);
+                if (!await CleanupWorker(force: true).ConfigureAwait(false)) throw;
                 Transition(
                     WorkerLifecycleState.Stopped,
                     processId: null,
                     WorkerTerminationKind.Forced,
-                    "worker-startup-cancelled");
+                    "worker-startup-cancelled", lifecycleFailure: WorkerLifecycleFailure.Cancelled);
                 throw;
             }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
-                await CleanupWorker(force: true).ConfigureAwait(false);
+                if (!await CleanupWorker(force: true).ConfigureAwait(false)) return false;
                 Transition(
                     WorkerLifecycleState.Degraded,
                     processId: null,
                     WorkerTerminationKind.Forced,
-                    "worker-startup-timeout");
+                    "worker-startup-timeout",
+                    incident: new WorkerIncidentSnapshot(_generation, WorkerTerminationKind.Forced,
+                        null, null, "worker-startup-timeout", WorkerIncidentKind.StartFailed),
+                    lifecycleFailure: WorkerLifecycleFailure.StartupTimeout);
                 return false;
             }
             catch (Exception exception) when (IsRecoverableProcessFailure(exception))
             {
-                var termination = _worker?.HasExited == true
+                var termination = Worker?.HasExited == true
                     ? WorkerTerminationKind.Crash
                     : WorkerTerminationKind.Forced;
-                await CleanupWorker(force: true).ConfigureAwait(false);
+                if (!await CleanupWorker(force: true).ConfigureAwait(false)) return false;
                 Transition(
                     WorkerLifecycleState.Degraded,
                     processId: null,
                     termination,
-                    "worker-startup-failed");
+                    "worker-startup-failed",
+                    incident: new WorkerIncidentSnapshot(_generation, termination,
+                        null, null, "worker-startup-failed", WorkerIncidentKind.StartFailed),
+                    lifecycleFailure: WorkerLifecycleFailure.StartupFailed);
                 return false;
             }
         }
@@ -997,7 +1037,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         if (connection.State == WorkerConnectionState.Faulted)
         {
             var diagnosticCode = connection.DiagnosticCode;
-            await CleanupWorker(force: true).ConfigureAwait(false);
+            if (!await CleanupWorker(force: true).ConfigureAwait(false)) return false;
             Transition(
                 WorkerLifecycleState.Degraded,
                 processId: null,
@@ -1009,7 +1049,8 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                     WorkerTerminationKind.Forced,
                     ExecutionDisposition: null,
                     OperationId: null,
-                    diagnosticCode));
+                    diagnosticCode, WorkerIncidentKind.StartFailed),
+                lifecycleFailure: WorkerLifecycleFailure.StartupFailed);
             return false;
         }
 
@@ -1036,7 +1077,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                     ExecutionReadinessState = WorkerExecutionReadinessState.Unverified,
                     DiagnosticCode = "runtime-identity-not-ready",
                     TransitionedAt = _timeProvider.GetUtcNow()
-                });
+                }, lifecycleFailure: WorkerLifecycleFailure.IdentityRejected);
             return true;
         }
 
@@ -1060,7 +1101,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         WorkerConnectionSnapshot attachedConnection,
         CancellationToken cancellationToken)
     {
-        var worker = _worker ?? throw new InvalidOperationException("The worker is missing.");
+        var worker = Worker ?? throw new InvalidOperationException("The worker is missing.");
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeout.CancelAfter(_executionPolicy.WatchdogTimeout);
         var correlationId = Guid.NewGuid();
@@ -1107,7 +1148,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                 attachedConnection,
                 WorkerTerminationKind.Forced,
                 "execution-readiness-probe-timeout",
-                competingClientSuspected: true).ConfigureAwait(false);
+                competingClientSuspected: true, failure: WorkerLifecycleFailure.ReadinessTimeout).ConfigureAwait(false);
             return false;
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -1116,7 +1157,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                 attachedConnection,
                 WorkerTerminationKind.Forced,
                 "execution-readiness-probe-cancelled",
-                competingClientSuspected: true).ConfigureAwait(false);
+                competingClientSuspected: true, failure: WorkerLifecycleFailure.Cancelled).ConfigureAwait(false);
             throw;
         }
         catch (Exception exception) when (IsRecoverableProcessFailure(exception))
@@ -1139,7 +1180,8 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         WorkerConnectionSnapshot connection,
         WorkerTerminationKind termination,
         string diagnosticCode,
-        bool competingClientSuspected)
+        bool competingClientSuspected,
+        WorkerLifecycleFailure failure = WorkerLifecycleFailure.ReadinessFailed)
     {
         if (competingClientSuspected)
         {
@@ -1154,10 +1196,10 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                         WorkerExecutionReadinessState.CompetingClientSuspected,
                     DiagnosticCode = diagnosticCode,
                     TransitionedAt = _timeProvider.GetUtcNow()
-                });
+                }, lifecycleFailure: failure);
         }
 
-        await CleanupWorker(force: true).ConfigureAwait(false);
+        if (!await CleanupWorker(force: true).ConfigureAwait(false)) return;
         Transition(
             WorkerLifecycleState.Degraded,
             processId: null,
@@ -1169,20 +1211,20 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                     WorkerExecutionReadinessState.OperatorRecoveryRequired,
                 DiagnosticCode = diagnosticCode,
                 TransitionedAt = _timeProvider.GetUtcNow()
-            });
+            }, lifecycleFailure: failure);
     }
 
-    private async Task<(bool Healthy, string DiagnosticCode)> ProbeWorker()
+    private async Task<(bool Healthy, string DiagnosticCode, WorkerConnectionSnapshot? Connection)> ProbeWorker()
     {
-        var worker = _worker;
+        var worker = Worker;
         if (worker is null)
         {
-            return (false, "worker-missing");
+            return (false, "worker-missing", null);
         }
 
         if (worker.HasExited)
         {
-            return (false, "worker-exited");
+            return (false, "worker-exited", null);
         }
 
         // Let an entered ping/pong exchange finish under its own deadline. Cancelling it
@@ -1199,24 +1241,25 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                 response.CorrelationId != correlationId ||
                 response.Connection is null)
             {
-                return (false, "worker-invalid-heartbeat");
+                return (false, "worker-invalid-heartbeat", null);
             }
 
             if (response.Connection.State == WorkerConnectionState.Faulted &&
                 RequiresSdkRecovery(response.Connection))
             {
-                return (false, response.Connection.DiagnosticCode);
+                return (false, response.Connection.DiagnosticCode, response.Connection);
             }
 
-            return (true, "worker-responsive");
+            _lastSuccessfulExchange = _timeProvider.GetTimestamp();
+            return (true, "worker-responsive", response.Connection);
         }
         catch (OperationCanceledException) when (timeout.IsCancellationRequested)
         {
-            return (false, "worker-heartbeat-timeout");
+            return (false, "worker-heartbeat-timeout", null);
         }
         catch (Exception exception) when (IsRecoverableProcessFailure(exception))
         {
-            return (false, worker.HasExited ? "worker-exited" : "worker-control-failed");
+            return (false, worker.HasExited ? "worker-exited" : "worker-control-failed", null);
         }
     }
 
@@ -1224,9 +1267,11 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         string diagnosticCode,
         WorkerConnectionSnapshot? connection = null,
         string? operationId = null,
-        WorkerExecutionDisposition? executionDisposition = null)
+        WorkerExecutionDisposition? executionDisposition = null,
+        WorkerIncidentKind? incidentKind = null,
+        WorkerLifecycleFailure lifecycleFailure = WorkerLifecycleFailure.None)
     {
-        var termination = _worker?.HasExited == true
+        var termination = _processLifetime is { ReleaseStarted: false } && Worker?.HasExited == true
             ? WorkerTerminationKind.Crash
             : WorkerTerminationKind.Forced;
         var faultedConnection = connection ?? Current.Connection;
@@ -1253,13 +1298,17 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                 termination,
                 executionDisposition,
                 operationId,
-                diagnosticCode));
+                diagnosticCode, incidentKind ?? ClassifyIncident(termination, faultedConnection?.Failure)),
+            lifecycleFailure: lifecycleFailure);
         await CleanupWorker(force: true).ConfigureAwait(false);
     }
 
     private async Task StopWorker()
     {
-        var worker = _worker;
+        if (_processLifetime is { ReleaseStarted: true } &&
+            !await CleanupWorker(force: true).ConfigureAwait(false)) return;
+
+        var worker = Worker;
         if (worker is null)
         {
             Transition(
@@ -1270,12 +1319,14 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
             return;
         }
 
+        var failure = WorkerLifecycleFailure.None;
         var termination = WorkerTerminationKind.Graceful;
         var diagnosticCode = "worker-stopped";
         if (worker.HasExited)
         {
             termination = WorkerTerminationKind.Crash;
             diagnosticCode = "worker-already-exited";
+            failure = WorkerLifecycleFailure.StopFailed;
         }
         else
         {
@@ -1303,6 +1354,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
             {
                 termination = WorkerTerminationKind.Forced;
                 diagnosticCode = StopDiagnosticCode(stopPhase, "timeout");
+                failure = WorkerLifecycleFailure.StopTimeout;
             }
             catch (Exception exception) when (IsRecoverableProcessFailure(exception))
             {
@@ -1310,34 +1362,45 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                     ? WorkerTerminationKind.Crash
                     : WorkerTerminationKind.Forced;
                 diagnosticCode = StopDiagnosticCode(stopPhase, "failed");
+                failure = WorkerLifecycleFailure.StopFailed;
             }
         }
 
-        await CleanupWorker(force: termination != WorkerTerminationKind.Graceful)
-            .ConfigureAwait(false);
+        if (!await CleanupWorker(force: termination != WorkerTerminationKind.Graceful)
+            .ConfigureAwait(false)) return;
         Transition(
             WorkerLifecycleState.Stopped,
             processId: null,
             termination,
-            diagnosticCode);
+            diagnosticCode, lifecycleFailure: failure);
     }
 
-    private async Task CleanupWorker(bool force)
+    private async Task<bool> CleanupWorker(bool force)
     {
-        var worker = _worker;
-        _worker = null;
+        var lifetime = _processLifetime;
+        if (lifetime is null) return true;
+
+        var status = await lifetime.ReleaseAsync(force, _policy.ShutdownTimeout).ConfigureAwait(false);
+        if (status != WorkerCleanupStatus.Complete)
+        {
+            var diagnostic = status == WorkerCleanupStatus.ExitUnconfirmed
+                ? "worker-termination-unconfirmed" : "worker-resources-unreleased";
+            Transition(WorkerLifecycleState.Degraded,
+                _reportedProcessId == 0 ? null : _reportedProcessId,
+                WorkerTerminationKind.Forced, diagnostic,
+                Current.Connection is { } connection ? connection with
+                {
+                    State = WorkerConnectionState.Faulted,
+                    ExecutionReadinessState = WorkerExecutionReadinessState.OperatorRecoveryRequired,
+                    DiagnosticCode = diagnostic,
+                    TransitionedAt = _timeProvider.GetUtcNow()
+                } : null, cleanupStatus: status, lifecycleFailure: WorkerLifecycleFailure.CleanupIncomplete);
+            return false;
+        }
+
+        _processLifetime = null;
         _reportedProcessId = 0;
-        if (worker is null)
-        {
-            return;
-        }
-
-        if (force)
-        {
-            await worker.TerminateAsync().ConfigureAwait(false);
-        }
-
-        await worker.DisposeAsync().ConfigureAwait(false);
+        return true;
     }
 
     private void Transition(
@@ -1346,7 +1409,9 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         WorkerTerminationKind termination,
         string diagnosticCode,
         WorkerConnectionSnapshot? connection = null,
-        WorkerIncidentSnapshot? incident = null)
+        WorkerIncidentSnapshot? incident = null,
+        WorkerCleanupStatus? cleanupStatus = null,
+        WorkerLifecycleFailure lifecycleFailure = WorkerLifecycleFailure.None)
     {
         var snapshot = new WorkerLifecycleSnapshot(
             state,
@@ -1359,7 +1424,18 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
             _timeProvider.GetUtcNow(),
             _identityPolicy.Evaluate(connection?.RuntimeIdentity),
             Interlocked.Increment(ref _stateRevision),
-            incident ?? Current.LastIncident);
+            incident ?? Current.LastIncident,
+            AdmissionOpen: state == WorkerLifecycleState.Ready &&
+                _executionQueue is { IsClosed: false } queue && queue.Generation == _generation,
+            ApplicationGeneration: connection?.State == WorkerConnectionState.Connected
+                ? (Current.Generation == _generation ? Current.ApplicationGeneration : null)
+                : null,
+            CleanupStatus: cleanupStatus, LifecycleFailure: lifecycleFailure);
+        PublishSnapshot(snapshot);
+    }
+
+    private void PublishSnapshot(WorkerLifecycleSnapshot snapshot)
+    {
         lock (_historyLock)
         {
             _current = snapshot;
@@ -1415,17 +1491,10 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
             pair.First.Name == pair.Second.Name &&
             pair.First.Kind == pair.Second.Kind);
 
-    private static bool IsReadyForExecution(WorkerLifecycleSnapshot snapshot) =>
-        snapshot.RuntimeIdentity?.AllowsExecution == true &&
-        snapshot.Connection is
-        {
-            State: WorkerConnectionState.Connected,
-            ExecutionReadinessState: WorkerExecutionReadinessState.ExecutionReady
-        };
-
     private static string GetExecutionNotReadyDiagnostic(
         WorkerLifecycleSnapshot snapshot)
     {
+        if (!snapshot.AdmissionOpen) return "worker-admission-closed";
         if (snapshot.Connection?.State != WorkerConnectionState.Connected)
         {
             return "sdk-connection-not-ready";
@@ -1439,17 +1508,22 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         return snapshot.Connection.DiagnosticCode;
     }
 
+    private static WorkerIncidentKind ClassifyIncident(
+        WorkerTerminationKind termination, WorkerConnectionFailure? failure) => failure switch
+    {
+        WorkerConnectionFailure.ActivationFailed or WorkerConnectionFailure.NotStarted => WorkerIncidentKind.StartFailed,
+        WorkerConnectionFailure.ProcessExited => WorkerIncidentKind.SdkProcessExited,
+        WorkerConnectionFailure.ConnectFailed or WorkerConnectionFailure.LivenessUnavailable => WorkerIncidentKind.SdkConnectionLost,
+        _ => termination == WorkerTerminationKind.Crash
+            ? WorkerIncidentKind.WorkerProcessExited : WorkerIncidentKind.ControlChannelLost
+    };
+
     private static bool RequiresSdkRecovery(WorkerConnectionSnapshot connection) =>
-        connection.DiagnosticCode is
-            "sdk-client-activation-failed" or
-            "sdk-not-started" or
-            "connect-ex-failed" or
-            "sdk-process-exited" or
-            "sdk-process-liveness-unavailable";
+        connection.Failure != WorkerConnectionFailure.None;
 
     private static WorkerExecutionDisposition ClassifyExecutionDisposition(
         WorkerMpExecutionResult execution) =>
-        execution.DiagnosticCode == "sdk-argument-rejected"
+        execution is WorkerArgumentsRejected
             ? WorkerExecutionDisposition.NotStarted
             : execution.MpResultRetrieved
                 ? WorkerExecutionDisposition.Completed
@@ -1465,36 +1539,6 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         string mpOutcome, string outputRetrievalOutcome, long? sdkDurationMilliseconds,
         double admissionMilliseconds, double queueMilliseconds, double exchangeMilliseconds,
         global::Briosa.ReplaySafety replaySafety, string diagnosticCode);
-
-    private sealed class ExecutionWorkItem(WorkerMpCommand command, Guid correlationId,
-        int generation, ActivityContext parentContext)
-    {
-        private readonly TaskCompletionSource _admitted =
-            new(TaskCreationOptions.RunContinuationsAsynchronously);
-        private readonly TaskCompletionSource<WorkerExecutionOutcome> _completion =
-            new(TaskCreationOptions.RunContinuationsAsynchronously);
-
-        // WorkerMpCommand already owns immutable argument collections.
-        public WorkerMpCommand Command { get; } = command;
-        public Guid CorrelationId { get; } = correlationId;
-        public int Generation { get; } = generation;
-        public ActivityContext ParentContext { get; } = parentContext;
-        public long AdmittedAt { get; set; }
-        public DateTimeOffset AdmittedUtc { get; set; }
-        public double AdmissionMilliseconds { get; set; }
-        public double QueueMilliseconds { get; set; }
-        public double ExchangeMilliseconds { get; set; }
-
-
-        public Task<WorkerExecutionOutcome> Task => _completion.Task;
-
-        public Task WaitUntilAdmitted() => _admitted.Task;
-
-        public void MarkAdmitted() => _admitted.TrySetResult();
-
-        public void TrySetResult(WorkerExecutionOutcome outcome) =>
-            _completion.TrySetResult(outcome);
-    }
 
     private static bool IsRecoverableProcessFailure(Exception exception) =>
         exception is IOException or

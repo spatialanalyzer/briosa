@@ -63,11 +63,9 @@ internal sealed class UtilityOperationsService(OperationExecutor executor)
     public override Task<Api.GetActiveUnitsResult> GetActiveUnits(
         Api.GetActiveUnitsRequest request,
         ServerCallContext context) =>
-        MpOperationServiceExecutor.ExecuteAsync<Api.GetActiveUnitsRequest, Api.GetActiveUnitsResult>(
-            executor,
-            request,
-            context,
-            "utility_operations.get_active_units");
+        executor.ExecuteAsync(request, context, GetActiveUnitsOperation.Descriptor,
+            GetActiveUnitsOperation.CreateCommand, GetActiveUnitsOperation.OutputContracts,
+            GetActiveUnitsOperation.CreateResult);
 
     [OperationImplementation("utility_operations.get_angular_representation")]
     public override Task<Api.GetAngularRepresentationResult> GetAngularRepresentation(
@@ -183,11 +181,9 @@ internal sealed class UtilityOperationsService(OperationExecutor executor)
     public override Task<Api.GetWorkingFramePropertiesResult> GetWorkingFrameProperties(
         Api.GetWorkingFramePropertiesRequest request,
         ServerCallContext context) =>
-        MpOperationServiceExecutor.ExecuteAsync<Api.GetWorkingFramePropertiesRequest, Api.GetWorkingFramePropertiesResult>(
-            executor,
-            request,
-            context,
-            "utility_operations.get_working_frame_properties");
+        executor.ExecuteAsync(request, context, GetWorkingFramePropertiesOperation.Descriptor,
+            GetWorkingFramePropertiesOperation.CreateCommand, GetWorkingFramePropertiesOperation.OutputContracts,
+            GetWorkingFramePropertiesOperation.CreateResult);
 
     [OperationImplementation("utility_operations.increment_point_name")]
     public override Task<Api.IncrementPointNameResult> IncrementPointName(

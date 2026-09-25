@@ -26,8 +26,8 @@ public sealed class LegacyTargetCompatibilityTests
             ["Construct Planes?", "Construct Cylinders?", "Construct Spheres?", "Construct Cones?", "Construct Lines?", "Construct Points?", "Construct Circles?"],
             command.InputArguments.Select(argument => argument.Name));
         Assert.All(command.InputArguments, argument => Assert.Equal("SetBoolArg", argument.SdkBinding));
-        Assert.True(command.InputArguments[0].BooleanValue);
-        Assert.All(command.InputArguments.Skip(1), argument => Assert.False(argument.BooleanValue));
+        Assert.True(((command.InputArguments[0].Value as WorkerBooleanValue)?.Value));
+        Assert.All(command.InputArguments.Skip(1), argument => Assert.False(((argument.Value as WorkerBooleanValue)?.Value)));
         request.ClearConstructCircles();
         Assert.Throws<ArgumentException>(() => operation.CreateCommand(request));
     }
@@ -40,7 +40,7 @@ public sealed class LegacyTargetCompatibilityTests
         Assert.Throws<ArgumentException>(() => operation.CreateCommand(request));
         request.SurfaceCompatibilityMode = false;
         var command = operation.CreateCommand(request);
-        Assert.False(Assert.Single(command.InputArguments, argument => argument.Name == "Surface Compatibility Mode").BooleanValue);
+        Assert.False(((Assert.Single(command.InputArguments, argument => argument.Name == "Surface Compatibility Mode").Value as WorkerBooleanValue)?.Value));
     }
 
     [Theory]
@@ -96,7 +96,7 @@ public sealed class LegacyTargetCompatibilityTests
     {
         var operation = MpOperationCatalog.Get("construction_operations.make_system_string");
         var command = operation.CreateCommand(new Api.MakeSystemStringRequest { StringContent = Api.SystemString.UserName });
-        Assert.Equal(10, command.InputArguments[0].SpecializedEnumValue!.Value);
+        Assert.Equal(WorkerSystemStringValue.UserName, command.InputArguments[0].RequireValue<WorkerChoiceValue<WorkerSystemStringValue>>().Value);
         foreach (var number in new[] { 12, 13, 14 })
         {
             Assert.Throws<ArgumentException>(() => operation.CreateCommand(new Api.MakeSystemStringRequest { StringContent = (Api.SystemString)number }));
@@ -117,7 +117,9 @@ public sealed class LegacyTargetCompatibilityTests
         };
         request.ObjectsToProject.Add(new Api.CollectionObjectName
         {
-            CollectionName = "fixture", ObjectName = "cloud", ObjectType = (Api.ObjectType)5
+            CollectionName = "fixture",
+            ObjectName = "cloud",
+            ObjectType = (Api.ObjectType)5
         });
         Assert.Throws<ArgumentException>(() => project.CreateCommand(request));
 
@@ -126,7 +128,9 @@ public sealed class LegacyTargetCompatibilityTests
         {
             RelationshipName = new Api.CollectionItemName
             {
-                CollectionName = "fixture", ItemName = "relationship", ItemType = (Api.ItemType)10
+                CollectionName = "fixture",
+                ItemName = "relationship",
+                ItemType = (Api.ItemType)10
             }
         }));
     }
@@ -151,7 +155,7 @@ public sealed class LegacyTargetCompatibilityTests
         request.ObjectsToProject.Add(new Api.CollectionObjectName { CollectionName = "fixture", ObjectName = "line", ObjectType = Api.ObjectType.Line });
         var projectCommand = project.CreateCommand(request);
         Assert.Equal(["SetColInstIdArg", "SetCollectionObjectNameRefListArg"], projectCommand.InputArguments.Select(argument => argument.SdkBinding));
-        Assert.Equal(WorkerObjectTypeValue.Line, Assert.Single(projectCommand.InputArguments[1].CollectionObjectNameListValue!.Values).ObjectType);
+        Assert.Equal(WorkerObjectTypeValue.Line, Assert.Single((projectCommand.InputArguments[1].Value as WorkerCollectionObjectNameListValue)!.Values).ObjectType);
 
         var stop = MpOperationCatalog.Get("instrument_operations.stop_projection");
         var stopCommand = stop.CreateCommand(new Api.StopProjectionRequest { Instrument = instrument });

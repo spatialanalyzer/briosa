@@ -15,15 +15,10 @@ public sealed class WorkerControlIdentityReferenceValidationTests
                 "incomplete-object",
                 "Incomplete Object",
                 [
-                    new WorkerMpInputArgument(
-                        "Object",
-                        WorkerMpValueKind.CollectionObjectName,
-                        CollectionObjectNameValue:
-                            new WorkerCollectionObjectNameValue(
+                    new WorkerMpInputArgument("Object", WorkerMpValueKind.CollectionObjectName, new WorkerCollectionObjectNameValue(
                                 "Collection",
                                 "Object",
-                                WorkerObjectTypeValue.Unspecified),
-                        SdkBinding: "SetCollectionObjectNameArg2")
+                                WorkerObjectTypeValue.Unspecified), sdkBinding: "SetCollectionObjectNameArg2")
                 ],
                 []));
 
@@ -44,15 +39,10 @@ public sealed class WorkerControlIdentityReferenceValidationTests
                 "invalid-item",
                 "Invalid Item",
                 [
-                    new WorkerMpInputArgument(
-                        "Item",
-                        WorkerMpValueKind.CollectionItemName,
-                        CollectionItemNameValue:
-                            new WorkerCollectionItemNameValue(
+                    new WorkerMpInputArgument("Item", WorkerMpValueKind.CollectionItemName, new WorkerCollectionItemNameValue(
                                 "Collection",
                                 "Item",
-                                (WorkerItemTypeValue)rawValue),
-                        SdkBinding: "SetCollectionObjectNameArg2")
+                                (WorkerItemTypeValue)rawValue), sdkBinding: "SetCollectionObjectNameArg2")
                 ],
                 []));
 
@@ -71,11 +61,7 @@ public sealed class WorkerControlIdentityReferenceValidationTests
                 "empty-list",
                 "Empty List",
                 [
-                    new WorkerMpInputArgument(
-                        "Points",
-                        WorkerMpValueKind.PointNameList,
-                        PointNameListValue: new WorkerPointNameListValue([]),
-                        SdkBinding: "SetPointNameRefListArg")
+                    new WorkerMpInputArgument("Points", WorkerMpValueKind.PointNameList, new WorkerPointNameListValue([]), sdkBinding: "SetPointNameRefListArg")
                 ],
                 []));
 

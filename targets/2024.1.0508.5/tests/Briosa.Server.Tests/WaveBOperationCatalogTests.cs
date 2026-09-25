@@ -88,6 +88,10 @@ public sealed class WaveBOperationCatalogTests
                 exception is null,
                 $"{descriptor.OperationId} could not build a worker command: {exception}");
             Assert.NotNull(command);
+            using var stream = new MemoryStream();
+            using var channel = new WorkerControlChannel(stream);
+            var encodingFailure = Record.Exception(() => channel.Send(WorkerControlMessage.Execute(Guid.NewGuid(), command)));
+            Assert.True(encodingFailure is null, $"{descriptor.OperationId} produced an invalid worker command: {encodingFailure}");
 
             Assert.Equal(descriptor.OperationId, command.OperationId);
             Assert.Equal(descriptor.MpStep, command.StepName);
@@ -123,14 +127,14 @@ public sealed class WaveBOperationCatalogTests
             var method = Services[operation.Descriptor.GrpcService].Methods.Single(candidate =>
                 candidate.Name == operation.Descriptor.Rpc);
             var completed = new SuccessfulOperationExecution(
-                new WorkerMpExecutionResult(
-                    ExecuteStepReturned: true,
-                    MpResultRetrieved: true,
-                    MpSucceeded: true,
-                    MpResultCode: 2,
-                    DurationMilliseconds: 1,
+                WorkerMpExecutionResult.FromEvidence(
+                    executeStepReturned: true,
+                    mpResultRetrieved: true,
+                    mpSucceeded: true,
+                    mpResultCode: 2,
+                    durationMilliseconds: 1,
                     operation.Outputs.Select(CreateOutputValue).ToArray(),
-                    DiagnosticCode: null),
+                    diagnosticCode: null),
                 new Api.MpExecutionDetails());
 
             var exception = Record.Exception(() =>
@@ -165,8 +169,8 @@ public sealed class WaveBOperationCatalogTests
                 argument => argument.Name == "Machine ID");
             Assert.Equal(WorkerMpValueKind.CollectionInstrumentId, input.Kind);
             Assert.Equal("SetColInstIdArg", input.SdkBinding);
-            Assert.Equal(new WorkerCollectionInstrumentIdValue("Robot", 7), input.CollectionInstrumentIdValue);
-            Assert.Null(input.CollectionMachineIdValue);
+            Assert.Equal(new WorkerCollectionInstrumentIdValue("Robot", 7), (input.Value as WorkerCollectionInstrumentIdValue));
+            Assert.Null((input.Value as WorkerCollectionMachineIdValue));
 
             // Field 1 was a CollectionMachineId. It must never be reinterpreted as an instrument.
             var retired = requests[index].Descriptor.Parser.ParseFrom(new byte[] { 10, 5, 10, 1, 67, 16, 7 });
@@ -193,7 +197,7 @@ public sealed class WaveBOperationCatalogTests
         {
             var input = Assert.Single(defaults);
             Assert.Equal(WorkerMpValueKind.EditText, input.Kind);
-            Assert.Empty(input.StringListValue!.Values);
+            Assert.Empty((input.Value as WorkerStringListValue)!.Values);
         }
         var field = request.Descriptor.FindFieldByName(fieldName);
         AddRepeatedValue(request, field, "first line");
@@ -206,7 +210,7 @@ public sealed class WaveBOperationCatalogTests
         var text = Assert.Single(channel.Receive().Command!.InputArguments,
             input => input.SdkBinding == "SetEditTextArg");
         Assert.Equal(WorkerMpValueKind.EditText, text.Kind);
-        Assert.Equal(["first line", "second line"], text.StringListValue!.Values);
+        Assert.Equal(["first line", "second line"], (text.Value as WorkerStringListValue)!.Values);
     }
 
     [Fact]
@@ -242,7 +246,7 @@ public sealed class WaveBOperationCatalogTests
 
         var instrumentType = Assert.Single(command.InputArguments);
         Assert.Equal(WorkerMpValueKind.InstrumentTypeName, instrumentType.Kind);
-        Assert.Equal("PMT Arm 4m 7 dof", instrumentType.StringValue);
+        Assert.Equal("PMT Arm 4m 7 dof", ((instrumentType.Value as WorkerTextValue)?.Value));
         Assert.Throws<ArgumentException>(() => operation.CreateCommand(new Api.AddNewInstrumentRequest
         {
             InstrumentType = new Api.InstrumentTypeName { Value = "Leica ATS800" }
@@ -270,9 +274,8 @@ public sealed class WaveBOperationCatalogTests
             }
         });
 
-        var udp = Assert.Single(command.InputArguments, argument =>
-            argument.Kind == WorkerMpValueKind.UdpTransmitSettings)
-            .UdpTransmitSettingsValue!;
+        var udp = (Assert.Single(command.InputArguments, argument =>
+            argument.Kind == WorkerMpValueKind.UdpTransmitSettings).Value as WorkerUdpTransmitSettingsValue)!;
         Assert.True(udp.Enabled);
         Assert.False(udp.Broadcast);
         Assert.Equal("127.0.0.1", udp.IpAddress);
@@ -300,7 +303,7 @@ public sealed class WaveBOperationCatalogTests
         Assert.Equal(WorkerMpValueKind.CollectionItemName, relationship.Kind);
         Assert.Equal(
             WorkerItemTypeValue.Relationship,
-            relationship.CollectionItemNameValue!.ItemType);
+            (relationship.Value as WorkerCollectionItemNameValue)!.ItemType);
     }
 
     [Fact]
@@ -336,21 +339,17 @@ public sealed class WaveBOperationCatalogTests
         var operation = WaveBOperationCatalog.Operations.Single(candidate =>
             candidate.Descriptor.OperationId == "robot_operations.perform_robot_calibration");
         var outputs = operation.Outputs
-            .Select((output, index) => new WorkerMpOutputValue(
-                output.MpName,
-                output.Kind,
-                Retrieved: true,
-                DoubleValue: index + 1))
+            .Select((output, index) => new WorkerRetrievedOutput(output.MpName, output.Kind, new WorkerDoubleValue(index + 1)))
             .ToArray();
         var completed = new SuccessfulOperationExecution(
-            new WorkerMpExecutionResult(
-                ExecuteStepReturned: true,
-                MpResultRetrieved: true,
-                MpSucceeded: true,
-                MpResultCode: 2,
-                DurationMilliseconds: 1,
+            WorkerMpExecutionResult.FromEvidence(
+                executeStepReturned: true,
+                mpResultRetrieved: true,
+                mpSucceeded: true,
+                mpResultCode: 2,
+                durationMilliseconds: 1,
                 outputs,
-                DiagnosticCode: null),
+                diagnosticCode: null),
             new Api.MpExecutionDetails());
 
         var result = operation.CreateResult<Api.PerformRobotCalibrationResult>(completed);
@@ -367,7 +366,7 @@ public sealed class WaveBOperationCatalogTests
             candidate.Descriptor.OperationId ==
                 "construction_operations.decompose_transform_into_doubles_euler_zxz");
         var outputs = operation.Outputs.Select((output, index) =>
-            CreateOutputValue(output) with { DoubleValue = index + 1 }).ToArray();
+            new WorkerRetrievedOutput(output.MpName, output.Kind, new WorkerDoubleValue(index + 1))).ToArray();
         var result = operation.CreateResult<Api.DecomposeTransformIntoDoublesEulerZxzResult>(
             Completed(outputs));
 
@@ -382,8 +381,8 @@ public sealed class WaveBOperationCatalogTests
             candidate.Descriptor.OperationId ==
                 "robot_operations.get_robot_machine_model_link_parameters");
         var outputs = operation.Outputs.Select(CreateOutputValue).ToArray();
-        outputs[0] = outputs[0] with { StringValue = "6DOF" };
-        outputs[14] = outputs[14] with { StringValue = "THETA" };
+        outputs[0] = new WorkerRetrievedOutput(outputs[0].Name, outputs[0].Kind, new WorkerTextValue("6DOF"));
+        outputs[14] = new WorkerRetrievedOutput(outputs[14].Name, outputs[14].Kind, new WorkerTextValue("THETA"));
 
         var result = operation.CreateResult<Api.GetRobotMachineModelLinkParametersResult>(
             Completed(outputs));
@@ -391,7 +390,7 @@ public sealed class WaveBOperationCatalogTests
         Assert.Equal(Api.RobotModelLinkType.SixDof, result.LinkType);
         Assert.Equal(Api.RobotActiveJointComponent.Theta, result.ActiveJointComponent);
 
-        outputs[0] = outputs[0] with { StringValue = "Six Dof" };
+        outputs[0] = new WorkerRetrievedOutput(outputs[0].Name, outputs[0].Kind, new WorkerTextValue("Six Dof"));
         Assert.Throws<InvalidOperationException>(() =>
             operation.CreateResult<Api.GetRobotMachineModelLinkParametersResult>(
                 Completed(outputs)));
@@ -488,63 +487,52 @@ public sealed class WaveBOperationCatalogTests
     private static WorkerMpOutputValue CreateOutputValue(MpArgumentContract output)
     {
         var tolerance = new WorkerToleranceLimit(true, 1);
-        var scalarTolerance = new WorkerScalarToleranceLimit(true, 1);
-        return new WorkerMpOutputValue(
-            output.MpName,
-            output.Kind,
-            Retrieved: true,
-            BooleanValue: true,
-            IntegerValue: 1,
-            DoubleValue: 1,
-            StringValue: output.EnumTextValues is { Count: > 0 } sdkValues
-                ? sdkValues[0]
-                : "value",
-            PointNameValue: new("Collection", "Group", "Point"),
-            VectorValue: new(1, 2, 3),
-            ToleranceVectorOptionsValue: new(
-                tolerance,
-                tolerance,
-                tolerance,
-                tolerance,
-                tolerance,
-                tolerance,
-                tolerance,
-                tolerance),
-            CollectionInstrumentIdValue: new("Collection", 1),
-            CollectionInstrumentIdListValue: new([new("Collection", 1)]),
-            CollectionMachineIdValue: new("Collection", 1),
-            CollectionItemNameValue: new("Collection", "Item", WorkerItemTypeValue.Relationship),
-            CollectionItemNameListValue: new([
-                new("Collection", "Item", WorkerItemTypeValue.Relationship)]),
-            CollectionObjectNameValue: new("Collection", "Object", WorkerObjectTypeValue.PointGroup),
-            CollectionObjectNameListValue: new([
-                new("Collection", "Object", WorkerObjectTypeValue.PointGroup)]),
-            CollectionGroupNameListValue: new([new("Collection", "Group")]),
-            CollectionVectorGroupNameValue: new("Collection", "Vector Group"),
-            CollectionVectorGroupNameListValue: new([new("Collection", "Vector Group")]),
-            PointNameListValue: new([new("Collection", "Group", "Point")]),
-            StringListValue: new(["value"]),
-            VectorNameListValue: new([new("Collection", "Group", "Vector")]),
-            DoubleArrayValue: new([1, 2, 3, 4, 5, 6]),
-            TransformValue: new(Enumerable.Range(1, 16).Select(Convert.ToDouble).ToArray()),
-            WorldTransformValue: new(
-                new(Enumerable.Range(1, 16).Select(Convert.ToDouble).ToArray()),
-                1),
-            FileReferenceValue: new("file.txt", false),
-            FitConstraintScalarOptionsValue: new(scalarTolerance, scalarTolerance),
-            ToleranceScalarOptionsValue: new(scalarTolerance, scalarTolerance));
+        var scalarTolerance = new WorkerToleranceLimit(true, 1);
+        WorkerMpValue value = output.Kind switch
+        {
+            WorkerMpValueKind.Logical => new WorkerBooleanValue(true),
+            WorkerMpValueKind.WholeNumber => new WorkerIntegerValue(1),
+            WorkerMpValueKind.FloatingPoint => new WorkerDoubleValue(1),
+            WorkerMpValueKind.Text or WorkerMpValueKind.CollectionName =>
+                new WorkerTextValue(output.EnumTextValues is { Count: > 0 } sdkValues ? sdkValues[0] : "value"),
+            WorkerMpValueKind.PointName => new WorkerPointNameValue("Collection", "Group", "Point"),
+            WorkerMpValueKind.Vector => new WorkerVectorValue(1, 2, 3),
+            WorkerMpValueKind.ToleranceVectorOptions => new WorkerToleranceVectorOptionsValue(
+                tolerance, tolerance, tolerance, tolerance, tolerance, tolerance, tolerance, tolerance),
+            WorkerMpValueKind.CollectionInstrumentId => new WorkerCollectionInstrumentIdValue("Collection", 1),
+            WorkerMpValueKind.CollectionInstrumentIdList => new WorkerCollectionInstrumentIdListValue([new("Collection", 1)]),
+            WorkerMpValueKind.CollectionMachineId => new WorkerCollectionMachineIdValue("Collection", 1),
+            WorkerMpValueKind.CollectionItemName => new WorkerCollectionItemNameValue("Collection", "Item", WorkerItemTypeValue.Relationship),
+            WorkerMpValueKind.CollectionItemNameList => new WorkerCollectionItemNameListValue([new("Collection", "Item", WorkerItemTypeValue.Relationship)]),
+            WorkerMpValueKind.CollectionObjectName => new WorkerCollectionObjectNameValue("Collection", "Object", WorkerObjectTypeValue.PointGroup),
+            WorkerMpValueKind.CollectionObjectNameList => new WorkerCollectionObjectNameListValue([new("Collection", "Object", WorkerObjectTypeValue.PointGroup)]),
+            WorkerMpValueKind.CollectionGroupNameList => new WorkerCollectionGroupNameListValue([new("Collection", "Group")]),
+            WorkerMpValueKind.CollectionVectorGroupName => new WorkerCollectionVectorGroupNameValue("Collection", "Vector Group"),
+            WorkerMpValueKind.CollectionVectorGroupNameList => new WorkerCollectionVectorGroupNameListValue([new("Collection", "Vector Group")]),
+            WorkerMpValueKind.PointNameList => new WorkerPointNameListValue([new("Collection", "Group", "Point")]),
+            WorkerMpValueKind.EditText or WorkerMpValueKind.StringList => new WorkerStringListValue(["value"]),
+            WorkerMpValueKind.VectorNameList => new WorkerVectorNameListValue([new("Collection", "Group", "Vector")]),
+            WorkerMpValueKind.DoubleArray => new WorkerDoubleArrayValue([1, 2, 3, 4, 5, 6]),
+            WorkerMpValueKind.Transform => new WorkerTransformValue(Enumerable.Range(1, 16).Select(Convert.ToDouble).ToArray()),
+            WorkerMpValueKind.WorldTransform => new WorkerWorldTransformValue(new(Enumerable.Range(1, 16).Select(Convert.ToDouble).ToArray()), 1),
+            WorkerMpValueKind.FileReference => new WorkerFileReferenceValue("file.txt", false),
+            WorkerMpValueKind.FitConstraintScalarOptions => new WorkerFitConstraintScalarOptionsValue(scalarTolerance, scalarTolerance),
+            WorkerMpValueKind.ToleranceScalarOptions => new WorkerToleranceScalarOptionsValue(scalarTolerance, scalarTolerance),
+            _ => throw new InvalidOperationException($"No test output exists for {output.Kind}.")
+        };
+        return new WorkerRetrievedOutput(output.MpName, output.Kind, value);
     }
 
     private static SuccessfulOperationExecution Completed(
         IReadOnlyList<WorkerMpOutputValue> outputs) =>
         new(
-            new WorkerMpExecutionResult(
-                ExecuteStepReturned: true,
-                MpResultRetrieved: true,
-                MpSucceeded: true,
-                MpResultCode: 2,
-                DurationMilliseconds: 1,
+            WorkerMpExecutionResult.FromEvidence(
+                executeStepReturned: true,
+                mpResultRetrieved: true,
+                mpSucceeded: true,
+                mpResultCode: 2,
+                durationMilliseconds: 1,
                 outputs,
-                DiagnosticCode: null),
+                diagnosticCode: null),
             new Api.MpExecutionDetails());
 }

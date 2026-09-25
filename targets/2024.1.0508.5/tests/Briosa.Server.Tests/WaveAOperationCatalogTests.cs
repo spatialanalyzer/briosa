@@ -65,6 +65,10 @@ public sealed class WaveAOperationCatalogTests
             var request = method.InputType.Parser.ParseFrom(Array.Empty<byte>());
             PopulateRequiredFields(request, operation.Inputs);
             var command = operation.CreateCommand(request);
+            using var stream = new MemoryStream();
+            using var channel = new WorkerControlChannel(stream);
+            var encodingFailure = Record.Exception(() => channel.Send(WorkerControlMessage.Execute(Guid.NewGuid(), command)));
+            Assert.True(encodingFailure is null, $"{descriptor.OperationId} produced an invalid worker command: {encodingFailure}");
 
             Assert.Equal(descriptor.OperationId, command.OperationId);
             Assert.Equal(descriptor.MpStep, command.StepName);
@@ -91,14 +95,14 @@ public sealed class WaveAOperationCatalogTests
                 candidate => candidate.Name == operation.Descriptor.Rpc);
             var outputs = operation.Outputs.Select(CreateOutput).ToArray();
             var completed = new SuccessfulOperationExecution(
-                new WorkerMpExecutionResult(
-                    ExecuteStepReturned: true,
-                    MpResultRetrieved: true,
-                    MpSucceeded: true,
-                    MpResultCode: 2,
-                    DurationMilliseconds: 1,
+                WorkerMpExecutionResult.FromEvidence(
+                    executeStepReturned: true,
+                    mpResultRetrieved: true,
+                    mpSucceeded: true,
+                    mpResultCode: 2,
+                    durationMilliseconds: 1,
                     outputs,
-                    DiagnosticCode: null),
+                    diagnosticCode: null),
                 new Api.MpExecutionDetails());
             var createResult = typeof(MpOperationContract)
                 .GetMethod(nameof(MpOperationContract.CreateResult))!
@@ -129,11 +133,15 @@ public sealed class WaveAOperationCatalogTests
         {
             SelectedLine = new Api.CollectionObjectName
             {
-                CollectionName = "Collection", ObjectName = "Line", ObjectType = Api.ObjectType.Line
+                CollectionName = "Collection",
+                ObjectName = "Line",
+                ObjectType = Api.ObjectType.Line
             },
             SelectedPlane = new Api.CollectionObjectName
             {
-                CollectionName = "Collection", ObjectName = "Plane", ObjectType = Api.ObjectType.Plane
+                CollectionName = "Collection",
+                ObjectName = "Plane",
+                ObjectType = Api.ObjectType.Plane
             },
             AngleTolerance = 0
         };
@@ -141,10 +149,10 @@ public sealed class WaveAOperationCatalogTests
         var command = operation.CreateCommand(request);
         var tolerance = Assert.Single(command.InputArguments, value => value.Name == "Angle Tolerance (0.0 for none)");
         Assert.Equal("SetDoubleArg", tolerance.SdkBinding);
-        Assert.Equal(0, tolerance.DoubleValue);
+        Assert.Equal(0, ((tolerance.Value as WorkerDoubleValue)?.Value));
         request.AngleTolerance = 0.25;
-        Assert.Equal(0.25, Assert.Single(operation.CreateCommand(request).InputArguments,
-            value => value.Name == "Angle Tolerance (0.0 for none)").DoubleValue);
+        Assert.Equal(0.25, ((Assert.Single(operation.CreateCommand(request).InputArguments,
+            value => value.Name == "Angle Tolerance (0.0 for none)").Value as WorkerDoubleValue)?.Value));
     }
 
     [Fact]
@@ -156,7 +164,7 @@ public sealed class WaveAOperationCatalogTests
 
         Assert.Equal(
             ExpectedDecimalDigits,
-            command.InputArguments.Select(argument => argument.IntegerValue!.Value));
+            command.InputArguments.Select(argument => ((argument.Value as WorkerIntegerValue)?.Value)!.Value));
     }
 
     private static void PopulateRequiredFields(
@@ -241,108 +249,64 @@ public sealed class WaveAOperationCatalogTests
     private static WorkerMpOutputValue CreateOutput(MpArgumentContract contract)
     {
         var limit = new WorkerToleranceLimit(true, 1);
-        var scalarLimit = new WorkerScalarToleranceLimit(true, 1);
+        var scalarLimit = new WorkerToleranceLimit(true, 1);
         return contract.Kind switch
         {
-            WorkerMpValueKind.Logical => Output(contract, BooleanValue: true),
-            WorkerMpValueKind.WholeNumber => Output(contract, IntegerValue: 1),
-            WorkerMpValueKind.FloatingPoint => Output(contract, DoubleValue: 1),
+            WorkerMpValueKind.Logical => Output(contract, new WorkerBooleanValue(true)),
+            WorkerMpValueKind.WholeNumber => Output(contract, new WorkerIntegerValue(1)),
+            WorkerMpValueKind.FloatingPoint => Output(contract, new WorkerDoubleValue(1)),
             WorkerMpValueKind.Text or WorkerMpValueKind.CollectionName =>
-                Output(contract, StringValue: "value"),
+                Output(contract, new WorkerTextValue("value")),
             WorkerMpValueKind.DoubleArray =>
-                Output(contract, DoubleArrayValue: new([1d])),
+                Output(contract, new WorkerDoubleArrayValue([1d])),
             WorkerMpValueKind.EditText or WorkerMpValueKind.StringList =>
-                Output(contract, StringListValue: new(["value"])),
+                Output(contract, new WorkerStringListValue(["value"])),
             WorkerMpValueKind.PointName =>
-                Output(contract, PointNameValue: new("Collection", "Group", "Point")),
+                Output(contract, new WorkerPointNameValue("Collection", "Group", "Point")),
             WorkerMpValueKind.PointNameList =>
-                Output(contract, PointNameListValue: new(
+                Output(contract, new WorkerPointNameListValue(
                     [new WorkerPointNameValue("Collection", "Group", "Point")])),
             WorkerMpValueKind.Vector =>
-                Output(contract, VectorValue: new(1, 2, 3)),
+                Output(contract, new WorkerVectorValue(1, 2, 3)),
             WorkerMpValueKind.ToleranceVectorOptions =>
-                Output(contract, ToleranceVectorOptionsValue: new(
+                Output(contract, new WorkerToleranceVectorOptionsValue(
                     limit, limit, limit, limit, limit, limit, limit, limit)),
             WorkerMpValueKind.Transform =>
-                Output(contract, TransformValue: new(Enumerable.Repeat(1d, 16).ToArray())),
+                Output(contract, new WorkerTransformValue(Enumerable.Repeat(1d, 16).ToArray())),
             WorkerMpValueKind.WorldTransform =>
-                Output(contract, WorldTransformValue: new(
+                Output(contract, new WorkerWorldTransformValue(
                     new WorkerTransformValue(Enumerable.Repeat(1d, 16).ToArray()),
                     1)),
             WorkerMpValueKind.FileReference =>
-                Output(contract, FileReferenceValue: new("C:\\file.txt", false)),
+                Output(contract, new WorkerFileReferenceValue("C:\\file.txt", false)),
             WorkerMpValueKind.CollectionObjectName =>
-                Output(contract, CollectionObjectNameValue: new(
+                Output(contract, new WorkerCollectionObjectNameValue(
                     "Collection", "Object", WorkerObjectTypeValue.Any)),
             WorkerMpValueKind.CollectionObjectNameList =>
-                Output(contract, CollectionObjectNameListValue: new(
+                Output(contract, new WorkerCollectionObjectNameListValue(
                     [new WorkerCollectionObjectNameValue(
                         "Collection", "Object", WorkerObjectTypeValue.Any)])),
             WorkerMpValueKind.CollectionItemName =>
-                Output(contract, CollectionItemNameValue: new(
+                Output(contract, new WorkerCollectionItemNameValue(
                     "Collection", "Item", WorkerItemTypeValue.Any)),
             WorkerMpValueKind.CollectionItemNameList =>
-                Output(contract, CollectionItemNameListValue: new(
+                Output(contract, new WorkerCollectionItemNameListValue(
                     [new WorkerCollectionItemNameValue(
                         "Collection", "Item", WorkerItemTypeValue.Any)])),
             WorkerMpValueKind.VectorNameList =>
-                Output(contract, VectorNameListValue: new(
+                Output(contract, new WorkerVectorNameListValue(
                     [new WorkerVectorNameValue("Collection", "Group", "Vector")])),
             WorkerMpValueKind.FitConstraintScalarOptions =>
-                Output(contract, FitConstraintScalarOptionsValue: new(
+                Output(contract, new WorkerFitConstraintScalarOptionsValue(
                     scalarLimit, scalarLimit)),
             WorkerMpValueKind.ToleranceScalarOptions =>
-                Output(contract, ToleranceScalarOptionsValue: new(
+                Output(contract, new WorkerToleranceScalarOptionsValue(
                     scalarLimit, scalarLimit)),
             _ => throw new InvalidOperationException(
                 $"No test output exists for {contract.Kind}.")
         };
     }
 
-    private static WorkerMpOutputValue Output(
-        MpArgumentContract contract,
-        bool? BooleanValue = null,
-        int? IntegerValue = null,
-        double? DoubleValue = null,
-        string? StringValue = null,
-        WorkerPointNameValue? PointNameValue = null,
-        WorkerVectorValue? VectorValue = null,
-        WorkerToleranceVectorOptionsValue? ToleranceVectorOptionsValue = null,
-        WorkerCollectionItemNameValue? CollectionItemNameValue = null,
-        WorkerCollectionItemNameListValue? CollectionItemNameListValue = null,
-        WorkerCollectionObjectNameValue? CollectionObjectNameValue = null,
-        WorkerCollectionObjectNameListValue? CollectionObjectNameListValue = null,
-        WorkerPointNameListValue? PointNameListValue = null,
-        WorkerStringListValue? StringListValue = null,
-        WorkerVectorNameListValue? VectorNameListValue = null,
-        WorkerDoubleArrayValue? DoubleArrayValue = null,
-        WorkerTransformValue? TransformValue = null,
-        WorkerWorldTransformValue? WorldTransformValue = null,
-        WorkerFileReferenceValue? FileReferenceValue = null,
-        WorkerFitConstraintScalarOptionsValue? FitConstraintScalarOptionsValue = null,
-        WorkerToleranceScalarOptionsValue? ToleranceScalarOptionsValue = null) =>
-        new(
-            contract.MpName,
-            contract.Kind,
-            Retrieved: true,
-            BooleanValue,
-            IntegerValue,
-            DoubleValue,
-            StringValue,
-            PointNameValue,
-            VectorValue,
-            ToleranceVectorOptionsValue,
-            CollectionItemNameValue: CollectionItemNameValue,
-            CollectionItemNameListValue: CollectionItemNameListValue,
-            CollectionObjectNameValue: CollectionObjectNameValue,
-            CollectionObjectNameListValue: CollectionObjectNameListValue,
-            PointNameListValue: PointNameListValue,
-            StringListValue: StringListValue,
-            VectorNameListValue: VectorNameListValue,
-            DoubleArrayValue: DoubleArrayValue,
-            TransformValue: TransformValue,
-            WorldTransformValue: WorldTransformValue,
-            FileReferenceValue: FileReferenceValue,
-            FitConstraintScalarOptionsValue: FitConstraintScalarOptionsValue,
-            ToleranceScalarOptionsValue: ToleranceScalarOptionsValue);
+    private static WorkerRetrievedOutput Output(MpArgumentContract contract, WorkerMpValue value) =>
+        new(contract.MpName, contract.Kind, value);
 }

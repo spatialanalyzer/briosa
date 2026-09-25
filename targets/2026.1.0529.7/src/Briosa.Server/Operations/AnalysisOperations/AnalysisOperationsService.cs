@@ -193,11 +193,9 @@ internal sealed class AnalysisOperationsService(OperationExecutor executor)
     public override Task<Api.GetIthCollectionNameResult> GetIthCollectionName(
         Api.GetIthCollectionNameRequest request,
         ServerCallContext context) =>
-        MpOperationServiceExecutor.ExecuteAsync<Api.GetIthCollectionNameRequest, Api.GetIthCollectionNameResult>(
-            executor,
-            request,
-            context,
-            "analysis_operations.get_ith_collection_name");
+        executor.ExecuteAsync(request, context, GetIthCollectionNameOperation.Descriptor,
+            GetIthCollectionNameOperation.CreateCommand, GetIthCollectionNameOperation.OutputContracts,
+            GetIthCollectionNameOperation.CreateResult);
 
     [OperationImplementation("analysis_operations.get_ith_point_from_group")]
     public override Task<Api.GetIthPointFromGroupResult> GetIthPointFromGroup(
@@ -253,11 +251,9 @@ internal sealed class AnalysisOperationsService(OperationExecutor executor)
     public override Task<Api.GetNumberOfCollectionsResult> GetNumberOfCollections(
         Api.GetNumberOfCollectionsRequest request,
         ServerCallContext context) =>
-        MpOperationServiceExecutor.ExecuteAsync<Api.GetNumberOfCollectionsRequest, Api.GetNumberOfCollectionsResult>(
-            executor,
-            request,
-            context,
-            "analysis_operations.get_number_of_collections");
+        executor.ExecuteAsync(request, context, GetNumberOfCollectionsOperation.Descriptor,
+            GetNumberOfCollectionsOperation.CreateCommand, GetNumberOfCollectionsOperation.OutputContracts,
+            GetNumberOfCollectionsOperation.CreateResult);
 
     [OperationImplementation("analysis_operations.get_number_of_frames_in_frame_set")]
     public override Task<Api.GetNumberOfFramesInFrameSetResult> GetNumberOfFramesInFrameSet(

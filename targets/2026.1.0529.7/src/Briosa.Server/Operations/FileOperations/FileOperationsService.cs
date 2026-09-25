@@ -333,11 +333,9 @@ internal sealed class FileOperationsService(OperationExecutor executor)
     public override Task<Api.GetWorkingDirectoryResult> GetWorkingDirectory(
         Api.GetWorkingDirectoryRequest request,
         ServerCallContext context) =>
-        MpOperationServiceExecutor.ExecuteAsync<Api.GetWorkingDirectoryRequest, Api.GetWorkingDirectoryResult>(
-            executor,
-            request,
-            context,
-            "file_operations.get_working_directory");
+        executor.ExecuteAsync(request, context, GetWorkingDirectoryOperation.Descriptor,
+            GetWorkingDirectoryOperation.CreateCommand, GetWorkingDirectoryOperation.OutputContracts,
+            GetWorkingDirectoryOperation.CreateResult);
 
     [OperationImplementation("file_operations.import_ascii_predefined_formats")]
     public override Task<Api.ImportAsciiPredefinedFormatsResult> ImportAsciiPredefinedFormats(
@@ -778,22 +776,5 @@ internal sealed class FileOperationsService(OperationExecutor executor)
             request,
             context,
             "file_operations.verify_mp_file_exists");
-
-    internal Task<Api.GetWorkingDirectoryResult> ExecuteGetWorkingDirectory(
-        Api.GetWorkingDirectoryRequest request,
-        CancellationToken cancellationToken,
-        DateTime? deadline = null,
-        Guid? correlationId = null,
-        string actorCategory = "internal-unattributed") =>
-        executor.ExecuteAsync(
-            request,
-            GetWorkingDirectoryOperation.Descriptor,
-            GetWorkingDirectoryOperation.CreateCommand,
-            GetWorkingDirectoryOperation.OutputContracts,
-            GetWorkingDirectoryOperation.CreateResult,
-            cancellationToken,
-            deadline,
-            correlationId,
-            actorCategory);
 
 }

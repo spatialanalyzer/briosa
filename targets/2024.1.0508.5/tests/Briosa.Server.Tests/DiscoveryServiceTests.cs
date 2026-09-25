@@ -19,6 +19,24 @@ namespace Briosa.Server.Tests;
 
 public sealed class DiscoveryServiceTests
 {
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void AllReadinessViewsRequireAnAvailableAdmissionConsumer(bool admissionOpen)
+    {
+        var snapshot = Snapshot(WorkerLifecycleState.Ready, WorkerConnectionState.Connected,
+            WorkerExecutionReadinessState.ExecutionReady) with { AdmissionOpen = admissionOpen, StateRevision = 17 };
+        var status = new FakeWorkerStatusProvider(snapshot);
+        var discovery = new ServerDiscoveryService(status, new FakeBuildIdentityProvider(), CreatePolicy());
+        var lifecycle = new SpatialAnalyzerSdkLifecycleStateProjection(status);
+        Assert.Equal(admissionOpen, WorkerReadinessHealthCheck.IsReady(snapshot));
+        Assert.Equal(admissionOpen, discovery.CreateServerInfo().ReadyForMp);
+        Assert.Equal(admissionOpen, lifecycle.Current.ReadyForMp);
+        Assert.Equal(17UL, lifecycle.Current.StateRevision);
+        Assert.Equal(admissionOpen ? SpatialAnalyzerSdkState.Ready : SpatialAnalyzerSdkState.Running,
+            lifecycle.Current.SdkState);
+    }
+
     [Fact]
     public async Task LivenessIsIndependentWhileReadinessRequiresVerifiedExecution()
     {
@@ -254,20 +272,51 @@ public sealed class DiscoveryServiceTests
     }
 
     [Fact]
-    public void AssemblyIdentityUsesReviewedTargetAndInteropCoordinates()
+    public void MutatingCapabilitiesCannotChangeOtherResponses()
     {
-        var provider = new AssemblyServerBuildIdentityProvider(typeof(Program).Assembly);
+        var service = new ServerDiscoveryService(
+            new FakeWorkerStatusProvider(Snapshot(WorkerLifecycleState.Stopped, null)),
+            new FakeBuildIdentityProvider(),
+            CreatePolicy());
+        var expected = service.CreateCapabilities();
+        var modified = service.CreateCapabilities();
+        modified.Operations[0].OperationId = "changed";
+        modified.Operations.RemoveAt(modified.Operations.Count - 1);
+        modified.SpatialAnalyzerTarget = "changed";
+
+        Assert.Equal(expected, service.CreateCapabilities());
+    }
+    [Fact]
+    public void BuildIdentityMatchesAssemblyProvenanceAndReviewedCoordinates()
+    {
+        var provider = new BuildIdentityProvider();
 
         var coordinates = provider.CreateVersionCoordinates();
 
         Assert.True(coordinates.HasBriosaVersion);
+        Assert.Equal(System.Reflection.CustomAttributeExtensions
+            .GetCustomAttribute<System.Reflection.AssemblyInformationalVersionAttribute>(typeof(Program).Assembly)!
+            .InformationalVersion, coordinates.BriosaVersion);
+        Assert.Equal(ServerBuildIdentity.SourceRevision, coordinates.SourceRevision);
         Assert.Equal("briosa", coordinates.ProtocolPackage);
         Assert.Equal("2024.1.0508.5", coordinates.SpatialAnalyzerTarget);
         Assert.Equal(
-            AssemblyServerBuildIdentityProvider.InteropFingerprint,
+            BuildIdentityProvider.InteropFingerprint,
             coordinates.InteropFingerprint);
     }
 
+    [Fact]
+    public void MutatingDiscoveryCoordinatesDoesNotChangeSubsequentResponses()
+    {
+        var provider = new BuildIdentityProvider();
+        var expected = provider.CreateVersionCoordinates();
+        var modified = provider.CreateVersionCoordinates();
+        modified.BriosaVersion = "changed";
+        modified.SpatialAnalyzerTarget = "changed";
+        modified.SourceRevision = "changed";
+
+        Assert.Equal(expected, provider.CreateVersionCoordinates());
+    }
     private static OperationPolicy CreatePolicy(bool allow = true)
     {
         var values = new Dictionary<string, string?>(StringComparer.Ordinal);
@@ -309,7 +358,7 @@ public sealed class DiscoveryServiceTests
                     "sensitive-connection-diagnostic",
                     DateTimeOffset.UtcNow),
             DateTimeOffset.UtcNow,
-            MatchingIdentity());
+            MatchingIdentity(), AdmissionOpen: true);
 
     private static ExactTargetIdentitySnapshot MatchingIdentity() =>
         new(

@@ -38,10 +38,12 @@ internal sealed class SpatialAnalyzerSdkLifecycleCoordinator(
                     global::Briosa.LifecycleRecoveryGuidance.RefreshState);
             }
 
-            if (!await _supervisor.StartAsync(cancellationToken).ConfigureAwait(false))
+            var transition = await _supervisor.StartAsync(cancellationToken).ConfigureAwait(false);
+            if (!transition.Succeeded)
             {
-                var failed = Current;
-                if (IsTimeoutDiagnostic(failed.DiagnosticCode))
+                var snapshot = transition.Snapshot;
+                var failed = SpatialAnalyzerSdkLifecycleStateProjection.ToPublicState(snapshot);
+                if (snapshot.LifecycleTimedOut)
                 {
                     throw SdkLifecycleException.DeadlineExceeded(
                         global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.Timeout,
@@ -57,8 +59,7 @@ internal sealed class SpatialAnalyzerSdkLifecycleCoordinator(
                     global::Briosa.LifecycleRecoveryGuidance.CorrectEnvironment);
             }
 
-            _stateProjection.MarkDisconnected();
-            return Current;
+            return SpatialAnalyzerSdkLifecycleStateProjection.ToPublicState(transition.Snapshot);
         }
         finally
         {
@@ -136,10 +137,10 @@ internal sealed class SpatialAnalyzerSdkLifecycleCoordinator(
                     global::Briosa.LifecycleRecoveryGuidance.None);
             }
 
-            bool connected;
+            WorkerLifecycleResult transition;
             try
             {
-                connected = await _supervisor.ConnectAsync(
+                transition = await _supervisor.ConnectAsync(
                     expectedGeneration,
                     cancellationToken).ConfigureAwait(false);
             }
@@ -148,14 +149,11 @@ internal sealed class SpatialAnalyzerSdkLifecycleCoordinator(
                 throw GenerationConflict(expectedGeneration);
             }
 
-            if (!connected)
+            if (!transition.Succeeded)
             {
-                _stateProjection.MarkDisconnected();
-                var failed = Current;
-                if (string.Equals(
-                        failed.DiagnosticCode,
-                        "runtime-identity-not-ready",
-                        StringComparison.Ordinal))
+                var snapshot = transition.Snapshot;
+                var failed = SpatialAnalyzerSdkLifecycleStateProjection.ToPublicState(snapshot);
+                if (snapshot.LifecycleFailure == WorkerLifecycleFailure.IdentityRejected)
                 {
                     throw SdkLifecycleException.FailedPrecondition(
                         global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.IdentityMismatch,
@@ -175,7 +173,7 @@ internal sealed class SpatialAnalyzerSdkLifecycleCoordinator(
                             global::Briosa.SpatialAnalyzerSdkRecoveryState.RecoveryAvailable
                             ? global::Briosa.LifecycleRecoveryGuidance.RecoverSdkWithoutReplay
                             : global::Briosa.LifecycleRecoveryGuidance.RetryAfterStateChange;
-                if (IsTimeoutDiagnostic(failed.DiagnosticCode))
+                if (snapshot.LifecycleTimedOut)
                 {
                     throw SdkLifecycleException.DeadlineExceeded(
                         global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.Timeout,
@@ -203,14 +201,15 @@ internal sealed class SpatialAnalyzerSdkLifecycleCoordinator(
 
             var applicationAfterConnect = await _applicationStateProvider
                 .GetCurrentAsync(cancellationToken).ConfigureAwait(false);
-            _stateProjection.MarkConnected(
+            var associated = await _supervisor.AssociateApplicationGenerationAsync(
+                expectedGeneration,
                 applicationBeforeConnect.HasApplicationGeneration &&
                 applicationAfterConnect.HasApplicationGeneration &&
                 applicationBeforeConnect.ApplicationGeneration ==
                     applicationAfterConnect.ApplicationGeneration
                     ? applicationAfterConnect.ApplicationGeneration
-                    : null);
-            return Current;
+                    : null, cancellationToken).ConfigureAwait(false);
+            return SpatialAnalyzerSdkLifecycleStateProjection.ToPublicState(associated);
         }
         finally
         {
@@ -235,10 +234,10 @@ internal sealed class SpatialAnalyzerSdkLifecycleCoordinator(
                     global::Briosa.LifecycleRecoveryGuidance.None);
             }
 
-            await _supervisor.StopAsync(cancellationToken).ConfigureAwait(false);
-            _stateProjection.MarkDisconnected();
-            var stopped = Current;
-            if (IsTimeoutDiagnostic(stopped.DiagnosticCode))
+            var transition = await _supervisor.StopAsync(cancellationToken).ConfigureAwait(false);
+            var snapshot = transition.Snapshot;
+            var stopped = SpatialAnalyzerSdkLifecycleStateProjection.ToPublicState(snapshot);
+            if (snapshot.LifecycleTimedOut)
             {
                 throw SdkLifecycleException.DeadlineExceeded(
                     global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.Timeout,
@@ -247,7 +246,7 @@ internal sealed class SpatialAnalyzerSdkLifecycleCoordinator(
                     global::Briosa.LifecycleRecoveryGuidance.RefreshState);
             }
 
-            if (_supervisor.Current.LastTermination != WorkerTerminationKind.Graceful)
+            if (!transition.Succeeded)
             {
                 throw SdkLifecycleException.Unavailable(
                     global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.SdkStopFailed,
@@ -290,12 +289,14 @@ internal sealed class SpatialAnalyzerSdkLifecycleCoordinator(
                     global::Briosa.LifecycleRecoveryGuidance.None);
             }
 
-            if (!await _supervisor.RecoverSdkAsync(
+            var transition = await _supervisor.RecoverSdkAsync(
                     expectedGeneration,
-                    cancellationToken).ConfigureAwait(false))
+                    cancellationToken).ConfigureAwait(false);
+            if (!transition.Succeeded)
             {
-                var failed = Current;
-                if (IsTimeoutDiagnostic(failed.DiagnosticCode))
+                var snapshot = transition.Snapshot;
+                var failed = SpatialAnalyzerSdkLifecycleStateProjection.ToPublicState(snapshot);
+                if (snapshot.LifecycleTimedOut)
                 {
                     throw SdkLifecycleException.DeadlineExceeded(
                         global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.Timeout,
@@ -311,8 +312,7 @@ internal sealed class SpatialAnalyzerSdkLifecycleCoordinator(
                     global::Briosa.LifecycleRecoveryGuidance.CorrectEnvironment);
             }
 
-            _stateProjection.MarkDisconnected();
-            return Current;
+            return SpatialAnalyzerSdkLifecycleStateProjection.ToPublicState(transition.Snapshot);
         }
         finally
         {
@@ -364,81 +364,4 @@ internal sealed class SpatialAnalyzerSdkLifecycleCoordinator(
             Current,
             global::Briosa.LifecycleRecoveryGuidance.RefreshState);
 
-    private static bool IsTimeoutDiagnostic(string? diagnosticCode) =>
-        diagnosticCode?.Contains("timeout", StringComparison.Ordinal) == true;
-}
-
-[SuppressMessage(
-    "Design",
-    "CA1032:Implement standard exception constructors",
-    Justification = "This internal transport exception must always contain typed lifecycle detail.")]
-internal sealed class SdkLifecycleException : Exception
-{
-    private SdkLifecycleException(
-        Grpc.Core.StatusCode statusCode,
-        global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind kind,
-        string diagnosticCode,
-        global::Briosa.SpatialAnalyzerSdkLifecycleState state,
-        global::Briosa.LifecycleRecoveryGuidance recoveryGuidance)
-        : base(diagnosticCode)
-    {
-        StatusCode = statusCode;
-        Detail = new global::Briosa.SpatialAnalyzerSdkLifecycleError
-        {
-            Kind = kind,
-            DiagnosticCode = diagnosticCode,
-            State = state,
-            RecoveryGuidance = recoveryGuidance
-        };
-    }
-
-    public Grpc.Core.StatusCode StatusCode { get; }
-
-    public global::Briosa.SpatialAnalyzerSdkLifecycleError Detail { get; }
-
-    public static SdkLifecycleException InvalidArgument(
-        global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind kind,
-        string diagnosticCode,
-        global::Briosa.SpatialAnalyzerSdkLifecycleState state) =>
-        new(Grpc.Core.StatusCode.InvalidArgument, kind, diagnosticCode, state,
-            global::Briosa.LifecycleRecoveryGuidance.RefreshState);
-
-    public static SdkLifecycleException FailedPrecondition(
-        global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind kind,
-        string diagnosticCode,
-        global::Briosa.SpatialAnalyzerSdkLifecycleState state,
-        global::Briosa.LifecycleRecoveryGuidance recoveryGuidance) =>
-        new(Grpc.Core.StatusCode.FailedPrecondition, kind, diagnosticCode, state,
-            recoveryGuidance);
-
-    public static SdkLifecycleException NotFound(
-        global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind kind,
-        string diagnosticCode,
-        global::Briosa.SpatialAnalyzerSdkLifecycleState state,
-        global::Briosa.LifecycleRecoveryGuidance recoveryGuidance) =>
-        new(Grpc.Core.StatusCode.NotFound, kind, diagnosticCode, state,
-            recoveryGuidance);
-
-    public static SdkLifecycleException Aborted(
-        global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind kind,
-        string diagnosticCode,
-        global::Briosa.SpatialAnalyzerSdkLifecycleState state,
-        global::Briosa.LifecycleRecoveryGuidance recoveryGuidance) =>
-        new(Grpc.Core.StatusCode.Aborted, kind, diagnosticCode, state, recoveryGuidance);
-
-    public static SdkLifecycleException Unavailable(
-        global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind kind,
-        string diagnosticCode,
-        global::Briosa.SpatialAnalyzerSdkLifecycleState state,
-        global::Briosa.LifecycleRecoveryGuidance recoveryGuidance) =>
-        new(Grpc.Core.StatusCode.Unavailable, kind, diagnosticCode, state,
-            recoveryGuidance);
-
-    public static SdkLifecycleException DeadlineExceeded(
-        global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind kind,
-        string diagnosticCode,
-        global::Briosa.SpatialAnalyzerSdkLifecycleState state,
-        global::Briosa.LifecycleRecoveryGuidance recoveryGuidance) =>
-        new(Grpc.Core.StatusCode.DeadlineExceeded, kind, diagnosticCode, state,
-            recoveryGuidance);
 }

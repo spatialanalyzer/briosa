@@ -3,83 +3,35 @@ namespace Briosa.Worker.Control;
 internal static class WorkerSpecializedValueValidation
 {
     public static bool HasInputValueForKind(WorkerMpInputArgument argument) =>
-        argument.Kind switch
+        argument.Value is IWorkerChoiceValue choice
+            ? choice.IsDefined && argument.Value is not WorkerChoiceValue<WorkerObjectTypeValue> { Value: WorkerObjectTypeValue.Unspecified }
+            : argument.Kind switch
         {
-            WorkerMpValueKind.AsciiImportFileFormat => IsEnum(argument, 44),
-            WorkerMpValueKind.AsciiFrameSetFormat => IsEnum(argument, 8),
-            WorkerMpValueKind.AxisIdentifier => IsEnum(argument, 6),
-            WorkerMpValueKind.WcfAxisIdentifier => IsEnum(argument, 3),
-            WorkerMpValueKind.BaseColorType => IsEnum(argument, 3),
-            WorkerMpValueKind.BaseMidColorType => IsEnum(argument, 4),
-            WorkerMpValueKind.ChartType => IsEnum(argument, 3),
-            WorkerMpValueKind.CollimationBaselineType => IsEnum(argument, 3),
-            WorkerMpValueKind.CollimationType => IsEnum(argument, 2),
-            WorkerMpValueKind.ColorRangeMethod => IsEnum(argument, 6),
-            WorkerMpValueKind.CoordinateSystemType => IsEnum(argument, 3),
-            WorkerMpValueKind.VectorComponent => IsEnum(argument, 4),
-            WorkerMpValueKind.DynamicCircleMode => IsEnum(argument, 7),
-            WorkerMpValueKind.DynamicEllipseMode => IsEnum(argument, 2),
-            WorkerMpValueKind.DynamicLineMode => IsEnum(argument, 5),
-            WorkerMpValueKind.DynamicPlaneMode => IsEnum(argument, 8),
-            WorkerMpValueKind.DynamicPointMode => IsEnum(argument, 5),
-            WorkerMpValueKind.EdgeMode => IsEnum(argument, 3),
-            WorkerMpValueKind.ExportDataDelimiterType => IsEnum(argument, 3),
-            WorkerMpValueKind.ExportTargetNameFormat => IsEnum(argument, 4),
-            WorkerMpValueKind.ExportVectorNameFormat => IsEnum(argument, 4),
-            WorkerMpValueKind.GeometryType => IsEnum(argument, 10),
-            WorkerMpValueKind.GdtDistanceBetweenMode => IsEnum(argument, 2),
-            WorkerMpValueKind.GdtEvaluationMethod => IsEnum(argument, 7),
-            WorkerMpValueKind.InstrumentType => IsEnum(argument, 185),
-            WorkerMpValueKind.ObjectType => IsEnum(argument, 26) && argument.SpecializedEnumValue!.Value != 4,
-            WorkerMpValueKind.OffsetDirectionType => IsEnum(argument, 3),
-            WorkerMpValueKind.PointFilterInputType => IsEnum(argument, 3),
-            WorkerMpValueKind.RelationshipWeightingMode => IsEnum(argument, 5),
-            WorkerMpValueKind.RenderModeType => IsEnum(argument, 4),
-            WorkerMpValueKind.ReportPageOrientation => IsEnum(argument, 2),
-            WorkerMpValueKind.SaturationLimitType => IsEnum(argument, 3),
-            WorkerMpValueKind.ShowUsmnDialogType => IsEnum(argument, 3),
-            WorkerMpValueKind.SurfaceAnalysisMode => IsEnum(argument, 11),
-            WorkerMpValueKind.SurfaceDissectionModeType => IsEnum(argument, 2),
-            WorkerMpValueKind.TargetComputationMethod => IsEnum(argument, 6),
-            WorkerMpValueKind.TranslucencyType => IsEnum(argument, 3),
-            WorkerMpValueKind.CompTechnique => IsEnum(argument, 3),
-            WorkerMpValueKind.DegreeOfFreedom => IsEnum(argument, 3),
-            WorkerMpValueKind.FitMethod => IsEnum(argument, 2),
-            WorkerMpValueKind.MeasuredSideForPlanarOffset => IsEnum(argument, 3),
-            WorkerMpValueKind.MeasuredSideForRadialOffset => IsEnum(argument, 3),
-            WorkerMpValueKind.MpDialogInteractionMode => IsEnum(argument, 2),
-            WorkerMpValueKind.MpInteractionMode => IsEnum(argument, 3),
-            WorkerMpValueKind.NormalDirection => IsEnum(argument, 3),
-            WorkerMpValueKind.SaInteractionMode => IsEnum(argument, 3),
-            WorkerMpValueKind.SlotType => IsEnum(argument, 2),
-            WorkerMpValueKind.SphereFitComputationMode => IsEnum(argument, 3),
-            WorkerMpValueKind.WindowState => IsEnum(argument, 5),
-            WorkerMpValueKind.SystemString => IsEnum(argument, 11),
             WorkerMpValueKind.AutoFilterProximitySettings =>
-                IsValid(argument.AutoFilterProximitySettingsValue),
+                IsValid((argument.Value as WorkerAutoFilterProximitySettingsValue)),
             WorkerMpValueKind.BSplineFitOptions =>
-                IsValid(argument.BSplineFitOptionsValue),
+                IsValid((argument.Value as WorkerBSplineFitOptionsValue)),
             WorkerMpValueKind.CloudThinningOptions =>
-                IsValid(argument.CloudThinningOptionsValue),
+                IsValid((argument.Value as WorkerCloudThinningOptionsValue)),
             WorkerMpValueKind.ColorizationOptions =>
-                IsValid(argument.ColorizationOptionsValue),
+                IsValid((argument.Value as WorkerColorizationOptionsValue)),
             WorkerMpValueKind.FitConstraintScalarOptions =>
-                IsValid(argument.FitConstraintScalarOptionsValue),
+                IsValid((argument.Value as WorkerFitConstraintScalarOptionsValue)),
             WorkerMpValueKind.FitDegreeOfFreedomOptions =>
-                argument.FitDegreeOfFreedomOptionsValue is not null,
+                (argument.Value as WorkerFitDegreeOfFreedomOptionsValue) is not null,
 
             WorkerMpValueKind.ReportOutputOptions =>
-                IsValid(argument.ReportOutputOptionsValue),
+                IsValid((argument.Value as WorkerReportOutputOptionsValue)),
             WorkerMpValueKind.ReportViewOptions =>
-                IsValid(argument.ReportViewOptionsValue),
+                IsValid((argument.Value as WorkerReportViewOptionsValue)),
             WorkerMpValueKind.ToleranceScalarOptions =>
-                IsValid(argument.ToleranceScalarOptionsValue),
+                IsValid((argument.Value as WorkerToleranceScalarOptionsValue)),
             WorkerMpValueKind.ProjectionOptions =>
-                IsValid(argument.ProjectionOptionsValue),
+                IsValid((argument.Value as WorkerProjectionOptionsValue)),
             WorkerMpValueKind.PointDeltaReportOptions =>
-                IsValid(argument.PointDeltaReportOptionsValue),
+                IsValid((argument.Value as WorkerPointDeltaReportOptionsValue)),
             WorkerMpValueKind.UdpTransmitSettings =>
-                argument.UdpTransmitSettingsValue is { IpAddress: not null, Port: >= 0 and <= 65535 },
+                (argument.Value as WorkerUdpTransmitSettingsValue) is { IpAddress: not null, Port: >= 0 and <= 65535 },
             _ => false
         };
 
@@ -87,15 +39,12 @@ internal static class WorkerSpecializedValueValidation
         output.Kind switch
         {
             WorkerMpValueKind.FitConstraintScalarOptions =>
-                IsValid(output.FitConstraintScalarOptionsValue),
+                IsValid((output.ReadValue() as WorkerFitConstraintScalarOptionsValue)),
             WorkerMpValueKind.ToleranceScalarOptions =>
-                IsValid(output.ToleranceScalarOptionsValue),
+                IsValid((output.ReadValue() as WorkerToleranceScalarOptionsValue)),
             _ => false
         };
 
-    private static bool IsEnum(WorkerMpInputArgument argument, int valueCount) =>
-        argument.SpecializedEnumValue is { } value &&
-        (uint)value.Value < (uint)valueCount;
 
     private static bool IsValid(WorkerAutoFilterProximitySettingsValue? value) =>
         value is not null &&

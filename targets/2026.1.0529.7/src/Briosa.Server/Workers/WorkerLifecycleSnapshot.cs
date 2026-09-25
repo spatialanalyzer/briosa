@@ -13,4 +13,22 @@ internal sealed record WorkerLifecycleSnapshot(
     DateTimeOffset TransitionedAt,
     ExactTargetIdentitySnapshot? RuntimeIdentity = null,
     long StateRevision = 0,
-    WorkerIncidentSnapshot? LastIncident = null);
+    WorkerIncidentSnapshot? LastIncident = null,
+    bool AdmissionOpen = false,
+    int? ApplicationGeneration = null,
+    WorkerCleanupStatus? CleanupStatus = null,
+    WorkerLifecycleFailure LifecycleFailure = WorkerLifecycleFailure.None)
+{
+    public bool LifecycleTimedOut => LifecycleFailure is
+        WorkerLifecycleFailure.StartupTimeout or WorkerLifecycleFailure.ConnectionTimeout or
+        WorkerLifecycleFailure.ReadinessTimeout or WorkerLifecycleFailure.StopTimeout;
+
+    public bool ReadyForExecution =>
+        State == WorkerLifecycleState.Ready && AdmissionOpen &&
+        Connection is
+        {
+            State: WorkerConnectionState.Connected,
+            Failure: WorkerConnectionFailure.None,
+            ExecutionReadinessState: WorkerExecutionReadinessState.ExecutionReady
+        } && RuntimeIdentity?.AllowsExecution == true;
+}

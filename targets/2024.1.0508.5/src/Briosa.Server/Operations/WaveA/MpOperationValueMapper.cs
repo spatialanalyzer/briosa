@@ -40,9 +40,7 @@ internal static class MpOperationValueMapper
         {
             source = provided && value is IMessage outerNested
                 ? outerNested
-                : (IMessage?)Activator.CreateInstance(outerField.MessageType.ClrType) ??
-                    throw new InvalidOperationException(
-                        $"Cannot create request field '{contract.FieldName}'.");
+                : outerField.MessageType.Parser.ParseFrom(Array.Empty<byte>());
             var segments = contract.NestedFieldName.Split('.');
             for (var index = 0; index < segments.Length; index++)
             {
@@ -67,9 +65,7 @@ internal static class MpOperationValueMapper
                     }
                     else
                     {
-                        source = (IMessage?)Activator.CreateInstance(field.MessageType.ClrType) ??
-                            throw new InvalidOperationException(
-                                $"Cannot create request field '{contract.FieldName}.{segment}'.");
+                        source = field.MessageType.Parser.ParseFrom(Array.Empty<byte>());
                         provided = false;
                         value = null;
                     }
@@ -180,9 +176,7 @@ internal static class MpOperationValueMapper
                 var outerNested = outerField.Accessor.GetValue(result) as IMessage;
                 if (outerNested is null)
                 {
-                    outerNested = (IMessage?)Activator.CreateInstance(outerField.MessageType.ClrType) ??
-                        throw new InvalidOperationException(
-                            $"Cannot create result field '{contract.FieldName}'.");
+                    outerNested = outerField.MessageType.Parser.ParseFrom(Array.Empty<byte>());
                     outerField.Accessor.SetValue(result, outerNested);
                 }
 
@@ -202,9 +196,7 @@ internal static class MpOperationValueMapper
                     var nested = field.Accessor.GetValue(target) as IMessage;
                     if (nested is null)
                     {
-                        nested = (IMessage?)Activator.CreateInstance(field.MessageType.ClrType) ??
-                            throw new InvalidOperationException(
-                                $"Cannot create result field '{contract.FieldName}.{segment}'.");
+                        nested = field.MessageType.Parser.ParseFrom(Array.Empty<byte>());
                         field.Accessor.SetValue(target, nested);
                     }
 
@@ -480,156 +472,102 @@ internal static class MpOperationValueMapper
         }
     }
 
-    private static WorkerMpInputArgument CreateInput(
-        MpArgumentContract contract,
-        object? value)
+    private static WorkerMpInputArgument CreateInput(MpArgumentContract contract, object? value)
     {
         var kind = contract.Kind;
         var values = value as object[];
-        return new WorkerMpInputArgument(
-            contract.MpName,
-            kind,
-            BooleanValue: kind == WorkerMpValueKind.Logical ? Convert.ToBoolean(value, CultureInfo.InvariantCulture) : null,
-            IntegerValue: kind == WorkerMpValueKind.WholeNumber ? Convert.ToInt32(value, CultureInfo.InvariantCulture) : null,
-            DoubleValue: kind == WorkerMpValueKind.FloatingPoint ? Convert.ToDouble(value, CultureInfo.InvariantCulture) : null,
-            StringValue: ToStringValue(kind, value),
-            PointNameValue: value is Api.PointName point ? Point(point) : null,
-            VectorValue: value is Api.Vector vector ? new(vector.X, vector.Y, vector.Z) : null,
-            ToleranceVectorOptionsValue: value is Api.ToleranceVectorOptions toleranceVector
-                ? ToleranceVector(toleranceVector)
-                : null,
-            CollectionInstrumentIdValue: value is Api.CollectionInstrumentId instrument
-                ? new(instrument.CollectionName, instrument.InstrumentId)
-                : null,
-            CollectionInstrumentIdListValue: kind == WorkerMpValueKind.CollectionInstrumentIdList
-                ? new(values!.Cast<Api.CollectionInstrumentId>()
-                    .Select(item => new WorkerCollectionInstrumentIdValue(
-                        item.CollectionName,
-                        item.InstrumentId)).ToArray())
-                : null,
-            CollectionMachineIdValue: value is Api.CollectionMachineId machine
-                ? new(machine.CollectionName, machine.MachineId)
-                : null,
-            CollectionObjectNameValue: value switch
+        WorkerMpValue input = kind switch
+        {
+            WorkerMpValueKind.Logical => new WorkerBooleanValue(Convert.ToBoolean(value, CultureInfo.InvariantCulture)),
+            WorkerMpValueKind.WholeNumber => new WorkerIntegerValue(Convert.ToInt32(value, CultureInfo.InvariantCulture)),
+            WorkerMpValueKind.FloatingPoint => new WorkerDoubleValue(Convert.ToDouble(value, CultureInfo.InvariantCulture)),
+            WorkerMpValueKind.Text or WorkerMpValueKind.InstrumentTypeName or WorkerMpValueKind.ChartName or
+                WorkerMpValueKind.CloudName or WorkerMpValueKind.VectorGroupName or
+                WorkerMpValueKind.CollectionName or WorkerMpValueKind.FrameName or WorkerMpValueKind.ViewName =>
+                new WorkerTextValue(ToStringValue(kind, value)!),
+            WorkerMpValueKind.PointName when value is Api.PointName point => Point(point),
+            WorkerMpValueKind.Vector when value is Api.Vector vector => new WorkerVectorValue(vector.X, vector.Y, vector.Z),
+            WorkerMpValueKind.ToleranceVectorOptions when value is Api.ToleranceVectorOptions tolerance => ToleranceVector(tolerance),
+            WorkerMpValueKind.CollectionInstrumentId when value is Api.CollectionInstrumentId instrument =>
+                new WorkerCollectionInstrumentIdValue(instrument.CollectionName, instrument.InstrumentId),
+            WorkerMpValueKind.CollectionInstrumentIdList => new WorkerCollectionInstrumentIdListValue(
+                values!.Cast<Api.CollectionInstrumentId>().Select(item =>
+                    new WorkerCollectionInstrumentIdValue(item.CollectionName, item.InstrumentId)).ToArray()),
+            WorkerMpValueKind.CollectionMachineId when value is Api.CollectionMachineId machine =>
+                new WorkerCollectionMachineIdValue(machine.CollectionName, machine.MachineId),
+            WorkerMpValueKind.CollectionObjectName => value switch
             {
                 Api.CollectionObjectName item => ObjectName(item, contract.ObjectTypeWhenOmitted),
                 Api.CollectionItemName item => ObjectName(item, contract.ObjectTypeWhenOmitted),
-                _ => null
+                _ => throw new ArgumentException($"Field '{contract.FieldName}' contains an unsupported object identity.")
             },
-            CollectionObjectNameListValue: kind == WorkerMpValueKind.CollectionObjectNameList
-                ? new(values!.Select(item => item switch
-                    {
-                        Api.CollectionObjectName objectName => ObjectName(objectName, contract.ObjectTypeWhenOmitted),
-                        Api.CollectionItemName itemName => ObjectName(itemName, contract.ObjectTypeWhenOmitted),
-                        _ => throw new ArgumentException($"Field '{contract.FieldName}' contains an unsupported object identity.")
-                    }).ToArray())
-                : null,
-            CollectionItemNameValue: value is Api.CollectionItemName collectionItem
-                ? ItemName(collectionItem, contract.ItemTypeWhenOmitted)
-                : null,
-            CollectionItemNameListValue: kind == WorkerMpValueKind.CollectionItemNameList
-                ? new(values!.Cast<Api.CollectionItemName>()
-                    .Select(item => ItemName(item, contract.ItemTypeWhenOmitted)).ToArray())
-                : null,
-            CollectionGroupNameListValue: kind == WorkerMpValueKind.CollectionGroupNameList
-                ? new(values!.Cast<Api.CollectionGroupName>()
-                    .Select(item => new WorkerCollectionGroupNameValue(
-                        item.CollectionName,
-                        item.GroupName)).ToArray())
-                : null,
-            CollectionVectorGroupNameValue: value is Api.CollectionVectorGroupName vectorGroup
-                ? new(vectorGroup.CollectionName, vectorGroup.VectorGroupName)
-                : null,
-            CollectionVectorGroupNameListValue: kind == WorkerMpValueKind.CollectionVectorGroupNameList
-                ? new(values!.Cast<Api.CollectionVectorGroupName>()
-                    .Select(item => new WorkerCollectionVectorGroupNameValue(
-                        item.CollectionName,
-                        item.VectorGroupName)).ToArray())
-                : null,
-            PointNameListValue: kind == WorkerMpValueKind.PointNameList
-                ? new(values!.Cast<Api.PointName>().Select(Point).ToArray())
-                : null,
-            StringListValue: kind is WorkerMpValueKind.StringList or WorkerMpValueKind.EditText
-                ? new(values!.Select(Convert.ToString).Select(item => item!).ToArray())
-                : null,
-            VectorNameListValue: kind == WorkerMpValueKind.VectorNameList
-                ? new(values!.Cast<Api.VectorName>()
-                    .Select(item => new WorkerVectorNameValue(
-                        item.CollectionName,
-                        item.GroupName,
-                        item.Name)).ToArray())
-                : null,
-            DoubleArrayValue: kind == WorkerMpValueKind.DoubleArray
-                ? new(values!.Select(item => Convert.ToDouble(item, CultureInfo.InvariantCulture)).ToArray())
-                : null,
-            TransformValue: kind == WorkerMpValueKind.Transform && value is Api.Transform transform
-                ? Transform(transform)
-                : null,
-            WorldTransformValue: kind == WorkerMpValueKind.WorldTransform && value is Api.WorldTransform world
-                ? WorldTransform(world)
-                : null,
-            RgbColorValue: kind == WorkerMpValueKind.RgbColor && value is Api.Color color
-                ? Color(color)
-                : null,
-            FileReferenceValue: value is Api.FileReference file
-                ? new(file.Path, file.EmbeddedFile)
-                : null,
-            AngularUnitValue: kind == WorkerMpValueKind.AngularUnit
-                ? (WorkerAngularUnitValue)Convert.ToInt32(value, CultureInfo.InvariantCulture)
-                : null,
-            DistanceUnitValue: kind == WorkerMpValueKind.DistanceUnit
-                ? (WorkerDistanceUnitValue)Convert.ToInt32(value, CultureInfo.InvariantCulture)
-                : null,
-            TemperatureUnitValue: kind == WorkerMpValueKind.TemperatureUnit
-                ? (WorkerTemperatureUnitValue)Convert.ToInt32(value, CultureInfo.InvariantCulture)
-                : null,
-            FontValue: value is Api.Font font ? Font(font) : null,
-            SpecializedEnumValue: IsSpecializedEnum(kind)
-                ? new WorkerSpecializedEnumValue(
-                    Convert.ToInt32(value, CultureInfo.InvariantCulture) - 1)
-                : null,
-            ColorizationOptionsValue: value is Api.ColorizationOptions colorization
-                ? Colorization(colorization)
-                : null,
-            CloudThinningOptionsValue: value is Api.CloudThinningOptions cloudThinning
-                ? CloudThinning(cloudThinning)
-                : null,
-            BSplineFitOptionsValue: value is Api.BSplineFitOptions bSplineFit
-                ? BSplineFit(bSplineFit)
-                : null,
-            FitConstraintScalarOptionsValue: value is Api.FitConstraintScalarOptions fit
-                ? new(Tolerance(fit.High), Tolerance(fit.Low))
-                : null,
-            ReportOutputOptionsValue: value is Api.ReportOutputOptions reportOutput
-                ? ReportOutput(reportOutput)
-                : null,
-            ReportViewOptionsValue: value is Api.ReportViewOptions reportView
-                ? new(
-                    (int)reportView.ViewType - 1,
-                    reportView.CollectionName,
-                    reportView.CalloutName)
-                : null,
-            ToleranceScalarOptionsValue: value is Api.ToleranceScalarOptions scalarTolerance
-                ? new(Tolerance(scalarTolerance.High), Tolerance(scalarTolerance.Low))
-                : null,
-            ProjectionOptionsValue: value is Api.ProjectionOptions projection
-                ? Projection(projection)
-                : null,
-            PointDeltaReportOptionsValue: value is Api.PointDeltaReportOptions pointDelta
-                ? PointDelta(pointDelta)
-                : null,
-            UdpTransmitSettingsValue: value is Api.RelationshipWatchWindowUdpSettings udp
-                ? new WorkerUdpTransmitSettingsValue(
-                    udp.HasEnabled && udp.Enabled,
-                    !udp.HasBroadcast || udp.Broadcast,
-                    udp.HasIpAddress ? udp.IpAddress : string.Empty,
-                    udp.HasPort ? udp.Port : 10000)
-                : null,
-            SdkBinding: contract.SdkBinding);
+            WorkerMpValueKind.CollectionObjectNameList => new WorkerCollectionObjectNameListValue(
+                values!.Select(item => item switch
+                {
+                    Api.CollectionObjectName objectName => ObjectName(objectName, contract.ObjectTypeWhenOmitted),
+                    Api.CollectionItemName itemName => ObjectName(itemName, contract.ObjectTypeWhenOmitted),
+                    _ => throw new ArgumentException($"Field '{contract.FieldName}' contains an unsupported object identity.")
+                }).ToArray()),
+            WorkerMpValueKind.CollectionItemName when value is Api.CollectionItemName item => ItemName(item, contract.ItemTypeWhenOmitted),
+            WorkerMpValueKind.CollectionItemNameList => new WorkerCollectionItemNameListValue(
+                values!.Cast<Api.CollectionItemName>().Select(item => ItemName(item, contract.ItemTypeWhenOmitted)).ToArray()),
+            WorkerMpValueKind.CollectionGroupNameList => new WorkerCollectionGroupNameListValue(
+                values!.Cast<Api.CollectionGroupName>().Select(item =>
+                    new WorkerCollectionGroupNameValue(item.CollectionName, item.GroupName)).ToArray()),
+            WorkerMpValueKind.CollectionVectorGroupName when value is Api.CollectionVectorGroupName group =>
+                new WorkerCollectionVectorGroupNameValue(group.CollectionName, group.VectorGroupName),
+            WorkerMpValueKind.CollectionVectorGroupNameList => new WorkerCollectionVectorGroupNameListValue(
+                values!.Cast<Api.CollectionVectorGroupName>().Select(item =>
+                    new WorkerCollectionVectorGroupNameValue(item.CollectionName, item.VectorGroupName)).ToArray()),
+            WorkerMpValueKind.PointNameList => new WorkerPointNameListValue(values!.Cast<Api.PointName>().Select(Point).ToArray()),
+            WorkerMpValueKind.StringList or WorkerMpValueKind.EditText =>
+                new WorkerStringListValue(values!.Select(Convert.ToString).Select(item => item!).ToArray()),
+            WorkerMpValueKind.VectorNameList => new WorkerVectorNameListValue(values!.Cast<Api.VectorName>().Select(item =>
+                new WorkerVectorNameValue(item.CollectionName, item.GroupName, item.Name)).ToArray()),
+            WorkerMpValueKind.DoubleArray => new WorkerDoubleArrayValue(
+                values!.Select(item => Convert.ToDouble(item, CultureInfo.InvariantCulture)).ToArray()),
+            WorkerMpValueKind.Transform when value is Api.Transform transform => Transform(transform),
+            WorkerMpValueKind.WorldTransform when value is Api.WorldTransform world => WorldTransform(world),
+            WorkerMpValueKind.RgbColor when value is Api.Color color => Color(color),
+            WorkerMpValueKind.FileReference when value is Api.FileReference file => new WorkerFileReferenceValue(file.Path, file.EmbeddedFile),
+            WorkerMpValueKind.AngularUnit => new WorkerAngularUnitChoice((WorkerAngularUnitValue)Convert.ToInt32(value, CultureInfo.InvariantCulture)),
+            WorkerMpValueKind.DistanceUnit => new WorkerDistanceUnitChoice((WorkerDistanceUnitValue)Convert.ToInt32(value, CultureInfo.InvariantCulture)),
+            WorkerMpValueKind.TemperatureUnit => new WorkerTemperatureUnitChoice((WorkerTemperatureUnitValue)Convert.ToInt32(value, CultureInfo.InvariantCulture)),
+            WorkerMpValueKind.Font when value is Api.Font font => Font(font),
+            WorkerMpValueKind.ColorizationOptions when value is Api.ColorizationOptions colorization => Colorization(colorization),
+            WorkerMpValueKind.CloudThinningOptions when value is Api.CloudThinningOptions thinning => CloudThinning(thinning),
+            WorkerMpValueKind.BSplineFitOptions when value is Api.BSplineFitOptions spline => BSplineFit(spline),
+            WorkerMpValueKind.FitConstraintScalarOptions when value is Api.FitConstraintScalarOptions fit =>
+                new WorkerFitConstraintScalarOptionsValue(Tolerance(fit.High), Tolerance(fit.Low)),
+            WorkerMpValueKind.ReportOutputOptions when value is Api.ReportOutputOptions report => ReportOutput(report),
+            WorkerMpValueKind.ReportViewOptions when value is Api.ReportViewOptions view =>
+                new WorkerReportViewOptionsValue((int)view.ViewType - 1, view.CollectionName, view.CalloutName),
+            WorkerMpValueKind.ToleranceScalarOptions when value is Api.ToleranceScalarOptions tolerance =>
+                new WorkerToleranceScalarOptionsValue(Tolerance(tolerance.High), Tolerance(tolerance.Low)),
+            WorkerMpValueKind.ProjectionOptions when value is Api.ProjectionOptions projection => Projection(projection),
+            WorkerMpValueKind.PointDeltaReportOptions when value is Api.PointDeltaReportOptions delta => PointDelta(delta),
+            WorkerMpValueKind.UdpTransmitSettings when value is Api.RelationshipWatchWindowUdpSettings udp =>
+                new WorkerUdpTransmitSettingsValue(udp.HasEnabled && udp.Enabled, !udp.HasBroadcast || udp.Broadcast,
+                    udp.HasIpAddress ? udp.IpAddress : string.Empty, udp.HasPort ? udp.Port : 10000),
+            WorkerMpValueKind.AutoFilterProximitySettings when value is Api.FilterProximitySettings filter =>
+                new WorkerAutoFilterProximitySettingsValue(filter.SurfaceInclusionProximity, filter.EdgeExclusionProximity,
+                    filter.PlanarInclusionProximity, filter.PlanarExclusionProximity, filter.RadialInclusionProximity,
+                    filter.GeometryExtractionTolerance, (int)filter.SurfaceProximityMode - 1,
+                    (int)filter.PlanarProximityMode - 1, (int)filter.RadialProximityMode - 1,
+                    filter.ProjectToPlane, filter.AssertPlaneBoundaries),
+            WorkerMpValueKind.FitDegreeOfFreedomOptions when value is Api.FitDofOptions motion =>
+                new WorkerFitDegreeOfFreedomOptionsValue(motion.AllowX, motion.AllowY, motion.AllowZ,
+                    motion.AllowRx, motion.AllowRy, motion.AllowRz, motion.RotateAboutCentroid),
+            _ when IsSpecializedEnum(kind) => WorkerChoiceFactory.FromOrdinal(kind, Convert.ToInt32(value, CultureInfo.InvariantCulture) - 1),
+            _ => throw new ArgumentException($"Field '{contract.FieldName}' does not contain a supported {kind} value.")
+        };
+        return new(contract.MpName, kind, input, contract.SdkBinding);
     }
+
 
     private static string? ToStringValue(WorkerMpValueKind kind, object? value) =>
         kind is WorkerMpValueKind.Text or WorkerMpValueKind.InstrumentTypeName or WorkerMpValueKind.ChartName or
+                WorkerMpValueKind.CloudName or WorkerMpValueKind.VectorGroupName or
             WorkerMpValueKind.CollectionName or WorkerMpValueKind.FrameName or
             WorkerMpValueKind.ViewName
             ? value switch
@@ -787,7 +725,7 @@ internal static class MpOperationValueMapper
             ? new(false, 0)
             : new(value.HasEnabled && value.Enabled, value.HasValue ? value.Value : 0);
 
-    private static WorkerScalarToleranceLimit Tolerance(Api.ScalarToleranceLimit? value) =>
+    private static WorkerToleranceLimit Tolerance(Api.ScalarToleranceLimit? value) =>
         value is null
             ? new(false, 0)
             : new(value.HasEnabled && value.Enabled, value.HasValue ? value.Value : 0);
@@ -917,68 +855,68 @@ internal static class MpOperationValueMapper
         MpArgumentContract contract) =>
         output.Kind switch
         {
-            WorkerMpValueKind.Logical => output.BooleanValue!.Value,
+            WorkerMpValueKind.Logical => output.RequireValue<WorkerBooleanValue>().Value,
             WorkerMpValueKind.WholeNumber when field.FieldType == FieldType.Double =>
-                Convert.ToDouble(output.IntegerValue!.Value, CultureInfo.InvariantCulture),
-            WorkerMpValueKind.WholeNumber => output.IntegerValue!.Value,
-            WorkerMpValueKind.FloatingPoint => output.DoubleValue!.Value,
+                Convert.ToDouble(output.RequireValue<WorkerIntegerValue>().Value, CultureInfo.InvariantCulture),
+            WorkerMpValueKind.WholeNumber => output.RequireValue<WorkerIntegerValue>().Value,
+            WorkerMpValueKind.FloatingPoint => output.RequireValue<WorkerDoubleValue>().Value,
             WorkerMpValueKind.Text when field.FieldType == FieldType.Enum =>
-                ProtocolEnumValue(field.EnumType, output.StringValue!, contract.EnumTextValues),
+                ProtocolEnumValue(field.EnumType, output.RequireValue<WorkerTextValue>().Value, contract.EnumTextValues),
             WorkerMpValueKind.Text when field.FieldType == FieldType.Message =>
-                ProtocolStringMessage(field.MessageType, output.StringValue!),
+                ProtocolStringMessage(field.MessageType, output.RequireValue<WorkerTextValue>().Value),
             WorkerMpValueKind.CollectionName when field.FieldType == FieldType.Message =>
-                new Api.CollectionName { Name = output.StringValue! },
+                new Api.CollectionName { Name = output.RequireValue<WorkerTextValue>().Value },
             WorkerMpValueKind.Text or WorkerMpValueKind.CollectionName =>
-                output.StringValue!,
+                output.RequireValue<WorkerTextValue>().Value,
             WorkerMpValueKind.DoubleArray when field.FieldType == FieldType.Message =>
-                ProtocolDoubleArrayMessage(field.MessageType, output.DoubleArrayValue!.Values),
-            WorkerMpValueKind.DoubleArray => output.DoubleArrayValue!.Values.Cast<object>().ToArray(),
+                ProtocolDoubleArrayMessage(field.MessageType, output.RequireValue<WorkerDoubleArrayValue>().Values),
+            WorkerMpValueKind.DoubleArray => output.RequireValue<WorkerDoubleArrayValue>().Values.Cast<object>().ToArray(),
             WorkerMpValueKind.EditText or WorkerMpValueKind.StringList =>
-                output.StringListValue!.Values.Cast<object>().ToArray(),
-            WorkerMpValueKind.PointName => ProtocolPoint(output.PointNameValue!),
+                output.RequireValue<WorkerStringListValue>().Values.Cast<object>().ToArray(),
+            WorkerMpValueKind.PointName => ProtocolPoint(output.RequireValue<WorkerPointNameValue>()),
             WorkerMpValueKind.PointNameList =>
-                output.PointNameListValue!.Values.Select(ProtocolPoint).Cast<object>().ToArray(),
+                output.RequireValue<WorkerPointNameListValue>().Values.Select(ProtocolPoint).Cast<object>().ToArray(),
             WorkerMpValueKind.Vector when field.FieldType == FieldType.Message &&
                 field.MessageType.FullName != "briosa.Vector" =>
-                ProtocolVectorMessage(field.MessageType, output.VectorValue!),
+                ProtocolVectorMessage(field.MessageType, output.RequireValue<WorkerVectorValue>()),
             WorkerMpValueKind.Vector => new Api.Vector
             {
-                X = output.VectorValue!.X,
-                Y = output.VectorValue.Y,
-                Z = output.VectorValue.Z
+                X = output.RequireValue<WorkerVectorValue>().X,
+                Y = output.RequireValue<WorkerVectorValue>().Y,
+                Z = output.RequireValue<WorkerVectorValue>().Z
             },
             WorkerMpValueKind.ToleranceVectorOptions =>
-                ProtocolToleranceVector(output.ToleranceVectorOptionsValue!),
+                ProtocolToleranceVector(output.RequireValue<WorkerToleranceVectorOptionsValue>()),
             WorkerMpValueKind.Transform => new Api.Transform
             {
-                Values = { output.TransformValue!.Values }
+                Values = { output.RequireValue<WorkerTransformValue>().Values }
             },
             WorkerMpValueKind.WorldTransform => new Api.WorldTransform
             {
                 Transform = new Api.Transform
                 {
-                    Values = { output.WorldTransformValue!.Transform.Values }
+                    Values = { output.RequireValue<WorkerWorldTransformValue>().Transform.Values }
                 },
-                ScaleFactor = output.WorldTransformValue.ScaleFactor
+                ScaleFactor = output.RequireValue<WorkerWorldTransformValue>().ScaleFactor
             },
             WorkerMpValueKind.FileReference => new Api.FileReference
             {
-                Path = output.FileReferenceValue!.Path,
-                EmbeddedFile = output.FileReferenceValue.EmbeddedFile
+                Path = output.RequireValue<WorkerFileReferenceValue>().Path,
+                EmbeddedFile = output.RequireValue<WorkerFileReferenceValue>().EmbeddedFile
             },
             WorkerMpValueKind.CollectionObjectName =>
-                ProtocolObject(output.CollectionObjectNameValue!),
+                ProtocolObject(output.RequireValue<WorkerCollectionObjectNameValue>()),
             WorkerMpValueKind.CollectionObjectNameList =>
-                output.CollectionObjectNameListValue!.Values
+                output.RequireValue<WorkerCollectionObjectNameListValue>().Values
                     .Select(ProtocolObject).Cast<object>().ToArray(),
             WorkerMpValueKind.CollectionInstrumentId =>
                 new Api.CollectionInstrumentId
                 {
-                    CollectionName = output.CollectionInstrumentIdValue!.CollectionName,
-                    InstrumentId = output.CollectionInstrumentIdValue.InstrumentId
+                    CollectionName = output.RequireValue<WorkerCollectionInstrumentIdValue>().CollectionName,
+                    InstrumentId = output.RequireValue<WorkerCollectionInstrumentIdValue>().InstrumentId
                 },
             WorkerMpValueKind.CollectionInstrumentIdList =>
-                output.CollectionInstrumentIdListValue!.Values.Select(item =>
+                output.RequireValue<WorkerCollectionInstrumentIdListValue>().Values.Select(item =>
                     new Api.CollectionInstrumentId
                     {
                         CollectionName = item.CollectionName,
@@ -987,16 +925,16 @@ internal static class MpOperationValueMapper
             WorkerMpValueKind.CollectionMachineId =>
                 new Api.CollectionMachineId
                 {
-                    CollectionName = output.CollectionMachineIdValue!.CollectionName,
-                    MachineId = output.CollectionMachineIdValue.MachineId
+                    CollectionName = output.RequireValue<WorkerCollectionMachineIdValue>().CollectionName,
+                    MachineId = output.RequireValue<WorkerCollectionMachineIdValue>().MachineId
                 },
             WorkerMpValueKind.CollectionItemName =>
-                ProtocolItem(output.CollectionItemNameValue!),
+                ProtocolItem(output.RequireValue<WorkerCollectionItemNameValue>()),
             WorkerMpValueKind.CollectionItemNameList =>
-                output.CollectionItemNameListValue!.Values
+                output.RequireValue<WorkerCollectionItemNameListValue>().Values
                     .Select(ProtocolItem).Cast<object>().ToArray(),
             WorkerMpValueKind.CollectionGroupNameList =>
-                output.CollectionGroupNameListValue!.Values.Select(item =>
+                output.RequireValue<WorkerCollectionGroupNameListValue>().Values.Select(item =>
                     new Api.CollectionGroupName
                     {
                         CollectionName = item.CollectionName,
@@ -1005,27 +943,27 @@ internal static class MpOperationValueMapper
             WorkerMpValueKind.CollectionVectorGroupName =>
                 new Api.CollectionVectorGroupName
                 {
-                    CollectionName = output.CollectionVectorGroupNameValue!.CollectionName,
-                    VectorGroupName = output.CollectionVectorGroupNameValue.VectorGroupName
+                    CollectionName = output.RequireValue<WorkerCollectionVectorGroupNameValue>().CollectionName,
+                    VectorGroupName = output.RequireValue<WorkerCollectionVectorGroupNameValue>().VectorGroupName
                 },
             WorkerMpValueKind.CollectionVectorGroupNameList =>
-                output.CollectionVectorGroupNameListValue!.Values.Select(item =>
+                output.RequireValue<WorkerCollectionVectorGroupNameListValue>().Values.Select(item =>
                     new Api.CollectionVectorGroupName
                     {
                         CollectionName = item.CollectionName,
                         VectorGroupName = item.VectorGroupName
                     }).Cast<object>().ToArray(),
             WorkerMpValueKind.VectorNameList =>
-                output.VectorNameListValue!.Values.Select(item => new Api.VectorName
+                output.RequireValue<WorkerVectorNameListValue>().Values.Select(item => new Api.VectorName
                 {
                     CollectionName = item.CollectionName,
                     GroupName = item.GroupName,
                     Name = item.VectorName
                 }).Cast<object>().ToArray(),
             WorkerMpValueKind.FitConstraintScalarOptions =>
-                ProtocolFitConstraint(output.FitConstraintScalarOptionsValue!),
+                ProtocolFitConstraint(output.RequireValue<WorkerFitConstraintScalarOptionsValue>()),
             WorkerMpValueKind.ToleranceScalarOptions =>
-                ProtocolToleranceScalar(output.ToleranceScalarOptionsValue!),
+                ProtocolToleranceScalar(output.RequireValue<WorkerToleranceScalarOptionsValue>()),
             _ => throw new InvalidOperationException(
                 $"No result mapper exists for {output.Kind}.")
         };
@@ -1074,8 +1012,7 @@ internal static class MpOperationValueMapper
         MessageDescriptor descriptor,
         IReadOnlyList<double> values)
     {
-        var message = (IMessage?)Activator.CreateInstance(descriptor.ClrType) ??
-            throw new InvalidOperationException($"Cannot create {descriptor.FullName}.");
+        var message = descriptor.Parser.ParseFrom(Array.Empty<byte>());
         var field = descriptor.Fields.InFieldNumberOrder().Single(candidate =>
             candidate.IsRepeated && candidate.FieldType == FieldType.Double);
         SetResultField(message, field, values.Cast<object>().ToArray());
@@ -1086,8 +1023,7 @@ internal static class MpOperationValueMapper
         MessageDescriptor descriptor,
         WorkerVectorValue value)
     {
-        var message = (IMessage?)Activator.CreateInstance(descriptor.ClrType) ??
-            throw new InvalidOperationException($"Cannot create {descriptor.FullName}.");
+        var message = descriptor.Parser.ParseFrom(Array.Empty<byte>());
         var fields = descriptor.Fields.InFieldNumberOrder()
             .Where(candidate => candidate.FieldType == FieldType.Double)
             .Take(3)
@@ -1158,7 +1094,7 @@ internal static class MpOperationValueMapper
         };
 
     private static Api.ScalarToleranceLimit ProtocolScalarTolerance(
-        WorkerScalarToleranceLimit value) =>
+        WorkerToleranceLimit value) =>
         new() { Enabled = value.Enabled, Value = value.Value };
 
     private static void SetResultField(
@@ -1172,15 +1108,13 @@ internal static class MpOperationValueMapper
             return;
         }
 
-        var target = field.Accessor.GetValue(result);
-        var elementType = target.GetType().GetGenericArguments().Single();
-        var add = target.GetType().GetMethods()
-            .Single(method => method.Name == "Add" &&
-                method.GetParameters().Length == 1 &&
-                method.GetParameters()[0].ParameterType == elementType);
+        // Generated repeated fields implement IList. Use that contract while
+        // this operation awaits a concrete mapper; no reflected method lookup
+        // or per-element invocation argument array is needed.
+        var target = (IList)field.Accessor.GetValue(result);
         foreach (var item in (object[])value)
         {
-            _ = add.Invoke(target, [item]);
+            target.Add(item);
         }
     }
 

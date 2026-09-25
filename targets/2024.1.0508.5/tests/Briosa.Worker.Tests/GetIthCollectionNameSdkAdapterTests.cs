@@ -1,3 +1,4 @@
+using Briosa.Worker.Control;
 using Briosa.Worker.Sdk;
 
 namespace Briosa.Worker.Tests;
@@ -9,20 +10,16 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
     {
         using var calls = new RecordingSdkCalls();
         using var adapter = new SpatialAnalyzerSdkAdapter(calls);
-        var command = new SdkCommand(
+        var command = new WorkerMpCommand(
             "analysis_operations.get_ith_collection_name",
             "Get i-th Collection Name",
             [
-                new SdkInputArgument(
-                    "Collection Index",
-                    SdkValueKind.WholeNumber,
-                    IntegerValue: 0,
-                    SdkBinding: "SetIntegerArg")
+                new WorkerMpInputArgument("Collection Index", WorkerMpValueKind.WholeNumber, new WorkerIntegerValue(0), sdkBinding: "SetIntegerArg")
             ],
             [
-                new SdkOutputArgument(
+                new WorkerMpOutputArgument(
                     "Resultant Name",
-                    SdkValueKind.CollectionName,
+                    WorkerMpValueKind.CollectionName,
                     "GetCollectionNameArg")
             ]);
 
@@ -38,9 +35,9 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             ],
             calls.Events);
         Assert.True(result.ExecuteStepReturned);
-        Assert.True(result.MpResult.Succeeded);
+        Assert.True(result.MpSucceeded);
         var output = Assert.Single(result.OutputValues);
         Assert.True(output.Retrieved);
-        Assert.Equal("Collection", output.StringValue);
+        Assert.Equal("Collection", ((output.ReadValue() as WorkerTextValue)?.Value));
     }
 }

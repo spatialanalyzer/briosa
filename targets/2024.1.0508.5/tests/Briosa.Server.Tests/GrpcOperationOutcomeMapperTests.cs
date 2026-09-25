@@ -17,148 +17,48 @@ public sealed class GrpcOperationOutcomeMapperTests
     private static readonly Dictionary<string, WorkerMpOutputValue> GetterFamilyOutputs =
         new(StringComparer.Ordinal)
         {
-            ["collection_vector_group_name_list"] = new(
-                "Output",
-                WorkerMpValueKind.CollectionVectorGroupNameList,
-                Retrieved: true,
-                CollectionVectorGroupNameListValue: new WorkerCollectionVectorGroupNameListValue([])),
-            ["collection_instrument_id"] = new(
-                "Output",
-                WorkerMpValueKind.CollectionInstrumentId,
-                Retrieved: true,
-                CollectionInstrumentIdValue: new WorkerCollectionInstrumentIdValue(
+            ["collection_vector_group_name_list"] = new WorkerRetrievedOutput("Output", WorkerMpValueKind.CollectionVectorGroupNameList, new WorkerCollectionVectorGroupNameListValue([])),
+            ["collection_instrument_id"] = new WorkerRetrievedOutput("Output", WorkerMpValueKind.CollectionInstrumentId, new WorkerCollectionInstrumentIdValue(
                     string.Empty,
                     InstrumentId: 0)),
-            ["collection_instrument_id_list"] = new(
-                "Output",
-                WorkerMpValueKind.CollectionInstrumentIdList,
-                Retrieved: true,
-                CollectionInstrumentIdListValue: new WorkerCollectionInstrumentIdListValue([])),
-            ["collection_item_name"] = new(
-                "Output",
-                WorkerMpValueKind.CollectionItemName,
-                Retrieved: true,
-                CollectionItemNameValue: new WorkerCollectionItemNameValue(
+            ["collection_instrument_id_list"] = new WorkerRetrievedOutput("Output", WorkerMpValueKind.CollectionInstrumentIdList, new WorkerCollectionInstrumentIdListValue([])),
+            ["collection_item_name"] = new WorkerRetrievedOutput("Output", WorkerMpValueKind.CollectionItemName, new WorkerCollectionItemNameValue(
                     string.Empty,
                     string.Empty,
                     WorkerItemTypeValue.Any)),
-            ["collection_item_name_list"] = new(
-                "Output",
-                WorkerMpValueKind.CollectionItemNameList,
-                Retrieved: true,
-                CollectionItemNameListValue: new WorkerCollectionItemNameListValue([])),
-            ["collection_name"] = new(
-                "Output",
-                WorkerMpValueKind.CollectionName,
-                Retrieved: true,
-                StringValue: string.Empty),
-            ["collection_object_name"] = new(
-                "Output",
-                WorkerMpValueKind.CollectionObjectName,
-                Retrieved: true,
-                CollectionObjectNameValue: new WorkerCollectionObjectNameValue(
+            ["collection_item_name_list"] = new WorkerRetrievedOutput("Output", WorkerMpValueKind.CollectionItemNameList, new WorkerCollectionItemNameListValue([])),
+            ["collection_name"] = new WorkerRetrievedOutput("Output", WorkerMpValueKind.CollectionName, new WorkerTextValue(string.Empty)),
+            ["collection_object_name"] = new WorkerRetrievedOutput("Output", WorkerMpValueKind.CollectionObjectName, new WorkerCollectionObjectNameValue(
                     string.Empty,
                     string.Empty,
                     WorkerObjectTypeValue.Any)),
-            ["collection_object_name_list"] = new(
-                "Output",
-                WorkerMpValueKind.CollectionObjectNameList,
-                Retrieved: true,
-                CollectionObjectNameListValue: new WorkerCollectionObjectNameListValue([])),
-            ["double_array"] = new(
-                "Output",
-                WorkerMpValueKind.DoubleArray,
-                Retrieved: true,
-                DoubleArrayValue: new WorkerDoubleArrayValue([])),
-            ["edit_text"] = new(
-                "Output",
-                WorkerMpValueKind.EditText,
-                Retrieved: true,
-                StringListValue: new WorkerStringListValue([])),
-            ["file_reference"] = new(
-                "Output",
-                WorkerMpValueKind.FileReference,
-                Retrieved: true,
-                FileReferenceValue: new WorkerFileReferenceValue(
+            ["collection_object_name_list"] = new WorkerRetrievedOutput("Output", WorkerMpValueKind.CollectionObjectNameList, new WorkerCollectionObjectNameListValue([])),
+            ["double_array"] = new WorkerRetrievedOutput("Output", WorkerMpValueKind.DoubleArray, new WorkerDoubleArrayValue([])),
+            ["edit_text"] = new WorkerRetrievedOutput("Output", WorkerMpValueKind.EditText, new WorkerStringListValue([])),
+            ["file_reference"] = new WorkerRetrievedOutput("Output", WorkerMpValueKind.FileReference, new WorkerFileReferenceValue(
                     string.Empty,
                     EmbeddedFile: false)),
-            ["fit_constraint_scalar_options"] = new(
-                "Output",
-                WorkerMpValueKind.FitConstraintScalarOptions,
-                Retrieved: true,
-                FitConstraintScalarOptionsValue: new WorkerFitConstraintScalarOptionsValue(
-                    new WorkerScalarToleranceLimit(Enabled: false, Value: 0),
-                    new WorkerScalarToleranceLimit(Enabled: false, Value: 0))),
-            ["floating_point"] = new(
-                "Output",
-                WorkerMpValueKind.FloatingPoint,
-                Retrieved: true,
-                DoubleValue: 0),
-            ["logical"] = new(
-                "Output",
-                WorkerMpValueKind.Logical,
-                Retrieved: true,
-                BooleanValue: false),
-            ["point_name"] = new(
-                "Output",
-                WorkerMpValueKind.PointName,
-                Retrieved: true,
-                PointNameValue: new WorkerPointNameValue(
+            ["fit_constraint_scalar_options"] = new WorkerRetrievedOutput("Output", WorkerMpValueKind.FitConstraintScalarOptions, new WorkerFitConstraintScalarOptionsValue(
+                    new WorkerToleranceLimit(Enabled: false, Value: 0),
+                    new WorkerToleranceLimit(Enabled: false, Value: 0))),
+            ["floating_point"] = new WorkerRetrievedOutput("Output", WorkerMpValueKind.FloatingPoint, new WorkerDoubleValue(0)),
+            ["logical"] = new WorkerRetrievedOutput("Output", WorkerMpValueKind.Logical, new WorkerBooleanValue(false)),
+            ["point_name"] = new WorkerRetrievedOutput("Output", WorkerMpValueKind.PointName, new WorkerPointNameValue(
                     string.Empty,
                     string.Empty,
                     string.Empty)),
-            ["point_name_list"] = new(
-                "Output",
-                WorkerMpValueKind.PointNameList,
-                Retrieved: true,
-                PointNameListValue: new WorkerPointNameListValue([])),
-            ["string"] = new(
-                "Output",
-                WorkerMpValueKind.Text,
-                Retrieved: true,
-                StringValue: string.Empty),
-            ["string_list"] = new(
-                "Output",
-                WorkerMpValueKind.StringList,
-                Retrieved: true,
-                StringListValue: new WorkerStringListValue([])),
-            ["tolerance_scalar_options"] = new(
-                "Output",
-                WorkerMpValueKind.ToleranceScalarOptions,
-                Retrieved: true,
-                ToleranceScalarOptionsValue: new WorkerToleranceScalarOptionsValue(
-                    new WorkerScalarToleranceLimit(Enabled: false, Value: 0),
-                    new WorkerScalarToleranceLimit(Enabled: false, Value: 0))),
-            ["tolerance_vector_options"] = new(
-                "Output",
-                WorkerMpValueKind.ToleranceVectorOptions,
-                Retrieved: true,
-                ToleranceVectorOptionsValue: CreateDisabledVectorTolerance()),
-            ["transform"] = new(
-                "Output",
-                WorkerMpValueKind.Transform,
-                Retrieved: true,
-                TransformValue: new WorkerTransformValue(new double[16])),
-            ["vector3"] = new(
-                "Output",
-                WorkerMpValueKind.Vector,
-                Retrieved: true,
-                VectorValue: new WorkerVectorValue(X: 0, Y: 0, Z: 0)),
-            ["vector_name_list"] = new(
-                "Output",
-                WorkerMpValueKind.VectorNameList,
-                Retrieved: true,
-                VectorNameListValue: new WorkerVectorNameListValue([])),
-            ["whole_number"] = new(
-                "Output",
-                WorkerMpValueKind.WholeNumber,
-                Retrieved: true,
-                IntegerValue: 0),
-            ["world_transform"] = new(
-                "Output",
-                WorkerMpValueKind.WorldTransform,
-                Retrieved: true,
-                WorldTransformValue: new WorkerWorldTransformValue(
+            ["point_name_list"] = new WorkerRetrievedOutput("Output", WorkerMpValueKind.PointNameList, new WorkerPointNameListValue([])),
+            ["string"] = new WorkerRetrievedOutput("Output", WorkerMpValueKind.Text, new WorkerTextValue(string.Empty)),
+            ["string_list"] = new WorkerRetrievedOutput("Output", WorkerMpValueKind.StringList, new WorkerStringListValue([])),
+            ["tolerance_scalar_options"] = new WorkerRetrievedOutput("Output", WorkerMpValueKind.ToleranceScalarOptions, new WorkerToleranceScalarOptionsValue(
+                    new WorkerToleranceLimit(Enabled: false, Value: 0),
+                    new WorkerToleranceLimit(Enabled: false, Value: 0))),
+            ["tolerance_vector_options"] = new WorkerRetrievedOutput("Output", WorkerMpValueKind.ToleranceVectorOptions, CreateDisabledVectorTolerance()),
+            ["transform"] = new WorkerRetrievedOutput("Output", WorkerMpValueKind.Transform, new WorkerTransformValue(new double[16])),
+            ["vector3"] = new WorkerRetrievedOutput("Output", WorkerMpValueKind.Vector, new WorkerVectorValue(X: 0, Y: 0, Z: 0)),
+            ["vector_name_list"] = new WorkerRetrievedOutput("Output", WorkerMpValueKind.VectorNameList, new WorkerVectorNameListValue([])),
+            ["whole_number"] = new WorkerRetrievedOutput("Output", WorkerMpValueKind.WholeNumber, new WorkerIntegerValue(0)),
+            ["world_transform"] = new WorkerRetrievedOutput("Output", WorkerMpValueKind.WorldTransform, new WorkerWorldTransformValue(
                     new WorkerTransformValue(new double[16]),
                     ScaleFactor: 0))
         };
@@ -447,14 +347,14 @@ public sealed class GrpcOperationOutcomeMapperTests
         var outcome = new WorkerExecutionOutcome(
             WorkerExecutionStatus.Completed,
             WorkerExecutionDisposition.StartedOutcomeUnknown,
-            new WorkerMpExecutionResult(
-                ExecuteStepReturned: true,
-                MpResultRetrieved: false,
-                MpSucceeded: false,
-                MpResultCode: null,
-                DurationMilliseconds: 5,
-                OutputValues: [],
-                DiagnosticCode: "sdk-mp-result-retrieval-failed"),
+            WorkerMpExecutionResult.FromEvidence(
+                executeStepReturned: true,
+                mpResultRetrieved: false,
+                mpSucceeded: false,
+                mpResultCode: null,
+                durationMilliseconds: 5,
+                outputValues: [],
+                diagnosticCode: "sdk-mp-result-retrieval-failed"),
             Connection(WorkerConnectionState.Connected),
             "sdk-mp-result-retrieval-failed",
             Generation: 7);
@@ -487,11 +387,7 @@ public sealed class GrpcOperationOutcomeMapperTests
             executeStepReturned: true,
             mpSucceeded: true,
             [
-                new WorkerMpOutputValue(
-                    "Directory",
-                    WorkerMpValueKind.Text,
-                    Retrieved: false,
-                    StringValue: sensitiveValue)
+                new WorkerUnavailableOutput("Directory", WorkerMpValueKind.Text)
             ],
             "sdk-output-retrieval-failed");
 
@@ -518,11 +414,7 @@ public sealed class GrpcOperationOutcomeMapperTests
     [Fact]
     public void SuccessfulOutputHasExplicitRetrievalStateAndTypedValue()
     {
-        var output = new WorkerMpOutputValue(
-            "Directory",
-            WorkerMpValueKind.Text,
-            Retrieved: true,
-            StringValue: string.Empty);
+        var output = new WorkerRetrievedOutput("Directory", WorkerMpValueKind.Text, new WorkerTextValue(string.Empty));
         var outcome = Completed(
             executeStepReturned: true,
             mpSucceeded: true,
@@ -624,12 +516,12 @@ public sealed class GrpcOperationOutcomeMapperTests
                 : executeStepReturned
                     ? WorkerExecutionDisposition.Completed
                     : WorkerExecutionDisposition.StartedOutcomeUnknown,
-            new WorkerMpExecutionResult(
+            WorkerMpExecutionResult.FromEvidence(
                 executeStepReturned,
-                MpResultRetrieved: executeStepReturned,
-                MpSucceeded: executeStepReturned && mpSucceeded,
-                MpResultCode: executeStepReturned ? (mpSucceeded ? 2 : 3) : null,
-                DurationMilliseconds: 5,
+                mpResultRetrieved: executeStepReturned,
+                mpSucceeded: executeStepReturned && mpSucceeded,
+                mpResultCode: executeStepReturned ? (mpSucceeded ? 2 : 3) : null,
+                durationMilliseconds: 5,
                 outputs,
                 diagnosticCode),
             Connection(WorkerConnectionState.Connected),

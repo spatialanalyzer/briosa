@@ -1,3 +1,4 @@
+using Briosa.Worker.Control;
 using System.Diagnostics;
 
 namespace Briosa.Worker.Sdk;
@@ -6,121 +7,121 @@ internal sealed partial class SpatialAnalyzerSdkAdapter
 {
     private static bool SetSpecializedInputArgument(
         ISpatialAnalyzerSdkCalls sdk,
-        SdkInputArgument argument) =>
+        WorkerMpInputArgument argument) =>
         argument.Kind switch
         {
-            SdkValueKind.AsciiImportFileFormat when EnumValue<SdkAsciiImportFileFormatValue>(argument) is { } value =>
+            WorkerMpValueKind.AsciiImportFileFormat when EnumValue<WorkerAsciiImportFileFormatValue>(argument) is { } value =>
                 sdk.SetAsciiFileFormatArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.AsciiFrameSetFormat when EnumValue<SdkAsciiFrameSetFormatValue>(argument) is { } value =>
+            WorkerMpValueKind.AsciiFrameSetFormat when EnumValue<WorkerAsciiFrameSetFormatValue>(argument) is { } value =>
                 sdk.SetAsciiFileFormatArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.AxisIdentifier when EnumValue<SdkAxisIdentifierValue>(argument) is { } value =>
+            WorkerMpValueKind.AxisIdentifier when EnumValue<WorkerAxisIdentifierValue>(argument) is { } value =>
                 sdk.SetAxisNameArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.WcfAxisIdentifier when EnumValue<SdkWcfAxisIdentifierValue>(argument) is { } value =>
+            WorkerMpValueKind.WcfAxisIdentifier when EnumValue<WorkerWcfAxisIdentifierValue>(argument) is { } value =>
                 sdk.SetAxisNameArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.BaseColorType when EnumValue<SdkBaseColorTypeValue>(argument) is { } value =>
+            WorkerMpValueKind.BaseColorType when EnumValue<WorkerBaseColorTypeValue>(argument) is { } value =>
                 sdk.SetBaseColorTypeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.BaseMidColorType when EnumValue<SdkBaseMidColorTypeValue>(argument) is { } value =>
+            WorkerMpValueKind.BaseMidColorType when EnumValue<WorkerBaseMidColorTypeValue>(argument) is { } value =>
                 sdk.SetBaseMidColorTypeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.ChartType when EnumValue<SdkChartTypeValue>(argument) is { } value =>
+            WorkerMpValueKind.ChartType when EnumValue<WorkerChartTypeValue>(argument) is { } value =>
                 sdk.SetChartTypeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.CollimationBaselineType when EnumValue<SdkCollimationBaselineTypeValue>(argument) is { } value =>
+            WorkerMpValueKind.CollimationBaselineType when EnumValue<WorkerCollimationBaselineTypeValue>(argument) is { } value =>
                 sdk.SetCollimationBaselineTypeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.CollimationType when EnumValue<SdkCollimationTypeValue>(argument) is { } value =>
+            WorkerMpValueKind.CollimationType when EnumValue<WorkerCollimationTypeValue>(argument) is { } value =>
                 sdk.SetCollimationTypeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.ColorRangeMethod when EnumValue<SdkColorRangeMethodValue>(argument) is { } value =>
+            WorkerMpValueKind.ColorRangeMethod when EnumValue<WorkerColorRangeMethodValue>(argument) is { } value =>
                 sdk.SetColorRangeMethodArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.CoordinateSystemType when EnumValue<SdkCoordinateSystemTypeValue>(argument) is { } value =>
+            WorkerMpValueKind.CoordinateSystemType when EnumValue<WorkerCoordinateSystemTypeValue>(argument) is { } value =>
                 sdk.SetCoordinateSystemTypeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.VectorComponent when EnumValue<SdkVectorComponentValue>(argument) is { } value =>
+            WorkerMpValueKind.VectorComponent when EnumValue<WorkerVectorComponentValue>(argument) is { } value =>
                 sdk.SetDatasetTypeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.DynamicCircleMode when EnumValue<SdkDynamicCircleModeValue>(argument) is { } value =>
+            WorkerMpValueKind.DynamicCircleMode when EnumValue<WorkerDynamicCircleModeValue>(argument) is { } value =>
                 sdk.SetDynamicCircleModeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.DynamicEllipseMode when EnumValue<SdkDynamicEllipseModeValue>(argument) is { } value =>
+            WorkerMpValueKind.DynamicEllipseMode when EnumValue<WorkerDynamicEllipseModeValue>(argument) is { } value =>
                 sdk.SetDynamicEllipseModeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.DynamicLineMode when EnumValue<SdkDynamicLineModeValue>(argument) is { } value =>
+            WorkerMpValueKind.DynamicLineMode when EnumValue<WorkerDynamicLineModeValue>(argument) is { } value =>
                 sdk.SetDynamicLineModeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.DynamicPlaneMode when EnumValue<SdkDynamicPlaneModeValue>(argument) is { } value =>
+            WorkerMpValueKind.DynamicPlaneMode when EnumValue<WorkerDynamicPlaneModeValue>(argument) is { } value =>
                 sdk.SetDynamicPlaneModeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.DynamicPointMode when EnumValue<SdkDynamicPointModeValue>(argument) is { } value =>
+            WorkerMpValueKind.DynamicPointMode when EnumValue<WorkerDynamicPointModeValue>(argument) is { } value =>
                 sdk.SetDynamicPointModeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.EdgeMode when EnumValue<SdkEdgeModeValue>(argument) is { } value =>
+            WorkerMpValueKind.EdgeMode when EnumValue<WorkerEdgeModeValue>(argument) is { } value =>
                 sdk.SetEdgeModeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.ExportDataDelimiterType when EnumValue<SdkExportDataDelimiterTypeValue>(argument) is { } value =>
+            WorkerMpValueKind.ExportDataDelimiterType when EnumValue<WorkerExportDataDelimiterTypeValue>(argument) is { } value =>
                 sdk.SetExportDataDelimeterTypeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.ExportTargetNameFormat when EnumValue<SdkExportTargetNameFormatValue>(argument) is { } value =>
+            WorkerMpValueKind.ExportTargetNameFormat when EnumValue<WorkerExportTargetNameFormatValue>(argument) is { } value =>
                 sdk.SetExportTargetNameFormatArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.ExportVectorNameFormat when EnumValue<SdkExportVectorNameFormatValue>(argument) is { } value =>
+            WorkerMpValueKind.ExportVectorNameFormat when EnumValue<WorkerExportVectorNameFormatValue>(argument) is { } value =>
                 sdk.SetExportVectorNameFormatArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.GeometryType when EnumValue<SdkGeometryTypeValue>(argument) is { } value =>
+            WorkerMpValueKind.GeometryType when EnumValue<WorkerGeometryTypeValue>(argument) is { } value =>
                 sdk.SetGeometryTypeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.GdtDistanceBetweenMode when EnumValue<SdkGdtDistanceBetweenModeValue>(argument) is { } value =>
+            WorkerMpValueKind.GdtDistanceBetweenMode when EnumValue<WorkerGdtDistanceBetweenModeValue>(argument) is { } value =>
                 sdk.SetMPGDTOptionsDistanceBetweenModeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.GdtEvaluationMethod when EnumValue<SdkGdtEvaluationMethodValue>(argument) is { } value =>
+            WorkerMpValueKind.GdtEvaluationMethod when EnumValue<WorkerGdtEvaluationMethodValue>(argument) is { } value =>
                 sdk.SetMPGDTOptionsCheckValidatorTypeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.InstrumentType when EnumValue<SdkInstrumentTypeValue>(argument) is { } value =>
+            WorkerMpValueKind.InstrumentType when EnumValue<WorkerInstrumentTypeValue>(argument) is { } value =>
                 sdk.SetInstTypeNameArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.ObjectType when EnumValue<SdkObjectTypeValue>(argument) is { } value =>
+            WorkerMpValueKind.ObjectType when EnumValue<WorkerObjectTypeValue>(argument) is { } value =>
                 sdk.SetObjectTypeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.OffsetDirectionType when EnumValue<SdkOffsetDirectionTypeValue>(argument) is { } value =>
+            WorkerMpValueKind.OffsetDirectionType when EnumValue<WorkerOffsetDirectionTypeValue>(argument) is { } value =>
                 sdk.SetOffsetDirectionTypeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.PointFilterInputType when EnumValue<SdkPointFilterInputTypeValue>(argument) is { } value =>
+            WorkerMpValueKind.PointFilterInputType when EnumValue<WorkerPointFilterInputTypeValue>(argument) is { } value =>
                 sdk.SetPointFilterInputTypeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.RelationshipWeightingMode when EnumValue<SdkRelationshipWeightingModeValue>(argument) is { } value =>
+            WorkerMpValueKind.RelationshipWeightingMode when EnumValue<WorkerRelationshipWeightingModeValue>(argument) is { } value =>
                 sdk.SetRelWeightingModeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.RenderModeType when EnumValue<SdkRenderModeTypeValue>(argument) is { } value =>
+            WorkerMpValueKind.RenderModeType when EnumValue<WorkerRenderModeTypeValue>(argument) is { } value =>
                 sdk.SetRenderModeTypeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.ReportPageOrientation when EnumValue<SdkReportPageOrientationValue>(argument) is { } value =>
+            WorkerMpValueKind.ReportPageOrientation when EnumValue<WorkerReportPageOrientationValue>(argument) is { } value =>
                 sdk.SetReportPageSettingsArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.SaturationLimitType when EnumValue<SdkSaturationLimitTypeValue>(argument) is { } value =>
+            WorkerMpValueKind.SaturationLimitType when EnumValue<WorkerSaturationLimitTypeValue>(argument) is { } value =>
                 sdk.SetSaturationLimitTypeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.ShowUsmnDialogType when EnumValue<SdkShowUsmnDialogTypeValue>(argument) is { } value =>
+            WorkerMpValueKind.ShowUsmnDialogType when EnumValue<WorkerShowUsmnDialogTypeValue>(argument) is { } value =>
                 sdk.SetShowUsmnDialogTypeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.SurfaceAnalysisMode when EnumValue<SdkSurfaceAnalysisModeValue>(argument) is { } value =>
+            WorkerMpValueKind.SurfaceAnalysisMode when EnumValue<WorkerSurfaceAnalysisModeValue>(argument) is { } value =>
                 sdk.SetSurfaceAnalysisModeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.SurfaceDissectionModeType when EnumValue<SdkSurfaceDissectionModeTypeValue>(argument) is { } value =>
+            WorkerMpValueKind.SurfaceDissectionModeType when EnumValue<WorkerSurfaceDissectionModeTypeValue>(argument) is { } value =>
                 sdk.SetSurfDissectModeTypeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.TargetComputationMethod when EnumValue<SdkTargetComputationMethodValue>(argument) is { } value =>
+            WorkerMpValueKind.TargetComputationMethod when EnumValue<WorkerTargetComputationMethodValue>(argument) is { } value =>
                 sdk.SetTargetComputationMethodArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.TranslucencyType when EnumValue<SdkTranslucencyTypeValue>(argument) is { } value =>
+            WorkerMpValueKind.TranslucencyType when EnumValue<WorkerTranslucencyTypeValue>(argument) is { } value =>
                 sdk.SetTranslucencyTypeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.CompTechnique when EnumValue<SdkCompTechniqueValue>(argument) is { } value =>
+            WorkerMpValueKind.CompTechnique when EnumValue<WorkerCompTechniqueValue>(argument) is { } value =>
                 sdk.SetCompTechniqueArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.DegreeOfFreedom when EnumValue<SdkDegreeOfFreedomValue>(argument) is { } value =>
+            WorkerMpValueKind.DegreeOfFreedom when EnumValue<WorkerDegreeOfFreedomValue>(argument) is { } value =>
                 sdk.SetDegreeOfFreedomArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.FitMethod when EnumValue<SdkFitMethodValue>(argument) is { } value =>
+            WorkerMpValueKind.FitMethod when EnumValue<WorkerFitMethodValue>(argument) is { } value =>
                 sdk.SetFitMethodArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.MeasuredSideForPlanarOffset when EnumValue<SdkMeasuredSideForPlanarOffsetValue>(argument) is { } value =>
+            WorkerMpValueKind.MeasuredSideForPlanarOffset when EnumValue<WorkerMeasuredSideForPlanarOffsetValue>(argument) is { } value =>
                 sdk.SetMeasuredSideForPlanarOffsetArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.MeasuredSideForRadialOffset when EnumValue<SdkMeasuredSideForRadialOffsetValue>(argument) is { } value =>
+            WorkerMpValueKind.MeasuredSideForRadialOffset when EnumValue<WorkerMeasuredSideForRadialOffsetValue>(argument) is { } value =>
                 sdk.SetMeasuredSideForRadialOffsetArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.MpDialogInteractionMode when EnumValue<SdkMpDialogInteractionModeValue>(argument) is { } value =>
+            WorkerMpValueKind.MpDialogInteractionMode when EnumValue<WorkerMpDialogInteractionModeValue>(argument) is { } value =>
                 sdk.SetMPDialogInteractionModeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.MpInteractionMode when EnumValue<SdkMpInteractionModeValue>(argument) is { } value =>
+            WorkerMpValueKind.MpInteractionMode when EnumValue<WorkerMpInteractionModeValue>(argument) is { } value =>
                 sdk.SetMPInteractionModeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.NormalDirection when EnumValue<SdkNormalDirectionValue>(argument) is { } value =>
+            WorkerMpValueKind.NormalDirection when EnumValue<WorkerNormalDirectionValue>(argument) is { } value =>
                 sdk.SetNormalDirectionArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.SaInteractionMode when EnumValue<SdkSaInteractionModeValue>(argument) is { } value =>
+            WorkerMpValueKind.SaInteractionMode when EnumValue<WorkerSaInteractionModeValue>(argument) is { } value =>
                 sdk.SetSAInteractionModeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.SlotType when EnumValue<SdkSlotTypeValue>(argument) is { } value =>
+            WorkerMpValueKind.SlotType when EnumValue<WorkerSlotTypeValue>(argument) is { } value =>
                 sdk.SetSlotTypeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.SphereFitComputationMode when EnumValue<SdkSphereFitComputationModeValue>(argument) is { } value =>
+            WorkerMpValueKind.SphereFitComputationMode when EnumValue<WorkerSphereFitComputationModeValue>(argument) is { } value =>
                 sdk.SetSphereFitComputationModeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.WindowState when EnumValue<SdkWindowStateValue>(argument) is { } value =>
+            WorkerMpValueKind.WindowState when EnumValue<WorkerWindowStateValue>(argument) is { } value =>
                 sdk.SetWindowStateArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.SystemString when EnumValue<SdkSystemStringValue>(argument) is { } value =>
+            WorkerMpValueKind.SystemString when EnumValue<WorkerSystemStringValue>(argument) is { } value =>
                 sdk.SetSystemStringArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
-            SdkValueKind.UdpTransmitSettings when argument.UdpTransmitSettingsValue is { } value =>
+            WorkerMpValueKind.UdpTransmitSettings when argument.Value is WorkerUdpTransmitSettingsValue value =>
                 sdk.SetUdpTransmitSettingsArg(argument.Name, value.Enabled, value.Broadcast, value.IpAddress, value.Port),
-            SdkValueKind.AutoFilterProximitySettings when argument.AutoFilterProximitySettingsValue is { } value =>
+            WorkerMpValueKind.AutoFilterProximitySettings when argument.Value is WorkerAutoFilterProximitySettingsValue value =>
                 SetAutoFilterProximitySettings(sdk, argument.Name, value),
-            SdkValueKind.CloudThinningOptions when argument.CloudThinningOptionsValue is { } value =>
+            WorkerMpValueKind.CloudThinningOptions when argument.Value is WorkerCloudThinningOptionsValue value =>
                 sdk.SetCloudThinningOptionsArg(
                     argument.Name,
-                    SdkSpecializedValueCodec.ToSdkString(value.Mode),
+                    SdkSpecializedValueCodec.ToSdkString((WorkerCloudThinningModeValue)value.Mode),
                     value.PointIncrement,
                     value.MinimumNumberOfPoints,
                     value.MaximumNumberOfPoints),
-            SdkValueKind.BSplineFitOptions when argument.BSplineFitOptionsValue is { } value =>
+            WorkerMpValueKind.BSplineFitOptions when argument.Value is WorkerBSplineFitOptionsValue value =>
                 sdk.SetBSplineFitOptionsArg(
                     argument.Name,
                     value.UseInterpolationFit,
@@ -137,16 +138,16 @@ internal sealed partial class SpatialAnalyzerSdkAdapter
                     value.UseGlobalTessellationOptions,
                     value.MaximumChordalDeviation,
                     value.MaximumTrimEdgeAngle),
-            SdkValueKind.ColorizationOptions when argument.ColorizationOptionsValue is { } value =>
+            WorkerMpValueKind.ColorizationOptions when argument.Value is WorkerColorizationOptionsValue value =>
                 SetColorizationOptions(sdk, argument.Name, value),
-            SdkValueKind.FitConstraintScalarOptions when argument.FitConstraintScalarOptionsValue is { } value =>
+            WorkerMpValueKind.FitConstraintScalarOptions when argument.Value is WorkerFitConstraintScalarOptionsValue value =>
                 sdk.SetFitConstraintScalarOptionsArg(
                     argument.Name,
                     value.High.Enabled,
                     value.High.Value,
                     value.Low.Enabled,
                     value.Low.Value),
-            SdkValueKind.FitDegreeOfFreedomOptions when argument.FitDegreeOfFreedomOptionsValue is { } value =>
+            WorkerMpValueKind.FitDegreeOfFreedomOptions when argument.Value is WorkerFitDegreeOfFreedomOptionsValue value =>
                 sdk.SetFitDofOptionsArg(
                     argument.Name,
                     value.AllowX,
@@ -157,27 +158,27 @@ internal sealed partial class SpatialAnalyzerSdkAdapter
                     value.AllowRz,
                     value.RotateAboutCentroid),
 
-            SdkValueKind.ReportOutputOptions
-                when argument.ReportOutputOptionsValue is { } value &&
+            WorkerMpValueKind.ReportOutputOptions
+                when argument.Value is WorkerReportOutputOptionsValue value &&
                      ReportDestination(value) is { } destination =>
                 sdk.SetReportOutputOptionsArg(
                     argument.Name,
-                    SdkSpecializedValueCodec.ToSdkString(value.OutputType),
+                    SdkSpecializedValueCodec.ToSdkString((WorkerReportOutputTypeValue)value.OutputType),
                     destination),
-            SdkValueKind.ReportViewOptions when argument.ReportViewOptionsValue is { } value =>
+            WorkerMpValueKind.ReportViewOptions when argument.Value is WorkerReportViewOptionsValue value =>
                 sdk.SetReportViewOptionsArg(
                     argument.Name,
-                    SdkSpecializedValueCodec.ToSdkString(value.ViewType),
+                    SdkSpecializedValueCodec.ToSdkString((WorkerReportViewTypeValue)value.ViewType),
                     value.CollectionName,
                     value.CalloutName),
-            SdkValueKind.ToleranceScalarOptions when argument.ToleranceScalarOptionsValue is { } value =>
+            WorkerMpValueKind.ToleranceScalarOptions when argument.Value is WorkerToleranceScalarOptionsValue value =>
                 sdk.SetToleranceScalarOptionsArg(
                     argument.Name,
                     value.High.Enabled,
                     value.High.Value,
                     value.Low.Enabled,
                     value.Low.Value),
-            SdkValueKind.ProjectionOptions when argument.ProjectionOptionsValue is { } value =>
+            WorkerMpValueKind.ProjectionOptions when argument.Value is WorkerProjectionOptionsValue value =>
                 sdk.SetProjectionOptionsArg(
                     argument.Name,
                     value.ProjectionType,
@@ -186,10 +187,10 @@ internal sealed partial class SpatialAnalyzerSdkAdapter
                     value.OverrideTargetOffsetsValue,
                     value.AddExtraMaterialThickness,
                     value.ExtraMaterialThicknessValue),
-            SdkValueKind.PointDeltaReportOptions when argument.PointDeltaReportOptionsValue is { } value =>
+            WorkerMpValueKind.PointDeltaReportOptions when argument.Value is WorkerPointDeltaReportOptionsValue value =>
                 sdk.SetPointDeltaReportOptionsArg(
                     argument.Name,
-                    SdkSpecializedValueCodec.ToSdkString(value.CoordinateSystem),
+                    SdkSpecializedValueCodec.ToSdkString((WorkerCoordinateSystemTypeValue)value.CoordinateSystem),
                     value.DetailsFormat,
                     value.ShowPointA,
                     value.ShowPointB,
@@ -204,94 +205,94 @@ internal sealed partial class SpatialAnalyzerSdkAdapter
             _ => false
         };
 
-    private static SdkOutputValue GetSpecializedOutputValue(
+    private static WorkerMpOutputValue GetSpecializedOutputValue(
         ISpatialAnalyzerSdkCalls sdk,
-        SdkOutputArgument argument) =>
+        WorkerMpOutputArgument argument) =>
         argument.Kind switch
         {
-            SdkValueKind.FitConstraintScalarOptions => GetFitConstraintScalarOptions(sdk, argument),
-            SdkValueKind.ToleranceScalarOptions => GetToleranceScalarOptions(sdk, argument),
-            _ => new SdkOutputValue(argument.Name, argument.Kind, Retrieved: false)
+            WorkerMpValueKind.FitConstraintScalarOptions => GetFitConstraintScalarOptions(sdk, argument),
+            WorkerMpValueKind.ToleranceScalarOptions => GetToleranceScalarOptions(sdk, argument),
+            _ => new WorkerUnavailableOutput(argument.Name, argument.Kind)
         };
 
-    private static string SpecializedExpectedSetter(SdkValueKind kind) => kind switch
+    private static string SpecializedExpectedSetter(WorkerMpValueKind kind) => kind switch
     {
-        SdkValueKind.AsciiImportFileFormat => "SetAsciiFileFormatArg",
-        SdkValueKind.AsciiFrameSetFormat => "SetAsciiFileFormatArg",
-        SdkValueKind.AutoFilterProximitySettings => "SetAutoFilterProximitySettingsArg",
-        SdkValueKind.AxisIdentifier => "SetAxisNameArg",
-        SdkValueKind.WcfAxisIdentifier => "SetAxisNameArg",
-        SdkValueKind.BaseColorType => "SetBaseColorTypeArg",
-        SdkValueKind.BaseMidColorType => "SetBaseMidColorTypeArg",
-        SdkValueKind.ChartType => "SetChartTypeArg",
-        SdkValueKind.BSplineFitOptions => "SetBSplineFitOptionsArg",
-        SdkValueKind.CloudThinningOptions => "SetCloudThinningOptionsArg",
-        SdkValueKind.CollimationBaselineType => "SetCollimationBaselineTypeArg",
-        SdkValueKind.CollimationType => "SetCollimationTypeArg",
-        SdkValueKind.ColorRangeMethod => "SetColorRangeMethodArg",
-        SdkValueKind.ColorizationOptions => "SetColorizationOptionsArg",
-        SdkValueKind.CoordinateSystemType => "SetCoordinateSystemTypeArg",
-        SdkValueKind.VectorComponent => "SetDatasetTypeArg",
-        SdkValueKind.DynamicCircleMode => "SetDynamicCircleModeArg",
-        SdkValueKind.DynamicEllipseMode => "SetDynamicEllipseModeArg",
-        SdkValueKind.DynamicLineMode => "SetDynamicLineModeArg",
-        SdkValueKind.DynamicPlaneMode => "SetDynamicPlaneModeArg",
-        SdkValueKind.DynamicPointMode => "SetDynamicPointModeArg",
-        SdkValueKind.EdgeMode => "SetEdgeModeArg",
-        SdkValueKind.ExportDataDelimiterType => "SetExportDataDelimeterTypeArg",
-        SdkValueKind.ExportTargetNameFormat => "SetExportTargetNameFormatArg",
-        SdkValueKind.ExportVectorNameFormat => "SetExportVectorNameFormatArg",
-        SdkValueKind.FitConstraintScalarOptions => "SetFitConstraintScalarOptionsArg",
-        SdkValueKind.FitDegreeOfFreedomOptions => "SetFitDofOptionsArg",
-        SdkValueKind.GeometryType => "SetGeometryTypeArg",
-        SdkValueKind.GdtDistanceBetweenMode => "SetMPGDTOptionsDistanceBetweenModeArg",
-        SdkValueKind.GdtEvaluationMethod => "SetMPGDTOptionsCheckValidatorTypeArg",
-        SdkValueKind.InstrumentType => "SetInstTypeNameArg",
-        SdkValueKind.ObjectType => "SetObjectTypeArg",
-        SdkValueKind.OffsetDirectionType => "SetOffsetDirectionTypeArg",
+        WorkerMpValueKind.AsciiImportFileFormat => "SetAsciiFileFormatArg",
+        WorkerMpValueKind.AsciiFrameSetFormat => "SetAsciiFileFormatArg",
+        WorkerMpValueKind.AutoFilterProximitySettings => "SetAutoFilterProximitySettingsArg",
+        WorkerMpValueKind.AxisIdentifier => "SetAxisNameArg",
+        WorkerMpValueKind.WcfAxisIdentifier => "SetAxisNameArg",
+        WorkerMpValueKind.BaseColorType => "SetBaseColorTypeArg",
+        WorkerMpValueKind.BaseMidColorType => "SetBaseMidColorTypeArg",
+        WorkerMpValueKind.ChartType => "SetChartTypeArg",
+        WorkerMpValueKind.BSplineFitOptions => "SetBSplineFitOptionsArg",
+        WorkerMpValueKind.CloudThinningOptions => "SetCloudThinningOptionsArg",
+        WorkerMpValueKind.CollimationBaselineType => "SetCollimationBaselineTypeArg",
+        WorkerMpValueKind.CollimationType => "SetCollimationTypeArg",
+        WorkerMpValueKind.ColorRangeMethod => "SetColorRangeMethodArg",
+        WorkerMpValueKind.ColorizationOptions => "SetColorizationOptionsArg",
+        WorkerMpValueKind.CoordinateSystemType => "SetCoordinateSystemTypeArg",
+        WorkerMpValueKind.VectorComponent => "SetDatasetTypeArg",
+        WorkerMpValueKind.DynamicCircleMode => "SetDynamicCircleModeArg",
+        WorkerMpValueKind.DynamicEllipseMode => "SetDynamicEllipseModeArg",
+        WorkerMpValueKind.DynamicLineMode => "SetDynamicLineModeArg",
+        WorkerMpValueKind.DynamicPlaneMode => "SetDynamicPlaneModeArg",
+        WorkerMpValueKind.DynamicPointMode => "SetDynamicPointModeArg",
+        WorkerMpValueKind.EdgeMode => "SetEdgeModeArg",
+        WorkerMpValueKind.ExportDataDelimiterType => "SetExportDataDelimeterTypeArg",
+        WorkerMpValueKind.ExportTargetNameFormat => "SetExportTargetNameFormatArg",
+        WorkerMpValueKind.ExportVectorNameFormat => "SetExportVectorNameFormatArg",
+        WorkerMpValueKind.FitConstraintScalarOptions => "SetFitConstraintScalarOptionsArg",
+        WorkerMpValueKind.FitDegreeOfFreedomOptions => "SetFitDofOptionsArg",
+        WorkerMpValueKind.GeometryType => "SetGeometryTypeArg",
+        WorkerMpValueKind.GdtDistanceBetweenMode => "SetMPGDTOptionsDistanceBetweenModeArg",
+        WorkerMpValueKind.GdtEvaluationMethod => "SetMPGDTOptionsCheckValidatorTypeArg",
+        WorkerMpValueKind.InstrumentType => "SetInstTypeNameArg",
+        WorkerMpValueKind.ObjectType => "SetObjectTypeArg",
+        WorkerMpValueKind.OffsetDirectionType => "SetOffsetDirectionTypeArg",
 
-        SdkValueKind.PointFilterInputType => "SetPointFilterInputTypeArg",
+        WorkerMpValueKind.PointFilterInputType => "SetPointFilterInputTypeArg",
 
-        SdkValueKind.RelationshipWeightingMode => "SetRelWeightingModeArg",
-        SdkValueKind.RenderModeType => "SetRenderModeTypeArg",
-        SdkValueKind.ReportOutputOptions => "SetReportOutputOptionsArg",
-        SdkValueKind.ReportPageOrientation => "SetReportPageSettingsArg",
-        SdkValueKind.ReportViewOptions => "SetReportViewOptionsArg",
-        SdkValueKind.SaturationLimitType => "SetSaturationLimitTypeArg",
-        SdkValueKind.ShowUsmnDialogType => "SetShowUsmnDialogTypeArg",
-        SdkValueKind.SurfaceAnalysisMode => "SetSurfaceAnalysisModeArg",
-        SdkValueKind.SurfaceDissectionModeType => "SetSurfDissectModeTypeArg",
-        SdkValueKind.TargetComputationMethod => "SetTargetComputationMethodArg",
-        SdkValueKind.ToleranceScalarOptions => "SetToleranceScalarOptionsArg",
-        SdkValueKind.TranslucencyType => "SetTranslucencyTypeArg",
-        SdkValueKind.CompTechnique => "SetCompTechniqueArg",
-        SdkValueKind.DegreeOfFreedom => "SetDegreeOfFreedomArg",
-        SdkValueKind.FitMethod => "SetFitMethodArg",
-        SdkValueKind.MeasuredSideForPlanarOffset => "SetMeasuredSideForPlanarOffsetArg",
-        SdkValueKind.MeasuredSideForRadialOffset => "SetMeasuredSideForRadialOffsetArg",
-        SdkValueKind.MpDialogInteractionMode => "SetMPDialogInteractionModeArg",
-        SdkValueKind.MpInteractionMode => "SetMPInteractionModeArg",
-        SdkValueKind.NormalDirection => "SetNormalDirectionArg",
-        SdkValueKind.SaInteractionMode => "SetSAInteractionModeArg",
-        SdkValueKind.SlotType => "SetSlotTypeArg",
-        SdkValueKind.SphereFitComputationMode => "SetSphereFitComputationModeArg",
-        SdkValueKind.WindowState => "SetWindowStateArg",
-        SdkValueKind.SystemString => "SetSystemStringArg",
-        SdkValueKind.UdpTransmitSettings => "SetUdpTransmitSettingsArg",
-        SdkValueKind.ProjectionOptions => "SetProjectionOptionsArg",
-        SdkValueKind.PointDeltaReportOptions => "SetPointDeltaReportOptionsArg",
+        WorkerMpValueKind.RelationshipWeightingMode => "SetRelWeightingModeArg",
+        WorkerMpValueKind.RenderModeType => "SetRenderModeTypeArg",
+        WorkerMpValueKind.ReportOutputOptions => "SetReportOutputOptionsArg",
+        WorkerMpValueKind.ReportPageOrientation => "SetReportPageSettingsArg",
+        WorkerMpValueKind.ReportViewOptions => "SetReportViewOptionsArg",
+        WorkerMpValueKind.SaturationLimitType => "SetSaturationLimitTypeArg",
+        WorkerMpValueKind.ShowUsmnDialogType => "SetShowUsmnDialogTypeArg",
+        WorkerMpValueKind.SurfaceAnalysisMode => "SetSurfaceAnalysisModeArg",
+        WorkerMpValueKind.SurfaceDissectionModeType => "SetSurfDissectModeTypeArg",
+        WorkerMpValueKind.TargetComputationMethod => "SetTargetComputationMethodArg",
+        WorkerMpValueKind.ToleranceScalarOptions => "SetToleranceScalarOptionsArg",
+        WorkerMpValueKind.TranslucencyType => "SetTranslucencyTypeArg",
+        WorkerMpValueKind.CompTechnique => "SetCompTechniqueArg",
+        WorkerMpValueKind.DegreeOfFreedom => "SetDegreeOfFreedomArg",
+        WorkerMpValueKind.FitMethod => "SetFitMethodArg",
+        WorkerMpValueKind.MeasuredSideForPlanarOffset => "SetMeasuredSideForPlanarOffsetArg",
+        WorkerMpValueKind.MeasuredSideForRadialOffset => "SetMeasuredSideForRadialOffsetArg",
+        WorkerMpValueKind.MpDialogInteractionMode => "SetMPDialogInteractionModeArg",
+        WorkerMpValueKind.MpInteractionMode => "SetMPInteractionModeArg",
+        WorkerMpValueKind.NormalDirection => "SetNormalDirectionArg",
+        WorkerMpValueKind.SaInteractionMode => "SetSAInteractionModeArg",
+        WorkerMpValueKind.SlotType => "SetSlotTypeArg",
+        WorkerMpValueKind.SphereFitComputationMode => "SetSphereFitComputationModeArg",
+        WorkerMpValueKind.WindowState => "SetWindowStateArg",
+        WorkerMpValueKind.SystemString => "SetSystemStringArg",
+        WorkerMpValueKind.UdpTransmitSettings => "SetUdpTransmitSettingsArg",
+        WorkerMpValueKind.ProjectionOptions => "SetProjectionOptionsArg",
+        WorkerMpValueKind.PointDeltaReportOptions => "SetPointDeltaReportOptionsArg",
         _ => throw new UnreachableException()
     };
 
-    private static string SpecializedExpectedGetter(SdkValueKind kind) => kind switch
+    private static string SpecializedExpectedGetter(WorkerMpValueKind kind) => kind switch
     {
-        SdkValueKind.FitConstraintScalarOptions => "GetFitConstraintScalarOptionsArg",
-        SdkValueKind.ToleranceScalarOptions => "GetToleranceScalarOptionsArg",
+        WorkerMpValueKind.FitConstraintScalarOptions => "GetFitConstraintScalarOptionsArg",
+        WorkerMpValueKind.ToleranceScalarOptions => "GetToleranceScalarOptionsArg",
         _ => string.Empty
     };
 
-    private static T? EnumValue<T>(SdkInputArgument argument) where T : struct, Enum =>
-        argument.SpecializedEnumValue is SdkSpecializedEnumValue<T> value &&
+    private static T? EnumValue<T>(WorkerMpInputArgument argument) where T : struct, Enum =>
+        argument.Value is WorkerChoiceValue<T> value &&
         Enum.IsDefined(value.Value)
             ? value.Value
             : null;
@@ -299,7 +300,7 @@ internal sealed partial class SpatialAnalyzerSdkAdapter
     private static bool SetAutoFilterProximitySettings(
         ISpatialAnalyzerSdkCalls sdk,
         string name,
-        SdkAutoFilterProximitySettingsValue value) =>
+        WorkerAutoFilterProximitySettingsValue value) =>
         sdk.SetAutoFilterProximitySettingsArg(
             name,
             value.SurfaceInclusionProximity,
@@ -308,22 +309,22 @@ internal sealed partial class SpatialAnalyzerSdkAdapter
             value.PlanarExclusionProximity,
             value.RadialInclusionProximity,
             value.GeometryExtractionTolerance,
-            SdkSpecializedValueCodec.ToSdkOffsetMode(value.SurfaceProximityMode),
-            SdkSpecializedValueCodec.ToSdkOffsetMode(value.PlanarProximityMode),
-            SdkSpecializedValueCodec.ToSdkOffsetMode(value.RadialProximityMode),
+            SdkSpecializedValueCodec.ToSdkOffsetMode((WorkerOffsetDirectionTypeValue)value.SurfaceProximityMode),
+            SdkSpecializedValueCodec.ToSdkOffsetMode((WorkerOffsetDirectionTypeValue)value.PlanarProximityMode),
+            SdkSpecializedValueCodec.ToSdkOffsetMode((WorkerOffsetDirectionTypeValue)value.RadialProximityMode),
             value.ProjectToPlane,
             value.AssertPlaneBoundaries);
 
     private static bool SetColorizationOptions(
         ISpatialAnalyzerSdkCalls sdk,
         string name,
-        SdkColorizationOptionsValue value) =>
+        WorkerColorizationOptionsValue value) =>
         sdk.SetColorizationOptionsArg(
             name,
-            SdkSpecializedValueCodec.ToSdkString(value.ColorRangeMethod),
-            SdkSpecializedValueCodec.ToSdkString(value.BaseHighColor),
-            SdkSpecializedValueCodec.ToSdkString(value.BaseMidColor),
-            SdkSpecializedValueCodec.ToSdkString(value.BaseLowColor),
+            SdkSpecializedValueCodec.ToSdkString((WorkerColorRangeMethodValue)value.ColorRangeMethod),
+            SdkSpecializedValueCodec.ToSdkString((WorkerBaseColorTypeValue)value.BaseHighColor),
+            SdkSpecializedValueCodec.ToSdkString((WorkerBaseMidColorTypeValue)value.BaseMidColor),
+            SdkSpecializedValueCodec.ToSdkString((WorkerBaseColorTypeValue)value.BaseLowColor),
             value.DrawTubes,
             value.DrawArrowheads,
             value.IndicateValues,
@@ -341,7 +342,7 @@ internal sealed partial class SpatialAnalyzerSdkAdapter
             value.LowTolerance);
 
 
-    private static string? ReportDestination(SdkReportOutputOptionsValue value)
+    private static string? ReportDestination(WorkerReportOutputOptionsValue value)
     {
         if ((value.ExternalPath is not null) == (value.EmbeddedFile is not null))
         {
@@ -351,9 +352,9 @@ internal sealed partial class SpatialAnalyzerSdkAdapter
         return value.ExternalPath ??
             $"{value.EmbeddedFile!.CollectionName}::{value.EmbeddedFile.FileName}";
     }
-    private static SdkOutputValue GetFitConstraintScalarOptions(
+    private static WorkerMpOutputValue GetFitConstraintScalarOptions(
         ISpatialAnalyzerSdkCalls sdk,
-        SdkOutputArgument argument)
+        WorkerMpOutputArgument argument)
     {
         var highEnabled = false;
         var highValue = 0d;
@@ -365,20 +366,18 @@ internal sealed partial class SpatialAnalyzerSdkAdapter
             ref highValue,
             ref lowEnabled,
             ref lowValue);
-        return new SdkOutputValue(
-            argument.Name,
-            argument.Kind,
-            retrieved,
-            FitConstraintScalarOptionsValue: retrieved
-                ? new SdkFitConstraintScalarOptionsValue(
-                    new SdkToleranceLimit(highEnabled, highValue),
-                    new SdkToleranceLimit(lowEnabled, lowValue))
+        return WorkerMpOutputValue.FromRetrieval(
+            argument.Name, argument.Kind, retrieved,
+            retrieved
+                ? new WorkerFitConstraintScalarOptionsValue(
+                    new WorkerToleranceLimit(highEnabled, highValue),
+                    new WorkerToleranceLimit(lowEnabled, lowValue))
                 : null);
     }
 
-    private static SdkOutputValue GetToleranceScalarOptions(
+    private static WorkerMpOutputValue GetToleranceScalarOptions(
         ISpatialAnalyzerSdkCalls sdk,
-        SdkOutputArgument argument)
+        WorkerMpOutputArgument argument)
     {
         var highEnabled = false;
         var highValue = 0d;
@@ -390,14 +389,12 @@ internal sealed partial class SpatialAnalyzerSdkAdapter
             ref highValue,
             ref lowEnabled,
             ref lowValue);
-        return new SdkOutputValue(
-            argument.Name,
-            argument.Kind,
-            retrieved,
-            ToleranceScalarOptionsValue: retrieved
-                ? new SdkToleranceScalarOptionsValue(
-                    new SdkToleranceLimit(highEnabled, highValue),
-                    new SdkToleranceLimit(lowEnabled, lowValue))
+        return WorkerMpOutputValue.FromRetrieval(
+            argument.Name, argument.Kind, retrieved,
+            retrieved
+                ? new WorkerToleranceScalarOptionsValue(
+                    new WorkerToleranceLimit(highEnabled, highValue),
+                    new WorkerToleranceLimit(lowEnabled, lowValue))
                 : null);
     }
 }

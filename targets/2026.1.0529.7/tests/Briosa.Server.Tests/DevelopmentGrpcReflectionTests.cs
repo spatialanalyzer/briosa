@@ -97,14 +97,24 @@ public sealed class DevelopmentGrpcReflectionTests
             new Api.ListCapabilitiesRequest()).ResponseAsync.ConfigureAwait(true);
         Assert.Equal(
             SpatialAnalyzerApi.Operations
+                .Where(operation => operation.OperationId != "variables.set_double_variable")
                 .Select(operation => operation.OperationId)
                 .Order(StringComparer.Ordinal),
             capabilities.Operations
                 .Select(operation => operation.OperationId)
                 .Order(StringComparer.Ordinal));
-        Assert.DoesNotContain(
-            capabilities.Operations,
-            operation => operation.Effect == Api.OperationEffect.Mutating);
+        var declared = SpatialAnalyzerApi.Operations.ToDictionary(operation => operation.OperationId);
+        Assert.All(capabilities.Operations, operation => Assert.Equal(
+            declared[operation.OperationId].Effect == "state_mutation"
+                ? Api.OperationEffect.Mutating : Api.OperationEffect.ReadOnly,
+            operation.Effect));
+        var variables = new Api.Variables.VariablesClient(host.Channel);
+        var denied = await Assert.ThrowsAsync<RpcException>(async () =>
+            await variables.SetDoubleVariableAsync(new Api.SetDoubleVariableRequest
+            {
+                Name = "denied-through-policy", Value = 1
+            }).ResponseAsync.ConfigureAwait(true)).ConfigureAwait(true);
+        Assert.Equal(StatusCode.PermissionDenied, denied.StatusCode);
 
         var fileOperations = new Api.FileOperations.FileOperationsClient(host.Channel);
         var unavailable = await Assert.ThrowsAsync<RpcException>(async () =>
@@ -223,6 +233,7 @@ public sealed class DevelopmentGrpcReflectionTests
                 RedirectStandardError = true
             };
             startInfo.ArgumentList.Add($"--Briosa:Endpoint:Port={port}");
+            startInfo.ArgumentList.Add("--Briosa:Security:Operations:Deny:0=variables.set_double_variable");
             startInfo.ArgumentList.Add($"--Briosa:Worker:ExecutablePath={smokeWorker}");
             startInfo.ArgumentList.Add(
                 "--Briosa:SpatialAnalyzer:Identity:ActivatedSdk:OperatorAttestation:Version=");
