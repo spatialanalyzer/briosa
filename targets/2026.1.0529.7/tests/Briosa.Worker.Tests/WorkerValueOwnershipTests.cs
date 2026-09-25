@@ -26,9 +26,9 @@ public sealed class WorkerValueOwnershipTests
         var values = new WorkerDoubleArrayValue([0, 1, 2]);
         var command = new WorkerMpCommand("ownership", "Ownership",
         [
-            new("Values", WorkerMpValueKind.DoubleArray, DoubleArrayValue: values),
+            new WorkerMpInputArgument("Values", WorkerMpValueKind.DoubleArray, values),
             // The specialized choice uses the original zero-based enum domain.
-            new("Object", WorkerMpValueKind.ObjectType, SpecializedEnumValue: new(11))
+            new WorkerMpInputArgument("Object", WorkerMpValueKind.ObjectType, new WorkerSpecializedEnumValue(11))
         ], [new("Result", WorkerMpValueKind.DoubleArray)]);
         var sdk = SdkCommandMapper.CreateCommand(command);
         Assert.Same(values, sdk.InputArguments[0].DoubleArrayValue);

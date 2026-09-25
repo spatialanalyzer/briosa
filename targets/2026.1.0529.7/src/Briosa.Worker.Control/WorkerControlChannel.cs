@@ -222,10 +222,10 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
 
         if (command.InputArguments.Count + command.OutputArguments.Count > 128 ||
             command.InputArguments.Any(argument =>
-                string.IsNullOrWhiteSpace(argument.Name) ||
+                argument is null || string.IsNullOrWhiteSpace(argument.Name) ||
                 !HasInputValueForKind(argument)) ||
             command.OutputArguments.Any(argument =>
-                string.IsNullOrWhiteSpace(argument.Name) ||
+                argument is null || string.IsNullOrWhiteSpace(argument.Name) ||
                 !Enum.IsDefined(argument.Kind) ||
                 argument.ArraySize is < 0 or > 1_000_000 ||
                 argument.ArraySize.HasValue && argument.Kind != WorkerMpValueKind.DoubleArray ||
@@ -241,22 +241,22 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
     private static bool HasInputValueForKind(WorkerMpInputArgument argument) =>
         argument.Kind switch
         {
-            WorkerMpValueKind.Logical => argument.BooleanValue.HasValue,
-            WorkerMpValueKind.WholeNumber => argument.IntegerValue.HasValue,
-            WorkerMpValueKind.FloatingPoint => argument.DoubleValue.HasValue,
-            WorkerMpValueKind.DoubleArray => IsValid(argument.DoubleArrayValue),
-            WorkerMpValueKind.EditText => IsValid(argument.StringListValue),
-            WorkerMpValueKind.Transform => IsValid(argument.TransformValue),
-            WorkerMpValueKind.WorldTransform => IsValid(argument.WorldTransformValue),
-            WorkerMpValueKind.RgbColor => argument.RgbColorValue is not null,
-            WorkerMpValueKind.FileReference => IsValid(argument.FileReferenceValue),
+            WorkerMpValueKind.Logical => ((argument.Value as WorkerBooleanValue)?.Value).HasValue,
+            WorkerMpValueKind.WholeNumber => ((argument.Value as WorkerIntegerValue)?.Value).HasValue,
+            WorkerMpValueKind.FloatingPoint => ((argument.Value as WorkerDoubleValue)?.Value).HasValue,
+            WorkerMpValueKind.DoubleArray => IsValid((argument.Value as WorkerDoubleArrayValue)),
+            WorkerMpValueKind.EditText => IsValid((argument.Value as WorkerStringListValue)),
+            WorkerMpValueKind.Transform => IsValid((argument.Value as WorkerTransformValue)),
+            WorkerMpValueKind.WorldTransform => IsValid((argument.Value as WorkerWorldTransformValue)),
+            WorkerMpValueKind.RgbColor => (argument.Value as WorkerRgbColorValue) is not null,
+            WorkerMpValueKind.FileReference => IsValid((argument.Value as WorkerFileReferenceValue)),
             WorkerMpValueKind.AngularUnit =>
-                IsValid(argument.AngularUnitValue, WorkerAngularUnitValue.Unspecified),
+                IsValid(((argument.Value as WorkerAngularUnitChoice)?.Value), WorkerAngularUnitValue.Unspecified),
             WorkerMpValueKind.DistanceUnit =>
-                IsValid(argument.DistanceUnitValue, WorkerDistanceUnitValue.Unspecified),
+                IsValid(((argument.Value as WorkerDistanceUnitChoice)?.Value), WorkerDistanceUnitValue.Unspecified),
             WorkerMpValueKind.TemperatureUnit =>
-                IsValid(argument.TemperatureUnitValue, WorkerTemperatureUnitValue.Unspecified),
-            WorkerMpValueKind.Font => IsValid(argument.FontValue),
+                IsValid(((argument.Value as WorkerTemperatureUnitChoice)?.Value), WorkerTemperatureUnitValue.Unspecified),
+            WorkerMpValueKind.Font => IsValid((argument.Value as WorkerFontValue)),
             WorkerMpValueKind.Text or
             WorkerMpValueKind.InstrumentTypeName or
             WorkerMpValueKind.ChartName or
@@ -264,34 +264,34 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
             WorkerMpValueKind.CollectionName or
             WorkerMpValueKind.FrameName or
             WorkerMpValueKind.VectorGroupName or
-            WorkerMpValueKind.ViewName => argument.StringValue is not null,
-            WorkerMpValueKind.PointName => IsValid(argument.PointNameValue),
-            WorkerMpValueKind.Vector => argument.VectorValue is not null,
+            WorkerMpValueKind.ViewName => ((argument.Value as WorkerTextValue)?.Value) is not null,
+            WorkerMpValueKind.PointName => IsValid((argument.Value as WorkerPointNameValue)),
+            WorkerMpValueKind.Vector => (argument.Value as WorkerVectorValue) is not null,
             WorkerMpValueKind.ToleranceVectorOptions =>
-                IsValid(argument.ToleranceVectorOptionsValue),
+                IsValid((argument.Value as WorkerToleranceVectorOptionsValue)),
             WorkerMpValueKind.CollectionInstrumentId =>
-                IsValid(argument.CollectionInstrumentIdValue),
+                IsValid((argument.Value as WorkerCollectionInstrumentIdValue)),
             WorkerMpValueKind.CollectionInstrumentIdList =>
-                IsValid(argument.CollectionInstrumentIdListValue),
+                IsValid((argument.Value as WorkerCollectionInstrumentIdListValue)),
             WorkerMpValueKind.CollectionMachineId =>
-                IsValid(argument.CollectionMachineIdValue),
+                IsValid((argument.Value as WorkerCollectionMachineIdValue)),
             WorkerMpValueKind.CollectionItemName =>
-                IsValid(argument.CollectionItemNameValue),
+                IsValid((argument.Value as WorkerCollectionItemNameValue)),
             WorkerMpValueKind.CollectionItemNameList =>
-                IsValid(argument.CollectionItemNameListValue),
+                IsValid((argument.Value as WorkerCollectionItemNameListValue)),
             WorkerMpValueKind.CollectionObjectName =>
-                IsValid(argument.CollectionObjectNameValue),
+                IsValid((argument.Value as WorkerCollectionObjectNameValue)),
             WorkerMpValueKind.CollectionObjectNameList =>
-                IsValid(argument.CollectionObjectNameListValue),
+                IsValid((argument.Value as WorkerCollectionObjectNameListValue)),
             WorkerMpValueKind.CollectionGroupNameList =>
-                IsValid(argument.CollectionGroupNameListValue),
+                IsValid((argument.Value as WorkerCollectionGroupNameListValue)),
             WorkerMpValueKind.CollectionVectorGroupName =>
-                IsValid(argument.CollectionVectorGroupNameValue),
+                IsValid((argument.Value as WorkerCollectionVectorGroupNameValue)),
             WorkerMpValueKind.CollectionVectorGroupNameList =>
-                IsValid(argument.CollectionVectorGroupNameListValue),
-            WorkerMpValueKind.PointNameList => IsValid(argument.PointNameListValue),
-            WorkerMpValueKind.StringList => IsValid(argument.StringListValue),
-            WorkerMpValueKind.VectorNameList => IsValid(argument.VectorNameListValue),
+                IsValid((argument.Value as WorkerCollectionVectorGroupNameListValue)),
+            WorkerMpValueKind.PointNameList => IsValid((argument.Value as WorkerPointNameListValue)),
+            WorkerMpValueKind.StringList => IsValid((argument.Value as WorkerStringListValue)),
+            WorkerMpValueKind.VectorNameList => IsValid((argument.Value as WorkerVectorNameListValue)),
             _ => WorkerSpecializedValueValidation.HasInputValueForKind(argument)
         };
 

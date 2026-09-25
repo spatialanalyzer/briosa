@@ -1,3 +1,3 @@
 namespace Briosa.Worker.Control;
 
-public sealed record WorkerSpecializedEnumValue(int Value);
+public sealed record WorkerSpecializedEnumValue(int Value) : WorkerMpValue;

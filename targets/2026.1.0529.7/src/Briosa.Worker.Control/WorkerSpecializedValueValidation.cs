@@ -56,30 +56,30 @@ internal static class WorkerSpecializedValueValidation
             WorkerMpValueKind.WindowState => IsEnum(argument, 5),
             WorkerMpValueKind.SystemString => IsEnum(argument, 14),
             WorkerMpValueKind.AutoFilterProximitySettings =>
-                IsValid(argument.AutoFilterProximitySettingsValue),
+                IsValid((argument.Value as WorkerAutoFilterProximitySettingsValue)),
             WorkerMpValueKind.BSplineFitOptions =>
-                IsValid(argument.BSplineFitOptionsValue),
+                IsValid((argument.Value as WorkerBSplineFitOptionsValue)),
             WorkerMpValueKind.CloudThinningOptions =>
-                IsValid(argument.CloudThinningOptionsValue),
+                IsValid((argument.Value as WorkerCloudThinningOptionsValue)),
             WorkerMpValueKind.ColorizationOptions =>
-                IsValid(argument.ColorizationOptionsValue),
+                IsValid((argument.Value as WorkerColorizationOptionsValue)),
             WorkerMpValueKind.FitConstraintScalarOptions =>
-                IsValid(argument.FitConstraintScalarOptionsValue),
+                IsValid((argument.Value as WorkerFitConstraintScalarOptionsValue)),
             WorkerMpValueKind.FitDegreeOfFreedomOptions =>
-                argument.FitDegreeOfFreedomOptionsValue is not null,
+                (argument.Value as WorkerFitDegreeOfFreedomOptionsValue) is not null,
 
             WorkerMpValueKind.ReportOutputOptions =>
-                IsValid(argument.ReportOutputOptionsValue),
+                IsValid((argument.Value as WorkerReportOutputOptionsValue)),
             WorkerMpValueKind.ReportViewOptions =>
-                IsValid(argument.ReportViewOptionsValue),
+                IsValid((argument.Value as WorkerReportViewOptionsValue)),
             WorkerMpValueKind.ToleranceScalarOptions =>
-                IsValid(argument.ToleranceScalarOptionsValue),
+                IsValid((argument.Value as WorkerToleranceScalarOptionsValue)),
             WorkerMpValueKind.ProjectionOptions =>
-                IsValid(argument.ProjectionOptionsValue),
+                IsValid((argument.Value as WorkerProjectionOptionsValue)),
             WorkerMpValueKind.PointDeltaReportOptions =>
-                IsValid(argument.PointDeltaReportOptionsValue),
+                IsValid((argument.Value as WorkerPointDeltaReportOptionsValue)),
             WorkerMpValueKind.UdpTransmitSettings =>
-                argument.UdpTransmitSettingsValue is { IpAddress: not null, Port: >= 0 and <= 65535 },
+                (argument.Value as WorkerUdpTransmitSettingsValue) is { IpAddress: not null, Port: >= 0 and <= 65535 },
             _ => false
         };
 
@@ -94,7 +94,7 @@ internal static class WorkerSpecializedValueValidation
         };
 
     private static bool IsEnum(WorkerMpInputArgument argument, int valueCount) =>
-        argument.SpecializedEnumValue is { } value &&
+        (argument.Value as WorkerSpecializedEnumValue) is { } value &&
         (uint)value.Value < (uint)valueCount;
 
     private static bool IsValid(WorkerAutoFilterProximitySettingsValue? value) =>

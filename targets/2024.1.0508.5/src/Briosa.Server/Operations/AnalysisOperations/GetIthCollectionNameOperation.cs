@@ -46,11 +46,7 @@ internal static class GetIthCollectionNameOperation
             StepName,
             inputArguments:
             [
-                new(
-                    CollectionIndexArgumentName,
-                    WorkerMpValueKind.WholeNumber,
-                    IntegerValue: request.CollectionIndex,
-                    SdkBinding: CollectionIndexSetter)
+                new WorkerMpInputArgument(CollectionIndexArgumentName, WorkerMpValueKind.WholeNumber, new WorkerIntegerValue(request.CollectionIndex), sdkBinding: CollectionIndexSetter)
             ],
             outputArguments:
             [

@@ -22,7 +22,7 @@ public sealed class GetIthCollectionNameOperationTests
         var input = Assert.Single(command.InputArguments);
         Assert.Equal("Collection Index", input.Name);
         Assert.Equal(WorkerMpValueKind.WholeNumber, input.Kind);
-        Assert.Equal(0, input.IntegerValue);
+        Assert.Equal(0, ((input.Value as WorkerIntegerValue)?.Value));
         Assert.Equal("SetIntegerArg", input.SdkBinding);
 
         var output = Assert.Single(command.OutputArguments);

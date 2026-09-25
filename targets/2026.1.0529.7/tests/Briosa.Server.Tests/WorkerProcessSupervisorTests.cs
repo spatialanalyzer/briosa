@@ -989,42 +989,23 @@ public sealed class WorkerProcessSupervisorTests
             "identity-reference-pipe",
             "Identity Reference Pipe",
             [
-                new WorkerMpInputArgument(
-                    "Item",
-                    WorkerMpValueKind.CollectionItemName,
-                    CollectionItemNameValue: new WorkerCollectionItemNameValue(
+                new WorkerMpInputArgument("Item", WorkerMpValueKind.CollectionItemName, new WorkerCollectionItemNameValue(
                         "Collection",
                         "Picture",
                         WorkerItemTypeValue.Picture)),
-                new WorkerMpInputArgument(
-                    "Items",
-                    WorkerMpValueKind.CollectionItemNameList,
-                    CollectionItemNameListValue: new WorkerCollectionItemNameListValue(
+                new WorkerMpInputArgument("Items", WorkerMpValueKind.CollectionItemNameList, new WorkerCollectionItemNameListValue(
                         [new WorkerCollectionItemNameValue(
                             "Collection",
                             "Report",
                             WorkerItemTypeValue.SaReport)])),
-                new WorkerMpInputArgument(
-                    "Object",
-                    WorkerMpValueKind.CollectionObjectName,
-                    CollectionObjectNameValue: new WorkerCollectionObjectNameValue(
+                new WorkerMpInputArgument("Object", WorkerMpValueKind.CollectionObjectName, new WorkerCollectionObjectNameValue(
                         "Collection",
                         "Object",
                         WorkerObjectTypeValue.PointGroup)),
-                new WorkerMpInputArgument(
-                    "Points",
-                    WorkerMpValueKind.PointNameList,
-                    PointNameListValue: new WorkerPointNameListValue(
+                new WorkerMpInputArgument("Points", WorkerMpValueKind.PointNameList, new WorkerPointNameListValue(
                         [new WorkerPointNameValue("Collection", "Group", "Point")])),
-                new WorkerMpInputArgument(
-                    "Strings",
-                    WorkerMpValueKind.StringList,
-                    StringListValue: new WorkerStringListValue([])),
-                new WorkerMpInputArgument(
-                    "Machine",
-                    WorkerMpValueKind.CollectionMachineId,
-                    CollectionMachineIdValue:
-                        new WorkerCollectionMachineIdValue("Collection", 4))
+                new WorkerMpInputArgument("Strings", WorkerMpValueKind.StringList, new WorkerStringListValue([])),
+                new WorkerMpInputArgument("Machine", WorkerMpValueKind.CollectionMachineId, new WorkerCollectionMachineIdValue("Collection", 4))
             ],
             [
                 new WorkerMpOutputArgument(
@@ -1054,34 +1035,13 @@ public sealed class WorkerProcessSupervisorTests
             operationId,
             "Scripted Step",
             [
-                new WorkerMpInputArgument(
-                    "Enabled",
-                    WorkerMpValueKind.Logical,
-                    BooleanValue: true),
-                new WorkerMpInputArgument(
-                    "Count",
-                    WorkerMpValueKind.WholeNumber,
-                    IntegerValue: 2),
-                new WorkerMpInputArgument(
-                    "Tolerance",
-                    WorkerMpValueKind.FloatingPoint,
-                    DoubleValue: 0.01),
-                new WorkerMpInputArgument(
-                    "Label",
-                    WorkerMpValueKind.Text,
-                    StringValue: "portable-test"),
-                new WorkerMpInputArgument(
-                    "Point Name",
-                    WorkerMpValueKind.PointName,
-                    PointNameValue: new WorkerPointNameValue("", "", "")),
-                new WorkerMpInputArgument(
-                    "Direction",
-                    WorkerMpValueKind.Vector,
-                    VectorValue: new WorkerVectorValue(1, 0, 0)),
-                new WorkerMpInputArgument(
-                    "Position Tolerance",
-                    WorkerMpValueKind.ToleranceVectorOptions,
-                    ToleranceVectorOptionsValue: CreateToleranceVectorOptions())
+                new WorkerMpInputArgument("Enabled", WorkerMpValueKind.Logical, new WorkerBooleanValue(true)),
+                new WorkerMpInputArgument("Count", WorkerMpValueKind.WholeNumber, new WorkerIntegerValue(2)),
+                new WorkerMpInputArgument("Tolerance", WorkerMpValueKind.FloatingPoint, new WorkerDoubleValue(0.01)),
+                new WorkerMpInputArgument("Label", WorkerMpValueKind.Text, new WorkerTextValue("portable-test")),
+                new WorkerMpInputArgument("Point Name", WorkerMpValueKind.PointName, new WorkerPointNameValue("", "", "")),
+                new WorkerMpInputArgument("Direction", WorkerMpValueKind.Vector, new WorkerVectorValue(1, 0, 0)),
+                new WorkerMpInputArgument("Position Tolerance", WorkerMpValueKind.ToleranceVectorOptions, CreateToleranceVectorOptions())
             ],
             [
                 new WorkerMpOutputArgument("Enabled Result", WorkerMpValueKind.Logical),

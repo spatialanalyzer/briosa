@@ -88,6 +88,10 @@ public sealed class WaveBOperationCatalogTests
                 exception is null,
                 $"{descriptor.OperationId} could not build a worker command: {exception}");
             Assert.NotNull(command);
+            using var stream = new MemoryStream();
+            using var channel = new WorkerControlChannel(stream);
+            var encodingFailure = Record.Exception(() => channel.Send(WorkerControlMessage.Execute(Guid.NewGuid(), command)));
+            Assert.True(encodingFailure is null, $"{descriptor.OperationId} produced an invalid worker command: {encodingFailure}");
 
             Assert.Equal(descriptor.OperationId, command.OperationId);
             Assert.Equal(descriptor.MpStep, command.StepName);
@@ -165,8 +169,8 @@ public sealed class WaveBOperationCatalogTests
                 argument => argument.Name == "Machine ID");
             Assert.Equal(WorkerMpValueKind.CollectionInstrumentId, input.Kind);
             Assert.Equal("SetColInstIdArg", input.SdkBinding);
-            Assert.Equal(new WorkerCollectionInstrumentIdValue("Robot", 7), input.CollectionInstrumentIdValue);
-            Assert.Null(input.CollectionMachineIdValue);
+            Assert.Equal(new WorkerCollectionInstrumentIdValue("Robot", 7), (input.Value as WorkerCollectionInstrumentIdValue));
+            Assert.Null((input.Value as WorkerCollectionMachineIdValue));
 
             // Field 1 was a CollectionMachineId. It must never be reinterpreted as an instrument.
             var retired = requests[index].Descriptor.Parser.ParseFrom(new byte[] { 10, 5, 10, 1, 67, 16, 7 });
@@ -193,7 +197,7 @@ public sealed class WaveBOperationCatalogTests
         {
             var input = Assert.Single(defaults);
             Assert.Equal(WorkerMpValueKind.EditText, input.Kind);
-            Assert.Empty(input.StringListValue!.Values);
+            Assert.Empty((input.Value as WorkerStringListValue)!.Values);
         }
         var field = request.Descriptor.FindFieldByName(fieldName);
         AddRepeatedValue(request, field, "first line");
@@ -206,7 +210,7 @@ public sealed class WaveBOperationCatalogTests
         var text = Assert.Single(channel.Receive().Command!.InputArguments,
             input => input.SdkBinding == "SetEditTextArg");
         Assert.Equal(WorkerMpValueKind.EditText, text.Kind);
-        Assert.Equal(["first line", "second line"], text.StringListValue!.Values);
+        Assert.Equal(["first line", "second line"], (text.Value as WorkerStringListValue)!.Values);
     }
 
     [Fact]
@@ -242,7 +246,7 @@ public sealed class WaveBOperationCatalogTests
 
         var instrumentType = Assert.Single(command.InputArguments);
         Assert.Equal(WorkerMpValueKind.InstrumentTypeName, instrumentType.Kind);
-        Assert.Equal("PMT Arm 4m 7 dof", instrumentType.StringValue);
+        Assert.Equal("PMT Arm 4m 7 dof", ((instrumentType.Value as WorkerTextValue)?.Value));
         Assert.Throws<ArgumentException>(() => operation.CreateCommand(new Api.AddNewInstrumentRequest
         {
             InstrumentType = new Api.InstrumentTypeName { Value = "Leica ATS800" }
@@ -270,9 +274,8 @@ public sealed class WaveBOperationCatalogTests
             }
         });
 
-        var udp = Assert.Single(command.InputArguments, argument =>
-            argument.Kind == WorkerMpValueKind.UdpTransmitSettings)
-            .UdpTransmitSettingsValue!;
+        var udp = (Assert.Single(command.InputArguments, argument =>
+            argument.Kind == WorkerMpValueKind.UdpTransmitSettings).Value as WorkerUdpTransmitSettingsValue)!;
         Assert.True(udp.Enabled);
         Assert.False(udp.Broadcast);
         Assert.Equal("127.0.0.1", udp.IpAddress);
@@ -300,7 +303,7 @@ public sealed class WaveBOperationCatalogTests
         Assert.Equal(WorkerMpValueKind.CollectionItemName, relationship.Kind);
         Assert.Equal(
             WorkerItemTypeValue.Relationship,
-            relationship.CollectionItemNameValue!.ItemType);
+            (relationship.Value as WorkerCollectionItemNameValue)!.ItemType);
     }
 
     [Fact]

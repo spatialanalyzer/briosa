@@ -14,4 +14,4 @@ public sealed record WorkerBSplineFitOptionsValue(
     double Extension,
     bool UseGlobalTessellationOptions,
     double MaximumChordalDeviation,
-    double MaximumTrimEdgeAngle);
+    double MaximumTrimEdgeAngle) : WorkerMpValue;

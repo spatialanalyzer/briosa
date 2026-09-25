@@ -79,7 +79,7 @@ internal sealed class MpOperationContract
                     output.MpName,
                     output.Kind,
                     output.SdkBinding,
-                    output.ObjectTypeWhenOmitted,
+                    output.Kind == WorkerMpValueKind.CollectionObjectName ? output.ObjectTypeWhenOmitted : null,
                     output.ArraySizeFieldName is null
                         ? null
                         : MpOperationValueMapper.GetRequiredPositiveInt32(

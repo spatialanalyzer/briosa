@@ -21,11 +21,8 @@ internal static class SetRelationshipFitConstraintsScalarTypeOperation
         var relationship = CollectionObjectNameMapper.Required(request.RelationshipName, "relationship_name");
         return new(Descriptor.OperationId, Descriptor.MpStep,
             [
-                new("Relationship Name", WorkerMpValueKind.CollectionObjectName,
-                    CollectionObjectNameValue: relationship, SdkBinding: "SetCollectionObjectNameArg2"),
-                new("Fit Constraint Options", WorkerMpValueKind.FitConstraintScalarOptions,
-                    FitConstraintScalarOptionsValue: FitConstraintScalarOptionsMapper.ToWorker(request.FitConstraintOptions),
-                    SdkBinding: "SetFitConstraintScalarOptionsArg")
+                new WorkerMpInputArgument("Relationship Name", WorkerMpValueKind.CollectionObjectName, relationship, sdkBinding: "SetCollectionObjectNameArg2"),
+                new WorkerMpInputArgument("Fit Constraint Options", WorkerMpValueKind.FitConstraintScalarOptions, FitConstraintScalarOptionsMapper.ToWorker(request.FitConstraintOptions), sdkBinding: "SetFitConstraintScalarOptionsArg")
             ], []);
     }
 

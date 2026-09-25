@@ -65,6 +65,10 @@ public sealed class WaveAOperationCatalogTests
             var request = method.InputType.Parser.ParseFrom(Array.Empty<byte>());
             PopulateRequiredFields(request, operation.Inputs);
             var command = operation.CreateCommand(request);
+            using var stream = new MemoryStream();
+            using var channel = new WorkerControlChannel(stream);
+            var encodingFailure = Record.Exception(() => channel.Send(WorkerControlMessage.Execute(Guid.NewGuid(), command)));
+            Assert.True(encodingFailure is null, $"{descriptor.OperationId} produced an invalid worker command: {encodingFailure}");
 
             Assert.Equal(descriptor.OperationId, command.OperationId);
             Assert.Equal(descriptor.MpStep, command.StepName);
@@ -145,10 +149,10 @@ public sealed class WaveAOperationCatalogTests
         var command = operation.CreateCommand(request);
         var tolerance = Assert.Single(command.InputArguments, value => value.Name == "Angle Tolerance (0.0 for none)");
         Assert.Equal("SetDoubleArg", tolerance.SdkBinding);
-        Assert.Equal(0, tolerance.DoubleValue);
+        Assert.Equal(0, ((tolerance.Value as WorkerDoubleValue)?.Value));
         request.AngleTolerance = 0.25;
-        Assert.Equal(0.25, Assert.Single(operation.CreateCommand(request).InputArguments,
-            value => value.Name == "Angle Tolerance (0.0 for none)").DoubleValue);
+        Assert.Equal(0.25, ((Assert.Single(operation.CreateCommand(request).InputArguments,
+            value => value.Name == "Angle Tolerance (0.0 for none)").Value as WorkerDoubleValue)?.Value));
     }
 
     [Fact]
@@ -160,7 +164,7 @@ public sealed class WaveAOperationCatalogTests
 
         Assert.Equal(
             ExpectedDecimalDigits,
-            command.InputArguments.Select(argument => argument.IntegerValue!.Value));
+            command.InputArguments.Select(argument => ((argument.Value as WorkerIntegerValue)?.Value)!.Value));
     }
 
     private static void PopulateRequiredFields(
