@@ -1,6 +1,7 @@
 using Briosa.Server.Operations.ConstructionOperations;
 using Briosa.Server.Operations.WaveA;
 using Briosa.Server.Operations.Variables;
+using Briosa.Server.Operations.RelationshipOperations;
 using Briosa.Server.Security;
 
 namespace Briosa.Server.Operations;
@@ -21,5 +22,7 @@ internal static class SpatialAnalyzerApi
             GetDoubleVariableOperation.Descriptor,
             SetNamedDoubleListVariableOperation.Descriptor,
             GetNamedDoubleListVariableOperation.Descriptor,
+            GetRelationshipFitConstraintsScalarTypeOperation.Descriptor,
+            SetRelationshipFitConstraintsScalarTypeOperation.Descriptor,
         ];
 }
