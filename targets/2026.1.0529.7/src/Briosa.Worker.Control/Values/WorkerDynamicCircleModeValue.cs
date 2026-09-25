@@ -1,0 +1,3 @@
+namespace Briosa.Worker.Control;
+
+public enum WorkerDynamicCircleModeValue { CylinderPlaneHoldPlaneNormal, CylinderPlaneHoldCylinderAxis, ConePlaneHoldPlaneNormal, ConePlaneHoldConeAxis, SpherePlaneIntersection, TwoConesIntersection, ConeCylinderIntersection }

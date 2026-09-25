@@ -1,0 +1,3 @@
+namespace Briosa.Worker.Control;
+
+public enum WorkerTargetComputationMethodValue { UseMostRecentShotFromEachFace, UseOnlyMostRecentShot, DoNotChangePriorMeasurements, ForceNewPointForEachMeasurement, RemoveAllPriorShots, DeactivateAllPriorShots }

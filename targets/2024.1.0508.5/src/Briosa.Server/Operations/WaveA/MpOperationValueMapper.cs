@@ -566,7 +566,7 @@ internal static class MpOperationValueMapper
             WorkerMpValueKind.FitDegreeOfFreedomOptions when value is Api.FitDofOptions motion =>
                 new WorkerFitDegreeOfFreedomOptionsValue(motion.AllowX, motion.AllowY, motion.AllowZ,
                     motion.AllowRx, motion.AllowRy, motion.AllowRz, motion.RotateAboutCentroid),
-            _ when IsSpecializedEnum(kind) => new WorkerSpecializedEnumValue(Convert.ToInt32(value, CultureInfo.InvariantCulture) - 1),
+            _ when IsSpecializedEnum(kind) => WorkerChoiceFactory.FromOrdinal(kind, Convert.ToInt32(value, CultureInfo.InvariantCulture) - 1),
             _ => throw new ArgumentException($"Field '{contract.FieldName}' does not contain a supported {kind} value.")
         };
         return new(contract.MpName, kind, input, contract.SdkBinding);

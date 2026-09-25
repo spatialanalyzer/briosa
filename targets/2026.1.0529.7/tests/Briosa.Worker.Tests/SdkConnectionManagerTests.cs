@@ -19,10 +19,10 @@ public sealed class SdkConnectionManagerTests
             var started = await manager.StartAsync();
             var attached = await manager.ConnectAsync();
             var rejected = await manager.ExecuteAsync(
-                new SdkCommand("before-verification"));
+                new WorkerMpCommand("before-verification", "before-verification", [], []));
             var verified = await manager.VerifyExecutionAsync();
             var request = await manager.ExecuteAsync(
-                new SdkCommand("connected-operation"));
+                new WorkerMpCommand("connected-operation", "connected-operation", [], []));
 
             Assert.Equal(SdkConnectionState.Disconnected, started.State);
             Assert.Equal("sdk-started", started.DiagnosticCode);
@@ -84,7 +84,7 @@ public sealed class SdkConnectionManagerTests
                 TimeSpan.FromSeconds(2)));
 
             var rejected = await manager.ExecuteAsync(
-                new SdkCommand("while-verifying"));
+                new WorkerMpCommand("while-verifying", "while-verifying", [], []));
             AssertUnavailable(rejected, SdkConnectionState.Connected);
         }
         finally
@@ -122,7 +122,7 @@ public sealed class SdkConnectionManagerTests
         await manager.ConnectAsync();
 
         var connection = await manager.VerifyExecutionAsync();
-        var rejected = await manager.ExecuteAsync(new SdkCommand("after-failed-probe"));
+        var rejected = await manager.ExecuteAsync(new WorkerMpCommand("after-failed-probe", "after-failed-probe", [], []));
 
         Assert.Equal(
             SdkExecutionReadinessState.OperatorRecoveryRequired,
@@ -145,7 +145,7 @@ public sealed class SdkConnectionManagerTests
         {
             await manager.StartAsync();
             AssertUnavailable(
-                await manager.ExecuteAsync(new SdkCommand("while-disconnected")),
+                await manager.ExecuteAsync(new WorkerMpCommand("while-disconnected", "while-disconnected", [], [])),
                 SdkConnectionState.Disconnected);
 
             var connecting = manager.ConnectAsync();
@@ -154,19 +154,19 @@ public sealed class SdkConnectionManagerTests
                     plan.ConnectionCallCount == 1,
                 TimeSpan.FromSeconds(2)));
             AssertUnavailable(
-                await manager.ExecuteAsync(new SdkCommand("while-connecting")),
+                await manager.ExecuteAsync(new WorkerMpCommand("while-connecting", "while-connecting", [], [])),
                 SdkConnectionState.Connecting);
 
             gate.Set();
             var faulted = await connecting;
             Assert.Equal(SdkConnectionState.Faulted, faulted.State);
             AssertUnavailable(
-                await manager.ExecuteAsync(new SdkCommand("while-faulted")),
+                await manager.ExecuteAsync(new WorkerMpCommand("while-faulted", "while-faulted", [], [])),
                 SdkConnectionState.Faulted);
 
             await manager.DisposeAsync();
             AssertUnavailable(
-                await manager.ExecuteAsync(new SdkCommand("while-stopping")),
+                await manager.ExecuteAsync(new WorkerMpCommand("while-stopping", "while-stopping", [], [])),
                 SdkConnectionState.Stopping);
             Assert.Empty(plan.Events);
         }

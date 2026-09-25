@@ -83,7 +83,7 @@ internal static class WorkerControlHost
     private static async Task<WorkerControlMessage> ExecuteAsync(
         SdkConnectionManager connectionOwner, WorkerControlMessage message)
     {
-        var request = await connectionOwner.ExecuteAsync(SdkCommandMapper.CreateCommand(message.Command!))
+        var request = await connectionOwner.ExecuteAsync(message.Command!)
             .ConfigureAwait(false);
         var response = new WorkerExecutionResponse(
             request.Status == SdkRequestStatus.Completed

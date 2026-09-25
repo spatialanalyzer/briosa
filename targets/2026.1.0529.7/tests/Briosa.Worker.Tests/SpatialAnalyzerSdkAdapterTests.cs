@@ -15,14 +15,11 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
     {
         using var calls = new RecordingSdkCalls();
         using var adapter = new SpatialAnalyzerSdkAdapter(calls);
-        var command = new SdkCommand(
+        var command = new WorkerMpCommand(
             "get-point-properties",
             "Get Point Properties",
             [
-                new SdkInputArgument(
-                    "Point Name",
-                    WorkerMpValueKind.PointName,
-                    PointNameValue: new WorkerPointNameValue("", "", ""))
+                new WorkerMpInputArgument("Point Name", WorkerMpValueKind.PointName, new WorkerPointNameValue("", "", ""))
             ],
             [
                 new WorkerMpOutputArgument("Planar Offset", WorkerMpValueKind.FloatingPoint),
@@ -71,7 +68,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             MpResultCode = resultCode
         };
         using var adapter = new SpatialAnalyzerSdkAdapter(calls);
-        var command = new SdkCommand(
+        var command = new WorkerMpCommand(
             "failed-operation",
             "Failed Operation",
             inputArguments: [],
@@ -95,7 +92,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
     {
         using var calls = new RecordingSdkCalls { MpResultRetrieved = false };
         using var adapter = new SpatialAnalyzerSdkAdapter(calls);
-        var command = new SdkCommand(
+        var command = new WorkerMpCommand(
             "result-retrieval-failure",
             "Result Retrieval Failure",
             inputArguments: [],
@@ -120,7 +117,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
     {
         using var calls = new RecordingSdkCalls { ExecuteStepReturned = false };
         using var adapter = new SpatialAnalyzerSdkAdapter(calls);
-        var command = new SdkCommand(
+        var command = new WorkerMpCommand(
             "execute-rejected",
             "Execute Rejected",
             inputArguments: [],
@@ -146,7 +143,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             FailedOutputName = "Result"
         };
         using var adapter = new SpatialAnalyzerSdkAdapter(calls);
-        var command = new SdkCommand(
+        var command = new WorkerMpCommand(
             "output-failure",
             "Output Failure",
             inputArguments: [],
@@ -164,29 +161,29 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
     {
         using var calls = new RecordingSdkCalls();
         using var adapter = new SpatialAnalyzerSdkAdapter(calls);
-        var command = new SdkCommand(
+        var command = new WorkerMpCommand(
             "identity-reference-values",
             "Identity Reference Values",
             [
-                new("Chart", WorkerMpValueKind.ChartName, StringValue: "Chart A", SdkBinding: "SetChartNameArg"),
-                new("Cloud", WorkerMpValueKind.CloudName, StringValue: "Cloud A", SdkBinding: "SetCloudNameArg"),
-                new("Instrument", WorkerMpValueKind.CollectionInstrumentId, CollectionInstrumentIdValue: new("Collection", 17), SdkBinding: "SetColInstIdArg"),
-                new("Instruments", WorkerMpValueKind.CollectionInstrumentIdList, CollectionInstrumentIdListValue: new([new("Collection", 17)]), SdkBinding: "SetColInstIdRefListArg"),
-                new("Machine", WorkerMpValueKind.CollectionMachineId, CollectionMachineIdValue: new("Collection", 4), SdkBinding: "SetColMachineIdArg"),
-                new("Groups", WorkerMpValueKind.CollectionGroupNameList, CollectionGroupNameListValue: new([new("Collection", "Group")]), SdkBinding: "SetCollectionGroupNameRefListArg"),
-                new("Collection", WorkerMpValueKind.CollectionName, StringValue: "Collection", SdkBinding: "SetCollectionNameArg"),
-                new("Item", WorkerMpValueKind.CollectionItemName, CollectionItemNameValue: new("Collection", "Picture", WorkerItemTypeValue.Picture), SdkBinding: "SetCollectionObjectNameArg2"),
-                new("Items", WorkerMpValueKind.CollectionItemNameList, CollectionItemNameListValue: new([new("Collection", "Report", WorkerItemTypeValue.SaReport)]), SdkBinding: "SetCollectionObjectNameRefListArg"),
-                new("Object", WorkerMpValueKind.CollectionObjectName, CollectionObjectNameValue: new("Collection", "Object", WorkerObjectTypeValue.PointGroup), SdkBinding: "SetCollectionObjectNameArg2"),
-                new("Objects", WorkerMpValueKind.CollectionObjectNameList, CollectionObjectNameListValue: new([new("Collection", "Object", WorkerObjectTypeValue.PointGroup)]), SdkBinding: "SetCollectionObjectNameRefListArg"),
-                new("Vector Group", WorkerMpValueKind.CollectionVectorGroupName, CollectionVectorGroupNameValue: new("Collection", "Vectors"), SdkBinding: "SetColVectorGroupNameArg"),
-                new("Vector Groups", WorkerMpValueKind.CollectionVectorGroupNameList, CollectionVectorGroupNameListValue: new([new("Collection", "Vectors")]), SdkBinding: "SetCollectionVectorGroupNameRefListArg"),
-                new("Frame", WorkerMpValueKind.FrameName, StringValue: "Frame A", SdkBinding: "SetFrameNameArg"),
-                new("Points", WorkerMpValueKind.PointNameList, PointNameListValue: new([new("Collection", "Group", "Point")]), SdkBinding: "SetPointNameRefListArg"),
-                new("Strings", WorkerMpValueKind.StringList, StringListValue: new(["A", "B"]), SdkBinding: "SetStringRefListArg"),
-                new("Vector Group Name", WorkerMpValueKind.VectorGroupName, StringValue: "Vectors", SdkBinding: "SetVectorGroupNameArg"),
-                new("Vectors", WorkerMpValueKind.VectorNameList, VectorNameListValue: new([new("Collection", "Vectors", "Vector")]), SdkBinding: "SetVectorNameRefListArg"),
-                new("View", WorkerMpValueKind.ViewName, StringValue: "View A", SdkBinding: "SetViewNameArg")
+                new WorkerMpInputArgument("Chart", WorkerMpValueKind.ChartName, new WorkerTextValue("Chart A"), sdkBinding: "SetChartNameArg"),
+                new WorkerMpInputArgument("Cloud", WorkerMpValueKind.CloudName, new WorkerTextValue("Cloud A"), sdkBinding: "SetCloudNameArg"),
+                new WorkerMpInputArgument("Instrument", WorkerMpValueKind.CollectionInstrumentId, new WorkerCollectionInstrumentIdValue("Collection", 17), sdkBinding: "SetColInstIdArg"),
+                new WorkerMpInputArgument("Instruments", WorkerMpValueKind.CollectionInstrumentIdList, new WorkerCollectionInstrumentIdListValue([new("Collection", 17)]), sdkBinding: "SetColInstIdRefListArg"),
+                new WorkerMpInputArgument("Machine", WorkerMpValueKind.CollectionMachineId, new WorkerCollectionMachineIdValue("Collection", 4), sdkBinding: "SetColMachineIdArg"),
+                new WorkerMpInputArgument("Groups", WorkerMpValueKind.CollectionGroupNameList, new WorkerCollectionGroupNameListValue([new("Collection", "Group")]), sdkBinding: "SetCollectionGroupNameRefListArg"),
+                new WorkerMpInputArgument("Collection", WorkerMpValueKind.CollectionName, new WorkerTextValue("Collection"), sdkBinding: "SetCollectionNameArg"),
+                new WorkerMpInputArgument("Item", WorkerMpValueKind.CollectionItemName, new WorkerCollectionItemNameValue("Collection", "Picture", WorkerItemTypeValue.Picture), sdkBinding: "SetCollectionObjectNameArg2"),
+                new WorkerMpInputArgument("Items", WorkerMpValueKind.CollectionItemNameList, new WorkerCollectionItemNameListValue([new("Collection", "Report", WorkerItemTypeValue.SaReport)]), sdkBinding: "SetCollectionObjectNameRefListArg"),
+                new WorkerMpInputArgument("Object", WorkerMpValueKind.CollectionObjectName, new WorkerCollectionObjectNameValue("Collection", "Object", WorkerObjectTypeValue.PointGroup), sdkBinding: "SetCollectionObjectNameArg2"),
+                new WorkerMpInputArgument("Objects", WorkerMpValueKind.CollectionObjectNameList, new WorkerCollectionObjectNameListValue([new("Collection", "Object", WorkerObjectTypeValue.PointGroup)]), sdkBinding: "SetCollectionObjectNameRefListArg"),
+                new WorkerMpInputArgument("Vector Group", WorkerMpValueKind.CollectionVectorGroupName, new WorkerCollectionVectorGroupNameValue("Collection", "Vectors"), sdkBinding: "SetColVectorGroupNameArg"),
+                new WorkerMpInputArgument("Vector Groups", WorkerMpValueKind.CollectionVectorGroupNameList, new WorkerCollectionVectorGroupNameListValue([new("Collection", "Vectors")]), sdkBinding: "SetCollectionVectorGroupNameRefListArg"),
+                new WorkerMpInputArgument("Frame", WorkerMpValueKind.FrameName, new WorkerTextValue("Frame A"), sdkBinding: "SetFrameNameArg"),
+                new WorkerMpInputArgument("Points", WorkerMpValueKind.PointNameList, new WorkerPointNameListValue([new("Collection", "Group", "Point")]), sdkBinding: "SetPointNameRefListArg"),
+                new WorkerMpInputArgument("Strings", WorkerMpValueKind.StringList, new WorkerStringListValue(["A", "B"]), sdkBinding: "SetStringRefListArg"),
+                new WorkerMpInputArgument("Vector Group Name", WorkerMpValueKind.VectorGroupName, new WorkerTextValue("Vectors"), sdkBinding: "SetVectorGroupNameArg"),
+                new WorkerMpInputArgument("Vectors", WorkerMpValueKind.VectorNameList, new WorkerVectorNameListValue([new("Collection", "Vectors", "Vector")]), sdkBinding: "SetVectorNameRefListArg"),
+                new WorkerMpInputArgument("View", WorkerMpValueKind.ViewName, new WorkerTextValue("View A"), sdkBinding: "SetViewNameArg")
             ],
             [
                 new("Instrument Result", WorkerMpValueKind.CollectionInstrumentId, "GetColInstIdArg"),
@@ -233,7 +230,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
     {
         using var calls = new RecordingSdkCalls { MalformedOutputName = "Points" };
         using var adapter = new SpatialAnalyzerSdkAdapter(calls);
-        var command = new SdkCommand(
+        var command = new WorkerMpCommand(
             "malformed-list",
             "Malformed List",
             [],
@@ -252,7 +249,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
     {
         using var calls = new RecordingSdkCalls { MalformedOutputName = "Object" };
         using var adapter = new SpatialAnalyzerSdkAdapter(calls);
-        var command = new SdkCommand(
+        var command = new WorkerMpCommand(
             "malformed-object",
             "Malformed Object",
             [],
@@ -276,7 +273,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
     {
         using var calls = new RecordingSdkCalls { FailedOutputName = "Object" };
         using var adapter = new SpatialAnalyzerSdkAdapter(calls);
-        var command = new SdkCommand(
+        var command = new WorkerMpCommand(
             "rejected-object-getter",
             "Rejected Object Getter",
             [],
@@ -298,7 +295,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
     {
         using var calls = new RecordingSdkCalls { MalformedOutputName = "Object" };
         using var adapter = new SpatialAnalyzerSdkAdapter(calls);
-        var command = new SdkCommand(
+        var command = new WorkerMpCommand(
             "object-type-omitted",
             "Object Type Omitted",
             [],
@@ -323,7 +320,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
     {
         using var calls = new RecordingSdkCalls();
         using var adapter = new SpatialAnalyzerSdkAdapter(calls);
-        var command = new SdkCommand(
+        var command = new WorkerMpCommand(
             "unknown-collection-types",
             "Unknown Collection Types",
             [],
@@ -345,14 +342,10 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
     {
         using var calls = new RecordingSdkCalls();
         using var adapter = new SpatialAnalyzerSdkAdapter(calls);
-        var command = new SdkCommand(
+        var command = new WorkerMpCommand(
             "ambiguous-reference",
             "Ambiguous Reference",
-            [new SdkInputArgument(
-                "Points",
-                WorkerMpValueKind.PointNameList,
-                PointNameListValue: new([new("Collection", "Group", "Point::Suffix")]),
-                SdkBinding: "SetPointNameRefListArg")],
+            [new WorkerMpInputArgument("Points", WorkerMpValueKind.PointNameList, new WorkerPointNameListValue([new("Collection", "Group", "Point::Suffix")]), sdkBinding: "SetPointNameRefListArg")],
             []);
 
         var result = adapter.Execute(command);
@@ -367,14 +360,10 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
     {
         using var calls = new RecordingSdkCalls();
         using var adapter = new SpatialAnalyzerSdkAdapter(calls);
-        var command = new SdkCommand(
+        var command = new WorkerMpCommand(
             "wrong-binding",
             "Wrong Binding",
-            [new SdkInputArgument(
-                "Chart",
-                WorkerMpValueKind.ChartName,
-                StringValue: "Chart A",
-                SdkBinding: "SetStringArg")],
+            [new WorkerMpInputArgument("Chart", WorkerMpValueKind.ChartName, new WorkerTextValue("Chart A"), sdkBinding: "SetStringArg")],
             []);
 
         var result = adapter.Execute(command);
@@ -390,40 +379,20 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         using var calls = new RecordingSdkCalls();
         using var adapter = new SpatialAnalyzerSdkAdapter(calls);
         var transform = Enumerable.Range(0, 16).Select(value => (double)value).ToArray();
-        var command = new SdkCommand(
+        var command = new WorkerMpCommand(
             "container-values",
             "Container Values",
             [
-                new("Array", WorkerMpValueKind.DoubleArray,
-                    DoubleArrayValue: new([]),
-                    SdkBinding: "SetDoubleArrayArg"),
-                new("Edit", WorkerMpValueKind.EditText,
-                    StringListValue: new([]),
-                    SdkBinding: "SetEditTextArg"),
-                new("Transform", WorkerMpValueKind.Transform,
-                    TransformValue: new(transform),
-                    SdkBinding: "SetTransformArg"),
-                new("World", WorkerMpValueKind.WorldTransform,
-                    WorldTransformValue: new(new(transform), 0),
-                    SdkBinding: "SetWorldTransformArg"),
-                new("Color", WorkerMpValueKind.RgbColor,
-                    RgbColorValue: new(0, 127, 255),
-                    SdkBinding: "SetColorArg"),
-                new("File", WorkerMpValueKind.FileReference,
-                    FileReferenceValue: new("", false),
-                    SdkBinding: "SetFilePathArg"),
-                new("Angle", WorkerMpValueKind.AngularUnit,
-                    AngularUnitValue: WorkerAngularUnitValue.DegreesMinutesSeconds,
-                    SdkBinding: "SetAngularUnitsArg"),
-                new("Distance", WorkerMpValueKind.DistanceUnit,
-                    DistanceUnitValue: WorkerDistanceUnitValue.UsSurveyFeet,
-                    SdkBinding: "SetDistanceUnitsArg"),
-                new("Temperature", WorkerMpValueKind.TemperatureUnit,
-                    TemperatureUnitValue: WorkerTemperatureUnitValue.Celsius,
-                    SdkBinding: "SetTemperatureUnitsArg"),
-                new("Font", WorkerMpValueKind.Font,
-                    FontValue: new("Segoe UI", 12, new(10, 20, 30)),
-                    SdkBinding: "SetFontTypeArg")
+                new WorkerMpInputArgument("Array", WorkerMpValueKind.DoubleArray, new WorkerDoubleArrayValue([]), sdkBinding: "SetDoubleArrayArg"),
+                new WorkerMpInputArgument("Edit", WorkerMpValueKind.EditText, new WorkerStringListValue([]), sdkBinding: "SetEditTextArg"),
+                new WorkerMpInputArgument("Transform", WorkerMpValueKind.Transform, new WorkerTransformValue(transform), sdkBinding: "SetTransformArg"),
+                new WorkerMpInputArgument("World", WorkerMpValueKind.WorldTransform, new WorkerWorldTransformValue(new(transform), 0), sdkBinding: "SetWorldTransformArg"),
+                new WorkerMpInputArgument("Color", WorkerMpValueKind.RgbColor, new WorkerRgbColorValue(0, 127, 255), sdkBinding: "SetColorArg"),
+                new WorkerMpInputArgument("File", WorkerMpValueKind.FileReference, new WorkerFileReferenceValue("", false), sdkBinding: "SetFilePathArg"),
+                new WorkerMpInputArgument("Angle", WorkerMpValueKind.AngularUnit, new WorkerAngularUnitChoice(WorkerAngularUnitValue.DegreesMinutesSeconds), sdkBinding: "SetAngularUnitsArg"),
+                new WorkerMpInputArgument("Distance", WorkerMpValueKind.DistanceUnit, new WorkerDistanceUnitChoice(WorkerDistanceUnitValue.UsSurveyFeet), sdkBinding: "SetDistanceUnitsArg"),
+                new WorkerMpInputArgument("Temperature", WorkerMpValueKind.TemperatureUnit, new WorkerTemperatureUnitChoice(WorkerTemperatureUnitValue.Celsius), sdkBinding: "SetTemperatureUnitsArg"),
+                new WorkerMpInputArgument("Font", WorkerMpValueKind.Font, new WorkerFontValue("Segoe UI", 12, new(10, 20, 30)), sdkBinding: "SetFontTypeArg")
             ],
             [
                 new("Array Result", WorkerMpValueKind.DoubleArray, "GetDoubleArrayArg", ArraySize: 3),
@@ -471,7 +440,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         var kind = Enum.Parse<WorkerMpValueKind>(kindName);
         using var calls = new RecordingSdkCalls { MalformedOutputName = "Result" };
         using var adapter = new SpatialAnalyzerSdkAdapter(calls);
-        var command = new SdkCommand(
+        var command = new WorkerMpCommand(
             "malformed-container",
             "Malformed Container",
             [],
@@ -496,7 +465,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
     {
         using var calls = new RecordingSdkCalls { FailedOutputName = "Result" };
         using var adapter = new SpatialAnalyzerSdkAdapter(calls);
-        var command = new SdkCommand(
+        var command = new WorkerMpCommand(
             "failed-container-getter",
             "Failed Container Getter",
             [],
@@ -522,14 +491,10 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
     {
         using var calls = new RecordingSdkCalls();
         using var adapter = new SpatialAnalyzerSdkAdapter(calls);
-        var command = new SdkCommand(
+        var command = new WorkerMpCommand(
             "bad-transform",
             "Bad Transform",
-            [new SdkInputArgument(
-                "Transform",
-                WorkerMpValueKind.Transform,
-                TransformValue: new([1d, 2d]),
-                SdkBinding: "SetTransformArg")],
+            [new WorkerMpInputArgument("Transform", WorkerMpValueKind.Transform, new WorkerTransformValue([1d, 2d]), sdkBinding: "SetTransformArg")],
             []);
 
         var result = adapter.Execute(command);

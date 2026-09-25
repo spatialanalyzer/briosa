@@ -16,7 +16,7 @@ internal sealed class SdkConnectionManager : IAsyncDisposable
     internal const string VerificationOutputName = "Directory";
     internal const string VerificationOutputBinding = "GetStringArg";
 
-    private static readonly SdkCommand VerificationCommand = new(
+    private static readonly WorkerMpCommand VerificationCommand = new(
         VerificationOperationId,
         VerificationStepName,
         inputArguments: [],
@@ -365,7 +365,7 @@ internal sealed class SdkConnectionManager : IAsyncDisposable
     }
 
     public async Task<SdkRequestResult> ExecuteAsync(
-        SdkCommand command,
+        WorkerMpCommand command,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);

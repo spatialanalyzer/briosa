@@ -54,7 +54,7 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
                 "connect-ex-unavailable");
     }
 
-    public WorkerMpExecutionResult Execute(SdkCommand command)
+    public WorkerMpExecutionResult Execute(WorkerMpCommand command)
     {
         ArgumentNullException.ThrowIfNull(command);
         ObjectDisposedException.ThrowIf(_sdk is null, this);
@@ -119,38 +119,38 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
         }
     }
 
-    private static bool SetInputArgument(ISpatialAnalyzerSdkCalls sdk, SdkInputArgument argument) =>
+    private static bool SetInputArgument(ISpatialAnalyzerSdkCalls sdk, WorkerMpInputArgument argument) =>
         HasExpectedBinding(argument.SdkBinding, ExpectedSetter(argument.Kind)) && argument.Kind switch
         {
-            WorkerMpValueKind.Logical when argument.BooleanValue is { } value =>
+            WorkerMpValueKind.Logical when argument.Value is WorkerBooleanValue { Value: var value } =>
                 sdk.SetBoolArg(argument.Name, value),
-            WorkerMpValueKind.WholeNumber when argument.IntegerValue is { } value =>
+            WorkerMpValueKind.WholeNumber when argument.Value is WorkerIntegerValue { Value: var value } =>
                 sdk.SetIntegerArg(argument.Name, value),
-            WorkerMpValueKind.FloatingPoint when argument.DoubleValue is { } value =>
+            WorkerMpValueKind.FloatingPoint when argument.Value is WorkerDoubleValue { Value: var value } =>
                 sdk.SetDoubleArg(argument.Name, value),
-            WorkerMpValueKind.Text when argument.StringValue is { } value =>
+            WorkerMpValueKind.Text when argument.Value is WorkerTextValue { Value: var value } =>
                 sdk.SetStringArg(argument.Name, value),
-            WorkerMpValueKind.InstrumentTypeName when argument.StringValue is { } value =>
+            WorkerMpValueKind.InstrumentTypeName when argument.Value is WorkerTextValue { Value: var value } =>
                 sdk.SetInstTypeNameArg(argument.Name, value),
-            WorkerMpValueKind.DoubleArray when argument.DoubleArrayValue is { } value =>
+            WorkerMpValueKind.DoubleArray when argument.Value is WorkerDoubleArrayValue value =>
                 SetDoubleArray(sdk, argument.Name, value),
-            WorkerMpValueKind.EditText when argument.StringListValue is { } value =>
+            WorkerMpValueKind.EditText when argument.Value is WorkerStringListValue value =>
                 SetEditText(sdk, argument.Name, value),
-            WorkerMpValueKind.Transform when argument.TransformValue is { } value =>
+            WorkerMpValueKind.Transform when argument.Value is WorkerTransformValue value =>
                 SetTransform(sdk, argument.Name, value),
-            WorkerMpValueKind.WorldTransform when argument.WorldTransformValue is { } value =>
+            WorkerMpValueKind.WorldTransform when argument.Value is WorkerWorldTransformValue value =>
                 SetWorldTransform(sdk, argument.Name, value),
-            WorkerMpValueKind.RgbColor when argument.RgbColorValue is { } value =>
+            WorkerMpValueKind.RgbColor when argument.Value is WorkerRgbColorValue value =>
                 sdk.SetColorArg(argument.Name, value.Red, value.Green, value.Blue),
-            WorkerMpValueKind.FileReference when argument.FileReferenceValue is { } value =>
+            WorkerMpValueKind.FileReference when argument.Value is WorkerFileReferenceValue value =>
                 sdk.SetFilePathArg(argument.Name, value.Path, value.EmbeddedFile),
-            WorkerMpValueKind.AngularUnit when argument.AngularUnitValue is { } value =>
+            WorkerMpValueKind.AngularUnit when argument.Value is WorkerAngularUnitChoice { Value: var value } =>
                 SetAngularUnit(sdk, argument.Name, value),
-            WorkerMpValueKind.DistanceUnit when argument.DistanceUnitValue is { } value =>
+            WorkerMpValueKind.DistanceUnit when argument.Value is WorkerDistanceUnitChoice { Value: var value } =>
                 SetDistanceUnit(sdk, argument.Name, value),
-            WorkerMpValueKind.TemperatureUnit when argument.TemperatureUnitValue is { } value =>
+            WorkerMpValueKind.TemperatureUnit when argument.Value is WorkerTemperatureUnitChoice { Value: var value } =>
                 SetTemperatureUnit(sdk, argument.Name, value),
-            WorkerMpValueKind.Font when argument.FontValue is { } value =>
+            WorkerMpValueKind.Font when argument.Value is WorkerFontValue value =>
                 sdk.SetFontTypeArg(
                     argument.Name,
                     value.FontName,
@@ -158,75 +158,75 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
                     value.Color.Red,
                     value.Color.Green,
                     value.Color.Blue),
-            WorkerMpValueKind.ChartName when argument.StringValue is { } value =>
+            WorkerMpValueKind.ChartName when argument.Value is WorkerTextValue { Value: var value } =>
                 sdk.SetChartNameArg(argument.Name, value),
-            WorkerMpValueKind.CloudName when argument.StringValue is { } value =>
+            WorkerMpValueKind.CloudName when argument.Value is WorkerTextValue { Value: var value } =>
                 sdk.SetCloudNameArg(argument.Name, value),
-            WorkerMpValueKind.CollectionName when argument.StringValue is { } value =>
+            WorkerMpValueKind.CollectionName when argument.Value is WorkerTextValue { Value: var value } =>
                 sdk.SetCollectionNameArg(argument.Name, value),
-            WorkerMpValueKind.FrameName when argument.StringValue is { } value =>
+            WorkerMpValueKind.FrameName when argument.Value is WorkerTextValue { Value: var value } =>
                 sdk.SetFrameNameArg(argument.Name, value),
-            WorkerMpValueKind.VectorGroupName when argument.StringValue is { } value =>
+            WorkerMpValueKind.VectorGroupName when argument.Value is WorkerTextValue { Value: var value } =>
                 sdk.SetVectorGroupNameArg(argument.Name, value),
-            WorkerMpValueKind.ViewName when argument.StringValue is { } value =>
+            WorkerMpValueKind.ViewName when argument.Value is WorkerTextValue { Value: var value } =>
                 sdk.SetViewNameArg(argument.Name, value),
-            WorkerMpValueKind.PointName when argument.PointNameValue is { } value =>
+            WorkerMpValueKind.PointName when argument.Value is WorkerPointNameValue value =>
                 sdk.SetPointNameArg(
                     argument.Name,
                     value.CollectionName,
                     value.GroupName,
                     value.TargetName),
-            WorkerMpValueKind.Vector when argument.VectorValue is { } value =>
+            WorkerMpValueKind.Vector when argument.Value is WorkerVectorValue value =>
                 sdk.SetVectorArg(argument.Name, value.X, value.Y, value.Z),
             WorkerMpValueKind.ToleranceVectorOptions
-                when argument.ToleranceVectorOptionsValue is { } value =>
+                when argument.Value is WorkerToleranceVectorOptionsValue value =>
                 SetToleranceVectorOptions(sdk, argument.Name, value),
             WorkerMpValueKind.CollectionInstrumentId
-                when argument.CollectionInstrumentIdValue is { } value =>
+                when argument.Value is WorkerCollectionInstrumentIdValue value =>
                 sdk.SetColInstIdArg(argument.Name, value.CollectionName, value.InstrumentId),
             WorkerMpValueKind.CollectionInstrumentIdList
-                when argument.CollectionInstrumentIdListValue is { } value =>
+                when argument.Value is WorkerCollectionInstrumentIdListValue value =>
                 SetCollectionInstrumentIdList(sdk, argument.Name, value),
             WorkerMpValueKind.CollectionMachineId
-                when argument.CollectionMachineIdValue is { } value =>
+                when argument.Value is WorkerCollectionMachineIdValue value =>
                 sdk.SetColMachineIdArg(argument.Name, value.CollectionName, value.MachineId),
             WorkerMpValueKind.CollectionItemName
-                when argument.CollectionItemNameValue is { } value =>
+                when argument.Value is WorkerCollectionItemNameValue value =>
                 sdk.SetCollectionObjectNameArg2(
                     argument.Name,
                     value.CollectionName,
                     value.ItemName,
                     SdkSpecializedValueCodec.ToSdkString(value.ItemType)),
             WorkerMpValueKind.CollectionItemNameList
-                when argument.CollectionItemNameListValue is { } value =>
+                when argument.Value is WorkerCollectionItemNameListValue value =>
                 SetCollectionItemNameList(sdk, argument.Name, value),
             WorkerMpValueKind.CollectionObjectName
-                when argument.CollectionObjectNameValue is { } value =>
+                when argument.Value is WorkerCollectionObjectNameValue value =>
                 sdk.SetCollectionObjectNameArg2(
                     argument.Name,
                     value.CollectionName,
                     value.ObjectName,
                     SdkSpecializedValueCodec.ToSdkString(value.ObjectType)),
             WorkerMpValueKind.CollectionObjectNameList
-                when argument.CollectionObjectNameListValue is { } value =>
+                when argument.Value is WorkerCollectionObjectNameListValue value =>
                 SetCollectionObjectNameList(sdk, argument.Name, value),
             WorkerMpValueKind.CollectionGroupNameList
-                when argument.CollectionGroupNameListValue is { } value =>
+                when argument.Value is WorkerCollectionGroupNameListValue value =>
                 SetCollectionGroupNameList(sdk, argument.Name, value),
             WorkerMpValueKind.CollectionVectorGroupName
-                when argument.CollectionVectorGroupNameValue is { } value =>
+                when argument.Value is WorkerCollectionVectorGroupNameValue value =>
                 sdk.SetColVectorGroupNameArg(
                     argument.Name,
                     value.CollectionName,
                     value.VectorGroupName),
             WorkerMpValueKind.CollectionVectorGroupNameList
-                when argument.CollectionVectorGroupNameListValue is { } value =>
+                when argument.Value is WorkerCollectionVectorGroupNameListValue value =>
                 SetCollectionVectorGroupNameList(sdk, argument.Name, value),
-            WorkerMpValueKind.PointNameList when argument.PointNameListValue is { } value =>
+            WorkerMpValueKind.PointNameList when argument.Value is WorkerPointNameListValue value =>
                 SetPointNameList(sdk, argument.Name, value),
-            WorkerMpValueKind.StringList when argument.StringListValue is { } value =>
+            WorkerMpValueKind.StringList when argument.Value is WorkerStringListValue value =>
                 SetStringList(sdk, argument.Name, value),
-            WorkerMpValueKind.VectorNameList when argument.VectorNameListValue is { } value =>
+            WorkerMpValueKind.VectorNameList when argument.Value is WorkerVectorNameListValue value =>
                 SetVectorNameList(sdk, argument.Name, value),
             _ => SetSpecializedInputArgument(sdk, argument)
         };

@@ -49,13 +49,13 @@ public sealed class SdkHarnessTests
             .Then(ScriptedExecution.Success());
         await using var executor = new SerializedSdkExecutor(plan.CreateSdk);
 
-        var first = executor.ExecuteAsync(new SdkCommand("first"));
+        var first = executor.ExecuteAsync(new WorkerMpCommand("first", "first", [], []));
         Assert.True(
             SpinWait.SpinUntil(
                 () => plan.Events.Any(item => item.OperationId == "first"),
                 TimeSpan.FromSeconds(2)));
 
-        var second = executor.ExecuteAsync(new SdkCommand("second"));
+        var second = executor.ExecuteAsync(new WorkerMpCommand("second", "second", [], []));
 
         Assert.False(second.IsCompleted);
         Assert.DoesNotContain(plan.Events, item => item.OperationId == "second");
@@ -84,8 +84,8 @@ public sealed class SdkHarnessTests
             () => new ScriptedWorkerEndpoint(plans.Dequeue()),
             TimeSpan.FromMilliseconds(100));
 
-        var timedOut = await supervisor.ExecuteAsync(new SdkCommand("hang"));
-        var recovered = await supervisor.ExecuteAsync(new SdkCommand("after-hang"));
+        var timedOut = await supervisor.ExecuteAsync(new WorkerMpCommand("hang", "hang", [], []));
+        var recovered = await supervisor.ExecuteAsync(new WorkerMpCommand("after-hang", "after-hang", [], []));
 
         Assert.Equal(SupervisedExecutionStatus.WatchdogTimeout, timedOut.Status);
         Assert.Null(timedOut.Execution);
@@ -106,8 +106,8 @@ public sealed class SdkHarnessTests
             () => new ScriptedWorkerEndpoint(plans.Dequeue()),
             TimeSpan.FromSeconds(2));
 
-        var crashed = await supervisor.ExecuteAsync(new SdkCommand("crash"));
-        var recovered = await supervisor.ExecuteAsync(new SdkCommand("after-crash"));
+        var crashed = await supervisor.ExecuteAsync(new WorkerMpCommand("crash", "crash", [], []));
+        var recovered = await supervisor.ExecuteAsync(new WorkerMpCommand("after-crash", "after-crash", [], []));
 
         Assert.Equal(SupervisedExecutionStatus.WorkerCrash, crashed.Status);
         Assert.Null(crashed.Execution);

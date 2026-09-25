@@ -249,3 +249,22 @@ All 1,050 Debug portable tests passed across both products: 545 for 2024 and
 505 for 2026. Coverage includes serialized catalog commands, option field
 positions, malformed input payloads, generated clients, and fake worker lifecycle
 behavior. Public RPC messages are unchanged by this private protocol migration.
+
+## Shared SDK Inputs and Typed Choices (Private Protocol 22)
+
+The worker now passes its immutable command and values directly to the SDK STA.
+`SdkCommand`, the sparse `SdkInputArgument`, duplicate option records, and the
+conversion layer are removed. SDK marshalling and exact literal conversion stay
+inside the worker. Each target owns its own shared contracts and enum definitions.
+
+Specialized choices now carry their concrete enum type through generated private
+serialization. A value from a different choice family is rejected at construction;
+unknown and reserved enum values are rejected before transport. The legacy
+interpreter's ordinal conversion is isolated in `WorkerChoiceFactory` until those
+operations are replaced by typed mappings. The 2024 enum differences remain intact.
+
+Validation passed 1,050 portable tests across both products, followed by both full
+worker suites (216 and 199 tests) with expanded enum round-trip coverage and a new
+STA command-identity test. The adapter receives the original owned command and
+list value without a conversion copy. This is an allocation removal established
+by code and ownership tests, not a measured end-to-end speedup.

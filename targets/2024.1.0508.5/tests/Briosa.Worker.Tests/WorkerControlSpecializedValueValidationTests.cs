@@ -15,7 +15,7 @@ public sealed class WorkerControlSpecializedValueValidationTests
                 "specialized-values",
                 "Specialized Values",
                 [
-                    new WorkerMpInputArgument("Render", WorkerMpValueKind.RenderModeType, new WorkerSpecializedEnumValue(2)),
+                    new WorkerMpInputArgument("Render", WorkerMpValueKind.RenderModeType, WorkerChoiceFactory.FromOrdinal(WorkerMpValueKind.RenderModeType, 2)),
                     new WorkerMpInputArgument("Filter", WorkerMpValueKind.AutoFilterProximitySettings, new WorkerAutoFilterProximitySettingsValue(
                             1, 2, 3, 4, 5, 6,
                             SurfaceProximityMode: 0,
@@ -55,7 +55,7 @@ public sealed class WorkerControlSpecializedValueValidationTests
 
         var inputs = receiver.Receive().Command!.InputArguments;
 
-        Assert.Equal(2, (inputs[0].Value as WorkerSpecializedEnumValue)!.Value);
+        Assert.Equal(WorkerRenderModeTypeValue.SolidAndEdges, inputs[0].RequireValue<WorkerChoiceValue<WorkerRenderModeTypeValue>>().Value);
         Assert.Equal(2, (inputs[1].Value as WorkerAutoFilterProximitySettingsValue)!.RadialProximityMode);
         Assert.Equal(-2.5, (inputs[2].Value as WorkerToleranceScalarOptionsValue)!.Low.Value);
         Assert.Equal(1.5, (inputs[3].Value as WorkerProjectionOptionsValue)!.OverrideTargetOffsetsValue);
@@ -71,7 +71,7 @@ public sealed class WorkerControlSpecializedValueValidationTests
     [InlineData(int.MaxValue)]
     public void UnknownSpecializedEnumValueIsRejectedBeforeTransport(int value)
     {
-        var message = CreateSingleInput(new WorkerMpInputArgument("Render", WorkerMpValueKind.RenderModeType, new WorkerSpecializedEnumValue(value)));
+        var message = CreateSingleInput(new WorkerMpInputArgument("Render", WorkerMpValueKind.RenderModeType, WorkerChoiceFactory.FromOrdinal(WorkerMpValueKind.RenderModeType, value)));
 
         AssertRejected(message);
     }
@@ -102,8 +102,8 @@ public sealed class WorkerControlSpecializedValueValidationTests
         int maximumValidValue,
         int firstInvalidValue)
     {
-        var valid = CreateSingleInput(new WorkerMpInputArgument("Value", kind, new WorkerSpecializedEnumValue(maximumValidValue)));
-        var invalid = CreateSingleInput(new WorkerMpInputArgument("Value", kind, new WorkerSpecializedEnumValue(firstInvalidValue)));
+        var valid = CreateSingleInput(new WorkerMpInputArgument("Value", kind, WorkerChoiceFactory.FromOrdinal(kind, maximumValidValue)));
+        var invalid = CreateSingleInput(new WorkerMpInputArgument("Value", kind, WorkerChoiceFactory.FromOrdinal(kind, firstInvalidValue)));
 
         using var stream = new MemoryStream();
         using var channel = new WorkerControlChannel(stream, leaveOpen: true);
@@ -116,7 +116,7 @@ public sealed class WorkerControlSpecializedValueValidationTests
     [Fact]
     public void EnhancedCloudGapIsRejectedBeforeWorkerTransport()
     {
-        AssertRejected(CreateSingleInput(new WorkerMpInputArgument("Type", WorkerMpValueKind.ObjectType, new WorkerSpecializedEnumValue(4))));
+        AssertRejected(CreateSingleInput(new WorkerMpInputArgument("Type", WorkerMpValueKind.ObjectType, WorkerChoiceFactory.FromOrdinal(WorkerMpValueKind.ObjectType, 4))));
     }
 
     [Fact]

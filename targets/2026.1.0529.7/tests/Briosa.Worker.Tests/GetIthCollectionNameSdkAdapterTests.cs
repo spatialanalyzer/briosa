@@ -10,15 +10,11 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
     {
         using var calls = new RecordingSdkCalls();
         using var adapter = new SpatialAnalyzerSdkAdapter(calls);
-        var command = new SdkCommand(
+        var command = new WorkerMpCommand(
             "analysis_operations.get_ith_collection_name",
             "Get i-th Collection Name",
             [
-                new SdkInputArgument(
-                    "Collection Index",
-                    WorkerMpValueKind.WholeNumber,
-                    IntegerValue: 0,
-                    SdkBinding: "SetIntegerArg")
+                new WorkerMpInputArgument("Collection Index", WorkerMpValueKind.WholeNumber, new WorkerIntegerValue(0), sdkBinding: "SetIntegerArg")
             ],
             [
                 new WorkerMpOutputArgument(

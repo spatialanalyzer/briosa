@@ -15,7 +15,7 @@ internal static class SdkContractAssertions
         await using var executor = new SerializedSdkExecutor(sdkFactory);
 
         var connection = await executor.ConnectAsync("localhost");
-        var execution = await executor.ExecuteAsync(new SdkCommand("contract.success"));
+        var execution = await executor.ExecuteAsync(new WorkerMpCommand("contract.success", "contract.success", [], []));
 
         AssertEquivalent(SdkConnectionStatus.Connected, connection.Status, "connection status");
         AssertEquivalent(true, execution.ExecuteStepReturned, "ExecuteStep result");
@@ -30,7 +30,7 @@ internal static class SdkContractAssertions
     {
         await using var executor = new SerializedSdkExecutor(sdkFactory);
 
-        var execution = await executor.ExecuteAsync(new SdkCommand("contract.mp-failure"));
+        var execution = await executor.ExecuteAsync(new WorkerMpCommand("contract.mp-failure", "contract.mp-failure", [], []));
 
         AssertEquivalent(true, execution.ExecuteStepReturned, "ExecuteStep result");
         AssertEquivalent(true, execution.MpResultRetrieved, "MP result retrieval");

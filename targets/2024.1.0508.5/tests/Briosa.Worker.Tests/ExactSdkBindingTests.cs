@@ -10,15 +10,11 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
     {
         using var calls = new RecordingSdkCalls();
         using var adapter = new SpatialAnalyzerSdkAdapter(calls);
-        var command = new SdkCommand(
+        var command = new WorkerMpCommand(
             "binding-mismatch",
             "Binding Mismatch",
             [
-                new SdkInputArgument(
-                    "Value",
-                    WorkerMpValueKind.Text,
-                    StringValue: "sensitive-value",
-                    SdkBinding: "SetStringArg2")
+                new WorkerMpInputArgument("Value", WorkerMpValueKind.Text, new WorkerTextValue("sensitive-value"), sdkBinding: "SetStringArg2")
             ],
             outputArguments: []);
 
@@ -34,7 +30,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
     {
         using var calls = new RecordingSdkCalls();
         using var adapter = new SpatialAnalyzerSdkAdapter(calls);
-        var command = new SdkCommand(
+        var command = new WorkerMpCommand(
             "binding-mismatch",
             "Binding Mismatch",
             inputArguments: [],

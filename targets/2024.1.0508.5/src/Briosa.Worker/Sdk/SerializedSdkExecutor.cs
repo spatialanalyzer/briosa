@@ -53,7 +53,7 @@ internal sealed class SerializedSdkExecutor : IAsyncDisposable
         Enqueue(static sdk => sdk.GetActivatedSdkVersion(), cancellationToken);
 
     public Task<WorkerMpExecutionResult> ExecuteAsync(
-        SdkCommand command,
+        WorkerMpCommand command,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
