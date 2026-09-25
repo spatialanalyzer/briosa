@@ -454,11 +454,10 @@ internal static class GrpcOperationOutcomeMapper
         {
             details.MpResultCode = resultCode;
         }
-        foreach (var output in outputs)
+        for (var index = 0; index < outputs.Count; index++)
         {
-            var value = execution.OutputValues.Single(candidate =>
-                candidate.Name == output.ArgumentName &&
-                candidate.Kind == output.Kind);
+            var output = outputs[index];
+            var value = execution.OutputValues[index];
             var retrieved = value.Retrieved && HasTypedValue(value);
             var retrieval = new OutputRetrievalDetails
             {
@@ -482,11 +481,24 @@ internal static class GrpcOperationOutcomeMapper
 
     private static bool OutputsMatch(
         IReadOnlyList<OperationOutputContract> requested,
-        IReadOnlyList<WorkerMpOutputValue> returned) =>
-        requested.Count == returned.Count &&
-        requested.All(output => returned.Count(value =>
-            value.Name == output.ArgumentName &&
-            value.Kind == output.Kind) == 1);
+        IReadOnlyList<WorkerMpOutputValue> returned)
+    {
+        if (requested.Count != returned.Count)
+        {
+            return false;
+        }
+
+        for (var index = 0; index < requested.Count; index++)
+        {
+            if (requested[index].ArgumentName != returned[index].Name ||
+                requested[index].Kind != returned[index].Kind)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
 
     private static bool HasTypedValue(WorkerMpOutputValue value) =>
         value.Kind switch

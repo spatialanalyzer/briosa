@@ -11,74 +11,73 @@ internal static partial class WorkerControlHost
             ? null
             : argument.Kind switch
             {
-                WorkerMpValueKind.AsciiImportFileFormat => ToSdkEnum<SdkAsciiImportFileFormatValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.AsciiFrameSetFormat => ToSdkEnum<SdkAsciiFrameSetFormatValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.AxisIdentifier => ToSdkEnum<SdkAxisIdentifierValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.WcfAxisIdentifier => ToSdkEnum<SdkWcfAxisIdentifierValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.BaseColorType => ToSdkEnum<SdkBaseColorTypeValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.BaseMidColorType => ToSdkEnum<SdkBaseMidColorTypeValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.ChartType => ToSdkEnum<SdkChartTypeValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.CollimationBaselineType => ToSdkEnum<SdkCollimationBaselineTypeValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.CollimationType => ToSdkEnum<SdkCollimationTypeValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.ColorRangeMethod => ToSdkEnum<SdkColorRangeMethodValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.CoordinateSystemType => ToSdkEnum<SdkCoordinateSystemTypeValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.VectorComponent => ToSdkEnum<SdkVectorComponentValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.DynamicCircleMode => ToSdkEnum<SdkDynamicCircleModeValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.DynamicEllipseMode => ToSdkEnum<SdkDynamicEllipseModeValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.DynamicLineMode => ToSdkEnum<SdkDynamicLineModeValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.DynamicPlaneMode => ToSdkEnum<SdkDynamicPlaneModeValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.DynamicPointMode => ToSdkEnum<SdkDynamicPointModeValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.EdgeMode => ToSdkEnum<SdkEdgeModeValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.ExportDataDelimiterType => ToSdkEnum<SdkExportDataDelimiterTypeValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.ExportTargetNameFormat => ToSdkEnum<SdkExportTargetNameFormatValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.ExportVectorNameFormat => ToSdkEnum<SdkExportVectorNameFormatValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.GeometryType => ToSdkEnum<SdkGeometryTypeValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.GdtDistanceBetweenMode => ToSdkEnum<SdkGdtDistanceBetweenModeValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.GdtEvaluationMethod => ToSdkEnum<SdkGdtEvaluationMethodValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.InstrumentType => ToSdkEnum<SdkInstrumentTypeValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.ObjectType => ToSdkEnum<SdkObjectTypeValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.OffsetDirectionType => ToSdkEnum<SdkOffsetDirectionTypeValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.PointFilterInputType => ToSdkEnum<SdkPointFilterInputTypeValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.RelationshipWeightingMode => ToSdkEnum<SdkRelationshipWeightingModeValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.RenderModeType => ToSdkEnum<SdkRenderModeTypeValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.ReportPageOrientation => ToSdkEnum<SdkReportPageOrientationValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.SaturationLimitType => ToSdkEnum<SdkSaturationLimitTypeValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.ShowUsmnDialogType => ToSdkEnum<SdkShowUsmnDialogTypeValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.SurfaceAnalysisMode => ToSdkEnum<SdkSurfaceAnalysisModeValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.SurfaceDissectionModeType => ToSdkEnum<SdkSurfaceDissectionModeTypeValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.TargetComputationMethod => ToSdkEnum<SdkTargetComputationMethodValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.TranslucencyType => ToSdkEnum<SdkTranslucencyTypeValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.CompTechnique => ToSdkEnum<SdkCompTechniqueValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.DegreeOfFreedom => ToSdkEnum<SdkDegreeOfFreedomValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.FitMethod => ToSdkEnum<SdkFitMethodValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.MeasuredSideForPlanarOffset => ToSdkEnum<SdkMeasuredSideForPlanarOffsetValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.MeasuredSideForRadialOffset => ToSdkEnum<SdkMeasuredSideForRadialOffsetValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.MpDialogInteractionMode => ToSdkEnum<SdkMpDialogInteractionModeValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.MpInteractionMode => ToSdkEnum<SdkMpInteractionModeValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.NormalDirection => ToSdkEnum<SdkNormalDirectionValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.SaInteractionMode => ToSdkEnum<SdkSaInteractionModeValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.SlotType => ToSdkEnum<SdkSlotTypeValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.SphereFitComputationMode => ToSdkEnum<SdkSphereFitComputationModeValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.WindowState => ToSdkEnum<SdkWindowStateValue>(argument.SpecializedEnumValue),
-                WorkerMpValueKind.SystemString => ToSdkEnum<SdkSystemStringValue>(argument.SpecializedEnumValue),
+                WorkerMpValueKind.AsciiImportFileFormat => ToSdkEnum((SdkAsciiImportFileFormatValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.AsciiFrameSetFormat => ToSdkEnum((SdkAsciiFrameSetFormatValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.AxisIdentifier => ToSdkEnum((SdkAxisIdentifierValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.WcfAxisIdentifier => ToSdkEnum((SdkWcfAxisIdentifierValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.BaseColorType => ToSdkEnum((SdkBaseColorTypeValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.BaseMidColorType => ToSdkEnum((SdkBaseMidColorTypeValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.ChartType => ToSdkEnum((SdkChartTypeValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.CollimationBaselineType => ToSdkEnum((SdkCollimationBaselineTypeValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.CollimationType => ToSdkEnum((SdkCollimationTypeValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.ColorRangeMethod => ToSdkEnum((SdkColorRangeMethodValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.CoordinateSystemType => ToSdkEnum((SdkCoordinateSystemTypeValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.VectorComponent => ToSdkEnum((SdkVectorComponentValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.DynamicCircleMode => ToSdkEnum((SdkDynamicCircleModeValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.DynamicEllipseMode => ToSdkEnum((SdkDynamicEllipseModeValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.DynamicLineMode => ToSdkEnum((SdkDynamicLineModeValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.DynamicPlaneMode => ToSdkEnum((SdkDynamicPlaneModeValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.DynamicPointMode => ToSdkEnum((SdkDynamicPointModeValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.EdgeMode => ToSdkEnum((SdkEdgeModeValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.ExportDataDelimiterType => ToSdkEnum((SdkExportDataDelimiterTypeValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.ExportTargetNameFormat => ToSdkEnum((SdkExportTargetNameFormatValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.ExportVectorNameFormat => ToSdkEnum((SdkExportVectorNameFormatValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.GeometryType => ToSdkEnum((SdkGeometryTypeValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.GdtDistanceBetweenMode => ToSdkEnum((SdkGdtDistanceBetweenModeValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.GdtEvaluationMethod => ToSdkEnum((SdkGdtEvaluationMethodValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.InstrumentType => ToSdkEnum((SdkInstrumentTypeValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.ObjectType => ToSdkEnum((SdkObjectTypeValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.OffsetDirectionType => ToSdkEnum((SdkOffsetDirectionTypeValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.PointFilterInputType => ToSdkEnum((SdkPointFilterInputTypeValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.RelationshipWeightingMode => ToSdkEnum((SdkRelationshipWeightingModeValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.RenderModeType => ToSdkEnum((SdkRenderModeTypeValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.ReportPageOrientation => ToSdkEnum((SdkReportPageOrientationValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.SaturationLimitType => ToSdkEnum((SdkSaturationLimitTypeValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.ShowUsmnDialogType => ToSdkEnum((SdkShowUsmnDialogTypeValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.SurfaceAnalysisMode => ToSdkEnum((SdkSurfaceAnalysisModeValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.SurfaceDissectionModeType => ToSdkEnum((SdkSurfaceDissectionModeTypeValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.TargetComputationMethod => ToSdkEnum((SdkTargetComputationMethodValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.TranslucencyType => ToSdkEnum((SdkTranslucencyTypeValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.CompTechnique => ToSdkEnum((SdkCompTechniqueValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.DegreeOfFreedom => ToSdkEnum((SdkDegreeOfFreedomValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.FitMethod => ToSdkEnum((SdkFitMethodValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.MeasuredSideForPlanarOffset => ToSdkEnum((SdkMeasuredSideForPlanarOffsetValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.MeasuredSideForRadialOffset => ToSdkEnum((SdkMeasuredSideForRadialOffsetValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.MpDialogInteractionMode => ToSdkEnum((SdkMpDialogInteractionModeValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.MpInteractionMode => ToSdkEnum((SdkMpInteractionModeValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.NormalDirection => ToSdkEnum((SdkNormalDirectionValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.SaInteractionMode => ToSdkEnum((SdkSaInteractionModeValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.SlotType => ToSdkEnum((SdkSlotTypeValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.SphereFitComputationMode => ToSdkEnum((SdkSphereFitComputationModeValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.WindowState => ToSdkEnum((SdkWindowStateValue)argument.SpecializedEnumValue.Value),
+                WorkerMpValueKind.SystemString => ToSdkEnum((SdkSystemStringValue)argument.SpecializedEnumValue.Value),
                 _ => null
             };
 
-    private static SdkSpecializedEnumValue<T> ToSdkEnum<T>(WorkerSpecializedEnumValue value)
+    private static SdkSpecializedEnumValue<T> ToSdkEnum<T>(T value)
         where T : struct, Enum =>
-        new(ToSdkEnumValue<T>(value.Value));
+        new(RequireDefined(value));
 
-    private static T ToSdkEnumValue<T>(int value)
+    private static T RequireDefined<T>(T value)
         where T : struct, Enum
     {
-        var typedValue = (T)Enum.ToObject(typeof(T), value);
-        if (!Enum.IsDefined(typedValue))
+        if (!Enum.IsDefined(value))
         {
             throw new InvalidDataException(
                 $"The specialized value {value} is not valid for {typeof(T).Name}.");
         }
 
-        return typedValue;
+        return value;
     }
 
     private static SdkValueKind ToSdkSpecializedValueKind(WorkerMpValueKind kind) =>
@@ -228,9 +227,9 @@ internal static partial class WorkerControlHost
                 value.PlanarExclusionProximity,
                 value.RadialInclusionProximity,
                 value.GeometryExtractionTolerance,
-                ToSdkEnumValue<SdkOffsetDirectionTypeValue>(value.SurfaceProximityMode),
-                ToSdkEnumValue<SdkOffsetDirectionTypeValue>(value.PlanarProximityMode),
-                ToSdkEnumValue<SdkOffsetDirectionTypeValue>(value.RadialProximityMode),
+                RequireDefined((SdkOffsetDirectionTypeValue)value.SurfaceProximityMode),
+                RequireDefined((SdkOffsetDirectionTypeValue)value.PlanarProximityMode),
+                RequireDefined((SdkOffsetDirectionTypeValue)value.RadialProximityMode),
                 value.ProjectToPlane,
                 value.AssertPlaneBoundaries);
 
@@ -239,7 +238,7 @@ internal static partial class WorkerControlHost
         value is null
             ? null
             : new(
-                ToSdkEnumValue<SdkCloudThinningModeValue>(value.Mode),
+                RequireDefined((SdkCloudThinningModeValue)value.Mode),
                 value.PointIncrement,
                 value.MinimumNumberOfPoints,
                 value.MaximumNumberOfPoints);
@@ -269,10 +268,10 @@ internal static partial class WorkerControlHost
         value is null
             ? null
             : new(
-                ToSdkEnumValue<SdkColorRangeMethodValue>(value.ColorRangeMethod),
-                ToSdkEnumValue<SdkBaseColorTypeValue>(value.BaseHighColor),
-                ToSdkEnumValue<SdkBaseMidColorTypeValue>(value.BaseMidColor),
-                ToSdkEnumValue<SdkBaseColorTypeValue>(value.BaseLowColor),
+                RequireDefined((SdkColorRangeMethodValue)value.ColorRangeMethod),
+                RequireDefined((SdkBaseColorTypeValue)value.BaseHighColor),
+                RequireDefined((SdkBaseMidColorTypeValue)value.BaseMidColor),
+                RequireDefined((SdkBaseColorTypeValue)value.BaseLowColor),
                 value.DrawTubes,
                 value.DrawArrowheads,
                 value.IndicateValues,
@@ -305,7 +304,7 @@ internal static partial class WorkerControlHost
         value is null
             ? null
             : new(
-                ToSdkEnumValue<SdkReportOutputTypeValue>(value.OutputType),
+                RequireDefined((SdkReportOutputTypeValue)value.OutputType),
                 value.ExternalPath,
                 value.EmbeddedFile is null
                     ? null
@@ -316,7 +315,7 @@ internal static partial class WorkerControlHost
         value is null
             ? null
             : new(
-                ToSdkEnumValue<SdkReportViewTypeValue>(value.ViewType),
+                RequireDefined((SdkReportViewTypeValue)value.ViewType),
                 value.CollectionName,
                 value.CalloutName);
 
@@ -341,7 +340,7 @@ internal static partial class WorkerControlHost
         value is null
             ? null
             : new(
-                ToSdkEnumValue<SdkCoordinateSystemTypeValue>(value.CoordinateSystem),
+                RequireDefined((SdkCoordinateSystemTypeValue)value.CoordinateSystem),
                 value.DetailsFormat,
                 value.ShowPointA,
                 value.ShowPointB,
