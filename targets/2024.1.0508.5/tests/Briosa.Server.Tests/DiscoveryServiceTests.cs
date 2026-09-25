@@ -19,6 +19,24 @@ namespace Briosa.Server.Tests;
 
 public sealed class DiscoveryServiceTests
 {
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void AllReadinessViewsRequireAnAvailableAdmissionConsumer(bool admissionOpen)
+    {
+        var snapshot = Snapshot(WorkerLifecycleState.Ready, WorkerConnectionState.Connected,
+            WorkerExecutionReadinessState.ExecutionReady) with { AdmissionOpen = admissionOpen, StateRevision = 17 };
+        var status = new FakeWorkerStatusProvider(snapshot);
+        var discovery = new ServerDiscoveryService(status, new FakeBuildIdentityProvider(), CreatePolicy());
+        var lifecycle = new SpatialAnalyzerSdkLifecycleStateProjection(status);
+        Assert.Equal(admissionOpen, WorkerReadinessHealthCheck.IsReady(snapshot));
+        Assert.Equal(admissionOpen, discovery.CreateServerInfo().ReadyForMp);
+        Assert.Equal(admissionOpen, lifecycle.Current.ReadyForMp);
+        Assert.Equal(17UL, lifecycle.Current.StateRevision);
+        Assert.Equal(admissionOpen ? SpatialAnalyzerSdkState.Ready : SpatialAnalyzerSdkState.Running,
+            lifecycle.Current.SdkState);
+    }
+
     [Fact]
     public async Task LivenessIsIndependentWhileReadinessRequiresVerifiedExecution()
     {
@@ -321,7 +339,7 @@ public sealed class DiscoveryServiceTests
                     "sensitive-connection-diagnostic",
                     DateTimeOffset.UtcNow),
             DateTimeOffset.UtcNow,
-            MatchingIdentity());
+            MatchingIdentity(), AdmissionOpen: true);
 
     private static ExactTargetIdentitySnapshot MatchingIdentity() =>
         new(

@@ -234,6 +234,145 @@ public sealed class RuntimeFailureRegressionTests
         Assert.True(worker.HasExited);
     }
 
+    [Fact]
+    public async Task UnexpectedConsumerFailureResolvesActiveAndQueuedCallsAndClosesAdmission()
+    {
+        var worker = new CoordinatedWorker { HoldExecution = true, UnexpectedFailure = true };
+        await using var workerLifetime = worker.ConfigureAwait(true);
+        await using var supervisor = CreateSupervisor(worker);
+        Assert.True(await supervisor.StartAsync());
+        var active = supervisor.ExecuteAsync(Plain());
+        await worker.ExecutionEntered.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        var queued = supervisor.ExecuteAsync(Plain());
+        worker.ReleaseExecution.TrySetResult();
+
+        var result = await active.WaitAsync(TimeSpan.FromSeconds(3));
+        var pending = await queued.WaitAsync(TimeSpan.FromSeconds(3));
+        Assert.Equal(WorkerExecutionStatus.WorkerFailure, result.Status);
+        Assert.Equal(WorkerExecutionDisposition.StartedOutcomeUnknown, result.ExecutionDisposition);
+        Assert.Equal(WorkerExecutionDisposition.NotStarted, pending.ExecutionDisposition);
+        Assert.Equal(WorkerLifecycleState.Degraded, supervisor.Current.State);
+        Assert.False(supervisor.Current.AdmissionOpen);
+        Assert.False(WorkerReadinessHealthCheck.IsReady(supervisor.Current));
+        Assert.True(worker.HasExited);
+        Assert.Equal(1, worker.ExecuteCount);
+        Assert.Equal(2, supervisor.ExecutionSnapshot.TerminalRequests);
+        Assert.Equal(0, supervisor.ExecutionSnapshot.QueuedRequests);
+        Assert.Equal(WorkerExecutionStatus.Unavailable, (await supervisor.ExecuteAsync(Plain())).Status);
+    }
+
+    [Fact]
+    public async Task AReservedMappingCannotEnterASuccessorGeneration()
+    {
+        var first = new CoordinatedWorker();
+        var second = new CoordinatedWorker();
+        await using var firstLifetime = first.ConfigureAwait(true);
+        await using var secondLifetime = second.ConfigureAwait(true);
+        var supervisor = new WorkerProcessSupervisor(new SequenceFactory(first, second),
+            new WorkerLifecyclePolicy(TimeSpan.FromMinutes(5), TimeSpan.FromSeconds(1),
+                TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(1)),
+            new WorkerExecutionPolicy(TimeSpan.FromSeconds(5), 2));
+        await using var supervisorLifetime = supervisor.ConfigureAwait(true);
+        Assert.True(await supervisor.StartAsync());
+        var mappingEntered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        using var releaseMapping = new ManualResetEventSlim();
+        var submission = Task.Run(() => supervisor.ExecuteAsync(new WorkerCommandSubmission(
+            "regression.plain", () =>
+            {
+                mappingEntered.TrySetResult();
+                if (!releaseMapping.Wait(TimeSpan.FromSeconds(5))) throw new TimeoutException();
+                return Plain();
+            }), Guid.NewGuid()));
+        await mappingEntered.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        try
+        {
+            await supervisor.StopAsync();
+            Assert.True(await supervisor.StartAsync());
+            Assert.Equal(2, supervisor.Current.Generation);
+        }
+        finally
+        {
+            releaseMapping.Set();
+        }
+
+        var result = await submission.WaitAsync(TimeSpan.FromSeconds(3));
+        Assert.Equal(WorkerExecutionStatus.Unavailable, result.Status);
+        Assert.Equal(WorkerExecutionDisposition.NotStarted, result.ExecutionDisposition);
+        Assert.Equal(0, second.ExecuteCount);
+        Assert.Equal(WorkerExecutionStatus.Completed, (await supervisor.ExecuteAsync(Plain())).Status);
+        Assert.Equal(1, second.ExecuteCount);
+    }
+
+    [Fact]
+    public async Task SnapshotsOwnApplicationAssociationAndReadinessAcrossAllProjections()
+    {
+        var worker = new CoordinatedWorker();
+        await using var workerLifetime = worker.ConfigureAwait(true);
+        await using var supervisor = CreateSupervisor(worker);
+        var projection = new SpatialAnalyzerSdkLifecycleStateProjection(supervisor);
+        var firstRead = projection.Current;
+        Assert.Equal((ulong)supervisor.Current.StateRevision, firstRead.StateRevision);
+        Assert.True(await supervisor.StartAsync());
+        await supervisor.AssociateApplicationGenerationAsync(1, 7);
+        var snapshot = supervisor.Current;
+        Assert.Equal(7, snapshot.ApplicationGeneration);
+        Assert.True(snapshot.AdmissionOpen);
+        Assert.Equal(snapshot.ReadyForExecution, projection.Current.ReadyForMp);
+        Assert.Equal(snapshot.ReadyForExecution, WorkerReadinessHealthCheck.IsReady(snapshot));
+        Assert.Equal((ulong)snapshot.StateRevision, projection.Current.StateRevision);
+        Assert.Equal(projection.Current, new SpatialAnalyzerSdkLifecycleStateProjection(supervisor).Current);
+        Assert.Equal(snapshot, supervisor.Current);
+        Assert.Contains(supervisor.History, state => state.State == WorkerLifecycleState.Ready &&
+            !state.AdmissionOpen && !state.ReadyForExecution);
+
+        await supervisor.AssociateApplicationGenerationAsync(1, null);
+        Assert.Null(supervisor.Current.ApplicationGeneration);
+        Assert.False(projection.Current.HasApplicationGeneration);
+        await Assert.ThrowsAsync<WorkerGenerationConflictException>(() =>
+            supervisor.AssociateApplicationGenerationAsync(2, 9));
+        await supervisor.StopAsync();
+        await supervisor.AssociateApplicationGenerationAsync(1, 9);
+        Assert.False(supervisor.Current.AdmissionOpen);
+        Assert.Null(supervisor.Current.ApplicationGeneration);
+    }
+
+    [Fact]
+    public async Task HeartbeatDoesNotQueueAheadOfAcceptedExecution()
+    {
+        var worker = new CoordinatedWorker { HoldExecution = true };
+        await using var workerLifetime = worker.ConfigureAwait(true);
+        var clock = new HeartbeatTestClock();
+        var supervisor = new WorkerProcessSupervisor(new Factory(worker),
+            new WorkerLifecyclePolicy(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1),
+                TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(1)),
+            new WorkerExecutionPolicy(TimeSpan.FromSeconds(5), 2), clock);
+        await using var supervisorLifetime = supervisor.ConfigureAwait(true);
+        Assert.True(await supervisor.StartAsync());
+        var active = supervisor.ExecuteAsync(Plain());
+        await worker.ExecutionEntered.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        var queued = supervisor.ExecuteAsync(Plain());
+        try
+        {
+            await clock.TickAsync();
+            Assert.Equal(0, worker.PingCount);
+        }
+        finally
+        {
+            worker.ReleaseExecution.TrySetResult();
+        }
+        Assert.All(await Task.WhenAll(active, queued), outcome => Assert.Equal(WorkerExecutionStatus.Completed, outcome.Status));
+        Assert.Equal(0, worker.PingCount);
+        await clock.TickAsync();
+        Assert.Equal(1, worker.PingCount);
+        Assert.True(supervisor.Current.ReadyForExecution);
+    }
+
+    private sealed class SequenceFactory(IWorkerProcess first, IWorkerProcess second) : IWorkerProcessFactory
+    {
+        public ValueTask<IWorkerProcess> StartAsync(int generation, CancellationToken cancellationToken = default) =>
+            ValueTask.FromResult(generation == 1 ? first : second);
+    }
+
     private static WorkerMpCommand Plain() => new("regression.plain", "Regression", [], []);
 
     private static WorkerProcessSupervisor CreateSupervisor(CoordinatedWorker worker) => new(
@@ -256,6 +395,8 @@ public sealed class RuntimeFailureRegressionTests
         public bool HoldExecution { get; init; }
         public bool HoldStop { get; init; }
         public bool UndefinedStatus { get; init; }
+        public bool UnexpectedFailure { get; init; }
+        public int PingCount { get; private set; }
         public int ExecuteCount { get; private set; }
         public int StopCount { get; private set; }
         public bool HasExited { get; private set; }
@@ -298,10 +439,14 @@ public sealed class RuntimeFailureRegressionTests
                 case WorkerControlMessageKind.Execute:
                     ExecutionEntered.TrySetResult();
                     if (HoldExecution) await ReleaseExecution.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
+                    if (UnexpectedFailure) throw new ArgumentException("Consumer regression");
                     return WorkerControlMessage.ExecutionResult(request.CorrelationId, new(
                         UndefinedStatus ? (WorkerExecutionResponseStatus)999 : WorkerExecutionResponseStatus.Completed,
                         UndefinedStatus ? null : WorkerMpExecutionResult.FromEvidence(true, true, true, 2, 1, [], null),
                         Connection(WorkerExecutionReadinessState.ExecutionReady), null));
+                case WorkerControlMessageKind.Ping:
+                    PingCount++;
+                    return WorkerControlMessage.Pong(request.CorrelationId, Connection(WorkerExecutionReadinessState.ExecutionReady));
                 case WorkerControlMessageKind.Stop:
                     StopCount++;
                     StopEntered.TrySetResult();

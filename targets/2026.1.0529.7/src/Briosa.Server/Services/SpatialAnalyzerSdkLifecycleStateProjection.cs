@@ -3,95 +3,25 @@ using Briosa.Worker.Control;
 
 namespace Briosa.Server.Services;
 
-internal interface ISpatialAnalyzerSdkLifecycleStateProvider
-{
-    global::Briosa.SpatialAnalyzerSdkLifecycleState Current { get; }
-}
-
 internal sealed class SpatialAnalyzerSdkLifecycleStateProjection(
-    WorkerProcessSupervisor supervisor) : ISpatialAnalyzerSdkLifecycleStateProvider
+    IWorkerStatusProvider supervisor) : ISpatialAnalyzerSdkLifecycleStateProvider
 {
-    private readonly Lock _lock = new();
-    private readonly WorkerProcessSupervisor _supervisor = supervisor;
-    private int? _applicationGeneration;
-    private long _lastWorkerRevision = -1;
-    private ulong _stateRevision = 1;
+    private readonly IWorkerStatusProvider _supervisor = supervisor;
 
-    public global::Briosa.SpatialAnalyzerSdkLifecycleState Current
-    {
-        get
-        {
-            lock (_lock)
-            {
-                var snapshot = _supervisor.Current;
-                ObserveWorkerRevision(snapshot);
-                if (snapshot.Connection?.State != WorkerConnectionState.Connected &&
-                    _applicationGeneration.HasValue)
-                {
-                    _applicationGeneration = null;
-                    _stateRevision++;
-                }
+    public global::Briosa.SpatialAnalyzerSdkLifecycleState Current => ToPublicState(_supervisor.Current);
 
-                return ToPublicState(snapshot, _applicationGeneration, _stateRevision);
-            }
-        }
-    }
-
-    public void MarkConnected(int? applicationGeneration)
-    {
-        lock (_lock)
-        {
-            ObserveWorkerRevision(_supervisor.Current);
-            if (_applicationGeneration != applicationGeneration)
-            {
-                _applicationGeneration = applicationGeneration;
-                _stateRevision++;
-            }
-        }
-    }
-
-    public void MarkDisconnected()
-    {
-        lock (_lock)
-        {
-            ObserveWorkerRevision(_supervisor.Current);
-            if (_applicationGeneration.HasValue)
-            {
-                _applicationGeneration = null;
-                _stateRevision++;
-            }
-        }
-    }
-
-    private void ObserveWorkerRevision(WorkerLifecycleSnapshot snapshot)
-    {
-        if (_lastWorkerRevision == snapshot.StateRevision)
-        {
-            return;
-        }
-
-        _lastWorkerRevision = snapshot.StateRevision;
-        _stateRevision++;
-    }
-
-    private static global::Briosa.SpatialAnalyzerSdkLifecycleState ToPublicState(
-        WorkerLifecycleSnapshot snapshot,
-        int? applicationGeneration,
-        ulong stateRevision)
+    internal static global::Briosa.SpatialAnalyzerSdkLifecycleState ToPublicState(
+        WorkerLifecycleSnapshot snapshot)
     {
         var connection = snapshot.Connection;
         var state = new global::Briosa.SpatialAnalyzerSdkLifecycleState
         {
-            StateRevision = stateRevision,
+            StateRevision = checked((ulong)snapshot.StateRevision),
             SdkState = ToSdkState(snapshot),
             ConnectionState = ToConnectionState(connection?.State),
             ExecutionReadinessState = ToReadinessState(
                 connection?.ExecutionReadinessState),
-            ReadyForMp = snapshot.State == WorkerLifecycleState.Ready &&
-                connection?.State == WorkerConnectionState.Connected &&
-                connection.ExecutionReadinessState ==
-                    WorkerExecutionReadinessState.ExecutionReady &&
-                snapshot.RuntimeIdentity?.AllowsExecution == true,
+            ReadyForMp = snapshot.ReadyForExecution,
             RecoveryState = ToRecoveryState(snapshot),
             DiagnosticCode = snapshot.DiagnosticCode
         };
@@ -100,10 +30,10 @@ internal sealed class SpatialAnalyzerSdkLifecycleStateProjection(
             state.SdkGeneration = snapshot.Generation;
         }
 
-        if (applicationGeneration.HasValue &&
+        if (snapshot.ApplicationGeneration.HasValue &&
             connection?.State == WorkerConnectionState.Connected)
         {
-            state.ApplicationGeneration = applicationGeneration.Value;
+            state.ApplicationGeneration = snapshot.ApplicationGeneration.Value;
         }
 
         if (snapshot.LastIncident is { } incident)
@@ -153,12 +83,8 @@ internal sealed class SpatialAnalyzerSdkLifecycleStateProjection(
             WorkerLifecycleState.Starting when snapshot.Connection?.ExecutionReadinessState == WorkerExecutionReadinessState.Verifying => global::Briosa.SpatialAnalyzerSdkState.Verifying,
             WorkerLifecycleState.Starting when snapshot.Connection?.State == WorkerConnectionState.Connecting => global::Briosa.SpatialAnalyzerSdkState.Connecting,
             WorkerLifecycleState.Starting => global::Briosa.SpatialAnalyzerSdkState.Starting,
-            WorkerLifecycleState.Ready when snapshot.Connection is
-            {
-                State: WorkerConnectionState.Connected,
-                ExecutionReadinessState: WorkerExecutionReadinessState.ExecutionReady
-            } && snapshot.RuntimeIdentity?.AllowsExecution == true =>
-                    global::Briosa.SpatialAnalyzerSdkState.Ready,
+            WorkerLifecycleState.Ready when snapshot.ReadyForExecution =>
+                global::Briosa.SpatialAnalyzerSdkState.Ready,
             WorkerLifecycleState.Ready => global::Briosa.SpatialAnalyzerSdkState.Running,
             WorkerLifecycleState.Degraded => global::Briosa.SpatialAnalyzerSdkState.Faulted,
             _ => global::Briosa.SpatialAnalyzerSdkState.Unspecified
