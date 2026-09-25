@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Briosa.Worker.Control;
 using Api = global::Briosa;
 
@@ -12,6 +13,11 @@ internal static class CollectionObjectNameMapper
             throw new ArgumentException($"Request field '{fieldName}' is required.", nameof(value));
         }
 
+        return ToWorker(value);
+    }
+
+    private static WorkerCollectionObjectNameValue ToWorker(Api.CollectionObjectName value)
+    {
         if (!Enum.IsDefined(value.ObjectType))
         {
             throw new ArgumentException("Object type is not supported by this SA target.", nameof(value));
@@ -22,4 +28,21 @@ internal static class CollectionObjectNameMapper
             ? WorkerObjectTypeValue.Any : (WorkerObjectTypeValue)value.ObjectType;
         return new(value.CollectionName, value.ObjectName, type);
     }
+
+    public static WorkerCollectionObjectNameListValue RequiredList(IReadOnlyList<Api.CollectionObjectName> values, string fieldName)
+    {
+        if (values.Count == 0)
+        {
+            throw new ArgumentException($"Request field '{fieldName}' is required.", nameof(values));
+        }
+
+        return new(values.Select(ToWorker).ToImmutableArray());
+    }
+
+    public static Api.CollectionObjectName ToProtocol(WorkerCollectionObjectNameValue value) => new()
+    {
+        CollectionName = value.CollectionName,
+        ObjectName = value.ObjectName,
+        ObjectType = (Api.ObjectType)value.ObjectType
+    };
 }

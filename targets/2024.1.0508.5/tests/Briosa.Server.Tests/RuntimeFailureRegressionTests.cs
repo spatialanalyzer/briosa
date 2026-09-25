@@ -1,5 +1,4 @@
 using Briosa.Server.Operations;
-using Briosa.Server.Operations.WaveA;
 using Briosa.Server.Operations.Variables;
 using Briosa.Server.Services;
 using Briosa.Server.Workers;
@@ -47,14 +46,13 @@ public sealed class RuntimeFailureRegressionTests
         await using var workerLifetime = worker.ConfigureAwait(true);
         await using var supervisor = CreateSupervisor(worker);
         Assert.True(await supervisor.StartAsync());
-        var operation = MpOperationCatalog.Get("variables.set_string_variable");
         var executor = new OperationExecutor(supervisor,
             new OperationAuditLogger(NullLogger<OperationAuditLogger>.Instance), TimeProvider.System);
 
         var error = await Assert.ThrowsAsync<RpcException>(() => executor.ExecuteAsync(
             new global::Briosa.SetStringVariableRequest { Name = "regression", Value = new string('x', 70_000) },
-            operation.Descriptor, operation.CreateCommand, operation.OutputContracts,
-            operation.CreateResult<global::Briosa.SetStringVariableResult>, CancellationToken.None));
+            SetStringVariableOperation.Descriptor, SetStringVariableOperation.CreateCommand, SetStringVariableOperation.OutputContracts,
+            SetStringVariableOperation.CreateResult, CancellationToken.None));
 
         Assert.Equal(StatusCode.InvalidArgument, error.StatusCode);
         var detail = global::Briosa.OperationError.Parser.ParseFrom(Assert.Single(error.Trailers).ValueBytes);

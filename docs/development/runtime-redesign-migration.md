@@ -334,3 +334,26 @@ generated protobuf files remain generated.
 For each target, 65 declarations from 22 files were checked for syntax equivalence
 after extraction. Unused imports were removed. All 1,074 portable tests passed
 with the new layout, including the desktop and lifecycle suites.
+
+## Typed Variables Domain
+
+All 36 Variables RPCs now use handwritten typed command and result mappings in
+`Operations/Variables`, with shared identity, transform, vector, and font mappers
+in `Operations/Values`. The remaining 32 Variables interpreter registrations have
+been deleted. Capability registration and the public service route directly to
+the new implementations; no Variables call uses protobuf descriptor interpretation.
+
+The public schema, defaults, execution classification, and private protocol 23
+are unchanged. Required lists still reject empty input. Empty fields inside list
+members retain their prior meaning. Object-type omission uses Any; optional item
+types distinguish absence from explicitly supplied Unspecified. The 2024 wildcard
+delete step retains its exact double-hyphen spelling. Structured values own their
+inputs, and lists map directly to typed immutable values without intermediate
+boxed arrays.
+
+A generated HTTP/2 client exercises every Variables RPC through the private value
+codec, including all scalar and structured families, duplicates, empty returned
+lists, minimum/maximum output ordering, font defaults, and invalid requests that
+never reach the worker. The full server suites passed: 314 tests for 2024 and 291
+for 2026. Worker and protocol binaries are unchanged from their preceding passing
+suites. This completes the Variables domain, not the remaining domain migrations.
