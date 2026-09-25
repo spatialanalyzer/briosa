@@ -388,10 +388,11 @@ public sealed class RuntimeFailureRegressionTests
         Assert.Equal(0, worker.ExecuteCount);
     }
 
-    private sealed class SequenceFactory(IWorkerProcess first, IWorkerProcess second) : IWorkerProcessFactory
+    private sealed class SequenceFactory(params IWorkerProcess[] workers) : IWorkerProcessFactory
     {
+        public int Starts { get; private set; }
         public ValueTask<IWorkerProcess> StartAsync(int generation, CancellationToken cancellationToken = default) =>
-            ValueTask.FromResult(generation == 1 ? first : second);
+            ValueTask.FromResult(workers[Starts++]);
     }
 
     [Fact]
@@ -419,6 +420,107 @@ public sealed class RuntimeFailureRegressionTests
         Assert.False(worker.HasExited);
     }
 
+    [Fact]
+    public async Task IncompleteTerminationBlocksReplacementAndRetainsTheGeneration()
+    {
+        var first = new CoordinatedWorker { UnexpectedFailure = true, HoldTermination = true };
+        var second = new CoordinatedWorker();
+        await using var firstScope = first.ConfigureAwait(true);
+        await using var secondScope = second.ConfigureAwait(true);
+        var factory = new SequenceFactory(first, second);
+        var supervisor = new WorkerProcessSupervisor(factory,
+            new WorkerLifecyclePolicy(TimeSpan.FromMinutes(5), TimeSpan.FromSeconds(1),
+                TimeSpan.FromSeconds(5), TimeSpan.FromMilliseconds(50)));
+        await using var supervisorScope = supervisor.ConfigureAwait(true);
+        Assert.True(await supervisor.StartAsync());
+        try
+        {
+            var failed = await supervisor.ExecuteAsync(Plain()).WaitAsync(TimeSpan.FromSeconds(3));
+            Assert.Equal(WorkerExecutionDisposition.StartedOutcomeUnknown, failed.ExecutionDisposition);
+            Assert.Equal(WorkerLifecycleState.Degraded, supervisor.Current.State);
+            Assert.Equal("worker-termination-unconfirmed", supervisor.Current.DiagnosticCode);
+            Assert.False(supervisor.Current.ReadyForExecution);
+            Assert.Equal(123, supervisor.Current.ProcessId);
+            var projected = new SpatialAnalyzerSdkLifecycleStateProjection(supervisor).Current;
+            Assert.Equal(global::Briosa.SpatialAnalyzerSdkState.Faulted, projected.SdkState);
+            Assert.Equal(global::Briosa.SpatialAnalyzerSdkRecoveryState.OperatorActionRequired, projected.RecoveryState);
+            Assert.False(projected.ReadyForMp);
+            Assert.False(await supervisor.RecoverSdkAsync(1).WaitAsync(TimeSpan.FromSeconds(3)));
+            Assert.Equal(1, factory.Starts);
+            Assert.Equal(1, supervisor.Current.Generation);
+            Assert.Equal(1, first.TerminationCount);
+            var blocked = await supervisor.ExecuteAsync(Plain());
+            Assert.Equal(WorkerExecutionDisposition.NotStarted, blocked.ExecutionDisposition);
+        }
+        finally
+        {
+            first.ReleaseTermination.TrySetResult();
+        }
+        Assert.True(await supervisor.RecoverSdkAsync(1));
+        Assert.Equal(2, factory.Starts);
+        Assert.Equal(2, supervisor.Current.Generation);
+        Assert.Equal(WorkerExecutionStatus.Completed, (await supervisor.ExecuteAsync(Plain())).Status);
+    }
+
+    [Fact]
+    public async Task IncompleteStopReturnsFaultedInsteadOfReportingStopped()
+    {
+        var worker = new CoordinatedWorker { HoldStop = true, HoldTermination = true };
+        await using var workerScope = worker.ConfigureAwait(true);
+        var supervisor = new WorkerProcessSupervisor(new Factory(worker),
+            new WorkerLifecyclePolicy(TimeSpan.FromMinutes(5), TimeSpan.FromSeconds(1),
+                TimeSpan.FromSeconds(5), TimeSpan.FromMilliseconds(50)));
+        await using var supervisorScope = supervisor.ConfigureAwait(true);
+        Assert.True(await supervisor.StartAsync());
+        try
+        {
+            await supervisor.StopAsync().WaitAsync(TimeSpan.FromSeconds(3));
+            Assert.Equal(WorkerLifecycleState.Degraded, supervisor.Current.State);
+            Assert.Equal("worker-termination-unconfirmed", supervisor.Current.DiagnosticCode);
+            Assert.False(supervisor.Current.ReadyForExecution);
+            await Assert.ThrowsAsync<InvalidOperationException>(() => supervisor.StartAsync());
+        }
+        finally
+        {
+            worker.ReleaseTermination.TrySetResult();
+        }
+        await supervisor.StopAsync();
+        Assert.Equal(WorkerLifecycleState.Stopped, supervisor.Current.State);
+    }
+
+    [Fact]
+    public async Task CancelledStartupWithUnconfirmedExitRemainsFaultedWithoutAConnectionSnapshot()
+    {
+        var worker = new CoordinatedWorker { HoldStartup = true, HoldTermination = true };
+        await using var workerScope = worker.ConfigureAwait(true);
+        var supervisor = new WorkerProcessSupervisor(new Factory(worker),
+            new WorkerLifecyclePolicy(TimeSpan.FromMinutes(5), TimeSpan.FromSeconds(1),
+                TimeSpan.FromSeconds(5), TimeSpan.FromMilliseconds(50)));
+        await using var supervisorScope = supervisor.ConfigureAwait(true);
+        using var caller = new CancellationTokenSource();
+        var starting = supervisor.StartAsync(caller.Token);
+        await worker.StartupEntered.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        try
+        {
+            await caller.CancelAsync();
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => starting.WaitAsync(TimeSpan.FromSeconds(3)));
+            Assert.Null(supervisor.Current.Connection);
+            Assert.Equal(WorkerCleanupStatus.ExitUnconfirmed, supervisor.Current.CleanupStatus);
+            var projected = new SpatialAnalyzerSdkLifecycleStateProjection(supervisor).Current;
+            Assert.Equal(global::Briosa.SpatialAnalyzerSdkState.Faulted, projected.SdkState);
+            Assert.Equal(global::Briosa.SpatialAnalyzerSdkRecoveryState.OperatorActionRequired, projected.RecoveryState);
+            Assert.False(projected.ReadyForMp);
+            await Assert.ThrowsAsync<InvalidOperationException>(() => supervisor.StartAsync());
+        }
+        finally
+        {
+            worker.ReleaseTermination.TrySetResult();
+        }
+        await supervisor.StopAsync();
+        Assert.Equal(WorkerLifecycleState.Stopped, supervisor.Current.State);
+        Assert.Null(supervisor.Current.CleanupStatus);
+    }
+
     private static WorkerMpCommand Plain() => new("regression.plain", "Regression", [], []);
 
     private static WorkerProcessSupervisor CreateSupervisor(CoordinatedWorker worker) => new(
@@ -438,6 +540,9 @@ public sealed class RuntimeFailureRegressionTests
         private WorkerControlMessage? _request;
         private bool _readySent;
         public bool HoldStartup { get; init; }
+        public bool HoldTermination { get; init; }
+        public int TerminationCount { get; private set; }
+        public TaskCompletionSource ReleaseTermination { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public bool HoldExecution { get; init; }
         public bool HoldStop { get; init; }
         public bool UndefinedStatus { get; init; }
@@ -509,12 +614,17 @@ public sealed class RuntimeFailureRegressionTests
         }
 
         public Task WaitForExitAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
-        public ValueTask TerminateAsync(CancellationToken cancellationToken = default)
+        public async ValueTask TerminateAsync(CancellationToken cancellationToken = default)
         {
+            TerminationCount++;
+            if (HoldTermination) await ReleaseTermination.Task.ConfigureAwait(false);
             HasExited = true;
             Terminated.TrySetResult();
+        }
+        public ValueTask DisposeAsync()
+        {
+            HasExited = true;
             return ValueTask.CompletedTask;
         }
-        public ValueTask DisposeAsync() => TerminateAsync();
     }
 }
