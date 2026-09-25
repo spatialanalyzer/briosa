@@ -214,3 +214,19 @@ All 1,025 Debug portable tests passed after this output migration: 532 for the
 2024 product and 493 for 2026. This includes all output-family round trips,
 malformed wire cases, active operation mappings, process supervision, generated
 client smoke tests, and production worker control with the fake SDK.
+
+## Typed Nested Fit Constraints
+
+`GetRelationshipFitConstraintsScalarType` and
+`SetRelationshipFitConstraintsScalarType` now call handwritten typed mappings.
+Their old interpreter registrations are removed. Collection-object identity
+validation and scalar fit-constraint conversion live in separate value mappers.
+Missing high/low constraints and missing leaves retain independent disabled/zero
+defaults; explicit false and zero outputs preserve public protobuf presence.
+The 2024 reserved object-type slot remains rejected.
+
+Generated-client HTTP/2 tests exercise the real services, round-trip the private
+command/result serialization with a fake executor, verify all five ordered
+outputs and exact binding names, and reject invalid requests before submission.
+These tests do not attach to SpatialAnalyzer or measure full worker-process
+latency. Public messages and the supported operation set are unchanged.
