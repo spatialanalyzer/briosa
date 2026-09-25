@@ -40,9 +40,7 @@ internal static class MpOperationValueMapper
         {
             source = provided && value is IMessage outerNested
                 ? outerNested
-                : (IMessage?)Activator.CreateInstance(outerField.MessageType.ClrType) ??
-                    throw new InvalidOperationException(
-                        $"Cannot create request field '{contract.FieldName}'.");
+                : outerField.MessageType.Parser.ParseFrom(Array.Empty<byte>());
             var segments = contract.NestedFieldName.Split('.');
             for (var index = 0; index < segments.Length; index++)
             {
@@ -67,9 +65,7 @@ internal static class MpOperationValueMapper
                     }
                     else
                     {
-                        source = (IMessage?)Activator.CreateInstance(field.MessageType.ClrType) ??
-                            throw new InvalidOperationException(
-                                $"Cannot create request field '{contract.FieldName}.{segment}'.");
+                        source = field.MessageType.Parser.ParseFrom(Array.Empty<byte>());
                         provided = false;
                         value = null;
                     }
@@ -167,9 +163,7 @@ internal static class MpOperationValueMapper
                 var outerNested = outerField.Accessor.GetValue(result) as IMessage;
                 if (outerNested is null)
                 {
-                    outerNested = (IMessage?)Activator.CreateInstance(outerField.MessageType.ClrType) ??
-                        throw new InvalidOperationException(
-                            $"Cannot create result field '{contract.FieldName}'.");
+                    outerNested = outerField.MessageType.Parser.ParseFrom(Array.Empty<byte>());
                     outerField.Accessor.SetValue(result, outerNested);
                 }
 
@@ -189,9 +183,7 @@ internal static class MpOperationValueMapper
                     var nested = field.Accessor.GetValue(target) as IMessage;
                     if (nested is null)
                     {
-                        nested = (IMessage?)Activator.CreateInstance(field.MessageType.ClrType) ??
-                            throw new InvalidOperationException(
-                                $"Cannot create result field '{contract.FieldName}.{segment}'.");
+                        nested = field.MessageType.Parser.ParseFrom(Array.Empty<byte>());
                         field.Accessor.SetValue(target, nested);
                     }
 
@@ -988,8 +980,7 @@ internal static class MpOperationValueMapper
         MessageDescriptor descriptor,
         IReadOnlyList<double> values)
     {
-        var message = (IMessage?)Activator.CreateInstance(descriptor.ClrType) ??
-            throw new InvalidOperationException($"Cannot create {descriptor.FullName}.");
+        var message = descriptor.Parser.ParseFrom(Array.Empty<byte>());
         var field = descriptor.Fields.InFieldNumberOrder().Single(candidate =>
             candidate.IsRepeated && candidate.FieldType == FieldType.Double);
         SetResultField(message, field, values.Cast<object>().ToArray());
@@ -1000,8 +991,7 @@ internal static class MpOperationValueMapper
         MessageDescriptor descriptor,
         WorkerVectorValue value)
     {
-        var message = (IMessage?)Activator.CreateInstance(descriptor.ClrType) ??
-            throw new InvalidOperationException($"Cannot create {descriptor.FullName}.");
+        var message = descriptor.Parser.ParseFrom(Array.Empty<byte>());
         var fields = descriptor.Fields.InFieldNumberOrder()
             .Where(candidate => candidate.FieldType == FieldType.Double)
             .Take(3)
@@ -1086,15 +1076,13 @@ internal static class MpOperationValueMapper
             return;
         }
 
-        var target = field.Accessor.GetValue(result);
-        var elementType = target.GetType().GetGenericArguments().Single();
-        var add = target.GetType().GetMethods()
-            .Single(method => method.Name == "Add" &&
-                method.GetParameters().Length == 1 &&
-                method.GetParameters()[0].ParameterType == elementType);
+        // Generated repeated fields implement IList. Use that contract while
+        // this operation awaits a concrete mapper; no reflected method lookup
+        // or per-element invocation argument array is needed.
+        var target = (IList)field.Accessor.GetValue(result);
         foreach (var item in (object[])value)
         {
-            _ = add.Invoke(target, [item]);
+            target.Add(item);
         }
     }
 
