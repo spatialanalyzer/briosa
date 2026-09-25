@@ -63,26 +63,13 @@ internal static class GetWorkingFramePropertiesOperation
             ]);
     }
 
-    public static Api.GetWorkingFramePropertiesResult CreateResult(
-        SuccessfulOperationExecution completed)
+    // OperationExecutor validates ordered output shape and retrieval before mapping.
+    public static Api.GetWorkingFramePropertiesResult CreateResult(SuccessfulOperationExecution completed) => new()
     {
-        ArgumentNullException.ThrowIfNull(completed);
-        var outputs = completed.Execution.OutputValues;
-        var workingFrame = outputs.Single(value =>
-            value.Name == WorkingFrameArgumentName &&
-            value.Kind == WorkerMpValueKind.CollectionObjectName);
-
-        return new Api.GetWorkingFramePropertiesResult
-        {
-            FrameName = (outputs.Single(value =>
-                value.Name == FrameNameArgumentName &&
-                value.Kind == WorkerMpValueKind.Text).ReadValue() as WorkerTextValue)?.Value!,
-            CollectionName = (outputs.Single(value =>
-                value.Name == CollectionNameArgumentName &&
-                value.Kind == WorkerMpValueKind.Text).ReadValue() as WorkerTextValue)?.Value!,
-            WorkingFrame = SpatialAnalyzerValueMapper.ToProtocol(
-                workingFrame.RequireValue<WorkerCollectionObjectNameValue>()),
-            Execution = completed.Details
-        };
-    }
+        FrameName = completed.Execution.OutputValues[0].RequireValue<WorkerTextValue>().Value,
+        CollectionName = completed.Execution.OutputValues[1].RequireValue<WorkerTextValue>().Value,
+        WorkingFrame = Values.CollectionObjectNameMapper.ToProtocol(
+            completed.Execution.OutputValues[2].RequireValue<WorkerCollectionObjectNameValue>()),
+        Execution = completed.Details
+    };
 }

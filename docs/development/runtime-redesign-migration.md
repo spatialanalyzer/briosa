@@ -404,3 +404,22 @@ request can finish cleanup; it does not replay the previous command. These
 changes preserve the public protocol and private protocol 23. Portable regression
 coverage includes ignored cancellation, failed termination, missing exit evidence,
 stalled disposal, recovery exclusion, and children that never connect.
+
+## Read-only Context Routes
+
+Get Working Directory, Get i-th Collection Name, Get Number of Collections,
+Get Active Units, and Get Working Frame Properties now route through their
+handwritten typed implementations. Their duplicate interpreter registrations and
+the working-directory service's test-only execution method have been removed.
+Existing outcome tests call the actual gRPC override, and a generated HTTP/2 client
+checks these operations alongside Get Active Collection Name through the private
+value codec.
+
+Result mapping uses the output order already validated by the shared executor,
+without repeated name searches. The collection-object mapper is shared with the
+Variables domain and continues rejecting unknown types. The frame-specific omitted
+type fallback remains local to Get Working Frame Properties. Omitted collection
+index still means zero, preserving the live public route's behavior; the unused
+implementation's conflicting presence requirement has been removed. No protobuf
+or private wire change is required. All 46 focused mapping, catalog, value, and
+service tests passed on each target.
