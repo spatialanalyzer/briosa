@@ -76,7 +76,8 @@ public sealed class GeneratedClientPerformanceEvidenceTests
         var supervisor = app.Services.GetRequiredService<WorkerProcessSupervisor>();
         var health = app.Services.GetRequiredService<BriosaLogHealth>();
         var rows = new List<Measurement>();
-        Assert.True(await supervisor.StartAsync().ConfigureAwait(true), supervisor.Current.DiagnosticCode);
+        var started = await supervisor.StartAsync().ConfigureAwait(true);
+        Assert.True(started.Succeeded, started.Snapshot.DiagnosticCode);
         await app.StartAsync().ConfigureAwait(true);
         using var channel = GrpcChannel.ForAddress(Assert.Single(app.Urls));
         var variables = new Api.Variables.VariablesClient(channel);

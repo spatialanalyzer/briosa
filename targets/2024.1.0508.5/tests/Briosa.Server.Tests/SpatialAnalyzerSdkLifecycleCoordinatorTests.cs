@@ -178,6 +178,24 @@ public sealed class SpatialAnalyzerSdkLifecycleCoordinatorTests
         Assert.False(failure.Detail.State.ReadyForMp);
     }
 
+    [Fact]
+    public async Task StopAfterFailedStartupSucceedsWithoutErasingTheEarlierIncident()
+    {
+        await using var supervisor = CreateSupervisor(_ => "sdk-activation-failed");
+        var projection = new SpatialAnalyzerSdkLifecycleStateProjection(supervisor);
+        await using var coordinator = new SpatialAnalyzerSdkLifecycleCoordinator(
+            supervisor, projection, new FakeApplicationStateProvider(RunningApplication(1)));
+        var failure = await Assert.ThrowsAsync<SdkLifecycleException>(() =>
+            coordinator.StartAsync(CancellationToken.None));
+        var stopped = await coordinator.StopAsync(failure.Detail.State.SdkGeneration, CancellationToken.None);
+
+        Assert.Equal(global::Briosa.SpatialAnalyzerSdkState.Stopped, stopped.SdkState);
+        Assert.False(stopped.ReadyForMp);
+        Assert.Equal(global::Briosa.SpatialAnalyzerSdkTerminationKind.StartFailed, stopped.LastIncident!.TerminationKind);
+        Assert.Equal(global::Briosa.SpatialAnalyzerSdkState.Faulted, failure.Detail.State.SdkState);
+        Assert.Equal(WorkerLifecycleFailure.None, supervisor.Current.LifecycleFailure);
+    }
+
     [Theory]
     [InlineData("sdk-activation-failed")]
     [InlineData("sdk-activation-failed-timeout-text")]

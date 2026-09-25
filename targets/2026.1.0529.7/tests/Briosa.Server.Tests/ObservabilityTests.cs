@@ -82,7 +82,7 @@ public sealed class ObservabilityTests
         try
         {
             await using var supervisor = Supervisor("normal", logs, telemetry);
-            Assert.True(await supervisor.StartAsync());
+            Assert.True((await supervisor.StartAsync()).Succeeded);
             await Run(Executor(supervisor, logs, telemetry));
             await Until(() => health.Failures > 0);
             Assert.Equal(1, supervisor.ExecutionSnapshot.TerminalRequests);
@@ -137,7 +137,7 @@ public sealed class ObservabilityTests
             logs.CreateLogger<BriosaTelemetryExport>());
         await export.StartAsync(CancellationToken.None);
         await using var supervisor = Supervisor("normal", logs, telemetry);
-        Assert.True(await supervisor.StartAsync());
+        Assert.True((await supervisor.StartAsync()).Succeeded);
         await Run(Executor(supervisor, logs, telemetry));
         Assert.Equal(1, supervisor.ExecutionSnapshot.TerminalRequests);
         var shutdown = Stopwatch.GetTimestamp();
@@ -295,7 +295,7 @@ public sealed class ObservabilityTests
         };
         ActivitySource.AddActivityListener(listener);
         await using var supervisor = Supervisor("delay-first-execute", logs, telemetry);
-        Assert.True(await supervisor.StartAsync());
+        Assert.True((await supervisor.StartAsync()).Succeeded);
         var executor = Executor(supervisor, logs, telemetry);
         var correlation = Guid.NewGuid();
         using var cancellation = new CancellationTokenSource();
@@ -330,7 +330,7 @@ public sealed class ObservabilityTests
         using var logs = LoggerFactory.Create(builder => builder.AddProvider(provider));
         using var telemetry = new BriosaTelemetry(health);
         await using var supervisor = Supervisor(scenario, logs, telemetry, TimeSpan.FromMilliseconds(200));
-        Assert.True(await supervisor.StartAsync());
+        Assert.True((await supervisor.StartAsync()).Succeeded);
         await Assert.ThrowsAsync<RpcException>(() => Run(Executor(supervisor, logs, telemetry)));
         provider.Dispose();
         var entry = Assert.Single(sink.Events, entry => EventName(entry) == "ExecutionResolved");
