@@ -83,11 +83,9 @@ internal sealed class VariablesService(OperationExecutor executor)
     public override Task<Api.GetDoubleVariableResult> GetDoubleVariable(
         Api.GetDoubleVariableRequest request,
         ServerCallContext context) =>
-        MpOperationServiceExecutor.ExecuteAsync<Api.GetDoubleVariableRequest, Api.GetDoubleVariableResult>(
-            executor,
-            request,
-            context,
-            "variables.get_double_variable");
+        executor.ExecuteAsync(request, context, GetDoubleVariableOperation.Descriptor,
+            GetDoubleVariableOperation.CreateCommand, GetDoubleVariableOperation.OutputContracts,
+            GetDoubleVariableOperation.CreateResult);
 
     [OperationImplementation("variables.get_integer_variable")]
     public override Task<Api.GetIntegerVariableResult> GetIntegerVariable(
@@ -103,11 +101,9 @@ internal sealed class VariablesService(OperationExecutor executor)
     public override Task<Api.GetNamedDoubleListVariableResult> GetNamedDoubleListVariable(
         Api.GetNamedDoubleListVariableRequest request,
         ServerCallContext context) =>
-        MpOperationServiceExecutor.ExecuteAsync<Api.GetNamedDoubleListVariableRequest, Api.GetNamedDoubleListVariableResult>(
-            executor,
-            request,
-            context,
-            "variables.get_named_double_list_variable");
+        executor.ExecuteAsync(request, context, GetNamedDoubleListVariableOperation.Descriptor,
+            GetNamedDoubleListVariableOperation.CreateCommand, GetNamedDoubleListVariableOperation.OutputContracts,
+            GetNamedDoubleListVariableOperation.CreateResult);
 
     [OperationImplementation("variables.get_named_double_list_variable_min_max")]
     public override Task<Api.GetNamedDoubleListVariableMinMaxResult> GetNamedDoubleListVariableMinMax(
@@ -243,11 +239,9 @@ internal sealed class VariablesService(OperationExecutor executor)
     public override Task<Api.SetDoubleVariableResult> SetDoubleVariable(
         Api.SetDoubleVariableRequest request,
         ServerCallContext context) =>
-        MpOperationServiceExecutor.ExecuteAsync<Api.SetDoubleVariableRequest, Api.SetDoubleVariableResult>(
-            executor,
-            request,
-            context,
-            "variables.set_double_variable");
+        executor.ExecuteAsync(request, context, SetDoubleVariableOperation.Descriptor,
+            SetDoubleVariableOperation.CreateCommand, SetDoubleVariableOperation.OutputContracts,
+            SetDoubleVariableOperation.CreateResult);
 
     [OperationImplementation("variables.set_font_variable")]
     public override Task<Api.SetFontVariableResult> SetFontVariable(
@@ -273,11 +267,9 @@ internal sealed class VariablesService(OperationExecutor executor)
     public override Task<Api.SetNamedDoubleListVariableResult> SetNamedDoubleListVariable(
         Api.SetNamedDoubleListVariableRequest request,
         ServerCallContext context) =>
-        MpOperationServiceExecutor.ExecuteAsync<Api.SetNamedDoubleListVariableRequest, Api.SetNamedDoubleListVariableResult>(
-            executor,
-            request,
-            context,
-            "variables.set_named_double_list_variable");
+        executor.ExecuteAsync(request, context, SetNamedDoubleListVariableOperation.Descriptor,
+            SetNamedDoubleListVariableOperation.CreateCommand, SetNamedDoubleListVariableOperation.OutputContracts,
+            SetNamedDoubleListVariableOperation.CreateResult);
 
     [OperationImplementation("variables.set_point_name_ref_list_variable")]
     public override Task<Api.SetPointNameRefListVariableResult> SetPointNameRefListVariable(

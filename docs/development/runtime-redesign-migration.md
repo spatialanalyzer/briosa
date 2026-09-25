@@ -78,3 +78,41 @@ and the remaining internal runtime redesign are still in progress.
 These downstream changes and release validations are required before publishing
 the redesign. This document is a migration specification, not evidence that those
 products have already been updated or released.
+
+## Private Worker Protocol 17 (In Development)
+
+The host and worker must be upgraded together. Protocol 17 uses numeric JSON
+value discriminators and compile-time generated serialization metadata, omitting
+unused null properties. An older worker is rejected by the private protocol
+version gate. This private transport change does not alter public RPC names or
+protobuf packages. Zero, false, empty strings, and empty lists remain present.
+The independent 64-KiB private payload limit remains enforced before writing a
+frame. Generated serialization does not remove numeric JSON conversion costs.
+
+Worker contract types are grouped under Connection, Execution, and Values, with
+one top-level type per file. Explicit value/outcome alternatives and the broader
+typed-operation migration remain in progress under #221.
+
+## Typed Mapping Progress
+
+Four variable operations now use handwritten, concrete request/result mappings:
+Get/Set Double Variable and Get/Set Named Double List Variable. Their interpreter
+registrations were removed. Names, SDK bindings, defaults, execution/replay
+metadata, and required-list behavior remain unchanged in each target. Output
+shape validation now compares ordered names and kinds in one pass, followed by
+positional result access. The remaining operation migration is still in progress.
+
+The initial portable suite passed 953 tests across both products. Additional
+HTTP/2 generated-client coverage exercises the four public RPCs and a 4,096-value
+list; focused outcome/admission tests and worker tests also pass. SDK specialized
+enum conversion uses explicit casts and defined-value validation instead of
+`Enum.ToObject`.
+
+A local Release microbenchmark compares the retained interpreter with these
+actual production mappings, including output shape/retrieval validation. On the
+2026 build, mapping a 4,096-double input fell from about 55.8 to 2.0 microseconds
+and 166 KB to 34 KB allocated; validated result mapping fell from about 180.4 to
+2.1 microseconds and 329 KB to 33 KB. These are in-process mapping measurements,
+not gRPC latency, SDK performance, or end-to-end throughput. The harness and raw
+samples remain in the local review artifacts; broader runtime measurements and
+licensed validation remain outstanding.

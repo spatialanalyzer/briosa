@@ -150,12 +150,8 @@ internal sealed class SpatialAnalyzerSdkLifecycleStateProjection(
         {
             WorkerLifecycleState.Stopped => global::Briosa.SpatialAnalyzerSdkState.Stopped,
             WorkerLifecycleState.Stopping => global::Briosa.SpatialAnalyzerSdkState.Stopping,
-            WorkerLifecycleState.Starting when snapshot.DiagnosticCode.Contains(
-                "execution-readiness",
-                StringComparison.Ordinal) => global::Briosa.SpatialAnalyzerSdkState.Verifying,
-            WorkerLifecycleState.Starting when snapshot.DiagnosticCode.Contains(
-                "connect",
-                StringComparison.Ordinal) => global::Briosa.SpatialAnalyzerSdkState.Connecting,
+            WorkerLifecycleState.Starting when snapshot.Connection?.ExecutionReadinessState == WorkerExecutionReadinessState.Verifying => global::Briosa.SpatialAnalyzerSdkState.Verifying,
+            WorkerLifecycleState.Starting when snapshot.Connection?.State == WorkerConnectionState.Connecting => global::Briosa.SpatialAnalyzerSdkState.Connecting,
             WorkerLifecycleState.Starting => global::Briosa.SpatialAnalyzerSdkState.Starting,
             WorkerLifecycleState.Ready when snapshot.Connection is
             {

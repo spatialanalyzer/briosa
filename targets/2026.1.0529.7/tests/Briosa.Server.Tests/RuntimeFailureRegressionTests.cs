@@ -1,5 +1,6 @@
 using Briosa.Server.Operations;
 using Briosa.Server.Operations.WaveA;
+using Briosa.Server.Operations.Variables;
 using Briosa.Server.Services;
 using Briosa.Server.Workers;
 using Briosa.Worker.Control;
@@ -20,15 +21,15 @@ public sealed class RuntimeFailureRegressionTests
         await using var workerLifetime = worker.ConfigureAwait(true);
         await using var supervisor = CreateSupervisor(worker);
         Assert.True(await supervisor.StartAsync());
-        var operation = MpOperationCatalog.Get("variables.set_double_variable");
+
         var executor = new OperationExecutor(supervisor,
             new OperationAuditLogger(NullLogger<OperationAuditLogger>.Instance), TimeProvider.System);
         using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(3));
 
         var error = await Assert.ThrowsAsync<RpcException>(() => executor.ExecuteAsync(
             new global::Briosa.SetDoubleVariableRequest { Name = "regression", Value = value },
-            operation.Descriptor, operation.CreateCommand, operation.OutputContracts,
-            operation.CreateResult<global::Briosa.SetDoubleVariableResult>, timeout.Token));
+            SetDoubleVariableOperation.Descriptor, SetDoubleVariableOperation.CreateCommand, SetDoubleVariableOperation.OutputContracts,
+            SetDoubleVariableOperation.CreateResult, timeout.Token));
 
         Assert.Equal(StatusCode.InvalidArgument, error.StatusCode);
         var detail = global::Briosa.OperationError.Parser.ParseFrom(Assert.Single(error.Trailers).ValueBytes);
@@ -75,7 +76,7 @@ public sealed class RuntimeFailureRegressionTests
         await worker.ExecutionEntered.Task.WaitAsync(TimeSpan.FromSeconds(3));
         var first = supervisor.ExecuteAsync(Plain());
         var second = supervisor.ExecuteAsync(Plain());
-        var operation = MpOperationCatalog.Get("variables.set_double_variable");
+
         var executor = new OperationExecutor(supervisor,
             new OperationAuditLogger(NullLogger<OperationAuditLogger>.Instance), TimeProvider.System);
         var mapped = false;
@@ -85,9 +86,9 @@ public sealed class RuntimeFailureRegressionTests
             for (var index = 0; index < 64; index++)
             {
                 var error = await Assert.ThrowsAsync<RpcException>(() => executor.ExecuteAsync(
-                    new global::Briosa.SetDoubleVariableRequest(), operation.Descriptor,
-                    request => { mapped = true; return operation.CreateCommand(request); },
-                    operation.OutputContracts, operation.CreateResult<global::Briosa.SetDoubleVariableResult>,
+                    new global::Briosa.SetDoubleVariableRequest(), SetDoubleVariableOperation.Descriptor,
+                    request => { mapped = true; return SetDoubleVariableOperation.CreateCommand(request); },
+                    SetDoubleVariableOperation.OutputContracts, SetDoubleVariableOperation.CreateResult,
                     CancellationToken.None));
                 Assert.Equal(StatusCode.ResourceExhausted, error.StatusCode);
                 var detail = global::Briosa.OperationError.Parser.ParseFrom(Assert.Single(error.Trailers).ValueBytes);

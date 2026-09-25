@@ -268,6 +268,18 @@ public sealed class DiscoveryServiceTests
             coordinates.InteropFingerprint);
     }
 
+    [Fact]
+    public void MutatingDiscoveryCoordinatesDoesNotChangeSubsequentResponses()
+    {
+        var provider = new AssemblyServerBuildIdentityProvider(typeof(Program).Assembly);
+        var expected = provider.CreateVersionCoordinates();
+        var modified = provider.CreateVersionCoordinates();
+        modified.BriosaVersion = "changed";
+        modified.SpatialAnalyzerTarget = "changed";
+        modified.SourceRevision = "changed";
+
+        Assert.Equal(expected, provider.CreateVersionCoordinates());
+    }
     private static OperationPolicy CreatePolicy(bool allow = true)
     {
         var values = new Dictionary<string, string?>(StringComparer.Ordinal);

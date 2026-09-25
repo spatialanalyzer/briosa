@@ -1,28 +1,10 @@
 using System.Buffers.Binary;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace Briosa.Worker.Control;
 
 public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) : IDisposable
 {
-    private static readonly JsonSerializerOptions SerializerOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        Converters =
-        {
-            new JsonStringEnumConverter<WorkerControlMessageKind>(JsonNamingPolicy.CamelCase),
-            new JsonStringEnumConverter<WorkerConnectionState>(JsonNamingPolicy.CamelCase),
-            new JsonStringEnumConverter<WorkerExecutionReadinessState>(JsonNamingPolicy.CamelCase),
-            new JsonStringEnumConverter<WorkerRuntimeIdentityEvidenceSource>(JsonNamingPolicy.CamelCase),
-            new JsonStringEnumConverter<WorkerMpValueKind>(JsonNamingPolicy.CamelCase),
-            new JsonStringEnumConverter<WorkerAngularUnitValue>(JsonNamingPolicy.CamelCase),
-            new JsonStringEnumConverter<WorkerDistanceUnitValue>(JsonNamingPolicy.CamelCase),
-            new JsonStringEnumConverter<WorkerTemperatureUnitValue>(JsonNamingPolicy.CamelCase),
-            new JsonStringEnumConverter<WorkerExecutionResponseStatus>(JsonNamingPolicy.CamelCase)
-        }
-    };
-
     private readonly Stream _stream = stream ?? throw new ArgumentNullException(nameof(stream));
     private readonly bool _leaveOpen = leaveOpen;
     private int _disposeState;
@@ -86,7 +68,7 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
         try
         {
             Validate(message);
-            var payload = JsonSerializer.SerializeToUtf8Bytes(message, SerializerOptions);
+            var payload = JsonSerializer.SerializeToUtf8Bytes(message, WorkerControlJsonContext.Default.WorkerControlMessage);
             if (payload.Length > WorkerControlProtocol.MaximumMessageBytes)
             {
                 throw new InvalidDataException("The worker control message exceeds the size limit.");
@@ -103,7 +85,7 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
 
     private static WorkerControlMessage Deserialize(ReadOnlySpan<byte> payload)
     {
-        var message = JsonSerializer.Deserialize<WorkerControlMessage>(payload, SerializerOptions)
+        var message = JsonSerializer.Deserialize(payload, WorkerControlJsonContext.Default.WorkerControlMessage)
             ?? throw new InvalidDataException("The worker control message was empty.");
         Validate(message);
         return message;
