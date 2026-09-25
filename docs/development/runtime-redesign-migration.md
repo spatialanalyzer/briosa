@@ -488,3 +488,27 @@ presence, and getter failure with Completed/DoNotReplay evidence. No live Event
 Operations validation or new protocol change is claimed.
 The complete Release server suites passed after this migration: 310 current-target
 tests and 333 legacy-target tests, with no failures or skips.
+
+## Lifecycle Results Retain Their Own State
+
+Start, connect, recovery, and stop now return explicit internal success/failure
+results with the immutable snapshot captured while the controller still owns the
+transition. The coordinator uses that result for both classification and public
+state, rather than awaiting a Boolean and independently reading a potentially
+newer snapshot. Application-generation association also returns the snapshot it
+observed or published under the controller's gate.
+
+This exposed and corrected an inherited stop-classification bug: a worker already
+retired during failed startup could be fully cleaned up, but a subsequent stop
+was reported as failed solely because the retained termination history said
+Forced. Stop now reports its own cleanup outcome. Earlier incidents remain
+visible; genuine stop failures, timeouts, and incomplete cleanup remain failures.
+Queued-stop regressions preserve the completed start's readiness snapshot and a
+failed start's timeout evidence after cleanup has finished. The public coordinator
+also verifies successful stop after activation failure while retaining the earlier
+StartFailed incident. No protobuf or private protocol change is needed.
+
+The hosted service's unused startup-result logging methods were removed; the
+controller continues owning transition logs and the host still starts inert.
+Both complete Release server suites passed: 313 current-target tests and 336
+legacy-target tests, with no failures or skips.

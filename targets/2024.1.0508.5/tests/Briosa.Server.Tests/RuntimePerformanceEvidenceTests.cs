@@ -40,7 +40,7 @@ public sealed class RuntimePerformanceEvidenceTests
                 activatedSdkVersion: "2024.1.0508.5",
                 connectedSpatialAnalyzerVersion: "2024.1.0508.5"));
 
-        Assert.True(await supervisor.StartAsync());
+        Assert.True((await supervisor.StartAsync()).Succeeded);
         for (var index = 0; index < WarmupRequestCount; index++)
         {
             var warmup = await supervisor.ExecuteAsync(CreateCommand(index));

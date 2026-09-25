@@ -111,16 +111,17 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         Interlocked.Read(ref _watchdogTimeoutCount),
         Interlocked.Read(ref _workerFailureCount));
 
-    public Task<bool> StartAsync(CancellationToken cancellationToken = default) =>
+    public Task<WorkerLifecycleResult> StartAsync(CancellationToken cancellationToken = default) =>
         RunLifecycle(StartCore, cancellationToken);
 
-    public Task<bool> ConnectAsync(int expectedGeneration, CancellationToken cancellationToken = default) =>
+    public Task<WorkerLifecycleResult> ConnectAsync(int expectedGeneration, CancellationToken cancellationToken = default) =>
         RunLifecycle(token => ConnectCore(expectedGeneration, token), cancellationToken);
 
-    public Task<bool> RecoverSdkAsync(int expectedGeneration, CancellationToken cancellationToken = default) =>
+    public Task<WorkerLifecycleResult> RecoverSdkAsync(int expectedGeneration, CancellationToken cancellationToken = default) =>
         RunLifecycle(token => RecoverSdkCore(expectedGeneration, token), cancellationToken);
 
-    private async Task<bool> RunLifecycle(Func<CancellationToken, Task<bool>> action, CancellationToken cancellationToken)
+    private async Task<WorkerLifecycleResult> RunLifecycle(
+        Func<CancellationToken, Task<WorkerLifecycleResult>> action, CancellationToken cancellationToken)
     {
         ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposeState) != 0, this);
         await _lifecycleGate.WaitAsync(cancellationToken).ConfigureAwait(false);
@@ -134,7 +135,12 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         }
     }
 
-    private async Task<bool> StartCore(CancellationToken cancellationToken)
+    // Called under _gate: neither another lifecycle action nor a monitor/execution
+    // transition can replace the snapshot between deciding the result and capturing it.
+    private WorkerLifecycleResult CaptureLifecycleResult(bool succeeded) =>
+        succeeded ? new WorkerLifecycleSucceeded(Current) : new WorkerLifecycleFailed(Current);
+
+    private async Task<WorkerLifecycleResult> StartCore(CancellationToken cancellationToken)
     {
         ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposeState) != 0, this);
         await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
@@ -152,7 +158,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                 StartRuntimeLoops();
             }
 
-            return started;
+            return CaptureLifecycleResult(started);
         }
         finally
         {
@@ -160,7 +166,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         }
     }
 
-    private async Task<bool> ConnectCore(
+    private async Task<WorkerLifecycleResult> ConnectCore(
         int expectedGeneration,
         CancellationToken cancellationToken = default)
     {
@@ -229,7 +235,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                 await RetireWorker(
                     "connect-ex-timeout",
                     connecting, lifecycleFailure: WorkerLifecycleFailure.ConnectionTimeout).ConfigureAwait(false);
-                return false;
+                return CaptureLifecycleResult(false);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -245,7 +251,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                         ? "worker-exited-during-connect"
                         : "sdk-connection-control-failed",
                     connecting, lifecycleFailure: WorkerLifecycleFailure.ConnectionFailed).ConfigureAwait(false);
-                return false;
+                return CaptureLifecycleResult(false);
             }
 
             var connection = response.Connection!;
@@ -267,7 +273,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                         connection, lifecycleFailure: WorkerLifecycleFailure.ConnectionFailed);
                 }
 
-                return false;
+                return CaptureLifecycleResult(false);
             }
 
             if (!_identityPolicy.Evaluate(connection.RuntimeIdentity).AllowsExecution)
@@ -283,7 +289,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                         DiagnosticCode = "runtime-identity-not-ready",
                         TransitionedAt = _timeProvider.GetUtcNow()
                     }, lifecycleFailure: WorkerLifecycleFailure.IdentityRejected);
-                return false;
+                return CaptureLifecycleResult(false);
             }
 
             Transition(
@@ -297,8 +303,9 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                     DiagnosticCode = "execution-readiness-probe-started",
                     TransitionedAt = _timeProvider.GetUtcNow()
                 });
-            return await VerifyWorkerExecution(connection, cancellationToken)
+            var verified = await VerifyWorkerExecution(connection, cancellationToken)
                 .ConfigureAwait(false);
+            return CaptureLifecycleResult(verified);
         }
         finally
         {
@@ -306,7 +313,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         }
     }
 
-    private async Task<bool> RecoverSdkCore(
+    private async Task<WorkerLifecycleResult> RecoverSdkCore(
         int expectedGeneration,
         CancellationToken cancellationToken = default)
     {
@@ -339,7 +346,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         await _gate.WaitAsync(CancellationToken.None).ConfigureAwait(false);
         try
         {
-            if (!await CleanupWorker(force: true).ConfigureAwait(false)) return false;
+            if (!await CleanupWorker(force: true).ConfigureAwait(false)) return CaptureLifecycleResult(false);
             _recoveryCount++;
             var started = await StartWorker(cancellationToken).ConfigureAwait(false);
             if (started)
@@ -347,7 +354,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                 StartRuntimeLoops();
             }
 
-            return started;
+            return CaptureLifecycleResult(started);
         }
         finally
         {
@@ -356,7 +363,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
     }
 
 
-    public async Task AssociateApplicationGenerationAsync(int expectedGeneration,
+    public async Task<WorkerLifecycleSnapshot> AssociateApplicationGenerationAsync(int expectedGeneration,
         int? applicationGeneration, CancellationToken cancellationToken = default)
     {
         await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
@@ -367,13 +374,14 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                 throw new WorkerGenerationConflictException(expectedGeneration, current.Generation);
             if (current.State != WorkerLifecycleState.Ready ||
                 current.Connection?.State != WorkerConnectionState.Connected ||
-                current.ApplicationGeneration == applicationGeneration) return;
+                current.ApplicationGeneration == applicationGeneration) return current;
             PublishSnapshot(current with
             {
                 ApplicationGeneration = applicationGeneration,
                 StateRevision = Interlocked.Increment(ref _stateRevision),
                 TransitionedAt = _timeProvider.GetUtcNow()
             });
+            return Current;
         }
         finally
         {
@@ -486,20 +494,10 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         }
     }
 
-    public async Task StopAsync(CancellationToken cancellationToken = default)
-    {
-        await _lifecycleGate.WaitAsync(cancellationToken).ConfigureAwait(false);
-        try
-        {
-            await StopCore(cancellationToken).ConfigureAwait(false);
-        }
-        finally
-        {
-            _lifecycleGate.Release();
-        }
-    }
+    public Task<WorkerLifecycleResult> StopAsync(CancellationToken cancellationToken = default) =>
+        RunLifecycle(StopCore, cancellationToken);
 
-    private async Task StopCore(CancellationToken cancellationToken)
+    private async Task<WorkerLifecycleResult> StopCore(CancellationToken cancellationToken)
     {
         // Cancellation may abandon waiting to begin, but never leave an accepted
         // teardown half complete. Acquire ownership before closing admission.
@@ -522,6 +520,8 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         try
         {
             await StopWorker().ConfigureAwait(false);
+            return CaptureLifecycleResult(Current.State == WorkerLifecycleState.Stopped &&
+                Current.LifecycleFailure == WorkerLifecycleFailure.None);
         }
         finally
         {
@@ -560,7 +560,16 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
             return;
         }
 
-        await StopAsync().ConfigureAwait(false);
+        // Disposal has already closed the public lifecycle entry points.
+        await _lifecycleGate.WaitAsync(CancellationToken.None).ConfigureAwait(false);
+        try
+        {
+            await StopCore(CancellationToken.None).ConfigureAwait(false);
+        }
+        finally
+        {
+            _lifecycleGate.Release();
+        }
         _gate.Dispose();
         _lifecycleGate.Dispose();
     }
