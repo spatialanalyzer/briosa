@@ -505,6 +505,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var current = Current;
             Transition(WorkerLifecycleState.Stopping, current.ProcessId,
                 current.LastTermination, "worker-stopping", current.Connection);
