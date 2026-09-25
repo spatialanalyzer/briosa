@@ -18,6 +18,13 @@ internal static class CollectionItemNameMapper
         return new(value.CollectionName, value.ItemName, type);
     }
 
+    public static WorkerCollectionItemNameValue Required(Api.CollectionItemName? value, string fieldName)
+    {
+        if (value is null || string.IsNullOrWhiteSpace(value.ItemName))
+            throw new ArgumentException($"Request field '{fieldName}' is required.", nameof(value));
+        return ToWorker(value);
+    }
+
     public static WorkerCollectionItemNameListValue RequiredList(IReadOnlyList<Api.CollectionItemName> values, string fieldName)
     {
         if (values.Count == 0)
