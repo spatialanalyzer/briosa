@@ -917,68 +917,68 @@ internal static class MpOperationValueMapper
         MpArgumentContract contract) =>
         output.Kind switch
         {
-            WorkerMpValueKind.Logical => output.BooleanValue!.Value,
+            WorkerMpValueKind.Logical => output.RequireValue<WorkerBooleanValue>().Value,
             WorkerMpValueKind.WholeNumber when field.FieldType == FieldType.Double =>
-                Convert.ToDouble(output.IntegerValue!.Value, CultureInfo.InvariantCulture),
-            WorkerMpValueKind.WholeNumber => output.IntegerValue!.Value,
-            WorkerMpValueKind.FloatingPoint => output.DoubleValue!.Value,
+                Convert.ToDouble(output.RequireValue<WorkerIntegerValue>().Value, CultureInfo.InvariantCulture),
+            WorkerMpValueKind.WholeNumber => output.RequireValue<WorkerIntegerValue>().Value,
+            WorkerMpValueKind.FloatingPoint => output.RequireValue<WorkerDoubleValue>().Value,
             WorkerMpValueKind.Text when field.FieldType == FieldType.Enum =>
-                ProtocolEnumValue(field.EnumType, output.StringValue!, contract.EnumTextValues),
+                ProtocolEnumValue(field.EnumType, output.RequireValue<WorkerTextValue>().Value, contract.EnumTextValues),
             WorkerMpValueKind.Text when field.FieldType == FieldType.Message =>
-                ProtocolStringMessage(field.MessageType, output.StringValue!),
+                ProtocolStringMessage(field.MessageType, output.RequireValue<WorkerTextValue>().Value),
             WorkerMpValueKind.CollectionName when field.FieldType == FieldType.Message =>
-                new Api.CollectionName { Name = output.StringValue! },
+                new Api.CollectionName { Name = output.RequireValue<WorkerTextValue>().Value },
             WorkerMpValueKind.Text or WorkerMpValueKind.CollectionName =>
-                output.StringValue!,
+                output.RequireValue<WorkerTextValue>().Value,
             WorkerMpValueKind.DoubleArray when field.FieldType == FieldType.Message =>
-                ProtocolDoubleArrayMessage(field.MessageType, output.DoubleArrayValue!.Values),
-            WorkerMpValueKind.DoubleArray => output.DoubleArrayValue!.Values.Cast<object>().ToArray(),
+                ProtocolDoubleArrayMessage(field.MessageType, output.RequireValue<WorkerDoubleArrayValue>().Values),
+            WorkerMpValueKind.DoubleArray => output.RequireValue<WorkerDoubleArrayValue>().Values.Cast<object>().ToArray(),
             WorkerMpValueKind.EditText or WorkerMpValueKind.StringList =>
-                output.StringListValue!.Values.Cast<object>().ToArray(),
-            WorkerMpValueKind.PointName => ProtocolPoint(output.PointNameValue!),
+                output.RequireValue<WorkerStringListValue>().Values.Cast<object>().ToArray(),
+            WorkerMpValueKind.PointName => ProtocolPoint(output.RequireValue<WorkerPointNameValue>()),
             WorkerMpValueKind.PointNameList =>
-                output.PointNameListValue!.Values.Select(ProtocolPoint).Cast<object>().ToArray(),
+                output.RequireValue<WorkerPointNameListValue>().Values.Select(ProtocolPoint).Cast<object>().ToArray(),
             WorkerMpValueKind.Vector when field.FieldType == FieldType.Message &&
                 field.MessageType.FullName != "briosa.Vector" =>
-                ProtocolVectorMessage(field.MessageType, output.VectorValue!),
+                ProtocolVectorMessage(field.MessageType, output.RequireValue<WorkerVectorValue>()),
             WorkerMpValueKind.Vector => new Api.Vector
             {
-                X = output.VectorValue!.X,
-                Y = output.VectorValue.Y,
-                Z = output.VectorValue.Z
+                X = output.RequireValue<WorkerVectorValue>().X,
+                Y = output.RequireValue<WorkerVectorValue>().Y,
+                Z = output.RequireValue<WorkerVectorValue>().Z
             },
             WorkerMpValueKind.ToleranceVectorOptions =>
-                ProtocolToleranceVector(output.ToleranceVectorOptionsValue!),
+                ProtocolToleranceVector(output.RequireValue<WorkerToleranceVectorOptionsValue>()),
             WorkerMpValueKind.Transform => new Api.Transform
             {
-                Values = { output.TransformValue!.Values }
+                Values = { output.RequireValue<WorkerTransformValue>().Values }
             },
             WorkerMpValueKind.WorldTransform => new Api.WorldTransform
             {
                 Transform = new Api.Transform
                 {
-                    Values = { output.WorldTransformValue!.Transform.Values }
+                    Values = { output.RequireValue<WorkerWorldTransformValue>().Transform.Values }
                 },
-                ScaleFactor = output.WorldTransformValue.ScaleFactor
+                ScaleFactor = output.RequireValue<WorkerWorldTransformValue>().ScaleFactor
             },
             WorkerMpValueKind.FileReference => new Api.FileReference
             {
-                Path = output.FileReferenceValue!.Path,
-                EmbeddedFile = output.FileReferenceValue.EmbeddedFile
+                Path = output.RequireValue<WorkerFileReferenceValue>().Path,
+                EmbeddedFile = output.RequireValue<WorkerFileReferenceValue>().EmbeddedFile
             },
             WorkerMpValueKind.CollectionObjectName =>
-                ProtocolObject(output.CollectionObjectNameValue!),
+                ProtocolObject(output.RequireValue<WorkerCollectionObjectNameValue>()),
             WorkerMpValueKind.CollectionObjectNameList =>
-                output.CollectionObjectNameListValue!.Values
+                output.RequireValue<WorkerCollectionObjectNameListValue>().Values
                     .Select(ProtocolObject).Cast<object>().ToArray(),
             WorkerMpValueKind.CollectionInstrumentId =>
                 new Api.CollectionInstrumentId
                 {
-                    CollectionName = output.CollectionInstrumentIdValue!.CollectionName,
-                    InstrumentId = output.CollectionInstrumentIdValue.InstrumentId
+                    CollectionName = output.RequireValue<WorkerCollectionInstrumentIdValue>().CollectionName,
+                    InstrumentId = output.RequireValue<WorkerCollectionInstrumentIdValue>().InstrumentId
                 },
             WorkerMpValueKind.CollectionInstrumentIdList =>
-                output.CollectionInstrumentIdListValue!.Values.Select(item =>
+                output.RequireValue<WorkerCollectionInstrumentIdListValue>().Values.Select(item =>
                     new Api.CollectionInstrumentId
                     {
                         CollectionName = item.CollectionName,
@@ -987,16 +987,16 @@ internal static class MpOperationValueMapper
             WorkerMpValueKind.CollectionMachineId =>
                 new Api.CollectionMachineId
                 {
-                    CollectionName = output.CollectionMachineIdValue!.CollectionName,
-                    MachineId = output.CollectionMachineIdValue.MachineId
+                    CollectionName = output.RequireValue<WorkerCollectionMachineIdValue>().CollectionName,
+                    MachineId = output.RequireValue<WorkerCollectionMachineIdValue>().MachineId
                 },
             WorkerMpValueKind.CollectionItemName =>
-                ProtocolItem(output.CollectionItemNameValue!),
+                ProtocolItem(output.RequireValue<WorkerCollectionItemNameValue>()),
             WorkerMpValueKind.CollectionItemNameList =>
-                output.CollectionItemNameListValue!.Values
+                output.RequireValue<WorkerCollectionItemNameListValue>().Values
                     .Select(ProtocolItem).Cast<object>().ToArray(),
             WorkerMpValueKind.CollectionGroupNameList =>
-                output.CollectionGroupNameListValue!.Values.Select(item =>
+                output.RequireValue<WorkerCollectionGroupNameListValue>().Values.Select(item =>
                     new Api.CollectionGroupName
                     {
                         CollectionName = item.CollectionName,
@@ -1005,27 +1005,27 @@ internal static class MpOperationValueMapper
             WorkerMpValueKind.CollectionVectorGroupName =>
                 new Api.CollectionVectorGroupName
                 {
-                    CollectionName = output.CollectionVectorGroupNameValue!.CollectionName,
-                    VectorGroupName = output.CollectionVectorGroupNameValue.VectorGroupName
+                    CollectionName = output.RequireValue<WorkerCollectionVectorGroupNameValue>().CollectionName,
+                    VectorGroupName = output.RequireValue<WorkerCollectionVectorGroupNameValue>().VectorGroupName
                 },
             WorkerMpValueKind.CollectionVectorGroupNameList =>
-                output.CollectionVectorGroupNameListValue!.Values.Select(item =>
+                output.RequireValue<WorkerCollectionVectorGroupNameListValue>().Values.Select(item =>
                     new Api.CollectionVectorGroupName
                     {
                         CollectionName = item.CollectionName,
                         VectorGroupName = item.VectorGroupName
                     }).Cast<object>().ToArray(),
             WorkerMpValueKind.VectorNameList =>
-                output.VectorNameListValue!.Values.Select(item => new Api.VectorName
+                output.RequireValue<WorkerVectorNameListValue>().Values.Select(item => new Api.VectorName
                 {
                     CollectionName = item.CollectionName,
                     GroupName = item.GroupName,
                     Name = item.VectorName
                 }).Cast<object>().ToArray(),
             WorkerMpValueKind.FitConstraintScalarOptions =>
-                ProtocolFitConstraint(output.FitConstraintScalarOptionsValue!),
+                ProtocolFitConstraint(output.RequireValue<WorkerFitConstraintScalarOptionsValue>()),
             WorkerMpValueKind.ToleranceScalarOptions =>
-                ProtocolToleranceScalar(output.ToleranceScalarOptionsValue!),
+                ProtocolToleranceScalar(output.RequireValue<WorkerToleranceScalarOptionsValue>()),
             _ => throw new InvalidOperationException(
                 $"No result mapper exists for {output.Kind}.")
         };

@@ -51,7 +51,7 @@ internal static class GetWorkingDirectoryOperation
             value.Kind == WorkerMpValueKind.Text);
         return new Api.GetWorkingDirectoryResult
         {
-            Directory = directory.StringValue!,
+            Directory = directory.RequireValue<WorkerTextValue>().Value,
             Execution = completed.Details
         };
     }

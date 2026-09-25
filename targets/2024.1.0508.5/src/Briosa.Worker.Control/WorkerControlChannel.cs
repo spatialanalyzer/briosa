@@ -299,14 +299,14 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
         !output.Retrieved ||
         output.Kind switch
         {
-            WorkerMpValueKind.Logical => output.BooleanValue.HasValue,
-            WorkerMpValueKind.WholeNumber => output.IntegerValue.HasValue,
-            WorkerMpValueKind.FloatingPoint => output.DoubleValue.HasValue,
-            WorkerMpValueKind.DoubleArray => IsValid(output.DoubleArrayValue),
-            WorkerMpValueKind.EditText => IsValid(output.StringListValue),
-            WorkerMpValueKind.Transform => IsValid(output.TransformValue),
-            WorkerMpValueKind.WorldTransform => IsValid(output.WorldTransformValue),
-            WorkerMpValueKind.FileReference => IsValid(output.FileReferenceValue),
+            WorkerMpValueKind.Logical => ((output.ReadValue() as WorkerBooleanValue)?.Value).HasValue,
+            WorkerMpValueKind.WholeNumber => ((output.ReadValue() as WorkerIntegerValue)?.Value).HasValue,
+            WorkerMpValueKind.FloatingPoint => ((output.ReadValue() as WorkerDoubleValue)?.Value).HasValue,
+            WorkerMpValueKind.DoubleArray => IsValid((output.ReadValue() as WorkerDoubleArrayValue)),
+            WorkerMpValueKind.EditText => IsValid((output.ReadValue() as WorkerStringListValue)),
+            WorkerMpValueKind.Transform => IsValid((output.ReadValue() as WorkerTransformValue)),
+            WorkerMpValueKind.WorldTransform => IsValid((output.ReadValue() as WorkerWorldTransformValue)),
+            WorkerMpValueKind.FileReference => IsValid((output.ReadValue() as WorkerFileReferenceValue)),
             WorkerMpValueKind.Text or
             WorkerMpValueKind.InstrumentTypeName or
             WorkerMpValueKind.ChartName or
@@ -314,34 +314,34 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
             WorkerMpValueKind.CollectionName or
             WorkerMpValueKind.FrameName or
             WorkerMpValueKind.VectorGroupName or
-            WorkerMpValueKind.ViewName => output.StringValue is not null,
-            WorkerMpValueKind.PointName => IsValid(output.PointNameValue),
-            WorkerMpValueKind.Vector => output.VectorValue is not null,
+            WorkerMpValueKind.ViewName => ((output.ReadValue() as WorkerTextValue)?.Value) is not null,
+            WorkerMpValueKind.PointName => IsValid((output.ReadValue() as WorkerPointNameValue)),
+            WorkerMpValueKind.Vector => (output.ReadValue() as WorkerVectorValue) is not null,
             WorkerMpValueKind.ToleranceVectorOptions =>
-                IsValid(output.ToleranceVectorOptionsValue),
+                IsValid((output.ReadValue() as WorkerToleranceVectorOptionsValue)),
             WorkerMpValueKind.CollectionInstrumentId =>
-                IsValid(output.CollectionInstrumentIdValue),
+                IsValid((output.ReadValue() as WorkerCollectionInstrumentIdValue)),
             WorkerMpValueKind.CollectionInstrumentIdList =>
-                IsValid(output.CollectionInstrumentIdListValue),
+                IsValid((output.ReadValue() as WorkerCollectionInstrumentIdListValue)),
             WorkerMpValueKind.CollectionMachineId =>
-                IsValid(output.CollectionMachineIdValue),
+                IsValid((output.ReadValue() as WorkerCollectionMachineIdValue)),
             WorkerMpValueKind.CollectionItemName =>
-                IsValid(output.CollectionItemNameValue),
+                IsValid((output.ReadValue() as WorkerCollectionItemNameValue)),
             WorkerMpValueKind.CollectionItemNameList =>
-                IsValid(output.CollectionItemNameListValue),
+                IsValid((output.ReadValue() as WorkerCollectionItemNameListValue)),
             WorkerMpValueKind.CollectionObjectName =>
-                IsValid(output.CollectionObjectNameValue),
+                IsValid((output.ReadValue() as WorkerCollectionObjectNameValue)),
             WorkerMpValueKind.CollectionObjectNameList =>
-                IsValid(output.CollectionObjectNameListValue),
+                IsValid((output.ReadValue() as WorkerCollectionObjectNameListValue)),
             WorkerMpValueKind.CollectionGroupNameList =>
-                IsValid(output.CollectionGroupNameListValue),
+                IsValid((output.ReadValue() as WorkerCollectionGroupNameListValue)),
             WorkerMpValueKind.CollectionVectorGroupName =>
-                IsValid(output.CollectionVectorGroupNameValue),
+                IsValid((output.ReadValue() as WorkerCollectionVectorGroupNameValue)),
             WorkerMpValueKind.CollectionVectorGroupNameList =>
-                IsValid(output.CollectionVectorGroupNameListValue),
-            WorkerMpValueKind.PointNameList => IsValid(output.PointNameListValue),
-            WorkerMpValueKind.StringList => IsValid(output.StringListValue),
-            WorkerMpValueKind.VectorNameList => IsValid(output.VectorNameListValue),
+                IsValid((output.ReadValue() as WorkerCollectionVectorGroupNameListValue)),
+            WorkerMpValueKind.PointNameList => IsValid((output.ReadValue() as WorkerPointNameListValue)),
+            WorkerMpValueKind.StringList => IsValid((output.ReadValue() as WorkerStringListValue)),
+            WorkerMpValueKind.VectorNameList => IsValid((output.ReadValue() as WorkerVectorNameListValue)),
             _ => WorkerSpecializedValueValidation.HasOutputValueForKind(output)
         };
 
@@ -448,6 +448,7 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
                 (response.Execution is not null)) ||
             response.Execution is { } execution &&
             execution.OutputValues.Any(output =>
+                    output is null || !Enum.IsDefined(output.Kind) ||
                     string.IsNullOrWhiteSpace(output.Name) ||
                     !HasOutputValueForKind(output)))
         {

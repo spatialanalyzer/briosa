@@ -61,11 +61,7 @@ public sealed class GetIthCollectionNameOperationTests
             durationMilliseconds: 5,
             outputValues:
             [
-                new WorkerMpOutputValue(
-                    "Resultant Name",
-                    WorkerMpValueKind.CollectionName,
-                    Retrieved: true,
-                    StringValue: "Collection 1")
+                new WorkerRetrievedOutput("Resultant Name", WorkerMpValueKind.CollectionName, new WorkerTextValue("Collection 1"))
             ],
             diagnosticCode: "completed");
         var details = new Api.MpExecutionDetails

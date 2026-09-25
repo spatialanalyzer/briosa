@@ -25,8 +25,7 @@ internal static class GetNamedDoubleListVariableOperation
 
     public static Api.GetNamedDoubleListVariableResult CreateResult(SuccessfulOperationExecution completed)
     {
-        var values = completed.Execution.OutputValues[0].DoubleArrayValue ??
-            throw new InvalidOperationException("The double-list output is missing.");
+        var values = completed.Execution.OutputValues[0].RequireValue<WorkerDoubleArrayValue>();
         var result = new Api.GetNamedDoubleListVariableResult { Execution = completed.Details };
         result.DoubleListVariable.AddRange(values.Values);
         return result;

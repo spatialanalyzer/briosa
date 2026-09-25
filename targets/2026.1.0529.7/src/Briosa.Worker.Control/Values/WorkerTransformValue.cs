@@ -2,7 +2,7 @@ using System.Collections.Immutable;
 
 namespace Briosa.Worker.Control;
 
-public sealed record WorkerTransformValue
+public sealed record WorkerTransformValue : WorkerMpValue
 {
     public WorkerTransformValue(IReadOnlyList<double> values)
     {

@@ -45,7 +45,7 @@ public sealed class WorkerExecutionOutcomeSerializationTests
             new WorkerMpOutputsUnavailable(4, "worker-output-encoding-rejected"),
             new WorkerMpResultAvailable(-1, 4, [], "mp-failed"),
             new WorkerMpResultAvailable(2, 5,
-                [new("Value", WorkerMpValueKind.FloatingPoint, true, DoubleValue: 0)], null)
+                [new WorkerRetrievedOutput("Value", WorkerMpValueKind.FloatingPoint, new WorkerDoubleValue(0))], null)
         ];
         foreach (var outcome in outcomes)
         {
@@ -86,14 +86,14 @@ public sealed class WorkerExecutionOutcomeSerializationTests
     [Fact]
     public void FailedMpCannotContainOutputRetrievals() =>
         Assert.Throws<ArgumentException>(() => new WorkerMpResultAvailable(3, 0,
-            [new("Value", WorkerMpValueKind.FloatingPoint, true, DoubleValue: 42)], null));
+            [new WorkerRetrievedOutput("Value", WorkerMpValueKind.FloatingPoint, new WorkerDoubleValue(42))], null));
 
     [Fact]
     public void OutcomeOwnsTheOutputCollection()
     {
-        var values = new List<WorkerMpOutputValue> { new("Value", WorkerMpValueKind.FloatingPoint, true, DoubleValue: 42) };
+        var values = new List<WorkerMpOutputValue> { new WorkerRetrievedOutput("Value", WorkerMpValueKind.FloatingPoint, new WorkerDoubleValue(42)) };
         var outcome = new WorkerMpResultAvailable(2, 0, values, null);
         values.Clear();
-        Assert.Equal(42, Assert.Single(outcome.OutputValues).DoubleValue);
+        Assert.Equal(42, ((Assert.Single(outcome.OutputValues).ReadValue() as WorkerDoubleValue)?.Value));
     }
 }

@@ -336,11 +336,7 @@ public sealed class WaveBOperationCatalogTests
         var operation = WaveBOperationCatalog.Operations.Single(candidate =>
             candidate.Descriptor.OperationId == "robot_operations.perform_robot_calibration");
         var outputs = operation.Outputs
-            .Select((output, index) => new WorkerMpOutputValue(
-                output.MpName,
-                output.Kind,
-                Retrieved: true,
-                DoubleValue: index + 1))
+            .Select((output, index) => new WorkerRetrievedOutput(output.MpName, output.Kind, new WorkerDoubleValue(index + 1)))
             .ToArray();
         var completed = new SuccessfulOperationExecution(
             WorkerMpExecutionResult.FromEvidence(
@@ -367,7 +363,7 @@ public sealed class WaveBOperationCatalogTests
             candidate.Descriptor.OperationId ==
                 "construction_operations.decompose_transform_into_doubles_euler_zxz");
         var outputs = operation.Outputs.Select((output, index) =>
-            CreateOutputValue(output) with { DoubleValue = index + 1 }).ToArray();
+            new WorkerRetrievedOutput(output.MpName, output.Kind, new WorkerDoubleValue(index + 1))).ToArray();
         var result = operation.CreateResult<Api.DecomposeTransformIntoDoublesEulerZxzResult>(
             Completed(outputs));
 
@@ -382,8 +378,8 @@ public sealed class WaveBOperationCatalogTests
             candidate.Descriptor.OperationId ==
                 "robot_operations.get_robot_machine_model_link_parameters");
         var outputs = operation.Outputs.Select(CreateOutputValue).ToArray();
-        outputs[0] = outputs[0] with { StringValue = "6DOF" };
-        outputs[14] = outputs[14] with { StringValue = "THETA" };
+        outputs[0] = new WorkerRetrievedOutput(outputs[0].Name, outputs[0].Kind, new WorkerTextValue("6DOF"));
+        outputs[14] = new WorkerRetrievedOutput(outputs[14].Name, outputs[14].Kind, new WorkerTextValue("THETA"));
 
         var result = operation.CreateResult<Api.GetRobotMachineModelLinkParametersResult>(
             Completed(outputs));
@@ -391,7 +387,7 @@ public sealed class WaveBOperationCatalogTests
         Assert.Equal(Api.RobotModelLinkType.SixDof, result.LinkType);
         Assert.Equal(Api.RobotActiveJointComponent.Theta, result.ActiveJointComponent);
 
-        outputs[0] = outputs[0] with { StringValue = "Six Dof" };
+        outputs[0] = new WorkerRetrievedOutput(outputs[0].Name, outputs[0].Kind, new WorkerTextValue("Six Dof"));
         Assert.Throws<InvalidOperationException>(() =>
             operation.CreateResult<Api.GetRobotMachineModelLinkParametersResult>(
                 Completed(outputs)));
@@ -489,50 +485,39 @@ public sealed class WaveBOperationCatalogTests
     {
         var tolerance = new WorkerToleranceLimit(true, 1);
         var scalarTolerance = new WorkerToleranceLimit(true, 1);
-        return new WorkerMpOutputValue(
-            output.MpName,
-            output.Kind,
-            Retrieved: true,
-            BooleanValue: true,
-            IntegerValue: 1,
-            DoubleValue: 1,
-            StringValue: output.EnumTextValues is { Count: > 0 } sdkValues
-                ? sdkValues[0]
-                : "value",
-            PointNameValue: new("Collection", "Group", "Point"),
-            VectorValue: new(1, 2, 3),
-            ToleranceVectorOptionsValue: new(
-                tolerance,
-                tolerance,
-                tolerance,
-                tolerance,
-                tolerance,
-                tolerance,
-                tolerance,
-                tolerance),
-            CollectionInstrumentIdValue: new("Collection", 1),
-            CollectionInstrumentIdListValue: new([new("Collection", 1)]),
-            CollectionMachineIdValue: new("Collection", 1),
-            CollectionItemNameValue: new("Collection", "Item", WorkerItemTypeValue.Relationship),
-            CollectionItemNameListValue: new([
-                new("Collection", "Item", WorkerItemTypeValue.Relationship)]),
-            CollectionObjectNameValue: new("Collection", "Object", WorkerObjectTypeValue.PointGroup),
-            CollectionObjectNameListValue: new([
-                new("Collection", "Object", WorkerObjectTypeValue.PointGroup)]),
-            CollectionGroupNameListValue: new([new("Collection", "Group")]),
-            CollectionVectorGroupNameValue: new("Collection", "Vector Group"),
-            CollectionVectorGroupNameListValue: new([new("Collection", "Vector Group")]),
-            PointNameListValue: new([new("Collection", "Group", "Point")]),
-            StringListValue: new(["value"]),
-            VectorNameListValue: new([new("Collection", "Group", "Vector")]),
-            DoubleArrayValue: new([1, 2, 3, 4, 5, 6]),
-            TransformValue: new(Enumerable.Range(1, 16).Select(Convert.ToDouble).ToArray()),
-            WorldTransformValue: new(
-                new(Enumerable.Range(1, 16).Select(Convert.ToDouble).ToArray()),
-                1),
-            FileReferenceValue: new("file.txt", false),
-            FitConstraintScalarOptionsValue: new(scalarTolerance, scalarTolerance),
-            ToleranceScalarOptionsValue: new(scalarTolerance, scalarTolerance));
+        WorkerMpValue value = output.Kind switch
+        {
+            WorkerMpValueKind.Logical => new WorkerBooleanValue(true),
+            WorkerMpValueKind.WholeNumber => new WorkerIntegerValue(1),
+            WorkerMpValueKind.FloatingPoint => new WorkerDoubleValue(1),
+            WorkerMpValueKind.Text or WorkerMpValueKind.CollectionName =>
+                new WorkerTextValue(output.EnumTextValues is { Count: > 0 } sdkValues ? sdkValues[0] : "value"),
+            WorkerMpValueKind.PointName => new WorkerPointNameValue("Collection", "Group", "Point"),
+            WorkerMpValueKind.Vector => new WorkerVectorValue(1, 2, 3),
+            WorkerMpValueKind.ToleranceVectorOptions => new WorkerToleranceVectorOptionsValue(
+                tolerance, tolerance, tolerance, tolerance, tolerance, tolerance, tolerance, tolerance),
+            WorkerMpValueKind.CollectionInstrumentId => new WorkerCollectionInstrumentIdValue("Collection", 1),
+            WorkerMpValueKind.CollectionInstrumentIdList => new WorkerCollectionInstrumentIdListValue([new("Collection", 1)]),
+            WorkerMpValueKind.CollectionMachineId => new WorkerCollectionMachineIdValue("Collection", 1),
+            WorkerMpValueKind.CollectionItemName => new WorkerCollectionItemNameValue("Collection", "Item", WorkerItemTypeValue.Relationship),
+            WorkerMpValueKind.CollectionItemNameList => new WorkerCollectionItemNameListValue([new("Collection", "Item", WorkerItemTypeValue.Relationship)]),
+            WorkerMpValueKind.CollectionObjectName => new WorkerCollectionObjectNameValue("Collection", "Object", WorkerObjectTypeValue.PointGroup),
+            WorkerMpValueKind.CollectionObjectNameList => new WorkerCollectionObjectNameListValue([new("Collection", "Object", WorkerObjectTypeValue.PointGroup)]),
+            WorkerMpValueKind.CollectionGroupNameList => new WorkerCollectionGroupNameListValue([new("Collection", "Group")]),
+            WorkerMpValueKind.CollectionVectorGroupName => new WorkerCollectionVectorGroupNameValue("Collection", "Vector Group"),
+            WorkerMpValueKind.CollectionVectorGroupNameList => new WorkerCollectionVectorGroupNameListValue([new("Collection", "Vector Group")]),
+            WorkerMpValueKind.PointNameList => new WorkerPointNameListValue([new("Collection", "Group", "Point")]),
+            WorkerMpValueKind.EditText or WorkerMpValueKind.StringList => new WorkerStringListValue(["value"]),
+            WorkerMpValueKind.VectorNameList => new WorkerVectorNameListValue([new("Collection", "Group", "Vector")]),
+            WorkerMpValueKind.DoubleArray => new WorkerDoubleArrayValue([1, 2, 3, 4, 5, 6]),
+            WorkerMpValueKind.Transform => new WorkerTransformValue(Enumerable.Range(1, 16).Select(Convert.ToDouble).ToArray()),
+            WorkerMpValueKind.WorldTransform => new WorkerWorldTransformValue(new(Enumerable.Range(1, 16).Select(Convert.ToDouble).ToArray()), 1),
+            WorkerMpValueKind.FileReference => new WorkerFileReferenceValue("file.txt", false),
+            WorkerMpValueKind.FitConstraintScalarOptions => new WorkerFitConstraintScalarOptionsValue(scalarTolerance, scalarTolerance),
+            WorkerMpValueKind.ToleranceScalarOptions => new WorkerToleranceScalarOptionsValue(scalarTolerance, scalarTolerance),
+            _ => throw new InvalidOperationException($"No test output exists for {output.Kind}.")
+        };
+        return new WorkerRetrievedOutput(output.MpName, output.Kind, value);
     }
 
     private static SuccessfulOperationExecution Completed(

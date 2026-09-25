@@ -42,6 +42,6 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         Assert.True(result.MpSucceeded);
         var output = Assert.Single(result.OutputValues);
         Assert.True(output.Retrieved);
-        Assert.Equal("Collection", output.StringValue);
+        Assert.Equal("Collection", ((output.ReadValue() as WorkerTextValue)?.Value));
     }
 }

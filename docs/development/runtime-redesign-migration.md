@@ -183,3 +183,34 @@ production control loop over real named pipes with an injected fake SDK. They
 exercise oversized and non-finite results, a subsequent heartbeat and operation,
 clean stop, and same-thread STA disposal. Licensed SpatialAnalyzer validation
 and broader throughput measurements remain outstanding.
+
+## Build Identity and Discovery Metadata
+
+Runtime version, source revision, and the root informational response now use
+build-produced constants finalized by the .NET SDK. Package overrides are
+preserved; no assembly-attribute reflection occurs on discovery requests.
+Capability metadata is materialized once per discovery service and cloned when
+returned, so a consumer cannot mutate future responses. Focused validation
+covers ordinary builds, release package overrides, and response ownership.
+
+## Typed Output Values (Private Protocol 20)
+
+The sparse output record is replaced by `WorkerRetrievedOutput`, containing one
+explicit typed value, and `WorkerUnavailableOutput`, containing no value. The
+retrieved constructor verifies the MP kind and payload type. Scalar zero/false,
+empty text, and empty lists remain valid values. SDK getter evidence is converted
+once at the boundary; contradictory retrieval evidence is rejected.
+
+Generated private serialization uses explicit retrieval and value discriminators
+and rejects unknown members. Malformed, missing, mismatched, or unknown payloads
+fail at the channel boundary. Local SDK getter diagnostics remain off the wire.
+This changes neither public protobuf messages nor the language-client API.
+
+The sparse input record and SDK-specific input options still require migration.
+Most operation mappings still use the old interpreter; the value change does not
+complete that separate work or establish a new end-to-end performance claim.
+
+All 1,025 Debug portable tests passed after this output migration: 532 for the
+2024 product and 493 for 2026. This includes all output-family round trips,
+malformed wire cases, active operation mappings, process supervision, generated
+client smoke tests, and production worker control with the fake SDK.

@@ -8,4 +8,4 @@ public sealed record WorkerToleranceVectorOptionsValue(
     WorkerToleranceLimit LowX,
     WorkerToleranceLimit LowY,
     WorkerToleranceLimit LowZ,
-    WorkerToleranceLimit LowMagnitude);
+    WorkerToleranceLimit LowMagnitude) : WorkerMpValue;

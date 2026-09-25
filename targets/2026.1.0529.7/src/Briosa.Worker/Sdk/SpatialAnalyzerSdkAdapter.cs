@@ -235,7 +235,7 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
         ISpatialAnalyzerSdkCalls sdk,
         WorkerMpOutputArgument argument) =>
         !HasExpectedBinding(argument.SdkBinding, ExpectedGetter(argument.Kind))
-            ? new WorkerMpOutputValue(argument.Name, argument.Kind, Retrieved: false)
+            ? new WorkerUnavailableOutput(argument.Name, argument.Kind)
             : argument.Kind switch
             {
                 WorkerMpValueKind.Logical => GetLogical(sdk, argument),
@@ -276,44 +276,36 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
     {
         var value = false;
         var retrieved = sdk.GetBoolArg(argument.Name, ref value);
-        return new WorkerMpOutputValue(
-            argument.Name,
-            argument.Kind,
-            retrieved,
-            BooleanValue: retrieved ? value : null);
+        return WorkerMpOutputValue.FromRetrieval(
+            argument.Name, argument.Kind, retrieved,
+            retrieved ? new WorkerBooleanValue(value) : null);
     }
 
     private static WorkerMpOutputValue GetWholeNumber(ISpatialAnalyzerSdkCalls sdk, WorkerMpOutputArgument argument)
     {
         var value = 0;
         var retrieved = sdk.GetIntegerArg(argument.Name, ref value);
-        return new WorkerMpOutputValue(
-            argument.Name,
-            argument.Kind,
-            retrieved,
-            IntegerValue: retrieved ? value : null);
+        return WorkerMpOutputValue.FromRetrieval(
+            argument.Name, argument.Kind, retrieved,
+            retrieved ? new WorkerIntegerValue(value) : null);
     }
 
     private static WorkerMpOutputValue GetFloatingPoint(ISpatialAnalyzerSdkCalls sdk, WorkerMpOutputArgument argument)
     {
         var value = 0d;
         var retrieved = sdk.GetDoubleArg(argument.Name, ref value);
-        return new WorkerMpOutputValue(
-            argument.Name,
-            argument.Kind,
-            retrieved,
-            DoubleValue: retrieved ? value : null);
+        return WorkerMpOutputValue.FromRetrieval(
+            argument.Name, argument.Kind, retrieved,
+            retrieved ? new WorkerDoubleValue(value) : null);
     }
 
     private static WorkerMpOutputValue GetText(ISpatialAnalyzerSdkCalls sdk, WorkerMpOutputArgument argument)
     {
         var value = string.Empty;
         var retrieved = sdk.GetStringArg(argument.Name, ref value);
-        return new WorkerMpOutputValue(
-            argument.Name,
-            argument.Kind,
-            retrieved,
-            StringValue: retrieved ? value : null);
+        return WorkerMpOutputValue.FromRetrieval(
+            argument.Name, argument.Kind, retrieved,
+            retrieved ? new WorkerTextValue(value) : null);
     }
 
     private static WorkerMpOutputValue GetPointName(ISpatialAnalyzerSdkCalls sdk, WorkerMpOutputArgument argument)
@@ -326,11 +318,9 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
             ref collectionName,
             ref groupName,
             ref targetName);
-        return new WorkerMpOutputValue(
-            argument.Name,
-            argument.Kind,
-            retrieved,
-            PointNameValue: retrieved
+        return WorkerMpOutputValue.FromRetrieval(
+            argument.Name, argument.Kind, retrieved,
+            retrieved
                 ? new WorkerPointNameValue(collectionName, groupName, targetName)
                 : null);
     }
@@ -341,11 +331,9 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
         var y = 0d;
         var z = 0d;
         var retrieved = sdk.GetVectorArg(argument.Name, ref x, ref y, ref z);
-        return new WorkerMpOutputValue(
-            argument.Name,
-            argument.Kind,
-            retrieved,
-            VectorValue: retrieved ? new WorkerVectorValue(x, y, z) : null);
+        return WorkerMpOutputValue.FromRetrieval(
+            argument.Name, argument.Kind, retrieved,
+            retrieved ? new WorkerVectorValue(x, y, z) : null);
     }
 
     private static WorkerMpOutputValue GetToleranceVectorOptions(
@@ -378,11 +366,9 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
             ref lowZ.Value,
             ref lowMagnitude.Enabled,
             ref lowMagnitude.Value);
-        return new WorkerMpOutputValue(
-            argument.Name,
-            argument.Kind,
-            retrieved,
-            ToleranceVectorOptionsValue: retrieved
+        return WorkerMpOutputValue.FromRetrieval(
+            argument.Name, argument.Kind, retrieved,
+            retrieved
                 ? new WorkerToleranceVectorOptionsValue(
                     highX.ToValue(),
                     highY.ToValue(),
@@ -511,11 +497,9 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
         WorkerDoubleArrayValue? value = null;
         var retrieved = sdk.GetDoubleArrayArg(argument.Name, ref size, ref sdkValue) &&
             SdkContainerValueCodec.TryParseDoubleArray(sdkValue, size, out value);
-        return new WorkerMpOutputValue(
-            argument.Name,
-            argument.Kind,
-            retrieved,
-            DoubleArrayValue: retrieved ? value : null);
+        return WorkerMpOutputValue.FromRetrieval(
+            argument.Name, argument.Kind, retrieved,
+            retrieved ? value : null);
     }
 
     private static WorkerMpOutputValue GetEditText(
@@ -526,11 +510,9 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
         WorkerStringListValue? value = null;
         var retrieved = sdk.GetEditTextArg(argument.Name, ref sdkValue) &&
             SdkContainerValueCodec.TryParseEditText(sdkValue, out value);
-        return new WorkerMpOutputValue(
-            argument.Name,
-            argument.Kind,
-            retrieved,
-            StringListValue: retrieved ? value : null);
+        return WorkerMpOutputValue.FromRetrieval(
+            argument.Name, argument.Kind, retrieved,
+            retrieved ? value : null);
     }
 
     private static WorkerMpOutputValue GetTransform(
@@ -541,11 +523,9 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
         WorkerTransformValue? value = null;
         var retrieved = sdk.GetTransformArg(argument.Name, ref sdkValue) &&
             SdkContainerValueCodec.TryParseTransform(sdkValue, out value);
-        return new WorkerMpOutputValue(
-            argument.Name,
-            argument.Kind,
-            retrieved,
-            TransformValue: retrieved ? value : null);
+        return WorkerMpOutputValue.FromRetrieval(
+            argument.Name, argument.Kind, retrieved,
+            retrieved ? value : null);
     }
 
     private static WorkerMpOutputValue GetWorldTransform(
@@ -560,11 +540,9 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
             ref sdkValue,
             ref scaleFactor) &&
             SdkContainerValueCodec.TryParseTransform(sdkValue, out transform);
-        return new WorkerMpOutputValue(
-            argument.Name,
-            argument.Kind,
-            retrieved,
-            WorldTransformValue: retrieved
+        return WorkerMpOutputValue.FromRetrieval(
+            argument.Name, argument.Kind, retrieved,
+            retrieved
                 ? new WorkerWorldTransformValue(transform!, scaleFactor)
                 : null);
     }
@@ -579,11 +557,9 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
             argument.Name,
             ref path,
             ref embeddedFile);
-        return new WorkerMpOutputValue(
-            argument.Name,
-            argument.Kind,
-            retrieved,
-            FileReferenceValue: retrieved
+        return WorkerMpOutputValue.FromRetrieval(
+            argument.Name, argument.Kind, retrieved,
+            retrieved
                 ? new WorkerFileReferenceValue(path, embeddedFile)
                 : null);
     }
@@ -677,11 +653,9 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
             argument.Name,
             ref collectionName,
             ref instrumentId);
-        return new WorkerMpOutputValue(
-            argument.Name,
-            argument.Kind,
-            retrieved,
-            CollectionInstrumentIdValue: retrieved
+        return WorkerMpOutputValue.FromRetrieval(
+            argument.Name, argument.Kind, retrieved,
+            retrieved
                 ? new WorkerCollectionInstrumentIdValue(collectionName, instrumentId)
                 : null);
     }
@@ -702,11 +676,9 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
                 collectionName,
                 itemName,
                 out parsed);
-        return new WorkerMpOutputValue(
-            argument.Name,
-            argument.Kind,
-            retrieved,
-            CollectionItemNameValue: retrieved ? parsed : null);
+        return WorkerMpOutputValue.FromRetrieval(
+            argument.Name, argument.Kind, retrieved,
+            retrieved ? parsed : null);
     }
 
     private static WorkerMpOutputValue GetCollectionObjectName(
@@ -721,11 +693,7 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
             ref objectName);
         if (!retrieved)
         {
-            return new WorkerMpOutputValue(
-                argument.Name,
-                argument.Kind,
-                Retrieved: false,
-                DiagnosticCode: "sdk-output-getter-rejected");
+            return new WorkerUnavailableOutput(argument.Name, argument.Kind, diagnosticCode: "sdk-output-getter-rejected");
         }
 
         WorkerCollectionObjectNameValue? parsed = null;
@@ -746,12 +714,9 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
             retrieved = true;
         }
 
-        return new WorkerMpOutputValue(
-            argument.Name,
-            argument.Kind,
-            retrieved,
-            CollectionObjectNameValue: retrieved ? parsed : null,
-            DiagnosticCode: retrieved
+        return WorkerMpOutputValue.FromRetrieval(
+            argument.Name, argument.Kind, retrieved,
+            retrieved ? parsed : null, diagnosticCode: retrieved
                 ? null
                 : CollectionObjectNameDiagnostic(collectionName, objectName));
     }
@@ -773,11 +738,9 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
     {
         var value = string.Empty;
         var retrieved = getter(argument.Name, ref value);
-        return new WorkerMpOutputValue(
-            argument.Name,
-            argument.Kind,
-            retrieved,
-            StringValue: retrieved ? value : null);
+        return WorkerMpOutputValue.FromRetrieval(
+            argument.Name, argument.Kind, retrieved,
+            retrieved ? new WorkerTextValue(value) : null);
     }
 
     private static WorkerMpOutputValue GetCollectionInstrumentIdList(
@@ -787,11 +750,7 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
             argument,
             sdk.GetColInstIdRefListArg,
             SdkReferenceListCodec.TryParseInstrumentIds,
-            (name, kind, value) => new WorkerMpOutputValue(
-                name,
-                kind,
-                true,
-                CollectionInstrumentIdListValue: value));
+            (name, kind, value) => new WorkerRetrievedOutput(name, kind, value));
 
     private static WorkerMpOutputValue GetCollectionItemNameList(
         ISpatialAnalyzerSdkCalls sdk,
@@ -800,11 +759,7 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
             argument,
             sdk.GetCollectionObjectNameRefListArg,
             SdkReferenceListCodec.TryParseItemNames,
-            (name, kind, value) => new WorkerMpOutputValue(
-                name,
-                kind,
-                true,
-                CollectionItemNameListValue: value));
+            (name, kind, value) => new WorkerRetrievedOutput(name, kind, value));
 
     private static WorkerMpOutputValue GetCollectionObjectNameList(
         ISpatialAnalyzerSdkCalls sdk,
@@ -813,11 +768,7 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
             argument,
             sdk.GetCollectionObjectNameRefListArg,
             SdkReferenceListCodec.TryParseObjectNames,
-            (name, kind, value) => new WorkerMpOutputValue(
-                name,
-                kind,
-                true,
-                CollectionObjectNameListValue: value));
+            (name, kind, value) => new WorkerRetrievedOutput(name, kind, value));
 
     private static WorkerMpOutputValue GetPointNameList(
         ISpatialAnalyzerSdkCalls sdk,
@@ -826,11 +777,7 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
             argument,
             sdk.GetPointNameRefListArg,
             SdkReferenceListCodec.TryParsePointNames,
-            (name, kind, value) => new WorkerMpOutputValue(
-                name,
-                kind,
-                true,
-                PointNameListValue: value));
+            (name, kind, value) => new WorkerRetrievedOutput(name, kind, value));
 
     private static WorkerMpOutputValue GetStringList(
         ISpatialAnalyzerSdkCalls sdk,
@@ -839,11 +786,7 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
             argument,
             sdk.GetStringRefListArg,
             SdkReferenceListCodec.TryParseStrings,
-            (name, kind, value) => new WorkerMpOutputValue(
-                name,
-                kind,
-                true,
-                StringListValue: value));
+            (name, kind, value) => new WorkerRetrievedOutput(name, kind, value));
 
     private static WorkerMpOutputValue GetVectorNameList(
         ISpatialAnalyzerSdkCalls sdk,
@@ -852,11 +795,7 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
             argument,
             sdk.GetVectorNameRefListArg,
             SdkReferenceListCodec.TryParseVectorNames,
-            (name, kind, value) => new WorkerMpOutputValue(
-                name,
-                kind,
-                true,
-                VectorNameListValue: value));
+            (name, kind, value) => new WorkerRetrievedOutput(name, kind, value));
 
     private static WorkerMpOutputValue GetReferenceList<T>(
         WorkerMpOutputArgument argument,
@@ -868,7 +807,7 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
         var value = SdkReferenceListCodec.ToComValue([]);
         if (!getter(argument.Name, ref value) || !parser(value, out var parsed) || parsed is null)
         {
-            return new WorkerMpOutputValue(argument.Name, argument.Kind, Retrieved: false);
+            return new WorkerUnavailableOutput(argument.Name, argument.Kind);
         }
 
         return create(argument.Name, argument.Kind, parsed);

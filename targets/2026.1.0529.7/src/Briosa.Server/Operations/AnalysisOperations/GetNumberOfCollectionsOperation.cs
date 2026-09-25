@@ -56,7 +56,7 @@ internal static class GetNumberOfCollectionsOperation
 
         return new Api.GetNumberOfCollectionsResult
         {
-            TotalCount = totalCount.IntegerValue!.Value,
+            TotalCount = totalCount.RequireValue<WorkerIntegerValue>().Value,
             Execution = completed.Details
         };
     }

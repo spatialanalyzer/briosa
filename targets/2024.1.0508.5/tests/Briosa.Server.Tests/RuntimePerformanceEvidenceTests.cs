@@ -148,11 +148,7 @@ public sealed class RuntimePerformanceEvidenceTests
                 durationMilliseconds: 0,
                 outputValues:
                 [
-                    new WorkerMpOutputValue(
-                        "Directory",
-                        WorkerMpValueKind.Text,
-                        Retrieved: true,
-                        StringValue: "redacted-performance-value")
+                    new WorkerRetrievedOutput("Directory", WorkerMpValueKind.Text, new WorkerTextValue("redacted-performance-value"))
                 ],
                 diagnosticCode: null),
             Connection: null,

@@ -783,28 +783,24 @@ public sealed class WorkerProcessSupervisorTests
         Assert.All(outputs, output => Assert.True(output.Retrieved));
         Assert.Equal(
             1.25,
-            Assert.Single(outputs, output => output.Name == "Planar Offset")
-                .DoubleValue);
+            ((Assert.Single(outputs, output => output.Name == "Planar Offset").ReadValue() as WorkerDoubleValue)?.Value));
         Assert.Equal(
             "scripted-output",
-            Assert.Single(outputs, output => output.Name == "Working Directory")
-                .StringValue);
+            ((Assert.Single(outputs, output => output.Name == "Working Directory").ReadValue() as WorkerTextValue)?.Value));
 
-        var point = Assert.Single(outputs, output => output.Name == "Point Name")
-            .PointNameValue;
+        var point = (Assert.Single(outputs, output => output.Name == "Point Name").ReadValue() as WorkerPointNameValue);
         Assert.Equal("Collection", point!.CollectionName);
         Assert.Equal("Group", point.GroupName);
         Assert.Equal("Point", point.TargetName);
 
-        var vector = Assert.Single(
+        var vector = (Assert.Single(
             outputs,
-            output => output.Name == "Component Weights").VectorValue;
+            output => output.Name == "Component Weights").ReadValue() as WorkerVectorValue);
         Assert.Equal(new WorkerVectorValue(1, 2, 3), vector);
 
-        var tolerance = Assert.Single(
+        var tolerance = (Assert.Single(
             outputs,
-            output => output.Name == "Position Tolerance")
-            .ToleranceVectorOptionsValue;
+            output => output.Name == "Position Tolerance").ReadValue() as WorkerToleranceVectorOptionsValue);
         Assert.True(tolerance!.HighX.Enabled);
         Assert.Equal(1, tolerance.HighX.Value);
         Assert.False(tolerance.LowMagnitude.Enabled);
@@ -827,32 +823,25 @@ public sealed class WorkerProcessSupervisorTests
         Assert.All(outputs, output => Assert.True(output.Retrieved));
         Assert.Equal(
             17,
-            outputs.Single(value => value.Kind == WorkerMpValueKind.CollectionInstrumentId)
-                .CollectionInstrumentIdValue!.InstrumentId);
+            (outputs.Single(value => value.Kind == WorkerMpValueKind.CollectionInstrumentId).ReadValue() as WorkerCollectionInstrumentIdValue)!.InstrumentId);
         Assert.Equal(
             WorkerItemTypeValue.Picture,
-            outputs.Single(value => value.Kind == WorkerMpValueKind.CollectionItemName)
-                .CollectionItemNameValue!.ItemType);
+            (outputs.Single(value => value.Kind == WorkerMpValueKind.CollectionItemName).ReadValue() as WorkerCollectionItemNameValue)!.ItemType);
         Assert.Equal(
             WorkerItemTypeValue.SaReport,
-            outputs.Single(value => value.Kind == WorkerMpValueKind.CollectionItemNameList)
-                .CollectionItemNameListValue!.Values[0].ItemType);
+            (outputs.Single(value => value.Kind == WorkerMpValueKind.CollectionItemNameList).ReadValue() as WorkerCollectionItemNameListValue)!.Values[0].ItemType);
         Assert.Equal(
             WorkerObjectTypeValue.PointGroup,
-            outputs.Single(value => value.Kind == WorkerMpValueKind.CollectionObjectName)
-                .CollectionObjectNameValue!.ObjectType);
+            (outputs.Single(value => value.Kind == WorkerMpValueKind.CollectionObjectName).ReadValue() as WorkerCollectionObjectNameValue)!.ObjectType);
         Assert.Equal(
             "Point",
-            outputs.Single(value => value.Kind == WorkerMpValueKind.PointNameList)
-                .PointNameListValue!.Values[0].TargetName);
+            (outputs.Single(value => value.Kind == WorkerMpValueKind.PointNameList).ReadValue() as WorkerPointNameListValue)!.Values[0].TargetName);
         Assert.Equal(
             ["A", "B"],
-            outputs.Single(value => value.Kind == WorkerMpValueKind.StringList)
-                .StringListValue!.Values);
+            (outputs.Single(value => value.Kind == WorkerMpValueKind.StringList).ReadValue() as WorkerStringListValue)!.Values);
         Assert.Equal(
             "Vector",
-            outputs.Single(value => value.Kind == WorkerMpValueKind.VectorNameList)
-                .VectorNameListValue!.Values[0].VectorName);
+            (outputs.Single(value => value.Kind == WorkerMpValueKind.VectorNameList).ReadValue() as WorkerVectorNameListValue)!.Values[0].VectorName);
     }
     [Fact]
     public async Task MpFailureIsPreservedWhenExecuteStepReturnsTrue()

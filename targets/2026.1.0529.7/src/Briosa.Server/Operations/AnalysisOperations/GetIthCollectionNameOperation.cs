@@ -70,7 +70,7 @@ internal static class GetIthCollectionNameOperation
             value.Kind == WorkerMpValueKind.CollectionName);
         return new Api.GetIthCollectionNameResult
         {
-            ResultantName = resultantName.StringValue!,
+            ResultantName = resultantName.RequireValue<WorkerTextValue>().Value,
             Execution = completed.Details
         };
     }

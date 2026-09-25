@@ -35,6 +35,6 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         Assert.True(result.MpSucceeded);
         var output = Assert.Single(result.OutputValues);
         Assert.True(output.Retrieved);
-        Assert.Equal(7, output.IntegerValue);
+        Assert.Equal(7, ((output.ReadValue() as WorkerIntegerValue)?.Value));
     }
 }

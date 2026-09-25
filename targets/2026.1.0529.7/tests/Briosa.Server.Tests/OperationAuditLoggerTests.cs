@@ -30,11 +30,7 @@ public sealed class OperationAuditLoggerTests
                 durationMilliseconds: 12,
                 outputValues:
                 [
-                    new WorkerMpOutputValue(
-                        "Directory",
-                        WorkerMpValueKind.Text,
-                        Retrieved: true,
-                        StringValue: SensitivePath)
+                    new WorkerRetrievedOutput("Directory", WorkerMpValueKind.Text, new WorkerTextValue(SensitivePath))
                 ],
                 diagnosticCode: null),
             Connection: null,
@@ -94,11 +90,8 @@ public sealed class OperationAuditLoggerTests
                 durationMilliseconds: 9,
                 outputValues:
                 [
-                    new WorkerMpOutputValue(
-                        "Directory",
-                        WorkerMpValueKind.Text,
-                        Retrieved: false,
-                        StringValue: SensitivePath)
+                    new WorkerUnavailableOutput("Directory", WorkerMpValueKind.Text),
+                    new WorkerRetrievedOutput("Sensitive Output", WorkerMpValueKind.Text, new WorkerTextValue(SensitivePath))
                 ],
                 diagnosticCode: "sdk-output-retrieval-failed"),
             Connection: null,

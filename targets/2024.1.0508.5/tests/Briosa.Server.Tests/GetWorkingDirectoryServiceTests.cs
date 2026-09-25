@@ -16,11 +16,7 @@ public sealed class GetWorkingDirectoryServiceTests
     public async Task GeneratedClientRetrievesDirectoryThroughHandwrittenBinding()
     {
         var executor = new RecordingExecutor(CompletedExecution(
-            new WorkerMpOutputValue(
-                "Directory",
-                WorkerMpValueKind.Text,
-                Retrieved: true,
-                StringValue: @"C:\Measurements")));
+            new WorkerRetrievedOutput("Directory", WorkerMpValueKind.Text, new WorkerTextValue(@"C:\Measurements"))));
         var client = CreateClient(executor);
 
         var result = await client.GetWorkingDirectoryAsync(
@@ -83,10 +79,7 @@ public sealed class GetWorkingDirectoryServiceTests
     public async Task GetterFailureNeverReturnsAnEmptyDirectory()
     {
         var executor = new RecordingExecutor(CompletedExecution(
-            new WorkerMpOutputValue(
-                "Directory",
-                WorkerMpValueKind.Text,
-                Retrieved: false),
+            new WorkerUnavailableOutput("Directory", WorkerMpValueKind.Text),
             diagnosticCode: "sdk-output-retrieval-failed"));
         var client = CreateClient(executor);
 

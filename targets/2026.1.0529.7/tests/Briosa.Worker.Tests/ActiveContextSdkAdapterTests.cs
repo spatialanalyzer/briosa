@@ -31,7 +31,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
                 "GetStringArg:Currently Active Collection Name"
             ],
             calls.Events);
-        Assert.Equal("scripted-output", Assert.Single(result.OutputValues).StringValue);
+        Assert.Equal("scripted-output", ((Assert.Single(result.OutputValues).ReadValue() as WorkerTextValue)?.Value));
     }
 
     [Fact]
@@ -64,7 +64,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         Assert.All(result.OutputValues, output =>
         {
             Assert.True(output.Retrieved);
-            Assert.Equal("scripted-output", output.StringValue);
+            Assert.Equal("scripted-output", ((output.ReadValue() as WorkerTextValue)?.Value));
         });
     }
 
@@ -99,7 +99,6 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
                 "GetCollectionObjectNameArg:Working Frame"
             ],
             calls.Events);
-        Assert.Equal(WorkerObjectTypeValue.PointGroup, result.OutputValues[2]
-            .CollectionObjectNameValue!.ObjectType);
+        Assert.Equal(WorkerObjectTypeValue.PointGroup, (result.OutputValues[2].ReadValue() as WorkerCollectionObjectNameValue)!.ObjectType);
     }
 }

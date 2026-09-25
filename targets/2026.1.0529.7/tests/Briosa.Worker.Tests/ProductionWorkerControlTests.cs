@@ -43,7 +43,7 @@ public sealed class ProductionWorkerControlTests
                 (await Exchange(channel, WorkerControlMessage.Ping(Guid.NewGuid()), timeout.Token)).Kind);
             var next = await Exchange(channel, WorkerControlMessage.Execute(Guid.NewGuid(),
                 new("normal", "Normal", [], [new("Value", WorkerMpValueKind.Text)])), timeout.Token);
-            Assert.Equal("normal", Assert.Single(next.ExecutionResponse!.Execution!.OutputValues).StringValue);
+            Assert.Equal("normal", ((Assert.Single(next.ExecutionResponse!.Execution!.OutputValues).ReadValue() as WorkerTextValue)?.Value));
             Assert.Equal(WorkerControlMessageKind.Stopped,
                 (await Exchange(channel, WorkerControlMessage.Stop(Guid.NewGuid()), timeout.Token)).Kind);
             Assert.Equal(0, await host.WaitAsync(timeout.Token));
@@ -87,13 +87,13 @@ public sealed class ProductionWorkerControlTests
             Observe();
             if (command.OperationId == SdkConnectionManager.VerificationOperationId)
                 return new WorkerMpResultAvailable(2, 1,
-                    [new(SdkConnectionManager.VerificationOutputName, WorkerMpValueKind.Text, true, StringValue: "fake")], null);
+                    [new WorkerRetrievedOutput(SdkConnectionManager.VerificationOutputName, WorkerMpValueKind.Text, new WorkerTextValue("fake"))], null);
             OperationCalls++;
             WorkerMpOutputValue value = command.OperationId switch
             {
-                "oversized" => new("Value", WorkerMpValueKind.Text, true, StringValue: new string('x', 100_000)),
-                "non-finite" => new("Value", WorkerMpValueKind.FloatingPoint, true, DoubleValue: double.NaN),
-                _ => new("Value", WorkerMpValueKind.Text, true, StringValue: "normal")
+                "oversized" => new WorkerRetrievedOutput("Value", WorkerMpValueKind.Text, new WorkerTextValue(new string('x', 100_000))),
+                "non-finite" => new WorkerRetrievedOutput("Value", WorkerMpValueKind.FloatingPoint, new WorkerDoubleValue(double.NaN)),
+                _ => new WorkerRetrievedOutput("Value", WorkerMpValueKind.Text, new WorkerTextValue("normal"))
             };
             return new WorkerMpResultAvailable(2, 7, [value], null);
         }

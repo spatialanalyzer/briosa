@@ -248,10 +248,6 @@ internal sealed class ScriptedSdkPlan
 
     private static WorkerMpOutputValue CreateOutputValue(WorkerMpOutputArgument output) =>
         output.Kind == WorkerMpValueKind.Text
-            ? new WorkerMpOutputValue(
-                output.Name,
-                output.Kind,
-                Retrieved: true,
-                StringValue: "scripted-output")
-            : new WorkerMpOutputValue(output.Name, output.Kind, Retrieved: false);
+            ? new WorkerRetrievedOutput(output.Name, output.Kind, new WorkerTextValue("scripted-output"))
+            : new WorkerUnavailableOutput(output.Name, output.Kind);
 }

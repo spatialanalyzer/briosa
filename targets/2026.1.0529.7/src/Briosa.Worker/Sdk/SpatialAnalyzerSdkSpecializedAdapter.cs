@@ -212,7 +212,7 @@ internal sealed partial class SpatialAnalyzerSdkAdapter
         {
             WorkerMpValueKind.FitConstraintScalarOptions => GetFitConstraintScalarOptions(sdk, argument),
             WorkerMpValueKind.ToleranceScalarOptions => GetToleranceScalarOptions(sdk, argument),
-            _ => new WorkerMpOutputValue(argument.Name, argument.Kind, Retrieved: false)
+            _ => new WorkerUnavailableOutput(argument.Name, argument.Kind)
         };
 
     private static string SpecializedExpectedSetter(WorkerMpValueKind kind) => kind switch
@@ -366,11 +366,9 @@ internal sealed partial class SpatialAnalyzerSdkAdapter
             ref highValue,
             ref lowEnabled,
             ref lowValue);
-        return new WorkerMpOutputValue(
-            argument.Name,
-            argument.Kind,
-            retrieved,
-            FitConstraintScalarOptionsValue: retrieved
+        return WorkerMpOutputValue.FromRetrieval(
+            argument.Name, argument.Kind, retrieved,
+            retrieved
                 ? new WorkerFitConstraintScalarOptionsValue(
                     new WorkerToleranceLimit(highEnabled, highValue),
                     new WorkerToleranceLimit(lowEnabled, lowValue))
@@ -391,11 +389,9 @@ internal sealed partial class SpatialAnalyzerSdkAdapter
             ref highValue,
             ref lowEnabled,
             ref lowValue);
-        return new WorkerMpOutputValue(
-            argument.Name,
-            argument.Kind,
-            retrieved,
-            ToleranceScalarOptionsValue: retrieved
+        return WorkerMpOutputValue.FromRetrieval(
+            argument.Name, argument.Kind, retrieved,
+            retrieved
                 ? new WorkerToleranceScalarOptionsValue(
                     new WorkerToleranceLimit(highEnabled, highValue),
                     new WorkerToleranceLimit(lowEnabled, lowValue))
