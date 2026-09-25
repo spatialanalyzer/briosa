@@ -38,16 +38,10 @@ public sealed class GetIthCollectionNameOperationTests
     }
 
     [Fact]
-    public void CommandMappingRequiresCollectionIndexPresence()
+    public void OmittedCollectionIndexPreservesThePublicDefaultOfZero()
     {
-        var exception = Assert.Throws<ArgumentException>(() =>
-            GetIthCollectionNameOperation.CreateCommand(
-                new Api.GetIthCollectionNameRequest()));
-
-        Assert.Contains(
-            "Collection Index",
-            exception.Message,
-            StringComparison.Ordinal);
+        var command = GetIthCollectionNameOperation.CreateCommand(new Api.GetIthCollectionNameRequest());
+        Assert.Equal(0, Assert.IsType<WorkerIntegerValue>(Assert.Single(command.InputArguments).Value).Value);
     }
 
     [Fact]

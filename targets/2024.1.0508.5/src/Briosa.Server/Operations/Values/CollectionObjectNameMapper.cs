@@ -39,10 +39,16 @@ internal static class CollectionObjectNameMapper
         return new(values.Select(ToWorker).ToImmutableArray());
     }
 
-    public static Api.CollectionObjectName ToProtocol(WorkerCollectionObjectNameValue value) => new()
+    public static Api.CollectionObjectName ToProtocol(WorkerCollectionObjectNameValue value)
     {
-        CollectionName = value.CollectionName,
-        ObjectName = value.ObjectName,
-        ObjectType = (Api.ObjectType)value.ObjectType
-    };
+        ArgumentNullException.ThrowIfNull(value);
+        if (value.ObjectType == WorkerObjectTypeValue.Unspecified || !Enum.IsDefined(value.ObjectType))
+            throw new InvalidOperationException("SpatialAnalyzer returned an unsupported object type.");
+        return new()
+        {
+            CollectionName = value.CollectionName,
+            ObjectName = value.ObjectName,
+            ObjectType = (Api.ObjectType)value.ObjectType
+        };
+    }
 }

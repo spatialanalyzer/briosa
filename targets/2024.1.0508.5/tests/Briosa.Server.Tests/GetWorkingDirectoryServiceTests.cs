@@ -289,10 +289,9 @@ public sealed class GetWorkingDirectoryServiceTests
                 "/briosa.FileOperations/GetWorkingDirectory",
                 method.FullName);
             Assert.IsType<Api.GetWorkingDirectoryRequest>(request);
-            var response = await service.ExecuteGetWorkingDirectory(
+            var response = await service.GetWorkingDirectory(
                     (Api.GetWorkingDirectoryRequest)(object)request,
-                    cancellationToken,
-                    deadline)
+                    new InMemoryServerCallContext(method.FullName, deadline, cancellationToken))
                 .ConfigureAwait(false);
             return (TResponse)(object)response;
         }

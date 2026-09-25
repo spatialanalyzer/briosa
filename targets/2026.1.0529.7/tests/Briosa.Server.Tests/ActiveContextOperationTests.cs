@@ -165,7 +165,7 @@ public sealed class ActiveContextOperationTests
     public void UnknownObjectTypeFailsClosed()
     {
         Assert.Throws<InvalidOperationException>(() =>
-            SpatialAnalyzerValueMapper.ToProtocol(
+            Briosa.Server.Operations.Values.CollectionObjectNameMapper.ToProtocol(
                 new WorkerCollectionObjectNameValue(
                     "Collection",
                     "Object",

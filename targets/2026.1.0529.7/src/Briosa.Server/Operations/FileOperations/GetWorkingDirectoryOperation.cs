@@ -42,17 +42,10 @@ internal static class GetWorkingDirectoryOperation
             ]);
     }
 
-    public static Api.GetWorkingDirectoryResult CreateResult(
-        SuccessfulOperationExecution completed)
+    // OperationExecutor validates ordered output shape and retrieval before mapping.
+    public static Api.GetWorkingDirectoryResult CreateResult(SuccessfulOperationExecution completed) => new()
     {
-        ArgumentNullException.ThrowIfNull(completed);
-        var directory = completed.Execution.OutputValues.Single(value =>
-            value.Name == DirectoryArgumentName &&
-            value.Kind == WorkerMpValueKind.Text);
-        return new Api.GetWorkingDirectoryResult
-        {
-            Directory = directory.RequireValue<WorkerTextValue>().Value,
-            Execution = completed.Details
-        };
-    }
+        Directory = completed.Execution.OutputValues[0].RequireValue<WorkerTextValue>().Value,
+        Execution = completed.Details
+    };
 }

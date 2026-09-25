@@ -1,3 +1,6 @@
+using Briosa.Server.Operations.UtilityOperations;
+using Briosa.Server.Operations.FileOperations;
+using Briosa.Server.Operations.AnalysisOperations;
 using Briosa.Server.Operations.ConstructionOperations;
 using Briosa.Server.Operations.WaveA;
 using Briosa.Server.Operations.Variables;
@@ -18,6 +21,11 @@ internal static class SpatialAnalyzerApi
         [
             .. MpOperationCatalog.Operations.Select(operation => operation.Descriptor),
             GetActiveCollectionNameOperation.Descriptor,
+            GetIthCollectionNameOperation.Descriptor,
+            GetNumberOfCollectionsOperation.Descriptor,
+            GetWorkingDirectoryOperation.Descriptor,
+            GetActiveUnitsOperation.Descriptor,
+            GetWorkingFramePropertiesOperation.Descriptor,
             AddDoubleToNamedDoubleListVariableOperation.Descriptor,
             ClearNamedDoubleListVariableOperation.Descriptor,
             DeleteVariableOperation.Descriptor,

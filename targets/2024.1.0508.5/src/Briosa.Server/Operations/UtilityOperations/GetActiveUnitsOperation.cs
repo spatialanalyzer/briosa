@@ -51,24 +51,12 @@ internal static class GetActiveUnitsOperation
             ]);
     }
 
-    public static Api.GetActiveUnitsResult CreateResult(
-        SuccessfulOperationExecution completed)
+    // OperationExecutor validates ordered output shape and retrieval before mapping.
+    public static Api.GetActiveUnitsResult CreateResult(SuccessfulOperationExecution completed) => new()
     {
-        ArgumentNullException.ThrowIfNull(completed);
-        var outputs = completed.Execution.OutputValues;
-
-        return new Api.GetActiveUnitsResult
-        {
-            Length = (outputs.Single(value =>
-                value.Name == LengthArgumentName &&
-                value.Kind == WorkerMpValueKind.Text).ReadValue() as WorkerTextValue)?.Value!,
-            Angular = (outputs.Single(value =>
-                value.Name == AngularArgumentName &&
-                value.Kind == WorkerMpValueKind.Text).ReadValue() as WorkerTextValue)?.Value!,
-            Temperature = (outputs.Single(value =>
-                value.Name == TemperatureArgumentName &&
-                value.Kind == WorkerMpValueKind.Text).ReadValue() as WorkerTextValue)?.Value!,
-            Execution = completed.Details
-        };
-    }
+        Length = completed.Execution.OutputValues[0].RequireValue<WorkerTextValue>().Value,
+        Angular = completed.Execution.OutputValues[1].RequireValue<WorkerTextValue>().Value,
+        Temperature = completed.Execution.OutputValues[2].RequireValue<WorkerTextValue>().Value,
+        Execution = completed.Details
+    };
 }
