@@ -1,3 +1,0 @@
-namespace Briosa.Worker.Sdk;
-
-internal enum SdkTargetComputationMethodValue { UseMostRecentShotFromEachFace, UseOnlyMostRecentShot, DoNotChangePriorMeasurements, ForceNewPointForEachMeasurement, RemoveAllPriorShots, DeactivateAllPriorShots }

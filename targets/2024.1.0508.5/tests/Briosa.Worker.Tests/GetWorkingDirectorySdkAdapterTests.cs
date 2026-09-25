@@ -10,7 +10,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
     {
         using var calls = new RecordingSdkCalls();
         using var adapter = new SpatialAnalyzerSdkAdapter(calls);
-        var command = new SdkCommand(
+        var command = new WorkerMpCommand(
             "file_operations.get_working_directory",
             "Get Working Directory",
             inputArguments: [],

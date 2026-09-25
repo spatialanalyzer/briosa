@@ -18,5 +18,5 @@ internal interface ISpatialAnalyzerSdk : IDisposable
 
     SdkConnectionResult Connect(string host);
 
-    WorkerMpExecutionResult Execute(SdkCommand command);
+    WorkerMpExecutionResult Execute(WorkerMpCommand command);
 }

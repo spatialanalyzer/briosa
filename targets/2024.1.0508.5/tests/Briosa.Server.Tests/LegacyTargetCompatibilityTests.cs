@@ -96,7 +96,7 @@ public sealed class LegacyTargetCompatibilityTests
     {
         var operation = MpOperationCatalog.Get("construction_operations.make_system_string");
         var command = operation.CreateCommand(new Api.MakeSystemStringRequest { StringContent = Api.SystemString.UserName });
-        Assert.Equal(10, (command.InputArguments[0].Value as WorkerSpecializedEnumValue)!.Value);
+        Assert.Equal(WorkerSystemStringValue.UserName, command.InputArguments[0].RequireValue<WorkerChoiceValue<WorkerSystemStringValue>>().Value);
         foreach (var number in new[] { 12, 13, 14 })
         {
             Assert.Throws<ArgumentException>(() => operation.CreateCommand(new Api.MakeSystemStringRequest { StringContent = (Api.SystemString)number }));

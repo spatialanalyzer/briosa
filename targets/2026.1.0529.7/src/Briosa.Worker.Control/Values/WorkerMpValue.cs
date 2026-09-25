@@ -34,7 +34,6 @@ namespace Briosa.Worker.Control;
 [JsonDerivedType(typeof(WorkerDistanceUnitChoice), 29)]
 [JsonDerivedType(typeof(WorkerTemperatureUnitChoice), 30)]
 [JsonDerivedType(typeof(WorkerFontValue), 31)]
-[JsonDerivedType(typeof(WorkerSpecializedEnumValue), 32)]
 [JsonDerivedType(typeof(WorkerAutoFilterProximitySettingsValue), 33)]
 [JsonDerivedType(typeof(WorkerBSplineFitOptionsValue), 34)]
 [JsonDerivedType(typeof(WorkerCloudThinningOptionsValue), 35)]
@@ -45,6 +44,56 @@ namespace Briosa.Worker.Control;
 [JsonDerivedType(typeof(WorkerProjectionOptionsValue), 40)]
 [JsonDerivedType(typeof(WorkerPointDeltaReportOptionsValue), 41)]
 [JsonDerivedType(typeof(WorkerUdpTransmitSettingsValue), 42)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerAsciiImportFileFormatValue>), 100)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerAsciiFrameSetFormatValue>), 101)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerAxisIdentifierValue>), 102)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerWcfAxisIdentifierValue>), 103)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerBaseColorTypeValue>), 104)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerBaseMidColorTypeValue>), 105)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerChartTypeValue>), 106)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerCollimationBaselineTypeValue>), 107)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerCollimationTypeValue>), 108)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerColorRangeMethodValue>), 109)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerCoordinateSystemTypeValue>), 110)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerVectorComponentValue>), 111)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerDynamicCircleModeValue>), 112)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerDynamicEllipseModeValue>), 113)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerDynamicLineModeValue>), 114)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerDynamicPlaneModeValue>), 115)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerDynamicPointModeValue>), 116)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerEdgeModeValue>), 117)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerExportDataDelimiterTypeValue>), 118)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerExportTargetNameFormatValue>), 119)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerExportVectorNameFormatValue>), 120)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerGeometryTypeValue>), 121)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerGdtDistanceBetweenModeValue>), 122)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerGdtEvaluationMethodValue>), 123)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerInstrumentTypeValue>), 124)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerObjectTypeValue>), 125)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerOffsetDirectionTypeValue>), 126)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerPointFilterInputTypeValue>), 127)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerRelationshipWeightingModeValue>), 128)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerRenderModeTypeValue>), 129)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerReportPageOrientationValue>), 130)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerSaturationLimitTypeValue>), 131)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerShowUsmnDialogTypeValue>), 132)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerSurfaceAnalysisModeValue>), 133)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerSurfaceDissectionModeTypeValue>), 134)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerTargetComputationMethodValue>), 135)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerTranslucencyTypeValue>), 136)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerCompTechniqueValue>), 137)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerDegreeOfFreedomValue>), 138)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerFitMethodValue>), 139)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerMeasuredSideForPlanarOffsetValue>), 140)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerMeasuredSideForRadialOffsetValue>), 141)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerMpDialogInteractionModeValue>), 142)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerMpInteractionModeValue>), 143)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerNormalDirectionValue>), 144)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerSaInteractionModeValue>), 145)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerSlotTypeValue>), 146)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerSphereFitComputationModeValue>), 147)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerWindowStateValue>), 148)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerSystemStringValue>), 149)]
 public abstract record WorkerMpValue
 {
     private protected WorkerMpValue() { }
@@ -99,56 +148,56 @@ public abstract record WorkerMpValue
         WorkerProjectionOptionsValue => kind == WorkerMpValueKind.ProjectionOptions,
         WorkerPointDeltaReportOptionsValue => kind == WorkerMpValueKind.PointDeltaReportOptions,
         WorkerUdpTransmitSettingsValue => kind == WorkerMpValueKind.UdpTransmitSettings,
-        WorkerSpecializedEnumValue => kind is WorkerMpValueKind.AsciiImportFileFormat or
-            WorkerMpValueKind.AsciiFrameSetFormat or
-            WorkerMpValueKind.AxisIdentifier or
-            WorkerMpValueKind.WcfAxisIdentifier or
-            WorkerMpValueKind.BaseColorType or
-            WorkerMpValueKind.BaseMidColorType or
-            WorkerMpValueKind.ChartType or
-            WorkerMpValueKind.CollimationBaselineType or
-            WorkerMpValueKind.CollimationType or
-            WorkerMpValueKind.ColorRangeMethod or
-            WorkerMpValueKind.CoordinateSystemType or
-            WorkerMpValueKind.VectorComponent or
-            WorkerMpValueKind.DynamicCircleMode or
-            WorkerMpValueKind.DynamicEllipseMode or
-            WorkerMpValueKind.DynamicLineMode or
-            WorkerMpValueKind.DynamicPlaneMode or
-            WorkerMpValueKind.DynamicPointMode or
-            WorkerMpValueKind.EdgeMode or
-            WorkerMpValueKind.ExportDataDelimiterType or
-            WorkerMpValueKind.ExportTargetNameFormat or
-            WorkerMpValueKind.ExportVectorNameFormat or
-            WorkerMpValueKind.GeometryType or
-            WorkerMpValueKind.GdtDistanceBetweenMode or
-            WorkerMpValueKind.GdtEvaluationMethod or
-            WorkerMpValueKind.InstrumentType or
-            WorkerMpValueKind.ObjectType or
-            WorkerMpValueKind.OffsetDirectionType or
-            WorkerMpValueKind.PointFilterInputType or
-            WorkerMpValueKind.RelationshipWeightingMode or
-            WorkerMpValueKind.RenderModeType or
-            WorkerMpValueKind.ReportPageOrientation or
-            WorkerMpValueKind.SaturationLimitType or
-            WorkerMpValueKind.ShowUsmnDialogType or
-            WorkerMpValueKind.SurfaceAnalysisMode or
-            WorkerMpValueKind.SurfaceDissectionModeType or
-            WorkerMpValueKind.TargetComputationMethod or
-            WorkerMpValueKind.TranslucencyType or
-            WorkerMpValueKind.CompTechnique or
-            WorkerMpValueKind.DegreeOfFreedom or
-            WorkerMpValueKind.FitMethod or
-            WorkerMpValueKind.MeasuredSideForPlanarOffset or
-            WorkerMpValueKind.MeasuredSideForRadialOffset or
-            WorkerMpValueKind.MpDialogInteractionMode or
-            WorkerMpValueKind.MpInteractionMode or
-            WorkerMpValueKind.NormalDirection or
-            WorkerMpValueKind.SaInteractionMode or
-            WorkerMpValueKind.SlotType or
-            WorkerMpValueKind.SphereFitComputationMode or
-            WorkerMpValueKind.WindowState or
-            WorkerMpValueKind.SystemString,
+        WorkerChoiceValue<WorkerAsciiImportFileFormatValue> => kind == WorkerMpValueKind.AsciiImportFileFormat,
+        WorkerChoiceValue<WorkerAsciiFrameSetFormatValue> => kind == WorkerMpValueKind.AsciiFrameSetFormat,
+        WorkerChoiceValue<WorkerAxisIdentifierValue> => kind == WorkerMpValueKind.AxisIdentifier,
+        WorkerChoiceValue<WorkerWcfAxisIdentifierValue> => kind == WorkerMpValueKind.WcfAxisIdentifier,
+        WorkerChoiceValue<WorkerBaseColorTypeValue> => kind == WorkerMpValueKind.BaseColorType,
+        WorkerChoiceValue<WorkerBaseMidColorTypeValue> => kind == WorkerMpValueKind.BaseMidColorType,
+        WorkerChoiceValue<WorkerChartTypeValue> => kind == WorkerMpValueKind.ChartType,
+        WorkerChoiceValue<WorkerCollimationBaselineTypeValue> => kind == WorkerMpValueKind.CollimationBaselineType,
+        WorkerChoiceValue<WorkerCollimationTypeValue> => kind == WorkerMpValueKind.CollimationType,
+        WorkerChoiceValue<WorkerColorRangeMethodValue> => kind == WorkerMpValueKind.ColorRangeMethod,
+        WorkerChoiceValue<WorkerCoordinateSystemTypeValue> => kind == WorkerMpValueKind.CoordinateSystemType,
+        WorkerChoiceValue<WorkerVectorComponentValue> => kind == WorkerMpValueKind.VectorComponent,
+        WorkerChoiceValue<WorkerDynamicCircleModeValue> => kind == WorkerMpValueKind.DynamicCircleMode,
+        WorkerChoiceValue<WorkerDynamicEllipseModeValue> => kind == WorkerMpValueKind.DynamicEllipseMode,
+        WorkerChoiceValue<WorkerDynamicLineModeValue> => kind == WorkerMpValueKind.DynamicLineMode,
+        WorkerChoiceValue<WorkerDynamicPlaneModeValue> => kind == WorkerMpValueKind.DynamicPlaneMode,
+        WorkerChoiceValue<WorkerDynamicPointModeValue> => kind == WorkerMpValueKind.DynamicPointMode,
+        WorkerChoiceValue<WorkerEdgeModeValue> => kind == WorkerMpValueKind.EdgeMode,
+        WorkerChoiceValue<WorkerExportDataDelimiterTypeValue> => kind == WorkerMpValueKind.ExportDataDelimiterType,
+        WorkerChoiceValue<WorkerExportTargetNameFormatValue> => kind == WorkerMpValueKind.ExportTargetNameFormat,
+        WorkerChoiceValue<WorkerExportVectorNameFormatValue> => kind == WorkerMpValueKind.ExportVectorNameFormat,
+        WorkerChoiceValue<WorkerGeometryTypeValue> => kind == WorkerMpValueKind.GeometryType,
+        WorkerChoiceValue<WorkerGdtDistanceBetweenModeValue> => kind == WorkerMpValueKind.GdtDistanceBetweenMode,
+        WorkerChoiceValue<WorkerGdtEvaluationMethodValue> => kind == WorkerMpValueKind.GdtEvaluationMethod,
+        WorkerChoiceValue<WorkerInstrumentTypeValue> => kind == WorkerMpValueKind.InstrumentType,
+        WorkerChoiceValue<WorkerObjectTypeValue> => kind == WorkerMpValueKind.ObjectType,
+        WorkerChoiceValue<WorkerOffsetDirectionTypeValue> => kind == WorkerMpValueKind.OffsetDirectionType,
+        WorkerChoiceValue<WorkerPointFilterInputTypeValue> => kind == WorkerMpValueKind.PointFilterInputType,
+        WorkerChoiceValue<WorkerRelationshipWeightingModeValue> => kind == WorkerMpValueKind.RelationshipWeightingMode,
+        WorkerChoiceValue<WorkerRenderModeTypeValue> => kind == WorkerMpValueKind.RenderModeType,
+        WorkerChoiceValue<WorkerReportPageOrientationValue> => kind == WorkerMpValueKind.ReportPageOrientation,
+        WorkerChoiceValue<WorkerSaturationLimitTypeValue> => kind == WorkerMpValueKind.SaturationLimitType,
+        WorkerChoiceValue<WorkerShowUsmnDialogTypeValue> => kind == WorkerMpValueKind.ShowUsmnDialogType,
+        WorkerChoiceValue<WorkerSurfaceAnalysisModeValue> => kind == WorkerMpValueKind.SurfaceAnalysisMode,
+        WorkerChoiceValue<WorkerSurfaceDissectionModeTypeValue> => kind == WorkerMpValueKind.SurfaceDissectionModeType,
+        WorkerChoiceValue<WorkerTargetComputationMethodValue> => kind == WorkerMpValueKind.TargetComputationMethod,
+        WorkerChoiceValue<WorkerTranslucencyTypeValue> => kind == WorkerMpValueKind.TranslucencyType,
+        WorkerChoiceValue<WorkerCompTechniqueValue> => kind == WorkerMpValueKind.CompTechnique,
+        WorkerChoiceValue<WorkerDegreeOfFreedomValue> => kind == WorkerMpValueKind.DegreeOfFreedom,
+        WorkerChoiceValue<WorkerFitMethodValue> => kind == WorkerMpValueKind.FitMethod,
+        WorkerChoiceValue<WorkerMeasuredSideForPlanarOffsetValue> => kind == WorkerMpValueKind.MeasuredSideForPlanarOffset,
+        WorkerChoiceValue<WorkerMeasuredSideForRadialOffsetValue> => kind == WorkerMpValueKind.MeasuredSideForRadialOffset,
+        WorkerChoiceValue<WorkerMpDialogInteractionModeValue> => kind == WorkerMpValueKind.MpDialogInteractionMode,
+        WorkerChoiceValue<WorkerMpInteractionModeValue> => kind == WorkerMpValueKind.MpInteractionMode,
+        WorkerChoiceValue<WorkerNormalDirectionValue> => kind == WorkerMpValueKind.NormalDirection,
+        WorkerChoiceValue<WorkerSaInteractionModeValue> => kind == WorkerMpValueKind.SaInteractionMode,
+        WorkerChoiceValue<WorkerSlotTypeValue> => kind == WorkerMpValueKind.SlotType,
+        WorkerChoiceValue<WorkerSphereFitComputationModeValue> => kind == WorkerMpValueKind.SphereFitComputationMode,
+        WorkerChoiceValue<WorkerWindowStateValue> => kind == WorkerMpValueKind.WindowState,
+        WorkerChoiceValue<WorkerSystemStringValue> => kind == WorkerMpValueKind.SystemString,
         _ => false
     };
 }

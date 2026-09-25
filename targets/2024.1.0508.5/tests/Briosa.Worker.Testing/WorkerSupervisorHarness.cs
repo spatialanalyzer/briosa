@@ -17,7 +17,7 @@ internal sealed record SupervisedExecutionResult(
 internal interface IWorkerEndpoint : IAsyncDisposable
 {
     Task<WorkerMpExecutionResult> ExecuteAsync(
-        SdkCommand command,
+        WorkerMpCommand command,
         CancellationToken cancellationToken = default);
 
     ValueTask TerminateAsync();
@@ -48,7 +48,7 @@ internal sealed class WorkerSupervisorHarness : IAsyncDisposable
     public int ReplacementCount { get; private set; }
 
     public async Task<SupervisedExecutionResult> ExecuteAsync(
-        SdkCommand command,
+        WorkerMpCommand command,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -117,7 +117,7 @@ internal sealed class ScriptedWorkerEndpoint : IWorkerEndpoint
     }
 
     public Task<WorkerMpExecutionResult> ExecuteAsync(
-        SdkCommand command,
+        WorkerMpCommand command,
         CancellationToken cancellationToken = default) =>
         _executor.ExecuteAsync(command, cancellationToken);
 

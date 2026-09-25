@@ -197,7 +197,7 @@ internal sealed class ScriptedSdkPlan
             return connection.Result;
         }
 
-        public WorkerMpExecutionResult Execute(SdkCommand command)
+        public WorkerMpExecutionResult Execute(WorkerMpCommand command)
         {
             ArgumentNullException.ThrowIfNull(command);
             plan.AdapterApartmentState = Thread.CurrentThread.GetApartmentState();
@@ -240,7 +240,7 @@ internal sealed class ScriptedSdkPlan
         }
     }
 
-    private void Record(SdkCommand command, ScriptedCallPhase phase, ScriptedExecutionKind behavior)
+    private void Record(WorkerMpCommand command, ScriptedCallPhase phase, ScriptedExecutionKind behavior)
     {
         var sequence = Interlocked.Increment(ref _eventSequence);
         _events.Enqueue(new ScriptedCallEvent(sequence, command.OperationId, phase, behavior));

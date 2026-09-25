@@ -13,26 +13,23 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
     {
         using var calls = new RecordingSdkCalls();
         using var adapter = new SpatialAnalyzerSdkAdapter(calls);
-        var instrument = new SdkInputArgument("Instrument ID", WorkerMpValueKind.CollectionInstrumentId,
-            CollectionInstrumentIdValue: new("fixture", 1), SdkBinding: "SetColInstIdArg");
-        SdkInputArgument[] inputs = step switch
+        var instrument = new WorkerMpInputArgument("Instrument ID", WorkerMpValueKind.CollectionInstrumentId, new WorkerCollectionInstrumentIdValue("fixture", 1), sdkBinding: "SetColInstIdArg");
+        WorkerMpInputArgument[] inputs = step switch
         {
             "Run Crib Sheet" =>
             [
-                new("Collection Name", WorkerMpValueKind.CollectionName, StringValue: "fixture", SdkBinding: "SetCollectionNameArg"),
-                new("Crib Sheet Name", WorkerMpValueKind.Text, StringValue: "reviewed-crib", SdkBinding: "SetStringArg"),
+                new WorkerMpInputArgument("Collection Name", WorkerMpValueKind.CollectionName, new WorkerTextValue("fixture"), sdkBinding: "SetCollectionNameArg"),
+                new WorkerMpInputArgument("Crib Sheet Name", WorkerMpValueKind.Text, new WorkerTextValue("reviewed-crib"), sdkBinding: "SetStringArg"),
                 instrument
             ],
             "Project Objects" =>
             [
                 instrument,
-                new("Objects To Project", WorkerMpValueKind.CollectionObjectNameList,
-                    CollectionObjectNameListValue: new([new("fixture", "line", WorkerObjectTypeValue.Line)]),
-                    SdkBinding: "SetCollectionObjectNameRefListArg")
+                new WorkerMpInputArgument("Objects To Project", WorkerMpValueKind.CollectionObjectNameList, new WorkerCollectionObjectNameListValue([new("fixture", "line", WorkerObjectTypeValue.Line)]), sdkBinding: "SetCollectionObjectNameRefListArg")
             ],
             _ => [instrument]
         };
-        var result = adapter.Execute(new SdkCommand("instrument-test", step, inputs, []));
+        var result = adapter.Execute(new WorkerMpCommand("instrument-test", step, inputs, []));
         var expected = new[] { $"SetStep:{step}" }
             .Concat(inputs.Select(input => $"{input.SdkBinding}:{input.Name}"))
             .Concat(["ExecuteStep", "GetMPStepResult"]);
@@ -49,13 +46,10 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
     {
         using var calls = new RecordingSdkCalls { MpResultCode = code };
         using var adapter = new SpatialAnalyzerSdkAdapter(calls);
-        var result = adapter.Execute(new SdkCommand("instrument_operations.project_objects", "Project Objects",
+        var result = adapter.Execute(new WorkerMpCommand("instrument_operations.project_objects", "Project Objects",
             [
-                new("Instrument ID", WorkerMpValueKind.CollectionInstrumentId,
-                    CollectionInstrumentIdValue: new("fixture", 1), SdkBinding: "SetColInstIdArg"),
-                new("Objects To Project", WorkerMpValueKind.CollectionObjectNameList,
-                    CollectionObjectNameListValue: new([new("fixture", "line", WorkerObjectTypeValue.Line)]),
-                    SdkBinding: "SetCollectionObjectNameRefListArg")
+                new WorkerMpInputArgument("Instrument ID", WorkerMpValueKind.CollectionInstrumentId, new WorkerCollectionInstrumentIdValue("fixture", 1), sdkBinding: "SetColInstIdArg"),
+                new WorkerMpInputArgument("Objects To Project", WorkerMpValueKind.CollectionObjectNameList, new WorkerCollectionObjectNameListValue([new("fixture", "line", WorkerObjectTypeValue.Line)]), sdkBinding: "SetCollectionObjectNameRefListArg")
             ], []));
         Assert.True(result.MpResultRetrieved);
         Assert.Equal(code, result.MpResultCode);
@@ -74,8 +68,8 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
     {
         using var calls = new RecordingSdkCalls();
         using var adapter = new SpatialAnalyzerSdkAdapter(calls);
-        var result = adapter.Execute(new SdkCommand("instrument_operations.add_new_instrument", "Add New Instrument",
-            [new("Instrument Type", WorkerMpValueKind.InstrumentTypeName, StringValue: name, SdkBinding: "SetInstTypeNameArg")], []));
+        var result = adapter.Execute(new WorkerMpCommand("instrument_operations.add_new_instrument", "Add New Instrument",
+            [new WorkerMpInputArgument("Instrument Type", WorkerMpValueKind.InstrumentTypeName, new WorkerTextValue(name), sdkBinding: "SetInstTypeNameArg")], []));
         Assert.Equal(supported, result.ExecuteStepReturned);
         Assert.Equal(supported, calls.Events.Contains("SetInstTypeNameArg:Instrument Type", StringComparer.Ordinal));
         Assert.Equal(supported, WorkerInstrumentTypeNames.IsSupported(name));
@@ -84,7 +78,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
     [Fact]
     public void ReservedEnhancedCloudSlotsCannotBecomeAnotherObjectOrItemType()
     {
-        Assert.Equal("User Name", SdkSpecializedValueCodec.ToSdkString(SdkSystemStringValue.UserName));
+        Assert.Equal("User Name", SdkSpecializedValueCodec.ToSdkString(WorkerSystemStringValue.UserName));
         Assert.Equal(6, (int)WorkerObjectTypeValue.ScanStripeCloud);
         Assert.Equal(11, (int)WorkerItemTypeValue.ScanStripeCloud);
         Assert.False(Enum.IsDefined((WorkerObjectTypeValue)5));

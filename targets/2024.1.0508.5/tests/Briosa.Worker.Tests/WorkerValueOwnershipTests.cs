@@ -21,20 +21,18 @@ public sealed class WorkerValueOwnershipTests
     }
 
     [Fact]
-    public void WorkerToSdkMappingSharesOwnedValuesAndPreservesSpecializedObjectChoice()
+    public void CommandSharesOwnedValuesAndPreservesLegacyObjectChoice()
     {
         var values = new WorkerDoubleArrayValue([0, 1, 2]);
         var command = new WorkerMpCommand("ownership", "Ownership",
         [
             new WorkerMpInputArgument("Values", WorkerMpValueKind.DoubleArray, values),
             // The specialized choice uses the original zero-based enum domain.
-            new WorkerMpInputArgument("Object", WorkerMpValueKind.ObjectType, new WorkerSpecializedEnumValue(11))
+            new WorkerMpInputArgument("Object", WorkerMpValueKind.ObjectType, WorkerChoiceFactory.FromOrdinal(WorkerMpValueKind.ObjectType, 11))
         ], [new("Result", WorkerMpValueKind.DoubleArray)]);
-        var sdk = SdkCommandMapper.CreateCommand(command);
-        Assert.Same(values, sdk.InputArguments[0].DoubleArrayValue);
-        Assert.Same(command.OutputArguments[0], sdk.OutputArguments[0]);
+        Assert.Same(values, (command.InputArguments[0].Value as WorkerDoubleArrayValue));
         Assert.Equal(WorkerObjectTypeValue.Frame,
-            Assert.IsType<SdkSpecializedEnumValue<WorkerObjectTypeValue>>(sdk.InputArguments[1].SpecializedEnumValue).Value);
+            Assert.IsType<WorkerChoiceValue<WorkerObjectTypeValue>>(command.InputArguments[1].Value).Value);
     }
 
     [Fact]

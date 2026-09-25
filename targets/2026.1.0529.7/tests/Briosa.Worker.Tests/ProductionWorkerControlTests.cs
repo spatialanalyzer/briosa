@@ -6,6 +6,25 @@ namespace Briosa.Worker.Tests;
 
 public sealed class ProductionWorkerControlTests
 {
+    [Fact]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "The serialized executor owns and disposes the injected SDK on its STA.")]
+    public async Task SerializedExecutorPassesTheOwnedCommandDirectlyToTheSdk()
+    {
+        var sdk = new ControlledSdk();
+        var value = new WorkerDoubleArrayValue([0, 1, 2]);
+        var command = new WorkerMpCommand("normal", "Normal",
+            [new("Values", WorkerMpValueKind.DoubleArray, value)], []);
+        var executor = new SerializedSdkExecutor(() => sdk);
+        await using (executor.ConfigureAwait(false))
+        {
+            await executor.ExecuteAsync(command);
+            Assert.Same(command, sdk.LastCommand);
+            Assert.Same(value, sdk.LastCommand!.InputArguments[0].Value);
+        }
+        Assert.True(sdk.Disposed);
+        Assert.True(sdk.AllCallsOnSta);
+    }
+
     [Theory]
     [InlineData("oversized", WorkerMpValueKind.Text)]
     [InlineData("non-finite", WorkerMpValueKind.FloatingPoint)]
@@ -74,6 +93,7 @@ public sealed class ProductionWorkerControlTests
         public bool AllCallsOnSta { get; private set; } = true;
         public bool Disposed { get; private set; }
         public int OperationCalls { get; private set; }
+        public WorkerMpCommand? LastCommand { get; private set; }
         public void Observe()
         {
             Threads.Add(Environment.CurrentManagedThreadId);
@@ -82,13 +102,14 @@ public sealed class ProductionWorkerControlTests
         public SdkLivenessStatus GetLiveness() { Observe(); return SdkLivenessStatus.Alive; }
         public string? GetActivatedSdkVersion() { Observe(); return null; }
         public SdkConnectionResult Connect(string host) { Observe(); return new(SdkConnectionStatus.Connected, 0, null); }
-        public WorkerMpExecutionResult Execute(SdkCommand command)
+        public WorkerMpExecutionResult Execute(WorkerMpCommand command)
         {
             Observe();
             if (command.OperationId == SdkConnectionManager.VerificationOperationId)
                 return new WorkerMpResultAvailable(2, 1,
                     [new WorkerRetrievedOutput(SdkConnectionManager.VerificationOutputName, WorkerMpValueKind.Text, new WorkerTextValue("fake"))], null);
             OperationCalls++;
+            LastCommand = command;
             WorkerMpOutputValue value = command.OperationId switch
             {
                 "oversized" => new WorkerRetrievedOutput("Value", WorkerMpValueKind.Text, new WorkerTextValue(new string('x', 100_000))),

@@ -10,7 +10,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
     {
         using var calls = new RecordingSdkCalls();
         using var adapter = new SpatialAnalyzerSdkAdapter(calls);
-        var command = new SdkCommand(
+        var command = new WorkerMpCommand(
             "analysis_operations.get_number_of_collections",
             "Get Number of Collections",
             [],
