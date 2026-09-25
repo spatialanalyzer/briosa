@@ -4,4 +4,4 @@ public sealed record WorkerUdpTransmitSettingsValue(
     bool Enabled,
     bool Broadcast,
     string IpAddress,
-    int Port);
+    int Port) : WorkerMpValue;

@@ -6,4 +6,4 @@ public sealed record WorkerProjectionOptionsValue(
     bool OverrideTargetOffsets,
     double OverrideTargetOffsetsValue,
     bool AddExtraMaterialThickness,
-    double ExtraMaterialThicknessValue);
+    double ExtraMaterialThicknessValue) : WorkerMpValue;

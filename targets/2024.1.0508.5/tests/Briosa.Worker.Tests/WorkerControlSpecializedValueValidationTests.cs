@@ -15,40 +15,25 @@ public sealed class WorkerControlSpecializedValueValidationTests
                 "specialized-values",
                 "Specialized Values",
                 [
-                    new(
-                        "Render",
-                        WorkerMpValueKind.RenderModeType,
-                        SpecializedEnumValue: new(2)),
-                    new(
-                        "Filter",
-                        WorkerMpValueKind.AutoFilterProximitySettings,
-                        AutoFilterProximitySettingsValue: new(
+                    new WorkerMpInputArgument("Render", WorkerMpValueKind.RenderModeType, new WorkerSpecializedEnumValue(2)),
+                    new WorkerMpInputArgument("Filter", WorkerMpValueKind.AutoFilterProximitySettings, new WorkerAutoFilterProximitySettingsValue(
                             1, 2, 3, 4, 5, 6,
                             SurfaceProximityMode: 0,
                             PlanarProximityMode: 1,
                             RadialProximityMode: 2,
                             ProjectToPlane: true,
                             AssertPlaneBoundaries: false)),
-                    new(
-                        "Tolerance",
-                        WorkerMpValueKind.ToleranceScalarOptions,
-                        ToleranceScalarOptionsValue: new(
+                    new WorkerMpInputArgument("Tolerance", WorkerMpValueKind.ToleranceScalarOptions, new WorkerToleranceScalarOptionsValue(
                             new(true, 1.25),
                             new(false, -2.5))),
-                    new(
-                        "Projection",
-                        WorkerMpValueKind.ProjectionOptions,
-                        ProjectionOptionsValue: new(
+                    new WorkerMpInputArgument("Projection", WorkerMpValueKind.ProjectionOptions, new WorkerProjectionOptionsValue(
                             "Object To Probe Vectors",
                             true,
                             true,
                             1.5,
                             false,
                             0)),
-                    new(
-                        "Point Delta",
-                        WorkerMpValueKind.PointDeltaReportOptions,
-                        PointDeltaReportOptionsValue: new(
+                    new WorkerMpInputArgument("Point Delta", WorkerMpValueKind.PointDeltaReportOptions, new WorkerPointDeltaReportOptionsValue(
                             0,
                             "Single",
                             true,
@@ -70,11 +55,11 @@ public sealed class WorkerControlSpecializedValueValidationTests
 
         var inputs = receiver.Receive().Command!.InputArguments;
 
-        Assert.Equal(2, inputs[0].SpecializedEnumValue!.Value);
-        Assert.Equal(2, inputs[1].AutoFilterProximitySettingsValue!.RadialProximityMode);
-        Assert.Equal(-2.5, inputs[2].ToleranceScalarOptionsValue!.Low.Value);
-        Assert.Equal(1.5, inputs[3].ProjectionOptionsValue!.OverrideTargetOffsetsValue);
-        Assert.Equal("Single", inputs[4].PointDeltaReportOptionsValue!.DetailsFormat);
+        Assert.Equal(2, (inputs[0].Value as WorkerSpecializedEnumValue)!.Value);
+        Assert.Equal(2, (inputs[1].Value as WorkerAutoFilterProximitySettingsValue)!.RadialProximityMode);
+        Assert.Equal(-2.5, (inputs[2].Value as WorkerToleranceScalarOptionsValue)!.Low.Value);
+        Assert.Equal(1.5, (inputs[3].Value as WorkerProjectionOptionsValue)!.OverrideTargetOffsetsValue);
+        Assert.Equal("Single", (inputs[4].Value as WorkerPointDeltaReportOptionsValue)!.DetailsFormat);
         Assert.DoesNotContain(
             inputs.SelectMany(input => input.GetType().GetProperties()),
             property => property.PropertyType == typeof(object));
@@ -86,10 +71,7 @@ public sealed class WorkerControlSpecializedValueValidationTests
     [InlineData(int.MaxValue)]
     public void UnknownSpecializedEnumValueIsRejectedBeforeTransport(int value)
     {
-        var message = CreateSingleInput(new(
-            "Render",
-            WorkerMpValueKind.RenderModeType,
-            SpecializedEnumValue: new(value)));
+        var message = CreateSingleInput(new WorkerMpInputArgument("Render", WorkerMpValueKind.RenderModeType, new WorkerSpecializedEnumValue(value)));
 
         AssertRejected(message);
     }
@@ -120,14 +102,8 @@ public sealed class WorkerControlSpecializedValueValidationTests
         int maximumValidValue,
         int firstInvalidValue)
     {
-        var valid = CreateSingleInput(new(
-            "Value",
-            kind,
-            SpecializedEnumValue: new(maximumValidValue)));
-        var invalid = CreateSingleInput(new(
-            "Value",
-            kind,
-            SpecializedEnumValue: new(firstInvalidValue)));
+        var valid = CreateSingleInput(new WorkerMpInputArgument("Value", kind, new WorkerSpecializedEnumValue(maximumValidValue)));
+        var invalid = CreateSingleInput(new WorkerMpInputArgument("Value", kind, new WorkerSpecializedEnumValue(firstInvalidValue)));
 
         using var stream = new MemoryStream();
         using var channel = new WorkerControlChannel(stream, leaveOpen: true);
@@ -140,31 +116,16 @@ public sealed class WorkerControlSpecializedValueValidationTests
     [Fact]
     public void EnhancedCloudGapIsRejectedBeforeWorkerTransport()
     {
-        AssertRejected(CreateSingleInput(new(
-            "Type",
-            WorkerMpValueKind.ObjectType,
-            SpecializedEnumValue: new(4))));
+        AssertRejected(CreateSingleInput(new WorkerMpInputArgument("Type", WorkerMpValueKind.ObjectType, new WorkerSpecializedEnumValue(4))));
     }
 
     [Fact]
     public void ReportOutputRequiresExactlyOneTypedDestination()
     {
-        var external = CreateSingleInput(new(
-            "Output",
-            WorkerMpValueKind.ReportOutputOptions,
-            ReportOutputOptionsValue: new(3, "report.pdf", null)));
-        var embedded = CreateSingleInput(new(
-            "Output",
-            WorkerMpValueKind.ReportOutputOptions,
-            ReportOutputOptionsValue: new(1, null, new("", "Report"))));
-        var neither = CreateSingleInput(new(
-            "Output",
-            WorkerMpValueKind.ReportOutputOptions,
-            ReportOutputOptionsValue: new(0, null, null)));
-        var both = CreateSingleInput(new(
-            "Output",
-            WorkerMpValueKind.ReportOutputOptions,
-            ReportOutputOptionsValue: new(0, "report.sar", new("Collection", "Report"))));
+        var external = CreateSingleInput(new WorkerMpInputArgument("Output", WorkerMpValueKind.ReportOutputOptions, new WorkerReportOutputOptionsValue(3, "report.pdf", null)));
+        var embedded = CreateSingleInput(new WorkerMpInputArgument("Output", WorkerMpValueKind.ReportOutputOptions, new WorkerReportOutputOptionsValue(1, null, new("", "Report"))));
+        var neither = CreateSingleInput(new WorkerMpInputArgument("Output", WorkerMpValueKind.ReportOutputOptions, new WorkerReportOutputOptionsValue(0, null, null)));
+        var both = CreateSingleInput(new WorkerMpInputArgument("Output", WorkerMpValueKind.ReportOutputOptions, new WorkerReportOutputOptionsValue(0, "report.sar", new("Collection", "Report"))));
 
         using var stream = new MemoryStream();
         using var channel = new WorkerControlChannel(stream, leaveOpen: true);
@@ -177,10 +138,7 @@ public sealed class WorkerControlSpecializedValueValidationTests
     [Fact]
     public void MissingSpecializedStructureComponentIsRejectedBeforeTransport()
     {
-        var message = CreateSingleInput(new(
-            "Tolerance",
-            WorkerMpValueKind.ToleranceScalarOptions,
-            ToleranceScalarOptionsValue: new(null!, new(false, -2.5))));
+        var message = CreateSingleInput(new WorkerMpInputArgument("Tolerance", WorkerMpValueKind.ToleranceScalarOptions, new WorkerToleranceScalarOptionsValue(null!, new(false, -2.5))));
 
         AssertRejected(message);
     }
@@ -188,10 +146,7 @@ public sealed class WorkerControlSpecializedValueValidationTests
     [Fact]
     public void InvalidNestedSpecializedEnumIsRejectedBeforeTransport()
     {
-        var message = CreateSingleInput(new(
-            "Filter",
-            WorkerMpValueKind.AutoFilterProximitySettings,
-            AutoFilterProximitySettingsValue: new(
+        var message = CreateSingleInput(new WorkerMpInputArgument("Filter", WorkerMpValueKind.AutoFilterProximitySettings, new WorkerAutoFilterProximitySettingsValue(
                 1, 2, 3, 4, 5, 6,
                 SurfaceProximityMode: 0,
                 PlanarProximityMode: 1,

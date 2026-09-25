@@ -19,7 +19,7 @@ internal static class GetDoubleVariableOperation
     {
         ArgumentNullException.ThrowIfNull(request);
         return new(Descriptor.OperationId, Descriptor.MpStep,
-            [new("Name", WorkerMpValueKind.Text, StringValue: request.Name, SdkBinding: "SetStringArg")],
+            [new WorkerMpInputArgument("Name", WorkerMpValueKind.Text, new WorkerTextValue(request.Name), sdkBinding: "SetStringArg")],
             [new("Value", WorkerMpValueKind.FloatingPoint, "GetDoubleArg")]);
     }
 

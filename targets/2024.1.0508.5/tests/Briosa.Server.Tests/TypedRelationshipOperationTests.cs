@@ -28,10 +28,10 @@ public sealed class TypedRelationshipOperationTests
         Assert.Equal("Set Relationship Fit Constraints (Scalar Type)", omitted.StepName);
         Assert.Equal("SetCollectionObjectNameArg2", omitted.InputArguments[0].SdkBinding);
         Assert.Equal(new WorkerCollectionObjectNameValue("", "relationship", WorkerObjectTypeValue.Any),
-            omitted.InputArguments[0].CollectionObjectNameValue);
+            (omitted.InputArguments[0].Value as WorkerCollectionObjectNameValue));
         Assert.Equal("SetFitConstraintScalarOptionsArg", omitted.InputArguments[1].SdkBinding);
         Assert.Equal(new WorkerFitConstraintScalarOptionsValue(new(false, 0), new(false, 0)),
-            omitted.InputArguments[1].FitConstraintScalarOptionsValue);
+            (omitted.InputArguments[1].Value as WorkerFitConstraintScalarOptionsValue));
 
         request.FitConstraintOptions = new() { High = new(), Low = new() };
         Assert.Equal(omitted.InputArguments,
@@ -40,9 +40,9 @@ public sealed class TypedRelationshipOperationTests
         request.FitConstraintOptions.Low.Value = -0.5;
         var partial = SetRelationshipFitConstraintsScalarTypeOperation.CreateCommand(request);
         Assert.Equal(new WorkerFitConstraintScalarOptionsValue(new(true, 0), new(false, -0.5)),
-            partial.InputArguments[1].FitConstraintScalarOptionsValue);
+            (partial.InputArguments[1].Value as WorkerFitConstraintScalarOptionsValue));
         request.FitConstraintOptions.High.Value = 99;
-        Assert.Equal(0, partial.InputArguments[1].FitConstraintScalarOptionsValue!.High.Value);
+        Assert.Equal(0, (partial.InputArguments[1].Value as WorkerFitConstraintScalarOptionsValue)!.High.Value);
     }
 
     [Fact]
@@ -127,7 +127,7 @@ public sealed class TypedRelationshipOperationTests
             IReadOnlyList<WorkerMpOutputValue> outputs;
             if (command.OperationId == SetRelationshipFitConstraintsScalarTypeOperation.Descriptor.OperationId)
             {
-                _options = command.InputArguments[1].FitConstraintScalarOptionsValue!;
+                _options = (command.InputArguments[1].Value as WorkerFitConstraintScalarOptionsValue)!;
                 outputs = [];
             }
             else

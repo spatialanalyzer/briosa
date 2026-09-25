@@ -230,3 +230,22 @@ command/result serialization with a fake executor, verify all five ordered
 outputs and exact binding names, and reject invalid requests before submission.
 These tests do not attach to SpatialAnalyzer or measure full worker-process
 latency. Public messages and the supported operation set are unchanged.
+
+## Typed Input Values (Private Protocol 21)
+
+Each input argument now contains one typed value, with constructor checks for
+missing or mismatched payloads. The former record's nullable per-kind properties
+are removed. Input and output families share the same explicit value hierarchy;
+private generated serialization rejects unknown payloads and extra members.
+The remaining SDK-specific input conversion is temporary and still needs removal.
+
+Encoding every supported catalog fixture exposed existing mapping defects:
+filter-proximity settings and fit degrees of freedom lacked option values;
+cloud and vector-group names lacked text values; and some object-list outputs
+carried a scalar-only omitted-type fallback. Those mappings are corrected.
+List outputs still require their documented embedded type information.
+
+All 1,050 Debug portable tests passed across both products: 545 for 2024 and
+505 for 2026. Coverage includes serialized catalog commands, option field
+positions, malformed input payloads, generated clients, and fake worker lifecycle
+behavior. Public RPC messages are unchanged by this private protocol migration.

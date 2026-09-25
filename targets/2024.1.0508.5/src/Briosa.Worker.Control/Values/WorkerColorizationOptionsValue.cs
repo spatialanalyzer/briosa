@@ -19,4 +19,4 @@ public sealed record WorkerColorizationOptionsValue(
     double HighSaturationLimit,
     double LowSaturationLimit,
     double HighTolerance,
-    double LowTolerance);
+    double LowTolerance) : WorkerMpValue;

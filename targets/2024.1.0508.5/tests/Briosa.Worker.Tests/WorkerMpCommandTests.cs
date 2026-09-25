@@ -9,7 +9,7 @@ public sealed class WorkerMpCommandTests
     {
         var inputs = new List<WorkerMpInputArgument>
         {
-            new("Enabled", WorkerMpValueKind.Logical, BooleanValue: false)
+            new WorkerMpInputArgument("Enabled", WorkerMpValueKind.Logical, new WorkerBooleanValue(false))
         };
         var outputs = new List<WorkerMpOutputArgument>
         {

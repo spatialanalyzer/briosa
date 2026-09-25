@@ -11,4 +11,4 @@ public sealed record WorkerAutoFilterProximitySettingsValue(
     int PlanarProximityMode,
     int RadialProximityMode,
     bool ProjectToPlane,
-    bool AssertPlaneBoundaries);
+    bool AssertPlaneBoundaries) : WorkerMpValue;

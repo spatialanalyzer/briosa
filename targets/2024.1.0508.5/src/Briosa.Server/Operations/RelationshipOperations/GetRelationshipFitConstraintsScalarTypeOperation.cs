@@ -29,8 +29,7 @@ internal static class GetRelationshipFitConstraintsScalarTypeOperation
         ArgumentNullException.ThrowIfNull(request);
         var relationship = CollectionObjectNameMapper.Required(request.RelationshipName, "relationship_name");
         return new(Descriptor.OperationId, Descriptor.MpStep,
-            [new("Relationship Name", WorkerMpValueKind.CollectionObjectName,
-                CollectionObjectNameValue: relationship, SdkBinding: "SetCollectionObjectNameArg2")],
+            [new WorkerMpInputArgument("Relationship Name", WorkerMpValueKind.CollectionObjectName, relationship, sdkBinding: "SetCollectionObjectNameArg2")],
             [
                 new("Use High Tolerance?", WorkerMpValueKind.Logical, "GetBoolArg"),
                 new("High Tolerance", WorkerMpValueKind.FloatingPoint, "GetDoubleArg"),

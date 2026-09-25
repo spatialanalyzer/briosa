@@ -7,4 +7,4 @@ public sealed record WorkerFitDegreeOfFreedomOptionsValue(
     bool AllowRx,
     bool AllowRy,
     bool AllowRz,
-    bool RotateAboutCentroid);
+    bool RotateAboutCentroid) : WorkerMpValue;

@@ -19,8 +19,8 @@ internal static class SetDoubleVariableOperation
         ArgumentNullException.ThrowIfNull(request);
         return new(Descriptor.OperationId, Descriptor.MpStep,
             [
-                new("Name", WorkerMpValueKind.Text, StringValue: request.Name, SdkBinding: "SetStringArg"),
-                new("Value", WorkerMpValueKind.FloatingPoint, DoubleValue: request.Value, SdkBinding: "SetDoubleArg")
+                new WorkerMpInputArgument("Name", WorkerMpValueKind.Text, new WorkerTextValue(request.Name), sdkBinding: "SetStringArg"),
+                new WorkerMpInputArgument("Value", WorkerMpValueKind.FloatingPoint, new WorkerDoubleValue(request.Value), sdkBinding: "SetDoubleArg")
             ], []);
     }
 

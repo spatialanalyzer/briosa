@@ -58,9 +58,9 @@ public sealed class TypedVariableOperationTests
         Assert.Equal("Set Double Variable", absent.StepName);
         Assert.Equal(absent.InputArguments, explicitZero.InputArguments);
         Assert.Equal("SetStringArg", absent.InputArguments[0].SdkBinding);
-        Assert.Equal("", absent.InputArguments[0].StringValue);
+        Assert.Equal("", ((absent.InputArguments[0].Value as WorkerTextValue)?.Value));
         Assert.Equal("SetDoubleArg", absent.InputArguments[1].SdkBinding);
-        Assert.Equal(0, absent.InputArguments[1].DoubleValue);
+        Assert.Equal(0, ((absent.InputArguments[1].Value as WorkerDoubleValue)?.Value));
         Assert.Empty(absent.OutputArguments);
     }
 
@@ -75,7 +75,7 @@ public sealed class TypedVariableOperationTests
         request.DoubleListVariable.Clear();
         Assert.Equal("Set Named Double List Variable", command.StepName);
         Assert.Equal("SetDoubleArrayArg", command.InputArguments[1].SdkBinding);
-        Assert.Equal([0.0, -1.25, 2.5], command.InputArguments[1].DoubleArrayValue!.Values);
+        Assert.Equal([0.0, -1.25, 2.5], (command.InputArguments[1].Value as WorkerDoubleArrayValue)!.Values);
     }
 
     [Theory]
@@ -181,14 +181,14 @@ public sealed class TypedVariableOperationTests
             switch (command.OperationId)
             {
                 case "variables.set_double_variable":
-                    _scalar = command.InputArguments[1].DoubleValue!.Value;
+                    _scalar = ((command.InputArguments[1].Value as WorkerDoubleValue)?.Value)!.Value;
                     outputs = [];
                     break;
                 case "variables.get_double_variable":
                     outputs = [new WorkerRetrievedOutput("Value", WorkerMpValueKind.FloatingPoint, new WorkerDoubleValue(_scalar))];
                     break;
                 case "variables.set_named_double_list_variable":
-                    _list = command.InputArguments[1].DoubleArrayValue!.Values;
+                    _list = (command.InputArguments[1].Value as WorkerDoubleArrayValue)!.Values;
                     outputs = [];
                     break;
                 case "variables.get_named_double_list_variable":

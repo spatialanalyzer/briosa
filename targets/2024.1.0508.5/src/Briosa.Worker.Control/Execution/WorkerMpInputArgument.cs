@@ -1,48 +1,27 @@
 namespace Briosa.Worker.Control;
 
-public sealed record WorkerMpInputArgument(
-    string Name,
-    WorkerMpValueKind Kind,
-    bool? BooleanValue = null,
-    int? IntegerValue = null,
-    double? DoubleValue = null,
-    string? StringValue = null,
-    WorkerPointNameValue? PointNameValue = null,
-    WorkerVectorValue? VectorValue = null,
-    WorkerToleranceVectorOptionsValue? ToleranceVectorOptionsValue = null,
-    WorkerCollectionInstrumentIdValue? CollectionInstrumentIdValue = null,
-    WorkerCollectionInstrumentIdListValue? CollectionInstrumentIdListValue = null,
-    WorkerCollectionMachineIdValue? CollectionMachineIdValue = null,
-    WorkerCollectionItemNameValue? CollectionItemNameValue = null,
-    WorkerCollectionItemNameListValue? CollectionItemNameListValue = null,
-    WorkerCollectionObjectNameValue? CollectionObjectNameValue = null,
-    WorkerCollectionObjectNameListValue? CollectionObjectNameListValue = null,
-    WorkerCollectionGroupNameListValue? CollectionGroupNameListValue = null,
-    WorkerCollectionVectorGroupNameValue? CollectionVectorGroupNameValue = null,
-    WorkerCollectionVectorGroupNameListValue? CollectionVectorGroupNameListValue = null,
-    WorkerPointNameListValue? PointNameListValue = null,
-    WorkerStringListValue? StringListValue = null,
-    WorkerVectorNameListValue? VectorNameListValue = null,
-    WorkerDoubleArrayValue? DoubleArrayValue = null,
-    WorkerTransformValue? TransformValue = null,
-    WorkerWorldTransformValue? WorldTransformValue = null,
-    WorkerRgbColorValue? RgbColorValue = null,
-    WorkerFileReferenceValue? FileReferenceValue = null,
-    WorkerAngularUnitValue? AngularUnitValue = null,
-    WorkerDistanceUnitValue? DistanceUnitValue = null,
-    WorkerTemperatureUnitValue? TemperatureUnitValue = null,
-    WorkerFontValue? FontValue = null,
-    WorkerSpecializedEnumValue? SpecializedEnumValue = null,
-    WorkerAutoFilterProximitySettingsValue? AutoFilterProximitySettingsValue = null,
-    WorkerBSplineFitOptionsValue? BSplineFitOptionsValue = null,
-    WorkerCloudThinningOptionsValue? CloudThinningOptionsValue = null,
-    WorkerColorizationOptionsValue? ColorizationOptionsValue = null,
-    WorkerFitConstraintScalarOptionsValue? FitConstraintScalarOptionsValue = null,
-    WorkerFitDegreeOfFreedomOptionsValue? FitDegreeOfFreedomOptionsValue = null,
-    WorkerReportOutputOptionsValue? ReportOutputOptionsValue = null,
-    WorkerReportViewOptionsValue? ReportViewOptionsValue = null,
-    WorkerToleranceScalarOptionsValue? ToleranceScalarOptionsValue = null,
-    WorkerProjectionOptionsValue? ProjectionOptionsValue = null,
-    WorkerPointDeltaReportOptionsValue? PointDeltaReportOptionsValue = null,
-    WorkerUdpTransmitSettingsValue? UdpTransmitSettingsValue = null,
-    string? SdkBinding = null);
+public sealed record WorkerMpInputArgument
+{
+    public WorkerMpInputArgument(string name, WorkerMpValueKind kind, WorkerMpValue value, string? sdkBinding = null)
+    {
+        ArgumentNullException.ThrowIfNull(value);
+        if (!value.MatchesInputKind(kind))
+        {
+            throw new ArgumentException("The input value does not match its MP kind.", nameof(value));
+        }
+        Name = name;
+        Kind = kind;
+        Value = value;
+        SdkBinding = sdkBinding;
+    }
+
+    public string Name { get; }
+    public WorkerMpValueKind Kind { get; }
+    public WorkerMpValue Value { get; }
+    public string? SdkBinding { get; }
+
+    public TValue RequireValue<TValue>() where TValue : WorkerMpValue =>
+        Value is TValue value
+            ? value
+            : throw new InvalidOperationException("The input value has a different type.");
+}

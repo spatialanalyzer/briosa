@@ -12,4 +12,4 @@ public sealed record WorkerPointDeltaReportOptionsValue(
     bool ShowComponent3,
     bool SortPointNames,
     bool ShowToleranceFields,
-    bool ColorizeInToleranceFields);
+    bool ColorizeInToleranceFields) : WorkerMpValue;

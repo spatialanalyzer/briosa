@@ -19,7 +19,7 @@ internal static class GetNamedDoubleListVariableOperation
     {
         ArgumentNullException.ThrowIfNull(request);
         return new(Descriptor.OperationId, Descriptor.MpStep,
-            [new("Name", WorkerMpValueKind.Text, StringValue: request.Name, SdkBinding: "SetStringArg")],
+            [new WorkerMpInputArgument("Name", WorkerMpValueKind.Text, new WorkerTextValue(request.Name), sdkBinding: "SetStringArg")],
             [new("Double List Variable", WorkerMpValueKind.DoubleArray, "GetDoubleArrayArg")]);
     }
 

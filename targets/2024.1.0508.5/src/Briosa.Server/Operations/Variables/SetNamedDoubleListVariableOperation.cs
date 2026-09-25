@@ -26,9 +26,8 @@ internal static class SetNamedDoubleListVariableOperation
 
         return new(Descriptor.OperationId, Descriptor.MpStep,
             [
-                new("Name", WorkerMpValueKind.Text, StringValue: request.Name, SdkBinding: "SetStringArg"),
-                new("Double List Variable", WorkerMpValueKind.DoubleArray,
-                    DoubleArrayValue: new(request.DoubleListVariable), SdkBinding: "SetDoubleArrayArg")
+                new WorkerMpInputArgument("Name", WorkerMpValueKind.Text, new WorkerTextValue(request.Name), sdkBinding: "SetStringArg"),
+                new WorkerMpInputArgument("Double List Variable", WorkerMpValueKind.DoubleArray, new WorkerDoubleArrayValue(request.DoubleListVariable), sdkBinding: "SetDoubleArrayArg")
             ], []);
     }
 
