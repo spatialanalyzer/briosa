@@ -468,3 +468,23 @@ unreleased migration page with its full build, search, and API/history/SEO check
 passing. Published example pins remain major 1 until compatible releases exist;
 their migration must update all client pins, the verified protocol, and fixtures
 together.
+
+## Event Operations
+
+All five existing Event Operations RPCs now use handwritten typed mappings in
+their domain directory, with one implementation per file. Their interpreter
+records have been removed and capability registration still describes the same
+surface and read/mutation/replay classifications. A shared file-reference mapper
+validates required paths without introducing filesystem access during mapping.
+
+The migration preserves required nonempty reference lists, default index zero,
+default decimal precision six with explicit zero retained, and false overwrite
+defaults. Scalar event names keep the collection-object family; event lists and
+the indexed getter retain the broader collection-item family used by the reviewed
+SDK bindings. No new target or command semantics are inferred from the migration.
+Generated-client checks cover all five routes, private value round trips, exact
+argument names/bindings, required-value rejection before execution, zero output
+presence, and getter failure with Completed/DoNotReplay evidence. No live Event
+Operations validation or new protocol change is claimed.
+The complete Release server suites passed after this migration: 310 current-target
+tests and 333 legacy-target tests, with no failures or skips.
