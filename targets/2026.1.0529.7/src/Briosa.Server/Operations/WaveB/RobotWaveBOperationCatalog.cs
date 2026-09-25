@@ -116,7 +116,7 @@ internal static class RobotWaveBOperationCatalog
             "Get Robot/Machine Parameter",
             "GetRobotMachineParameter",
             [
-                new("machine_id", "Machine ID", WorkerMpValueKind.CollectionMachineId, "SetColInstIdArg", "Required", true),
+                new("machine_id", "Machine ID", WorkerMpValueKind.CollectionInstrumentId, "SetColInstIdArg", "Required", true),
                 new("parameter_name", "Parameter Name", WorkerMpValueKind.Text, "SetStringArg", "Empty", false)],
             [
                 new("parameter_value", "Parameter Value", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false)]),
@@ -303,7 +303,7 @@ internal static class RobotWaveBOperationCatalog
             "Start Robot/Machine Interface",
             "StartRobotMachineInterface",
             [
-                new("machine_id", "Machine ID", WorkerMpValueKind.CollectionMachineId, "SetColInstIdArg", "Required", true),
+                new("machine_id", "Machine ID", WorkerMpValueKind.CollectionInstrumentId, "SetColInstIdArg", "Required", true),
                 new("interface_type", "Interface Type", WorkerMpValueKind.WholeNumber, "SetIntegerArg", "0", false),
                 new("run_in_simulation", "Run in Simulation", WorkerMpValueKind.Logical, "SetBoolArg", "false", false)]),
         Mutating(
@@ -320,7 +320,7 @@ internal static class RobotWaveBOperationCatalog
             "Stop Robot/Machine Interface",
             "StopRobotMachineInterface",
             [
-                new("machine_id", "Machine ID", WorkerMpValueKind.CollectionMachineId, "SetColInstIdArg", "Required", true)]),
+                new("machine_id", "Machine ID", WorkerMpValueKind.CollectionInstrumentId, "SetColInstIdArg", "Required", true)]),
         ReadOnly(
             "robot_operations.get_robot_pose_for_a_frame",
             "Get Robot Pose for a Frame",

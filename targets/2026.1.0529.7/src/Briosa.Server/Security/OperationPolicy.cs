@@ -97,20 +97,24 @@ internal sealed class OperationPolicy
     {
         ArgumentNullException.ThrowIfNull(command);
 
-        if (!_operations.TryGetValue(command.OperationId, out var operation))
+        var decision = Evaluate(command.OperationId);
+        return decision.Operation is { } operation &&
+            !string.Equals(command.StepName, operation.MpStep, StringComparison.Ordinal)
+            ? new OperationPolicyDecision(OperationPolicyDecisionKind.Unsupported,
+                "operation-binding-mismatch", operation)
+            : decision;
+    }
+
+    public OperationPolicyDecision Evaluate(string operationId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(operationId);
+
+        if (!_operations.TryGetValue(operationId, out var operation))
         {
             return new OperationPolicyDecision(
                 OperationPolicyDecisionKind.Unsupported,
                 "operation-unsupported",
                 Operation: null);
-        }
-
-        if (!string.Equals(command.StepName, operation.MpStep, StringComparison.Ordinal))
-        {
-            return new OperationPolicyDecision(
-                OperationPolicyDecisionKind.Unsupported,
-                "operation-binding-mismatch",
-                operation);
         }
 
         if (string.Equals(operation.Effect, "unknown", StringComparison.Ordinal) ||

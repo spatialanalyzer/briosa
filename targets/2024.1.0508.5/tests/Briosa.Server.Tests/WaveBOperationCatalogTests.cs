@@ -149,6 +149,79 @@ public sealed class WaveBOperationCatalogTests
     }
 
     [Fact]
+    public void RobotInterfaceArgumentsUseInstrumentIdsAndRejectRetiredWireFields()
+    {
+        IMessage[] requests =
+        [
+            new Api.GetRobotMachineParameterRequest { MachineId = new() { CollectionName = "Robot", InstrumentId = 7 } },
+            new Api.StartRobotMachineInterfaceRequest { MachineId = new() { CollectionName = "Robot", InstrumentId = 7 } },
+            new Api.StopRobotMachineInterfaceRequest { MachineId = new() { CollectionName = "Robot", InstrumentId = 7 } }
+        ];
+        string[] ids = ["get_robot_machine_parameter", "start_robot_machine_interface", "stop_robot_machine_interface"];
+        for (var index = 0; index < requests.Length; index++)
+        {
+            var operation = MpOperationCatalog.Get("robot_operations." + ids[index]);
+            var input = Assert.Single(operation.CreateCommand(requests[index]).InputArguments,
+                argument => argument.Name == "Machine ID");
+            Assert.Equal(WorkerMpValueKind.CollectionInstrumentId, input.Kind);
+            Assert.Equal("SetColInstIdArg", input.SdkBinding);
+            Assert.Equal(new WorkerCollectionInstrumentIdValue("Robot", 7), input.CollectionInstrumentIdValue);
+            Assert.Null(input.CollectionMachineIdValue);
+
+            // Field 1 was a CollectionMachineId. It must never be reinterpreted as an instrument.
+            var retired = requests[index].Descriptor.Parser.ParseFrom(new byte[] { 10, 5, 10, 1, 67, 16, 7 });
+            Assert.Throws<ArgumentException>(() => operation.CreateCommand(retired));
+        }
+    }
+
+    [Theory]
+    [InlineData("create_point_callout", "notes")]
+    [InlineData("create_point_comparison_callout", "additional_notes")]
+    [InlineData("create_relationship_callout", "additional_notes")]
+    [InlineData("create_text_callout", "text")]
+    [InlineData("create_vector_callout", "additional_notes")]
+    public void CalloutNotesUseEditTextForSuppliedAndDefaultValues(string id, string fieldName)
+    {
+        var operation = MpOperationCatalog.Get("construction_operations." + id);
+        var method = Services[operation.Descriptor.GrpcService].Methods.Single(candidate =>
+            candidate.Name == operation.Descriptor.Rpc);
+        var request = method.InputType.Parser.ParseFrom(Array.Empty<byte>());
+        PopulateRequiredFields(request, operation);
+        var defaults = operation.CreateCommand(request).InputArguments.Where(input => input.SdkBinding == "SetEditTextArg");
+        if (id == "create_text_callout") Assert.Empty(defaults);
+        else
+        {
+            var input = Assert.Single(defaults);
+            Assert.Equal(WorkerMpValueKind.EditText, input.Kind);
+            Assert.Empty(input.StringListValue!.Values);
+        }
+        var field = request.Descriptor.FindFieldByName(fieldName);
+        AddRepeatedValue(request, field, "first line");
+        AddRepeatedValue(request, field, "second line");
+        var command = operation.CreateCommand(request);
+        using var stream = new MemoryStream();
+        using var channel = new WorkerControlChannel(stream, leaveOpen: true);
+        channel.Send(WorkerControlMessage.Execute(Guid.NewGuid(), command));
+        stream.Position = 0;
+        var text = Assert.Single(channel.Receive().Command!.InputArguments,
+            input => input.SdkBinding == "SetEditTextArg");
+        Assert.Equal(WorkerMpValueKind.EditText, text.Kind);
+        Assert.Equal(["first line", "second line"], text.StringListValue!.Values);
+    }
+
+    [Fact]
+    public void TcpUncertaintyResultNotesUseEditText()
+    {
+        var operation = MpOperationCatalog.Get("instrument_operations.calculate_tcp_fixture_uncertainties");
+        var notes = Assert.Single(operation.Outputs, output => output.MpName == "Result Notes");
+        Assert.Equal(WorkerMpValueKind.EditText, notes.Kind);
+        Assert.Equal("GetEditTextArg", notes.SdkBinding);
+        var outputs = operation.Outputs.Select(CreateOutputValue).ToArray();
+        var result = operation.CreateResult<Api.CalculateTcpFixtureUncertaintiesResult>(Completed(outputs));
+        Assert.Equal(["value"], result.Uncertainties.ResultNotes);
+    }
+
+    [Fact]
     public void LaterGdtExtendedOptionsAreNotCallable()
     {
         Assert.DoesNotContain(Api.GdtOperations.Descriptor.Methods,

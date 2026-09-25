@@ -108,7 +108,7 @@ The `Briosa.Server` Meter publishes:
   `briosa.worker.exchange.duration`, and `briosa.sdk.duration` (seconds);
 - `briosa.queue.depth`, `briosa.admission.waiters`, and `briosa.execution.active`;
 - `briosa.worker.watchdogs`, `briosa.worker.failures`, and
-  `briosa.worker.replacements` (a gauge because explicit startup resets it);
+  `briosa.worker.recovery_attempts` (explicit recovery attempts since startup; a gauge because startup resets it);
 - `briosa.ready` and `briosa.identity.match` (separate SDK/SA claims);
 - `briosa.log.queue.depth`, `briosa.log.dropped`, and `briosa.log.failures`.
 

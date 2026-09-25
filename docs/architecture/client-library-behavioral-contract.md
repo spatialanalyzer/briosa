@@ -26,6 +26,12 @@ and
 review](https://github.com/orgs/spatialanalyzer/discussions/6#discussioncomment-17926469).
 Their client-repository contracts must link back here when published.
 
+The in-development compatibility-major-2 migration is documented in
+[runtime redesign migration](../development/runtime-redesign-migration.md).
+Clients adopting that major must preserve the overload failure kind and use the
+corrected instrument-ID request fields for the three affected robot operations.
+They must reject incompatible installed server majors before SDK admission.
+
 Those contracts may choose idiomatic names, types, and resource-management
 features, but they must not weaken or contradict the shared behavior below.
 [Discussion #6](https://github.com/orgs/spatialanalyzer/discussions/6) records the

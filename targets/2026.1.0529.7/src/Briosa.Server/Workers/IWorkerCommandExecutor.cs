@@ -5,6 +5,12 @@ namespace Briosa.Server.Workers;
 internal interface IWorkerCommandExecutor
 {
     Task<WorkerExecutionOutcome> ExecuteAsync(
+        WorkerCommandSubmission submission,
+        Guid correlationId,
+        CancellationToken cancellationToken = default) =>
+        ExecuteAsync(submission.CreateCommand(), correlationId, cancellationToken);
+
+    Task<WorkerExecutionOutcome> ExecuteAsync(
         WorkerMpCommand command,
         CancellationToken cancellationToken = default);
 

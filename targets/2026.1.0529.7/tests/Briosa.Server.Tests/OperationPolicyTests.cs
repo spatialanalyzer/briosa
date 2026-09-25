@@ -143,6 +143,20 @@ public sealed class OperationPolicyTests
     }
 
     [Fact]
+    public async Task DeniedOperationNeverMapsTheRequest()
+    {
+        var factory = new CountingProcessFactory();
+        var supervisor = new WorkerProcessSupervisor(factory, RestartPolicy());
+        await using var configuredSupervisor = supervisor.ConfigureAwait(true);
+        var executor = new PolicyEnforcingWorkerCommandExecutor(supervisor, CreatePolicy(),
+            new OperationAuditLogger(NullLogger<OperationAuditLogger>.Instance));
+        var outcome = await executor.ExecuteAsync(new WorkerCommandSubmission(OperationId,
+            () => throw new InvalidOperationException("Denied request was mapped.")), Guid.NewGuid());
+        Assert.Equal(WorkerExecutionStatus.PolicyDenied, outcome.Status);
+        Assert.Equal(WorkerExecutionDisposition.NotStarted, outcome.ExecutionDisposition);
+    }
+
+    [Fact]
     public async Task RejectionOccursBeforeTheWorkerSupervisorIsStarted()
     {
         var factory = new CountingProcessFactory();
@@ -200,15 +214,12 @@ public sealed class OperationPolicyTests
         string stepName = "Get Working Directory") =>
         new(operationId, stepName, [], []);
 
-    private static WorkerRestartPolicy RestartPolicy() =>
+    private static WorkerLifecyclePolicy RestartPolicy() =>
         new(
-            maximumRestarts: 0,
-            restartWindow: TimeSpan.FromSeconds(1),
             heartbeatInterval: TimeSpan.FromSeconds(1),
             heartbeatTimeout: TimeSpan.FromSeconds(1),
             startupTimeout: TimeSpan.FromSeconds(1),
-            shutdownTimeout: TimeSpan.FromSeconds(1),
-            restartDelay: TimeSpan.Zero);
+            shutdownTimeout: TimeSpan.FromSeconds(1));
 
     private sealed class CountingProcessFactory : IWorkerProcessFactory
     {

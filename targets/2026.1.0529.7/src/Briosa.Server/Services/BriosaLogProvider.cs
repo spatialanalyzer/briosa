@@ -245,7 +245,7 @@ internal sealed class SafeLogState : IReadOnlyList<KeyValuePair<string, object?>
         "TargetIsolationMode" or "PolicyFingerprint" or "Generation" or "RequestDurationMilliseconds" or
         "SdkDurationMilliseconds" or "ExecutionDisposition" or "MpOutcome" or "OutputRetrievalOutcome" or
         "MpResultCode" or "MpResultRetrieved" or "GrpcStatus" or "DiagnosticCode" or "ReplaySafety" or
-        "WorkerState" or "RestartCount" or "Termination" or "ConnectionState" or "ExecutionReadinessState" or
+        "WorkerState" or "RecoveryCount" or "Termination" or "ConnectionState" or "ExecutionReadinessState" or
         "StatusCode" or "ActivatedSdkIdentitySource" or "ActivatedSdkIdentityMatchState" or
         "ConnectedSaIdentitySource" or "ConnectedSaIdentityMatchState" or "AdmissionMilliseconds" or
         "QueueMilliseconds" or "ExchangeMilliseconds" or "Rpc" or "ApplicationState" or "Ownership" or

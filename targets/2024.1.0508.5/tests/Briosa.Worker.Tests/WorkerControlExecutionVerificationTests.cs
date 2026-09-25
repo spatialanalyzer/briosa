@@ -59,7 +59,7 @@ public sealed class WorkerControlExecutionVerificationTests
             WorkerControlMessageKind.ExecutionVerificationResult,
             Guid.NewGuid());
 
-        Assert.Throws<InvalidDataException>(() => channel.Send(invalid));
+        Assert.Throws<WorkerMessageRejectedException>(() => channel.Send(invalid));
     }
 
     [Fact]
@@ -83,7 +83,7 @@ public sealed class WorkerControlExecutionVerificationTests
                     Version: null,
                     WorkerRuntimeIdentityEvidenceSource.Unavailable)));
 
-        Assert.Throws<InvalidDataException>(() =>
+        Assert.Throws<WorkerMessageRejectedException>(() =>
             channel.Send(WorkerControlMessage.Ready(12, connection)));
     }
 
@@ -115,7 +115,7 @@ public sealed class WorkerControlExecutionVerificationTests
                     Version: null,
                     WorkerRuntimeIdentityEvidenceSource.Unavailable)));
 
-        Assert.Throws<InvalidDataException>(() =>
+        Assert.Throws<WorkerMessageRejectedException>(() =>
             channel.Send(WorkerControlMessage.Ready(12, connection)));
     }
 }

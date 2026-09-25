@@ -94,7 +94,7 @@ public sealed class ActivityReader
                 var value = Value(key);
                 if (value.Length > 0 && SafeText.Code(value) != "unavailable") details.Add(key + ": " + value);
             }
-            foreach (var key in new[] { "Generation", "RestartCount", "MpResultCode", "RequestDurationMilliseconds", "SdkDurationMilliseconds", "DroppedRecords" })
+            foreach (var key in new[] { "Generation", "RecoveryCount", "MpResultCode", "RequestDurationMilliseconds", "SdkDurationMilliseconds", "DroppedRecords" })
                 if (double.TryParse(Value(key), NumberStyles.Float, CultureInfo.InvariantCulture, out var number) && double.IsFinite(number))
                     details.Add(key + ": " + number.ToString("G", CultureInfo.InvariantCulture));
             var correlation = Value("CorrelationId");

@@ -245,6 +245,20 @@ internal static class GrpcOperationOutcomeMapper
             "worker-execution-failed");
         return outcome.Status switch
         {
+            WorkerExecutionStatus.Overloaded => CreateFailure(
+                StatusCode.ResourceExhausted,
+                operationId,
+                OperationFailureKind.Overloaded,
+                diagnosticCode,
+                ExecutionDisposition.NotStarted,
+                RecoveryGuidance.None,
+                ReplayGuidance.MayReplay,
+                replaySafety,
+                outcome.Generation,
+                mpExecution: null,
+                "The Briosa execution queue is full. The operation did not start."),
+            WorkerExecutionStatus.RequestRejected => CreateValidationFailure(
+                operationId, diagnosticCode, outcome.Generation, replaySafety),
             WorkerExecutionStatus.PolicyDenied => CreateFailure(
                 StatusCode.PermissionDenied,
                 operationId,
@@ -304,7 +318,7 @@ internal static class GrpcOperationOutcomeMapper
                 replaySafety,
                 outcome.Generation,
                 mpExecution: null,
-                "The SpatialAnalyzer worker is being replaced after a watchdog timeout."),
+                "The SpatialAnalyzer worker requires explicit recovery after a watchdog timeout."),
             WorkerExecutionStatus.WorkerFailure => CreateFailure(
                 StatusCode.Unavailable,
                 operationId,
@@ -316,7 +330,7 @@ internal static class GrpcOperationOutcomeMapper
                 replaySafety,
                 outcome.Generation,
                 mpExecution: null,
-                "The SpatialAnalyzer worker failed and is being replaced."),
+                "The SpatialAnalyzer worker failed and requires explicit recovery."),
             WorkerExecutionStatus.Unavailable when IsSpatialAnalyzerUnavailable(outcome) =>
                 CreateFailure(
                     StatusCode.Unavailable,

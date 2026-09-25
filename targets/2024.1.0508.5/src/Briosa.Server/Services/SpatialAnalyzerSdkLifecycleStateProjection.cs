@@ -149,6 +149,7 @@ internal sealed class SpatialAnalyzerSdkLifecycleStateProjection(
         WorkerLifecycleSnapshot snapshot) => snapshot.State switch
         {
             WorkerLifecycleState.Stopped => global::Briosa.SpatialAnalyzerSdkState.Stopped,
+            WorkerLifecycleState.Stopping => global::Briosa.SpatialAnalyzerSdkState.Stopping,
             WorkerLifecycleState.Starting when snapshot.DiagnosticCode.Contains(
                 "execution-readiness",
                 StringComparison.Ordinal) => global::Briosa.SpatialAnalyzerSdkState.Verifying,

@@ -160,7 +160,9 @@ message GetRobotMachineModelLinkParametersResult {
 }
 
 message GetRobotMachineParameterRequest {
-  optional CollectionMachineId machine_id = 1;
+  // The retired field used the wrong semantic ID family.
+  reserved 1;
+  optional CollectionInstrumentId machine_id = 3;
   optional string parameter_name = 2;
 }
 
@@ -440,7 +442,9 @@ message SimulateRobotMachinePathOutputCsvFileResult {
 }
 
 message StartRobotMachineInterfaceRequest {
-  optional CollectionMachineId machine_id = 1;
+  // The retired field used the wrong semantic ID family.
+  reserved 1;
+  optional CollectionInstrumentId machine_id = 4;
   optional int32 interface_type = 2;
   optional bool run_in_simulation = 3;
 }
@@ -461,7 +465,9 @@ message StartStopRobotCalibrationTrappingResult {
 }
 
 message StopRobotMachineInterfaceRequest {
-  optional CollectionMachineId machine_id = 1;
+  // The retired field used the wrong semantic ID family.
+  reserved 1;
+  optional CollectionInstrumentId machine_id = 2;
 }
 
 message StopRobotMachineInterfaceResult {
