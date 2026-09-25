@@ -384,3 +384,23 @@ resolved `SetDoubleArg` but returned `DISP_E_UNKNOWNNAME` (`0x80020006`) for bot
 `SetMPGDTOptionsCheckValidatorTypeArg`. It did not connect to SpatialAnalyzer or
 invoke either setter. The disposition of `Set GD&T Options` remains a maintainer
 decision; no supported substitute binding is established by this probe.
+
+## Heartbeat and Process Ownership
+
+Heartbeat scheduling and cancellation now belong to a small monitor; readiness
+decisions remain in the generation controller. Concurrent monitor disposal waits
+for the same stop, and unexpected probe failures retire the generation instead
+of silently leaving it ready without supervision.
+
+The process owner now bounds forced termination, exit confirmation, and disposal.
+The named-pipe factory transfers ownership immediately after launch, so a child
+that never connects is still covered by the controller's cleanup. A failed kill
+is no longer swallowed before an unbounded wait. Disposal only releases handles
+after confirmed exit and cannot trigger a hidden second termination attempt.
+
+Incomplete cleanup retains the process and pending cleanup task, publishes a
+faulted state, and blocks a successor generation. A later explicit lifecycle
+request can finish cleanup; it does not replay the previous command. These
+changes preserve the public protocol and private protocol 23. Portable regression
+coverage includes ignored cancellation, failed termination, missing exit evidence,
+stalled disposal, recovery exclusion, and children that never connect.

@@ -949,6 +949,66 @@ public sealed class WorkerProcessSupervisorTests
         Assert.Equal(WorkerTerminationKind.Forced, supervisor.Current.LastTermination);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task StartupOwnsAndTerminatesAChildThatNeverConnects(bool cancelCaller)
+    {
+        var factory = new StartupTrackingFactory(new NamedPipeWorkerProcessFactory(
+            _ => CreateLaunch("hang-before-ready")));
+        var supervisor = new WorkerProcessSupervisor(factory,
+            new WorkerLifecyclePolicy(TimeSpan.FromMinutes(5), TimeSpan.FromSeconds(1),
+                TimeSpan.FromMilliseconds(500), TimeSpan.FromSeconds(3)));
+        await using var supervisorScope = supervisor.ConfigureAwait(true);
+        using var caller = new CancellationTokenSource();
+        var starting = supervisor.StartAsync(caller.Token);
+        await factory.Started.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        if (cancelCaller)
+        {
+            await caller.CancelAsync();
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => starting);
+            Assert.Equal(WorkerLifecycleState.Stopped, supervisor.Current.State);
+        }
+        else
+        {
+            Assert.False(await starting.WaitAsync(TimeSpan.FromSeconds(6)));
+            Assert.Equal("worker-startup-timeout", supervisor.Current.DiagnosticCode);
+        }
+        Assert.NotNull(factory.Child);
+        Assert.True(factory.Child.ExitConfirmedBeforeDisposal);
+        Assert.False(supervisor.Current.ReadyForExecution);
+    }
+
+    private sealed class StartupTrackingFactory(IWorkerProcessFactory factory) : IWorkerProcessFactory
+    {
+        public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public StartupTrackingProcess? Child { get; private set; }
+        public async ValueTask<IWorkerProcess> StartAsync(int generation, CancellationToken cancellationToken = default)
+        {
+            Child = new StartupTrackingProcess(await factory.StartAsync(generation, cancellationToken).ConfigureAwait(false));
+            Started.TrySetResult();
+            return Child;
+        }
+    }
+
+    private sealed class StartupTrackingProcess(IWorkerProcess inner) : IWorkerProcess
+    {
+        public bool ExitConfirmedBeforeDisposal { get; private set; }
+        public bool HasExited => inner.HasExited;
+        public int? ExitCode => inner.ExitCode;
+        public ValueTask SendAsync(WorkerControlMessage message, CancellationToken cancellationToken = default) =>
+            inner.SendAsync(message, cancellationToken);
+        public ValueTask<WorkerControlMessage> ReceiveAsync(CancellationToken cancellationToken = default) =>
+            inner.ReceiveAsync(cancellationToken);
+        public Task WaitForExitAsync(CancellationToken cancellationToken = default) => inner.WaitForExitAsync(cancellationToken);
+        public ValueTask TerminateAsync(CancellationToken cancellationToken = default) => inner.TerminateAsync(cancellationToken);
+        public ValueTask DisposeAsync()
+        {
+            ExitConfirmedBeforeDisposal = inner.HasExited;
+            return inner.DisposeAsync();
+        }
+    }
+
     private static WorkerProcessSupervisor CreateSupervisor(
         Func<int, WorkerProcessLaunch> launchFactory,
         WorkerLifecyclePolicy policy,

@@ -23,7 +23,8 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
     private readonly BriosaTelemetry? _telemetry;
     private WorkerExecutionQueue? _executionQueue;
     private WorkerHeartbeatMonitor? _heartbeatMonitor;
-    private IWorkerProcess? _worker;
+    private WorkerProcessLifetime? _processLifetime;
+    private IWorkerProcess? Worker => _processLifetime?.Process;
     private WorkerLifecycleSnapshot _current;
     private int _generation;
     private int _reportedProcessId;
@@ -175,7 +176,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                     current.Generation);
             }
 
-            var worker = _worker;
+            var worker = Worker;
             if (current.State != WorkerLifecycleState.Ready || worker is null)
             {
                 throw new InvalidOperationException(
@@ -338,7 +339,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         await _gate.WaitAsync(CancellationToken.None).ConfigureAwait(false);
         try
         {
-            await CleanupWorker(force: true).ConfigureAwait(false);
+            if (!await CleanupWorker(force: true).ConfigureAwait(false)) return false;
             _recoveryCount++;
             var started = await StartWorker(cancellationToken).ConfigureAwait(false);
             if (started)
@@ -741,7 +742,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                 queueActivity?.SetTag("briosa.operation", BriosaTelemetry.OperationId(command.OperationId));
             }
             var generation = Current.Generation;
-            var worker = _worker;
+            var worker = Worker;
             if (Current.State != WorkerLifecycleState.Ready || worker is null || item.Generation != Current.Generation ||
                 !Current.ReadyForExecution)
             {
@@ -948,6 +949,8 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
 
     private async Task<bool> StartWorker(CancellationToken cancellationToken)
     {
+        if (_processLifetime is not null)
+            throw new InvalidOperationException("The previous worker has not been released.");
         _generation++;
         Transition(
             WorkerLifecycleState.Starting,
@@ -961,9 +964,10 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
             timeout.CancelAfter(_policy.StartupTimeout);
             try
             {
-                _worker = await _processFactory.StartAsync(_generation, timeout.Token)
+                var worker = await _processFactory.StartAsync(_generation, timeout.Token)
                     .ConfigureAwait(false);
-                ready = await _worker.ReceiveAsync(timeout.Token).ConfigureAwait(false);
+                _processLifetime = new WorkerProcessLifetime(worker);
+                ready = await worker.ReceiveAsync(timeout.Token).ConfigureAwait(false);
                 if (ready.Kind != WorkerControlMessageKind.Ready ||
                     ready.ProcessId is not > 0 ||
                     ready.Connection is null ||
@@ -979,7 +983,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
-                await CleanupWorker(force: true).ConfigureAwait(false);
+                if (!await CleanupWorker(force: true).ConfigureAwait(false)) throw;
                 Transition(
                     WorkerLifecycleState.Stopped,
                     processId: null,
@@ -989,7 +993,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
             }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
-                await CleanupWorker(force: true).ConfigureAwait(false);
+                if (!await CleanupWorker(force: true).ConfigureAwait(false)) return false;
                 Transition(
                     WorkerLifecycleState.Degraded,
                     processId: null,
@@ -1001,10 +1005,10 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
             }
             catch (Exception exception) when (IsRecoverableProcessFailure(exception))
             {
-                var termination = _worker?.HasExited == true
+                var termination = Worker?.HasExited == true
                     ? WorkerTerminationKind.Crash
                     : WorkerTerminationKind.Forced;
-                await CleanupWorker(force: true).ConfigureAwait(false);
+                if (!await CleanupWorker(force: true).ConfigureAwait(false)) return false;
                 Transition(
                     WorkerLifecycleState.Degraded,
                     processId: null,
@@ -1021,7 +1025,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         if (connection.State == WorkerConnectionState.Faulted)
         {
             var diagnosticCode = connection.DiagnosticCode;
-            await CleanupWorker(force: true).ConfigureAwait(false);
+            if (!await CleanupWorker(force: true).ConfigureAwait(false)) return false;
             Transition(
                 WorkerLifecycleState.Degraded,
                 processId: null,
@@ -1084,7 +1088,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         WorkerConnectionSnapshot attachedConnection,
         CancellationToken cancellationToken)
     {
-        var worker = _worker ?? throw new InvalidOperationException("The worker is missing.");
+        var worker = Worker ?? throw new InvalidOperationException("The worker is missing.");
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeout.CancelAfter(_executionPolicy.WatchdogTimeout);
         var correlationId = Guid.NewGuid();
@@ -1181,7 +1185,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                 });
         }
 
-        await CleanupWorker(force: true).ConfigureAwait(false);
+        if (!await CleanupWorker(force: true).ConfigureAwait(false)) return;
         Transition(
             WorkerLifecycleState.Degraded,
             processId: null,
@@ -1198,7 +1202,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
 
     private async Task<(bool Healthy, string DiagnosticCode, WorkerConnectionSnapshot? Connection)> ProbeWorker()
     {
-        var worker = _worker;
+        var worker = Worker;
         if (worker is null)
         {
             return (false, "worker-missing", null);
@@ -1252,7 +1256,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         WorkerExecutionDisposition? executionDisposition = null,
         WorkerIncidentKind? incidentKind = null)
     {
-        var termination = _worker?.HasExited == true
+        var termination = _processLifetime is { ReleaseStarted: false } && Worker?.HasExited == true
             ? WorkerTerminationKind.Crash
             : WorkerTerminationKind.Forced;
         var faultedConnection = connection ?? Current.Connection;
@@ -1285,7 +1289,10 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
 
     private async Task StopWorker()
     {
-        var worker = _worker;
+        if (_processLifetime is { ReleaseStarted: true } &&
+            !await CleanupWorker(force: true).ConfigureAwait(false)) return;
+
+        var worker = Worker;
         if (worker is null)
         {
             Transition(
@@ -1339,8 +1346,8 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
             }
         }
 
-        await CleanupWorker(force: termination != WorkerTerminationKind.Graceful)
-            .ConfigureAwait(false);
+        if (!await CleanupWorker(force: termination != WorkerTerminationKind.Graceful)
+            .ConfigureAwait(false)) return;
         Transition(
             WorkerLifecycleState.Stopped,
             processId: null,
@@ -1348,22 +1355,32 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
             diagnosticCode);
     }
 
-    private async Task CleanupWorker(bool force)
+    private async Task<bool> CleanupWorker(bool force)
     {
-        var worker = _worker;
-        _worker = null;
+        var lifetime = _processLifetime;
+        if (lifetime is null) return true;
+
+        var status = await lifetime.ReleaseAsync(force, _policy.ShutdownTimeout).ConfigureAwait(false);
+        if (status != WorkerCleanupStatus.Complete)
+        {
+            var diagnostic = status == WorkerCleanupStatus.ExitUnconfirmed
+                ? "worker-termination-unconfirmed" : "worker-resources-unreleased";
+            Transition(WorkerLifecycleState.Degraded,
+                _reportedProcessId == 0 ? null : _reportedProcessId,
+                WorkerTerminationKind.Forced, diagnostic,
+                Current.Connection is { } connection ? connection with
+                {
+                    State = WorkerConnectionState.Faulted,
+                    ExecutionReadinessState = WorkerExecutionReadinessState.OperatorRecoveryRequired,
+                    DiagnosticCode = diagnostic,
+                    TransitionedAt = _timeProvider.GetUtcNow()
+                } : null, cleanupStatus: status);
+            return false;
+        }
+
+        _processLifetime = null;
         _reportedProcessId = 0;
-        if (worker is null)
-        {
-            return;
-        }
-
-        if (force)
-        {
-            await worker.TerminateAsync().ConfigureAwait(false);
-        }
-
-        await worker.DisposeAsync().ConfigureAwait(false);
+        return true;
     }
 
     private void Transition(
@@ -1372,7 +1389,8 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         WorkerTerminationKind termination,
         string diagnosticCode,
         WorkerConnectionSnapshot? connection = null,
-        WorkerIncidentSnapshot? incident = null)
+        WorkerIncidentSnapshot? incident = null,
+        WorkerCleanupStatus? cleanupStatus = null)
     {
         var snapshot = new WorkerLifecycleSnapshot(
             state,
@@ -1390,7 +1408,8 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                 _executionQueue is { IsClosed: false } queue && queue.Generation == _generation,
             ApplicationGeneration: connection?.State == WorkerConnectionState.Connected
                 ? (Current.Generation == _generation ? Current.ApplicationGeneration : null)
-                : null);
+                : null,
+            CleanupStatus: cleanupStatus);
         PublishSnapshot(snapshot);
     }
 

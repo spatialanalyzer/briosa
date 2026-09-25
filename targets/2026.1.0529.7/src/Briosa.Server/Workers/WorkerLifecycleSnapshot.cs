@@ -15,7 +15,8 @@ internal sealed record WorkerLifecycleSnapshot(
     long StateRevision = 0,
     WorkerIncidentSnapshot? LastIncident = null,
     bool AdmissionOpen = false,
-    int? ApplicationGeneration = null)
+    int? ApplicationGeneration = null,
+    WorkerCleanupStatus? CleanupStatus = null)
 {
     public bool ReadyForExecution =>
         State == WorkerLifecycleState.Ready && AdmissionOpen &&

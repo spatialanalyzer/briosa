@@ -1,7 +1,7 @@
 # Runtime boundary and lifecycle
 
 - Status: Current
-- Last reviewed: 2026-08-12
+- Last reviewed: 2026-09-25
 
 ## Process and COM ownership
 
@@ -33,6 +33,16 @@ admission, drains bounded in-flight control exchanges, requests a graceful worke
 stop, and escalates to process-tree termination when acknowledgement or process
 exit does not complete in time. Briosa never terminates a pre-existing
 SpatialAnalyzer process it did not start.
+
+The server owns a child immediately after launch, before waiting for its pipe
+connection or ready message. Forced cleanup has a separate bound equal to the
+worker shutdown timeout (five seconds in the production policy), including
+process exit confirmation and resource disposal. If cleanup cannot finish, the
+generation remains faulted with admission closed; the server retains the process
+and any pending cleanup task. It does not report a successful stop or launch a
+replacement while that ownership remains unresolved. An explicit stop or recovery
+may retry a completed failed cleanup attempt, but never overlaps an outstanding
+attempt. A late cleanup completion alone does not start a replacement or replay work.
 
 ## SDK attachment and ownership
 

@@ -1,4 +1,3 @@
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO.Pipes;
@@ -15,7 +14,7 @@ internal sealed class NamedPipeWorkerProcessFactory(
     [SuppressMessage(
         "Design",
         "CA1031:Do not catch general exception types",
-        Justification = "Any launch failure must tear down a partially created child process and pipe.")]
+        Justification = "A synchronous launch failure must release the pipe; child ownership transfers immediately on success.")]
     [SuppressMessage(
         "Reliability",
         "CA2000:Dispose objects before losing scope",
@@ -24,6 +23,7 @@ internal sealed class NamedPipeWorkerProcessFactory(
         int generation,
         CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var launch = _launchFactory(generation);
         var pipeName = $"briosa-{Environment.ProcessId}-{Guid.NewGuid():N}";
         var pipe = new NamedPipeServerStream(
@@ -32,24 +32,14 @@ internal sealed class NamedPipeWorkerProcessFactory(
             maxNumberOfServerInstances: 1,
             PipeTransmissionMode.Byte,
             PipeOptions.Asynchronous | PipeOptions.WriteThrough | PipeOptions.CurrentUserOnly);
-        Process? process = null;
 
         try
         {
             var startInfo = CreateStartInfo(launch, pipeName);
-            process = Process.Start(startInfo)
-                ?? throw new InvalidOperationException("The worker process could not be started.");
-            await pipe.WaitForConnectionAsync(cancellationToken).ConfigureAwait(false);
-            return new NamedPipeWorkerProcess(process, pipe);
+            return new NamedPipeWorkerProcess(startInfo, pipe);
         }
         catch (Exception)
         {
-            if (process is not null)
-            {
-                await TerminateProcess(process).ConfigureAwait(false);
-                process.Dispose();
-            }
-
             await pipe.DisposeAsync().ConfigureAwait(false);
             throw;
         }
@@ -87,87 +77,4 @@ internal sealed class NamedPipeWorkerProcessFactory(
             environment.Remove(key);
     }
 
-    private static async Task TerminateProcess(Process process)
-    {
-        try
-        {
-            if (!process.HasExited)
-            {
-                process.Kill(entireProcessTree: true);
-            }
-        }
-        catch (InvalidOperationException)
-        {
-        }
-        catch (Win32Exception)
-        {
-        }
-
-        try
-        {
-            await process.WaitForExitAsync().ConfigureAwait(false);
-        }
-        catch (InvalidOperationException)
-        {
-        }
-    }
-
-    private sealed class NamedPipeWorkerProcess(
-        Process process,
-        NamedPipeServerStream pipe) : IWorkerProcess
-    {
-        private readonly WorkerControlChannel _channel = new(pipe);
-        private readonly Process _process = process;
-        private int _disposeState;
-
-        public bool HasExited => _process.HasExited;
-
-        public int? ExitCode => _process.HasExited ? _process.ExitCode : null;
-
-        public ValueTask SendAsync(
-            WorkerControlMessage message,
-            CancellationToken cancellationToken = default) =>
-            _channel.SendAsync(message, cancellationToken);
-
-        public ValueTask<WorkerControlMessage> ReceiveAsync(
-            CancellationToken cancellationToken = default) =>
-            _channel.ReceiveAsync(cancellationToken);
-
-        public Task WaitForExitAsync(CancellationToken cancellationToken = default) =>
-            _process.WaitForExitAsync(cancellationToken);
-
-        public async ValueTask TerminateAsync(CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                if (!_process.HasExited)
-                {
-                    _process.Kill(entireProcessTree: true);
-                }
-            }
-            catch (InvalidOperationException)
-            {
-            }
-            catch (Win32Exception)
-            {
-            }
-
-            if (!_process.HasExited)
-            {
-                await _process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
-            }
-        }
-
-        public async ValueTask DisposeAsync()
-        {
-            if (Interlocked.Exchange(ref _disposeState, 1) != 0)
-            {
-                return;
-            }
-
-            await TerminateAsync().ConfigureAwait(false);
-            _channel.Dispose();
-            _process.Dispose();
-        }
-    }
 }

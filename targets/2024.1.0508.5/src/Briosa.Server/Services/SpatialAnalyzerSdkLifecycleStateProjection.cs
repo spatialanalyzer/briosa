@@ -125,6 +125,9 @@ internal sealed class SpatialAnalyzerSdkLifecycleStateProjection(
     private static global::Briosa.SpatialAnalyzerSdkRecoveryState ToRecoveryState(
         WorkerLifecycleSnapshot snapshot) => snapshot.State switch
         {
+            WorkerLifecycleState.Degraded when snapshot.CleanupStatus is
+                WorkerCleanupStatus.ExitUnconfirmed or WorkerCleanupStatus.ResourcesUnreleased =>
+                    global::Briosa.SpatialAnalyzerSdkRecoveryState.OperatorActionRequired,
             WorkerLifecycleState.Degraded when snapshot.Connection?.ExecutionReadinessState ==
                 WorkerExecutionReadinessState.OperatorRecoveryRequired =>
                     global::Briosa.SpatialAnalyzerSdkRecoveryState.OperatorActionRequired,
