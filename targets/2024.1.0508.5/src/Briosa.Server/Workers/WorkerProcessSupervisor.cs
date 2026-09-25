@@ -22,8 +22,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
     private readonly ILogger<WorkerProcessSupervisor> _logger;
     private readonly BriosaTelemetry? _telemetry;
     private WorkerExecutionQueue? _executionQueue;
-    private CancellationTokenSource? _monitorCancellation;
-    private Task? _monitorTask;
+    private WorkerHeartbeatMonitor? _heartbeatMonitor;
     private IWorkerProcess? _worker;
     private WorkerLifecycleSnapshot _current;
     private int _generation;
@@ -538,30 +537,19 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
             await executionQueue.CloseAsync().ConfigureAwait(false);
         }
 
-        var monitorCancellation = _monitorCancellation;
-        var monitorTask = _monitorTask;
-        if (monitorCancellation is not null)
+        var monitor = _heartbeatMonitor;
+        _heartbeatMonitor = null;
+        try
         {
-            await monitorCancellation.CancelAsync().ConfigureAwait(false);
+            if (monitor is not null)
+                await monitor.DisposeAsync().ConfigureAwait(false);
         }
-        if (monitorTask is not null)
+        finally
         {
-            try
-            {
-                await monitorTask.ConfigureAwait(false);
-            }
-            catch (OperationCanceledException)
-            {
-            }
+            // A monitor fault cannot strand the generation's queued work.
+            if (executionQueue is not null)
+                await executionQueue.Completion.ConfigureAwait(false);
         }
-        if (executionQueue is not null)
-        {
-            await executionQueue.Completion.ConfigureAwait(false);
-        }
-
-        _monitorTask = null;
-        _monitorCancellation = null;
-        monitorCancellation?.Dispose();
     }
 
     public async ValueTask DisposeAsync()
@@ -722,9 +710,8 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         var queue = new WorkerExecutionQueue(_generation, _executionPolicy.QueueCapacity);
         _executionQueue = queue;
         queue.Completion = ProcessExecutions(queue);
-        _monitorCancellation = new CancellationTokenSource();
         _lastSuccessfulExchange = _timeProvider.GetTimestamp();
-        _monitorTask = MonitorWorker(_monitorCancellation.Token);
+        _heartbeatMonitor = new WorkerHeartbeatMonitor(_policy.HeartbeatInterval, _timeProvider, ProbeIdleWorker);
         var current = Current;
         Transition(current.State, current.ProcessId, current.LastTermination,
             current.DiagnosticCode, current.Connection);
@@ -921,47 +908,41 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
             Current.Generation,
             correlationId);
 
-    private async Task MonitorWorker(CancellationToken cancellationToken)
+    private async Task<bool> ProbeIdleWorker(CancellationToken cancellationToken)
     {
+        if (!await _gate.WaitAsync(0, cancellationToken).ConfigureAwait(false)) return true;
         try
         {
-            while (true)
+            if (Current.State is WorkerLifecycleState.Degraded or WorkerLifecycleState.Stopped or WorkerLifecycleState.Stopping)
+                return false;
+            if (Current.State != WorkerLifecycleState.Ready ||
+                Volatile.Read(ref _activeExecutionCount) != 0 ||
+                _executionQueue is { Reservations: > 0 } ||
+                _timeProvider.GetElapsedTime(_lastSuccessfulExchange) < _policy.HeartbeatInterval)
+                return true;
+
+            cancellationToken.ThrowIfCancellationRequested();
+            (bool healthy, string diagnosticCode, WorkerConnectionSnapshot? connection) probe;
+            try
             {
-                await Task.Delay(
-                    _policy.HeartbeatInterval,
-                    _timeProvider,
-                    cancellationToken).ConfigureAwait(false);
-                if (!await _gate.WaitAsync(0, cancellationToken).ConfigureAwait(false)) continue;
-                try
-                {
-                    if (Current.State is WorkerLifecycleState.Degraded or WorkerLifecycleState.Stopped or WorkerLifecycleState.Stopping)
-                        return;
-                    if (Current.State != WorkerLifecycleState.Ready ||
-                        Volatile.Read(ref _activeExecutionCount) != 0 ||
-                        _executionQueue is { Reservations: > 0 } ||
-                        _timeProvider.GetElapsedTime(_lastSuccessfulExchange) < _policy.HeartbeatInterval)
-                        continue;
-
-                    if (cancellationToken.IsCancellationRequested)
-                    {
-                        return;
-                    }
-
-                    var (healthy, diagnosticCode, connection) = await ProbeWorker().ConfigureAwait(false);
-                    if (!healthy)
-                    {
-                        await RetireWorker(diagnosticCode, connection).ConfigureAwait(false);
-                        return;
-                    }
-                }
-                finally
-                {
-                    _gate.Release();
-                }
+                probe = await ProbeWorker().ConfigureAwait(false);
             }
+            catch (Exception exception) when (exception is not OutOfMemoryException &&
+                (exception is not OperationCanceledException || !cancellationToken.IsCancellationRequested))
+            {
+                // An unexpected monitor failure must not silently leave a ready
+                // generation without supervision. The controller owns retirement.
+                await RetireWorker("worker-heartbeat-monitor-failed").ConfigureAwait(false);
+                return false;
+            }
+            var (healthy, diagnosticCode, connection) = probe;
+            if (!healthy)
+                await RetireWorker(diagnosticCode, connection).ConfigureAwait(false);
+            return healthy;
         }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        finally
         {
+            _gate.Release();
         }
     }
 

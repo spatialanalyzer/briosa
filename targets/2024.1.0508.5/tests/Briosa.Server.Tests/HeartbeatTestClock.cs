@@ -20,12 +20,18 @@ internal sealed class HeartbeatTestClock : TimeProvider
 
     public async Task TickAsync()
     {
+        await FireNextAsync().ConfigureAwait(false);
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+        // The next scheduled delay proves this monitor iteration has finished.
+        await _ticks.Reader.WaitToReadAsync(timeout.Token).ConfigureAwait(false);
+    }
+
+    public async Task FireNextAsync()
+    {
         using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(3));
         var tick = await _ticks.Reader.ReadAsync(timeout.Token).ConfigureAwait(false);
         Interlocked.Add(ref _timestamp, tick.Delay.Ticks);
         tick.Fire();
-        // The next scheduled delay proves this monitor iteration has finished.
-        await _ticks.Reader.WaitToReadAsync(timeout.Token).ConfigureAwait(false);
     }
 
     private sealed class Tick(TimerCallback callback, object? state, TimeSpan delay) : ITimer
