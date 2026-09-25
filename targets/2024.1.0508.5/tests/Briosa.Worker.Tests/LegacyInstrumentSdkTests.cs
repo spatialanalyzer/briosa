@@ -13,21 +13,21 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
     {
         using var calls = new RecordingSdkCalls();
         using var adapter = new SpatialAnalyzerSdkAdapter(calls);
-        var instrument = new SdkInputArgument("Instrument ID", SdkValueKind.CollectionInstrumentId,
+        var instrument = new SdkInputArgument("Instrument ID", WorkerMpValueKind.CollectionInstrumentId,
             CollectionInstrumentIdValue: new("fixture", 1), SdkBinding: "SetColInstIdArg");
         SdkInputArgument[] inputs = step switch
         {
             "Run Crib Sheet" =>
             [
-                new("Collection Name", SdkValueKind.CollectionName, StringValue: "fixture", SdkBinding: "SetCollectionNameArg"),
-                new("Crib Sheet Name", SdkValueKind.Text, StringValue: "reviewed-crib", SdkBinding: "SetStringArg"),
+                new("Collection Name", WorkerMpValueKind.CollectionName, StringValue: "fixture", SdkBinding: "SetCollectionNameArg"),
+                new("Crib Sheet Name", WorkerMpValueKind.Text, StringValue: "reviewed-crib", SdkBinding: "SetStringArg"),
                 instrument
             ],
             "Project Objects" =>
             [
                 instrument,
-                new("Objects To Project", SdkValueKind.CollectionObjectNameList,
-                    CollectionObjectNameListValue: new([new("fixture", "line", SdkObjectTypeValue.Line)]),
+                new("Objects To Project", WorkerMpValueKind.CollectionObjectNameList,
+                    CollectionObjectNameListValue: new([new("fixture", "line", WorkerObjectTypeValue.Line)]),
                     SdkBinding: "SetCollectionObjectNameRefListArg")
             ],
             _ => [instrument]
@@ -37,7 +37,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             .Concat(inputs.Select(input => $"{input.SdkBinding}:{input.Name}"))
             .Concat(["ExecuteStep", "GetMPStepResult"]);
         Assert.Equal(expected, calls.Events);
-        Assert.True(result.MpResult.Succeeded);
+        Assert.True(result.MpSucceeded);
     }
 
     [Theory]
@@ -51,15 +51,15 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         using var adapter = new SpatialAnalyzerSdkAdapter(calls);
         var result = adapter.Execute(new SdkCommand("instrument_operations.project_objects", "Project Objects",
             [
-                new("Instrument ID", SdkValueKind.CollectionInstrumentId,
+                new("Instrument ID", WorkerMpValueKind.CollectionInstrumentId,
                     CollectionInstrumentIdValue: new("fixture", 1), SdkBinding: "SetColInstIdArg"),
-                new("Objects To Project", SdkValueKind.CollectionObjectNameList,
-                    CollectionObjectNameListValue: new([new("fixture", "line", SdkObjectTypeValue.Line)]),
+                new("Objects To Project", WorkerMpValueKind.CollectionObjectNameList,
+                    CollectionObjectNameListValue: new([new("fixture", "line", WorkerObjectTypeValue.Line)]),
                     SdkBinding: "SetCollectionObjectNameRefListArg")
             ], []));
-        Assert.True(result.MpResult.Retrieved);
-        Assert.Equal(code, result.MpResult.ResultCode);
-        Assert.False(result.MpResult.Succeeded);
+        Assert.True(result.MpResultRetrieved);
+        Assert.Equal(code, result.MpResultCode);
+        Assert.False(result.MpSucceeded);
         Assert.Single(calls.Events, entry => entry == "ExecuteStep");
     }
 
@@ -75,7 +75,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         using var calls = new RecordingSdkCalls();
         using var adapter = new SpatialAnalyzerSdkAdapter(calls);
         var result = adapter.Execute(new SdkCommand("instrument_operations.add_new_instrument", "Add New Instrument",
-            [new("Instrument Type", SdkValueKind.InstrumentTypeName, StringValue: name, SdkBinding: "SetInstTypeNameArg")], []));
+            [new("Instrument Type", WorkerMpValueKind.InstrumentTypeName, StringValue: name, SdkBinding: "SetInstTypeNameArg")], []));
         Assert.Equal(supported, result.ExecuteStepReturned);
         Assert.Equal(supported, calls.Events.Contains("SetInstTypeNameArg:Instrument Type", StringComparer.Ordinal));
         Assert.Equal(supported, WorkerInstrumentTypeNames.IsSupported(name));
@@ -85,11 +85,11 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
     public void ReservedEnhancedCloudSlotsCannotBecomeAnotherObjectOrItemType()
     {
         Assert.Equal("User Name", SdkSpecializedValueCodec.ToSdkString(SdkSystemStringValue.UserName));
-        Assert.Equal((int)WorkerObjectTypeValue.ScanStripeCloud - 1, (int)SdkObjectTypeValue.ScanStripeCloud);
-        Assert.Equal((int)WorkerItemTypeValue.ScanStripeCloud - 1, (int)SdkItemTypeValue.ScanStripeCloud);
-        Assert.False(Enum.IsDefined((SdkObjectTypeValue)4));
-        Assert.False(Enum.IsDefined((SdkItemTypeValue)9));
-        Assert.Throws<ArgumentOutOfRangeException>(() => SdkSpecializedValueCodec.ToSdkString((SdkObjectTypeValue)4));
-        Assert.Throws<ArgumentOutOfRangeException>(() => SdkSpecializedValueCodec.ToSdkString((SdkItemTypeValue)9));
+        Assert.Equal(6, (int)WorkerObjectTypeValue.ScanStripeCloud);
+        Assert.Equal(11, (int)WorkerItemTypeValue.ScanStripeCloud);
+        Assert.False(Enum.IsDefined((WorkerObjectTypeValue)5));
+        Assert.False(Enum.IsDefined((WorkerItemTypeValue)10));
+        Assert.Throws<ArgumentOutOfRangeException>(() => SdkSpecializedValueCodec.ToSdkString((WorkerObjectTypeValue)5));
+        Assert.Throws<ArgumentOutOfRangeException>(() => SdkSpecializedValueCodec.ToSdkString((WorkerItemTypeValue)10));
     }
 }

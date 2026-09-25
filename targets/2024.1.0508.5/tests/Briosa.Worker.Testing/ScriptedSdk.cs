@@ -1,3 +1,4 @@
+using Briosa.Worker.Control;
 using System.Collections.Concurrent;
 using Briosa.Worker.Sdk;
 
@@ -196,7 +197,7 @@ internal sealed class ScriptedSdkPlan
             return connection.Result;
         }
 
-        public SdkExecutionResult Execute(SdkCommand command)
+        public WorkerMpExecutionResult Execute(SdkCommand command)
         {
             ArgumentNullException.ThrowIfNull(command);
             plan.AdapterApartmentState = Thread.CurrentThread.GetApartmentState();
@@ -219,30 +220,10 @@ internal sealed class ScriptedSdkPlan
             plan.Record(command, ScriptedCallPhase.Completed, execution.Kind);
             return execution.Kind switch
             {
-                ScriptedExecutionKind.ExecuteRejected => new SdkExecutionResult(
-                    ExecuteStepReturned: false,
-                    new SdkMpResult(false, false, null, "scripted-execute-rejected"),
-                    TimeSpan.FromMilliseconds(3),
-                    OutputValues: [],
-                    "scripted-execute-rejected"),
-                ScriptedExecutionKind.MpFailure => new SdkExecutionResult(
-                    ExecuteStepReturned: true,
-                    new SdkMpResult(true, false, 3, "scripted-mp-failure"),
-                    TimeSpan.FromMilliseconds(7),
-                    OutputValues: [],
-                    "scripted-mp-failure"),
-                ScriptedExecutionKind.MalformedOutput => new SdkExecutionResult(
-                    ExecuteStepReturned: true,
-                    new SdkMpResult(true, true, 2, null),
-                    TimeSpan.FromMilliseconds(5),
-                    OutputValues: [],
-                    DiagnosticCode: null),
-                _ => new SdkExecutionResult(
-                    ExecuteStepReturned: true,
-                    new SdkMpResult(true, true, 2, null),
-                    TimeSpan.FromMilliseconds(5),
-                    [.. command.OutputArguments.Select(CreateOutputValue)],
-                    DiagnosticCode: null)
+                ScriptedExecutionKind.ExecuteRejected => new WorkerExecuteRejected(3, "scripted-execute-rejected"),
+                ScriptedExecutionKind.MpFailure => new WorkerMpResultAvailable(3, 7, [], "scripted-mp-failure"),
+                ScriptedExecutionKind.MalformedOutput => new WorkerMpResultAvailable(2, 5, [], null),
+                _ => new WorkerMpResultAvailable(2, 5, [.. command.OutputArguments.Select(CreateOutputValue)], null)
             };
         }
 
@@ -265,12 +246,12 @@ internal sealed class ScriptedSdkPlan
         _events.Enqueue(new ScriptedCallEvent(sequence, command.OperationId, phase, behavior));
     }
 
-    private static SdkOutputValue CreateOutputValue(SdkOutputArgument output) =>
-        output.Kind == SdkValueKind.Text
-            ? new SdkOutputValue(
+    private static WorkerMpOutputValue CreateOutputValue(WorkerMpOutputArgument output) =>
+        output.Kind == WorkerMpValueKind.Text
+            ? new WorkerMpOutputValue(
                 output.Name,
                 output.Kind,
                 Retrieved: true,
                 StringValue: "scripted-output")
-            : new SdkOutputValue(output.Name, output.Kind, Retrieved: false);
+            : new WorkerMpOutputValue(output.Name, output.Kind, Retrieved: false);
 }

@@ -1,3 +1,4 @@
+using Briosa.Worker.Control;
 using Briosa.Worker.Sdk;
 
 namespace Briosa.Worker.Tests;
@@ -15,14 +16,14 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             [
                 new SdkInputArgument(
                     "Collection Index",
-                    SdkValueKind.WholeNumber,
+                    WorkerMpValueKind.WholeNumber,
                     IntegerValue: 0,
                     SdkBinding: "SetIntegerArg")
             ],
             [
-                new SdkOutputArgument(
+                new WorkerMpOutputArgument(
                     "Resultant Name",
-                    SdkValueKind.CollectionName,
+                    WorkerMpValueKind.CollectionName,
                     "GetCollectionNameArg")
             ]);
 
@@ -38,7 +39,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             ],
             calls.Events);
         Assert.True(result.ExecuteStepReturned);
-        Assert.True(result.MpResult.Succeeded);
+        Assert.True(result.MpSucceeded);
         var output = Assert.Single(result.OutputValues);
         Assert.True(output.Retrieved);
         Assert.Equal("Collection", output.StringValue);

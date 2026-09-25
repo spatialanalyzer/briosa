@@ -1,3 +1,4 @@
+using Briosa.Worker.Control;
 using Briosa.Worker.Sdk;
 
 namespace Briosa.Worker.Tests;
@@ -14,9 +15,9 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             "Get Active Collection Name",
             [],
             [
-                new SdkOutputArgument(
+                new WorkerMpOutputArgument(
                     "Currently Active Collection Name",
-                    SdkValueKind.Text,
+                    WorkerMpValueKind.Text,
                     "GetStringArg")
             ]);
 
@@ -43,9 +44,9 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             "Get Active Units",
             [],
             [
-                new SdkOutputArgument("Length", SdkValueKind.Text, "GetStringArg"),
-                new SdkOutputArgument("Angular", SdkValueKind.Text, "GetStringArg"),
-                new SdkOutputArgument("Temperature", SdkValueKind.Text, "GetStringArg")
+                new WorkerMpOutputArgument("Length", WorkerMpValueKind.Text, "GetStringArg"),
+                new WorkerMpOutputArgument("Angular", WorkerMpValueKind.Text, "GetStringArg"),
+                new WorkerMpOutputArgument("Temperature", WorkerMpValueKind.Text, "GetStringArg")
             ]);
 
         var result = adapter.Execute(command);
@@ -77,13 +78,13 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             "Get Working Frame Properties",
             [],
             [
-                new SdkOutputArgument("Frame Name", SdkValueKind.Text, "GetStringArg"),
-                new SdkOutputArgument("Collection Name", SdkValueKind.Text, "GetStringArg"),
-                new SdkOutputArgument(
+                new WorkerMpOutputArgument("Frame Name", WorkerMpValueKind.Text, "GetStringArg"),
+                new WorkerMpOutputArgument("Collection Name", WorkerMpValueKind.Text, "GetStringArg"),
+                new WorkerMpOutputArgument(
                     "Working Frame",
-                    SdkValueKind.CollectionObjectName,
+                    WorkerMpValueKind.CollectionObjectName,
                     "GetCollectionObjectNameArg",
-                    SdkObjectTypeValue.Frame)
+                    WorkerObjectTypeValue.Frame)
             ]);
 
         var result = adapter.Execute(command);
@@ -98,7 +99,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
                 "GetCollectionObjectNameArg:Working Frame"
             ],
             calls.Events);
-        Assert.Equal(SdkObjectTypeValue.PointGroup, result.OutputValues[2]
+        Assert.Equal(WorkerObjectTypeValue.PointGroup, result.OutputValues[2]
             .CollectionObjectNameValue!.ObjectType);
     }
 }

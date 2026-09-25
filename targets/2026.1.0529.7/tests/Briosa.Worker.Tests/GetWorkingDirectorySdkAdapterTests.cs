@@ -1,3 +1,4 @@
+using Briosa.Worker.Control;
 using Briosa.Worker.Sdk;
 
 namespace Briosa.Worker.Tests;
@@ -13,7 +14,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             "file_operations.get_working_directory",
             "Get Working Directory",
             inputArguments: [],
-            [new SdkOutputArgument("Directory", SdkValueKind.Text, "GetStringArg")]);
+            [new WorkerMpOutputArgument("Directory", WorkerMpValueKind.Text, "GetStringArg")]);
 
         var result = adapter.Execute(command);
 
@@ -26,7 +27,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             ],
             calls.Events);
         Assert.True(result.ExecuteStepReturned);
-        Assert.True(result.MpResult.Succeeded);
+        Assert.True(result.MpSucceeded);
         var output = Assert.Single(result.OutputValues);
         Assert.True(output.Retrieved);
         Assert.Equal("scripted-output", output.StringValue);

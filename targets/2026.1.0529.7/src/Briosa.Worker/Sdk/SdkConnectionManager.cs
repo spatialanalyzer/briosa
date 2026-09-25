@@ -1,3 +1,4 @@
+using Briosa.Worker.Control;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
@@ -19,9 +20,9 @@ internal sealed class SdkConnectionManager : IAsyncDisposable
         VerificationOperationId,
         VerificationStepName,
         inputArguments: [],
-        [new SdkOutputArgument(
+        [new WorkerMpOutputArgument(
             VerificationOutputName,
-            SdkValueKind.Text,
+            WorkerMpValueKind.Text,
             VerificationOutputBinding)]);
 
     [SuppressMessage(
@@ -328,7 +329,7 @@ internal sealed class SdkConnectionManager : IAsyncDisposable
                 "execution-readiness-probe-started",
                 SdkExecutionReadinessState.Verifying);
 
-            SdkExecutionResult execution;
+            WorkerMpExecutionResult execution;
             try
             {
                 execution = await executor.ExecuteAsync(
@@ -463,16 +464,16 @@ internal sealed class SdkConnectionManager : IAsyncDisposable
         }
     }
 
-    private static string ClassifyVerification(SdkExecutionResult execution)
+    private static string ClassifyVerification(WorkerMpExecutionResult execution)
     {
         if (!execution.ExecuteStepReturned)
         {
             return "execution-readiness-probe-rejected";
         }
 
-        if (!execution.MpResult.Retrieved ||
-            !execution.MpResult.Succeeded ||
-            execution.MpResult.ResultCode != 2)
+        if (!execution.MpResultRetrieved ||
+            !execution.MpSucceeded ||
+            execution.MpResultCode != 2)
         {
             return "execution-readiness-probe-mp-failed";
         }
@@ -483,7 +484,7 @@ internal sealed class SdkConnectionManager : IAsyncDisposable
         return output is
         {
             Name: VerificationOutputName,
-            Kind: SdkValueKind.Text,
+            Kind: WorkerMpValueKind.Text,
             Retrieved: true,
             StringValue: not null
         }

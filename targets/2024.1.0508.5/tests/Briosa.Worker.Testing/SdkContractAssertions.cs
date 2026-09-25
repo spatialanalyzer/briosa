@@ -1,3 +1,4 @@
+using Briosa.Worker.Control;
 using Briosa.Worker.Sdk;
 
 namespace Briosa.Worker.Testing;
@@ -18,9 +19,9 @@ internal static class SdkContractAssertions
 
         AssertEquivalent(SdkConnectionStatus.Connected, connection.Status, "connection status");
         AssertEquivalent(true, execution.ExecuteStepReturned, "ExecuteStep result");
-        AssertEquivalent(true, execution.MpResult.Retrieved, "MP result retrieval");
-        AssertEquivalent(true, execution.MpResult.Succeeded, "MP result");
-        AssertEquivalent<int?>(2, execution.MpResult.ResultCode, "MP result code");
+        AssertEquivalent(true, execution.MpResultRetrieved, "MP result retrieval");
+        AssertEquivalent(true, execution.MpSucceeded, "MP result");
+        AssertEquivalent<int?>(2, execution.MpResultCode, "MP result code");
         AssertEquivalent<ApartmentState?>(ApartmentState.STA, apartmentState(), "adapter apartment");
     }
 
@@ -32,9 +33,9 @@ internal static class SdkContractAssertions
         var execution = await executor.ExecuteAsync(new SdkCommand("contract.mp-failure"));
 
         AssertEquivalent(true, execution.ExecuteStepReturned, "ExecuteStep result");
-        AssertEquivalent(true, execution.MpResult.Retrieved, "MP result retrieval");
-        AssertEquivalent(false, execution.MpResult.Succeeded, "MP result");
-        AssertEquivalent<int?>(3, execution.MpResult.ResultCode, "MP result code");
+        AssertEquivalent(true, execution.MpResultRetrieved, "MP result retrieval");
+        AssertEquivalent(false, execution.MpSucceeded, "MP result");
+        AssertEquivalent<int?>(3, execution.MpResultCode, "MP result code");
     }
 
     private static void AssertEquivalent<T>(T expected, T actual, string field)

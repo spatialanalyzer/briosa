@@ -1,3 +1,4 @@
+using Briosa.Worker.Control;
 using Briosa.Worker.Sdk;
 using Briosa.Worker.Testing;
 
@@ -90,7 +91,7 @@ public sealed class SdkHarnessTests
         Assert.Null(timedOut.Execution);
         Assert.Equal(1, supervisor.ReplacementCount);
         Assert.Equal(SupervisedExecutionStatus.Completed, recovered.Status);
-        Assert.True(recovered.Execution!.MpResult.Succeeded);
+        Assert.True(recovered.Execution!.MpSucceeded);
     }
 
     [Fact]
@@ -112,7 +113,7 @@ public sealed class SdkHarnessTests
         Assert.Null(crashed.Execution);
         Assert.Equal(1, supervisor.ReplacementCount);
         Assert.Equal(SupervisedExecutionStatus.Completed, recovered.Status);
-        Assert.True(recovered.Execution!.MpResult.Succeeded);
+        Assert.True(recovered.Execution!.MpSucceeded);
     }
 
     private static void AssertEvent(

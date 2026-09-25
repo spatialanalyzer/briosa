@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Briosa.Worker.Control;
 
 public sealed record WorkerMpOutputValue(
@@ -29,4 +31,5 @@ public sealed record WorkerMpOutputValue(
     WorkerWorldTransformValue? WorldTransformValue = null,
     WorkerFileReferenceValue? FileReferenceValue = null,
     WorkerFitConstraintScalarOptionsValue? FitConstraintScalarOptionsValue = null,
-    WorkerToleranceScalarOptionsValue? ToleranceScalarOptionsValue = null);
+    WorkerToleranceScalarOptionsValue? ToleranceScalarOptionsValue = null,
+    [property: JsonIgnore] string? DiagnosticCode = null);

@@ -245,7 +245,7 @@ public sealed class WaveAOperationCatalogTests
     private static WorkerMpOutputValue CreateOutput(MpArgumentContract contract)
     {
         var limit = new WorkerToleranceLimit(true, 1);
-        var scalarLimit = new WorkerScalarToleranceLimit(true, 1);
+        var scalarLimit = new WorkerToleranceLimit(true, 1);
         return contract.Kind switch
         {
             WorkerMpValueKind.Logical => Output(contract, BooleanValue: true),

@@ -1,3 +1,4 @@
+using Briosa.Worker.Control;
 using System.Collections;
 using System.Runtime.InteropServices;
 using Briosa.Worker.Sdk;
@@ -20,15 +21,15 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             [
                 new SdkInputArgument(
                     "Point Name",
-                    SdkValueKind.PointName,
-                    PointNameValue: new SdkPointNameValue("", "", ""))
+                    WorkerMpValueKind.PointName,
+                    PointNameValue: new WorkerPointNameValue("", "", ""))
             ],
             [
-                new SdkOutputArgument("Planar Offset", SdkValueKind.FloatingPoint),
-                new SdkOutputArgument(
+                new WorkerMpOutputArgument("Planar Offset", WorkerMpValueKind.FloatingPoint),
+                new WorkerMpOutputArgument(
                     "Position Tolerance",
-                    SdkValueKind.ToleranceVectorOptions),
-                new SdkOutputArgument("Component Weights", SdkValueKind.Vector)
+                    WorkerMpValueKind.ToleranceVectorOptions),
+                new WorkerMpOutputArgument("Component Weights", WorkerMpValueKind.Vector)
             ]);
 
         var result = adapter.Execute(command);
@@ -45,7 +46,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             ],
             calls.Events);
         Assert.True(result.ExecuteStepReturned);
-        Assert.True(result.MpResult.Succeeded);
+        Assert.True(result.MpSucceeded);
         Assert.Equal(3, result.OutputValues.Count);
         Assert.All(result.OutputValues, output => Assert.True(output.Retrieved));
         Assert.Equal(1.25, result.OutputValues[0].DoubleValue);
@@ -74,17 +75,18 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             "failed-operation",
             "Failed Operation",
             inputArguments: [],
-            [new SdkOutputArgument("Result", SdkValueKind.Text)]);
+            [new WorkerMpOutputArgument("Result", WorkerMpValueKind.Text)]);
 
         var result = adapter.Execute(command);
 
         Assert.Equal(
             ["SetStep:Failed Operation", "ExecuteStep", "GetMPStepResult"],
             calls.Events);
-        Assert.False(result.MpResult.Succeeded);
-        Assert.True(result.MpResult.Retrieved);
-        Assert.Equal(resultCode, result.MpResult.ResultCode);
+        Assert.False(result.MpSucceeded);
+        Assert.True(result.MpResultRetrieved);
+        Assert.Equal(resultCode, result.MpResultCode);
         Assert.Empty(result.OutputValues);
+        Assert.IsType<WorkerMpResultAvailable>(result);
         Assert.Equal("mp-command-failed", result.DiagnosticCode);
     }
 
@@ -97,7 +99,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             "result-retrieval-failure",
             "Result Retrieval Failure",
             inputArguments: [],
-            [new SdkOutputArgument("Result", SdkValueKind.Text)]);
+            [new WorkerMpOutputArgument("Result", WorkerMpValueKind.Text)]);
 
         var result = adapter.Execute(command);
 
@@ -105,10 +107,11 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             ["SetStep:Result Retrieval Failure", "ExecuteStep", "GetMPStepResult"],
             calls.Events);
         Assert.True(result.ExecuteStepReturned);
-        Assert.False(result.MpResult.Retrieved);
-        Assert.False(result.MpResult.Succeeded);
-        Assert.Null(result.MpResult.ResultCode);
+        Assert.False(result.MpResultRetrieved);
+        Assert.False(result.MpSucceeded);
+        Assert.Null(result.MpResultCode);
         Assert.Empty(result.OutputValues);
+        Assert.IsType<WorkerMpResultUnavailable>(result);
         Assert.Equal("sdk-mp-result-retrieval-failed", result.DiagnosticCode);
     }
 
@@ -121,16 +124,17 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             "execute-rejected",
             "Execute Rejected",
             inputArguments: [],
-            [new SdkOutputArgument("Result", SdkValueKind.Text)]);
+            [new WorkerMpOutputArgument("Result", WorkerMpValueKind.Text)]);
 
         var result = adapter.Execute(command);
 
         Assert.Equal(["SetStep:Execute Rejected", "ExecuteStep"], calls.Events);
         Assert.False(result.ExecuteStepReturned);
-        Assert.False(result.MpResult.Retrieved);
-        Assert.False(result.MpResult.Succeeded);
-        Assert.Null(result.MpResult.ResultCode);
+        Assert.False(result.MpResultRetrieved);
+        Assert.False(result.MpSucceeded);
+        Assert.Null(result.MpResultCode);
         Assert.Empty(result.OutputValues);
+        Assert.IsType<WorkerExecuteRejected>(result);
         Assert.Equal("execute-step-rejected", result.DiagnosticCode);
     }
 
@@ -146,7 +150,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             "output-failure",
             "Output Failure",
             inputArguments: [],
-            [new SdkOutputArgument("Result", SdkValueKind.Text)]);
+            [new WorkerMpOutputArgument("Result", WorkerMpValueKind.Text)]);
 
         var result = adapter.Execute(command);
 
@@ -164,51 +168,51 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             "identity-reference-values",
             "Identity Reference Values",
             [
-                new("Chart", SdkValueKind.ChartName, StringValue: "Chart A", SdkBinding: "SetChartNameArg"),
-                new("Cloud", SdkValueKind.CloudName, StringValue: "Cloud A", SdkBinding: "SetCloudNameArg"),
-                new("Instrument", SdkValueKind.CollectionInstrumentId, CollectionInstrumentIdValue: new("Collection", 17), SdkBinding: "SetColInstIdArg"),
-                new("Instruments", SdkValueKind.CollectionInstrumentIdList, CollectionInstrumentIdListValue: new([new("Collection", 17)]), SdkBinding: "SetColInstIdRefListArg"),
-                new("Machine", SdkValueKind.CollectionMachineId, CollectionMachineIdValue: new("Collection", 4), SdkBinding: "SetColMachineIdArg"),
-                new("Groups", SdkValueKind.CollectionGroupNameList, CollectionGroupNameListValue: new([new("Collection", "Group")]), SdkBinding: "SetCollectionGroupNameRefListArg"),
-                new("Collection", SdkValueKind.CollectionName, StringValue: "Collection", SdkBinding: "SetCollectionNameArg"),
-                new("Item", SdkValueKind.CollectionItemName, CollectionItemNameValue: new("Collection", "Picture", SdkItemTypeValue.Picture), SdkBinding: "SetCollectionObjectNameArg2"),
-                new("Items", SdkValueKind.CollectionItemNameList, CollectionItemNameListValue: new([new("Collection", "Report", SdkItemTypeValue.SaReport)]), SdkBinding: "SetCollectionObjectNameRefListArg"),
-                new("Object", SdkValueKind.CollectionObjectName, CollectionObjectNameValue: new("Collection", "Object", SdkObjectTypeValue.PointGroup), SdkBinding: "SetCollectionObjectNameArg2"),
-                new("Objects", SdkValueKind.CollectionObjectNameList, CollectionObjectNameListValue: new([new("Collection", "Object", SdkObjectTypeValue.PointGroup)]), SdkBinding: "SetCollectionObjectNameRefListArg"),
-                new("Vector Group", SdkValueKind.CollectionVectorGroupName, CollectionVectorGroupNameValue: new("Collection", "Vectors"), SdkBinding: "SetColVectorGroupNameArg"),
-                new("Vector Groups", SdkValueKind.CollectionVectorGroupNameList, CollectionVectorGroupNameListValue: new([new("Collection", "Vectors")]), SdkBinding: "SetCollectionVectorGroupNameRefListArg"),
-                new("Frame", SdkValueKind.FrameName, StringValue: "Frame A", SdkBinding: "SetFrameNameArg"),
-                new("Points", SdkValueKind.PointNameList, PointNameListValue: new([new("Collection", "Group", "Point")]), SdkBinding: "SetPointNameRefListArg"),
-                new("Strings", SdkValueKind.StringList, StringListValue: new(["A", "B"]), SdkBinding: "SetStringRefListArg"),
-                new("Vector Group Name", SdkValueKind.VectorGroupName, StringValue: "Vectors", SdkBinding: "SetVectorGroupNameArg"),
-                new("Vectors", SdkValueKind.VectorNameList, VectorNameListValue: new([new("Collection", "Vectors", "Vector")]), SdkBinding: "SetVectorNameRefListArg"),
-                new("View", SdkValueKind.ViewName, StringValue: "View A", SdkBinding: "SetViewNameArg")
+                new("Chart", WorkerMpValueKind.ChartName, StringValue: "Chart A", SdkBinding: "SetChartNameArg"),
+                new("Cloud", WorkerMpValueKind.CloudName, StringValue: "Cloud A", SdkBinding: "SetCloudNameArg"),
+                new("Instrument", WorkerMpValueKind.CollectionInstrumentId, CollectionInstrumentIdValue: new("Collection", 17), SdkBinding: "SetColInstIdArg"),
+                new("Instruments", WorkerMpValueKind.CollectionInstrumentIdList, CollectionInstrumentIdListValue: new([new("Collection", 17)]), SdkBinding: "SetColInstIdRefListArg"),
+                new("Machine", WorkerMpValueKind.CollectionMachineId, CollectionMachineIdValue: new("Collection", 4), SdkBinding: "SetColMachineIdArg"),
+                new("Groups", WorkerMpValueKind.CollectionGroupNameList, CollectionGroupNameListValue: new([new("Collection", "Group")]), SdkBinding: "SetCollectionGroupNameRefListArg"),
+                new("Collection", WorkerMpValueKind.CollectionName, StringValue: "Collection", SdkBinding: "SetCollectionNameArg"),
+                new("Item", WorkerMpValueKind.CollectionItemName, CollectionItemNameValue: new("Collection", "Picture", WorkerItemTypeValue.Picture), SdkBinding: "SetCollectionObjectNameArg2"),
+                new("Items", WorkerMpValueKind.CollectionItemNameList, CollectionItemNameListValue: new([new("Collection", "Report", WorkerItemTypeValue.SaReport)]), SdkBinding: "SetCollectionObjectNameRefListArg"),
+                new("Object", WorkerMpValueKind.CollectionObjectName, CollectionObjectNameValue: new("Collection", "Object", WorkerObjectTypeValue.PointGroup), SdkBinding: "SetCollectionObjectNameArg2"),
+                new("Objects", WorkerMpValueKind.CollectionObjectNameList, CollectionObjectNameListValue: new([new("Collection", "Object", WorkerObjectTypeValue.PointGroup)]), SdkBinding: "SetCollectionObjectNameRefListArg"),
+                new("Vector Group", WorkerMpValueKind.CollectionVectorGroupName, CollectionVectorGroupNameValue: new("Collection", "Vectors"), SdkBinding: "SetColVectorGroupNameArg"),
+                new("Vector Groups", WorkerMpValueKind.CollectionVectorGroupNameList, CollectionVectorGroupNameListValue: new([new("Collection", "Vectors")]), SdkBinding: "SetCollectionVectorGroupNameRefListArg"),
+                new("Frame", WorkerMpValueKind.FrameName, StringValue: "Frame A", SdkBinding: "SetFrameNameArg"),
+                new("Points", WorkerMpValueKind.PointNameList, PointNameListValue: new([new("Collection", "Group", "Point")]), SdkBinding: "SetPointNameRefListArg"),
+                new("Strings", WorkerMpValueKind.StringList, StringListValue: new(["A", "B"]), SdkBinding: "SetStringRefListArg"),
+                new("Vector Group Name", WorkerMpValueKind.VectorGroupName, StringValue: "Vectors", SdkBinding: "SetVectorGroupNameArg"),
+                new("Vectors", WorkerMpValueKind.VectorNameList, VectorNameListValue: new([new("Collection", "Vectors", "Vector")]), SdkBinding: "SetVectorNameRefListArg"),
+                new("View", WorkerMpValueKind.ViewName, StringValue: "View A", SdkBinding: "SetViewNameArg")
             ],
             [
-                new("Instrument Result", SdkValueKind.CollectionInstrumentId, "GetColInstIdArg"),
-                new("Instrument Results", SdkValueKind.CollectionInstrumentIdList, "GetColInstIdRefListArg"),
-                new("Collection Result", SdkValueKind.CollectionName, "GetCollectionNameArg"),
-                new("Item Result", SdkValueKind.CollectionItemName, "GetCollectionObjectNameArg"),
-                new("Item Results", SdkValueKind.CollectionItemNameList, "GetCollectionObjectNameRefListArg"),
-                new("Object Result", SdkValueKind.CollectionObjectName, "GetCollectionObjectNameArg"),
-                new("Object Results", SdkValueKind.CollectionObjectNameList, "GetCollectionObjectNameRefListArg"),
-                new("Point Results", SdkValueKind.PointNameList, "GetPointNameRefListArg"),
-                new("String Results", SdkValueKind.StringList, "GetStringRefListArg"),
-                new("Vector Results", SdkValueKind.VectorNameList, "GetVectorNameRefListArg")
+                new("Instrument Result", WorkerMpValueKind.CollectionInstrumentId, "GetColInstIdArg"),
+                new("Instrument Results", WorkerMpValueKind.CollectionInstrumentIdList, "GetColInstIdRefListArg"),
+                new("Collection Result", WorkerMpValueKind.CollectionName, "GetCollectionNameArg"),
+                new("Item Result", WorkerMpValueKind.CollectionItemName, "GetCollectionObjectNameArg"),
+                new("Item Results", WorkerMpValueKind.CollectionItemNameList, "GetCollectionObjectNameRefListArg"),
+                new("Object Result", WorkerMpValueKind.CollectionObjectName, "GetCollectionObjectNameArg"),
+                new("Object Results", WorkerMpValueKind.CollectionObjectNameList, "GetCollectionObjectNameRefListArg"),
+                new("Point Results", WorkerMpValueKind.PointNameList, "GetPointNameRefListArg"),
+                new("String Results", WorkerMpValueKind.StringList, "GetStringRefListArg"),
+                new("Vector Results", WorkerMpValueKind.VectorNameList, "GetVectorNameRefListArg")
             ]);
 
         var result = adapter.Execute(command);
 
-        Assert.True(result.MpResult.Succeeded);
+        Assert.True(result.MpSucceeded);
         Assert.All(result.OutputValues, output => Assert.True(output.Retrieved));
         Assert.Equal(17, result.OutputValues[0].CollectionInstrumentIdValue!.InstrumentId);
         Assert.Equal(2, result.OutputValues[1].CollectionInstrumentIdListValue!.Values.Count);
-        Assert.Equal(SdkItemTypeValue.Picture, result.OutputValues[3].CollectionItemNameValue!.ItemType);
-        Assert.Equal(SdkItemTypeValue.SaReport, result.OutputValues[4].CollectionItemNameListValue!.Values[0].ItemType);
+        Assert.Equal(WorkerItemTypeValue.Picture, result.OutputValues[3].CollectionItemNameValue!.ItemType);
+        Assert.Equal(WorkerItemTypeValue.SaReport, result.OutputValues[4].CollectionItemNameListValue!.Values[0].ItemType);
         Assert.Equal(
-            SdkObjectTypeValue.PointGroup,
+            WorkerObjectTypeValue.PointGroup,
             result.OutputValues[5].CollectionObjectNameValue!.ObjectType);
-        Assert.Equal(SdkObjectTypeValue.PointGroup, result.OutputValues[6].CollectionObjectNameListValue!.Values[0].ObjectType);
+        Assert.Equal(WorkerObjectTypeValue.PointGroup, result.OutputValues[6].CollectionObjectNameListValue!.Values[0].ObjectType);
         Assert.Equal("Point B", result.OutputValues[7].PointNameListValue!.Values[1].TargetName);
         Assert.Equal(["A", "B"], result.OutputValues[8].StringListValue!.Values);
         Assert.Equal("Vector A", result.OutputValues[9].VectorNameListValue!.Values[0].VectorName);
@@ -233,7 +237,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             "malformed-list",
             "Malformed List",
             [],
-            [new SdkOutputArgument("Points", SdkValueKind.PointNameList, "GetPointNameRefListArg")]);
+            [new WorkerMpOutputArgument("Points", WorkerMpValueKind.PointNameList, "GetPointNameRefListArg")]);
 
         var result = adapter.Execute(command);
 
@@ -252,9 +256,9 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             "malformed-object",
             "Malformed Object",
             [],
-            [new SdkOutputArgument(
+            [new WorkerMpOutputArgument(
                 "Object",
-                SdkValueKind.CollectionObjectName,
+                WorkerMpValueKind.CollectionObjectName,
                 "GetCollectionObjectNameArg")]);
 
         var result = adapter.Execute(command);
@@ -276,9 +280,9 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             "rejected-object-getter",
             "Rejected Object Getter",
             [],
-            [new SdkOutputArgument(
+            [new WorkerMpOutputArgument(
                 "Object",
-                SdkValueKind.CollectionObjectName,
+                WorkerMpValueKind.CollectionObjectName,
                 "GetCollectionObjectNameArg")]);
 
         var result = adapter.Execute(command);
@@ -298,18 +302,18 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             "object-type-omitted",
             "Object Type Omitted",
             [],
-            [new SdkOutputArgument(
+            [new WorkerMpOutputArgument(
                 "Object",
-                SdkValueKind.CollectionObjectName,
+                WorkerMpValueKind.CollectionObjectName,
                 "GetCollectionObjectNameArg",
-                SdkObjectTypeValue.Frame)]);
+                WorkerObjectTypeValue.Frame)]);
 
         var result = adapter.Execute(command);
 
         var output = Assert.Single(result.OutputValues);
         Assert.True(output.Retrieved);
         Assert.Equal(
-            SdkObjectTypeValue.Frame,
+            WorkerObjectTypeValue.Frame,
             output.CollectionObjectNameValue!.ObjectType);
         Assert.Null(result.DiagnosticCode);
     }
@@ -324,10 +328,10 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             "Unknown Collection Types",
             [],
             [
-                new("Unknown Item", SdkValueKind.CollectionItemName, "GetCollectionObjectNameArg"),
-                new("Unknown Items", SdkValueKind.CollectionItemNameList, "GetCollectionObjectNameRefListArg"),
-                new("Unknown Object", SdkValueKind.CollectionObjectName, "GetCollectionObjectNameArg"),
-                new("Unknown Objects", SdkValueKind.CollectionObjectNameList, "GetCollectionObjectNameRefListArg")
+                new("Unknown Item", WorkerMpValueKind.CollectionItemName, "GetCollectionObjectNameArg"),
+                new("Unknown Items", WorkerMpValueKind.CollectionItemNameList, "GetCollectionObjectNameRefListArg"),
+                new("Unknown Object", WorkerMpValueKind.CollectionObjectName, "GetCollectionObjectNameArg"),
+                new("Unknown Objects", WorkerMpValueKind.CollectionObjectNameList, "GetCollectionObjectNameRefListArg")
             ]);
 
         var result = adapter.Execute(command);
@@ -346,7 +350,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             "Ambiguous Reference",
             [new SdkInputArgument(
                 "Points",
-                SdkValueKind.PointNameList,
+                WorkerMpValueKind.PointNameList,
                 PointNameListValue: new([new("Collection", "Group", "Point::Suffix")]),
                 SdkBinding: "SetPointNameRefListArg")],
             []);
@@ -354,6 +358,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         var result = adapter.Execute(command);
 
         Assert.False(result.ExecuteStepReturned);
+        Assert.IsType<WorkerArgumentsRejected>(result);
         Assert.Equal("sdk-argument-rejected", result.DiagnosticCode);
         Assert.DoesNotContain("ExecuteStep", calls.Events);
     }
@@ -367,7 +372,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             "Wrong Binding",
             [new SdkInputArgument(
                 "Chart",
-                SdkValueKind.ChartName,
+                WorkerMpValueKind.ChartName,
                 StringValue: "Chart A",
                 SdkBinding: "SetStringArg")],
             []);
@@ -375,6 +380,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         var result = adapter.Execute(command);
 
         Assert.False(result.ExecuteStepReturned);
+        Assert.IsType<WorkerArgumentsRejected>(result);
         Assert.Equal("sdk-argument-rejected", result.DiagnosticCode);
         Assert.DoesNotContain(calls.Events, value => value.StartsWith("SetStringArg", StringComparison.Ordinal));
     }
@@ -388,48 +394,48 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             "container-values",
             "Container Values",
             [
-                new("Array", SdkValueKind.DoubleArray,
+                new("Array", WorkerMpValueKind.DoubleArray,
                     DoubleArrayValue: new([]),
                     SdkBinding: "SetDoubleArrayArg"),
-                new("Edit", SdkValueKind.EditText,
+                new("Edit", WorkerMpValueKind.EditText,
                     StringListValue: new([]),
                     SdkBinding: "SetEditTextArg"),
-                new("Transform", SdkValueKind.Transform,
+                new("Transform", WorkerMpValueKind.Transform,
                     TransformValue: new(transform),
                     SdkBinding: "SetTransformArg"),
-                new("World", SdkValueKind.WorldTransform,
+                new("World", WorkerMpValueKind.WorldTransform,
                     WorldTransformValue: new(new(transform), 0),
                     SdkBinding: "SetWorldTransformArg"),
-                new("Color", SdkValueKind.RgbColor,
+                new("Color", WorkerMpValueKind.RgbColor,
                     RgbColorValue: new(0, 127, 255),
                     SdkBinding: "SetColorArg"),
-                new("File", SdkValueKind.FileReference,
+                new("File", WorkerMpValueKind.FileReference,
                     FileReferenceValue: new("", false),
                     SdkBinding: "SetFilePathArg"),
-                new("Angle", SdkValueKind.AngularUnit,
-                    AngularUnitValue: SdkAngularUnitValue.DegreesMinutesSeconds,
+                new("Angle", WorkerMpValueKind.AngularUnit,
+                    AngularUnitValue: WorkerAngularUnitValue.DegreesMinutesSeconds,
                     SdkBinding: "SetAngularUnitsArg"),
-                new("Distance", SdkValueKind.DistanceUnit,
-                    DistanceUnitValue: SdkDistanceUnitValue.UsSurveyFeet,
+                new("Distance", WorkerMpValueKind.DistanceUnit,
+                    DistanceUnitValue: WorkerDistanceUnitValue.UsSurveyFeet,
                     SdkBinding: "SetDistanceUnitsArg"),
-                new("Temperature", SdkValueKind.TemperatureUnit,
-                    TemperatureUnitValue: SdkTemperatureUnitValue.Celsius,
+                new("Temperature", WorkerMpValueKind.TemperatureUnit,
+                    TemperatureUnitValue: WorkerTemperatureUnitValue.Celsius,
                     SdkBinding: "SetTemperatureUnitsArg"),
-                new("Font", SdkValueKind.Font,
+                new("Font", WorkerMpValueKind.Font,
                     FontValue: new("Segoe UI", 12, new(10, 20, 30)),
                     SdkBinding: "SetFontTypeArg")
             ],
             [
-                new("Array Result", SdkValueKind.DoubleArray, "GetDoubleArrayArg", ArraySize: 3),
-                new("Edit Result", SdkValueKind.EditText, "GetEditTextArg"),
-                new("Transform Result", SdkValueKind.Transform, "GetTransformArg"),
-                new("World Result", SdkValueKind.WorldTransform, "GetWorldTransformArg"),
-                new("File Result", SdkValueKind.FileReference, "GetFilePathArg")
+                new("Array Result", WorkerMpValueKind.DoubleArray, "GetDoubleArrayArg", ArraySize: 3),
+                new("Edit Result", WorkerMpValueKind.EditText, "GetEditTextArg"),
+                new("Transform Result", WorkerMpValueKind.Transform, "GetTransformArg"),
+                new("World Result", WorkerMpValueKind.WorldTransform, "GetWorldTransformArg"),
+                new("File Result", WorkerMpValueKind.FileReference, "GetFilePathArg")
             ]);
 
         var result = adapter.Execute(command);
 
-        Assert.True(result.MpResult.Succeeded);
+        Assert.True(result.MpSucceeded);
         Assert.All(result.OutputValues, output => Assert.True(output.Retrieved));
         Assert.Empty(Assert.IsType<double[]>(calls.ContainerArguments["Array"]));
         Assert.Empty(Assert.IsType<object[]>(calls.ContainerArguments["Edit"]));
@@ -462,14 +468,14 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         string kindName,
         string binding)
     {
-        var kind = Enum.Parse<SdkValueKind>(kindName);
+        var kind = Enum.Parse<WorkerMpValueKind>(kindName);
         using var calls = new RecordingSdkCalls { MalformedOutputName = "Result" };
         using var adapter = new SpatialAnalyzerSdkAdapter(calls);
         var command = new SdkCommand(
             "malformed-container",
             "Malformed Container",
             [],
-            [new SdkOutputArgument("Result", kind, binding)]);
+            [new WorkerMpOutputArgument("Result", kind, binding)]);
 
         var result = adapter.Execute(command);
 
@@ -494,9 +500,9 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             "failed-container-getter",
             "Failed Container Getter",
             [],
-            [new SdkOutputArgument(
+            [new WorkerMpOutputArgument(
                 "Result",
-                Enum.Parse<SdkValueKind>(kindName),
+                Enum.Parse<WorkerMpValueKind>(kindName),
                 binding)]);
 
         var result = adapter.Execute(command);
@@ -521,7 +527,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             "Bad Transform",
             [new SdkInputArgument(
                 "Transform",
-                SdkValueKind.Transform,
+                WorkerMpValueKind.Transform,
                 TransformValue: new([1d, 2d]),
                 SdkBinding: "SetTransformArg")],
             []);
@@ -529,6 +535,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         var result = adapter.Execute(command);
 
         Assert.False(result.ExecuteStepReturned);
+        Assert.IsType<WorkerArgumentsRejected>(result);
         Assert.Equal("sdk-argument-rejected", result.DiagnosticCode);
         Assert.DoesNotContain("ExecuteStep", calls.Events);
     }

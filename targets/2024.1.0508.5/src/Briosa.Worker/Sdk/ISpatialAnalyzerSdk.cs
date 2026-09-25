@@ -1,3 +1,4 @@
+using Briosa.Worker.Control;
 namespace Briosa.Worker.Sdk;
 
 /// <summary>
@@ -17,5 +18,5 @@ internal interface ISpatialAnalyzerSdk : IDisposable
 
     SdkConnectionResult Connect(string host);
 
-    SdkExecutionResult Execute(SdkCommand command);
+    WorkerMpExecutionResult Execute(SdkCommand command);
 }

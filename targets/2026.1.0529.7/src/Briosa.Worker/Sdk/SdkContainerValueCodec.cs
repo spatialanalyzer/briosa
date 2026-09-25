@@ -1,3 +1,4 @@
+using Briosa.Worker.Control;
 using System.Runtime.InteropServices;
 
 namespace Briosa.Worker.Sdk;
@@ -18,19 +19,19 @@ internal static class SdkContainerValueCodec
     public static object TransformBuffer() =>
         new VariantWrapper(new double[4, 4]);
 
-    public static object ToDoubleArrayComValue(SdkDoubleArrayValue value)
+    public static object ToDoubleArrayComValue(WorkerDoubleArrayValue value)
     {
         ArgumentNullException.ThrowIfNull(value);
         return new VariantWrapper(value.Values.ToArray());
     }
 
-    public static object ToEditTextComValue(SdkStringListValue value)
+    public static object ToEditTextComValue(WorkerStringListValue value)
     {
         ArgumentNullException.ThrowIfNull(value);
         return new VariantWrapper(value.Values.Select(item => (object)item).ToArray());
     }
 
-    public static object ToTransformComValue(SdkTransformValue value)
+    public static object ToTransformComValue(WorkerTransformValue value)
     {
         ArgumentNullException.ThrowIfNull(value);
         if (value.Values.Count != TransformElementCount)
@@ -52,7 +53,7 @@ internal static class SdkContainerValueCodec
     public static bool TryParseDoubleArray(
         object value,
         int reportedSize,
-        out SdkDoubleArrayValue? result)
+        out WorkerDoubleArrayValue? result)
     {
         if (reportedSize < 0 ||
             value is not double[] values ||
@@ -62,11 +63,11 @@ internal static class SdkContainerValueCodec
             return false;
         }
 
-        result = new SdkDoubleArrayValue(values);
+        result = new WorkerDoubleArrayValue(values);
         return true;
     }
 
-    public static bool TryParseEditText(object value, out SdkStringListValue? result)
+    public static bool TryParseEditText(object value, out WorkerStringListValue? result)
     {
         if (value is not object[] values ||
             values.Any(item => item is not string))
@@ -75,11 +76,11 @@ internal static class SdkContainerValueCodec
             return false;
         }
 
-        result = new SdkStringListValue([.. values.Cast<string>()]);
+        result = new WorkerStringListValue([.. values.Cast<string>()]);
         return true;
     }
 
-    public static bool TryParseTransform(object value, out SdkTransformValue? result)
+    public static bool TryParseTransform(object value, out WorkerTransformValue? result)
     {
         if (value is not double[,] matrix ||
             matrix.GetLength(0) != 4 ||
@@ -95,7 +96,7 @@ internal static class SdkContainerValueCodec
             values[index] = matrix[index / 4, index % 4];
         }
 
-        result = new SdkTransformValue(values);
+        result = new WorkerTransformValue(values);
         return true;
     }
 }

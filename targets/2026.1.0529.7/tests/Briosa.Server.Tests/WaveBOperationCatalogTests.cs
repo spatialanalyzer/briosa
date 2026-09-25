@@ -489,7 +489,7 @@ public sealed class WaveBOperationCatalogTests
     private static WorkerMpOutputValue CreateOutputValue(MpArgumentContract output)
     {
         var tolerance = new WorkerToleranceLimit(true, 1);
-        var scalarTolerance = new WorkerScalarToleranceLimit(true, 1);
+        var scalarTolerance = new WorkerToleranceLimit(true, 1);
         return new WorkerMpOutputValue(
             output.MpName,
             output.Kind,
