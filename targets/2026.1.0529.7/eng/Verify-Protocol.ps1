@@ -93,7 +93,7 @@ try {
         $hasBaseline = $baselinePath -contains $baselineProtoPath
 
         if ($hasBaseline) {
-            & (Join-Path $PSScriptRoot "Test-MpArgumentNameMigration.ps1") `
+            & (Join-Path $PSScriptRoot "Test-RuntimeContractMigration.ps1") `
                 -BufPath $bufCommand.Source `
                 -Against "$gitDirectory#ref=$AgainstRef,subdir=$targetSubdirectory"
         }

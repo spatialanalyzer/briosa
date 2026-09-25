@@ -82,7 +82,7 @@ internal sealed class ServerDiscoveryService(
                 Effect = operation.Effect switch
                 {
                     "read_only" => Api.OperationEffect.ReadOnly,
-                    "mutating" => Api.OperationEffect.Mutating,
+                    "state_mutation" => Api.OperationEffect.Mutating,
                     _ => Api.OperationEffect.Unknown
                 },
                 ExecutionScope = operation.ExecutionScope,
@@ -99,6 +99,7 @@ internal sealed class ServerDiscoveryService(
             WorkerLifecycleState.Starting => Api.WorkerRuntimeState.Starting,
             WorkerLifecycleState.Ready => Api.WorkerRuntimeState.Ready,
             WorkerLifecycleState.Degraded => Api.WorkerRuntimeState.Degraded,
+            WorkerLifecycleState.Stopping => Api.WorkerRuntimeState.Stopping,
             _ => Api.WorkerRuntimeState.Unspecified
         };
 

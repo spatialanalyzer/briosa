@@ -84,8 +84,8 @@ public sealed class DesktopHostTests
     private static WorkerProcessSupervisor CreateSupervisor(string scenario) => new(
         new NamedPipeWorkerProcessFactory(_ => new WorkerProcessLaunch(Path.Combine(AppContext.BaseDirectory,
             "worker-test-host", "Briosa.Worker.TestHost.exe"), ["--scenario", scenario])),
-        new WorkerRestartPolicy(0, TimeSpan.FromSeconds(1), TimeSpan.FromMilliseconds(50), TimeSpan.FromSeconds(1),
-            TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(2), TimeSpan.Zero),
+        new WorkerLifecyclePolicy(TimeSpan.FromMilliseconds(50), TimeSpan.FromSeconds(1),
+            TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(2)),
         new WorkerExecutionPolicy(TimeSpan.FromSeconds(2), 4),
         identityPolicy: ExactTargetIdentityPolicy.CreateForTesting(DesktopProtocol.Target, DesktopProtocol.Target, DesktopProtocol.Target));
 

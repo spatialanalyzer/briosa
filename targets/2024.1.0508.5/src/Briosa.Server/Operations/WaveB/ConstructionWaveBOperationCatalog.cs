@@ -1179,7 +1179,7 @@ internal static partial class ConstructionWaveBOperationCatalog
                 new("show_uz", "Show Uz (Uphi)?", WorkerMpValueKind.Logical, "SetBoolArg", "false", false),
                 new("show_umag", "Show Umag?", WorkerMpValueKind.Logical, "SetBoolArg", "false", false),
                 new("desired_coordinate_system", "Desired Coordinate System", WorkerMpValueKind.CoordinateSystemType, "SetCoordinateSystemTypeArg", "Required", true),
-                new("notes", "Notes (blank for none)", WorkerMpValueKind.StringList, "SetEditTextArg", "Empty", false),
+                new("notes", "Notes (blank for none)", WorkerMpValueKind.EditText, "SetEditTextArg", "Empty", false),
                 new("use_default_placement", "Use default placement?", WorkerMpValueKind.Logical, "SetBoolArg", "false", false)]),
         Mutating(
             "construction_operations.create_point_comparison_callout",
@@ -1206,7 +1206,7 @@ internal static partial class ConstructionWaveBOperationCatalog
                 new("additional_x_comments", "Additional X Comments (blank for none)", WorkerMpValueKind.Text, "SetStringArg", "Empty", false),
                 new("additional_y_comments", "Additional Y Comments (blank for none)", WorkerMpValueKind.Text, "SetStringArg", "Empty", false),
                 new("additional_z_comments", "Additional Z Comments (blank for none)", WorkerMpValueKind.Text, "SetStringArg", "Empty", false),
-                new("additional_notes", "Additional Notes (blank for none)", WorkerMpValueKind.StringList, "SetEditTextArg", "Empty", false),
+                new("additional_notes", "Additional Notes (blank for none)", WorkerMpValueKind.EditText, "SetEditTextArg", "Empty", false),
                 new("use_default_placement", "Use default placement?", WorkerMpValueKind.Logical, "SetBoolArg", "false", false)]),
         Mutating(
             "construction_operations.create_relationship_callout",
@@ -1217,14 +1217,14 @@ internal static partial class ConstructionWaveBOperationCatalog
                 new("relationship_name", "Relationship Name", WorkerMpValueKind.CollectionItemName, "SetCollectionObjectNameArg2", "Required", true, null, null, false, null, WorkerItemTypeValue.Relationship),
                 new("view_x_position", "View X Position", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "0.000000", false),
                 new("view_y_position", "View Y Position", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "0.000000", false),
-                new("additional_notes", "Additional Notes (blank for none)", WorkerMpValueKind.StringList, "SetEditTextArg", "Empty", false)]),
+                new("additional_notes", "Additional Notes (blank for none)", WorkerMpValueKind.EditText, "SetEditTextArg", "Empty", false)]),
         Mutating(
             "construction_operations.create_text_callout",
             "Create Text Callout",
             "CreateTextCallout",
             [
                 new("destination_callout_view", "Destination Callout View", WorkerMpValueKind.CollectionItemName, "SetCollectionObjectNameArg2", "Required", true, null, null, false, null, WorkerItemTypeValue.CalloutView),
-                new("text", "Text", WorkerMpValueKind.StringList, "SetEditTextArg", "Omitted", false, null, null, true),
+                new("text", "Text", WorkerMpValueKind.EditText, "SetEditTextArg", "Omitted", false, null, null, true),
                 new("view_x_position", "View X Position", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "0.400000", false),
                 new("view_y_position", "View Y Position", WorkerMpValueKind.FloatingPoint, "SetDoubleArg", "0.600000", false),
                 new("callout_anchor_point", "Callout Anchor Point (Optional)", WorkerMpValueKind.PointName, "SetPointNameArg", "Omitted", false, null, null, true)]),
@@ -1252,7 +1252,7 @@ internal static partial class ConstructionWaveBOperationCatalog
                 new("show_start_point", "Show Start Point?", WorkerMpValueKind.Logical, "SetBoolArg", "false", false),
                 new("show_end_point", "Show End Point?", WorkerMpValueKind.Logical, "SetBoolArg", "false", false),
                 new("show_units", "Show Units?", WorkerMpValueKind.Logical, "SetBoolArg", "false", false),
-                new("additional_notes", "Additional Notes (blank for none)", WorkerMpValueKind.StringList, "SetEditTextArg", "Empty", false),
+                new("additional_notes", "Additional Notes (blank for none)", WorkerMpValueKind.EditText, "SetEditTextArg", "Empty", false),
                 new("attach_callout_to_end_point", "Attach Callout to End Point?", WorkerMpValueKind.Logical, "SetBoolArg", "false", false),
                 new("use_default_placement", "Use default placement?", WorkerMpValueKind.Logical, "SetBoolArg", "false", false)]),
         Mutating(

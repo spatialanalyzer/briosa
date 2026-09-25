@@ -73,10 +73,12 @@ internal sealed class OperationExecutor(
         WorkerExecutionOutcome? outcome = null;
         try
         {
-            WorkerMpCommand command;
             try
             {
-                command = createCommand(request);
+                outcome = await _executor.ExecuteAsync(
+                    new WorkerCommandSubmission(operation.OperationId, () => createCommand(request)),
+                    effectiveCorrelationId,
+                    cancellationToken).ConfigureAwait(false);
             }
             catch (ArgumentException)
             {
@@ -86,13 +88,9 @@ internal sealed class OperationExecutor(
                     replaySafety: operation.ReplaySafety);
             }
 
-            outcome = await _executor.ExecuteAsync(
-                command,
-                effectiveCorrelationId,
-                cancellationToken).ConfigureAwait(false);
             var completed = GrpcOperationOutcomeMapper.RequireSuccess(
                 outcome,
-                command.OperationId,
+                operation.OperationId,
                 operation.ReplaySafety,
                 outputContracts,
                 deadline is not null &&
@@ -117,7 +115,7 @@ internal sealed class OperationExecutor(
 
             _auditLogger.OperationCompleted(
                 EffectiveCorrelationId(outcome, effectiveCorrelationId),
-                command.OperationId,
+                operation.OperationId,
                 outcome.Generation,
                 RequestDurationMilliseconds(startedAt),
                 OperationAuditSummary.Create(outcome));

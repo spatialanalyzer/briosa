@@ -250,7 +250,7 @@ public sealed class WorkerControlSpecializedValueValidationTests
         using var stream = new MemoryStream();
         using var channel = new WorkerControlChannel(stream, leaveOpen: true);
 
-        Assert.Throws<InvalidDataException>(() => channel.Send(message));
+        Assert.Throws<WorkerMessageRejectedException>(() => channel.Send(message));
         Assert.Equal(0, stream.Length);
     }
 }
