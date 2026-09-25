@@ -134,3 +134,21 @@ the full redesign complete.
 
 Validation of the outcome migration passed all 977 portable tests across both
 products, including generated-client HTTP/2 calls and malformed private frames.
+
+## Lifecycle Ownership and Scheduling
+
+The supervisor snapshot now owns the state revision, application association,
+queue admission state, and common execution-readiness predicate. Health,
+discovery, and SDK lifecycle responses project those facts without mutating state
+on reads. A generation-bound queue owns reservations, cancellation, and its
+consumer; a mapper that outlives shutdown cannot submit into a replacement.
+Unexpected consumer failures retire the generation, resolve the active command
+with its available execution evidence, and resolve queued commands as not started.
+No command is replayed.
+
+Heartbeats acquire the exchange gate only when idle. They skip active or reserved
+work and use recent successful exchanges as liveness evidence. This does not
+replace the exact-generation MP readiness proof or watchdog. Deterministic tests
+cover queue-generation races, consumer failures, consistent projections, and a
+heartbeat tick during active and queued work. The broader process/channel owner
+separation and typed connection-failure classification remain in progress.
