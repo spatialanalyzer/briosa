@@ -4,4 +4,5 @@ namespace Briosa.Worker.Sdk;
 internal sealed record SdkConnectionResult(
     SdkConnectionStatus Status,
     int? StatusCode,
-    string? DiagnosticCode);
+    string? DiagnosticCode,
+    WorkerConnectionFailure Failure = WorkerConnectionFailure.None);

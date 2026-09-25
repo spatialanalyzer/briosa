@@ -5,4 +5,5 @@ internal sealed record WorkerIncidentSnapshot(
     WorkerTerminationKind Termination,
     WorkerExecutionDisposition? ExecutionDisposition,
     string? OperationId,
-    string DiagnosticCode);
+    string DiagnosticCode,
+    WorkerIncidentKind Kind);

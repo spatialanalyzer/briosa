@@ -268,3 +268,21 @@ worker suites (216 and 199 tests) with expanded enum round-trip coverage and a n
 STA command-identity test. The adapter receives the original owned command and
 list value without a conversion copy. This is an allocation removal established
 by code and ownership tests, not a measured end-to-end speedup.
+
+## Typed Lifecycle Failures (Private Protocol 23)
+
+SDK activation, connection, process-exit, and liveness failures now carry an
+explicit category from the worker to the supervisor. Recovery decisions and
+public incident classification use that evidence rather than matching diagnostic
+strings. Startup failures retain an incident, and watchdog retirement records its
+cause directly. Readiness verification likewise uses its result rather than the
+spelling of a diagnostic code. Diagnostics remain descriptive, safe text.
+
+The private channel rejects unknown failure categories and failures attached to
+an apparently connected worker. Readiness requires no active connection failure.
+Public protobuf definitions and client packages are unchanged by this step.
+
+All portable suites pass: 557 tests for 2024 and 517 for 2026, including changed
+fake-worker diagnostics, misleading incident text, failure round trips, and
+contradictory evidence. Worker tests were rerun after correcting async analyzer
+findings in the new tests. No licensed SpatialAnalyzer validation is claimed.

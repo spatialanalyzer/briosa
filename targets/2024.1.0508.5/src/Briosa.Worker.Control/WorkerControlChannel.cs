@@ -175,6 +175,9 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
     private static void ValidateConnection(WorkerConnectionSnapshot connection)
     {
         if (!Enum.IsDefined(connection.State) ||
+            !Enum.IsDefined(connection.Failure) ||
+            connection.Failure != WorkerConnectionFailure.None &&
+            connection.State is not (WorkerConnectionState.Faulted or WorkerConnectionState.Connecting) ||
             !Enum.IsDefined(connection.ExecutionReadinessState) ||
             connection.Attempt < 0 ||
             connection.MaximumAttempts < 1 ||

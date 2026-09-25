@@ -194,6 +194,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                 State = WorkerConnectionState.Connecting,
                 ExecutionReadinessState = WorkerExecutionReadinessState.Unverified,
                 DiagnosticCode = "connect-ex-started",
+                Failure = WorkerConnectionFailure.None,
                 TransitionedAt = _timeProvider.GetUtcNow()
             };
             Transition(
@@ -823,6 +824,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
             {
                 await RetireWorker(
                     "worker-execution-watchdog-timeout",
+                    incidentKind: WorkerIncidentKind.WatchdogTerminated,
                     operationId: command.OperationId,
                     executionDisposition:
                         WorkerExecutionDisposition.StartedOutcomeUnknown)
@@ -945,10 +947,10 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                         return;
                     }
 
-                    var (healthy, diagnosticCode) = await ProbeWorker().ConfigureAwait(false);
+                    var (healthy, diagnosticCode, connection) = await ProbeWorker().ConfigureAwait(false);
                     if (!healthy)
                     {
-                        await RetireWorker(diagnosticCode).ConfigureAwait(false);
+                        await RetireWorker(diagnosticCode, connection).ConfigureAwait(false);
                         return;
                     }
                 }
@@ -1011,7 +1013,9 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                     WorkerLifecycleState.Degraded,
                     processId: null,
                     WorkerTerminationKind.Forced,
-                    "worker-startup-timeout");
+                    "worker-startup-timeout",
+                    incident: new WorkerIncidentSnapshot(_generation, WorkerTerminationKind.Forced,
+                        null, null, "worker-startup-timeout", WorkerIncidentKind.StartFailed));
                 return false;
             }
             catch (Exception exception) when (IsRecoverableProcessFailure(exception))
@@ -1024,7 +1028,9 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                     WorkerLifecycleState.Degraded,
                     processId: null,
                     termination,
-                    "worker-startup-failed");
+                    "worker-startup-failed",
+                    incident: new WorkerIncidentSnapshot(_generation, termination,
+                        null, null, "worker-startup-failed", WorkerIncidentKind.StartFailed));
                 return false;
             }
         }
@@ -1046,7 +1052,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                     WorkerTerminationKind.Forced,
                     ExecutionDisposition: null,
                     OperationId: null,
-                    diagnosticCode));
+                    diagnosticCode, WorkerIncidentKind.StartFailed));
             return false;
         }
 
@@ -1209,17 +1215,17 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
             });
     }
 
-    private async Task<(bool Healthy, string DiagnosticCode)> ProbeWorker()
+    private async Task<(bool Healthy, string DiagnosticCode, WorkerConnectionSnapshot? Connection)> ProbeWorker()
     {
         var worker = _worker;
         if (worker is null)
         {
-            return (false, "worker-missing");
+            return (false, "worker-missing", null);
         }
 
         if (worker.HasExited)
         {
-            return (false, "worker-exited");
+            return (false, "worker-exited", null);
         }
 
         // Let an entered ping/pong exchange finish under its own deadline. Cancelling it
@@ -1236,25 +1242,25 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                 response.CorrelationId != correlationId ||
                 response.Connection is null)
             {
-                return (false, "worker-invalid-heartbeat");
+                return (false, "worker-invalid-heartbeat", null);
             }
 
             if (response.Connection.State == WorkerConnectionState.Faulted &&
                 RequiresSdkRecovery(response.Connection))
             {
-                return (false, response.Connection.DiagnosticCode);
+                return (false, response.Connection.DiagnosticCode, response.Connection);
             }
 
             _lastSuccessfulExchange = _timeProvider.GetTimestamp();
-            return (true, "worker-responsive");
+            return (true, "worker-responsive", response.Connection);
         }
         catch (OperationCanceledException) when (timeout.IsCancellationRequested)
         {
-            return (false, "worker-heartbeat-timeout");
+            return (false, "worker-heartbeat-timeout", null);
         }
         catch (Exception exception) when (IsRecoverableProcessFailure(exception))
         {
-            return (false, worker.HasExited ? "worker-exited" : "worker-control-failed");
+            return (false, worker.HasExited ? "worker-exited" : "worker-control-failed", null);
         }
     }
 
@@ -1262,7 +1268,8 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         string diagnosticCode,
         WorkerConnectionSnapshot? connection = null,
         string? operationId = null,
-        WorkerExecutionDisposition? executionDisposition = null)
+        WorkerExecutionDisposition? executionDisposition = null,
+        WorkerIncidentKind? incidentKind = null)
     {
         var termination = _worker?.HasExited == true
             ? WorkerTerminationKind.Crash
@@ -1291,7 +1298,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                 termination,
                 executionDisposition,
                 operationId,
-                diagnosticCode));
+                diagnosticCode, incidentKind ?? ClassifyIncident(termination, faultedConnection?.Failure)));
         await CleanupWorker(force: true).ConfigureAwait(false);
     }
 
@@ -1480,13 +1487,18 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         return snapshot.Connection.DiagnosticCode;
     }
 
+    private static WorkerIncidentKind ClassifyIncident(
+        WorkerTerminationKind termination, WorkerConnectionFailure? failure) => failure switch
+    {
+        WorkerConnectionFailure.ActivationFailed or WorkerConnectionFailure.NotStarted => WorkerIncidentKind.StartFailed,
+        WorkerConnectionFailure.ProcessExited => WorkerIncidentKind.SdkProcessExited,
+        WorkerConnectionFailure.ConnectFailed or WorkerConnectionFailure.LivenessUnavailable => WorkerIncidentKind.SdkConnectionLost,
+        _ => termination == WorkerTerminationKind.Crash
+            ? WorkerIncidentKind.WorkerProcessExited : WorkerIncidentKind.ControlChannelLost
+    };
+
     private static bool RequiresSdkRecovery(WorkerConnectionSnapshot connection) =>
-        connection.DiagnosticCode is
-            "sdk-client-activation-failed" or
-            "sdk-not-started" or
-            "connect-ex-failed" or
-            "sdk-process-exited" or
-            "sdk-process-liveness-unavailable";
+        connection.Failure != WorkerConnectionFailure.None;
 
     private static WorkerExecutionDisposition ClassifyExecutionDisposition(
         WorkerMpExecutionResult execution) =>

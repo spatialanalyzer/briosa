@@ -134,35 +134,14 @@ internal sealed class SpatialAnalyzerSdkLifecycleStateProjection(
         };
 
     private static global::Briosa.SpatialAnalyzerSdkTerminationKind ToTerminationKind(
-        WorkerIncidentSnapshot incident)
+        WorkerIncidentSnapshot incident) => incident.Kind switch
     {
-        if (incident.DiagnosticCode.Contains("activation", StringComparison.Ordinal) ||
-            incident.DiagnosticCode.Contains("startup", StringComparison.Ordinal) ||
-            incident.DiagnosticCode.Contains("sdk-not-started", StringComparison.Ordinal))
-        {
-            return global::Briosa.SpatialAnalyzerSdkTerminationKind.StartFailed;
-        }
-
-        if (incident.DiagnosticCode.Contains("sdk-process-exited", StringComparison.Ordinal))
-        {
-            return global::Briosa.SpatialAnalyzerSdkTerminationKind.SdkProcessExited;
-        }
-
-        if (incident.DiagnosticCode.Contains("watchdog", StringComparison.Ordinal))
-        {
-            return global::Briosa.SpatialAnalyzerSdkTerminationKind.WatchdogTerminated;
-        }
-
-        if (incident.DiagnosticCode.Contains("connection", StringComparison.Ordinal))
-        {
-            return global::Briosa.SpatialAnalyzerSdkTerminationKind.SdkConnectionLost;
-        }
-
-        if (incident.Termination == WorkerTerminationKind.Crash)
-        {
-            return global::Briosa.SpatialAnalyzerSdkTerminationKind.WorkerProcessExited;
-        }
-
-        return global::Briosa.SpatialAnalyzerSdkTerminationKind.ControlChannelLost;
-    }
+        WorkerIncidentKind.StartFailed => global::Briosa.SpatialAnalyzerSdkTerminationKind.StartFailed,
+        WorkerIncidentKind.SdkProcessExited => global::Briosa.SpatialAnalyzerSdkTerminationKind.SdkProcessExited,
+        WorkerIncidentKind.WatchdogTerminated => global::Briosa.SpatialAnalyzerSdkTerminationKind.WatchdogTerminated,
+        WorkerIncidentKind.SdkConnectionLost => global::Briosa.SpatialAnalyzerSdkTerminationKind.SdkConnectionLost,
+        WorkerIncidentKind.WorkerProcessExited => global::Briosa.SpatialAnalyzerSdkTerminationKind.WorkerProcessExited,
+        WorkerIncidentKind.ControlChannelLost => global::Briosa.SpatialAnalyzerSdkTerminationKind.ControlChannelLost,
+        _ => global::Briosa.SpatialAnalyzerSdkTerminationKind.Unspecified
+    };
 }

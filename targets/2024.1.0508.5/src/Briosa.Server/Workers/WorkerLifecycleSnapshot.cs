@@ -22,6 +22,7 @@ internal sealed record WorkerLifecycleSnapshot(
         Connection is
         {
             State: WorkerConnectionState.Connected,
+            Failure: WorkerConnectionFailure.None,
             ExecutionReadinessState: WorkerExecutionReadinessState.ExecutionReady
         } && RuntimeIdentity?.AllowsExecution == true;
 }

@@ -151,7 +151,8 @@ internal static class WorkerControlHost
                     connection.ActivatedSdkVersion is null ? WorkerRuntimeIdentityEvidenceSource.Unavailable : WorkerRuntimeIdentityEvidenceSource.RuntimeVerified),
                 new WorkerRuntimeIdentityEvidence(
                     Version: null,
-                    WorkerRuntimeIdentityEvidenceSource.Unavailable)));
+                    WorkerRuntimeIdentityEvidenceSource.Unavailable)),
+            connection.Failure);
 
     private static void StartParentMonitor(int parentProcessId)
     {
