@@ -346,8 +346,8 @@ the new implementations; no Variables call uses protobuf descriptor interpretati
 The public schema, defaults, execution classification, and private protocol 23
 are unchanged. Required lists still reject empty input. Empty fields inside list
 members retain their prior meaning. Object-type omission uses Any; optional item
-types distinguish absence from explicitly supplied Unspecified. The 2024 wildcard
-delete step retains its exact double-hyphen spelling. Structured values own their
+types distinguish absence from explicitly supplied Unspecified. Wildcard deletion
+uses the exact SDK double-hyphen spelling on both targets. Structured values own their
 inputs, and lists map directly to typed immutable values without intermediate
 boxed arrays.
 
@@ -357,3 +357,30 @@ lists, minimum/maximum output ordering, font defaults, and invalid requests that
 never reach the worker. The full server suites passed: 314 tests for 2024 and 291
 for 2026. Worker and protocol binaries are unchanged from their preceding passing
 suites. This completes the Variables domain, not the remaining domain migrations.
+
+## Local Licensed Validation on 2026-09-25
+
+The approved local `OwnedApplication` and `SdkLossRecovery` scenarios passed on
+SpatialAnalyzer 2026.1.0529.7 using the redesigned Debug host and worker (private
+protocol 23). They exercised inert host startup, owned application launch, exact
+identity gating, execution readiness, SDK restart/reconnection, deliberate loss
+of the test-owned SDK, explicit recovery, and normal application shutdown. No
+SpatialAnalyzer, SDK, host, or worker process remained after either scenario.
+
+The activated SDK's file hash matched the retained interop provenance. The local
+32-bit COM registration and application file version independently identified
+2026.1.0529.7. These observations do not establish live 2024 compatibility.
+
+A subsequent generated-client Variables run completed 22 successful MP calls and
+one expected output-retrieval failure after clearing a double list. The worker
+remained ready and cleanup completed. This found and corrected an inherited
+2026 wildcard-deletion binding that used the documentation title instead of the
+View SDK Code step spelling. See the [exact-target Variables observations](../../targets/2026.1.0529.7/docs/development/variables-runtime-validation.md)
+for the tested operations, failed pre-fix run, and SDK getter evidence.
+
+A separate read-only `IDispatch.GetIDsOfNames` probe on the installed 2026 SDK
+resolved `SetDoubleArg` but returned `DISP_E_UNKNOWNNAME` (`0x80020006`) for both
+`SetMPGDTOptionsDistanceBetweenModeArg` and
+`SetMPGDTOptionsCheckValidatorTypeArg`. It did not connect to SpatialAnalyzer or
+invoke either setter. The disposition of `Set GD&T Options` remains a maintainer
+decision; no supported substitute binding is established by this probe.

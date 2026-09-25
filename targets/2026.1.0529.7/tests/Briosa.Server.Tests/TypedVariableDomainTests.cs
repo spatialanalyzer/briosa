@@ -227,7 +227,7 @@ public sealed class TypedVariableDomainTests
                 case "variables.delete_variables_wildcard_match":
                     Assert.Equal("Variable Wildcard Criteria", Assert.Single(command.InputArguments).Name);
                     Assert.Equal("*", name);
-                    Assert.Equal("Delete Variables - Wildcard Match", command.StepName);
+                    Assert.Equal("Delete Variables -- Wildcard Match", command.StepName);
                     Values.Clear();
                     break;
                 case "variables.get_named_double_list_variable_min_max":
