@@ -11,7 +11,7 @@ internal static class HealthAndDiscoveryRegistration
         ArgumentNullException.ThrowIfNull(services);
         services.TryAddSingleton<
             IServerBuildIdentityProvider,
-            AssemblyServerBuildIdentityProvider>();
+            BuildIdentityProvider>();
         services.AddGrpcHealthChecks(options =>
             {
                 options.Services.Map(

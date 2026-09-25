@@ -1,4 +1,3 @@
-using Briosa.Protocol;
 using Briosa.Server.Operations;
 using Briosa.Server.Security;
 using Briosa.Server.Services;
@@ -52,7 +51,7 @@ builder.Services.AddHostedService<DesktopHost>();
 var app = builder.Build();
 
 app.MapGet("/", () => Results.Text(
-    $"Briosa server scaffold ({ProtocolAssembly.MarkerType.Assembly.GetName().Version})"));
+    $"Briosa server {ServerBuildIdentity.Version}"));
 
 app.MapGrpcHealthChecksService();
 app.MapGrpcService<ServerDiscoveryService>();

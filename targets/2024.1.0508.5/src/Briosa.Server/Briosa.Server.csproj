@@ -70,4 +70,27 @@
           Condition="'%(ResolvedFileToPublish.Filename)' == 'Grpc.AspNetCore.Server.Reflection' Or '%(ResolvedFileToPublish.Filename)' == 'Grpc.Reflection'" />
     </ItemGroup>
   </Target>
+
+  <!-- These are build coordinates, not operation code. Use the SDK's finalized
+       informational version so runtime discovery needs no assembly reflection. -->
+  <Target Name="GenerateBriosaBuildIdentity" BeforeTargets="CoreCompile"
+          DependsOnTargets="GetAssemblyVersion;AddSourceRevisionToInformationalVersion">
+    <PropertyGroup>
+      <_BriosaIdentitySource>$(IntermediateOutputPath)BriosaBuildIdentity.g.cs</_BriosaIdentitySource>
+      <_BriosaVersionLiteral>$(InformationalVersion.Replace('&quot;', '&quot;&quot;'))</_BriosaVersionLiteral>
+      <_BriosaRevisionLiteral>$(SourceRevisionId.Replace('&quot;', '&quot;&quot;'))</_BriosaRevisionLiteral>
+    </PropertyGroup>
+    <ItemGroup>
+      <_BriosaIdentityLine Include="// &lt;auto-generated /&gt;" />
+      <_BriosaIdentityLine Include="namespace Briosa.Server.Services%3B" />
+      <_BriosaIdentityLine Include="internal static class ServerBuildIdentity {" />
+      <_BriosaIdentityLine Include="internal const string Version = @&quot;$(_BriosaVersionLiteral)&quot;%3B" />
+      <_BriosaIdentityLine Include="internal const string SourceRevision = @&quot;$(_BriosaRevisionLiteral)&quot;%3B" />
+      <_BriosaIdentityLine Include="}" />
+      <Compile Include="$(_BriosaIdentitySource)" />
+      <FileWrites Include="$(_BriosaIdentitySource)" />
+    </ItemGroup>
+    <WriteLinesToFile File="$(_BriosaIdentitySource)" Lines="@(_BriosaIdentityLine)"
+                      Overwrite="true" WriteOnlyWhenDifferent="true" Encoding="UTF-8" />
+  </Target>
 </Project>

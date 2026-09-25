@@ -272,24 +272,43 @@ public sealed class DiscoveryServiceTests
     }
 
     [Fact]
-    public void AssemblyIdentityUsesReviewedTargetAndInteropCoordinates()
+    public void MutatingCapabilitiesCannotChangeOtherResponses()
     {
-        var provider = new AssemblyServerBuildIdentityProvider(typeof(Program).Assembly);
+        var service = new ServerDiscoveryService(
+            new FakeWorkerStatusProvider(Snapshot(WorkerLifecycleState.Stopped, null)),
+            new FakeBuildIdentityProvider(),
+            CreatePolicy());
+        var expected = service.CreateCapabilities();
+        var modified = service.CreateCapabilities();
+        modified.Operations[0].OperationId = "changed";
+        modified.Operations.RemoveAt(modified.Operations.Count - 1);
+        modified.SpatialAnalyzerTarget = "changed";
+
+        Assert.Equal(expected, service.CreateCapabilities());
+    }
+    [Fact]
+    public void BuildIdentityMatchesAssemblyProvenanceAndReviewedCoordinates()
+    {
+        var provider = new BuildIdentityProvider();
 
         var coordinates = provider.CreateVersionCoordinates();
 
         Assert.True(coordinates.HasBriosaVersion);
+        Assert.Equal(System.Reflection.CustomAttributeExtensions
+            .GetCustomAttribute<System.Reflection.AssemblyInformationalVersionAttribute>(typeof(Program).Assembly)!
+            .InformationalVersion, coordinates.BriosaVersion);
+        Assert.Equal(ServerBuildIdentity.SourceRevision, coordinates.SourceRevision);
         Assert.Equal("briosa", coordinates.ProtocolPackage);
         Assert.Equal("2026.1.0529.7", coordinates.SpatialAnalyzerTarget);
         Assert.Equal(
-            AssemblyServerBuildIdentityProvider.InteropFingerprint,
+            BuildIdentityProvider.InteropFingerprint,
             coordinates.InteropFingerprint);
     }
 
     [Fact]
     public void MutatingDiscoveryCoordinatesDoesNotChangeSubsequentResponses()
     {
-        var provider = new AssemblyServerBuildIdentityProvider(typeof(Program).Assembly);
+        var provider = new BuildIdentityProvider();
         var expected = provider.CreateVersionCoordinates();
         var modified = provider.CreateVersionCoordinates();
         modified.BriosaVersion = "changed";

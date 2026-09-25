@@ -1,4 +1,3 @@
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -17,13 +16,11 @@ internal static class ServerDiagnosticsCommand
 
     public static int Run(
         TextWriter output,
-        string baseDirectory,
-        Assembly? serverAssembly = null)
+        string baseDirectory)
     {
         ArgumentNullException.ThrowIfNull(output);
         ArgumentException.ThrowIfNullOrWhiteSpace(baseDirectory);
-        var coordinates = new AssemblyServerBuildIdentityProvider(
-            serverAssembly ?? typeof(Program).Assembly)
+        var coordinates = new BuildIdentityProvider()
             .CreateVersionCoordinates();
         var workerPresent = File.Exists(Path.Combine(baseDirectory, WorkerFileName));
         var interopPresent = File.Exists(Path.Combine(baseDirectory, InteropFileName));

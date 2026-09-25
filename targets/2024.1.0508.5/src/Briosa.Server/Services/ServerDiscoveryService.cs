@@ -23,6 +23,8 @@ internal sealed class ServerDiscoveryService(
     private readonly OperationPolicy _operationPolicy =
         operationPolicy ?? throw new ArgumentNullException(nameof(operationPolicy));
 
+    private readonly Api.ListCapabilitiesResponse _capabilities = BuildCapabilities(operationPolicy);
+
     public override Task<Api.GetServerInfoResponse> GetServerInfo(
         Api.GetServerInfoRequest request,
         ServerCallContext context)
@@ -65,14 +67,16 @@ internal sealed class ServerDiscoveryService(
         return response;
     }
 
-    internal Api.ListCapabilitiesResponse CreateCapabilities()
+    internal Api.ListCapabilitiesResponse CreateCapabilities() => _capabilities.Clone();
+
+    private static Api.ListCapabilitiesResponse BuildCapabilities(OperationPolicy policy)
     {
         var response = new Api.ListCapabilitiesResponse
         {
             SpatialAnalyzerTarget = SpatialAnalyzerApi.TargetVersion,
             ProtocolPackage = SpatialAnalyzerApi.ProtocolPackage
         };
-        response.Operations.AddRange(_operationPolicy.AllowedOperations.Select(operation =>
+        response.Operations.AddRange(policy.AllowedOperations.Select(operation =>
             new Api.OperationCapability
             {
                 OperationId = operation.OperationId,
