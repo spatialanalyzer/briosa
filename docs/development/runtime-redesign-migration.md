@@ -301,3 +301,24 @@ at approximately 150 microseconds before and 62–65 microseconds after, with
 allocation falling from about 330 KB to 198 KB. The handwritten typed mapping
 remained substantially cheaper. These are mapping-only measurements; they do
 not establish gRPC throughput or SpatialAnalyzer execution performance.
+
+## Runtime Path Measurements and Retention Work
+
+Local Release runs for both targets now exercise generated HTTP/2 clients,
+production policy/admission/mapping, the process supervisor, and a separate
+synthetic worker over named pipes. Scenarios cover scalar values, nested options,
+32/1,024/4,096-value lists, concurrent calls, overload, and an idle heartbeat.
+Measurements include latency percentiles and allocation; client and host share
+the measured process, while the fake worker reports separately.
+
+The 256-call delayed burst reached exactly 64 queued requests. Excess requests
+returned typed Overloaded/NotStarted evidence; admitted requests all reached a
+terminal outcome. Both targets retained readiness and reported zero worker
+failures, watchdog timeouts, logging drops, and logging failures. These runs use
+synthetic SDK responses and do not establish licensed SpatialAnalyzer throughput.
+
+File retention now performs its post-write scan only when a file opens or rotates.
+Every write still reserves its bounded record under the cross-process lock and
+checks the current directory budget. Concurrent-instance, age, rotation, and
+single-file quota tests pass for both targets. The repeated full-path run remained
+healthy; mixed latency variation does not establish a general logging speedup.
