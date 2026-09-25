@@ -42,6 +42,7 @@ public sealed class WorkerExecutionOutcomeSerializationTests
             new WorkerArgumentsRejected(1, "input-refused"),
             new WorkerExecuteRejected(2, "execute-refused"),
             new WorkerMpResultUnavailable(3, "result-missing"),
+            new WorkerMpOutputsUnavailable(4, "worker-output-encoding-rejected"),
             new WorkerMpResultAvailable(-1, 4, [], "mp-failed"),
             new WorkerMpResultAvailable(2, 5,
                 [new("Value", WorkerMpValueKind.FloatingPoint, true, DoubleValue: 0)], null)

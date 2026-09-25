@@ -138,6 +138,17 @@ internal static class GrpcOperationOutcomeMapper
                 "The SpatialAnalyzer MP command failed.");
         }
 
+        if (execution is WorkerMpOutputsUnavailable)
+        {
+            throw CreateFailure(StatusCode.DataLoss, operationId,
+                OperationFailureKind.OutputRetrievalFailure,
+                NormalizeDiagnosticCode(execution.DiagnosticCode, "worker-output-encoding-rejected"),
+                ExecutionDisposition.Completed, RecoveryGuidance.None, ReplayGuidance.DoNotReplay,
+                replaySafety, outcome.Generation,
+                CreateMpDetails(execution, outputs, MpExecutionState.Succeeded, OutputRetrievalState.Failed),
+                "The MP command succeeded, but its output values could not be delivered.");
+        }
+
         if (!OutputsMatch(outputs, execution.OutputValues))
         {
             throw CreateInternalFailure(

@@ -61,7 +61,7 @@ internal readonly record struct OperationAuditSummary(
         return new OperationAuditSummary(
             FormatExecutionDisposition(outcome?.ExecutionDisposition),
             "succeeded",
-            execution.OutputValues.All(output => output.Retrieved)
+            execution is not WorkerMpOutputsUnavailable && execution.OutputValues.All(output => output.Retrieved)
                 ? "retrieved"
                 : "failed",
             execution.DurationMilliseconds,
