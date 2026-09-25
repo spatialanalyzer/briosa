@@ -152,3 +152,18 @@ replace the exact-generation MP readiness proof or watchdog. Deterministic tests
 cover queue-generation races, consumer failures, consistent projections, and a
 heartbeat tick during active and queued work. The broader process/channel owner
 separation and typed connection-failure classification remain in progress.
+
+## Shared SDK Values and Outcomes
+
+The SDK adapter now constructs the same explicit MP outcomes sent to the host.
+The duplicate `SdkExecutionResult`, `SdkMpResult`, output argument/value, and basic
+value types were removed. Ten collection families now own immutable storage;
+SDK mapping reuses those owned values instead of copying each list and element.
+Object/item parsing uses fixed, exact-target lookup tables, preserving the 2024
+reserved Enhanced Cloud slots and rejecting unspecified/unknown values.
+
+Remaining SDK-specific input options are isolated in `SdkCommandMapper` while the
+sparse input model is migrated. SDK connection, execution, and value contracts
+are grouped in those directories with one top-level type per file. The shared
+model stays inside each independent target. No public protobuf or private wire
+schema change is introduced by this consolidation.

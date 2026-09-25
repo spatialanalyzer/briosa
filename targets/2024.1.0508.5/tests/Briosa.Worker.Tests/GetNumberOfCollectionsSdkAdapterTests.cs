@@ -1,3 +1,4 @@
+using Briosa.Worker.Control;
 using Briosa.Worker.Sdk;
 
 namespace Briosa.Worker.Tests;
@@ -14,9 +15,9 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             "Get Number of Collections",
             [],
             [
-                new SdkOutputArgument(
+                new WorkerMpOutputArgument(
                     "Total Count",
-                    SdkValueKind.WholeNumber,
+                    WorkerMpValueKind.WholeNumber,
                     "GetIntegerArg")
             ]);
 
@@ -31,7 +32,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             ],
             calls.Events);
         Assert.True(result.ExecuteStepReturned);
-        Assert.True(result.MpResult.Succeeded);
+        Assert.True(result.MpSucceeded);
         var output = Assert.Single(result.OutputValues);
         Assert.True(output.Retrieved);
         Assert.Equal(7, output.IntegerValue);

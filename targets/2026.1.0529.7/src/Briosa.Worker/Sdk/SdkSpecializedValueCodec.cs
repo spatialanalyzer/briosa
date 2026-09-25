@@ -1,3 +1,5 @@
+using System.Collections.Frozen;
+using Briosa.Worker.Control;
 namespace Briosa.Worker.Sdk;
 
 internal static class SdkSpecializedValueCodec
@@ -297,89 +299,101 @@ internal static class SdkSpecializedValueCodec
         _ => throw Unknown(value)
     };
 
-    public static string ToSdkString(SdkObjectTypeValue value) => value switch
-    {
-        SdkObjectTypeValue.Any => "Any",
-        SdkObjectTypeValue.BSpline => "B-Spline",
-        SdkObjectTypeValue.Circle => "Circle",
-        SdkObjectTypeValue.Cloud => "Cloud",
-        SdkObjectTypeValue.EnhancedCloud => "Enhanced Cloud",
-        SdkObjectTypeValue.ScanStripeCloud => "Scan Stripe Cloud",
-        SdkObjectTypeValue.CrossSectionCloud => "Cross Section Cloud",
-        SdkObjectTypeValue.Cone => "Cone",
-        SdkObjectTypeValue.Cylinder => "Cylinder",
-        SdkObjectTypeValue.Datum => "Datum",
-        SdkObjectTypeValue.Ellipse => "Ellipse",
-        SdkObjectTypeValue.Frame => "Frame",
-        SdkObjectTypeValue.FrameSet => "Frame Set",
-        SdkObjectTypeValue.Line => "Line",
-        SdkObjectTypeValue.Paraboloid => "Paraboloid",
-        SdkObjectTypeValue.Perimeter => "Perimeter",
-        SdkObjectTypeValue.Plane => "Plane",
-        SdkObjectTypeValue.PointGroup => "Point Group",
-        SdkObjectTypeValue.PointSet => "Point Set",
-        SdkObjectTypeValue.PolySurface => "Poly Surface",
-        SdkObjectTypeValue.ScanStripeMesh => "Scan Stripe Mesh",
-        SdkObjectTypeValue.Slot => "Slot",
-        SdkObjectTypeValue.Sphere => "Sphere",
-        SdkObjectTypeValue.Surface => "Surface",
-        SdkObjectTypeValue.Torus => "Torus",
-        SdkObjectTypeValue.VectorGroup => "Vector Group",
-        _ => throw Unknown(value)
-    };
+    private static readonly FrozenDictionary<WorkerObjectTypeValue, string> ObjectNames =
+        new Dictionary<WorkerObjectTypeValue, string>
+        {
+            [WorkerObjectTypeValue.Any] = "Any",
+            [WorkerObjectTypeValue.BSpline] = "B-Spline",
+            [WorkerObjectTypeValue.Circle] = "Circle",
+            [WorkerObjectTypeValue.Cloud] = "Cloud",
+            [WorkerObjectTypeValue.EnhancedCloud] = "Enhanced Cloud",
+            [WorkerObjectTypeValue.ScanStripeCloud] = "Scan Stripe Cloud",
+            [WorkerObjectTypeValue.CrossSectionCloud] = "Cross Section Cloud",
+            [WorkerObjectTypeValue.Cone] = "Cone",
+            [WorkerObjectTypeValue.Cylinder] = "Cylinder",
+            [WorkerObjectTypeValue.Datum] = "Datum",
+            [WorkerObjectTypeValue.Ellipse] = "Ellipse",
+            [WorkerObjectTypeValue.Frame] = "Frame",
+            [WorkerObjectTypeValue.FrameSet] = "Frame Set",
+            [WorkerObjectTypeValue.Line] = "Line",
+            [WorkerObjectTypeValue.Paraboloid] = "Paraboloid",
+            [WorkerObjectTypeValue.Perimeter] = "Perimeter",
+            [WorkerObjectTypeValue.Plane] = "Plane",
+            [WorkerObjectTypeValue.PointGroup] = "Point Group",
+            [WorkerObjectTypeValue.PointSet] = "Point Set",
+            [WorkerObjectTypeValue.PolySurface] = "Poly Surface",
+            [WorkerObjectTypeValue.ScanStripeMesh] = "Scan Stripe Mesh",
+            [WorkerObjectTypeValue.Slot] = "Slot",
+            [WorkerObjectTypeValue.Sphere] = "Sphere",
+            [WorkerObjectTypeValue.Surface] = "Surface",
+            [WorkerObjectTypeValue.Torus] = "Torus",
+            [WorkerObjectTypeValue.VectorGroup] = "Vector Group",
+        }.ToFrozenDictionary();
 
-    public static string ToSdkString(SdkItemTypeValue value) => value switch
-    {
-        SdkItemTypeValue.Any => "Any",
-        SdkItemTypeValue.Alignment => "Alignment",
-        SdkItemTypeValue.Annotation => "Annotation",
-        SdkItemTypeValue.BSpline => "B-Spline",
-        SdkItemTypeValue.CalibrationApplianceNode => "Calibration Appliance Node",
-        SdkItemTypeValue.CalloutView => "Callout View",
-        SdkItemTypeValue.Chart => "Chart",
-        SdkItemTypeValue.Circle => "Circle",
-        SdkItemTypeValue.Cloud => "Cloud",
-        SdkItemTypeValue.EnhancedCloud => "Enhanced Cloud",
-        SdkItemTypeValue.ScanStripeCloud => "Scan Stripe Cloud",
-        SdkItemTypeValue.CrossSectionCloud => "Cross Section Cloud",
-        SdkItemTypeValue.Cone => "Cone",
-        SdkItemTypeValue.Cylinder => "Cylinder",
-        SdkItemTypeValue.Datum => "Datum",
-        SdkItemTypeValue.Dimension => "Dimension",
-        SdkItemTypeValue.Ellipse => "Ellipse",
-        SdkItemTypeValue.Event => "Event",
-        SdkItemTypeValue.FeatureCheck => "Feature Check",
-        SdkItemTypeValue.Frame => "Frame",
-        SdkItemTypeValue.FrameSet => "Frame Set",
-        SdkItemTypeValue.Line => "Line",
-        SdkItemTypeValue.Paraboloid => "Paraboloid",
-        SdkItemTypeValue.Perimeter => "Perimeter",
-        SdkItemTypeValue.Picture => "Picture",
-        SdkItemTypeValue.Plane => "Plane",
-        SdkItemTypeValue.PointGroup => "Point Group",
-        SdkItemTypeValue.PointSet => "Point Set",
-        SdkItemTypeValue.PolySurface => "Poly Surface",
-        SdkItemTypeValue.Relationship => "Relationship",
-        SdkItemTypeValue.SaDoc => "SA Doc",
-        SdkItemTypeValue.SaReport => "SA Report",
-        SdkItemTypeValue.SaReportTemplate => "SA Report Template",
-        SdkItemTypeValue.ScaleBar => "Scale Bar",
-        SdkItemTypeValue.ScanStripeMesh => "Scan Stripe Mesh",
-        SdkItemTypeValue.Slot => "Slot",
-        SdkItemTypeValue.Sphere => "Sphere",
-        SdkItemTypeValue.Surface => "Surface",
-        SdkItemTypeValue.Table => "Table",
-        SdkItemTypeValue.TcpFixture => "TCP Fixture",
-        SdkItemTypeValue.Torus => "Torus",
-        SdkItemTypeValue.VectorGroup => "Vector Group",
-        _ => throw Unknown(value)
-    };
+    private static readonly FrozenDictionary<string, WorkerObjectTypeValue> ObjectValues =
+        ObjectNames.ToFrozenDictionary(pair => pair.Value, pair => pair.Key, StringComparer.Ordinal);
 
-    public static bool TryParseObjectType(string value, out SdkObjectTypeValue result) =>
-        TryParse(value, ToSdkString, out result);
+    public static string ToSdkString(WorkerObjectTypeValue value) =>
+        ObjectNames.TryGetValue(value, out var name) ? name : throw Unknown(value);
 
-    public static bool TryParseItemType(string value, out SdkItemTypeValue result) =>
-        TryParse(value, ToSdkString, out result);
+    private static readonly FrozenDictionary<WorkerItemTypeValue, string> ItemNames =
+        new Dictionary<WorkerItemTypeValue, string>
+        {
+            [WorkerItemTypeValue.Any] = "Any",
+            [WorkerItemTypeValue.Alignment] = "Alignment",
+            [WorkerItemTypeValue.Annotation] = "Annotation",
+            [WorkerItemTypeValue.BSpline] = "B-Spline",
+            [WorkerItemTypeValue.CalibrationApplianceNode] = "Calibration Appliance Node",
+            [WorkerItemTypeValue.CalloutView] = "Callout View",
+            [WorkerItemTypeValue.Chart] = "Chart",
+            [WorkerItemTypeValue.Circle] = "Circle",
+            [WorkerItemTypeValue.Cloud] = "Cloud",
+            [WorkerItemTypeValue.EnhancedCloud] = "Enhanced Cloud",
+            [WorkerItemTypeValue.ScanStripeCloud] = "Scan Stripe Cloud",
+            [WorkerItemTypeValue.CrossSectionCloud] = "Cross Section Cloud",
+            [WorkerItemTypeValue.Cone] = "Cone",
+            [WorkerItemTypeValue.Cylinder] = "Cylinder",
+            [WorkerItemTypeValue.Datum] = "Datum",
+            [WorkerItemTypeValue.Dimension] = "Dimension",
+            [WorkerItemTypeValue.Ellipse] = "Ellipse",
+            [WorkerItemTypeValue.Event] = "Event",
+            [WorkerItemTypeValue.FeatureCheck] = "Feature Check",
+            [WorkerItemTypeValue.Frame] = "Frame",
+            [WorkerItemTypeValue.FrameSet] = "Frame Set",
+            [WorkerItemTypeValue.Line] = "Line",
+            [WorkerItemTypeValue.Paraboloid] = "Paraboloid",
+            [WorkerItemTypeValue.Perimeter] = "Perimeter",
+            [WorkerItemTypeValue.Picture] = "Picture",
+            [WorkerItemTypeValue.Plane] = "Plane",
+            [WorkerItemTypeValue.PointGroup] = "Point Group",
+            [WorkerItemTypeValue.PointSet] = "Point Set",
+            [WorkerItemTypeValue.PolySurface] = "Poly Surface",
+            [WorkerItemTypeValue.Relationship] = "Relationship",
+            [WorkerItemTypeValue.SaDoc] = "SA Doc",
+            [WorkerItemTypeValue.SaReport] = "SA Report",
+            [WorkerItemTypeValue.SaReportTemplate] = "SA Report Template",
+            [WorkerItemTypeValue.ScaleBar] = "Scale Bar",
+            [WorkerItemTypeValue.ScanStripeMesh] = "Scan Stripe Mesh",
+            [WorkerItemTypeValue.Slot] = "Slot",
+            [WorkerItemTypeValue.Sphere] = "Sphere",
+            [WorkerItemTypeValue.Surface] = "Surface",
+            [WorkerItemTypeValue.Table] = "Table",
+            [WorkerItemTypeValue.TcpFixture] = "TCP Fixture",
+            [WorkerItemTypeValue.Torus] = "Torus",
+            [WorkerItemTypeValue.VectorGroup] = "Vector Group",
+        }.ToFrozenDictionary();
+
+    private static readonly FrozenDictionary<string, WorkerItemTypeValue> ItemValues =
+        ItemNames.ToFrozenDictionary(pair => pair.Value, pair => pair.Key, StringComparer.Ordinal);
+
+    public static string ToSdkString(WorkerItemTypeValue value) =>
+        ItemNames.TryGetValue(value, out var name) ? name : throw Unknown(value);
+
+    public static bool TryParseObjectType(string value, out WorkerObjectTypeValue result) =>
+        ObjectValues.TryGetValue(value, out result);
+
+    public static bool TryParseItemType(string value, out WorkerItemTypeValue result) =>
+        ItemValues.TryGetValue(value, out result);
 
     public static string ToSdkString(SdkOffsetDirectionTypeValue value) => value switch { SdkOffsetDirectionTypeValue.Both => "Both", SdkOffsetDirectionTypeValue.PositiveOnly => "Positive only", SdkOffsetDirectionTypeValue.NegativeOnly => "Negative only", _ => throw Unknown(value) };
     public static string ToSdkString(SdkPointFilterInputTypeValue value) => value switch { SdkPointFilterInputTypeValue.CardinalPoints => "Cardinal Points", SdkPointFilterInputTypeValue.InputPoints => "Input Points", SdkPointFilterInputTypeValue.NominalCardinalPoints => "Nominal Cardinal Points", _ => throw Unknown(value) };
@@ -453,25 +467,6 @@ internal static class SdkSpecializedValueCodec
         SdkOffsetDirectionTypeValue.NegativeOnly => 2,
         _ => throw Unknown(value)
     };
-
-    private static bool TryParse<TValue>(
-        string value,
-        Func<TValue, string> format,
-        out TValue result)
-        where TValue : struct, Enum
-    {
-        foreach (var candidate in Enum.GetValues<TValue>())
-        {
-            if (string.Equals(value, format(candidate), StringComparison.Ordinal))
-            {
-                result = candidate;
-                return true;
-            }
-        }
-
-        result = default;
-        return false;
-    }
 
     private static ArgumentOutOfRangeException Unknown<T>(T value) where T : struct, Enum =>
         new(nameof(value), value, $"Unknown {typeof(T).Name} value.");

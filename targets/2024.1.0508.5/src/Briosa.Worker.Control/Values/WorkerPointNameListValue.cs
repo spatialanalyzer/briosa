@@ -1,4 +1,14 @@
+using System.Collections.Immutable;
+
 namespace Briosa.Worker.Control;
 
-public sealed record WorkerPointNameListValue(
-    IReadOnlyList<WorkerPointNameValue> Values);
+public sealed record WorkerPointNameListValue
+{
+    public WorkerPointNameListValue(IReadOnlyList<WorkerPointNameValue> values)
+    {
+        ArgumentNullException.ThrowIfNull(values);
+        Values = values.ToImmutableArray();
+    }
+
+    public IReadOnlyList<WorkerPointNameValue> Values { get; }
+}

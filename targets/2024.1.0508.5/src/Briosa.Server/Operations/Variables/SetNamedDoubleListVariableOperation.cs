@@ -28,7 +28,7 @@ internal static class SetNamedDoubleListVariableOperation
             [
                 new("Name", WorkerMpValueKind.Text, StringValue: request.Name, SdkBinding: "SetStringArg"),
                 new("Double List Variable", WorkerMpValueKind.DoubleArray,
-                    DoubleArrayValue: new(request.DoubleListVariable.ToArray()), SdkBinding: "SetDoubleArrayArg")
+                    DoubleArrayValue: new(request.DoubleListVariable), SdkBinding: "SetDoubleArrayArg")
             ], []);
     }
 

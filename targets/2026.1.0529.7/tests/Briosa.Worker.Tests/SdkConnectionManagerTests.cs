@@ -1,3 +1,4 @@
+using Briosa.Worker.Control;
 using Briosa.Worker.Sdk;
 using Briosa.Worker.Testing;
 
@@ -35,7 +36,7 @@ public sealed class SdkConnectionManagerTests
                 verified.ExecutionReadinessState);
             Assert.Equal("execution-readiness-verified", verified.DiagnosticCode);
             Assert.Equal(SdkRequestStatus.Completed, request.Status);
-            Assert.True(request.Execution!.MpResult.Succeeded);
+            Assert.True(request.Execution!.MpSucceeded);
             Assert.Equal(
                 [
                     SdkConnectionManager.VerificationOperationId,

@@ -1,3 +1,4 @@
+using Briosa.Worker.Control;
 using Briosa.Worker.Sdk;
 
 namespace Briosa.Worker.Testing;
@@ -11,11 +12,11 @@ internal enum SupervisedExecutionStatus
 
 internal sealed record SupervisedExecutionResult(
     SupervisedExecutionStatus Status,
-    SdkExecutionResult? Execution);
+    WorkerMpExecutionResult? Execution);
 
 internal interface IWorkerEndpoint : IAsyncDisposable
 {
-    Task<SdkExecutionResult> ExecuteAsync(
+    Task<WorkerMpExecutionResult> ExecuteAsync(
         SdkCommand command,
         CancellationToken cancellationToken = default);
 
@@ -115,7 +116,7 @@ internal sealed class ScriptedWorkerEndpoint : IWorkerEndpoint
         _executor = new SerializedSdkExecutor(plan.CreateSdk);
     }
 
-    public Task<SdkExecutionResult> ExecuteAsync(
+    public Task<WorkerMpExecutionResult> ExecuteAsync(
         SdkCommand command,
         CancellationToken cancellationToken = default) =>
         _executor.ExecuteAsync(command, cancellationToken);

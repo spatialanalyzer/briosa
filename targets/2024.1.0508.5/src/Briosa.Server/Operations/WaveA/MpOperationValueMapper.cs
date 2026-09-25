@@ -787,7 +787,7 @@ internal static class MpOperationValueMapper
             ? new(false, 0)
             : new(value.HasEnabled && value.Enabled, value.HasValue ? value.Value : 0);
 
-    private static WorkerScalarToleranceLimit Tolerance(Api.ScalarToleranceLimit? value) =>
+    private static WorkerToleranceLimit Tolerance(Api.ScalarToleranceLimit? value) =>
         value is null
             ? new(false, 0)
             : new(value.HasEnabled && value.Enabled, value.HasValue ? value.Value : 0);
@@ -1158,7 +1158,7 @@ internal static class MpOperationValueMapper
         };
 
     private static Api.ScalarToleranceLimit ProtocolScalarTolerance(
-        WorkerScalarToleranceLimit value) =>
+        WorkerToleranceLimit value) =>
         new() { Enabled = value.Enabled, Value = value.Value };
 
     private static void SetResultField(

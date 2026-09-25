@@ -87,8 +87,8 @@ public sealed class GrpcOperationOutcomeMapperTests
                 WorkerMpValueKind.FitConstraintScalarOptions,
                 Retrieved: true,
                 FitConstraintScalarOptionsValue: new WorkerFitConstraintScalarOptionsValue(
-                    new WorkerScalarToleranceLimit(Enabled: false, Value: 0),
-                    new WorkerScalarToleranceLimit(Enabled: false, Value: 0))),
+                    new WorkerToleranceLimit(Enabled: false, Value: 0),
+                    new WorkerToleranceLimit(Enabled: false, Value: 0))),
             ["floating_point"] = new(
                 "Output",
                 WorkerMpValueKind.FloatingPoint,
@@ -127,8 +127,8 @@ public sealed class GrpcOperationOutcomeMapperTests
                 WorkerMpValueKind.ToleranceScalarOptions,
                 Retrieved: true,
                 ToleranceScalarOptionsValue: new WorkerToleranceScalarOptionsValue(
-                    new WorkerScalarToleranceLimit(Enabled: false, Value: 0),
-                    new WorkerScalarToleranceLimit(Enabled: false, Value: 0))),
+                    new WorkerToleranceLimit(Enabled: false, Value: 0),
+                    new WorkerToleranceLimit(Enabled: false, Value: 0))),
             ["tolerance_vector_options"] = new(
                 "Output",
                 WorkerMpValueKind.ToleranceVectorOptions,
