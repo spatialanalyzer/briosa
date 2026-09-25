@@ -167,3 +167,19 @@ sparse input model is migrated. SDK connection, execution, and value contracts
 are grouped in those directories with one top-level type per file. The shared
 model stays inside each independent target. No public protobuf or private wire
 schema change is introduced by this consolidation.
+
+## Async Worker Control and Output Delivery (Private Protocol 19)
+
+The pipe control loop now awaits sequential exchanges without owning a second
+STA. The serialized SDK executor remains the sole owner of COM initialization,
+access, and disposal. If a successful MP result cannot be encoded before any
+response bytes are written, the worker sends a bounded `outputs-unavailable`
+outcome. It preserves raw MP code 2 and completion, returns a typed public
+DataLoss/output-retrieval failure, and never replays the command. Actual pipe I/O
+failures retain their existing ambiguous-completion treatment.
+
+All 1,007 Debug portable tests passed across the two products. New tests run the
+production control loop over real named pipes with an injected fake SDK. They
+exercise oversized and non-finite results, a subsequent heartbeat and operation,
+clean stop, and same-thread STA disposal. Licensed SpatialAnalyzer validation
+and broader throughput measurements remain outstanding.

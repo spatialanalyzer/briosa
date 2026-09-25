@@ -8,143 +8,110 @@ internal static class WorkerControlHost
 {
     private const int MaximumConnectionAttempts = 1;
 
-    public static int Run(
-        string pipeName,
-        int? parentProcessId,
-        string targetHost,
-        bool disableSdkActivation)
+    public static Task<int> RunAsync(string pipeName, int? parentProcessId,
+        string targetHost, bool disableSdkActivation)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(pipeName);
         ArgumentException.ThrowIfNullOrWhiteSpace(targetHost);
-        if (parentProcessId is > 0)
-        {
-            StartParentMonitor(parentProcessId.Value);
-        }
-
-        var completion = new TaskCompletionSource<int>(
-            TaskCreationOptions.RunContinuationsAsynchronously);
-        var thread = new Thread(
-            () => completion.SetResult(
-                RunOnSta(pipeName, targetHost, disableSdkActivation)))
-        {
-            IsBackground = false,
-            Name = "Briosa worker control STA"
-        };
-        thread.SetApartmentState(ApartmentState.STA);
-        thread.Start();
-        return completion.Task.GetAwaiter().GetResult();
+        if (parentProcessId is > 0) StartParentMonitor(parentProcessId.Value);
+        return RunAsync(pipeName, targetHost, disableSdkActivation
+            ? static () => throw new InvalidOperationException("SDK activation is disabled for this worker smoke test.")
+            : SpatialAnalyzerSdkAdapter.Create);
     }
 
-    private static int RunOnSta(
-        string pipeName,
-        string targetHost,
-        bool disableSdkActivation)
+    internal static async Task<int> RunAsync(string pipeName, string targetHost,
+        Func<ISpatialAnalyzerSdk> sdkFactory)
     {
-        var connectionOwner = new SdkConnectionManager(
-            targetHost,
-            new SdkConnectionPolicy(MaximumConnectionAttempts, TimeSpan.Zero),
-            disableSdkActivation
-                ? static () => throw new InvalidOperationException(
-                    "SDK activation is disabled for this worker smoke test.")
-                : SpatialAnalyzerSdkAdapter.Create);
+        ArgumentException.ThrowIfNullOrWhiteSpace(pipeName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(targetHost);
+        ArgumentNullException.ThrowIfNull(sdkFactory);
+        var connectionOwner = new SdkConnectionManager(targetHost,
+            new SdkConnectionPolicy(MaximumConnectionAttempts, TimeSpan.Zero), sdkFactory);
         try
         {
-            var connection = connectionOwner.StartAsync().GetAwaiter().GetResult();
-            using var pipe = new NamedPipeClientStream(
-                ".",
-                pipeName,
-                PipeDirection.InOut,
-                PipeOptions.None);
-            pipe.Connect(15_000);
+            // Only SerializedSdkExecutor owns an STA. The pipe loop owns no COM
+            // state and awaits each full SDK sequence before reading another message.
+            var connection = await connectionOwner.StartAsync().ConfigureAwait(false);
+            using var pipe = new NamedPipeClientStream(".", pipeName,
+                PipeDirection.InOut, PipeOptions.Asynchronous);
+            await pipe.ConnectAsync(15_000).ConfigureAwait(false);
             using var channel = new WorkerControlChannel(pipe, leaveOpen: true);
-            channel.Send(
-                WorkerControlMessage.Ready(
-                    Environment.ProcessId,
-                    ToControlSnapshot(connection)));
-
+            await channel.SendAsync(WorkerControlMessage.Ready(Environment.ProcessId,
+                ToControlSnapshot(connection))).ConfigureAwait(false);
             while (true)
             {
-                var message = channel.Receive();
+                var message = await channel.ReceiveAsync().ConfigureAwait(false);
                 switch (message.Kind)
                 {
                     case WorkerControlMessageKind.Ping:
-                        var heartbeat = connectionOwner.ProbeLivenessAsync()
-                            .GetAwaiter().GetResult();
-                        channel.Send(WorkerControlMessage.Pong(
-                            message.CorrelationId,
-                            ToControlSnapshot(heartbeat)));
+                        var heartbeat = await connectionOwner.ProbeLivenessAsync().ConfigureAwait(false);
+                        await channel.SendAsync(WorkerControlMessage.Pong(message.CorrelationId,
+                            ToControlSnapshot(heartbeat))).ConfigureAwait(false);
                         break;
                     case WorkerControlMessageKind.Execute:
-                        channel.Send(Execute(connectionOwner, message));
+                        var execution = await ExecuteAsync(connectionOwner, message).ConfigureAwait(false);
+                        await SendExecutionAsync(channel, execution).ConfigureAwait(false);
                         break;
                     case WorkerControlMessageKind.Connect:
-                        channel.Send(Connect(connectionOwner, message));
+                        var attached = await connectionOwner.ConnectAsync().ConfigureAwait(false);
+                        await channel.SendAsync(WorkerControlMessage.ConnectionResult(message.CorrelationId,
+                            ToControlSnapshot(attached))).ConfigureAwait(false);
                         break;
                     case WorkerControlMessageKind.VerifyExecution:
-                        channel.Send(VerifyExecution(connectionOwner, message));
+                        var verified = await connectionOwner.VerifyExecutionAsync().ConfigureAwait(false);
+                        await channel.SendAsync(WorkerControlMessage.ExecutionVerificationResult(message.CorrelationId,
+                            ToControlSnapshot(verified))).ConfigureAwait(false);
                         break;
                     case WorkerControlMessageKind.Stop:
-                        connectionOwner.DisposeAsync().AsTask().GetAwaiter().GetResult();
-                        channel.Send(WorkerControlMessage.Stopped(message.CorrelationId));
+                        await connectionOwner.DisposeAsync().ConfigureAwait(false);
+                        await channel.SendAsync(WorkerControlMessage.Stopped(message.CorrelationId)).ConfigureAwait(false);
                         return 0;
                     default:
                         return 4;
                 }
             }
         }
-        catch (TimeoutException)
-        {
-            return 2;
-        }
-        catch (IOException)
-        {
-            return 3;
-        }
-        catch (InvalidDataException)
-        {
-            return 4;
-        }
+        catch (TimeoutException) { return 2; }
+        catch (IOException) { return 3; }
+        catch (InvalidDataException) { return 4; }
         finally
         {
-            connectionOwner.DisposeAsync().AsTask().GetAwaiter().GetResult();
+            await connectionOwner.DisposeAsync().ConfigureAwait(false);
         }
     }
 
-    private static WorkerControlMessage Execute(
-        SdkConnectionManager connectionOwner,
-        WorkerControlMessage message)
+    private static async Task<WorkerControlMessage> ExecuteAsync(
+        SdkConnectionManager connectionOwner, WorkerControlMessage message)
     {
-        var request = connectionOwner.ExecuteAsync(SdkCommandMapper.CreateCommand(message.Command!))
-            .GetAwaiter().GetResult();
+        var request = await connectionOwner.ExecuteAsync(SdkCommandMapper.CreateCommand(message.Command!))
+            .ConfigureAwait(false);
         var response = new WorkerExecutionResponse(
             request.Status == SdkRequestStatus.Completed
-                ? WorkerExecutionResponseStatus.Completed
-                : WorkerExecutionResponseStatus.Unavailable,
-            request.Execution,
-            ToControlSnapshot(request.Connection),
-            request.DiagnosticCode);
+                ? WorkerExecutionResponseStatus.Completed : WorkerExecutionResponseStatus.Unavailable,
+            request.Execution, ToControlSnapshot(request.Connection), request.DiagnosticCode);
         return WorkerControlMessage.ExecutionResult(message.CorrelationId, response);
     }
 
-    private static WorkerControlMessage Connect(
-        SdkConnectionManager connectionOwner,
-        WorkerControlMessage message)
+    private static async Task SendExecutionAsync(WorkerControlChannel channel, WorkerControlMessage message)
     {
-        var connection = connectionOwner.ConnectAsync().GetAwaiter().GetResult();
-        return WorkerControlMessage.ConnectionResult(
-            message.CorrelationId,
-            ToControlSnapshot(connection));
-    }
-
-    private static WorkerControlMessage VerifyExecution(
-        SdkConnectionManager connectionOwner,
-        WorkerControlMessage message)
-    {
-        var connection = connectionOwner.VerifyExecutionAsync()
-            .GetAwaiter().GetResult();
-        return WorkerControlMessage.ExecutionVerificationResult(
-            message.CorrelationId,
-            ToControlSnapshot(connection));
+        try
+        {
+            await channel.SendAsync(message).ConfigureAwait(false);
+        }
+        catch (WorkerMessageRejectedException) when (message.ExecutionResponse?.Execution is { MpSucceeded: true })
+        {
+            // Encoding failed before any frame bytes were written. The MP already
+            // completed: preserve that fact in a bounded response and keep the pipe.
+            // Actual I/O failures never enter this fallback.
+            var response = message.ExecutionResponse;
+            await channel.SendAsync(WorkerControlMessage.ExecutionResult(message.CorrelationId,
+                response with
+                {
+                    Execution = new WorkerMpOutputsUnavailable(response.Execution.DurationMilliseconds,
+                        "worker-output-encoding-rejected"),
+                    DiagnosticCode = "worker-output-encoding-rejected"
+                })).ConfigureAwait(false);
+        }
     }
 
     internal static WorkerConnectionSnapshot ToControlSnapshot(

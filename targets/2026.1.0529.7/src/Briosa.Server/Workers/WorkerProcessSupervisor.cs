@@ -795,7 +795,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                     (executionResponse.Execution is not null) ||
                     executionResponse.Connection.RuntimeIdentity !=
                         Current.Connection?.RuntimeIdentity ||
-                    executionResponse.Execution is { ExecuteStepReturned: true, MpSucceeded: true } execution &&
+                    executionResponse.Execution is WorkerMpResultAvailable { ResultCode: 2 } execution &&
                     !OutputsMatch(command.OutputArguments, execution.OutputValues))
                 {
                     throw new InvalidDataException(

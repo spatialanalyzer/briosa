@@ -16,11 +16,11 @@ if (TryGetArgument(args, "--control-pipe", out var pipeName))
         ? configuredHost
         : "localhost";
     var disableSdkActivation = Array.IndexOf(args, "--disable-sdk-activation") >= 0;
-    return WorkerControlHost.Run(
+    return await WorkerControlHost.RunAsync(
         pipeName,
         parentProcessId,
         targetHost,
-        disableSdkActivation);
+        disableSdkActivation).ConfigureAwait(false);
 }
 
 Console.WriteLine($"Briosa worker scaffold using {InteropMetadata.AssemblyName.FullName}");

@@ -7,6 +7,7 @@ namespace Briosa.Worker.Control;
 [JsonDerivedType(typeof(WorkerExecuteRejected), "execute-rejected")]
 [JsonDerivedType(typeof(WorkerMpResultUnavailable), "result-unavailable")]
 [JsonDerivedType(typeof(WorkerMpResultAvailable), "result-available")]
+[JsonDerivedType(typeof(WorkerMpOutputsUnavailable), "outputs-unavailable")]
 public abstract record WorkerMpExecutionResult
 {
     protected WorkerMpExecutionResult(long durationMilliseconds, string? diagnosticCode)
@@ -23,22 +24,23 @@ public abstract record WorkerMpExecutionResult
     // public outcomes. They cannot be assigned contradictory values or arrive on
     // the wire independently from the concrete outcome.
     [JsonIgnore]
-    public bool ExecuteStepReturned => this is WorkerMpResultUnavailable or WorkerMpResultAvailable;
+    public bool ExecuteStepReturned => this is WorkerMpResultUnavailable or WorkerMpResultAvailable or WorkerMpOutputsUnavailable;
 
     [JsonIgnore]
-    public bool MpResultRetrieved => this is WorkerMpResultAvailable;
+    public bool MpResultRetrieved => this is WorkerMpResultAvailable or WorkerMpOutputsUnavailable;
 
     [JsonIgnore]
-    public bool MpSucceeded => this is WorkerMpResultAvailable { ResultCode: 2 };
+    public bool MpSucceeded => this is WorkerMpResultAvailable { ResultCode: 2 } or WorkerMpOutputsUnavailable;
 
     [JsonIgnore]
-    public int? MpResultCode => this is WorkerMpResultAvailable result ? result.ResultCode : null;
+    public int? MpResultCode => this switch { WorkerMpResultAvailable result => result.ResultCode, WorkerMpOutputsUnavailable => 2, _ => null };
 
     [JsonIgnore]
     public IReadOnlyList<WorkerMpOutputValue> OutputValues =>
         this is WorkerMpResultAvailable result ? result.Outputs : [];
 
-    // Adapter for the SDK evidence boundary while the SDK model is migrated.
+    // Compatibility adapter for retained fake-worker evidence fixtures. The real SDK
+    // constructs explicit outcome alternatives directly.
     // Reject contradictions rather than dropping evidence to make it fit.
     public static WorkerMpExecutionResult FromEvidence(
         bool executeStepReturned,

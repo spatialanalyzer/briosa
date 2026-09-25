@@ -373,6 +373,31 @@ public sealed class RuntimeFailureRegressionTests
             ValueTask.FromResult(generation == 1 ? first : second);
     }
 
+    [Fact]
+    public async Task LostOutputDeliveryPreservesKnownMpCompletionAndReadiness()
+    {
+        var worker = new CoordinatedWorker { OutputDeliveryLost = true };
+        await using var workerLifetime = worker.ConfigureAwait(true);
+        await using var supervisor = CreateSupervisor(worker);
+        Assert.True(await supervisor.StartAsync());
+        var outcome = await supervisor.ExecuteAsync(new WorkerMpCommand("regression.output-loss", "Output Loss",
+            [], [new("Value", WorkerMpValueKind.FloatingPoint)]));
+        var error = Assert.Throws<RpcException>(() => GrpcOperationOutcomeMapper.RequireSuccess(
+            outcome, "regression.output-loss", global::Briosa.ReplaySafety.Unsafe,
+            [new("value", "Value", WorkerMpValueKind.FloatingPoint)], false));
+        var details = global::Briosa.OperationError.Parser.ParseFrom(Assert.Single(error.Trailers).ValueBytes);
+        Assert.Equal(StatusCode.DataLoss, error.StatusCode);
+        Assert.Equal(global::Briosa.ExecutionDisposition.Completed, details.ExecutionDisposition);
+        Assert.Equal(global::Briosa.OperationFailureKind.OutputRetrievalFailure, details.Kind);
+        Assert.Equal(global::Briosa.ReplayGuidance.DoNotReplay, details.ReplayGuidance);
+        Assert.Equal(global::Briosa.MpExecutionState.Succeeded, details.MpExecution.State);
+        Assert.Equal(2, details.MpExecution.MpResultCode);
+        Assert.Equal(global::Briosa.OutputRetrievalState.Failed, Assert.Single(details.MpExecution.OutputRetrievals).State);
+        Assert.Equal("failed", OperationAuditSummary.Create(outcome).OutputRetrievalOutcome);
+        Assert.True(supervisor.Current.ReadyForExecution);
+        Assert.False(worker.HasExited);
+    }
+
     private static WorkerMpCommand Plain() => new("regression.plain", "Regression", [], []);
 
     private static WorkerProcessSupervisor CreateSupervisor(CoordinatedWorker worker) => new(
@@ -395,6 +420,7 @@ public sealed class RuntimeFailureRegressionTests
         public bool HoldExecution { get; init; }
         public bool HoldStop { get; init; }
         public bool UndefinedStatus { get; init; }
+        public bool OutputDeliveryLost { get; init; }
         public bool UnexpectedFailure { get; init; }
         public int PingCount { get; private set; }
         public int ExecuteCount { get; private set; }
@@ -442,7 +468,7 @@ public sealed class RuntimeFailureRegressionTests
                     if (UnexpectedFailure) throw new ArgumentException("Consumer regression");
                     return WorkerControlMessage.ExecutionResult(request.CorrelationId, new(
                         UndefinedStatus ? (WorkerExecutionResponseStatus)999 : WorkerExecutionResponseStatus.Completed,
-                        UndefinedStatus ? null : WorkerMpExecutionResult.FromEvidence(true, true, true, 2, 1, [], null),
+                        UndefinedStatus ? null : OutputDeliveryLost ? new WorkerMpOutputsUnavailable(7, "worker-output-encoding-rejected") : WorkerMpExecutionResult.FromEvidence(true, true, true, 2, 1, [], null),
                         Connection(WorkerExecutionReadinessState.ExecutionReady), null));
                 case WorkerControlMessageKind.Ping:
                     PingCount++;
