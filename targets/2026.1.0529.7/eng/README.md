@@ -20,6 +20,26 @@ dotnet test Briosa.slnx -c Release --no-build --no-restore
 - `Test-LocalSpatialAnalyzerHost.ps1` verifies Debug source-host composition without starting SpatialAnalyzer.
 - `Test-RuntimePerformance.ps1` runs vendor-independent fake-worker measurements and structural bounded-state checks.
 
+Add `-IncludeGrpc` to measure generated clients through loopback HTTP/2, production
+typed mappings, policy/admission, the supervisor, and the named-pipe codec. It
+records scalar, nested, and 32/1,024/4,096-double list calls, concurrency 16, and a
+256-request delayed burst with typed overload rejection. Logging is measured both
+enabled and disabled; the run also verifies drained accounting and an idle
+heartbeat. Each measured case has 40 warmups and 400 samples with p50/p95/p99,
+throughput, and allocation reports in `grpc-*.json` beside the existing evidence.
+Run from this target directory with the locked dependencies restored:
+
+```powershell
+./eng/Test-RuntimePerformance.ps1 -IncludeGrpc -OutputDirectory artifacts/performance-local
+```
+
+The SDK peer is synthetic and owns no COM state. Client, host, and test assertions
+share the parent allocation measurement; worker allocations are reported
+separately. Timing includes scheduling and GC, and concurrent machine activity can
+affect results. Compare repeated Release runs on the same idle machine. The checks
+enforce state/accounting invariants, not hardware-dependent latency thresholds;
+these results do not establish SpatialAnalyzer throughput.
+
 ## Packaging and smoke tests
 
 ```powershell

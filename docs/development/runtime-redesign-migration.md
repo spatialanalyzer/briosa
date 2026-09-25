@@ -434,3 +434,37 @@ It no longer parses diagnostic text to recognize a timeout or identity rejection
 An activation-failure regression includes the word `timeout` in its diagnostic
 and still returns the activation-failure status. Actual timeout scenarios retain
 their DeadlineExceeded behavior and recovery evidence.
+
+## Maintained Performance and Package Validation
+
+Each target's `eng/Test-RuntimePerformance.ps1 -IncludeGrpc` now exercises generated
+HTTP/2 clients through production typed mappings, policy/admission, the supervisor,
+and the private named-pipe codec. The separate worker supplies synthetic results
+without activating COM. Scalar, nested, and 32/1,024/4,096-double list cases record
+p50/p95/p99, throughput, and allocations, with logging enabled and disabled.
+Client, host, and assertion allocations share the parent process measurement;
+worker allocation is separate. These measurements do not establish SA throughput.
+
+Both target runs passed the existing dispatch check and both generated-client
+modes. Each generated-client run measured ten cases after warmup, then admitted 65
+of a 256-request delayed burst and rejected 191 with typed NotStarted overload
+evidence. Peak queue depth was 64, admitted and terminal counts matched, and there
+were no worker failures, watchdog timeouts, queued log records, or log drops at
+shutdown. An idle heartbeat succeeded after load. The test gates these structural
+invariants rather than machine-dependent latency thresholds.
+
+Complete `0.9.0-dev.3` Windows package checks passed for both targets at production
+source `82b6ce51cb199a4e04ef3c142af4b27a8c34d1e4`: two clean builds produced identical
+archives, all checksums/provenance and offline diagnostics matched, unsafe binding
+was rejected, and packaged Control Center startup, detach/reopen, restart, and
+graceful shutdown passed with a fake worker. These are unpublished local products.
+
+The installer validated both preceding `0.9.0-dev.2` products from the same source
+through a disposable signed catalog and private store, including coexistence,
+receipts, verification, and exact-package repair. Its 178 core/CLI tests and WPF
+smoke passed. No installer engine change was needed; the validation script now
+accepts an explicit expected compatibility major. The documentation site has an
+unreleased migration page with its full build, search, and API/history/SEO checks
+passing. Published example pins remain major 1 until compatible releases exist;
+their migration must update all client pins, the verified protocol, and fixtures
+together.
