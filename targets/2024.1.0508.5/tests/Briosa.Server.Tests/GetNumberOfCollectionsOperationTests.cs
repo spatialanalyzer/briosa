@@ -40,11 +40,7 @@ public sealed class GetNumberOfCollectionsOperationTests
             durationMilliseconds: 5,
             outputValues:
             [
-                new WorkerMpOutputValue(
-                    "Total Count",
-                    WorkerMpValueKind.WholeNumber,
-                    Retrieved: true,
-                    IntegerValue: 3)
+                new WorkerRetrievedOutput("Total Count", WorkerMpValueKind.WholeNumber, new WorkerIntegerValue(3))
             ],
             diagnosticCode: "completed");
         var details = new Api.MpExecutionDetails

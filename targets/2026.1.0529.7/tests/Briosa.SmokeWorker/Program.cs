@@ -350,32 +350,17 @@ internal static class SmokeWorkerProgram
     {
         if (outputFailure)
         {
-            return new WorkerMpOutputValue(
-                output.Name,
-                output.Kind,
-                Retrieved: false);
+            return new WorkerUnavailableOutput(output.Name, output.Kind);
         }
 
         return output.Kind switch
         {
-            WorkerMpValueKind.WholeNumber => new WorkerMpOutputValue(
-                output.Name,
-                output.Kind,
-                Retrieved: true,
-                IntegerValue: 3),
-            WorkerMpValueKind.CollectionObjectName => new WorkerMpOutputValue(
-                output.Name,
-                output.Kind,
-                Retrieved: true,
-                CollectionObjectNameValue: new WorkerCollectionObjectNameValue(
+            WorkerMpValueKind.WholeNumber => new WorkerRetrievedOutput(output.Name, output.Kind, new WorkerIntegerValue(3)),
+            WorkerMpValueKind.CollectionObjectName => new WorkerRetrievedOutput(output.Name, output.Kind, new WorkerCollectionObjectNameValue(
                     "Collection",
                     "Object",
                     WorkerObjectTypeValue.PointGroup)),
-            _ => new WorkerMpOutputValue(
-                output.Name,
-                output.Kind,
-                Retrieved: true,
-                StringValue: "scripted-output")
+            _ => new WorkerRetrievedOutput(output.Name, output.Kind, new WorkerTextValue("scripted-output"))
         };
     }
 

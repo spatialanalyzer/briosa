@@ -2,7 +2,7 @@ using System.Collections.Immutable;
 
 namespace Briosa.Worker.Control;
 
-public sealed record WorkerCollectionInstrumentIdListValue
+public sealed record WorkerCollectionInstrumentIdListValue : WorkerMpValue
 {
     public WorkerCollectionInstrumentIdListValue(IReadOnlyList<WorkerCollectionInstrumentIdValue> values)
     {

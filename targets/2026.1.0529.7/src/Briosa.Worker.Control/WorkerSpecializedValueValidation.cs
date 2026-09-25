@@ -87,9 +87,9 @@ internal static class WorkerSpecializedValueValidation
         output.Kind switch
         {
             WorkerMpValueKind.FitConstraintScalarOptions =>
-                IsValid(output.FitConstraintScalarOptionsValue),
+                IsValid((output.ReadValue() as WorkerFitConstraintScalarOptionsValue)),
             WorkerMpValueKind.ToleranceScalarOptions =>
-                IsValid(output.ToleranceScalarOptionsValue),
+                IsValid((output.ReadValue() as WorkerToleranceScalarOptionsValue)),
             _ => false
         };
 

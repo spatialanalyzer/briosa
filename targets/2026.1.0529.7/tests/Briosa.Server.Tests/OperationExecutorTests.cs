@@ -87,11 +87,7 @@ public sealed class OperationExecutorTests
                     durationMilliseconds: 1,
                     outputValues:
                     [
-                        new WorkerMpOutputValue(
-                            "Directory",
-                            WorkerMpValueKind.Text,
-                            Retrieved: true,
-                            StringValue: value)
+                        new WorkerRetrievedOutput("Directory", WorkerMpValueKind.Text, new WorkerTextValue(value))
                     ],
                     diagnosticCode: "completed"),
                 Connection: null,

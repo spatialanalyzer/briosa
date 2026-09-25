@@ -59,15 +59,15 @@ internal static class GetActiveUnitsOperation
 
         return new Api.GetActiveUnitsResult
         {
-            Length = outputs.Single(value =>
+            Length = (outputs.Single(value =>
                 value.Name == LengthArgumentName &&
-                value.Kind == WorkerMpValueKind.Text).StringValue!,
-            Angular = outputs.Single(value =>
+                value.Kind == WorkerMpValueKind.Text).ReadValue() as WorkerTextValue)?.Value!,
+            Angular = (outputs.Single(value =>
                 value.Name == AngularArgumentName &&
-                value.Kind == WorkerMpValueKind.Text).StringValue!,
-            Temperature = outputs.Single(value =>
+                value.Kind == WorkerMpValueKind.Text).ReadValue() as WorkerTextValue)?.Value!,
+            Temperature = (outputs.Single(value =>
                 value.Name == TemperatureArgumentName &&
-                value.Kind == WorkerMpValueKind.Text).StringValue!,
+                value.Kind == WorkerMpValueKind.Text).ReadValue() as WorkerTextValue)?.Value!,
             Execution = completed.Details
         };
     }
@@ -142,14 +142,14 @@ internal static class GetWorkingFramePropertiesOperation
 
         return new Api.GetWorkingFramePropertiesResult
         {
-            FrameName = outputs.Single(value =>
+            FrameName = (outputs.Single(value =>
                 value.Name == FrameNameArgumentName &&
-                value.Kind == WorkerMpValueKind.Text).StringValue!,
-            CollectionName = outputs.Single(value =>
+                value.Kind == WorkerMpValueKind.Text).ReadValue() as WorkerTextValue)?.Value!,
+            CollectionName = (outputs.Single(value =>
                 value.Name == CollectionNameArgumentName &&
-                value.Kind == WorkerMpValueKind.Text).StringValue!,
+                value.Kind == WorkerMpValueKind.Text).ReadValue() as WorkerTextValue)?.Value!,
             WorkingFrame = SpatialAnalyzerValueMapper.ToProtocol(
-                workingFrame.CollectionObjectNameValue!),
+                workingFrame.RequireValue<WorkerCollectionObjectNameValue>()),
             Execution = completed.Details
         };
     }

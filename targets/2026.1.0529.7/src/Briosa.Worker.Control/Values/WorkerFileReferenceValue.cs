@@ -1,3 +1,3 @@
 namespace Briosa.Worker.Control;
 
-public sealed record WorkerFileReferenceValue(string Path, bool EmbeddedFile);
+public sealed record WorkerFileReferenceValue(string Path, bool EmbeddedFile) : WorkerMpValue;

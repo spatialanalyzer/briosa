@@ -481,12 +481,12 @@ internal sealed class SdkConnectionManager : IAsyncDisposable
         var output = execution.OutputValues.Count == 1
             ? execution.OutputValues[0]
             : null;
-        return output is
+        return output is WorkerRetrievedOutput
         {
             Name: VerificationOutputName,
             Kind: WorkerMpValueKind.Text,
             Retrieved: true,
-            StringValue: not null
+            Value: WorkerTextValue { Value: not null }
         }
                 ? "execution-readiness-verified"
                 : "execution-readiness-probe-output-invalid";

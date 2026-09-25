@@ -168,8 +168,8 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         Assert.Equal("Cartesian", calls.SpecializedArguments["Point Delta"][0]);
         Assert.Equal([true, false, "127.0.0.1", 12000], calls.SpecializedArguments["UDP"]);
         Assert.All(result.OutputValues, output => Assert.True(output.Retrieved));
-        Assert.Equal(1.25, result.OutputValues[0].FitConstraintScalarOptionsValue!.High.Value);
-        Assert.Equal(-2.5, result.OutputValues[1].ToleranceScalarOptionsValue!.Low.Value);
+        Assert.Equal(1.25, (result.OutputValues[0].ReadValue() as WorkerFitConstraintScalarOptionsValue)!.High.Value);
+        Assert.Equal(-2.5, (result.OutputValues[1].ReadValue() as WorkerToleranceScalarOptionsValue)!.Low.Value);
     }
 
     [Fact]

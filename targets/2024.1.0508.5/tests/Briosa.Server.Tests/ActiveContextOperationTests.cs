@@ -124,11 +124,7 @@ public sealed class ActiveContextOperationTests
         var collectionResult = GetActiveCollectionNameOperation.CreateResult(
             Successful(
                 details,
-                new WorkerMpOutputValue(
-                    "Currently Active Collection Name",
-                    WorkerMpValueKind.Text,
-                    Retrieved: true,
-                    StringValue: "Active")));
+                new WorkerRetrievedOutput("Currently Active Collection Name", WorkerMpValueKind.Text, new WorkerTextValue("Active"))));
         Assert.True(collectionResult.HasCurrentlyActiveCollectionName);
         Assert.Equal("Active", collectionResult.CurrentlyActiveCollectionName);
         Assert.Same(details, collectionResult.Execution);
@@ -152,11 +148,7 @@ public sealed class ActiveContextOperationTests
                 details,
                 Text("Frame Name", "World"),
                 Text("Collection Name", "Frames"),
-                new WorkerMpOutputValue(
-                    "Working Frame",
-                    WorkerMpValueKind.CollectionObjectName,
-                    Retrieved: true,
-                    CollectionObjectNameValue: new WorkerCollectionObjectNameValue(
+                new WorkerRetrievedOutput("Working Frame", WorkerMpValueKind.CollectionObjectName, new WorkerCollectionObjectNameValue(
                         "Frames",
                         "World",
                         WorkerObjectTypeValue.Frame))));
@@ -194,12 +186,8 @@ public sealed class ActiveContextOperationTests
                 diagnosticCode: "completed"),
             details);
 
-    private static WorkerMpOutputValue Text(string name, string value) =>
-        new(
-            name,
-            WorkerMpValueKind.Text,
-            Retrieved: true,
-            StringValue: value);
+    private static WorkerRetrievedOutput Text(string name, string value) =>
+        new WorkerRetrievedOutput(name, WorkerMpValueKind.Text, new WorkerTextValue(value));
 
     private static void AssertContractMatches(
         IReadOnlyList<OperationOutputContract> contracts,

@@ -505,52 +505,52 @@ internal static class GrpcOperationOutcomeMapper
     private static bool HasTypedValue(WorkerMpOutputValue value) =>
         value.Kind switch
         {
-            WorkerMpValueKind.Logical => value.BooleanValue.HasValue,
-            WorkerMpValueKind.WholeNumber => value.IntegerValue.HasValue,
-            WorkerMpValueKind.FloatingPoint => value.DoubleValue.HasValue,
-            WorkerMpValueKind.DoubleArray => value.DoubleArrayValue is not null,
-            WorkerMpValueKind.EditText => value.StringListValue is not null,
-            WorkerMpValueKind.Transform => value.TransformValue is not null,
-            WorkerMpValueKind.WorldTransform => value.WorldTransformValue is not null,
-            WorkerMpValueKind.FileReference => value.FileReferenceValue is not null,
+            WorkerMpValueKind.Logical => ((value.ReadValue() as WorkerBooleanValue)?.Value).HasValue,
+            WorkerMpValueKind.WholeNumber => ((value.ReadValue() as WorkerIntegerValue)?.Value).HasValue,
+            WorkerMpValueKind.FloatingPoint => ((value.ReadValue() as WorkerDoubleValue)?.Value).HasValue,
+            WorkerMpValueKind.DoubleArray => (value.ReadValue() as WorkerDoubleArrayValue) is not null,
+            WorkerMpValueKind.EditText => (value.ReadValue() as WorkerStringListValue) is not null,
+            WorkerMpValueKind.Transform => (value.ReadValue() as WorkerTransformValue) is not null,
+            WorkerMpValueKind.WorldTransform => (value.ReadValue() as WorkerWorldTransformValue) is not null,
+            WorkerMpValueKind.FileReference => (value.ReadValue() as WorkerFileReferenceValue) is not null,
             WorkerMpValueKind.FitConstraintScalarOptions =>
-                value.FitConstraintScalarOptionsValue is not null,
+                (value.ReadValue() as WorkerFitConstraintScalarOptionsValue) is not null,
             WorkerMpValueKind.ToleranceScalarOptions =>
-                value.ToleranceScalarOptionsValue is not null,
+                (value.ReadValue() as WorkerToleranceScalarOptionsValue) is not null,
             WorkerMpValueKind.Text or
             WorkerMpValueKind.ChartName or
             WorkerMpValueKind.CloudName or
             WorkerMpValueKind.CollectionName or
             WorkerMpValueKind.FrameName or
             WorkerMpValueKind.VectorGroupName or
-            WorkerMpValueKind.ViewName => value.StringValue is not null,
-            WorkerMpValueKind.PointName => value.PointNameValue is not null,
-            WorkerMpValueKind.Vector => value.VectorValue is not null,
+            WorkerMpValueKind.ViewName => ((value.ReadValue() as WorkerTextValue)?.Value) is not null,
+            WorkerMpValueKind.PointName => (value.ReadValue() as WorkerPointNameValue) is not null,
+            WorkerMpValueKind.Vector => (value.ReadValue() as WorkerVectorValue) is not null,
             WorkerMpValueKind.ToleranceVectorOptions =>
-                value.ToleranceVectorOptionsValue is not null,
+                (value.ReadValue() as WorkerToleranceVectorOptionsValue) is not null,
             WorkerMpValueKind.CollectionInstrumentId =>
-                value.CollectionInstrumentIdValue is not null,
+                (value.ReadValue() as WorkerCollectionInstrumentIdValue) is not null,
             WorkerMpValueKind.CollectionInstrumentIdList =>
-                value.CollectionInstrumentIdListValue is not null,
+                (value.ReadValue() as WorkerCollectionInstrumentIdListValue) is not null,
             WorkerMpValueKind.CollectionMachineId =>
-                value.CollectionMachineIdValue is not null,
+                (value.ReadValue() as WorkerCollectionMachineIdValue) is not null,
             WorkerMpValueKind.CollectionItemName =>
-                value.CollectionItemNameValue is not null,
+                (value.ReadValue() as WorkerCollectionItemNameValue) is not null,
             WorkerMpValueKind.CollectionItemNameList =>
-                value.CollectionItemNameListValue is not null,
+                (value.ReadValue() as WorkerCollectionItemNameListValue) is not null,
             WorkerMpValueKind.CollectionObjectName =>
-                value.CollectionObjectNameValue is not null,
+                (value.ReadValue() as WorkerCollectionObjectNameValue) is not null,
             WorkerMpValueKind.CollectionObjectNameList =>
-                value.CollectionObjectNameListValue is not null,
+                (value.ReadValue() as WorkerCollectionObjectNameListValue) is not null,
             WorkerMpValueKind.CollectionGroupNameList =>
-                value.CollectionGroupNameListValue is not null,
+                (value.ReadValue() as WorkerCollectionGroupNameListValue) is not null,
             WorkerMpValueKind.CollectionVectorGroupName =>
-                value.CollectionVectorGroupNameValue is not null,
+                (value.ReadValue() as WorkerCollectionVectorGroupNameValue) is not null,
             WorkerMpValueKind.CollectionVectorGroupNameList =>
-                value.CollectionVectorGroupNameListValue is not null,
-            WorkerMpValueKind.PointNameList => value.PointNameListValue is not null,
-            WorkerMpValueKind.StringList => value.StringListValue is not null,
-            WorkerMpValueKind.VectorNameList => value.VectorNameListValue is not null,
+                (value.ReadValue() as WorkerCollectionVectorGroupNameListValue) is not null,
+            WorkerMpValueKind.PointNameList => (value.ReadValue() as WorkerPointNameListValue) is not null,
+            WorkerMpValueKind.StringList => (value.ReadValue() as WorkerStringListValue) is not null,
+            WorkerMpValueKind.VectorNameList => (value.ReadValue() as WorkerVectorNameListValue) is not null,
             _ => false
         };
 

@@ -27,7 +27,6 @@ internal static class GetDoubleVariableOperation
     public static Api.GetDoubleVariableResult CreateResult(SuccessfulOperationExecution completed) => new()
     {
         Execution = completed.Details,
-        Value = completed.Execution.OutputValues[0].DoubleValue ??
-            throw new InvalidOperationException("The double output is missing.")
+        Value = completed.Execution.OutputValues[0].RequireValue<WorkerDoubleValue>().Value
     };
 }

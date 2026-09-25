@@ -49,10 +49,10 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         Assert.True(result.MpSucceeded);
         Assert.Equal(3, result.OutputValues.Count);
         Assert.All(result.OutputValues, output => Assert.True(output.Retrieved));
-        Assert.Equal(1.25, result.OutputValues[0].DoubleValue);
-        Assert.Equal(3, result.OutputValues[2].VectorValue!.Z);
+        Assert.Equal(1.25, ((result.OutputValues[0].ReadValue() as WorkerDoubleValue)?.Value));
+        Assert.Equal(3, (result.OutputValues[2].ReadValue() as WorkerVectorValue)!.Z);
         Assert.True(
-            result.OutputValues[1].ToleranceVectorOptionsValue!.HighX.Enabled);
+            (result.OutputValues[1].ReadValue() as WorkerToleranceVectorOptionsValue)!.HighX.Enabled);
         Assert.Null(result.DiagnosticCode);
     }
 
@@ -156,7 +156,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
 
         var output = Assert.Single(result.OutputValues);
         Assert.False(output.Retrieved);
-        Assert.Null(output.StringValue);
+        Assert.Null(((output.ReadValue() as WorkerTextValue)?.Value));
         Assert.Equal("sdk-output-retrieval-failed", result.DiagnosticCode);
     }
     [Fact]
@@ -205,17 +205,17 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
 
         Assert.True(result.MpSucceeded);
         Assert.All(result.OutputValues, output => Assert.True(output.Retrieved));
-        Assert.Equal(17, result.OutputValues[0].CollectionInstrumentIdValue!.InstrumentId);
-        Assert.Equal(2, result.OutputValues[1].CollectionInstrumentIdListValue!.Values.Count);
-        Assert.Equal(WorkerItemTypeValue.Picture, result.OutputValues[3].CollectionItemNameValue!.ItemType);
-        Assert.Equal(WorkerItemTypeValue.SaReport, result.OutputValues[4].CollectionItemNameListValue!.Values[0].ItemType);
+        Assert.Equal(17, (result.OutputValues[0].ReadValue() as WorkerCollectionInstrumentIdValue)!.InstrumentId);
+        Assert.Equal(2, (result.OutputValues[1].ReadValue() as WorkerCollectionInstrumentIdListValue)!.Values.Count);
+        Assert.Equal(WorkerItemTypeValue.Picture, (result.OutputValues[3].ReadValue() as WorkerCollectionItemNameValue)!.ItemType);
+        Assert.Equal(WorkerItemTypeValue.SaReport, (result.OutputValues[4].ReadValue() as WorkerCollectionItemNameListValue)!.Values[0].ItemType);
         Assert.Equal(
             WorkerObjectTypeValue.PointGroup,
-            result.OutputValues[5].CollectionObjectNameValue!.ObjectType);
-        Assert.Equal(WorkerObjectTypeValue.PointGroup, result.OutputValues[6].CollectionObjectNameListValue!.Values[0].ObjectType);
-        Assert.Equal("Point B", result.OutputValues[7].PointNameListValue!.Values[1].TargetName);
-        Assert.Equal(["A", "B"], result.OutputValues[8].StringListValue!.Values);
-        Assert.Equal("Vector A", result.OutputValues[9].VectorNameListValue!.Values[0].VectorName);
+            (result.OutputValues[5].ReadValue() as WorkerCollectionObjectNameValue)!.ObjectType);
+        Assert.Equal(WorkerObjectTypeValue.PointGroup, (result.OutputValues[6].ReadValue() as WorkerCollectionObjectNameListValue)!.Values[0].ObjectType);
+        Assert.Equal("Point B", (result.OutputValues[7].ReadValue() as WorkerPointNameListValue)!.Values[1].TargetName);
+        Assert.Equal(["A", "B"], (result.OutputValues[8].ReadValue() as WorkerStringListValue)!.Values);
+        Assert.Equal("Vector A", (result.OutputValues[9].ReadValue() as WorkerVectorNameListValue)!.Values[0].VectorName);
         Assert.Equal("Picture", calls.StringArguments["Item"]);
         Assert.Equal("Point Group", calls.StringArguments["Object"]);
         Assert.Equal(["Collection::Report::SA Report"], calls.ReferenceArguments["Items"]);
@@ -243,7 +243,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
 
         var output = Assert.Single(result.OutputValues);
         Assert.False(output.Retrieved);
-        Assert.Null(output.PointNameListValue);
+        Assert.Null((output.ReadValue() as WorkerPointNameListValue));
         Assert.Equal("sdk-output-retrieval-failed", result.DiagnosticCode);
     }
 
@@ -265,7 +265,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
 
         var output = Assert.Single(result.OutputValues);
         Assert.False(output.Retrieved);
-        Assert.Null(output.CollectionObjectNameValue);
+        Assert.Null((output.ReadValue() as WorkerCollectionObjectNameValue));
         Assert.Equal(
             "sdk-output-collection-object-type-omitted",
             result.DiagnosticCode);
@@ -289,7 +289,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
 
         var output = Assert.Single(result.OutputValues);
         Assert.False(output.Retrieved);
-        Assert.Null(output.CollectionObjectNameValue);
+        Assert.Null((output.ReadValue() as WorkerCollectionObjectNameValue));
         Assert.Equal("sdk-output-getter-rejected", result.DiagnosticCode);
     }
 
@@ -314,7 +314,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         Assert.True(output.Retrieved);
         Assert.Equal(
             WorkerObjectTypeValue.Frame,
-            output.CollectionObjectNameValue!.ObjectType);
+            (output.ReadValue() as WorkerCollectionObjectNameValue)!.ObjectType);
         Assert.Null(result.DiagnosticCode);
     }
 
@@ -448,12 +448,12 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         Assert.Equal("US Survey Feet", calls.StringArguments["Distance"]);
         Assert.Equal("Celsius", calls.StringArguments["Temperature"]);
         Assert.Equal(("Segoe UI", (byte)12, (byte)10, (byte)20, (byte)30), calls.FontArgument);
-        Assert.Equal([1d, 2d, 3d], result.OutputValues[0].DoubleArrayValue!.Values);
-        Assert.Equal(["A", "", "C"], result.OutputValues[1].StringListValue!.Values);
-        Assert.Equal(15d, result.OutputValues[2].TransformValue!.Values[15]);
-        Assert.Equal(2.5, result.OutputValues[3].WorldTransformValue!.ScaleFactor);
-        Assert.Equal(@"C:\sensitive\model.xit", result.OutputValues[4].FileReferenceValue!.Path);
-        Assert.True(result.OutputValues[4].FileReferenceValue!.EmbeddedFile);
+        Assert.Equal([1d, 2d, 3d], (result.OutputValues[0].ReadValue() as WorkerDoubleArrayValue)!.Values);
+        Assert.Equal(["A", "", "C"], (result.OutputValues[1].ReadValue() as WorkerStringListValue)!.Values);
+        Assert.Equal(15d, (result.OutputValues[2].ReadValue() as WorkerTransformValue)!.Values[15]);
+        Assert.Equal(2.5, (result.OutputValues[3].ReadValue() as WorkerWorldTransformValue)!.ScaleFactor);
+        Assert.Equal(@"C:\sensitive\model.xit", (result.OutputValues[4].ReadValue() as WorkerFileReferenceValue)!.Path);
+        Assert.True((result.OutputValues[4].ReadValue() as WorkerFileReferenceValue)!.EmbeddedFile);
         Assert.True(calls.ContainerGettersReceivedVariantWrapper);
         Assert.Equal(3, calls.DoubleArrayRequestedSizes["Array Result"]);
         Assert.Equal(3, calls.DoubleArrayBufferSizes["Array Result"]);
@@ -509,11 +509,11 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
 
         var output = Assert.Single(result.OutputValues);
         Assert.False(output.Retrieved);
-        Assert.Null(output.DoubleArrayValue);
-        Assert.Null(output.StringListValue);
-        Assert.Null(output.TransformValue);
-        Assert.Null(output.WorldTransformValue);
-        Assert.Null(output.FileReferenceValue);
+        Assert.Null((output.ReadValue() as WorkerDoubleArrayValue));
+        Assert.Null((output.ReadValue() as WorkerStringListValue));
+        Assert.Null((output.ReadValue() as WorkerTransformValue));
+        Assert.Null((output.ReadValue() as WorkerWorldTransformValue));
+        Assert.Null((output.ReadValue() as WorkerFileReferenceValue));
         Assert.Equal("sdk-output-retrieval-failed", result.DiagnosticCode);
     }
 

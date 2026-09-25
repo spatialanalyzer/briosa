@@ -2,7 +2,7 @@ using System.Collections.Immutable;
 
 namespace Briosa.Worker.Control;
 
-public sealed record WorkerPointNameListValue
+public sealed record WorkerPointNameListValue : WorkerMpValue
 {
     public WorkerPointNameListValue(IReadOnlyList<WorkerPointNameValue> values)
     {

@@ -85,8 +85,7 @@ public sealed class TypedVariableOperationTests
     public async Task ListResultsPreserveValuesAndExecutionEvidence(int count)
     {
         var values = Enumerable.Range(0, count).Select(value => value * 0.25).ToArray();
-        var worker = new ResultWorker([new("Double List Variable", WorkerMpValueKind.DoubleArray,
-            Retrieved: true, DoubleArrayValue: new(values))]);
+        var worker = new ResultWorker([new WorkerRetrievedOutput("Double List Variable", WorkerMpValueKind.DoubleArray, new WorkerDoubleArrayValue(values))]);
         var result = await Executor(worker).ExecuteAsync(new Api.GetNamedDoubleListVariableRequest { Name = "values" },
             GetNamedDoubleListVariableOperation.Descriptor, GetNamedDoubleListVariableOperation.CreateCommand,
             GetNamedDoubleListVariableOperation.OutputContracts, GetNamedDoubleListVariableOperation.CreateResult,
@@ -101,8 +100,7 @@ public sealed class TypedVariableOperationTests
     [Fact]
     public async Task ZeroScalarResultRetainsProtobufPresence()
     {
-        var result = await Executor(new ResultWorker([new("Value", WorkerMpValueKind.FloatingPoint,
-            Retrieved: true, DoubleValue: 0)])).ExecuteAsync(new Api.GetDoubleVariableRequest(),
+        var result = await Executor(new ResultWorker([new WorkerRetrievedOutput("Value", WorkerMpValueKind.FloatingPoint, new WorkerDoubleValue(0))])).ExecuteAsync(new Api.GetDoubleVariableRequest(),
             GetDoubleVariableOperation.Descriptor, GetDoubleVariableOperation.CreateCommand,
             GetDoubleVariableOperation.OutputContracts, GetDoubleVariableOperation.CreateResult,
             CancellationToken.None);
@@ -110,13 +108,11 @@ public sealed class TypedVariableOperationTests
         Assert.Equal(0, result.Value);
     }
 
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task MissingListPayloadIsACompletedOutputFailure(bool retrieved)
+    [Fact]
+    public async Task MissingListPayloadIsACompletedOutputFailure()
     {
         var error = await Assert.ThrowsAsync<RpcException>(() =>
-            Executor(new ResultWorker([new("Double List Variable", WorkerMpValueKind.DoubleArray, retrieved)]))
+            Executor(new ResultWorker([new WorkerUnavailableOutput("Double List Variable", WorkerMpValueKind.DoubleArray)]))
                 .ExecuteAsync(new Api.GetNamedDoubleListVariableRequest(),
                     GetNamedDoubleListVariableOperation.Descriptor, GetNamedDoubleListVariableOperation.CreateCommand,
                     GetNamedDoubleListVariableOperation.OutputContracts, GetNamedDoubleListVariableOperation.CreateResult,
@@ -145,8 +141,8 @@ public sealed class TypedVariableOperationTests
     public void ReorderedOutputsAreRejectedBeforePositionalMapping()
     {
         var outcome = ResultWorker.Completed([
-            new("Maximum", WorkerMpValueKind.FloatingPoint, true, DoubleValue: 10),
-            new("Minimum", WorkerMpValueKind.FloatingPoint, true, DoubleValue: 1)]);
+            new WorkerRetrievedOutput("Maximum", WorkerMpValueKind.FloatingPoint, new WorkerDoubleValue(10)),
+            new WorkerRetrievedOutput("Minimum", WorkerMpValueKind.FloatingPoint, new WorkerDoubleValue(1))]);
         var error = Assert.Throws<RpcException>(() => GrpcOperationOutcomeMapper.RequireSuccess(outcome,
             "ordered-output", Api.ReplaySafety.Safe,
             [new("minimum", "Minimum", WorkerMpValueKind.FloatingPoint), new("maximum", "Maximum", WorkerMpValueKind.FloatingPoint)],
@@ -189,14 +185,14 @@ public sealed class TypedVariableOperationTests
                     outputs = [];
                     break;
                 case "variables.get_double_variable":
-                    outputs = [new("Value", WorkerMpValueKind.FloatingPoint, true, DoubleValue: _scalar)];
+                    outputs = [new WorkerRetrievedOutput("Value", WorkerMpValueKind.FloatingPoint, new WorkerDoubleValue(_scalar))];
                     break;
                 case "variables.set_named_double_list_variable":
                     _list = command.InputArguments[1].DoubleArrayValue!.Values;
                     outputs = [];
                     break;
                 case "variables.get_named_double_list_variable":
-                    outputs = [new("Double List Variable", WorkerMpValueKind.DoubleArray, true, DoubleArrayValue: new(_list))];
+                    outputs = [new WorkerRetrievedOutput("Double List Variable", WorkerMpValueKind.DoubleArray, new WorkerDoubleArrayValue(_list))];
                     break;
                 default:
                     throw new InvalidOperationException("Unexpected variable operation.");
