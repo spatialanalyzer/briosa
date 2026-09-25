@@ -125,7 +125,7 @@ internal sealed class SdkConnectionManager : IAsyncDisposable
                     SdkConnectionState.Faulted,
                     statusCode: null,
                     attempt: 0,
-                    "sdk-client-activation-failed");
+                    "sdk-client-activation-failed", failure: WorkerConnectionFailure.ActivationFailed);
             }
 
             return Current;
@@ -175,7 +175,7 @@ internal sealed class SdkConnectionManager : IAsyncDisposable
                             SdkConnectionState.Faulted,
                             statusCode: null,
                             attempt,
-                            "sdk-not-started");
+                            "sdk-not-started", failure: WorkerConnectionFailure.NotStarted);
                         return Current;
                     }
 
@@ -183,6 +183,7 @@ internal sealed class SdkConnectionManager : IAsyncDisposable
                 }
                 catch (Exception)
                 {
+                    var failure = _executor is null ? WorkerConnectionFailure.ActivationFailed : WorkerConnectionFailure.ConnectFailed;
                     var diagnosticCode = _executor is null
                         ? "sdk-client-activation-failed"
                         : "connect-ex-failed";
@@ -190,7 +191,7 @@ internal sealed class SdkConnectionManager : IAsyncDisposable
                     result = new SdkConnectionResult(
                         SdkConnectionStatus.Unavailable,
                         StatusCode: null,
-                        diagnosticCode);
+                        diagnosticCode, failure);
                 }
 
                 if (result.Status == SdkConnectionStatus.Connected)
@@ -212,7 +213,7 @@ internal sealed class SdkConnectionManager : IAsyncDisposable
                         result.StatusCode,
                         attempt,
                         failureCode,
-                        SdkExecutionReadinessState.Unverified);
+                        SdkExecutionReadinessState.Unverified, result.Failure);
                     return Current;
                 }
 
@@ -220,7 +221,7 @@ internal sealed class SdkConnectionManager : IAsyncDisposable
                     SdkConnectionState.Connecting,
                     result.StatusCode,
                     attempt,
-                    failureCode);
+                    failureCode, failure: result.Failure);
                 try
                 {
                     await Task.Delay(
@@ -287,7 +288,9 @@ internal sealed class SdkConnectionManager : IAsyncDisposable
                 liveness == SdkLivenessStatus.ProcessExited
                     ? "sdk-process-exited"
                     : "sdk-process-liveness-unavailable",
-                SdkExecutionReadinessState.Unverified);
+                SdkExecutionReadinessState.Unverified,
+                liveness == SdkLivenessStatus.ProcessExited
+                    ? WorkerConnectionFailure.ProcessExited : WorkerConnectionFailure.LivenessUnavailable);
             return Current;
         }
         finally
@@ -347,13 +350,13 @@ internal sealed class SdkConnectionManager : IAsyncDisposable
                 return Current;
             }
 
-            var diagnosticCode = ClassifyVerification(execution);
+            var verification = ClassifyVerification(execution);
             Transition(
                 SdkConnectionState.Connected,
                 observed.StatusCode,
                 observed.Attempt,
-                diagnosticCode,
-                diagnosticCode == "execution-readiness-verified"
+                verification.DiagnosticCode,
+                verification.Verified
                     ? SdkExecutionReadinessState.ExecutionReady
                     : SdkExecutionReadinessState.OperatorRecoveryRequired);
             return Current;
@@ -445,7 +448,8 @@ internal sealed class SdkConnectionManager : IAsyncDisposable
         int? statusCode,
         int attempt,
         string diagnosticCode,
-        SdkExecutionReadinessState? executionReadinessState = null)
+        SdkExecutionReadinessState? executionReadinessState = null,
+        WorkerConnectionFailure failure = WorkerConnectionFailure.None)
     {
         var snapshot = new SdkConnectionSnapshot(
             state,
@@ -456,7 +460,7 @@ internal sealed class SdkConnectionManager : IAsyncDisposable
             diagnosticCode,
             _timeProvider.GetUtcNow(),
             executionReadinessState ?? Current.ExecutionReadinessState,
-            _activatedSdkVersion);
+            _activatedSdkVersion, failure);
         lock (_historyLock)
         {
             _current = snapshot;
@@ -464,18 +468,18 @@ internal sealed class SdkConnectionManager : IAsyncDisposable
         }
     }
 
-    private static string ClassifyVerification(WorkerMpExecutionResult execution)
+    private static (bool Verified, string DiagnosticCode) ClassifyVerification(WorkerMpExecutionResult execution)
     {
         if (!execution.ExecuteStepReturned)
         {
-            return "execution-readiness-probe-rejected";
+            return (false, "execution-readiness-probe-rejected");
         }
 
         if (!execution.MpResultRetrieved ||
             !execution.MpSucceeded ||
             execution.MpResultCode != 2)
         {
-            return "execution-readiness-probe-mp-failed";
+            return (false, "execution-readiness-probe-mp-failed");
         }
 
         var output = execution.OutputValues.Count == 1
@@ -488,7 +492,7 @@ internal sealed class SdkConnectionManager : IAsyncDisposable
             Retrieved: true,
             Value: WorkerTextValue { Value: not null }
         }
-                ? "execution-readiness-verified"
-                : "execution-readiness-probe-output-invalid";
+                ? (true, "execution-readiness-verified")
+                : (false, "execution-readiness-probe-output-invalid");
     }
 }

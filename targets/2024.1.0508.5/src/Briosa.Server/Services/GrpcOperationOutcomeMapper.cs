@@ -601,8 +601,7 @@ internal static class GrpcOperationOutcomeMapper
         outcome.Connection is
         {
             ExecutionReadinessState: not WorkerExecutionReadinessState.ExecutionReady
-        } ||
-        outcome.DiagnosticCode.StartsWith("sdk-connection-", StringComparison.Ordinal);
+        };
 
     private static string NormalizeDiagnosticCode(string? value, string fallback) =>
         !string.IsNullOrWhiteSpace(value) && value.All(character =>

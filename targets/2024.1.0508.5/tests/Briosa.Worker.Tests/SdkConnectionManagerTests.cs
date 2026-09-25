@@ -282,6 +282,7 @@ public sealed class SdkConnectionManagerTests
         Assert.Equal(SdkConnectionState.Faulted, connection.State);
         Assert.Equal(0, connection.Attempt);
         Assert.Equal("sdk-client-activation-failed", connection.DiagnosticCode);
+        Assert.Equal(WorkerConnectionFailure.ActivationFailed, connection.Failure);
         Assert.Equal(1, activations);
     }
 

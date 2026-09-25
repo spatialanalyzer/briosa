@@ -11,4 +11,5 @@ internal sealed record SdkConnectionSnapshot(
     DateTimeOffset TransitionedAt,
     SdkExecutionReadinessState ExecutionReadinessState =
         SdkExecutionReadinessState.Unverified,
-    string? ActivatedSdkVersion = null);
+    string? ActivatedSdkVersion = null,
+    WorkerConnectionFailure Failure = WorkerConnectionFailure.None);

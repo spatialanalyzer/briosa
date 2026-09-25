@@ -48,7 +48,7 @@ internal static class TestWorkerProcess
             var connection = options.Scenario switch
             {
                 TestWorkerScenario.SdkActivationFailed =>
-                    FaultedSnapshot("sdk-client-activation-failed"),
+                    FaultedSnapshot("fake-start-rejected", WorkerConnectionFailure.ActivationFailed),
                 TestWorkerScenario.Disconnected or
                     TestWorkerScenario.ConnectUnavailableOnce or
                     TestWorkerScenario.HangOnConnect or
@@ -113,7 +113,8 @@ internal static class TestWorkerProcess
                                 State = WorkerConnectionState.Faulted,
                                 ExecutionReadinessState =
                                     WorkerExecutionReadinessState.Unverified,
-                                DiagnosticCode = "sdk-process-exited",
+                                DiagnosticCode = "fake-engine-ended",
+                                Failure = WorkerConnectionFailure.ProcessExited,
                                 TransitionedAt = DateTimeOffset.UtcNow
                             };
                         }
@@ -364,7 +365,7 @@ internal static class TestWorkerProcess
                     Version: null,
                     WorkerRuntimeIdentityEvidenceSource.Unavailable)));
 
-    private static WorkerConnectionSnapshot FaultedSnapshot(string diagnosticCode) =>
+    private static WorkerConnectionSnapshot FaultedSnapshot(string diagnosticCode, WorkerConnectionFailure failure = WorkerConnectionFailure.None) =>
         new(
             WorkerConnectionState.Faulted,
             WorkerExecutionReadinessState.Unverified,
@@ -379,7 +380,7 @@ internal static class TestWorkerProcess
                     WorkerRuntimeIdentityEvidenceSource.Unavailable),
                 new WorkerRuntimeIdentityEvidence(
                     Version: null,
-                    WorkerRuntimeIdentityEvidenceSource.Unavailable)));
+                    WorkerRuntimeIdentityEvidenceSource.Unavailable)), Failure: failure);
 
     private static void WriteRecord(string? path, LifecycleRecord record)
     {

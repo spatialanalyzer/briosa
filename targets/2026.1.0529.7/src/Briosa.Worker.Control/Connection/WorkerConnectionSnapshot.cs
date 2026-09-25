@@ -8,4 +8,5 @@ public sealed record WorkerConnectionSnapshot(
     int MaximumAttempts,
     string DiagnosticCode,
     DateTimeOffset TransitionedAt,
-    WorkerRuntimeIdentitySnapshot? RuntimeIdentity = null);
+    WorkerRuntimeIdentitySnapshot? RuntimeIdentity = null,
+    WorkerConnectionFailure Failure = WorkerConnectionFailure.None);

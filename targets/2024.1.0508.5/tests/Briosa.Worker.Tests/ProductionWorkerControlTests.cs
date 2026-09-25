@@ -6,6 +6,43 @@ namespace Briosa.Worker.Tests;
 
 public sealed class ProductionWorkerControlTests
 {
+    [Theory]
+    [InlineData((int)SdkLivenessStatus.Alive, WorkerConnectionFailure.None)]
+    [InlineData((int)SdkLivenessStatus.ProcessExited, WorkerConnectionFailure.ProcessExited)]
+    [InlineData((int)SdkLivenessStatus.Unavailable, WorkerConnectionFailure.LivenessUnavailable)]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "The connection manager owns and disposes the injected SDK on its STA.")]
+    public async Task LivenessFailureCategorySurvivesThePrivateChannel(int liveness, WorkerConnectionFailure expected)
+    {
+        var sdk = new ControlledSdk { Liveness = (SdkLivenessStatus)liveness };
+        var manager = new SdkConnectionManager("localhost",
+            new SdkConnectionPolicy(1, TimeSpan.Zero), () => sdk);
+        await using var lifetime = manager.ConfigureAwait(false);
+        await manager.StartAsync();
+        var observed = await manager.ProbeLivenessAsync();
+        var connection = WorkerControlHost.ToControlSnapshot(observed) with { DiagnosticCode = "arbitrary-description" };
+        using var stream = new MemoryStream();
+        using var channel = new WorkerControlChannel(stream, leaveOpen: true);
+        await channel.SendAsync(WorkerControlMessage.Pong(Guid.NewGuid(), connection));
+        stream.Position = 0;
+        var decoded = (await channel.ReceiveAsync()).Connection!;
+        Assert.Equal(expected, observed.Failure);
+        Assert.Equal(expected, decoded.Failure);
+        Assert.Equal("arbitrary-description", decoded.DiagnosticCode);
+    }
+
+    [Theory]
+    [InlineData(WorkerConnectionState.Faulted, (WorkerConnectionFailure)999)]
+    [InlineData(WorkerConnectionState.Connected, WorkerConnectionFailure.ProcessExited)]
+    public void InvalidConnectionFailureEvidenceIsRejectedBeforeWrite(WorkerConnectionState state, WorkerConnectionFailure failure)
+    {
+        using var stream = new MemoryStream();
+        using var channel = new WorkerControlChannel(stream);
+        var connection = new WorkerConnectionSnapshot(state, WorkerExecutionReadinessState.Unverified,
+            null, 0, 1, "test", DateTimeOffset.UnixEpoch, Failure: failure);
+        Assert.Throws<WorkerMessageRejectedException>(() => channel.Send(WorkerControlMessage.Pong(Guid.NewGuid(), connection)));
+        Assert.Equal(0, stream.Length);
+    }
+
     [Fact]
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "The serialized executor owns and disposes the injected SDK on its STA.")]
     public async Task SerializedExecutorPassesTheOwnedCommandDirectlyToTheSdk()
@@ -99,7 +136,8 @@ public sealed class ProductionWorkerControlTests
             Threads.Add(Environment.CurrentManagedThreadId);
             AllCallsOnSta &= Thread.CurrentThread.GetApartmentState() == ApartmentState.STA;
         }
-        public SdkLivenessStatus GetLiveness() { Observe(); return SdkLivenessStatus.Alive; }
+        public SdkLivenessStatus Liveness { get; init; } = SdkLivenessStatus.Alive;
+        public SdkLivenessStatus GetLiveness() { Observe(); return Liveness; }
         public string? GetActivatedSdkVersion() { Observe(); return null; }
         public SdkConnectionResult Connect(string host) { Observe(); return new(SdkConnectionStatus.Connected, 0, null); }
         public WorkerMpExecutionResult Execute(WorkerMpCommand command)
