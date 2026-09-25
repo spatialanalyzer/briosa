@@ -2,6 +2,7 @@
 
 Status: in development; not a released compatibility claim.
 Server implementation task: [#220](https://github.com/spatialanalyzer/briosa/issues/220).
+Typed runtime follow-on: [#221](https://github.com/spatialanalyzer/briosa/issues/221).
 
 Both independent SA targets declare compatibility major 2, revision 0. Packages
 for the two SA releases remain independent; protobuf package names remain
@@ -44,6 +45,19 @@ TCP-fixture workflows. The licensed validation record must state which scenarios
 were actually run for each SA release.
 
 ## Coordinated product work
+
+Implementation tasks: [.NET #35](https://github.com/spatialanalyzer/briosa-dotnet/issues/35),
+[JavaScript #36](https://github.com/spatialanalyzer/briosa-js/issues/36),
+[Python #35](https://github.com/spatialanalyzer/briosa-py/issues/35),
+[Installer #22](https://github.com/spatialanalyzer/briosa-installer/issues/22),
+[Documentation #80](https://github.com/spatialanalyzer/briosa-docs/issues/80), and
+[Examples #9](https://github.com/spatialanalyzer/briosa-examples/issues/9).
+
+The initial client migration has local portable evidence for both targets:
+340 unit tests, 72 packaged fake-SDK scenarios, and six expected rejections of
+the retained Server 0.6.1 build. These are development packages; no new package
+has been published. Installer validation, documentation snapshots, examples,
+and the remaining internal runtime redesign are still in progress.
 
 - .NET, JavaScript/TypeScript, and Python: import the exact protocol artifacts for
   both targets, regenerate transports, adopt major 2 in selection and handshake

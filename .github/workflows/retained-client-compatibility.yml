@@ -1,11 +1,11 @@
-name: Retained published-client compatibility
+name: Client compatibility and rejection
 on:
   workflow_call:
     inputs:
       server-version:
         required: true
         type: string
-      pull-request-bootstrap:
+      allow-source-candidates:
         default: false
         type: boolean
 permissions:
@@ -15,25 +15,19 @@ jobs:
     runs-on: windows-latest
     outputs:
       matrix: ${{ steps.policy.outputs.matrix }}
-      bootstrap: ${{ steps.policy.outputs.bootstrap }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - id: policy
         shell: pwsh
         env:
           SERVER_VERSION: ${{ inputs.server-version }}
-          PR_BOOTSTRAP: ${{ inputs.pull-request-bootstrap }}
+          ALLOW_SOURCE_CANDIDATES: ${{ inputs.allow-source-candidates }}
         run: |
           Import-Module ./eng/RetainedClientPolicy.psm1
-          $plan = Get-RetainedClientMatrix -Path compatibility/retained-clients.json -ServerVersion $env:SERVER_VERSION -PullRequest:($env:PR_BOOTSTRAP -eq 'true')
+          $plan = Get-RetainedClientMatrix -Path compatibility/retained-clients.json -ServerVersion $env:SERVER_VERSION -AllowSourceCandidates:($env:ALLOW_SOURCE_CANDIDATES -eq 'true')
           "matrix=$(@{ include = @($plan.include) } | ConvertTo-Json -Depth 8 -Compress)" >> $env:GITHUB_OUTPUT
-          "bootstrap=$($plan.bootstrap.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
-          if ($plan.bootstrap) {
-            'Bootstrap: no contract-aware client has been published yet; this is not published-client validation.' >> $env:GITHUB_STEP_SUMMARY
-          }
   conformance:
     needs: policy
-    if: needs.policy.outputs.bootstrap == 'false'
     runs-on: windows-latest
     timeout-minutes: 30
     strategy:
@@ -44,7 +38,7 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           repository: ${{ matrix.repository }}
-          ref: ${{ matrix.sourceRevision }}
+          ref: ${{ matrix.fixtureSourceRevision }}
           path: retained-client
           persist-credentials: false
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
@@ -67,19 +61,61 @@ jobs:
         if: matrix.language == 'js'
         working-directory: retained-client/targets/${{ matrix.target }}
         run: npm ci --ignore-scripts
-      - name: Verify and exercise retained package
+      - name: Build source candidate package
+        if: matrix.published == false
+        working-directory: retained-client/targets/${{ matrix.target }}
+        shell: pwsh
+        env:
+          CLIENT_LANGUAGE: ${{ matrix.language }}
+        run: |
+          switch ($env:CLIENT_LANGUAGE) {
+            'dotnet' {
+              dotnet restore Briosa.DotNet.slnx --locked-mode
+              if ($LASTEXITCODE -ne 0) { throw 'Candidate restore failed.' }
+              dotnet pack src/Briosa.Client/Briosa.Client.csproj -c Release --no-restore -o artifacts/package
+              if ($LASTEXITCODE -ne 0) { throw 'Candidate pack failed.' }
+            }
+            'js' {
+              npm run build
+              if ($LASTEXITCODE -ne 0) { throw 'Candidate build failed.' }
+              npm pack
+              if ($LASTEXITCODE -ne 0) { throw 'Candidate pack failed.' }
+            }
+            'py' {
+              python -m pip install build==1.2.2.post1
+              if ($LASTEXITCODE -ne 0) { throw 'Candidate tooling install failed.' }
+              python -m build
+              if ($LASTEXITCODE -ne 0) { throw 'Candidate build failed.' }
+            }
+            default { throw 'Unknown client language.' }
+          }
+      - name: Verify and exercise package
         shell: pwsh
         env:
           CLIENT_URL: ${{ matrix.url }}
           CLIENT_FILE: ${{ matrix.fileName }}
           CLIENT_SHA: ${{ matrix.sha256 }}
           CLIENT_VERSION: ${{ matrix.version }}
+          CLIENT_REVISION: ${{ matrix.sourceRevision }}
+          CLIENT_LANGUAGE: ${{ matrix.language }}
+          CLIENT_PUBLISHED: ${{ matrix.published }}
+          EXPECT_INCOMPATIBLE: ${{ matrix.expectIncompatible }}
+          CLIENT_CONTRACT_MAJOR: ${{ matrix.requiredContract.major }}
           SA_TARGET: ${{ matrix.target }}
           SERVER_VERSION: ${{ inputs.server-version }}
         run: |
-          $package = Join-Path $PWD $env:CLIENT_FILE
-          Invoke-WebRequest $env:CLIENT_URL -OutFile $package
-          if ((Get-FileHash $package -Algorithm SHA256).Hash.ToLowerInvariant() -cne $env:CLIENT_SHA) { throw 'Client artifact digest mismatch.' }
+          if ($env:CLIENT_PUBLISHED -eq 'true') {
+            $package = Join-Path $PWD $env:CLIENT_FILE
+            Invoke-WebRequest $env:CLIENT_URL -OutFile $package
+            if ((Get-FileHash $package -Algorithm SHA256).Hash.ToLowerInvariant() -cne $env:CLIENT_SHA) { throw 'Client artifact digest mismatch.' }
+          }
+          else {
+            $pattern = @{ dotnet = 'artifacts/package/*.nupkg'; js = '*.tgz'; py = 'dist/*.whl' }[$env:CLIENT_LANGUAGE]
+            $packages = @(Get-ChildItem "retained-client/targets/$env:SA_TARGET/$pattern" -File)
+            if ($packages.Count -ne 1) { throw 'Expected one source candidate package.' }
+            $package = $packages[0].FullName
+            $env:CLIENT_SHA = (Get-FileHash $package -Algorithm SHA256).Hash.ToLowerInvariant()
+          }
           $name = "briosa-client-conformance-$env:SERVER_VERSION-sa-$env:SA_TARGET-win-x64"
           $artifact = Join-Path $PWD "server-artifacts/$name.zip"
           $provenance = Get-Content "server-artifacts/$name.provenance.json" -Raw | ConvertFrom-Json
@@ -102,15 +138,18 @@ jobs:
             ClientPackagePath = $package; ClientPackageSha256 = $env:CLIENT_SHA; ClientVersion = $env:CLIENT_VERSION
             PublishedPackageUrl = $env:CLIENT_URL; ArtifactPath = $artifact; LockPath = $lockPath
             EvidencePath = (Join-Path $PWD 'compatibility-evidence.json')
+            ClientSourceRevision = $env:CLIENT_REVISION
+            RequiredContractMajor = [int]$env:CLIENT_CONTRACT_MAJOR
+            ExpectIncompatible = $env:EXPECT_INCOMPATIBLE -eq 'true'
           }
-          # Resolve tooling from the retained client's target, including its global.json.
-          # The server checkout may require a different SDK from the published client.
+          # Fixture source and package source are separately pinned. The fixture
+          # uses the public API from an isolated verified package installation.
           Push-Location (Join-Path $PWD "retained-client/targets/$env:SA_TARGET")
           try { & ./eng/Test-PublishedClientConformance.ps1 @arguments }
           finally { Pop-Location }
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: retained-${{ matrix.language }}-${{ matrix.target }}-${{ matrix.version }}
+          name: compatibility-${{ matrix.language }}-${{ matrix.target }}-${{ matrix.version }}
           path: compatibility-evidence.json
           if-no-files-found: error
           retention-days: 90
@@ -122,9 +161,8 @@ jobs:
       - shell: pwsh
         env:
           POLICY: ${{ needs.policy.result }}
-          BOOTSTRAP: ${{ needs.policy.outputs.bootstrap }}
           CONFORMANCE: ${{ needs.conformance.result }}
         run: |
-          if ($env:POLICY -ne 'success' -or ($env:BOOTSTRAP -ne 'true' -and $env:CONFORMANCE -ne 'success')) {
+          if ($env:POLICY -ne 'success' -or $env:CONFORMANCE -ne 'success') {
             throw 'Retained-client compatibility gate failed.'
           }
