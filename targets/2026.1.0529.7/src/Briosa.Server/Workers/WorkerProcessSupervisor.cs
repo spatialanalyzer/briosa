@@ -228,14 +228,14 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
             {
                 await RetireWorker(
                     "connect-ex-timeout",
-                    connecting).ConfigureAwait(false);
+                    connecting, lifecycleFailure: WorkerLifecycleFailure.ConnectionTimeout).ConfigureAwait(false);
                 return false;
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
                 await RetireWorker(
                     "connect-ex-cancelled",
-                    connecting).ConfigureAwait(false);
+                    connecting, lifecycleFailure: WorkerLifecycleFailure.Cancelled).ConfigureAwait(false);
                 throw;
             }
             catch (Exception exception) when (IsRecoverableProcessFailure(exception))
@@ -244,7 +244,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                     worker.HasExited
                         ? "worker-exited-during-connect"
                         : "sdk-connection-control-failed",
-                    connecting).ConfigureAwait(false);
+                    connecting, lifecycleFailure: WorkerLifecycleFailure.ConnectionFailed).ConfigureAwait(false);
                 return false;
             }
 
@@ -255,7 +255,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                 {
                     await RetireWorker(
                         connection.DiagnosticCode,
-                        connection).ConfigureAwait(false);
+                        connection, lifecycleFailure: WorkerLifecycleFailure.ConnectionFailed).ConfigureAwait(false);
                 }
                 else
                 {
@@ -264,7 +264,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                         _reportedProcessId,
                         current.LastTermination,
                         connection.DiagnosticCode,
-                        connection);
+                        connection, lifecycleFailure: WorkerLifecycleFailure.ConnectionFailed);
                 }
 
                 return false;
@@ -282,7 +282,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                         ExecutionReadinessState = WorkerExecutionReadinessState.Unverified,
                         DiagnosticCode = "runtime-identity-not-ready",
                         TransitionedAt = _timeProvider.GetUtcNow()
-                    });
+                    }, lifecycleFailure: WorkerLifecycleFailure.IdentityRejected);
                 return false;
             }
 
@@ -988,7 +988,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                     WorkerLifecycleState.Stopped,
                     processId: null,
                     WorkerTerminationKind.Forced,
-                    "worker-startup-cancelled");
+                    "worker-startup-cancelled", lifecycleFailure: WorkerLifecycleFailure.Cancelled);
                 throw;
             }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
@@ -1000,7 +1000,8 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                     WorkerTerminationKind.Forced,
                     "worker-startup-timeout",
                     incident: new WorkerIncidentSnapshot(_generation, WorkerTerminationKind.Forced,
-                        null, null, "worker-startup-timeout", WorkerIncidentKind.StartFailed));
+                        null, null, "worker-startup-timeout", WorkerIncidentKind.StartFailed),
+                    lifecycleFailure: WorkerLifecycleFailure.StartupTimeout);
                 return false;
             }
             catch (Exception exception) when (IsRecoverableProcessFailure(exception))
@@ -1015,7 +1016,8 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                     termination,
                     "worker-startup-failed",
                     incident: new WorkerIncidentSnapshot(_generation, termination,
-                        null, null, "worker-startup-failed", WorkerIncidentKind.StartFailed));
+                        null, null, "worker-startup-failed", WorkerIncidentKind.StartFailed),
+                    lifecycleFailure: WorkerLifecycleFailure.StartupFailed);
                 return false;
             }
         }
@@ -1037,7 +1039,8 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                     WorkerTerminationKind.Forced,
                     ExecutionDisposition: null,
                     OperationId: null,
-                    diagnosticCode, WorkerIncidentKind.StartFailed));
+                    diagnosticCode, WorkerIncidentKind.StartFailed),
+                lifecycleFailure: WorkerLifecycleFailure.StartupFailed);
             return false;
         }
 
@@ -1064,7 +1067,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                     ExecutionReadinessState = WorkerExecutionReadinessState.Unverified,
                     DiagnosticCode = "runtime-identity-not-ready",
                     TransitionedAt = _timeProvider.GetUtcNow()
-                });
+                }, lifecycleFailure: WorkerLifecycleFailure.IdentityRejected);
             return true;
         }
 
@@ -1135,7 +1138,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                 attachedConnection,
                 WorkerTerminationKind.Forced,
                 "execution-readiness-probe-timeout",
-                competingClientSuspected: true).ConfigureAwait(false);
+                competingClientSuspected: true, failure: WorkerLifecycleFailure.ReadinessTimeout).ConfigureAwait(false);
             return false;
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -1144,7 +1147,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                 attachedConnection,
                 WorkerTerminationKind.Forced,
                 "execution-readiness-probe-cancelled",
-                competingClientSuspected: true).ConfigureAwait(false);
+                competingClientSuspected: true, failure: WorkerLifecycleFailure.Cancelled).ConfigureAwait(false);
             throw;
         }
         catch (Exception exception) when (IsRecoverableProcessFailure(exception))
@@ -1167,7 +1170,8 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         WorkerConnectionSnapshot connection,
         WorkerTerminationKind termination,
         string diagnosticCode,
-        bool competingClientSuspected)
+        bool competingClientSuspected,
+        WorkerLifecycleFailure failure = WorkerLifecycleFailure.ReadinessFailed)
     {
         if (competingClientSuspected)
         {
@@ -1182,7 +1186,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                         WorkerExecutionReadinessState.CompetingClientSuspected,
                     DiagnosticCode = diagnosticCode,
                     TransitionedAt = _timeProvider.GetUtcNow()
-                });
+                }, lifecycleFailure: failure);
         }
 
         if (!await CleanupWorker(force: true).ConfigureAwait(false)) return;
@@ -1197,7 +1201,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                     WorkerExecutionReadinessState.OperatorRecoveryRequired,
                 DiagnosticCode = diagnosticCode,
                 TransitionedAt = _timeProvider.GetUtcNow()
-            });
+            }, lifecycleFailure: failure);
     }
 
     private async Task<(bool Healthy, string DiagnosticCode, WorkerConnectionSnapshot? Connection)> ProbeWorker()
@@ -1254,7 +1258,8 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         WorkerConnectionSnapshot? connection = null,
         string? operationId = null,
         WorkerExecutionDisposition? executionDisposition = null,
-        WorkerIncidentKind? incidentKind = null)
+        WorkerIncidentKind? incidentKind = null,
+        WorkerLifecycleFailure lifecycleFailure = WorkerLifecycleFailure.None)
     {
         var termination = _processLifetime is { ReleaseStarted: false } && Worker?.HasExited == true
             ? WorkerTerminationKind.Crash
@@ -1283,7 +1288,8 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                 termination,
                 executionDisposition,
                 operationId,
-                diagnosticCode, incidentKind ?? ClassifyIncident(termination, faultedConnection?.Failure)));
+                diagnosticCode, incidentKind ?? ClassifyIncident(termination, faultedConnection?.Failure)),
+            lifecycleFailure: lifecycleFailure);
         await CleanupWorker(force: true).ConfigureAwait(false);
     }
 
@@ -1303,12 +1309,14 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
             return;
         }
 
+        var failure = WorkerLifecycleFailure.None;
         var termination = WorkerTerminationKind.Graceful;
         var diagnosticCode = "worker-stopped";
         if (worker.HasExited)
         {
             termination = WorkerTerminationKind.Crash;
             diagnosticCode = "worker-already-exited";
+            failure = WorkerLifecycleFailure.StopFailed;
         }
         else
         {
@@ -1336,6 +1344,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
             {
                 termination = WorkerTerminationKind.Forced;
                 diagnosticCode = StopDiagnosticCode(stopPhase, "timeout");
+                failure = WorkerLifecycleFailure.StopTimeout;
             }
             catch (Exception exception) when (IsRecoverableProcessFailure(exception))
             {
@@ -1343,6 +1352,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                     ? WorkerTerminationKind.Crash
                     : WorkerTerminationKind.Forced;
                 diagnosticCode = StopDiagnosticCode(stopPhase, "failed");
+                failure = WorkerLifecycleFailure.StopFailed;
             }
         }
 
@@ -1352,7 +1362,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
             WorkerLifecycleState.Stopped,
             processId: null,
             termination,
-            diagnosticCode);
+            diagnosticCode, lifecycleFailure: failure);
     }
 
     private async Task<bool> CleanupWorker(bool force)
@@ -1374,7 +1384,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
                     ExecutionReadinessState = WorkerExecutionReadinessState.OperatorRecoveryRequired,
                     DiagnosticCode = diagnostic,
                     TransitionedAt = _timeProvider.GetUtcNow()
-                } : null, cleanupStatus: status);
+                } : null, cleanupStatus: status, lifecycleFailure: WorkerLifecycleFailure.CleanupIncomplete);
             return false;
         }
 
@@ -1390,7 +1400,8 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
         string diagnosticCode,
         WorkerConnectionSnapshot? connection = null,
         WorkerIncidentSnapshot? incident = null,
-        WorkerCleanupStatus? cleanupStatus = null)
+        WorkerCleanupStatus? cleanupStatus = null,
+        WorkerLifecycleFailure lifecycleFailure = WorkerLifecycleFailure.None)
     {
         var snapshot = new WorkerLifecycleSnapshot(
             state,
@@ -1409,7 +1420,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
             ApplicationGeneration: connection?.State == WorkerConnectionState.Connected
                 ? (Current.Generation == _generation ? Current.ApplicationGeneration : null)
                 : null,
-            CleanupStatus: cleanupStatus);
+            CleanupStatus: cleanupStatus, LifecycleFailure: lifecycleFailure);
         PublishSnapshot(snapshot);
     }
 

@@ -16,8 +16,13 @@ internal sealed record WorkerLifecycleSnapshot(
     WorkerIncidentSnapshot? LastIncident = null,
     bool AdmissionOpen = false,
     int? ApplicationGeneration = null,
-    WorkerCleanupStatus? CleanupStatus = null)
+    WorkerCleanupStatus? CleanupStatus = null,
+    WorkerLifecycleFailure LifecycleFailure = WorkerLifecycleFailure.None)
 {
+    public bool LifecycleTimedOut => LifecycleFailure is
+        WorkerLifecycleFailure.StartupTimeout or WorkerLifecycleFailure.ConnectionTimeout or
+        WorkerLifecycleFailure.ReadinessTimeout or WorkerLifecycleFailure.StopTimeout;
+
     public bool ReadyForExecution =>
         State == WorkerLifecycleState.Ready && AdmissionOpen &&
         Connection is
