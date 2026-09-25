@@ -7,8 +7,6 @@ using Briosa.Server.Operations;
 
 namespace Briosa.Server.Services;
 
-internal sealed record SpatialAnalyzerInstallation(string? ExecutablePath, string? DiagnosticCode);
-
 internal static class SpatialAnalyzerInstallationDiscovery
 {
     private const string ExecutableName = "Spatial Analyzer64.exe";

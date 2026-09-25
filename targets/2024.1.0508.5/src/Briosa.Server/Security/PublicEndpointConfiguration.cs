@@ -3,8 +3,6 @@ using System.Net;
 
 namespace Briosa.Server.Security;
 
-internal sealed record PublicEndpoint(IPAddress Address, int Port);
-
 internal static class PublicEndpointConfiguration
 {
     internal const string AddressKey = "Briosa:Endpoint:Address";

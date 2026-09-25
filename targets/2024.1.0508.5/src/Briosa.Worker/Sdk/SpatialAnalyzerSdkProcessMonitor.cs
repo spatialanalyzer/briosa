@@ -4,16 +4,6 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Briosa.Worker.Sdk;
 
-internal interface ISpatialAnalyzerSdkProcessMonitor : IDisposable
-{
-    SdkLivenessStatus GetLiveness();
-    string? GetVersion() => null;
-}
-
-internal sealed record SpatialAnalyzerSdkActivation(
-    ISpatialAnalyzerSdkCalls Sdk,
-    ISpatialAnalyzerSdkProcessMonitor ProcessMonitor);
-
 internal static class SpatialAnalyzerSdkProcessMonitor
 {
     private const string ProcessName = "SpatialAnalyzerSDK";
@@ -177,17 +167,5 @@ internal static class SpatialAnalyzerSdkProcessMonitor
         }
 
         public void Dispose() => _process.Dispose();
-    }
-}
-
-internal sealed class AlwaysAliveSpatialAnalyzerSdkProcessMonitor
-    : ISpatialAnalyzerSdkProcessMonitor
-{
-    public static AlwaysAliveSpatialAnalyzerSdkProcessMonitor Instance { get; } = new();
-
-    public SdkLivenessStatus GetLiveness() => SdkLivenessStatus.Alive;
-
-    public void Dispose()
-    {
     }
 }

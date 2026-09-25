@@ -322,3 +322,15 @@ Every write still reserves its bounded record under the cross-process lock and
 checks the current directory budget. Concurrent-instance, age, rotation, and
 single-file quota tests pass for both targets. The repeated full-path run remained
 healthy; mixed latency variation does not establish a general logging speedup.
+
+## Production File Organization
+
+The remaining files containing multiple top-level types have been split into
+matching files. This separates process interfaces, identity evidence, policy
+decisions, logging health, lifecycle exceptions, desktop messages, and operation
+contracts. Private implementation types remain with their sole owner where useful;
+generated protobuf files remain generated.
+
+For each target, 65 declarations from 22 files were checked for syntax equivalence
+after extraction. Unused imports were removed. All 1,074 portable tests passed
+with the new layout, including the desktop and lifecycle suites.
