@@ -286,3 +286,18 @@ All portable suites pass: 557 tests for 2024 and 517 for 2026, including changed
 fake-worker diagnostics, misleading incident text, failure round trips, and
 contradictory evidence. Worker tests were rerun after correcting async analyzer
 findings in the new tests. No licensed SpatialAnalyzer validation is claimed.
+
+## Removing CLR Reflection from Remaining Mappings
+
+The retained interpreter now creates messages through generated protobuf parsers
+and writes repeated values through the collection interface. It no longer uses
+`Activator.CreateInstance`, enumerates `Add` methods, or invokes a reflected method
+for each returned element. This intermediate cleanup still interprets protobuf
+descriptors and allocates boxed values; concrete operation migration remains required.
+
+All catalog and typed-slice mapping tests passed (36 for 2024, 35 for 2026).
+A local 2026 Release microbenchmark measured validated mapping of 4,096 doubles
+at approximately 150 microseconds before and 62–65 microseconds after, with
+allocation falling from about 330 KB to 198 KB. The handwritten typed mapping
+remained substantially cheaper. These are mapping-only measurements; they do
+not establish gRPC throughput or SpatialAnalyzer execution performance.
