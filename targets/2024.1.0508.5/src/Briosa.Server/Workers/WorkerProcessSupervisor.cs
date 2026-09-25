@@ -1449,7 +1449,7 @@ internal sealed partial class WorkerProcessSupervisor : IWorkerCommandExecutor, 
 
     private static WorkerExecutionDisposition ClassifyExecutionDisposition(
         WorkerMpExecutionResult execution) =>
-        execution.DiagnosticCode == "sdk-argument-rejected"
+        execution is WorkerArgumentsRejected
             ? WorkerExecutionDisposition.NotStarted
             : execution.MpResultRetrieved
                 ? WorkerExecutionDisposition.Completed

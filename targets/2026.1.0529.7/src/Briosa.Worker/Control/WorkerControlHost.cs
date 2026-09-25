@@ -381,7 +381,7 @@ internal static partial class WorkerControlHost
         new(value.Enabled, value.Value);
 
     internal static WorkerMpExecutionResult ToControlResult(SdkExecutionResult execution) =>
-        new(
+        WorkerMpExecutionResult.FromEvidence(
             execution.ExecuteStepReturned,
             execution.MpResult.Retrieved,
             execution.MpResult.Succeeded,

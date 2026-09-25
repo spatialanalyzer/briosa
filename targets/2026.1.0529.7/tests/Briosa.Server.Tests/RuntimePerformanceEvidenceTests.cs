@@ -140,13 +140,13 @@ public sealed class RuntimePerformanceEvidenceTests
         var outcome = new WorkerExecutionOutcome(
             WorkerExecutionStatus.Completed,
             WorkerExecutionDisposition.Completed,
-            new WorkerMpExecutionResult(
-                ExecuteStepReturned: true,
-                MpResultRetrieved: true,
-                MpSucceeded: true,
-                MpResultCode: 2,
-                DurationMilliseconds: 0,
-                OutputValues:
+            WorkerMpExecutionResult.FromEvidence(
+                executeStepReturned: true,
+                mpResultRetrieved: true,
+                mpSucceeded: true,
+                mpResultCode: 2,
+                durationMilliseconds: 0,
+                outputValues:
                 [
                     new WorkerMpOutputValue(
                         "Directory",
@@ -154,7 +154,7 @@ public sealed class RuntimePerformanceEvidenceTests
                         Retrieved: true,
                         StringValue: "redacted-performance-value")
                 ],
-                DiagnosticCode: null),
+                diagnosticCode: null),
             Connection: null,
             DiagnosticCode: "completed",
             Generation: 1);

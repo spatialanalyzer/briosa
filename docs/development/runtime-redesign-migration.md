@@ -116,3 +116,21 @@ and 166 KB to 34 KB allocated; validated result mapping fell from about 180.4 to
 not gRPC latency, SDK performance, or end-to-end throughput. The harness and raw
 samples remain in the local review artifacts; broader runtime measurements and
 licensed validation remain outstanding.
+
+## Explicit Execution Outcomes (Private Protocol 18)
+
+Private protocol 18 replaces independently assignable MP execution booleans with
+four alternatives: arguments rejected before execution, ExecuteStep rejected,
+MP result unavailable, and retrieved MP result. A retrieved result carries its
+raw code; success is derived solely from code 2. Outputs can be attached only to
+a successful MP result. Audit and public error projection identify argument
+rejection from its outcome type rather than diagnostic wording.
+
+The SDK conversion boundary currently uses a validating adapter while its own
+models are migrated. That adapter rejects contradictory evidence. Sparse input
+and output value models, the remaining typed operations, and authoritative
+lifecycle ownership are still outstanding; this outcome migration does not mark
+the full redesign complete.
+
+Validation of the outcome migration passed all 977 portable tests across both
+products, including generated-client HTTP/2 calls and malformed private frames.

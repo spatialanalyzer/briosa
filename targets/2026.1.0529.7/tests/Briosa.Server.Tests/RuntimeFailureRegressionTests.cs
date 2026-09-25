@@ -300,7 +300,7 @@ public sealed class RuntimeFailureRegressionTests
                     if (HoldExecution) await ReleaseExecution.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
                     return WorkerControlMessage.ExecutionResult(request.CorrelationId, new(
                         UndefinedStatus ? (WorkerExecutionResponseStatus)999 : WorkerExecutionResponseStatus.Completed,
-                        UndefinedStatus ? null : new(true, true, true, 2, 1, [], null),
+                        UndefinedStatus ? null : WorkerMpExecutionResult.FromEvidence(true, true, true, 2, 1, [], null),
                         Connection(WorkerExecutionReadinessState.ExecutionReady), null));
                 case WorkerControlMessageKind.Stop:
                     StopCount++;

@@ -447,14 +447,14 @@ public sealed class GrpcOperationOutcomeMapperTests
         var outcome = new WorkerExecutionOutcome(
             WorkerExecutionStatus.Completed,
             WorkerExecutionDisposition.StartedOutcomeUnknown,
-            new WorkerMpExecutionResult(
-                ExecuteStepReturned: true,
-                MpResultRetrieved: false,
-                MpSucceeded: false,
-                MpResultCode: null,
-                DurationMilliseconds: 5,
-                OutputValues: [],
-                DiagnosticCode: "sdk-mp-result-retrieval-failed"),
+            WorkerMpExecutionResult.FromEvidence(
+                executeStepReturned: true,
+                mpResultRetrieved: false,
+                mpSucceeded: false,
+                mpResultCode: null,
+                durationMilliseconds: 5,
+                outputValues: [],
+                diagnosticCode: "sdk-mp-result-retrieval-failed"),
             Connection(WorkerConnectionState.Connected),
             "sdk-mp-result-retrieval-failed",
             Generation: 7);
@@ -624,12 +624,12 @@ public sealed class GrpcOperationOutcomeMapperTests
                 : executeStepReturned
                     ? WorkerExecutionDisposition.Completed
                     : WorkerExecutionDisposition.StartedOutcomeUnknown,
-            new WorkerMpExecutionResult(
+            WorkerMpExecutionResult.FromEvidence(
                 executeStepReturned,
-                MpResultRetrieved: executeStepReturned,
-                MpSucceeded: executeStepReturned && mpSucceeded,
-                MpResultCode: executeStepReturned ? (mpSucceeded ? 2 : 3) : null,
-                DurationMilliseconds: 5,
+                mpResultRetrieved: executeStepReturned,
+                mpSucceeded: executeStepReturned && mpSucceeded,
+                mpResultCode: executeStepReturned ? (mpSucceeded ? 2 : 3) : null,
+                durationMilliseconds: 5,
                 outputs,
                 diagnosticCode),
             Connection(WorkerConnectionState.Connected),

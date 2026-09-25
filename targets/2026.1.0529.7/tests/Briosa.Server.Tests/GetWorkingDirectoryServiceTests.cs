@@ -53,13 +53,13 @@ public sealed class GetWorkingDirectoryServiceTests
         var executor = new RecordingExecutor(new WorkerExecutionOutcome(
             WorkerExecutionStatus.Completed,
             WorkerExecutionDisposition.Completed,
-            new WorkerMpExecutionResult(
-                ExecuteStepReturned: true,
-                MpResultRetrieved: true,
-                MpSucceeded: false,
-                MpResultCode: 3,
-                DurationMilliseconds: 7,
-                OutputValues: [],
+            WorkerMpExecutionResult.FromEvidence(
+                executeStepReturned: true,
+                mpResultRetrieved: true,
+                mpSucceeded: false,
+                mpResultCode: 3,
+                durationMilliseconds: 7,
+                outputValues: [],
                 "mp-command-failed"),
             Connection: null,
             "mp-command-failed",
@@ -207,13 +207,13 @@ public sealed class GetWorkingDirectoryServiceTests
         new(
             WorkerExecutionStatus.Completed,
             WorkerExecutionDisposition.Completed,
-            new WorkerMpExecutionResult(
-                ExecuteStepReturned: true,
-                MpResultRetrieved: true,
-                MpSucceeded: true,
-                MpResultCode: 2,
-                DurationMilliseconds: 5,
-                OutputValues: [output],
+            WorkerMpExecutionResult.FromEvidence(
+                executeStepReturned: true,
+                mpResultRetrieved: true,
+                mpSucceeded: true,
+                mpResultCode: 2,
+                durationMilliseconds: 5,
+                outputValues: [output],
                 diagnosticCode),
             Connection: null,
             diagnosticCode ?? "completed",

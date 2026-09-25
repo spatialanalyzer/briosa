@@ -128,6 +128,20 @@ public sealed class TypedVariableOperationTests
     }
 
     [Fact]
+    public void ArgumentRejectionUsesItsOutcomeTypeRegardlessOfDiagnosticWording()
+    {
+        var outcome = new WorkerExecutionOutcome(WorkerExecutionStatus.Completed,
+            WorkerExecutionDisposition.NotStarted, new WorkerArgumentsRejected(0, "input-refused"),
+            null, "input-refused", 1);
+        var error = Assert.Throws<RpcException>(() => GrpcOperationOutcomeMapper.RequireSuccess(outcome,
+            "typed-argument-rejection", Api.ReplaySafety.Unsafe, [], callerDeadlineExceeded: false));
+        var details = Api.OperationError.Parser.ParseFrom(Assert.Single(error.Trailers).ValueBytes);
+        Assert.Equal(Api.OperationFailureKind.SdkArgumentRejected, details.Kind);
+        Assert.Equal(Api.ExecutionDisposition.NotStarted, details.ExecutionDisposition);
+        Assert.Equal("argument_rejected", OperationAuditSummary.Create(outcome).MpOutcome);
+    }
+
+    [Fact]
     public void ReorderedOutputsAreRejectedBeforePositionalMapping()
     {
         var outcome = ResultWorker.Completed([
@@ -155,7 +169,7 @@ public sealed class TypedVariableOperationTests
 
         public static WorkerExecutionOutcome Completed(IReadOnlyList<WorkerMpOutputValue> values) => new(
             WorkerExecutionStatus.Completed, WorkerExecutionDisposition.Completed,
-            new(true, true, true, 2, 1, values, null), null, "completed", 1);
+            WorkerMpExecutionResult.FromEvidence(true, true, true, 2, 1, values, null), null, "completed", 1);
     }
 
     private sealed class VariableWorker : IWorkerCommandExecutor

@@ -123,14 +123,14 @@ public sealed class WaveBOperationCatalogTests
             var method = Services[operation.Descriptor.GrpcService].Methods.Single(candidate =>
                 candidate.Name == operation.Descriptor.Rpc);
             var completed = new SuccessfulOperationExecution(
-                new WorkerMpExecutionResult(
-                    ExecuteStepReturned: true,
-                    MpResultRetrieved: true,
-                    MpSucceeded: true,
-                    MpResultCode: 2,
-                    DurationMilliseconds: 1,
+                WorkerMpExecutionResult.FromEvidence(
+                    executeStepReturned: true,
+                    mpResultRetrieved: true,
+                    mpSucceeded: true,
+                    mpResultCode: 2,
+                    durationMilliseconds: 1,
                     operation.Outputs.Select(CreateOutputValue).ToArray(),
-                    DiagnosticCode: null),
+                    diagnosticCode: null),
                 new Api.MpExecutionDetails());
 
             var exception = Record.Exception(() =>
@@ -343,14 +343,14 @@ public sealed class WaveBOperationCatalogTests
                 DoubleValue: index + 1))
             .ToArray();
         var completed = new SuccessfulOperationExecution(
-            new WorkerMpExecutionResult(
-                ExecuteStepReturned: true,
-                MpResultRetrieved: true,
-                MpSucceeded: true,
-                MpResultCode: 2,
-                DurationMilliseconds: 1,
+            WorkerMpExecutionResult.FromEvidence(
+                executeStepReturned: true,
+                mpResultRetrieved: true,
+                mpSucceeded: true,
+                mpResultCode: 2,
+                durationMilliseconds: 1,
                 outputs,
-                DiagnosticCode: null),
+                diagnosticCode: null),
             new Api.MpExecutionDetails());
 
         var result = operation.CreateResult<Api.PerformRobotCalibrationResult>(completed);
@@ -538,13 +538,13 @@ public sealed class WaveBOperationCatalogTests
     private static SuccessfulOperationExecution Completed(
         IReadOnlyList<WorkerMpOutputValue> outputs) =>
         new(
-            new WorkerMpExecutionResult(
-                ExecuteStepReturned: true,
-                MpResultRetrieved: true,
-                MpSucceeded: true,
-                MpResultCode: 2,
-                DurationMilliseconds: 1,
+            WorkerMpExecutionResult.FromEvidence(
+                executeStepReturned: true,
+                mpResultRetrieved: true,
+                mpSucceeded: true,
+                mpResultCode: 2,
+                durationMilliseconds: 1,
                 outputs,
-                DiagnosticCode: null),
+                diagnosticCode: null),
             new Api.MpExecutionDetails());
 }

@@ -214,12 +214,12 @@ internal static class TestWorkerProcess
         TestWorkerScenario scenario) =>
         new(
             WorkerExecutionResponseStatus.Completed,
-            new WorkerMpExecutionResult(
-                ExecuteStepReturned: true,
-                MpResultRetrieved: true,
+            WorkerMpExecutionResult.FromEvidence(
+                executeStepReturned: true,
+                mpResultRetrieved: true,
                 mpSucceeded,
                 mpSucceeded ? 2 : 3,
-                DurationMilliseconds: delayed ? 300 : 5,
+                durationMilliseconds: delayed ? 300 : 5,
                 mpSucceeded
                     ? [.. command.OutputArguments.Select(CreateOutputValue)]
                     : [],

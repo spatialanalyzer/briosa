@@ -332,12 +332,12 @@ internal static class SmokeWorkerProgram
             message.CorrelationId,
             new WorkerExecutionResponse(
                 WorkerExecutionResponseStatus.Completed,
-                new WorkerMpExecutionResult(
-                    ExecuteStepReturned: true,
-                    MpResultRetrieved: true,
+                WorkerMpExecutionResult.FromEvidence(
+                    executeStepReturned: true,
+                    mpResultRetrieved: true,
                     mpSucceeded,
-                    MpResultCode: mpSucceeded ? 2 : 3,
-                    DurationMilliseconds: 5,
+                    mpResultCode: mpSucceeded ? 2 : 3,
+                    durationMilliseconds: 5,
                     outputs,
                     diagnosticCode),
                 connection,
