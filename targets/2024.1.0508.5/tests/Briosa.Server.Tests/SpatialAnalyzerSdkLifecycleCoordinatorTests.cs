@@ -100,6 +100,7 @@ public sealed class SpatialAnalyzerSdkLifecycleCoordinatorTests
             global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.Timeout,
             exception.Detail.Kind);
         Assert.Equal("worker-startup-timeout", exception.Detail.DiagnosticCode);
+        Assert.Equal(WorkerLifecycleFailure.StartupTimeout, supervisor.Current.LifecycleFailure);
         Assert.Equal(
             global::Briosa.SpatialAnalyzerSdkRecoveryState.RecoveryAvailable,
             exception.Detail.State.RecoveryState);
@@ -129,6 +130,7 @@ public sealed class SpatialAnalyzerSdkLifecycleCoordinatorTests
             global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.Timeout,
             exception.Detail.Kind);
         Assert.Equal("connect-ex-timeout", exception.Detail.DiagnosticCode);
+        Assert.Equal(WorkerLifecycleFailure.ConnectionTimeout, supervisor.Current.LifecycleFailure);
         Assert.Equal(global::Briosa.SpatialAnalyzerSdkState.Faulted,
             exception.Detail.State.SdkState);
         Assert.Equal(
@@ -157,15 +159,32 @@ public sealed class SpatialAnalyzerSdkLifecycleCoordinatorTests
             global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.Timeout,
             exception.Detail.Kind);
         Assert.Equal("worker-stop-ack-timeout", exception.Detail.DiagnosticCode);
+        Assert.Equal(WorkerLifecycleFailure.StopTimeout, supervisor.Current.LifecycleFailure);
         Assert.Equal(global::Briosa.SpatialAnalyzerSdkState.Stopped,
             exception.Detail.State.SdkState);
     }
 
     [Fact]
-    public async Task SdkActivationFailureReturnsTypedFaultAndCanBeRecovered()
+    public async Task ReadinessTimeoutReturnsTypedDeadlineAndOperatorRecovery()
+    {
+        await using var supervisor = CreateSupervisor(_ => "hang-on-verify");
+        await using var coordinator = new SpatialAnalyzerSdkLifecycleCoordinator(supervisor,
+            new SpatialAnalyzerSdkLifecycleStateProjection(supervisor),
+            new FakeApplicationStateProvider(RunningApplication(1)));
+        var failure = await Assert.ThrowsAsync<SdkLifecycleException>(() => coordinator.StartAsync(CancellationToken.None));
+        Assert.Equal(Grpc.Core.StatusCode.DeadlineExceeded, failure.StatusCode);
+        Assert.Equal(WorkerLifecycleFailure.ReadinessTimeout, supervisor.Current.LifecycleFailure);
+        Assert.Equal(global::Briosa.SpatialAnalyzerSdkRecoveryState.OperatorActionRequired, failure.Detail.State.RecoveryState);
+        Assert.False(failure.Detail.State.ReadyForMp);
+    }
+
+    [Theory]
+    [InlineData("sdk-activation-failed")]
+    [InlineData("sdk-activation-failed-timeout-text")]
+    public async Task SdkActivationFailureReturnsTypedFaultAndCanBeRecovered(string failureScenario)
     {
         await using var supervisor = CreateSupervisor(generation => generation == 1
-            ? "sdk-activation-failed"
+            ? failureScenario
             : "disconnected");
         var projection = new SpatialAnalyzerSdkLifecycleStateProjection(supervisor);
         await using var coordinator = new SpatialAnalyzerSdkLifecycleCoordinator(

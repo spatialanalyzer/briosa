@@ -49,6 +49,8 @@ internal static class TestWorkerProcess
             {
                 TestWorkerScenario.SdkActivationFailed =>
                     FaultedSnapshot("fake-start-rejected", WorkerConnectionFailure.ActivationFailed),
+                TestWorkerScenario.SdkActivationFailedTimeoutText =>
+                    FaultedSnapshot("fake-start-rejected-timeout-word-only", WorkerConnectionFailure.ActivationFailed),
                 TestWorkerScenario.Disconnected or
                     TestWorkerScenario.ConnectUnavailableOnce or
                     TestWorkerScenario.HangOnConnect or
@@ -419,6 +421,7 @@ internal enum TestWorkerScenario
     Disconnected,
     HangBeforeReady,
     SdkActivationFailed,
+    SdkActivationFailedTimeoutText,
     ConnectUnavailableOnce,
     HangOnConnect,
     SdkProcessExitOnPing
@@ -466,6 +469,7 @@ internal sealed record TestWorkerOptions(
             "disconnected" => TestWorkerScenario.Disconnected,
             "hang-before-ready" => TestWorkerScenario.HangBeforeReady,
             "sdk-activation-failed" => TestWorkerScenario.SdkActivationFailed,
+            "sdk-activation-failed-timeout-text" => TestWorkerScenario.SdkActivationFailedTimeoutText,
             "connect-unavailable-once" => TestWorkerScenario.ConnectUnavailableOnce,
             "hang-on-connect" => TestWorkerScenario.HangOnConnect,
             "sdk-process-exit-on-ping" => TestWorkerScenario.SdkProcessExitOnPing,

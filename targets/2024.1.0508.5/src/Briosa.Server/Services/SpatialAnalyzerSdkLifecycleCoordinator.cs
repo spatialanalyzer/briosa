@@ -40,8 +40,9 @@ internal sealed class SpatialAnalyzerSdkLifecycleCoordinator(
 
             if (!await _supervisor.StartAsync(cancellationToken).ConfigureAwait(false))
             {
-                var failed = Current;
-                if (IsTimeoutDiagnostic(failed.DiagnosticCode))
+                var snapshot = _supervisor.Current;
+                var failed = SpatialAnalyzerSdkLifecycleStateProjection.ToPublicState(snapshot);
+                if (snapshot.LifecycleTimedOut)
                 {
                     throw SdkLifecycleException.DeadlineExceeded(
                         global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.Timeout,
@@ -149,11 +150,9 @@ internal sealed class SpatialAnalyzerSdkLifecycleCoordinator(
 
             if (!connected)
             {
-                    var failed = Current;
-                if (string.Equals(
-                        failed.DiagnosticCode,
-                        "runtime-identity-not-ready",
-                        StringComparison.Ordinal))
+                var snapshot = _supervisor.Current;
+                var failed = SpatialAnalyzerSdkLifecycleStateProjection.ToPublicState(snapshot);
+                if (snapshot.LifecycleFailure == WorkerLifecycleFailure.IdentityRejected)
                 {
                     throw SdkLifecycleException.FailedPrecondition(
                         global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.IdentityMismatch,
@@ -173,7 +172,7 @@ internal sealed class SpatialAnalyzerSdkLifecycleCoordinator(
                             global::Briosa.SpatialAnalyzerSdkRecoveryState.RecoveryAvailable
                             ? global::Briosa.LifecycleRecoveryGuidance.RecoverSdkWithoutReplay
                             : global::Briosa.LifecycleRecoveryGuidance.RetryAfterStateChange;
-                if (IsTimeoutDiagnostic(failed.DiagnosticCode))
+                if (snapshot.LifecycleTimedOut)
                 {
                     throw SdkLifecycleException.DeadlineExceeded(
                         global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.Timeout,
@@ -235,8 +234,9 @@ internal sealed class SpatialAnalyzerSdkLifecycleCoordinator(
             }
 
             await _supervisor.StopAsync(cancellationToken).ConfigureAwait(false);
-            var stopped = Current;
-            if (IsTimeoutDiagnostic(stopped.DiagnosticCode))
+            var snapshot = _supervisor.Current;
+            var stopped = SpatialAnalyzerSdkLifecycleStateProjection.ToPublicState(snapshot);
+            if (snapshot.LifecycleTimedOut)
             {
                 throw SdkLifecycleException.DeadlineExceeded(
                     global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.Timeout,
@@ -245,7 +245,7 @@ internal sealed class SpatialAnalyzerSdkLifecycleCoordinator(
                     global::Briosa.LifecycleRecoveryGuidance.RefreshState);
             }
 
-            if (_supervisor.Current.LastTermination != WorkerTerminationKind.Graceful)
+            if (snapshot.LastTermination != WorkerTerminationKind.Graceful)
             {
                 throw SdkLifecycleException.Unavailable(
                     global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.SdkStopFailed,
@@ -292,8 +292,9 @@ internal sealed class SpatialAnalyzerSdkLifecycleCoordinator(
                     expectedGeneration,
                     cancellationToken).ConfigureAwait(false))
             {
-                var failed = Current;
-                if (IsTimeoutDiagnostic(failed.DiagnosticCode))
+                var snapshot = _supervisor.Current;
+                var failed = SpatialAnalyzerSdkLifecycleStateProjection.ToPublicState(snapshot);
+                if (snapshot.LifecycleTimedOut)
                 {
                     throw SdkLifecycleException.DeadlineExceeded(
                         global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.Timeout,
@@ -361,6 +362,4 @@ internal sealed class SpatialAnalyzerSdkLifecycleCoordinator(
             Current,
             global::Briosa.LifecycleRecoveryGuidance.RefreshState);
 
-    private static bool IsTimeoutDiagnostic(string? diagnosticCode) =>
-        diagnosticCode?.Contains("timeout", StringComparison.Ordinal) == true;
 }

@@ -423,3 +423,14 @@ index still means zero, preserving the live public route's behavior; the unused
 implementation's conflicting presence requirement has been removed. No protobuf
 or private wire change is required. All 46 focused mapping, catalog, value, and
 service tests passed on each target.
+
+## Typed Lifecycle Failure Classification
+
+Lifecycle snapshots now distinguish startup, connection, readiness, and stop
+timeouts from failed operations, cancellation, identity rejection, and incomplete
+cleanup. The SDK lifecycle coordinator derives the gRPC failure kind from this
+typed evidence and uses the same captured snapshot for the returned public state.
+It no longer parses diagnostic text to recognize a timeout or identity rejection.
+An activation-failure regression includes the word `timeout` in its diagnostic
+and still returns the activation-failure status. Actual timeout scenarios retain
+their DeadlineExceeded behavior and recovery evidence.
