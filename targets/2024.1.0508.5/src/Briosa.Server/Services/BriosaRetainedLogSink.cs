@@ -6,6 +6,7 @@ using Serilog.Core;
 using Serilog.Events;
 using Serilog.Formatting;
 using Serilog.Formatting.Json;
+using Serilog.Sinks.File;
 
 namespace Briosa.Server.Services;
 
@@ -18,6 +19,7 @@ internal sealed class BriosaRetainedLogSink(
 {
     internal const int MaximumRecordBytes = 16 * 1024;
     private Logger? _logger;
+    private readonly RotationObserver _rotation = new();
 
     [SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope",
         Justification = "The acquired ownership stream is disposed by the using block after the catch.")]
@@ -51,6 +53,7 @@ internal sealed class BriosaRetainedLogSink(
                     return;
                 }
             }
+            _rotation.OpenedFile = false;
             _logger ??= new LoggerConfiguration().MinimumLevel.Verbose()
                 .WriteTo.Fallible(sinks => sinks.File(
                     new BoundedJsonFormatter(),
@@ -60,12 +63,16 @@ internal sealed class BriosaRetainedLogSink(
                     fileSizeLimitBytes: options.MaxFileSizeMiB * 1024L * 1024 - MaximumRecordBytes,
                     retainedFileCountLimit: options.RetainedFileCount,
                     retainedFileTimeLimit: TimeSpan.FromDays(options.MaxAgeDays),
+                    hooks: _rotation,
                     // Flush to the OS cache before releasing the quota lock so
                     // other instances see current length. No per-event durable fsync.
                     buffered: false), health)
                 .CreateLogger();
             _logger.Write(logEvent);
-            PruneAndReserve();
+            // The pre-write scan reserved a complete bounded record under the
+            // shared lock. Only opening/rotating a file can change the file count
+            // or release an old active file that now needs to be reclaimed.
+            if (_rotation.OpenedFile) PruneAndReserve();
         }
     }
 
@@ -108,6 +115,17 @@ internal sealed class BriosaRetainedLogSink(
         name.EndsWith(".jsonl", StringComparison.Ordinal);
 
     public void Dispose() => _logger?.Dispose();
+
+    private sealed class RotationObserver : FileLifecycleHooks
+    {
+        public bool OpenedFile { get; set; }
+
+        public override Stream OnFileOpened(string path, Stream underlyingStream, Encoding encoding)
+        {
+            OpenedFile = true;
+            return underlyingStream;
+        }
+    }
 
     private sealed class BoundedJsonFormatter : ITextFormatter
     {
