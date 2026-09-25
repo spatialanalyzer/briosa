@@ -365,6 +365,29 @@ public sealed class RuntimeFailureRegressionTests
         Assert.True(supervisor.Current.ReadyForExecution);
     }
 
+    [Fact]
+    public async Task UnexpectedHeartbeatFailureRetiresTheGeneration()
+    {
+        var worker = new CoordinatedWorker { UnexpectedHeartbeatFailure = true };
+        await using var workerLifetime = worker.ConfigureAwait(true);
+        var clock = new HeartbeatTestClock();
+        var supervisor = new WorkerProcessSupervisor(new Factory(worker),
+            new WorkerLifecyclePolicy(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1),
+                TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(1)), timeProvider: clock);
+        await using var supervisorLifetime = supervisor.ConfigureAwait(true);
+        Assert.True(await supervisor.StartAsync());
+        await clock.FireNextAsync();
+        await worker.Terminated.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        Assert.Equal(WorkerLifecycleState.Degraded, supervisor.Current.State);
+        Assert.False(supervisor.Current.ReadyForExecution);
+        Assert.Equal("worker-heartbeat-monitor-failed", supervisor.Current.DiagnosticCode);
+        Assert.Equal(WorkerIncidentKind.ControlChannelLost, supervisor.Current.LastIncident!.Kind);
+        var rejected = await supervisor.ExecuteAsync(Plain());
+        Assert.Equal(WorkerExecutionStatus.Unavailable, rejected.Status);
+        Assert.Equal(WorkerExecutionDisposition.NotStarted, rejected.ExecutionDisposition);
+        Assert.Equal(0, worker.ExecuteCount);
+    }
+
     private sealed class SequenceFactory(IWorkerProcess first, IWorkerProcess second) : IWorkerProcessFactory
     {
         public ValueTask<IWorkerProcess> StartAsync(int generation, CancellationToken cancellationToken = default) =>
@@ -430,6 +453,8 @@ public sealed class RuntimeFailureRegressionTests
         public TaskCompletionSource ReleaseExecution { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource StopEntered { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource ReleaseStop { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public TaskCompletionSource Terminated { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public bool UnexpectedHeartbeatFailure { get; init; }
 
         private static WorkerConnectionSnapshot Connection(WorkerExecutionReadinessState readiness) => new(
             WorkerConnectionState.Connected, readiness, 0, 1, 1, "regression-ready", DateTimeOffset.UtcNow,
@@ -469,6 +494,7 @@ public sealed class RuntimeFailureRegressionTests
                         UndefinedStatus ? null : OutputDeliveryLost ? new WorkerMpOutputsUnavailable(7, "worker-output-encoding-rejected") : WorkerMpExecutionResult.FromEvidence(true, true, true, 2, 1, [], null),
                         Connection(WorkerExecutionReadinessState.ExecutionReady), null));
                 case WorkerControlMessageKind.Ping:
+                    if (UnexpectedHeartbeatFailure) throw new ArgumentException("Monitor regression");
                     PingCount++;
                     return WorkerControlMessage.Pong(request.CorrelationId, Connection(WorkerExecutionReadinessState.ExecutionReady));
                 case WorkerControlMessageKind.Stop:
@@ -486,6 +512,7 @@ public sealed class RuntimeFailureRegressionTests
         public ValueTask TerminateAsync(CancellationToken cancellationToken = default)
         {
             HasExited = true;
+            Terminated.TrySetResult();
             return ValueTask.CompletedTask;
         }
         public ValueTask DisposeAsync() => TerminateAsync();
