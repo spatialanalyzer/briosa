@@ -1,3 +1,4 @@
+using Briosa.Server.Operations.EventOperations;
 using Briosa.Server.Operations.UtilityOperations;
 using Briosa.Server.Operations.FileOperations;
 using Briosa.Server.Operations.AnalysisOperations;
@@ -20,6 +21,11 @@ internal static class SpatialAnalyzerApi
     public static IReadOnlyList<OperationDescriptor> Operations { get; } =
         [
             .. MpOperationCatalog.Operations.Select(operation => operation.Descriptor),
+            DeleteEventOperation.Descriptor,
+            ExportEventRefListOperation.Descriptor,
+            GetIthEventFromEventRefListOperation.Descriptor,
+            GetNumberOfEventsInEventRefListOperation.Descriptor,
+            RenameEventOperation.Descriptor,
             GetActiveCollectionNameOperation.Descriptor,
             GetIthCollectionNameOperation.Descriptor,
             GetNumberOfCollectionsOperation.Descriptor,
