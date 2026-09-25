@@ -184,14 +184,14 @@ public sealed class ActiveContextOperationTests
         Api.MpExecutionDetails details,
         params WorkerMpOutputValue[] outputs) =>
         new(
-            new WorkerMpExecutionResult(
-                ExecuteStepReturned: true,
-                MpResultRetrieved: true,
-                MpSucceeded: true,
-                MpResultCode: 2,
-                DurationMilliseconds: 5,
-                OutputValues: outputs,
-                DiagnosticCode: "completed"),
+            WorkerMpExecutionResult.FromEvidence(
+                executeStepReturned: true,
+                mpResultRetrieved: true,
+                mpSucceeded: true,
+                mpResultCode: 2,
+                durationMilliseconds: 5,
+                outputValues: outputs,
+                diagnosticCode: "completed"),
             details);
 
     private static WorkerMpOutputValue Text(string name, string value) =>

@@ -79,13 +79,13 @@ public sealed class OperationExecutorTests
             Task.FromResult(new WorkerExecutionOutcome(
                 WorkerExecutionStatus.Completed,
                 WorkerExecutionDisposition.Completed,
-                new WorkerMpExecutionResult(
-                    ExecuteStepReturned: true,
-                    MpResultRetrieved: true,
-                    MpSucceeded: true,
-                    MpResultCode: 2,
-                    DurationMilliseconds: 1,
-                    OutputValues:
+                WorkerMpExecutionResult.FromEvidence(
+                    executeStepReturned: true,
+                    mpResultRetrieved: true,
+                    mpSucceeded: true,
+                    mpResultCode: 2,
+                    durationMilliseconds: 1,
+                    outputValues:
                     [
                         new WorkerMpOutputValue(
                             "Directory",
@@ -93,7 +93,7 @@ public sealed class OperationExecutorTests
                             Retrieved: true,
                             StringValue: value)
                     ],
-                    DiagnosticCode: "completed"),
+                    diagnosticCode: "completed"),
                 Connection: null,
                 DiagnosticCode: "completed",
                 Generation: 1));

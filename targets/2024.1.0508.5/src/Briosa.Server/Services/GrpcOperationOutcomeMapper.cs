@@ -6,15 +6,6 @@ using Grpc.Core;
 
 namespace Briosa.Server.Services;
 
-internal sealed record OperationOutputContract(
-    string FieldName,
-    string ArgumentName,
-    WorkerMpValueKind Kind);
-
-internal sealed record SuccessfulOperationExecution(
-    WorkerMpExecutionResult Execution,
-    MpExecutionDetails Details);
-
 internal static class GrpcOperationOutcomeMapper
 {
     public const string ErrorTrailerName = "briosa-operation-error-bin";
@@ -71,7 +62,7 @@ internal static class GrpcOperationOutcomeMapper
 
         if (!execution.ExecuteStepReturned)
         {
-            var argumentRejected = execution.DiagnosticCode == "sdk-argument-rejected";
+            var argumentRejected = execution is WorkerArgumentsRejected;
             var details = CreateMpDetails(
                 execution,
                 outputs,

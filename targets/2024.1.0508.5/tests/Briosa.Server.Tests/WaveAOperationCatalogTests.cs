@@ -91,14 +91,14 @@ public sealed class WaveAOperationCatalogTests
                 candidate => candidate.Name == operation.Descriptor.Rpc);
             var outputs = operation.Outputs.Select(CreateOutput).ToArray();
             var completed = new SuccessfulOperationExecution(
-                new WorkerMpExecutionResult(
-                    ExecuteStepReturned: true,
-                    MpResultRetrieved: true,
-                    MpSucceeded: true,
-                    MpResultCode: 2,
-                    DurationMilliseconds: 1,
+                WorkerMpExecutionResult.FromEvidence(
+                    executeStepReturned: true,
+                    mpResultRetrieved: true,
+                    mpSucceeded: true,
+                    mpResultCode: 2,
+                    durationMilliseconds: 1,
                     outputs,
-                    DiagnosticCode: null),
+                    diagnosticCode: null),
                 new Api.MpExecutionDetails());
             var createResult = typeof(MpOperationContract)
                 .GetMethod(nameof(MpOperationContract.CreateResult))!
@@ -129,11 +129,15 @@ public sealed class WaveAOperationCatalogTests
         {
             SelectedLine = new Api.CollectionObjectName
             {
-                CollectionName = "Collection", ObjectName = "Line", ObjectType = Api.ObjectType.Line
+                CollectionName = "Collection",
+                ObjectName = "Line",
+                ObjectType = Api.ObjectType.Line
             },
             SelectedPlane = new Api.CollectionObjectName
             {
-                CollectionName = "Collection", ObjectName = "Plane", ObjectType = Api.ObjectType.Plane
+                CollectionName = "Collection",
+                ObjectName = "Plane",
+                ObjectType = Api.ObjectType.Plane
             },
             AngleTolerance = 0
         };

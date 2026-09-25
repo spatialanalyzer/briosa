@@ -53,13 +53,13 @@ public sealed class GetIthCollectionNameOperationTests
     [Fact]
     public void ResultMappingReturnsTheRetrievedCollectionNameAndExecutionDetails()
     {
-        var execution = new WorkerMpExecutionResult(
-            ExecuteStepReturned: true,
-            MpResultRetrieved: true,
-            MpSucceeded: true,
-            MpResultCode: 2,
-            DurationMilliseconds: 5,
-            OutputValues:
+        var execution = WorkerMpExecutionResult.FromEvidence(
+            executeStepReturned: true,
+            mpResultRetrieved: true,
+            mpSucceeded: true,
+            mpResultCode: 2,
+            durationMilliseconds: 5,
+            outputValues:
             [
                 new WorkerMpOutputValue(
                     "Resultant Name",
@@ -67,7 +67,7 @@ public sealed class GetIthCollectionNameOperationTests
                     Retrieved: true,
                     StringValue: "Collection 1")
             ],
-            DiagnosticCode: "completed");
+            diagnosticCode: "completed");
         var details = new Api.MpExecutionDetails
         {
             State = Api.MpExecutionState.Succeeded,
