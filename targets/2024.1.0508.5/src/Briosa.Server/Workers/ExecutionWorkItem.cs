@@ -34,4 +34,3 @@ internal sealed class ExecutionWorkItem(WorkerMpCommand command, Guid correlatio
     public void TrySetResult(WorkerExecutionOutcome outcome) =>
         _completion.TrySetResult(outcome);
 }
-
