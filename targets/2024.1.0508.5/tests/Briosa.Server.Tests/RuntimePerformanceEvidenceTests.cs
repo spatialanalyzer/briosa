@@ -40,7 +40,7 @@ public sealed class RuntimePerformanceEvidenceTests
                 activatedSdkVersion: "2024.1.0508.5",
                 connectedSpatialAnalyzerVersion: "2024.1.0508.5"));
 
-        Assert.True(await supervisor.StartAsync());
+        Assert.True((await supervisor.StartAsync()).Succeeded);
         for (var index = 0; index < WarmupRequestCount; index++)
         {
             var warmup = await supervisor.ExecuteAsync(CreateCommand(index));
@@ -140,21 +140,17 @@ public sealed class RuntimePerformanceEvidenceTests
         var outcome = new WorkerExecutionOutcome(
             WorkerExecutionStatus.Completed,
             WorkerExecutionDisposition.Completed,
-            new WorkerMpExecutionResult(
-                ExecuteStepReturned: true,
-                MpResultRetrieved: true,
-                MpSucceeded: true,
-                MpResultCode: 2,
-                DurationMilliseconds: 0,
-                OutputValues:
+            WorkerMpExecutionResult.FromEvidence(
+                executeStepReturned: true,
+                mpResultRetrieved: true,
+                mpSucceeded: true,
+                mpResultCode: 2,
+                durationMilliseconds: 0,
+                outputValues:
                 [
-                    new WorkerMpOutputValue(
-                        "Directory",
-                        WorkerMpValueKind.Text,
-                        Retrieved: true,
-                        StringValue: "redacted-performance-value")
+                    new WorkerRetrievedOutput("Directory", WorkerMpValueKind.Text, new WorkerTextValue("redacted-performance-value"))
                 ],
-                DiagnosticCode: null),
+                diagnosticCode: null),
             Connection: null,
             DiagnosticCode: "completed",
             Generation: 1);

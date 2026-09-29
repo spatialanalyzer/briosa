@@ -6,15 +6,6 @@ using Grpc.Core;
 
 namespace Briosa.Server.Services;
 
-internal sealed record OperationOutputContract(
-    string FieldName,
-    string ArgumentName,
-    WorkerMpValueKind Kind);
-
-internal sealed record SuccessfulOperationExecution(
-    WorkerMpExecutionResult Execution,
-    MpExecutionDetails Details);
-
 internal static class GrpcOperationOutcomeMapper
 {
     public const string ErrorTrailerName = "briosa-operation-error-bin";
@@ -71,7 +62,7 @@ internal static class GrpcOperationOutcomeMapper
 
         if (!execution.ExecuteStepReturned)
         {
-            var argumentRejected = execution.DiagnosticCode == "sdk-argument-rejected";
+            var argumentRejected = execution is WorkerArgumentsRejected;
             var details = CreateMpDetails(
                 execution,
                 outputs,
@@ -145,6 +136,17 @@ internal static class GrpcOperationOutcomeMapper
                 outcome.Generation,
                 details,
                 "The SpatialAnalyzer MP command failed.");
+        }
+
+        if (execution is WorkerMpOutputsUnavailable)
+        {
+            throw CreateFailure(StatusCode.DataLoss, operationId,
+                OperationFailureKind.OutputRetrievalFailure,
+                NormalizeDiagnosticCode(execution.DiagnosticCode, "worker-output-encoding-rejected"),
+                ExecutionDisposition.Completed, RecoveryGuidance.None, ReplayGuidance.DoNotReplay,
+                replaySafety, outcome.Generation,
+                CreateMpDetails(execution, outputs, MpExecutionState.Succeeded, OutputRetrievalState.Failed),
+                "The MP command succeeded, but its output values could not be delivered.");
         }
 
         if (!OutputsMatch(outputs, execution.OutputValues))
@@ -454,11 +456,10 @@ internal static class GrpcOperationOutcomeMapper
         {
             details.MpResultCode = resultCode;
         }
-        foreach (var output in outputs)
+        for (var index = 0; index < outputs.Count; index++)
         {
-            var value = execution.OutputValues.Single(candidate =>
-                candidate.Name == output.ArgumentName &&
-                candidate.Kind == output.Kind);
+            var output = outputs[index];
+            var value = execution.OutputValues[index];
             var retrieved = value.Retrieved && HasTypedValue(value);
             var retrieval = new OutputRetrievalDetails
             {
@@ -482,61 +483,74 @@ internal static class GrpcOperationOutcomeMapper
 
     private static bool OutputsMatch(
         IReadOnlyList<OperationOutputContract> requested,
-        IReadOnlyList<WorkerMpOutputValue> returned) =>
-        requested.Count == returned.Count &&
-        requested.All(output => returned.Count(value =>
-            value.Name == output.ArgumentName &&
-            value.Kind == output.Kind) == 1);
+        IReadOnlyList<WorkerMpOutputValue> returned)
+    {
+        if (requested.Count != returned.Count)
+        {
+            return false;
+        }
+
+        for (var index = 0; index < requested.Count; index++)
+        {
+            if (requested[index].ArgumentName != returned[index].Name ||
+                requested[index].Kind != returned[index].Kind)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
 
     private static bool HasTypedValue(WorkerMpOutputValue value) =>
         value.Kind switch
         {
-            WorkerMpValueKind.Logical => value.BooleanValue.HasValue,
-            WorkerMpValueKind.WholeNumber => value.IntegerValue.HasValue,
-            WorkerMpValueKind.FloatingPoint => value.DoubleValue.HasValue,
-            WorkerMpValueKind.DoubleArray => value.DoubleArrayValue is not null,
-            WorkerMpValueKind.EditText => value.StringListValue is not null,
-            WorkerMpValueKind.Transform => value.TransformValue is not null,
-            WorkerMpValueKind.WorldTransform => value.WorldTransformValue is not null,
-            WorkerMpValueKind.FileReference => value.FileReferenceValue is not null,
+            WorkerMpValueKind.Logical => ((value.ReadValue() as WorkerBooleanValue)?.Value).HasValue,
+            WorkerMpValueKind.WholeNumber => ((value.ReadValue() as WorkerIntegerValue)?.Value).HasValue,
+            WorkerMpValueKind.FloatingPoint => ((value.ReadValue() as WorkerDoubleValue)?.Value).HasValue,
+            WorkerMpValueKind.DoubleArray => (value.ReadValue() as WorkerDoubleArrayValue) is not null,
+            WorkerMpValueKind.EditText => (value.ReadValue() as WorkerStringListValue) is not null,
+            WorkerMpValueKind.Transform => (value.ReadValue() as WorkerTransformValue) is not null,
+            WorkerMpValueKind.WorldTransform => (value.ReadValue() as WorkerWorldTransformValue) is not null,
+            WorkerMpValueKind.FileReference => (value.ReadValue() as WorkerFileReferenceValue) is not null,
             WorkerMpValueKind.FitConstraintScalarOptions =>
-                value.FitConstraintScalarOptionsValue is not null,
+                (value.ReadValue() as WorkerFitConstraintScalarOptionsValue) is not null,
             WorkerMpValueKind.ToleranceScalarOptions =>
-                value.ToleranceScalarOptionsValue is not null,
+                (value.ReadValue() as WorkerToleranceScalarOptionsValue) is not null,
             WorkerMpValueKind.Text or
             WorkerMpValueKind.ChartName or
             WorkerMpValueKind.CloudName or
             WorkerMpValueKind.CollectionName or
             WorkerMpValueKind.FrameName or
             WorkerMpValueKind.VectorGroupName or
-            WorkerMpValueKind.ViewName => value.StringValue is not null,
-            WorkerMpValueKind.PointName => value.PointNameValue is not null,
-            WorkerMpValueKind.Vector => value.VectorValue is not null,
+            WorkerMpValueKind.ViewName => ((value.ReadValue() as WorkerTextValue)?.Value) is not null,
+            WorkerMpValueKind.PointName => (value.ReadValue() as WorkerPointNameValue) is not null,
+            WorkerMpValueKind.Vector => (value.ReadValue() as WorkerVectorValue) is not null,
             WorkerMpValueKind.ToleranceVectorOptions =>
-                value.ToleranceVectorOptionsValue is not null,
+                (value.ReadValue() as WorkerToleranceVectorOptionsValue) is not null,
             WorkerMpValueKind.CollectionInstrumentId =>
-                value.CollectionInstrumentIdValue is not null,
+                (value.ReadValue() as WorkerCollectionInstrumentIdValue) is not null,
             WorkerMpValueKind.CollectionInstrumentIdList =>
-                value.CollectionInstrumentIdListValue is not null,
+                (value.ReadValue() as WorkerCollectionInstrumentIdListValue) is not null,
             WorkerMpValueKind.CollectionMachineId =>
-                value.CollectionMachineIdValue is not null,
+                (value.ReadValue() as WorkerCollectionMachineIdValue) is not null,
             WorkerMpValueKind.CollectionItemName =>
-                value.CollectionItemNameValue is not null,
+                (value.ReadValue() as WorkerCollectionItemNameValue) is not null,
             WorkerMpValueKind.CollectionItemNameList =>
-                value.CollectionItemNameListValue is not null,
+                (value.ReadValue() as WorkerCollectionItemNameListValue) is not null,
             WorkerMpValueKind.CollectionObjectName =>
-                value.CollectionObjectNameValue is not null,
+                (value.ReadValue() as WorkerCollectionObjectNameValue) is not null,
             WorkerMpValueKind.CollectionObjectNameList =>
-                value.CollectionObjectNameListValue is not null,
+                (value.ReadValue() as WorkerCollectionObjectNameListValue) is not null,
             WorkerMpValueKind.CollectionGroupNameList =>
-                value.CollectionGroupNameListValue is not null,
+                (value.ReadValue() as WorkerCollectionGroupNameListValue) is not null,
             WorkerMpValueKind.CollectionVectorGroupName =>
-                value.CollectionVectorGroupNameValue is not null,
+                (value.ReadValue() as WorkerCollectionVectorGroupNameValue) is not null,
             WorkerMpValueKind.CollectionVectorGroupNameList =>
-                value.CollectionVectorGroupNameListValue is not null,
-            WorkerMpValueKind.PointNameList => value.PointNameListValue is not null,
-            WorkerMpValueKind.StringList => value.StringListValue is not null,
-            WorkerMpValueKind.VectorNameList => value.VectorNameListValue is not null,
+                (value.ReadValue() as WorkerCollectionVectorGroupNameListValue) is not null,
+            WorkerMpValueKind.PointNameList => (value.ReadValue() as WorkerPointNameListValue) is not null,
+            WorkerMpValueKind.StringList => (value.ReadValue() as WorkerStringListValue) is not null,
+            WorkerMpValueKind.VectorNameList => (value.ReadValue() as WorkerVectorNameListValue) is not null,
             _ => false
         };
 
@@ -587,8 +601,7 @@ internal static class GrpcOperationOutcomeMapper
         outcome.Connection is
         {
             ExecutionReadinessState: not WorkerExecutionReadinessState.ExecutionReady
-        } ||
-        outcome.DiagnosticCode.StartsWith("sdk-connection-", StringComparison.Ordinal);
+        };
 
     private static string NormalizeDiagnosticCode(string? value, string fallback) =>
         !string.IsNullOrWhiteSpace(value) && value.All(character =>

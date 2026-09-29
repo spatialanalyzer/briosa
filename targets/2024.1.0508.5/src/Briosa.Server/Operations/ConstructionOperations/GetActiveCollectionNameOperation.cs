@@ -63,7 +63,7 @@ internal static class GetActiveCollectionNameOperation
 
         return new Api.GetActiveCollectionNameResult
         {
-            CurrentlyActiveCollectionName = activeCollectionName.StringValue!,
+            CurrentlyActiveCollectionName = activeCollectionName.RequireValue<WorkerTextValue>().Value,
             Execution = completed.Details
         };
     }

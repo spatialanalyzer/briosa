@@ -22,21 +22,17 @@ public sealed class OperationAuditLoggerTests
         var outcome = new WorkerExecutionOutcome(
             WorkerExecutionStatus.Completed,
             WorkerExecutionDisposition.Completed,
-            new WorkerMpExecutionResult(
-                ExecuteStepReturned: true,
-                MpResultRetrieved: true,
-                MpSucceeded: true,
-                MpResultCode: 2,
-                DurationMilliseconds: 12,
-                OutputValues:
+            WorkerMpExecutionResult.FromEvidence(
+                executeStepReturned: true,
+                mpResultRetrieved: true,
+                mpSucceeded: true,
+                mpResultCode: 2,
+                durationMilliseconds: 12,
+                outputValues:
                 [
-                    new WorkerMpOutputValue(
-                        "Directory",
-                        WorkerMpValueKind.Text,
-                        Retrieved: true,
-                        StringValue: SensitivePath)
+                    new WorkerRetrievedOutput("Directory", WorkerMpValueKind.Text, new WorkerTextValue(SensitivePath))
                 ],
-                DiagnosticCode: null),
+                diagnosticCode: null),
             Connection: null,
             DiagnosticCode: "completed",
             Generation: 4,
@@ -86,23 +82,20 @@ public sealed class OperationAuditLoggerTests
         var outcome = new WorkerExecutionOutcome(
             WorkerExecutionStatus.Completed,
             WorkerExecutionDisposition.Completed,
-            new WorkerMpExecutionResult(
-                ExecuteStepReturned: true,
-                MpResultRetrieved: true,
-                MpSucceeded: false,
-                MpResultCode: 3,
-                DurationMilliseconds: 9,
-                OutputValues:
+            WorkerMpExecutionResult.FromEvidence(
+                executeStepReturned: true,
+                mpResultRetrieved: true,
+                mpSucceeded: true,
+                mpResultCode: 2,
+                durationMilliseconds: 9,
+                outputValues:
                 [
-                    new WorkerMpOutputValue(
-                        "Directory",
-                        WorkerMpValueKind.Text,
-                        Retrieved: false,
-                        StringValue: SensitivePath)
+                    new WorkerUnavailableOutput("Directory", WorkerMpValueKind.Text),
+                    new WorkerRetrievedOutput("Sensitive Output", WorkerMpValueKind.Text, new WorkerTextValue(SensitivePath))
                 ],
-                DiagnosticCode: "mp-command-failed"),
+                diagnosticCode: "sdk-output-retrieval-failed"),
             Connection: null,
-            DiagnosticCode: "mp-command-failed",
+            DiagnosticCode: "sdk-output-retrieval-failed",
             Generation: 2);
 
         audit.OperationFailed(
@@ -111,7 +104,7 @@ public sealed class OperationAuditLoggerTests
             outcome.Generation,
             requestDurationMilliseconds: 10,
             OperationAuditSummary.Create(outcome),
-            StatusCode.FailedPrecondition,
+            StatusCode.DataLoss,
             outcome.DiagnosticCode);
 
         Assert.Contains(sink.Entries, entry => entry.EventId == 2005);

@@ -1,3 +1,4 @@
+using Briosa.Worker.Control;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using ComSdk = Briosa.SpatialAnalyzer.Interop.ISpatialAnalyzerSDK;
@@ -53,7 +54,7 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
                 "connect-ex-unavailable");
     }
 
-    public SdkExecutionResult Execute(SdkCommand command)
+    public WorkerMpExecutionResult Execute(WorkerMpCommand command)
     {
         ArgumentNullException.ThrowIfNull(command);
         ObjectDisposedException.ThrowIf(_sdk is null, this);
@@ -64,15 +65,8 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
         {
             if (!SetInputArgument(_sdk, argument))
             {
-                return new SdkExecutionResult(
-                    ExecuteStepReturned: false,
-                    new SdkMpResult(
-                        Retrieved: false,
-                        Succeeded: false,
-                        ResultCode: null,
-                        "sdk-argument-rejected"),
-                    Stopwatch.GetElapsedTime(started),
-                    OutputValues: [],
+                return new WorkerArgumentsRejected(
+                    (long)Stopwatch.GetElapsedTime(started).TotalMilliseconds,
                     "sdk-argument-rejected");
             }
         }
@@ -86,7 +80,7 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
         }
 
         var mpSucceeded = mpResultRetrieved && resultCode == 2;
-        IReadOnlyList<SdkOutputValue> outputValues = [];
+        IReadOnlyList<WorkerMpOutputValue> outputValues = [];
         var diagnosticCode = executeStepReturned switch
         {
             false => "execute-step-rejected",
@@ -105,16 +99,10 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
             }
         }
 
-        return new SdkExecutionResult(
-            executeStepReturned,
-            new SdkMpResult(
-                mpResultRetrieved,
-                mpSucceeded,
-                mpResultRetrieved ? resultCode : null,
-                diagnosticCode),
-            Stopwatch.GetElapsedTime(started),
-            outputValues,
-            diagnosticCode);
+        var durationMilliseconds = (long)Stopwatch.GetElapsedTime(started).TotalMilliseconds;
+        if (!executeStepReturned) return new WorkerExecuteRejected(durationMilliseconds, diagnosticCode);
+        if (!mpResultRetrieved) return new WorkerMpResultUnavailable(durationMilliseconds, diagnosticCode);
+        return new WorkerMpResultAvailable(resultCode, durationMilliseconds, outputValues, diagnosticCode);
     }
 
     public void Dispose()
@@ -131,38 +119,38 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
         }
     }
 
-    private static bool SetInputArgument(ISpatialAnalyzerSdkCalls sdk, SdkInputArgument argument) =>
+    private static bool SetInputArgument(ISpatialAnalyzerSdkCalls sdk, WorkerMpInputArgument argument) =>
         HasExpectedBinding(argument.SdkBinding, ExpectedSetter(argument.Kind)) && argument.Kind switch
         {
-            SdkValueKind.Logical when argument.BooleanValue is { } value =>
+            WorkerMpValueKind.Logical when argument.Value is WorkerBooleanValue { Value: var value } =>
                 sdk.SetBoolArg(argument.Name, value),
-            SdkValueKind.WholeNumber when argument.IntegerValue is { } value =>
+            WorkerMpValueKind.WholeNumber when argument.Value is WorkerIntegerValue { Value: var value } =>
                 sdk.SetIntegerArg(argument.Name, value),
-            SdkValueKind.FloatingPoint when argument.DoubleValue is { } value =>
+            WorkerMpValueKind.FloatingPoint when argument.Value is WorkerDoubleValue { Value: var value } =>
                 sdk.SetDoubleArg(argument.Name, value),
-            SdkValueKind.Text when argument.StringValue is { } value =>
+            WorkerMpValueKind.Text when argument.Value is WorkerTextValue { Value: var value } =>
                 sdk.SetStringArg(argument.Name, value),
-            SdkValueKind.InstrumentTypeName when argument.StringValue is { } value =>
+            WorkerMpValueKind.InstrumentTypeName when argument.Value is WorkerTextValue { Value: var value } =>
                 sdk.SetInstTypeNameArg(argument.Name, value),
-            SdkValueKind.DoubleArray when argument.DoubleArrayValue is { } value =>
+            WorkerMpValueKind.DoubleArray when argument.Value is WorkerDoubleArrayValue value =>
                 SetDoubleArray(sdk, argument.Name, value),
-            SdkValueKind.EditText when argument.StringListValue is { } value =>
+            WorkerMpValueKind.EditText when argument.Value is WorkerStringListValue value =>
                 SetEditText(sdk, argument.Name, value),
-            SdkValueKind.Transform when argument.TransformValue is { } value =>
+            WorkerMpValueKind.Transform when argument.Value is WorkerTransformValue value =>
                 SetTransform(sdk, argument.Name, value),
-            SdkValueKind.WorldTransform when argument.WorldTransformValue is { } value =>
+            WorkerMpValueKind.WorldTransform when argument.Value is WorkerWorldTransformValue value =>
                 SetWorldTransform(sdk, argument.Name, value),
-            SdkValueKind.RgbColor when argument.RgbColorValue is { } value =>
+            WorkerMpValueKind.RgbColor when argument.Value is WorkerRgbColorValue value =>
                 sdk.SetColorArg(argument.Name, value.Red, value.Green, value.Blue),
-            SdkValueKind.FileReference when argument.FileReferenceValue is { } value =>
+            WorkerMpValueKind.FileReference when argument.Value is WorkerFileReferenceValue value =>
                 sdk.SetFilePathArg(argument.Name, value.Path, value.EmbeddedFile),
-            SdkValueKind.AngularUnit when argument.AngularUnitValue is { } value =>
+            WorkerMpValueKind.AngularUnit when argument.Value is WorkerAngularUnitChoice { Value: var value } =>
                 SetAngularUnit(sdk, argument.Name, value),
-            SdkValueKind.DistanceUnit when argument.DistanceUnitValue is { } value =>
+            WorkerMpValueKind.DistanceUnit when argument.Value is WorkerDistanceUnitChoice { Value: var value } =>
                 SetDistanceUnit(sdk, argument.Name, value),
-            SdkValueKind.TemperatureUnit when argument.TemperatureUnitValue is { } value =>
+            WorkerMpValueKind.TemperatureUnit when argument.Value is WorkerTemperatureUnitChoice { Value: var value } =>
                 SetTemperatureUnit(sdk, argument.Name, value),
-            SdkValueKind.Font when argument.FontValue is { } value =>
+            WorkerMpValueKind.Font when argument.Value is WorkerFontValue value =>
                 sdk.SetFontTypeArg(
                     argument.Name,
                     value.FontName,
@@ -170,165 +158,157 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
                     value.Color.Red,
                     value.Color.Green,
                     value.Color.Blue),
-            SdkValueKind.ChartName when argument.StringValue is { } value =>
+            WorkerMpValueKind.ChartName when argument.Value is WorkerTextValue { Value: var value } =>
                 sdk.SetChartNameArg(argument.Name, value),
-            SdkValueKind.CloudName when argument.StringValue is { } value =>
+            WorkerMpValueKind.CloudName when argument.Value is WorkerTextValue { Value: var value } =>
                 sdk.SetCloudNameArg(argument.Name, value),
-            SdkValueKind.CollectionName when argument.StringValue is { } value =>
+            WorkerMpValueKind.CollectionName when argument.Value is WorkerTextValue { Value: var value } =>
                 sdk.SetCollectionNameArg(argument.Name, value),
-            SdkValueKind.FrameName when argument.StringValue is { } value =>
+            WorkerMpValueKind.FrameName when argument.Value is WorkerTextValue { Value: var value } =>
                 sdk.SetFrameNameArg(argument.Name, value),
-            SdkValueKind.VectorGroupName when argument.StringValue is { } value =>
+            WorkerMpValueKind.VectorGroupName when argument.Value is WorkerTextValue { Value: var value } =>
                 sdk.SetVectorGroupNameArg(argument.Name, value),
-            SdkValueKind.ViewName when argument.StringValue is { } value =>
+            WorkerMpValueKind.ViewName when argument.Value is WorkerTextValue { Value: var value } =>
                 sdk.SetViewNameArg(argument.Name, value),
-            SdkValueKind.PointName when argument.PointNameValue is { } value =>
+            WorkerMpValueKind.PointName when argument.Value is WorkerPointNameValue value =>
                 sdk.SetPointNameArg(
                     argument.Name,
                     value.CollectionName,
                     value.GroupName,
                     value.TargetName),
-            SdkValueKind.Vector when argument.VectorValue is { } value =>
+            WorkerMpValueKind.Vector when argument.Value is WorkerVectorValue value =>
                 sdk.SetVectorArg(argument.Name, value.X, value.Y, value.Z),
-            SdkValueKind.ToleranceVectorOptions
-                when argument.ToleranceVectorOptionsValue is { } value =>
+            WorkerMpValueKind.ToleranceVectorOptions
+                when argument.Value is WorkerToleranceVectorOptionsValue value =>
                 SetToleranceVectorOptions(sdk, argument.Name, value),
-            SdkValueKind.CollectionInstrumentId
-                when argument.CollectionInstrumentIdValue is { } value =>
+            WorkerMpValueKind.CollectionInstrumentId
+                when argument.Value is WorkerCollectionInstrumentIdValue value =>
                 sdk.SetColInstIdArg(argument.Name, value.CollectionName, value.InstrumentId),
-            SdkValueKind.CollectionInstrumentIdList
-                when argument.CollectionInstrumentIdListValue is { } value =>
+            WorkerMpValueKind.CollectionInstrumentIdList
+                when argument.Value is WorkerCollectionInstrumentIdListValue value =>
                 SetCollectionInstrumentIdList(sdk, argument.Name, value),
-            SdkValueKind.CollectionMachineId
-                when argument.CollectionMachineIdValue is { } value =>
+            WorkerMpValueKind.CollectionMachineId
+                when argument.Value is WorkerCollectionMachineIdValue value =>
                 sdk.SetColMachineIdArg(argument.Name, value.CollectionName, value.MachineId),
-            SdkValueKind.CollectionItemName
-                when argument.CollectionItemNameValue is { } value =>
+            WorkerMpValueKind.CollectionItemName
+                when argument.Value is WorkerCollectionItemNameValue value =>
                 sdk.SetCollectionObjectNameArg2(
                     argument.Name,
                     value.CollectionName,
                     value.ItemName,
                     SdkSpecializedValueCodec.ToSdkString(value.ItemType)),
-            SdkValueKind.CollectionItemNameList
-                when argument.CollectionItemNameListValue is { } value =>
+            WorkerMpValueKind.CollectionItemNameList
+                when argument.Value is WorkerCollectionItemNameListValue value =>
                 SetCollectionItemNameList(sdk, argument.Name, value),
-            SdkValueKind.CollectionObjectName
-                when argument.CollectionObjectNameValue is { } value =>
+            WorkerMpValueKind.CollectionObjectName
+                when argument.Value is WorkerCollectionObjectNameValue value =>
                 sdk.SetCollectionObjectNameArg2(
                     argument.Name,
                     value.CollectionName,
                     value.ObjectName,
                     SdkSpecializedValueCodec.ToSdkString(value.ObjectType)),
-            SdkValueKind.CollectionObjectNameList
-                when argument.CollectionObjectNameListValue is { } value =>
+            WorkerMpValueKind.CollectionObjectNameList
+                when argument.Value is WorkerCollectionObjectNameListValue value =>
                 SetCollectionObjectNameList(sdk, argument.Name, value),
-            SdkValueKind.CollectionGroupNameList
-                when argument.CollectionGroupNameListValue is { } value =>
+            WorkerMpValueKind.CollectionGroupNameList
+                when argument.Value is WorkerCollectionGroupNameListValue value =>
                 SetCollectionGroupNameList(sdk, argument.Name, value),
-            SdkValueKind.CollectionVectorGroupName
-                when argument.CollectionVectorGroupNameValue is { } value =>
+            WorkerMpValueKind.CollectionVectorGroupName
+                when argument.Value is WorkerCollectionVectorGroupNameValue value =>
                 sdk.SetColVectorGroupNameArg(
                     argument.Name,
                     value.CollectionName,
                     value.VectorGroupName),
-            SdkValueKind.CollectionVectorGroupNameList
-                when argument.CollectionVectorGroupNameListValue is { } value =>
+            WorkerMpValueKind.CollectionVectorGroupNameList
+                when argument.Value is WorkerCollectionVectorGroupNameListValue value =>
                 SetCollectionVectorGroupNameList(sdk, argument.Name, value),
-            SdkValueKind.PointNameList when argument.PointNameListValue is { } value =>
+            WorkerMpValueKind.PointNameList when argument.Value is WorkerPointNameListValue value =>
                 SetPointNameList(sdk, argument.Name, value),
-            SdkValueKind.StringList when argument.StringListValue is { } value =>
+            WorkerMpValueKind.StringList when argument.Value is WorkerStringListValue value =>
                 SetStringList(sdk, argument.Name, value),
-            SdkValueKind.VectorNameList when argument.VectorNameListValue is { } value =>
+            WorkerMpValueKind.VectorNameList when argument.Value is WorkerVectorNameListValue value =>
                 SetVectorNameList(sdk, argument.Name, value),
             _ => SetSpecializedInputArgument(sdk, argument)
         };
 
-    private static SdkOutputValue GetOutputValue(
+    private static WorkerMpOutputValue GetOutputValue(
         ISpatialAnalyzerSdkCalls sdk,
-        SdkOutputArgument argument) =>
+        WorkerMpOutputArgument argument) =>
         !HasExpectedBinding(argument.SdkBinding, ExpectedGetter(argument.Kind))
-            ? new SdkOutputValue(argument.Name, argument.Kind, Retrieved: false)
+            ? new WorkerUnavailableOutput(argument.Name, argument.Kind)
             : argument.Kind switch
             {
-                SdkValueKind.Logical => GetLogical(sdk, argument),
-                SdkValueKind.WholeNumber => GetWholeNumber(sdk, argument),
-                SdkValueKind.FloatingPoint => GetFloatingPoint(sdk, argument),
-                SdkValueKind.Text => GetText(sdk, argument),
-                SdkValueKind.DoubleArray => GetDoubleArray(sdk, argument),
-                SdkValueKind.EditText => GetEditText(sdk, argument),
-                SdkValueKind.Transform => GetTransform(sdk, argument),
-                SdkValueKind.WorldTransform => GetWorldTransform(sdk, argument),
-                SdkValueKind.FileReference => GetFileReference(sdk, argument),
-                SdkValueKind.PointName => GetPointName(sdk, argument),
-                SdkValueKind.Vector => GetVector(sdk, argument),
-                SdkValueKind.ToleranceVectorOptions =>
+                WorkerMpValueKind.Logical => GetLogical(sdk, argument),
+                WorkerMpValueKind.WholeNumber => GetWholeNumber(sdk, argument),
+                WorkerMpValueKind.FloatingPoint => GetFloatingPoint(sdk, argument),
+                WorkerMpValueKind.Text => GetText(sdk, argument),
+                WorkerMpValueKind.DoubleArray => GetDoubleArray(sdk, argument),
+                WorkerMpValueKind.EditText => GetEditText(sdk, argument),
+                WorkerMpValueKind.Transform => GetTransform(sdk, argument),
+                WorkerMpValueKind.WorldTransform => GetWorldTransform(sdk, argument),
+                WorkerMpValueKind.FileReference => GetFileReference(sdk, argument),
+                WorkerMpValueKind.PointName => GetPointName(sdk, argument),
+                WorkerMpValueKind.Vector => GetVector(sdk, argument),
+                WorkerMpValueKind.ToleranceVectorOptions =>
                     GetToleranceVectorOptions(sdk, argument),
-                SdkValueKind.CollectionInstrumentId =>
+                WorkerMpValueKind.CollectionInstrumentId =>
                     GetCollectionInstrumentId(sdk, argument),
-                SdkValueKind.CollectionInstrumentIdList =>
+                WorkerMpValueKind.CollectionInstrumentIdList =>
                     GetCollectionInstrumentIdList(sdk, argument),
-                SdkValueKind.CollectionName => GetNamedString(
+                WorkerMpValueKind.CollectionName => GetNamedString(
                     sdk.GetCollectionNameArg,
                     argument),
-                SdkValueKind.CollectionItemName =>
+                WorkerMpValueKind.CollectionItemName =>
                     GetCollectionItemName(sdk, argument),
-                SdkValueKind.CollectionItemNameList =>
+                WorkerMpValueKind.CollectionItemNameList =>
                     GetCollectionItemNameList(sdk, argument),
-                SdkValueKind.CollectionObjectName =>
+                WorkerMpValueKind.CollectionObjectName =>
                     GetCollectionObjectName(sdk, argument),
-                SdkValueKind.CollectionObjectNameList =>
+                WorkerMpValueKind.CollectionObjectNameList =>
                     GetCollectionObjectNameList(sdk, argument),
-                SdkValueKind.PointNameList => GetPointNameList(sdk, argument),
-                SdkValueKind.StringList => GetStringList(sdk, argument),
-                SdkValueKind.VectorNameList => GetVectorNameList(sdk, argument),
+                WorkerMpValueKind.PointNameList => GetPointNameList(sdk, argument),
+                WorkerMpValueKind.StringList => GetStringList(sdk, argument),
+                WorkerMpValueKind.VectorNameList => GetVectorNameList(sdk, argument),
                 _ => GetSpecializedOutputValue(sdk, argument)
             };
 
-    private static SdkOutputValue GetLogical(ISpatialAnalyzerSdkCalls sdk, SdkOutputArgument argument)
+    private static WorkerMpOutputValue GetLogical(ISpatialAnalyzerSdkCalls sdk, WorkerMpOutputArgument argument)
     {
         var value = false;
         var retrieved = sdk.GetBoolArg(argument.Name, ref value);
-        return new SdkOutputValue(
-            argument.Name,
-            argument.Kind,
-            retrieved,
-            BooleanValue: retrieved ? value : null);
+        return WorkerMpOutputValue.FromRetrieval(
+            argument.Name, argument.Kind, retrieved,
+            retrieved ? new WorkerBooleanValue(value) : null);
     }
 
-    private static SdkOutputValue GetWholeNumber(ISpatialAnalyzerSdkCalls sdk, SdkOutputArgument argument)
+    private static WorkerMpOutputValue GetWholeNumber(ISpatialAnalyzerSdkCalls sdk, WorkerMpOutputArgument argument)
     {
         var value = 0;
         var retrieved = sdk.GetIntegerArg(argument.Name, ref value);
-        return new SdkOutputValue(
-            argument.Name,
-            argument.Kind,
-            retrieved,
-            IntegerValue: retrieved ? value : null);
+        return WorkerMpOutputValue.FromRetrieval(
+            argument.Name, argument.Kind, retrieved,
+            retrieved ? new WorkerIntegerValue(value) : null);
     }
 
-    private static SdkOutputValue GetFloatingPoint(ISpatialAnalyzerSdkCalls sdk, SdkOutputArgument argument)
+    private static WorkerMpOutputValue GetFloatingPoint(ISpatialAnalyzerSdkCalls sdk, WorkerMpOutputArgument argument)
     {
         var value = 0d;
         var retrieved = sdk.GetDoubleArg(argument.Name, ref value);
-        return new SdkOutputValue(
-            argument.Name,
-            argument.Kind,
-            retrieved,
-            DoubleValue: retrieved ? value : null);
+        return WorkerMpOutputValue.FromRetrieval(
+            argument.Name, argument.Kind, retrieved,
+            retrieved ? new WorkerDoubleValue(value) : null);
     }
 
-    private static SdkOutputValue GetText(ISpatialAnalyzerSdkCalls sdk, SdkOutputArgument argument)
+    private static WorkerMpOutputValue GetText(ISpatialAnalyzerSdkCalls sdk, WorkerMpOutputArgument argument)
     {
         var value = string.Empty;
         var retrieved = sdk.GetStringArg(argument.Name, ref value);
-        return new SdkOutputValue(
-            argument.Name,
-            argument.Kind,
-            retrieved,
-            StringValue: retrieved ? value : null);
+        return WorkerMpOutputValue.FromRetrieval(
+            argument.Name, argument.Kind, retrieved,
+            retrieved ? new WorkerTextValue(value) : null);
     }
 
-    private static SdkOutputValue GetPointName(ISpatialAnalyzerSdkCalls sdk, SdkOutputArgument argument)
+    private static WorkerMpOutputValue GetPointName(ISpatialAnalyzerSdkCalls sdk, WorkerMpOutputArgument argument)
     {
         var collectionName = string.Empty;
         var groupName = string.Empty;
@@ -338,31 +318,27 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
             ref collectionName,
             ref groupName,
             ref targetName);
-        return new SdkOutputValue(
-            argument.Name,
-            argument.Kind,
-            retrieved,
-            PointNameValue: retrieved
-                ? new SdkPointNameValue(collectionName, groupName, targetName)
+        return WorkerMpOutputValue.FromRetrieval(
+            argument.Name, argument.Kind, retrieved,
+            retrieved
+                ? new WorkerPointNameValue(collectionName, groupName, targetName)
                 : null);
     }
 
-    private static SdkOutputValue GetVector(ISpatialAnalyzerSdkCalls sdk, SdkOutputArgument argument)
+    private static WorkerMpOutputValue GetVector(ISpatialAnalyzerSdkCalls sdk, WorkerMpOutputArgument argument)
     {
         var x = 0d;
         var y = 0d;
         var z = 0d;
         var retrieved = sdk.GetVectorArg(argument.Name, ref x, ref y, ref z);
-        return new SdkOutputValue(
-            argument.Name,
-            argument.Kind,
-            retrieved,
-            VectorValue: retrieved ? new SdkVectorValue(x, y, z) : null);
+        return WorkerMpOutputValue.FromRetrieval(
+            argument.Name, argument.Kind, retrieved,
+            retrieved ? new WorkerVectorValue(x, y, z) : null);
     }
 
-    private static SdkOutputValue GetToleranceVectorOptions(
+    private static WorkerMpOutputValue GetToleranceVectorOptions(
         ISpatialAnalyzerSdkCalls sdk,
-        SdkOutputArgument argument)
+        WorkerMpOutputArgument argument)
     {
         var highX = new MutableToleranceLimit();
         var highY = new MutableToleranceLimit();
@@ -390,12 +366,10 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
             ref lowZ.Value,
             ref lowMagnitude.Enabled,
             ref lowMagnitude.Value);
-        return new SdkOutputValue(
-            argument.Name,
-            argument.Kind,
-            retrieved,
-            ToleranceVectorOptionsValue: retrieved
-                ? new SdkToleranceVectorOptionsValue(
+        return WorkerMpOutputValue.FromRetrieval(
+            argument.Name, argument.Kind, retrieved,
+            retrieved
+                ? new WorkerToleranceVectorOptionsValue(
                     highX.ToValue(),
                     highY.ToValue(),
                     highZ.ToValue(),
@@ -410,7 +384,7 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
     private static bool SetDoubleArray(
         ISpatialAnalyzerSdkCalls sdk,
         string name,
-        SdkDoubleArrayValue value)
+        WorkerDoubleArrayValue value)
     {
         var sdkValue = SdkContainerValueCodec.ToDoubleArrayComValue(value);
         return sdk.SetDoubleArrayArg(name, value.Values.Count, ref sdkValue);
@@ -419,7 +393,7 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
     private static bool SetEditText(
         ISpatialAnalyzerSdkCalls sdk,
         string name,
-        SdkStringListValue value)
+        WorkerStringListValue value)
     {
         var sdkValue = SdkContainerValueCodec.ToEditTextComValue(value);
         return sdk.SetEditTextArg(name, ref sdkValue);
@@ -428,7 +402,7 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
     private static bool SetTransform(
         ISpatialAnalyzerSdkCalls sdk,
         string name,
-        SdkTransformValue value)
+        WorkerTransformValue value)
     {
         try
         {
@@ -444,7 +418,7 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
     private static bool SetWorldTransform(
         ISpatialAnalyzerSdkCalls sdk,
         string name,
-        SdkWorldTransformValue value)
+        WorkerWorldTransformValue value)
     {
         try
         {
@@ -460,130 +434,122 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
     private static bool SetAngularUnit(
         ISpatialAnalyzerSdkCalls sdk,
         string name,
-        SdkAngularUnitValue value) =>
+        WorkerAngularUnitValue value) =>
         AngularUnitSdkString(value) is { } sdkValue &&
         sdk.SetAngularUnitsArg(name, sdkValue);
 
     private static bool SetDistanceUnit(
         ISpatialAnalyzerSdkCalls sdk,
         string name,
-        SdkDistanceUnitValue value) =>
+        WorkerDistanceUnitValue value) =>
         DistanceUnitSdkString(value) is { } sdkValue &&
         sdk.SetDistanceUnitsArg(name, sdkValue);
 
     private static bool SetTemperatureUnit(
         ISpatialAnalyzerSdkCalls sdk,
         string name,
-        SdkTemperatureUnitValue value) =>
+        WorkerTemperatureUnitValue value) =>
         TemperatureUnitSdkString(value) is { } sdkValue &&
         sdk.SetTemperatureUnitsArg(name, sdkValue);
 
-    private static string? AngularUnitSdkString(SdkAngularUnitValue value) =>
+    private static string? AngularUnitSdkString(WorkerAngularUnitValue value) =>
         value switch
         {
-            SdkAngularUnitValue.Degrees => "Degrees",
-            SdkAngularUnitValue.DegreesMinutesSeconds => "Deg:Min:Sec",
-            SdkAngularUnitValue.Radians => "Radians",
-            SdkAngularUnitValue.Milliradians => "Milliradians",
-            SdkAngularUnitValue.GonsGrad => "Gons/Grad",
-            SdkAngularUnitValue.Mils => "Mils",
-            SdkAngularUnitValue.Arcseconds => "Arcseconds",
-            SdkAngularUnitValue.DegreesMinutes => "Deg:Min",
+            WorkerAngularUnitValue.Degrees => "Degrees",
+            WorkerAngularUnitValue.DegreesMinutesSeconds => "Deg:Min:Sec",
+            WorkerAngularUnitValue.Radians => "Radians",
+            WorkerAngularUnitValue.Milliradians => "Milliradians",
+            WorkerAngularUnitValue.GonsGrad => "Gons/Grad",
+            WorkerAngularUnitValue.Mils => "Mils",
+            WorkerAngularUnitValue.Arcseconds => "Arcseconds",
+            WorkerAngularUnitValue.DegreesMinutes => "Deg:Min",
             _ => null
         };
 
-    private static string? DistanceUnitSdkString(SdkDistanceUnitValue value) =>
+    private static string? DistanceUnitSdkString(WorkerDistanceUnitValue value) =>
         value switch
         {
-            SdkDistanceUnitValue.Meters => "Meters",
-            SdkDistanceUnitValue.Centimeters => "Centimeters",
-            SdkDistanceUnitValue.Millimeters => "Millimeters",
-            SdkDistanceUnitValue.Feet => "Feet",
-            SdkDistanceUnitValue.Inches => "Inches",
-            SdkDistanceUnitValue.UsSurveyFeet => "US Survey Feet",
+            WorkerDistanceUnitValue.Meters => "Meters",
+            WorkerDistanceUnitValue.Centimeters => "Centimeters",
+            WorkerDistanceUnitValue.Millimeters => "Millimeters",
+            WorkerDistanceUnitValue.Feet => "Feet",
+            WorkerDistanceUnitValue.Inches => "Inches",
+            WorkerDistanceUnitValue.UsSurveyFeet => "US Survey Feet",
             _ => null
         };
 
-    private static string? TemperatureUnitSdkString(SdkTemperatureUnitValue value) =>
+    private static string? TemperatureUnitSdkString(WorkerTemperatureUnitValue value) =>
         value switch
         {
-            SdkTemperatureUnitValue.Fahrenheit => "Fahrenheit",
-            SdkTemperatureUnitValue.Celsius => "Celsius",
+            WorkerTemperatureUnitValue.Fahrenheit => "Fahrenheit",
+            WorkerTemperatureUnitValue.Celsius => "Celsius",
             _ => null
         };
 
-    private static SdkOutputValue GetDoubleArray(
+    private static WorkerMpOutputValue GetDoubleArray(
         ISpatialAnalyzerSdkCalls sdk,
-        SdkOutputArgument argument)
+        WorkerMpOutputArgument argument)
     {
         var size = argument.ArraySize ?? 0;
         var sdkValue = argument.ArraySize.HasValue
             ? SdkContainerValueCodec.DoubleArrayBuffer(size)
             : SdkContainerValueCodec.EmptyArrayBuffer();
-        SdkDoubleArrayValue? value = null;
+        WorkerDoubleArrayValue? value = null;
         var retrieved = sdk.GetDoubleArrayArg(argument.Name, ref size, ref sdkValue) &&
             SdkContainerValueCodec.TryParseDoubleArray(sdkValue, size, out value);
-        return new SdkOutputValue(
-            argument.Name,
-            argument.Kind,
-            retrieved,
-            DoubleArrayValue: retrieved ? value : null);
+        return WorkerMpOutputValue.FromRetrieval(
+            argument.Name, argument.Kind, retrieved,
+            retrieved ? value : null);
     }
 
-    private static SdkOutputValue GetEditText(
+    private static WorkerMpOutputValue GetEditText(
         ISpatialAnalyzerSdkCalls sdk,
-        SdkOutputArgument argument)
+        WorkerMpOutputArgument argument)
     {
         var sdkValue = SdkContainerValueCodec.EmptyArrayBuffer();
-        SdkStringListValue? value = null;
+        WorkerStringListValue? value = null;
         var retrieved = sdk.GetEditTextArg(argument.Name, ref sdkValue) &&
             SdkContainerValueCodec.TryParseEditText(sdkValue, out value);
-        return new SdkOutputValue(
-            argument.Name,
-            argument.Kind,
-            retrieved,
-            StringListValue: retrieved ? value : null);
+        return WorkerMpOutputValue.FromRetrieval(
+            argument.Name, argument.Kind, retrieved,
+            retrieved ? value : null);
     }
 
-    private static SdkOutputValue GetTransform(
+    private static WorkerMpOutputValue GetTransform(
         ISpatialAnalyzerSdkCalls sdk,
-        SdkOutputArgument argument)
+        WorkerMpOutputArgument argument)
     {
         var sdkValue = SdkContainerValueCodec.TransformBuffer();
-        SdkTransformValue? value = null;
+        WorkerTransformValue? value = null;
         var retrieved = sdk.GetTransformArg(argument.Name, ref sdkValue) &&
             SdkContainerValueCodec.TryParseTransform(sdkValue, out value);
-        return new SdkOutputValue(
-            argument.Name,
-            argument.Kind,
-            retrieved,
-            TransformValue: retrieved ? value : null);
+        return WorkerMpOutputValue.FromRetrieval(
+            argument.Name, argument.Kind, retrieved,
+            retrieved ? value : null);
     }
 
-    private static SdkOutputValue GetWorldTransform(
+    private static WorkerMpOutputValue GetWorldTransform(
         ISpatialAnalyzerSdkCalls sdk,
-        SdkOutputArgument argument)
+        WorkerMpOutputArgument argument)
     {
         var sdkValue = SdkContainerValueCodec.TransformBuffer();
         var scaleFactor = 0d;
-        SdkTransformValue? transform = null;
+        WorkerTransformValue? transform = null;
         var retrieved = sdk.GetWorldTransformArg(
             argument.Name,
             ref sdkValue,
             ref scaleFactor) &&
             SdkContainerValueCodec.TryParseTransform(sdkValue, out transform);
-        return new SdkOutputValue(
-            argument.Name,
-            argument.Kind,
-            retrieved,
-            WorldTransformValue: retrieved
-                ? new SdkWorldTransformValue(transform!, scaleFactor)
+        return WorkerMpOutputValue.FromRetrieval(
+            argument.Name, argument.Kind, retrieved,
+            retrieved
+                ? new WorkerWorldTransformValue(transform!, scaleFactor)
                 : null);
     }
 
-    private static SdkOutputValue GetFileReference(
+    private static WorkerMpOutputValue GetFileReference(
         ISpatialAnalyzerSdkCalls sdk,
-        SdkOutputArgument argument)
+        WorkerMpOutputArgument argument)
     {
         var path = string.Empty;
         var embeddedFile = false;
@@ -591,19 +557,17 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
             argument.Name,
             ref path,
             ref embeddedFile);
-        return new SdkOutputValue(
-            argument.Name,
-            argument.Kind,
-            retrieved,
-            FileReferenceValue: retrieved
-                ? new SdkFileReferenceValue(path, embeddedFile)
+        return WorkerMpOutputValue.FromRetrieval(
+            argument.Name, argument.Kind, retrieved,
+            retrieved
+                ? new WorkerFileReferenceValue(path, embeddedFile)
                 : null);
     }
 
     private static bool SetCollectionInstrumentIdList(
         ISpatialAnalyzerSdkCalls sdk,
         string name,
-        SdkCollectionInstrumentIdListValue value) =>
+        WorkerCollectionInstrumentIdListValue value) =>
         SetReferenceList(
             value.Values.Select(SdkReferenceListCodec.Format),
             (ref object values) => sdk.SetColInstIdRefListArg(name, ref values));
@@ -611,7 +575,7 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
     private static bool SetCollectionGroupNameList(
         ISpatialAnalyzerSdkCalls sdk,
         string name,
-        SdkCollectionGroupNameListValue value) =>
+        WorkerCollectionGroupNameListValue value) =>
         SetReferenceList(
             value.Values.Select(SdkReferenceListCodec.Format),
             (ref object values) => sdk.SetCollectionGroupNameRefListArg(name, ref values));
@@ -619,7 +583,7 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
     private static bool SetCollectionItemNameList(
         ISpatialAnalyzerSdkCalls sdk,
         string name,
-        SdkCollectionItemNameListValue value) =>
+        WorkerCollectionItemNameListValue value) =>
         SetReferenceList(
             value.Values.Select(SdkReferenceListCodec.Format),
             (ref object values) => sdk.SetCollectionObjectNameRefListArg(name, ref values));
@@ -627,7 +591,7 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
     private static bool SetCollectionObjectNameList(
         ISpatialAnalyzerSdkCalls sdk,
         string name,
-        SdkCollectionObjectNameListValue value) =>
+        WorkerCollectionObjectNameListValue value) =>
         SetReferenceList(
             value.Values.Select(SdkReferenceListCodec.Format),
             (ref object values) => sdk.SetCollectionObjectNameRefListArg(name, ref values));
@@ -635,7 +599,7 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
     private static bool SetCollectionVectorGroupNameList(
         ISpatialAnalyzerSdkCalls sdk,
         string name,
-        SdkCollectionVectorGroupNameListValue value) =>
+        WorkerCollectionVectorGroupNameListValue value) =>
         SetReferenceList(
             value.Values.Select(SdkReferenceListCodec.Format),
             (ref object values) => sdk.SetCollectionVectorGroupNameRefListArg(name, ref values));
@@ -643,7 +607,7 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
     private static bool SetPointNameList(
         ISpatialAnalyzerSdkCalls sdk,
         string name,
-        SdkPointNameListValue value) =>
+        WorkerPointNameListValue value) =>
         SetReferenceList(
             value.Values.Select(SdkReferenceListCodec.Format),
             (ref object values) => sdk.SetPointNameRefListArg(name, ref values));
@@ -651,7 +615,7 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
     private static bool SetStringList(
         ISpatialAnalyzerSdkCalls sdk,
         string name,
-        SdkStringListValue value) =>
+        WorkerStringListValue value) =>
         SetReferenceList(
             value.Values,
             (ref object values) => sdk.SetStringRefListArg(name, ref values));
@@ -659,7 +623,7 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
     private static bool SetVectorNameList(
         ISpatialAnalyzerSdkCalls sdk,
         string name,
-        SdkVectorNameListValue value) =>
+        WorkerVectorNameListValue value) =>
         SetReferenceList(
             value.Values.Select(SdkReferenceListCodec.Format),
             (ref object values) => sdk.SetVectorNameRefListArg(name, ref values));
@@ -679,9 +643,9 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
         }
     }
 
-    private static SdkOutputValue GetCollectionInstrumentId(
+    private static WorkerMpOutputValue GetCollectionInstrumentId(
         ISpatialAnalyzerSdkCalls sdk,
-        SdkOutputArgument argument)
+        WorkerMpOutputArgument argument)
     {
         var collectionName = string.Empty;
         var instrumentId = 0;
@@ -689,18 +653,16 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
             argument.Name,
             ref collectionName,
             ref instrumentId);
-        return new SdkOutputValue(
-            argument.Name,
-            argument.Kind,
-            retrieved,
-            CollectionInstrumentIdValue: retrieved
-                ? new SdkCollectionInstrumentIdValue(collectionName, instrumentId)
+        return WorkerMpOutputValue.FromRetrieval(
+            argument.Name, argument.Kind, retrieved,
+            retrieved
+                ? new WorkerCollectionInstrumentIdValue(collectionName, instrumentId)
                 : null);
     }
 
-    private static SdkOutputValue GetCollectionItemName(
+    private static WorkerMpOutputValue GetCollectionItemName(
         ISpatialAnalyzerSdkCalls sdk,
-        SdkOutputArgument argument)
+        WorkerMpOutputArgument argument)
     {
         var collectionName = string.Empty;
         var itemName = string.Empty;
@@ -708,22 +670,20 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
             argument.Name,
             ref collectionName,
             ref itemName);
-        SdkCollectionItemNameValue? parsed = null;
+        WorkerCollectionItemNameValue? parsed = null;
         retrieved = retrieved &&
             SdkReferenceListCodec.TryParseItemNameResult(
                 collectionName,
                 itemName,
                 out parsed);
-        return new SdkOutputValue(
-            argument.Name,
-            argument.Kind,
-            retrieved,
-            CollectionItemNameValue: retrieved ? parsed : null);
+        return WorkerMpOutputValue.FromRetrieval(
+            argument.Name, argument.Kind, retrieved,
+            retrieved ? parsed : null);
     }
 
-    private static SdkOutputValue GetCollectionObjectName(
+    private static WorkerMpOutputValue GetCollectionObjectName(
         ISpatialAnalyzerSdkCalls sdk,
-        SdkOutputArgument argument)
+        WorkerMpOutputArgument argument)
     {
         var collectionName = string.Empty;
         var objectName = string.Empty;
@@ -733,14 +693,10 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
             ref objectName);
         if (!retrieved)
         {
-            return new SdkOutputValue(
-                argument.Name,
-                argument.Kind,
-                Retrieved: false,
-                DiagnosticCode: "sdk-output-getter-rejected");
+            return new WorkerUnavailableOutput(argument.Name, argument.Kind, diagnosticCode: "sdk-output-getter-rejected");
         }
 
-        SdkCollectionObjectNameValue? parsed = null;
+        WorkerCollectionObjectNameValue? parsed = null;
         retrieved = SdkReferenceListCodec.TryParseObjectNameResult(
             collectionName,
             objectName,
@@ -751,19 +707,16 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
             !string.IsNullOrWhiteSpace(objectName) &&
             !objectName.Contains(',', StringComparison.Ordinal))
         {
-            parsed = new SdkCollectionObjectNameValue(
+            parsed = new WorkerCollectionObjectNameValue(
                 collectionName,
                 objectName,
                 objectType);
             retrieved = true;
         }
 
-        return new SdkOutputValue(
-            argument.Name,
-            argument.Kind,
-            retrieved,
-            CollectionObjectNameValue: retrieved ? parsed : null,
-            DiagnosticCode: retrieved
+        return WorkerMpOutputValue.FromRetrieval(
+            argument.Name, argument.Kind, retrieved,
+            retrieved ? parsed : null, diagnosticCode: retrieved
                 ? null
                 : CollectionObjectNameDiagnostic(collectionName, objectName));
     }
@@ -779,108 +732,82 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
                     ? "sdk-output-collection-object-type-omitted"
                     : "sdk-output-collection-object-type-unrecognized";
 
-    private static SdkOutputValue GetNamedString(
+    private static WorkerMpOutputValue GetNamedString(
         NamedStringGetter getter,
-        SdkOutputArgument argument)
+        WorkerMpOutputArgument argument)
     {
         var value = string.Empty;
         var retrieved = getter(argument.Name, ref value);
-        return new SdkOutputValue(
-            argument.Name,
-            argument.Kind,
-            retrieved,
-            StringValue: retrieved ? value : null);
+        return WorkerMpOutputValue.FromRetrieval(
+            argument.Name, argument.Kind, retrieved,
+            retrieved ? new WorkerTextValue(value) : null);
     }
 
-    private static SdkOutputValue GetCollectionInstrumentIdList(
+    private static WorkerMpOutputValue GetCollectionInstrumentIdList(
         ISpatialAnalyzerSdkCalls sdk,
-        SdkOutputArgument argument) =>
-        GetReferenceList<SdkCollectionInstrumentIdListValue>(
+        WorkerMpOutputArgument argument) =>
+        GetReferenceList<WorkerCollectionInstrumentIdListValue>(
             argument,
             sdk.GetColInstIdRefListArg,
             SdkReferenceListCodec.TryParseInstrumentIds,
-            (name, kind, value) => new SdkOutputValue(
-                name,
-                kind,
-                true,
-                CollectionInstrumentIdListValue: value));
+            (name, kind, value) => new WorkerRetrievedOutput(name, kind, value));
 
-    private static SdkOutputValue GetCollectionItemNameList(
+    private static WorkerMpOutputValue GetCollectionItemNameList(
         ISpatialAnalyzerSdkCalls sdk,
-        SdkOutputArgument argument) =>
-        GetReferenceList<SdkCollectionItemNameListValue>(
+        WorkerMpOutputArgument argument) =>
+        GetReferenceList<WorkerCollectionItemNameListValue>(
             argument,
             sdk.GetCollectionObjectNameRefListArg,
             SdkReferenceListCodec.TryParseItemNames,
-            (name, kind, value) => new SdkOutputValue(
-                name,
-                kind,
-                true,
-                CollectionItemNameListValue: value));
+            (name, kind, value) => new WorkerRetrievedOutput(name, kind, value));
 
-    private static SdkOutputValue GetCollectionObjectNameList(
+    private static WorkerMpOutputValue GetCollectionObjectNameList(
         ISpatialAnalyzerSdkCalls sdk,
-        SdkOutputArgument argument) =>
-        GetReferenceList<SdkCollectionObjectNameListValue>(
+        WorkerMpOutputArgument argument) =>
+        GetReferenceList<WorkerCollectionObjectNameListValue>(
             argument,
             sdk.GetCollectionObjectNameRefListArg,
             SdkReferenceListCodec.TryParseObjectNames,
-            (name, kind, value) => new SdkOutputValue(
-                name,
-                kind,
-                true,
-                CollectionObjectNameListValue: value));
+            (name, kind, value) => new WorkerRetrievedOutput(name, kind, value));
 
-    private static SdkOutputValue GetPointNameList(
+    private static WorkerMpOutputValue GetPointNameList(
         ISpatialAnalyzerSdkCalls sdk,
-        SdkOutputArgument argument) =>
-        GetReferenceList<SdkPointNameListValue>(
+        WorkerMpOutputArgument argument) =>
+        GetReferenceList<WorkerPointNameListValue>(
             argument,
             sdk.GetPointNameRefListArg,
             SdkReferenceListCodec.TryParsePointNames,
-            (name, kind, value) => new SdkOutputValue(
-                name,
-                kind,
-                true,
-                PointNameListValue: value));
+            (name, kind, value) => new WorkerRetrievedOutput(name, kind, value));
 
-    private static SdkOutputValue GetStringList(
+    private static WorkerMpOutputValue GetStringList(
         ISpatialAnalyzerSdkCalls sdk,
-        SdkOutputArgument argument) =>
-        GetReferenceList<SdkStringListValue>(
+        WorkerMpOutputArgument argument) =>
+        GetReferenceList<WorkerStringListValue>(
             argument,
             sdk.GetStringRefListArg,
             SdkReferenceListCodec.TryParseStrings,
-            (name, kind, value) => new SdkOutputValue(
-                name,
-                kind,
-                true,
-                StringListValue: value));
+            (name, kind, value) => new WorkerRetrievedOutput(name, kind, value));
 
-    private static SdkOutputValue GetVectorNameList(
+    private static WorkerMpOutputValue GetVectorNameList(
         ISpatialAnalyzerSdkCalls sdk,
-        SdkOutputArgument argument) =>
-        GetReferenceList<SdkVectorNameListValue>(
+        WorkerMpOutputArgument argument) =>
+        GetReferenceList<WorkerVectorNameListValue>(
             argument,
             sdk.GetVectorNameRefListArg,
             SdkReferenceListCodec.TryParseVectorNames,
-            (name, kind, value) => new SdkOutputValue(
-                name,
-                kind,
-                true,
-                VectorNameListValue: value));
+            (name, kind, value) => new WorkerRetrievedOutput(name, kind, value));
 
-    private static SdkOutputValue GetReferenceList<T>(
-        SdkOutputArgument argument,
+    private static WorkerMpOutputValue GetReferenceList<T>(
+        WorkerMpOutputArgument argument,
         ReferenceListGetter getter,
         TryParseList<T> parser,
-        Func<string, SdkValueKind, T, SdkOutputValue> create)
+        Func<string, WorkerMpValueKind, T, WorkerMpOutputValue> create)
         where T : class
     {
         var value = SdkReferenceListCodec.ToComValue([]);
         if (!getter(argument.Name, ref value) || !parser(value, out var parsed) || parsed is null)
         {
-            return new SdkOutputValue(argument.Name, argument.Kind, Retrieved: false);
+            return new WorkerUnavailableOutput(argument.Name, argument.Kind);
         }
 
         return create(argument.Name, argument.Kind, parsed);
@@ -896,94 +823,94 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
     private static bool HasExpectedBinding(string? actual, string expected) =>
         actual is null || string.Equals(actual, expected, StringComparison.Ordinal);
 
-    private static string ExpectedSetter(SdkValueKind kind) =>
+    private static string ExpectedSetter(WorkerMpValueKind kind) =>
         kind switch
         {
-            SdkValueKind.Logical => "SetBoolArg",
-            SdkValueKind.WholeNumber => "SetIntegerArg",
-            SdkValueKind.FloatingPoint => "SetDoubleArg",
-            SdkValueKind.Text => "SetStringArg",
-            SdkValueKind.InstrumentTypeName => "SetInstTypeNameArg",
-            SdkValueKind.DoubleArray => "SetDoubleArrayArg",
-            SdkValueKind.EditText => "SetEditTextArg",
-            SdkValueKind.Transform => "SetTransformArg",
-            SdkValueKind.WorldTransform => "SetWorldTransformArg",
-            SdkValueKind.RgbColor => "SetColorArg",
-            SdkValueKind.FileReference => "SetFilePathArg",
-            SdkValueKind.AngularUnit => "SetAngularUnitsArg",
-            SdkValueKind.DistanceUnit => "SetDistanceUnitsArg",
-            SdkValueKind.TemperatureUnit => "SetTemperatureUnitsArg",
-            SdkValueKind.Font => "SetFontTypeArg",
-            SdkValueKind.PointName => "SetPointNameArg",
-            SdkValueKind.Vector => "SetVectorArg",
-            SdkValueKind.ToleranceVectorOptions => "SetToleranceVectorOptionsArg",
-            SdkValueKind.ChartName => "SetChartNameArg",
-            SdkValueKind.CloudName => "SetCloudNameArg",
-            SdkValueKind.CollectionGroupNameList => "SetCollectionGroupNameRefListArg",
-            SdkValueKind.CollectionInstrumentId => "SetColInstIdArg",
-            SdkValueKind.CollectionInstrumentIdList => "SetColInstIdRefListArg",
-            SdkValueKind.CollectionMachineId => "SetColMachineIdArg",
-            SdkValueKind.CollectionName => "SetCollectionNameArg",
-            SdkValueKind.CollectionItemName => "SetCollectionObjectNameArg2",
-            SdkValueKind.CollectionItemNameList => "SetCollectionObjectNameRefListArg",
-            SdkValueKind.CollectionObjectName => "SetCollectionObjectNameArg2",
-            SdkValueKind.CollectionObjectNameList => "SetCollectionObjectNameRefListArg",
-            SdkValueKind.CollectionVectorGroupName => "SetColVectorGroupNameArg",
-            SdkValueKind.CollectionVectorGroupNameList => "SetCollectionVectorGroupNameRefListArg",
-            SdkValueKind.FrameName => "SetFrameNameArg",
-            SdkValueKind.PointNameList => "SetPointNameRefListArg",
-            SdkValueKind.StringList => "SetStringRefListArg",
-            SdkValueKind.VectorGroupName => "SetVectorGroupNameArg",
-            SdkValueKind.VectorNameList => "SetVectorNameRefListArg",
-            SdkValueKind.ViewName => "SetViewNameArg",
+            WorkerMpValueKind.Logical => "SetBoolArg",
+            WorkerMpValueKind.WholeNumber => "SetIntegerArg",
+            WorkerMpValueKind.FloatingPoint => "SetDoubleArg",
+            WorkerMpValueKind.Text => "SetStringArg",
+            WorkerMpValueKind.InstrumentTypeName => "SetInstTypeNameArg",
+            WorkerMpValueKind.DoubleArray => "SetDoubleArrayArg",
+            WorkerMpValueKind.EditText => "SetEditTextArg",
+            WorkerMpValueKind.Transform => "SetTransformArg",
+            WorkerMpValueKind.WorldTransform => "SetWorldTransformArg",
+            WorkerMpValueKind.RgbColor => "SetColorArg",
+            WorkerMpValueKind.FileReference => "SetFilePathArg",
+            WorkerMpValueKind.AngularUnit => "SetAngularUnitsArg",
+            WorkerMpValueKind.DistanceUnit => "SetDistanceUnitsArg",
+            WorkerMpValueKind.TemperatureUnit => "SetTemperatureUnitsArg",
+            WorkerMpValueKind.Font => "SetFontTypeArg",
+            WorkerMpValueKind.PointName => "SetPointNameArg",
+            WorkerMpValueKind.Vector => "SetVectorArg",
+            WorkerMpValueKind.ToleranceVectorOptions => "SetToleranceVectorOptionsArg",
+            WorkerMpValueKind.ChartName => "SetChartNameArg",
+            WorkerMpValueKind.CloudName => "SetCloudNameArg",
+            WorkerMpValueKind.CollectionGroupNameList => "SetCollectionGroupNameRefListArg",
+            WorkerMpValueKind.CollectionInstrumentId => "SetColInstIdArg",
+            WorkerMpValueKind.CollectionInstrumentIdList => "SetColInstIdRefListArg",
+            WorkerMpValueKind.CollectionMachineId => "SetColMachineIdArg",
+            WorkerMpValueKind.CollectionName => "SetCollectionNameArg",
+            WorkerMpValueKind.CollectionItemName => "SetCollectionObjectNameArg2",
+            WorkerMpValueKind.CollectionItemNameList => "SetCollectionObjectNameRefListArg",
+            WorkerMpValueKind.CollectionObjectName => "SetCollectionObjectNameArg2",
+            WorkerMpValueKind.CollectionObjectNameList => "SetCollectionObjectNameRefListArg",
+            WorkerMpValueKind.CollectionVectorGroupName => "SetColVectorGroupNameArg",
+            WorkerMpValueKind.CollectionVectorGroupNameList => "SetCollectionVectorGroupNameRefListArg",
+            WorkerMpValueKind.FrameName => "SetFrameNameArg",
+            WorkerMpValueKind.PointNameList => "SetPointNameRefListArg",
+            WorkerMpValueKind.StringList => "SetStringRefListArg",
+            WorkerMpValueKind.VectorGroupName => "SetVectorGroupNameArg",
+            WorkerMpValueKind.VectorNameList => "SetVectorNameRefListArg",
+            WorkerMpValueKind.ViewName => "SetViewNameArg",
             _ => SpecializedExpectedSetter(kind)
         };
 
-    private static string ExpectedGetter(SdkValueKind kind) =>
+    private static string ExpectedGetter(WorkerMpValueKind kind) =>
         kind switch
         {
-            SdkValueKind.Logical => "GetBoolArg",
-            SdkValueKind.WholeNumber => "GetIntegerArg",
-            SdkValueKind.FloatingPoint => "GetDoubleArg",
-            SdkValueKind.Text => "GetStringArg",
-            SdkValueKind.DoubleArray => "GetDoubleArrayArg",
-            SdkValueKind.EditText => "GetEditTextArg",
-            SdkValueKind.Transform => "GetTransformArg",
-            SdkValueKind.WorldTransform => "GetWorldTransformArg",
-            SdkValueKind.FileReference => "GetFilePathArg",
-            SdkValueKind.RgbColor => "GetColorArg",
-            SdkValueKind.AngularUnit => "GetAngularUnitsArg",
-            SdkValueKind.DistanceUnit => "GetDistanceUnitsArg",
-            SdkValueKind.TemperatureUnit => "GetTemperatureUnitsArg",
-            SdkValueKind.Font => "GetFontTypeArg",
-            SdkValueKind.PointName => "GetPointNameArg",
-            SdkValueKind.Vector => "GetVectorArg",
-            SdkValueKind.ToleranceVectorOptions => "GetToleranceVectorOptionsArg",
-            SdkValueKind.ChartName => "GetChartNameArg",
-            SdkValueKind.CloudName => "GetCloudNameArg",
-            SdkValueKind.CollectionGroupNameList => "GetCollectionGroupNameRefListArg",
-            SdkValueKind.CollectionInstrumentId => "GetColInstIdArg",
-            SdkValueKind.CollectionInstrumentIdList => "GetColInstIdRefListArg",
-            SdkValueKind.CollectionMachineId => "GetColMachineIdArg",
-            SdkValueKind.CollectionName => "GetCollectionNameArg",
-            SdkValueKind.CollectionItemName => "GetCollectionObjectNameArg",
-            SdkValueKind.CollectionItemNameList => "GetCollectionObjectNameRefListArg",
-            SdkValueKind.CollectionObjectName => "GetCollectionObjectNameArg",
-            SdkValueKind.CollectionObjectNameList => "GetCollectionObjectNameRefListArg",
-            SdkValueKind.CollectionVectorGroupName => "GetColVectorGroupNameArg",
-            SdkValueKind.CollectionVectorGroupNameList => "GetCollectionVectorGroupNameRefListArg",
-            SdkValueKind.FrameName => "GetFrameNameArg",
-            SdkValueKind.PointNameList => "GetPointNameRefListArg",
-            SdkValueKind.StringList => "GetStringRefListArg",
-            SdkValueKind.VectorGroupName => "GetVectorGroupNameArg",
-            SdkValueKind.VectorNameList => "GetVectorNameRefListArg",
-            SdkValueKind.ViewName => "GetViewNameArg",
+            WorkerMpValueKind.Logical => "GetBoolArg",
+            WorkerMpValueKind.WholeNumber => "GetIntegerArg",
+            WorkerMpValueKind.FloatingPoint => "GetDoubleArg",
+            WorkerMpValueKind.Text => "GetStringArg",
+            WorkerMpValueKind.DoubleArray => "GetDoubleArrayArg",
+            WorkerMpValueKind.EditText => "GetEditTextArg",
+            WorkerMpValueKind.Transform => "GetTransformArg",
+            WorkerMpValueKind.WorldTransform => "GetWorldTransformArg",
+            WorkerMpValueKind.FileReference => "GetFilePathArg",
+            WorkerMpValueKind.RgbColor => "GetColorArg",
+            WorkerMpValueKind.AngularUnit => "GetAngularUnitsArg",
+            WorkerMpValueKind.DistanceUnit => "GetDistanceUnitsArg",
+            WorkerMpValueKind.TemperatureUnit => "GetTemperatureUnitsArg",
+            WorkerMpValueKind.Font => "GetFontTypeArg",
+            WorkerMpValueKind.PointName => "GetPointNameArg",
+            WorkerMpValueKind.Vector => "GetVectorArg",
+            WorkerMpValueKind.ToleranceVectorOptions => "GetToleranceVectorOptionsArg",
+            WorkerMpValueKind.ChartName => "GetChartNameArg",
+            WorkerMpValueKind.CloudName => "GetCloudNameArg",
+            WorkerMpValueKind.CollectionGroupNameList => "GetCollectionGroupNameRefListArg",
+            WorkerMpValueKind.CollectionInstrumentId => "GetColInstIdArg",
+            WorkerMpValueKind.CollectionInstrumentIdList => "GetColInstIdRefListArg",
+            WorkerMpValueKind.CollectionMachineId => "GetColMachineIdArg",
+            WorkerMpValueKind.CollectionName => "GetCollectionNameArg",
+            WorkerMpValueKind.CollectionItemName => "GetCollectionObjectNameArg",
+            WorkerMpValueKind.CollectionItemNameList => "GetCollectionObjectNameRefListArg",
+            WorkerMpValueKind.CollectionObjectName => "GetCollectionObjectNameArg",
+            WorkerMpValueKind.CollectionObjectNameList => "GetCollectionObjectNameRefListArg",
+            WorkerMpValueKind.CollectionVectorGroupName => "GetColVectorGroupNameArg",
+            WorkerMpValueKind.CollectionVectorGroupNameList => "GetCollectionVectorGroupNameRefListArg",
+            WorkerMpValueKind.FrameName => "GetFrameNameArg",
+            WorkerMpValueKind.PointNameList => "GetPointNameRefListArg",
+            WorkerMpValueKind.StringList => "GetStringRefListArg",
+            WorkerMpValueKind.VectorGroupName => "GetVectorGroupNameArg",
+            WorkerMpValueKind.VectorNameList => "GetVectorNameRefListArg",
+            WorkerMpValueKind.ViewName => "GetViewNameArg",
             _ => SpecializedExpectedGetter(kind)
         };
     private static bool SetToleranceVectorOptions(
         ISpatialAnalyzerSdkCalls sdk,
         string name,
-        SdkToleranceVectorOptionsValue value) =>
+        WorkerToleranceVectorOptionsValue value) =>
         sdk.SetToleranceVectorOptionsArg(
             name,
             value.HighX.Enabled,
@@ -1009,7 +936,7 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
 
         public double Value;
 
-        public SdkToleranceLimit ToValue() => new(Enabled, Value);
+        public WorkerToleranceLimit ToValue() => new(Enabled, Value);
     }
     private sealed partial class ComSdkCalls(ComSdk sdk) : ISpatialAnalyzerSdkCalls
     {

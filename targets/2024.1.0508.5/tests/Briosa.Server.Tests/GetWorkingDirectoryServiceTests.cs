@@ -16,11 +16,7 @@ public sealed class GetWorkingDirectoryServiceTests
     public async Task GeneratedClientRetrievesDirectoryThroughHandwrittenBinding()
     {
         var executor = new RecordingExecutor(CompletedExecution(
-            new WorkerMpOutputValue(
-                "Directory",
-                WorkerMpValueKind.Text,
-                Retrieved: true,
-                StringValue: @"C:\Measurements")));
+            new WorkerRetrievedOutput("Directory", WorkerMpValueKind.Text, new WorkerTextValue(@"C:\Measurements"))));
         var client = CreateClient(executor);
 
         var result = await client.GetWorkingDirectoryAsync(
@@ -53,13 +49,13 @@ public sealed class GetWorkingDirectoryServiceTests
         var executor = new RecordingExecutor(new WorkerExecutionOutcome(
             WorkerExecutionStatus.Completed,
             WorkerExecutionDisposition.Completed,
-            new WorkerMpExecutionResult(
-                ExecuteStepReturned: true,
-                MpResultRetrieved: true,
-                MpSucceeded: false,
-                MpResultCode: 3,
-                DurationMilliseconds: 7,
-                OutputValues: [],
+            WorkerMpExecutionResult.FromEvidence(
+                executeStepReturned: true,
+                mpResultRetrieved: true,
+                mpSucceeded: false,
+                mpResultCode: 3,
+                durationMilliseconds: 7,
+                outputValues: [],
                 "mp-command-failed"),
             Connection: null,
             "mp-command-failed",
@@ -83,10 +79,7 @@ public sealed class GetWorkingDirectoryServiceTests
     public async Task GetterFailureNeverReturnsAnEmptyDirectory()
     {
         var executor = new RecordingExecutor(CompletedExecution(
-            new WorkerMpOutputValue(
-                "Directory",
-                WorkerMpValueKind.Text,
-                Retrieved: false),
+            new WorkerUnavailableOutput("Directory", WorkerMpValueKind.Text),
             diagnosticCode: "sdk-output-retrieval-failed"));
         var client = CreateClient(executor);
 
@@ -207,13 +200,13 @@ public sealed class GetWorkingDirectoryServiceTests
         new(
             WorkerExecutionStatus.Completed,
             WorkerExecutionDisposition.Completed,
-            new WorkerMpExecutionResult(
-                ExecuteStepReturned: true,
-                MpResultRetrieved: true,
-                MpSucceeded: true,
-                MpResultCode: 2,
-                DurationMilliseconds: 5,
-                OutputValues: [output],
+            WorkerMpExecutionResult.FromEvidence(
+                executeStepReturned: true,
+                mpResultRetrieved: true,
+                mpSucceeded: true,
+                mpResultCode: 2,
+                durationMilliseconds: 5,
+                outputValues: [output],
                 diagnosticCode),
             Connection: null,
             diagnosticCode ?? "completed",
@@ -296,10 +289,9 @@ public sealed class GetWorkingDirectoryServiceTests
                 "/briosa.FileOperations/GetWorkingDirectory",
                 method.FullName);
             Assert.IsType<Api.GetWorkingDirectoryRequest>(request);
-            var response = await service.ExecuteGetWorkingDirectory(
+            var response = await service.GetWorkingDirectory(
                     (Api.GetWorkingDirectoryRequest)(object)request,
-                    cancellationToken,
-                    deadline)
+                    new InMemoryServerCallContext(method.FullName, deadline, cancellationToken))
                 .ConfigureAwait(false);
             return (TResponse)(object)response;
         }

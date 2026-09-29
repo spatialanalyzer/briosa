@@ -34,23 +34,13 @@ internal static class GetIthCollectionNameOperation
     public static WorkerMpCommand CreateCommand(Api.GetIthCollectionNameRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        if (!request.HasCollectionIndex)
-        {
-            throw new ArgumentException(
-                "Collection Index must be present.",
-                nameof(request));
-        }
-
+        // Preserve the public operation's existing default of index zero.
         return new WorkerMpCommand(
             OperationId,
             StepName,
             inputArguments:
             [
-                new(
-                    CollectionIndexArgumentName,
-                    WorkerMpValueKind.WholeNumber,
-                    IntegerValue: request.CollectionIndex,
-                    SdkBinding: CollectionIndexSetter)
+                new WorkerMpInputArgument(CollectionIndexArgumentName, WorkerMpValueKind.WholeNumber, new WorkerIntegerValue(request.CollectionIndex), sdkBinding: CollectionIndexSetter)
             ],
             outputArguments:
             [
@@ -61,17 +51,10 @@ internal static class GetIthCollectionNameOperation
             ]);
     }
 
-    public static Api.GetIthCollectionNameResult CreateResult(
-        SuccessfulOperationExecution completed)
+    // OperationExecutor validates ordered output shape and retrieval before mapping.
+    public static Api.GetIthCollectionNameResult CreateResult(SuccessfulOperationExecution completed) => new()
     {
-        ArgumentNullException.ThrowIfNull(completed);
-        var resultantName = completed.Execution.OutputValues.Single(value =>
-            value.Name == ResultantNameArgumentName &&
-            value.Kind == WorkerMpValueKind.CollectionName);
-        return new Api.GetIthCollectionNameResult
-        {
-            ResultantName = resultantName.StringValue!,
-            Execution = completed.Details
-        };
-    }
+        ResultantName = completed.Execution.OutputValues[0].RequireValue<WorkerTextValue>().Value,
+        Execution = completed.Details
+    };
 }

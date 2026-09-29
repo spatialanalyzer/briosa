@@ -89,36 +89,3 @@ public sealed record DesktopState
     public static string IdentityText(RuntimeIdentityEvidence? identity) => identity is null ? "Unavailable" :
         $"{SafeText.Version(identity.Version)} · {SafeText.Label(identity.Source)} · {SafeText.Label(identity.MatchState)}";
 }
-
-public static class DesktopActionFeedback
-{
-    public static string Rejected(string? diagnostic) => diagnostic switch
-    {
-        "runtime-identity-not-ready" => "Attachment succeeded; commands remain blocked by version checks. Review Connection setup. Reconnecting cannot supply missing evidence.",
-        "activated-sdk-version-mismatch" => "Connection was blocked because Windows activated a different SDK release. Stop the SDK and register the matching SDK using the vendor's installation tools.",
-        "spatial-analyzer-application-not-found" => "The matching SpatialAnalyzer application was not found. Open it, then connect again.",
-        "sdk-client-activation-failed" => "Windows could not activate the SDK. Check the matching SpatialAnalyzer installation and SDK registration before recovery.",
-        "sdk-reconnect-not-required" => "The SDK is already ready. Reconnection is unnecessary.",
-        _ => "The server rejected the action. Review its current state. Diagnostic: " + SafeText.Code(diagnostic)
-    };
-}
-
-public static class SafeText
-{
-    public static string Label(Enum? value)
-    {
-        if (value is null || !Enum.IsDefined(value.GetType(), value)) return "Unavailable";
-        var text = value.ToString();
-        var result = new System.Text.StringBuilder();
-        for (int i = 0; i < text.Length; i++)
-        {
-            if (i > 0 && char.IsUpper(text[i]) && char.IsLower(text[i - 1])) result.Append(' ');
-            result.Append(i == 0 ? text[i] : char.ToLowerInvariant(text[i]));
-        }
-        return result.ToString();
-    }
-    public static string Code(string? value) => value is { Length: > 0 and <= 128 } &&
-        value.All(c => char.IsAsciiLetterOrDigit(c) || c is '-' or '_') ? value : "unavailable";
-    public static string Version(string? value) => value is { Length: > 0 and <= 96 } &&
-        value.All(c => char.IsAsciiLetterOrDigit(c) || c is '.' or '-' or '+') ? value : "Unavailable";
-}

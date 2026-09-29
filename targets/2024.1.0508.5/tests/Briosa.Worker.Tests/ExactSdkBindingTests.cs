@@ -1,3 +1,4 @@
+using Briosa.Worker.Control;
 using Briosa.Worker.Sdk;
 
 namespace Briosa.Worker.Tests;
@@ -9,15 +10,11 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
     {
         using var calls = new RecordingSdkCalls();
         using var adapter = new SpatialAnalyzerSdkAdapter(calls);
-        var command = new SdkCommand(
+        var command = new WorkerMpCommand(
             "binding-mismatch",
             "Binding Mismatch",
             [
-                new SdkInputArgument(
-                    "Value",
-                    SdkValueKind.Text,
-                    StringValue: "sensitive-value",
-                    SdkBinding: "SetStringArg2")
+                new WorkerMpInputArgument("Value", WorkerMpValueKind.Text, new WorkerTextValue("sensitive-value"), sdkBinding: "SetStringArg2")
             ],
             outputArguments: []);
 
@@ -33,11 +30,11 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
     {
         using var calls = new RecordingSdkCalls();
         using var adapter = new SpatialAnalyzerSdkAdapter(calls);
-        var command = new SdkCommand(
+        var command = new WorkerMpCommand(
             "binding-mismatch",
             "Binding Mismatch",
             inputArguments: [],
-            [new SdkOutputArgument("Value", SdkValueKind.Text, "GetStringArg2")]);
+            [new WorkerMpOutputArgument("Value", WorkerMpValueKind.Text, "GetStringArg2")]);
 
         var result = adapter.Execute(command);
 

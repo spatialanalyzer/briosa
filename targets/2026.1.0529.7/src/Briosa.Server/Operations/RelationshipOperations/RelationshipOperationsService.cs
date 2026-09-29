@@ -163,11 +163,9 @@ internal sealed partial class RelationshipOperationsService(OperationExecutor ex
     public override Task<Api.GetRelationshipFitConstraintsScalarTypeResult> GetRelationshipFitConstraintsScalarType(
         Api.GetRelationshipFitConstraintsScalarTypeRequest request,
         ServerCallContext context) =>
-        MpOperationServiceExecutor.ExecuteAsync<Api.GetRelationshipFitConstraintsScalarTypeRequest, Api.GetRelationshipFitConstraintsScalarTypeResult>(
-            executor,
-            request,
-            context,
-            "relationship_operations.get_relationship_fit_constraints_scalar_type");
+        executor.ExecuteAsync(request, context, GetRelationshipFitConstraintsScalarTypeOperation.Descriptor,
+            GetRelationshipFitConstraintsScalarTypeOperation.CreateCommand, GetRelationshipFitConstraintsScalarTypeOperation.OutputContracts,
+            GetRelationshipFitConstraintsScalarTypeOperation.CreateResult);
 
     [OperationImplementation("relationship_operations.get_relationship_outlier_rejection_scalar_type")]
     public override Task<Api.GetRelationshipOutlierRejectionScalarTypeResult> GetRelationshipOutlierRejectionScalarType(
@@ -433,11 +431,9 @@ internal sealed partial class RelationshipOperationsService(OperationExecutor ex
     public override Task<Api.SetRelationshipFitConstraintsScalarTypeResult> SetRelationshipFitConstraintsScalarType(
         Api.SetRelationshipFitConstraintsScalarTypeRequest request,
         ServerCallContext context) =>
-        MpOperationServiceExecutor.ExecuteAsync<Api.SetRelationshipFitConstraintsScalarTypeRequest, Api.SetRelationshipFitConstraintsScalarTypeResult>(
-            executor,
-            request,
-            context,
-            "relationship_operations.set_relationship_fit_constraints_scalar_type");
+        executor.ExecuteAsync(request, context, SetRelationshipFitConstraintsScalarTypeOperation.Descriptor,
+            SetRelationshipFitConstraintsScalarTypeOperation.CreateCommand, [],
+            SetRelationshipFitConstraintsScalarTypeOperation.CreateResult);
 
     [OperationImplementation("relationship_operations.set_relationship_orientation_fit_constraints_vector_type")]
     public override Task<Api.SetRelationshipOrientationFitConstraintsVectorTypeResult> SetRelationshipOrientationFitConstraintsVectorType(

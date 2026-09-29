@@ -6,20 +6,6 @@ using Grpc.Core;
 
 namespace Briosa.Server.Operations.WaveA;
 
-internal sealed record MpArgumentContract(
-    string FieldName,
-    string MpName,
-    WorkerMpValueKind Kind,
-    string SdkBinding,
-    string DefaultValue,
-    bool Required,
-    WorkerObjectTypeValue? ObjectTypeWhenOmitted = null,
-    IReadOnlyList<string>? EnumTextValues = null,
-    bool OmitWhenAbsent = false,
-    string? NestedFieldName = null,
-    WorkerItemTypeValue? ItemTypeWhenOmitted = null,
-    string? ArraySizeFieldName = null);
-
 internal sealed class MpOperationContract
 {
     public MpOperationContract(
@@ -79,7 +65,7 @@ internal sealed class MpOperationContract
                     output.MpName,
                     output.Kind,
                     output.SdkBinding,
-                    output.ObjectTypeWhenOmitted,
+                    output.Kind == WorkerMpValueKind.CollectionObjectName ? output.ObjectTypeWhenOmitted : null,
                     output.ArraySizeFieldName is null
                         ? null
                         : MpOperationValueMapper.GetRequiredPositiveInt32(
@@ -92,26 +78,4 @@ internal sealed class MpOperationContract
         SuccessfulOperationExecution completed)
         where TResponse : class, IMessage<TResponse>, new() =>
         MpOperationValueMapper.ToResult<TResponse>(completed, Outputs);
-}
-
-internal static class MpOperationServiceExecutor
-{
-    public static Task<TResponse> ExecuteAsync<TRequest, TResponse>(
-        OperationExecutor executor,
-        TRequest request,
-        ServerCallContext context,
-        string operationId)
-        where TRequest : class, IMessage<TRequest>
-        where TResponse : class, IMessage<TResponse>, new()
-    {
-        ArgumentNullException.ThrowIfNull(executor);
-        var operation = MpOperationCatalog.Get(operationId);
-        return executor.ExecuteAsync(
-            request,
-            context,
-            operation.Descriptor,
-            operation.CreateCommand,
-            operation.OutputContracts,
-            operation.CreateResult<TResponse>);
-    }
 }

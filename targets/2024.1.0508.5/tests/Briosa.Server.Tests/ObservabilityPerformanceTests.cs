@@ -39,7 +39,7 @@ public sealed class ObservabilityPerformanceTests
         try
         {
             await using var supervisor = ObservabilityTests.Supervisor("normal", logs, telemetry);
-            Assert.True(await supervisor.StartAsync());
+            Assert.True((await supervisor.StartAsync()).Succeeded);
             var executor = ObservabilityTests.Executor(supervisor, logs, telemetry);
             for (var index = 0; index < 64; index++) await ObservabilityTests.Run(executor);
             const int count = 512;

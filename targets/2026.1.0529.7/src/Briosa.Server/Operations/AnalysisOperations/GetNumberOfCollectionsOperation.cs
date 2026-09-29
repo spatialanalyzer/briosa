@@ -46,18 +46,10 @@ internal static class GetNumberOfCollectionsOperation
             ]);
     }
 
-    public static Api.GetNumberOfCollectionsResult CreateResult(
-        SuccessfulOperationExecution completed)
+    // OperationExecutor validates ordered output shape and retrieval before mapping.
+    public static Api.GetNumberOfCollectionsResult CreateResult(SuccessfulOperationExecution completed) => new()
     {
-        ArgumentNullException.ThrowIfNull(completed);
-        var totalCount = completed.Execution.OutputValues.Single(value =>
-            value.Name == TotalCountArgumentName &&
-            value.Kind == WorkerMpValueKind.WholeNumber);
-
-        return new Api.GetNumberOfCollectionsResult
-        {
-            TotalCount = totalCount.IntegerValue!.Value,
-            Execution = completed.Details
-        };
-    }
+        TotalCount = completed.Execution.OutputValues[0].RequireValue<WorkerIntegerValue>().Value,
+        Execution = completed.Details
+    };
 }

@@ -1,0 +1,61 @@
+namespace Briosa.Worker.Control;
+
+// Converts the retained interpreter's zero-based choice ordinals. Typed operations
+// construct WorkerChoiceValue<T> directly; SDK access never parses enum names.
+public static class WorkerChoiceFactory
+{
+    public static WorkerMpValue FromOrdinal(WorkerMpValueKind kind, int ordinal) => kind switch
+    {
+        WorkerMpValueKind.AsciiImportFileFormat => new WorkerChoiceValue<WorkerAsciiImportFileFormatValue>((WorkerAsciiImportFileFormatValue)ordinal),
+        WorkerMpValueKind.AsciiFrameSetFormat => new WorkerChoiceValue<WorkerAsciiFrameSetFormatValue>((WorkerAsciiFrameSetFormatValue)ordinal),
+        WorkerMpValueKind.AxisIdentifier => new WorkerChoiceValue<WorkerAxisIdentifierValue>((WorkerAxisIdentifierValue)ordinal),
+        WorkerMpValueKind.WcfAxisIdentifier => new WorkerChoiceValue<WorkerWcfAxisIdentifierValue>((WorkerWcfAxisIdentifierValue)ordinal),
+        WorkerMpValueKind.BaseColorType => new WorkerChoiceValue<WorkerBaseColorTypeValue>((WorkerBaseColorTypeValue)ordinal),
+        WorkerMpValueKind.BaseMidColorType => new WorkerChoiceValue<WorkerBaseMidColorTypeValue>((WorkerBaseMidColorTypeValue)ordinal),
+        WorkerMpValueKind.ChartType => new WorkerChoiceValue<WorkerChartTypeValue>((WorkerChartTypeValue)ordinal),
+        WorkerMpValueKind.CollimationBaselineType => new WorkerChoiceValue<WorkerCollimationBaselineTypeValue>((WorkerCollimationBaselineTypeValue)ordinal),
+        WorkerMpValueKind.CollimationType => new WorkerChoiceValue<WorkerCollimationTypeValue>((WorkerCollimationTypeValue)ordinal),
+        WorkerMpValueKind.ColorRangeMethod => new WorkerChoiceValue<WorkerColorRangeMethodValue>((WorkerColorRangeMethodValue)ordinal),
+        WorkerMpValueKind.CoordinateSystemType => new WorkerChoiceValue<WorkerCoordinateSystemTypeValue>((WorkerCoordinateSystemTypeValue)ordinal),
+        WorkerMpValueKind.VectorComponent => new WorkerChoiceValue<WorkerVectorComponentValue>((WorkerVectorComponentValue)ordinal),
+        WorkerMpValueKind.DynamicCircleMode => new WorkerChoiceValue<WorkerDynamicCircleModeValue>((WorkerDynamicCircleModeValue)ordinal),
+        WorkerMpValueKind.DynamicEllipseMode => new WorkerChoiceValue<WorkerDynamicEllipseModeValue>((WorkerDynamicEllipseModeValue)ordinal),
+        WorkerMpValueKind.DynamicLineMode => new WorkerChoiceValue<WorkerDynamicLineModeValue>((WorkerDynamicLineModeValue)ordinal),
+        WorkerMpValueKind.DynamicPlaneMode => new WorkerChoiceValue<WorkerDynamicPlaneModeValue>((WorkerDynamicPlaneModeValue)ordinal),
+        WorkerMpValueKind.DynamicPointMode => new WorkerChoiceValue<WorkerDynamicPointModeValue>((WorkerDynamicPointModeValue)ordinal),
+        WorkerMpValueKind.EdgeMode => new WorkerChoiceValue<WorkerEdgeModeValue>((WorkerEdgeModeValue)ordinal),
+        WorkerMpValueKind.ExportDataDelimiterType => new WorkerChoiceValue<WorkerExportDataDelimiterTypeValue>((WorkerExportDataDelimiterTypeValue)ordinal),
+        WorkerMpValueKind.ExportTargetNameFormat => new WorkerChoiceValue<WorkerExportTargetNameFormatValue>((WorkerExportTargetNameFormatValue)ordinal),
+        WorkerMpValueKind.ExportVectorNameFormat => new WorkerChoiceValue<WorkerExportVectorNameFormatValue>((WorkerExportVectorNameFormatValue)ordinal),
+        WorkerMpValueKind.GeometryType => new WorkerChoiceValue<WorkerGeometryTypeValue>((WorkerGeometryTypeValue)ordinal),
+        WorkerMpValueKind.GdtDistanceBetweenMode => new WorkerChoiceValue<WorkerGdtDistanceBetweenModeValue>((WorkerGdtDistanceBetweenModeValue)ordinal),
+        WorkerMpValueKind.GdtEvaluationMethod => new WorkerChoiceValue<WorkerGdtEvaluationMethodValue>((WorkerGdtEvaluationMethodValue)ordinal),
+        WorkerMpValueKind.InstrumentType => new WorkerChoiceValue<WorkerInstrumentTypeValue>((WorkerInstrumentTypeValue)ordinal),
+        WorkerMpValueKind.ObjectType => new WorkerChoiceValue<WorkerObjectTypeValue>((WorkerObjectTypeValue)(ordinal + 1)),
+        WorkerMpValueKind.OffsetDirectionType => new WorkerChoiceValue<WorkerOffsetDirectionTypeValue>((WorkerOffsetDirectionTypeValue)ordinal),
+        WorkerMpValueKind.PointFilterInputType => new WorkerChoiceValue<WorkerPointFilterInputTypeValue>((WorkerPointFilterInputTypeValue)ordinal),
+        WorkerMpValueKind.RelationshipWeightingMode => new WorkerChoiceValue<WorkerRelationshipWeightingModeValue>((WorkerRelationshipWeightingModeValue)ordinal),
+        WorkerMpValueKind.RenderModeType => new WorkerChoiceValue<WorkerRenderModeTypeValue>((WorkerRenderModeTypeValue)ordinal),
+        WorkerMpValueKind.ReportPageOrientation => new WorkerChoiceValue<WorkerReportPageOrientationValue>((WorkerReportPageOrientationValue)ordinal),
+        WorkerMpValueKind.SaturationLimitType => new WorkerChoiceValue<WorkerSaturationLimitTypeValue>((WorkerSaturationLimitTypeValue)ordinal),
+        WorkerMpValueKind.ShowUsmnDialogType => new WorkerChoiceValue<WorkerShowUsmnDialogTypeValue>((WorkerShowUsmnDialogTypeValue)ordinal),
+        WorkerMpValueKind.SurfaceAnalysisMode => new WorkerChoiceValue<WorkerSurfaceAnalysisModeValue>((WorkerSurfaceAnalysisModeValue)ordinal),
+        WorkerMpValueKind.SurfaceDissectionModeType => new WorkerChoiceValue<WorkerSurfaceDissectionModeTypeValue>((WorkerSurfaceDissectionModeTypeValue)ordinal),
+        WorkerMpValueKind.TargetComputationMethod => new WorkerChoiceValue<WorkerTargetComputationMethodValue>((WorkerTargetComputationMethodValue)ordinal),
+        WorkerMpValueKind.TranslucencyType => new WorkerChoiceValue<WorkerTranslucencyTypeValue>((WorkerTranslucencyTypeValue)ordinal),
+        WorkerMpValueKind.CompTechnique => new WorkerChoiceValue<WorkerCompTechniqueValue>((WorkerCompTechniqueValue)ordinal),
+        WorkerMpValueKind.DegreeOfFreedom => new WorkerChoiceValue<WorkerDegreeOfFreedomValue>((WorkerDegreeOfFreedomValue)ordinal),
+        WorkerMpValueKind.FitMethod => new WorkerChoiceValue<WorkerFitMethodValue>((WorkerFitMethodValue)ordinal),
+        WorkerMpValueKind.MeasuredSideForPlanarOffset => new WorkerChoiceValue<WorkerMeasuredSideForPlanarOffsetValue>((WorkerMeasuredSideForPlanarOffsetValue)ordinal),
+        WorkerMpValueKind.MeasuredSideForRadialOffset => new WorkerChoiceValue<WorkerMeasuredSideForRadialOffsetValue>((WorkerMeasuredSideForRadialOffsetValue)ordinal),
+        WorkerMpValueKind.MpDialogInteractionMode => new WorkerChoiceValue<WorkerMpDialogInteractionModeValue>((WorkerMpDialogInteractionModeValue)ordinal),
+        WorkerMpValueKind.MpInteractionMode => new WorkerChoiceValue<WorkerMpInteractionModeValue>((WorkerMpInteractionModeValue)ordinal),
+        WorkerMpValueKind.NormalDirection => new WorkerChoiceValue<WorkerNormalDirectionValue>((WorkerNormalDirectionValue)ordinal),
+        WorkerMpValueKind.SaInteractionMode => new WorkerChoiceValue<WorkerSaInteractionModeValue>((WorkerSaInteractionModeValue)ordinal),
+        WorkerMpValueKind.SlotType => new WorkerChoiceValue<WorkerSlotTypeValue>((WorkerSlotTypeValue)ordinal),
+        WorkerMpValueKind.SphereFitComputationMode => new WorkerChoiceValue<WorkerSphereFitComputationModeValue>((WorkerSphereFitComputationModeValue)ordinal),
+        WorkerMpValueKind.WindowState => new WorkerChoiceValue<WorkerWindowStateValue>((WorkerWindowStateValue)ordinal),
+        WorkerMpValueKind.SystemString => new WorkerChoiceValue<WorkerSystemStringValue>((WorkerSystemStringValue)ordinal),
+        _ => throw new ArgumentOutOfRangeException(nameof(kind))
+    };
+}

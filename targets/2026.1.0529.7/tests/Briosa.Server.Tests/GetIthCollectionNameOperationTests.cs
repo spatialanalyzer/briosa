@@ -22,7 +22,7 @@ public sealed class GetIthCollectionNameOperationTests
         var input = Assert.Single(command.InputArguments);
         Assert.Equal("Collection Index", input.Name);
         Assert.Equal(WorkerMpValueKind.WholeNumber, input.Kind);
-        Assert.Equal(0, input.IntegerValue);
+        Assert.Equal(0, ((input.Value as WorkerIntegerValue)?.Value));
         Assert.Equal("SetIntegerArg", input.SdkBinding);
 
         var output = Assert.Single(command.OutputArguments);
@@ -38,36 +38,26 @@ public sealed class GetIthCollectionNameOperationTests
     }
 
     [Fact]
-    public void CommandMappingRequiresCollectionIndexPresence()
+    public void OmittedCollectionIndexPreservesThePublicDefaultOfZero()
     {
-        var exception = Assert.Throws<ArgumentException>(() =>
-            GetIthCollectionNameOperation.CreateCommand(
-                new Api.GetIthCollectionNameRequest()));
-
-        Assert.Contains(
-            "Collection Index",
-            exception.Message,
-            StringComparison.Ordinal);
+        var command = GetIthCollectionNameOperation.CreateCommand(new Api.GetIthCollectionNameRequest());
+        Assert.Equal(0, Assert.IsType<WorkerIntegerValue>(Assert.Single(command.InputArguments).Value).Value);
     }
 
     [Fact]
     public void ResultMappingReturnsTheRetrievedCollectionNameAndExecutionDetails()
     {
-        var execution = new WorkerMpExecutionResult(
-            ExecuteStepReturned: true,
-            MpResultRetrieved: true,
-            MpSucceeded: true,
-            MpResultCode: 2,
-            DurationMilliseconds: 5,
-            OutputValues:
+        var execution = WorkerMpExecutionResult.FromEvidence(
+            executeStepReturned: true,
+            mpResultRetrieved: true,
+            mpSucceeded: true,
+            mpResultCode: 2,
+            durationMilliseconds: 5,
+            outputValues:
             [
-                new WorkerMpOutputValue(
-                    "Resultant Name",
-                    WorkerMpValueKind.CollectionName,
-                    Retrieved: true,
-                    StringValue: "Collection 1")
+                new WorkerRetrievedOutput("Resultant Name", WorkerMpValueKind.CollectionName, new WorkerTextValue("Collection 1"))
             ],
-            DiagnosticCode: "completed");
+            diagnosticCode: "completed");
         var details = new Api.MpExecutionDetails
         {
             State = Api.MpExecutionState.Succeeded,

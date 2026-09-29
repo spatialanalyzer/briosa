@@ -48,7 +48,9 @@ internal static class TestWorkerProcess
             var connection = options.Scenario switch
             {
                 TestWorkerScenario.SdkActivationFailed =>
-                    FaultedSnapshot("sdk-client-activation-failed"),
+                    FaultedSnapshot("fake-start-rejected", WorkerConnectionFailure.ActivationFailed),
+                TestWorkerScenario.SdkActivationFailedTimeoutText =>
+                    FaultedSnapshot("fake-start-rejected-timeout-word-only", WorkerConnectionFailure.ActivationFailed),
                 TestWorkerScenario.Disconnected or
                     TestWorkerScenario.ConnectUnavailableOnce or
                     TestWorkerScenario.HangOnConnect or
@@ -113,7 +115,8 @@ internal static class TestWorkerProcess
                                 State = WorkerConnectionState.Faulted,
                                 ExecutionReadinessState =
                                     WorkerExecutionReadinessState.Unverified,
-                                DiagnosticCode = "sdk-process-exited",
+                                DiagnosticCode = "fake-engine-ended",
+                                Failure = WorkerConnectionFailure.ProcessExited,
                                 TransitionedAt = DateTimeOffset.UtcNow
                             };
                         }
@@ -214,12 +217,12 @@ internal static class TestWorkerProcess
         TestWorkerScenario scenario) =>
         new(
             WorkerExecutionResponseStatus.Completed,
-            new WorkerMpExecutionResult(
-                ExecuteStepReturned: true,
-                MpResultRetrieved: true,
+            WorkerMpExecutionResult.FromEvidence(
+                executeStepReturned: true,
+                mpResultRetrieved: true,
                 mpSucceeded,
                 mpSucceeded ? 2 : 3,
-                DurationMilliseconds: delayed ? 300 : 5,
+                durationMilliseconds: delayed ? 300 : 5,
                 mpSucceeded
                     ? [.. command.OutputArguments.Select(CreateOutputValue)]
                     : [],
@@ -233,11 +236,11 @@ internal static class TestWorkerProcess
         output.Kind switch
         {
             WorkerMpValueKind.Logical =>
-                new(output.Name, output.Kind, Retrieved: true, BooleanValue: true),
+                new WorkerRetrievedOutput(output.Name, output.Kind, new WorkerBooleanValue(true)),
             WorkerMpValueKind.WholeNumber =>
-                new(output.Name, output.Kind, Retrieved: true, IntegerValue: 7),
+                new WorkerRetrievedOutput(output.Name, output.Kind, new WorkerIntegerValue(7)),
             WorkerMpValueKind.FloatingPoint =>
-                new(output.Name, output.Kind, Retrieved: true, DoubleValue: 1.25),
+                new WorkerRetrievedOutput(output.Name, output.Kind, new WorkerDoubleValue(1.25)),
             WorkerMpValueKind.Text or
             WorkerMpValueKind.ChartName or
             WorkerMpValueKind.CloudName or
@@ -245,132 +248,56 @@ internal static class TestWorkerProcess
             WorkerMpValueKind.FrameName or
             WorkerMpValueKind.VectorGroupName or
             WorkerMpValueKind.ViewName =>
-                new(output.Name, output.Kind, Retrieved: true, StringValue: "scripted-output"),
+                new WorkerRetrievedOutput(output.Name, output.Kind, new WorkerTextValue("scripted-output")),
             WorkerMpValueKind.PointName =>
-                new(
-                    output.Name,
-                    output.Kind,
-                    Retrieved: true,
-                    PointNameValue: new WorkerPointNameValue(
+                new WorkerRetrievedOutput(output.Name, output.Kind, new WorkerPointNameValue(
                         "Collection",
                         "Group",
                         "Point")),
             WorkerMpValueKind.Vector =>
-                new(
-                    output.Name,
-                    output.Kind,
-                    Retrieved: true,
-                    VectorValue: new WorkerVectorValue(1, 2, 3)),
+                new WorkerRetrievedOutput(output.Name, output.Kind, new WorkerVectorValue(1, 2, 3)),
             WorkerMpValueKind.ToleranceVectorOptions =>
-                new(
-                    output.Name,
-                    output.Kind,
-                    Retrieved: true,
-                    ToleranceVectorOptionsValue: CreateToleranceVectorOptions()),
+                new WorkerRetrievedOutput(output.Name, output.Kind, CreateToleranceVectorOptions()),
             WorkerMpValueKind.CollectionInstrumentId =>
-                new(
-                    output.Name,
-                    output.Kind,
-                    Retrieved: true,
-                    CollectionInstrumentIdValue:
-                        new WorkerCollectionInstrumentIdValue("Collection", 17)),
+                new WorkerRetrievedOutput(output.Name, output.Kind, new WorkerCollectionInstrumentIdValue("Collection", 17)),
             WorkerMpValueKind.CollectionInstrumentIdList =>
-                new(
-                    output.Name,
-                    output.Kind,
-                    Retrieved: true,
-                    CollectionInstrumentIdListValue:
-                        new WorkerCollectionInstrumentIdListValue(
+                new WorkerRetrievedOutput(output.Name, output.Kind, new WorkerCollectionInstrumentIdListValue(
                             [new WorkerCollectionInstrumentIdValue("Collection", 17)])),
             WorkerMpValueKind.CollectionMachineId =>
-                new(
-                    output.Name,
-                    output.Kind,
-                    Retrieved: true,
-                    CollectionMachineIdValue:
-                        new WorkerCollectionMachineIdValue("Collection", 18)),
+                new WorkerRetrievedOutput(output.Name, output.Kind, new WorkerCollectionMachineIdValue("Collection", 18)),
             WorkerMpValueKind.CollectionItemName =>
-                new(
-                    output.Name,
-                    output.Kind,
-                    Retrieved: true,
-                    CollectionItemNameValue:
-                        new WorkerCollectionItemNameValue(
+                new WorkerRetrievedOutput(output.Name, output.Kind, new WorkerCollectionItemNameValue(
                             "Collection", "Picture", WorkerItemTypeValue.Picture)),
             WorkerMpValueKind.CollectionItemNameList =>
-                new(
-                    output.Name,
-                    output.Kind,
-                    Retrieved: true,
-                    CollectionItemNameListValue:
-                        new WorkerCollectionItemNameListValue(
+                new WorkerRetrievedOutput(output.Name, output.Kind, new WorkerCollectionItemNameListValue(
                             [new WorkerCollectionItemNameValue(
                                 "Collection", "Report", WorkerItemTypeValue.SaReport)])),
             WorkerMpValueKind.CollectionObjectName =>
-                new(
-                    output.Name,
-                    output.Kind,
-                    Retrieved: true,
-                    CollectionObjectNameValue:
-                        new WorkerCollectionObjectNameValue(
+                new WorkerRetrievedOutput(output.Name, output.Kind, new WorkerCollectionObjectNameValue(
                             "Collection", "Object", WorkerObjectTypeValue.PointGroup)),
             WorkerMpValueKind.CollectionObjectNameList =>
-                new(
-                    output.Name,
-                    output.Kind,
-                    Retrieved: true,
-                    CollectionObjectNameListValue:
-                        new WorkerCollectionObjectNameListValue(
+                new WorkerRetrievedOutput(output.Name, output.Kind, new WorkerCollectionObjectNameListValue(
                             [new WorkerCollectionObjectNameValue(
                                 "Collection", "Object", WorkerObjectTypeValue.PointGroup)])),
             WorkerMpValueKind.CollectionGroupNameList =>
-                new(
-                    output.Name,
-                    output.Kind,
-                    Retrieved: true,
-                    CollectionGroupNameListValue:
-                        new WorkerCollectionGroupNameListValue(
+                new WorkerRetrievedOutput(output.Name, output.Kind, new WorkerCollectionGroupNameListValue(
                             [new WorkerCollectionGroupNameValue("Collection", "Group")])),
             WorkerMpValueKind.CollectionVectorGroupName =>
-                new(
-                    output.Name,
-                    output.Kind,
-                    Retrieved: true,
-                    CollectionVectorGroupNameValue:
-                        new WorkerCollectionVectorGroupNameValue("Collection", "Vectors")),
+                new WorkerRetrievedOutput(output.Name, output.Kind, new WorkerCollectionVectorGroupNameValue("Collection", "Vectors")),
             WorkerMpValueKind.CollectionVectorGroupNameList =>
-                new(
-                    output.Name,
-                    output.Kind,
-                    Retrieved: true,
-                    CollectionVectorGroupNameListValue:
-                        new WorkerCollectionVectorGroupNameListValue(
+                new WorkerRetrievedOutput(output.Name, output.Kind, new WorkerCollectionVectorGroupNameListValue(
                             [new WorkerCollectionVectorGroupNameValue(
                                 "Collection", "Vectors")])),
             WorkerMpValueKind.PointNameList =>
-                new(
-                    output.Name,
-                    output.Kind,
-                    Retrieved: true,
-                    PointNameListValue:
-                        new WorkerPointNameListValue(
+                new WorkerRetrievedOutput(output.Name, output.Kind, new WorkerPointNameListValue(
                             [new WorkerPointNameValue("Collection", "Group", "Point")])),
             WorkerMpValueKind.StringList =>
-                new(
-                    output.Name,
-                    output.Kind,
-                    Retrieved: true,
-                    StringListValue: new WorkerStringListValue(["A", "B"])),
+                new WorkerRetrievedOutput(output.Name, output.Kind, new WorkerStringListValue(["A", "B"])),
             WorkerMpValueKind.VectorNameList =>
-                new(
-                    output.Name,
-                    output.Kind,
-                    Retrieved: true,
-                    VectorNameListValue:
-                        new WorkerVectorNameListValue(
+                new WorkerRetrievedOutput(output.Name, output.Kind, new WorkerVectorNameListValue(
                             [new WorkerVectorNameValue(
                                 "Collection", "Vectors", "Vector")])),
-            _ => new(output.Name, output.Kind, Retrieved: false)
+            _ => new WorkerUnavailableOutput(output.Name, output.Kind)
         };
 
     private static WorkerToleranceVectorOptionsValue CreateToleranceVectorOptions() =>
@@ -440,7 +367,7 @@ internal static class TestWorkerProcess
                     Version: null,
                     WorkerRuntimeIdentityEvidenceSource.Unavailable)));
 
-    private static WorkerConnectionSnapshot FaultedSnapshot(string diagnosticCode) =>
+    private static WorkerConnectionSnapshot FaultedSnapshot(string diagnosticCode, WorkerConnectionFailure failure = WorkerConnectionFailure.None) =>
         new(
             WorkerConnectionState.Faulted,
             WorkerExecutionReadinessState.Unverified,
@@ -455,7 +382,7 @@ internal static class TestWorkerProcess
                     WorkerRuntimeIdentityEvidenceSource.Unavailable),
                 new WorkerRuntimeIdentityEvidence(
                     Version: null,
-                    WorkerRuntimeIdentityEvidenceSource.Unavailable)));
+                    WorkerRuntimeIdentityEvidenceSource.Unavailable)), Failure: failure);
 
     private static void WriteRecord(string? path, LifecycleRecord record)
     {
@@ -494,6 +421,7 @@ internal enum TestWorkerScenario
     Disconnected,
     HangBeforeReady,
     SdkActivationFailed,
+    SdkActivationFailedTimeoutText,
     ConnectUnavailableOnce,
     HangOnConnect,
     SdkProcessExitOnPing
@@ -541,6 +469,7 @@ internal sealed record TestWorkerOptions(
             "disconnected" => TestWorkerScenario.Disconnected,
             "hang-before-ready" => TestWorkerScenario.HangBeforeReady,
             "sdk-activation-failed" => TestWorkerScenario.SdkActivationFailed,
+            "sdk-activation-failed-timeout-text" => TestWorkerScenario.SdkActivationFailedTimeoutText,
             "connect-unavailable-once" => TestWorkerScenario.ConnectUnavailableOnce,
             "hang-on-connect" => TestWorkerScenario.HangOnConnect,
             "sdk-process-exit-on-ping" => TestWorkerScenario.SdkProcessExitOnPing,

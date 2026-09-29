@@ -5,18 +5,6 @@ using Briosa.Worker.Control;
 
 namespace Briosa.Server.Security;
 
-internal enum OperationPolicyDecisionKind
-{
-    Allowed,
-    Denied,
-    Unsupported
-}
-
-internal sealed record OperationPolicyDecision(
-    OperationPolicyDecisionKind Kind,
-    string DiagnosticCode,
-    OperationDescriptor? Operation);
-
 internal sealed class OperationPolicy
 {
     internal const string AllowKey = "Briosa:Security:Operations:Allow";

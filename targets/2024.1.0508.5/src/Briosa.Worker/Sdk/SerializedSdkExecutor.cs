@@ -1,3 +1,4 @@
+using Briosa.Worker.Control;
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 
@@ -51,8 +52,8 @@ internal sealed class SerializedSdkExecutor : IAsyncDisposable
     public Task<string?> GetActivatedSdkVersionAsync(CancellationToken cancellationToken = default) =>
         Enqueue(static sdk => sdk.GetActivatedSdkVersion(), cancellationToken);
 
-    public Task<SdkExecutionResult> ExecuteAsync(
-        SdkCommand command,
+    public Task<WorkerMpExecutionResult> ExecuteAsync(
+        WorkerMpCommand command,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);

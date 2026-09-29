@@ -53,8 +53,10 @@ if (-not $IsWindows -or -not [Environment]::Is64BitProcess) {
 $targetVersion = "2026.1.0529.7"
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $serverProject = Join-Path $repositoryRoot "src\Briosa.Server\Briosa.Server.csproj"
+$workerProject = Join-Path $repositoryRoot "src\Briosa.Worker\Briosa.Worker.csproj"
 $clientProject = Join-Path $repositoryRoot "tools\Briosa.LifecycleClient\Briosa.LifecycleClient.csproj"
 $defaultServer = Join-Path $repositoryRoot "src\Briosa.Server\bin\$Configuration\net10.0-windows\Briosa.Server.exe"
+$workerExecutable = Join-Path $repositoryRoot "src\Briosa.Worker\bin\$Configuration\net10.0-windows\Briosa.Worker.exe"
 $defaultClient = Join-Path $repositoryRoot "tools\Briosa.LifecycleClient\bin\$Configuration\net10.0\Briosa.LifecycleClient.dll"
 $resolvedServer = if ([string]::IsNullOrWhiteSpace($ServerPath)) {
     $defaultServer
@@ -74,6 +76,7 @@ $temporaryRoot = Join-Path $temporaryBase "briosa-lifecycle-$([Guid]::NewGuid().
 $serverOutput = Join-Path $temporaryRoot "server.stdout.log"
 $serverError = Join-Path $temporaryRoot "server.stderr.log"
 $serverProcess = $null
+$scenarioCompleted = $false
 
 function Assert-SafeText {
     param(
@@ -166,7 +169,7 @@ function Invoke-LifecycleClient {
             $diagnosticCode = "licensed-lifecycle-client-failure-unclassified"
         }
 
-        throw "The lifecycle client failed ($diagnosticCode)."
+        throw "The lifecycle client failed during '$ClientScenario' ($diagnosticCode)."
     }
 
     $report = ($output -join [Environment]::NewLine) | ConvertFrom-Json
@@ -226,6 +229,10 @@ try {
         if ($LASTEXITCODE -ne 0) {
             throw "The Briosa server restore failed."
         }
+        & dotnet restore $workerProject --locked-mode
+        if ($LASTEXITCODE -ne 0) {
+            throw "The Briosa worker restore failed."
+        }
         & dotnet restore $clientProject --locked-mode
         if ($LASTEXITCODE -ne 0) {
             throw "The lifecycle client restore failed."
@@ -234,6 +241,10 @@ try {
         if ($LASTEXITCODE -ne 0) {
             throw "The Briosa server build failed."
         }
+        & dotnet build $workerProject -c $Configuration --no-restore
+        if ($LASTEXITCODE -ne 0) {
+            throw "The Briosa worker build failed."
+        }
         & dotnet build $clientProject -c $Configuration --no-restore
         if ($LASTEXITCODE -ne 0) {
             throw "The lifecycle client build failed."
@@ -241,14 +252,16 @@ try {
     }
 
     if (-not (Test-Path -LiteralPath $resolvedServer -PathType Leaf) -or
+        -not (Test-Path -LiteralPath $workerExecutable -PathType Leaf) -or
         -not (Test-Path -LiteralPath $resolvedClient -PathType Leaf)) {
-        throw "The server and lifecycle client must exist before the test runs."
+        throw "The server, worker, and lifecycle client must exist before the test runs."
     }
 
     $serverProcess = Start-Process `
         -FilePath $resolvedServer `
         -ArgumentList @(
             "--Briosa:Endpoint:Port=$Port",
+            "--Briosa:Worker:ExecutablePath=`"$workerExecutable`"",
             "--Briosa:SpatialAnalyzer:ExecutablePath=`"$resolvedSaExecutable`"",
             "--Briosa:SpatialAnalyzer:Identity:ActivatedSdk:OperatorAttestation:Version=$ActivatedSdkAttestedVersion",
             "--Briosa:SpatialAnalyzer:Identity:ActivatedSdk:OperatorAttestation:Reference=$ActivatedSdkAttestationReference",
@@ -314,6 +327,7 @@ try {
         throw "A process created by the lifecycle scenario remains; stop and inspect it manually."
     }
 
+    $scenarioCompleted = $true
     Write-Host "Licensed local lifecycle scenario '$Scenario' passed for SpatialAnalyzer $targetVersion."
     Write-Host "No MP values, paths, identity references, or proprietary data were logged."
 }
@@ -346,10 +360,13 @@ finally {
     }
 
     $resolvedTemporaryRoot = [IO.Path]::GetFullPath($temporaryRoot)
-    if ($resolvedTemporaryRoot.StartsWith(
+    if ($scenarioCompleted -and $resolvedTemporaryRoot.StartsWith(
             $temporaryBase,
             [StringComparison]::OrdinalIgnoreCase) -and
         (Test-Path -LiteralPath $resolvedTemporaryRoot)) {
         Remove-Item -LiteralPath $resolvedTemporaryRoot -Recurse -Force
+    }
+    elseif (Test-Path -LiteralPath $resolvedTemporaryRoot) {
+        Write-Warning "The failed lifecycle run retained its local server stdout/stderr logs at $resolvedTemporaryRoot."
     }
 }
