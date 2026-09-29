@@ -181,7 +181,7 @@ internal static class InstrumentWaveBOperationCatalog
                 new("uncertainties", "MAX Abs Error", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false, null, null, false, "maximum_absolute_error"),
                 new("uncertainties", "Goodness Of Fit", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false, null, null, false, "goodness_of_fit"),
                 new("uncertainties", "Robustness", WorkerMpValueKind.FloatingPoint, "GetDoubleArg", "—", false, null, null, false, "robustness"),
-                new("uncertainties", "Result Notes", WorkerMpValueKind.StringList, "GetEditTextArg", "—", false, null, null, false, "result_notes")]),
+                new("uncertainties", "Result Notes", WorkerMpValueKind.EditText, "GetEditTextArg", "—", false, null, null, false, "result_notes")]),
         Mutating(
             "instrument_operations.clear_cloud_viewer",
             "Clear Cloud Viewer",

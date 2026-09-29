@@ -38,8 +38,8 @@ internal sealed class BriosaTelemetry : IDisposable
         _meter.CreateObservableGauge("briosa.execution.active", () => _supervisor?.ExecutionSnapshot.ActiveExecutions ?? 0);
         _meter.CreateObservableCounter("briosa.worker.watchdogs", () => _supervisor?.ExecutionSnapshot.WatchdogTimeouts ?? 0);
         _meter.CreateObservableCounter("briosa.worker.failures", () => _supervisor?.ExecutionSnapshot.WorkerFailures ?? 0);
-        // RestartCount resets on explicit stop/start, so this is a gauge.
-        _meter.CreateObservableGauge("briosa.worker.replacements", () => _supervisor?.Current.RestartCount ?? 0);
+        // Explicit recovery attempts since Start; no automatic restart budget exists.
+        _meter.CreateObservableGauge("briosa.worker.recovery_attempts", () => _supervisor?.Current.RecoveryCount ?? 0);
         _meter.CreateObservableGauge("briosa.ready", Ready);
         _meter.CreateObservableGauge("briosa.identity.match", IdentityMatches);
         _meter.CreateObservableGauge("briosa.log.queue.depth", () => health.Queued);

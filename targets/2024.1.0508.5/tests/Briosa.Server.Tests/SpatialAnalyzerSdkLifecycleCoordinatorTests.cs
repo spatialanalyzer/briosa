@@ -344,14 +344,11 @@ public sealed class SpatialAnalyzerSdkLifecycleCoordinatorTests
         new(
             new NamedPipeWorkerProcessFactory(generation =>
                 CreateLaunch(scenarioFactory(generation))),
-            new WorkerRestartPolicy(
-                maximumRestarts: 0,
-                restartWindow: TimeSpan.FromSeconds(1),
+            new WorkerLifecyclePolicy(
                 heartbeatInterval: TimeSpan.FromMilliseconds(25),
                 heartbeatTimeout: TimeSpan.FromMilliseconds(250),
                 startupTimeout: startupTimeout ?? TimeSpan.FromSeconds(3),
-                shutdownTimeout: shutdownTimeout ?? TimeSpan.FromSeconds(2),
-                restartDelay: TimeSpan.Zero),
+                shutdownTimeout: shutdownTimeout ?? TimeSpan.FromSeconds(2)),
             new WorkerExecutionPolicy(
                 watchdogTimeout: TimeSpan.FromSeconds(2),
                 queueCapacity: 4),

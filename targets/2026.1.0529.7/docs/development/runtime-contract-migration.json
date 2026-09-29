@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "compatibility_major": 2,
+  "baseline_revision": "bcb84712f3171135d112eff8cbcac5e66b2d6761",
+  "baseline_descriptor_sha256": "6c38d82cc30b5c612c984ff9985a4398a0f6b62f7c426e98110bd458071e9d47",
+  "fields": [
+    {
+      "message": "GetRobotMachineParameterRequest",
+      "new_field_number": 3
+    },
+    {
+      "message": "StartRobotMachineInterfaceRequest",
+      "new_field_number": 4
+    },
+    {
+      "message": "StopRobotMachineInterfaceRequest",
+      "new_field_number": 2
+    }
+  ]
+}

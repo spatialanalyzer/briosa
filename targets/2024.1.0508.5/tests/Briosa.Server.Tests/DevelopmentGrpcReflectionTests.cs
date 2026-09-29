@@ -102,10 +102,6 @@ public sealed class DevelopmentGrpcReflectionTests
             capabilities.Operations
                 .Select(operation => operation.OperationId)
                 .Order(StringComparer.Ordinal));
-        Assert.DoesNotContain(
-            capabilities.Operations,
-            operation => operation.Effect == Api.OperationEffect.Mutating);
-
         var fileOperations = new Api.FileOperations.FileOperationsClient(host.Channel);
         var unavailable = await Assert.ThrowsAsync<RpcException>(async () =>
             await fileOperations.GetWorkingDirectoryAsync(

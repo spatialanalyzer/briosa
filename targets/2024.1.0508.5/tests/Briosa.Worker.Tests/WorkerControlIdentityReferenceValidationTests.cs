@@ -27,7 +27,7 @@ public sealed class WorkerControlIdentityReferenceValidationTests
                 ],
                 []));
 
-        Assert.Throws<InvalidDataException>(() => channel.Send(message));
+        Assert.Throws<WorkerMessageRejectedException>(() => channel.Send(message));
         Assert.Equal(0, stream.Length);
     }
 
@@ -56,7 +56,7 @@ public sealed class WorkerControlIdentityReferenceValidationTests
                 ],
                 []));
 
-        Assert.Throws<InvalidDataException>(() => channel.Send(message));
+        Assert.Throws<WorkerMessageRejectedException>(() => channel.Send(message));
         Assert.Equal(0, stream.Length);
     }
 

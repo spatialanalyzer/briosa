@@ -18,6 +18,22 @@ No request may interleave another request's sequence. Queue serialization protec
 the SDK call protocol; it does not create application transactions or isolate
 SpatialAnalyzer global state across several RPCs.
 
+Admission checks operation policy and reserves a queue slot before mapping the
+protobuf request. The production queue holds at most 64 reservations (including
+requests being mapped), in addition to the one active execution. There are no
+callers waiting outside that bound for a queue slot. A full queue returns
+`ResourceExhausted`, failure kind `Overloaded`, diagnostic `worker-admission-full`,
+and `NotStarted`. `MayReplay` permits the caller to submit a new request later;
+it never enables automatic retries in first-party clients.
+
+The public gRPC receive limit and the private worker payload limit are each
+64 KiB. The public limit applies before operation mapping. JSON envelope overhead
+can still make a smaller protobuf request exceed the worker limit; encoding
+rejection returns typed `InvalidArgument`/`Validation` with `NotStarted` and does
+not retire a healthy worker. These limits bound encoded request sizes, not an
+exact amount of managed memory. A transport-level size rejection can occur before
+the service runs and therefore need not include an `OperationError` trailer.
+
 An SDK argument setter returning false stops the sequence before `ExecuteStep`.
 `ExecuteStep` returning true means only that the call was accepted. Briosa then
 calls `GetMPStepResult`; its Boolean means that the numeric result was retrieved,
@@ -63,6 +79,7 @@ Missing or unspecified disposition is never interpreted as `NotStarted`.
 | Condition | Disposition | Typical gRPC status |
 | --- | --- | --- |
 | Validation, unsupported operation, policy denial, or unavailable before enqueue | `NotStarted` | Request-specific or `Unavailable` |
+| Admission capacity exhausted before mapping | `NotStarted` | `ResourceExhausted` |
 | Setter rejected before `ExecuteStep` | `NotStarted` | `FailedPrecondition` |
 | Cancellation or deadline after enqueue | `StartedOutcomeUnknown` unless the worker proves it skipped execution | `Cancelled` or `DeadlineExceeded` |
 | `ExecuteStep` invoked but response lost, watchdog elapsed, or worker failed | `StartedOutcomeUnknown` | `Unavailable` |
@@ -78,8 +95,9 @@ queue retains ownership and drains any later worker response so the private pipe
 cannot become desynchronized.
 
 The independent execution watchdog protects worker availability. When it expires,
-the supervisor terminates the worker process tree and may start a replacement
-within the restart budget. The affected operation remains
+the supervisor terminates the worker process tree and requires an explicit
+generation-checked SDK recovery request. There is no automatic restart budget.
+The affected operation remains
 `StartedOutcomeUnknown`. A watchdog timeout is not reported as the caller's
 deadline, and worker replacement does not establish the interrupted command's
 result.

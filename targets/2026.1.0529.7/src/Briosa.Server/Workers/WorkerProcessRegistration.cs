@@ -32,14 +32,11 @@ internal static class WorkerProcessRegistration
                     workerOptions.ExecutablePath,
                     ["--sa-host", spatialAnalyzerOptions.Host],
                     workingDirectory: Path.GetDirectoryName(workerOptions.ExecutablePath)));
-            var policy = new WorkerRestartPolicy(
-                maximumRestarts: 3,
-                restartWindow: TimeSpan.FromMinutes(1),
+            var policy = new WorkerLifecyclePolicy(
                 heartbeatInterval: TimeSpan.FromSeconds(1),
                 heartbeatTimeout: TimeSpan.FromSeconds(5),
                 startupTimeout: TimeSpan.FromSeconds(10),
-                shutdownTimeout: TimeSpan.FromSeconds(5),
-                restartDelay: TimeSpan.FromSeconds(1));
+                shutdownTimeout: TimeSpan.FromSeconds(5));
             var executionPolicy = new WorkerExecutionPolicy(
                 watchdogTimeout: workerOptions.ExecutionWatchdogTimeout,
                 queueCapacity: 64);

@@ -24,7 +24,7 @@ public sealed class InstallationDiscoveryTests
             [], _ => false, _ => null);
         Assert.Null(selected.ExecutablePath);
         Assert.Equal("spatial-analyzer-installation-not-found", selected.DiagnosticCode);
-        Assert.Equal(1U, ServerCompatibility.Create().Major);
+        Assert.Equal(2U, ServerCompatibility.Create().Major);
     }
 
     [Fact]
@@ -67,7 +67,7 @@ public sealed class InstallationDiscoveryTests
     {
         var first = ServerCompatibility.Create();
         first.Major = 99;
-        Assert.Equal(1U, ServerCompatibility.Create().Major);
+        Assert.Equal(2U, ServerCompatibility.Create().Major);
         Assert.Equal(0U, ServerCompatibility.Create().Revision);
     }
 }

@@ -78,6 +78,7 @@ enum WorkerRuntimeState {
   WORKER_RUNTIME_STATE_STARTING = 2;
   WORKER_RUNTIME_STATE_READY = 3;
   WORKER_RUNTIME_STATE_DEGRADED = 4;
+  WORKER_RUNTIME_STATE_STOPPING = 5;
 }
 
 enum SpatialAnalyzerConnectionState {

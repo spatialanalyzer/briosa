@@ -33,7 +33,8 @@ builder.WebHost.ConfigureKestrel(options =>
         publicEndpoint.Address,
         publicEndpoint.Port,
         listenOptions => listenOptions.Protocols = HttpProtocols.Http2));
-builder.Services.AddGrpc();
+builder.Services.AddGrpc(options =>
+    options.MaxReceiveMessageSize = Briosa.Worker.Control.WorkerControlProtocol.MaximumMessageBytes);
 builder.Services.AddBriosaDevelopmentGrpcReflection(builder.Environment);
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddWorkerProcessLifecycle(builder.Configuration);

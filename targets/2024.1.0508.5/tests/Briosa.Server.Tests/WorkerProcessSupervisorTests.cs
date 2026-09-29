@@ -127,7 +127,7 @@ public sealed class WorkerProcessSupervisorTests
                 snapshot.DiagnosticCode == "worker-heartbeat-timeout");
 
         Assert.Equal(1, faulted.Generation);
-        Assert.Equal(0, faulted.RestartCount);
+        Assert.Equal(0, faulted.RecoveryCount);
         Assert.Contains(
             supervisor.History,
             snapshot => snapshot.State == WorkerLifecycleState.Degraded &&
@@ -136,6 +136,7 @@ public sealed class WorkerProcessSupervisorTests
 
         Assert.True(await supervisor.RecoverSdkAsync(faulted.Generation));
         Assert.Equal(2, supervisor.Current.Generation);
+        Assert.Equal(1, supervisor.Current.RecoveryCount);
         Assert.Equal(WorkerLifecycleState.Ready, supervisor.Current.State);
 
         await supervisor.StopAsync();
@@ -155,7 +156,7 @@ public sealed class WorkerProcessSupervisorTests
             snapshot => snapshot.State == WorkerLifecycleState.Degraded);
 
         Assert.Equal(1, faulted.Generation);
-        Assert.Equal(0, faulted.RestartCount);
+        Assert.Equal(0, faulted.RecoveryCount);
         Assert.Contains(
             supervisor.History,
             snapshot => snapshot.State == WorkerLifecycleState.Degraded &&
@@ -186,7 +187,7 @@ public sealed class WorkerProcessSupervisorTests
             snapshot => snapshot.Generation == 1 &&
                 snapshot.State == WorkerLifecycleState.Degraded);
 
-        Assert.Equal(0, quarantined.RestartCount);
+        Assert.Equal(0, quarantined.RecoveryCount);
         Assert.False(await supervisor.RecoverSdkAsync(quarantined.Generation));
         Assert.Equal(2, supervisor.Current.Generation);
         Assert.Equal(
@@ -223,7 +224,7 @@ public sealed class WorkerProcessSupervisorTests
         await Task.Delay(TimeSpan.FromMilliseconds(250));
 
         Assert.Equal(1, supervisor.Current.Generation);
-        Assert.Equal(0, supervisor.Current.RestartCount);
+        Assert.Equal(0, supervisor.Current.RecoveryCount);
         Assert.Equal(WorkerLifecycleState.Degraded, supervisor.Current.State);
         Assert.Equal(
             Enum.Parse<WorkerTerminationKind>(expectedTermination),
@@ -298,7 +299,7 @@ public sealed class WorkerProcessSupervisorTests
     {
         await using var supervisor = CreateSupervisor(
             _ => CreateLaunch("crash-on-ping"),
-            CreatePolicy(maximumRestarts: 2));
+            CreatePolicy());
 
         Assert.True(await supervisor.StartAsync());
         var faulted = await WaitFor(
@@ -306,7 +307,7 @@ public sealed class WorkerProcessSupervisorTests
             snapshot => snapshot.State == WorkerLifecycleState.Degraded);
 
         Assert.Equal(1, faulted.Generation);
-        Assert.Equal(0, faulted.RestartCount);
+        Assert.Equal(0, faulted.RecoveryCount);
         Assert.Equal(
             1,
             supervisor.History.Count(
@@ -373,7 +374,7 @@ public sealed class WorkerProcessSupervisorTests
     }
 
     [Fact]
-    public async Task FullQueueCancellationIsNotAdmittedAndDrainIsObservable()
+    public async Task FullQueueRejectsWithoutWaitingAndDrainIsObservable()
     {
         await using var supervisor = CreateSupervisor(
             _ => CreateLaunch("delay-first-execute"),
@@ -393,22 +394,15 @@ public sealed class WorkerProcessSupervisorTests
         _ = await WaitForExecution(
             supervisor,
             snapshot => snapshot.QueuedRequests == 2);
-        using var cancellation = new CancellationTokenSource();
         var blocked = supervisor.ExecuteAsync(
-            CreateCommand("blocked"),
-            cancellation.Token);
-        _ = await WaitForExecution(
-            supervisor,
-            snapshot => snapshot.WaitingForAdmission == 1);
-
-        await cancellation.CancelAsync();
+            CreateCommand("blocked"));
         var rejected = await blocked;
         var completed = await Task.WhenAll([active, .. queued]);
         var drained = await WaitForExecution(
             supervisor,
             snapshot => snapshot.TerminalRequests == 3);
 
-        Assert.Equal(WorkerExecutionStatus.ClientCancelled, rejected.Status);
+        Assert.Equal(WorkerExecutionStatus.Overloaded, rejected.Status);
         Assert.Equal(WorkerExecutionDisposition.NotStarted, rejected.ExecutionDisposition);
         Assert.All(
             completed,
@@ -420,7 +414,7 @@ public sealed class WorkerProcessSupervisorTests
         Assert.Equal(2, drained.PeakQueuedRequests);
         Assert.Equal(3, drained.AdmittedRequests);
         Assert.Equal(3, drained.TerminalRequests);
-        Assert.Equal(1, drained.ClientCancellationsBeforeAdmission);
+        Assert.Equal(0, drained.ClientCancellationsBeforeAdmission);
         Assert.Equal(0, drained.ClientCancellationsAfterAdmission);
     }
 
@@ -464,7 +458,7 @@ public sealed class WorkerProcessSupervisorTests
     }
 
     [Fact]
-    public async Task StopWakesCapacityWaitersAndTerminatesEveryAdmission()
+    public async Task StopTerminatesEveryAdmissionAfterOverload()
     {
         await using var supervisor = CreateSupervisor(
             _ => CreateLaunch("delay-first-execute"),
@@ -481,9 +475,7 @@ public sealed class WorkerProcessSupervisorTests
             supervisor,
             snapshot => snapshot.QueuedRequests == 1);
         var waiting = supervisor.ExecuteAsync(CreateCommand("waiting"));
-        _ = await WaitForExecution(
-            supervisor,
-            snapshot => snapshot.WaitingForAdmission == 1);
+        Assert.Equal(WorkerExecutionStatus.Overloaded, (await waiting).Status);
 
         var stopping = supervisor.StopAsync();
         var outcomes = await Task.WhenAll(active, queued, waiting);
@@ -491,12 +483,12 @@ public sealed class WorkerProcessSupervisorTests
         var drained = supervisor.ExecutionSnapshot;
 
         Assert.Equal(WorkerExecutionStatus.Completed, outcomes[0].Status);
-        Assert.Contains(
-            outcomes,
-            outcome => outcome.DiagnosticCode == "worker-execution-queue-closed" &&
-                outcome.ExecutionDisposition == WorkerExecutionDisposition.NotStarted);
-        Assert.Equal(2, drained.AdmittedRequests);
-        Assert.Equal(2, drained.TerminalRequests);
+        Assert.All(outcomes.Skip(1), outcome =>
+        {
+            Assert.True(outcome.Status is WorkerExecutionStatus.Unavailable or WorkerExecutionStatus.Overloaded);
+            Assert.Equal(WorkerExecutionDisposition.NotStarted, outcome.ExecutionDisposition);
+        });
+        Assert.Equal(drained.AdmittedRequests, drained.TerminalRequests);
         Assert.Equal(0, drained.QueuedRequests);
         Assert.Equal(0, drained.WaitingForAdmission);
         Assert.Equal(0, drained.ActiveExecutions);
@@ -962,7 +954,7 @@ public sealed class WorkerProcessSupervisorTests
 
     private static WorkerProcessSupervisor CreateSupervisor(
         Func<int, WorkerProcessLaunch> launchFactory,
-        WorkerRestartPolicy policy,
+        WorkerLifecyclePolicy policy,
         WorkerExecutionPolicy? executionPolicy = null,
         ExactTargetIdentityPolicy? identityPolicy = null) =>
         new(
@@ -1132,19 +1124,15 @@ public sealed class WorkerProcessSupervisorTests
             watchdogTimeout ?? TimeSpan.FromSeconds(2),
             queueCapacity);
 
-    private static WorkerRestartPolicy CreatePolicy(
-        int maximumRestarts = 3,
+    private static WorkerLifecyclePolicy CreatePolicy(
         TimeSpan? heartbeatInterval = null,
         TimeSpan? shutdownTimeout = null,
         int lifecycleHistoryCapacity = 256) =>
         new(
-            maximumRestarts,
-            restartWindow: TimeSpan.FromSeconds(10),
             heartbeatInterval ?? TimeSpan.FromMilliseconds(50),
             heartbeatTimeout: TimeSpan.FromMilliseconds(250),
             startupTimeout: TimeSpan.FromSeconds(5),
             shutdownTimeout ?? TimeSpan.FromMilliseconds(500),
-            restartDelay: TimeSpan.FromMilliseconds(10),
             lifecycleHistoryCapacity);
 
     private static async Task<WorkerExecutionSnapshot> WaitForExecution(

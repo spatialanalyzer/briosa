@@ -83,14 +83,22 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
     private static byte[] Serialize(WorkerControlMessage message)
     {
         ArgumentNullException.ThrowIfNull(message);
-        Validate(message);
-        var payload = JsonSerializer.SerializeToUtf8Bytes(message, SerializerOptions);
-        if (payload.Length > WorkerControlProtocol.MaximumMessageBytes)
+        try
         {
-            throw new InvalidDataException("The worker control message exceeds the size limit.");
-        }
+            Validate(message);
+            var payload = JsonSerializer.SerializeToUtf8Bytes(message, SerializerOptions);
+            if (payload.Length > WorkerControlProtocol.MaximumMessageBytes)
+            {
+                throw new InvalidDataException("The worker control message exceeds the size limit.");
+            }
 
-        return payload;
+            return payload;
+        }
+        catch (Exception exception) when (exception is ArgumentException or InvalidDataException or JsonException)
+        {
+            // Preparation is complete before Send/SendAsync writes even the frame header.
+            throw new WorkerMessageRejectedException("The worker message could not be encoded.", exception);
+        }
     }
 
     private static WorkerControlMessage Deserialize(ReadOnlySpan<byte> payload)
@@ -120,7 +128,7 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
                 $"Unsupported worker control protocol version '{message.ProtocolVersion}'.");
         }
 
-        if (message.Kind == WorkerControlMessageKind.None)
+        if (!Enum.IsDefined(message.Kind) || message.Kind == WorkerControlMessageKind.None)
         {
             throw new InvalidDataException("The worker control message kind is invalid.");
         }
@@ -443,7 +451,7 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
 
     private static void ValidateExecutionResponse(WorkerExecutionResponse? response)
     {
-        if (response is null ||
+        if (response is null || !Enum.IsDefined(response.Status) ||
             response.Connection is null ||
             ((response.Status == WorkerExecutionResponseStatus.Completed) !=
                 (response.Execution is not null)) ||

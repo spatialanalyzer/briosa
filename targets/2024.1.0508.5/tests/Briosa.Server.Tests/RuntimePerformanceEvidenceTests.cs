@@ -27,14 +27,11 @@ public sealed class RuntimePerformanceEvidenceTests
     {
         await using var supervisor = new WorkerProcessSupervisor(
             new NamedPipeWorkerProcessFactory(_ => CreateLaunch()),
-            new WorkerRestartPolicy(
-                maximumRestarts: 3,
-                restartWindow: TimeSpan.FromMinutes(1),
+            new WorkerLifecyclePolicy(
                 heartbeatInterval: TimeSpan.FromSeconds(10),
                 heartbeatTimeout: TimeSpan.FromSeconds(1),
                 startupTimeout: TimeSpan.FromSeconds(5),
-                shutdownTimeout: TimeSpan.FromSeconds(1),
-                restartDelay: TimeSpan.Zero),
+                shutdownTimeout: TimeSpan.FromSeconds(1)),
             new WorkerExecutionPolicy(
                 watchdogTimeout: TimeSpan.FromSeconds(2),
                 queueCapacity: 64),
@@ -232,7 +229,7 @@ public sealed class RuntimePerformanceEvidenceTests
             WorkerLifecycleState.Ready,
             Generation: 1,
             ProcessId: null,
-            RestartCount: 0,
+            RecoveryCount: 0,
             WorkerTerminationKind.None,
             "performance-ready",
             Connection: null,

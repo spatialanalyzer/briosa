@@ -73,6 +73,8 @@ enum OperationFailureKind {
   OPERATION_FAILURE_KIND_POLICY_DENIED = 13;
   OPERATION_FAILURE_KIND_MP_RESULT_RETRIEVAL_FAILURE = 14;
   OPERATION_FAILURE_KIND_SDK_ARGUMENT_REJECTED = 15;
+  // Admission rejected the request before mapping or dispatch. No automatic retry.
+  OPERATION_FAILURE_KIND_OVERLOADED = 16;
 }
 
 // Records retrieval state by the public operation result field name.

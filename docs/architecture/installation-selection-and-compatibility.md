@@ -113,6 +113,18 @@ contract-aware client in conformance until a support-window policy is accepted.
 Embedded compatibility policy works offline; newly discovered exclusions require a
 client or explicit application-policy update.
 
+For a new compatibility major, CI retains every published client and tests the
+expected result: compatible contracts run the full fake-SDK suite; incompatible
+contracts must be rejected during installation selection and startup. Rejection
+evidence is distinct from successful operation conformance. The fixture source
+revision and the installed package identity are recorded separately.
+
+Development CI also builds hash-identified candidate packages from pinned client
+commits for all three languages and both targets. Candidates prove development
+compatibility; they do not count as published-client release evidence. The server
+release gate requires a compatible published package for each language and target
+before the new server can be published. Historical tested pairs remain unchanged.
+
 Installer readers support both manifest generations before modern servers ship.
 Retain older immutable products for exact-pinned clients. Rollback is per application;
 never relabel a published artifact or change a running session's selection.

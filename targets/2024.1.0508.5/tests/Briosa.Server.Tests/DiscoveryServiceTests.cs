@@ -82,7 +82,7 @@ public sealed class DiscoveryServiceTests
         var response = service.CreateServerInfo();
 
         Assert.Equal("0.1.0-test", response.Version.BriosaVersion);
-        Assert.Equal(1U, response.Compatibility.Major);
+        Assert.Equal(2U, response.Compatibility.Major);
         Assert.Equal(0U, response.Compatibility.Revision);
         Assert.Equal("briosa", response.Version.ProtocolPackage);
         Assert.Equal("2024.1.0508.5", response.Version.SpatialAnalyzerTarget);
@@ -232,7 +232,7 @@ public sealed class DiscoveryServiceTests
                 descriptor.Effect switch
                 {
                     "read_only" => OperationEffect.ReadOnly,
-                    "mutating" => OperationEffect.Mutating,
+                    "state_mutation" => OperationEffect.Mutating,
                     _ => OperationEffect.Unknown
                 },
                 operation.Effect);
@@ -295,7 +295,7 @@ public sealed class DiscoveryServiceTests
             workerState,
             Generation: 2,
             ProcessId: 9876,
-            RestartCount: 1,
+            RecoveryCount: 1,
             WorkerTerminationKind.None,
             "sensitive-internal-diagnostic",
             connectionState is null

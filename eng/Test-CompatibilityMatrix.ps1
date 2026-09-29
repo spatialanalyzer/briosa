@@ -17,15 +17,48 @@ foreach ($pair in $matrix.testedPairs) {
         throw 'Compatibility evidence digest mismatch.'
     }
     $report = Get-Content -LiteralPath $path -Raw | ConvertFrom-Json
+    $expected = if ($pair.PSObject.Properties.Name -contains 'expectedCompatibility') { $pair.expectedCompatibility } else { 'accepted' }
+    $observed = if ($report.PSObject.Properties.Name -contains 'expectedCompatibility') { $report.expectedCompatibility } else { 'accepted' }
+    if ($expected -cnotin @('accepted', 'rejected') -or $observed -cne $expected) {
+        throw 'Compatibility acceptance and rejection must be recorded separately.'
+    }
+    $compatible = if ($null -eq $pair.serverContract) {
+        $pair.requiredContract.major -eq 1 -and $pair.requiredContract.minimumRevision -eq 0 -and
+        $pair.serverVersion -ceq $matrix.legacyBaseline.serverVersion -and
+        $pair.serverSourceRevision -ceq $matrix.legacyBaseline.sourceRevision
+    }
+    else {
+        $pair.serverContract.major -eq $pair.requiredContract.major -and
+        $pair.serverContract.revision -ge $pair.requiredContract.minimumRevision
+    }
+    if ($expected -ceq 'rejected') {
+        if ($report.validationKind -cne 'client-server-compatibility-rejection' -or
+            @($report.scenarios).Count -ne 1 -or @($report.scenarios)[0] -cne 'installation-contract-rejected' -or
+            $compatible) {
+            throw 'A rejection claim requires incompatible coordinates and explicit rejection evidence.'
+        }
+    }
+    elseif ($report.validationKind -cne 'packaged-client-and-server-fake-sdk' -or -not $compatible) {
+        throw 'Accepted operation conformance requires compatible coordinates.'
+    }
+    if ($report.client.PSObject.Properties.Name -contains 'fixtureSourceRevision') {
+        $fixture = @($retained.fixtureSources | Where-Object language -CEQ $pair.language)
+        if ($fixture.Count -ne 1 -or $report.client.fixtureUncommittedChanges -or
+            $report.client.fixtureSourceRevision -cne $fixture[0].sourceRevision) {
+            throw 'Current compatibility evidence must use the pinned, committed fixture.'
+        }
+    }
     if (-not $report.passed -or $report.client.uncommittedChanges -or $report.licensedSpatialAnalyzer -or
         $report.validationKind -cne $pair.validationKind -or
-        $report.client.version -cne $pair.clientVersion -or
+        $report.client.package.version -cne $pair.clientVersion -or
         $report.client.sourceRevision -cne $pair.clientSourceRevision -or
         $report.client.package.sha256 -cne $pair.clientPackageSha256 -or
+        $report.client.requiredContract.major -ne $pair.requiredContract.major -or
+        $report.client.requiredContract.minimumRevision -ne $pair.requiredContract.minimumRevision -or
         $report.target.spatial_analyzer -cne $pair.target -or
         $report.server.briosa_version -cne $pair.serverVersion -or
         $report.server.source_revision -cne $pair.serverSourceRevision -or
-        $report.scenarios.Count -ne $pair.scenariosPassed) {
+        @($report.scenarios).Count -ne $pair.scenariosPassed) {
         throw 'Matrix claim differs from its packaged fake-SDK evidence.'
     }
     $publishedUrl = [string]$report.client.package.publishedUrl

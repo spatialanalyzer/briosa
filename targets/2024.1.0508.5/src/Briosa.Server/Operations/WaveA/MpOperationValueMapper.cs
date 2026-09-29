@@ -118,7 +118,7 @@ internal static class MpOperationValueMapper
         if (IsListKind(contract.Kind) &&
             value is IMessage wrapper &&
             wrapper.Descriptor.FindFieldByName("values") is
-                { IsRepeated: true } valuesField)
+            { IsRepeated: true } valuesField)
         {
             return ((IEnumerable)valuesField.Accessor.GetValue(wrapper))
                 .Cast<object>()
@@ -151,6 +151,7 @@ internal static class MpOperationValueMapper
             WorkerMpValueKind.CollectionVectorGroupNameList or
             WorkerMpValueKind.PointNameList or
             WorkerMpValueKind.StringList or
+            WorkerMpValueKind.EditText or
             WorkerMpValueKind.VectorNameList;
 
     public static TResponse ToResult<TResponse>(

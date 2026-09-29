@@ -370,8 +370,8 @@ public sealed class ObservabilityTests
         new NamedPipeWorkerProcessFactory(_ => new WorkerProcessLaunch(
             Path.Combine(AppContext.BaseDirectory, "worker-test-host", "Briosa.Worker.TestHost.exe"),
             ["--scenario", scenario])),
-        new WorkerRestartPolicy(3, TimeSpan.FromMinutes(1), TimeSpan.FromSeconds(10),
-            TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(1), TimeSpan.Zero),
+        new WorkerLifecyclePolicy(TimeSpan.FromSeconds(10),
+            TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(1)),
         new WorkerExecutionPolicy(watchdog ?? TimeSpan.FromSeconds(5), 64),
         logger: logs.CreateLogger<WorkerProcessSupervisor>(),
         identityPolicy: ExactTargetIdentityPolicy.CreateForTesting("2024.1.0508.5",

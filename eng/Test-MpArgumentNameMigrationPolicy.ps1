@@ -17,6 +17,22 @@ $null = [IO.Directory]::CreateDirectory($fixture)
 try {
     Copy-Item -LiteralPath (Join-Path $target 'proto') -Destination $fixture -Recurse
     Copy-Item -LiteralPath (Join-Path $target 'buf.yaml') -Destination $fixture
+    # This fixture tests only the earlier MP argument-name exception. Restore the
+    # three independently reviewed robot ID corrections to their pinned-baseline
+    # shape so they cannot mask a name-policy failure in the FILE comparison.
+    $robotProto = Join-Path $fixture 'proto/briosa/robot_operations.proto'
+    $robotSource = [IO.File]::ReadAllText($robotProto)
+    foreach ($field in @(
+            @{ Message = 'GetRobotMachineParameterRequest'; Number = 3 },
+            @{ Message = 'StartRobotMachineInterfaceRequest'; Number = 4 },
+            @{ Message = 'StopRobotMachineInterfaceRequest'; Number = 2 })) {
+        $pattern = "(?m)(message $($field.Message) \{\r?\n)(?:  // The retired field used the wrong semantic ID family\.\r?\n)?  reserved 1;\r?\n  optional CollectionInstrumentId machine_id = $($field.Number);"
+        $matches = [regex]::Matches($robotSource, $pattern)
+        if ($matches.Count -ne 1) { throw "Missing reviewed robot ID fixture: $($field.Message)." }
+        $robotSource = [regex]::Replace($robotSource, $pattern,
+            '${1}  optional CollectionMachineId machine_id = 1;')
+    }
+    [IO.File]::WriteAllText($robotProto, $robotSource)
     $null = [IO.Directory]::CreateDirectory((Join-Path $fixture 'eng'))
     $null = [IO.Directory]::CreateDirectory((Join-Path $fixture 'docs/development'))
     Copy-Item -LiteralPath (Join-Path $target 'eng/Test-MpArgumentNameMigration.ps1') -Destination (Join-Path $fixture 'eng')

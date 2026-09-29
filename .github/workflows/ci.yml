@@ -51,7 +51,7 @@ jobs:
         shell: pwsh
         run: ./eng/Test-ReleaseSigning.ps1
 
-      - name: Verify retained-client bootstrap boundary
+      - name: Verify client compatibility and rejection policy
         shell: pwsh
         run: |
           ./eng/Test-RetainedClientPolicy.ps1
@@ -255,4 +255,4 @@ jobs:
     uses: ./.github/workflows/retained-client-compatibility.yml
     with:
       server-version: 0.2.0-ci
-      pull-request-bootstrap: true
+      allow-source-candidates: true

@@ -24,18 +24,25 @@ internal sealed class PolicyEnforcingWorkerCommandExecutor(
     public Task<WorkerExecutionOutcome> ExecuteAsync(
         WorkerMpCommand command,
         Guid correlationId,
+        CancellationToken cancellationToken = default) =>
+        ExecuteAsync(new WorkerCommandSubmission(command.OperationId, () => command),
+            correlationId, cancellationToken);
+
+    public Task<WorkerExecutionOutcome> ExecuteAsync(
+        WorkerCommandSubmission submission,
+        Guid correlationId,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(command);
+        ArgumentNullException.ThrowIfNull(submission);
         var effectiveCorrelationId = correlationId != Guid.Empty
             ? correlationId
             : Guid.NewGuid();
-        var decision = _policy.Evaluate(command);
+        var decision = _policy.Evaluate(submission.OperationId);
         _auditLogger.PolicyEvaluated(effectiveCorrelationId, decision);
         return decision.Kind switch
         {
             OperationPolicyDecisionKind.Allowed => _supervisor.ExecuteAsync(
-                command,
+                submission with { CreateCommand = () => CreateValidatedCommand(submission) },
                 effectiveCorrelationId,
                 cancellationToken),
             OperationPolicyDecisionKind.Denied => Task.FromResult(Rejected(
@@ -47,6 +54,17 @@ internal sealed class PolicyEnforcingWorkerCommandExecutor(
                 decision.DiagnosticCode,
                 effectiveCorrelationId))
         };
+    }
+
+    private WorkerMpCommand CreateValidatedCommand(WorkerCommandSubmission submission)
+    {
+        var command = submission.CreateCommand();
+        if (command.OperationId != submission.OperationId ||
+            _policy.Evaluate(command).Kind != OperationPolicyDecisionKind.Allowed)
+        {
+            throw new ArgumentException("The operation command does not match its registration.");
+        }
+        return command;
     }
 
     private WorkerExecutionOutcome Rejected(
