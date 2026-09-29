@@ -44,10 +44,6 @@ internal sealed partial class SpatialAnalyzerSdkAdapter
             Sdk.SetExportVectorNameFormatArg(name, value);
         public bool SetGeometryTypeArg(string name, string value) =>
             Sdk.SetGeometryTypeArg(name, value);
-        public bool SetMPGDTOptionsDistanceBetweenModeArg(string name, string value) =>
-            ((dynamic)Sdk).SetMPGDTOptionsDistanceBetweenModeArg(name, value);
-        public bool SetMPGDTOptionsCheckValidatorTypeArg(string name, string value) =>
-            ((dynamic)Sdk).SetMPGDTOptionsCheckValidatorTypeArg(name, value);
         public bool SetInstTypeNameArg(string name, string value) =>
             Sdk.SetInstTypeNameArg(name, value);
         public bool SetObjectTypeArg(string name, string value) =>

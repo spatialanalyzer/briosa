@@ -105,12 +105,12 @@ internal static class WorkerControlHost
             // Actual I/O failures never enter this fallback.
             var response = message.ExecutionResponse;
             await channel.SendAsync(WorkerControlMessage.ExecutionResult(message.CorrelationId,
-                response with
-                {
-                    Execution = new WorkerMpOutputsUnavailable(response.Execution.DurationMilliseconds,
+                new WorkerExecutionResponse(
+                    WorkerExecutionResponseStatus.Completed,
+                    new WorkerMpOutputsUnavailable(response.Execution.DurationMilliseconds,
                         "worker-output-encoding-rejected"),
-                    DiagnosticCode = "worker-output-encoding-rejected"
-                })).ConfigureAwait(false);
+                    response.Connection,
+                    "worker-output-encoding-rejected"))).ConfigureAwait(false);
         }
     }
 

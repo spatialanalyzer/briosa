@@ -1,19 +1,12 @@
-using System.Net;
 using Briosa.Server.Operations;
 using Briosa.Server.Operations.Values;
 using Briosa.Server.Operations.Variables;
-using Briosa.Server.Operations.WaveA;
 using Briosa.Server.Services;
 using Briosa.Server.Workers;
 using Briosa.Worker.Control;
 using Grpc.Core;
-using Grpc.Net.Client;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Api = global::Briosa;
 
 namespace Briosa.Server.Tests;
@@ -24,17 +17,9 @@ public sealed class TypedVariableDomainTests
     public async Task GeneratedClientExercisesEveryVariableRpcThroughThePrivateValueContract()
     {
         var worker = new VariableWorker();
-        var builder = WebApplication.CreateSlimBuilder();
-        builder.Logging.ClearProviders();
-        builder.WebHost.ConfigureKestrel(options => options.Listen(IPAddress.Loopback, 0,
-            listener => listener.Protocols = HttpProtocols.Http2));
-        builder.Services.AddGrpc();
-        builder.Services.AddSingleton(new OperationExecutor(worker,
-            new OperationAuditLogger(NullLogger<OperationAuditLogger>.Instance), TimeProvider.System));
-        await using var app = builder.Build();
-        app.MapGrpcService<VariablesService>();
-        await app.StartAsync();
-        using var channel = GrpcChannel.ForAddress(Assert.Single(app.Urls));
+        var grpcHost = await GrpcTestHost.StartAsync<VariablesService>(worker).ConfigureAwait(true);
+        await using var grpcLifetime = grpcHost.ConfigureAwait(true);
+        var channel = grpcHost.Channel;
         var client = new Api.Variables.VariablesClient(channel);
         var options = new CallOptions(deadline: DateTime.UtcNow.AddSeconds(30));
 
@@ -112,7 +97,6 @@ public sealed class TypedVariableDomainTests
         Assert.Empty(worker.Values);
 
         Assert.Equal(Api.Variables.Descriptor.Methods.Count, worker.SeenOperations.Count);
-        Assert.DoesNotContain(MpOperationCatalog.Operations, operation => operation.Descriptor.GrpcService == "briosa.Variables");
         Assert.Equal(Api.Variables.Descriptor.Methods.Count,
             SpatialAnalyzerApi.Operations.Count(operation => operation.GrpcService == "briosa.Variables"));
 
@@ -140,7 +124,7 @@ public sealed class TypedVariableDomainTests
             Assert.Equal(Api.ExecutionDisposition.NotStarted, details.ExecutionDisposition);
         }
         Assert.Equal(callsBeforeInvalid, worker.Calls);
-        await app.StopAsync();
+
     }
 
     [Fact]

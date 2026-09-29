@@ -11,4 +11,8 @@ internal sealed record WorkerExecutionSnapshot(
     long ClientCancellationsBeforeAdmission,
     long ClientCancellationsAfterAdmission,
     long WatchdogTimeouts,
-    long WorkerFailures);
+    long WorkerFailures)
+{
+    public long ReservedWorkBytes { get; init; }
+    public long MaxRetainedWorkBytes { get; init; }
+}

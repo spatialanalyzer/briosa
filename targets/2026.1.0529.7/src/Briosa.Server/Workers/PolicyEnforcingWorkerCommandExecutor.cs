@@ -5,7 +5,8 @@ using Briosa.Worker.Control;
 namespace Briosa.Server.Workers;
 
 internal sealed class PolicyEnforcingWorkerCommandExecutor(
-    WorkerProcessSupervisor supervisor,
+    IWorkerCommandDispatcher dispatcher,
+    IWorkerStatusProvider statusProvider,
     OperationPolicy policy,
     OperationAuditLogger auditLogger) : IWorkerCommandExecutor
 {
@@ -13,8 +14,10 @@ internal sealed class PolicyEnforcingWorkerCommandExecutor(
         auditLogger ?? throw new ArgumentNullException(nameof(auditLogger));
     private readonly OperationPolicy _policy =
         policy ?? throw new ArgumentNullException(nameof(policy));
-    private readonly WorkerProcessSupervisor _supervisor =
-        supervisor ?? throw new ArgumentNullException(nameof(supervisor));
+    private readonly IWorkerCommandDispatcher _dispatcher =
+        dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
+    private readonly IWorkerStatusProvider _statusProvider =
+        statusProvider ?? throw new ArgumentNullException(nameof(statusProvider));
 
     public Task<WorkerExecutionOutcome> ExecuteAsync(
         WorkerMpCommand command,
@@ -41,7 +44,7 @@ internal sealed class PolicyEnforcingWorkerCommandExecutor(
         _auditLogger.PolicyEvaluated(effectiveCorrelationId, decision);
         return decision.Kind switch
         {
-            OperationPolicyDecisionKind.Allowed => _supervisor.ExecuteAsync(
+            OperationPolicyDecisionKind.Allowed => _dispatcher.ExecuteAsync(
                 submission with { CreateCommand = () => CreateValidatedCommand(submission) },
                 effectiveCorrelationId,
                 cancellationToken),
@@ -75,8 +78,8 @@ internal sealed class PolicyEnforcingWorkerCommandExecutor(
             status,
             WorkerExecutionDisposition.NotStarted,
             Execution: null,
-            _supervisor.Current.Connection,
+            _statusProvider.Current.Connection,
             diagnosticCode,
-            _supervisor.Current.Generation,
+            _statusProvider.Current.Generation,
             correlationId);
 }

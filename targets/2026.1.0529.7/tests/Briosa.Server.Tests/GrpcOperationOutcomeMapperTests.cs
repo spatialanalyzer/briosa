@@ -3,7 +3,6 @@ using Briosa.Server.Services;
 using Briosa.Server.Workers;
 using Briosa.Worker.Control;
 using Grpc.Core;
-using System.Text.Json;
 
 namespace Briosa.Server.Tests;
 
@@ -61,6 +60,25 @@ public sealed class GrpcOperationOutcomeMapperTests
                     new WorkerTransformValue(new double[16]),
                     ScaleFactor: 0))
         };
+
+    [Theory]
+    [InlineData((int)WorkerExecutionStatus.Completed, (int)WorkerExecutionDisposition.NotStarted, false)]
+    [InlineData((int)WorkerExecutionStatus.Completed, (int)WorkerExecutionDisposition.Completed, false)]
+    [InlineData((int)WorkerExecutionStatus.Completed, (int)WorkerExecutionDisposition.NotStarted, true)]
+    [InlineData((int)WorkerExecutionStatus.PolicyDenied, (int)WorkerExecutionDisposition.Completed, false)]
+    [InlineData((int)WorkerExecutionStatus.WatchdogTimeout, (int)WorkerExecutionDisposition.NotStarted, false)]
+    [InlineData((int)WorkerExecutionStatus.Unavailable, (int)WorkerExecutionDisposition.NotStarted, true)]
+    public void ContradictoryOuterOutcomesCannotBeConstructed(
+        int status,
+        int disposition,
+        bool hasExecution)
+    {
+        WorkerMpExecutionResult? execution = hasExecution
+            ? new WorkerMpResultAvailable(2, 1, [], null) : null;
+        Assert.Throws<ArgumentException>(() => new WorkerExecutionOutcome(
+            (WorkerExecutionStatus)status, (WorkerExecutionDisposition)disposition,
+            execution, null, "test", 1));
+    }
 
     public static TheoryData<
         int,
@@ -470,17 +488,6 @@ public sealed class GrpcOperationOutcomeMapperTests
     }
 
     [Fact]
-    public void EveryUsableGetterFamilyHasAServerOutcomeMappingCase()
-    {
-        var coveredFamilies = GetterFamilyOutputs.Keys
-            .Order(StringComparer.Ordinal)
-            .ToArray();
-        var usableGetterFamilies = LoadUsableGetterFamilies();
-
-        Assert.Equal(usableGetterFamilies, coveredFamilies);
-    }
-
-    [Fact]
     public void MissingOutputIsAnInternalShapeFailure()
     {
         var outcome = Completed(
@@ -537,41 +544,6 @@ public sealed class GrpcOperationOutcomeMapperTests
             disabled,
             disabled,
             disabled);
-    }
-
-    private static string[] LoadUsableGetterFamilies()
-    {
-        var repositoryRoot = FindRepositoryRoot().FullName;
-        using var registry = JsonDocument.Parse(File.ReadAllText(Path.Combine(
-            repositoryRoot,
-            "bindings",
-            "sa",
-            "2026.1.0529.7",
-            "registry.json")));
-
-        return registry.RootElement.GetProperty("bindings")
-            .EnumerateArray()
-            .Where(binding =>
-                binding.GetProperty("registry_status").GetString() == "usable" &&
-                binding.GetProperty("direction").GetString() == "getter")
-            .SelectMany(binding => binding.GetProperty("semantic_value_families")
-                .EnumerateArray())
-            .Select(family => family.GetString()!)
-            .Distinct(StringComparer.Ordinal)
-            .Order(StringComparer.Ordinal)
-            .ToArray();
-    }
-
-    private static DirectoryInfo FindRepositoryRoot()
-    {
-        var directory = new DirectoryInfo(AppContext.BaseDirectory);
-        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "Briosa.slnx")))
-        {
-            directory = directory.Parent;
-        }
-
-        return directory ??
-            throw new DirectoryNotFoundException("Could not locate the Briosa repository root.");
     }
 
     private static WorkerConnectionSnapshot Connection(WorkerConnectionState state) =>

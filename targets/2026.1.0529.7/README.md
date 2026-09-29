@@ -8,7 +8,7 @@ Briosa does not include SpatialAnalyzer, its SDK, or a license. SpatialAnalyzer 
 
 The current exact target is SpatialAnalyzer `2026.1.0529.7`. The handwritten [protobuf contracts](proto/briosa) and [operation registry](src/Briosa.Server/Operations/SpatialAnalyzerApi.cs) define the compiled MP surface; `DiscoveryService/ListCapabilities` reports the runtime-policy-admitted subset. Inventory entries, retained evidence, former catalog entries, prose lists, and code present only in Git history are not supported operations.
 
-The wire package is `briosa` and the generated C# namespace is `Briosa`; the exact SA release belongs to this product and its artifact identity, not to public RPC or type names. The handwritten server mappings are under [src/Briosa.Server/Operations](src/Briosa.Server/Operations). Operation and workflow details are under [docs/operations](docs/operations), including the [active-context read workflow](docs/operations/active-context.md).
+The wire package is `briosa` and the generated C# namespace is `Briosa`; the exact SA release belongs to this product and its artifact identity, not to public RPC or type names. The handwritten server mappings are under [src/Briosa.Server/Operations](src/Briosa.Server/Operations). The [operation and workflow guide index](docs/operations/README.md) organizes this target's guides.
 
 ## Operation strategy
 
@@ -121,10 +121,9 @@ scenarios are documented in
 
 Start with a focused GitHub issue for one command or a coherent command batch. Preserve each MP command's established names wherever protobuf and the implementation language permit it. A developer familiar with MP programming should recognize the RPC and fields directly.
 
-The [v1 command-surface planning guide](docs/development/v1-command-surface.md)
-defines how an operation is proposed, selected, classified, delivered through
-v0.x releases, and frozen for v1. Inventory or historical-candidate membership
-does not select an operation. The separate
+The [command-surface selection guide](docs/development/v1-command-surface.md)
+records the accepted selection and v1 freeze rules. Inventory or
+historical-candidate membership does not select an operation. The separate
 [public MP catalog workstream](https://github.com/spatialanalyzer/briosa-docs/issues/13)
 documents every retained command—including unsupported commands—without becoming
 a runtime or implementation authority.
@@ -142,7 +141,7 @@ The follow-up must build without editing or extending a Briosa-specific generato
 
 ## Reference evidence
 
-The retained [inventory](inventory), [bindings](bindings), and [values](values) trees are non-authoritative reference snapshots derived from exact-target observations and pinned secondary ObjectiveSA review. They can accelerate implementation review, but they do not define support, approve commands, generate source, or participate in ordinary build completeness gates.
+The retained [inventory](inventory), [bindings](bindings), and [values](values) trees are non-authoritative reference snapshots. The [exact-target evidence guide](docs/development/exact-target-evidence.md) explains provenance, precedence, and limits. These snapshots do not define support, approve commands, generate source, or participate in ordinary build completeness gates.
 
 Raw installed documentation, raw View SDK Code, ObjectiveSA source, proprietary binaries, paths, credentials, and licensed data are not copied into the repository. Removed catalogs, dispositions, generated conformance manifests, and historical generated operation artifacts remain recoverable from Git history.
 

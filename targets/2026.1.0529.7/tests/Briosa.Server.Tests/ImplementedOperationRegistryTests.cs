@@ -1,11 +1,32 @@
 using System.Reflection;
 using Briosa.Server.Operations;
 using Briosa.Server.Services;
+using Briosa.Server.Security;
+using Microsoft.Extensions.Configuration;
 
 namespace Briosa.Server.Tests;
 
 public sealed class ImplementedOperationRegistryTests
 {
+    [Fact]
+    public void ShippedPolicyStartsSuccessfullyAndAdmitsTheReviewedTargetSurface()
+    {
+        var root = new DirectoryInfo(AppContext.BaseDirectory);
+        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Briosa.slnx")))
+        {
+            root = root.Parent;
+        }
+
+        Assert.NotNull(root);
+        var configuration = new ConfigurationBuilder()
+            .AddJsonFile(Path.Combine(root.FullName, "src", "Briosa.Server", "appsettings.json"))
+            .Build();
+        var policy = OperationPolicy.Create(configuration, SpatialAnalyzerApi.Operations);
+        Assert.Equal(
+            SpatialAnalyzerApi.Operations.Select(operation => operation.OperationId).Order(StringComparer.Ordinal),
+            policy.AllowedOperations.Select(operation => operation.OperationId).Order(StringComparer.Ordinal));
+    }
+
     [Fact]
     public void RegistryAndHandwrittenGrpcImplementationsStayInSync()
     {

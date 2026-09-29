@@ -10,6 +10,10 @@ internal sealed record WorkerProcessOptions(
     internal const string ExecutionWatchdogTimeoutKey =
         "Briosa:Worker:ExecutionWatchdogTimeout";
 
+    internal const string MaxRetainedWorkMiBKey = "Briosa:Worker:MaxRetainedWorkMiB";
+
+    public int MaxRetainedWorkMiB { get; init; } = 32;
+
     private static readonly TimeSpan DefaultExecutionWatchdogTimeout =
         TimeSpan.FromSeconds(30);
 
@@ -22,7 +26,13 @@ internal sealed record WorkerProcessOptions(
             ? Path.Combine(AppContext.BaseDirectory, "Briosa.Worker.exe")
             : ResolveConfiguredExecutable(configuredPath);
         var watchdogTimeout = ReadWatchdogTimeout(configuration);
-        return new WorkerProcessOptions(executablePath, watchdogTimeout);
+        var maxRetainedWorkMiB = configuration.GetValue<int?>(MaxRetainedWorkMiBKey) ?? 32;
+        if (maxRetainedWorkMiB is < 1 or > 1024)
+            throw InvalidConfiguration(MaxRetainedWorkMiBKey, "must be between 1 and 1024 MiB");
+        return new WorkerProcessOptions(executablePath, watchdogTimeout)
+        {
+            MaxRetainedWorkMiB = maxRetainedWorkMiB
+        };
     }
 
     private static string ResolveConfiguredExecutable(string configuredPath)

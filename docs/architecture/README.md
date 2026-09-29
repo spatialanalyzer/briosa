@@ -1,8 +1,8 @@
 # Briosa architecture
 
-These documents describe Briosa's current architecture. Briosa is unreleased, so
-the active documentation deliberately presents the design as it exists now rather
-than preserving every experimental approach in the working tree.
+These documents describe Briosa's current architecture. The active documentation
+describes the current design; release history and earlier experiments remain in
+Git history and their release records.
 
 ## Authority
 

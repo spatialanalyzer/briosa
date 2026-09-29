@@ -8,6 +8,8 @@ The compiled protobuf services, handwritten operation registry, and runtime
 capability discovery define availability. Six read-only operations and basic
 lifecycle behavior passed [local licensed checks](../testing/evidence/local-functional-2026-09-17.md).
 The remaining operations have no 2024 runtime validation from this port.
+The two string-setter operations subsequently passed a bounded local 2024
+SDK/SA probe; see the [observation](../testing/evidence/string-setters-2026-09-28.md).
 
 The server, worker, Control Center, protocol, tests, interop metadata, and package
 tools belong to this target. They have no project or source references to the

@@ -100,5 +100,6 @@ public enum WorkerMpValueKind
     StringList,
     VectorGroupName,
     VectorNameList,
-    ViewName
+    ViewName,
+    ItemType
 }

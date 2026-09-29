@@ -137,6 +137,7 @@ jobs:
       - name: Run tests
         run: >-
           dotnet test Briosa.slnx -c Release --no-build --no-restore
+          --filter Category!=Performance
           --collect:"XPlat Code Coverage"
           --settings ../../eng/coverage.runsettings
           --results-directory artifacts/test-results
@@ -168,7 +169,7 @@ jobs:
 
       - name: Measure vendor-independent runtime performance
         shell: pwsh
-        run: ./eng/Test-RuntimePerformance.ps1 -NoBuild
+        run: ./eng/Test-RuntimePerformance.ps1 -NoBuild -IncludeGrpc
 
       - name: Measure bounded logging pipeline
         shell: pwsh

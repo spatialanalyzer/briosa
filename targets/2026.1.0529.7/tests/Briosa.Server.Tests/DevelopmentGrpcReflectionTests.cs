@@ -105,8 +105,7 @@ public sealed class DevelopmentGrpcReflectionTests
                 .Order(StringComparer.Ordinal));
         var declared = SpatialAnalyzerApi.Operations.ToDictionary(operation => operation.OperationId);
         Assert.All(capabilities.Operations, operation => Assert.Equal(
-            declared[operation.OperationId].Effect == "state_mutation"
-                ? Api.OperationEffect.Mutating : Api.OperationEffect.ReadOnly,
+            declared[operation.OperationId].Effect,
             operation.Effect));
         var variables = new Api.Variables.VariablesClient(host.Channel);
         var denied = await Assert.ThrowsAsync<RpcException>(async () =>

@@ -33,6 +33,26 @@ public sealed class WorkerProcessRegistrationTests
             StringComparison.Ordinal);
     }
 
+    [Theory]
+    [InlineData("0")]
+    [InlineData("1025")]
+    public void InvalidRetainedWorkBudgetFailsStartup(string value)
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                [WorkerProcessOptions.MaxRetainedWorkMiBKey] = value
+            })
+            .Build();
+        var services = new ServiceCollection();
+
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            services.AddWorkerProcessLifecycle(configuration));
+
+        Assert.Contains(WorkerProcessOptions.MaxRetainedWorkMiBKey,
+            exception.Message, StringComparison.Ordinal);
+    }
+
     [Fact]
     public void ValidExecutionWatchdogConfigurationRegistersSupervisor()
     {
@@ -67,6 +87,7 @@ public sealed class WorkerProcessRegistrationTests
             Path.Combine(AppContext.BaseDirectory, "Briosa.Worker.exe"),
             worker.ExecutablePath);
         Assert.Equal(TimeSpan.FromSeconds(30), worker.ExecutionWatchdogTimeout);
+        Assert.Equal(32, worker.MaxRetainedWorkMiB);
         Assert.Equal("localhost", spatialAnalyzer.Host);
         Assert.Null(spatialAnalyzer.Identity.ActivatedSdk);
         Assert.Null(spatialAnalyzer.Identity.ConnectedSpatialAnalyzer);

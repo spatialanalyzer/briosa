@@ -26,8 +26,6 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         public bool SetExportTargetNameFormatArg(string name, string value) => RecordStringSetter(nameof(SetExportTargetNameFormatArg), name, value);
         public bool SetExportVectorNameFormatArg(string name, string value) => RecordStringSetter(nameof(SetExportVectorNameFormatArg), name, value);
         public bool SetGeometryTypeArg(string name, string value) => RecordStringSetter(nameof(SetGeometryTypeArg), name, value);
-        public bool SetMPGDTOptionsDistanceBetweenModeArg(string name, string value) => RecordStringSetter(nameof(SetMPGDTOptionsDistanceBetweenModeArg), name, value);
-        public bool SetMPGDTOptionsCheckValidatorTypeArg(string name, string value) => RecordStringSetter(nameof(SetMPGDTOptionsCheckValidatorTypeArg), name, value);
         public bool SetInstTypeNameArg(string name, string value) => RecordStringSetter(nameof(SetInstTypeNameArg), name, value);
         public bool SetObjectTypeArg(string name, string value) => RecordStringSetter(nameof(SetObjectTypeArg), name, value);
         public bool SetOffsetDirectionTypeArg(string name, string value) => RecordStringSetter(nameof(SetOffsetDirectionTypeArg), name, value);

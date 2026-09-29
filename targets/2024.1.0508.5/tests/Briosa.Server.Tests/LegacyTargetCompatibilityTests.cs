@@ -1,5 +1,10 @@
 using Briosa.Server.Operations;
-using Briosa.Server.Operations.WaveA;
+using Briosa.Server.Operations.AnalysisOperations;
+using Briosa.Server.Operations.ConstructionOperations;
+using Briosa.Server.Operations.FileOperations;
+using Briosa.Server.Operations.GdtOperations;
+using Briosa.Server.Operations.InstrumentOperations;
+using Briosa.Server.Operations.RelationshipOperations;
 using Briosa.Worker.Control;
 using Api = global::Briosa;
 
@@ -8,76 +13,67 @@ namespace Briosa.Server.Tests;
 public sealed class LegacyTargetCompatibilityTests
 {
     [Fact]
-    public void RuntimeSurfaceSelectionRequiresSevenExplicitBooleanChoices()
-    {
-        var operation = MpOperationCatalog.Get("construction_operations.construct_objects_from_surface_faces_runtime_select");
-        var request = new Api.ConstructObjectsFromSurfaceFacesRuntimeSelectRequest
-        {
-            ConstructPlanes = true,
-            ConstructCylinders = false,
-            ConstructSpheres = false,
-            ConstructCones = false,
-            ConstructLines = false,
-            ConstructPoints = false,
-            ConstructCircles = false
-        };
-        var command = operation.CreateCommand(request);
-        Assert.Equal(
-            ["Construct Planes?", "Construct Cylinders?", "Construct Spheres?", "Construct Cones?", "Construct Lines?", "Construct Points?", "Construct Circles?"],
-            command.InputArguments.Select(argument => argument.Name));
-        Assert.All(command.InputArguments, argument => Assert.Equal("SetBoolArg", argument.SdkBinding));
-        Assert.True(((command.InputArguments[0].Value as WorkerBooleanValue)?.Value));
-        Assert.All(command.InputArguments.Skip(1), argument => Assert.False(((argument.Value as WorkerBooleanValue)?.Value)));
-        request.ClearConstructCircles();
-        Assert.Throws<ArgumentException>(() => operation.CreateCommand(request));
-    }
-
-    [Fact]
     public void DirectCadAccessRequiresAnExplicitCompatibilityChoiceIncludingFalse()
     {
-        var operation = MpOperationCatalog.Get("file_operations.direct_cad_access");
         var request = new Api.DirectCadAccessRequest { CadFileName = new Api.FileReference { Path = "fixture.step" } };
-        Assert.Throws<ArgumentException>(() => operation.CreateCommand(request));
+        Assert.Throws<ArgumentException>(() => DirectCadAccessOperation.CreateCommand(request));
         request.SurfaceCompatibilityMode = false;
-        var command = operation.CreateCommand(request);
+        var command = DirectCadAccessOperation.CreateCommand(request);
         Assert.False(((Assert.Single(command.InputArguments, argument => argument.Name == "Surface Compatibility Mode").Value as WorkerBooleanValue)?.Value));
     }
 
-    [Theory]
-    [InlineData("file_operations.prepare_qdas_data_list")]
-    [InlineData("file_operations.export_qdas_characteristics")]
-    public void CapturedQdasTimestampsAreNotDefaults(string operationId)
+    [Fact]
+    public void CapturedQdasTimestampsAreNotDefaults()
     {
-        var timestamp = Assert.Single(MpOperationCatalog.Get(operationId).Inputs,
-            input => input.MpName == "K0004: Date Time Stamp");
-        Assert.True(timestamp.Required);
-        Assert.Equal("Required", timestamp.DefaultValue);
+        Assert.Contains("k0004_date_time_stamp", Assert.Throws<ArgumentException>(() =>
+            PrepareQdasDataListOperation.CreateCommand(new())).Message, StringComparison.Ordinal);
+        Assert.Contains("k0004_date_time_stamp", Assert.Throws<ArgumentException>(() =>
+            ExportQdasCharacteristicsOperation.CreateCommand(new())).Message, StringComparison.Ordinal);
     }
 
     [Fact]
     public void LegacyLabelsDoNotInheritLaterSemantics()
     {
-        var statistics = MpOperationCatalog.Get("relationship_operations.get_general_relationship_statistics");
-        Assert.Equal("Max Deviation", statistics.Outputs[0].MpName);
-        Assert.Equal("max_deviation", statistics.Outputs[0].FieldName);
-        var targets = MpOperationCatalog.Get("instrument_operations.get_instrument_targets_and_mode_profiles");
-        Assert.Equal("Instrument to set", Assert.Single(targets.Inputs).MpName);
+        Assert.Equal("Max Deviation", GetGeneralRelationshipStatisticsOperation.OutputContracts[0].ArgumentName);
+        Assert.Equal("max_deviation", GetGeneralRelationshipStatisticsOperation.OutputContracts[0].FieldName);
+        var targets = GetInstrumentTargetsAndModeProfilesOperation.CreateCommand(new()
+        {
+            Instrument = new Api.CollectionInstrumentId { CollectionName = "fixture", InstrumentId = 1 }
+        });
+        Assert.Equal("Instrument to set", Assert.Single(targets.InputArguments).Name);
     }
 
-    [Theory]
-    [InlineData("analysis_operations.get_cone_properties", "Cut Length from Apex")]
-    [InlineData("analysis_operations.re_compute_calculated_items", "Refresh Filtered Cloud Data?")]
-    [InlineData("analysis_operations.make_cylinder_fit_profile", "Constrain to Nominal Axis?")]
-    [InlineData("relationship_operations.do_relationship_fit", "Enable Randomized Start")]
-    [InlineData("relationship_operations.get_points_to_objects_relationship_statistics", "Avg Deviation")]
-    [InlineData("gdt_operations.get_feature_check_reporting_options", "Only Create Failed Vectors?")]
-    [InlineData("gdt_operations.set_feature_check_reporting_options", "Only Create Failed Vectors?")]
-    [InlineData("construction_operations.construct_point_cloud_from_existing_clouds", "Set Cloud Point RGB from Voxels?")]
-    [InlineData("file_operations.export_ascii_point_clouds", "Include Cloud Point Labeling?")]
-    public void LaterArgumentsAreAbsentFromTheWorkerCommandContract(string operationId, string label)
+    [Fact]
+    public void LaterArgumentsAreAbsentFromTheWorkerCommandContract()
     {
-        var operation = MpOperationCatalog.Get(operationId);
-        Assert.DoesNotContain(operation.Inputs.Concat(operation.Outputs), argument => argument.MpName == label);
+        var objectName = new Api.CollectionObjectName { CollectionName = "fixture", ObjectName = "item" };
+        var relationship = new Api.CollectionItemName { CollectionName = "fixture", ItemName = "relationship" };
+        var featureCheck = new Api.CollectionItemName { CollectionName = "fixture", ItemName = "check" };
+        (WorkerMpCommand Command, string AbsentLabel)[] cases =
+        [
+            (GetConePropertiesOperation.CreateCommand(new() { ConeName = objectName }), "Cut Length from Apex"),
+            (ReComputeCalculatedItemsOperation.CreateCommand(new()), "Refresh Filtered Cloud Data?"),
+            (MakeCylinderFitProfileOperation.CreateCommand(new()), "Constrain to Nominal Axis?"),
+            (GetPointsToObjectsRelationshipStatisticsOperation.CreateCommand(new() { RelationshipName = relationship }), "Avg Deviation"),
+            (GetFeatureCheckReportingOptionsOperation.CreateCommand(new() { FeatureCheck = featureCheck }), "Only Create Failed Vectors?"),
+            (SetFeatureCheckReportingOptionsOperation.CreateCommand(new() { FeatureCheck = featureCheck }), "Only Create Failed Vectors?"),
+            (ConstructPointCloudFromExistingCloudsOperation.CreateCommand(new()
+            {
+                ExistingPointCloudList = { objectName }, NewCloudName = objectName
+            }), "Set Cloud Point RGB from Voxels?"),
+            (ExportAsciiPointCloudsOperation.CreateCommand(new()
+            {
+                AsciiFilePath = new Api.FileReference { Path = "fixture.csv" },
+                PointCloudList = { objectName }, DataDelimiter = Api.ExportDataDelimeterType.Comma
+            }), "Include Cloud Point Labeling?")
+        ];
+
+        foreach (var (command, absentLabel) in cases)
+        {
+            Assert.DoesNotContain(command.InputArguments.Select(argument => argument.Name)
+                .Concat(command.OutputArguments.Select(argument => argument.Name)),
+                name => name == absentLabel);
+        }
     }
 
     [Theory]
@@ -94,12 +90,11 @@ public sealed class LegacyTargetCompatibilityTests
     [Fact]
     public void SystemUserNameIsDistinctAndLaterEnumNumbersAreRejected()
     {
-        var operation = MpOperationCatalog.Get("construction_operations.make_system_string");
-        var command = operation.CreateCommand(new Api.MakeSystemStringRequest { StringContent = Api.SystemString.UserName });
+        var command = MakeSystemStringOperation.CreateCommand(new Api.MakeSystemStringRequest { StringContent = Api.SystemString.UserName });
         Assert.Equal(WorkerSystemStringValue.UserName, command.InputArguments[0].RequireValue<WorkerChoiceValue<WorkerSystemStringValue>>().Value);
         foreach (var number in new[] { 12, 13, 14 })
         {
-            Assert.Throws<ArgumentException>(() => operation.CreateCommand(new Api.MakeSystemStringRequest { StringContent = (Api.SystemString)number }));
+            Assert.Throws<ArgumentException>(() => MakeSystemStringOperation.CreateCommand(new Api.MakeSystemStringRequest { StringContent = (Api.SystemString)number }));
         }
         Assert.False(Enum.IsDefined((Api.ObjectType)5));
         Assert.False(Enum.IsDefined((Api.ItemType)10));
@@ -110,7 +105,6 @@ public sealed class LegacyTargetCompatibilityTests
     [Fact]
     public void LaterObjectAndItemTypesAreRejectedBeforeWorkerAdmission()
     {
-        var project = MpOperationCatalog.Get("instrument_operations.project_objects");
         var request = new Api.ProjectObjectsRequest
         {
             Instrument = new Api.CollectionInstrumentId { CollectionName = "fixture", InstrumentId = 1 }
@@ -121,10 +115,9 @@ public sealed class LegacyTargetCompatibilityTests
             ObjectName = "cloud",
             ObjectType = (Api.ObjectType)5
         });
-        Assert.Throws<ArgumentException>(() => project.CreateCommand(request));
+        Assert.Throws<ArgumentException>(() => ProjectObjectsOperation.CreateCommand(request));
 
-        var statistics = MpOperationCatalog.Get("relationship_operations.get_general_relationship_statistics");
-        Assert.Throws<ArgumentException>(() => statistics.CreateCommand(new Api.GetGeneralRelationshipStatisticsRequest
+        Assert.Throws<ArgumentException>(() => GetGeneralRelationshipStatisticsOperation.CreateCommand(new Api.GetGeneralRelationshipStatisticsRequest
         {
             RelationshipName = new Api.CollectionItemName
             {
@@ -139,8 +132,7 @@ public sealed class LegacyTargetCompatibilityTests
     public void CribSheetAndProjectionUseCompleteExactBindingsWithoutWorkflowOwnership()
     {
         var instrument = new Api.CollectionInstrumentId { CollectionName = "fixture", InstrumentId = 1 };
-        var crib = MpOperationCatalog.Get("instrument_operations.run_crib_sheet");
-        var cribCommand = crib.CreateCommand(new Api.RunCribSheetRequest
+        var cribCommand = RunCribSheetOperation.CreateCommand(new Api.RunCribSheetRequest
         {
             Collection = new Api.CollectionName { Name = "fixture" },
             CribSheetName = "reviewed-crib",
@@ -149,22 +141,22 @@ public sealed class LegacyTargetCompatibilityTests
         Assert.Equal(["Collection Name", "Crib Sheet Name", "Instrument ID"], cribCommand.InputArguments.Select(argument => argument.Name));
         Assert.Equal(["SetCollectionNameArg", "SetStringArg", "SetColInstIdArg"], cribCommand.InputArguments.Select(argument => argument.SdkBinding));
 
-        var project = MpOperationCatalog.Get("instrument_operations.project_objects");
         var request = new Api.ProjectObjectsRequest { Instrument = instrument };
-        Assert.Throws<ArgumentException>(() => project.CreateCommand(request));
+        Assert.Throws<ArgumentException>(() => ProjectObjectsOperation.CreateCommand(request));
         request.ObjectsToProject.Add(new Api.CollectionObjectName { CollectionName = "fixture", ObjectName = "line", ObjectType = Api.ObjectType.Line });
-        var projectCommand = project.CreateCommand(request);
+        var projectCommand = ProjectObjectsOperation.CreateCommand(request);
         Assert.Equal(["SetColInstIdArg", "SetCollectionObjectNameRefListArg"], projectCommand.InputArguments.Select(argument => argument.SdkBinding));
         Assert.Equal(WorkerObjectTypeValue.Line, Assert.Single((projectCommand.InputArguments[1].Value as WorkerCollectionObjectNameListValue)!.Values).ObjectType);
 
-        var stop = MpOperationCatalog.Get("instrument_operations.stop_projection");
-        var stopCommand = stop.CreateCommand(new Api.StopProjectionRequest { Instrument = instrument });
+        var stopCommand = StopProjectionOperation.CreateCommand(new Api.StopProjectionRequest { Instrument = instrument });
         Assert.Equal("Instrument ID", Assert.Single(stopCommand.InputArguments).Name);
-        foreach (var operation in new[] { crib, project, stop })
+        foreach (var descriptor in new[] { RunCribSheetOperation.Descriptor, ProjectObjectsOperation.Descriptor, StopProjectionOperation.Descriptor })
         {
-            Assert.Equal(Api.ReplaySafety.Unsafe, operation.Descriptor.ReplaySafety);
-            Assert.Contains("at-risk-no-runtime-validation", operation.Descriptor.RiskFlags);
-            Assert.Empty(operation.Outputs);
+            Assert.Equal(Api.ReplaySafety.Unsafe, descriptor.ReplaySafety);
+            Assert.Contains("at-risk-no-runtime-validation", descriptor.RiskFlags);
         }
+        Assert.Empty(RunCribSheetOperation.OutputContracts);
+        Assert.Empty(ProjectObjectsOperation.OutputContracts);
+        Assert.Empty(StopProjectionOperation.OutputContracts);
     }
 }

@@ -247,12 +247,7 @@ public sealed class DiscoveryServiceTests
                 descriptor.FullyQualifiedMethod,
                 operation.FullyQualifiedMethod);
             Assert.Equal(
-                descriptor.Effect switch
-                {
-                    "read_only" => OperationEffect.ReadOnly,
-                    "state_mutation" => OperationEffect.Mutating,
-                    _ => OperationEffect.Unknown
-                },
+                descriptor.Effect,
                 operation.Effect);
             Assert.Equal(descriptor.ExecutionScope, operation.ExecutionScope);
             Assert.Equal(descriptor.ReplaySafety, operation.ReplaySafety);

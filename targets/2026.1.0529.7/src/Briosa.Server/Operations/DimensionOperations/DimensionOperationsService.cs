@@ -1,4 +1,3 @@
-using Briosa.Server.Operations.WaveA;
 using Briosa.Server.Security;
 using Briosa.Server.Services;
 using Grpc.Core;
@@ -13,30 +12,24 @@ internal sealed class DimensionOperationsService(OperationExecutor executor)
     public override Task<Api.DeleteDimensionResult> DeleteDimension(
         Api.DeleteDimensionRequest request,
         ServerCallContext context) =>
-        MpOperationServiceExecutor.ExecuteAsync<Api.DeleteDimensionRequest, Api.DeleteDimensionResult>(
-            executor,
-            request,
-            context,
-            "dimension_operations.delete_dimension");
+        executor.ExecuteAsync(request, context, DeleteDimensionOperation.Descriptor,
+            DeleteDimensionOperation.CreateCommand, DeleteDimensionOperation.OutputContracts,
+            DeleteDimensionOperation.CreateResult);
 
     [OperationImplementation("dimension_operations.get_dimension_value")]
     public override Task<Api.GetDimensionValueResult> GetDimensionValue(
         Api.GetDimensionValueRequest request,
         ServerCallContext context) =>
-        MpOperationServiceExecutor.ExecuteAsync<Api.GetDimensionValueRequest, Api.GetDimensionValueResult>(
-            executor,
-            request,
-            context,
-            "dimension_operations.get_dimension_value");
+        executor.ExecuteAsync(request, context, GetDimensionValueOperation.Descriptor,
+            GetDimensionValueOperation.CreateCommand, GetDimensionValueOperation.OutputContracts,
+            GetDimensionValueOperation.CreateResult);
 
     [OperationImplementation("dimension_operations.set_dimension_tolerance")]
     public override Task<Api.SetDimensionToleranceResult> SetDimensionTolerance(
         Api.SetDimensionToleranceRequest request,
         ServerCallContext context) =>
-        MpOperationServiceExecutor.ExecuteAsync<Api.SetDimensionToleranceRequest, Api.SetDimensionToleranceResult>(
-            executor,
-            request,
-            context,
-            "dimension_operations.set_dimension_tolerance");
+        executor.ExecuteAsync(request, context, SetDimensionToleranceOperation.Descriptor,
+            SetDimensionToleranceOperation.CreateCommand, SetDimensionToleranceOperation.OutputContracts,
+            SetDimensionToleranceOperation.CreateResult);
 
 }

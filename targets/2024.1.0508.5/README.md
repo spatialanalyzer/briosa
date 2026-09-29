@@ -12,7 +12,7 @@ Server [0.8.0](https://github.com/spatialanalyzer/briosa/releases/tag/v0.8.0) in
 
 The current exact target is SpatialAnalyzer `2024.1.0508.5`. The handwritten [protobuf contracts](proto/briosa) and [operation registry](src/Briosa.Server/Operations/SpatialAnalyzerApi.cs) define the compiled MP surface; `DiscoveryService/ListCapabilities` reports the runtime-policy-admitted subset. Inventory entries, retained evidence, former catalog entries, prose lists, and code present only in Git history are not supported operations.
 
-The wire package is `briosa` and the generated C# namespace is `Briosa`; the exact SA release belongs to this product and its artifact identity, not to public RPC or type names. The handwritten server mappings are under [src/Briosa.Server/Operations](src/Briosa.Server/Operations). Operation and workflow details are under [docs/operations](docs/operations), including the [active-context read workflow](docs/operations/active-context.md).
+The wire package is `briosa` and the generated C# namespace is `Briosa`; the exact SA release belongs to this product and its artifact identity, not to public RPC or type names. The handwritten server mappings are under [src/Briosa.Server/Operations](src/Briosa.Server/Operations). The [operation and workflow guide index](docs/operations/README.md) organizes this target's guides.
 
 ## Operation strategy
 

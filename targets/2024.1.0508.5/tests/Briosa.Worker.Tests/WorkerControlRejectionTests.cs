@@ -28,10 +28,34 @@ public sealed class WorkerControlRejectionTests
     [Fact]
     public void ReceiverRejectsAnUndefinedExecutionStatus()
     {
-        var response = new WorkerExecutionResponse((WorkerExecutionResponseStatus)999, null,
-            new WorkerConnectionSnapshot(WorkerConnectionState.Connected,
-                WorkerExecutionReadinessState.ExecutionReady, 0, 1, 1, "ready", DateTimeOffset.UnixEpoch), null);
-        AssertMalformed(WorkerControlMessage.ExecutionResult(Guid.NewGuid(), response));
+        var payload = JsonSerializer.SerializeToUtf8Bytes(new
+        {
+            ProtocolVersion = WorkerControlProtocol.CurrentVersion,
+            Kind = WorkerControlMessageKind.ExecutionResult,
+            CorrelationId = Guid.NewGuid(),
+            ExecutionResponse = new
+            {
+                Status = (WorkerExecutionResponseStatus)999,
+                Execution = (object?)null,
+                Connection = new WorkerConnectionSnapshot(WorkerConnectionState.Connected,
+                    WorkerExecutionReadinessState.ExecutionReady, 0, 1, 1, "ready",
+                    DateTimeOffset.UnixEpoch)
+            }
+        }, JsonSerializerOptions.Web);
+        AssertMalformedPayload(payload);
+    }
+
+    [Fact]
+    public void ContradictoryExecutionResponsesCannotBeConstructed()
+    {
+        var connection = new WorkerConnectionSnapshot(WorkerConnectionState.Connected,
+            WorkerExecutionReadinessState.ExecutionReady, 0, 1, 1, "ready",
+            DateTimeOffset.UnixEpoch);
+        Assert.Throws<ArgumentException>(() => new WorkerExecutionResponse(
+            WorkerExecutionResponseStatus.Completed, null, connection, null));
+        Assert.Throws<ArgumentException>(() => new WorkerExecutionResponse(
+            WorkerExecutionResponseStatus.Unavailable,
+            new WorkerMpResultAvailable(2, 1, [], null), connection, null));
     }
 
     [Fact]
@@ -39,10 +63,13 @@ public sealed class WorkerControlRejectionTests
         AssertMalformed(new WorkerControlMessage(WorkerControlProtocol.CurrentVersion,
             (WorkerControlMessageKind)999, Guid.NewGuid()));
 
-    private static void AssertMalformed(WorkerControlMessage message)
+    private static void AssertMalformed(WorkerControlMessage message) =>
+        AssertMalformedPayload(JsonSerializer.SerializeToUtf8Bytes(
+            message, JsonSerializerOptions.Web));
+
+    private static void AssertMalformedPayload(byte[] payload)
     {
         // Bypass the sender's validation to exercise the untrusted receive boundary.
-        var payload = JsonSerializer.SerializeToUtf8Bytes(message, JsonSerializerOptions.Web);
         using var stream = new MemoryStream();
         Span<byte> header = stackalloc byte[4];
         BinaryPrimitives.WriteInt32LittleEndian(header, payload.Length);

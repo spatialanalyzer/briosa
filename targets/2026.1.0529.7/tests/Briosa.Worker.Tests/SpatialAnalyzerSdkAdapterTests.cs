@@ -552,8 +552,11 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         public bool SetDoubleArg(string name, double value) =>
             RecordSetter("SetDoubleArg", name);
 
-        public bool SetStringArg(string name, string value) =>
-            RecordSetter("SetStringArg", name);
+        public bool SetStringArg(string name, string value)
+        {
+            StringArguments[name] = value;
+            return RecordSetter("SetStringArg", name);
+        }
 
         public bool SetPointNameArg(
             string name,
