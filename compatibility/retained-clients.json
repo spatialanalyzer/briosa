@@ -173,6 +173,20 @@
   "fixtureSources": [
     {
       "language": "dotnet",
+      "sourceRevision": "e6df2cabc02d3f175f8242646a43972b5648cb1f"
+    },
+    {
+      "language": "js",
+      "sourceRevision": "d67ba80f98e21313992dd1b27c4161b2500c704b"
+    },
+    {
+      "language": "py",
+      "sourceRevision": "6ee825e425eea8ed91dc4de3eaae87718c978c73"
+    }
+  ],
+  "historicalFixtureSources": [
+    {
+      "language": "dotnet",
       "sourceRevision": "cca44826a0470f16143be44c91376a6fd7bf9fab"
     },
     {
@@ -187,7 +201,7 @@
   "candidates": [
     {
       "language": "dotnet",
-      "sourceRevision": "cca44826a0470f16143be44c91376a6fd7bf9fab",
+      "sourceRevision": "e6df2cabc02d3f175f8242646a43972b5648cb1f",
       "requiredContract": {
         "major": 2,
         "minimumRevision": 0
@@ -198,7 +212,7 @@
     },
     {
       "language": "dotnet",
-      "sourceRevision": "cca44826a0470f16143be44c91376a6fd7bf9fab",
+      "sourceRevision": "e6df2cabc02d3f175f8242646a43972b5648cb1f",
       "requiredContract": {
         "major": 2,
         "minimumRevision": 0
@@ -209,7 +223,7 @@
     },
     {
       "language": "js",
-      "sourceRevision": "d31d0c12533a43a43ecf88ba696a302a22b917d4",
+      "sourceRevision": "d67ba80f98e21313992dd1b27c4161b2500c704b",
       "requiredContract": {
         "major": 2,
         "minimumRevision": 0
@@ -220,7 +234,7 @@
     },
     {
       "language": "js",
-      "sourceRevision": "d31d0c12533a43a43ecf88ba696a302a22b917d4",
+      "sourceRevision": "d67ba80f98e21313992dd1b27c4161b2500c704b",
       "requiredContract": {
         "major": 2,
         "minimumRevision": 0
@@ -231,7 +245,7 @@
     },
     {
       "language": "py",
-      "sourceRevision": "af7e5658e7f7c5a15bcbd2c388206ed5d5197ea7",
+      "sourceRevision": "6ee825e425eea8ed91dc4de3eaae87718c978c73",
       "requiredContract": {
         "major": 2,
         "minimumRevision": 0
@@ -242,7 +256,7 @@
     },
     {
       "language": "py",
-      "sourceRevision": "af7e5658e7f7c5a15bcbd2c388206ed5d5197ea7",
+      "sourceRevision": "6ee825e425eea8ed91dc4de3eaae87718c978c73",
       "requiredContract": {
         "major": 2,
         "minimumRevision": 0

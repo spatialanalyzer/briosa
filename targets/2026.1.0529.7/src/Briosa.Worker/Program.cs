@@ -23,8 +23,8 @@ if (TryGetArgument(args, "--control-pipe", out var pipeName))
         disableSdkActivation).ConfigureAwait(false);
 }
 
-Console.WriteLine($"Briosa worker scaffold using {InteropMetadata.AssemblyName.FullName}");
-return 0;
+await Console.Error.WriteLineAsync("Briosa.Worker requires a --control-pipe argument.").ConfigureAwait(false);
+return 2;
 
 static bool TryGetArgument(string[] arguments, string name, out string value)
 {

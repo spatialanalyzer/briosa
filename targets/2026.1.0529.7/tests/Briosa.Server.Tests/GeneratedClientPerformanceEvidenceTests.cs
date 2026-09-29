@@ -21,6 +21,7 @@ using Api = global::Briosa;
 namespace Briosa.Server.Tests;
 
 [Collection("Worker process lifecycle")]
+[Trait("Category", "Performance")]
 public sealed class GeneratedClientPerformanceEvidenceTests
 {
     private const int WarmupRequests = 40;
@@ -65,6 +66,10 @@ public sealed class GeneratedClientPerformanceEvidenceTests
             new WorkerExecutionPolicy(TimeSpan.FromSeconds(10), 64),
             logger: services.GetRequiredService<ILogger<WorkerProcessSupervisor>>()));
         builder.Services.AddSingleton<OperationAuditLogger>();
+        builder.Services.AddSingleton<IWorkerCommandDispatcher>(services =>
+            services.GetRequiredService<WorkerProcessSupervisor>());
+        builder.Services.AddSingleton<IWorkerStatusProvider>(services =>
+            services.GetRequiredService<WorkerProcessSupervisor>());
         builder.Services.AddSingleton(_ => OperationPolicy.Create(builder.Configuration, SpatialAnalyzerApi.Operations));
         builder.Services.AddSingleton<IWorkerCommandExecutor, PolicyEnforcingWorkerCommandExecutor>();
         builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);

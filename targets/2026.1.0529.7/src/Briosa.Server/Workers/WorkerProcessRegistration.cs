@@ -39,7 +39,8 @@ internal static class WorkerProcessRegistration
                 shutdownTimeout: TimeSpan.FromSeconds(5));
             var executionPolicy = new WorkerExecutionPolicy(
                 watchdogTimeout: workerOptions.ExecutionWatchdogTimeout,
-                queueCapacity: 64);
+                queueCapacity: 64,
+                maxRetainedWorkBytes: workerOptions.MaxRetainedWorkMiB * 1024 * 1024);
             return new WorkerProcessSupervisor(
                 processFactory,
                 policy,
@@ -53,6 +54,10 @@ internal static class WorkerProcessRegistration
             configuration,
             SpatialAnalyzerApi.Operations));
         services.TryAddSingleton<PolicyEnforcingWorkerCommandExecutor>();
+        services.TryAddSingleton<IWorkerCommandDispatcher>(provider =>
+            provider.GetRequiredService<WorkerProcessSupervisor>());
+        services.TryAddSingleton<IWorkerLifecycleController>(provider =>
+            provider.GetRequiredService<WorkerProcessSupervisor>());
         services.TryAddSingleton<IWorkerCommandExecutor>(provider =>
             provider.GetRequiredService<PolicyEnforcingWorkerCommandExecutor>());
         services.TryAddSingleton<IWorkerStatusProvider>(provider =>

@@ -1,16 +1,10 @@
-using System.Net;
 using Briosa.Server.Operations.RelationshipOperations;
 using Briosa.Server.Services;
 using Briosa.Server.Workers;
 using Briosa.Worker.Control;
 using Grpc.Core;
-using Grpc.Net.Client;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Api = global::Briosa;
 
 namespace Briosa.Server.Tests;
@@ -49,17 +43,9 @@ public sealed class TypedRelationshipOperationTests
     public async Task GeneratedClientExercisesNestedOptionsAndOutputPresence()
     {
         var worker = new RelationshipWorker();
-        var builder = WebApplication.CreateSlimBuilder();
-        builder.Logging.ClearProviders();
-        builder.WebHost.ConfigureKestrel(options => options.Listen(IPAddress.Loopback, 0,
-            listener => listener.Protocols = HttpProtocols.Http2));
-        builder.Services.AddGrpc();
-        builder.Services.AddSingleton(new OperationExecutor(worker,
-            new OperationAuditLogger(NullLogger<OperationAuditLogger>.Instance), TimeProvider.System));
-        await using var app = builder.Build();
-        app.MapGrpcService<RelationshipOperationsService>();
-        await app.StartAsync();
-        using var channel = GrpcChannel.ForAddress(Assert.Single(app.Urls));
+        var grpcHost = await GrpcTestHost.StartAsync<RelationshipOperationsService>(worker).ConfigureAwait(true);
+        await using var grpcLifetime = grpcHost.ConfigureAwait(true);
+        var channel = grpcHost.Channel;
         var client = new Api.RelationshipOperations.RelationshipOperationsClient(channel);
         var deadline = DateTime.UtcNow.AddSeconds(10);
         var relationship = new Api.CollectionObjectName { ObjectName = "relationship" };
@@ -99,7 +85,7 @@ public sealed class TypedRelationshipOperationTests
         var details = Api.OperationError.Parser.ParseFrom(Assert.Single(invalid.Trailers, entry => entry.Key == "briosa-operation-error-bin").ValueBytes);
         Assert.Equal(Api.ExecutionDisposition.NotStarted, details.ExecutionDisposition);
         Assert.Equal(2, worker.Calls);
-        await app.StopAsync();
+
     }
 
     [Theory]

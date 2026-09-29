@@ -94,6 +94,7 @@ namespace Briosa.Worker.Control;
 [JsonDerivedType(typeof(WorkerChoiceValue<WorkerSphereFitComputationModeValue>), 147)]
 [JsonDerivedType(typeof(WorkerChoiceValue<WorkerWindowStateValue>), 148)]
 [JsonDerivedType(typeof(WorkerChoiceValue<WorkerSystemStringValue>), 149)]
+[JsonDerivedType(typeof(WorkerChoiceValue<WorkerItemTypeValue>), 150)]
 public abstract record WorkerMpValue
 {
     private protected WorkerMpValue() { }
@@ -174,6 +175,7 @@ public abstract record WorkerMpValue
         WorkerChoiceValue<WorkerGdtEvaluationMethodValue> => kind == WorkerMpValueKind.GdtEvaluationMethod,
         WorkerChoiceValue<WorkerInstrumentTypeValue> => kind == WorkerMpValueKind.InstrumentType,
         WorkerChoiceValue<WorkerObjectTypeValue> => kind == WorkerMpValueKind.ObjectType,
+        WorkerChoiceValue<WorkerItemTypeValue> => kind == WorkerMpValueKind.ItemType,
         WorkerChoiceValue<WorkerOffsetDirectionTypeValue> => kind == WorkerMpValueKind.OffsetDirectionType,
         WorkerChoiceValue<WorkerPointFilterInputTypeValue> => kind == WorkerMpValueKind.PointFilterInputType,
         WorkerChoiceValue<WorkerRelationshipWeightingModeValue> => kind == WorkerMpValueKind.RelationshipWeightingMode,

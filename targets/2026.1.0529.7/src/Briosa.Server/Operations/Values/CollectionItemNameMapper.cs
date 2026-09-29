@@ -6,10 +6,13 @@ namespace Briosa.Server.Operations.Values;
 
 internal static class CollectionItemNameMapper
 {
-    private static WorkerCollectionItemNameValue ToWorker(Api.CollectionItemName value)
+    private static WorkerCollectionItemNameValue ToWorker(
+        Api.CollectionItemName value,
+        WorkerItemTypeValue itemTypeWhenOmitted = WorkerItemTypeValue.Any)
     {
-        // Absence uses Any; explicitly supplied Unspecified is not a supported choice.
-        var type = value.HasItemType ? (WorkerItemTypeValue)value.ItemType : WorkerItemTypeValue.Any;
+        // A reviewed operation-specific fallback may be supplied; other omissions use Any.
+        // Explicit Unspecified is never a supported choice.
+        var type = value.HasItemType ? (WorkerItemTypeValue)value.ItemType : itemTypeWhenOmitted;
         if (type == WorkerItemTypeValue.Unspecified || !Enum.IsDefined(type))
         {
             throw new ArgumentException("Item type is not supported by this SA target.", nameof(value));
@@ -18,15 +21,30 @@ internal static class CollectionItemNameMapper
         return new(value.CollectionName, value.ItemName, type);
     }
 
-    public static WorkerCollectionItemNameListValue RequiredList(IReadOnlyList<Api.CollectionItemName> values, string fieldName)
+    public static WorkerCollectionItemNameValue Required(
+        Api.CollectionItemName? value,
+        string fieldName,
+        WorkerItemTypeValue itemTypeWhenOmitted = WorkerItemTypeValue.Any)
+    {
+        if (value is null || string.IsNullOrWhiteSpace(value.ItemName))
+            throw new ArgumentException($"Request field '{fieldName}' is required.", nameof(value));
+        return ToWorker(value, itemTypeWhenOmitted);
+    }
+
+    public static WorkerCollectionItemNameListValue RequiredList(
+        IReadOnlyList<Api.CollectionItemName> values, string fieldName,
+        WorkerItemTypeValue itemTypeWhenOmitted = WorkerItemTypeValue.Any)
     {
         if (values.Count == 0)
         {
             throw new ArgumentException($"Request field '{fieldName}' is required.", nameof(values));
         }
 
-        return new(values.Select(ToWorker).ToImmutableArray());
+        return new(values.Select(value => ToWorker(value, itemTypeWhenOmitted)).ToImmutableArray());
     }
+
+    public static WorkerCollectionItemNameListValue AllowEmptyList(IReadOnlyList<Api.CollectionItemName> values) =>
+        new(values.Select(value => ToWorker(value)).ToImmutableArray());
 
     public static Api.CollectionItemName ToProtocol(WorkerCollectionItemNameValue value) => new()
     {

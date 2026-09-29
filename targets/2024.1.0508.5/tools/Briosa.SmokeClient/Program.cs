@@ -7,6 +7,9 @@ using Grpc.Core;
 using Grpc.Net.Client;
 using TargetProtocol = Briosa;
 
+if (args.Contains("--licensed-reporting-frame", StringComparer.Ordinal))
+    return await LicensedReportingFrameScenarios.RunAsync(args).ConfigureAwait(false);
+
 return args.Contains("--licensed-instrument", StringComparer.Ordinal)
     ? await LicensedInstrumentScenarios.RunAsync(args).ConfigureAwait(false)
     : await SmokeClientProgram.RunAsync(args).ConfigureAwait(false);

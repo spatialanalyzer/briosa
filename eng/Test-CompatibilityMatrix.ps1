@@ -42,10 +42,16 @@ foreach ($pair in $matrix.testedPairs) {
         throw 'Accepted operation conformance requires compatible coordinates.'
     }
     if ($report.client.PSObject.Properties.Name -contains 'fixtureSourceRevision') {
-        $fixture = @($retained.fixtureSources | Where-Object language -CEQ $pair.language)
-        if ($fixture.Count -ne 1 -or $report.client.fixtureUncommittedChanges -or
-            $report.client.fixtureSourceRevision -cne $fixture[0].sourceRevision) {
-            throw 'Current compatibility evidence must use the pinned, committed fixture.'
+        $fixturePins = @($retained.fixtureSources)
+        if ($retained.PSObject.Properties.Name -contains 'historicalFixtureSources') {
+            $fixturePins += @($retained.historicalFixtureSources)
+        }
+        $fixture = @($fixturePins | Where-Object {
+            $_.language -ceq $pair.language -and
+            $_.sourceRevision -ceq $report.client.fixtureSourceRevision
+        })
+        if ($fixture.Count -ne 1 -or $report.client.fixtureUncommittedChanges) {
+            throw 'Compatibility evidence must use a pinned, committed fixture.'
         }
     }
     if (-not $report.passed -or $report.client.uncommittedChanges -or $report.licensedSpatialAnalyzer -or

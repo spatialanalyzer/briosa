@@ -7,6 +7,7 @@ using Serilog.Core;
 namespace Briosa.Server.Tests;
 
 [Collection("Worker process lifecycle")]
+[Trait("Category", "Performance")]
 public sealed class ObservabilityPerformanceTests
 {
     [Theory]

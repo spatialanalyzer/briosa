@@ -1,4 +1,3 @@
-using Briosa.Server.Operations.WaveA;
 using Briosa.Server.Security;
 using Briosa.Server.Services;
 using Grpc.Core;
@@ -13,10 +12,8 @@ internal sealed class MpSubroutinesService(OperationExecutor executor)
     public override Task<Api.RunSubroutineResult> RunSubroutine(
         Api.RunSubroutineRequest request,
         ServerCallContext context) =>
-        MpOperationServiceExecutor.ExecuteAsync<Api.RunSubroutineRequest, Api.RunSubroutineResult>(
-            executor,
-            request,
-            context,
-            "mp_subroutines.run_subroutine");
+        executor.ExecuteAsync(request, context, RunSubroutineOperation.Descriptor,
+            RunSubroutineOperation.CreateCommand, RunSubroutineOperation.OutputContracts,
+            RunSubroutineOperation.CreateResult);
 
 }

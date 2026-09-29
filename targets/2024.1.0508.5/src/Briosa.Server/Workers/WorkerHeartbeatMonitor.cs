@@ -23,11 +23,11 @@ internal sealed class WorkerHeartbeatMonitor : IAsyncDisposable
         lock (_stopLock)
         {
             // Every caller waits for the same stop, including an entered exchange.
-            return new ValueTask(_stopTask ??= StopCore());
+            return new ValueTask(_stopTask ??= StopCoreAsync());
         }
     }
 
-    private async Task StopCore()
+    private async Task StopCoreAsync()
     {
         try
         {

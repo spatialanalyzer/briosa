@@ -3,7 +3,6 @@ using Briosa.Server.Services;
 using Briosa.Server.Workers;
 using Briosa.Worker.Control;
 using Grpc.Core;
-using Briosa.Server.Operations.WaveA;
 
 namespace Briosa.Server.Tests;
 
@@ -62,6 +61,25 @@ public sealed class GrpcOperationOutcomeMapperTests
                     new WorkerTransformValue(new double[16]),
                     ScaleFactor: 0))
         };
+
+    [Theory]
+    [InlineData((int)WorkerExecutionStatus.Completed, (int)WorkerExecutionDisposition.NotStarted, false)]
+    [InlineData((int)WorkerExecutionStatus.Completed, (int)WorkerExecutionDisposition.Completed, false)]
+    [InlineData((int)WorkerExecutionStatus.Completed, (int)WorkerExecutionDisposition.NotStarted, true)]
+    [InlineData((int)WorkerExecutionStatus.PolicyDenied, (int)WorkerExecutionDisposition.Completed, false)]
+    [InlineData((int)WorkerExecutionStatus.WatchdogTimeout, (int)WorkerExecutionDisposition.NotStarted, false)]
+    [InlineData((int)WorkerExecutionStatus.Unavailable, (int)WorkerExecutionDisposition.NotStarted, true)]
+    public void ContradictoryOuterOutcomesCannotBeConstructed(
+        int status,
+        int disposition,
+        bool hasExecution)
+    {
+        WorkerMpExecutionResult? execution = hasExecution
+            ? new WorkerMpResultAvailable(2, 1, [], null) : null;
+        Assert.Throws<ArgumentException>(() => new WorkerExecutionOutcome(
+            (WorkerExecutionStatus)status, (WorkerExecutionDisposition)disposition,
+            execution, null, "test", 1));
+    }
 
     public static TheoryData<
         int,
@@ -467,19 +485,6 @@ public sealed class GrpcOperationOutcomeMapperTests
             Assert.Equal(
                 OutputRetrievalState.Retrieved,
                 Assert.Single(successful.Details.OutputRetrievals).State);
-        }
-    }
-
-    [Fact]
-    public void EveryImplementedGetterKindHasAServerOutcomeMappingCase()
-    {
-        var coveredKinds = GetterFamilyOutputs.Values.Select(value => value.Kind).ToHashSet();
-        foreach (var kind in MpOperationCatalog.Operations
-                     .SelectMany(operation => operation.Outputs)
-                     .Select(output => output.Kind)
-                     .Distinct())
-        {
-            Assert.Contains(kind, coveredKinds);
         }
     }
 

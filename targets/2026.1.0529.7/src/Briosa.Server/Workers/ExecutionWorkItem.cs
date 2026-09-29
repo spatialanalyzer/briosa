@@ -4,7 +4,7 @@ using Briosa.Worker.Control;
 namespace Briosa.Server.Workers;
 
 internal sealed class ExecutionWorkItem(WorkerMpCommand command, Guid correlationId,
-    int generation, ActivityContext parentContext)
+    int generation, ActivityContext parentContext, int retainedBytes)
 {
     private readonly TaskCompletionSource _admitted =
         new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -13,6 +13,7 @@ internal sealed class ExecutionWorkItem(WorkerMpCommand command, Guid correlatio
 
     // WorkerMpCommand already owns immutable argument collections.
     public WorkerMpCommand Command { get; } = command;
+    public int RetainedBytes { get; } = retainedBytes;
     public Guid CorrelationId { get; } = correlationId;
     public int Generation { get; } = generation;
     public ActivityContext ParentContext { get; } = parentContext;

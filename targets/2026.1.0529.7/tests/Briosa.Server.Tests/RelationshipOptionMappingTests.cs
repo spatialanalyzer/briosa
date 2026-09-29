@@ -1,4 +1,4 @@
-using Briosa.Server.Operations.WaveA;
+using Briosa.Server.Operations.RelationshipOperations;
 using Briosa.Worker.Control;
 using Api = global::Briosa;
 
@@ -11,8 +11,8 @@ public sealed class RelationshipOptionMappingTests
     {
         var request = new Api.AutoFilterPointsToNominalGeometry3DRequest
         {
-            AutoFilterTargetRelationships = { new Api.CollectionItemName { ItemName = "relationship" } },
-            Points = { new Api.PointName { TargetName = "point" } },
+            AutoFilterTargetRelationships = { new Api.CollectionItemName { CollectionName = "Relationships", ItemName = "relationship" } },
+            Points = { new Api.PointName { CollectionName = "Points", GroupName = "G", TargetName = "point" } },
             FilterProximitySettings3D = new()
             {
                 SurfaceInclusionProximity = 1,
@@ -28,8 +28,7 @@ public sealed class RelationshipOptionMappingTests
                 AssertPlaneBoundaries = false
             }
         };
-        var command = MpOperationCatalog.Get("relationship_operations.auto_filter_points_to_nominal_geometry_3d")
-            .CreateCommand(request);
+        var command = AutoFilterPointsToNominalGeometry3DOperation.CreateCommand(request);
         var decoded = RoundTrip(command);
         var argument = Assert.Single(decoded.InputArguments, input => input.Name == "Filter Proximity Settings 3D");
         Assert.Equal("SetAutoFilterProximitySettingsArg", argument.SdkBinding);
@@ -37,8 +36,7 @@ public sealed class RelationshipOptionMappingTests
             argument.RequireValue<WorkerAutoFilterProximitySettingsValue>());
 
         request.FilterProximitySettings3D.SurfaceProximityMode = (Api.OffsetDirectionType)9999;
-        var invalid = MpOperationCatalog.Get(command.OperationId).CreateCommand(request);
-        Assert.Throws<WorkerMessageRejectedException>(() => RoundTrip(invalid));
+        Assert.Throws<ArgumentException>(() => AutoFilterPointsToNominalGeometry3DOperation.CreateCommand(request));
     }
 
     [Fact]
@@ -46,7 +44,7 @@ public sealed class RelationshipOptionMappingTests
     {
         var request = new Api.MoveCollectionsByMinimizingRelationshipsRequest
         {
-            RelationshipsToMinimize = { new Api.CollectionItemName { ItemName = "relationship" } },
+            RelationshipsToMinimize = { new Api.CollectionItemName { CollectionName = "Relationships", ItemName = "relationship" } },
             MotionToAllow = new()
             {
                 AllowX = true,
@@ -58,8 +56,7 @@ public sealed class RelationshipOptionMappingTests
                 RotateAboutCentroid = true
             }
         };
-        var command = MpOperationCatalog.Get("relationship_operations.move_collections_by_minimizing_relationships")
-            .CreateCommand(request);
+        var command = MoveCollectionsByMinimizingRelationshipsOperation.CreateCommand(request);
         var argument = Assert.Single(RoundTrip(command).InputArguments, input => input.Name == "Motion to allow");
         Assert.Equal("SetFitDofOptionsArg", argument.SdkBinding);
         Assert.Equal(new WorkerFitDegreeOfFreedomOptionsValue(true, false, true, false, true, false, true),

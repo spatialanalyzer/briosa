@@ -1,7 +1,6 @@
 using System.Net;
 using Briosa.Server.Operations;
 using Briosa.Server.Operations.EventOperations;
-using Briosa.Server.Operations.WaveA;
 using Briosa.Server.Services;
 using Briosa.Server.Workers;
 using Briosa.Worker.Control;
@@ -71,7 +70,6 @@ public sealed class TypedEventServiceTests
         Assert.True(worker.Commands[7].InputArguments[2].RequireValue<WorkerBooleanValue>().Value);
         foreach (var id in worker.Commands.Select(command => command.OperationId).Distinct(StringComparer.Ordinal))
         {
-            Assert.DoesNotContain(MpOperationCatalog.Operations, operation => operation.Descriptor.OperationId == id);
             Assert.Single(SpatialAnalyzerApi.Operations, operation => operation.OperationId == id);
         }
         Assert.Equal(5, worker.Commands.Select(command => command.OperationId).Distinct(StringComparer.Ordinal).Count());

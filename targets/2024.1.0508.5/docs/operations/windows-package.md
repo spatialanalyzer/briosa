@@ -51,6 +51,8 @@ The public endpoint has one authoritative configuration surface: `Briosa:Endpoin
 
 LAN, Internet, reverse-proxy, tunnel, shared-host, and other remotely reachable deployments are unsupported. Briosa currently has no client authentication, per-operation authorization, or TLS configuration. See the [public endpoint operator guide](endpoint-security.md) and [current threat model](../security/threat-model.md) before deployment.
 
+The worker admission budget defaults to 32 MiB and can be set with `Briosa__Worker__MaxRetainedWorkMiB` (1–1024 MiB). Each accepted request reserves 16 KiB plus eight times its protobuf wire size, capped at 1 MiB, before MP command mapping. The reservation remains charged while queued or in flight; this is a conservative retained-work budget, not an exact CLR heap measurement. The existing queue count remains an independent limit. Worker response frames are limited separately to 64 KiB, with one active exchange per worker.
+
 The worker execution watchdog defaults to 30 seconds. Set `Briosa__Worker__ExecutionWatchdogTimeout` to a positive .NET `TimeSpan` no greater than ten minutes only when deployment evidence justifies an override. A client deadline or cancellation stops that caller from waiting; it does not claim to cancel synchronous COM work already in flight.
 
 Use standard gRPC health checks named `briosa.liveness` and `briosa.readiness`. See `HEALTH-AND-DISCOVERY.md` for discovery and response semantics.

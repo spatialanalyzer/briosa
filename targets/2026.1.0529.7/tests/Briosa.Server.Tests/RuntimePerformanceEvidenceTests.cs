@@ -13,6 +13,7 @@ using Api = global::Briosa;
 namespace Briosa.Server.Tests;
 
 [Collection("Worker process lifecycle")]
+[Trait("Category", "Performance")]
 public sealed class RuntimePerformanceEvidenceTests
 {
     private const int WarmupRequestCount = 64;
@@ -81,6 +82,7 @@ public sealed class RuntimePerformanceEvidenceTests
         Assert.Equal(0, snapshot.QueuedRequests);
         Assert.Equal(0, snapshot.WaitingForAdmission);
         Assert.Equal(0, snapshot.ActiveExecutions);
+        Assert.Equal(0, snapshot.ReservedWorkBytes);
         Assert.Equal(0, snapshot.WatchdogTimeouts);
         Assert.Equal(0, snapshot.WorkerFailures);
 

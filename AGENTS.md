@@ -4,7 +4,7 @@ This file is the canonical repository-level guidance for automated coding agents
 
 ## Project purpose
 
-Briosa is an open-source gRPC bridge around the Hexagon SpatialAnalyzer SDK. It will expose SpatialAnalyzer MP functions through a clean, language-neutral protocol. Separate repositories provide thin, idiomatic clients such as `briosa-dotnet`, `briosa-js`, and `briosa-py`.
+Briosa is an open-source gRPC bridge around the Hexagon SpatialAnalyzer SDK. It exposes SpatialAnalyzer MP functions through a language-neutral protocol. Separate repositories provide thin, idiomatic clients such as `briosa-dotnet`, `briosa-js`, and `briosa-py`.
 
 Briosa is not a replacement for SpatialAnalyzer. A user must separately install, run, and hold a valid license for SpatialAnalyzer before Briosa can perform useful work.
 
@@ -35,24 +35,15 @@ contract rather than duplicating or silently redefining shared behavior.
 
 ## Established technical facts
 
-- The SA SDK is an OLE Automation/DCOM server exposed by `SpatialAnalyzerSDK.exe`.
-- The initial implementation target is .NET 10 on Windows x64. SDK automation must run on an STA thread.
-- SpatialAnalyzer must already be running for `ConnectEx(host, statusCode)` to connect. Use `localhost` for the local application; a reachable remote hostname or IP may also connect.
-- When several SpatialAnalyzer instances are open, only the first eligible instance owns the SDK communication ports. Closing it does not transfer ownership to an already-open instance; a newly opened instance must acquire the ports.
-- SA 2026.1.0529.7 was observed listening on TCP 901, 902, and 903, with SDK traffic observed on 902. Treat these observations as evidence, not as a vendor-guaranteed protocol contract.
-- A machine may have several SpatialAnalyzer releases and matching Briosa distributions installed, but one running Briosa server is locked to one exact SA release and one active SDK/SA instance. A client selects and launches the matching server distribution; SA release identifiers never enter public protobuf package, service, message, or RPC names. The public protobuf package is `briosa` and the generated C# namespace is `Briosa`.
-- Multiple SDK clients may report successful connections, but concurrent MP execution is unsafe. Experiments showed the first connected client owning execution while a second client could block indefinitely in `ExecuteStep`. `ConnectEx` success is attachment evidence, not proof of execution readiness; see the [runtime boundary](docs/architecture/runtime-boundary-and-lifecycle.md).
-- COM activation can resolve to the SDK engine currently registered on the machine independently from the connected SpatialAnalyzer application version. Preserve the configured target, activated SDK version, and connected SA version as separate claims and fail closed on a verified mismatch.
-- Runtime identity evidence takes precedence over operator attestation for each claim. When runtime evidence is unavailable, the activated SDK and connected SA may be attested independently with an explicit version and non-sensitive evidence reference. Both effective claims must exactly match before Briosa issues the execution-channel probe or admits MP work; see the [runtime boundary](docs/architecture/runtime-boundary-and-lifecycle.md).
-- A successful `ExecuteStep` return value does not prove that the MP command succeeded. Call `GetMPStepResult` only after `ExecuteStep` returns true. Its Boolean reports whether the result was retrieved; MP result code `2` is the success state. Preserve retrieval state and the raw MP code separately.
-- A timeout, cancellation, worker crash, or lost response after enqueue may leave command completion unknown. Worker replacement restores availability; it does not make replay safe. Never automatically retry an ambiguously completed command without reviewed exact-operation replay evidence; see [execution outcomes and recovery](docs/architecture/execution-outcomes-and-recovery.md).
-- Serializing each MP sequence prevents COM interleaving but does not isolate application-global state across several RPCs. The initial service is single-tenant per worker/SA target, and exclusive multi-call workflows remain blocked until an explicit lease contract exists; see [execution outcomes and recovery](docs/architecture/execution-outcomes-and-recovery.md).
-- For SDK methods taking a `ref object` list, marshal the CLR array through `System.Runtime.InteropServices.VariantWrapper`. A live SA 2026.1.0529.7 probe observed `DISP_E_TYPEMISMATCH` for a bare `object[]` on both `GetStringRefListArg` and `SetStringRefListArg`; the wrapped forms succeeded.
-- SDK method names do not uniquely determine MP argument semantics. In SA 2026.1.0529.7, the collection-object-named scalar/list calls carry both the 26-choice object domain and the broader 42-choice item domain. Select the family per exact command argument and fail closed on unknown returned type literals; see the [operation and protocol model](docs/architecture/operation-and-protocol-model.md).
-- Live SA 2026.1.0529.7 validation of `Get Working Frame Properties` observed `GetCollectionObjectNameArg` returning non-empty collection and object names without an embedded object-type literal. That exact operation supplies its documented `Frame` type only when the literal is omitted; do not generalize this fallback to other collection-object outputs, and continue to fail closed on unknown embedded literals.
-- The retained SA 2026.1.0529.7 reference inventory combines 1,302 structured command documents and 1,360 View SDK Code observations into 1,412 commands. It is non-authoritative implementation evidence: inventory membership, former dispositions, and historical catalog membership do not make a command part of the supported Briosa API.
+- The SA SDK is an OLE Automation/DCOM server exposed by `SpatialAnalyzerSDK.exe`. The target is .NET 10 on Windows x64; SDK automation runs on one worker-owned STA.
+- SpatialAnalyzer must already be running for `ConnectEx` to attach. Only the first eligible SA instance owns SDK communication ports; connection success alone does not prove execution readiness. See the [runtime boundary](docs/architecture/runtime-boundary-and-lifecycle.md).
+- One running Briosa server is locked to one exact SA release and SDK/SA instance. COM activation and the connected application can have different versions. Preserve configured target, activated SDK, and connected SA as distinct claims; reject verified mismatches. When runtime evidence is unavailable, each version may be independently attested with a non-sensitive reference. Require exact matching claims before the bounded execution-channel probe admits MP work. Public protobuf package and generated C# namespace remain `briosa` and `Briosa`.
+- `ExecuteStep` returning true is not MP success. Only then call `GetMPStepResult`; its Boolean is retrieval state, while MP code `2` means command success. Preserve both. Timeout, cancellation, process loss, or a missing response after enqueue can leave completion unknown; replacement does not make replay safe. Never automatically retry ambiguous completion without reviewed exact-operation replay evidence. See [execution outcomes](docs/architecture/execution-outcomes-and-recovery.md).
+- Queue serialization prevents COM interleaving but does not isolate application-global state across RPCs. The initial worker/SA target is single-tenant; exclusive multi-call workflows await an accepted lease contract.
+- For SDK `ref object` lists, marshal CLR arrays with `VariantWrapper`; a live 2026 probe rejected bare `object[]` for both string-reference list calls. SDK method names alone do not determine value family: collection-object-named calls carry both 26-choice object and 42-choice item domains. Select per exact argument and fail closed on unknown literals.
+- The exact `Get Working Frame Properties` operation may supply its documented `Frame` type when the getter omits an embedded type. Do not generalize this fallback. The [exact-target evidence guide](targets/2026.1.0529.7/docs/development/exact-target-evidence.md) holds these observations and the non-authoritative inventory boundary.
 
-See the [Discussion #1 findings](https://github.com/spatialanalyzer/community/discussions/1#discussioncomment-17706394) before changing connection, concurrency, timeout, or process-lifecycle assumptions.
+See [Discussion #1 findings](https://github.com/spatialanalyzer/community/discussions/1#discussioncomment-17706394) before changing connection, concurrency, timeout, or process-lifecycle assumptions.
 
 ## Architectural invariants
 
@@ -83,28 +74,34 @@ Unless an accepted design decision explicitly changes them, preserve these const
 
 ## Work planning and Git workflow
 
-- GitHub issues and the organization Project are the source of truth for planned work.
-- Epics are planning containers, not branch boundaries.
-- Start from a Task. Use a short-lived branch named `<issue-number>-<short-description>`, such as `7-solution-scaffold`.
-- A pull request is the smallest coherent, buildable, reviewable change. A Task may require several PRs, and one PR may close tightly coupled Tasks, but avoid long-lived Epic branches.
-- Batch related MP operations when that improves delivery speed, shared workflow validation, or review context. Keep every operation individually traceable to exact-target evidence and individually complete within the batch; do not impose a command-count limit.
-- Link PRs with `Closes #<issue-number>` only when the PR satisfies the issue's acceptance criteria. Use `Refs #<issue-number>` for partial work.
-- Keep `main` buildable. Prefer squash merges and delete merged branches.
-- Do not silently invent policy for an unresolved topic. Record the question in an issue, Discussion, or architecture decision and mark provisional behavior clearly.
-- Keep changes scoped to the active issue. Do not opportunistically implement later roadmap items merely because their eventual shape seems obvious.
-- Run target builds and tests from that target's directory. When adding a target, update the explicit CI and release matrices and its protected licensed-validation path.
+GitHub issues and the organization Project are the source of truth. Start from
+a Task on a short-lived `<issue-number>-<short-description>` branch; keep each
+PR coherent, buildable, and reviewable. A PR closes an issue only when its
+acceptance criteria are met; otherwise use `Refs`. Keep `main` buildable.
+
+Batch related MP operations when it improves review or validation, without a
+fixed command limit. Keep each operation traceable to exact-target evidence and
+complete within the batch. Do not silently settle unresolved policy or
+opportunistically implement unrelated roadmap work. Run builds and tests from
+each target directory; update explicit CI, release, and protected validation
+matrices when adding a target.
 
 ## Design and implementation expectations
 
-- Favor explicit state machines and typed outcomes over booleans, ambient state, or exception-only control flow.
-- Separate transport status, worker/connection availability, execution disposition, replay safety, and MP command results.
-- Make process ownership, COM lifetime, queueing, timeouts, retries, and cleanup observable and testable.
-- Preserve MP terminology mechanically wherever the target language permits it. Developers familiar with MPs should be able to recognize RPC and field names without learning a second Briosa-specific vocabulary.
-- Hand-author operation protobuf, host mapping, worker request/result mapping, SDK sequence, capability registration, tests, and documentation. Keep each operation conceptually complete and reviewable whether delivered alone or in a coherent multi-command batch.
-- Never hand-edit output from standard protobuf/gRPC tools. Handwritten `.proto` files and C# operation sources are ordinary reviewed source.
-- Generative-AI tools may draft an operation from maintainer-provided MP and SDK evidence, but committed source, tests, observations, and engineering review are authoritative.
-- Include negative-path tests for disconnected SA, MP failure, deadline, cancellation, worker hang/crash, and unsupported SA versions.
-- Document why a constraint exists, especially when it comes from observed SDK behavior rather than official vendor guarantees.
+Favor explicit state machines and typed outcomes. Keep transport status,
+worker availability, execution disposition, replay safety, and MP result
+separate. Make process ownership, COM lifetime, queueing, timeouts, retries,
+and cleanup observable and testable.
+
+Preserve MP terminology in RPCs and fields. Hand-author protobuf, host/worker
+mapping, SDK sequence, registration, tests, and documentation for every
+supported operation. Standard protobuf/gRPC generation is allowed; do not
+hand-edit its output or add Briosa-specific operation generation. Generative-AI
+drafts require reviewed exact-target evidence and committed source/tests.
+
+Include negative paths for disconnection, MP failure, deadline, cancellation,
+worker hang/crash, and unsupported versions. Explain constraints rooted in
+observed SDK behavior rather than presenting observations as vendor guarantees.
 
 ## Validation levels
 

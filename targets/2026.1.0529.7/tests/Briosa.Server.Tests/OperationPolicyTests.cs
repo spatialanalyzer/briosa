@@ -125,7 +125,7 @@ public sealed class OperationPolicyTests
             ExecutionScope = OperationExecutionScope.ExclusiveWorkflow
         };
         var executor = new PolicyEnforcingWorkerCommandExecutor(
-            supervisor,
+            supervisor, supervisor,
             CreatePolicy(allow: [OperationId], operations: [operation]),
             new OperationAuditLogger(NullLogger<OperationAuditLogger>.Instance));
 
@@ -148,7 +148,7 @@ public sealed class OperationPolicyTests
         var factory = new CountingProcessFactory();
         var supervisor = new WorkerProcessSupervisor(factory, RestartPolicy());
         await using var configuredSupervisor = supervisor.ConfigureAwait(true);
-        var executor = new PolicyEnforcingWorkerCommandExecutor(supervisor, CreatePolicy(),
+        var executor = new PolicyEnforcingWorkerCommandExecutor(supervisor, supervisor, CreatePolicy(),
             new OperationAuditLogger(NullLogger<OperationAuditLogger>.Instance));
         var outcome = await executor.ExecuteAsync(new WorkerCommandSubmission(OperationId,
             () => throw new InvalidOperationException("Denied request was mapped.")), Guid.NewGuid());
@@ -163,7 +163,7 @@ public sealed class OperationPolicyTests
         var supervisor = new WorkerProcessSupervisor(factory, RestartPolicy());
         await using var configuredSupervisor = supervisor.ConfigureAwait(true);
         var executor = new PolicyEnforcingWorkerCommandExecutor(
-            supervisor,
+            supervisor, supervisor,
             CreatePolicy(),
             new OperationAuditLogger(NullLogger<OperationAuditLogger>.Instance));
         var correlationId = Guid.NewGuid();
@@ -175,6 +175,16 @@ public sealed class OperationPolicyTests
         Assert.Equal("operation-policy-denied", outcome.DiagnosticCode);
         Assert.Equal(correlationId, outcome.CorrelationId);
         Assert.Equal(0, factory.StartCount);
+    }
+
+    [Fact]
+    public void UnrecognizedOperationEffectCannotEnterTheRegistry()
+    {
+        var operation = WorkingDirectoryOperation();
+        Assert.Throws<ArgumentOutOfRangeException>(() => new OperationDescriptor(
+            operation.OperationId, operation.MpStep, operation.GrpcService,
+            operation.Rpc, operation.FullyQualifiedMethod, "misspelled",
+            operation.ExecutionScope, operation.ReplaySafety, operation.RiskFlags));
     }
 
     private static OperationPolicy CreatePolicy(

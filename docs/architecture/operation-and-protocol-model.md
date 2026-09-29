@@ -93,7 +93,7 @@ integer, or object fallback is prohibited unless an exact operation documents a
 narrow target-specific omission rule.
 
 Detailed member sets and SDK observations belong to the exact target's
-[binding reference](../../targets/2026.1.0529.7/docs/reference/sa/2026.1.0529.7/binding-family-completeness.md).
+[exact-target evidence guide](../../targets/2026.1.0529.7/docs/development/exact-target-evidence.md).
 
 ## Stable identifiers and compatibility
 

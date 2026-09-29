@@ -1,13 +1,8 @@
-using System.Net;
 using Briosa.Server.Operations.Variables;
 using Briosa.Server.Services;
 using Briosa.Server.Workers;
 using Briosa.Worker.Control;
 using Grpc.Core;
-using Grpc.Net.Client;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -21,16 +16,9 @@ public sealed class TypedVariableOperationTests
     public async Task GeneratedClientExercisesTheTypedPublicService()
     {
         var worker = new VariableWorker();
-        var builder = WebApplication.CreateSlimBuilder();
-        builder.Logging.ClearProviders();
-        builder.WebHost.ConfigureKestrel(options => options.Listen(IPAddress.Loopback, 0,
-            listener => listener.Protocols = HttpProtocols.Http2));
-        builder.Services.AddGrpc();
-        builder.Services.AddSingleton(Executor(worker));
-        await using var app = builder.Build();
-        app.MapGrpcService<VariablesService>();
-        await app.StartAsync();
-        using var channel = GrpcChannel.ForAddress(Assert.Single(app.Urls));
+        var grpcHost = await GrpcTestHost.StartAsync<VariablesService>(worker).ConfigureAwait(true);
+        await using var grpcLifetime = grpcHost.ConfigureAwait(true);
+        var channel = grpcHost.Channel;
         var client = new Api.Variables.VariablesClient(channel);
         var deadline = DateTime.UtcNow.AddSeconds(10);
 
@@ -47,7 +35,6 @@ public sealed class TypedVariableOperationTests
         Assert.Equal(Api.MpExecutionState.Succeeded, setList.Execution.State);
         Assert.Equal(request.DoubleListVariable, list.DoubleListVariable);
         Assert.Equal(4, worker.Calls);
-        await app.StopAsync();
     }
 
     [Fact]

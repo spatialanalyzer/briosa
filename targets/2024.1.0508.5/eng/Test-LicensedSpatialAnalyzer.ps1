@@ -219,6 +219,7 @@ try {
         FilePath = $serverExecutable
         ArgumentList = @(
             "--Briosa:Endpoint:Port=$Port"
+            "--Briosa:Desktop:Mode=Disabled"
             "--Briosa:SpatialAnalyzer:Identity:ActivatedSdk:OperatorAttestation:Version=$ActivatedSdkAttestedVersion"
             "--Briosa:SpatialAnalyzer:Identity:ActivatedSdk:OperatorAttestation:Reference=$ActivatedSdkAttestationReference"
             "--Briosa:SpatialAnalyzer:Identity:ConnectedSpatialAnalyzer:OperatorAttestation:Version=$ConnectedSpatialAnalyzerAttestedVersion"

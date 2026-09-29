@@ -21,6 +21,10 @@ test an older installed package without mislabeling its source. Retain every suc
 explicit support policy replaces this rule. Never substitute a source project
 for a retained package.
 
+`fixtureSources` selects the current committed development fixture for source
+candidates. `historicalFixtureSources` retains older committed fixture revisions
+so previously recorded evidence remains verifiable after a fixture advances.
+
 The initial 0.7.0 bootstrap remains historical evidence; the empty-inventory
 exception is no longer active. All twelve published 0.2.0 and 0.3.0 products are retained with their
 actual registry artifacts. Each passed all 12 scenarios against released Server
@@ -35,6 +39,14 @@ incompatible installation before launch. Six commit-pinned 0.4.0 candidate
 packages provide positive fake-SDK conformance coverage. They are not published
 packages. Development CI runs both sets; the release gate remains blocked until
 compatible published packages cover every language and exact target.
+
+The 2026-09-28 matrix entries use the frozen Server `0.9.0-dev.1` source
+`89b59aa0ddd05ea868d94c4e4a4f89ee0fbcbccb` and its packaged conformance
+artifacts. All twelve published `0.2.0`/`0.3.0` packages rejected that major-2
+candidate before MP work, and all six unpublished `0.4.0` packages passed the
+twelve fake-SDK scenarios per target. The earlier 2026-09-25 major-2 reports
+remain byte-identical historical evidence for their own package hashes and
+source checkpoint; the current matrix points to the new reports and hashes.
 
 Each new tested pair records `expectedCompatibility`. An accepted pair proves
 operation conformance; a rejected pair proves installation/startup rejection

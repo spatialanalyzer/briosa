@@ -55,9 +55,11 @@ internal sealed partial class SpatialAnalyzerSdkAdapter
             WorkerMpValueKind.GeometryType when EnumValue<WorkerGeometryTypeValue>(argument) is { } value =>
                 sdk.SetGeometryTypeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
             WorkerMpValueKind.GdtDistanceBetweenMode when EnumValue<WorkerGdtDistanceBetweenModeValue>(argument) is { } value =>
-                sdk.SetMPGDTOptionsDistanceBetweenModeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
+                sdk.SetStringArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
             WorkerMpValueKind.GdtEvaluationMethod when EnumValue<WorkerGdtEvaluationMethodValue>(argument) is { } value =>
-                sdk.SetMPGDTOptionsCheckValidatorTypeArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
+                sdk.SetStringArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
+            WorkerMpValueKind.ItemType when EnumValue<WorkerItemTypeValue>(argument) is { } value =>
+                sdk.SetStringArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
             WorkerMpValueKind.InstrumentType when EnumValue<WorkerInstrumentTypeValue>(argument) is { } value =>
                 sdk.SetInstTypeNameArg(argument.Name, SdkSpecializedValueCodec.ToSdkString(value)),
             WorkerMpValueKind.ObjectType when EnumValue<WorkerObjectTypeValue>(argument) is { } value =>
@@ -245,8 +247,9 @@ internal sealed partial class SpatialAnalyzerSdkAdapter
         WorkerMpValueKind.FitConstraintScalarOptions => "SetFitConstraintScalarOptionsArg",
         WorkerMpValueKind.FitDegreeOfFreedomOptions => "SetFitDofOptionsArg",
         WorkerMpValueKind.GeometryType => "SetGeometryTypeArg",
-        WorkerMpValueKind.GdtDistanceBetweenMode => "SetMPGDTOptionsDistanceBetweenModeArg",
-        WorkerMpValueKind.GdtEvaluationMethod => "SetMPGDTOptionsCheckValidatorTypeArg",
+        WorkerMpValueKind.GdtDistanceBetweenMode => "SetStringArg",
+        WorkerMpValueKind.GdtEvaluationMethod => "SetStringArg",
+        WorkerMpValueKind.ItemType => "SetStringArg",
         WorkerMpValueKind.InstrumentType => "SetInstTypeNameArg",
         WorkerMpValueKind.ObjectType => "SetObjectTypeArg",
         WorkerMpValueKind.OffsetDirectionType => "SetOffsetDirectionTypeArg",

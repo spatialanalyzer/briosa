@@ -22,8 +22,6 @@ internal partial interface ISpatialAnalyzerSdkCalls
     bool SetExportTargetNameFormatArg(string name, string value);
     bool SetExportVectorNameFormatArg(string name, string value);
     bool SetGeometryTypeArg(string name, string value);
-    bool SetMPGDTOptionsDistanceBetweenModeArg(string name, string value);
-    bool SetMPGDTOptionsCheckValidatorTypeArg(string name, string value);
     bool SetInstTypeNameArg(string name, string value);
     bool SetObjectTypeArg(string name, string value);
     bool SetOffsetDirectionTypeArg(string name, string value);
