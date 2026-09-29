@@ -34,16 +34,17 @@ their server artifact hashes match the published conformance ZIPs. The matrix
 also preserves 24 development-candidate pairs with their original identities.
 No licensed-SA coverage is implied.
 
-For the developing major-2 server, all twelve retained products must reject the
-incompatible installation before launch. Six commit-pinned 0.4.0 candidate
-packages provide positive fake-SDK conformance coverage. They are not published
-packages. Development CI runs both sets; the release gate remains blocked until
-compatible published packages cover every language and exact target.
+For the major-2 server, all twelve retained major-1 products must reject the
+incompatible installation before launch. Six published 0.4.0 packages now cover
+the three client languages and both exact targets. The release gate downloads
+those registry artifacts by immutable URL and SHA-256 before exercising the
+packaged server with a fake SDK. Earlier commit-pinned candidate results remain
+historical development evidence, not evidence for the published package bytes.
 
 The 2026-09-28 matrix entries use the frozen Server `0.9.0-dev.1` source
 `89b59aa0ddd05ea868d94c4e4a4f89ee0fbcbccb` and its packaged conformance
 artifacts. All twelve published `0.2.0`/`0.3.0` packages rejected that major-2
-candidate before MP work, and all six unpublished `0.4.0` packages passed the
+candidate before MP work, and all six then-unpublished `0.4.0` packages passed the
 twelve fake-SDK scenarios per target. The earlier 2026-09-25 major-2 reports
 remain byte-identical historical evidence for their own package hashes and
 source checkpoint; the current matrix points to the new reports and hashes.
