@@ -122,6 +122,27 @@ foreach ($target in $targetDirectories) {
             Assert-OwnedPath $projectDirectory $targetPrefix ([string]$reference.Include) "ProjectReference"
         }
         foreach ($compile in @($xml.SelectNodes('//Compile[@Include]'))) {
+            if ([string]$compile.Include -ceq '$(_BriosaIdentitySource)') {
+                $source = $xml.SelectSingleNode(
+                    '//Target[@Name="GenerateBriosaBuildIdentity"]/PropertyGroup/_BriosaIdentitySource')
+                $write = $xml.SelectSingleNode(
+                    '//Target[@Name="GenerateBriosaBuildIdentity"]/WriteLinesToFile')
+                if ($project.Name -cne 'Briosa.Server.csproj' -or
+                    $null -eq $source -or
+                    $source.InnerText -cne '$(IntermediateOutputPath)BriosaBuildIdentity.g.cs' -or
+                    $null -eq $write -or
+                    [string]$write.File -cne '$(_BriosaIdentitySource)') {
+                    throw 'Generated build-identity source is not the reviewed target-local pattern.'
+                }
+
+                $intermediate = @(& dotnet msbuild $project.FullName -nologo -getProperty:IntermediateOutputPath)
+                if ($LASTEXITCODE -ne 0 -or $intermediate.Count -ne 1) {
+                    throw 'Could not evaluate the build-identity intermediate output path.'
+                }
+                Assert-OwnedPath $projectDirectory $targetPrefix `
+                    (Join-Path $intermediate[0] 'BriosaBuildIdentity.g.cs') 'Compile'
+                continue
+            }
             Assert-OwnedPath $projectDirectory $targetPrefix ([string]$compile.Include) "Compile"
         }
         foreach ($protobuf in @($xml.SelectNodes('//Protobuf[@Include]'))) {
