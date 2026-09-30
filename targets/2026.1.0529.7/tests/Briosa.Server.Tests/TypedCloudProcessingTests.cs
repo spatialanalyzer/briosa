@@ -147,7 +147,7 @@ public sealed class TypedCloudProcessingTests
 
         Assert.Equal(0, worker.Commands[11].InputArguments[2].RequireValue<WorkerDoubleValue>().Value);
         Assert.False(worker.Commands[11].InputArguments[3].RequireValue<WorkerBooleanValue>().Value);
-        Assert.Equal(0, worker.Commands[12].InputArguments[1].RequireValue<WorkerDoubleValue>().Value);
+        Assert.Equal(["Cloud Names", "Delete Inside"], worker.Commands[12].InputArguments.Select(argument => argument.Name));
         Assert.Equal(6, worker.Commands[13].InputArguments.Count);
         Assert.True(worker.Commands[13].InputArguments[4].RequireValue<WorkerBooleanValue>().Value);
         Assert.True(worker.Commands[13].InputArguments[5].RequireValue<WorkerBooleanValue>().Value);

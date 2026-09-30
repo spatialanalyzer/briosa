@@ -23,7 +23,7 @@ internal static class FitGeometryToPointGroupProjectedToPlaneOperation
             [
                 new("Geometry Type", WorkerMpValueKind.GeometryType,
                     GeometryTypeMapper.Required(request.GeometryType, "geometry_type"), "SetGeometryTypeArg"),
-                new("Group to Fit", WorkerMpValueKind.CollectionObjectName,
+                new("Group To Fit", WorkerMpValueKind.CollectionObjectName,
                     CollectionObjectNameMapper.Required(request.GroupToFit, "group_to_fit"), "SetCollectionObjectNameArg2"),
                 new("Plane Name", WorkerMpValueKind.CollectionObjectName,
                     CollectionObjectNameMapper.Required(request.PlaneName, "plane_name"), "SetCollectionObjectNameArg2"),

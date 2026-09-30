@@ -9,7 +9,7 @@ namespace Briosa.Server.Operations.CloudAndMeshOperations;
 internal static class DeleteCloudPointsByXYZRangeOperation
 {
     public static OperationDescriptor Descriptor { get; } = new(
-        "cloud_and_mesh_operations.delete_cloud_points_by_xyz_range", "Delete Cloud Points by XYZ Range",
+        "cloud_and_mesh_operations.delete_cloud_points_by_xyz_range", "Delete Cloud Points by X Y Z Range",
         "briosa.CloudAndMeshOperations", "DeleteCloudPointsByXYZRange", "/briosa.CloudAndMeshOperations/DeleteCloudPointsByXYZRange",
         "state_mutation", Api.OperationExecutionScope.GlobalStateMutation, Api.ReplaySafety.Unsafe, ["destructive"]);
     public static IReadOnlyList<OperationOutputContract> OutputContracts { get; } = [];
@@ -21,12 +21,12 @@ internal static class DeleteCloudPointsByXYZRangeOperation
         [
             new("Cloud Names", WorkerMpValueKind.CollectionObjectNameList,
                 CollectionObjectNameMapper.RequiredList(request.CloudNames, "cloud_names", WorkerObjectTypeValue.Cloud), "SetCollectionObjectNameRefListArg"),
-            new("X Min", WorkerMpValueKind.FloatingPoint, new WorkerDoubleValue(request.HasXMin ? request.XMin : 0), "SetDoubleArg"),
-            new("X Max", WorkerMpValueKind.FloatingPoint, new WorkerDoubleValue(request.HasXMax ? request.XMax : 0), "SetDoubleArg"),
-            new("Y Min", WorkerMpValueKind.FloatingPoint, new WorkerDoubleValue(request.HasYMin ? request.YMin : 0), "SetDoubleArg"),
-            new("Y Max", WorkerMpValueKind.FloatingPoint, new WorkerDoubleValue(request.HasYMax ? request.YMax : 0), "SetDoubleArg"),
-            new("Z Min", WorkerMpValueKind.FloatingPoint, new WorkerDoubleValue(request.HasZMin ? request.ZMin : 0), "SetDoubleArg"),
-            new("Z Max", WorkerMpValueKind.FloatingPoint, new WorkerDoubleValue(request.HasZMax ? request.ZMax : 0), "SetDoubleArg"),
+            .. OptionalBound("X Min", request.HasXMin, request.XMin),
+            .. OptionalBound("X Max", request.HasXMax, request.XMax),
+            .. OptionalBound("Y Min", request.HasYMin, request.YMin),
+            .. OptionalBound("Y Max", request.HasYMax, request.YMax),
+            .. OptionalBound("Z Min", request.HasZMin, request.ZMin),
+            .. OptionalBound("Z Max", request.HasZMax, request.ZMax),
             new("Delete Inside", WorkerMpValueKind.Logical,
                 new WorkerBooleanValue(request.HasDeleteInside && request.DeleteInside), "SetBoolArg")
         ], []);
@@ -34,4 +34,10 @@ internal static class DeleteCloudPointsByXYZRangeOperation
 
     public static Api.DeleteCloudPointsByXYZRangeResult CreateResult(SuccessfulOperationExecution completed) =>
         new() { Execution = completed.Details };
+
+    // Absent optional range bounds are omitted, never substituted with zero, matching the reviewed v0.8.0 contract.
+    private static WorkerMpInputArgument[] OptionalBound(string name, bool hasValue, double value) =>
+        hasValue
+            ? [new(name, WorkerMpValueKind.FloatingPoint, new WorkerDoubleValue(value), "SetDoubleArg")]
+            : [];
 }

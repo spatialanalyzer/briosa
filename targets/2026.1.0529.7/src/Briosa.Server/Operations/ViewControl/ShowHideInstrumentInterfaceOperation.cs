@@ -19,7 +19,7 @@ internal static class ShowHideInstrumentInterfaceOperation
         ArgumentNullException.ThrowIfNull(request);
         return new(Descriptor.OperationId, Descriptor.MpStep,
         [
-            new("Instrument ID", WorkerMpValueKind.CollectionInstrumentId,
+            new("Instrument's ID", WorkerMpValueKind.CollectionInstrumentId,
                 CollectionInstrumentIdMapper.Required(request.InstrumentId, "instrument_id"), "SetColInstIdArg"),
             new("Minimize Interface?", WorkerMpValueKind.Logical,
                 new WorkerBooleanValue(request.MinimizeInterface), "SetBoolArg"),

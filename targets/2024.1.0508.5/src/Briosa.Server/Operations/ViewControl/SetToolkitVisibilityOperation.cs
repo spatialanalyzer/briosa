@@ -17,7 +17,7 @@ internal static class SetToolkitVisibilityOperation
     {
         ArgumentNullException.ThrowIfNull(request);
         return new(Descriptor.OperationId, Descriptor.MpStep,
-        [new("Show Toolkit", WorkerMpValueKind.Logical,
+        [new("Show Toolkit?", WorkerMpValueKind.Logical,
             new WorkerBooleanValue(request.ShowToolkit), "SetBoolArg")], []);
     }
 

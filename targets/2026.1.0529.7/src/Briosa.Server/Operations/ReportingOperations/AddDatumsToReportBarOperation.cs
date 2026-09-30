@@ -19,7 +19,7 @@ internal static class AddDatumsToReportBarOperation
         ArgumentNullException.ThrowIfNull(request);
         return new(Descriptor.OperationId, Descriptor.MpStep,
         [
-            new("Datums", WorkerMpValueKind.CollectionObjectNameList,
+            new("Datum(s)", WorkerMpValueKind.CollectionObjectNameList,
                 CollectionObjectNameMapper.RequiredList(request.Datums, "datums"), "SetCollectionObjectNameRefListArg"),
             new("Clear Existing?", WorkerMpValueKind.Logical,
                 new WorkerBooleanValue(request.ClearExisting), "SetBoolArg")

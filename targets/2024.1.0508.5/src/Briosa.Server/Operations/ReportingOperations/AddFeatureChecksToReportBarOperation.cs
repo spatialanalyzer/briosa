@@ -19,7 +19,7 @@ internal static class AddFeatureChecksToReportBarOperation
         ArgumentNullException.ThrowIfNull(request);
         return new(Descriptor.OperationId, Descriptor.MpStep,
         [
-            new("Feature Checks", WorkerMpValueKind.CollectionItemNameList,
+            new("Feature Check(s)", WorkerMpValueKind.CollectionItemNameList,
                 CollectionItemNameMapper.RequiredList(request.FeatureChecks, "feature_checks"), "SetCollectionObjectNameRefListArg"),
             new("Clear Existing?", WorkerMpValueKind.Logical,
                 new WorkerBooleanValue(request.ClearExisting), "SetBoolArg")
