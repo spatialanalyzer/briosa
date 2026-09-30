@@ -21,8 +21,15 @@ jobs:
     timeout-minutes: 5
     outputs:
       value: ${{ steps.version.outputs.value }}
+      previous: ${{ steps.version.outputs.previous }}
+      eligible: ${{ steps.version.outputs.eligible }}
 
     steps:
+      - name: Check out repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+
       - name: Resolve package version
         id: version
         shell: pwsh
@@ -39,14 +46,141 @@ jobs:
           if ($version -notmatch '^[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?$') {
             throw "Version '$version' is not a supported semantic version."
           }
+          $semanticVersion = $null
+          if (-not [System.Management.Automation.SemanticVersion]::TryParse($version, [ref]$semanticVersion)) {
+            throw "Version '$version' is not a supported semantic version."
+          }
+
+          # Only commits already on main may be signed or published.
+          git fetch --no-tags origin '+refs/heads/main:refs/remotes/origin/main'
+          if ($LASTEXITCODE -ne 0) {
+            throw "Could not fetch origin/main."
+          }
+          git merge-base --is-ancestor $env:GITHUB_SHA refs/remotes/origin/main
+          $eligible = switch ($LASTEXITCODE) {
+            0 { $true }
+            1 { $false }
+            default { throw "Could not determine whether $env:GITHUB_SHA is on main." }
+          }
+          if (-not $eligible) {
+            if ("${{ github.event_name }}" -eq "push") {
+              throw "Release tag $env:GITHUB_REF_NAME does not point to a commit on main."
+            }
+            Write-Host "::warning::$env:GITHUB_SHA is not on main; this dispatch is an unsigned dry run."
+          }
+
+          # The previous release is the highest stable v* tag reachable from the parent commit.
+          $previous = ''
+          $previousVersion = $null
+          git rev-parse --verify --quiet "$env:GITHUB_SHA^" | Out-Null
+          if ($LASTEXITCODE -eq 0) {
+            $tags = @(git tag --merged "$env:GITHUB_SHA^" --list 'v[0-9]*')
+            if ($LASTEXITCODE -ne 0) {
+              throw "Could not list release tags before $env:GITHUB_SHA."
+            }
+            foreach ($tag in $tags) {
+              $candidate = $null
+              if ([System.Management.Automation.SemanticVersion]::TryParse($tag.Substring(1), [ref]$candidate) -and
+                  [string]::IsNullOrEmpty($candidate.PreReleaseLabel) -and
+                  ($null -eq $previousVersion -or $candidate -gt $previousVersion)) {
+                $previous = $tag
+                $previousVersion = $candidate
+              }
+            }
+          }
+          if ($null -ne $previousVersion -and $semanticVersion -le $previousVersion) {
+            throw "Version $version is not greater than the previous stable release $previous."
+          }
+          Write-Host "Version $version; previous stable release: $(if ($previous) { $previous } else { 'none' }); eligible to sign: $eligible."
 
           "value=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "previous=$previous" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "eligible=$($eligible.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+  validate:
+    name: Validate SA ${{ matrix.target.sa_version }} product
+    needs: version
+    runs-on: windows-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - sa_version: 2026.1.0529.7
+            path: targets/2026.1.0529.7
+          - sa_version: 2024.1.0508.5
+            path: targets/2024.1.0508.5
+
+    defaults:
+      run:
+        working-directory: ${{ matrix.target.path }}
+
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
+      DOTNET_NOLOGO: 'true'
+      Briosa__Desktop__Mode: 'Disabled'
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+
+      - name: Install Buf
+        uses: bufbuild/buf-setup-action@a47c93e0b1648d5651a065437926377d060baa99 # v1.50.0
+        with:
+          version: 1.72.0
+          github_token: ${{ github.token }}
+
+      - name: Install .NET SDK
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: '${{ matrix.target.path }}/**/packages.lock.json'
+
+      - name: Restore locked dependencies
+        run: dotnet restore Briosa.slnx --locked-mode
+
+      - name: Build interop inspector
+        run: dotnet build tools/Briosa.InteropInspector/Briosa.InteropInspector.csproj -c Release --no-restore
+
+      - name: Verify committed interop artifacts
+        shell: pwsh
+        run: ./eng/Verify-InteropArtifacts.ps1 -NoBuild
+
+      - name: Verify protobuf contracts against the previous release
+        shell: pwsh
+        env:
+          PROTOCOL_BASE_REF: ${{ needs.version.outputs.previous }}
+        run: ./eng/Verify-Protocol.ps1 -AgainstRef $env:PROTOCOL_BASE_REF
+
+      - name: Test reviewed MP naming compatibility exceptions
+        shell: pwsh
+        run: ../../eng/Test-MpArgumentNameMigrationPolicy.ps1 -TargetDirectory .
+
+      - name: Build solution
+        run: dotnet build Briosa.slnx -c Release --no-restore
+
+      - name: Run tests
+        run: dotnet test Briosa.slnx -c Release --no-build --no-restore --filter Category!=Performance
+
+      - name: Verify development-only gRPC reflection and manual startup
+        run: >-
+          dotnet test tests/Briosa.Server.Tests/Briosa.Server.Tests.csproj
+          -c Debug
+          --no-restore
+          --filter "FullyQualifiedName~DevelopmentGrpcReflectionTests|FullyQualifiedName~ManualServerStartupTests"
 
   package:
     name: Build SA ${{ matrix.target.sa_version }} products
-    needs: version
+    needs: [version, validate]
     runs-on: windows-latest
     timeout-minutes: 30
+    # Matrix legs combine job outputs by name, so each target writes its own key.
+    outputs:
+      sha256_sa_2026_1_0529_7: ${{ steps.digest.outputs.sha256_sa_2026_1_0529_7 }}
+      sha256_sa_2024_1_0508_5: ${{ steps.digest.outputs.sha256_sa_2024_1_0508_5 }}
     strategy:
       fail-fast: false
       matrix:
@@ -110,6 +244,17 @@ jobs:
           ./eng/Test-ClientScenarios.ps1
           -PackagePath "artifacts/release/briosa-${{ needs.version.outputs.value }}-sa-${{ matrix.target.sa_version }}-win-x64.zip"
 
+      - name: Record product archive digest
+        id: digest
+        shell: pwsh
+        env:
+          PRODUCT: briosa-${{ needs.version.outputs.value }}-sa-${{ matrix.target.sa_version }}-win-x64.zip
+          SA_VERSION: ${{ matrix.target.sa_version }}
+        run: |
+          $hash = (Get-FileHash -LiteralPath "artifacts/release/$env:PRODUCT" -Algorithm SHA256).Hash.ToLowerInvariant()
+          "sha256_sa_$($env:SA_VERSION.Replace('.', '_'))=$hash" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          Write-Host "$env:PRODUCT SHA-256: $hash"
+
       - name: Upload exact-target release assets
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
@@ -133,7 +278,7 @@ jobs:
   sign:
     name: Sign SA ${{ matrix.sa_version }} product
     needs: [version, package, retained-client-compatibility]
-    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+    if: (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) && needs.version.outputs.eligible == 'true'
     runs-on: windows-2025
     timeout-minutes: 20
     environment: release-signing
@@ -143,13 +288,31 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        sa_version: [2026.1.0529.7, 2024.1.0508.5]
+        include:
+          - sa_version: 2026.1.0529.7
+            digest_output: sha256_sa_2026_1_0529_7
+          - sa_version: 2024.1.0508.5
+            digest_output: sha256_sa_2024_1_0508_5
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: unsigned-briosa-${{ needs.version.outputs.value }}-sa-${{ matrix.sa_version }}-release-assets
           path: artifacts/unsigned
+      - name: Verify transferred product digest
+        shell: pwsh
+        env:
+          EXPECTED_SHA256: ${{ needs.package.outputs[matrix.digest_output] }}
+          PRODUCT: briosa-${{ needs.version.outputs.value }}-sa-${{ matrix.sa_version }}-win-x64.zip
+        run: |
+          if ($env:EXPECTED_SHA256 -cnotmatch '^[0-9a-f]{64}$') {
+            throw "The package job did not record a SHA-256 digest for $env:PRODUCT."
+          }
+          $actual = (Get-FileHash -LiteralPath "artifacts/unsigned/$env:PRODUCT" -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($actual -cne $env:EXPECTED_SHA256) {
+            throw "$env:PRODUCT does not match the digest recorded by the package job."
+          }
+          Write-Host "$env:PRODUCT matches the package job digest $actual."
       - name: Sign verified Windows product
         id: sign
         uses: ./.github/actions/sign-package

@@ -1,7 +1,7 @@
 # Validation and distribution
 
 - Status: Current; protected infrastructure remains provisional
-- Last reviewed: 2026-08-12
+- Last reviewed: 2026-09-30
 
 ## Validation levels
 
@@ -82,15 +82,22 @@ Every exact target independently verifies:
 - Buf formatting, linting, compilation, and descriptor generation;
 - deterministic protocol archive content and checksums;
 - locked .NET dependencies and Release compilation;
-- approved interop provenance and canonical public API;
+- approved interop provenance and canonical public API, checked in CI and before
+  release packaging by `Verify-InteropArtifacts.ps1 -NoBuild` against the
+  committed provenance hashes, assembly identity, and regenerated API manifest;
 - self-contained Windows x64 server/worker packaging;
 - deterministic archive path set, byte content, order, timestamps, and hashes;
 - manifest target, source, protocol, operation, and interop coordinates;
 - offline package diagnostics; and
 - source/project isolation from every other SA target.
 
-Protocol compatibility checks use an explicit released reference after the first
-public release. The evolving unreleased `main` branch is not treated as a stable
+Pull-request CI compares each target's protobuf contracts with the pull request's
+base commit to catch unreviewed breaking changes; push CI on `main` runs format,
+lint, and build checks without a breaking comparison. Release validation compares
+each target with the previous stable release: the highest `v*` tag without a
+prerelease label that is reachable from the parent of the released commit. The
+comparison is skipped only when no such tag exists or the target has no protocol
+at that tag. The evolving unreleased `main` branch is not treated as a stable
 compatibility baseline.
 
 ## CI and release orchestration
@@ -98,11 +105,23 @@ compatibility baseline.
 Repository workflows enumerate supported targets explicitly. Each target restores,
 builds, tests, packages, and validates from its own directory. Adding a target
 requires updating the CI, release, and protected licensed-validation matrices.
+CI and release validation also run the Debug-only development reflection and
+manual server startup tests.
+
+The repository-policy CI job reports twin files that matched in both targets at
+the event's base revision, apart from target version strings, but changed on only
+one side or no longer match. The report is advisory: it adds workflow warnings and
+a job summary but does not fail CI. See the [engineering checks](../../eng/README.md).
 
 One repository semantic version may produce independently identified server and
-protocol artifacts for several exact SA releases. Release assembly verifies every
-matrix result before publication. Language-client packages are built and versioned
-in their own repositories from the reviewed protocol artifact.
+protocol artifacts for several exact SA releases. The release workflow resolves
+the version, requires it to be greater than the previous stable release, and
+records whether the commit is on `main`. A tag on a commit outside `main` fails;
+a manual dispatch outside `main` builds an unsigned dry run. A validation job
+repeats the CI restore, interop, protocol, naming-policy, build, and test gates for
+every target before packaging. Release assembly verifies every matrix result before
+publication. Language-client packages are built and versioned in their own
+repositories from the reviewed protocol artifact.
 
 Target-specific commands and procedures are maintained in the
 [local gRPC development guide](../../targets/2026.1.0529.7/docs/development/local-grpc-server.md),

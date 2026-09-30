@@ -195,18 +195,41 @@ semantic version. A dispatch produces workflow artifacts without a GitHub Releas
 pushing an approved `v*` tag publishes the final signed product to GitHub Releases.
 Do not use a product release tag just to test authentication.
 
-1. Build, test, and package without Azure access. Server package reproducibility
-   checks compare unsigned builds; a timestamped signature is intentionally time-dependent.
-2. Transfer the tested ZIP and its checksum/provenance to the protected signing job.
-3. `Prepare-SignedPackage.ps1` verifies archive identity, containment, internal and
+In this repository, the `version` job also decides signing eligibility and checks
+version order before any product build:
+
+- The released commit is eligible only when it is an ancestor of `origin/main`.
+  A `v*` tag on any other commit fails the workflow. A manual dispatch from a
+  commit outside `main` continues as an unsigned dry run; the `sign` job requires
+  both an allowed ref and `eligible == 'true'`.
+- The requested version must be greater than the previous stable release: the
+  highest `v*` tag without a prerelease label that is reachable from the parent of
+  the released commit. The `validate` job compares protobuf contracts with that tag.
+
+These checks restrict which commits reach signing. They do not add a reviewer
+approval; see the environment protection notes above.
+
+1. Validate every target (locked restore, committed interop artifacts, protocol
+   compatibility, naming policy, Release build and tests, and Debug development
+   tests), then build, test, and package without Azure access. Server package
+   reproducibility checks compare unsigned builds; a timestamped signature is
+   intentionally time-dependent.
+2. The package job records the SHA-256 of each product ZIP as a per-target job
+   output and uploads the ZIP and its checksum/provenance as a workflow artifact.
+3. The protected signing job downloads that artifact and, before any signing step,
+   requires the product ZIP to match the recorded SHA-256. A missing or different
+   digest fails the job. The workflow artifact is not the only integrity source:
+   `download-artifact` verifies the artifact's own digest, but a same-named artifact
+   uploaded later with `overwrite` would carry a matching new digest.
+4. `Prepare-SignedPackage.ps1` verifies archive identity, containment, internal and
    external hashes, and matching embedded/external provenance, then selects the
    Briosa EXE/DLL files and the installer's shortcut PowerShell script.
-4. The official Azure signing action uses SHA-256 and RFC 3161 timestamps.
+5. The official Azure signing action uses SHA-256 and RFC 3161 timestamps.
    Third-party runtime DLL signatures are retained.
-5. `Complete-SignedPackage.ps1` requires valid, timestamped signatures from the
+6. `Complete-SignedPackage.ps1` requires valid, timestamped signatures from the
    expected publisher, then rebuilds `files.sha256`, the ZIP, its outer SHA-256,
    and adjacent provenance. It refuses to overwrite an existing final artifact.
-6. Re-extract the final archive and verify its hashes and signatures again before
+7. Re-extract the final archive and verify its hashes and signatures again before
    uploading final release assets. Installer checks also exercise the signed CLI
    and launcher without displaying a window.
 
