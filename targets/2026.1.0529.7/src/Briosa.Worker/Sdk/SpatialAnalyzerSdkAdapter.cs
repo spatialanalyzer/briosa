@@ -266,6 +266,8 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
                     GetCollectionObjectName(sdk, argument),
                 WorkerMpValueKind.CollectionObjectNameList =>
                     GetCollectionObjectNameList(sdk, argument),
+                WorkerMpValueKind.CollectionVectorGroupNameList =>
+                    GetCollectionVectorGroupNameList(sdk, argument),
                 WorkerMpValueKind.PointNameList => GetPointNameList(sdk, argument),
                 WorkerMpValueKind.StringList => GetStringList(sdk, argument),
                 WorkerMpValueKind.VectorNameList => GetVectorNameList(sdk, argument),
@@ -770,6 +772,15 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
             SdkReferenceListCodec.TryParseObjectNames,
             (name, kind, value) => new WorkerRetrievedOutput(name, kind, value));
 
+    private static WorkerMpOutputValue GetCollectionVectorGroupNameList(
+        ISpatialAnalyzerSdkCalls sdk,
+        WorkerMpOutputArgument argument) =>
+        GetReferenceList<WorkerCollectionVectorGroupNameListValue>(
+            argument,
+            sdk.GetCollectionVectorGroupNameRefListArg,
+            SdkReferenceListCodec.TryParseVectorGroupNames,
+            (name, kind, value) => new WorkerRetrievedOutput(name, kind, value));
+
     private static WorkerMpOutputValue GetPointNameList(
         ISpatialAnalyzerSdkCalls sdk,
         WorkerMpOutputArgument argument) =>
@@ -1151,6 +1162,9 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
 
         public bool GetCollectionObjectNameRefListArg(string name, ref object values) =>
             Sdk.GetCollectionObjectNameRefListArg(name, ref values);
+
+        public bool GetCollectionVectorGroupNameRefListArg(string name, ref object values) =>
+            Sdk.GetCollectionVectorGroupNameRefListArg(name, ref values);
 
         public bool GetPointNameRefListArg(string name, ref object values) =>
             Sdk.GetPointNameRefListArg(name, ref values);

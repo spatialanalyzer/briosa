@@ -504,6 +504,150 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         Assert.Equal("sdk-argument-rejected", result.DiagnosticCode);
         Assert.DoesNotContain("ExecuteStep", calls.Events);
     }
+
+    public static TheoryData<WorkerMpValueKind> AllValueKinds() =>
+        [.. Enum.GetValues<WorkerMpValueKind>()];
+
+    [Theory]
+    [MemberData(nameof(AllValueKinds))]
+    public void AdapterRetrievesExactlyTheSharedRetrievableOutputKinds(WorkerMpValueKind kind)
+    {
+        using var calls = new RecordingSdkCalls();
+        using var adapter = new SpatialAnalyzerSdkAdapter(calls);
+        var command = new WorkerMpCommand(
+            "output-kind",
+            "Output Kind",
+            [],
+            [new WorkerMpOutputArgument($"{kind} Result", kind)]);
+
+        var result = adapter.Execute(command);
+
+        Assert.True(result.MpSucceeded);
+        var output = Assert.Single(result.OutputValues);
+        Assert.Equal(kind, output.Kind);
+        Assert.Equal(WorkerRetrievableOutputKinds.Contains(kind), output.Retrieved);
+        Assert.Equal(output.Retrieved, output.ReadValue() is not null);
+    }
+
+    [Fact]
+    public void CollectionVectorGroupNameListOutputRetrievesMultipleReferencesInOrder()
+    {
+        using var calls = new RecordingSdkCalls();
+        using var adapter = new SpatialAnalyzerSdkAdapter(calls);
+        var command = new WorkerMpCommand(
+            "vector-group-list",
+            "Vector Group List",
+            [],
+            [new WorkerMpOutputArgument(
+                "Vector Groups",
+                WorkerMpValueKind.CollectionVectorGroupNameList,
+                "GetCollectionVectorGroupNameRefListArg")]);
+
+        var result = adapter.Execute(command);
+
+        var output = Assert.Single(result.OutputValues);
+        Assert.True(output.Retrieved);
+        Assert.Null(result.DiagnosticCode);
+        Assert.Contains("GetCollectionVectorGroupNameRefListArg:Vector Groups", calls.Events);
+        Assert.True(calls.ReferenceGettersReceivedVariantWrapper);
+        Assert.Equal(
+            [new WorkerCollectionVectorGroupNameValue("Collection A", "Vectors A"),
+                new WorkerCollectionVectorGroupNameValue("Collection B", "Vectors B")],
+            (output.ReadValue() as WorkerCollectionVectorGroupNameListValue)!.Values);
+    }
+
+    [Fact]
+    public void EmptyCollectionVectorGroupNameListOutputIsRetrieved()
+    {
+        using var calls = new RecordingSdkCalls();
+        using var adapter = new SpatialAnalyzerSdkAdapter(calls);
+        var command = new WorkerMpCommand(
+            "empty-vector-group-list",
+            "Empty Vector Group List",
+            [],
+            [new WorkerMpOutputArgument(
+                "Empty Vector Groups",
+                WorkerMpValueKind.CollectionVectorGroupNameList,
+                "GetCollectionVectorGroupNameRefListArg")]);
+
+        var result = adapter.Execute(command);
+
+        var output = Assert.Single(result.OutputValues);
+        Assert.True(output.Retrieved);
+        Assert.Empty((output.ReadValue() as WorkerCollectionVectorGroupNameListValue)!.Values);
+        Assert.Null(result.DiagnosticCode);
+    }
+
+    [Theory]
+    [InlineData("Vector Groups", "Vector Groups", null)]
+    [InlineData("Vector Groups", null, "Vector Groups")]
+    [InlineData("Unseparated Vector Groups", null, null)]
+    [InlineData("Three Part Vector Groups", null, null)]
+    public void UnavailableOrMalformedCollectionVectorGroupNameListFailsAtomically(
+        string outputName,
+        string? failedOutputName,
+        string? malformedOutputName)
+    {
+        using var calls = new RecordingSdkCalls
+        {
+            FailedOutputName = failedOutputName,
+            MalformedOutputName = malformedOutputName
+        };
+        using var adapter = new SpatialAnalyzerSdkAdapter(calls);
+        var command = new WorkerMpCommand(
+            "failed-vector-group-list",
+            "Failed Vector Group List",
+            [],
+            [new WorkerMpOutputArgument(
+                outputName,
+                WorkerMpValueKind.CollectionVectorGroupNameList,
+                "GetCollectionVectorGroupNameRefListArg")]);
+
+        var result = adapter.Execute(command);
+
+        Assert.True(result.MpSucceeded);
+        var output = Assert.Single(result.OutputValues);
+        Assert.False(output.Retrieved);
+        Assert.IsType<WorkerUnavailableOutput>(output);
+        Assert.Null(output.ReadValue() as WorkerCollectionVectorGroupNameListValue);
+        Assert.Equal("sdk-output-retrieval-failed", result.DiagnosticCode);
+    }
+
+    [Fact]
+    public void CollectionVectorGroupNameListMarshalingIsSymmetricWithTheSetter()
+    {
+        using var calls = new RecordingSdkCalls();
+        using var adapter = new SpatialAnalyzerSdkAdapter(calls);
+        WorkerCollectionVectorGroupNameValue[] values =
+        [
+            new("Collection A", "Vectors A"),
+            new("Collection B", "Vectors B")
+        ];
+        var command = new WorkerMpCommand(
+            "vector-group-round-trip",
+            "Vector Group Round Trip",
+            [new WorkerMpInputArgument(
+                "Vector Groups to be Set",
+                WorkerMpValueKind.CollectionVectorGroupNameList,
+                new WorkerCollectionVectorGroupNameListValue(values),
+                sdkBinding: "SetCollectionVectorGroupNameRefListArg")],
+            [new WorkerMpOutputArgument(
+                "Vector Groups",
+                WorkerMpValueKind.CollectionVectorGroupNameList,
+                "GetCollectionVectorGroupNameRefListArg")]);
+
+        var result = adapter.Execute(command);
+
+        Assert.True(calls.ReferenceSettersReceivedVariantWrapper);
+        Assert.True(calls.ReferenceGettersReceivedVariantWrapper);
+        Assert.Equal(
+            RecordingSdkCalls.VectorGroupReferences,
+            calls.ReferenceArguments["Vector Groups to be Set"]);
+        Assert.Equal(
+            values,
+            (Assert.Single(result.OutputValues).ReadValue() as WorkerCollectionVectorGroupNameListValue)!.Values);
+    }
+
     private sealed partial class RecordingSdkCalls : ISpatialAnalyzerSdkCalls
     {
         public List<string> Events { get; } = [];
@@ -514,7 +658,12 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
 
         public int MpResultCode { get; init; } = 2;
 
+        public static string[] VectorGroupReferences { get; } =
+            ["Collection A::Vectors A", "Collection B::Vectors B"];
+
         public bool ReferenceGettersReceivedVariantWrapper { get; private set; } = true;
+
+        public bool ReferenceSettersReceivedVariantWrapper { get; private set; } = true;
 
         public bool ContainerGettersReceivedVariantWrapper { get; private set; } = true;
 
@@ -819,6 +968,16 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
                         ? "Collection::Report::SA Report,"
                         : "Collection::Object::Point Group,");
 
+        public bool GetCollectionVectorGroupNameRefListArg(string name, ref object values) =>
+            ReturnReferenceList(name, "GetCollectionVectorGroupNameRefListArg", ref values,
+                name.StartsWith("Empty", StringComparison.Ordinal)
+                    ? []
+                    : name.StartsWith("Unseparated", StringComparison.Ordinal)
+                        ? ["Collection A::Vectors A", "Vectors B"]
+                        : name.StartsWith("Three Part", StringComparison.Ordinal)
+                            ? ["Collection A::Vectors A", "Collection B::Vectors B::Extra"]
+                            : VectorGroupReferences);
+
         public bool GetPointNameRefListArg(string name, ref object values) =>
             ReturnReferenceList(name, "GetPointNameRefListArg", ref values,
                 "Collection::Group::Point A", "Collection::Group::Point B");
@@ -952,6 +1111,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         private bool RecordReferenceSetter(string method, string name, object values)
         {
             Events.Add($"{method}:{name}");
+            ReferenceSettersReceivedVariantWrapper &= values is VariantWrapper;
             if (values is VariantWrapper wrapper)
             {
                 values = wrapper.WrappedObject!;

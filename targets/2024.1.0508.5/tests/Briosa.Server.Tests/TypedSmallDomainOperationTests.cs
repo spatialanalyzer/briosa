@@ -9,6 +9,7 @@ using Briosa.Server.Operations.VectorOperations;
 using Briosa.Server.Services;
 using Briosa.Worker.Control;
 using Briosa.Server.Workers;
+using Google.Protobuf;
 using Grpc.Core;
 using Grpc.Net.Client;
 using Microsoft.AspNetCore.Builder;
@@ -145,14 +146,20 @@ public sealed class TypedSmallDomainOperationTests
     }
 
     [Fact]
-    public void VectorStatisticsRetainIntegerSdkBindingsAndPublicPresence()
+    public void VectorStatisticsUseDoublePercentageBindingsAndPublicPresence()
     {
         var command = GetVectorGroupPropertiesOperation.CreateCommand(new()
         {
             VectorGroupName = new() { ObjectName = "group" }
         });
-        Assert.Equal("GetIntegerArg", command.OutputArguments[4].SdkBinding);
-        Assert.Equal(WorkerMpValueKind.WholeNumber, command.OutputArguments[4].Kind);
+        Assert.Equal(
+            ["GetIntegerArg", "GetIntegerArg", "GetIntegerArg", "GetIntegerArg", "GetDoubleArg", "GetDoubleArg"],
+            command.OutputArguments.Take(6).Select(item => item.SdkBinding));
+        Assert.Equal(WorkerMpValueKind.FloatingPoint, command.OutputArguments[4].Kind);
+        Assert.Equal(WorkerMpValueKind.FloatingPoint, command.OutputArguments[5].Kind);
+        Assert.Equal(
+            GetVectorGroupPropertiesOperation.OutputContracts.Select(item => (item.ArgumentName, item.Kind)),
+            command.OutputArguments.Select(item => (item.Name, item.Kind)));
         var outputs = command.OutputArguments.Select((item, index) =>
             (WorkerMpOutputValue)new WorkerRetrievedOutput(item.Name, item.Kind,
                 item.Kind == WorkerMpValueKind.WholeNumber
@@ -165,6 +172,31 @@ public sealed class TypedSmallDomainOperationTests
         Assert.Equal(4d, result.VectorsInTolerance2);
         Assert.True(result.HasRmsValue);
         Assert.Equal(16d, result.RmsValue);
+    }
+
+    [Fact]
+    public void VectorStatisticsPreserveFractionalPercentages()
+    {
+        var command = GetVectorGroupPropertiesOperation.CreateCommand(new()
+        {
+            VectorGroupName = new() { ObjectName = "group" }
+        });
+        var outputs = command.OutputArguments.Select((item, index) =>
+            (WorkerMpOutputValue)new WorkerRetrievedOutput(item.Name, item.Kind, index switch
+            {
+                4 => new WorkerDoubleValue(33.333333),
+                5 => new WorkerDoubleValue(66.666667),
+                _ when item.Kind == WorkerMpValueKind.WholeNumber => new WorkerIntegerValue(3),
+                _ => new WorkerDoubleValue(0.5)
+            })).ToArray();
+        var execution = WorkerMpExecutionResult.FromEvidence(true, true, true, 2, 1, outputs, "completed");
+        var result = GetVectorGroupPropertiesOperation.CreateResult(
+            new SuccessfulOperationExecution(execution, new Api.MpExecutionDetails()));
+        Assert.Equal(33.333333, result.VectorsInTolerance2);
+        Assert.Equal(66.666667, result.VectorsOutOfTolerance2);
+        var roundTripped = Api.GetVectorGroupPropertiesResult.Parser.ParseFrom(result.ToByteArray());
+        Assert.Equal(33.333333, roundTripped.VectorsInTolerance2);
+        Assert.Equal(66.666667, roundTripped.VectorsOutOfTolerance2);
     }
 
     private sealed class RouteWorker : IWorkerCommandExecutor

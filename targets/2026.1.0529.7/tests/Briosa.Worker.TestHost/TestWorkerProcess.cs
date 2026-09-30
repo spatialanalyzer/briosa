@@ -232,9 +232,13 @@ internal static class TestWorkerProcess
                 scenario: scenario),
             DiagnosticCode: null);
 
+    // Never fabricate a value the production adapter cannot retrieve; doing so would hide
+    // declared outputs that fail after MP success in the real worker.
     private static WorkerMpOutputValue CreateOutputValue(WorkerMpOutputArgument output) =>
         output.Kind switch
         {
+            _ when !WorkerRetrievableOutputKinds.Contains(output.Kind) =>
+                new WorkerUnavailableOutput(output.Name, output.Kind),
             WorkerMpValueKind.Logical =>
                 new WorkerRetrievedOutput(output.Name, output.Kind, new WorkerBooleanValue(true)),
             WorkerMpValueKind.WholeNumber =>
@@ -242,12 +246,7 @@ internal static class TestWorkerProcess
             WorkerMpValueKind.FloatingPoint =>
                 new WorkerRetrievedOutput(output.Name, output.Kind, new WorkerDoubleValue(1.25)),
             WorkerMpValueKind.Text or
-            WorkerMpValueKind.ChartName or
-            WorkerMpValueKind.CloudName or
-            WorkerMpValueKind.CollectionName or
-            WorkerMpValueKind.FrameName or
-            WorkerMpValueKind.VectorGroupName or
-            WorkerMpValueKind.ViewName =>
+            WorkerMpValueKind.CollectionName =>
                 new WorkerRetrievedOutput(output.Name, output.Kind, new WorkerTextValue("scripted-output")),
             WorkerMpValueKind.PointName =>
                 new WorkerRetrievedOutput(output.Name, output.Kind, new WorkerPointNameValue(
@@ -263,8 +262,6 @@ internal static class TestWorkerProcess
             WorkerMpValueKind.CollectionInstrumentIdList =>
                 new WorkerRetrievedOutput(output.Name, output.Kind, new WorkerCollectionInstrumentIdListValue(
                             [new WorkerCollectionInstrumentIdValue("Collection", 17)])),
-            WorkerMpValueKind.CollectionMachineId =>
-                new WorkerRetrievedOutput(output.Name, output.Kind, new WorkerCollectionMachineIdValue("Collection", 18)),
             WorkerMpValueKind.CollectionItemName =>
                 new WorkerRetrievedOutput(output.Name, output.Kind, new WorkerCollectionItemNameValue(
                             "Collection", "Picture", WorkerItemTypeValue.Picture)),
@@ -279,11 +276,6 @@ internal static class TestWorkerProcess
                 new WorkerRetrievedOutput(output.Name, output.Kind, new WorkerCollectionObjectNameListValue(
                             [new WorkerCollectionObjectNameValue(
                                 "Collection", "Object", WorkerObjectTypeValue.PointGroup)])),
-            WorkerMpValueKind.CollectionGroupNameList =>
-                new WorkerRetrievedOutput(output.Name, output.Kind, new WorkerCollectionGroupNameListValue(
-                            [new WorkerCollectionGroupNameValue("Collection", "Group")])),
-            WorkerMpValueKind.CollectionVectorGroupName =>
-                new WorkerRetrievedOutput(output.Name, output.Kind, new WorkerCollectionVectorGroupNameValue("Collection", "Vectors")),
             WorkerMpValueKind.CollectionVectorGroupNameList =>
                 new WorkerRetrievedOutput(output.Name, output.Kind, new WorkerCollectionVectorGroupNameListValue(
                             [new WorkerCollectionVectorGroupNameValue(

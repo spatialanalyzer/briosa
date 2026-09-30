@@ -144,6 +144,8 @@ internal partial interface ISpatialAnalyzerSdkCalls : IDisposable
 
     bool GetCollectionObjectNameRefListArg(string name, ref object values);
 
+    bool GetCollectionVectorGroupNameRefListArg(string name, ref object values);
+
     bool GetPointNameRefListArg(string name, ref object values);
 
     bool GetStringRefListArg(string name, ref object values);
