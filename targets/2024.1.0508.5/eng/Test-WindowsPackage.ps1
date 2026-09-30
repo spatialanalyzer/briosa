@@ -208,6 +208,12 @@ try {
     $defaultLogDirectory = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'Briosa\logs\2024.1.0508.5'
     $previousLogs = @(Get-ChildItem -LiteralPath $defaultLogDirectory -Filter 'briosa-*.jsonl' -ErrorAction SilentlyContinue |
         Select-Object -ExpandProperty Name)
+    # Launch from a foreign working directory whose poison settings (a duplicate
+    # allowlist entry) fail startup if the host reads configuration from it.
+    $foreignWorkingDirectory = Join-Path $temporaryRoot "foreign-cwd"
+    [IO.Directory]::CreateDirectory($foreignWorkingDirectory) | Out-Null
+    Set-Content -LiteralPath (Join-Path $foreignWorkingDirectory "appsettings.json") -Encoding utf8 -Value `
+        '{"Briosa":{"Security":{"Operations":{"Allow":["variables.set_double_variable","variables.set_double_variable"]}}}}'
     $workerVariable = "Briosa__Worker__ExecutablePath"
     $previousWorkerPath = [Environment]::GetEnvironmentVariable($workerVariable)
     [Environment]::SetEnvironmentVariable(
@@ -217,7 +223,7 @@ try {
         $processArguments = @{
             FilePath = $serverExecutable
             ArgumentList = @("--Briosa:Endpoint:Port=$port", "--Briosa:Desktop:Mode=Disabled")
-            WorkingDirectory = $packageRoot
+            WorkingDirectory = $foreignWorkingDirectory
             WindowStyle = "Hidden"
             RedirectStandardOutput = $standardOutput
             RedirectStandardError = $standardError
@@ -255,7 +261,7 @@ try {
     }
 
     $startupStopwatch.Stop()
-    Assert-Condition -Condition $listening -Message "The packaged host did not open its configured loopback endpoint without SpatialAnalyzer."
+    Assert-Condition -Condition $listening -Message "The packaged host did not open its configured loopback endpoint from a foreign working directory without SpatialAnalyzer."
     # The file writer is asynchronous: an open listener does not imply that its
     # startup record has reached disk. Verify the hidden host's default sink.
     $loggedStartup = $false
