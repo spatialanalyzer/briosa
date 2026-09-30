@@ -1,8 +1,13 @@
 # Runtime redesign migration
 
-Status: in development; this is not a released compatibility claim. Server work
-is tracked by [#220](https://github.com/spatialanalyzer/briosa/issues/220)
-and [#221](https://github.com/spatialanalyzer/briosa/issues/221).
+Status: released in Server
+[0.9.0](https://github.com/spatialanalyzer/briosa/releases/tag/v0.9.0) for both
+targets with behavioral contract major 2 and the matching 0.4.0 first-party
+clients. Server work was tracked by
+[#220](https://github.com/spatialanalyzer/briosa/issues/220) and
+[#221](https://github.com/spatialanalyzer/briosa/issues/221). The evidence and
+completion sections below record the pre-release review state and remain
+historical.
 
 Both independent SA targets declare compatibility major 2, revision 0. A
 major-1 client must reject a major-2 server during selection and handshake.

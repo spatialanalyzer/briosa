@@ -120,6 +120,15 @@ worker loss, or ambiguous ownership quarantines the target and requires explicit
 operator recovery rather than repeatedly launching clients against an uncertain
 SDK owner.
 
+Caller cancellation or a gRPC deadline does not roll back a lifecycle
+transition that has already begun. Cancelling while a new worker is starting
+forcibly terminates that worker and, once cleanup completes, leaves the SDK
+stopped until it is started again. Cancelling during the `ConnectEx` exchange
+retires the generation as faulted, and cancelling during the readiness probe
+quarantines the target as requiring operator recovery. Either of those two
+outcomes requires the explicit recover-and-connect sequence before MP work is
+admitted again.
+
 Public readiness requires all of the following:
 
 - a live public host and control-ready worker;

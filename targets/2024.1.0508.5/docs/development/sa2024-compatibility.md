@@ -2,7 +2,8 @@
 
 ## Product status
 
-This initial, unreleased product implements the 996 operations selected by the
+This product has shipped in Briosa server releases since 0.6.0. At Server
+0.9.0 it implements the 996 operations selected by the
 completed [SA 2024 review](https://briosa.dev/mp-command-catalog/2024.1.0508.5/review-notes).
 The compiled protobuf services, handwritten operation registry, and runtime
 capability discovery define availability. Six read-only operations and basic

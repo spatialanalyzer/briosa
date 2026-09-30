@@ -81,7 +81,7 @@ Missing or unspecified disposition is never interpreted as `NotStarted`.
 | Validation, unsupported operation, policy denial, or unavailable before enqueue | `NotStarted` | Request-specific or `Unavailable` |
 | Admission capacity exhausted before mapping | `NotStarted` | `ResourceExhausted` |
 | Setter rejected before `ExecuteStep` | `NotStarted` | `FailedPrecondition` |
-| Cancellation or deadline after enqueue | `StartedOutcomeUnknown` unless the worker proves it skipped execution | `Cancelled` or `DeadlineExceeded` |
+| Cancellation or deadline after enqueue | `StartedOutcomeUnknown`; the request stays queued and may still be dispatched | `Cancelled` or `DeadlineExceeded` |
 | `ExecuteStep` invoked but response lost, watchdog elapsed, or worker failed | `StartedOutcomeUnknown` | `Unavailable` |
 | MP result could not be retrieved | `StartedOutcomeUnknown` | `Internal` |
 | Retrieved MP failure | `Completed` | `FailedPrecondition` |
@@ -90,9 +90,12 @@ Missing or unspecified disposition is never interpreted as `NotStarted`.
 ## Cancellation, watchdogs, and replacement
 
 Caller cancellation and gRPC deadlines stop that caller from waiting. They do not
-cancel a synchronous COM call. Once a request enters the supervisor queue, the
-queue retains ownership and drains any later worker response so the private pipe
-cannot become desynchronized.
+cancel a synchronous COM call or withdraw an admitted request. Once a request
+enters the supervisor queue, the queue retains ownership: a request whose caller
+stopped waiting stays queued and may still be dispatched to the worker and
+executed later, after the caller has received `StartedOutcomeUnknown`. The queue
+also drains any later worker response so the private pipe cannot become
+desynchronized.
 
 The independent execution watchdog protects worker availability. When it expires,
 the supervisor terminates the worker process tree and requires an explicit

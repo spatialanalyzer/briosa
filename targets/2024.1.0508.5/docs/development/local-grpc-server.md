@@ -194,24 +194,33 @@ the UI to make the same calls:
 Apply the same data-handling rule to the UI: do not retain or share returned
 SpatialAnalyzer values.
 
-## Keep the operation allowlist narrow
+## Review the admitted operations
 
 The handwritten operation registry is the maximum API surface the binary can
 express, not an authorization list. `ListCapabilities` is the authority for the
 operations the current process admits. The committed runtime policy in
 `src/Briosa.Server/appsettings.json` is the source of truth for defaults;
-reflection and Development mode do not expand it. A reflected operation that
-is absent from `ListCapabilities` remains denied before worker or SDK execution.
+reflection and Development mode do not expand it. The shipped default
+allowlist names every registered operation, including state-mutating ones, so
+a source run admits the whole registered surface unless you deny operations.
+A reflected operation that is absent from `ListCapabilities` remains denied
+before worker or SDK execution.
 
-Never copy all reflected operations into a real-SA allowlist. Before
-any per-run expansion, review each exact operation ID, its inputs, effect,
-execution scope, replay safety, and expected result. Add only those reviewed
-IDs to the indexed `Briosa:Security:Operations:Allow` configuration, restart
-the server, and confirm the intended intersection with `ListCapabilities`.
-`Briosa:Security:Operations:Deny` takes precedence. Unknown, empty, duplicate,
-or non-array policy values fail startup. In particular, do not enable mutation,
-failure-injection, hang, crash, malformed-result, or getter-failure scenarios
-against this real production session.
+.NET configuration merges indexed arrays by index. An environment-variable,
+user-secret, or command-line value for `Briosa:Security:Operations:Allow`
+replaces or appends individual entries; it cannot remove packaged entries.
+Because the packaged list already names every registered ID, such an override
+cannot narrow it: a changed entry duplicates another ID or names an unknown
+one, and either fails startup. To narrow a run, add exact operation IDs to the
+indexed `Briosa:Security:Operations:Deny` configuration, which takes
+precedence, restart the server, and confirm the result with `ListCapabilities`.
+Unknown, empty, duplicate, or non-array policy values fail startup.
+
+Before calling any operation against a real session, review its exact
+operation ID, inputs, effect, execution scope, replay safety, and expected
+result. In particular, do not run mutation, failure-injection, hang, crash,
+malformed-result, or getter-failure scenarios against this real production
+session.
 
 See the [command policy and auditing guide](../operations/command-policy-and-auditing.md)
 for the exact configuration shape and policy semantics.

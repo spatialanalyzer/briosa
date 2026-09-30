@@ -5,9 +5,9 @@ Briosa has two command-exposure boundaries:
 1. the handwritten operations compiled and registered in `SpatialAnalyzerApi.Operations`; and
 2. runtime exact-ID allow and deny policy, which can only reduce that set.
 
-The packaged configuration explicitly enables the reviewed operations in [`appsettings.json`](../../src/Briosa.Server/appsettings.json). That configuration is the source of truth for the default allowlist; this guide intentionally does not duplicate a list that would need updating for every command batch.
+The packaged configuration explicitly lists every registered operation in [`appsettings.json`](../../src/Briosa.Server/appsettings.json), so the shipped default admits the whole registered surface, including state-mutating operations. That configuration is the source of truth for the default allowlist; this guide intentionally does not duplicate a list that would need updating for every command batch.
 
-The denylist overrides the allowlist. Omitting the allowlist denies every operation. Unknown, empty, duplicate, or non-array values fail startup instead of being ignored. Restart the server after changing policy; policy is not reloaded in place.
+The denylist overrides the allowlist. Omitting the allowlist denies every operation. Unknown, empty, duplicate, or non-array values fail startup instead of being ignored. Restart the server after changing policy; policy is not reloaded in place. Environment-variable, user-secret, and command-line overrides merge the indexed allowlist by index and cannot remove packaged entries, so use `Briosa:Security:Operations:Deny` to narrow the admitted set.
 
 An allowlist cannot create an operation that is absent from handwritten source. `DiscoveryService/ListCapabilities` reports the intersection of implemented operations and runtime policy after isolation checks. It is the correct way for a client to learn what the current process admits.
 
@@ -38,4 +38,4 @@ Correlation does not imply safe replay. A cancelled, timed-out, crashed, or lost
 
 ## Adding an operation
 
-Each operation change assigns its exact ID, effect, replay safety, execution scope, and risk flags in its handwritten descriptor. It also decides whether packaged defaults should admit it. Inventory or historical catalog membership cannot expand policy.
+Each operation change assigns its exact ID, effect, replay safety, execution scope, and any risk flags in its handwritten descriptor. It also adds the ID to the packaged allowlist: `ImplementedOperationRegistryTests` requires the shipped policy to admit exactly the registered operations, so a registered operation cannot currently ship disabled by default. Inventory or historical catalog membership cannot expand policy.
