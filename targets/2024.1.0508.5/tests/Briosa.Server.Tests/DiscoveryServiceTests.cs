@@ -297,7 +297,24 @@ public sealed class DiscoveryServiceTests
         Assert.Equal("2024.1.0508.5", coordinates.SpatialAnalyzerTarget);
         Assert.Equal(
             BuildIdentityProvider.InteropFingerprint,
+            CommittedInteropProvenance.Load().ExpectedInteropFingerprint);
+        Assert.Equal(
+            BuildIdentityProvider.InteropFingerprint,
             coordinates.InteropFingerprint);
+    }
+
+    [Fact]
+    public void CommittedInteropProvenanceHashesTheCommittedCanonicalApi()
+    {
+        var provenance = CommittedInteropProvenance.Load();
+
+        var canonicalApi = File.ReadAllBytes(Path.Combine(
+            provenance.InteropDirectory,
+            provenance.CanonicalApiFileName));
+
+        Assert.Equal(
+            provenance.CanonicalApiSha256,
+            Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(canonicalApi)));
     }
 
     [Fact]
