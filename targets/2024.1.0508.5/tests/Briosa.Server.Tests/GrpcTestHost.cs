@@ -37,14 +37,25 @@ internal sealed class GrpcTestHost : IAsyncDisposable
         }).ConfigureAwait(true);
 
     public static async Task<GrpcTestHost> StartAsync(IWorkerCommandExecutor worker, Action<WebApplication> mapServices)
+        => await StartAsync(services => services.AddSingleton(new OperationExecutor(worker,
+            new OperationAuditLogger(NullLogger<OperationAuditLogger>.Instance), TimeProvider.System)),
+            mapServices).ConfigureAwait(true);
+
+    /// <summary>Hosts the public SDK lifecycle service over the supplied coordinator.</summary>
+    public static async Task<GrpcTestHost> StartSdkLifecycleAsync(SpatialAnalyzerSdkLifecycleCoordinator coordinator)
+        => await StartAsync(services => services.AddSingleton(coordinator),
+            app => app.MapGrpcService<SpatialAnalyzerSdkLifecycleService>()).ConfigureAwait(true);
+
+    private static async Task<GrpcTestHost> StartAsync(
+        Action<IServiceCollection> configureServices,
+        Action<WebApplication> mapServices)
     {
         var builder = WebApplication.CreateSlimBuilder();
         builder.Logging.ClearProviders();
         builder.WebHost.ConfigureKestrel(options => options.Listen(IPAddress.Loopback, 0,
             listener => listener.Protocols = HttpProtocols.Http2));
         builder.Services.AddGrpc();
-        builder.Services.AddSingleton(new OperationExecutor(worker,
-            new OperationAuditLogger(NullLogger<OperationAuditLogger>.Instance), TimeProvider.System));
+        configureServices(builder.Services);
         var app = builder.Build();
         mapServices(app);
         try

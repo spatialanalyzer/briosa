@@ -29,16 +29,11 @@ internal sealed class SpatialAnalyzerSdkLifecycleCoordinator(
         EnterTransition(cancellationToken);
         try
         {
-            if (_supervisor.Current.State != WorkerLifecycleState.Stopped)
-            {
-                throw SdkLifecycleException.FailedPrecondition(
-                    global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.SdkAlreadyActive,
-                    "sdk-already-active",
-                    Current,
-                    global::Briosa.LifecycleRecoveryGuidance.RefreshState);
-            }
+            RequireStopped(_supervisor.Current);
 
-            var transition = await _supervisor.StartAsync(cancellationToken).ConfigureAwait(false);
+            var transition = await CallSupervisorAsync(
+                () => _supervisor.StartAsync(cancellationToken),
+                RequireStopped).ConfigureAwait(false);
             if (!transition.Succeeded)
             {
                 var snapshot = transition.Snapshot;
@@ -79,23 +74,7 @@ internal sealed class SpatialAnalyzerSdkLifecycleCoordinator(
             var applicationBeforeConnect = await _applicationStateProvider
                 .GetCurrentAsync(cancellationToken).ConfigureAwait(false);
             var current = _supervisor.Current;
-            if (current.State == WorkerLifecycleState.Stopped)
-            {
-                throw SdkLifecycleException.FailedPrecondition(
-                    global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.SdkNotRunning,
-                    "sdk-not-running",
-                    Current,
-                    global::Briosa.LifecycleRecoveryGuidance.RetryAfterStateChange);
-            }
-
-            if (current.State == WorkerLifecycleState.Degraded)
-            {
-                throw SdkLifecycleException.FailedPrecondition(
-                    global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.SdkRecoveryRequired,
-                    "sdk-recovery-required",
-                    Current,
-                    global::Briosa.LifecycleRecoveryGuidance.RecoverSdkWithoutReplay);
-            }
+            RequireConnectableGeneration(current);
 
             if (applicationBeforeConnect.ApplicationState is not
                 (global::Briosa.SpatialAnalyzerApplicationState.Running or
@@ -108,46 +87,16 @@ internal sealed class SpatialAnalyzerSdkLifecycleCoordinator(
                     global::Briosa.LifecycleRecoveryGuidance.RetryAfterStateChange);
             }
 
-            var connection = current.Connection;
-            if (current.RuntimeIdentity?.ActivatedSdk.MatchState == Workers.RuntimeIdentityMatchState.Mismatch)
-            {
-                throw SdkLifecycleException.FailedPrecondition(
-                    global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.IdentityMismatch,
-                    "activated-sdk-version-mismatch", Current,
-                    global::Briosa.LifecycleRecoveryGuidance.CorrectEnvironment);
-            }
-            if (!reconnect && connection?.State == WorkerConnectionState.Connected)
-            {
-                throw SdkLifecycleException.FailedPrecondition(
-                    global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.SdkAlreadyConnected,
-                    "sdk-already-connected",
-                    Current,
-                    global::Briosa.LifecycleRecoveryGuidance.RefreshState);
-            }
+            RequireConnectionTransition(current, reconnect);
 
-            if (reconnect &&
-                connection?.State == WorkerConnectionState.Connected &&
-                connection.ExecutionReadinessState ==
-                    WorkerExecutionReadinessState.ExecutionReady)
-            {
-                throw SdkLifecycleException.FailedPrecondition(
-                    global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.ReconnectNotRequired,
-                    "sdk-reconnect-not-required",
-                    Current,
-                    global::Briosa.LifecycleRecoveryGuidance.None);
-            }
-
-            WorkerLifecycleResult transition;
-            try
-            {
-                transition = await _supervisor.ConnectAsync(
-                    expectedGeneration,
-                    cancellationToken).ConfigureAwait(false);
-            }
-            catch (WorkerGenerationConflictException)
-            {
-                throw GenerationConflict(expectedGeneration);
-            }
+            var transition = await CallSupervisorAsync(
+                () => _supervisor.ConnectAsync(expectedGeneration, cancellationToken),
+                fresh =>
+                {
+                    RequireGeneration(fresh, expectedGeneration);
+                    RequireConnectableGeneration(fresh);
+                    RequireConnectionTransition(fresh, reconnect);
+                }).ConfigureAwait(false);
 
             if (!transition.Succeeded)
             {
@@ -201,14 +150,16 @@ internal sealed class SpatialAnalyzerSdkLifecycleCoordinator(
 
             var applicationAfterConnect = await _applicationStateProvider
                 .GetCurrentAsync(cancellationToken).ConfigureAwait(false);
-            var associated = await _supervisor.AssociateApplicationGenerationAsync(
-                expectedGeneration,
-                applicationBeforeConnect.HasApplicationGeneration &&
-                applicationAfterConnect.HasApplicationGeneration &&
-                applicationBeforeConnect.ApplicationGeneration ==
-                    applicationAfterConnect.ApplicationGeneration
-                    ? applicationAfterConnect.ApplicationGeneration
-                    : null, cancellationToken).ConfigureAwait(false);
+            var associated = await CallSupervisorAsync(
+                () => _supervisor.AssociateApplicationGenerationAsync(
+                    expectedGeneration,
+                    applicationBeforeConnect.HasApplicationGeneration &&
+                    applicationAfterConnect.HasApplicationGeneration &&
+                    applicationBeforeConnect.ApplicationGeneration ==
+                        applicationAfterConnect.ApplicationGeneration
+                        ? applicationAfterConnect.ApplicationGeneration
+                        : null, cancellationToken),
+                fresh => RequireGeneration(fresh, expectedGeneration)).ConfigureAwait(false);
             return SpatialAnalyzerSdkLifecycleStateProjection.ToPublicState(associated);
         }
         finally
@@ -225,16 +176,11 @@ internal sealed class SpatialAnalyzerSdkLifecycleCoordinator(
         try
         {
             ValidateGeneration(expectedGeneration);
-            if (_supervisor.Current.State == WorkerLifecycleState.Stopped)
-            {
-                throw SdkLifecycleException.FailedPrecondition(
-                    global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.SdkNotRunning,
-                    "sdk-not-running",
-                    Current,
-                    global::Briosa.LifecycleRecoveryGuidance.None);
-            }
+            RequireStoppable(_supervisor.Current);
 
-            var transition = await _supervisor.StopAsync(cancellationToken).ConfigureAwait(false);
+            var transition = await CallSupervisorAsync(
+                () => _supervisor.StopAsync(cancellationToken),
+                RequireStoppable).ConfigureAwait(false);
             var snapshot = transition.Snapshot;
             var stopped = SpatialAnalyzerSdkLifecycleStateProjection.ToPublicState(snapshot);
             if (snapshot.LifecycleTimedOut)
@@ -280,18 +226,15 @@ internal sealed class SpatialAnalyzerSdkLifecycleCoordinator(
                     Current);
             }
 
-            if (_supervisor.Current.State != WorkerLifecycleState.Degraded)
-            {
-                throw SdkLifecycleException.FailedPrecondition(
-                    global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.RecoveryNotRequired,
-                    "sdk-recovery-not-required",
-                    Current,
-                    global::Briosa.LifecycleRecoveryGuidance.None);
-            }
+            RequireRecoverable(_supervisor.Current);
 
-            var transition = await _supervisor.RecoverSdkAsync(
-                    expectedGeneration,
-                    cancellationToken).ConfigureAwait(false);
+            var transition = await CallSupervisorAsync(
+                () => _supervisor.RecoverSdkAsync(expectedGeneration, cancellationToken),
+                fresh =>
+                {
+                    RequireGeneration(fresh, expectedGeneration);
+                    RequireRecoverable(fresh);
+                }).ConfigureAwait(false);
             if (!transition.Succeeded)
             {
                 var snapshot = transition.Snapshot;
@@ -364,4 +307,153 @@ internal sealed class SpatialAnalyzerSdkLifecycleCoordinator(
             Current,
             global::Briosa.LifecycleRecoveryGuidance.RefreshState);
 
+    // The supervisor re-checks state under its own gate and rejects a lost race with
+    // InvalidOperationException; host shutdown can stop or dispose it outside this gate.
+    // Classify both from fresh state so callers always receive typed lifecycle detail.
+    private async Task<T> CallSupervisorAsync<T>(
+        Func<Task<T>> call,
+        Action<WorkerLifecycleSnapshot> requireStillValid)
+    {
+        try
+        {
+            return await call().ConfigureAwait(false);
+        }
+        catch (ObjectDisposedException)
+        {
+            throw SdkLifecycleException.Unavailable(
+                global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.SdkNotRunning,
+                "worker-supervisor-stopping",
+                Current,
+                global::Briosa.LifecycleRecoveryGuidance.RetryAfterStateChange);
+        }
+        catch (InvalidOperationException)
+        {
+            var fresh = _supervisor.Current;
+            requireStillValid(fresh);
+            throw SdkLifecycleException.Aborted(
+                global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.StateConflict,
+                fresh.State is WorkerLifecycleState.Starting or WorkerLifecycleState.Stopping
+                    ? "sdk-lifecycle-transition-in-progress"
+                    : "sdk-lifecycle-state-changed",
+                SpatialAnalyzerSdkLifecycleStateProjection.ToPublicState(fresh),
+                global::Briosa.LifecycleRecoveryGuidance.RefreshState);
+        }
+    }
+
+    private void RequireGeneration(WorkerLifecycleSnapshot current, int expectedGeneration)
+    {
+        if (current.Generation != expectedGeneration)
+        {
+            throw GenerationConflict(expectedGeneration);
+        }
+    }
+
+    private static void RequireStopped(WorkerLifecycleSnapshot current)
+    {
+        if (current.State != WorkerLifecycleState.Stopped)
+        {
+            throw SdkLifecycleException.FailedPrecondition(
+                global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.SdkAlreadyActive,
+                "sdk-already-active",
+                SpatialAnalyzerSdkLifecycleStateProjection.ToPublicState(current),
+                global::Briosa.LifecycleRecoveryGuidance.RefreshState);
+        }
+    }
+
+    private static void RequireStoppable(WorkerLifecycleSnapshot current)
+    {
+        if (current.State == WorkerLifecycleState.Stopped)
+        {
+            throw SdkLifecycleException.FailedPrecondition(
+                global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.SdkNotRunning,
+                "sdk-not-running",
+                SpatialAnalyzerSdkLifecycleStateProjection.ToPublicState(current),
+                global::Briosa.LifecycleRecoveryGuidance.None);
+        }
+    }
+
+    private static void RequireRecoverable(WorkerLifecycleSnapshot current)
+    {
+        if (current.State != WorkerLifecycleState.Degraded)
+        {
+            throw SdkLifecycleException.FailedPrecondition(
+                global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.RecoveryNotRequired,
+                "sdk-recovery-not-required",
+                SpatialAnalyzerSdkLifecycleStateProjection.ToPublicState(current),
+                global::Briosa.LifecycleRecoveryGuidance.None);
+        }
+    }
+
+    private static void RequireConnectableGeneration(WorkerLifecycleSnapshot current)
+    {
+        if (current.State == WorkerLifecycleState.Stopped)
+        {
+            throw SdkLifecycleException.FailedPrecondition(
+                global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.SdkNotRunning,
+                "sdk-not-running",
+                SpatialAnalyzerSdkLifecycleStateProjection.ToPublicState(current),
+                global::Briosa.LifecycleRecoveryGuidance.RetryAfterStateChange);
+        }
+
+        if (current.State == WorkerLifecycleState.Degraded)
+        {
+            throw SdkLifecycleException.FailedPrecondition(
+                global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.SdkRecoveryRequired,
+                "sdk-recovery-required",
+                SpatialAnalyzerSdkLifecycleStateProjection.ToPublicState(current),
+                global::Briosa.LifecycleRecoveryGuidance.RecoverSdkWithoutReplay);
+        }
+    }
+
+    private static void RequireConnectionTransition(
+        WorkerLifecycleSnapshot current,
+        bool reconnect)
+    {
+        var state = SpatialAnalyzerSdkLifecycleStateProjection.ToPublicState(current);
+        var connection = current.Connection;
+        if (current.RuntimeIdentity?.ActivatedSdk.MatchState == Workers.RuntimeIdentityMatchState.Mismatch)
+        {
+            throw SdkLifecycleException.FailedPrecondition(
+                global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.IdentityMismatch,
+                "activated-sdk-version-mismatch", state,
+                global::Briosa.LifecycleRecoveryGuidance.CorrectEnvironment);
+        }
+        if (!reconnect && connection?.State == WorkerConnectionState.Connected)
+        {
+            throw SdkLifecycleException.FailedPrecondition(
+                global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.SdkAlreadyConnected,
+                "sdk-already-connected",
+                state,
+                global::Briosa.LifecycleRecoveryGuidance.RefreshState);
+        }
+
+        if (reconnect &&
+            connection?.State == WorkerConnectionState.Connected &&
+            connection.ExecutionReadinessState ==
+                WorkerExecutionReadinessState.ExecutionReady)
+        {
+            throw SdkLifecycleException.FailedPrecondition(
+                global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.ReconnectNotRequired,
+                "sdk-reconnect-not-required",
+                state,
+                global::Briosa.LifecycleRecoveryGuidance.None);
+        }
+
+        // ConnectEx already attached this generation. The worker would only report
+        // that attachment again: reconnecting cannot change the activated SDK or
+        // supply missing identity evidence, so a new generation is required.
+        if (reconnect &&
+            current.State == WorkerLifecycleState.Ready &&
+            connection?.State == WorkerConnectionState.Connected)
+        {
+            var identityNotReady = current.RuntimeIdentity?.AllowsExecution != true;
+            throw SdkLifecycleException.FailedPrecondition(
+                identityNotReady
+                    ? global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.IdentityMismatch
+                    : global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.SdkAlreadyConnected,
+                identityNotReady ? "runtime-identity-not-ready" : "sdk-already-connected",
+                state,
+                global::Briosa.LifecycleRecoveryGuidance.StopSdkFirst);
+        }
+    }
 }

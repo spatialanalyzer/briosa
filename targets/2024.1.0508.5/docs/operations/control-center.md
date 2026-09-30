@@ -56,6 +56,8 @@ means retained details are stale; the controller does not keep showing Ready.
 ## Recovery and shutdown
 
 - **Reconnect** reuses a healthy SDK generation when connection state permits.
+  It is rejected while an attached generation is not ready for commands; stop
+  the SDK and start a new generation after correcting the cause.
 - **Recover SDK** replaces a faulted generation without connecting or replaying.
   Correct competing-client/environment problems first, then connect explicitly.
 - **Restart server** waits for confirmed owned-process shutdown before launching
