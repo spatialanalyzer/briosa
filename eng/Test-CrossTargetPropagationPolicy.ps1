@@ -56,6 +56,8 @@ try {
     }
     Set-VersionTwin 'version-both.txt' ''
     Set-VersionTwin 'version-one-sided.txt' ''
+    Set-FixtureFile $first 'version-label.txt' "run --confirm-licensed-sa2026`n"
+    Set-FixtureFile $second 'version-label.txt' "run --confirm-licensed-sa2024`n"
     Set-FixtureFile $first 'independent.txt' "alpha`n"
     Set-FixtureFile $second 'independent.txt' "beta`n"
     # A padded release string and an assembly-form string are not version-only twins.
@@ -72,6 +74,7 @@ try {
     Remove-Item -LiteralPath (Join-Path $repository "$second/deleted.txt")
     Set-VersionTwin 'version-both.txt' "fix`n"
     Set-FixtureFile $first 'version-one-sided.txt' "package sa-2026.1.0529.7`nassembly 2026.1.529.7`nnew Version(2026, 1, 529, 7)`nfix`n"
+    Set-FixtureFile $second 'version-label.txt' "run --confirm-licensed-sa2024`nfix`n"
     Set-FixtureFile $second 'nested/dir/File.cs' "shared`nfix`n"
     Set-FixtureFile $first 'independent.txt' "alpha`nfix`n"
     Set-FixtureFile $first 'version-form.txt' "sa-2026.1.0529.7`nfix`n"
@@ -85,6 +88,7 @@ try {
         'diverged.txt' = 'Diverged change/no'
         'deleted.txt' = 'One-sided change/no'
         'version-one-sided.txt' = 'One-sided change/no'
+        'version-label.txt' = 'One-sided change/no'
         'nested/dir/File.cs' = 'One-sided change/no'
     }
     Assert-Result 'Report-only run' (Invoke-Propagation @{ BaseRef = $base }) 0 $expected
@@ -110,7 +114,7 @@ try {
         throw 'Unchanged run did not summarize an empty result.'
     }
 
-    Write-Host 'Cross-target propagation policy passed: one-sided, diverged, deleted, version-only, allowed, strict, and committed-blob cases.'
+    Write-Host 'Cross-target propagation policy passed: one-sided, diverged, deleted, version-only, target-label, allowed, strict, and committed-blob cases.'
 }
 finally {
     $env:GITHUB_STEP_SUMMARY = $savedSummary

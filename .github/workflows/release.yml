@@ -69,23 +69,21 @@ jobs:
             Write-Host "::warning::$env:GITHUB_SHA is not on main; this dispatch is an unsigned dry run."
           }
 
-          # The previous release is the highest stable v* tag reachable from the parent commit.
+          # The previous release is the highest stable v* tag on a strict ancestor of this
+          # commit, through any parent; tags on this commit itself are excluded.
           $previous = ''
           $previousVersion = $null
-          git rev-parse --verify --quiet "$env:GITHUB_SHA^" | Out-Null
-          if ($LASTEXITCODE -eq 0) {
-            $tags = @(git tag --merged "$env:GITHUB_SHA^" --list 'v[0-9]*')
-            if ($LASTEXITCODE -ne 0) {
-              throw "Could not list release tags before $env:GITHUB_SHA."
-            }
-            foreach ($tag in $tags) {
-              $candidate = $null
-              if ([System.Management.Automation.SemanticVersion]::TryParse($tag.Substring(1), [ref]$candidate) -and
-                  [string]::IsNullOrEmpty($candidate.PreReleaseLabel) -and
-                  ($null -eq $previousVersion -or $candidate -gt $previousVersion)) {
-                $previous = $tag
-                $previousVersion = $candidate
-              }
+          $tags = @(git tag --merged $env:GITHUB_SHA --no-contains $env:GITHUB_SHA --list 'v[0-9]*')
+          if ($LASTEXITCODE -ne 0) {
+            throw "Could not list release tags before $env:GITHUB_SHA."
+          }
+          foreach ($tag in $tags) {
+            $candidate = $null
+            if ([System.Management.Automation.SemanticVersion]::TryParse($tag.Substring(1), [ref]$candidate) -and
+                [string]::IsNullOrEmpty($candidate.PreReleaseLabel) -and
+                ($null -eq $previousVersion -or $candidate -gt $previousVersion)) {
+              $previous = $tag
+              $previousVersion = $candidate
             }
           }
           if ($null -ne $previousVersion -and $semanticVersion -le $previousVersion) {
@@ -96,6 +94,7 @@ jobs:
           "value=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
           "previous=$previous" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
           "eligible=$($eligible.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          exit 0
 
   validate:
     name: Validate SA ${{ matrix.target.sa_version }} product

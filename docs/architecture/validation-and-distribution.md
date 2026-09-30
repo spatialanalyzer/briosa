@@ -95,7 +95,8 @@ Pull-request CI compares each target's protobuf contracts with the pull request'
 base commit to catch unreviewed breaking changes; push CI on `main` runs format,
 lint, and build checks without a breaking comparison. Release validation compares
 each target with the previous stable release: the highest `v*` tag without a
-prerelease label that is reachable from the parent of the released commit. The
+prerelease label on a strict ancestor of the released commit, through any parent;
+tags on the released commit itself are ignored. The
 comparison is skipped only when no such tag exists or the target has no protocol
 at that tag. The evolving unreleased `main` branch is not treated as a stable
 compatibility baseline.

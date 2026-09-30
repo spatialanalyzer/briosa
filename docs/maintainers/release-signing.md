@@ -203,8 +203,9 @@ version order before any product build:
   commit outside `main` continues as an unsigned dry run; the `sign` job requires
   both an allowed ref and `eligible == 'true'`.
 - The requested version must be greater than the previous stable release: the
-  highest `v*` tag without a prerelease label that is reachable from the parent of
-  the released commit. The `validate` job compares protobuf contracts with that tag.
+  highest `v*` tag without a prerelease label on a strict ancestor of the released
+  commit, through any parent; tags on the released commit itself are ignored. The
+  `validate` job compares protobuf contracts with that tag.
 
 These checks restrict which commits reach signing. They do not add a reviewer
 approval; see the environment protection notes above.

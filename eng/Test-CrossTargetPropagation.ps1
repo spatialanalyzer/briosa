@@ -10,7 +10,7 @@ param(
 # Reports twin files that were identical in both exact-SA targets at the base
 # revision but changed on only one side, or changed on both sides and no longer
 # match. Twins whose committed blobs differ only by their target version strings
-# count as identical. Only committed Git blobs are compared, never working-tree
+# or 'sa<year>' target labels count as identical. Only committed Git blobs are compared, never working-tree
 # bytes. Findings are advisory unless -Strict is set.
 
 Set-StrictMode -Version Latest
@@ -96,6 +96,16 @@ $versionForms = @(
                     Token = "<sa-target|$separator|assembly>"
                 }
             }
+        }
+    }
+    # Short target labels such as '--confirm-licensed-sa2026'. They are applied
+    # after the full version forms, so 'sa-2026.1.0529.7' stays a release form.
+    foreach ($target in $targetNames) {
+        [pscustomobject]@{
+            Pattern = [regex]::new(
+                '(?<=\bsa[-_]?)' + [regex]::Escape($target.Split('.')[0]) + '(?![0-9])',
+                [Text.RegularExpressions.RegexOptions]::IgnoreCase -bor [Text.RegularExpressions.RegexOptions]::CultureInvariant)
+            Token = '<sa-target|year>'
         }
     }
 )
