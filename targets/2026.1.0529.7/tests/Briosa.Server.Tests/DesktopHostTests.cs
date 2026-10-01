@@ -81,13 +81,46 @@ public sealed class DesktopHostTests
         await host.StopAsync(timeout.Token);
     }
 
-    private static WorkerProcessSupervisor CreateSupervisor(string scenario) => new(
+    [Fact]
+    public async Task ReconnectWithoutExecutionReadinessRepliesWithTypedDiagnostic()
+    {
+        var configuration = new ConfigurationBuilder().Build();
+        await using var supervisor = CreateSupervisor("disconnected", attested: false);
+        var application = new FakeApplication();
+        await using var sdk = new SpatialAnalyzerSdkLifecycleCoordinator(supervisor, new(supervisor), application);
+        var credential = DesktopProtocol.NewCredential();
+        var instance = DesktopProtocol.NewInstance();
+        using var lifetime = new FakeLifetime();
+        using var host = new DesktopHost(new(true, false, instance, credential), lifetime, configuration,
+            new(supervisor, new FakeIdentity(), OperationPolicy.Create(configuration, SpatialAnalyzerApi.Operations)), sdk,
+            application, Array.Empty<ILoggerProvider>(), new() { FileEnabled = false });
+        await host.StartAsync(CancellationToken.None);
+        await lifetime.Started.CancelAsync();
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+        var started = DesktopState.FromReply(await DesktopProtocol.SendAsync(new(instance, DesktopAction.StartSdk, credential), timeout.Token));
+        var generation = started.Sdk!.SdkGeneration;
+        var connect = await DesktopProtocol.SendAsync(new(instance, DesktopAction.Connect, credential, generation), timeout.Token);
+        var reconnect = await DesktopProtocol.SendAsync(new(instance, DesktopAction.Reconnect, credential, generation), timeout.Token);
+        Assert.False(connect.Accepted);
+        Assert.Equal("runtime-identity-not-ready", connect.Diagnostic);
+        Assert.False(reconnect.Accepted);
+        Assert.Equal("runtime-identity-not-ready", reconnect.Diagnostic);
+        var state = DesktopState.FromReply(reconnect);
+        Assert.False(state.Ready);
+        Assert.Equal(SpatialAnalyzerConnectionState.Connected, state.Sdk!.ConnectionState);
+        Assert.False(sdk.Current.ReadyForMp);
+        await host.StopAsync(timeout.Token);
+    }
+
+    private static WorkerProcessSupervisor CreateSupervisor(string scenario, bool attested = true) => new(
         new NamedPipeWorkerProcessFactory(_ => new WorkerProcessLaunch(Path.Combine(AppContext.BaseDirectory,
             "worker-test-host", "Briosa.Worker.TestHost.exe"), ["--scenario", scenario])),
         new WorkerLifecyclePolicy(TimeSpan.FromMilliseconds(50), TimeSpan.FromSeconds(1),
             TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(2)),
         new WorkerExecutionPolicy(TimeSpan.FromSeconds(2), 4),
-        identityPolicy: ExactTargetIdentityPolicy.CreateForTesting(DesktopProtocol.Target, DesktopProtocol.Target, DesktopProtocol.Target));
+        identityPolicy: attested
+            ? ExactTargetIdentityPolicy.CreateForTesting(DesktopProtocol.Target, DesktopProtocol.Target, DesktopProtocol.Target)
+            : ExactTargetIdentityPolicy.CreateForTesting(DesktopProtocol.Target));
 
     private sealed class FakeApplication : ISpatialAnalyzerLifecycleStateProvider
     {
