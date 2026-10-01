@@ -19,7 +19,7 @@ internal static class ExportVectorContainerToAsciiFileOperation
         ArgumentNullException.ThrowIfNull(request);
         return new(Descriptor.OperationId, Descriptor.MpStep,
         [
-            new("ASCII File Path", WorkerMpValueKind.FileReference, FileReferenceMapper.Required(request.AsciiFilePath, "ascii_file_path"), "SetFilePathArg"),
+            new("Ascii File Path", WorkerMpValueKind.FileReference, FileReferenceMapper.Required(request.AsciiFilePath, "ascii_file_path"), "SetFilePathArg"),
             new("Vector group(s) to export", WorkerMpValueKind.CollectionVectorGroupNameList, CollectionVectorGroupNameListMapper.RequiredList(request.VectorGroupsToExport, "vector_groups_to_export"), "SetCollectionVectorGroupNameRefListArg"),
             new("Overwrite existing file? (FALSE = Append)", WorkerMpValueKind.Logical, new WorkerBooleanValue(!request.HasOverwriteExistingFile || request.OverwriteExistingFile), "SetBoolArg"),
             new("Use Full Precision (Scientific Notation)?", WorkerMpValueKind.Logical, new WorkerBooleanValue(request.HasUseFullPrecision && request.UseFullPrecision), "SetBoolArg"),

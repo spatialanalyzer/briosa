@@ -19,7 +19,7 @@ internal static class AddRelationshipsToReportBarOperation
         ArgumentNullException.ThrowIfNull(request);
         return new(Descriptor.OperationId, Descriptor.MpStep,
         [
-            new("Relationships", WorkerMpValueKind.CollectionItemNameList,
+            new("Relationship(s)", WorkerMpValueKind.CollectionItemNameList,
                 CollectionItemNameMapper.RequiredList(request.Relationships, "relationships"), "SetCollectionObjectNameRefListArg"),
             new("Clear Existing?", WorkerMpValueKind.Logical,
                 new WorkerBooleanValue(request.ClearExisting), "SetBoolArg")

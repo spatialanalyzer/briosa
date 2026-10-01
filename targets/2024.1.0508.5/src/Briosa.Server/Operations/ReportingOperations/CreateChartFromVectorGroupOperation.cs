@@ -32,7 +32,7 @@ internal static class CreateChartFromVectorGroupOperation
             new("Aux Data Set to Chart", WorkerMpValueKind.VectorComponent,
                 new WorkerChoiceValue<WorkerVectorComponentValue>(DatasetTypeMapper.Required(
                     request.HasAuxDataSetToChart ? request.AuxDataSetToChart : null, "aux_data_set_to_chart")), "SetDatasetTypeArg"),
-            new("Template Chart Name", WorkerMpValueKind.ChartName,
+            new("Template Chart Name (optional)", WorkerMpValueKind.ChartName,
                 ChartNameMapper.Required(request.TemplateChartName, "template_chart_name"), "SetChartNameArg"),
             new("Show Interface?", WorkerMpValueKind.Logical,
                 new WorkerBooleanValue(request.ShowInterface), "SetBoolArg")

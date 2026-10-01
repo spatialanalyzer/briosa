@@ -1,0 +1,230 @@
+using System.Text.Json.Nodes;
+using Briosa.Server.Operations;
+using Briosa.Server.Operations.AnalysisOperations;
+using Briosa.Server.Operations.CloudAndMeshOperations;
+using Briosa.Server.Operations.FileOperations;
+using Briosa.Server.Operations.InstrumentOperations;
+using Briosa.Server.Operations.ReportingOperations;
+using Briosa.Server.Operations.ViewControl;
+using Briosa.Worker.Control;
+using Api = global::Briosa;
+
+namespace Briosa.Server.Tests;
+
+/// <summary>
+/// Pins SDK step text and argument names restored after the #227 regressions (#236) to the
+/// committed exact-target inventory: SDK setter argument names and SDK-evidence MP steps, never
+/// the documentation text.
+/// </summary>
+public sealed class ExactSdkBindingRegressionTests
+{
+    private static readonly Lazy<JsonArray> InventoryCommands = new(LoadInventoryCommands);
+
+    [Theory]
+    [InlineData("analysis_operations.fit_geometry_to_point_group", 1, "Group To Fit")]
+    [InlineData("analysis_operations.fit_geometry_to_point_group_projected_to_plane", 1, "Group To Fit")]
+    [InlineData("reporting_operations.add_datums_to_report_bar", 0, "Datum(s)")]
+    [InlineData("reporting_operations.add_events_to_report_bar", 0, "Event(s)")]
+    [InlineData("reporting_operations.add_feature_checks_to_report_bar", 0, "Feature Check(s)")]
+    [InlineData("reporting_operations.add_objects_to_report_bar", 0, "Object(s)")]
+    [InlineData("reporting_operations.add_relationships_to_report_bar", 0, "Relationship(s)")]
+    [InlineData("reporting_operations.create_chart_from_vector_group", 5, "Template Chart Name (optional)")]
+    [InlineData("view_control.set_toolkit_visibility", 0, "Show Toolkit?")]
+    [InlineData("view_control.show_hide_instrument_interface", 0, "Instrument's ID")]
+    [InlineData("view_control.show_items_in_tree", 0, "Collapse all other Items?")]
+    [InlineData("instrument_operations.set_xyz_instrument_uncertainties", 3, "Z Uncertainty)")]
+    [InlineData("file_operations.export_vector_container_to_ascii_file", 0, "Ascii File Path")]
+    public void RestoredArgumentNamesMatchTheInventorySdkSetter(string operationId, int sdkOrder, string expectedName)
+    {
+        var command = CreateLabelCommand(operationId);
+        var argument = command.InputArguments[sdkOrder];
+        var setter = InventoryArgument(command.StepName, sdkOrder)["sdk_binding"]!["setter"]!;
+
+        Assert.Equal("available", setter["status"]!.GetValue<string>());
+        Assert.Equal(expectedName, setter["argument_name"]!.GetValue<string>());
+        Assert.Equal(expectedName, argument.Name);
+        Assert.Equal(setter["method"]!.GetValue<string>(), argument.SdkBinding);
+    }
+
+    [Fact]
+    public void DeleteCloudPointsByXYZRangeUsesTheExactSdkStep()
+    {
+        var command = DeleteCloudPointsByXYZRangeOperation.CreateCommand(new() { CloudNames = { Cloud() } });
+
+        Assert.Equal("Delete Cloud Points by X Y Z Range", DeleteCloudPointsByXYZRangeOperation.Descriptor.MpStep);
+        Assert.Equal(DeleteCloudPointsByXYZRangeOperation.Descriptor.MpStep, command.StepName);
+        Assert.Single(InventoryCommands.Value, candidate => HasSdkStep(candidate!, command.StepName));
+    }
+
+    [Fact]
+    public void DeleteCloudPointsByXYZRangeOmitsEveryAbsentBound()
+    {
+        var command = DeleteCloudPointsByXYZRangeOperation.CreateCommand(new() { CloudNames = { Cloud() } });
+
+        Assert.Equal(["Cloud Names", "Delete Inside"], command.InputArguments.Select(argument => argument.Name));
+        Assert.Equal("SetCollectionObjectNameRefListArg", command.InputArguments[0].SdkBinding);
+        Assert.Equal("SetBoolArg", command.InputArguments[1].SdkBinding);
+        Assert.False(command.InputArguments[1].RequireValue<WorkerBooleanValue>().Value);
+        Assert.Throws<ArgumentException>(() => DeleteCloudPointsByXYZRangeOperation.CreateCommand(new()));
+    }
+
+    [Fact]
+    public void DeleteCloudPointsByXYZRangeSendsEveryPresentBoundInSdkOrder()
+    {
+        var command = DeleteCloudPointsByXYZRangeOperation.CreateCommand(new()
+        {
+            CloudNames = { Cloud() },
+            XMin = -1.5,
+            XMax = 1.5,
+            YMin = -2.5,
+            YMax = 2.5,
+            ZMin = -3.5,
+            ZMax = 3.5,
+            DeleteInside = true
+        });
+        var inventoryNames = InventoryCommands.Value
+            .Single(candidate => HasSdkStep(candidate!, command.StepName))!["arguments"]!.AsArray()
+            .OrderBy(argument => argument!["sdk_order"]!.GetValue<int>())
+            .Select(argument => argument!["sdk_binding"]!["setter"]!["argument_name"]!.GetValue<string>());
+
+        Assert.Equal(inventoryNames, command.InputArguments.Select(argument => argument.Name));
+        Assert.Equal(
+            ["Cloud Names", "X Min", "X Max", "Y Min", "Y Max", "Z Min", "Z Max", "Delete Inside"],
+            command.InputArguments.Select(argument => argument.Name));
+        var bounds = command.InputArguments.Skip(1).Take(6).ToArray();
+        Assert.All(bounds, argument =>
+        {
+            Assert.Equal("SetDoubleArg", argument.SdkBinding);
+            Assert.Equal(WorkerMpValueKind.FloatingPoint, argument.Kind);
+        });
+        Assert.Equal([-1.5, 1.5, -2.5, 2.5, -3.5, 3.5],
+            bounds.Select(argument => argument.RequireValue<WorkerDoubleValue>().Value));
+        Assert.True(command.InputArguments[7].RequireValue<WorkerBooleanValue>().Value);
+    }
+
+    [Fact]
+    public void DeleteCloudPointsByXYZRangeSendsOnlyThePresentSubsetIncludingExplicitZero()
+    {
+        var command = DeleteCloudPointsByXYZRangeOperation.CreateCommand(new()
+        {
+            CloudNames = { Cloud() },
+            XMin = 1,
+            YMin = 0,
+            ZMax = 5
+        });
+
+        Assert.Equal(["Cloud Names", "X Min", "Y Min", "Z Max", "Delete Inside"],
+            command.InputArguments.Select(argument => argument.Name));
+        Assert.Equal([1d, 0d, 5d],
+            command.InputArguments.Skip(1).Take(3).Select(argument => argument.RequireValue<WorkerDoubleValue>().Value));
+        Assert.False(command.InputArguments[4].RequireValue<WorkerBooleanValue>().Value);
+    }
+
+    private static WorkerMpCommand CreateLabelCommand(string operationId) => operationId switch
+    {
+        "analysis_operations.fit_geometry_to_point_group" => FitGeometryToPointGroupOperation.CreateCommand(new()
+        {
+            GeometryType = Api.GeometryType.Circle,
+            GroupToFit = Object("Group"),
+            ResultingObjectName = Object("Fit"),
+            StartingConditionGeometry = Object("Seed")
+        }),
+        "analysis_operations.fit_geometry_to_point_group_projected_to_plane" =>
+            FitGeometryToPointGroupProjectedToPlaneOperation.CreateCommand(new()
+            {
+                GeometryType = Api.GeometryType.Circle,
+                GroupToFit = Object("Group"),
+                PlaneName = Object("Plane"),
+                ResultingObjectName = Object("Fit"),
+                StartingConditionGeometry = Object("Seed")
+            }),
+        "reporting_operations.add_datums_to_report_bar" =>
+            AddDatumsToReportBarOperation.CreateCommand(new() { Datums = { Object("Datum") } }),
+        "reporting_operations.add_events_to_report_bar" =>
+            AddEventsToReportBarOperation.CreateCommand(new() { Events = { Item("Event") } }),
+        "reporting_operations.add_feature_checks_to_report_bar" =>
+            AddFeatureChecksToReportBarOperation.CreateCommand(new() { FeatureChecks = { Item("Check") } }),
+        "reporting_operations.add_objects_to_report_bar" =>
+            AddObjectsToReportBarOperation.CreateCommand(new() { Objects = { Object("Plane") } }),
+        "reporting_operations.add_relationships_to_report_bar" =>
+            AddRelationshipsToReportBarOperation.CreateCommand(new() { Relationships = { Item("Alignment") } }),
+        "reporting_operations.create_chart_from_vector_group" => CreateChartFromVectorGroupOperation.CreateCommand(new()
+        {
+            NewChartName = new Api.ChartName { Name = "Run" },
+            VectorGroupName = Object("Vectors"),
+            ChartType = Api.ChartType.RunChart,
+            DataSetToChart = Api.DatasetType.X,
+            AuxDataSetToChart = Api.DatasetType.Magnitude,
+            TemplateChartName = new Api.ChartName { Name = "Template" }
+        }),
+        "view_control.set_toolkit_visibility" => SetToolkitVisibilityOperation.CreateCommand(new()),
+        "view_control.show_hide_instrument_interface" =>
+            ShowHideInstrumentInterfaceOperation.CreateCommand(new() { InstrumentId = Instrument() }),
+        "view_control.show_items_in_tree" => ShowItemsInTreeOperation.CreateCommand(new()
+        {
+            Points = { new Api.PointName { CollectionName = "Parts", GroupName = "Targets", TargetName = "P1" } },
+            Objects = { Object("Plane") },
+            Instruments = { Instrument() },
+            FeatureChecks = { Item("Check") },
+            Datums = { Object("Datum") },
+            Collections = { "Parts" }
+        }),
+        "instrument_operations.set_xyz_instrument_uncertainties" =>
+            SetXyzInstrumentUncertaintiesOperation.CreateCommand(new() { Instrument = Instrument() }),
+        "file_operations.export_vector_container_to_ascii_file" => ExportVectorContainerToAsciiFileOperation.CreateCommand(new()
+        {
+            AsciiFilePath = new Api.FileReference { Path = "vectors.txt" },
+            VectorGroupsToExport = { new Api.CollectionVectorGroupName { CollectionName = "Parts", VectorGroupName = "Vectors" } },
+            VectorNameFormat = Api.ExportVectorNameFormat.Vector
+        }),
+        _ => throw new ArgumentOutOfRangeException(nameof(operationId), operationId, "No request fixture is defined.")
+    };
+
+    private static JsonNode InventoryArgument(string mpStep, int sdkOrder)
+    {
+        var inventoryCommand = InventoryCommands.Value.Single(candidate => HasSdkStep(candidate!, mpStep))!;
+        return inventoryCommand["arguments"]!.AsArray()
+            .Single(argument => argument!["sdk_order"]?.GetValue<int?>() == sdkOrder)!;
+    }
+
+    private static bool HasSdkStep(JsonNode inventoryCommand, string mpStep) =>
+        inventoryCommand["sdk_evidence"]!.AsArray()
+            .Any(evidence => string.Equals(evidence!["mp_step"]!.GetValue<string>(), mpStep, StringComparison.Ordinal));
+
+    private static JsonArray LoadInventoryCommands()
+    {
+        var root = new DirectoryInfo(AppContext.BaseDirectory);
+        while (root is not null && !File.Exists(Path.Combine(root.FullName, "Briosa.slnx")))
+        {
+            root = root.Parent;
+        }
+
+        Assert.NotNull(root);
+        var path = Path.Combine(root.FullName, "inventory", "sa", SpatialAnalyzerApi.TargetVersion, "inventory.json");
+        return JsonNode.Parse(File.ReadAllText(path))!["commands"]!.AsArray();
+    }
+
+    private static Api.CollectionObjectName Cloud() => new()
+    {
+        CollectionName = "Scans",
+        ObjectName = "CloudA"
+    };
+
+    private static Api.CollectionObjectName Object(string name) => new()
+    {
+        CollectionName = "Parts",
+        ObjectName = name
+    };
+
+    private static Api.CollectionItemName Item(string name) => new()
+    {
+        CollectionName = "Parts",
+        ItemName = name
+    };
+
+    private static Api.CollectionInstrumentId Instrument() => new()
+    {
+        CollectionName = "Parts",
+        InstrumentId = 3
+    };
+}

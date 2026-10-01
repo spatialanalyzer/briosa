@@ -108,7 +108,7 @@ public sealed class TypedAsciiFileOperationTests
             VectorGroupsToExport = { new Api.CollectionVectorGroupName { CollectionName = "collection", VectorGroupName = "vectors" } },
             VectorNameFormat = Api.ExportVectorNameFormat.Vector
         });
-        Assert.Equal("ASCII File Path", vectorFile.InputArguments[0].Name);
+        Assert.Equal("Ascii File Path", vectorFile.InputArguments[0].Name);
         Assert.True(vectorFile.InputArguments[2].RequireValue<WorkerBooleanValue>().Value);
         Assert.False(vectorFile.InputArguments[3].RequireValue<WorkerBooleanValue>().Value);
         Assert.True(vectorFile.InputArguments[5].RequireValue<WorkerBooleanValue>().Value);

@@ -77,7 +77,7 @@ public sealed class TypedGeometryFitOperationTests
             StartingConditionGeometry = new Api.CollectionObjectName { ObjectName = "seed" }
         });
         Assert.Equal("Geometry Type", projected.InputArguments[0].Name);
-        Assert.Equal("Group to Fit", projected.InputArguments[1].Name);
+        Assert.Equal("Group To Fit", projected.InputArguments[1].Name);
         Assert.Equal("Plane Name", projected.InputArguments[2].Name);
         Assert.Equal("Resulting Object Name", projected.InputArguments[3].Name);
 

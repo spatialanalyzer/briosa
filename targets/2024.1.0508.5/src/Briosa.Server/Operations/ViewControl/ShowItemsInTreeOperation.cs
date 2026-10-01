@@ -19,7 +19,7 @@ internal static class ShowItemsInTreeOperation
         ArgumentNullException.ThrowIfNull(request);
         return new(Descriptor.OperationId, Descriptor.MpStep,
         [
-            new("Collapse All Other Items?", WorkerMpValueKind.Logical,
+            new("Collapse all other Items?", WorkerMpValueKind.Logical,
                 new WorkerBooleanValue(!request.HasCollapseAllOtherItems || request.CollapseAllOtherItems), "SetBoolArg"),
             new("Points", WorkerMpValueKind.PointNameList,
                 PointNameMapper.RequiredList(request.Points, "points"), "SetPointNameRefListArg"),

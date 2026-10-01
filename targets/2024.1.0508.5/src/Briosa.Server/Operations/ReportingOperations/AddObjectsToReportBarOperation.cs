@@ -19,7 +19,7 @@ internal static class AddObjectsToReportBarOperation
         ArgumentNullException.ThrowIfNull(request);
         return new(Descriptor.OperationId, Descriptor.MpStep,
         [
-            new("Objects", WorkerMpValueKind.CollectionObjectNameList,
+            new("Object(s)", WorkerMpValueKind.CollectionObjectNameList,
                 CollectionObjectNameMapper.RequiredList(request.Objects, "objects"), "SetCollectionObjectNameRefListArg"),
             new("Clear Existing?", WorkerMpValueKind.Logical,
                 new WorkerBooleanValue(!request.HasClearExisting || request.ClearExisting), "SetBoolArg")

@@ -27,7 +27,7 @@ internal static class SetXyzInstrumentUncertaintiesOperation
                     new WorkerDoubleValue(request.HasXUncertainty ? request.XUncertainty : 0.0005), "SetDoubleArg"),
                 new("Y Uncertainty", WorkerMpValueKind.FloatingPoint,
                     new WorkerDoubleValue(request.HasYUncertainty ? request.YUncertainty : 0.0005), "SetDoubleArg"),
-                new("Z Uncertainty", WorkerMpValueKind.FloatingPoint,
+                new("Z Uncertainty)", WorkerMpValueKind.FloatingPoint,
                     new WorkerDoubleValue(request.HasZUncertainty ? request.ZUncertainty : 0.0005), "SetDoubleArg")
             ], []);
     }

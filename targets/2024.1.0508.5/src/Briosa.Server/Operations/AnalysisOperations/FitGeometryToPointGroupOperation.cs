@@ -22,7 +22,7 @@ internal static class FitGeometryToPointGroupOperation
             [
                 new("Geometry Type", WorkerMpValueKind.GeometryType,
                     GeometryTypeMapper.Required(request.GeometryType, "geometry_type"), "SetGeometryTypeArg"),
-                new("Group to Fit", WorkerMpValueKind.CollectionObjectName,
+                new("Group To Fit", WorkerMpValueKind.CollectionObjectName,
                     CollectionObjectNameMapper.Required(request.GroupToFit, "group_to_fit"), "SetCollectionObjectNameArg2"),
                 new("Resulting Object Name", WorkerMpValueKind.CollectionObjectName,
                     CollectionObjectNameMapper.Required(request.ResultingObjectName, "resulting_object_name"), "SetCollectionObjectNameArg2"),

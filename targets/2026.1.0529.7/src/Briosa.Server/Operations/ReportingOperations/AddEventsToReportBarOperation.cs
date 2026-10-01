@@ -19,7 +19,7 @@ internal static class AddEventsToReportBarOperation
         ArgumentNullException.ThrowIfNull(request);
         return new(Descriptor.OperationId, Descriptor.MpStep,
         [
-            new("Events", WorkerMpValueKind.CollectionItemNameList,
+            new("Event(s)", WorkerMpValueKind.CollectionItemNameList,
                 CollectionItemNameMapper.RequiredList(request.Events, "events"), "SetCollectionObjectNameRefListArg"),
             new("Clear Existing?", WorkerMpValueKind.Logical,
                 new WorkerBooleanValue(request.ClearExisting), "SetBoolArg")
