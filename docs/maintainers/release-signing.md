@@ -202,10 +202,15 @@ version order before any product build:
   A `v*` tag on any other commit fails the workflow. A manual dispatch from a
   commit outside `main` continues as an unsigned dry run; the `sign` job requires
   both an allowed ref and `eligible == 'true'`.
-- The requested version must be greater than the previous stable release: the
-  highest `v*` tag without a prerelease label on a strict ancestor of the released
-  commit, through any parent; tags on the released commit itself are ignored. The
-  `validate` job compares protobuf contracts with that tag.
+- The requested version must be greater than every stable `v*` tag in the
+  repository except the tag being released, including tags on the same or later
+  commits. A lower version therefore cannot be released beside or behind an
+  existing release.
+- The `validate` job compares protobuf contracts with the highest stable `v*` tag
+  reachable from the released commit, excluding only the tag being released.
+- `eng/Resolve-ReleaseVersion.ps1` implements these checks;
+  `eng/Test-ResolveReleaseVersionPolicy.ps1` exercises them against a temporary
+  Git repository.
 
 These checks restrict which commits reach signing. They do not add a reviewer
 approval; see the environment protection notes above.

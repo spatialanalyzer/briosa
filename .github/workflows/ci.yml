@@ -64,6 +64,10 @@ jobs:
         shell: pwsh
         run: ./eng/Test-CrossTargetPropagationPolicy.ps1
 
+      - name: Test release version resolution
+        shell: pwsh
+        run: ./eng/Test-ResolveReleaseVersionPolicy.ps1
+
       - name: Report cross-target propagation
         shell: pwsh
         env:

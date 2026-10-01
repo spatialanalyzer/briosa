@@ -95,8 +95,8 @@ Pull-request CI compares each target's protobuf contracts with the pull request'
 base commit to catch unreviewed breaking changes; push CI on `main` runs format,
 lint, and build checks without a breaking comparison. Release validation compares
 each target with the previous stable release: the highest `v*` tag without a
-prerelease label on a strict ancestor of the released commit, through any parent;
-tags on the released commit itself are ignored. The
+prerelease label that is reachable from the released commit through any parent,
+excluding only the tag being released. The
 comparison is skipped only when no such tag exists or the target has no protocol
 at that tag. The evolving unreleased `main` branch is not treated as a stable
 compatibility baseline.
@@ -116,7 +116,8 @@ a job summary but does not fail CI. See the [engineering checks](../../eng/READM
 
 One repository semantic version may produce independently identified server and
 protocol artifacts for several exact SA releases. The release workflow resolves
-the version, requires it to be greater than the previous stable release, and
+the version, requires it to be greater than every other stable `v*` tag in the
+repository wherever that tag points, and
 records whether the commit is on `main`. A tag on a commit outside `main` fails;
 a manual dispatch outside `main` builds an unsigned dry run. A validation job
 repeats the CI restore, interop, protocol, naming-policy, build, and test gates for

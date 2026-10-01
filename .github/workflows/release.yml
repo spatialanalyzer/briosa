@@ -35,66 +35,15 @@ jobs:
         shell: pwsh
         env:
           DISPATCH_VERSION: ${{ inputs.version }}
-        run: |
-          if ("${{ github.event_name }}" -eq "push") {
-            $version = $env:GITHUB_REF_NAME.Substring(1)
-          }
-          else {
-            $version = $env:DISPATCH_VERSION
-          }
-
-          if ($version -notmatch '^[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?$') {
-            throw "Version '$version' is not a supported semantic version."
-          }
-          $semanticVersion = $null
-          if (-not [System.Management.Automation.SemanticVersion]::TryParse($version, [ref]$semanticVersion)) {
-            throw "Version '$version' is not a supported semantic version."
-          }
-
-          # Only commits already on main may be signed or published.
-          git fetch --no-tags origin '+refs/heads/main:refs/remotes/origin/main'
-          if ($LASTEXITCODE -ne 0) {
-            throw "Could not fetch origin/main."
-          }
-          git merge-base --is-ancestor $env:GITHUB_SHA refs/remotes/origin/main
-          $eligible = switch ($LASTEXITCODE) {
-            0 { $true }
-            1 { $false }
-            default { throw "Could not determine whether $env:GITHUB_SHA is on main." }
-          }
-          if (-not $eligible) {
-            if ("${{ github.event_name }}" -eq "push") {
-              throw "Release tag $env:GITHUB_REF_NAME does not point to a commit on main."
-            }
-            Write-Host "::warning::$env:GITHUB_SHA is not on main; this dispatch is an unsigned dry run."
-          }
-
-          # The previous release is the highest stable v* tag on a strict ancestor of this
-          # commit, through any parent; tags on this commit itself are excluded.
-          $previous = ''
-          $previousVersion = $null
-          $tags = @(git tag --merged $env:GITHUB_SHA --no-contains $env:GITHUB_SHA --list 'v[0-9]*')
-          if ($LASTEXITCODE -ne 0) {
-            throw "Could not list release tags before $env:GITHUB_SHA."
-          }
-          foreach ($tag in $tags) {
-            $candidate = $null
-            if ([System.Management.Automation.SemanticVersion]::TryParse($tag.Substring(1), [ref]$candidate) -and
-                [string]::IsNullOrEmpty($candidate.PreReleaseLabel) -and
-                ($null -eq $previousVersion -or $candidate -gt $previousVersion)) {
-              $previous = $tag
-              $previousVersion = $candidate
-            }
-          }
-          if ($null -ne $previousVersion -and $semanticVersion -le $previousVersion) {
-            throw "Version $version is not greater than the previous stable release $previous."
-          }
-          Write-Host "Version $version; previous stable release: $(if ($previous) { $previous } else { 'none' }); eligible to sign: $eligible."
-
-          "value=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-          "previous=$previous" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-          "eligible=$($eligible.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-          exit 0
+        # Requires the version to exceed every other stable v* tag, decides signing
+        # eligibility from main ancestry, and resolves the protocol baseline.
+        run: >-
+          ./eng/Resolve-ReleaseVersion.ps1
+          -EventName '${{ github.event_name }}'
+          -Commit $env:GITHUB_SHA
+          -TagName $env:GITHUB_REF_NAME
+          -DispatchVersion $env:DISPATCH_VERSION
+          | Out-Null
 
   validate:
     name: Validate SA ${{ matrix.target.sa_version }} product
