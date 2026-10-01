@@ -30,7 +30,11 @@ registry.
 `Briosa:Security:Operations:Allow` and `Deny` use exact operation IDs. A missing
 allowlist enables nothing, deny wins over allow, and empty, duplicate, scalar, or
 unknown IDs fail startup. Policy is fixed for the process lifetime. Discovery
-reports only the admitted subset.
+reports only the admitted subset. Each target's shipped default allowlist names
+every registered operation, including state-mutating ones, so a packaged server
+admits its whole registered surface unless an operator configures `Deny`.
+Overrides merge the indexed allowlist by index and cannot remove packaged
+entries.
 
 Each operation descriptor explicitly records:
 
@@ -38,9 +42,11 @@ Each operation descriptor explicitly records:
 - read/mutation effect;
 - execution scope;
 - replay safety; and
-- reviewed risk flags.
+- any risk flags.
 
-Unknown or unsupported metadata fails closed. Policy denial occurs before worker
+Risk flags are sparse: most descriptors have none. They are recorded in audit
+events; only an `unknown` flag affects admission. Unknown or unsupported
+metadata fails closed. Policy denial occurs before worker
 enqueue or SDK execution and returns a typed value-free `PermissionDenied` outcome
 with `NotStarted` disposition.
 
