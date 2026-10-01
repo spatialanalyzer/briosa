@@ -1,7 +1,9 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO.Pipes;
+using System.Runtime.InteropServices;
 using Briosa.Worker.Control;
+using Microsoft.Win32.SafeHandles;
 
 namespace Briosa.Server.Workers;
 
@@ -34,6 +36,15 @@ internal sealed class NamedPipeWorkerProcess : IWorkerProcess
         if (!_connected)
         {
             await _pipe.WaitForConnectionAsync(cancellationToken).ConfigureAwait(false);
+            // The ACL admits any current-user process. Only the launched child may
+            // own the channel; its self-reported ready PID is not evidence.
+            if (!NativeMethods.GetNamedPipeClientProcessId(_pipe.SafePipeHandle, out var clientProcessId) ||
+                clientProcessId != (uint)_process.Id)
+            {
+                throw new InvalidDataException(
+                    "The worker control pipe client is not the launched worker process.");
+            }
+
             _connected = true;
         }
         return await _channel.ReceiveAsync(cancellationToken).ConfigureAwait(false);
@@ -70,5 +81,15 @@ internal sealed class NamedPipeWorkerProcess : IWorkerProcess
             _process.Dispose();
         }
         return ValueTask.CompletedTask;
+    }
+
+    private static class NativeMethods
+    {
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool GetNamedPipeClientProcessId(
+            SafePipeHandle pipe,
+            out uint clientProcessId);
     }
 }

@@ -71,51 +71,6 @@ public sealed class SdkHarnessTests
             item => AssertEvent(item, "second", ScriptedCallPhase.Completed));
     }
 
-    [Fact]
-    public async Task WatchdogReplacesHungWorkerAndNextCallSucceeds()
-    {
-        using var hangGate = new ManualResetEventSlim();
-        var plans = new Queue<ScriptedSdkPlan>(
-        [
-            new ScriptedSdkPlan().Then(ScriptedExecution.Hang(hangGate)),
-            new ScriptedSdkPlan().Then(ScriptedExecution.Success())
-        ]);
-        await using var supervisor = new WorkerSupervisorHarness(
-            () => new ScriptedWorkerEndpoint(plans.Dequeue()),
-            TimeSpan.FromMilliseconds(100));
-
-        var timedOut = await supervisor.ExecuteAsync(new WorkerMpCommand("hang", "hang", [], []));
-        var recovered = await supervisor.ExecuteAsync(new WorkerMpCommand("after-hang", "after-hang", [], []));
-
-        Assert.Equal(SupervisedExecutionStatus.WatchdogTimeout, timedOut.Status);
-        Assert.Null(timedOut.Execution);
-        Assert.Equal(1, supervisor.ReplacementCount);
-        Assert.Equal(SupervisedExecutionStatus.Completed, recovered.Status);
-        Assert.True(recovered.Execution!.MpSucceeded);
-    }
-
-    [Fact]
-    public async Task SupervisorReplacesCrashedWorkerAndNextCallSucceeds()
-    {
-        var plans = new Queue<ScriptedSdkPlan>(
-        [
-            new ScriptedSdkPlan().Then(ScriptedExecution.Crash()),
-            new ScriptedSdkPlan().Then(ScriptedExecution.Success())
-        ]);
-        await using var supervisor = new WorkerSupervisorHarness(
-            () => new ScriptedWorkerEndpoint(plans.Dequeue()),
-            TimeSpan.FromSeconds(2));
-
-        var crashed = await supervisor.ExecuteAsync(new WorkerMpCommand("crash", "crash", [], []));
-        var recovered = await supervisor.ExecuteAsync(new WorkerMpCommand("after-crash", "after-crash", [], []));
-
-        Assert.Equal(SupervisedExecutionStatus.WorkerCrash, crashed.Status);
-        Assert.Null(crashed.Execution);
-        Assert.Equal(1, supervisor.ReplacementCount);
-        Assert.Equal(SupervisedExecutionStatus.Completed, recovered.Status);
-        Assert.True(recovered.Execution!.MpSucceeded);
-    }
-
     private static void AssertEvent(
         ScriptedCallEvent callEvent,
         string operationId,

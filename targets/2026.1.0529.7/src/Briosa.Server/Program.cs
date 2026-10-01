@@ -9,7 +9,14 @@ if (args is ["diagnostics"] or ["--diagnostics"])
     Environment.ExitCode = ServerDiagnosticsCommand.Run(Console.Out, AppContext.BaseDirectory);
     return;
 }
-var builder = WebApplication.CreateBuilder(args);
+// Package configuration, including the operation allowlist, belongs to the
+// installation rather than the caller's working directory. An explicit
+// --contentRoot, ASPNETCORE_CONTENTROOT, or DOTNET_CONTENTROOT still wins.
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+{
+    Args = args,
+    ContentRootPath = HasExplicitContentRoot(args) ? null : AppContext.BaseDirectory
+});
 var desktopOptions = DesktopHostOptions.Create(builder.Configuration);
 using var desktopAnnouncement = new DesktopAnnouncement(desktopOptions);
 try
@@ -62,5 +69,23 @@ app.MapBriosaDevelopmentGrpcReflection();
 
 app.Run();
 desktopAnnouncement.Complete();
+
+// Mirrors the host's content-root sources and their precedence.
+static bool HasExplicitContentRoot(string[] arguments)
+{
+    var configuration = new ConfigurationBuilder()
+        .AddEnvironmentVariables("ASPNETCORE_")
+        .AddEnvironmentVariables("DOTNET_")
+        .AddCommandLine(arguments)
+        .Build();
+    try
+    {
+        return !string.IsNullOrEmpty(configuration[HostDefaults.ContentRootKey]);
+    }
+    finally
+    {
+        (configuration as IDisposable)?.Dispose();
+    }
+}
 
 internal partial class Program;

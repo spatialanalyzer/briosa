@@ -1,3 +1,6 @@
+using System.Diagnostics;
+using System.Globalization;
+using System.IO.Pipes;
 using System.Text.Json;
 using System.Threading.Channels;
 using Briosa.Server.Workers;
@@ -774,6 +777,153 @@ public sealed class WorkerProcessSupervisorTests
         Assert.Equal(2, recovered.Generation);
     }
 
+    [Theory]
+    [InlineData("unexpected-kind-on-execute")]
+    [InlineData("mismatched-correlation-on-execute")]
+    [InlineData("truncated-frame-on-execute")]
+    public async Task MalformedExecutionResponseRetiresTheWorkerWithoutPipeReuse(string scenario)
+    {
+        await using var supervisor = CreateSupervisor(
+            generation => CreateLaunch(generation == 1 ? scenario : "normal"),
+            CreatePolicy(heartbeatInterval: TimeSpan.FromSeconds(10)));
+
+        Assert.True((await supervisor.StartAsync()).Succeeded, supervisor.Current.DiagnosticCode);
+        var failed = await supervisor.ExecuteAsync(CreateCommand("malformed-response"));
+        var retired = supervisor.Current;
+        var blocked = await supervisor.ExecuteAsync(CreateCommand("before-recovery"));
+        Assert.True((await supervisor.RecoverSdkAsync(retired.Generation)).Succeeded,
+            supervisor.Current.DiagnosticCode);
+        var recovered = await supervisor.ExecuteAsync(CreateCommand("after-recovery"));
+
+        Assert.Equal(WorkerExecutionStatus.WorkerFailure, failed.Status);
+        Assert.Equal(WorkerExecutionDisposition.StartedOutcomeUnknown, failed.ExecutionDisposition);
+        Assert.Null(failed.Execution);
+        Assert.Equal("worker-execution-control-failed", failed.DiagnosticCode);
+        Assert.Equal(1, failed.Generation);
+        Assert.Equal(WorkerLifecycleState.Degraded, retired.State);
+        Assert.Equal(1, retired.Generation);
+        Assert.Equal(WorkerTerminationKind.Forced, retired.LastTermination);
+        Assert.False(retired.AdmissionOpen);
+        Assert.Equal(WorkerIncidentKind.ControlChannelLost, retired.LastIncident!.Kind);
+        Assert.Equal(WorkerExecutionDisposition.StartedOutcomeUnknown,
+            retired.LastIncident.ExecutionDisposition);
+        Assert.Equal(WorkerExecutionStatus.Unavailable, blocked.Status);
+        Assert.Equal(WorkerExecutionDisposition.NotStarted, blocked.ExecutionDisposition);
+        Assert.Equal(WorkerExecutionStatus.Completed, recovered.Status);
+        Assert.Equal(2, recovered.Generation);
+        Assert.Equal(1, supervisor.Current.RecoveryCount);
+    }
+
+    [Fact]
+    public async Task StartupRejectsAnImpersonatingPipeClientAndCleansUp()
+    {
+        var pipeRecordPath = Path.Combine(Path.GetTempPath(), $"briosa-pipe-{Guid.NewGuid():N}.txt");
+        try
+        {
+            var factory = new StartupTrackingFactory(new NamedPipeWorkerProcessFactory(
+                _ => CreateLaunch("hang-before-ready", pipeRecordPath: pipeRecordPath)));
+            var supervisor = new WorkerProcessSupervisor(factory, CreatePolicy());
+            await using var supervisorScope = supervisor.ConfigureAwait(true);
+            var starting = supervisor.StartAsync();
+            var (pipeName, launchedProcessId) = await ReadPipeRecord(pipeRecordPath);
+
+            // A same-user process reaches the random pipe first and claims the
+            // launched child's process ID in an otherwise valid ready message.
+            using var impersonator = new NamedPipeClientStream(
+                ".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
+            await impersonator.ConnectAsync(5_000);
+            using var channel = new WorkerControlChannel(impersonator, leaveOpen: true);
+            await TrySendAsync(channel, WorkerControlMessage.Ready(
+                launchedProcessId,
+                new WorkerConnectionSnapshot(
+                    WorkerConnectionState.Disconnected,
+                    WorkerExecutionReadinessState.Unverified,
+                    StatusCode: null,
+                    Attempt: 0,
+                    MaximumAttempts: 1,
+                    "sdk-started",
+                    DateTimeOffset.UtcNow,
+                    new WorkerRuntimeIdentitySnapshot(
+                        new WorkerRuntimeIdentityEvidence(
+                            Version: null,
+                            WorkerRuntimeIdentityEvidenceSource.Unavailable),
+                        new WorkerRuntimeIdentityEvidence(
+                            Version: null,
+                            WorkerRuntimeIdentityEvidenceSource.Unavailable)))));
+
+            var result = await starting.WaitAsync(TimeSpan.FromSeconds(10));
+
+            Assert.False(result.Succeeded);
+            Assert.Equal(WorkerLifecycleState.Degraded, supervisor.Current.State);
+            Assert.Equal("worker-startup-failed", supervisor.Current.DiagnosticCode);
+            Assert.Equal(WorkerLifecycleFailure.StartupFailed, supervisor.Current.LifecycleFailure);
+            Assert.Equal(WorkerIncidentKind.StartFailed, supervisor.Current.LastIncident!.Kind);
+            Assert.Null(supervisor.Current.ProcessId);
+            Assert.DoesNotContain(supervisor.History, snapshot => snapshot.State == WorkerLifecycleState.Ready);
+            Assert.NotNull(factory.Child);
+            Assert.True(factory.Child.ExitConfirmedBeforeDisposal);
+            Assert.True(await IsClosedAsync(impersonator));
+        }
+        finally
+        {
+            File.Delete(pipeRecordPath);
+        }
+    }
+
+    [Fact]
+    public async Task ProductionWorkerExitsWhenItsParentProcessDies()
+    {
+        var executable = ResolveProductionWorker();
+        using var parent = Process.Start(new ProcessStartInfo(CreateLaunch("hang-before-ready").FileName)
+        {
+            ArgumentList = { "--scenario", "hang-before-ready", "--control-pipe", "briosa-unused" },
+            UseShellExecute = false,
+            CreateNoWindow = true
+        }) ?? throw new InvalidOperationException("The sacrificial parent did not start.");
+        var pipeName = $"briosa-parent-death-{Guid.NewGuid():N}";
+        using var pipe = new NamedPipeServerStream(pipeName, PipeDirection.InOut, 1,
+            PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
+        using var worker = Process.Start(new ProcessStartInfo(executable)
+        {
+            ArgumentList =
+            {
+                "--disable-sdk-activation",
+                "--sa-host", "sa-lab",
+                "--control-pipe", pipeName,
+                "--parent-process-id", parent.Id.ToString(CultureInfo.InvariantCulture)
+            },
+            WorkingDirectory = Path.GetDirectoryName(executable),
+            UseShellExecute = false,
+            CreateNoWindow = true
+        }) ?? throw new InvalidOperationException("The worker did not start.");
+        try
+        {
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+            await pipe.WaitForConnectionAsync(timeout.Token);
+            using var channel = new WorkerControlChannel(pipe, leaveOpen: true);
+            var ready = await channel.ReceiveAsync(timeout.Token);
+            Assert.Equal(WorkerControlMessageKind.Ready, ready.Kind);
+            Assert.Equal(worker.Id, ready.ProcessId);
+
+            // The control pipe stays open: only the parent's death can end the worker.
+            parent.Kill();
+            await parent.WaitForExitAsync(timeout.Token);
+            await worker.WaitForExitAsync(timeout.Token);
+
+            Assert.Equal(20, worker.ExitCode);
+        }
+        finally
+        {
+            foreach (var process in new[] { worker, parent })
+            {
+                if (!process.HasExited)
+                {
+                    process.Kill(entireProcessTree: true);
+                    await process.WaitForExitAsync();
+                }
+            }
+        }
+    }
 
     [Fact]
     public async Task RequestedOutputArgumentsRoundTripAcrossTheWorkerPipe()
@@ -904,17 +1054,7 @@ public sealed class WorkerProcessSupervisorTests
     [Fact]
     public async Task ProductionWorkerCompletesControlLifecycleWithoutSpatialAnalyzer()
     {
-        var sourceWorkerOutput = Environment.GetEnvironmentVariable(
-            "BRIOSA_SOURCE_WORKER_OUTPUT");
-        var executable = string.IsNullOrWhiteSpace(sourceWorkerOutput)
-            ? Path.Combine(
-                AppContext.BaseDirectory,
-                "worker-under-test",
-                "Briosa.Worker.exe")
-            : Path.Combine(sourceWorkerOutput, "Briosa.Worker.exe");
-        Assert.True(
-            File.Exists(executable),
-            $"The worker executable was not found at '{executable}'.");
+        var executable = ResolveProductionWorker();
         await using var supervisor = CreateSupervisor(
             _ => new WorkerProcessLaunch(
                 executable,
@@ -1024,9 +1164,63 @@ public sealed class WorkerProcessSupervisorTests
                     activatedSdkVersion: "2026.1.0529.7",
                     connectedSpatialAnalyzerVersion: "2026.1.0529.7"));
 
+    private static string ResolveProductionWorker()
+    {
+        var sourceWorkerOutput = Environment.GetEnvironmentVariable(
+            "BRIOSA_SOURCE_WORKER_OUTPUT");
+        var executable = string.IsNullOrWhiteSpace(sourceWorkerOutput)
+            ? Path.Combine(
+                AppContext.BaseDirectory,
+                "worker-under-test",
+                "Briosa.Worker.exe")
+            : Path.Combine(sourceWorkerOutput, "Briosa.Worker.exe");
+        Assert.True(
+            File.Exists(executable),
+            $"The worker executable was not found at '{executable}'.");
+        return executable;
+    }
+
+    private static async Task<(string PipeName, int ProcessId)> ReadPipeRecord(string path)
+    {
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        while (!File.Exists(path))
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(20), timeout.Token);
+        }
+
+        var lines = await File.ReadAllLinesAsync(path, timeout.Token);
+        return (lines[0], int.Parse(lines[1], CultureInfo.InvariantCulture));
+    }
+
+    // The supervisor may already have rejected and closed the pipe.
+    private static async Task TrySendAsync(WorkerControlChannel channel, WorkerControlMessage message)
+    {
+        try
+        {
+            await channel.SendAsync(message);
+        }
+        catch (IOException)
+        {
+        }
+    }
+
+    private static async Task<bool> IsClosedAsync(Stream stream)
+    {
+        var buffer = new byte[1];
+        try
+        {
+            return await stream.ReadAsync(buffer).AsTask().WaitAsync(TimeSpan.FromSeconds(5)) == 0;
+        }
+        catch (IOException)
+        {
+            return true;
+        }
+    }
+
     private static WorkerProcessLaunch CreateLaunch(
         string scenario,
-        string? lifecycleRecordPath = null)
+        string? lifecycleRecordPath = null,
+        string? pipeRecordPath = null)
     {
         var executable = Path.Combine(
             AppContext.BaseDirectory,
@@ -1043,6 +1237,12 @@ public sealed class WorkerProcessSupervisorTests
         {
             arguments.Add("--lifecycle-record");
             arguments.Add(lifecycleRecordPath);
+        }
+
+        if (pipeRecordPath is not null)
+        {
+            arguments.Add("--pipe-record");
+            arguments.Add(pipeRecordPath);
         }
 
         return new WorkerProcessLaunch(

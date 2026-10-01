@@ -35,6 +35,18 @@ internal static class TestWorkerProcess
         {
             if (options.Scenario == TestWorkerScenario.HangBeforeReady)
             {
+                // Lets a test play a same-user impersonator on the launched pipe.
+                if (options.PipeRecordPath is not null)
+                {
+                    var pending = options.PipeRecordPath + ".pending";
+                    File.WriteAllLines(pending,
+                    [
+                        options.PipeName,
+                        Environment.ProcessId.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                    ]);
+                    File.Move(pending, options.PipeRecordPath);
+                }
+
                 Thread.Sleep(Timeout.Infinite);
             }
 
@@ -151,6 +163,22 @@ internal static class TestWorkerProcess
                                 mpSucceeded: options.Scenario != TestWorkerScenario.MpFailure,
                                 delayed,
                                 options.Scenario));
+                        if (options.Scenario == TestWorkerScenario.UnexpectedKindOnExecute)
+                        {
+                            completed = WorkerControlMessage.Pong(message.CorrelationId, connection);
+                        }
+                        else if (options.Scenario == TestWorkerScenario.MismatchedCorrelationOnExecute)
+                        {
+                            completed = WorkerControlMessage.ExecutionResult(
+                                Guid.NewGuid(),
+                                completed.ExecutionResponse!);
+                        }
+                        else if (options.Scenario == TestWorkerScenario.TruncatedFrameOnExecute)
+                        {
+                            SendTruncatedFrameAndClose(pipe, completed);
+                            Thread.Sleep(Timeout.Infinite);
+                        }
+
                         if (options.Scenario == TestWorkerScenario.CrashAfterExecute)
                         {
                             Environment.Exit(45);
@@ -376,6 +404,20 @@ internal static class TestWorkerProcess
                     Version: null,
                     WorkerRuntimeIdentityEvidenceSource.Unavailable)), Failure: failure);
 
+    private static void SendTruncatedFrameAndClose(Stream pipe, WorkerControlMessage message)
+    {
+        using var frame = new MemoryStream();
+        using (var encoder = new WorkerControlChannel(frame, leaveOpen: true))
+        {
+            encoder.Send(message);
+        }
+
+        // A valid header followed by half of its payload, then end of stream.
+        pipe.Write(frame.GetBuffer(), 0, (int)(frame.Length / 2));
+        pipe.Flush();
+        pipe.Dispose();
+    }
+
     private static void WriteRecord(string? path, LifecycleRecord record)
     {
         if (path is null)
@@ -416,13 +458,17 @@ internal enum TestWorkerScenario
     SdkActivationFailedTimeoutText,
     ConnectUnavailableOnce,
     HangOnConnect,
-    SdkProcessExitOnPing
+    SdkProcessExitOnPing,
+    UnexpectedKindOnExecute,
+    MismatchedCorrelationOnExecute,
+    TruncatedFrameOnExecute
 }
 
 internal sealed record TestWorkerOptions(
     string PipeName,
     TestWorkerScenario Scenario,
-    string? LifecycleRecordPath)
+    string? LifecycleRecordPath,
+    string? PipeRecordPath)
 {
     public static TestWorkerOptions Parse(string[] arguments)
     {
@@ -437,7 +483,10 @@ internal sealed record TestWorkerOptions(
         var recordPath = TryGetArgument(arguments, "--lifecycle-record", out var path)
             ? path
             : null;
-        return new TestWorkerOptions(pipeName, scenario, recordPath);
+        var pipeRecordPath = TryGetArgument(arguments, "--pipe-record", out var pipeRecord)
+            ? pipeRecord
+            : null;
+        return new TestWorkerOptions(pipeName, scenario, recordPath, pipeRecordPath);
     }
 
     private static TestWorkerScenario ParseScenario(string value) =>
@@ -465,6 +514,9 @@ internal sealed record TestWorkerOptions(
             "connect-unavailable-once" => TestWorkerScenario.ConnectUnavailableOnce,
             "hang-on-connect" => TestWorkerScenario.HangOnConnect,
             "sdk-process-exit-on-ping" => TestWorkerScenario.SdkProcessExitOnPing,
+            "unexpected-kind-on-execute" => TestWorkerScenario.UnexpectedKindOnExecute,
+            "mismatched-correlation-on-execute" => TestWorkerScenario.MismatchedCorrelationOnExecute,
+            "truncated-frame-on-execute" => TestWorkerScenario.TruncatedFrameOnExecute,
             _ => throw new ArgumentOutOfRangeException(
                 nameof(value),
                 value,
