@@ -22,6 +22,9 @@ public sealed class ServerDiagnosticsCommandTests
             Assert.Equal(0, exitCode);
             Assert.Equal(2, root.GetProperty("schema_version").GetInt32());
             Assert.Equal("2026.1.0529.7", root.GetProperty("spatial_analyzer_target").GetString());
+            Assert.Equal(
+                CommittedInteropProvenance.Load().ExpectedInteropFingerprint,
+                root.GetProperty("interop_fingerprint").GetString());
             Assert.False(root.TryGetProperty("catalog_revision", out _));
             Assert.True(root.GetProperty("worker_executable_present").GetBoolean());
             Assert.True(root.GetProperty("interop_assembly_present").GetBoolean());
