@@ -24,6 +24,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
 
       - name: Verify ordinary CI workflow policy
         shell: pwsh
@@ -57,6 +59,31 @@ jobs:
           ./eng/Test-RetainedClientPolicy.ps1
           ./eng/Test-CompatibilityMatrix.ps1
           ./eng/Test-CompatibilityMatrixPolicy.ps1
+
+      - name: Test cross-target propagation report
+        shell: pwsh
+        run: ./eng/Test-CrossTargetPropagationPolicy.ps1
+
+      - name: Test release version resolution
+        shell: pwsh
+        run: ./eng/Test-ResolveReleaseVersionPolicy.ps1
+
+      - name: Report cross-target propagation
+        shell: pwsh
+        env:
+          PROPAGATION_BASE_REF: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          $baseRef = "$env:PROPAGATION_BASE_REF".Trim()
+          if ($baseRef -notmatch '^[0-9a-f]{40}$' -or $baseRef -match '^0+$') {
+            Write-Host 'No base revision is available for this event; skipping the cross-target propagation report.'
+            exit 0
+          }
+          git cat-file -e "$baseRef^{commit}" 2>$null
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "Base revision $baseRef is not in the checkout; skipping the cross-target propagation report."
+            exit 0
+          }
+          ./eng/Test-CrossTargetPropagation.ps1 -BaseRef $baseRef
 
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
@@ -121,6 +148,10 @@ jobs:
       - name: Build interop inspector
         run: dotnet build tools/Briosa.InteropInspector/Briosa.InteropInspector.csproj -c Release --no-restore
 
+      - name: Verify committed interop artifacts
+        shell: pwsh
+        run: ./eng/Verify-InteropArtifacts.ps1 -NoBuild
+
       - name: Verify protobuf contracts
         shell: pwsh
         env:
@@ -160,12 +191,12 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-      - name: Verify development-only gRPC reflection
+      - name: Verify development-only gRPC reflection and manual startup
         run: >-
           dotnet test tests/Briosa.Server.Tests/Briosa.Server.Tests.csproj
           -c Debug
           --no-restore
-          --filter FullyQualifiedName~DevelopmentGrpcReflectionTests
+          --filter "FullyQualifiedName~DevelopmentGrpcReflectionTests|FullyQualifiedName~ManualServerStartupTests"
 
       - name: Measure vendor-independent runtime performance
         shell: pwsh
