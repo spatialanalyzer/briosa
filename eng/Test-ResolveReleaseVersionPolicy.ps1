@@ -101,3 +101,4 @@ finally {
         Remove-Item -LiteralPath $resolvedFixture -Recurse -Force
     }
 }
+exit 0

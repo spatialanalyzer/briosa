@@ -113,4 +113,6 @@ if ($env:GITHUB_OUTPUT) {
     "eligible=$($eligible.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
 }
 
+# git merge-base reports a non-ancestor with exit code 1; do not leak it to the caller.
+$global:LASTEXITCODE = 0
 [pscustomobject]@{ Version = $version; Previous = $previous; Eligible = $eligible }
