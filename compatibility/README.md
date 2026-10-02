@@ -49,6 +49,19 @@ twelve fake-SDK scenarios per target. The earlier 2026-09-25 major-2 reports
 remain byte-identical historical evidence for their own package hashes and
 source checkpoint; the current matrix points to the new reports and hashes.
 
+The released Server `0.9.0` (source `85ba108033fb5ddfcaf8a69434e037cea7deb57a`)
+and `0.9.1` (source `55d87626c96f4b8ff71990cf4b1229f33cfc41a6`) release gates
+supplied the 2026-09-29 and 2026-10-01 reports: 36 released-package pairs, all
+contract 2.0. All twelve published `0.2.0`/`0.3.0` packages rejected each
+release before launch, and all six published `0.4.0` packages passed the twelve
+fake-SDK scenarios per target against each release: 144 scenario runs. Every
+report's server artifact hash matches the published conformance ZIP. The reports
+are stored with the repository's LF line endings; their content is otherwise
+unchanged from the CI artifacts. The matrix now declares contract 2.0 and the
+published `0.4.0` clients. The 0.6.1 legacy exception applies only to contract
+requirement 1.0, so it is no longer declared; `legacyBaseline` still verifies
+the historical pairs. No licensed-SA coverage is implied.
+
 Each new tested pair records `expectedCompatibility`. An accepted pair proves
 operation conformance; a rejected pair proves installation/startup rejection
 only. Its success flag must never be described as operation compatibility.
