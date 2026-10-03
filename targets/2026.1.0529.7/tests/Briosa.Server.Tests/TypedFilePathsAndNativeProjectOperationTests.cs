@@ -30,7 +30,7 @@ public sealed class TypedFilePathsAndNativeProjectOperationTests
             Assert.Single(SpatialAnalyzerApi.Operations, operation => operation.OperationId == id);
         }
 
-        Assert.Equal("Save As", SaveAsOperation.Descriptor.MpStep);
+        Assert.Equal("Save As...", SaveAsOperation.Descriptor.MpStep);
         Assert.Equal(Api.ReplaySafety.Safe, VerifyGeneralFileExistsOperation.Descriptor.ReplaySafety);
         Assert.Equal(Api.ReplaySafety.Safe, VerifyMpFileExistsOperation.Descriptor.ReplaySafety);
         Assert.Equal(Api.ReplaySafety.Unsafe, CopyGeneralFileOperation.Descriptor.ReplaySafety);
@@ -111,7 +111,7 @@ public sealed class TypedFilePathsAndNativeProjectOperationTests
         Assert.Equal("*.sa", worker.Commands[0].InputArguments[1].RequireValue<WorkerTextValue>().Value);
         Assert.True(worker.Commands[1].InputArguments[2].RequireValue<WorkerBooleanValue>().Value);
         Assert.Equal(3, worker.Commands[2].InputArguments[2].RequireValue<WorkerIntegerValue>().Value);
-        Assert.Equal("Save As", worker.Commands[2].StepName);
+        Assert.Equal("Save As...", worker.Commands[2].StepName);
     }
 
     private static SuccessfulOperationExecution Success(IReadOnlyList<WorkerMpOutputValue> outputs)

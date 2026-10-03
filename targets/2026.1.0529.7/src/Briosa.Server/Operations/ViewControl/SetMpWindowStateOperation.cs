@@ -9,7 +9,7 @@ namespace Briosa.Server.Operations.ViewControl;
 internal static class SetMpWindowStateOperation
 {
     public static OperationDescriptor Descriptor { get; } = new(
-        "view_control.set_mp_window_state", "Set MP’s Window State", "briosa.ViewControl",
+        "view_control.set_mp_window_state", "Set MP's Window State", "briosa.ViewControl",
         "SetMpWindowState", "/briosa.ViewControl/SetMpWindowState", "state_mutation",
         Api.OperationExecutionScope.GlobalStateMutation, Api.ReplaySafety.Unsafe, ["fixture_validation_pending"]);
     public static IReadOnlyList<OperationOutputContract> OutputContracts { get; } = [];

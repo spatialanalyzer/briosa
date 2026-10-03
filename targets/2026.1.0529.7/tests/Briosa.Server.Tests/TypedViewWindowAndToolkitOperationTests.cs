@@ -32,21 +32,11 @@ public sealed class TypedViewWindowAndToolkitOperationTests
             Assert.Single(SpatialAnalyzerApi.Operations, operation => operation.OperationId == id);
         }
 
-        Assert.Equal(SpatialAnalyzerApi.TargetVersion.StartsWith("2024", StringComparison.Ordinal)
-                ? "Set MP's Window State" : "Set MP’s Window State",
-            SetMpWindowStateOperation.Descriptor.MpStep);
-        Assert.Equal(SpatialAnalyzerApi.TargetVersion.StartsWith("2024", StringComparison.Ordinal)
-                ? "Set SA's Window Pos" : "Set SA’s Window Pos",
-            SetSaWindowPosOperation.Descriptor.MpStep);
-        Assert.Equal(SpatialAnalyzerApi.TargetVersion.StartsWith("2024", StringComparison.Ordinal)
-                ? "Set SA's Window Size" : "Set SA’s Window Size",
-            SetSaWindowSizeOperation.Descriptor.MpStep);
-        Assert.Equal(SpatialAnalyzerApi.TargetVersion.StartsWith("2024", StringComparison.Ordinal)
-                ? "Set SA's Window State" : "Set SA’s Window State",
-            SetSaWindowStateOperation.Descriptor.MpStep);
-        Assert.Equal(SpatialAnalyzerApi.TargetVersion.StartsWith("2024", StringComparison.Ordinal)
-                ? "Show / Hide Callout View" : "Show/Hide Callout View",
-            ShowHideCalloutViewOperation.Descriptor.MpStep);
+        Assert.Equal("Set MP's Window State", SetMpWindowStateOperation.Descriptor.MpStep);
+        Assert.Equal("Set SA's Window Pos", SetSaWindowPosOperation.Descriptor.MpStep);
+        Assert.Equal("Set SA's Window Size", SetSaWindowSizeOperation.Descriptor.MpStep);
+        Assert.Equal("Set SA's Window State", SetSaWindowStateOperation.Descriptor.MpStep);
+        Assert.Equal("Show / Hide Callout View", ShowHideCalloutViewOperation.Descriptor.MpStep);
         Assert.Contains("fixture_validation_pending", LoadRibbonBarFromXmlFileOperation.Descriptor.RiskFlags);
         Assert.Contains("fixture_validation_pending", SetMpWindowStateOperation.Descriptor.RiskFlags);
     }

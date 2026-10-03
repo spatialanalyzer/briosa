@@ -28,14 +28,8 @@ public sealed class TypedEmbeddedFileOperationTests
 
         Assert.Equal(Api.ReplaySafety.Unsafe, ExportEmbeddedFileOperation.Descriptor.ReplaySafety);
         Assert.Equal(Api.ReplaySafety.Unsafe, MakeEmbeddedFileNameListOperation.Descriptor.ReplaySafety);
-        Assert.Equal(SpatialAnalyzerApi.TargetVersion.StartsWith("2024", StringComparison.Ordinal)
-                ? "Import File as Embedded File"
-                : "Import File As Embedded File",
-            ImportFileAsEmbeddedFileOperation.Descriptor.MpStep);
-        Assert.Equal(SpatialAnalyzerApi.TargetVersion.StartsWith("2024", StringComparison.Ordinal)
-                ? "Import MP File as Embedded MP"
-                : "Import MP File As Embedded MP",
-            ImportMpFileAsEmbeddedMpOperation.Descriptor.MpStep);
+        Assert.Equal("Import File as Embedded File", ImportFileAsEmbeddedFileOperation.Descriptor.MpStep);
+        Assert.Equal("Import MP File as Embedded MP", ImportMpFileAsEmbeddedMpOperation.Descriptor.MpStep);
     }
 
     [Fact]

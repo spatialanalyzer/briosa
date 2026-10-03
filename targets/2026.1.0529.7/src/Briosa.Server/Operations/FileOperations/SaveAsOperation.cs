@@ -9,7 +9,7 @@ namespace Briosa.Server.Operations.FileOperations;
 internal static class SaveAsOperation
 {
     public static OperationDescriptor Descriptor { get; } = new(
-        "file_operations.save_as", "Save As", "briosa.FileOperations", "SaveAs",
+        "file_operations.save_as", "Save As...", "briosa.FileOperations", "SaveAs",
         "/briosa.FileOperations/SaveAs", "state_mutation",
         Api.OperationExecutionScope.GlobalStateMutation, Api.ReplaySafety.Unsafe, []);
 

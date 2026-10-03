@@ -9,7 +9,7 @@ namespace Briosa.Server.Operations.AnalysisOperations;
 internal static class ComputeGroupToGroupOrientationRxRyRzOperation
 {
     public static OperationDescriptor Descriptor { get; } = new(
-        "analysis_operations.compute_group_to_group_orientation_rx_ry_rz", "Compute Group to Group Orientation (Rx, Ry, Rz)",
+        "analysis_operations.compute_group_to_group_orientation_rx_ry_rz", "Compute Group to Group Orientation (Rx,Ry,Rz)",
         "briosa.AnalysisOperations", "ComputeGroupToGroupOrientationRxRyRz",
         "/briosa.AnalysisOperations/ComputeGroupToGroupOrientationRxRyRz",
         "state_mutation", Api.OperationExecutionScope.GlobalStateMutation, Api.ReplaySafety.Unsafe, []);

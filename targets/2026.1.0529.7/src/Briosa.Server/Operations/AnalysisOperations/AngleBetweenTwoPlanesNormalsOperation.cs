@@ -9,7 +9,7 @@ namespace Briosa.Server.Operations.AnalysisOperations;
 internal static class AngleBetweenTwoPlanesNormalsOperation
 {
     public static OperationDescriptor Descriptor { get; } = new(
-        "analysis_operations.angle_between_two_planes_normals", "Angle Between Two Planes’ normals",
+        "analysis_operations.angle_between_two_planes_normals", "Angle Between Two Planes' normals",
         "briosa.AnalysisOperations", "AngleBetweenTwoPlanesNormals", "/briosa.AnalysisOperations/AngleBetweenTwoPlanesNormals",
         "state_mutation", Api.OperationExecutionScope.GlobalStateMutation, Api.ReplaySafety.Unsafe, []);
 

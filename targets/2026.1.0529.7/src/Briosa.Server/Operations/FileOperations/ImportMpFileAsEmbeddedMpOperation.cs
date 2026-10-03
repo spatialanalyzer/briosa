@@ -9,7 +9,7 @@ namespace Briosa.Server.Operations.FileOperations;
 internal static class ImportMpFileAsEmbeddedMpOperation
 {
     public static OperationDescriptor Descriptor { get; } = new(
-        "file_operations.import_mp_file_as_embedded_mp", "Import MP File As Embedded MP", "briosa.FileOperations",
+        "file_operations.import_mp_file_as_embedded_mp", "Import MP File as Embedded MP", "briosa.FileOperations",
         "ImportMpFileAsEmbeddedMp", "/briosa.FileOperations/ImportMpFileAsEmbeddedMp", "state_mutation",
         Api.OperationExecutionScope.GlobalStateMutation, Api.ReplaySafety.Unsafe, []);
 

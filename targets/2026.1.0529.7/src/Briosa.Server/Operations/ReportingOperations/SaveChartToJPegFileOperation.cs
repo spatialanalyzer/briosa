@@ -9,7 +9,7 @@ namespace Briosa.Server.Operations.ReportingOperations;
 internal static class SaveChartToJPegFileOperation
 {
     public static OperationDescriptor Descriptor { get; } = new(
-        "reporting_operations.save_chart_to_jpeg_file", "Save Chart to JPEG File", "briosa.ReportingOperations",
+        "reporting_operations.save_chart_to_jpeg_file", "Save Chart to JPeg file", "briosa.ReportingOperations",
         "SaveChartToJPegFile", "/briosa.ReportingOperations/SaveChartToJPegFile", "state_mutation",
         Api.OperationExecutionScope.GlobalStateMutation, Api.ReplaySafety.Unsafe, []);
     public static IReadOnlyList<OperationOutputContract> OutputContracts { get; } = [];

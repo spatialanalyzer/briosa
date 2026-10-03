@@ -9,7 +9,7 @@ namespace Briosa.Server.Operations.ViewControl;
 internal static class DefinePointOfViewOperation
 {
     public static OperationDescriptor Descriptor { get; } = new(
-        "view_control.define_point_of_view", "Define Point of View", "briosa.ViewControl",
+        "view_control.define_point_of_view", "Define point of view", "briosa.ViewControl",
         "DefinePointOfView", "/briosa.ViewControl/DefinePointOfView", "state_mutation",
         Api.OperationExecutionScope.GlobalStateMutation, Api.ReplaySafety.Unsafe, []);
     public static IReadOnlyList<OperationOutputContract> OutputContracts { get; } = [];

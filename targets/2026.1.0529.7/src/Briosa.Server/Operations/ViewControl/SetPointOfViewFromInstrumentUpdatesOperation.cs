@@ -9,7 +9,7 @@ namespace Briosa.Server.Operations.ViewControl;
 internal static class SetPointOfViewFromInstrumentUpdatesOperation
 {
     public static OperationDescriptor Descriptor { get; } = new(
-        "view_control.set_point_of_view_from_instrument_updates", "Set Point of View From Instrument Updates", "briosa.ViewControl",
+        "view_control.set_point_of_view_from_instrument_updates", "Set Point of View from Instrument Updates", "briosa.ViewControl",
         "SetPointOfViewFromInstrumentUpdates", "/briosa.ViewControl/SetPointOfViewFromInstrumentUpdates", "state_mutation",
         Api.OperationExecutionScope.GlobalStateMutation, Api.ReplaySafety.Unsafe, ["fixture_validation_pending"]);
     public static IReadOnlyList<OperationOutputContract> OutputContracts { get; } = [];

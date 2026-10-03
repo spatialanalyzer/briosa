@@ -9,7 +9,7 @@ namespace Briosa.Server.Operations.RelationshipOperations;
 internal static class MakePipeRelationshipCutOperation
 {
     public static OperationDescriptor Descriptor { get; } = new(
-        "relationship_operations.make_pipe_relationship_cut", "Make pipe Relationship Cut",
+        "relationship_operations.make_pipe_relationship_cut", "Make Pipe Relationship Cut",
         "briosa.RelationshipOperations", "MakePipeRelationshipCut",
         "/briosa.RelationshipOperations/MakePipeRelationshipCut",
         "state_mutation", Api.OperationExecutionScope.GlobalStateMutation, Api.ReplaySafety.Unsafe, []);

@@ -9,7 +9,7 @@ namespace Briosa.Server.Operations.FileOperations;
 internal static class ImportFileAsEmbeddedFileOperation
 {
     public static OperationDescriptor Descriptor { get; } = new(
-        "file_operations.import_file_as_embedded_file", "Import File As Embedded File", "briosa.FileOperations",
+        "file_operations.import_file_as_embedded_file", "Import File as Embedded File", "briosa.FileOperations",
         "ImportFileAsEmbeddedFile", "/briosa.FileOperations/ImportFileAsEmbeddedFile", "state_mutation",
         Api.OperationExecutionScope.GlobalStateMutation, Api.ReplaySafety.Unsafe, []);
 

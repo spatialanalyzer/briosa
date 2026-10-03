@@ -9,7 +9,7 @@ namespace Briosa.Server.Operations.ViewControl;
 internal static class ShowHidePointsOperation
 {
     public static OperationDescriptor Descriptor { get; } = new(
-        "view_control.show_hide_points", "Show/Hide Points", "briosa.ViewControl",
+        "view_control.show_hide_points", "Show / Hide Points", "briosa.ViewControl",
         "ShowHidePoints", "/briosa.ViewControl/ShowHidePoints", "state_mutation",
         Api.OperationExecutionScope.GlobalStateMutation, Api.ReplaySafety.Unsafe, []);
     public static IReadOnlyList<OperationOutputContract> OutputContracts { get; } = [];

@@ -28,12 +28,8 @@ public sealed class TypedViewVisibilityOperationTests
             Assert.Single(SpatialAnalyzerApi.Operations, operation => operation.OperationId == id);
         }
 
-        var expectedTypeStep = SpatialAnalyzerApi.TargetVersion.StartsWith("2024", StringComparison.Ordinal)
-            ? "Show / Hide by Object Type" : "Show/Hide by Object Type";
-        var expectedPointsStep = SpatialAnalyzerApi.TargetVersion.StartsWith("2024", StringComparison.Ordinal)
-            ? "Show / Hide Points" : "Show/Hide Points";
-        Assert.Equal(expectedTypeStep, ShowHideByObjectTypeOperation.Descriptor.MpStep);
-        Assert.Equal(expectedPointsStep, ShowHidePointsOperation.Descriptor.MpStep);
+        Assert.Equal("Show / Hide by Object Type", ShowHideByObjectTypeOperation.Descriptor.MpStep);
+        Assert.Equal("Show / Hide Points", ShowHidePointsOperation.Descriptor.MpStep);
     }
 
     [Fact]

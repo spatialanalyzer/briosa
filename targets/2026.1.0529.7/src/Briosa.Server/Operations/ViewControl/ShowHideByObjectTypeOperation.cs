@@ -9,7 +9,7 @@ namespace Briosa.Server.Operations.ViewControl;
 internal static class ShowHideByObjectTypeOperation
 {
     public static OperationDescriptor Descriptor { get; } = new(
-        "view_control.show_hide_by_object_type", "Show/Hide by Object Type", "briosa.ViewControl",
+        "view_control.show_hide_by_object_type", "Show / Hide by Object Type", "briosa.ViewControl",
         "ShowHideByObjectType", "/briosa.ViewControl/ShowHideByObjectType", "state_mutation",
         Api.OperationExecutionScope.GlobalStateMutation, Api.ReplaySafety.Unsafe, []);
     public static IReadOnlyList<OperationOutputContract> OutputContracts { get; } = [];

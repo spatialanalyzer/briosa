@@ -8,7 +8,7 @@ namespace Briosa.Server.Operations.UtilityOperations;
 internal static class SetWildCardAsteriskModeOperation
 {
     public static OperationDescriptor Descriptor { get; } = new(
-        "utility_operations.set_wild_card_asterisk_mode", "Set Wild Card Asterisk Mode", "briosa.UtilityOperations",
+        "utility_operations.set_wild_card_asterisk_mode", "Set WildCard Asterisk Mode", "briosa.UtilityOperations",
         "SetWildCardAsteriskMode", "/briosa.UtilityOperations/SetWildCardAsteriskMode", "state_mutation",
         Api.OperationExecutionScope.GlobalStateMutation, Api.ReplaySafety.Unsafe, []);
     public static IReadOnlyList<OperationOutputContract> OutputContracts { get; } = [];

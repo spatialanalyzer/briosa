@@ -9,7 +9,7 @@ namespace Briosa.Server.Operations.FileOperations;
 internal static class ExportVdaFsFileEntireModelOperation
 {
     public static OperationDescriptor Descriptor { get; } = new(
-        "file_operations.export_vda_fs_file_entire_model", "Export VDA/FS File - Entire Model", "briosa.FileOperations", "ExportVdaFsFileEntireModel",
+        "file_operations.export_vda_fs_file_entire_model", "Export VDA/FS File  - Entire Model", "briosa.FileOperations", "ExportVdaFsFileEntireModel",
         "/briosa.FileOperations/ExportVdaFsFileEntireModel", "state_mutation",
         Api.OperationExecutionScope.GlobalStateMutation, Api.ReplaySafety.Unsafe, []);
     public static IReadOnlyList<OperationOutputContract> OutputContracts { get; } = [];

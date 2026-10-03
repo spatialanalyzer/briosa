@@ -28,9 +28,7 @@ public sealed class TypedChartOperationTests
         }
 
         Assert.Contains("fixture_validation_pending", MakeUtilityChartOperation.Descriptor.RiskFlags);
-        Assert.Equal(SpatialAnalyzerApi.TargetVersion.StartsWith("2024", StringComparison.Ordinal)
-                ? "Save Chart to JPeg file" : "Save Chart to JPEG File",
-            SaveChartToJPegFileOperation.Descriptor.MpStep);
+        Assert.Equal("Save Chart to JPeg file", SaveChartToJPegFileOperation.Descriptor.MpStep);
     }
 
     [Fact]

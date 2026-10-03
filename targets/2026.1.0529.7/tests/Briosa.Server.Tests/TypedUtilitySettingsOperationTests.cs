@@ -32,9 +32,7 @@ public sealed class TypedUtilitySettingsOperationTests
             Assert.Single(SpatialAnalyzerApi.Operations, item => item.OperationId == id);
         }
 
-        Assert.Equal(SpatialAnalyzerApi.TargetVersion.StartsWith("2024", StringComparison.Ordinal)
-            ? "Set WildCard Asterisk Mode" : "Set Wild Card Asterisk Mode",
-            SetWildCardAsteriskModeOperation.Descriptor.MpStep);
+        Assert.Equal("Set WildCard Asterisk Mode", SetWildCardAsteriskModeOperation.Descriptor.MpStep);
     }
 
     [Fact]
