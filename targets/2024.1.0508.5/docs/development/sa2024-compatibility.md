@@ -34,6 +34,10 @@ with the 2024 contract where signatures differ.
   Its 151 COM methods match the reviewed 2026 interface surface; the assembly
   identity is `2024.1.508.5`. This is static interface evidence, not COM activation
   or runtime validation.
+- Curated public binding facts for the implemented subset are in
+  [evidence/sa/2024.1.0508.5](../../evidence/sa/2024.1.0508.5/README.md). They
+  cite the published catalog and use the private exports only for labels with
+  embedded quotes.
 
 The port retains 993 existing implementations and adds `Run Crib Sheet`,
 `Project Objects`, and `Stop Projection` as complete instrument operations.

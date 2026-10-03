@@ -83,6 +83,15 @@ opt-in and require approved hardware fixtures.
 
 `Test-LicensedRunnerState.ps1` and `Verify-LicensedRunnerWorkflow.ps1` protect the separately dispatched self-hosted runner workflow.
 
+## Binding facts
+
+`Update-Sa2024BindingFacts.ps1` is a local maintainer tool that curates the
+[SA 2024 binding facts](../evidence/sa/2024.1.0508.5/README.md) for the registered
+operations from the published MP command catalog. Only for embedded-quote labels does
+it read private exports, and only when given a local clone. CI never runs it; the
+portable `Sa2024BindingFactsTests` read only the committed file. It neither generates
+nor gates operations.
+
 ## Removed pipeline
 
 Issue #132 retired the custom catalog generator, disposition-completeness checks, generated operation documentation, generated conformance manifests, release audit, and stale-artifact gates. Git history preserves those tools and outputs. The 2024 port uses the completed command-difference review; it does not import the 2026 reference snapshots or use them as build inputs.
