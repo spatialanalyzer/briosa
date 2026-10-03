@@ -1,7 +1,8 @@
 version: 2
 updates:
+  # Include repository-local composite actions, which the root scan does not cover.
   - package-ecosystem: github-actions
-    directory: /
+    directories: ['/', '/.github/actions/*']
     schedule:
       interval: weekly
     groups:
