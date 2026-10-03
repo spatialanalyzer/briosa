@@ -165,6 +165,10 @@ public sealed partial class ExactTargetEvidenceCrossCheckTests
         // Guards the observation strategy: a literal label that no generated request variation
         // reaches would otherwise escape the cross-check silently.
         var observed = Result.Value.Observed;
+        var anyOperationLabels = observed.Values
+            .SelectMany(operation => operation.Inputs.Concat(operation.Outputs))
+            .Select(binding => binding.Label)
+            .ToHashSet(StringComparer.Ordinal);
         var unobserved = new List<string>();
         var scanned = 0;
         var operationsRoot = Path.Combine(TargetRoot(), "src", "Briosa.Server", "Operations");
@@ -172,15 +176,24 @@ public sealed partial class ExactTargetEvidenceCrossCheckTests
         {
             var source = File.ReadAllText(path);
             var operationId = OperationIdPattern().Match(source);
-            if (!operationId.Success)
+            string owner;
+            HashSet<string> labels;
+            if (operationId.Success)
             {
-                continue;
+                owner = operationId.Groups[1].Value;
+                Assert.True(observed.TryGetValue(owner, out var operation), path);
+                labels = operation.Inputs.Concat(operation.Outputs)
+                    .Select(binding => binding.Label)
+                    .ToHashSet(StringComparer.Ordinal);
+            }
+            else
+            {
+                // A shared helper or a descriptor keyed by a constant: some observed operation must
+                // carry each of its literal labels.
+                owner = Path.GetRelativePath(operationsRoot, path);
+                labels = anyOperationLabels;
             }
 
-            Assert.True(observed.TryGetValue(operationId.Groups[1].Value, out var operation), path);
-            var labels = operation.Inputs.Concat(operation.Outputs)
-                .Select(binding => binding.Label)
-                .ToHashSet(StringComparer.Ordinal);
             foreach (var label in LiteralLabelPattern().Matches(source).Select(match => match.Groups[1].Value
                 .Replace("\\\"", "\"", StringComparison.Ordinal)
                 .Replace("\\\\", "\\", StringComparison.Ordinal)))
@@ -188,7 +201,7 @@ public sealed partial class ExactTargetEvidenceCrossCheckTests
                 scanned++;
                 if (!labels.Contains(label))
                 {
-                    unobserved.Add($"{operationId.Groups[1].Value}: {label}");
+                    unobserved.Add($"{owner}: {label}");
                 }
             }
         }
@@ -536,10 +549,12 @@ public sealed partial class ExactTargetEvidenceCrossCheckTests
         var document = JsonNode.Parse(File.ReadAllText(
             Path.Combine(TargetRoot(), "tests", "Briosa.Server.Tests", "EvidenceDeviations.json")))!;
         Assert.Equal(SpatialAnalyzerApi.TargetVersion, document["spatial_analyzer_target"]!.GetValue<string>());
+        // Once #271 merges, its group may be emptied or removed.
+        var pending271 = document["pending_271"]?.AsArray() ?? [];
         return
         [
             .. document["reviewed"]!.AsArray().Select(entry => ReadDeviation(entry!, pending271: false)),
-            .. document["pending_271"]!.AsArray().Select(entry => ReadDeviation(entry!, pending271: true))
+            .. pending271.Select(entry => ReadDeviation(entry!, pending271: true))
         ];
     }
 
