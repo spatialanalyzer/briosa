@@ -119,11 +119,15 @@ public sealed class WorkerProcessSupervisorTests
     [Fact]
     public async Task HungWorkerRequiresExplicitSdkRecovery()
     {
+        var clock = new HeartbeatTestClock();
         await using var supervisor = CreateSupervisor(
             generation => CreateLaunch(generation == 1 ? "hang-on-ping" : "normal"),
-            CreatePolicy());
+            CreatePolicy(),
+            timeProvider: clock);
 
-        Assert.True((await supervisor.StartAsync()).Succeeded, supervisor.Current.DiagnosticCode);
+        Assert.True((await StartWithinProcessBound(supervisor)).Succeeded, supervisor.Current.DiagnosticCode);
+        await clock.FireNextAsync(HeartbeatInterval);
+        await clock.FireNextAsync(HeartbeatTimeout);
         var faulted = await WaitFor(
             supervisor,
             snapshot => snapshot.State == WorkerLifecycleState.Degraded &&
@@ -149,11 +153,14 @@ public sealed class WorkerProcessSupervisorTests
     [Fact]
     public async Task CrashedWorkerIsObservedAndRequiresExplicitSdkRecovery()
     {
+        var clock = new HeartbeatTestClock();
         await using var supervisor = CreateSupervisor(
             generation => CreateLaunch(generation == 1 ? "crash-on-ping" : "normal"),
-            CreatePolicy());
+            CreatePolicy(),
+            timeProvider: clock);
 
-        Assert.True((await supervisor.StartAsync()).Succeeded, supervisor.Current.DiagnosticCode);
+        Assert.True((await StartWithinProcessBound(supervisor)).Succeeded, supervisor.Current.DiagnosticCode);
+        await clock.FireNextAsync(HeartbeatInterval);
         var faulted = await WaitFor(
             supervisor,
             snapshot => snapshot.State == WorkerLifecycleState.Degraded);
@@ -174,6 +181,7 @@ public sealed class WorkerProcessSupervisorTests
     [Fact]
     public async Task ExplicitRecoveryReplacesRuntimeLoopsAfterReplacementProbeQuarantine()
     {
+        var clock = new HeartbeatTestClock();
         await using var supervisor = CreateSupervisor(
             generation => CreateLaunch(generation switch
             {
@@ -182,16 +190,20 @@ public sealed class WorkerProcessSupervisorTests
                 _ => "normal"
             }),
             CreatePolicy(),
-            CreateExecutionPolicy(TimeSpan.FromMilliseconds(150)));
+            CreateExecutionPolicy(TimeSpan.FromMilliseconds(150)),
+            timeProvider: clock);
 
-        Assert.True((await supervisor.StartAsync()).Succeeded, supervisor.Current.DiagnosticCode);
+        Assert.True((await StartWithinProcessBound(supervisor)).Succeeded, supervisor.Current.DiagnosticCode);
+        await clock.FireNextAsync(HeartbeatInterval);
         var quarantined = await WaitFor(
             supervisor,
             snapshot => snapshot.Generation == 1 &&
                 snapshot.State == WorkerLifecycleState.Degraded);
 
         Assert.Equal(0, quarantined.RecoveryCount);
-        Assert.False((await supervisor.RecoverSdkAsync(quarantined.Generation)).Succeeded);
+        var recovering = supervisor.RecoverSdkAsync(quarantined.Generation);
+        await clock.FireNextAsync(TimeSpan.FromMilliseconds(150));
+        Assert.False((await recovering.WaitAsync(ProcessBound)).Succeeded);
         Assert.Equal(2, supervisor.Current.Generation);
         Assert.Equal(
             WorkerExecutionReadinessState.OperatorRecoveryRequired,
@@ -219,12 +231,17 @@ public sealed class WorkerProcessSupervisorTests
         string expectedTermination,
         string expectedDiagnosticCode)
     {
+        var clock = new HeartbeatTestClock();
         await using var supervisor = CreateSupervisor(
             generation => CreateLaunch(generation == 1 ? firstScenario : "normal"),
             CreatePolicy(heartbeatInterval: TimeSpan.FromSeconds(10)),
-            CreateExecutionPolicy(TimeSpan.FromMilliseconds(150)));
+            CreateExecutionPolicy(TimeSpan.FromMilliseconds(150)),
+            timeProvider: clock);
 
-        Assert.False((await supervisor.StartAsync()).Succeeded);
+        var starting = supervisor.StartAsync();
+        if (firstScenario == "hang-on-verify")
+            await clock.FireNextAsync(TimeSpan.FromMilliseconds(150));
+        Assert.False((await starting.WaitAsync(ProcessBound)).Succeeded);
         await Task.Delay(TimeSpan.FromMilliseconds(250));
 
         Assert.Equal(1, supervisor.Current.Generation);
@@ -303,11 +320,14 @@ public sealed class WorkerProcessSupervisorTests
     [Fact]
     public async Task CrashDoesNotStartAnAutomaticReplacementLoop()
     {
+        var clock = new HeartbeatTestClock();
         await using var supervisor = CreateSupervisor(
             _ => CreateLaunch("crash-on-ping"),
-            CreatePolicy());
+            CreatePolicy(),
+            timeProvider: clock);
 
-        Assert.True((await supervisor.StartAsync()).Succeeded, supervisor.Current.DiagnosticCode);
+        Assert.True((await StartWithinProcessBound(supervisor)).Succeeded, supervisor.Current.DiagnosticCode);
+        await clock.FireNextAsync(HeartbeatInterval);
         var faulted = await WaitFor(
             supervisor,
             snapshot => snapshot.State == WorkerLifecycleState.Degraded);
@@ -329,12 +349,19 @@ public sealed class WorkerProcessSupervisorTests
         var policy = CreatePolicy(
             heartbeatInterval: TimeSpan.FromSeconds(10),
             shutdownTimeout: TimeSpan.FromMilliseconds(200));
+        var clock = new HeartbeatTestClock();
+        StopSendTrackingFactory? tracking = null;
         await using var supervisor = CreateSupervisor(
             _ => CreateLaunch("ignore-stop"),
-            policy);
+            policy,
+            timeProvider: clock,
+            wrapFactory: factory => tracking = new StopSendTrackingFactory(factory));
 
-        Assert.True((await supervisor.StartAsync()).Succeeded, supervisor.Current.DiagnosticCode);
-        await supervisor.StopAsync();
+        Assert.True((await StartWithinProcessBound(supervisor)).Succeeded, supervisor.Current.DiagnosticCode);
+        var stopping = supervisor.StopAsync();
+        await tracking!.StopSent.Task.WaitAsync(ProcessBound);
+        await clock.FireNextAsync(TimeSpan.FromMilliseconds(200));
+        await stopping.WaitAsync(ProcessBound);
 
         Assert.Equal(WorkerLifecycleState.Stopped, supervisor.Current.State);
         Assert.Equal(WorkerTerminationKind.Forced, supervisor.Current.LastTermination);
@@ -345,18 +372,22 @@ public sealed class WorkerProcessSupervisorTests
     public async Task ShutdownDrainsAnInFlightHeartbeatBeforeSendingStop()
     {
         await using var process = new CoordinatedHeartbeatProcess();
+        var clock = new HeartbeatTestClock();
         await using var supervisor = new WorkerProcessSupervisor(
             new FixedWorkerProcessFactory(process),
             CreatePolicy(
                 heartbeatInterval: TimeSpan.FromMilliseconds(1),
                 shutdownTimeout: TimeSpan.FromSeconds(1)),
             CreateExecutionPolicy(),
+            clock,
             identityPolicy: ExactTargetIdentityPolicy.CreateForTesting(
                 "2026.1.0529.7",
                 activatedSdkVersion: "2026.1.0529.7",
                 connectedSpatialAnalyzerVersion: "2026.1.0529.7"));
 
         Assert.True((await supervisor.StartAsync()).Succeeded, supervisor.Current.DiagnosticCode);
+        // The held ping cannot reach its virtual heartbeat timeout.
+        await clock.FireNextAsync(TimeSpan.FromMilliseconds(1));
         await process.PingStarted.WaitAsync(TimeSpan.FromSeconds(5));
 
         var stopping = supervisor.StopAsync();
@@ -505,6 +536,7 @@ public sealed class WorkerProcessSupervisorTests
     [Fact]
     public async Task WatchdogFaultDoesNotReplayQueuedCallsBeforeExplicitRecovery()
     {
+        var clock = new HeartbeatTestClock();
         await using var supervisor = CreateSupervisor(
             generation => CreateLaunch(generation == 1
                 ? "drop-execution-response"
@@ -514,12 +546,14 @@ public sealed class WorkerProcessSupervisorTests
                 lifecycleHistoryCapacity: 16),
             CreateExecutionPolicy(
                 watchdogTimeout: TimeSpan.FromMilliseconds(150),
-                queueCapacity: 2));
+                queueCapacity: 2),
+            timeProvider: clock);
 
-        Assert.True((await supervisor.StartAsync()).Succeeded, supervisor.Current.DiagnosticCode);
+        Assert.True((await StartWithinProcessBound(supervisor)).Succeeded, supervisor.Current.DiagnosticCode);
         var active = supervisor.ExecuteAsync(CreateCommand("watchdog-active"));
         var queued = supervisor.ExecuteAsync(CreateCommand("watchdog-queued"));
-        var failures = await Task.WhenAll(active, queued);
+        await clock.FireNextAsync(TimeSpan.FromMilliseconds(150));
+        var failures = await Task.WhenAll(active, queued).WaitAsync(ProcessBound);
         var snapshot = supervisor.ExecutionSnapshot;
 
         Assert.Contains(failures, outcome =>
@@ -687,14 +721,18 @@ public sealed class WorkerProcessSupervisorTests
     [Fact]
     public async Task ExecutionWatchdogRequiresExplicitReplacementBeforeNextCallSucceeds()
     {
+        var clock = new HeartbeatTestClock();
         await using var supervisor = CreateSupervisor(
             generation => CreateLaunch(
                 generation == 1 ? "hang-on-execute" : "normal"),
             CreatePolicy(heartbeatInterval: TimeSpan.FromSeconds(10)),
-            CreateExecutionPolicy(TimeSpan.FromMilliseconds(150)));
+            CreateExecutionPolicy(TimeSpan.FromMilliseconds(150)),
+            timeProvider: clock);
 
-        Assert.True((await supervisor.StartAsync()).Succeeded, supervisor.Current.DiagnosticCode);
-        var timedOut = await supervisor.ExecuteAsync(CreateCommand("hang"));
+        Assert.True((await StartWithinProcessBound(supervisor)).Succeeded, supervisor.Current.DiagnosticCode);
+        var timingOut = supervisor.ExecuteAsync(CreateCommand("hang"));
+        await clock.FireNextAsync(TimeSpan.FromMilliseconds(150));
+        var timedOut = await timingOut.WaitAsync(ProcessBound);
         var blocked = await supervisor.ExecuteAsync(CreateCommand("before-recovery"));
         Assert.True((await supervisor.RecoverSdkAsync(supervisor.Current.Generation)).Succeeded,
             supervisor.Current.DiagnosticCode);
@@ -753,13 +791,18 @@ public sealed class WorkerProcessSupervisorTests
         string scenario,
         int expectedStatus)
     {
+        var clock = new HeartbeatTestClock();
         await using var supervisor = CreateSupervisor(
             generation => CreateLaunch(generation == 1 ? scenario : "normal"),
             CreatePolicy(heartbeatInterval: TimeSpan.FromSeconds(10)),
-            CreateExecutionPolicy(TimeSpan.FromMilliseconds(150)));
+            CreateExecutionPolicy(TimeSpan.FromMilliseconds(150)),
+            timeProvider: clock);
 
-        Assert.True((await supervisor.StartAsync()).Succeeded, supervisor.Current.DiagnosticCode);
-        var ambiguous = await supervisor.ExecuteAsync(CreateCommand("ambiguous-completion"));
+        Assert.True((await StartWithinProcessBound(supervisor)).Succeeded, supervisor.Current.DiagnosticCode);
+        var completing = supervisor.ExecuteAsync(CreateCommand("ambiguous-completion"));
+        if (scenario == "drop-execution-response")
+            await clock.FireNextAsync(TimeSpan.FromMilliseconds(150));
+        var ambiguous = await completing.WaitAsync(ProcessBound);
         var blocked = await supervisor.ExecuteAsync(CreateCommand("before-recovery"));
         Assert.True((await supervisor.RecoverSdkAsync(supervisor.Current.Generation)).Succeeded,
             supervisor.Current.DiagnosticCode);
@@ -1096,9 +1139,10 @@ public sealed class WorkerProcessSupervisorTests
     {
         var factory = new StartupTrackingFactory(new NamedPipeWorkerProcessFactory(
             _ => CreateLaunch("hang-before-ready")));
+        var clock = new HeartbeatTestClock();
         var supervisor = new WorkerProcessSupervisor(factory,
             new WorkerLifecyclePolicy(TimeSpan.FromMinutes(5), TimeSpan.FromSeconds(1),
-                TimeSpan.FromMilliseconds(500), TimeSpan.FromSeconds(3)));
+                TimeSpan.FromMilliseconds(500), TimeSpan.FromSeconds(3)), timeProvider: clock);
         await using var supervisorScope = supervisor.ConfigureAwait(true);
         using var caller = new CancellationTokenSource();
         var starting = supervisor.StartAsync(caller.Token);
@@ -1111,6 +1155,7 @@ public sealed class WorkerProcessSupervisorTests
         }
         else
         {
+            await clock.FireNextAsync(TimeSpan.FromMilliseconds(500));
             Assert.False((await starting.WaitAsync(TimeSpan.FromSeconds(6))).Succeeded);
             Assert.Equal("worker-startup-timeout", supervisor.Current.DiagnosticCode);
         }
@@ -1153,11 +1198,14 @@ public sealed class WorkerProcessSupervisorTests
         Func<int, WorkerProcessLaunch> launchFactory,
         WorkerLifecyclePolicy policy,
         WorkerExecutionPolicy? executionPolicy = null,
-        ExactTargetIdentityPolicy? identityPolicy = null) =>
+        ExactTargetIdentityPolicy? identityPolicy = null,
+        TimeProvider? timeProvider = null,
+        Func<IWorkerProcessFactory, IWorkerProcessFactory>? wrapFactory = null) =>
         new(
-            new NamedPipeWorkerProcessFactory(launchFactory),
+            (wrapFactory ?? (factory => factory))(new NamedPipeWorkerProcessFactory(launchFactory)),
             policy,
             executionPolicy ?? CreateExecutionPolicy(),
+            timeProvider,
             identityPolicy: identityPolicy ??
                 ExactTargetIdentityPolicy.CreateForTesting(
                     "2026.1.0529.7",
@@ -1341,13 +1389,22 @@ public sealed class WorkerProcessSupervisorTests
             watchdogTimeout ?? TimeSpan.FromSeconds(2),
             queueCapacity);
 
+    // Virtual-time tests fire server-side deadlines explicitly, but a real fake
+    // worker process must still start and exit within a generous real bound.
+    private static readonly TimeSpan ProcessBound = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan HeartbeatInterval = TimeSpan.FromMilliseconds(50);
+    private static readonly TimeSpan HeartbeatTimeout = TimeSpan.FromMilliseconds(250);
+
+    private static Task<WorkerLifecycleResult> StartWithinProcessBound(WorkerProcessSupervisor supervisor) =>
+        supervisor.StartAsync().WaitAsync(ProcessBound);
+
     private static WorkerLifecyclePolicy CreatePolicy(
         TimeSpan? heartbeatInterval = null,
         TimeSpan? shutdownTimeout = null,
         int lifecycleHistoryCapacity = 256) =>
         new(
-            heartbeatInterval ?? TimeSpan.FromMilliseconds(50),
-            heartbeatTimeout: TimeSpan.FromMilliseconds(250),
+            heartbeatInterval ?? HeartbeatInterval,
+            heartbeatTimeout: HeartbeatTimeout,
             startupTimeout: TimeSpan.FromSeconds(5),
             shutdownTimeout ?? TimeSpan.FromMilliseconds(500),
             lifecycleHistoryCapacity);

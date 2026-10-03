@@ -17,7 +17,7 @@ public sealed class WorkerHeartbeatMonitorTests
         await clock.TickAsync();
         Assert.Equal(1, calls);
         await monitor.DisposeAsync();
-        await clock.FireNextAsync();
+        clock.Advance(TimeSpan.FromSeconds(1));
         Assert.Equal(1, calls);
     }
 
