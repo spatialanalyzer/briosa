@@ -40,12 +40,8 @@ public sealed class TypedViewCameraAndClippingOperationTests
             Assert.Equal(Api.ReplaySafety.Safe, operation.ReplaySafety);
         }
 
-        Assert.Equal(SpatialAnalyzerApi.TargetVersion.StartsWith("2024", StringComparison.Ordinal)
-                ? "Define point of view" : "Define Point of View",
-            DefinePointOfViewOperation.Descriptor.MpStep);
-        Assert.Equal(SpatialAnalyzerApi.TargetVersion.StartsWith("2024", StringComparison.Ordinal)
-                ? "Set Point of View from Frame" : "Set Point of View From Frame",
-            SetPointOfViewFromFrameOperation.Descriptor.MpStep);
+        Assert.Equal("Define point of view", DefinePointOfViewOperation.Descriptor.MpStep);
+        Assert.Equal("Set Point of View from Frame", SetPointOfViewFromFrameOperation.Descriptor.MpStep);
         Assert.Contains("fixture_validation_pending",
             SetPointOfViewFromInstrumentUpdatesOperation.Descriptor.RiskFlags);
     }

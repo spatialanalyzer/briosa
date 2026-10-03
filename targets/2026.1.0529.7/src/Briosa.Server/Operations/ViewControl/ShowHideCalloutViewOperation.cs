@@ -9,7 +9,7 @@ namespace Briosa.Server.Operations.ViewControl;
 internal static class ShowHideCalloutViewOperation
 {
     public static OperationDescriptor Descriptor { get; } = new(
-        "view_control.show_hide_callout_view", "Show/Hide Callout View", "briosa.ViewControl",
+        "view_control.show_hide_callout_view", "Show / Hide Callout View", "briosa.ViewControl",
         "ShowHideCalloutView", "/briosa.ViewControl/ShowHideCalloutView", "state_mutation",
         Api.OperationExecutionScope.GlobalStateMutation, Api.ReplaySafety.Unsafe, []);
     public static IReadOnlyList<OperationOutputContract> OutputContracts { get; } = [];

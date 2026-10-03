@@ -8,7 +8,7 @@ namespace Briosa.Server.Operations.ViewControl;
 internal static class SetSaWindowSizeOperation
 {
     public static OperationDescriptor Descriptor { get; } = new(
-        "view_control.set_sa_window_size", "Set SA’s Window Size", "briosa.ViewControl",
+        "view_control.set_sa_window_size", "Set SA's Window Size", "briosa.ViewControl",
         "SetSaWindowSize", "/briosa.ViewControl/SetSaWindowSize", "state_mutation",
         Api.OperationExecutionScope.GlobalStateMutation, Api.ReplaySafety.Unsafe, []);
     public static IReadOnlyList<OperationOutputContract> OutputContracts { get; } = [];

@@ -9,7 +9,7 @@ namespace Briosa.Server.Operations.ViewControl;
 internal static class GetPointOfViewParametersOperation
 {
     public static OperationDescriptor Descriptor { get; } = new(
-        "view_control.get_point_of_view_parameters", "Get Point of View Parameters", "briosa.ViewControl",
+        "view_control.get_point_of_view_parameters", "Get point of view parameters", "briosa.ViewControl",
         "GetPointOfViewParameters", "/briosa.ViewControl/GetPointOfViewParameters", "read_only",
         Api.OperationExecutionScope.GlobalStateRead, Api.ReplaySafety.Safe, []);
     public static IReadOnlyList<OperationOutputContract> OutputContracts { get; } =

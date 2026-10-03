@@ -34,8 +34,8 @@ public sealed class TypedCadAndMeshFileOperationTests
         Assert.Equal(["fixture_validation_pending"], DirectCadAccessOperation.Descriptor.RiskFlags);
         Assert.Equal(["fixture_validation_pending"], ExportScanStripeMeshToStlFileOperation.Descriptor.RiskFlags);
         Assert.Equal(["fixture_validation_pending"], ImportPolyworksFileOperation.Descriptor.RiskFlags);
-        Assert.Equal("Export IGES File - Entire Model", ExportIgesFileEntireModelOperation.Descriptor.MpStep);
-        Assert.Equal("Export VDA/FS File - Entire Model", ExportVdaFsFileEntireModelOperation.Descriptor.MpStep);
+        Assert.Equal("Export IGES File  - Entire Model", ExportIgesFileEntireModelOperation.Descriptor.MpStep);
+        Assert.Equal("Export VDA/FS File  - Entire Model", ExportVdaFsFileEntireModelOperation.Descriptor.MpStep);
     }
 
     [Fact]

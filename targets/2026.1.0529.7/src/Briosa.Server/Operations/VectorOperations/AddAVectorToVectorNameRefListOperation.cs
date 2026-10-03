@@ -9,7 +9,7 @@ namespace Briosa.Server.Operations.VectorOperations;
 internal static class AddAVectorToVectorNameRefListOperation
 {
     public static OperationDescriptor Descriptor { get; } = new(
-        "vector_operations.add_a_vector_to_vector_name_ref_list", "Add a Vector to Vector Name Ref List",
+        "vector_operations.add_a_vector_to_vector_name_ref_list", "Add a Vector To Vector Name Ref List",
         "briosa.VectorOperations", "AddAVectorToVectorNameRefList",
         "/briosa.VectorOperations/AddAVectorToVectorNameRefList",
         "state_mutation", Api.OperationExecutionScope.GlobalStateMutation, Api.ReplaySafety.Unsafe, []);

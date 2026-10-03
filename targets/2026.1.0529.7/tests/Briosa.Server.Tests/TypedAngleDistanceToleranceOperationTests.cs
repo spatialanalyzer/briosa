@@ -59,7 +59,7 @@ public sealed class TypedAngleDistanceToleranceOperationTests
         Assert.Throws<ArgumentException>(() => GetPointToLineDistanceOperation.CreateCommand(new()));
         Assert.Throws<ArgumentException>(() => GetPointToPointDistanceOperation.CreateCommand(new()));
         Assert.Throws<ArgumentException>(() => GetPointToleranceOperation.CreateCommand(new()));
-        Assert.Equal("Angle Between Two Planes’ normals", AngleBetweenTwoPlanesNormalsOperation.Descriptor.MpStep);
+        Assert.Equal("Angle Between Two Planes' normals", AngleBetweenTwoPlanesNormalsOperation.Descriptor.MpStep);
 
         var line = new Api.CollectionObjectName { ObjectName = "line" };
         var plane = new Api.CollectionObjectName { ObjectName = "plane" };

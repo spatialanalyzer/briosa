@@ -14,7 +14,7 @@ namespace Briosa.Server.Tests;
 /// <summary>
 /// Pins SDK step text and argument names restored after the #227 regressions (#236) to the
 /// committed exact-target inventory: SDK setter argument names and SDK-evidence MP steps, never
-/// the documentation text.
+/// the documentation text. Also pins the step text corrected under #271.
 /// </summary>
 public sealed class ExactSdkBindingRegressionTests
 {
@@ -44,6 +44,45 @@ public sealed class ExactSdkBindingRegressionTests
         Assert.Equal(expectedName, setter["argument_name"]!.GetValue<string>());
         Assert.Equal(expectedName, argument.Name);
         Assert.Equal(setter["method"]!.GetValue<string>(), argument.SdkBinding);
+    }
+
+    [Theory]
+    [InlineData("analysis_operations.angle_between_two_planes_normals", "Angle Between Two Planes' normals")]
+    [InlineData("analysis_operations.compute_group_to_group_orientation_rx_ry_rz",
+        "Compute Group to Group Orientation (Rx,Ry,Rz)")]
+    [InlineData("file_operations.export_iges_file_entire_model", "Export IGES File  - Entire Model")]
+    [InlineData("file_operations.export_vda_fs_file_entire_model", "Export VDA/FS File  - Entire Model")]
+    [InlineData("file_operations.import_file_as_embedded_file", "Import File as Embedded File")]
+    [InlineData("file_operations.import_mp_file_as_embedded_mp", "Import MP File as Embedded MP")]
+    [InlineData("file_operations.import_qdas_catalog_file", "Import QDAS Catalog File")]
+    [InlineData("file_operations.save_as", "Save As...")]
+    [InlineData("relationship_operations.make_pipe_relationship_cut", "Make Pipe Relationship Cut")]
+    [InlineData("reporting_operations.save_chart_to_jpeg_file", "Save Chart to JPeg file")]
+    [InlineData("utility_operations.set_wild_card_asterisk_mode", "Set WildCard Asterisk Mode")]
+    [InlineData("vector_operations.add_a_vector_to_vector_name_ref_list", "Add a Vector To Vector Name Ref List")]
+    [InlineData("view_control.define_point_of_view", "Define point of view")]
+    [InlineData("view_control.get_point_of_view_parameters", "Get point of view parameters")]
+    [InlineData("view_control.save_point_of_view", "Save point of view")]
+    [InlineData("view_control.set_mp_window_state", "Set MP's Window State")]
+    [InlineData("view_control.set_point_of_view", "Set point of view")]
+    [InlineData("view_control.set_point_of_view_from_frame", "Set Point of View from Frame")]
+    [InlineData("view_control.set_point_of_view_from_instrument_updates", "Set Point of View from Instrument Updates")]
+    [InlineData("view_control.set_sa_window_pos", "Set SA's Window Pos")]
+    [InlineData("view_control.set_sa_window_size", "Set SA's Window Size")]
+    [InlineData("view_control.set_sa_window_state", "Set SA's Window State")]
+    [InlineData("view_control.show_hide_by_object_type", "Show / Hide by Object Type")]
+    [InlineData("view_control.show_hide_callout_view", "Show / Hide Callout View")]
+    [InlineData("view_control.show_hide_points", "Show / Hide Points")]
+    public void CorrectedStepsMatchTheInventorySdkEvidence(string operationId, string expectedStep)
+    {
+        var descriptor = Assert.Single(SpatialAnalyzerApi.Operations, operation => operation.OperationId == operationId);
+        var inventoryCommand = Assert.Single(InventoryCommands.Value, candidate => HasSdkStep(candidate!, expectedStep))!;
+        var sdkSteps = inventoryCommand["sdk_evidence"]!.AsArray()
+            .Select(evidence => evidence!["mp_step"]!.GetValue<string>())
+            .Distinct(StringComparer.Ordinal);
+
+        Assert.Equal(expectedStep, Assert.Single(sdkSteps));
+        Assert.Equal(expectedStep, descriptor.MpStep);
     }
 
     [Fact]

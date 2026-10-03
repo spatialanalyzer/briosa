@@ -9,7 +9,7 @@ namespace Briosa.Server.Operations.FileOperations;
 internal static class ImportQdasCatalogFileOperation
 {
     public static OperationDescriptor Descriptor { get; } = new(
-        "file_operations.import_qdas_catalog_file", "Import QDas Catalog File", "briosa.FileOperations",
+        "file_operations.import_qdas_catalog_file", "Import QDAS Catalog File", "briosa.FileOperations",
         "ImportQdasCatalogFile", "/briosa.FileOperations/ImportQdasCatalogFile", "state_mutation",
         Api.OperationExecutionScope.GlobalStateMutation, Api.ReplaySafety.Unsafe, ["fixture_validation_pending"]);
 

@@ -9,7 +9,7 @@ namespace Briosa.Server.Operations.FileOperations;
 internal static class ExportIgesFileEntireModelOperation
 {
     public static OperationDescriptor Descriptor { get; } = new(
-        "file_operations.export_iges_file_entire_model", "Export IGES File - Entire Model", "briosa.FileOperations", "ExportIgesFileEntireModel",
+        "file_operations.export_iges_file_entire_model", "Export IGES File  - Entire Model", "briosa.FileOperations", "ExportIgesFileEntireModel",
         "/briosa.FileOperations/ExportIgesFileEntireModel", "state_mutation",
         Api.OperationExecutionScope.GlobalStateMutation, Api.ReplaySafety.Unsafe, []);
     public static IReadOnlyList<OperationOutputContract> OutputContracts { get; } = [];

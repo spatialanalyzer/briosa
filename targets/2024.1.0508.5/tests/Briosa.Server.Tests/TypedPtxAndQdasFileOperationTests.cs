@@ -36,9 +36,7 @@ public sealed class TypedPtxAndQdasFileOperationTests
         Assert.Equal(["fixture_validation_pending"], GetQdasCatalogEntriesOperation.Descriptor.RiskFlags);
         Assert.Equal(["fixture_validation_pending"], ImportQdasCatalogFileOperation.Descriptor.RiskFlags);
         Assert.Equal(["fixture_validation_pending"], PrepareQdasDataListOperation.Descriptor.RiskFlags);
-        Assert.Equal(SpatialAnalyzerApi.TargetVersion.StartsWith("2024", StringComparison.Ordinal)
-                ? "Import QDAS Catalog File" : "Import QDas Catalog File",
-            ImportQdasCatalogFileOperation.Descriptor.MpStep);
+        Assert.Equal("Import QDAS Catalog File", ImportQdasCatalogFileOperation.Descriptor.MpStep);
     }
 
     [Fact]

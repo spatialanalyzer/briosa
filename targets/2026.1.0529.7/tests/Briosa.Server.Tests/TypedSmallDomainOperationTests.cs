@@ -142,7 +142,7 @@ public sealed class TypedSmallDomainOperationTests
         var color = colors.InputArguments[0].RequireValue<WorkerColorizationOptionsValue>();
         Assert.Equal(100, color.VectorMagnification);
         Assert.True(color.DrawArrowheads);
-        Assert.Equal("Add a Vector to Vector Name Ref List", AddAVectorToVectorNameRefListOperation.Descriptor.MpStep);
+        Assert.Equal("Add a Vector To Vector Name Ref List", AddAVectorToVectorNameRefListOperation.Descriptor.MpStep);
     }
 
     [Fact]
