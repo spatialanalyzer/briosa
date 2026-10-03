@@ -470,6 +470,16 @@ internal sealed class SdkConnectionManager : IAsyncDisposable
 
     private static (bool Verified, string DiagnosticCode) ClassifyVerification(WorkerMpExecutionResult execution)
     {
+        // A per-call SDK fault during the probe keeps the code an escaping
+        // adapter exception produces.
+        if (execution.DiagnosticCode is WorkerSdkFaultDiagnosticCodes.BeforeExecute or
+            WorkerSdkFaultDiagnosticCodes.ExecuteStep or
+            WorkerSdkFaultDiagnosticCodes.MpResultRetrieval or
+            WorkerSdkFaultDiagnosticCodes.OutputGetter)
+        {
+            return (false, "execution-readiness-probe-failed");
+        }
+
         if (!execution.ExecuteStepReturned)
         {
             return (false, "execution-readiness-probe-rejected");

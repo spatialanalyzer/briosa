@@ -648,7 +648,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             (Assert.Single(result.OutputValues).ReadValue() as WorkerCollectionVectorGroupNameListValue)!.Values);
     }
 
-    private sealed partial class RecordingSdkCalls : ISpatialAnalyzerSdkCalls
+    internal sealed partial class RecordingSdkCalls : ISpatialAnalyzerSdkCalls
     {
         public List<string> Events { get; } = [];
 
@@ -689,9 +689,37 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
 
         public Dictionary<string, IReadOnlyList<string>> ReferenceArguments { get; } = [];
 
+        // Throw-at-phase hook: the matching call is recorded, then throws Fault.
+        // FaultOrdinal selects the Nth setter or getter of the step; FaultStepName,
+        // when set, limits the fault to that MP step.
+        public SdkFaultPhase? FaultPhase { get; init; }
+
+        public int FaultOrdinal { get; init; } = 1;
+
+        public string? FaultStepName { get; init; }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2201:Do not raise reserved exception types", Justification = "The fake raises the exact runtime type that COM interop raises for a failed HRESULT.")]
+        public Exception Fault { get; init; } = new COMException(
+            SensitiveFaultText,
+            unchecked((int)0x80010108));
+
+        public const string SensitiveFaultText = @"fault text C:\Sensitive\Customer\part.xit";
+
+        private string? _currentStep;
+
+        private int _setterCount;
+
+        private int _getterCount;
+
         public bool ConnectEx(string host, ref int statusCode) => true;
 
-        public void SetStep(string stepName) => Events.Add($"SetStep:{stepName}");
+        public void SetStep(string stepName)
+        {
+            _currentStep = stepName;
+            _setterCount = 0;
+            _getterCount = 0;
+            Record($"SetStep:{stepName}");
+        }
 
         public bool SetBoolArg(string name, bool value) => RecordSetter("SetBoolArg", name);
 
@@ -859,41 +887,41 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
 
         public bool ExecuteStep()
         {
-            Events.Add("ExecuteStep");
+            Record("ExecuteStep");
             return ExecuteStepReturned;
         }
 
         public bool GetMPStepResult(ref int resultCode)
         {
-            Events.Add("GetMPStepResult");
+            Record("GetMPStepResult");
             resultCode = MpResultCode;
             return MpResultRetrieved;
         }
 
         public bool GetBoolArg(string name, ref bool value)
         {
-            Events.Add($"GetBoolArg:{name}");
+            Record($"GetBoolArg:{name}");
             value = true;
             return true;
         }
 
         public bool GetIntegerArg(string name, ref int value)
         {
-            Events.Add($"GetIntegerArg:{name}");
+            Record($"GetIntegerArg:{name}");
             value = 7;
             return true;
         }
 
         public bool GetDoubleArg(string name, ref double value)
         {
-            Events.Add($"GetDoubleArg:{name}");
+            Record($"GetDoubleArg:{name}");
             value = 1.25;
             return true;
         }
 
         public bool GetStringArg(string name, ref string value)
         {
-            Events.Add($"GetStringArg:{name}");
+            Record($"GetStringArg:{name}");
             var retrieved = name != FailedOutputName;
             if (retrieved)
             {
@@ -909,7 +937,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             ref string groupName,
             ref string targetName)
         {
-            Events.Add($"GetPointNameArg:{name}");
+            Record($"GetPointNameArg:{name}");
             collectionName = "Collection";
             groupName = "Group";
             targetName = "Point";
@@ -921,7 +949,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             ref string collectionName,
             ref int instrumentId)
         {
-            Events.Add($"GetColInstIdArg:{name}");
+            Record($"GetColInstIdArg:{name}");
             collectionName = "Instruments";
             instrumentId = 17;
             return true;
@@ -933,7 +961,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
 
         public bool GetCollectionNameArg(string name, ref string collectionName)
         {
-            Events.Add($"GetCollectionNameArg:{name}");
+            Record($"GetCollectionNameArg:{name}");
             collectionName = "Collection";
             return true;
         }
@@ -943,7 +971,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             ref string collectionName,
             ref string objectName)
         {
-            Events.Add($"GetCollectionObjectNameArg:{name}");
+            Record($"GetCollectionObjectNameArg:{name}");
             if (name == FailedOutputName)
             {
                 return false;
@@ -994,7 +1022,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             ref double y,
             ref double z)
         {
-            Events.Add($"GetVectorArg:{name}");
+            Record($"GetVectorArg:{name}");
             x = 1;
             y = 2;
             z = 3;
@@ -1020,7 +1048,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             ref bool useLowMagnitude,
             ref double lowMagnitude)
         {
-            Events.Add($"GetToleranceVectorOptionsArg:{name}");
+            Record($"GetToleranceVectorOptionsArg:{name}");
             useHighX = true;
             highX = 1;
             useHighY = true;
@@ -1051,7 +1079,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
                 wrapper.WrappedObject is double[] buffer
                     ? buffer.Length
                     : 0;
-            Events.Add($"GetDoubleArrayArg:{name}");
+            Record($"GetDoubleArrayArg:{name}");
             values = name == MalformedOutputName
                 ? new double[] { 1, 2 }
                 : new double[] { 1, 2, 3 };
@@ -1062,7 +1090,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         public bool GetEditTextArg(string name, ref object values)
         {
             ContainerGettersReceivedVariantWrapper &= values is VariantWrapper;
-            Events.Add($"GetEditTextArg:{name}");
+            Record($"GetEditTextArg:{name}");
             values = name == MalformedOutputName
                 ? new object[] { "A", 2 }
                 : new object[] { "A", "", "C" };
@@ -1072,7 +1100,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         public bool GetTransformArg(string name, ref object transform)
         {
             ContainerGettersReceivedVariantWrapper &= transform is VariantWrapper;
-            Events.Add($"GetTransformArg:{name}");
+            Record($"GetTransformArg:{name}");
             transform = name == MalformedOutputName
                 ? new double[3, 4]
                 : CreateMatrix();
@@ -1085,7 +1113,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             ref double scaleFactor)
         {
             ContainerGettersReceivedVariantWrapper &= transform is VariantWrapper;
-            Events.Add($"GetWorldTransformArg:{name}");
+            Record($"GetWorldTransformArg:{name}");
             transform = name == MalformedOutputName
                 ? new double[4, 3]
                 : CreateMatrix();
@@ -1098,7 +1126,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             ref string path,
             ref bool embeddedFile)
         {
-            Events.Add($"GetFilePathArg:{name}");
+            Record($"GetFilePathArg:{name}");
             path = @"C:\sensitive\model.xit";
             embeddedFile = true;
             return name != FailedOutputName;
@@ -1110,7 +1138,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
 
         private bool RecordReferenceSetter(string method, string name, object values)
         {
-            Events.Add($"{method}:{name}");
+            Record($"{method}:{name}");
             ReferenceSettersReceivedVariantWrapper &= values is VariantWrapper;
             if (values is VariantWrapper wrapper)
             {
@@ -1129,7 +1157,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             ref object values,
             params string[] result)
         {
-            Events.Add($"{method}:{name}");
+            Record($"{method}:{name}");
             ReferenceGettersReceivedVariantWrapper &= values is VariantWrapper;
             if (name == MalformedOutputName)
             {
@@ -1162,9 +1190,43 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
 
         private bool RecordSetter(string method, string name)
         {
-            Events.Add($"{method}:{name}");
+            Record($"{method}:{name}");
             return true;
         }
+
+        private void Record(string value)
+        {
+            Events.Add(value);
+            SdkFaultPhase? phase = value switch
+            {
+                _ when value.StartsWith("SetStep:", StringComparison.Ordinal) => SdkFaultPhase.SetStep,
+                "ExecuteStep" => SdkFaultPhase.ExecuteStep,
+                "GetMPStepResult" => SdkFaultPhase.GetMPStepResult,
+                _ when value.StartsWith("Set", StringComparison.Ordinal) => SdkFaultPhase.Setter,
+                _ when value.StartsWith("Get", StringComparison.Ordinal) => SdkFaultPhase.Getter,
+                _ => null
+            };
+            var ordinal = phase switch
+            {
+                SdkFaultPhase.Setter => ++_setterCount,
+                SdkFaultPhase.Getter => ++_getterCount,
+                _ => 1
+            };
+            if (phase is not null && phase == FaultPhase && ordinal == FaultOrdinal &&
+                (FaultStepName is null || FaultStepName == _currentStep))
+            {
+                throw Fault;
+            }
+        }
+    }
+
+    internal enum SdkFaultPhase
+    {
+        SetStep,
+        Setter,
+        ExecuteStep,
+        GetMPStepResult,
+        Getter
     }
 }
 #pragma warning restore CA1814

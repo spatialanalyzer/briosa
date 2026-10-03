@@ -1,5 +1,6 @@
 using Briosa.Worker.Control;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using ComSdk = Briosa.SpatialAnalyzer.Interop.ISpatialAnalyzerSDK;
 using ComSdkClass = Briosa.SpatialAnalyzer.Interop.SpatialAnalyzerSDKClass;
@@ -54,29 +55,66 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
                 "connect-ex-unavailable");
     }
 
+    // A per-call SDK fault becomes the typed outcome its phase proves, with a
+    // value-free code and never the exception text; the STA and worker generation
+    // stay in service. Faults that make the adapter, STA, or process untrustworthy
+    // escape, and the worker control host fail-stops so the supervisor retires the
+    // generation with an unknown outcome.
+    [SuppressMessage(
+        "Design", "CA1031:Do not catch general exception types",
+        Justification = "COM maps arbitrary HRESULTs to many exception types; IsPerCallSdkFault lets untrustworthy-state faults escape.")]
     public WorkerMpExecutionResult Execute(WorkerMpCommand command)
     {
         ArgumentNullException.ThrowIfNull(command);
         ObjectDisposedException.ThrowIf(_sdk is null, this);
 
         var started = Stopwatch.GetTimestamp();
-        _sdk.SetStep(command.StepName);
-        foreach (var argument in command.InputArguments)
+        try
         {
-            if (!SetInputArgument(_sdk, argument))
+            _sdk.SetStep(command.StepName);
+            foreach (var argument in command.InputArguments)
             {
-                return new WorkerArgumentsRejected(
-                    (long)Stopwatch.GetElapsedTime(started).TotalMilliseconds,
-                    "sdk-argument-rejected");
+                if (!SetInputArgument(_sdk, argument))
+                {
+                    return new WorkerArgumentsRejected(
+                        (long)Stopwatch.GetElapsedTime(started).TotalMilliseconds,
+                        "sdk-argument-rejected");
+                }
             }
         }
+        catch (Exception exception) when (IsPerCallSdkFault(exception))
+        {
+            return new WorkerArgumentsRejected(
+                (long)Stopwatch.GetElapsedTime(started).TotalMilliseconds,
+                WorkerSdkFaultDiagnosticCodes.BeforeExecute);
+        }
 
-        var executeStepReturned = _sdk.ExecuteStep();
+        bool executeStepReturned;
+        try
+        {
+            executeStepReturned = _sdk.ExecuteStep();
+        }
+        catch (Exception exception) when (IsPerCallSdkFault(exception))
+        {
+            return new WorkerMpResultUnavailable(
+                (long)Stopwatch.GetElapsedTime(started).TotalMilliseconds,
+                WorkerSdkFaultDiagnosticCodes.ExecuteStep);
+        }
+
         var mpResultRetrieved = false;
         var resultCode = 0;
         if (executeStepReturned)
         {
-            mpResultRetrieved = _sdk.GetMPStepResult(ref resultCode);
+            try
+            {
+                mpResultRetrieved = _sdk.GetMPStepResult(ref resultCode);
+            }
+            catch (Exception exception) when (IsPerCallSdkFault(exception))
+            {
+                return new WorkerMpResultUnavailable(
+                    (long)Stopwatch.GetElapsedTime(started).TotalMilliseconds,
+                    WorkerSdkFaultDiagnosticCodes.MpResultRetrieval);
+            }
         }
 
         var mpSucceeded = mpResultRetrieved && resultCode == 2;
@@ -90,7 +128,7 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
         };
         if (mpSucceeded)
         {
-            outputValues = [.. command.OutputArguments.Select(argument => GetOutputValue(_sdk, argument))];
+            outputValues = [.. command.OutputArguments.Select(argument => GetOutputValueOrFault(_sdk, argument))];
             if (outputValues.Any(output => !output.Retrieved))
             {
                 diagnosticCode = outputValues
@@ -231,6 +269,35 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
                 SetVectorNameList(sdk, argument.Name, value),
             _ => SetSpecializedInputArgument(sdk, argument)
         };
+
+    // Faults that leave the adapter, its STA, or the process untrustworthy. They
+    // are never converted into a typed per-call outcome.
+    private static bool IsPerCallSdkFault(Exception exception) =>
+        exception is not (OutOfMemoryException or InsufficientExecutionStackException or
+            InvalidComObjectException or ObjectDisposedException or SEHException or
+            ThreadInterruptedException);
+
+    // The MP already completed with code 2: a faulted getter leaves only that
+    // output unavailable, and later getters are still attempted.
+    [SuppressMessage(
+        "Design", "CA1031:Do not catch general exception types",
+        Justification = "COM maps arbitrary HRESULTs to many exception types; IsPerCallSdkFault lets untrustworthy-state faults escape.")]
+    private static WorkerMpOutputValue GetOutputValueOrFault(
+        ISpatialAnalyzerSdkCalls sdk,
+        WorkerMpOutputArgument argument)
+    {
+        try
+        {
+            return GetOutputValue(sdk, argument);
+        }
+        catch (Exception exception) when (IsPerCallSdkFault(exception))
+        {
+            return new WorkerUnavailableOutput(
+                argument.Name,
+                argument.Kind,
+                WorkerSdkFaultDiagnosticCodes.OutputGetter);
+        }
+    }
 
     private static WorkerMpOutputValue GetOutputValue(
         ISpatialAnalyzerSdkCalls sdk,

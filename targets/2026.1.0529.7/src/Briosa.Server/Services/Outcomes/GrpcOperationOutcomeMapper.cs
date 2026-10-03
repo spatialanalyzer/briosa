@@ -60,6 +60,28 @@ internal static class GrpcOperationOutcomeMapper
                 outcome.ExecutionDisposition,
                 "worker-result-missing");
 
+        if (execution is WorkerArgumentsRejected
+            {
+                DiagnosticCode: WorkerSdkFaultDiagnosticCodes.BeforeExecute
+            })
+        {
+            // An SDK call faulted before ExecuteStep. Nothing rejected the caller's
+            // argument, so this is not SdkArgumentRejected; it remains provably
+            // NotStarted, and the healthy worker needs no replacement.
+            throw CreateFailure(
+                StatusCode.Internal,
+                operationId,
+                OperationFailureKind.Internal,
+                WorkerSdkFaultDiagnosticCodes.BeforeExecute,
+                ExecutionDisposition.NotStarted,
+                RecoveryGuidance.None,
+                ReplayGuidance.DoNotReplay,
+                replaySafety,
+                outcome.Generation,
+                mpExecution: null,
+                "A SpatialAnalyzer SDK call failed before MP execution started.");
+        }
+
         if (!execution.ExecuteStepReturned)
         {
             var argumentRejected = execution is WorkerArgumentsRejected;

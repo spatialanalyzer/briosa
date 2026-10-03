@@ -115,6 +115,133 @@ public sealed class ProductionWorkerControlTests
         }
     }
 
+    [Theory]
+    [InlineData((int)SpatialAnalyzerSdkAdapterTests.SdkFaultPhase.SetStep, WorkerSdkFaultDiagnosticCodes.BeforeExecute)]
+    [InlineData((int)SpatialAnalyzerSdkAdapterTests.SdkFaultPhase.Setter, WorkerSdkFaultDiagnosticCodes.BeforeExecute)]
+    [InlineData((int)SpatialAnalyzerSdkAdapterTests.SdkFaultPhase.ExecuteStep, WorkerSdkFaultDiagnosticCodes.ExecuteStep)]
+    [InlineData((int)SpatialAnalyzerSdkAdapterTests.SdkFaultPhase.GetMPStepResult, WorkerSdkFaultDiagnosticCodes.MpResultRetrieval)]
+    [InlineData((int)SpatialAnalyzerSdkAdapterTests.SdkFaultPhase.Getter, WorkerSdkFaultDiagnosticCodes.OutputGetter)]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "The production connection manager owns and disposes the adapter, the adapter owns the fake SDK calls, and the diagnostics writer holds no resources.")]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2025:Ensure tasks using IDisposable instances complete before the instances are disposed", Justification = "The diagnostics writer is never disposed and the host task is awaited before the test ends.")]
+    public async Task PerCallSdkFaultKeepsTheProductionPipeAndWorkerUsable(
+        int faultPhase, string diagnosticCode)
+    {
+        var name = $"briosa-control-test-{Guid.NewGuid():N}";
+        using var pipe = new NamedPipeServerStream(name, PipeDirection.InOut, 1,
+            PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        var phase = (SpatialAnalyzerSdkAdapterTests.SdkFaultPhase)faultPhase;
+        var calls = new SpatialAnalyzerSdkAdapterTests.RecordingSdkCalls
+        {
+            FaultPhase = phase,
+            FaultStepName = "Faulting Step"
+        };
+        var diagnostics = new StringWriter();
+        var host = WorkerControlHost.RunAsync(name, "localhost",
+            () => new SpatialAnalyzerSdkAdapter(calls), diagnostics);
+        try
+        {
+            await pipe.WaitForConnectionAsync(timeout.Token);
+            using var channel = new WorkerControlChannel(pipe, leaveOpen: true);
+            await ConnectAndVerify(channel, timeout.Token);
+
+            var response = await Exchange(channel, WorkerControlMessage.Execute(Guid.NewGuid(),
+                new("faulting", "Faulting Step",
+                    [new("Value", WorkerMpValueKind.Text, new WorkerTextValue("input"))],
+                    [new("Value", WorkerMpValueKind.Text)])), timeout.Token);
+            Assert.Equal(WorkerExecutionResponseStatus.Completed, response.ExecutionResponse!.Status);
+            var execution = response.ExecutionResponse.Execution!;
+            Assert.Equal(diagnosticCode, execution.DiagnosticCode);
+            Assert.Equal(WorkerExecutionReadinessState.ExecutionReady,
+                response.ExecutionResponse.Connection.ExecutionReadinessState);
+            switch (phase)
+            {
+                case SpatialAnalyzerSdkAdapterTests.SdkFaultPhase.SetStep or
+                    SpatialAnalyzerSdkAdapterTests.SdkFaultPhase.Setter:
+                    Assert.IsType<WorkerArgumentsRejected>(execution);
+                    break;
+                case SpatialAnalyzerSdkAdapterTests.SdkFaultPhase.Getter:
+                    Assert.True(execution.MpSucceeded);
+                    Assert.False(Assert.Single(execution.OutputValues).Retrieved);
+                    break;
+                default:
+                    Assert.IsType<WorkerMpResultUnavailable>(execution);
+                    break;
+            }
+
+            Assert.Equal(WorkerControlMessageKind.Pong,
+                (await Exchange(channel, WorkerControlMessage.Ping(Guid.NewGuid()), timeout.Token)).Kind);
+            var next = await Exchange(channel, WorkerControlMessage.Execute(Guid.NewGuid(),
+                new("normal", "Normal", [], [new("Value", WorkerMpValueKind.Text)])), timeout.Token);
+            Assert.Equal("scripted-output",
+                (Assert.Single(next.ExecutionResponse!.Execution!.OutputValues).ReadValue() as WorkerTextValue)?.Value);
+            Assert.Equal(WorkerControlMessageKind.Stopped,
+                (await Exchange(channel, WorkerControlMessage.Stop(Guid.NewGuid()), timeout.Token)).Kind);
+            Assert.Equal(0, await host.WaitAsync(timeout.Token));
+            Assert.Empty(diagnostics.ToString());
+        }
+        finally
+        {
+            await pipe.DisposeAsync();
+            await host.WaitAsync(TimeSpan.FromSeconds(3));
+        }
+    }
+
+    [Fact]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "The production connection manager owns and disposes the adapter, the adapter owns the fake SDK calls, and the diagnostics writer holds no resources.")]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2025:Ensure tasks using IDisposable instances complete before the instances are disposed", Justification = "The diagnostics writer is never disposed and the host task is awaited before the test ends.")]
+    public async Task UntrustworthyStateFaultFailStopsWithoutRawExceptionText()
+    {
+        var name = $"briosa-control-test-{Guid.NewGuid():N}";
+        using var pipe = new NamedPipeServerStream(name, PipeDirection.InOut, 1,
+            PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        var calls = new SpatialAnalyzerSdkAdapterTests.RecordingSdkCalls
+        {
+            FaultPhase = SpatialAnalyzerSdkAdapterTests.SdkFaultPhase.ExecuteStep,
+            FaultStepName = "Faulting Step",
+            Fault = new System.Runtime.InteropServices.InvalidComObjectException(
+                SpatialAnalyzerSdkAdapterTests.RecordingSdkCalls.SensitiveFaultText)
+        };
+        var diagnostics = new StringWriter();
+        var host = WorkerControlHost.RunAsync(name, "localhost",
+            () => new SpatialAnalyzerSdkAdapter(calls), diagnostics);
+        try
+        {
+            await pipe.WaitForConnectionAsync(timeout.Token);
+            using var channel = new WorkerControlChannel(pipe, leaveOpen: true);
+            await ConnectAndVerify(channel, timeout.Token);
+
+            await channel.SendAsync(WorkerControlMessage.Execute(Guid.NewGuid(),
+                new("faulting", "Faulting Step", [], [])), timeout.Token);
+
+            // The worker exits without a response, so the supervisor retires the
+            // generation and reports an unknown outcome.
+            Assert.Equal(WorkerControlHost.UnexpectedFaultExitCode, await host.WaitAsync(timeout.Token));
+            await Assert.ThrowsAsync<EndOfStreamException>(
+                () => channel.ReceiveAsync(timeout.Token).AsTask());
+            var written = diagnostics.ToString();
+            Assert.Contains("worker-unexpected-fault", written, StringComparison.Ordinal);
+            Assert.Contains(nameof(System.Runtime.InteropServices.InvalidComObjectException), written, StringComparison.Ordinal);
+            Assert.DoesNotContain("Sensitive", written, StringComparison.Ordinal);
+            Assert.DoesNotContain("fault text", written, StringComparison.Ordinal);
+        }
+        finally
+        {
+            await pipe.DisposeAsync();
+            await host.WaitAsync(TimeSpan.FromSeconds(3));
+        }
+    }
+
+    private static async Task ConnectAndVerify(WorkerControlChannel channel, CancellationToken token)
+    {
+        Assert.Equal(WorkerControlMessageKind.Ready, (await channel.ReceiveAsync(token).ConfigureAwait(false)).Kind);
+        var connected = await Exchange(channel, WorkerControlMessage.Connect(Guid.NewGuid()), token).ConfigureAwait(false);
+        Assert.Equal(WorkerConnectionState.Connected, connected.Connection!.State);
+        var verified = await Exchange(channel, WorkerControlMessage.VerifyExecution(Guid.NewGuid()), token).ConfigureAwait(false);
+        Assert.Equal(WorkerExecutionReadinessState.ExecutionReady, verified.Connection!.ExecutionReadinessState);
+    }
+
     private static async Task<WorkerControlMessage> Exchange(WorkerControlChannel channel,
         WorkerControlMessage request, CancellationToken token)
     {

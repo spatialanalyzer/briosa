@@ -360,6 +360,92 @@ public sealed class GrpcOperationOutcomeMapperTests
     }
 
     [Fact]
+    public void SdkFaultBeforeExecuteIsNotStartedWithoutClaimingAnArgumentRejection()
+    {
+        var outcome = FromWorker(new WorkerArgumentsRejected(5, WorkerSdkFaultDiagnosticCodes.BeforeExecute));
+
+        var exception = Assert.Throws<RpcException>(() =>
+            GrpcOperationOutcomeMapper.RequireSuccess(
+                outcome,
+                OperationId,
+                ReplaySafety.Unsafe,
+                Outputs,
+                callerDeadlineExceeded: false));
+        var error = Error(exception);
+
+        Assert.Equal(WorkerExecutionDisposition.NotStarted, outcome.ExecutionDisposition);
+        Assert.Equal(StatusCode.Internal, exception.StatusCode);
+        Assert.Equal(OperationFailureKind.Internal, error.Kind);
+        Assert.Equal("sdk-call-faulted-before-execute", error.DiagnosticCode);
+        Assert.Equal(ExecutionDisposition.NotStarted, error.ExecutionDisposition);
+        Assert.Equal(RecoveryGuidance.None, error.RecoveryGuidance);
+        Assert.Equal(ReplayGuidance.DoNotReplay, error.ReplayGuidance);
+        Assert.Equal(7, error.WorkerGeneration);
+        Assert.Null(error.MpExecution);
+        Assert.DoesNotContain("argument", exception.Status.Detail, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal("sdk_call_faulted", OperationAuditSummary.Create(outcome).MpOutcome);
+        Assert.Equal(
+            "argument_rejected",
+            OperationAuditSummary.Create(FromWorker(new WorkerArgumentsRejected(5, "sdk-argument-rejected"))).MpOutcome);
+    }
+
+    [Theory]
+    [InlineData(WorkerSdkFaultDiagnosticCodes.ExecuteStep)]
+    [InlineData(WorkerSdkFaultDiagnosticCodes.MpResultRetrieval)]
+    public void SdkFaultDuringExecutionIsAnUnknownOutcomeOnTheSameGeneration(string diagnosticCode)
+    {
+        var outcome = FromWorker(new WorkerMpResultUnavailable(5, diagnosticCode));
+
+        var exception = Assert.Throws<RpcException>(() =>
+            GrpcOperationOutcomeMapper.RequireSuccess(
+                outcome,
+                OperationId,
+                ReplaySafety.Safe,
+                Outputs,
+                callerDeadlineExceeded: false));
+        var error = Error(exception);
+
+        Assert.Equal(StatusCode.Internal, exception.StatusCode);
+        Assert.Equal(OperationFailureKind.MpResultRetrievalFailure, error.Kind);
+        Assert.Equal(diagnosticCode, error.DiagnosticCode);
+        Assert.Equal(ExecutionDisposition.StartedOutcomeUnknown, error.ExecutionDisposition);
+        Assert.Equal(RecoveryGuidance.None, error.RecoveryGuidance);
+        Assert.Equal(ReplayGuidance.ReconcileBeforeReplay, error.ReplayGuidance);
+        Assert.Equal(7, error.WorkerGeneration);
+        Assert.Equal(MpExecutionState.ResultUnavailable, error.MpExecution.State);
+        Assert.False(error.MpExecution.HasMpResultCode);
+    }
+
+    [Fact]
+    public void SdkFaultInAGetterCompletesWithThatOutputUnavailable()
+    {
+        var outcome = FromWorker(new WorkerMpResultAvailable(
+            2,
+            5,
+            [new WorkerUnavailableOutput("Directory", WorkerMpValueKind.Text, WorkerSdkFaultDiagnosticCodes.OutputGetter)],
+            WorkerSdkFaultDiagnosticCodes.OutputGetter));
+
+        var exception = Assert.Throws<RpcException>(() =>
+            GrpcOperationOutcomeMapper.RequireSuccess(
+                outcome,
+                OperationId,
+                ReplaySafety.Safe,
+                Outputs,
+                callerDeadlineExceeded: false));
+        var error = Error(exception);
+
+        Assert.Equal(StatusCode.DataLoss, exception.StatusCode);
+        Assert.Equal(OperationFailureKind.OutputRetrievalFailure, error.Kind);
+        Assert.Equal("sdk-output-getter-faulted", error.DiagnosticCode);
+        Assert.Equal(ExecutionDisposition.Completed, error.ExecutionDisposition);
+        Assert.Equal(ReplayGuidance.DoNotReplay, error.ReplayGuidance);
+        Assert.Equal(MpExecutionState.Succeeded, error.MpExecution.State);
+        var retrieval = Assert.Single(error.MpExecution.OutputRetrievals);
+        Assert.Equal(OutputRetrievalState.Failed, retrieval.State);
+        Assert.Equal("sdk-output-getter-faulted", retrieval.DiagnosticCode);
+    }
+
+    [Fact]
     public void MpResultRetrievalFailureIsExplicitAndHasNoResultCode()
     {
         var outcome = new WorkerExecutionOutcome(
@@ -532,6 +618,16 @@ public sealed class GrpcOperationOutcomeMapperTests
             Connection(WorkerConnectionState.Connected),
             diagnosticCode ?? "completed",
             Generation: 7);
+
+    private static WorkerExecutionOutcome FromWorker(WorkerMpExecutionResult execution) =>
+        WorkerExecutionOutcome.FromWorkerResponse(
+            new WorkerExecutionResponse(
+                WorkerExecutionResponseStatus.Completed,
+                execution,
+                Connection(WorkerConnectionState.Connected),
+                DiagnosticCode: null),
+            generation: 7,
+            Guid.NewGuid());
 
     private static WorkerToleranceVectorOptionsValue CreateDisabledVectorTolerance()
     {
