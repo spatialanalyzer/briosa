@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Opt-in harness for the bounded licensed probe session (#277). It is never
+       packaged, never part of a licensed-runner payload, and never executed by
+       ordinary builds or tests. A licensed run requires the exact-target
+       confirmation flag; dry-run never connects to anything. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <PlatformTarget>x64</PlatformTarget>
+    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
+    <Prefer32Bit>false</Prefer32Bit>
+    <IsPackable>false</IsPackable>
+    <Description>Opt-in licensed SpatialAnalyzer probe harness for exact binding questions.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Grpc.Net.Client" />
+    <!-- Reuses the shipped handwritten command builders so the worker path sends
+         the exact shipped sequence plus one reviewed, explicit variation. -->
+    <ProjectReference Include="..\..\src\Briosa.Server\Briosa.Server.csproj" />
+    <ProjectReference Include="..\..\src\Briosa.Worker.Control\Briosa.Worker.Control.csproj" />
+  </ItemGroup>
+</Project>

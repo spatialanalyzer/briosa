@@ -94,3 +94,7 @@ The workflow deliberately does not kill or restart SpatialAnalyzer. Automatic re
 ## Scheduling
 
 No schedule is enabled for licensed validation. Before adding one, demonstrate supported unattended SA startup and license use, reliable session ownership, automatic quarantine, and operator notification on the dedicated machine. A schedule must continue to use trusted `main`, the same protected environment and selected-workflow runner group, and serialized exact-target execution.
+
+## Bounded probe sessions
+
+The opt-in probe harness for [#277](https://github.com/spatialanalyzer/briosa/issues/277) is not part of this workflow or its payload. It runs only after a separate session-time go-ahead, with one SDK client on a clean SA, following the [probe-session runbook](../testing/licensed-probe-session.md).
