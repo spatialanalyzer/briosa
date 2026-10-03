@@ -1,4 +1,6 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.IO.Pipes;
 using Briosa.Worker.Sdk;
 
@@ -7,6 +9,7 @@ namespace Briosa.Worker.Control;
 internal static class WorkerControlHost
 {
     private const int MaximumConnectionAttempts = 1;
+    internal const int UnexpectedFaultExitCode = 5;
 
     public static Task<int> RunAsync(string pipeName, int? parentProcessId,
         string targetHost, bool disableSdkActivation)
@@ -19,8 +22,11 @@ internal static class WorkerControlHost
             : SpatialAnalyzerSdkAdapter.Create);
     }
 
+    [SuppressMessage(
+        "Design", "CA1031:Do not catch general exception types",
+        Justification = "Last-resort guard: an unexpected fault still stops the worker, but without writing raw exception text to stderr or the event log.")]
     internal static async Task<int> RunAsync(string pipeName, string targetHost,
-        Func<ISpatialAnalyzerSdk> sdkFactory)
+        Func<ISpatialAnalyzerSdk> sdkFactory, TextWriter? diagnostics = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(pipeName);
         ArgumentException.ThrowIfNullOrWhiteSpace(targetHost);
@@ -74,6 +80,18 @@ internal static class WorkerControlHost
         catch (TimeoutException) { return 2; }
         catch (IOException) { return 3; }
         catch (InvalidDataException) { return 4; }
+        catch (Exception exception)
+        {
+            // A fault the SDK adapter did not classify as per-call (or one from the
+            // serialized executor itself) leaves the STA untrustworthy. Fail-stop:
+            // exiting without a response makes the supervisor retire this generation
+            // and report StartedOutcomeUnknown. Only the type and HRESULT are written.
+            await (diagnostics ?? Console.Error).WriteLineAsync(string.Create(
+                CultureInfo.InvariantCulture,
+                $"Briosa.Worker stopped: worker-unexpected-fault {exception.GetType().FullName} 0x{exception.HResult:X8}"))
+                .ConfigureAwait(false);
+            return UnexpectedFaultExitCode;
+        }
         finally
         {
             await connectionOwner.DisposeAsync().ConfigureAwait(false);

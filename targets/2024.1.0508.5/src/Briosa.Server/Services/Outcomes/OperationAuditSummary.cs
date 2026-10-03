@@ -30,9 +30,15 @@ internal readonly record struct OperationAuditSummary(
         {
             return new OperationAuditSummary(
                 FormatExecutionDisposition(outcome?.ExecutionDisposition),
-                execution is WorkerArgumentsRejected
-                    ? "argument_rejected"
-                    : "execute_step_rejected",
+                execution switch
+                {
+                    WorkerArgumentsRejected
+                    {
+                        DiagnosticCode: WorkerSdkFaultDiagnosticCodes.BeforeExecute
+                    } => "sdk_call_faulted",
+                    WorkerArgumentsRejected => "argument_rejected",
+                    _ => "execute_step_rejected"
+                },
                 "not_attempted",
                 execution.DurationMilliseconds,
                 execution.MpResultCode);

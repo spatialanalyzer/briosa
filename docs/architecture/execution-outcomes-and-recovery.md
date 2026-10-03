@@ -41,6 +41,33 @@ and result code `2` is the success state. All other codes are retained as MP
 failure. Output getters run only after retrieved code `2`, and a failed getter is
 preserved separately rather than replaced with a default value.
 
+### SDK call faults
+
+An exception from one SDK call is reported in the phase that Briosa can prove.
+The worker records only a value-free diagnostic code, never the exception text:
+
+| Faulting call | Diagnostic code | Public outcome |
+| --- | --- | --- |
+| `SetStep` or an input setter | `sdk-call-faulted-before-execute` | `Internal`/`Internal`, `NotStarted`, `DoNotReplay` |
+| `ExecuteStep` | `sdk-execute-step-faulted` | `Internal`/`MpResultRetrievalFailure`, `StartedOutcomeUnknown` |
+| `GetMPStepResult` | `sdk-mp-result-retrieval-faulted` | `Internal`/`MpResultRetrievalFailure`, `StartedOutcomeUnknown` |
+| An output getter after code `2` | `sdk-output-getter-faulted` | `DataLoss`/`OutputRetrievalFailure`, `Completed` |
+
+A fault before `ExecuteStep` is not reported as `SdkArgumentRejected`, because no
+argument was rejected. A faulted getter makes only its own output unavailable; the
+remaining getters still run. A dedicated public representation for SDK faults
+remains an open design question.
+
+These per-call faults leave the worker STA healthy, so the worker generation stays
+in service and the private pipe stays usable. Loss of the SDK process is still
+detected by the heartbeat liveness probe. The adapter does not convert faults that
+make its own state untrustworthy: a detached COM object, out-of-memory, stack
+exhaustion, disposal, a native SEH exception, or an STA thread interrupt. Those
+faults, and any fault from the serialized executor itself, stop the worker. It
+writes only the exception type and HRESULT to standard error and exits without a
+response. The supervisor then retires the generation and reports
+`StartedOutcomeUnknown` with worker replacement.
+
 ## Public result and error model
 
 Every strongly typed result contains `MpExecutionDetails execution = 1000`.
@@ -81,11 +108,12 @@ Missing or unspecified disposition is never interpreted as `NotStarted`.
 | Validation, unsupported operation, policy denial, or unavailable before enqueue | `NotStarted` | Request-specific or `Unavailable` |
 | Admission capacity exhausted before mapping | `NotStarted` | `ResourceExhausted` |
 | Setter rejected before `ExecuteStep` | `NotStarted` | `FailedPrecondition` |
+| SDK call faulted before `ExecuteStep` | `NotStarted` | `Internal` |
 | Cancellation or deadline after enqueue | `StartedOutcomeUnknown`; the request stays queued and may still be dispatched | `Cancelled` or `DeadlineExceeded` |
 | `ExecuteStep` invoked but response lost, watchdog elapsed, or worker failed | `StartedOutcomeUnknown` | `Unavailable` |
-| MP result could not be retrieved | `StartedOutcomeUnknown` | `Internal` |
+| MP result could not be retrieved, or `ExecuteStep` or `GetMPStepResult` faulted | `StartedOutcomeUnknown` | `Internal` |
 | Retrieved MP failure | `Completed` | `FailedPrecondition` |
-| Output getter failed after MP success | `Completed` | `DataLoss` |
+| Output getter failed or faulted after MP success | `Completed` | `DataLoss` |
 
 ## Cancellation, watchdogs, and replacement
 

@@ -2,7 +2,7 @@ namespace Briosa.Worker.Tests;
 
 public sealed partial class SpatialAnalyzerSdkAdapterTests
 {
-    private sealed partial class RecordingSdkCalls
+    internal sealed partial class RecordingSdkCalls
     {
         public Dictionary<string, object?[]> SpecializedArguments { get; } = [];
 
@@ -108,7 +108,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             ref bool useLow,
             ref double low)
         {
-            Events.Add($"{method}:{name}");
+            Record($"{method}:{name}");
             if (name == FailedOutputName)
             {
                 return false;
