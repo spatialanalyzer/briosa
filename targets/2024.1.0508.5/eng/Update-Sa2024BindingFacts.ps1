@@ -23,7 +23,7 @@ reference evidence and must not be used to generate operations.
 
 .EXAMPLE
 ./eng/Update-Sa2024BindingFacts.ps1 -DocsRepository ../../../briosa-docs `
-    -DocsRevision e8eccbe8687434409fdc29895ac7410fd9f11be0 -Check
+    -DocsRevision 26eb7b42fa3242b4b7278a795cd3410f05a86a0f -Check
 #>
 [CmdletBinding()]
 param(
