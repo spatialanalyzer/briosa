@@ -72,6 +72,21 @@ public sealed class WorkerProcessRegistrationTests
     }
 
     [Fact]
+    public async Task RegisteredTimeProviderOwnsSupervisorTime()
+    {
+        var clock = new HeartbeatTestClock();
+        var services = new ServiceCollection();
+        services.AddSingleton<TimeProvider>(clock);
+        services.AddLogging();
+
+        services.AddWorkerProcessLifecycle(new ConfigurationBuilder().Build());
+        await using var provider = services.BuildServiceProvider();
+        var supervisor = provider.GetRequiredService<WorkerProcessSupervisor>();
+
+        Assert.Equal(clock.GetUtcNow(), supervisor.Current.TransitionedAt);
+    }
+
+    [Fact]
     public void OmittedConfigurationBindsExistingDefaultsOnce()
     {
         var configuration = new ConfigurationBuilder().Build();

@@ -45,6 +45,7 @@ internal static class WorkerProcessRegistration
                 processFactory,
                 policy,
                 executionPolicy,
+                timeProvider: provider.GetService<TimeProvider>(),
                 logger: provider.GetRequiredService<ILogger<WorkerProcessSupervisor>>(),
                 identityPolicy: provider.GetRequiredService<ExactTargetIdentityPolicy>(),
                 telemetry: provider.GetService<BriosaTelemetry>());

@@ -219,8 +219,8 @@ internal sealed partial class WorkerProcessSupervisor :
                 "connect-ex-started",
                 connecting);
 
-            using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            timeout.CancelAfter(_policy.StartupTimeout);
+            using var deadline = new CancellationTokenSource(_policy.StartupTimeout, _timeProvider);
+            using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, deadline.Token);
             var correlationId = Guid.NewGuid();
             WorkerControlMessage response;
             try
@@ -778,7 +778,7 @@ internal sealed partial class WorkerProcessSupervisor :
             // Runtime-loop cancellation stops admission; this operation's watchdog owns
             // cancellation after the request enters the channel.
             using var watchdog = new CancellationTokenSource(
-                _executionPolicy.WatchdogTimeout);
+                _executionPolicy.WatchdogTimeout, _timeProvider);
             try
             {
                 exchangeStarted = _timeProvider.GetTimestamp();
@@ -946,14 +946,14 @@ internal sealed partial class WorkerProcessSupervisor :
             "worker-starting");
 
         WorkerControlMessage ready;
-        using (var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
+        using (var deadline = new CancellationTokenSource(_policy.StartupTimeout, _timeProvider))
+        using (var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, deadline.Token))
         {
-            timeout.CancelAfter(_policy.StartupTimeout);
             try
             {
                 var worker = await _processFactory.StartAsync(_generation, timeout.Token)
                     .ConfigureAwait(false);
-                _processLifetime = new WorkerProcessLifetime(worker);
+                _processLifetime = new WorkerProcessLifetime(worker, _timeProvider);
                 ready = await worker.ReceiveAsync(timeout.Token).ConfigureAwait(false);
                 if (ready.Kind != WorkerControlMessageKind.Ready ||
                     ready.ProcessId is not > 0 ||
@@ -1079,8 +1079,8 @@ internal sealed partial class WorkerProcessSupervisor :
         CancellationToken cancellationToken)
     {
         var worker = Worker ?? throw new InvalidOperationException("The worker is missing.");
-        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        timeout.CancelAfter(_executionPolicy.WatchdogTimeout);
+        using var deadline = new CancellationTokenSource(_executionPolicy.WatchdogTimeout, _timeProvider);
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, deadline.Token);
         var correlationId = Guid.NewGuid();
         try
         {
@@ -1206,7 +1206,7 @@ internal sealed partial class WorkerProcessSupervisor :
 
         // Let an entered ping/pong exchange finish under its own deadline. Cancelling it
         // from StopRuntimeLoopsAsync could leave a partial frame before Stop reuses the pipe.
-        using var timeout = new CancellationTokenSource(_policy.HeartbeatTimeout);
+        using var timeout = new CancellationTokenSource(_policy.HeartbeatTimeout, _timeProvider);
         var correlationId = Guid.NewGuid();
         try
         {
@@ -1307,7 +1307,7 @@ internal sealed partial class WorkerProcessSupervisor :
         }
         else
         {
-            using var timeout = new CancellationTokenSource(_policy.ShutdownTimeout);
+            using var timeout = new CancellationTokenSource(_policy.ShutdownTimeout, _timeProvider);
             var correlationId = Guid.NewGuid();
             var stopPhase = WorkerStopPhase.Send;
             try

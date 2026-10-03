@@ -12,11 +12,12 @@ public sealed class WorkerProcessLifetimeTests
     {
         var worker = new ControlledProcess { HoldTermination = true };
         await using var workerScope = worker.ConfigureAwait(true);
-        var lifetime = new WorkerProcessLifetime(worker);
+        var clock = new HeartbeatTestClock();
+        var lifetime = new WorkerProcessLifetime(worker, clock);
         try
         {
-            Assert.Equal(WorkerCleanupStatus.ExitUnconfirmed, await Release(lifetime));
-            Assert.Equal(WorkerCleanupStatus.ExitUnconfirmed, await Release(lifetime));
+            Assert.Equal(WorkerCleanupStatus.ExitUnconfirmed, await ReleaseAfterBound(lifetime, clock, timers: 2));
+            Assert.Equal(WorkerCleanupStatus.ExitUnconfirmed, await ReleaseAfterBound(lifetime, clock, timers: 1));
             Assert.Equal(1, worker.Terminations);
             Assert.Equal(0, worker.Disposals);
             Assert.False(worker.HasExited);
@@ -35,7 +36,8 @@ public sealed class WorkerProcessLifetimeTests
     {
         var worker = new ControlledProcess { FailTermination = true };
         await using var workerScope = worker.ConfigureAwait(true);
-        var lifetime = new WorkerProcessLifetime(worker);
+        var clock = new HeartbeatTestClock();
+        var lifetime = new WorkerProcessLifetime(worker, clock);
         Assert.Equal(WorkerCleanupStatus.ExitUnconfirmed, await Release(lifetime));
         Assert.Equal(0, worker.Disposals);
         worker.FailTermination = false;
@@ -48,7 +50,8 @@ public sealed class WorkerProcessLifetimeTests
     {
         var worker = new ControlledProcess { OmitExit = true };
         await using var workerScope = worker.ConfigureAwait(true);
-        var lifetime = new WorkerProcessLifetime(worker);
+        var clock = new HeartbeatTestClock();
+        var lifetime = new WorkerProcessLifetime(worker, clock);
         Assert.Equal(WorkerCleanupStatus.ExitUnconfirmed, await Release(lifetime));
         Assert.False(worker.HasExited);
         Assert.Equal(0, worker.Disposals);
@@ -61,11 +64,12 @@ public sealed class WorkerProcessLifetimeTests
     {
         var worker = new ControlledProcess { HoldDisposal = true };
         await using var workerScope = worker.ConfigureAwait(true);
-        var lifetime = new WorkerProcessLifetime(worker);
+        var clock = new HeartbeatTestClock();
+        var lifetime = new WorkerProcessLifetime(worker, clock);
         try
         {
-            Assert.Equal(WorkerCleanupStatus.ResourcesUnreleased, await Release(lifetime));
-            Assert.Equal(WorkerCleanupStatus.ResourcesUnreleased, await Release(lifetime));
+            Assert.Equal(WorkerCleanupStatus.ResourcesUnreleased, await ReleaseAfterBound(lifetime, clock, timers: 2));
+            Assert.Equal(WorkerCleanupStatus.ResourcesUnreleased, await ReleaseAfterBound(lifetime, clock, timers: 1));
             Assert.True(worker.HasExited);
             Assert.Equal(1, worker.Terminations);
             Assert.Equal(1, worker.Disposals);
@@ -83,7 +87,8 @@ public sealed class WorkerProcessLifetimeTests
     {
         var worker = new ControlledProcess();
         await using var workerScope = worker.ConfigureAwait(true);
-        var lifetime = new WorkerProcessLifetime(worker);
+        var clock = new HeartbeatTestClock();
+        var lifetime = new WorkerProcessLifetime(worker, clock);
         Assert.Equal(WorkerCleanupStatus.ExitUnconfirmed,
             await lifetime.ReleaseAsync(force: false, CleanupBound));
         Assert.Equal(0, worker.Terminations);
@@ -93,6 +98,16 @@ public sealed class WorkerProcessLifetimeTests
 
     private static Task<WorkerCleanupStatus> Release(WorkerProcessLifetime lifetime) =>
         lifetime.ReleaseAsync(force: true, CleanupBound).WaitAsync(TimeSpan.FromSeconds(3));
+
+    // The cleanup bound is virtual: a stalled attempt resolves only when the test
+    // fires its deadline and outer wait bound (one new bound when an attempt is reused).
+    private static async Task<WorkerCleanupStatus> ReleaseAfterBound(
+        WorkerProcessLifetime lifetime, HeartbeatTestClock clock, int timers)
+    {
+        var release = lifetime.ReleaseAsync(force: true, CleanupBound);
+        await clock.FireNextAsync(CleanupBound, timers).ConfigureAwait(true);
+        return await release.WaitAsync(TimeSpan.FromSeconds(3)).ConfigureAwait(true);
+    }
 
     private sealed class ControlledProcess : IWorkerProcess
     {

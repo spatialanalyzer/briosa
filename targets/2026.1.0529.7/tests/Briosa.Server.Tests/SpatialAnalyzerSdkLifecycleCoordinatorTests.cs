@@ -83,17 +83,21 @@ public sealed class SpatialAnalyzerSdkLifecycleCoordinatorTests
     [Fact]
     public async Task SdkStartupTimeoutReturnsTypedDeadline()
     {
+        var clock = new HeartbeatTestClock();
         await using var supervisor = CreateSupervisor(
             _ => "hang-before-ready",
-            startupTimeout: TimeSpan.FromMilliseconds(150));
+            startupTimeout: TimeSpan.FromMilliseconds(150),
+            timeProvider: clock);
         var projection = new SpatialAnalyzerSdkLifecycleStateProjection(supervisor);
         await using var coordinator = new SpatialAnalyzerSdkLifecycleCoordinator(
             supervisor,
             projection,
             new FakeApplicationStateProvider(RunningApplication(1)));
 
-        var exception = await Assert.ThrowsAsync<SdkLifecycleException>(() =>
+        var starting = Assert.ThrowsAsync<SdkLifecycleException>(() =>
             coordinator.StartAsync(CancellationToken.None));
+        await clock.FireNextAsync(TimeSpan.FromMilliseconds(150));
+        var exception = await starting.WaitAsync(ProcessBound);
 
         Assert.Equal(Grpc.Core.StatusCode.DeadlineExceeded, exception.StatusCode);
         Assert.Equal(
@@ -109,21 +113,26 @@ public sealed class SpatialAnalyzerSdkLifecycleCoordinatorTests
     [Fact]
     public async Task ConnectTimeoutQuarantinesTheGenerationAndReturnsTypedDeadline()
     {
+        var clock = new HeartbeatTestClock();
         await using var supervisor = CreateSupervisor(
             _ => "hang-on-connect",
-            startupTimeout: TimeSpan.FromSeconds(1));
+            startupTimeout: TimeSpan.FromSeconds(1),
+            timeProvider: clock);
         var projection = new SpatialAnalyzerSdkLifecycleStateProjection(supervisor);
         await using var coordinator = new SpatialAnalyzerSdkLifecycleCoordinator(
             supervisor,
             projection,
             new FakeApplicationStateProvider(RunningApplication(2)));
-        var started = await coordinator.StartAsync(CancellationToken.None);
+        var started = await coordinator.StartAsync(CancellationToken.None).WaitAsync(ProcessBound);
 
-        var exception = await Assert.ThrowsAsync<SdkLifecycleException>(() =>
+        var connecting = Assert.ThrowsAsync<SdkLifecycleException>(() =>
             coordinator.ConnectAsync(
                 started.SdkGeneration,
                 reconnect: false,
                 CancellationToken.None));
+        // ConnectEx shares the startup deadline; the real worker never answers.
+        await clock.FireNextAsync(TimeSpan.FromSeconds(1));
+        var exception = await connecting.WaitAsync(ProcessBound);
 
         Assert.Equal(Grpc.Core.StatusCode.DeadlineExceeded, exception.StatusCode);
         Assert.Equal(
@@ -141,18 +150,22 @@ public sealed class SpatialAnalyzerSdkLifecycleCoordinatorTests
     [Fact]
     public async Task SdkShutdownTimeoutReturnsTypedDeadlineWithStoppedState()
     {
+        var clock = new HeartbeatTestClock();
         await using var supervisor = CreateSupervisor(
             _ => "ignore-stop",
-            shutdownTimeout: TimeSpan.FromMilliseconds(150));
+            shutdownTimeout: TimeSpan.FromMilliseconds(150),
+            timeProvider: clock);
         var projection = new SpatialAnalyzerSdkLifecycleStateProjection(supervisor);
         await using var coordinator = new SpatialAnalyzerSdkLifecycleCoordinator(
             supervisor,
             projection,
             new FakeApplicationStateProvider(RunningApplication(2)));
-        var started = await coordinator.StartAsync(CancellationToken.None);
+        var started = await coordinator.StartAsync(CancellationToken.None).WaitAsync(ProcessBound);
 
-        var exception = await Assert.ThrowsAsync<SdkLifecycleException>(() =>
+        var stopping = Assert.ThrowsAsync<SdkLifecycleException>(() =>
             coordinator.StopAsync(started.SdkGeneration, CancellationToken.None));
+        await clock.FireNextAsync(TimeSpan.FromMilliseconds(150));
+        var exception = await stopping.WaitAsync(ProcessBound);
 
         Assert.Equal(Grpc.Core.StatusCode.DeadlineExceeded, exception.StatusCode);
         Assert.Equal(
@@ -167,11 +180,14 @@ public sealed class SpatialAnalyzerSdkLifecycleCoordinatorTests
     [Fact]
     public async Task ReadinessTimeoutReturnsTypedDeadlineAndOperatorRecovery()
     {
-        await using var supervisor = CreateSupervisor(_ => "hang-on-verify");
+        var clock = new HeartbeatTestClock();
+        await using var supervisor = CreateSupervisor(_ => "hang-on-verify", timeProvider: clock);
         await using var coordinator = new SpatialAnalyzerSdkLifecycleCoordinator(supervisor,
             new SpatialAnalyzerSdkLifecycleStateProjection(supervisor),
             new FakeApplicationStateProvider(RunningApplication(1)));
-        var failure = await Assert.ThrowsAsync<SdkLifecycleException>(() => coordinator.StartAsync(CancellationToken.None));
+        var starting = Assert.ThrowsAsync<SdkLifecycleException>(() => coordinator.StartAsync(CancellationToken.None));
+        await clock.FireNextAsync(WatchdogTimeout);
+        var failure = await starting.WaitAsync(ProcessBound);
         Assert.Equal(Grpc.Core.StatusCode.DeadlineExceeded, failure.StatusCode);
         Assert.Equal(WorkerLifecycleFailure.ReadinessTimeout, supervisor.Current.LifecycleFailure);
         Assert.Equal(global::Briosa.SpatialAnalyzerSdkRecoveryState.OperatorActionRequired, failure.Detail.State.RecoveryState);
@@ -374,10 +390,16 @@ public sealed class SpatialAnalyzerSdkLifecycleCoordinatorTests
             recovered.LastIncident.TerminationKind);
     }
 
+    // Virtual-time tests fire server-side deadlines explicitly, but a real fake
+    // worker process must still start and exit within a generous real bound.
+    private static readonly TimeSpan ProcessBound = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan WatchdogTimeout = TimeSpan.FromSeconds(2);
+
     private static WorkerProcessSupervisor CreateSupervisor(
         Func<int, string> scenarioFactory,
         TimeSpan? startupTimeout = null,
-        TimeSpan? shutdownTimeout = null) =>
+        TimeSpan? shutdownTimeout = null,
+        TimeProvider? timeProvider = null) =>
         new(
             new NamedPipeWorkerProcessFactory(generation =>
                 CreateLaunch(scenarioFactory(generation))),
@@ -387,8 +409,9 @@ public sealed class SpatialAnalyzerSdkLifecycleCoordinatorTests
                 startupTimeout: startupTimeout ?? TimeSpan.FromSeconds(3),
                 shutdownTimeout: shutdownTimeout ?? TimeSpan.FromSeconds(2)),
             new WorkerExecutionPolicy(
-                watchdogTimeout: TimeSpan.FromSeconds(2),
+                watchdogTimeout: WatchdogTimeout,
                 queueCapacity: 4),
+            timeProvider,
             identityPolicy: ExactTargetIdentityPolicy.CreateForTesting(
                 "2026.1.0529.7",
                 activatedSdkVersion: "2026.1.0529.7",

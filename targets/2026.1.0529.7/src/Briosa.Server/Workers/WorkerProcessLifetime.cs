@@ -2,8 +2,9 @@ namespace Briosa.Server.Workers;
 
 // Called under the generation controller's gate. An incomplete release retains
 // both the process and its pending cleanup; it never authorizes a replacement.
-internal sealed class WorkerProcessLifetime(IWorkerProcess process)
+internal sealed class WorkerProcessLifetime(IWorkerProcess process, TimeProvider timeProvider)
 {
+    private readonly TimeProvider _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
     private Task<WorkerCleanupStatus>? _cleanup;
     private volatile WorkerCleanupStatus _incompleteStatus = WorkerCleanupStatus.ExitUnconfirmed;
 
@@ -21,7 +22,7 @@ internal sealed class WorkerProcessLifetime(IWorkerProcess process)
         {
             // The outer bound also covers an implementation that ignores cancellation,
             // including DisposeAsync, which has no cancellation parameter.
-            return await _cleanup.WaitAsync(timeout).ConfigureAwait(false);
+            return await _cleanup.WaitAsync(timeout, _timeProvider).ConfigureAwait(false);
         }
         catch (TimeoutException)
         {
@@ -31,7 +32,7 @@ internal sealed class WorkerProcessLifetime(IWorkerProcess process)
 
     private async Task<WorkerCleanupStatus> ReleaseCoreAsync(bool force, TimeSpan timeout)
     {
-        using var deadline = new CancellationTokenSource(timeout);
+        using var deadline = new CancellationTokenSource(timeout, _timeProvider);
         try
         {
             if (!Process.HasExited)
