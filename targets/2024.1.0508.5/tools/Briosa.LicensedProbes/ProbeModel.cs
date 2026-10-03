@@ -24,11 +24,24 @@ internal enum ProbeStepKind
 /// <summary>Classified result of one executed step.</summary>
 internal enum ProbeOutcomeKind
 {
+    // MP code 2 and every output retrieved. Completed.
     Succeeded,
+
+    // GetMPStepResult returned true with an MP code other than 2. Completed.
     MpFailed,
+
+    // A setter returned false, so ExecuteStep was never called. Not started.
     ArgumentRejected,
+
+    // Setters succeeded and ExecuteStep returned false. As in the shipped server,
+    // completion is unknown: the session stops and never replays.
     ExecuteStepRejected,
+
+    // ExecuteStep returned true and GetMPStepResult returned false. As in the
+    // shipped server, completion is unknown: the session stops and never replays.
     MpResultUnavailable,
+
+    // An MP code was retrieved but at least one output was not. Completed.
     OutputRetrievalFailed,
 
     // Definitely not started: validation, policy, or readiness refusal.
@@ -41,6 +54,10 @@ internal enum ProbeOutcomeKind
     RefusedByHarness
 }
 
+/// <summary>
+/// Outcomes a step may accept. Only determinate outcomes have a flag: an outcome
+/// whose completion is unknown can never be accepted by any step.
+/// </summary>
 [Flags]
 internal enum ProbeOutcomes
 {
@@ -48,28 +65,40 @@ internal enum ProbeOutcomes
     Succeeded = 1,
     MpFailed = 2,
     ArgumentRejected = 4,
-    ExecuteStepRejected = 8,
-    MpResultUnavailable = 16,
-    OutputRetrievalFailed = 32,
+    OutputRetrievalFailed = 8,
 
-    // Every well-formed, completed SDK sequence. Indeterminate, not-started,
-    // and harness refusals are deliberately excluded from every set.
-    AnyCompletedSdkOutcome = Succeeded | MpFailed | ArgumentRejected | ExecuteStepRejected |
-        MpResultUnavailable | OutputRetrievalFailed
+    // Every SDK sequence that definitely completed or definitely did not start.
+    // ExecuteStepRejected, MpResultUnavailable, and Indeterminate (completion
+    // unknown), not-started refusals, and harness refusals are in no set.
+    AnyDeterminateSdkOutcome = Succeeded | MpFailed | ArgumentRejected | OutputRetrievalFailed
 }
 
 internal static class ProbeOutcomeKindExtensions
 {
+    // Completion-unknown kinds deliberately have no flag.
     public static ProbeOutcomes ToFlag(this ProbeOutcomeKind kind) => kind switch
     {
         ProbeOutcomeKind.Succeeded => ProbeOutcomes.Succeeded,
         ProbeOutcomeKind.MpFailed => ProbeOutcomes.MpFailed,
         ProbeOutcomeKind.ArgumentRejected => ProbeOutcomes.ArgumentRejected,
-        ProbeOutcomeKind.ExecuteStepRejected => ProbeOutcomes.ExecuteStepRejected,
-        ProbeOutcomeKind.MpResultUnavailable => ProbeOutcomes.MpResultUnavailable,
         ProbeOutcomeKind.OutputRetrievalFailed => ProbeOutcomes.OutputRetrievalFailed,
         _ => ProbeOutcomes.None
     };
+
+    /// <summary>
+    /// True when the call may have started and its completion is unknown. The
+    /// session stops there as do-not-replay and the worker is not reused.
+    /// </summary>
+    public static bool IsCompletionUnknown(this ProbeOutcomeKind kind) =>
+        kind is ProbeOutcomeKind.ExecuteStepRejected or ProbeOutcomeKind.MpResultUnavailable or ProbeOutcomeKind.Indeterminate;
+
+    /// <summary>Whether a step that accepts <paramref name="acceptable"/> accepts this outcome.</summary>
+    public static bool Accepts(this ProbeOutcomes acceptable, ProbeOutcome outcome)
+    {
+        ArgumentNullException.ThrowIfNull(outcome);
+        var flag = outcome.Kind.ToFlag();
+        return flag != ProbeOutcomes.None && acceptable.HasFlag(flag) && !outcome.CompletionUnknown;
+    }
 }
 
 /// <summary>A labelled interpretation of one structural observation.</summary>
@@ -126,6 +155,12 @@ internal sealed record ProbeOutcome(
     string? ExecutionDisposition,
     IReadOnlyDictionary<string, string> Observations)
 {
+    public const string StartedOutcomeUnknown = "StartedOutcomeUnknown";
+
+    /// <summary>The call may have started and its completion is unknown, by kind or by reported disposition.</summary>
+    public bool CompletionUnknown =>
+        Kind.IsCompletionUnknown() || string.Equals(ExecutionDisposition, StartedOutcomeUnknown, StringComparison.Ordinal);
+
     public static ProbeOutcome Refused(string diagnosticCode) =>
         new(ProbeOutcomeKind.RefusedByHarness, "harness", null, null, null, [],
             SafeCode.OrNull(diagnosticCode), null, null, EmptyObservations);

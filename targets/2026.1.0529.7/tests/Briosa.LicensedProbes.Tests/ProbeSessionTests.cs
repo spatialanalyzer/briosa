@@ -1,3 +1,8 @@
+using Briosa.Worker.Control;
+using Google.Protobuf;
+using Grpc.Core;
+using Api = global::Briosa;
+
 namespace Briosa.LicensedProbes.Tests;
 
 public sealed class ProbeSessionTests
@@ -48,6 +53,150 @@ public sealed class ProbeSessionTests
         Assert.All(record.Steps.Skip(index + 1), static step => Assert.Equal(StepClassification.NotRun, step.Classification));
     }
 
+    private static WorkerExecutionResponse WorkerCompleted(WorkerMpExecutionResult execution) => new(
+        WorkerExecutionResponseStatus.Completed, execution,
+        new WorkerConnectionSnapshot(WorkerConnectionState.Connected, WorkerExecutionReadinessState.ExecutionReady, 0, 1, 1,
+            "connect-ex-connected", DateTimeOffset.UnixEpoch),
+        null);
+
+    // A worker-shaped outcome produced by the real classifier, not a hand-built record.
+    private static ProbeOutcome FromWorker(ProbeStep step, WorkerMpExecutionResult execution) =>
+        WorkerOutcomes.FromResponse(WorkerCompleted(execution), outputs => step.Operation.ObserveWorker(step.Request, outputs));
+
+    private static WorkerMpExecutionResult UnknownCompletion(string name) => name switch
+    {
+        "execute-rejected" => new WorkerExecuteRejected(1, "execute-step-rejected"),
+        "result-unavailable" => new WorkerMpResultUnavailable(1, "sdk-mp-result-retrieval-failed"),
+        _ => throw new ArgumentOutOfRangeException(nameof(name))
+    };
+
+    [Theory]
+    [InlineData("execute-rejected", nameof(ProbeOutcomeKind.ExecuteStepRejected))]
+    [InlineData("result-unavailable", nameof(ProbeOutcomeKind.MpResultUnavailable))]
+    public async Task AnUnknownCompletionWorkerResultOnAProbeStopsTheSessionWithoutReplay(string result, string kind)
+    {
+        var plan = Plan(ProbePhase.Worker);
+        var target = plan.Steps.First(static step => step.Variant.Kind == VariantKind.OmitArgument).Id;
+        var transport = new FakeTransport(ProbePhase.Worker, step => step.Id == target
+            ? FromWorker(step, UnknownCompletion(result))
+            : TestSupport.Succeeding(step));
+
+        var record = await Run(plan, transport);
+
+        Assert.False(record.Completed);
+        Assert.Equal(target, record.StoppedAt);
+        Assert.Equal(ProbeSession.UnknownOutcomeStop, record.StopReason);
+        Assert.Equal(target, transport.Executed[^1]);
+        Assert.Single(transport.Executed, id => id == target);
+        var index = plan.Steps.ToList().FindIndex(step => step.Id == target);
+        Assert.Equal(index + 1, transport.Executed.Count);
+        var stopped = record.Steps[index];
+        Assert.Equal(StepClassification.Unexpected, stopped.Classification);
+        Assert.Equal(Enum.Parse<ProbeOutcomeKind>(kind), stopped.Outcome!.Kind);
+        Assert.Equal(ProbeOutcome.StartedOutcomeUnknown, stopped.Outcome.ExecutionDisposition);
+        Assert.All(record.Steps.Skip(index + 1), static step => Assert.Equal(StepClassification.NotRun, step.Classification));
+    }
+
+    // Every planned step of both phases, whatever its kind (guard, setup, check,
+    // probe, variant, or worker control), stops as do-not-replay on an outcome
+    // whose completion is unknown, and nothing after it runs.
+    [Theory]
+    [InlineData(false, "execute-rejected")]
+    [InlineData(false, "result-unavailable")]
+    [InlineData(true, "execute-rejected")]
+    [InlineData(true, "result-unavailable")]
+    public async Task EveryPlannedStepStopsOnUnknownCompletion(bool worker, string result)
+    {
+        var phase = worker ? ProbePhase.Worker : ProbePhase.PublicApi;
+        var steps = Plan(phase).Steps;
+        for (var index = 0; index < steps.Count; index++)
+        {
+            var target = steps[index].Id;
+            var transport = new FakeTransport(phase, step => step.Id != target
+                ? TestSupport.Succeeding(step)
+                : worker ? FromWorker(step, UnknownCompletion(result)) : PublicContradiction(result));
+
+            var record = await Run(Plan(phase), transport);
+
+            Assert.Equal(target, record.StoppedAt);
+            Assert.Equal(ProbeSession.UnknownOutcomeStop, record.StopReason);
+            Assert.Equal(index + 1, transport.Executed.Count);
+        }
+    }
+
+    // A public error naming ExecuteStepRejected or MpResultRetrievalFailure with a
+    // contradictory Completed disposition: the kind alone must stop the session.
+    private static ProbeOutcome PublicContradiction(string result)
+    {
+        var error = new Api.OperationError
+        {
+            Kind = result == "execute-rejected" ? Api.OperationFailureKind.ExecuteStepRejected : Api.OperationFailureKind.MpResultRetrievalFailure,
+            ExecutionDisposition = Api.ExecutionDisposition.Completed,
+            DiagnosticCode = "contradictory-disposition"
+        };
+        var trailers = new Metadata { { PublicOutcomes.ErrorTrailerName, error.ToByteArray() } };
+        return PublicOutcomes.FromRpcException(new RpcException(new Status(StatusCode.FailedPrecondition, "detail"), trailers));
+    }
+
+    [Theory]
+    [InlineData("arguments-rejected")]
+    [InlineData("mp-failed")]
+    [InlineData("outputs-unavailable")]
+    public async Task DeterminateWorkerResultsOnVariantsStillContinue(string result)
+    {
+        var plan = Plan(ProbePhase.Worker);
+        var transport = new FakeTransport(ProbePhase.Worker, step => step.Variant.Kind == VariantKind.Shipped
+            ? TestSupport.Succeeding(step)
+            : FromWorker(step, result switch
+            {
+                "arguments-rejected" => new WorkerArgumentsRejected(1, "sdk-argument-rejected"),
+                "mp-failed" => new WorkerMpResultAvailable(0, 1, [], "mp-command-failed"),
+                _ => new WorkerMpOutputsUnavailable(1, "worker-output-encoding-rejected")
+            }));
+
+        var record = await Run(plan, transport);
+
+        Assert.True(record.Completed);
+        Assert.Null(record.StopReason);
+        Assert.Equal(plan.Steps.Select(static step => step.Id), transport.Executed);
+        Assert.Contains(record.Steps, static step => step.Step.Variant.Kind != VariantKind.Shipped &&
+            step.Classification == StepClassification.Observed && !step.Outcome!.CompletionUnknown);
+    }
+
+    [Fact]
+    public async Task AnArgumentRejectionAndAnMpFailureOnPublicProbesStillContinue()
+    {
+        var plan = Plan(ProbePhase.PublicApi);
+        var probes = plan.Steps.Where(static step => step.Kind == ProbeStepKind.Probe &&
+            step.Acceptable == ProbeOutcomes.AnyDeterminateSdkOutcome).Select(static step => step.Id).ToList();
+        var transport = new FakeTransport(ProbePhase.PublicApi, step => !probes.Contains(step.Id)
+            ? TestSupport.Succeeding(step)
+            : probes.IndexOf(step.Id) % 2 == 0
+                ? TestSupport.Outcome(ProbeOutcomeKind.ArgumentRejected)
+                : TestSupport.Outcome(ProbeOutcomeKind.MpFailed));
+
+        var record = await Run(plan, transport);
+
+        Assert.True(probes.Count >= 2);
+        Assert.True(record.Completed);
+        Assert.Equal(plan.Steps.Select(static step => step.Id), transport.Executed);
+    }
+
+    [Fact]
+    public async Task AReportedStartedOutcomeUnknownDispositionStopsEvenWithADeterminateKind()
+    {
+        var plan = Plan(ProbePhase.Worker);
+        var target = plan.Steps.First(static step => step.Variant.Kind == VariantKind.BlankArgument).Id;
+        var transport = new FakeTransport(ProbePhase.Worker, step => step.Id == target
+            ? TestSupport.Outcome(ProbeOutcomeKind.MpFailed) with { ExecutionDisposition = ProbeOutcome.StartedOutcomeUnknown }
+            : TestSupport.Succeeding(step));
+
+        var record = await Run(plan, transport);
+
+        Assert.Equal(target, record.StoppedAt);
+        Assert.Equal(ProbeSession.UnknownOutcomeStop, record.StopReason);
+    }
+
     [Fact]
     public async Task AFailedFixtureStepStopsBeforeAnyProbe()
     {
@@ -64,7 +213,7 @@ public sealed class ProbeSessionTests
     }
 
     [Fact]
-    public async Task ControlsMustSucceedButVariantsRecordEveryCompletedOutcome()
+    public async Task ControlsMustSucceedButVariantsRecordEveryDeterminateOutcome()
     {
         var plan = Plan(ProbePhase.Worker);
         var transport = new FakeTransport(ProbePhase.Worker, step => step.Variant.Kind != VariantKind.Shipped

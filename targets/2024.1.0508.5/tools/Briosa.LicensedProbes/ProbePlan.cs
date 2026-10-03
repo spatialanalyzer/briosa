@@ -54,6 +54,10 @@ internal sealed class ProbePlan
             Require(step.Phase == phase, $"Step '{step.Id}' belongs to another phase.");
             Require(step.Acceptable != ProbeOutcomes.None, $"Step '{step.Id}' accepts no outcome.");
 
+            // Only determinate outcomes can be accepted; completion-unknown kinds have no flag.
+            Require((step.Acceptable & ~ProbeOutcomes.AnyDeterminateSdkOutcome) == ProbeOutcomes.None,
+                $"Step '{step.Id}' accepts an outcome outside the determinate set.");
+
             // Building the command runs the shipped mapper and applies the variant;
             // an invalid request or variant fails here, never against SpatialAnalyzer.
             var command = step.Command;
@@ -76,11 +80,12 @@ internal sealed class ProbePlan
                 Require(step.Variant.Kind == VariantKind.Shipped, $"Step '{step.Id}' varies a non-probe sequence.");
             }
 
-            // A variant is the question itself: every completed SDK outcome is an answer.
+            // A variant is the question itself: every determinate SDK outcome is an
+            // answer. An outcome whose completion is unknown is never an answer.
             if (step.Variant.Kind != VariantKind.Shipped)
             {
-                Require(step.Acceptable == ProbeOutcomes.AnyCompletedSdkOutcome,
-                    $"Step '{step.Id}' must record every completed outcome of its variant.");
+                Require(step.Acceptable == ProbeOutcomes.AnyDeterminateSdkOutcome,
+                    $"Step '{step.Id}' must record every determinate outcome of its variant.");
             }
 
             if (step.Operation.IsDestructive || step.DestructiveTarget is not null)
@@ -219,10 +224,10 @@ internal sealed class ProbePlan
     };
 
     public static string AcceptableName(ProbeOutcomes outcomes) =>
-        outcomes == ProbeOutcomes.AnyCompletedSdkOutcome
-            ? "any completed SDK outcome"
+        outcomes == ProbeOutcomes.AnyDeterminateSdkOutcome
+            ? "any determinate SDK outcome (Succeeded, MpFailed, ArgumentRejected, or OutputRetrievalFailed)"
             : string.Join(" or ", Enum.GetValues<ProbeOutcomes>()
-                .Where(flag => flag is not ProbeOutcomes.None and not ProbeOutcomes.AnyCompletedSdkOutcome && outcomes.HasFlag(flag))
+                .Where(flag => flag is not ProbeOutcomes.None and not ProbeOutcomes.AnyDeterminateSdkOutcome && outcomes.HasFlag(flag))
                 .Select(static flag => flag.ToString()));
 
     private static string Binding(WorkerMpInputArgument argument) => argument.SdkBinding ?? "setter";

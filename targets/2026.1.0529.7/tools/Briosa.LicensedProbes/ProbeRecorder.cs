@@ -226,7 +226,9 @@ internal static class ProbeRecorder
         if (record.StopReason is not null)
         {
             text.Append(CultureInfo.InvariantCulture, $"\nThe session stopped{(record.StoppedAt is null ? " before any step" : $" at `{record.StoppedAt}`")} (`{record.StopReason}`). ");
-            text.Append("Later steps were not run. An unknown outcome was not replayed; follow the runbook's recovery before any further SDK use.\n");
+            text.Append(string.Equals(record.StopReason, ProbeSession.UnknownOutcomeStop, StringComparison.Ordinal)
+                ? "Completion of that step is unknown. It was not replayed and later steps were not run; follow the runbook's recovery before any further SDK use.\n"
+                : "Later steps were not run and nothing was replayed.\n");
         }
 
         var notRun = record.Steps.Where(static step => step.Classification == StepClassification.NotRun).Select(static step => step.Step.Id).ToList();
@@ -296,8 +298,8 @@ internal static class ProbeRecorder
             ProbeOutcomeKind.Succeeded => $"setters returned true; `ExecuteStep` returned true; `GetMPStepResult` returned true with MP code `{code}`.",
             ProbeOutcomeKind.MpFailed => $"setters returned true; `ExecuteStep` returned true; `GetMPStepResult` returned true with MP code `{code}`.",
             ProbeOutcomeKind.ArgumentRejected => "a setter returned false; `ExecuteStep` was not called.",
-            ProbeOutcomeKind.ExecuteStepRejected => "setters returned true; `ExecuteStep` returned false.",
-            ProbeOutcomeKind.MpResultUnavailable => "`ExecuteStep` returned true; `GetMPStepResult` returned false.",
+            ProbeOutcomeKind.ExecuteStepRejected => "setters returned true; `ExecuteStep` returned false; completion unknown; not replayed.",
+            ProbeOutcomeKind.MpResultUnavailable => "`ExecuteStep` returned true; `GetMPStepResult` returned false; completion unknown; not replayed.",
             ProbeOutcomeKind.OutputRetrievalFailed => $"MP code `{code}`, but at least one getter failed.",
             ProbeOutcomeKind.NotStarted => "definitely not started.",
             ProbeOutcomeKind.RefusedByHarness => "refused by the harness before dispatch.",
@@ -327,7 +329,9 @@ internal static class ProbeRecorder
 
         if (record.Classification == StepClassification.Unexpected)
         {
-            text.Append(" **Unexpected for this step; the session stopped here.**");
+            text.Append(outcome.CompletionUnknown
+                ? " **Completion unknown; the session stopped here (do not replay).**"
+                : " **Unexpected for this step; the session stopped here.**");
         }
 
         return text.ToString();

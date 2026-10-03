@@ -132,9 +132,19 @@ internal sealed class WorkerTransport : IProbeTransport
         {
             var response = await RequestAsync(WorkerControlMessage.Execute(Guid.NewGuid(), step.Command),
                 WorkerControlMessageKind.ExecutionResult, _stepTimeout, cancellationToken).ConfigureAwait(false);
-            return response.ExecutionResponse is { } execution
+            var outcome = response.ExecutionResponse is { } execution
                 ? WorkerOutcomes.FromResponse(execution, outputs => step.Operation.ObserveWorker(step.Request, outputs))
                 : ProbeOutcome.Unknown("worker:invalid-response", "worker-response-invalid");
+
+            // ExecuteStep false or a missing MP result leaves completion unknown even
+            // though the worker answered. Like any unknown outcome, the worker is
+            // terminated rather than reused.
+            if (outcome.CompletionUnknown)
+            {
+                await FaultAsync().ConfigureAwait(false);
+            }
+
+            return outcome;
         }
         catch (WorkerMessageRejectedException)
         {

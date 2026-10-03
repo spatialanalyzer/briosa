@@ -20,9 +20,12 @@ internal static class TestSupport
         UiProfileFile = profileFile ?? @"C:\SENTINEL\profile.xml"
     };
 
+    // A determinate outcome with the disposition the shipped server reports for its kind.
     public static ProbeOutcome Outcome(ProbeOutcomeKind kind, params (string Key, string Value)[] observations) =>
-        new(kind, "fake", kind is ProbeOutcomeKind.ArgumentRejected ? null : true, true,
-            kind is ProbeOutcomeKind.Succeeded ? 2 : 3, [], null, null, "Completed", Observations.Of(observations));
+        new(kind, "fake", kind is ProbeOutcomeKind.ArgumentRejected ? null : true,
+            kind is ProbeOutcomeKind.ArgumentRejected ? null : true,
+            kind switch { ProbeOutcomeKind.Succeeded => 2, ProbeOutcomeKind.ArgumentRejected => null, _ => 3 }, [], null, null,
+            WorkerOutcomes.DispositionOf(kind), Observations.Of(observations));
 
     // Answers every step as a successful, well-formed SDK sequence with
     // observations consistent with the fixture design.

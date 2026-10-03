@@ -94,12 +94,28 @@ death) are not included. They need their own authorization.
 - **Stop on the first unexpected disposition.** Guards, setup steps, and worker
   controls accept only success. Wildcard checks also accept an MP failure,
   because an empty match may be reported that way. Probes and variants accept
-  any completed SDK outcome, because that outcome is the answer. Anything else
-  stops the session and leaves the remaining steps not run. This includes a
-  not-started refusal, an unmet requirement, and any unknown outcome.
+  any determinate SDK outcome, because that outcome is the answer:
+
+  | Outcome | Execution disposition | Accepted by probes and variants |
+  | --- | --- | --- |
+  | `Succeeded`: MP code `2` and every output retrieved | Completed | Yes |
+  | `MpFailed`: `GetMPStepResult` returned true with another MP code | Completed | Yes |
+  | `OutputRetrievalFailed`: an MP code, but an output was not retrieved | Completed | Yes |
+  | `ArgumentRejected`: a setter returned false; `ExecuteStep` was not called | Not started | Yes |
+  | `ExecuteStepRejected`: setters returned true; `ExecuteStep` returned false | Started, outcome unknown | Never |
+  | `MpResultUnavailable`: `ExecuteStep` returned true; `GetMPStepResult` returned false | Started, outcome unknown | Never |
+  | `Indeterminate`: timeout, cancellation, lost channel, or untyped failure | Started, outcome unknown | Never |
+
+  The dispositions match the shipped server. Anything not accepted stops the
+  session and leaves the remaining steps not run. This includes a not-started
+  refusal, an unmet requirement, and every outcome whose completion is unknown.
+  The record keeps the exact kind, for example `ExecuteStepRejected`, with the
+  stop reason `outcome-unknown-do-not-replay`.
 - **No replay.** Each step is sent at most once. A timeout, cancellation, or lost
-  channel is recorded as an unknown outcome. The worker is terminated, as the
-  server watchdog does, and nothing is retried.
+  channel is recorded as an unknown outcome. After any outcome whose completion
+  is unknown, including `ExecuteStep` returning false or `GetMPStepResult`
+  returning false, no further step is sent and nothing is retried. In the worker
+  phase the harness also terminates its worker, as the server watchdog does.
 - **No sensitive data.** Records hold labels, MP step text, dispositions, MP
   codes, output retrieval, and counts of harness-created objects. They never
   hold argument or returned values, manifest contents, paths, or license data.
@@ -240,8 +256,9 @@ manifest error, and nothing started.
 
 ### When a session stops
 
-An unknown outcome (`outcome-unknown-do-not-replay`) can leave SA or the SDK in
-an uncertain state. Do not rerun the phase against the same SA instance. Follow
+An unknown outcome (`outcome-unknown-do-not-replay`), including `ExecuteStep`
+or `GetMPStepResult` returning false, can leave SA or the SDK in an uncertain
+state. Do not rerun the phase against the same SA instance. Follow
 the licensed-runner recovery steps: close residual Briosa and SDK processes,
 close every SA instance, and start a clean one. Other stop reasons, such as a
 failed fixture step, unmet requirement, or failed control, also end the phase.

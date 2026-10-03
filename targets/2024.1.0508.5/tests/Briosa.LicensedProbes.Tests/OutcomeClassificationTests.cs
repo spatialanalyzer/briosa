@@ -42,6 +42,8 @@ public sealed class OutcomeClassificationTests
     [InlineData(Api.OperationFailureKind.OutputRetrievalFailure, Api.ExecutionDisposition.Completed, nameof(ProbeOutcomeKind.OutputRetrievalFailed))]
     [InlineData(Api.OperationFailureKind.Validation, Api.ExecutionDisposition.NotStarted, nameof(ProbeOutcomeKind.NotStarted))]
     [InlineData(Api.OperationFailureKind.PolicyDenied, Api.ExecutionDisposition.NotStarted, nameof(ProbeOutcomeKind.NotStarted))]
+    [InlineData(Api.OperationFailureKind.ExecuteStepRejected, Api.ExecutionDisposition.StartedOutcomeUnknown, nameof(ProbeOutcomeKind.Indeterminate))]
+    [InlineData(Api.OperationFailureKind.MpResultRetrievalFailure, Api.ExecutionDisposition.StartedOutcomeUnknown, nameof(ProbeOutcomeKind.Indeterminate))]
     [InlineData(Api.OperationFailureKind.WorkerWatchdogTimeout, Api.ExecutionDisposition.StartedOutcomeUnknown, nameof(ProbeOutcomeKind.Indeterminate))]
     [InlineData(Api.OperationFailureKind.MpFailure, Api.ExecutionDisposition.StartedOutcomeUnknown, nameof(ProbeOutcomeKind.Indeterminate))]
     [InlineData(Api.OperationFailureKind.WorkerFailure, Api.ExecutionDisposition.Completed, nameof(ProbeOutcomeKind.Indeterminate))]
@@ -98,22 +100,97 @@ public sealed class OutcomeClassificationTests
     private static readonly Func<IReadOnlyList<WorkerMpOutputValue>, IReadOnlyDictionary<string, string>> NoObservation =
         static _ => Observations.Of(("observed", "true"));
 
-    [Fact]
-    public void WorkerOutcomesPreserveEachSdkDisposition()
+    private static readonly WorkerRetrievedOutput RetrievedCount =
+        new("Total Count", WorkerMpValueKind.WholeNumber, new WorkerIntegerValue(4));
+
+    private static readonly WorkerUnavailableOutput MissingOutput =
+        new("Other", WorkerMpValueKind.WholeNumber, "sdk-output-retrieval-failed");
+
+    private static WorkerMpExecutionResult WorkerResult(string name) => name switch
     {
-        Assert.Equal(ProbeOutcomeKind.ArgumentRejected,
-            WorkerOutcomes.FromResponse(Completed(new WorkerArgumentsRejected(1, "sdk-argument-rejected")), NoObservation).Kind);
-        Assert.Equal(ProbeOutcomeKind.ExecuteStepRejected,
-            WorkerOutcomes.FromResponse(Completed(new WorkerExecuteRejected(1, "execute-step-rejected")), NoObservation).Kind);
-        Assert.Equal(ProbeOutcomeKind.MpResultUnavailable,
-            WorkerOutcomes.FromResponse(Completed(new WorkerMpResultUnavailable(1, "sdk-mp-result-retrieval-failed")), NoObservation).Kind);
-        Assert.Equal(ProbeOutcomeKind.OutputRetrievalFailed,
-            WorkerOutcomes.FromResponse(Completed(new WorkerMpOutputsUnavailable(1, "worker-output-encoding-rejected")), NoObservation).Kind);
+        "arguments-rejected" => new WorkerArgumentsRejected(1, "sdk-argument-rejected"),
+        "execute-rejected" => new WorkerExecuteRejected(1, "execute-step-rejected"),
+        "result-unavailable" => new WorkerMpResultUnavailable(1, "sdk-mp-result-retrieval-failed"),
+        "outputs-unavailable" => new WorkerMpOutputsUnavailable(1, "worker-output-encoding-rejected"),
+        "mp-failed" => new WorkerMpResultAvailable(0, 1, [], "mp-command-failed"),
+        "output-retrieval-failed" => new WorkerMpResultAvailable(2, 1, [RetrievedCount, MissingOutput], "sdk-output-retrieval-failed"),
+        "succeeded" => new WorkerMpResultAvailable(2, 1, [RetrievedCount], null),
+        _ => throw new ArgumentOutOfRangeException(nameof(name))
+    };
+
+    // Kind and disposition for every worker result type, matching the shipped
+    // server's GrpcOperationOutcomeMapper.
+    [Theory]
+    [InlineData("arguments-rejected", nameof(ProbeOutcomeKind.ArgumentRejected), "NotStarted", false)]
+    [InlineData("execute-rejected", nameof(ProbeOutcomeKind.ExecuteStepRejected), "StartedOutcomeUnknown", true)]
+    [InlineData("result-unavailable", nameof(ProbeOutcomeKind.MpResultUnavailable), "StartedOutcomeUnknown", true)]
+    [InlineData("outputs-unavailable", nameof(ProbeOutcomeKind.OutputRetrievalFailed), "Completed", false)]
+    [InlineData("mp-failed", nameof(ProbeOutcomeKind.MpFailed), "Completed", false)]
+    [InlineData("output-retrieval-failed", nameof(ProbeOutcomeKind.OutputRetrievalFailed), "Completed", false)]
+    [InlineData("succeeded", nameof(ProbeOutcomeKind.Succeeded), "Completed", false)]
+    public void WorkerOutcomesCarryTheServerDispositionForEveryResultType(string result, string kind, string disposition, bool completionUnknown)
+    {
+        var outcome = WorkerOutcomes.FromResponse(Completed(WorkerResult(result)), NoObservation);
+
+        Assert.Equal(Enum.Parse<ProbeOutcomeKind>(kind), outcome.Kind);
+        Assert.Equal(disposition, outcome.ExecutionDisposition);
+        Assert.Equal(completionUnknown, outcome.CompletionUnknown);
+        Assert.Equal(completionUnknown, outcome.Kind.IsCompletionUnknown());
+        Assert.Equal(!completionUnknown, ProbeOutcomes.AnyDeterminateSdkOutcome.Accepts(outcome));
+        Assert.Equal("worker:completed", outcome.Transport);
+    }
+
+    [Fact]
+    public void WorkerOutcomesPreserveTheSdkEvidenceOfUnknownCompletion()
+    {
+        var rejected = WorkerOutcomes.FromResponse(Completed(new WorkerExecuteRejected(1, "execute-step-rejected")), NoObservation);
+        var unavailable = WorkerOutcomes.FromResponse(Completed(new WorkerMpResultUnavailable(1, "sdk-mp-result-retrieval-failed")), NoObservation);
+        var argument = WorkerOutcomes.FromResponse(Completed(new WorkerArgumentsRejected(1, "sdk-argument-rejected")), NoObservation);
+
+        Assert.False(rejected.ExecuteStepReturned);
+        Assert.Null(rejected.MpResultRetrieved);
+        Assert.Equal("execute-step-rejected", rejected.DiagnosticCode);
+        Assert.True(unavailable.ExecuteStepReturned);
+        Assert.False(unavailable.MpResultRetrieved);
+        Assert.Null(unavailable.MpResultCode);
+        Assert.Null(argument.ExecuteStepReturned);
+        Assert.Empty(rejected.Observations);
+        Assert.Empty(unavailable.Observations);
 
         var failed = WorkerOutcomes.FromResponse(Completed(new WorkerMpResultAvailable(0, 1, [], "mp-command-failed")), NoObservation);
         Assert.Equal(ProbeOutcomeKind.MpFailed, failed.Kind);
         Assert.Equal(0, failed.MpResultCode);
         Assert.Empty(failed.Observations);
+    }
+
+    [Theory]
+    [InlineData(nameof(ProbeOutcomeKind.Succeeded), "Completed")]
+    [InlineData(nameof(ProbeOutcomeKind.MpFailed), "Completed")]
+    [InlineData(nameof(ProbeOutcomeKind.OutputRetrievalFailed), "Completed")]
+    [InlineData(nameof(ProbeOutcomeKind.ArgumentRejected), "NotStarted")]
+    [InlineData(nameof(ProbeOutcomeKind.ExecuteStepRejected), "StartedOutcomeUnknown")]
+    [InlineData(nameof(ProbeOutcomeKind.MpResultUnavailable), "StartedOutcomeUnknown")]
+    [InlineData(nameof(ProbeOutcomeKind.Indeterminate), "StartedOutcomeUnknown")]
+    public void WorkerDispositionsMatchTheShippedServer(string kind, string disposition)
+    {
+        Assert.Equal(disposition, WorkerOutcomes.DispositionOf(Enum.Parse<ProbeOutcomeKind>(kind)));
+    }
+
+    [Theory]
+    [InlineData(Api.OperationFailureKind.ExecuteStepRejected, Api.ExecutionDisposition.StartedOutcomeUnknown, Api.MpExecutionState.ExecuteStepRejected)]
+    [InlineData(Api.OperationFailureKind.MpResultRetrievalFailure, Api.ExecutionDisposition.StartedOutcomeUnknown, Api.MpExecutionState.ResultUnavailable)]
+    [InlineData(Api.OperationFailureKind.ExecuteStepRejected, Api.ExecutionDisposition.Completed, Api.MpExecutionState.ExecuteStepRejected)]
+    [InlineData(Api.OperationFailureKind.MpResultRetrievalFailure, Api.ExecutionDisposition.Completed, Api.MpExecutionState.ResultUnavailable)]
+    public void PublicUnknownCompletionIsNeverAccepted(Api.OperationFailureKind kind, Api.ExecutionDisposition disposition, Api.MpExecutionState state)
+    {
+        // The server reports these as StartedOutcomeUnknown; even a contradictory
+        // Completed disposition cannot make them acceptable.
+        var outcome = PublicOutcomes.FromRpcException(Failure(StatusCode.FailedPrecondition, Error(kind, disposition, state)));
+
+        Assert.True(outcome.CompletionUnknown);
+        Assert.False(ProbeOutcomes.AnyDeterminateSdkOutcome.Accepts(outcome));
+        Assert.Equal(kind.ToString(), outcome.FailureKind);
+        Assert.Equal(disposition.ToString(), outcome.ExecutionDisposition);
     }
 
     [Fact]

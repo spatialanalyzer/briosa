@@ -14,7 +14,11 @@ internal interface IProbeTransport : IAsyncDisposable
     /// <summary>Verifies identity and readiness. Throws <see cref="ProbeRefusedException"/> to refuse.</summary>
     Task<SessionIdentity> StartAsync(ProbePlan plan, CancellationToken cancellationToken);
 
-    /// <summary>Sends one step once. Transport failures become an indeterminate outcome.</summary>
+    /// <summary>
+    /// Sends one step once. Transport failures become an indeterminate outcome.
+    /// After an outcome whose completion is unknown the session sends no further
+    /// step, and a transport that owns a worker terminates it.
+    /// </summary>
     Task<ProbeOutcome> ExecuteAsync(ProbeStep step, CancellationToken cancellationToken);
 }
 
@@ -79,7 +83,11 @@ internal sealed record ProbeSessionRecord(
     public bool Completed => StopReason is null && !DryRun && Steps.All(static step => step.Classification == StepClassification.Observed);
 }
 
-/// <summary>Runs a plan, stopping at the first unexpected disposition.</summary>
+/// <summary>
+/// Runs a plan, stopping at the first unexpected disposition. An outcome whose
+/// completion is unknown is never accepted and always stops the session as
+/// do-not-replay.
+/// </summary>
 internal static class ProbeSession
 {
     public const string UnknownOutcomeStop = "outcome-unknown-do-not-replay";
@@ -151,7 +159,7 @@ internal static class ProbeSession
 
             var outcome = await transport.ExecuteAsync(step, cancellationToken).ConfigureAwait(false);
             history[step.Id] = outcome;
-            var accepted = step.Acceptable.HasFlag(outcome.Kind.ToFlag()) && outcome.Kind.ToFlag() != ProbeOutcomes.None;
+            var accepted = step.Acceptable.Accepts(outcome);
             bool? requirement = step.Requirement is null || !accepted ? null : step.Requirement.IsSatisfied(history, outcome);
             var hypotheses = step.Hypotheses
                 .Select(hypothesis => new HypothesisResult(hypothesis.Label, hypothesis.ObservationKey, hypothesis.ExpectedValue,
@@ -172,7 +180,9 @@ internal static class ProbeSession
 
             records.Add(new ProbeStepRecord(step, outcome, StepClassification.Unexpected, hypotheses, requirement));
             stoppedAt = step.Id;
-            stopReason = outcome.Kind == ProbeOutcomeKind.Indeterminate
+            // ExecuteStep false, a missing MP result, or any other unknown completion:
+            // the step is never replayed and no later step runs.
+            stopReason = outcome.CompletionUnknown
                 ? UnknownOutcomeStop
                 : accepted ? RequirementStop : UnexpectedDispositionStop;
         }

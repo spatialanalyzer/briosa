@@ -346,7 +346,7 @@ internal static class ProbeCatalog
             {
                 UserPrompt = "Briosa #277 probe: select vector group B277::VG1 and confirm."
             },
-            CommandVariant.Shipped, ProbeOutcomes.AnyCompletedSdkOutcome)
+            CommandVariant.Shipped, ProbeOutcomes.AnyDeterminateSdkOutcome)
         {
             RequiresOperator = true
         });
@@ -477,7 +477,7 @@ internal static class ProbeCatalog
         request.CloudNames.Add(cloudName);
         bounds(request);
         steps.Add(new ProbeStep($"p{probe}", probe, ProbeStepKind.Probe, steps.Phase, purpose,
-            ProbeOperations.DeleteCloudPointsByXyzRange, request, CommandVariant.Shipped, ProbeOutcomes.AnyCompletedSdkOutcome)
+            ProbeOperations.DeleteCloudPointsByXyzRange, request, CommandVariant.Shipped, ProbeOutcomes.AnyDeterminateSdkOutcome)
         {
             DestructiveTarget = fixtureKey
         });
@@ -637,14 +637,15 @@ internal static class ProbeCatalog
                 Hypotheses = hypotheses
             });
 
-        // Public probes and worker variants: every completed SDK outcome is an observation.
+        // Public probes and worker variants: every determinate SDK outcome is an observation.
+        // An outcome whose completion is unknown is never accepted; it stops the session.
         public void Probe(string id, string probe, string purpose, ProbeOperation operation, IMessage request) =>
             _steps.Add(new(id, probe, ProbeStepKind.Probe, Phase, purpose, operation, request, CommandVariant.Shipped,
-                ProbeOutcomes.AnyCompletedSdkOutcome));
+                ProbeOutcomes.AnyDeterminateSdkOutcome));
 
         public void Variant(string id, string probe, string purpose, ProbeOperation operation, IMessage request, CommandVariant variant) =>
             _steps.Add(new(id, probe, ProbeStepKind.Probe, Phase, purpose, operation, request, variant,
-                ProbeOutcomes.AnyCompletedSdkOutcome));
+                ProbeOutcomes.AnyDeterminateSdkOutcome));
 
         // A worker control validates the fixture; anything but success stops the session.
         public void Control(string id, string probe, string purpose, ProbeOperation operation, IMessage request) =>

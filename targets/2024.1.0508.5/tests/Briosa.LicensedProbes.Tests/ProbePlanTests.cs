@@ -25,7 +25,7 @@ public sealed class ProbePlanTests
         var request = new Api.DeleteCloudPointsByXYZRangeRequest { DeleteInside = true, XMin = 1, XMax = 2 };
         request.CloudNames.Add(new Api.CollectionObjectName { CollectionName = collection, ObjectName = cloud, ObjectType = Api.ObjectType.Cloud });
         return new ProbeStep("p-delete", "15", ProbeStepKind.Probe, phase, "delete", ProbeOperations.DeleteCloudPointsByXyzRange,
-            request, CommandVariant.Shipped, ProbeOutcomes.AnyCompletedSdkOutcome)
+            request, CommandVariant.Shipped, ProbeOutcomes.AnyDeterminateSdkOutcome)
         {
             DestructiveTarget = target
         };
@@ -36,6 +36,61 @@ public sealed class ProbePlanTests
     {
         Assert.NotEmpty(ProbePlan.Create(ProbePhase.PublicApi, FixtureManifest.Placeholder).Steps);
         Assert.NotEmpty(ProbePlan.Create(ProbePhase.Worker, FixtureManifest.Placeholder).Steps);
+    }
+
+    [Fact]
+    public void TheDeterminateSetHoldsExactlyTheDeterminateKinds()
+    {
+        Assert.Equal(
+            ProbeOutcomes.Succeeded | ProbeOutcomes.MpFailed | ProbeOutcomes.ArgumentRejected | ProbeOutcomes.OutputRetrievalFailed,
+            ProbeOutcomes.AnyDeterminateSdkOutcome);
+        Assert.Equal(
+            [ProbeOutcomeKind.ExecuteStepRejected, ProbeOutcomeKind.MpResultUnavailable, ProbeOutcomeKind.Indeterminate],
+            Enum.GetValues<ProbeOutcomeKind>().Where(static kind => kind.IsCompletionUnknown()));
+        Assert.All(Enum.GetValues<ProbeOutcomeKind>().Where(static kind => kind.IsCompletionUnknown()),
+            static kind => Assert.Equal(ProbeOutcomes.None, kind.ToFlag()));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void NoPlannedStepAcceptsAnOutcomeWhoseCompletionIsUnknown(bool worker)
+    {
+        var phase = worker ? ProbePhase.Worker : ProbePhase.PublicApi;
+        var unknown = Enum.GetValues<ProbeOutcomeKind>().Where(static kind => kind.IsCompletionUnknown()).ToList();
+        Assert.Contains(ProbeOutcomeKind.ExecuteStepRejected, unknown);
+        Assert.Contains(ProbeOutcomeKind.MpResultUnavailable, unknown);
+
+        foreach (var step in ProbePlan.Create(phase, FixtureManifest.Placeholder).Steps)
+        {
+            Assert.Equal(ProbeOutcomes.None, step.Acceptable & ~ProbeOutcomes.AnyDeterminateSdkOutcome);
+            foreach (var kind in unknown)
+            {
+                foreach (var disposition in new[] { "Completed", ProbeOutcome.StartedOutcomeUnknown, null })
+                {
+                    var outcome = TestSupport.Outcome(ProbeOutcomeKind.Succeeded) with { Kind = kind, ExecutionDisposition = disposition };
+                    Assert.False(step.Acceptable.Accepts(outcome), $"{step.Id} accepts {kind} ({disposition ?? "no disposition"})");
+                }
+            }
+        }
+    }
+
+    [Fact]
+    public void ValidationRefusesAStepThatAcceptsAnOutcomeOutsideTheDeterminateSet()
+    {
+        var undefined = Count("undefined", ProbePhase.PublicApi) with { Acceptable = ProbeOutcomes.Succeeded | (ProbeOutcomes)16 };
+
+        Assert.Throws<InvalidOperationException>(() => ProbePlan.Validate(ProbePhase.PublicApi, [undefined]));
+    }
+
+    [Fact]
+    public void DryRunNamesTheDeterminateOutcomeSet()
+    {
+        var text = ProbePlan.Create(ProbePhase.Worker, FixtureManifest.Placeholder).RenderDryRun();
+
+        Assert.Contains("accept: any determinate SDK outcome (Succeeded, MpFailed, ArgumentRejected, or OutputRetrievalFailed)", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ExecuteStepRejected", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("MpResultUnavailable", text, StringComparison.Ordinal);
     }
 
     [Fact]

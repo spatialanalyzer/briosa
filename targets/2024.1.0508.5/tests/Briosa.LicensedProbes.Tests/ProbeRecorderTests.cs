@@ -56,6 +56,31 @@ public sealed class ProbeRecorderTests
     }
 
     [Fact]
+    public async Task AnExecuteStepRejectionIsRecordedAsUnknownCompletionAndTheStop()
+    {
+        var record = await Session(ProbePhase.Worker, step => step.Id == "p05-omit"
+            ? new ProbeOutcome(ProbeOutcomeKind.ExecuteStepRejected, "worker:completed", false, null, null, [],
+                "execute-step-rejected", null, WorkerOutcomes.DispositionOf(ProbeOutcomeKind.ExecuteStepRejected), ProbeOutcome.EmptyObservations)
+            : TestSupport.Succeeding(step));
+
+        var markdown = ProbeRecorder.ToMarkdown(record);
+        using var document = JsonDocument.Parse(ProbeRecorder.ToJson(record));
+        var root = document.RootElement;
+        var stopped = root.GetProperty("steps").EnumerateArray().Single(static step => step.GetProperty("id").GetString() == "p05-omit");
+
+        Assert.Contains("setters returned true; `ExecuteStep` returned false; completion unknown; not replayed.", markdown, StringComparison.Ordinal);
+        Assert.Contains("**Completion unknown; the session stopped here (do not replay).**", markdown, StringComparison.Ordinal);
+        Assert.Contains("stopped at `p05-omit` (`outcome-unknown-do-not-replay`)", markdown, StringComparison.Ordinal);
+        Assert.Contains("Completion of that step is unknown.", markdown, StringComparison.Ordinal);
+        Assert.Equal("outcome-unknown-do-not-replay", root.GetProperty("stop_reason").GetString());
+        Assert.Equal("p05-omit", root.GetProperty("stopped_at").GetString());
+        Assert.Equal("unexpected", stopped.GetProperty("classification").GetString());
+        Assert.Equal("ExecuteStepRejected", stopped.GetProperty("outcome").GetProperty("kind").GetString());
+        Assert.Equal("StartedOutcomeUnknown", stopped.GetProperty("outcome").GetProperty("execution_disposition").GetString());
+        Assert.False(stopped.GetProperty("outcome").GetProperty("execute_step_returned").GetBoolean());
+    }
+
+    [Fact]
     public async Task PublicMarkdownShowsHypothesisMatches()
     {
         var markdown = ProbeRecorder.ToMarkdown(await Session(ProbePhase.PublicApi, TestSupport.Succeeding));

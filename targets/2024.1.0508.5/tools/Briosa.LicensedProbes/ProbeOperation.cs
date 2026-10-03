@@ -181,6 +181,10 @@ internal static class PublicOutcomes
                 : ProbeOutcomeKind.NotStarted;
         }
 
+        // The shipped server reports ExecuteStepRejected and MpResultRetrievalFailure
+        // as StartedOutcomeUnknown (handled above). If a Completed disposition ever
+        // carried them, their kinds are still completion-unknown, so no step accepts
+        // them and the session stops without replay.
         return error.Kind switch
         {
             OperationFailureKind.SdkArgumentRejected => ProbeOutcomeKind.ArgumentRejected,
@@ -233,7 +237,10 @@ internal static class PublicOutcomes
     }
 }
 
-/// <summary>Classifies worker control responses into the same structural outcome.</summary>
+/// <summary>
+/// Classifies worker control responses into the same structural outcome and the
+/// same execution disposition that the shipped server reports for them.
+/// </summary>
 internal static class WorkerOutcomes
 {
     public static ProbeOutcome FromResponse(
@@ -275,7 +282,17 @@ internal static class WorkerOutcomes
             outputs,
             SafeCode.OrNull(execution.DiagnosticCode),
             null,
-            "Completed",
+            DispositionOf(kind),
             observations);
     }
+
+    // Mirrors the shipped server's GrpcOperationOutcomeMapper: a rejected argument
+    // never started; ExecuteStep false after the setters, or a missing MP result
+    // after ExecuteStep true, leaves completion unknown; an MP code means completed.
+    internal static string DispositionOf(ProbeOutcomeKind kind) => kind switch
+    {
+        ProbeOutcomeKind.ArgumentRejected => "NotStarted",
+        ProbeOutcomeKind.Succeeded or ProbeOutcomeKind.MpFailed or ProbeOutcomeKind.OutputRetrievalFailed => "Completed",
+        _ => ProbeOutcome.StartedOutcomeUnknown
+    };
 }
