@@ -1,0 +1,174 @@
+{
+  "description": "Reviewed deviations between implemented SA 2026 bindings and the committed exact-target inventory, checked by ExactTargetEvidenceCrossCheckTests (#272). Each entry suppresses exactly one finding (command, argument, implemented binding, kind); stale entries fail the test.",
+  "spatial_analyzer_target": "2026.1.0529.7",
+  "reviewed": [
+    {
+      "command": "Raster Scan Edge Inspection",
+      "argument": "Minimum Number of \"Good\" Points per Unit Length",
+      "binding": "SetIntegerArg",
+      "kind": "setter-label",
+      "rationale": "Inventory artifact: the View SDK Code import truncated this setter name at its embedded quote (recorded as 'Minimum Number of ' with a trailing space, same SetIntegerArg). The implemented label is the full SDK name with the quotes.",
+      "provenance": "inventory/sa/2026.1.0529.7/inventory.json: Raster Scan Edge Inspection sdk_order 5 (not_documented) and its documented row (sdk_setter_missing); #272 seed."
+    },
+    {
+      "command": "Raster Scan Edge Inspection",
+      "argument": "Maximum Percentage of \"Bad\" Points (0-100)",
+      "binding": "SetDoubleArg",
+      "kind": "setter-label",
+      "rationale": "Inventory artifact: the View SDK Code import truncated this setter name at its embedded quote (recorded as 'Maximum Percentage of ' with a trailing space, same SetDoubleArg). The implemented label is the full SDK name with the quotes.",
+      "provenance": "inventory/sa/2026.1.0529.7/inventory.json: Raster Scan Edge Inspection sdk_order 6 (not_documented) and its documented row (sdk_setter_missing); #272 seed."
+    },
+    {
+      "command": "Get Last Instrument Index",
+      "argument": "Instrument ID",
+      "binding": "GetIntegerArg",
+      "kind": "getter-label",
+      "rationale": "Inventory artifact: both outputs are named 'Instrument ID', so the import recorded sdk_getter_ambiguous with no getter method or name. The operation reads the documented Integer output with GetIntegerArg.",
+      "provenance": "inventory/sa/2026.1.0529.7/inventory.json: Get Last Instrument Index arguments (sdk_getter_ambiguous); #272 seed."
+    },
+    {
+      "command": "Get Last Instrument Index",
+      "argument": "Instrument ID",
+      "binding": "GetColInstIdArg",
+      "kind": "getter-label",
+      "rationale": "Inventory artifact: both outputs are named 'Instrument ID', so the import recorded sdk_getter_ambiguous with no getter method or name. The operation reads the documented Collection Instrument ID output with GetColInstIdArg.",
+      "provenance": "inventory/sa/2026.1.0529.7/inventory.json: Get Last Instrument Index arguments (sdk_getter_ambiguous); #272 seed."
+    },
+    {
+      "command": "Make a Collection Item Name Reference List - WildCard Selection",
+      "argument": "Item Type",
+      "binding": "SetStringArg",
+      "kind": "setter-method",
+      "rationale": "The SDK sample names SetItemTypeArg, which is absent from committed interop (DISP_E_UNKNOWNNAME on the installed 2026 engine). A licensed 2026 probe and a generated-client RPC succeeded with SetStringArg (MP code 2) for the tested values; ObjectiveSA uses the same setter.",
+      "provenance": "docs/testing/evidence/string-setters-2026-09-28.md; bindings/sa/2026.1.0529.7/registry.json: SetItemTypeArg blocked_missing_interop; #272 seed."
+    },
+    {
+      "command": "Set GD&T Options",
+      "argument": "Distance Between Mode",
+      "binding": "SetStringArg",
+      "kind": "setter-method",
+      "rationale": "The SDK sample names SetMPGDTOptionsDistanceBetweenModeArg, which is absent from committed interop (DISP_E_UNKNOWNNAME on the installed 2026 engine). A licensed 2026 probe and a generated-client RPC succeeded with SetStringArg (MP code 2) for the tested values; ObjectiveSA uses the same setter.",
+      "provenance": "docs/testing/evidence/string-setters-2026-09-28.md; bindings/sa/2026.1.0529.7/registry.json: SetMPGDTOptionsDistanceBetweenModeArg blocked_missing_interop; #272 seed."
+    },
+    {
+      "command": "Set GD&T Options",
+      "argument": "Evaluation Method",
+      "binding": "SetStringArg",
+      "kind": "setter-method",
+      "rationale": "The SDK sample names SetMPGDTOptionsCheckValidatorTypeArg, which is absent from committed interop (DISP_E_UNKNOWNNAME on the installed 2026 engine). A licensed 2026 probe and a generated-client RPC succeeded with SetStringArg (MP code 2) for the tested values; ObjectiveSA uses the same setter.",
+      "provenance": "docs/testing/evidence/string-setters-2026-09-28.md; bindings/sa/2026.1.0529.7/registry.json: SetMPGDTOptionsCheckValidatorTypeArg blocked_missing_interop; #272 seed."
+    },
+    {
+      "command": "Construct Polygonized Surface from Point Clouds",
+      "argument": "Mesh Orientation",
+      "binding": "SetStringArg",
+      "kind": "setter-method",
+      "rationale": "The SDK sample names SetMeshOrientationTypeArg, which is absent from committed interop and cannot be called. The operation sends reviewed Mesh Orientation literals with SetStringArg. No licensed observation covers this substitution yet, so it remains at-risk.",
+      "provenance": "bindings/sa/2026.1.0529.7/registry.json: SetMeshOrientationTypeArg blocked_missing_interop; inventory/sa/2026.1.0529.7/inventory.json: Construct Polygonized Surface from Point Clouds sdk_order 1; #272 seed."
+    },
+    {
+      "command": "Make a Callout View Ref List - WildCard Selection",
+      "argument": "Resultant Callout View List",
+      "binding": "GetCollectionObjectNameRefListArg",
+      "kind": "getter-direction",
+      "rationale": "NOT_SUPPORTED substitution: the SDK sample lists the result only as a NOT_SUPPORTED setter (method null) and documentation shows its 'Callout View List' output without a getter. The operation reads the SDK-named result with the collection-object reference-list getter. No licensed observation; at-risk.",
+      "provenance": "inventory/sa/2026.1.0529.7/inventory.json: Make a Callout View Ref List - WildCard Selection sdk_order 2 (setter unavailable) and documented output (sdk_getter_missing); #272 seed."
+    },
+    {
+      "command": "Set Callout View Properties",
+      "argument": "Callout View List",
+      "binding": "SetCollectionObjectNameRefListArg",
+      "kind": "setter-not-supported",
+      "rationale": "NOT_SUPPORTED substitution: the SDK sample marks the callout view list setter NOT_SUPPORTED (method null). The operation sends the item-name list with the collection-object reference-list setter. No licensed observation; at-risk.",
+      "provenance": "inventory/sa/2026.1.0529.7/inventory.json: Set Callout View Properties sdk_order 0 (setter unavailable, SDK-only command); #272 seed."
+    },
+    {
+      "command": "Construct Circles (Lines) From Surfaces",
+      "argument": "Circle Line Mode",
+      "binding": "SetStringArg",
+      "kind": "setter-not-supported",
+      "rationale": "NOT_SUPPORTED substitution: the SDK sample marks the Circle Line Mode Type setter NOT_SUPPORTED (method null). The operation sends the reviewed 'Circle' or 'Line' literal with SetStringArg. No licensed observation; at-risk.",
+      "provenance": "inventory/sa/2026.1.0529.7/inventory.json: Construct Circles (Lines) From Surfaces sdk_order 5 (sdk_setter_unavailable); #272 seed."
+    },
+    {
+      "command": "Mirror Object(s)",
+      "argument": "Frame Plane to Mirror Around",
+      "binding": "SetStringArg",
+      "kind": "setter-not-supported",
+      "rationale": "NOT_SUPPORTED substitution: the SDK sample marks the MP Plane Type setter NOT_SUPPORTED (method null). The operation sends the reviewed 'XY', 'XZ', or 'YZ' literal with SetStringArg. No licensed observation; at-risk.",
+      "provenance": "inventory/sa/2026.1.0529.7/inventory.json: Mirror Object(s) sdk_order 2 (sdk_setter_unavailable); #272 seed."
+    },
+    {
+      "command": "Delete Cloud Points by X Y Z Range",
+      "argument": "X Min",
+      "binding": "SetDoubleArg",
+      "kind": "setter-not-supported",
+      "rationale": "NOT_SUPPORTED substitution found by the first run: the SDK sample marks this Optional Double bound NOT_SUPPORTED (method null). The operation sends a present bound with SetDoubleArg and omits an absent one, matching the reviewed v0.8.0 contract restored by #236. No licensed observation; at-risk.",
+      "provenance": "inventory/sa/2026.1.0529.7/inventory.json: Delete Cloud Points by X Y Z Range sdk_order 1 (sdk_setter_unavailable); #236 (#256); ExactSdkBindingRegressionTests."
+    },
+    {
+      "command": "Delete Cloud Points by X Y Z Range",
+      "argument": "X Max",
+      "binding": "SetDoubleArg",
+      "kind": "setter-not-supported",
+      "rationale": "NOT_SUPPORTED substitution found by the first run: the SDK sample marks this Optional Double bound NOT_SUPPORTED (method null). The operation sends a present bound with SetDoubleArg and omits an absent one, matching the reviewed v0.8.0 contract restored by #236. No licensed observation; at-risk.",
+      "provenance": "inventory/sa/2026.1.0529.7/inventory.json: Delete Cloud Points by X Y Z Range sdk_order 2 (sdk_setter_unavailable); #236 (#256); ExactSdkBindingRegressionTests."
+    },
+    {
+      "command": "Delete Cloud Points by X Y Z Range",
+      "argument": "Y Min",
+      "binding": "SetDoubleArg",
+      "kind": "setter-not-supported",
+      "rationale": "NOT_SUPPORTED substitution found by the first run: the SDK sample marks this Optional Double bound NOT_SUPPORTED (method null). The operation sends a present bound with SetDoubleArg and omits an absent one, matching the reviewed v0.8.0 contract restored by #236. No licensed observation; at-risk.",
+      "provenance": "inventory/sa/2026.1.0529.7/inventory.json: Delete Cloud Points by X Y Z Range sdk_order 3 (sdk_setter_unavailable); #236 (#256); ExactSdkBindingRegressionTests."
+    },
+    {
+      "command": "Delete Cloud Points by X Y Z Range",
+      "argument": "Y Max",
+      "binding": "SetDoubleArg",
+      "kind": "setter-not-supported",
+      "rationale": "NOT_SUPPORTED substitution found by the first run: the SDK sample marks this Optional Double bound NOT_SUPPORTED (method null). The operation sends a present bound with SetDoubleArg and omits an absent one, matching the reviewed v0.8.0 contract restored by #236. No licensed observation; at-risk.",
+      "provenance": "inventory/sa/2026.1.0529.7/inventory.json: Delete Cloud Points by X Y Z Range sdk_order 4 (sdk_setter_unavailable); #236 (#256); ExactSdkBindingRegressionTests."
+    },
+    {
+      "command": "Delete Cloud Points by X Y Z Range",
+      "argument": "Z Min",
+      "binding": "SetDoubleArg",
+      "kind": "setter-not-supported",
+      "rationale": "NOT_SUPPORTED substitution found by the first run: the SDK sample marks this Optional Double bound NOT_SUPPORTED (method null). The operation sends a present bound with SetDoubleArg and omits an absent one, matching the reviewed v0.8.0 contract restored by #236. No licensed observation; at-risk.",
+      "provenance": "inventory/sa/2026.1.0529.7/inventory.json: Delete Cloud Points by X Y Z Range sdk_order 5 (sdk_setter_unavailable); #236 (#256); ExactSdkBindingRegressionTests."
+    },
+    {
+      "command": "Delete Cloud Points by X Y Z Range",
+      "argument": "Z Max",
+      "binding": "SetDoubleArg",
+      "kind": "setter-not-supported",
+      "rationale": "NOT_SUPPORTED substitution found by the first run: the SDK sample marks this Optional Double bound NOT_SUPPORTED (method null). The operation sends a present bound with SetDoubleArg and omits an absent one, matching the reviewed v0.8.0 contract restored by #236. No licensed observation; at-risk.",
+      "provenance": "inventory/sa/2026.1.0529.7/inventory.json: Delete Cloud Points by X Y Z Range sdk_order 6 (sdk_setter_unavailable); #236 (#256); ExactSdkBindingRegressionTests."
+    },
+    {
+      "command": "Make a Point Name - Ensure Unique",
+      "argument": "Point Name",
+      "binding": "GetPointNameArg",
+      "kind": "getter-direction",
+      "rationale": "Evidence-less getter: exact-target evidence records this name only as an input setter and no output. The operation reads the updated value back by the same name with GetPointNameArg. No licensed observation; at-risk.",
+      "provenance": "inventory/sa/2026.1.0529.7/inventory.json: Make a Point Name - Ensure Unique sdk_order 0 (setter only, getter not_observed); #227; #272 seed."
+    },
+    {
+      "command": "Make a Collection Object Name - Ensure Unique",
+      "argument": "Collection Object Name",
+      "binding": "GetCollectionObjectNameArg",
+      "kind": "getter-direction",
+      "rationale": "Evidence-less getter: exact-target evidence records this name only as an input setter and no output. The operation reads the updated value back by the same name with GetCollectionObjectNameArg. No licensed observation; at-risk.",
+      "provenance": "inventory/sa/2026.1.0529.7/inventory.json: Make a Collection Object Name - Ensure Unique sdk_order 0 (setter only, getter not_observed); #227; #272 seed."
+    },
+    {
+      "command": "Add Collection Instruments to a Ref List - WildCard Selection",
+      "argument": "Collection Instrument Reference List",
+      "binding": "GetColInstIdRefListArg",
+      "kind": "getter-direction",
+      "rationale": "Evidence-less getter: exact-target evidence records this name only as an input setter and no output. The operation reads the updated value back by the same name with GetColInstIdRefListArg. No licensed observation; at-risk.",
+      "provenance": "inventory/sa/2026.1.0529.7/inventory.json: Add Collection Instruments to a Ref List - WildCard Selection sdk_order 0 (setter only, getter not_observed); #227; #272 seed."
+    }
+  ]
+}

@@ -20,6 +20,13 @@ HTML and generated SDK samples are not committed. A `NOT_SUPPORTED` sample
 does not authorize a generic or undocumented substitute. A setter/getter
 direction mismatch remains unresolved evidence, not a corrected binding.
 
+`ExactTargetEvidenceCrossCheckTests` compares every implemented operation's
+step, argument labels, setter/getter method, and direction with the inventory's
+`sdk_evidence[].mp_step` and `sdk_binding` names. Each accepted difference is
+a reviewed entry with rationale and provenance in
+`tests/Briosa.Server.Tests/EvidenceDeviations.json`. The check covers only the
+implemented subset; it is not a completeness gate.
+
 The binding snapshot contains 151 method entries. Its historical `usable`,
 `protocol`, `worker`, `adapter`, `fake`, and `generator` fields came
 from a retired catalog pipeline. They are not current implementation or
