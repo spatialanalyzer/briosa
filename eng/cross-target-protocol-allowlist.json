@@ -1,0 +1,25 @@
+{
+  "description": "Reviewed same-number protobuf fields whose type or cardinality differs between the exact-SA targets. eng/Test-CrossTargetProtocol.ps1 fails on any such wire hazard not listed here with the exact signatures of both targets.",
+  "typeConflicts": [
+    {
+      "message": "briosa.ConstructObjectsFromSurfaceFacesRuntimeSelectRequest",
+      "number": 1,
+      "signatures": {
+        "2026.1.0529.7": "optional enum briosa.ConstructObjectType",
+        "2024.1.0508.5": "optional bool"
+      },
+      "rationale": "Exact-target MP bindings differ: SA 2026 takes one object-type choice and a point offset, while SA 2024 takes seven per-shape Booleans. Each target's request mirrors its own release; a client sending one target's request to the other server is misinterpreted on the wire.",
+      "decision": "Pending Wave 2b decision (#233)"
+    },
+    {
+      "message": "briosa.ConstructObjectsFromSurfaceFacesRuntimeSelectRequest",
+      "number": 2,
+      "signatures": {
+        "2026.1.0529.7": "optional double",
+        "2024.1.0508.5": "optional bool"
+      },
+      "rationale": "Same exact-target binding difference as field 1: SA 2026 point_offset (double) shares number 2 with SA 2024 construct_cylinders (bool), so the wire types are incompatible across targets.",
+      "decision": "Pending Wave 2b decision (#233)"
+    }
+  ]
+}
