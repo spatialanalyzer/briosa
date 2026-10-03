@@ -2,6 +2,7 @@ using Briosa.Server.Operations.AnalysisOperations;
 using Briosa.Server.Operations.CloudAndMeshOperations;
 using Briosa.Server.Operations.FileOperations;
 using Briosa.Server.Operations.InstrumentOperations;
+using Briosa.Server.Operations.RelationshipOperations;
 using Briosa.Server.Operations.ReportingOperations;
 using Briosa.Server.Operations.ViewControl;
 using Briosa.Worker.Control;
@@ -10,7 +11,7 @@ using Api = global::Briosa;
 namespace Briosa.Server.Tests;
 
 /// <summary>
-/// Pins SDK step text and argument names restored after the #227 regressions (#236). This target
+/// Pins SDK step text and argument names restored after the #227 regressions (#236, #271). This target
 /// has no committed exact-target inventory, so each literal cites the reviewed v0.8.0 catalog
 /// under targets/2024.1.0508.5/src/Briosa.Server/Operations (git show v0.8.0:&lt;path&gt;).
 /// </summary>
@@ -40,6 +41,11 @@ public sealed class ExactSdkBindingRegressionTests
         Assert.Equal(expectedName, argument.Name);
         Assert.Equal(expectedBinding, argument.SdkBinding);
     }
+
+    // Provenance (v0.8.0): WaveA/WaveAOperationCatalog.cs line 3111.
+    [Fact]
+    public void MakePipeRelationshipCutUsesTheExactSdkStep() =>
+        Assert.Equal("Make Pipe Relationship Cut", MakePipeRelationshipCutOperation.Descriptor.MpStep);
 
     // Provenance (v0.8.0): WaveB/CloudAndMeshOperationCatalog.cs lines 221-233 (step text, SDK order,
     // OmittedDouble bounds) and 264-266 (OmittedDouble sets OmitWhenAbsent).

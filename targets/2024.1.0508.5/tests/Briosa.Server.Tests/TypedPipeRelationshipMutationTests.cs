@@ -1,4 +1,3 @@
-using Briosa.Server.Operations;
 using Briosa.Server.Operations.RelationshipOperations;
 using Briosa.Server.Services;
 using Briosa.Server.Workers;
@@ -49,9 +48,7 @@ public sealed class TypedPipeRelationshipMutationTests
             Pipe1FrameName = pipe1Frame,
             Pipe2FrameName = pipe2Frame
         });
-        Assert.Equal(SpatialAnalyzerApi.TargetVersion.StartsWith("2024", StringComparison.Ordinal)
-                ? "Make pipe Relationship Cut" : "Make Pipe Relationship Cut",
-            makeCut.StepName);
+        Assert.Equal("Make Pipe Relationship Cut", makeCut.StepName);
         Assert.Equal(7, makeCut.InputArguments.Count);
         Assert.Equal(new WorkerBooleanValue(true), makeCut.InputArguments[1].Value);
         Assert.Equal(new WorkerBooleanValue(true), makeCut.InputArguments[2].Value);
