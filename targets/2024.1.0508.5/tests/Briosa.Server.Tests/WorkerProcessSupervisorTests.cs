@@ -350,13 +350,16 @@ public sealed class WorkerProcessSupervisorTests
             heartbeatInterval: TimeSpan.FromSeconds(10),
             shutdownTimeout: TimeSpan.FromMilliseconds(200));
         var clock = new HeartbeatTestClock();
+        StopSendTrackingFactory? tracking = null;
         await using var supervisor = CreateSupervisor(
             _ => CreateLaunch("ignore-stop"),
             policy,
-            timeProvider: clock);
+            timeProvider: clock,
+            wrapFactory: factory => tracking = new StopSendTrackingFactory(factory));
 
         Assert.True((await StartWithinProcessBound(supervisor)).Succeeded, supervisor.Current.DiagnosticCode);
         var stopping = supervisor.StopAsync();
+        await tracking!.StopSent.Task.WaitAsync(ProcessBound);
         await clock.FireNextAsync(TimeSpan.FromMilliseconds(200));
         await stopping.WaitAsync(ProcessBound);
 
@@ -1196,9 +1199,10 @@ public sealed class WorkerProcessSupervisorTests
         WorkerLifecyclePolicy policy,
         WorkerExecutionPolicy? executionPolicy = null,
         ExactTargetIdentityPolicy? identityPolicy = null,
-        TimeProvider? timeProvider = null) =>
+        TimeProvider? timeProvider = null,
+        Func<IWorkerProcessFactory, IWorkerProcessFactory>? wrapFactory = null) =>
         new(
-            new NamedPipeWorkerProcessFactory(launchFactory),
+            (wrapFactory ?? (factory => factory))(new NamedPipeWorkerProcessFactory(launchFactory)),
             policy,
             executionPolicy ?? CreateExecutionPolicy(),
             timeProvider,

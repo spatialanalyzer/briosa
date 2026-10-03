@@ -151,10 +151,12 @@ public sealed class SpatialAnalyzerSdkLifecycleCoordinatorTests
     public async Task SdkShutdownTimeoutReturnsTypedDeadlineWithStoppedState()
     {
         var clock = new HeartbeatTestClock();
+        StopSendTrackingFactory? tracking = null;
         await using var supervisor = CreateSupervisor(
             _ => "ignore-stop",
             shutdownTimeout: TimeSpan.FromMilliseconds(150),
-            timeProvider: clock);
+            timeProvider: clock,
+            wrapFactory: factory => tracking = new StopSendTrackingFactory(factory));
         var projection = new SpatialAnalyzerSdkLifecycleStateProjection(supervisor);
         await using var coordinator = new SpatialAnalyzerSdkLifecycleCoordinator(
             supervisor,
@@ -164,6 +166,8 @@ public sealed class SpatialAnalyzerSdkLifecycleCoordinatorTests
 
         var stopping = Assert.ThrowsAsync<SdkLifecycleException>(() =>
             coordinator.StopAsync(started.SdkGeneration, CancellationToken.None));
+        // Expire the deadline only after Stop is written, in the acknowledgement phase.
+        await tracking!.StopSent.Task.WaitAsync(ProcessBound);
         await clock.FireNextAsync(TimeSpan.FromMilliseconds(150));
         var exception = await stopping.WaitAsync(ProcessBound);
 
@@ -399,10 +403,11 @@ public sealed class SpatialAnalyzerSdkLifecycleCoordinatorTests
         Func<int, string> scenarioFactory,
         TimeSpan? startupTimeout = null,
         TimeSpan? shutdownTimeout = null,
-        TimeProvider? timeProvider = null) =>
+        TimeProvider? timeProvider = null,
+        Func<IWorkerProcessFactory, IWorkerProcessFactory>? wrapFactory = null) =>
         new(
-            new NamedPipeWorkerProcessFactory(generation =>
-                CreateLaunch(scenarioFactory(generation))),
+            (wrapFactory ?? (factory => factory))(new NamedPipeWorkerProcessFactory(generation =>
+                CreateLaunch(scenarioFactory(generation)))),
             new WorkerLifecyclePolicy(
                 heartbeatInterval: TimeSpan.FromMilliseconds(25),
                 heartbeatTimeout: TimeSpan.FromMilliseconds(250),
