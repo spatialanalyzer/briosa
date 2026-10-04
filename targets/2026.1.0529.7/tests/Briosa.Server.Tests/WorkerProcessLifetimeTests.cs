@@ -6,6 +6,8 @@ namespace Briosa.Server.Tests;
 public sealed class WorkerProcessLifetimeTests
 {
     private static readonly TimeSpan CleanupBound = TimeSpan.FromMilliseconds(50);
+    // Only a hang guard: cleanup bounds expire in virtual time, never on this clock.
+    private static readonly TimeSpan HangGuard = TimeSpan.FromSeconds(30);
 
     [Fact]
     public async Task IgnoredTerminationCancellationRetainsOneAttemptUntilExit()
@@ -97,7 +99,7 @@ public sealed class WorkerProcessLifetimeTests
     }
 
     private static Task<WorkerCleanupStatus> Release(WorkerProcessLifetime lifetime) =>
-        lifetime.ReleaseAsync(force: true, CleanupBound).WaitAsync(TimeSpan.FromSeconds(3));
+        lifetime.ReleaseAsync(force: true, CleanupBound).WaitAsync(HangGuard);
 
     // The cleanup bound is virtual: a stalled attempt resolves only when the test
     // fires its deadline and outer wait bound (one new bound when an attempt is reused).
@@ -106,7 +108,7 @@ public sealed class WorkerProcessLifetimeTests
     {
         var release = lifetime.ReleaseAsync(force: true, CleanupBound);
         await clock.FireNextAsync(CleanupBound, timers).ConfigureAwait(true);
-        return await release.WaitAsync(TimeSpan.FromSeconds(3)).ConfigureAwait(true);
+        return await release.WaitAsync(HangGuard).ConfigureAwait(true);
     }
 
     private sealed class ControlledProcess : IWorkerProcess

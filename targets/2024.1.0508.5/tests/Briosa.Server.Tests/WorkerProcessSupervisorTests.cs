@@ -388,7 +388,7 @@ public sealed class WorkerProcessSupervisorTests
         Assert.True((await supervisor.StartAsync()).Succeeded, supervisor.Current.DiagnosticCode);
         // The held ping cannot reach its virtual heartbeat timeout.
         await clock.FireNextAsync(TimeSpan.FromMilliseconds(1));
-        await process.PingStarted.WaitAsync(TimeSpan.FromSeconds(5));
+        await process.PingStarted.WaitAsync(HangGuard);
 
         var stopping = supervisor.StopAsync();
         try
@@ -402,7 +402,7 @@ public sealed class WorkerProcessSupervisorTests
             process.ReleaseHeartbeat();
         }
 
-        await stopping.WaitAsync(TimeSpan.FromSeconds(5));
+        await stopping.WaitAsync(HangGuard);
 
         Assert.False(process.PingWasCancelled);
         Assert.Equal(WorkerLifecycleState.Stopped, supervisor.Current.State);
@@ -1392,6 +1392,8 @@ public sealed class WorkerProcessSupervisorTests
     // Virtual-time tests fire server-side deadlines explicitly, but a real fake
     // worker process must still start and exit within a generous real bound.
     private static readonly TimeSpan ProcessBound = TimeSpan.FromSeconds(30);
+    // Process-free tests order steps with handshakes; this real bound is only a hang guard.
+    private static readonly TimeSpan HangGuard = TimeSpan.FromSeconds(30);
     private static readonly TimeSpan HeartbeatInterval = TimeSpan.FromMilliseconds(50);
     private static readonly TimeSpan HeartbeatTimeout = TimeSpan.FromMilliseconds(250);
 
