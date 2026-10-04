@@ -67,8 +67,18 @@ step text), `source`, `arguments`, and `findings`. Each argument has:
 The exporter setter for collection-object inputs is the three-argument
 `SetCollectionObjectNameArg`. Briosa's reviewed adapter calls the four-argument
 `SetCollectionObjectNameArg2`, which the 2024 interface also exposes; see the
-[compatibility record](../../../../docs/development/sa2024-compatibility.md).
+[compatibility record](../../../docs/development/sa2024-compatibility.md).
 This file records the exporter fact and does not settle that mapping.
+
+## Cross-check
+
+`ExactTargetEvidenceCrossCheckTests` compares every registered operation's MP
+step, exact argument labels, setter/getter method, and direction with this
+file. Accepted differences, each with rationale and provenance, are in
+[`tests/Briosa.Server.Tests/EvidenceDeviations.json`](../../../tests/Briosa.Server.Tests/EvidenceDeviations.json).
+The `SetCollectionObjectNameArg2` adapter is one family rule that pins its
+finding count. Stale entries fail. The check covers the implemented subset
+only; it is not a completeness gate.
 
 ## Curation procedure
 
