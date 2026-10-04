@@ -218,18 +218,42 @@ READ_VERB = re.compile(r'(^import_|^open_|^load_|_from_data_share_file$|^copy_ge
 # duration rules treat the operation as if it were in the matching decision list.
 # Keep reasons, with the exact-target documentation evidence, in README.md.
 
-# Opens a modal operator dialog or prompts for a runtime selection (interactive_ui, interactive).
+# Opens a modal operator dialog, prompts for a runtime selection, or guides the operator
+# through a measurement routine (interactive_ui, interactive). A session lifecycle keeps
+# its exclusive_workflow isolation.
 REVIEW_INTERACTIVE = R(
     'relationship_operations.edit_geometry_relationship_point_list',
     'construction_operations.construct_surface_by_dissecting_surfaces',
     'reporting_operations.set_report_options_for_object',
+    'instrument_operations.align_two_targets_with_axis_wcf_x',
+    'instrument_operations.drift_check',
+    'instrument_operations.build_target',
+    'instrument_operations.locate_instrument_ref_tie_in',
+    'instrument_operations.auto_correspond_closest_point',
+    'instrument_operations.initiate_servo_guide',
+    'instrument_operations.auto_measure_points',
+    'instrument_operations.guide_objects_in_6d_based_on_point_measurements',
 )
-# Requires a running instrument or robot interface (device_session, long_running).
+# Requires or controls a running instrument, robot or appliance interface (device_session,
+# long_running unless interactive).
 REVIEW_DEVICE_ACTION = R(
     'instrument_operations.measure_existing_single_point_manual_guide',
     'instrument_operations.align_two_targets_with_axis_wcf_x',
     'robot_operations.get_robot_machine_parameter',
     'robot_operations.set_robot_machine_parameter',
+    'instrument_operations.build_target',
+    'instrument_operations.locate_instrument_ref_tie_in',
+    'instrument_operations.set_probe_offset_frame_online',
+    'instrument_operations.set_instrument_axes',
+    'instrument_operations.set_remeasure_failed_checks_only',
+    'robot_operations.compute_robot_machine_adjusted_goal_frame',
+    'instrument_operations.construct_mirror_from_plane',
+    'instrument_operations.construct_mirror_from_two_points',
+    'instrument_operations.create_new_dynamic_reference',
+    'view_control.show_hide_instrument_interface',
+    'robot_operations.get_calibration_appliance_data', 'robot_operations.get_calibration_appliance_integer_value',
+    'robot_operations.get_calibration_appliance_real_value', 'robot_operations.set_calibration_appliance_data',
+    'robot_operations.set_calibration_appliance_integer_value', 'robot_operations.set_calibration_appliance_real_value',
 )
 # Changes settings that the live device consumes (device_config).
 REVIEW_DEVICE_CONFIG = R(
@@ -237,25 +261,80 @@ REVIEW_DEVICE_CONFIG = R(
     'instrument_operations.set_ladar_auto_meas_point', 'instrument_operations.set_ladar_auto_meas_sphere',
     'instrument_operations.set_ladar_feature_meas_circle', 'instrument_operations.set_ladar_feature_meas_cylinder',
     'instrument_operations.set_ladar_feature_meas_slot', 'instrument_operations.set_ladar_feature_meas_sphere',
+    'instrument_operations.lr_set_red_laser_intensity',
+    'instrument_operations.configure_and_measure',
+    'instrument_operations.instrument_operational_check',
+    'instrument_operations.construct_mirror_from_plane',
+    'instrument_operations.construct_mirror_from_two_points',
+    'instrument_operations.create_new_dynamic_reference',
+    'relationship_operations.set_geom_relationship_auto_measure_nominal_feature',
+    'instrument_operations.enable_disable_point_set_scan_mode',
+    'instrument_operations.enable_disable_frame_set_scan_mode_all_instruments',
+    'instrument_operations.enable_disable_frame_set_scan_mode_by_instrument',
 )
-# Points the instrument before measuring, like point_at_target (physical_motion).
+# Points, steers or homes the instrument or projector (physical_motion).
 REVIEW_MOTION = R(
     'instrument_operations.measure_existing_single_point',
     'instrument_operations.measure_existing_single_point_and_compare',
     'instrument_operations.measure_existing_single_point_manual_guide',
+    'instrument_operations.instrument_operational_check',
+    'instrument_operations.measure_nominal_feature',
+    'instrument_operations.track_tape_measurement',
+    'instrument_operations.edge_scan_measurement',
+    'instrument_operations.lr_apdis_perform_mcm_calibration',
+    'instrument_operations.lr_self_test_flip_test',
+    'instrument_operations.set_alignment_projector',
+)
+# Sends packets to, or connects to, a caller-named or appliance host and port (external_io).
+REVIEW_EXTERNAL_IO = R(
+    'robot_operations.get_calibration_appliance_data', 'robot_operations.get_calibration_appliance_integer_value',
+    'robot_operations.get_calibration_appliance_real_value', 'robot_operations.set_calibration_appliance_data',
+    'robot_operations.set_calibration_appliance_integer_value', 'robot_operations.set_calibration_appliance_real_value',
+    'instrument_operations.lr_hardware_connect',
+)
+# Removes SA objects (destructive).
+REVIEW_DESTRUCTIVE = R(
+    'instrument_operations.set_remeasure_failed_checks_only',
+)
+# Documented as able to run for minutes (long_running).
+REVIEW_LONG_RUNNING = R(
+    'relationship_operations.auto_filter_points_groups_clouds_to_surface_faces',
+    'instrument_operations.locate_instruments_usmn',
+)
+# Single-call operations that the decision listed as session lifecycles: they only create a
+# watch-window template or set how SA stores scan data.
+REVIEW_NOT_SESSION = R(
+    'relationship_operations.relationship_watch_window_template',
+    'instrument_operations.enable_disable_point_set_scan_mode',
+    'instrument_operations.enable_disable_frame_set_scan_mode_all_instruments',
+    'instrument_operations.enable_disable_frame_set_scan_mode_by_instrument',
+)
+# Only closes report windows; no SA object or job state is discarded.
+REVIEW_NOT_DESTRUCTIVE = R(
+    'reporting_operations.close_all_reports',
 )
 DEVICE_ACTION = DEVICE_ACTION | REVIEW_DEVICE_ACTION
 DEVICE_CONFIG = DEVICE_CONFIG | REVIEW_DEVICE_CONFIG
 MOTION = MOTION | REVIEW_MOTION
+EXTERNAL_IO = EXTERNAL_IO | REVIEW_EXTERNAL_IO
+DESTRUCTIVE_EXTRA = (DESTRUCTIVE_EXTRA | REVIEW_DESTRUCTIVE) - REVIEW_NOT_DESTRUCTIVE
+LONG_RUNNING_EXTRA = LONG_RUNNING_EXTRA | REVIEW_LONG_RUNNING
+SESSION = SESSION - REVIEW_NOT_SESSION
 
 REVIEW_ADD_FLAGS = {
     # The form writes its results to the caller-named output data-share file.
     'file_operations.load_html_form': {'filesystem_write'},
     'file_operations.load_html_form_in_edge_browser': {'filesystem_write'},
+    # The source file no longer exists after the rename; its content moves to the destination.
+    'file_operations.rename_general_file': {'filesystem_read', 'filesystem_delete'},
 }
 REVIEW_REMOVE_FLAGS = {
     # file_name_pattern filters files embedded in the SA job; no filesystem path is read.
     'file_operations.make_embedded_file_name_list': {'filesystem_read'},
+    # Builds the QDAS data list in memory; Export QDAS Data List writes the file.
+    'file_operations.prepare_qdas_data_list': {'filesystem_write'},
+    # Reads the catalog already loaded by Import QDAS Catalog File; it takes no path.
+    'file_operations.get_qdas_catalog_entries': {'filesystem_read'},
 }
 
 FS_FLAGS = {'filesystem_write', 'filesystem_read', 'filesystem_metadata', 'filesystem_delete'}

@@ -5,7 +5,7 @@ namespace Briosa.Server.Tests;
 
 public sealed partial class OperationClassificationEvidenceTests
 {
-    // The API LADAR measurement-mode setters are registered only by the 2026 target.
+    // Documentation-corrected operations that only the 2026 target registers.
     private static readonly ClassificationEvidence[] TargetOnlyEvidence =
         [
             new("instrument_operations.set_ladar_auto_meas_point", DeviceConfig, Quick,
@@ -19,6 +19,8 @@ public sealed partial class OperationClassificationEvidenceTests
             new("instrument_operations.set_ladar_feature_meas_slot", DeviceConfig, Quick,
                 "Adjusts the scan settings of the instrument's slot measurement mode."),
             new("instrument_operations.set_ladar_feature_meas_sphere", DeviceConfig, Quick,
-                "Adjusts the scan line spacing of the instrument's sphere feature measurement mode.")
+                "Adjusts the scan line spacing of the instrument's sphere feature measurement mode."),
+            new("relationship_operations.set_geom_relationship_auto_measure_nominal_feature", DeviceConfig, Quick,
+                "Assigns the instrument and measurement mode in the relationship's trapping control settings.")
         ];
 }

@@ -15,13 +15,13 @@ public sealed class OperationClassificationTests
     private static readonly Dictionary<string, int> ExpectedProfileAdmission =
         new(StringComparer.Ordinal)
         {
-            ["read-only"] = 180,
-            ["standard"] = 799,
-            ["device"] = 890,
-            ["full"] = 900
+            ["read-only"] = 181,
+            ["standard"] = 792,
+            ["device"] = 882,
+            ["full"] = 899
         };
 
-    private const int ExpectedInteractiveOperations = 50;
+    private const int ExpectedInteractiveOperations = 58;
 
     private static readonly string[] SessionLifecycles =
         [
@@ -29,9 +29,6 @@ public sealed class OperationClassificationTests
             "instrument_operations.auto_correspond_closest_point",
             "instrument_operations.auto_correspond_with_proximity_trigger",
             "instrument_operations.close_auto_correspond_closest_point_dialog",
-            "instrument_operations.enable_disable_frame_set_scan_mode_all_instruments",
-            "instrument_operations.enable_disable_frame_set_scan_mode_by_instrument",
-            "instrument_operations.enable_disable_point_set_scan_mode",
             "instrument_operations.guide_objects_in_6d_based_on_point_measurements",
             "instrument_operations.initiate_servo_guide",
             "instrument_operations.lr_hardware_connect",
@@ -56,7 +53,6 @@ public sealed class OperationClassificationTests
             "instrument_operations.watch_point_to_objects",
             "instrument_operations.watch_point_to_point",
             "instrument_operations.watch_point_to_point_with_view_zooming",
-            "relationship_operations.relationship_watch_window_template",
             "relationship_operations.start_stop_relationship_trapping",
             "robot_calibration_appliance_node_operations.clear_calibration_appliance_node_trap_manager_requests",
             "robot_calibration_appliance_node_operations.connect_disconnect_calibration_appliance_node",
@@ -198,7 +194,7 @@ public sealed class OperationClassificationTests
     }
 
     [Fact]
-    public void OnlySessionLifecyclesAreExclusiveWorkflowsAndInteractiveOperationsStayAdmissible()
+    public void OnlySessionLifecyclesAreExclusiveWorkflowsAndOtherInteractiveOperationsStayAdmissible()
     {
         Assert.Equal(
             SessionLifecycles.Order(StringComparer.Ordinal),
@@ -211,7 +207,7 @@ public sealed class OperationClassificationTests
         {
             var interactive = row.Risks.HasFlag(OperationRisks.InteractiveUi);
             Assert.Equal(interactive, row.Duration == OperationDurationClass.Interactive);
-            if (interactive)
+            if (interactive && !SessionLifecycles.Contains(row.OperationId, StringComparer.Ordinal))
             {
                 Assert.Equal(OperationIsolationClass.Admissible, row.Isolation);
             }
