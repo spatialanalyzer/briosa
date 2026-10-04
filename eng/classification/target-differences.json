@@ -1,0 +1,4 @@
+{
+  "description": "Reviewed operations that both exact-SA targets register but classify differently in their OperationClassification.cs tables. eng/Test-OperationClassificationTwins.ps1 reports every other difference, and any entry whose recorded rows no longer match both tables. Record both exact rows as the check prints them, with the exact-target evidence that justifies the difference.",
+  "differences": []
+}

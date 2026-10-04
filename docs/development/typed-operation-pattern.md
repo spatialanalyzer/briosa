@@ -13,6 +13,12 @@ arguments in MP order. `OutputContracts` names the expected output shape;
 constructs the generated result. A thin service override calls the existing
 `OperationExecutor` with those four members. Register the descriptor once in
 `SpatialAnalyzerApi.Operations` and remove the matching interpreter entry.
+Add one reviewed row for the operation to the target's
+`Security/OperationClassification.cs` table: its risk flags, duration class,
+validation status, and intended isolation class. A shared operation's row
+should match the other target unless
+[`eng/classification/target-differences.json`](../../eng/classification/target-differences.json)
+records the reviewed difference.
 
 For examples, `SetDoubleVariableOperation` shows a scalar mutation,
 `GetNamedDoubleListVariableOperation` shows a list result, and

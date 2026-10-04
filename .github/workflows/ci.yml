@@ -85,6 +85,12 @@ jobs:
           }
           ./eng/Test-CrossTargetPropagation.ps1 -BaseRef $baseRef
 
+      # Advisory until the classification tables govern admission (#293).
+      - name: Report operation classification twin differences
+        shell: pwsh
+        continue-on-error: true
+        run: ./eng/Test-OperationClassificationTwins.ps1
+
       - name: Install Buf
         uses: bufbuild/buf-setup-action@a47c93e0b1648d5651a065437926377d060baa99 # v1.50.0
         with:
