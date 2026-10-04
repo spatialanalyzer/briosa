@@ -17,11 +17,11 @@ public sealed class RuntimeFailureRegressionTests
         await using var workerScope = worker.ConfigureAwait(true);
         await using var supervisor = CreateSupervisor(worker);
         var starting = supervisor.StartAsync();
-        await worker.StartupEntered.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        await worker.StartupEntered.Task.WaitAsync(HangGuard);
         var stopping = supervisor.StopAsync();
         Assert.False(stopping.IsCompleted);
         worker.ReleaseStartup.TrySetResult();
-        await Task.WhenAll(starting, stopping).WaitAsync(TimeSpan.FromSeconds(3));
+        await Task.WhenAll(starting, stopping).WaitAsync(HangGuard);
 
         var started = Assert.IsType<WorkerLifecycleSucceeded>(await starting.ConfigureAwait(true));
         var stopped = Assert.IsType<WorkerLifecycleSucceeded>(await stopping.ConfigureAwait(true));
@@ -44,10 +44,10 @@ public sealed class RuntimeFailureRegressionTests
                 TimeSpan.FromMilliseconds(50), TimeSpan.FromSeconds(1)), timeProvider: clock);
         await using var supervisorScope = supervisor.ConfigureAwait(true);
         var starting = supervisor.StartAsync();
-        await worker.StartupEntered.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        await worker.StartupEntered.Task.WaitAsync(HangGuard);
         var stopping = supervisor.StopAsync();
         await clock.FireNextAsync(TimeSpan.FromMilliseconds(50));
-        await Task.WhenAll(starting, stopping).WaitAsync(TimeSpan.FromSeconds(3));
+        await Task.WhenAll(starting, stopping).WaitAsync(HangGuard);
 
         var failed = Assert.IsType<WorkerLifecycleFailed>(await starting.ConfigureAwait(true));
         var stopped = Assert.IsType<WorkerLifecycleSucceeded>(await stopping.ConfigureAwait(true));
@@ -74,7 +74,7 @@ public sealed class RuntimeFailureRegressionTests
 
         var executor = new OperationExecutor(supervisor,
             new OperationAuditLogger(NullLogger<OperationAuditLogger>.Instance), TimeProvider.System);
-        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+        using var timeout = new CancellationTokenSource(HangGuard);
 
         var error = await Assert.ThrowsAsync<RpcException>(() => executor.ExecuteAsync(
             new global::Briosa.SetDoubleVariableRequest { Name = "regression", Value = value },
@@ -122,7 +122,7 @@ public sealed class RuntimeFailureRegressionTests
         await using var supervisor = CreateSupervisor(worker);
         Assert.True((await supervisor.StartAsync()).Succeeded);
         var active = supervisor.ExecuteAsync(Plain());
-        await worker.ExecutionEntered.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        await worker.ExecutionEntered.Task.WaitAsync(HangGuard);
         var first = supervisor.ExecuteAsync(Plain());
         var second = supervisor.ExecuteAsync(Plain());
 
@@ -183,7 +183,7 @@ public sealed class RuntimeFailureRegressionTests
         await using var supervisor = CreateSupervisor(worker);
         using var caller = new CancellationTokenSource();
         var starting = supervisor.StartAsync(caller.Token);
-        await worker.StartupEntered.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        await worker.StartupEntered.Task.WaitAsync(HangGuard);
         await caller.CancelAsync();
 
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => starting);
@@ -201,7 +201,7 @@ public sealed class RuntimeFailureRegressionTests
         await using var supervisor = CreateSupervisor(worker);
         Assert.True((await supervisor.StartAsync()).Succeeded);
         var executing = supervisor.ExecuteAsync(Plain());
-        await worker.ExecutionEntered.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        await worker.ExecutionEntered.Task.WaitAsync(HangGuard);
         using var caller = new CancellationTokenSource();
         var stopping = supervisor.StopAsync(caller.Token);
         await caller.CancelAsync();
@@ -236,7 +236,7 @@ public sealed class RuntimeFailureRegressionTests
         await using var supervisor = CreateSupervisor(worker);
         Assert.True((await supervisor.StartAsync()).Succeeded);
         var first = supervisor.StopAsync();
-        await worker.StopEntered.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        await worker.StopEntered.Task.WaitAsync(HangGuard);
         var second = supervisor.StopAsync();
         Assert.False(second.IsCompleted);
         worker.ReleaseStop.TrySetResult();
@@ -255,7 +255,7 @@ public sealed class RuntimeFailureRegressionTests
         Assert.True((await supervisor.StartAsync()).Succeeded);
         using var caller = new CancellationTokenSource();
         var stopping = supervisor.StopAsync(caller.Token);
-        await worker.StopEntered.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        await worker.StopEntered.Task.WaitAsync(HangGuard);
 
         Assert.Equal(WorkerLifecycleState.Stopping, supervisor.Current.State);
         Assert.False(WorkerReadinessHealthCheck.IsReady(supervisor.Current));
@@ -291,12 +291,12 @@ public sealed class RuntimeFailureRegressionTests
         await using var supervisor = CreateSupervisor(worker);
         Assert.True((await supervisor.StartAsync()).Succeeded);
         var active = supervisor.ExecuteAsync(Plain());
-        await worker.ExecutionEntered.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        await worker.ExecutionEntered.Task.WaitAsync(HangGuard);
         var queued = supervisor.ExecuteAsync(Plain());
         worker.ReleaseExecution.TrySetResult();
 
-        var result = await active.WaitAsync(TimeSpan.FromSeconds(3));
-        var pending = await queued.WaitAsync(TimeSpan.FromSeconds(3));
+        var result = await active.WaitAsync(HangGuard);
+        var pending = await queued.WaitAsync(HangGuard);
         Assert.Equal(WorkerExecutionStatus.WorkerFailure, result.Status);
         Assert.Equal(WorkerExecutionDisposition.StartedOutcomeUnknown, result.ExecutionDisposition);
         Assert.Equal(WorkerExecutionDisposition.NotStarted, pending.ExecutionDisposition);
@@ -317,22 +317,25 @@ public sealed class RuntimeFailureRegressionTests
         var second = new CoordinatedWorker();
         await using var firstLifetime = first.ConfigureAwait(true);
         await using var secondLifetime = second.ConfigureAwait(true);
+        // Virtual time: no lifecycle or watchdog deadline can expire while the mapping is held.
         var supervisor = new WorkerProcessSupervisor(new SequenceFactory(first, second),
             new WorkerLifecyclePolicy(TimeSpan.FromMinutes(5), TimeSpan.FromSeconds(1),
                 TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(1)),
-            new WorkerExecutionPolicy(TimeSpan.FromSeconds(5), 2));
+            new WorkerExecutionPolicy(TimeSpan.FromSeconds(5), 2), new HeartbeatTestClock());
         await using var supervisorLifetime = supervisor.ConfigureAwait(true);
         Assert.True((await supervisor.StartAsync()).Succeeded);
         var mappingEntered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         using var releaseMapping = new ManualResetEventSlim();
+        // Mapping is synchronous, so the callback holds its reservation by blocking until
+        // the test has replaced the generation. The bound only turns a hang into a failure.
         var submission = Task.Run(() => supervisor.ExecuteAsync(new WorkerCommandSubmission(
             "regression.plain", () =>
             {
                 mappingEntered.TrySetResult();
-                if (!releaseMapping.Wait(TimeSpan.FromSeconds(5))) throw new TimeoutException();
+                if (!releaseMapping.Wait(HangGuard)) throw new TimeoutException();
                 return Plain();
             }), Guid.NewGuid()));
-        await mappingEntered.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        await mappingEntered.Task.WaitAsync(HangGuard);
         try
         {
             await supervisor.StopAsync();
@@ -344,7 +347,7 @@ public sealed class RuntimeFailureRegressionTests
             releaseMapping.Set();
         }
 
-        var result = await submission.WaitAsync(TimeSpan.FromSeconds(3));
+        var result = await submission.WaitAsync(HangGuard);
         Assert.Equal(WorkerExecutionStatus.Unavailable, result.Status);
         Assert.Equal(WorkerExecutionDisposition.NotStarted, result.ExecutionDisposition);
         Assert.Equal(0, second.ExecuteCount);
@@ -398,7 +401,7 @@ public sealed class RuntimeFailureRegressionTests
         await using var supervisorLifetime = supervisor.ConfigureAwait(true);
         Assert.True((await supervisor.StartAsync()).Succeeded);
         var active = supervisor.ExecuteAsync(Plain());
-        await worker.ExecutionEntered.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        await worker.ExecutionEntered.Task.WaitAsync(HangGuard);
         var queued = supervisor.ExecuteAsync(Plain());
         try
         {
@@ -428,7 +431,7 @@ public sealed class RuntimeFailureRegressionTests
         await using var supervisorLifetime = supervisor.ConfigureAwait(true);
         Assert.True((await supervisor.StartAsync()).Succeeded);
         await clock.FireNextAsync();
-        await worker.Terminated.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        await worker.Terminated.Task.WaitAsync(HangGuard);
         Assert.Equal(WorkerLifecycleState.Degraded, supervisor.Current.State);
         Assert.False(supervisor.Current.ReadyForExecution);
         Assert.Equal("worker-heartbeat-monitor-failed", supervisor.Current.DiagnosticCode);
@@ -490,7 +493,7 @@ public sealed class RuntimeFailureRegressionTests
             var failing = supervisor.ExecuteAsync(Plain());
             // The cleanup deadline and its outer wait bound expire in virtual time.
             await clock.FireNextAsync(CleanupBound, count: 2);
-            var failed = await failing.WaitAsync(TimeSpan.FromSeconds(3));
+            var failed = await failing.WaitAsync(HangGuard);
             Assert.Equal(WorkerExecutionDisposition.StartedOutcomeUnknown, failed.ExecutionDisposition);
             Assert.Equal(WorkerLifecycleState.Degraded, supervisor.Current.State);
             Assert.Equal("worker-termination-unconfirmed", supervisor.Current.DiagnosticCode);
@@ -503,7 +506,7 @@ public sealed class RuntimeFailureRegressionTests
             var recovering = supervisor.RecoverSdkAsync(1);
             // Recovery waits on the same outstanding cleanup under one new bound.
             await clock.FireNextAsync(CleanupBound);
-            Assert.False((await recovering.WaitAsync(TimeSpan.FromSeconds(3))).Succeeded);
+            Assert.False((await recovering.WaitAsync(HangGuard)).Succeeded);
             Assert.Equal(1, factory.Starts);
             Assert.Equal(1, supervisor.Current.Generation);
             Assert.Equal(1, first.TerminationCount);
@@ -537,7 +540,7 @@ public sealed class RuntimeFailureRegressionTests
             // The stop acknowledgement deadline expires, then cleanup's two bounds.
             await clock.FireNextAsync(CleanupBound);
             await clock.FireNextAsync(CleanupBound, count: 2);
-            await stopping.WaitAsync(TimeSpan.FromSeconds(3));
+            await stopping.WaitAsync(HangGuard);
             Assert.Equal(WorkerLifecycleState.Degraded, supervisor.Current.State);
             Assert.Equal("worker-termination-unconfirmed", supervisor.Current.DiagnosticCode);
             Assert.False(supervisor.Current.ReadyForExecution);
@@ -563,12 +566,12 @@ public sealed class RuntimeFailureRegressionTests
         await using var supervisorScope = supervisor.ConfigureAwait(true);
         using var caller = new CancellationTokenSource();
         var starting = supervisor.StartAsync(caller.Token);
-        await worker.StartupEntered.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        await worker.StartupEntered.Task.WaitAsync(HangGuard);
         try
         {
             await caller.CancelAsync();
             await clock.FireNextAsync(CleanupBound, count: 2);
-            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => starting.WaitAsync(TimeSpan.FromSeconds(3)));
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => starting.WaitAsync(HangGuard));
             Assert.Null(supervisor.Current.Connection);
             Assert.Equal(WorkerCleanupStatus.ExitUnconfirmed, supervisor.Current.CleanupStatus);
             var projected = new SpatialAnalyzerSdkLifecycleStateProjection(supervisor).Current;
@@ -588,13 +591,19 @@ public sealed class RuntimeFailureRegressionTests
 
     private static readonly TimeSpan CleanupBound = TimeSpan.FromMilliseconds(50);
 
+    // Only a hang guard: handshakes and virtual time order every step, so this real
+    // bound never decides an outcome however slowly the work is scheduled.
+    private static readonly TimeSpan HangGuard = TimeSpan.FromSeconds(30);
+
     private static WorkerMpCommand Plain() => new("regression.plain", "Regression", [], []);
 
+    // Virtual time: the startup, shutdown, and watchdog deadlines never expire on
+    // the real clock, so scheduling delays cannot change these tests' outcomes.
     private static WorkerProcessSupervisor CreateSupervisor(CoordinatedWorker worker) => new(
         new Factory(worker),
         new WorkerLifecyclePolicy(TimeSpan.FromMinutes(5),
             TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(1)),
-        new WorkerExecutionPolicy(TimeSpan.FromSeconds(5), 2));
+        new WorkerExecutionPolicy(TimeSpan.FromSeconds(5), 2), new HeartbeatTestClock());
 
     private sealed class Factory(IWorkerProcess worker) : IWorkerProcessFactory
     {

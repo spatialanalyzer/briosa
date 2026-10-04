@@ -5,6 +5,9 @@ namespace Briosa.Server.Tests;
 
 public sealed class WorkerHeartbeatMonitorTests
 {
+    // Only a hang guard: handshakes and virtual time order every step.
+    private static readonly TimeSpan HangGuard = TimeSpan.FromSeconds(30);
+
     [Fact]
     public async Task StopCancelsTheScheduledTick()
     {
@@ -30,7 +33,7 @@ public sealed class WorkerHeartbeatMonitorTests
         var monitor = new WorkerHeartbeatMonitor(TimeSpan.FromSeconds(1), clock,
             _ => { entered.TrySetResult(); return release.Task; });
         await clock.FireNextAsync();
-        await entered.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        await entered.Task.WaitAsync(HangGuard);
         var firstStop = monitor.DisposeAsync().AsTask();
         var secondStop = monitor.DisposeAsync().AsTask();
         try
@@ -41,7 +44,7 @@ public sealed class WorkerHeartbeatMonitorTests
         finally
         {
             release.TrySetResult(true);
-            await Task.WhenAll(firstStop, secondStop).WaitAsync(TimeSpan.FromSeconds(3));
+            await Task.WhenAll(firstStop, secondStop).WaitAsync(HangGuard);
         }
     }
 
@@ -58,7 +61,7 @@ public sealed class WorkerHeartbeatMonitorTests
             return Task.FromException<bool>(new InvalidOperationException("test-monitor-failure"));
         });
         await clock.FireNextAsync();
-        await entered.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        await entered.Task.WaitAsync(HangGuard);
         await Assert.ThrowsAsync<InvalidOperationException>(() => monitor.DisposeAsync().AsTask());
         await Assert.ThrowsAsync<InvalidOperationException>(() => monitor.DisposeAsync().AsTask());
     }
