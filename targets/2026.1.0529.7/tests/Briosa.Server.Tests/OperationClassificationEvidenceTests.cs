@@ -43,6 +43,8 @@ public sealed partial class OperationClassificationEvidenceTests
                 Interactive, "Always shows the full or abbreviated auto-measure dialog."),
             new("instrument_operations.guide_objects_in_6d_based_on_point_measurements", DeviceSession | InteractiveUi,
                 Interactive, "Starts the operator-guided 6D build routine.", Isolation: Exclusive),
+            new("instrument_operations.synchronized_measurement_master_slave", DeviceSession | InteractiveUi,
+                Interactive, "Its documented success status is that the measurement window opens."),
 
             // Live device sessions and device configuration.
             new("robot_operations.get_robot_machine_parameter", DeviceSession, LongRunning,

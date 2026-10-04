@@ -90,6 +90,7 @@ otherwise, both releases document the operation the same way.
 | `instrument_operations.initiate_servo_guide` | + `interactive_ui`, → `interactive` (stays `exclusive_workflow`) | Guides the operator through the points; the operator starts each measurement. | p. 1040; `InstrumentOperations/InitiateServoGuide.htm` |
 | `instrument_operations.auto_measure_points` | + `interactive_ui`, → `interactive` | Always shows the full or the abbreviated auto-measure dialog. | p. 1131; `InstrumentOperations/AutoMeasurePoints.htm` |
 | `instrument_operations.guide_objects_in_6d_based_on_point_measurements` | + `interactive_ui`, → `interactive` (stays `exclusive_workflow`) | Starts the operator-guided 6D build routine with a running instrument. | p. 1153; `InstrumentOperations/GuideObjectsIn6Dbased.htm` |
+| `instrument_operations.synchronized_measurement_master_slave` | + `interactive_ui`, → `interactive` | Its documented success status is that the measurement window opens, so it always opens operator UI. | p. 1173; `InstrumentOperations/SynchronizedMeasurementMaster.htm` |
 | `robot_operations.get_robot_machine_parameter` | + `device_session`, → `long_running` | The robot/machine interface must be active. | p. 1203; `RobotOperations/Get Robot Machine Parameter.htm` |
 | `robot_operations.set_robot_machine_parameter` | + `device_session`, `device_config`, → `long_running` | Sets a machine-specific parameter; the robot/machine interface must be active. | p. 1202; `RobotOperations/Set Robot Machine Parameter.htm` |
 | `instrument_operations.set_probe_offset_frame_online` | + `device_session`, → `long_running` | Triggers a raw-frame measurement and waits up to a timeout for it. | p. 1030; `InstrumentOperations/SetProbeOffsetFrameOnline.htm` |
@@ -132,8 +133,8 @@ otherwise, both releases document the operation the same way.
 |---|---:|---:|
 | Operations | 1,027 | 996 |
 | `exclusive_workflow` | 39 | 42 |
-| `interactive_ui` | 58 | 58 |
-| `read-only` / `standard` / `device` / `full` | 185 / 811 / 916 / 933 | 181 / 792 / 882 / 899 |
+| `interactive_ui` | 59 | 59 |
+| `read-only` / `standard` / `device` / `full` | 185 / 811 / 915 / 932 | 181 / 792 / 881 / 898 |
 
 Before the review corrections, the decision's counts were 43 (2026) and 46
 (2024) exclusive workflows, 47 interactive operations per target, and
@@ -167,6 +168,9 @@ maintainer approved three rules for classifying them:
    This change classifies them only; request defaults and runtime code are
    unchanged. `auto_measure_points` stays `interactive_ui` because its
    auto-measure dialog always opens.
+   `measure_existing_single_point_manual_guide` also stays `interactive_ui`:
+   manual guiding, where the operator releases the motors and steers the head,
+   is operator-driven whatever its Measure Immediately option says.
 
 Rule 1 changed these rows in both targets. Each option was checked in both
 releases' documentation, and in each target's operation mapping, which passes

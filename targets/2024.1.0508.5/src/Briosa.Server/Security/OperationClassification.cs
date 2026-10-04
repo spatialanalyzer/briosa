@@ -610,7 +610,7 @@ internal static class OperationClassification
             new("instrument_operations.stop_active_measurement_mode", DeviceSession, LongRunning, NoRecordedGap, ExclusiveWorkflow),
             new("instrument_operations.stop_instrument_interface", DeviceSession, LongRunning, NoRecordedGap, ExclusiveWorkflow),
             new("instrument_operations.stop_projection", DeviceSession, LongRunning, AtRiskUnvalidated, ExclusiveWorkflow),
-            new("instrument_operations.synchronized_measurement_master_slave", DeviceSession, LongRunning, NoRecordedGap, Admissible),
+            new("instrument_operations.synchronized_measurement_master_slave", DeviceSession | InteractiveUi, Interactive, NoRecordedGap, Admissible),
             new("instrument_operations.track_tape_measurement", PhysicalMotion | DeviceSession, LongRunning, NoRecordedGap, Admissible),
             new("instrument_operations.transform_instrument_by_delta", None, Quick, NoRecordedGap, Admissible),
             new("instrument_operations.transform_instrument_frame_to_frame", None, Quick, NoRecordedGap, Admissible),

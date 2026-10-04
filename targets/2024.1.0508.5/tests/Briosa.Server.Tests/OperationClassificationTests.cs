@@ -17,11 +17,11 @@ public sealed class OperationClassificationTests
         {
             ["read-only"] = 181,
             ["standard"] = 792,
-            ["device"] = 882,
-            ["full"] = 899
+            ["device"] = 881,
+            ["full"] = 898
         };
 
-    private const int ExpectedInteractiveOperations = 58;
+    private const int ExpectedInteractiveOperations = 59;
 
     private static readonly string[] SessionLifecycles =
         [

@@ -233,6 +233,8 @@ REVIEW_INTERACTIVE = R(
     'instrument_operations.initiate_servo_guide',
     'instrument_operations.auto_measure_points',
     'instrument_operations.guide_objects_in_6d_based_on_point_measurements',
+    # Its documented success status is that the measurement window opens.
+    'instrument_operations.synchronized_measurement_master_slave',
 )
 # Requires or controls a running instrument, robot or appliance interface (device_session,
 # long_running unless interactive).
