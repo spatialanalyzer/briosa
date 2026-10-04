@@ -1,0 +1,152 @@
+{
+  "description": "Reviewed deviations between implemented SA 2024 bindings and the curated public binding facts in evidence/sa/2024.1.0508.5/bindings.json, checked by ExactTargetEvidenceCrossCheckTests (#290). Each reviewed entry suppresses exactly one finding (command, argument, implemented binding, kind). A reviewed family suppresses one documented adapter rule and pins how many distinct findings it covers. Stale entries and changed family counts fail the test.",
+  "spatial_analyzer_target": "2024.1.0508.5",
+  "reviewed_families": [
+    {
+      "kind": "setter-method",
+      "binding": "SetCollectionObjectNameArg2",
+      "evidence_method": "SetCollectionObjectNameArg",
+      "finding_count": 610,
+      "rationale": "Documented 2024 adapter rule: the exporter names the three-argument SetCollectionObjectNameArg for collection-object inputs, and Briosa's reviewed adapter calls the four-argument SetCollectionObjectNameArg2, which the committed 2024 interop also exposes. The rule covers only implemented SetCollectionObjectNameArg2 setters whose fact names exactly SetCollectionObjectNameArg; a label, direction, or other method mismatch is still reported. On the first run it covered all 610 fact arguments that name SetCollectionObjectNameArg, across 440 operations. The adapter is a portable mapping; broad 2024 runtime coverage remains outstanding.",
+      "provenance": "docs/development/sa2024-compatibility.md (Exact-target API differences); evidence/sa/2024.1.0508.5/README.md (collection-object setter); interop/SpatialAnalyzer/2024.1.0508.5/Briosa.SpatialAnalyzer.Interop.PublicApi.txt (SetCollectionObjectNameArg and SetCollectionObjectNameArg2); #285; #290 seed."
+    }
+  ],
+  "reviewed": [
+    {
+      "command": "Make a Collection Item Name Reference List - WildCard Selection",
+      "argument": "Item Type",
+      "binding": "SetStringArg",
+      "kind": "setter-method",
+      "rationale": "The exporter names SetItemTypeArg, which is absent from the committed 2024 interop (bindings.json finding setter_method_absent_from_interop) and cannot be called. A licensed 2024 SDK/SA probe and a packaged 2024 RPC succeeded with SetStringArg (MP code 2) for 'Any'; ObjectiveSA uses the same setter. Other choices are not runtime-validated.",
+      "provenance": "evidence/sa/2024.1.0508.5/bindings.json: make_collection_item_name_ref_list_wildcard_selection ordinal 2; docs/testing/evidence/string-setters-2026-09-28.md; #290 seed."
+    },
+    {
+      "command": "Set GD&T Options",
+      "argument": "Distance Between Mode",
+      "binding": "SetStringArg",
+      "kind": "setter-method",
+      "rationale": "The exporter names SetMPGDTOptionsDistanceBetweenModeArg, which is absent from the committed 2024 interop (bindings.json finding setter_method_absent_from_interop) and cannot be called. A licensed 2024 SDK/SA probe and a packaged 2024 RPC succeeded with SetStringArg (MP code 2) for 'Centroid'; ObjectiveSA uses the same setter. Other choices are not runtime-validated.",
+      "provenance": "evidence/sa/2024.1.0508.5/bindings.json: set_gdt_options ordinal 3; docs/testing/evidence/string-setters-2026-09-28.md; #290 seed."
+    },
+    {
+      "command": "Set GD&T Options",
+      "argument": "Evaluation Method",
+      "binding": "SetStringArg",
+      "kind": "setter-method",
+      "rationale": "The exporter names SetMPGDTOptionsCheckValidatorTypeArg, which is absent from the committed 2024 interop (bindings.json finding setter_method_absent_from_interop) and cannot be called. A licensed 2024 SDK/SA probe and a packaged 2024 RPC succeeded with SetStringArg (MP code 2) for 'None'; ObjectiveSA uses the same setter. Other choices are not runtime-validated.",
+      "provenance": "evidence/sa/2024.1.0508.5/bindings.json: set_gdt_options ordinal 4; docs/testing/evidence/string-setters-2026-09-28.md; #290 seed."
+    },
+    {
+      "command": "Construct Polygonized Surface from Point Clouds",
+      "argument": "Mesh Orientation",
+      "binding": "SetStringArg",
+      "kind": "setter-method",
+      "rationale": "The exporter names SetMeshOrientationTypeArg, which is absent from the committed 2024 interop (bindings.json finding setter_method_absent_from_interop) and cannot be called. The operation sends reviewed Mesh Orientation literals with SetStringArg. No licensed 2024 observation covers this substitution, so it remains at-risk.",
+      "provenance": "evidence/sa/2024.1.0508.5/bindings.json: construct_polygonized_surface_from_point_clouds ordinal 1; src/Briosa.Server/Operations/ConstructionOperations/PointsAndClouds/ConstructPolygonizedSurfaceFromPointCloudsOperation.cs; #290 seed."
+    },
+    {
+      "command": "Make a Callout View Ref List - WildCard Selection",
+      "argument": "Resultant Callout View List",
+      "binding": "GetCollectionObjectNameRefListArg",
+      "kind": "getter-direction",
+      "rationale": "NOT_SUPPORTED substitution: the captured 2024 signature lists the result only as an input with a binding not emitted by the exporter (setter unavailable, no getter). The operation reads the SDK-named result with the collection-object reference-list getter, as reviewed for 2026. No licensed 2024 observation; at-risk.",
+      "provenance": "evidence/sa/2024.1.0508.5/bindings.json: make_callout_view_ref_list_wildcard_selection ordinal 2 (setter unavailable); 2026 EvidenceDeviations.json counterpart (#272); #290 first run."
+    },
+    {
+      "command": "Set Callout View Properties",
+      "argument": "Callout View List",
+      "binding": "SetCollectionObjectNameRefListArg",
+      "kind": "setter-not-supported",
+      "rationale": "NOT_SUPPORTED substitution: the captured 2024 signature records the callout view list setter as a binding not emitted by the exporter. The operation sends the item-name list with the collection-object reference-list setter, as reviewed for 2026. No licensed 2024 observation; at-risk.",
+      "provenance": "evidence/sa/2024.1.0508.5/bindings.json: set_callout_view_properties ordinal 0 (setter unavailable); 2026 EvidenceDeviations.json counterpart (#272); #290 first run."
+    },
+    {
+      "command": "Construct Circles (Lines) From Surfaces",
+      "argument": "Circle Line Mode",
+      "binding": "SetStringArg",
+      "kind": "setter-not-supported",
+      "rationale": "NOT_SUPPORTED substitution: the captured 2024 signature records this setter as a binding not emitted by the exporter. The operation sends the reviewed 'Circle' or 'Line' literal with SetStringArg, as reviewed for 2026. No licensed 2024 observation; at-risk.",
+      "provenance": "evidence/sa/2024.1.0508.5/bindings.json: construct_circles_lines_from_surfaces ordinal 5 (setter unavailable); 2026 EvidenceDeviations.json counterpart (#272); #290 first run."
+    },
+    {
+      "command": "Mirror Object(s)",
+      "argument": "Frame Plane to Mirror Around",
+      "binding": "SetStringArg",
+      "kind": "setter-not-supported",
+      "rationale": "NOT_SUPPORTED substitution: the captured 2024 signature records this setter as a binding not emitted by the exporter. The operation sends the reviewed 'XY', 'XZ', or 'YZ' literal with SetStringArg, as reviewed for 2026. No licensed 2024 observation; at-risk.",
+      "provenance": "evidence/sa/2024.1.0508.5/bindings.json: mirror_objects ordinal 2 (setter unavailable); 2026 EvidenceDeviations.json counterpart (#272); #290 first run."
+    },
+    {
+      "command": "Delete Cloud Points by X Y Z Range",
+      "argument": "X Min",
+      "binding": "SetDoubleArg",
+      "kind": "setter-not-supported",
+      "rationale": "NOT_SUPPORTED substitution: the captured 2024 signature records this optional bound as a binding not emitted by the exporter. The operation sends a present bound with SetDoubleArg and omits an absent one, matching the reviewed contract restored by #236. No licensed 2024 observation; at-risk.",
+      "provenance": "evidence/sa/2024.1.0508.5/bindings.json: delete_cloud_points_by_xyz_range ordinal 1 (setter unavailable); #236; ExactSdkBindingRegressionTests; #290 first run."
+    },
+    {
+      "command": "Delete Cloud Points by X Y Z Range",
+      "argument": "X Max",
+      "binding": "SetDoubleArg",
+      "kind": "setter-not-supported",
+      "rationale": "NOT_SUPPORTED substitution: the captured 2024 signature records this optional bound as a binding not emitted by the exporter. The operation sends a present bound with SetDoubleArg and omits an absent one, matching the reviewed contract restored by #236. No licensed 2024 observation; at-risk.",
+      "provenance": "evidence/sa/2024.1.0508.5/bindings.json: delete_cloud_points_by_xyz_range ordinal 2 (setter unavailable); #236; ExactSdkBindingRegressionTests; #290 first run."
+    },
+    {
+      "command": "Delete Cloud Points by X Y Z Range",
+      "argument": "Y Min",
+      "binding": "SetDoubleArg",
+      "kind": "setter-not-supported",
+      "rationale": "NOT_SUPPORTED substitution: the captured 2024 signature records this optional bound as a binding not emitted by the exporter. The operation sends a present bound with SetDoubleArg and omits an absent one, matching the reviewed contract restored by #236. No licensed 2024 observation; at-risk.",
+      "provenance": "evidence/sa/2024.1.0508.5/bindings.json: delete_cloud_points_by_xyz_range ordinal 3 (setter unavailable); #236; ExactSdkBindingRegressionTests; #290 first run."
+    },
+    {
+      "command": "Delete Cloud Points by X Y Z Range",
+      "argument": "Y Max",
+      "binding": "SetDoubleArg",
+      "kind": "setter-not-supported",
+      "rationale": "NOT_SUPPORTED substitution: the captured 2024 signature records this optional bound as a binding not emitted by the exporter. The operation sends a present bound with SetDoubleArg and omits an absent one, matching the reviewed contract restored by #236. No licensed 2024 observation; at-risk.",
+      "provenance": "evidence/sa/2024.1.0508.5/bindings.json: delete_cloud_points_by_xyz_range ordinal 4 (setter unavailable); #236; ExactSdkBindingRegressionTests; #290 first run."
+    },
+    {
+      "command": "Delete Cloud Points by X Y Z Range",
+      "argument": "Z Min",
+      "binding": "SetDoubleArg",
+      "kind": "setter-not-supported",
+      "rationale": "NOT_SUPPORTED substitution: the captured 2024 signature records this optional bound as a binding not emitted by the exporter. The operation sends a present bound with SetDoubleArg and omits an absent one, matching the reviewed contract restored by #236. No licensed 2024 observation; at-risk.",
+      "provenance": "evidence/sa/2024.1.0508.5/bindings.json: delete_cloud_points_by_xyz_range ordinal 5 (setter unavailable); #236; ExactSdkBindingRegressionTests; #290 first run."
+    },
+    {
+      "command": "Delete Cloud Points by X Y Z Range",
+      "argument": "Z Max",
+      "binding": "SetDoubleArg",
+      "kind": "setter-not-supported",
+      "rationale": "NOT_SUPPORTED substitution: the captured 2024 signature records this optional bound as a binding not emitted by the exporter. The operation sends a present bound with SetDoubleArg and omits an absent one, matching the reviewed contract restored by #236. No licensed 2024 observation; at-risk.",
+      "provenance": "evidence/sa/2024.1.0508.5/bindings.json: delete_cloud_points_by_xyz_range ordinal 6 (setter unavailable); #236; ExactSdkBindingRegressionTests; #290 first run."
+    },
+    {
+      "command": "Make a Point Name - Ensure Unique",
+      "argument": "Point Name",
+      "binding": "GetPointNameArg",
+      "kind": "getter-direction",
+      "rationale": "Evidence-less getter: the captured 2024 signature records this name only as an input setter and no output. The operation reads the updated value back by the same name with GetPointNameArg, as reviewed for 2026. No licensed 2024 observation; at-risk.",
+      "provenance": "evidence/sa/2024.1.0508.5/bindings.json: make_point_name_ensure_unique ordinal 0 (setter only); #227; 2026 EvidenceDeviations.json counterpart (#272); #290 first run."
+    },
+    {
+      "command": "Make a Collection Object Name - Ensure Unique",
+      "argument": "Collection Object Name",
+      "binding": "GetCollectionObjectNameArg",
+      "kind": "getter-direction",
+      "rationale": "Evidence-less getter: the captured 2024 signature records this name only as an input setter and no output. The operation reads the updated value back by the same name with GetCollectionObjectNameArg, as reviewed for 2026. No licensed 2024 observation; at-risk.",
+      "provenance": "evidence/sa/2024.1.0508.5/bindings.json: make_collection_object_name_ensure_unique ordinal 0 (setter only); #227; 2026 EvidenceDeviations.json counterpart (#272); #290 first run."
+    },
+    {
+      "command": "Add Collection Instruments to a Ref List - WildCard Selection",
+      "argument": "Collection Instrument Reference List",
+      "binding": "GetColInstIdRefListArg",
+      "kind": "getter-direction",
+      "rationale": "Evidence-less getter: the captured 2024 signature records this name only as an input setter and no output. The operation reads the updated value back by the same name with GetColInstIdRefListArg, as reviewed for 2026. No licensed 2024 observation; at-risk.",
+      "provenance": "evidence/sa/2024.1.0508.5/bindings.json: add_collection_instruments_to_ref_list_wildcard_selection ordinal 0 (setter only); #227; 2026 EvidenceDeviations.json counterpart (#272); #290 first run."
+    }
+  ]
+}

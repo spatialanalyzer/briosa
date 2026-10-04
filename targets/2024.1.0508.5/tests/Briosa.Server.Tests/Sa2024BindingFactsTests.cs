@@ -7,7 +7,7 @@ namespace Briosa.Server.Tests;
 /// <summary>
 /// Keeps the curated SA 2024 binding facts (#278) parseable and aligned with the registered
 /// operation set. The facts are committed public evidence; these checks never read private exports.
-/// They do not compare operation mappings with the facts; that cross-check is separate (#272).
+/// They do not compare operation mappings with the facts; ExactTargetEvidenceCrossCheckTests does (#290).
 /// </summary>
 public sealed partial class Sa2024BindingFactsTests
 {
