@@ -25,6 +25,7 @@ registered descriptors still govern admission, scope, and replay safety.
 | `Export-OperationDescriptors.ps1` | Dumps a built target's compiled registry (`SpatialAnalyzerApi.Operations`) as `descriptors-<target>.json`, the input of `classify.py`. |
 | `target-differences.json` | Reviewed shared operations whose rows may differ between targets. It is read by `eng/Test-OperationClassificationTwins.ps1`. |
 | `conditional-ui.json` | Reviewed caller-reachable operator UI that does not make an operation `interactive_ui`, for the planned argument guard. See [Conditional behavior](#conditional-behavior). `eng/Test-OperationClassificationTwins.ps1` checks its operation IDs. |
+| `conditional-background.json` | Reviewed caller options that let an admissible operation return while device work keeps running, for the planned argument guard. See [Ongoing device workflows considered](#ongoing-device-workflows-considered). `eng/Test-OperationClassificationTwins.ps1` checks its operation IDs and that each operation is admissible. |
 
 The CSV columns are the operation id, its registered effect, a primary family
 (a review aid only), the snake_case risk flags, the duration class, the
@@ -252,17 +253,36 @@ interface and calibration starters were already `exclusive_workflow`.
 `measure`, `measure_nominal_feature` and the other single measurements finish
 before they return.
 
-Some measurement and motion operations return before the device finishes only
-when the caller asks them not to wait. They stay `admissible` here, because
-isolation by a caller option is not covered by the approved rules. That is a
-maintainer decision: make them exclusive, guard the option, or flip its default.
+Some measurement, scan, wizard and robot-motion operations can return while
+the device or operator work keeps running, but only when the caller asks them
+not to wait. The maintainer approved this policy, recorded on #293:
 
-| Operation(s) | Option | Briosa default |
-|---|---|---|
-| `instrument_operations.auto_measure_points`, `auto_measure_batch_of_features`, `auto_measure_surface_vector_intersections`, `configure_and_measure`, `synchronized_measurement_master_slave`, `scan_cad_faces` and `scan_within_perimeter` (the option is 2026 only), `construction_operations.construct_frame_with_wizard` | Wait for Completion | waits |
-| `instrument_operations.auto_measure_specified_geometry` | Wait for Complete | **does not wait** |
-| `robot_operations.move_robot_machine_through_path` | Acknowledge Arrival | waits |
-| `robot_operations.move_robot_machine_to_frame`, `move_robot_machine_to_named_destination` | Acknowledge Arrival | **does not wait** |
+- The rows stay `admissible` and are classified by their waiting behavior.
+- A later #293 step adds an argument guard that rejects the non-waiting value
+  with `NotStarted` until a lease design exists.
+- In the planned breaking release, Briosa's default flips to waiting for
+  `auto_measure_specified_geometry` (Wait for Complete) and for
+  `move_robot_machine_to_frame` and `move_robot_machine_to_named_destination`
+  (Acknowledge Arrival). Those three are the only options whose current default
+  does not wait. Request defaults and runtime code are unchanged here.
+
+`conditional-background.json` lists these options in the same shape as
+`conditional-ui.json`: one entry per operation and request field, with the
+targets, the trigger (`caller_option`, or `caller_option_default_flips` for the
+three default flips), the MP argument, the value that leaves work running,
+Briosa's current default and whether it leaves work running, a short behavior
+note, and the documentation in each target. Each option was checked in each
+target's documentation and operation mapping, which passes it through. A sweep
+of every request field for wait, acknowledge, return, immediate, hold, block and
+continue wording found no other such option on an admissible operation:
+`auto_correspond_closest_point` and `multi_measurement_initiate` have the same
+kind of option but are already `exclusive_workflow`, the watch operations'
+Pause MP Until Closed is operator UI (listed in `conditional-ui.json`), and
+`move_robot_machine_to_joint_pose_six_dof` has no acknowledge option.
+`scan_cad_faces` and `scan_within_perimeter` are registered only by the 2026
+target. `eng/Test-OperationClassificationTwins.ps1` checks that each entry names
+exactly the targets that register the operation and that every listed operation
+is `admissible`.
 
 Two caller options open UI with Briosa's current defaults but are not
 `interactive_ui`. Both are candidates for a default flip, because the step-2

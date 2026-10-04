@@ -1,0 +1,220 @@
+{
+  "description": "Reviewed caller options that let an admissible operation return while device or operator work keeps running (#293). Each entry is one (operation, request field): the value that leaves the work running, Briosa's current default, and the exact-target documentation. The rows stay admissible and are classified by their waiting behavior. A later #293 step adds an argument guard that rejects the non-waiting value with NotStarted until a lease design exists. caller_option_default_flips entries default to not waiting today; the planned breaking release flips them to waiting. eng/Test-OperationClassificationTwins.ps1 checks that each entry names exactly the targets that register the operation and that every listed operation is admissible.",
+  "entries": [
+    {
+      "operation_id": "instrument_operations.auto_measure_points",
+      "targets": [
+        "2026.1.0529.7",
+        "2024.1.0508.5"
+      ],
+      "trigger": "caller_option",
+      "field": "wait_for_completion",
+      "mp_argument": "Wait for Completion?",
+      "leaves_work_running_when": "false",
+      "briosa_default": "waits",
+      "briosa_default_leaves_work_running": false,
+      "behavior": "When false, the MP continues while the auto-measurement is still running.",
+      "documentation": {
+        "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 1131",
+        "2026.1.0529.7": "Documentation/Content/Topics/Scripting/MPCommandListing/InstrumentOperations/AutoMeasurePoints.htm"
+      }
+    },
+    {
+      "operation_id": "instrument_operations.auto_measure_batch_of_features",
+      "targets": [
+        "2026.1.0529.7",
+        "2024.1.0508.5"
+      ],
+      "trigger": "caller_option",
+      "field": "wait_for_complete",
+      "mp_argument": "Wait for Complete",
+      "leaves_work_running_when": "false",
+      "briosa_default": "waits",
+      "briosa_default_leaves_work_running": false,
+      "behavior": "When false, the script does not hold until the auto-measurement is complete.",
+      "documentation": {
+        "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 1135",
+        "2026.1.0529.7": "Documentation/Content/Topics/Scripting/MPCommandListing/InstrumentOperations/AutoMeasureBatchOfFeatures.htm"
+      }
+    },
+    {
+      "operation_id": "instrument_operations.auto_measure_surface_vector_intersections",
+      "targets": [
+        "2026.1.0529.7",
+        "2024.1.0508.5"
+      ],
+      "trigger": "caller_option",
+      "field": "wait_for_complete",
+      "mp_argument": "Wait for Complete",
+      "leaves_work_running_when": "false",
+      "briosa_default": "waits",
+      "briosa_default_leaves_work_running": false,
+      "behavior": "When false, the script does not hold until the auto-measurement is complete.",
+      "documentation": {
+        "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 1133",
+        "2026.1.0529.7": "Documentation/Content/Topics/Scripting/MPCommandListing/InstrumentOperations/AutoMeasureSurfaceVector.htm"
+      }
+    },
+    {
+      "operation_id": "instrument_operations.auto_measure_specified_geometry",
+      "targets": [
+        "2026.1.0529.7",
+        "2024.1.0508.5"
+      ],
+      "trigger": "caller_option_default_flips",
+      "field": "wait_for_complete",
+      "mp_argument": "Wait for Complete",
+      "leaves_work_running_when": "false",
+      "briosa_default": "does not wait",
+      "briosa_default_leaves_work_running": true,
+      "behavior": "When false, the script does not hold until the auto-measurement is complete.",
+      "documentation": {
+        "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 1134",
+        "2026.1.0529.7": "Documentation/Content/Topics/Scripting/MPCommandListing/InstrumentOperations/AutoMeasureSpecifiedGeometry.htm"
+      },
+      "note": "The planned breaking release flips the Briosa default to waiting."
+    },
+    {
+      "operation_id": "instrument_operations.configure_and_measure",
+      "targets": [
+        "2026.1.0529.7",
+        "2024.1.0508.5"
+      ],
+      "trigger": "caller_option",
+      "field": "wait_for_completion",
+      "mp_argument": "Wait for Completion",
+      "leaves_work_running_when": "false",
+      "briosa_default": "waits",
+      "briosa_default_leaves_work_running": false,
+      "behavior": "When false, the MP continues executing while the measurement is occurring.",
+      "documentation": {
+        "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 1053",
+        "2026.1.0529.7": "Documentation/Content/Topics/Scripting/MPCommandListing/InstrumentOperations/ConfigureAndMeasure.htm"
+      }
+    },
+    {
+      "operation_id": "instrument_operations.synchronized_measurement_master_slave",
+      "targets": [
+        "2026.1.0529.7",
+        "2024.1.0508.5"
+      ],
+      "trigger": "caller_option",
+      "field": "wait_for_completion",
+      "mp_argument": "Wait for Completion?",
+      "leaves_work_running_when": "false",
+      "briosa_default": "waits",
+      "briosa_default_leaves_work_running": false,
+      "behavior": "When false, the MP moves to the next command before the synchronized measurement finishes.",
+      "documentation": {
+        "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 1173",
+        "2026.1.0529.7": "Documentation/Content/Topics/Scripting/MPCommandListing/InstrumentOperations/SynchronizedMeasurementMaster.htm"
+      }
+    },
+    {
+      "operation_id": "instrument_operations.scan_cad_faces",
+      "targets": [
+        "2026.1.0529.7"
+      ],
+      "trigger": "caller_option",
+      "field": "wait_for_completion",
+      "mp_argument": "Wait for Completion",
+      "leaves_work_running_when": "false",
+      "briosa_default": "waits",
+      "briosa_default_leaves_work_running": false,
+      "behavior": "When false, the MP continues executing while scanning is occurring.",
+      "documentation": {
+        "2026.1.0529.7": "Documentation/Content/Topics/Scripting/MPCommandListing/InstrumentOperations/ScanCADFaces.htm"
+      }
+    },
+    {
+      "operation_id": "instrument_operations.scan_within_perimeter",
+      "targets": [
+        "2026.1.0529.7"
+      ],
+      "trigger": "caller_option",
+      "field": "wait_for_completion",
+      "mp_argument": "Wait for Completion",
+      "leaves_work_running_when": "false",
+      "briosa_default": "waits",
+      "briosa_default_leaves_work_running": false,
+      "behavior": "When false, the MP continues executing while scanning is occurring.",
+      "documentation": {
+        "2026.1.0529.7": "Documentation/Content/Topics/Scripting/MPCommandListing/InstrumentOperations/ScanWithinPerimeter.htm"
+      }
+    },
+    {
+      "operation_id": "construction_operations.construct_frame_with_wizard",
+      "targets": [
+        "2026.1.0529.7",
+        "2024.1.0508.5"
+      ],
+      "trigger": "caller_option",
+      "field": "wait_for_completion",
+      "mp_argument": "Wait for Completion",
+      "leaves_work_running_when": "false",
+      "briosa_default": "waits",
+      "briosa_default_leaves_work_running": false,
+      "behavior": "When false, the command returns while the frame wizard stays open.",
+      "documentation": {
+        "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 399",
+        "2026.1.0529.7": "Documentation/Content/Topics/Scripting/MPCommandListing/ConstructionOperations/Frames/ConstructFrameWithWizard.htm"
+      }
+    },
+    {
+      "operation_id": "robot_operations.move_robot_machine_through_path",
+      "targets": [
+        "2026.1.0529.7",
+        "2024.1.0508.5"
+      ],
+      "trigger": "caller_option",
+      "field": "acknowledge_arrival",
+      "mp_argument": "Acknowledge Arrival",
+      "leaves_work_running_when": "false",
+      "briosa_default": "waits",
+      "briosa_default_leaves_work_running": false,
+      "behavior": "When false, the MP does not pause until the robot/machine arrives at its final destination.",
+      "documentation": {
+        "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 1200",
+        "2026.1.0529.7": "Documentation/Content/Topics/Scripting/MPCommandListing/RobotOperations/Move Robot Machine through.htm"
+      }
+    },
+    {
+      "operation_id": "robot_operations.move_robot_machine_to_frame",
+      "targets": [
+        "2026.1.0529.7",
+        "2024.1.0508.5"
+      ],
+      "trigger": "caller_option_default_flips",
+      "field": "acknowledge_arrival",
+      "mp_argument": "Acknowledge Arrival",
+      "leaves_work_running_when": "false",
+      "briosa_default": "does not wait",
+      "briosa_default_leaves_work_running": true,
+      "behavior": "When false, the MP does not pause until the robot/machine arrives at its final destination.",
+      "documentation": {
+        "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 1199",
+        "2026.1.0529.7": "Documentation/Content/Topics/Scripting/MPCommandListing/RobotOperations/Move Robot Machine to Frame.htm"
+      },
+      "note": "The planned breaking release flips the Briosa default to waiting."
+    },
+    {
+      "operation_id": "robot_operations.move_robot_machine_to_named_destination",
+      "targets": [
+        "2026.1.0529.7",
+        "2024.1.0508.5"
+      ],
+      "trigger": "caller_option_default_flips",
+      "field": "acknowledge_arrival",
+      "mp_argument": "Acknowledge Arrival",
+      "leaves_work_running_when": "false",
+      "briosa_default": "does not wait",
+      "briosa_default_leaves_work_running": true,
+      "behavior": "When false, the MP does not pause until the robot/machine arrives at its final destination.",
+      "documentation": {
+        "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 1201",
+        "2026.1.0529.7": "Documentation/Content/Topics/Scripting/MPCommandListing/RobotOperations/Move Robot Machine to Named.htm"
+      },
+      "note": "The planned breaking release flips the Briosa default to waiting."
+    }
+  ]
+}

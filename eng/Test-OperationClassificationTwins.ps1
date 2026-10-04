@@ -9,9 +9,11 @@ param(
 # exact-SA targets register. Shared operations must have identical rows unless
 # eng/classification/target-differences.json records both exact rows with a
 # reviewed rationale. It also checks that every operation in
-# eng/classification/conditional-ui.json names exactly the targets that register
-# it. A table this script cannot read fails; differences, stale reviewed entries
-# and conditional-UI mismatches are advisory unless -Strict is set.
+# eng/classification/conditional-ui.json and conditional-background.json names
+# exactly the targets that register it, and that every operation in
+# conditional-background.json is admissible. A table this script cannot read
+# fails; differences, stale reviewed entries and conditional-list findings are
+# advisory unless -Strict is set.
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -103,27 +105,46 @@ foreach ($id in ($reviewed.Keys | Sort-Object -CaseSensitive)) {
     }
 }
 
-# Every operation in the reviewed conditional-UI list must name exactly the targets that register it.
-$conditionalPath = Join-Path $resolvedRoot 'eng/classification/conditional-ui.json'
-$conditionalEntries = 0
-if (Test-Path -LiteralPath $conditionalPath -PathType Leaf) {
-    $tables = @{ $first = $firstRows; $second = $secondRows }
+# Every operation in the reviewed conditional lists must name exactly the targets that register it.
+# Operations whose caller options can leave device work running must also stay admissible.
+$tables = @{ $first = $firstRows; $second = $secondRows }
+$conditionalCounts = [ordered]@{}
+foreach ($list in @(
+        [pscustomobject]@{ Name = 'conditional UI'; File = 'conditional-ui.json'; RequireAdmissible = $false },
+        [pscustomobject]@{ Name = 'conditional background'; File = 'conditional-background.json'; RequireAdmissible = $true })) {
+    $conditionalCounts[$list.Name] = 0
+    $conditionalPath = Join-Path $resolvedRoot "eng/classification/$($list.File)"
+    if (-not (Test-Path -LiteralPath $conditionalPath -PathType Leaf)) {
+        continue
+    }
     foreach ($entry in @((Get-Content -LiteralPath $conditionalPath -Raw | ConvertFrom-Json).entries)) {
-        $conditionalEntries++
+        $conditionalCounts[$list.Name]++
         $registeredBy = @($targetNames | Where-Object { $tables[$_].ContainsKey($entry.operation_id) })
         $listed = @($entry.targets)
         if ($registeredBy.Count -eq 0 -or
             (Compare-Object -ReferenceObject $registeredBy -DifferenceObject $listed -CaseSensitive)) {
             $findings.Add([pscustomobject]@{
                     Id = "$($entry.operation_id) ($($entry.field))"
-                    Kind = "Conditional UI entry targets [$($listed -join ', ')] do not match the registering targets [$($registeredBy -join ', ')]"
+                    Kind = "$($list.File) entry targets [$($listed -join ', ')] do not match the registering targets [$($registeredBy -join ', ')]"
                     First = ''; Second = '' })
+            continue
+        }
+        if ($list.RequireAdmissible) {
+            foreach ($target in $registeredBy) {
+                if (-not $tables[$target][$entry.operation_id].EndsWith(', Admissible', [StringComparison]::Ordinal)) {
+                    $findings.Add([pscustomobject]@{
+                            Id = "$($entry.operation_id) ($($entry.field))"
+                            Kind = "$($list.File) lists an operation that is not admissible in $target"
+                            First = ''; Second = '' })
+                }
+            }
         }
     }
 }
 
-Write-Host ("Operation classification twins: {0} rows in {1}, {2} in {3}, {4} shared, {5} reviewed differences, {6} conditional UI entries, {7} finding(s)." -f
-    $firstRows.Count, $first, $secondRows.Count, $second, $shared.Count, $reviewedDifferences, $conditionalEntries, $findings.Count)
+Write-Host ("Operation classification twins: {0} rows in {1}, {2} in {3}, {4} shared, {5} reviewed differences, {6} conditional UI and {7} conditional background entries, {8} finding(s)." -f
+    $firstRows.Count, $first, $secondRows.Count, $second, $shared.Count, $reviewedDifferences,
+    $conditionalCounts['conditional UI'], $conditionalCounts['conditional background'], $findings.Count)
 foreach ($finding in $findings) {
     Write-Host "  $($finding.Kind): $($finding.Id)"
     if ($finding.First -or $finding.Second) {
