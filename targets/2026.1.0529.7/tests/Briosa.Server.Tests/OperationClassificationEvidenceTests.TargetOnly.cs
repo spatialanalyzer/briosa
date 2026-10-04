@@ -21,6 +21,8 @@ public sealed partial class OperationClassificationEvidenceTests
             new("instrument_operations.set_ladar_feature_meas_sphere", DeviceConfig, Quick,
                 "Adjusts the scan line spacing of the instrument's sphere feature measurement mode."),
             new("relationship_operations.set_geom_relationship_auto_measure_nominal_feature", DeviceConfig, Quick,
-                "Assigns the instrument and measurement mode in the relationship's trapping control settings.")
+                "Assigns the instrument and measurement mode in the relationship's trapping control settings."),
+            new("instrument_operations.edit_scan_perimeter_profile", DeviceConfig | Destructive, Quick,
+                "Clear Profile? (Briosa default true) clears the regions saved in the measurement profile.")
         ];
 }

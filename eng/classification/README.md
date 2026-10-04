@@ -46,8 +46,9 @@ which were checked against the registry but not against licensed SA runs. The
   `interactive_ui` and the `interactive` duration class, and their intended
   isolation is `admissible`.
 - Only the multi-call session lifecycles are `exclusive_workflow`: 43 on 2026
-  and 46 on 2024. Review later found four of them to be single calls (see
-  below), leaving 39 and 42.
+  and 46 on 2024. Review later found four of them to be single calls and three
+  single calls that start an ongoing device workflow (see below), giving 42 and
+  45.
 
 The existing descriptor flags map as decided. `fixture_validation_pending` and
 the 2024 `at-risk-no-runtime-validation` become validation statuses
@@ -98,7 +99,7 @@ otherwise, both releases document the operation the same way.
 | `instrument_operations.configure_and_measure` | + `device_config` | Sets the instrument's target name and measurement mode, then measures. | p. 1053; `InstrumentOperations/ConfigureAndMeasure.htm` |
 | `instrument_operations.instrument_operational_check` | + `device_config`, `physical_motion` | Check strings set target, auto-measure, AutoLock and beam-break modes, and include Home, Jog, Change Face, Motors On/Off and ADM Drive. | p. 1091 ff.; `InstrumentOperations/InstrOpCheck-LaserTrackers.htm` |
 | `instrument_operations.set_instrument_axes` | + `device_session`, → `long_running` | Sets joint values; the instrument's interface must be active. The documentation describes animating the model and does not say the live robot moves, so `physical_motion` is not added. | p. 1181; `InstrumentOperations/AdvancedInstrumentOperations/SetInstrumentAxes.htm` |
-| `instrument_operations.set_remeasure_failed_checks_only` | + `device_session`, `destructive`, → `long_running` | Clears the points of failed feature checks and starts trapping. | p. 1167; `InstrumentOperations/SetRemeasureFailedChecks.htm` |
+| `instrument_operations.set_remeasure_failed_checks_only` | + `device_session`, `destructive`, → `long_running`, `admissible` → `exclusive_workflow` | Clears the points of failed feature checks and starts trapping; success means the inspection routine was initiated and keeps running, like the other trapping and inspection starters. | p. 1167; `InstrumentOperations/SetRemeasureFailedChecks.htm` |
 | `robot_operations.compute_robot_machine_adjusted_goal_frame` | + `device_session`, → `long_running` | The robot/machine interface must be active. | p. 1209; `RobotOperations/Compute Robot Machine Adjusted.htm` |
 | `instrument_operations.construct_mirror_from_plane` | + `device_session`, `device_config`, → `long_running` | Creates the mirror in the laser radar interface. | p. 1139; `InstrumentOperations/ConstructMirrorFromPlane.htm` |
 | `instrument_operations.construct_mirror_from_two_points` | + `device_session`, `device_config`, → `long_running` | Sends the mirror plane to the instrument when Send Mirror to Instrument? is true, which is Briosa's default. | p. 1140; no 2026 topic |
@@ -115,7 +116,8 @@ otherwise, both releases document the operation the same way.
 | `instrument_operations.edge_scan_measurement` | + `physical_motion` | Scans the laser radar from a seed point toward a direction point to find an edge. | p. 1129; `InstrumentOperations/EdgeScanMeasurement.htm` |
 | `instrument_operations.lr_apdis_perform_mcm_calibration` | + `physical_motion` | The laser radar measures the nominal points from both faces. | p. 1192; `InstrumentOperations/NikonMetrologyLaserRadar/LRAPDISPerformMCMCalibration.htm` |
 | `instrument_operations.lr_self_test_flip_test` | + `physical_motion` | Measures front and back faces of the laser radar. | p. 1190; `InstrumentOperations/NikonMetrologyLaserRadar/LRSelfTestFlipTest.htm` |
-| `instrument_operations.set_alignment_projector` | + `physical_motion` | Starts the projector's alignment routine, like `align_laser_projector`. | p. 1182; `InstrumentOperations/AdvancedInstrumentOperations/SetAlignmentProjector.htm` |
+| `instrument_operations.set_alignment_projector` | + `physical_motion`, `admissible` → `exclusive_workflow` | Initiates the projector's alignment routine, like `align_laser_projector`; success means only that the routine was initiated, so it keeps running after the call. | p. 1182; `InstrumentOperations/AdvancedInstrumentOperations/SetAlignmentProjector.htm` |
+| `instrument_operations.jump_instrument_to_new_location` | `admissible` → `exclusive_workflow` | Stops the live instrument's interface, adds a new instrument and starts its interface, like `start_instrument_interface`. | p. 1161; `InstrumentOperations/JumpInstrumentToNewLocation.htm` |
 | `file_operations.rename_general_file` | + `filesystem_read`, `filesystem_delete` | The source file's content moves to the destination and the source no longer exists, like `copy_general_file`'s read. | p. 34; `FileOperations/RenameGeneralFile.htm` |
 | `file_operations.prepare_qdas_data_list` | − `filesystem_write` | Builds the QDAS data list in memory; it takes no file argument. | p. 91; `FileOperations/QDASFileExport/PrepareQDASDataList.htm` |
 | `file_operations.get_qdas_catalog_entries` | − `filesystem_read` | Reads the catalog already loaded by Import QDAS Catalog File; it takes no path. | p. 88; `FileOperations/QDASFileExport/GetQDASCatalogEntries.htm` |
@@ -132,9 +134,9 @@ otherwise, both releases document the operation the same way.
 | | 2026.1.0529.7 | 2024.1.0508.5 |
 |---|---:|---:|
 | Operations | 1,027 | 996 |
-| `exclusive_workflow` | 39 | 42 |
+| `exclusive_workflow` | 42 | 45 |
 | `interactive_ui` | 59 | 59 |
-| `read-only` / `standard` / `device` / `full` | 185 / 811 / 915 / 932 | 181 / 792 / 881 / 898 |
+| `read-only` / `standard` / `device` / `full` | 185 / 811 / 912 / 929 | 181 / 792 / 878 / 895 |
 
 Before the review corrections, the decision's counts were 43 (2026) and 46
 (2024) exclusive workflows, 47 interactive operations per target, and
@@ -184,6 +186,12 @@ it through:
 | `file_operations.import_hidden_point_bar_xml_file` | + `destructive` | Replace Existing Entries? replaces the hidden point bar definitions in the User Options. | p. 65; `FileOperations/FileImport/ImportHiddenPointBarXMLFile.htm` |
 | `construction_operations.rename_object`, `rename_item`, `rename_point`, `rename_callout_view`, `copy_object`, `create_hidden_point`; `reporting_operations.rename_picture`; `event_operations.rename_event` | + `destructive` | Overwrite if exists? (Overwrite existing point? for `create_hidden_point`) replaces the existing object, item, point, callout view, picture or event. | pp. 261, 262, 258, 461, 253, 320, 916, 860; matching `RenameObject.htm`, `RenameItem.htm`, `RenamePoint.htm`, `Callouts/RenameCalloutView.htm`, `CopyObject.htm`, `PointsandGroups/CreateHiddenPoint.htm`, `ReportingOperations/RenamePicture.htm`, `Events/RenameEvent.htm` |
 | `file_operations.import_file_as_embedded_file`, `import_mp_file_as_embedded_mp`, `import_file_as_picture` | + `destructive` | Replace Existing? replaces the embedded file, embedded MP or picture with the same name. | pp. 54–56; `FileOperations/FileImport/ImportFileAsEmbedded File.htm`, `ImportMPFileAsEmbeddedMP.htm`, `ImportFileAsPicture.htm` |
+| `instrument_operations.construct_tcp_fixture` | + `destructive` | Replace Existing TCP Fixture replaces an existing fixture of the same name. | p. 1145; `InstrumentOperations/ConstructTCPFixture.htm` |
+| `analysis_operations.import_geometry_fit_profiles` | + `destructive` | Overwrite Profiles with Same Name? overwrites the job's like-named geometry fit profiles. | p. 652; `AnalysisOperations/ImportGeometryFitProfiles.htm` |
+| `gdt_operations.set_datum_measurements`, `set_feature_check_measurements` | + `destructive` | Replace Existing Measurements? clears the measurements already associated with the datum or feature check. | pp. 710, 712; `GDT/SetDatumMeasurements.htm`, `GDT/SetFeatureCheckMeasurements.htm` |
+| `construction_operations.construct_cross_section_cloud`, `construct_cross_section_cloud_user_select` | + `destructive` | Update Existing Cloud rebuilds an existing cross section cloud instead of creating a new one. | pp. 331, 332; `ConstructionOperations/PointClouds/ConstructCrossSectionCloud.htm`, `ConstructCrossSectionCloud-UserSelect.htm` |
+| `instrument_operations.edit_scan_perimeter_profile` (2026 only) | + `destructive` | Clear Profile? (Briosa default true) clears the regions saved in the measurement profile before adding the new perimeters. | `InstrumentOperations/EditScanPerimeterProfile.htm` |
+| `reporting_operations.remove_report_tag` | + `destructive` | Removes a defined report tag from the job file. This is unconditional; the operation was found in the same sweep. | p. 909; `ReportingOperations/RemoveReportTag.htm` |
 | `instrument_operations.locate_instrument_ref_tie_in` | + `physical_motion` | Auto Survey makes the instrument point at and measure each nominal point. | p. 1059; `InstrumentOperations/LocateInstrumentRefTie.htm` |
 | `file_operations.import_e57_file` | + `filesystem_write` | Saved Converted File saves the file after conversion. | p. 48; `FileOperations/FileImport/ImportE57File.htm` |
 | `instrument_operations.start_instrument_interface` | + `external_io` | The optional Device IP Address names the instrument host. Initialize at Startup runs the instrument's initialization routine, but neither release says that it moves the instrument, so `physical_motion` is not added. | p. 1049; `InstrumentOperations/StartInstrumentInterface.htm` |
@@ -204,6 +212,57 @@ callout and report content, graphics display options, and operations whose
 purpose is to show or hide a window are not operator UI and are not listed.
 `eng/Test-OperationClassificationTwins.ps1` checks that each entry names exactly
 the targets that register the operation.
+
+### Replacement options considered
+
+Every MP input argument that each target's operations send (all of
+`src/Briosa.Server/Operations/**`) was searched for overwrite, replace, delete,
+remove, clear, purge, discard, reset, keep, existing, merge, append, update and
+modify wording, and so were operation names with the same wording. Only an option
+the caller can reach was considered, and it was flagged `destructive` only when
+it removes SA objects or discards or replaces job state: existing SA entities,
+definitions, profiles or measurements. Overwriting a caller-named file is
+`filesystem_write`. These candidates were considered and are not flagged:
+
+| Operation(s) | Option | Reason not flagged |
+|---|---|---|
+| the eight `reporting_operations.add_*_to_report_bar` | Clear Existing? | Clears tabs from the Report Bar, a view of existing items; no SA object or job data is removed (2024 pp. 951–961). |
+| `file_operations.direct_cad_access` | Remove Empty Folders | Deletes only the empty folders that the import itself created from the CAD hierarchy (2024 p. 57). |
+| `view_control.set_view_clipping_plane` | Remove Clipping Plane? | Removes a view clipping plane; view state only (2024 p. 231). |
+| `view_control.highlight_objects`, `highlight_point`, `highlight_relationships` | empty list clears all | Clears highlighting; view state only. |
+| `utility_operations.set_object_notes`, `set_point_notes`, `set_collection_notes`, `set_folder_notes` | Append? (FALSE = Overwrite) | Replaces the note text like any property setter; no object, entity or definition is removed. |
+| the six `relationship_operations.make_*_relationship` operations with Auto Update a Vector Group? | Auto Update a Vector Group? | Creates an auto-updating vector group; nothing existing is replaced. |
+| `construction_operations.construct_point_cloud_from_existing_clouds`, `construct_point_clouds_from_existing_clouds_uniform_spacing`, `construct_surface_by_offsetting_surface`, `construct_surface_from_collection_of_surfaces` | Hide Original ... | Hides the source objects; visibility only. (Delete Original Surfaces? is flagged above.) |
+| `construction_operations.construct_b_splines_from_intersection_of_plane_and_mesh` | Delete closed / unclosed lines below a segment count | Filters the curves the operation creates; no existing object is affected. |
+| `cloud_and_mesh_operations.subdivide_cloud_by_point_spacing` (2026 only) | Keep All Groups? | Chooses which new clouds to keep; the documentation does not say the source cloud is changed. |
+| `instrument_operations.auto_measure_points` | Force use of existing group? | Adds measured points to an existing group; nothing is replaced. |
+| `instrument_operations.watch_point_to_point_with_view_zooming` | Update (TRUE) / Close (FALSE) | Updates or closes the watch window. |
+| `cloud_and_mesh_operations.consolidate_mesh` (2026 only), `instrument_operations.combine_point_groups`, `reporting_operations.combine_sa_reports` | (operation) | Combine into a new or consolidated object; the documentation describes no removal. `combine_sa_reports` makes a uniquely named report. |
+| `cloud_and_mesh_operations.reset_cloud_bounding_box`, `view_control.reset_ribbon_bar_to_default` | (operation) | Reset display settings or the ribbon layout; no job data. |
+| `file_operations.copy_general_file`, `export_embedded_file`, the `export_ascii_*`, `export_ptx_point_clouds`, `export_vector_container_to_ascii_file` and `event_operations.export_event_ref_list` | Overwrite / Replace Existing? / Append? | Overwrite or append to caller-named files, which `filesystem_write` already covers. |
+
+### Ongoing device workflows considered
+
+Each operation's documentation was searched for starting or initiating
+trapping, an inspection or measurement routine, a scan, or a mode that keeps
+running after the call returns. The trapping, inspection, watch, guidance,
+interface and calibration starters were already `exclusive_workflow`.
+`set_remeasure_failed_checks_only`, `set_alignment_projector` and
+`jump_instrument_to_new_location` were not, and the table above corrects them.
+`measure`, `measure_nominal_feature` and the other single measurements finish
+before they return.
+
+Some measurement and motion operations return before the device finishes only
+when the caller asks them not to wait. They stay `admissible` here, because
+isolation by a caller option is not covered by the approved rules. That is a
+maintainer decision: make them exclusive, guard the option, or flip its default.
+
+| Operation(s) | Option | Briosa default |
+|---|---|---|
+| `instrument_operations.auto_measure_points`, `auto_measure_batch_of_features`, `auto_measure_surface_vector_intersections`, `configure_and_measure`, `synchronized_measurement_master_slave`, `scan_cad_faces` and `scan_within_perimeter` (the option is 2026 only), `construction_operations.construct_frame_with_wizard` | Wait for Completion | waits |
+| `instrument_operations.auto_measure_specified_geometry` | Wait for Complete | **does not wait** |
+| `robot_operations.move_robot_machine_through_path` | Acknowledge Arrival | waits |
+| `robot_operations.move_robot_machine_to_frame`, `move_robot_machine_to_named_destination` | Acknowledge Arrival | **does not wait** |
 
 Two caller options open UI with Briosa's current defaults but are not
 `interactive_ui`. Both are candidates for a default flip, because the step-2

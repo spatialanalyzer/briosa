@@ -317,6 +317,17 @@ REVIEW_DESTRUCTIVE = R(
     # Replace Existing? replaces an embedded file, embedded MP or picture with the same name.
     'file_operations.import_file_as_embedded_file', 'file_operations.import_mp_file_as_embedded_mp',
     'file_operations.import_file_as_picture',
+    # Replace Existing TCP Fixture / Overwrite Profiles with Same Name? / Replace Existing Measurements?
+    # replace an existing fixture, geometry fit profiles, or the measurements of a datum or feature check.
+    'instrument_operations.construct_tcp_fixture', 'analysis_operations.import_geometry_fit_profiles',
+    'gdt_operations.set_datum_measurements', 'gdt_operations.set_feature_check_measurements',
+    # Update Existing Cloud rebuilds an existing cross section cloud in place.
+    'construction_operations.construct_cross_section_cloud',
+    'construction_operations.construct_cross_section_cloud_user_select',
+    # Clear Profile? (Briosa default true) clears the regions saved in the measurement profile.
+    'instrument_operations.edit_scan_perimeter_profile',
+    # Removes a defined report tag from the job file.
+    'reporting_operations.remove_report_tag',
 )
 # Documented as able to run for minutes (long_running).
 REVIEW_LONG_RUNNING = R(
@@ -331,6 +342,14 @@ REVIEW_NOT_SESSION = R(
     'instrument_operations.enable_disable_frame_set_scan_mode_all_instruments',
     'instrument_operations.enable_disable_frame_set_scan_mode_by_instrument',
 )
+# Single calls that start an ongoing device workflow: trapping or an inspection routine that keeps
+# running after the call returns, a projector routine that is only initiated, or a new instrument
+# interface (exclusive_workflow, like the other session starters).
+REVIEW_SESSION = R(
+    'instrument_operations.set_remeasure_failed_checks_only',
+    'instrument_operations.set_alignment_projector',
+    'instrument_operations.jump_instrument_to_new_location',
+)
 # Only closes report windows; no SA object or job state is discarded.
 REVIEW_NOT_DESTRUCTIVE = R(
     'reporting_operations.close_all_reports',
@@ -341,7 +360,7 @@ MOTION = MOTION | REVIEW_MOTION
 EXTERNAL_IO = EXTERNAL_IO | REVIEW_EXTERNAL_IO
 DESTRUCTIVE_EXTRA = (DESTRUCTIVE_EXTRA | REVIEW_DESTRUCTIVE) - REVIEW_NOT_DESTRUCTIVE
 LONG_RUNNING_EXTRA = LONG_RUNNING_EXTRA | REVIEW_LONG_RUNNING
-SESSION = SESSION - REVIEW_NOT_SESSION
+SESSION = (SESSION | REVIEW_SESSION) - REVIEW_NOT_SESSION
 
 REVIEW_ADD_FLAGS = {
     # The form writes its results to the caller-named output data-share file.

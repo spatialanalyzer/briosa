@@ -64,7 +64,8 @@ public sealed partial class OperationClassificationEvidenceTests
             new("instrument_operations.set_instrument_axes", DeviceSession | DeviceConfig, LongRunning,
                 "Sets joint values; the instrument's interface must be active."),
             new("instrument_operations.set_remeasure_failed_checks_only", Destructive | DeviceSession | DeviceConfig,
-                LongRunning, "Clears the points of failed checks and starts trapping."),
+                LongRunning, "Clears the points of failed checks and starts trapping; the inspection routine keeps running.",
+                Isolation: Exclusive),
             new("robot_operations.compute_robot_machine_adjusted_goal_frame", DeviceSession, LongRunning,
                 "The robot/machine interface must be active."),
             new("instrument_operations.construct_mirror_from_plane", DeviceSession | DeviceConfig, LongRunning,
@@ -114,7 +115,9 @@ public sealed partial class OperationClassificationEvidenceTests
             new("instrument_operations.lr_self_test_flip_test", PhysicalMotion | DeviceSession, LongRunning,
                 "Measures front and back faces of the laser radar."),
             new("instrument_operations.set_alignment_projector", PhysicalMotion | DeviceSession, LongRunning,
-                "Starts the projector's alignment routine."),
+                "Only initiates the projector's alignment routine, which keeps running.", Isolation: Exclusive),
+            new("instrument_operations.jump_instrument_to_new_location", DeviceSession, LongRunning,
+                "Stops the live interface and starts a new instrument's interface.", Isolation: Exclusive),
 
             // Filesystem.
             new("file_operations.rename_general_file", FilesystemRead | FilesystemWrite | FilesystemDelete, Quick,
@@ -175,6 +178,20 @@ public sealed partial class OperationClassificationEvidenceTests
                 "Replace Existing? replaces an embedded MP with the same name."),
             new("file_operations.import_file_as_picture", FilesystemRead | Destructive, Quick,
                 "Replace Existing? replaces a picture with the same name."),
+            new("instrument_operations.construct_tcp_fixture", Destructive, Quick,
+                "Replace Existing TCP Fixture replaces an existing fixture."),
+            new("analysis_operations.import_geometry_fit_profiles", FilesystemRead | Destructive, Quick,
+                "Overwrite Profiles with Same Name? replaces existing geometry fit profiles."),
+            new("gdt_operations.set_datum_measurements", Destructive, Quick,
+                "Replace Existing Measurements? clears the datum's associated measurements."),
+            new("gdt_operations.set_feature_check_measurements", Destructive, Quick,
+                "Replace Existing Measurements? clears the feature check's associated measurements."),
+            new("construction_operations.construct_cross_section_cloud", Destructive, Quick,
+                "Update Existing Cloud rebuilds an existing cross section cloud."),
+            new("construction_operations.construct_cross_section_cloud_user_select", Destructive | InteractiveUi,
+                Interactive, "Update Existing Cloud rebuilds an existing cross section cloud."),
+            new("reporting_operations.remove_report_tag", Destructive, Quick,
+                "Removes a defined report tag from the job file."),
 
             // Conditional behavior, rule 3: classified by the planned breaking-release defaults, so a
             // measurement the operator would start only when measure_immediately is false is not interactive.

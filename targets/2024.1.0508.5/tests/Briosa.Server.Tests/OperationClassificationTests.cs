@@ -17,8 +17,8 @@ public sealed class OperationClassificationTests
         {
             ["read-only"] = 181,
             ["standard"] = 792,
-            ["device"] = 881,
-            ["full"] = 898
+            ["device"] = 878,
+            ["full"] = 895
         };
 
     private const int ExpectedInteractiveOperations = 59;
@@ -31,6 +31,7 @@ public sealed class OperationClassificationTests
             "instrument_operations.close_auto_correspond_closest_point_dialog",
             "instrument_operations.guide_objects_in_6d_based_on_point_measurements",
             "instrument_operations.initiate_servo_guide",
+            "instrument_operations.jump_instrument_to_new_location",
             "instrument_operations.lr_hardware_connect",
             "instrument_operations.lr_hardware_disconnect",
             "instrument_operations.move_objects_in_6d_using_instrument_updates",
@@ -38,6 +39,8 @@ public sealed class OperationClassificationTests
             "instrument_operations.multi_measurement_stop",
             "instrument_operations.project_objects",
             "instrument_operations.run_crib_sheet",
+            "instrument_operations.set_alignment_projector",
+            "instrument_operations.set_remeasure_failed_checks_only",
             "instrument_operations.start_gdt_inspection",
             "instrument_operations.start_gdt_inspection_design",
             "instrument_operations.start_gdt_inspection_rehearse",
