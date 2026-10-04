@@ -1,0 +1,125 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Briosa curated SA 2024.1.0508.5 binding facts for the implemented operation subset",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schema_version", "spatial_analyzer_target", "provenance", "summary", "operations"],
+  "properties": {
+    "$schema": { "const": "bindings.schema.json" },
+    "schema_version": { "const": 1 },
+    "spatial_analyzer_target": { "const": "2024.1.0508.5" },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["public_catalog", "private_quote_corrections", "operation_registry", "interop_surface", "curation_script"],
+      "properties": {
+        "public_catalog": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["repository", "revision", "path"],
+          "properties": {
+            "repository": { "const": "spatialanalyzer/briosa-docs" },
+            "revision": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+            "path": { "const": "mp-command-catalog/commands" }
+          }
+        },
+        "private_quote_corrections": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["repository", "revision", "path", "use", "source_material_committed"],
+          "properties": {
+            "repository": { "const": "spatialanalyzer/briosa-evidence" },
+            "revision": { "const": "07acae44ad6cbed11391b38391317c4974910af8" },
+            "path": { "const": "2024.1.0508.5/mp-command-step-exports" },
+            "use": { "const": "embedded_double_quotes_in_argument_labels_only" },
+            "source_material_committed": { "const": false }
+          }
+        },
+        "operation_registry": { "type": "string" },
+        "interop_surface": { "type": "string" },
+        "curation_script": { "type": "string" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "operation_count",
+        "captured_2024_signature_operation_count",
+        "reference_signature_operation_count",
+        "unsourced_operation_count",
+        "argument_count",
+        "quote_corrected_argument_count",
+        "unavailable_binding_count",
+        "unpublished_method_argument_count",
+        "collection_object_statement_method_count"
+      ],
+      "maxProperties": 9,
+      "additionalProperties": { "type": "integer", "minimum": 0 }
+    },
+    "operations": { "type": "array", "items": { "$ref": "#/definitions/operation" } }
+  },
+  "definitions": {
+    "finding": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+    "operation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["operation_id", "mp_step", "source", "arguments", "findings"],
+      "properties": {
+        "operation_id": { "type": "string", "pattern": "^[a-z0-9_]+\\.[a-z0-9_]+$" },
+        "mp_step": { "type": "string", "minLength": 1 },
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "document", "anchor"],
+          "properties": {
+            "kind": { "enum": ["captured_2024_signature", "reference_signature", "none"] },
+            "document": { "type": ["string", "null"], "pattern": "^mp-command-catalog/commands/[a-z0-9-]+\\.md$" },
+            "anchor": { "type": ["string", "null"], "minLength": 1 }
+          }
+        },
+        "arguments": { "type": "array", "items": { "$ref": "#/definitions/argument" } },
+        "findings": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "no_public_2024_signature",
+              "reference_signature_table_absent",
+              "reference_row_without_exact_label",
+              "reference_signature_with_2024_adjustments"
+            ]
+          }
+        }
+      }
+    },
+    "argument": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ordinal", "sdk_name", "direction", "argument_kind", "setter", "getter", "method_basis", "name_provenance", "findings"],
+      "properties": {
+        "ordinal": { "type": "integer", "minimum": 0 },
+        "sdk_name": { "type": "string", "minLength": 1 },
+        "direction": { "enum": ["input", "output", "input_output"] },
+        "argument_kind": { "type": "string", "minLength": 1 },
+        "setter": { "$ref": "#/definitions/binding" },
+        "getter": { "$ref": "#/definitions/binding" },
+        "method_basis": { "enum": ["captured_argument_kind", "collection_object_binding_statement", null] },
+        "name_provenance": { "enum": ["briosa-docs", "briosa-evidence@07acae4"] },
+        "findings": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "enum": ["setter_method_absent_from_interop", "getter_method_absent_from_interop"] }
+        }
+      }
+    },
+    "binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "method"],
+      "properties": {
+        "status": { "enum": ["available", "unavailable", "unpublished", "not_observed"] },
+        "method": { "type": ["string", "null"], "pattern": "^(?:Set|Get)[A-Za-z0-9]+Arg[0-9]*$" }
+      }
+    }
+  }
+}
