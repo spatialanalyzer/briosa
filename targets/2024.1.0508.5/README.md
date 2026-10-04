@@ -138,6 +138,7 @@ A typical slice changes:
 - `src/Briosa.Server/Operations/...`;
 - the worker SDK seam only when a new exact binding or value codec is needed;
 - `SpatialAnalyzerApi.Operations`;
+- one reviewed row in `src/Briosa.Server/Security/OperationClassification.cs`;
 - portable protocol, server, worker, and smoke tests as appropriate; and
 - operation documentation and real-SA validation status.
 
