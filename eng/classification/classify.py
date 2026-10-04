@@ -214,10 +214,41 @@ READ_VERB = re.compile(r'(^import_|^open_|^load_|_from_data_share_file$|^copy_ge
                        r'^create_picture_callout$|^define_report_template$|^add_item_to_sa_report_at_location$)')
 
 # ---------- corrections made while reviewing the seed for #293 step 1 ----------
-# Each entry is applied after the decision rules above. Keep reasons in README.md.
+# Each entry is applied on top of the decision rules above, so the family, flag and
+# duration rules treat the operation as if it were in the matching decision list.
+# Keep reasons, with the exact-target documentation evidence, in README.md.
+
+# Opens a modal operator dialog or prompts for a runtime selection (interactive_ui, interactive).
+REVIEW_INTERACTIVE = R(
+    'relationship_operations.edit_geometry_relationship_point_list',
+    'construction_operations.construct_surface_by_dissecting_surfaces',
+    'reporting_operations.set_report_options_for_object',
+)
+# Requires a running instrument or robot interface (device_session, long_running).
+REVIEW_DEVICE_ACTION = R(
+    'instrument_operations.measure_existing_single_point_manual_guide',
+    'instrument_operations.align_two_targets_with_axis_wcf_x',
+    'robot_operations.get_robot_machine_parameter',
+    'robot_operations.set_robot_machine_parameter',
+)
+# Changes settings that the live device consumes (device_config).
+REVIEW_DEVICE_CONFIG = R(
+    'robot_operations.set_robot_machine_parameter',
+    'instrument_operations.set_ladar_auto_meas_point', 'instrument_operations.set_ladar_auto_meas_sphere',
+    'instrument_operations.set_ladar_feature_meas_circle', 'instrument_operations.set_ladar_feature_meas_cylinder',
+    'instrument_operations.set_ladar_feature_meas_slot', 'instrument_operations.set_ladar_feature_meas_sphere',
+)
+# Points the instrument before measuring, like point_at_target (physical_motion).
+REVIEW_MOTION = R(
+    'instrument_operations.measure_existing_single_point',
+    'instrument_operations.measure_existing_single_point_and_compare',
+    'instrument_operations.measure_existing_single_point_manual_guide',
+)
+DEVICE_ACTION = DEVICE_ACTION | REVIEW_DEVICE_ACTION
+DEVICE_CONFIG = DEVICE_CONFIG | REVIEW_DEVICE_CONFIG
+MOTION = MOTION | REVIEW_MOTION
+
 REVIEW_ADD_FLAGS = {
-    # The manual-guide measurement drives a live instrument, like the other measure_* device actions.
-    'instrument_operations.measure_existing_single_point_manual_guide': {'device_session'},
     # The form writes its results to the caller-named output data-share file.
     'file_operations.load_html_form': {'filesystem_write'},
     'file_operations.load_html_form_in_edge_browser': {'filesystem_write'},
@@ -230,6 +261,10 @@ REVIEW_REMOVE_FLAGS = {
 FS_FLAGS = {'filesystem_write', 'filesystem_read', 'filesystem_metadata', 'filesystem_delete'}
 
 
+def is_interactive(oid, name):
+    return bool(INTERACTIVE.search(name)) or oid in REVIEW_INTERACTIVE
+
+
 def classify(o, file_rpcs):
     oid = o['id']
     svc, name = oid.split('.', 1)
@@ -238,7 +273,7 @@ def classify(o, file_rpcs):
     # family (one primary family per operation; a review aid only)
     if oid in CODE_EXEC:
         fam = 'code_execution'
-    elif INTERACTIVE.search(name):
+    elif is_interactive(oid, name):
         fam = 'interactive_ui'
     elif oid in SESSION:
         fam = 'session_lifecycle'
@@ -259,7 +294,7 @@ def classify(o, file_rpcs):
     # flags
     if oid in CODE_EXEC:
         flags.add('code_execution')
-    if INTERACTIVE.search(name):
+    if is_interactive(oid, name):
         flags.add('interactive_ui')
     if oid in SESSION or oid in DEVICE_ACTION:
         flags.add('device_session')

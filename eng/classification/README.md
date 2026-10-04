@@ -54,14 +54,44 @@ the 2024 `at-risk-no-runtime-validation` become validation statuses
 `device_session`. `destructive` and `filesystem_metadata` stay flags.
 
 These corrections were made while reviewing the seed for #293 step 1. They are
-encoded as `REVIEW_ADD_FLAGS` and `REVIEW_REMOVE_FLAGS` in `classify.py`, and
-none of them changes a profile admission count:
+encoded in the review section of `classify.py`: `REVIEW_INTERACTIVE`,
+`REVIEW_DEVICE_ACTION`, `REVIEW_DEVICE_CONFIG` and `REVIEW_MOTION` add an
+operation to the matching decision rule, so its family, flags and duration
+follow that rule; `REVIEW_ADD_FLAGS` and `REVIEW_REMOVE_FLAGS` change flags
+only. Each correction applies to every target that registers the operation, and
+`OperationClassificationEvidenceTests` in each target pins the corrected rows.
 
 | Operation | Change | Reason |
 |---|---|---|
-| `instrument_operations.measure_existing_single_point_manual_guide` | + `device_session` | It measures with a live instrument, like the other `measure_*` device actions. |
+| `relationship_operations.edit_geometry_relationship_point_list` | + `interactive_ui`, `quick` → `interactive` | It opens the selected point-list dialog and pauses the MP until the operator closes it. |
+| `construction_operations.construct_surface_by_dissecting_surfaces` | + `interactive_ui`, `quick` → `interactive` | It is a runtime-select step that prompts the operator to pick the surfaces or faces to dissect. |
+| `reporting_operations.set_report_options_for_object` | + `interactive_ui`, `quick` → `interactive` | It opens the report options dialog for the object. |
+| `robot_operations.get_robot_machine_parameter` | + `device_session`, `quick` → `long_running` | It reads a parameter from the robot/machine, whose interface must be active. |
+| `robot_operations.set_robot_machine_parameter` | + `device_session`, `device_config`, `quick` → `long_running` | It sets a machine-specific parameter on the robot/machine, whose interface must be active. |
+| `instrument_operations.align_two_targets_with_axis_wcf_x` | + `device_session`, `quick` → `long_running` | It measures the two points with the instrument, whose interface must be running. |
+| `instrument_operations.set_ladar_auto_meas_point`, `set_ladar_auto_meas_sphere`, `set_ladar_feature_meas_circle`, `set_ladar_feature_meas_cylinder`, `set_ladar_feature_meas_slot`, `set_ladar_feature_meas_sphere` (2026 only) | + `device_config` | Each adjusts an instrument measurement mode: sample time, sphere options, or scan line spacing and extra scan area. |
+| `instrument_operations.measure_existing_single_point`, `measure_existing_single_point_and_compare` | + `physical_motion` | Each points the instrument at the existing point before it locks on and measures, like `point_at_target`. |
+| `instrument_operations.measure_existing_single_point_manual_guide` | + `device_session`, `physical_motion` | It points and measures with a live instrument like the other `measure_existing_single_point` operations; the operator may steer the head instead. |
 | `file_operations.load_html_form`, `file_operations.load_html_form_in_edge_browser` | + `filesystem_write` | The form writes its results to the caller-named output data-share file. |
 | `file_operations.make_embedded_file_name_list` | − `filesystem_read` | `file_name_pattern` filters files embedded in the SA job; no filesystem path is read. |
+
+The documentation-backed corrections were checked against each target's
+installed MP command reference: for 2024.1.0508.5, `Documentation/MP Command
+Reference.pdf` (Construct Surface by Dissecting Surface(s), p. 389; Edit
+Geometry Relationship Point List, p. 731; Set Report Options for Object, p. 910;
+Point At Target, p. 1022; Measure Existing Single Point and its Manual Guide and
+Compare variants, pp. 1026–1028; Align Two Targets with Axis (WCF-X), p. 1156;
+Set and Get Robot/Machine Parameter, pp. 1202–1203). For 2026.1.0529.7, the
+matching topics under `Documentation/Content/Topics/Scripting/MPCommandListing`
+(`ConstructionOperations/Surfaces/ConstructSurfaceByDissecting.htm`,
+`RelationshipOperations/EditGeometryRelationshipPointList.htm`,
+`ReportingOperations/SetReportOptionsForObject.htm`,
+`RobotOperations/Get Robot Machine Parameter.htm`,
+`RobotOperations/Set Robot Machine Parameter.htm`,
+`InstrumentOperations/AlignTwoTargetsWithAxis.htm`,
+`InstrumentOperations/MeasureExistingSinglePoint*.htm`,
+`InstrumentOperations/PointAtTarget.htm` and `InstrumentOperations/APILadar/`).
+The two releases document these operations the same way.
 
 ## Reviewed counts
 
@@ -69,8 +99,12 @@ none of them changes a profile admission count:
 |---|---:|---:|
 | Operations | 1,027 | 996 |
 | `exclusive_workflow` | 43 | 46 |
-| `interactive_ui` | 47 | 47 |
-| `read-only` / `standard` / `device` / `full` | 185 / 831 / 927 / 937 | 181 / 805 / 893 / 903 |
+| `interactive_ui` | 50 | 50 |
+| `read-only` / `standard` / `device` / `full` | 184 / 819 / 924 / 934 | 180 / 799 / 890 / 900 |
+
+The decision's counts, before the documentation-backed corrections, were 47
+interactive operations per target and 185 / 831 / 927 / 937 (2026) and
+181 / 805 / 893 / 903 (2024) admissions.
 
 ## Regenerate the seed
 

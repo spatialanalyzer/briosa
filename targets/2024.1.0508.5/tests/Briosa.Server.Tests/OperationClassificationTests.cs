@@ -15,13 +15,13 @@ public sealed class OperationClassificationTests
     private static readonly Dictionary<string, int> ExpectedProfileAdmission =
         new(StringComparer.Ordinal)
         {
-            ["read-only"] = 181,
-            ["standard"] = 805,
-            ["device"] = 893,
-            ["full"] = 903
+            ["read-only"] = 180,
+            ["standard"] = 799,
+            ["device"] = 890,
+            ["full"] = 900
         };
 
-    private const int ExpectedInteractiveOperations = 47;
+    private const int ExpectedInteractiveOperations = 50;
 
     private static readonly string[] SessionLifecycles =
         [

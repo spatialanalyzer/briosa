@@ -1,0 +1,24 @@
+using static Briosa.Server.Security.OperationDurationClass;
+using static Briosa.Server.Security.OperationRisks;
+
+namespace Briosa.Server.Tests;
+
+public sealed partial class OperationClassificationEvidenceTests
+{
+    // The API LADAR measurement-mode setters are registered only by the 2026 target.
+    private static readonly ClassificationEvidence[] TargetOnlyEvidence =
+        [
+            new("instrument_operations.set_ladar_auto_meas_point", DeviceConfig, Quick,
+                "Adjusts the sample time of the instrument's point measurement mode."),
+            new("instrument_operations.set_ladar_auto_meas_sphere", DeviceConfig, Quick,
+                "Adjusts the instrument's sphere measurement mode settings."),
+            new("instrument_operations.set_ladar_feature_meas_circle", DeviceConfig, Quick,
+                "Adjusts the scan settings of the instrument's circle measurement mode."),
+            new("instrument_operations.set_ladar_feature_meas_cylinder", DeviceConfig, Quick,
+                "Adjusts the scan settings of the instrument's cylinder measurement mode."),
+            new("instrument_operations.set_ladar_feature_meas_slot", DeviceConfig, Quick,
+                "Adjusts the scan settings of the instrument's slot measurement mode."),
+            new("instrument_operations.set_ladar_feature_meas_sphere", DeviceConfig, Quick,
+                "Adjusts the scan line spacing of the instrument's sphere feature measurement mode.")
+        ];
+}
