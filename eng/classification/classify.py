@@ -284,6 +284,8 @@ REVIEW_MOTION = R(
     'instrument_operations.lr_apdis_perform_mcm_calibration',
     'instrument_operations.lr_self_test_flip_test',
     'instrument_operations.set_alignment_projector',
+    # Auto Survey points the instrument at each nominal point (conditional behavior, rule 1).
+    'instrument_operations.locate_instrument_ref_tie_in',
 )
 # Sends packets to, or connects to, a caller-named or appliance host and port (external_io).
 REVIEW_EXTERNAL_IO = R(
@@ -291,10 +293,28 @@ REVIEW_EXTERNAL_IO = R(
     'robot_operations.get_calibration_appliance_real_value', 'robot_operations.set_calibration_appliance_data',
     'robot_operations.set_calibration_appliance_integer_value', 'robot_operations.set_calibration_appliance_real_value',
     'instrument_operations.lr_hardware_connect',
+    # The optional Device IP Address names the instrument host (conditional behavior, rule 1).
+    'instrument_operations.start_instrument_interface',
 )
-# Removes SA objects (destructive).
+# Removes SA objects (destructive). Conditional behavior counts: an option the caller can
+# turn on that deletes, replaces or overwrites SA objects or definitions makes the
+# operation destructive (README, "Conditional behavior", rule 1).
 REVIEW_DESTRUCTIVE = R(
     'instrument_operations.set_remeasure_failed_checks_only',
+    # Delete Original Surfaces? / Modify Existing Input Clouds / Delete point if no measurements remain?
+    'construction_operations.construct_surface_from_collection_of_surfaces',
+    'relationship_operations.filter_geometry_relationship_outlier_cloud_points',
+    'instrument_operations.move_measurement_observation',
+    # Replace Existing Entries? replaces the hidden point bar definitions in the User Options.
+    'file_operations.import_hidden_point_bar_xml_file',
+    # Overwrite if exists? replaces the existing object, item, point, callout view, picture or event.
+    'construction_operations.rename_object', 'construction_operations.rename_item',
+    'construction_operations.rename_point', 'construction_operations.rename_callout_view',
+    'construction_operations.copy_object', 'construction_operations.create_hidden_point',
+    'reporting_operations.rename_picture', 'event_operations.rename_event',
+    # Replace Existing? replaces an embedded file, embedded MP or picture with the same name.
+    'file_operations.import_file_as_embedded_file', 'file_operations.import_mp_file_as_embedded_mp',
+    'file_operations.import_file_as_picture',
 )
 # Documented as able to run for minutes (long_running).
 REVIEW_LONG_RUNNING = R(
@@ -327,6 +347,11 @@ REVIEW_ADD_FLAGS = {
     'file_operations.load_html_form_in_edge_browser': {'filesystem_write'},
     # The source file no longer exists after the rename; its content moves to the destination.
     'file_operations.rename_general_file': {'filesystem_read', 'filesystem_delete'},
+    # Saved Converted File writes the converted file (conditional behavior, rule 1).
+    'file_operations.import_e57_file': {'filesystem_write'},
+    # Check strings take file paths: SaveVideoFrame and the iVision Teach XML path write files,
+    # Set Auto Align File and Send Scan to SA read them (conditional behavior, rule 1).
+    'instrument_operations.instrument_operational_check': {'filesystem_read', 'filesystem_write'},
 }
 REVIEW_REMOVE_FLAGS = {
     # file_name_pattern filters files embedded in the SA job; no filesystem path is read.

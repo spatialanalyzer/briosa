@@ -8,8 +8,10 @@ param(
 # Compares the D1 classification rows (#242, #293) of operations that both
 # exact-SA targets register. Shared operations must have identical rows unless
 # eng/classification/target-differences.json records both exact rows with a
-# reviewed rationale. A table this script cannot read fails; differences and
-# stale reviewed entries are advisory unless -Strict is set.
+# reviewed rationale. It also checks that every operation in
+# eng/classification/conditional-ui.json names exactly the targets that register
+# it. A table this script cannot read fails; differences, stale reviewed entries
+# and conditional-UI mismatches are advisory unless -Strict is set.
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -101,8 +103,27 @@ foreach ($id in ($reviewed.Keys | Sort-Object -CaseSensitive)) {
     }
 }
 
-Write-Host ("Operation classification twins: {0} rows in {1}, {2} in {3}, {4} shared, {5} reviewed differences, {6} finding(s)." -f
-    $firstRows.Count, $first, $secondRows.Count, $second, $shared.Count, $reviewedDifferences, $findings.Count)
+# Every operation in the reviewed conditional-UI list must name exactly the targets that register it.
+$conditionalPath = Join-Path $resolvedRoot 'eng/classification/conditional-ui.json'
+$conditionalEntries = 0
+if (Test-Path -LiteralPath $conditionalPath -PathType Leaf) {
+    $tables = @{ $first = $firstRows; $second = $secondRows }
+    foreach ($entry in @((Get-Content -LiteralPath $conditionalPath -Raw | ConvertFrom-Json).entries)) {
+        $conditionalEntries++
+        $registeredBy = @($targetNames | Where-Object { $tables[$_].ContainsKey($entry.operation_id) })
+        $listed = @($entry.targets)
+        if ($registeredBy.Count -eq 0 -or
+            (Compare-Object -ReferenceObject $registeredBy -DifferenceObject $listed -CaseSensitive)) {
+            $findings.Add([pscustomobject]@{
+                    Id = "$($entry.operation_id) ($($entry.field))"
+                    Kind = "Conditional UI entry targets [$($listed -join ', ')] do not match the registering targets [$($registeredBy -join ', ')]"
+                    First = ''; Second = '' })
+        }
+    }
+}
+
+Write-Host ("Operation classification twins: {0} rows in {1}, {2} in {3}, {4} shared, {5} reviewed differences, {6} conditional UI entries, {7} finding(s)." -f
+    $firstRows.Count, $first, $secondRows.Count, $second, $shared.Count, $reviewedDifferences, $conditionalEntries, $findings.Count)
 foreach ($finding in $findings) {
     Write-Host "  $($finding.Kind): $($finding.Id)"
     if ($finding.First -or $finding.Second) {

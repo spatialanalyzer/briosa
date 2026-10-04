@@ -24,6 +24,7 @@ registered descriptors still govern admission, scope, and replay safety.
 | `classify.py` | The rules used for the decision, plus the corrections made in review. It writes the CSVs from a descriptor dump. |
 | `Export-OperationDescriptors.ps1` | Dumps a built target's compiled registry (`SpatialAnalyzerApi.Operations`) as `descriptors-<target>.json`, the input of `classify.py`. |
 | `target-differences.json` | Reviewed shared operations whose rows may differ between targets. It is read by `eng/Test-OperationClassificationTwins.ps1`. |
+| `conditional-ui.json` | Reviewed caller-reachable operator UI that does not make an operation `interactive_ui`, for the planned argument guard. See [Conditional behavior](#conditional-behavior). `eng/Test-OperationClassificationTwins.ps1` checks its operation IDs. |
 
 The CSV columns are the operation id, its registered effect, a primary family
 (a review aid only), the snake_case risk flags, the duration class, the
@@ -84,7 +85,7 @@ otherwise, both releases document the operation the same way.
 | `instrument_operations.align_two_targets_with_axis_wcf_x` | + `device_session`, `interactive_ui`, → `interactive` | Guides the operator through aligning two points; the instrument interface must be running. | p. 1156; `InstrumentOperations/AlignTwoTargetsWithAxis.htm` |
 | `instrument_operations.drift_check` | + `interactive_ui`, → `interactive` | Always measures through the Drift Check dialog, which the operator finishes or cancels. | p. 1141; `InstrumentOperations/DriftCheck.htm` |
 | `instrument_operations.build_target` | + `device_session`, `interactive_ui`, → `interactive` | Guides the operator through measuring a point while showing live deviations. | p. 1025; `InstrumentOperations/BuildTarget.htm` |
-| `instrument_operations.locate_instrument_ref_tie_in` | + `device_session`, `interactive_ui`, → `interactive` | Guides the operator through measuring the reference points. `physical_motion` through Auto Survey is a conditional behavior and is not classified here. | p. 1059; `InstrumentOperations/LocateInstrumentRefTie.htm` |
+| `instrument_operations.locate_instrument_ref_tie_in` | + `device_session`, `interactive_ui`, → `interactive` | Guides the operator through measuring the reference points. Auto Survey adds `physical_motion`; see [Conditional behavior](#conditional-behavior). | p. 1059; `InstrumentOperations/LocateInstrumentRefTie.htm` |
 | `instrument_operations.auto_correspond_closest_point` | + `interactive_ui`, → `interactive` (stays `exclusive_workflow`) | Measures inside the Auto-Correspond dialog. | p. 1136; `InstrumentOperations/AutoCorrespondClosestPoint.htm` |
 | `instrument_operations.initiate_servo_guide` | + `interactive_ui`, → `interactive` (stays `exclusive_workflow`) | Guides the operator through the points; the operator starts each measurement. | p. 1040; `InstrumentOperations/InitiateServoGuide.htm` |
 | `instrument_operations.auto_measure_points` | + `interactive_ui`, → `interactive` | Always shows the full or the abbreviated auto-measure dialog. | p. 1131; `InstrumentOperations/AutoMeasurePoints.htm` |
@@ -137,6 +138,79 @@ otherwise, both releases document the operation the same way.
 Before the review corrections, the decision's counts were 43 (2026) and 46
 (2024) exclusive workflows, 47 interactive operations per target, and
 185 / 831 / 927 / 937 (2026) and 181 / 805 / 893 / 903 (2024) admissions.
+
+## Conditional behavior
+
+Many operations change what they do according to request options. The
+maintainer approved three rules for classifying them:
+
+1. **Safety flags follow the worst reachable behavior.** `destructive`, the
+   `filesystem_*` flags, `device_session`, `device_config`, `physical_motion`,
+   `external_io` and `code_execution` are classified by the worst behavior a
+   caller can reach through the request. Any option the caller can turn on
+   counts, but only when Briosa passes it through; an option Briosa fixes off is
+   not reachable.
+2. **`interactive_ui` needs UI that always opens, or opens with the current
+   defaults.** An operation is `interactive_ui` only when it always opens
+   operator UI, or opens it with Briosa's current request defaults. UI that
+   appears only when the caller turns an option on (Show Interface, Show Results
+   Dialog, Report Deviations, Verify Results, Use Fit Dialog, Pause MP Until
+   Closed, an HTML prompt file, a user prompt, and so on) does not set
+   `interactive_ui`. A later #293 step adds a server-side argument guard that
+   rejects those options unless the caller opted into interactive operations.
+3. **`measure_immediately` and `auto_start` are classified by their planned
+   defaults.** The planned breaking release flips both Briosa defaults to true,
+   so `measure_single_point_here`, `configure_and_measure`,
+   `measure_existing_single_point`, `measure_existing_single_point_and_compare`
+   and the Auto Start option of `auto_measure_points` are classified by the
+   post-flip behavior: that option alone does not make them `interactive_ui`.
+   This change classifies them only; request defaults and runtime code are
+   unchanged. `auto_measure_points` stays `interactive_ui` because its
+   auto-measure dialog always opens.
+
+Rule 1 changed these rows in both targets. Each option was checked in both
+releases' documentation, and in each target's operation mapping, which passes
+it through:
+
+| Operation | Change | Reachable behavior | Doc (2024 page; 2026 topic) |
+|---|---|---|---|
+| `construction_operations.construct_surface_from_collection_of_surfaces` | + `destructive` | Delete Original Surfaces? deletes the source surfaces. | p. 387; `ConstructionOperations/Surfaces/ConstructSurfaceFromACollection.htm` |
+| `relationship_operations.filter_geometry_relationship_outlier_cloud_points` | + `destructive` | Modify Existing Input Clouds deletes points from the associated clouds. | p. 732; `RelationshipOperations/FilterGeometryRelationshipOutlierCloudPoints.htm` |
+| `instrument_operations.move_measurement_observation` | + `destructive` | Delete point if no measurements remain? deletes the source point. | p. 1039; `InstrumentOperations/MoveMeasurementObservation.htm` |
+| `file_operations.import_hidden_point_bar_xml_file` | + `destructive` | Replace Existing Entries? replaces the hidden point bar definitions in the User Options. | p. 65; `FileOperations/FileImport/ImportHiddenPointBarXMLFile.htm` |
+| `construction_operations.rename_object`, `rename_item`, `rename_point`, `rename_callout_view`, `copy_object`, `create_hidden_point`; `reporting_operations.rename_picture`; `event_operations.rename_event` | + `destructive` | Overwrite if exists? (Overwrite existing point? for `create_hidden_point`) replaces the existing object, item, point, callout view, picture or event. | pp. 261, 262, 258, 461, 253, 320, 916, 860; matching `RenameObject.htm`, `RenameItem.htm`, `RenamePoint.htm`, `Callouts/RenameCalloutView.htm`, `CopyObject.htm`, `PointsandGroups/CreateHiddenPoint.htm`, `ReportingOperations/RenamePicture.htm`, `Events/RenameEvent.htm` |
+| `file_operations.import_file_as_embedded_file`, `import_mp_file_as_embedded_mp`, `import_file_as_picture` | + `destructive` | Replace Existing? replaces the embedded file, embedded MP or picture with the same name. | pp. 54–56; `FileOperations/FileImport/ImportFileAsEmbedded File.htm`, `ImportMPFileAsEmbeddedMP.htm`, `ImportFileAsPicture.htm` |
+| `instrument_operations.locate_instrument_ref_tie_in` | + `physical_motion` | Auto Survey makes the instrument point at and measure each nominal point. | p. 1059; `InstrumentOperations/LocateInstrumentRefTie.htm` |
+| `file_operations.import_e57_file` | + `filesystem_write` | Saved Converted File saves the file after conversion. | p. 48; `FileOperations/FileImport/ImportE57File.htm` |
+| `instrument_operations.start_instrument_interface` | + `external_io` | The optional Device IP Address names the instrument host. Initialize at Startup runs the instrument's initialization routine, but neither release says that it moves the instrument, so `physical_motion` is not added. | p. 1049; `InstrumentOperations/StartInstrumentInterface.htm` |
+| `instrument_operations.instrument_operational_check` | + `filesystem_read`, `filesystem_write` | Check strings take file paths: SaveVideoFrame and the iVision Teach XML path write files; Set Auto Align File and Send Scan to SA read them. | p. 1091 ff.; `InstrumentOperations/InstrOpCheck-*.htm` |
+
+`conditional-ui.json` lists every caller-reachable operator UI that rule 2
+leaves unflagged, one entry per operation and request field: the value that
+opens the UI, Briosa's current default, whether that default opens it, and the
+documentation in each target. The step-2 guard is to use the `caller_option`
+entries. The `caller_option_default_flips` entries are the rule 3 fields. The
+`job_or_file_state` entries have no enabling field and are listed for the
+maintainer: `file_operations.save` opens Save As when the job has never been
+named, `export_vector_container_to_ascii_file` asks before overwriting an
+existing file, and `configure_and_measure` asks about a missing measurement
+profile unless the SA interaction mode is Silent. Operations that are already
+`interactive_ui` are not listed, except for the rule 3 fields. Progress bars,
+callout and report content, graphics display options, and operations whose
+purpose is to show or hide a window are not operator UI and are not listed.
+`eng/Test-OperationClassificationTwins.ps1` checks that each entry names exactly
+the targets that register the operation.
+
+Two caller options open UI with Briosa's current defaults but are not
+`interactive_ui`. Both are candidates for a default flip, because the step-2
+guard would otherwise reject a default request:
+
+- `file_operations.direct_cad_access` `prompt_on_missing_components` (default
+  true) notifies the operator only when the CAD model has missing components, so
+  the UI depends on the file as well as the option.
+- `view_control.set_point_of_view_from_instrument_updates`
+  `display_view_control` (default true) displays the view Control dialog;
+  neither release says the dialog waits for the operator.
 
 ## Regenerate the seed
 

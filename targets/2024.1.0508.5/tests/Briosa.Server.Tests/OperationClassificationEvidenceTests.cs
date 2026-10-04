@@ -32,8 +32,8 @@ public sealed partial class OperationClassificationEvidenceTests
                 "Measures through the Drift Check dialog, which the operator finishes or cancels."),
             new("instrument_operations.build_target", DeviceSession | InteractiveUi, Interactive,
                 "Guides the operator through measuring a point while showing live deviations."),
-            new("instrument_operations.locate_instrument_ref_tie_in", DeviceSession | InteractiveUi, Interactive,
-                "Guides the operator through measuring the reference points that locate the instrument."),
+            new("instrument_operations.locate_instrument_ref_tie_in", PhysicalMotion | DeviceSession | InteractiveUi,
+                Interactive, "Guides the operator through the reference points; Auto Survey points the instrument."),
             new("instrument_operations.auto_correspond_closest_point", DeviceSession | InteractiveUi, Interactive,
                 "Measures inside the Auto-Correspond dialog.", Isolation: Exclusive),
             new("instrument_operations.initiate_servo_guide", PhysicalMotion | DeviceSession | InteractiveUi,
@@ -54,9 +54,11 @@ public sealed partial class OperationClassificationEvidenceTests
             new("instrument_operations.lr_set_red_laser_intensity", DeviceSession | DeviceConfig, LongRunning,
                 "Sets the intensity of the laser radar's red laser."),
             new("instrument_operations.configure_and_measure", DeviceSession | DeviceConfig, LongRunning,
-                "Sets the instrument's target name and measurement mode, then measures."),
-            new("instrument_operations.instrument_operational_check", PhysicalMotion | DeviceSession | DeviceConfig,
-                LongRunning, "Check strings set instrument modes and include Home, Jog, Change Face and motor control."),
+                "Sets the target name and measurement mode, then measures (rule 3: not interactive).",
+                ForbiddenRisks: InteractiveUi),
+            new("instrument_operations.instrument_operational_check",
+                FilesystemRead | FilesystemWrite | PhysicalMotion | DeviceSession | DeviceConfig, LongRunning,
+                "Check strings set modes, include Home, Jog and Change Face, and can read or write named files."),
             new("instrument_operations.set_instrument_axes", DeviceSession | DeviceConfig, LongRunning,
                 "Sets joint values; the instrument's interface must be active."),
             new("instrument_operations.set_remeasure_failed_checks_only", Destructive | DeviceSession | DeviceConfig,
@@ -85,12 +87,15 @@ public sealed partial class OperationClassificationEvidenceTests
                 LongRunning, "Exchanges packets with the calibration appliance's host and port."),
             new("instrument_operations.lr_hardware_connect", DeviceSession | ExternalIo, LongRunning,
                 "Connects to the caller-supplied laser radar host and port.", Isolation: Exclusive),
+            new("instrument_operations.start_instrument_interface", DeviceSession | ExternalIo, LongRunning,
+                "The optional Device IP Address names the instrument host.", Isolation: Exclusive),
 
             // Hardware motion.
             new("instrument_operations.measure_existing_single_point", PhysicalMotion | DeviceSession, LongRunning,
-                "Points the instrument at the existing point, locks on, then measures."),
+                "Points the instrument at the existing point, locks on, then measures.", ForbiddenRisks: InteractiveUi),
             new("instrument_operations.measure_existing_single_point_and_compare", PhysicalMotion | DeviceSession,
-                LongRunning, "Points the instrument at the existing point, locks on, then measures."),
+                LongRunning, "Points the instrument at the existing point, locks on, then measures.",
+                ForbiddenRisks: InteractiveUi),
             new("instrument_operations.measure_existing_single_point_manual_guide",
                 PhysicalMotion | DeviceSession | InteractiveUi, Interactive,
                 "Points the instrument at the existing point; otherwise the operator steers the head to it."),
@@ -116,6 +121,8 @@ public sealed partial class OperationClassificationEvidenceTests
                 "Builds the QDAS data list in memory; it takes no file argument.", ForbiddenRisks: FilesystemWrite),
             new("file_operations.get_qdas_catalog_entries", None, Quick,
                 "Reads the catalog that is already loaded; it takes no path.", ForbiddenRisks: FilesystemRead),
+            new("file_operations.import_e57_file", FilesystemRead | FilesystemWrite, LongRunning,
+                "Saved Converted File writes the converted file."),
 
             // Duration.
             new("relationship_operations.auto_filter_points_groups_clouds_to_surface_faces", None, LongRunning,
@@ -133,7 +140,44 @@ public sealed partial class OperationClassificationEvidenceTests
             new("instrument_operations.enable_disable_frame_set_scan_mode_by_instrument", DeviceConfig, Quick,
                 "Only sets how SA stores 6D scans for one instrument.", ForbiddenRisks: DeviceSession),
             new("reporting_operations.close_all_reports", None, Quick,
-                "Only closes report windows.", ForbiddenRisks: Destructive)
+                "Only closes report windows.", ForbiddenRisks: Destructive),
+
+            // Conditional behavior, rule 1: an option the caller can turn on deletes, replaces or overwrites.
+            new("construction_operations.construct_surface_from_collection_of_surfaces", Destructive, Quick,
+                "Delete Original Surfaces? deletes the source surfaces."),
+            new("relationship_operations.filter_geometry_relationship_outlier_cloud_points", Destructive, Quick,
+                "Modify Existing Input Clouds deletes points from the associated clouds."),
+            new("instrument_operations.move_measurement_observation", Destructive, Quick,
+                "Delete point if no measurements remain? deletes the source point."),
+            new("file_operations.import_hidden_point_bar_xml_file", FilesystemRead | Destructive, Quick,
+                "Replace Existing Entries? replaces the hidden point bar definitions."),
+            new("construction_operations.rename_object", Destructive, Quick,
+                "Overwrite if exists? replaces an existing object."),
+            new("construction_operations.rename_item", Destructive, Quick,
+                "Overwrite if exists? replaces an existing item."),
+            new("construction_operations.rename_point", Destructive, Quick,
+                "Overwrite if exists? replaces an existing point."),
+            new("construction_operations.rename_callout_view", Destructive, Quick,
+                "Overwrite if exists? replaces an existing callout view."),
+            new("construction_operations.copy_object", Destructive, Quick,
+                "Overwrite If Exists? replaces an existing object."),
+            new("construction_operations.create_hidden_point", Destructive, Quick,
+                "Overwrite existing point? replaces an existing point."),
+            new("reporting_operations.rename_picture", Destructive, Quick,
+                "Overwrite if exists? replaces an existing picture."),
+            new("event_operations.rename_event", Destructive, Quick,
+                "Overwrite if exists? replaces an existing event."),
+            new("file_operations.import_file_as_embedded_file", FilesystemRead | Destructive, Quick,
+                "Replace Existing? replaces an embedded file with the same name."),
+            new("file_operations.import_mp_file_as_embedded_mp", FilesystemRead | Destructive, Quick,
+                "Replace Existing? replaces an embedded MP with the same name."),
+            new("file_operations.import_file_as_picture", FilesystemRead | Destructive, Quick,
+                "Replace Existing? replaces a picture with the same name."),
+
+            // Conditional behavior, rule 3: classified by the planned breaking-release defaults, so a
+            // measurement the operator would start only when measure_immediately is false is not interactive.
+            new("instrument_operations.measure_single_point_here", DeviceSession, LongRunning,
+                "Measures immediately once measure_immediately defaults to true.", ForbiddenRisks: InteractiveUi)
         ];
 
     [Fact]
