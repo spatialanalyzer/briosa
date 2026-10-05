@@ -239,7 +239,9 @@ phase from the execution disposition alone:
   the failed output remain distinguishable through output retrieval details.
 
 Clients do not map this kind to `Internal`, `MpResultRetrievalFailure`, or
-`OutputRetrievalFailure`, the interim 0.9.2 representations.
+`OutputRetrievalFailure`, the interim 0.9.2 representations. Clients adopting
+compatibility major 3 implement this mapping and the `sdk-call-faulted`
+conformance scenario, which the shared host activates at that major.
 
 Raw generated and transport error types are not part of the supported shared
 contract. Whether a language retains an underlying diagnostic privately or
@@ -357,7 +359,8 @@ gRPC server over deterministic fake-worker scenarios for:
 - lifecycle and readiness;
 - exact-target and protocol compatibility;
 - capability subsets;
-- typed operation failures, including SDK call faults;
+- typed operation failures, including SDK call faults once clients adopt
+  compatibility major 3;
 - deadlines and cancellation;
 - disconnection, worker crash, and watchdog replacement;
 - completion ambiguity, replay guidance, and recovery; and

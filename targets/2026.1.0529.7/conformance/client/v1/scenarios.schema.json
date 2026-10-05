@@ -29,6 +29,7 @@
         ],
         "properties": {
           "id": { "type": "string", "pattern": "^[a-z0-9-]{1,64}$" },
+          "minimum_contract_major": { "type": "integer", "minimum": 2 },
           "startup_mode": {
             "enum": ["default", "control-plane-only", "attach-existing"]
           },

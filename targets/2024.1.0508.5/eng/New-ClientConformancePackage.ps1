@@ -136,8 +136,23 @@ try {
 
     Copy-Item -LiteralPath (Join-Path $contractRoot "Invoke-BriosaClientConformance.ps1") `
         -Destination $runnerRoot
-    Copy-Item -LiteralPath (Join-Path $contractRoot "scenarios.json") `
-        -Destination $packagedContractRoot
+    # A scenario may declare minimum_contract_major. It ships only when this
+    # target's compatibility contract has reached that major, and the gate field
+    # is removed from the packaged contract. Retained clients for the current
+    # major therefore never receive a scenario their fixture cannot know.
+    $contractMajor = [int](Get-Content -LiteralPath (Join-Path $targetRoot "compatibility.json") -Raw |
+        ConvertFrom-Json).major
+    $scenarioContract = Get-Content -LiteralPath (Join-Path $contractRoot "scenarios.json") -Raw |
+        ConvertFrom-Json
+    $scenarioContract.scenarios = @($scenarioContract.scenarios | Where-Object {
+            $_.PSObject.Properties.Name -notcontains "minimum_contract_major" -or
+            [int]$_.minimum_contract_major -le $contractMajor
+        } | ForEach-Object {
+            $_.PSObject.Properties.Remove("minimum_contract_major")
+            $_
+        })
+    Write-Utf8File (Join-Path $packagedContractRoot "scenarios.json") `
+        (($scenarioContract | ConvertTo-Json -Depth 10) + "`n")
     Copy-Item -LiteralPath (Join-Path $contractRoot "scenarios.schema.json") `
         -Destination $packagedContractRoot
     Copy-Item -LiteralPath (Join-Path $targetRoot "conformance\client\README.md") `

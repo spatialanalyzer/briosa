@@ -83,6 +83,7 @@
     },
     {
       "id": "sdk-call-faulted",
+      "minimum_contract_major": 3,
       "startup_mode": "default",
       "worker_scenario": "sdk-call-faulted",
       "start_external_application": false,
