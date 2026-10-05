@@ -110,8 +110,9 @@ against that table and decides the request's effective classification:
   `measure_immediately`, `auto_start`, `wait_for_complete` of
   `auto_measure_specified_geometry`, and `acknowledge_arrival` of
   `move_robot_machine_to_frame` and `move_robot_machine_to_named_destination`
-  default to `true`. Waiting for the operator, or not waiting for the device,
-  is opt-in.
+  default to `true`, and `prompt_on_missing_components` of
+  `file_operations.direct_cad_access` defaults to `false`. Waiting for the
+  operator, prompting the operator, and not waiting for the device are opt-in.
 - **Fail closed.** A request whose option field cannot be read, or an operation
   with reviewed options submitted without its typed request, is denied with
   `operation-request-unclassified`.
@@ -141,7 +142,7 @@ The first matching rule decides:
 | Step | Rule | Result | Configurable |
 | --- | --- | --- | --- |
 | 1 | Operation not registered, or its MP binding does not match | `Unsupported` (`operation-unsupported`, `operation-binding-mismatch`) | no |
-| 2 | Unreviewed metadata: no complete classification row, unknown effect, unspecified replay safety, or an unreviewed execution scope; or a request that cannot be read against its reviewed options | `Denied` (`operation-risk-unreviewed`, `operation-isolation-unreviewed`, `operation-request-unclassified`) | no |
+| 2 | Unreviewed metadata: no complete classification row, unknown effect, unspecified or unknown replay safety, or an unreviewed execution scope; or a request that cannot be read against its reviewed options | `Denied` (`operation-risk-unreviewed`, `operation-isolation-unreviewed`, `operation-request-unclassified`) | no |
 | 3 | `ExclusiveWorkflow` in the current `single_tenant` mode, including a request that leaves work running after the call returns | `Denied` (`operation-isolation-unsupported`, `operation-option-isolation-unsupported`) | **no**; an `allow` override cannot bypass it |
 | 4 | `Overrides:<service>:<operation>=deny` | `Denied` (`operation-policy-denied`) | yes |
 | 5 | `Overrides:<service>:<operation>=allow` | `Allowed` | yes |

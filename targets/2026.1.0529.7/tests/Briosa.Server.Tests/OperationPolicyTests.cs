@@ -250,6 +250,43 @@ public sealed class OperationPolicyTests
             "operation-policy-allowed", "profile.standard");
     }
 
+    [Theory]
+    [InlineData(ReplaySafety.Unknown)]
+    [InlineData(ReplaySafety.Unspecified)]
+    public void UnreviewedReplaySafetyIsDeniedUnderEveryProfileEvenWithAnAllow(ReplaySafety replaySafety)
+    {
+        var reviewed = WorkingDirectoryOperation();
+        var operation = new OperationDescriptor(
+            reviewed.OperationId, reviewed.MpStep, reviewed.GrpcService, reviewed.Rpc,
+            reviewed.FullyQualifiedMethod, reviewed.EffectLabel, reviewed.ExecutionScope,
+            replaySafety, reviewed.RiskFlags);
+
+        foreach (var profile in OperationAdmissionProfile.All)
+        {
+            var policy = CreatePolicy(
+                profile: profile.Name,
+                settings: new()
+                {
+                    [WorkingDirectoryOverride] = "allow",
+                    ["Flags:filesystem_metadata"] = "allow"
+                },
+                operations: [operation]);
+
+            foreach (var decision in new[]
+            {
+                policy.Evaluate(OperationId),
+                policy.EvaluateRequest(OperationId, new GetWorkingDirectoryRequest())
+            })
+            {
+                Assert.Equal(OperationPolicyDecisionKind.Denied, decision.Kind);
+                Assert.Equal("operation-risk-unreviewed", decision.DiagnosticCode);
+                Assert.Equal(OperationPolicy.ClassificationRule, decision.PolicyRule);
+            }
+
+            Assert.Empty(policy.AllowedOperations);
+        }
+    }
+
     [Fact]
     public void FingerprintCoversProfileFlagsOverridesAndClassification()
     {

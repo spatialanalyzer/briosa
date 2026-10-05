@@ -121,7 +121,7 @@ public sealed class OperationConditionalOptionTests
     }
 
     [Fact]
-    public void BreakingReleaseDefaultsSendTheWaitingOrImmediateValue()
+    public void BreakingReleaseDefaultsDoNotEnableTheirOption()
     {
         var flips = OperationConditionalOptions.Entries
             .Where(entry => entry.Trigger == OperationOptionTrigger.DefaultFlip)
@@ -130,6 +130,7 @@ public sealed class OperationConditionalOptionTests
             .ToArray();
         Assert.Equal(
             [
+                "file_operations.direct_cad_access.prompt_on_missing_components",
                 "instrument_operations.auto_measure_points.auto_start",
                 "instrument_operations.auto_measure_specified_geometry.wait_for_complete",
                 "instrument_operations.configure_and_measure.measure_immediately",
@@ -142,13 +143,18 @@ public sealed class OperationConditionalOptionTests
             flips);
         foreach (var entry in OperationConditionalOptions.Entries.Where(entry => entry.Trigger == OperationOptionTrigger.DefaultFlip))
         {
-            Assert.Equal(OperationOptionCondition.WhenFalse, entry.Condition);
-            Assert.Equal(OperationOptionAbsence.SendsTrue, entry.Absence);
+            // The waiting, immediate, or non-prompting value is the default.
+            Assert.Equal(
+                entry.Condition == OperationOptionCondition.WhenFalse
+                    ? OperationOptionAbsence.SendsTrue
+                    : OperationOptionAbsence.SendsFalse,
+                entry.Absence);
             var builder = OperationBuilder.For(entry.OperationId);
             var request = RequestPopulator.Create(builder.Request);
             builder.Request.FindFieldByName(entry.Field).Accessor.Clear(request);
             var sent = Assert.Single(builder.Create(request).InputArguments, argument => argument.Name == entry.MpArgument);
-            Assert.True(sent.RequireValue<WorkerBooleanValue>().Value, entry.OperationId);
+            Assert.False(EnabledBySentArgument(entry, sent), entry.OperationId);
+            Assert.False(OperationRequestClassifier.IsEnabled(entry, request), entry.OperationId);
         }
     }
 
@@ -298,16 +304,32 @@ public sealed class OperationConditionalOptionTests
     }
 
     [Fact]
-    public void DefaultDirectCadAccessRequestNeedsTheInteractiveOptIn()
+    public void DirectCadAccessPromptsOnlyWhenTheCallerOptsIn()
     {
-        // prompt_on_missing_components still defaults to true, which can prompt the operator.
+        // Maintainer decision 2026-10-05: prompt_on_missing_components defaults to false.
         const string directCadAccess = "file_operations.direct_cad_access";
+        var builder = OperationBuilder.For(directCadAccess);
+        var omitted = (Api.DirectCadAccessRequest)RequestPopulator.Create(builder.Request);
+        omitted.ClearPromptOnMissingComponents();
+        var prompt = Assert.Single(builder.Create(omitted).InputArguments,
+            argument => argument.Name == "Prompt on Missing Components");
+        Assert.False(prompt.RequireValue<WorkerBooleanValue>().Value);
+
         var standard = OperationPolicyTests.CreatePolicy(profile: "standard");
-        Assert.Equal("operation-option-denied",
-            standard.EvaluateRequest(directCadAccess, new Api.DirectCadAccessRequest()).DiagnosticCode);
-        Assert.Equal(OperationPolicyDecisionKind.Allowed,
-            standard.EvaluateRequest(directCadAccess,
-                new Api.DirectCadAccessRequest { PromptOnMissingComponents = false }).Kind);
+        var admitted = standard.EvaluateRequest(directCadAccess, new Api.DirectCadAccessRequest());
+        Assert.Equal(OperationPolicyDecisionKind.Allowed, admitted.Kind);
+        Assert.Equal(OperationClassification.Find(directCadAccess).Row!.Duration, admitted.DurationClass);
+        Assert.Equal("profile.standard", admitted.PolicyRule);
+
+        var optedIn = new Api.DirectCadAccessRequest { PromptOnMissingComponents = true };
+        var denied = standard.EvaluateRequest(directCadAccess, optedIn);
+        Assert.Equal("operation-option-denied", denied.DiagnosticCode);
+        Assert.Equal("option.prompt_on_missing_components/profile.standard", denied.PolicyRule);
+        var interactive = OperationPolicyTests.CreatePolicy(
+            profile: "standard", settings: new() { ["Flags:interactive_ui"] = "allow" })
+            .EvaluateRequest(directCadAccess, optedIn);
+        Assert.Equal(OperationPolicyDecisionKind.Allowed, interactive.Kind);
+        Assert.Equal(OperationDurationClass.Interactive, interactive.DurationClass);
     }
 
     [Fact]

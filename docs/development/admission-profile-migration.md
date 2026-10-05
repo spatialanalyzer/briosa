@@ -86,16 +86,17 @@ These request defaults changed so that waiting is the default:
 | `instrument_operations.auto_measure_specified_geometry` | `wait_for_complete` | `false` | `true` |
 | `robot_operations.move_robot_machine_to_frame` | `acknowledge_arrival` | `false` | `true` |
 | `robot_operations.move_robot_machine_to_named_destination` | `acknowledge_arrival` | `false` | `true` |
+| `file_operations.direct_cad_access` | `prompt_on_missing_components` | `true` | `false` |
 
-A caller that relied on the old default must now send `false` explicitly. For
-`measure_immediately` and `auto_start` that also needs the interactive opt-in,
-because the operator then starts the measurement. The non-waiting values of
-`wait_for_complete` and `acknowledge_arrival` are not admitted at all.
+A caller that relied on the old default must now send the old value
+explicitly. For `measure_immediately`, `auto_start` and
+`prompt_on_missing_components` that also needs the interactive opt-in, because
+the operator then starts the measurement or answers the prompt. The non-waiting
+values of `wait_for_complete` and `acknowledge_arrival` are not admitted at all.
 
-`file_operations.direct_cad_access` still defaults `prompt_on_missing_components`
-to `true`, which can prompt the operator, so a default request now needs the
-interactive opt-in. Send `prompt_on_missing_components=false` to stay within
-`standard`.
+An operation descriptor whose replay safety is `Unknown` or `Unspecified` is
+treated as unreviewed and denied under every setting. No shipped operation uses
+either value.
 
 ## Examples
 

@@ -69,8 +69,8 @@ Each operation descriptor explicitly records:
 The classification row, not the descriptor, supplies the reviewed risk flags
 and isolation class. Descriptor risk flags remain author declarations recorded
 in audit events, and an `unknown` descriptor flag still fails closed. A missing
-classification row, unknown effect, unspecified replay safety, or unreviewed
-scope fails closed. An `ExclusiveWorkflow` row becomes the operation's effective
+classification row, unknown effect, unspecified or unknown replay safety, or
+unreviewed scope fails closed. An `ExclusiveWorkflow` row becomes the operation's effective
 execution scope. Policy denial occurs before worker
 enqueue or SDK execution and returns a typed value-free `PermissionDenied` outcome
 with `NotStarted` disposition.

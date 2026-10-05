@@ -1,5 +1,5 @@
 {
-  "description": "Reviewed caller-reachable operator UI that does not make an operation interactive_ui (#293). Each entry is one (operation, request field): the value that opens operator UI, Briosa's default, and the exact-target documentation. Each caller_option and caller_option_default_flips entry has a machine-readable guard: the enabling condition and what Briosa sends when the field is absent. Each target's Security/OperationConditionalOptions.cs transcribes these guards, and OperationPolicy admits a request that enables the option only as an interactive_ui, interactive-duration request. eng/Test-OperationConditionalOptions.ps1 requires the JSON and the C# tables to agree. caller_option_default_flips entries record the defaults the breaking release flipped so that waiting for the operator is opt-in. job_or_file_state entries have no enabling field; they are documented, not guarded. Operations that already carry interactive_ui are not listed, except for the default-flip fields. eng/Test-OperationClassificationTwins.ps1 checks that every operation is registered by each listed target.",
+  "description": "Reviewed caller-reachable operator UI that does not make an operation interactive_ui (#293). Each entry is one (operation, request field): the value that opens operator UI, Briosa's default, and the exact-target documentation. Each caller_option and caller_option_default_flips entry has a machine-readable guard: the enabling condition and what Briosa sends when the field is absent. Each target's Security/OperationConditionalOptions.cs transcribes these guards, and OperationPolicy admits a request that enables the option only as an interactive_ui, interactive-duration request. eng/Test-OperationConditionalOptions.ps1 requires the JSON and the C# tables to agree. caller_option_default_flips entries record the defaults the breaking release flipped so that operator UI is opt-in. job_or_file_state entries have no enabling field; they are documented, not guarded. Operations that already carry interactive_ui are not listed, except for the default-flip fields. eng/Test-OperationClassificationTwins.ps1 checks that every operation is registered by each listed target.",
   "entries": [
     {
       "operation_id": "analysis_operations.best_fit_transformation_group_to_group",
@@ -205,22 +205,22 @@
         "2026.1.0529.7",
         "2024.1.0508.5"
       ],
-      "trigger": "caller_option",
+      "trigger": "caller_option_default_flips",
       "field": "prompt_on_missing_components",
       "mp_argument": "Prompt on Missing Components",
       "enables_ui_when": "true",
-      "briosa_default": "true",
-      "briosa_default_enables_ui": true,
+      "briosa_default": "false",
+      "briosa_default_enables_ui": false,
       "guard": {
         "condition": "when_true",
-        "absent": "sends_true"
+        "absent": "sends_false"
       },
       "behavior": "Notifies the operator when the CAD model has missing components; the prompt appears only for such a model.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 57",
         "2026.1.0529.7": "Documentation/Content/Topics/Scripting/MPCommandListing/FileOperations/FileImport/DirectCADAccess.htm"
       },
-      "note": "Candidate for a default flip: the guard would otherwise reject a default request."
+      "note": "The breaking release flipped the Briosa default to false (maintainer decision, 2026-10-05); prompting the operator about missing components is opt-in."
     },
     {
       "operation_id": "file_operations.direct_cad_access",

@@ -18,8 +18,9 @@ namespace Briosa.Server.Security;
 /// <list type="number">
 /// <item>An unregistered operation or binding mismatch is unsupported.</item>
 /// <item>Unreviewed metadata (no complete classification row, unknown effect,
-/// unspecified replay safety, or an unreviewed execution scope) is denied, and so
-/// is a request that cannot be read against the conditional option table.</item>
+/// unspecified or unknown replay safety, or an unreviewed execution scope) is
+/// denied, and so is a request that cannot be read against the conditional
+/// option table.</item>
 /// <item>An exclusive workflow is denied, including a request whose options leave
 /// device work running after the call returns. Nothing can override it
 /// (invariant 13).</item>
@@ -226,7 +227,8 @@ internal sealed class OperationPolicy
         if (lookup.Row is not { } row ||
             !lookup.IsReviewed ||
             operation.Effect == global::Briosa.OperationEffect.Unknown ||
-            operation.ReplaySafety == global::Briosa.ReplaySafety.Unspecified ||
+            operation.ReplaySafety is global::Briosa.ReplaySafety.Unspecified or
+                global::Briosa.ReplaySafety.Unknown ||
             operation.RiskFlags.Contains("unknown", StringComparer.Ordinal))
         {
             return new OperationPolicyDecision(

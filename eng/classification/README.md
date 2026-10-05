@@ -207,7 +207,8 @@ it through:
 leaves unflagged, one entry per operation and request field: the value that
 opens the UI, Briosa's default, whether that default opens it, the guard, and
 the documentation in each target. The request guard uses the `caller_option`
-and `caller_option_default_flips` entries; the latter are the rule 3 fields. The
+and `caller_option_default_flips` entries; the latter are the rule 3 fields and
+the decided `direct_cad_access` flip described below. The
 `job_or_file_state` entries have no enabling field and are listed for the
 maintainer: `file_operations.save` opens Save As when the job has never been
 named, `export_vector_container_to_ascii_file` asks before overwriting an
@@ -289,17 +290,21 @@ target. `eng/Test-OperationClassificationTwins.ps1` checks that each entry names
 exactly the targets that register the operation and that every listed operation
 is `admissible`.
 
-Two caller options open UI with Briosa's defaults but are not
-`interactive_ui`. Both remain candidates for a default flip, because the request
-guard rejects a default request unless the caller opted into interactive
-operations:
+One caller option opens UI with Briosa's default but is not `interactive_ui`.
+It remains a candidate for a default flip, because the request guard rejects a
+default request unless the caller opted into interactive operations:
 
-- `file_operations.direct_cad_access` `prompt_on_missing_components` (default
-  true) notifies the operator only when the CAD model has missing components, so
-  the UI depends on the file as well as the option.
 - `view_control.set_point_of_view_from_instrument_updates`
   `display_view_control` (default true) displays the view Control dialog;
-  neither release says the dialog waits for the operator.
+  neither release says the dialog waits for the operator. The operation is an
+  `exclusive_workflow`, so no request is admitted today.
+
+Decided flip (maintainer decision, 2026-10-05):
+`file_operations.direct_cad_access` `prompt_on_missing_components` now defaults
+to false. It notifies the operator only when the CAD model has missing
+components, so the UI depends on the file as well as the option. Its entry in
+`conditional-ui.json` is a `caller_option_default_flips` entry; a request that
+sends true needs the interactive opt-in.
 
 ## Regenerate the seed
 
@@ -350,5 +355,8 @@ label the mapping sends, `Display Closest Point Watch Window?`.
 
 `instrument_operational_check` takes a free-form Check Type, and the documented
 UI check strings are examples, not a closed list. Its guard is `when_non_empty`,
-so every explicit check type needs the interactive opt-in. The
-`job_or_file_state` entries have no request field and are not guarded.
+so every explicit check type needs the interactive opt-in. The maintainer
+approved keeping it fail-closed (2026-10-05). Loosening it needs a reviewed list
+of check strings that open no operator UI, recorded in the seed and enforced by
+the guard. The `job_or_file_state` entries have no request field and are not
+guarded.

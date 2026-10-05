@@ -32,7 +32,7 @@ internal static class OperationConditionalOptions
             new("analysis_operations.query_points_to_single_point", "show_vector_properties", "Show Vector Properties?", InteractiveUi, CallerOption, WhenTrue, SendsFalse),
             new("analysis_operations.rename_points_based_on_inter_point_distance_to_reference_points", "verify_results", "Verify Results?", InteractiveUi, CallerOption, WhenTrue, SendsFalse),
             new("analysis_operations.rename_points_based_on_proximity_to_reference_points", "verify_results", "Verify Results?", InteractiveUi, CallerOption, WhenTrue, SendsFalse),
-            new("file_operations.direct_cad_access", "prompt_on_missing_components", "Prompt on Missing Components", InteractiveUi, CallerOption, WhenTrue, SendsTrue),
+            new("file_operations.direct_cad_access", "prompt_on_missing_components", "Prompt on Missing Components", InteractiveUi, DefaultFlip, WhenTrue, SendsFalse),
             new("file_operations.direct_cad_access", "selective_import", "Selective Import", InteractiveUi, CallerOption, WhenTrue, SendsFalse),
             new("file_operations.import_sa_file", "allow_operator_selections", "Allow Operator Selections", InteractiveUi, CallerOption, WhenTrue, SendsFalse),
             new("file_operations.import_step_file", "display_entity_filters", "Display Entity Filters", InteractiveUi, CallerOption, WhenTrue, SendsFalse),
