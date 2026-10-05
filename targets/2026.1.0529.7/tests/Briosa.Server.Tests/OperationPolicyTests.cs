@@ -410,7 +410,8 @@ public sealed class OperationPolicyTests
         string? profile = "standard",
         Dictionary<string, string?>? settings = null,
         IReadOnlyList<OperationDescriptor>? operations = null,
-        Func<string, OperationClassificationLookup>? classify = null)
+        Func<string, OperationClassificationLookup>? classify = null,
+        OperationRequestClassifier? requestClassifier = null)
     {
         var values = new Dictionary<string, string?>(StringComparer.Ordinal);
         if (profile is not null)
@@ -426,7 +427,8 @@ public sealed class OperationPolicyTests
         return OperationPolicy.Create(
             new ConfigurationBuilder().AddInMemoryCollection(values).Build(),
             operations ?? SpatialAnalyzerApi.Operations,
-            classify);
+            classify,
+            requestClassifier);
     }
 
     private static void AssertDecision(

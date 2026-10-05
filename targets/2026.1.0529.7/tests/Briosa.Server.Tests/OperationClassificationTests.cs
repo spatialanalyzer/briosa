@@ -199,6 +199,26 @@ public sealed class OperationClassificationTests
     }
 
     [Fact]
+    public void ConditionalOptionTableHasTheReviewedEntries()
+    {
+        // 2026.1.0529.7: operator-UI options (50 caller options and 5 default flips) and
+        // background-work options (9 caller options and 3 default flips).
+        Assert.Equal(
+            [
+                (OperationOptionEffect.InteractiveUi, OperationOptionTrigger.CallerOption, 50),
+                (OperationOptionEffect.InteractiveUi, OperationOptionTrigger.DefaultFlip, 5),
+                (OperationOptionEffect.BackgroundWork, OperationOptionTrigger.CallerOption, 9),
+                (OperationOptionEffect.BackgroundWork, OperationOptionTrigger.DefaultFlip, 3)
+            ],
+            OperationConditionalOptions.Entries
+                .GroupBy(entry => (entry.Effect, entry.Trigger))
+                .OrderBy(group => group.Key.Effect)
+                .ThenBy(group => group.Key.Trigger)
+                .Select(group => (group.Key.Effect, group.Key.Trigger, group.Count())));
+        Assert.Equal(67, OperationConditionalOptions.Entries.Count);
+    }
+
+    [Fact]
     public void ExclusiveWorkflowsAreDeniedUnderEveryProfileAndOptIn()
     {
         var exclusive = OperationClassification.Rows

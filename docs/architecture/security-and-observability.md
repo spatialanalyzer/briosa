@@ -47,7 +47,12 @@ The first matching rule decides:
 6. flag deny; and
 7. the profile.
 
-`interactive_ui` is in no profile and needs an explicit opt-in. A missing
+`interactive_ui` is in no profile and needs an explicit opt-in. Each request
+is also read against a reviewed table of caller options before mapping or
+dispatch: an option that opens operator UI makes the request `interactive_ui`
+with the `interactive` duration class, and an option that lets the call return
+while device work keeps running makes it an exclusive workflow. An unreadable
+request fails closed. A missing
 `Profile`, the retired `Allow`/`Deny` arrays, and unknown names or values fail
 startup. Policy is fixed for the process lifetime. Discovery reports only the
 admitted subset. Validation status never affects admission. See the

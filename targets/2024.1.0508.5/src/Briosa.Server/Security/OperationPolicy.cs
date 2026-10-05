@@ -3,27 +3,37 @@ using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using Briosa.Worker.Control;
+using Google.Protobuf;
 
 namespace Briosa.Server.Security;
 
 /// <summary>
 /// Runtime operation admission decided on #242 and implemented by #293: a named
 /// profile, per-flag settings, and per-operation overrides, applied to the
-/// reviewed <see cref="OperationClassification"/> rows.
+/// reviewed <see cref="OperationClassification"/> rows and, for each request, to
+/// the reviewed <see cref="OperationConditionalOptions"/> the request enables.
 /// </summary>
 /// <remarks>
 /// Precedence, first match wins:
 /// <list type="number">
 /// <item>An unregistered operation or binding mismatch is unsupported.</item>
 /// <item>Unreviewed metadata (no complete classification row, unknown effect,
-/// unspecified replay safety, or an unreviewed execution scope) is denied.</item>
-/// <item>An exclusive workflow is denied. Nothing can override it (invariant 13).</item>
+/// unspecified replay safety, or an unreviewed execution scope) is denied, and so
+/// is a request that cannot be read against the conditional option table.</item>
+/// <item>An exclusive workflow is denied, including a request whose options leave
+/// device work running after the call returns. Nothing can override it
+/// (invariant 13).</item>
 /// <item>A per-operation <c>deny</c> override denies.</item>
 /// <item>A per-operation <c>allow</c> override admits.</item>
-/// <item>Any risk flag set to <c>deny</c> denies.</item>
-/// <item>The profile, widened by flags set to <c>allow</c>, admits or denies.</item>
+/// <item>Any effective risk flag set to <c>deny</c> denies.</item>
+/// <item>The profile, widened by flags set to <c>allow</c>, admits or denies the
+/// effective risks.</item>
 /// </list>
-/// Validation status never affects admission.
+/// A request that turns on operator UI gains <see cref="OperationRisks.InteractiveUi"/>
+/// and the <see cref="OperationDurationClass.Interactive"/> duration class.
+/// <see cref="Evaluate(string)"/> decides the static row only, for discovery;
+/// enforcement uses <see cref="EvaluateRequest(string, IMessage)"/>. Validation
+/// status never affects admission.
 /// </remarks>
 internal sealed class OperationPolicy
 {
@@ -39,6 +49,7 @@ internal sealed class OperationPolicy
     internal const string ClassificationRule = "classification";
     internal const string IsolationRule = "isolation";
     internal const string OverrideRule = "override";
+    internal const string OptionRulePrefix = "option.";
 
     internal const string MigrationGuide =
         "See docs/development/admission-profile-migration.md.";
@@ -54,6 +65,7 @@ internal sealed class OperationPolicy
 
     private readonly FrozenDictionary<string, OperationDescriptor> _operations;
     private readonly FrozenDictionary<string, OperationClassificationLookup> _classification;
+    private readonly OperationRequestClassifier _requestClassifier;
     private readonly FrozenDictionary<OperationRisks, bool> _flags;
     private readonly FrozenDictionary<string, bool> _overrides;
     private readonly OperationRisks _allowedFlags;
@@ -64,11 +76,13 @@ internal sealed class OperationPolicy
     private OperationPolicy(
         IReadOnlyList<OperationDescriptor> operations,
         Func<string, OperationClassificationLookup> classify,
+        OperationRequestClassifier requestClassifier,
         OperationAdmissionProfile profile,
         IReadOnlyDictionary<OperationRisks, bool> flags,
         IReadOnlyDictionary<string, bool> overrides)
     {
         Profile = profile;
+        _requestClassifier = requestClassifier;
         _classification = operations.ToFrozenDictionary(
             operation => operation.OperationId,
             operation => classify(operation.OperationId),
@@ -87,11 +101,15 @@ internal sealed class OperationPolicy
             .Where(operation => Evaluate(operation.OperationId).Kind == OperationPolicyDecisionKind.Allowed)
             .OrderBy(operation => operation.OperationId, StringComparer.Ordinal)
             .ToArray();
-        ClassificationFingerprint = CreateClassificationFingerprint(_classification);
+        ClassificationFingerprint = CreateClassificationFingerprint(_classification, _requestClassifier);
         Fingerprint = CreateFingerprint(profile, _flags, _overrides, ClassificationFingerprint);
     }
 
-    /// <summary>The admitted operations, ordered by operation ID.</summary>
+    /// <summary>
+    /// The operations whose reviewed row is admitted, ordered by operation ID. A
+    /// request can still be denied when its options enable operator UI or leave
+    /// work running.
+    /// </summary>
     public IReadOnlyList<OperationDescriptor> AllowedOperations { get; }
 
     /// <summary>The resolved admission profile.</summary>
@@ -108,17 +126,21 @@ internal sealed class OperationPolicy
 
     /// <summary>
     /// A value-free SHA-256 over the resolved profile, flags, overrides, and the
-    /// classification rows of every registered operation.
+    /// classification rows and conditional options of every registered operation.
     /// </summary>
     public string Fingerprint { get; }
 
-    /// <summary>A SHA-256 over the classification rows of every registered operation.</summary>
+    /// <summary>
+    /// A SHA-256 over the classification rows and conditional options of every
+    /// registered operation.
+    /// </summary>
     public string ClassificationFingerprint { get; }
 
     public static OperationPolicy Create(
         IConfiguration configuration,
         IReadOnlyList<OperationDescriptor> operations,
-        Func<string, OperationClassificationLookup>? classify = null)
+        Func<string, OperationClassificationLookup>? classify = null,
+        OperationRequestClassifier? requestClassifier = null)
     {
         ArgumentNullException.ThrowIfNull(configuration);
         ArgumentNullException.ThrowIfNull(operations);
@@ -140,16 +162,42 @@ internal sealed class OperationPolicy
         return new OperationPolicy(
             operations,
             classify ?? OperationClassification.Find,
+            requestClassifier ?? OperationRequestClassifier.Default,
             profile,
             flags,
             overrides);
     }
 
-    public OperationPolicyDecision Evaluate(WorkerMpCommand command)
+    /// <summary>Decides the static row of a command's operation and checks its MP binding.</summary>
+    public OperationPolicyDecision Evaluate(WorkerMpCommand command) =>
+        CheckBinding(command, Evaluate(command?.OperationId!));
+
+    /// <summary>Decides one request and checks the mapped command's MP binding.</summary>
+    public OperationPolicyDecision EvaluateRequest(WorkerMpCommand command, IMessage? request) =>
+        CheckBinding(command, EvaluateRequest(command?.OperationId!, request));
+
+    /// <summary>
+    /// Decides the operation's reviewed row alone, as discovery reports it. It
+    /// never classifies a request; enforcement uses <see cref="EvaluateRequest(string, IMessage)"/>.
+    /// </summary>
+    public OperationPolicyDecision Evaluate(string operationId) =>
+        EvaluateCore(operationId, classification: null);
+
+    /// <summary>
+    /// Decides one typed request before mapping or dispatch. The request's
+    /// enabled conditional options change its effective risks, duration, and
+    /// isolation. An operation with reviewed options fails closed when the request
+    /// is missing or cannot be read.
+    /// </summary>
+    public OperationPolicyDecision EvaluateRequest(string operationId, IMessage? request)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(operationId);
+        return EvaluateCore(operationId, _requestClassifier.Classify(operationId, request));
+    }
+
+    private static OperationPolicyDecision CheckBinding(WorkerMpCommand command, OperationPolicyDecision decision)
     {
         ArgumentNullException.ThrowIfNull(command);
-
-        var decision = Evaluate(command.OperationId);
         return decision.Operation is { } operation &&
             !string.Equals(command.StepName, operation.MpStep, StringComparison.Ordinal)
             ? new OperationPolicyDecision(OperationPolicyDecisionKind.Unsupported,
@@ -157,7 +205,9 @@ internal sealed class OperationPolicy
             : decision;
     }
 
-    public OperationPolicyDecision Evaluate(string operationId)
+    private OperationPolicyDecision EvaluateCore(
+        string operationId,
+        OperationRequestClassification? classification)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(operationId);
 
@@ -171,10 +221,10 @@ internal sealed class OperationPolicy
                 RegistryRule);
         }
 
-        // 2. Reviewed metadata.
-        var classification = _classification[operationId];
-        if (classification.Row is not { } row ||
-            !classification.IsReviewed ||
+        // 2. Reviewed metadata, then the request's conditional options.
+        var lookup = _classification[operationId];
+        if (lookup.Row is not { } row ||
+            !lookup.IsReviewed ||
             operation.Effect == global::Briosa.OperationEffect.Unknown ||
             operation.ReplaySafety == global::Briosa.ReplaySafety.Unspecified ||
             operation.RiskFlags.Contains("unknown", StringComparer.Ordinal))
@@ -197,6 +247,15 @@ internal sealed class OperationPolicy
                 ClassificationRule);
         }
 
+        if (classification is { IsClassified: false })
+        {
+            return new OperationPolicyDecision(
+                OperationPolicyDecisionKind.Denied,
+                "operation-request-unclassified",
+                operation,
+                ClassificationRule);
+        }
+
         // 3. Isolation. An exclusive workflow cannot be admitted by any setting.
         if (!IsExecutionScopeSupported(operation.ExecutionScope))
         {
@@ -207,31 +266,70 @@ internal sealed class OperationPolicy
                 IsolationRule);
         }
 
+        // A request that leaves device or operator work running after the call
+        // returns needs cross-RPC ownership: it is an exclusive workflow.
+        if (classification?.First(OperationOptionEffect.BackgroundWork) is { } background)
+        {
+            return new OperationPolicyDecision(
+                OperationPolicyDecisionKind.Denied,
+                "operation-option-isolation-unsupported",
+                operation,
+                OptionRule(background));
+        }
+
+        var ui = classification?.First(OperationOptionEffect.InteractiveUi);
+        var risks = ui is null ? row.Risks : row.Risks | OperationRisks.InteractiveUi;
+        var duration = ui is null ? row.Duration : OperationDurationClass.Interactive;
+
         // 4 and 5. Per-operation overrides.
         if (_overrides.TryGetValue(operationId, out var overrideAllows))
         {
             return overrideAllows
-                ? Allowed(operation, OverrideRule)
+                ? Allowed(operation, WithOption(ui, OverrideRule), duration)
                 : Denied(operation, OverrideRule);
         }
 
-        // 6. Flag denials.
-        var deniedFlags = row.Risks & _deniedFlags;
+        // 6. Flag denials of the effective risks.
+        var deniedFlags = risks & _deniedFlags;
         if (deniedFlags != OperationRisks.None)
         {
             var first = OperationRiskVocabulary.Members.First(risk => deniedFlags.HasFlag(risk));
-            return Denied(operation, $"flag.{OperationRiskVocabulary.GetName(first)}");
+            var flagRule = $"flag.{OperationRiskVocabulary.GetName(first)}";
+            return (row.Risks & _deniedFlags) == OperationRisks.None
+                ? OptionDenied(operation, ui!, flagRule)
+                : Denied(operation, flagRule);
         }
 
-        // 7. Profile, widened by flags set to allow.
+        // 7. Profile, widened by flags set to allow, over the effective risks.
         var profileRule = $"profile.{Profile.Name}";
-        return Profile.Admits(row.Risks, operation.Effect, _allowedFlags)
-            ? Allowed(operation, profileRule)
+        if (Profile.Admits(risks, operation.Effect, _allowedFlags))
+        {
+            return Allowed(operation, WithOption(ui, profileRule), duration);
+        }
+
+        return ui is not null && Profile.Admits(row.Risks, operation.Effect, _allowedFlags)
+            ? OptionDenied(operation, ui, profileRule)
             : Denied(operation, profileRule);
     }
 
-    private static OperationPolicyDecision Allowed(OperationDescriptor operation, string rule) =>
-        new(OperationPolicyDecisionKind.Allowed, "operation-policy-allowed", operation, rule);
+    private static string OptionRule(OperationConditionalOption option) =>
+        OptionRulePrefix + option.Field;
+
+    // The option field name and the deciding rule, never the option's value.
+    private static string WithOption(OperationConditionalOption? option, string rule) =>
+        option is null ? rule : $"{OptionRule(option)}/{rule}";
+
+    private static OperationPolicyDecision OptionDenied(
+        OperationDescriptor operation,
+        OperationConditionalOption option,
+        string rule) =>
+        new(OperationPolicyDecisionKind.Denied, "operation-option-denied", operation, WithOption(option, rule));
+
+    private static OperationPolicyDecision Allowed(
+        OperationDescriptor operation,
+        string rule,
+        OperationDurationClass duration) =>
+        new(OperationPolicyDecisionKind.Allowed, "operation-policy-allowed", operation, rule, duration);
 
     private static OperationPolicyDecision Denied(OperationDescriptor operation, string rule) =>
         new(OperationPolicyDecisionKind.Denied, "operation-policy-denied", operation, rule);
@@ -392,16 +490,20 @@ internal sealed class OperationPolicy
         string.Join(", ", OperationAdmissionProfile.All.Select(profile => $"'{profile.Name}'"));
 
     private static string CreateClassificationFingerprint(
-        IReadOnlyDictionary<string, OperationClassificationLookup> classification)
+        IReadOnlyDictionary<string, OperationClassificationLookup> classification,
+        OperationRequestClassifier requestClassifier)
     {
         var canonical = string.Join(
             '\n',
             classification
                 .OrderBy(pair => pair.Key, StringComparer.Ordinal)
-                .Select(pair => pair.Value.Row is { } row && pair.Value.IsReviewed
+                .Select(pair => (pair.Value.Row is { } row && pair.Value.IsReviewed
                     ? string.Create(CultureInfo.InvariantCulture,
                         $"{pair.Key}|{(int)row.Risks}|{row.Duration}|{row.ValidationStatus}|{row.Isolation}")
-                    : $"{pair.Key}|unreviewed"));
+                    : $"{pair.Key}|unreviewed") +
+                    string.Concat(requestClassifier.OptionsFor(pair.Key).Select(option =>
+                        $"|option:{option.Field},{option.Effect},{option.Condition},{option.Absence}," +
+                        string.Join(',', option.EnablingValues)))));
         return Hash(canonical);
     }
 

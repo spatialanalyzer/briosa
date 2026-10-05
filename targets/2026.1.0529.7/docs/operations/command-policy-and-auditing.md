@@ -77,6 +77,56 @@ exists (AGENTS.md invariant 13). Their effective execution scope is
 Validation status (`no_recorded_gap`, `fixture_pending`, `at_risk_unvalidated`)
 is recorded for review and audit. It never affects admission.
 
+## Request options
+
+Some operations open operator UI, or return while device work keeps running,
+only when the caller asks for it with a request option. Examples are Show
+Interface, Show Results Dialog, Report Deviations, Pause MP Until Closed, an
+HTML prompt file, Wait for Completion, and Acknowledge Arrival. Their rows are
+classified by the behavior of Briosa's defaults. The reviewed table
+[`OperationConditionalOptions.cs`](../../src/Briosa.Server/Security/OperationConditionalOptions.cs)
+records each such option: the request field, the MP argument, the enabling
+value, and what Briosa sends when the field is omitted. It is transcribed from
+the reviewed seed in
+[`eng/classification`](../../../../eng/classification/README.md), and
+`eng/Test-OperationConditionalOptions.ps1` fails when the two differ.
+
+Before mapping, reservation, or dispatch, the server reads each typed request
+against that table and decides the request's effective classification:
+
+- **Operator UI.** A request that turns on operator UI gains `interactive_ui`
+  and the `interactive` duration class. It is admitted only by
+  `Flags:interactive_ui=allow` or a per-operation `allow` override, and is
+  denied by `Flags:interactive_ui=deny` or by any profile without the opt-in.
+  For example, `QueryPointsToObjects` with `show_results_dialog=true` is denied
+  under `standard` unless the operator opted in.
+- **Work left running.** A request that lets the call return while the
+  instrument measures or the robot moves (for example `wait_for_completion=false`
+  or `acknowledge_arrival=false`) is an exclusive workflow. Like every exclusive
+  workflow it is denied under every profile, flag, and override until a lease
+  design exists.
+- **Omitted fields.** An omitted option is decided by what Briosa sends instead.
+  Since the breaking release Briosa sends the waiting or immediate value:
+  `measure_immediately`, `auto_start`, `wait_for_complete` of
+  `auto_measure_specified_geometry`, and `acknowledge_arrival` of
+  `move_robot_machine_to_frame` and `move_robot_machine_to_named_destination`
+  default to `true`. Waiting for the operator, or not waiting for the device,
+  is opt-in.
+- **Fail closed.** A request whose option field cannot be read, or an operation
+  with reviewed options submitted without its typed request, is denied with
+  `operation-request-unclassified`.
+
+Dialogs that depend on job or file state rather than on an option (Save As for
+a never-named job, an overwrite confirmation, a missing measurement profile)
+cannot be decided from the request. They are documented in the seed, not
+guarded.
+
+Discovery reports the operation's reviewed row, so an advertised operation can
+still deny a request that enables an option. A denied request names the option
+field in its audit rule, for example `option.show_results_dialog/flag.interactive_ui`;
+the option's value is never recorded. An admitted request carries its effective
+duration class to the worker supervisor.
+
 `OperationClassificationTests` in this target pins the exact number of
 operations each profile admits. The default-profile contract in
 `ImplementedOperationRegistryTests` requires `standard` to admit
@@ -91,12 +141,12 @@ The first matching rule decides:
 | Step | Rule | Result | Configurable |
 | --- | --- | --- | --- |
 | 1 | Operation not registered, or its MP binding does not match | `Unsupported` (`operation-unsupported`, `operation-binding-mismatch`) | no |
-| 2 | Unreviewed metadata: no complete classification row, unknown effect, unspecified replay safety, or an unreviewed execution scope | `Denied` (`operation-risk-unreviewed`, `operation-isolation-unreviewed`) | no |
-| 3 | `ExclusiveWorkflow` in the current `single_tenant` mode | `Denied` (`operation-isolation-unsupported`) | **no**; an `allow` override cannot bypass it |
+| 2 | Unreviewed metadata: no complete classification row, unknown effect, unspecified replay safety, or an unreviewed execution scope; or a request that cannot be read against its reviewed options | `Denied` (`operation-risk-unreviewed`, `operation-isolation-unreviewed`, `operation-request-unclassified`) | no |
+| 3 | `ExclusiveWorkflow` in the current `single_tenant` mode, including a request that leaves work running after the call returns | `Denied` (`operation-isolation-unsupported`, `operation-option-isolation-unsupported`) | **no**; an `allow` override cannot bypass it |
 | 4 | `Overrides:<service>:<operation>=deny` | `Denied` (`operation-policy-denied`) | yes |
 | 5 | `Overrides:<service>:<operation>=allow` | `Allowed` | yes |
-| 6 | Any of the operation's flags set to `Flags:<flag>=deny` | `Denied` (`operation-policy-denied`) | yes |
-| 7 | Every flag is in the profile set or set to `allow`, and the effect filter passes | `Allowed`, otherwise `Denied` (`operation-policy-denied`) | yes |
+| 6 | Any of the request's effective flags set to `Flags:<flag>=deny` | `Denied` (`operation-policy-denied`, or `operation-option-denied` when only a request option added the flag) | yes |
+| 7 | Every effective flag is in the profile set or set to `allow`, and the effect filter passes | `Allowed`, otherwise `Denied` (`operation-policy-denied`, or `operation-option-denied` when only a request option added the flag) | yes |
 
 Specific settings beat general ones, and across an operation's flags any single
 `deny` wins. Policy denial happens before request mapping, worker enqueue, or
@@ -128,7 +178,8 @@ For each admitted or rejected request, Briosa records structural metadata:
 - actor category;
 - execution scope;
 - the policy rule that decided (`override`, `flag.<flag>`, `profile.<profile>`,
-  or one of the fixed `registry`, `classification`, and `isolation` steps);
+  or one of the fixed `registry`, `classification`, and `isolation` steps),
+  prefixed with `option.<field>/` when a request option changed the decision;
 - worker generation;
 - request and SDK duration where available;
 - execution disposition;
@@ -145,7 +196,9 @@ Correlation does not imply safe replay. A cancelled, timed-out, crashed, or lost
 
 Each operation change assigns its exact ID, effect, replay safety, execution
 scope, and any author risk flags in its handwritten descriptor, and adds exactly
-one reviewed row to `OperationClassification.cs`. The classification tests fail
+one reviewed row to `OperationClassification.cs`. A request option that opens
+operator UI or leaves work running also needs a reviewed entry in the
+`eng/classification` seed and the matching row in `OperationConditionalOptions.cs`. The classification tests fail
 when a registered operation has no complete row, and an operation without one is
 denied at runtime. The row's risk flags decide which profiles admit the
 operation; there is no allowlist to edit. Inventory or historical catalog

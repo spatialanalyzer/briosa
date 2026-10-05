@@ -60,6 +60,43 @@ this list.
 The 13 `Make*RuntimeSelect` operations also move from replay `Safe` to `Unsafe`.
 Re-prompting an operator is not a safe replay.
 
+## Request options and changed defaults
+
+Admission now also reads each request's reviewed options before mapping or
+dispatch:
+
+- An option that opens operator UI (Show Interface, Show Results Dialog, Report
+  Deviations, Pause MP Until Closed, an HTML prompt file, and so on) needs the
+  interactive opt-in: `Flags:interactive_ui=allow` or a per-operation `allow`
+  override. Without it the request is denied with `operation-option-denied`.
+- An option that lets the call return while the instrument measures or the
+  robot moves (`wait_for_completion=false`, `wait_for_complete=false`,
+  `acknowledge_arrival=false`) is denied under every setting with
+  `operation-option-isolation-unsupported`, until a lease design exists.
+
+These request defaults changed so that waiting is the default:
+
+| Operation | Field | Old default | New default |
+| --- | --- | --- | --- |
+| `instrument_operations.measure_single_point_here` | `measure_immediately` | `false` | `true` |
+| `instrument_operations.configure_and_measure` | `measure_immediately` | `false` | `true` |
+| `instrument_operations.measure_existing_single_point` | `measure_immediately` | `false` | `true` |
+| `instrument_operations.measure_existing_single_point_and_compare` | `measure_immediately` | `false` | `true` |
+| `instrument_operations.auto_measure_points` | `auto_start` | `false` | `true` |
+| `instrument_operations.auto_measure_specified_geometry` | `wait_for_complete` | `false` | `true` |
+| `robot_operations.move_robot_machine_to_frame` | `acknowledge_arrival` | `false` | `true` |
+| `robot_operations.move_robot_machine_to_named_destination` | `acknowledge_arrival` | `false` | `true` |
+
+A caller that relied on the old default must now send `false` explicitly. For
+`measure_immediately` and `auto_start` that also needs the interactive opt-in,
+because the operator then starts the measurement. The non-waiting values of
+`wait_for_complete` and `acknowledge_arrival` are not admitted at all.
+
+`file_operations.direct_cad_access` still defaults `prompt_on_missing_components`
+to `true`, which can prompt the operator, so a default request now needs the
+interactive opt-in. Send `prompt_on_missing_components=false` to stay within
+`standard`.
+
 ## Examples
 
 Keep the previous behavior as closely as the new model allows (everything except

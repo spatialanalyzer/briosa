@@ -3,6 +3,7 @@ using System.Text;
 using Briosa.Server.Operations;
 using Briosa.Server.Security;
 using Briosa.Worker.Control;
+using Google.Protobuf;
 using Microsoft.Extensions.Configuration;
 using Api = global::Briosa;
 
@@ -34,13 +35,15 @@ internal sealed class ProbePlan
     public const string ServerAdmissionProfile = "device";
 
     /// <summary>
-    /// The server command-line arguments that admit what the public phase needs:
+    /// The server command-line arguments that admit what the public phase sends:
     /// <see cref="ServerAdmissionProfile"/> plus one per-operation <c>allow</c>
-    /// override for each probed operation that profile does not admit (for
-    /// example an operator-guided selector). No setting can admit an exclusive
-    /// workflow, so a plan that needs one is refused.
+    /// override for each probed operation that profile does not admit with the
+    /// probe's own request (for example an operator-guided selector, or a request
+    /// that opts into a dialog). No setting can admit an exclusive workflow or a
+    /// request that leaves device work running, so a plan that needs one is refused.
     /// </summary>
-    public IReadOnlyList<string> ServerAdmissionArguments => CreateServerAdmissionArguments(FullyQualifiedMethods);
+    public IReadOnlyList<string> ServerAdmissionArguments => CreateServerAdmissionArguments(
+        [.. Steps.Select(static step => (step.Operation.FullyQualifiedMethod, (IMessage?)step.Request))]);
 
     public static ProbePlan Create(ProbePhase phase, FixtureManifest manifest)
     {
@@ -58,43 +61,45 @@ internal sealed class ProbePlan
         return plan;
     }
 
-    internal static IReadOnlyList<string> CreateServerAdmissionArguments(IReadOnlyList<string> fullyQualifiedMethods)
+    internal static IReadOnlyList<string> CreateServerAdmissionArguments(
+        IReadOnlyList<(string Method, IMessage? Request)> requests)
     {
-        ArgumentNullException.ThrowIfNull(fullyQualifiedMethods);
+        ArgumentNullException.ThrowIfNull(requests);
         var operations = SpatialAnalyzerApi.Operations.ToDictionary(
             static operation => operation.FullyQualifiedMethod, StringComparer.Ordinal);
         var profile = OperationPolicy.Create(PolicyConfiguration([]), SpatialAnalyzerApi.Operations);
-        var overrides = new List<KeyValuePair<string, string?>>();
-        foreach (var method in fullyQualifiedMethods)
+        var overrides = new SortedDictionary<string, string?>(StringComparer.Ordinal);
+        foreach (var (method, request) in requests)
         {
             if (!operations.TryGetValue(method, out var operation))
             {
                 throw new InvalidOperationException($"Probe RPC '{method}' is not a registered operation.");
             }
 
-            var decision = profile.Evaluate(operation.OperationId);
+            // Decide the probe's own request, as the server will.
+            var decision = profile.EvaluateRequest(operation.OperationId, request);
             if (decision.Kind == OperationPolicyDecisionKind.Allowed)
             {
                 continue;
             }
 
-            if (!string.Equals(decision.PolicyRule, $"profile.{ServerAdmissionProfile}", StringComparison.Ordinal))
+            if (decision.DiagnosticCode is not ("operation-policy-denied" or "operation-option-denied") ||
+                !decision.PolicyRule.EndsWith($"profile.{ServerAdmissionProfile}", StringComparison.Ordinal))
             {
                 throw new InvalidOperationException(
                     $"Probe operation '{operation.OperationId}' cannot be admitted ({decision.DiagnosticCode}).");
             }
 
-            overrides.Add(new(
-                $"{OperationPolicy.OverridesKey}:{operation.OperationId.Replace('.', ':')}",
-                OperationPolicy.AllowValue));
+            overrides[$"{OperationPolicy.OverridesKey}:{operation.OperationId.Replace('.', ':')}"] =
+                OperationPolicy.AllowValue;
         }
 
-        // Prove the arguments admit every probed operation before anyone uses them.
+        // Prove the arguments admit every probed request before anyone uses them.
         var admitted = OperationPolicy.Create(PolicyConfiguration(overrides), SpatialAnalyzerApi.Operations);
-        if (fullyQualifiedMethods.Any(method =>
-                admitted.Evaluate(operations[method].OperationId).Kind != OperationPolicyDecisionKind.Allowed))
+        if (requests.Any(step => admitted.EvaluateRequest(
+                operations[step.Method].OperationId, step.Request).Kind != OperationPolicyDecisionKind.Allowed))
         {
-            throw new InvalidOperationException("The probe admission settings do not admit every probed operation.");
+            throw new InvalidOperationException("The probe admission settings do not admit every probed request.");
         }
 
         return

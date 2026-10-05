@@ -34,7 +34,7 @@ internal static class AutoMeasurePointsOperation
             new("Wait for Completion?", WorkerMpValueKind.Logical,
                 new WorkerBooleanValue(request.HasWaitForCompletion ? request.WaitForCompletion : true), "SetBoolArg"),
             new("Auto Start?", WorkerMpValueKind.Logical,
-                new WorkerBooleanValue(request.AutoStart), "SetBoolArg")
+                new WorkerBooleanValue(!request.HasAutoStart || request.AutoStart), "SetBoolArg")
         ], []);
     }
 

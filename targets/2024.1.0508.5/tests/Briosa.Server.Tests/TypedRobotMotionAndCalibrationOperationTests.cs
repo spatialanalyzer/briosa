@@ -71,7 +71,8 @@ public sealed class TypedRobotMotionAndCalibrationOperationTests
         var toFrame = MoveRobotMachineToFrameOperation.CreateCommand(new() { MachineId = machine, DestinationFrame = frame });
         Assert.Equal(WorkerObjectTypeValue.Frame,
             toFrame.InputArguments[1].RequireValue<WorkerCollectionObjectNameValue>().ObjectType);
-        Assert.Equal([false, false], toFrame.InputArguments.Skip(2)
+        // Acknowledge Arrival defaults to true since the breaking release (#293).
+        Assert.Equal([false, true], toFrame.InputArguments.Skip(2)
             .Select(argument => argument.RequireValue<WorkerBooleanValue>().Value));
         Assert.Single(toFrame.OutputArguments);
 
@@ -82,7 +83,7 @@ public sealed class TypedRobotMotionAndCalibrationOperationTests
 
         var namedDestination = MoveRobotMachineToNamedDestinationOperation.CreateCommand(new() { MachineId = machine });
         Assert.Equal("", namedDestination.InputArguments[1].RequireValue<WorkerTextValue>().Value);
-        Assert.False(namedDestination.InputArguments[2].RequireValue<WorkerBooleanValue>().Value);
+        Assert.True(namedDestination.InputArguments[2].RequireValue<WorkerBooleanValue>().Value);
 
         var calibration = PerformRobotCalibrationOperation.CreateCommand(new() { MachineId = machine });
         Assert.Equal(7, calibration.OutputArguments.Count);

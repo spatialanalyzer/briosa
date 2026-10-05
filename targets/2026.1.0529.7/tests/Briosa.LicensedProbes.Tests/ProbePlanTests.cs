@@ -214,9 +214,34 @@ public sealed class ProbePlanTests
     public void NoAdmissionSettingCanReachAnExclusiveWorkflow()
     {
         var exception = Assert.Throws<InvalidOperationException>(() =>
-            ProbePlan.CreateServerAdmissionArguments(["/briosa.InstrumentOperations/StartInstrumentInterface"]));
+            ProbePlan.CreateServerAdmissionArguments([("/briosa.InstrumentOperations/StartInstrumentInterface", null)]));
 
         Assert.Contains("operation-isolation-unsupported", exception.Message, StringComparison.Ordinal);
+
+        // A request that leaves the robot moving after the call returns is never admitted.
+        var nonWaiting = Assert.Throws<InvalidOperationException>(() =>
+            ProbePlan.CreateServerAdmissionArguments(
+            [
+                ("/briosa.RobotOperations/MoveRobotMachineToFrame",
+                    new Api.MoveRobotMachineToFrameRequest { AcknowledgeArrival = false })
+            ]));
+        Assert.Contains("operation-option-isolation-unsupported", nonWaiting.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void AdmissionReadsEachProbeRequestsOptions()
+    {
+        const string fit = "/briosa.AnalysisOperations/FitGeometryToPointGroup";
+        Assert.Equal(
+            ["--Briosa:Security:Operations:Profile=device"],
+            ProbePlan.CreateServerAdmissionArguments([(fit, new Api.FitGeometryToPointGroupRequest())]));
+        Assert.Equal(
+            [
+                "--Briosa:Security:Operations:Profile=device",
+                "--Briosa:Security:Operations:Overrides:analysis_operations:fit_geometry_to_point_group=allow"
+            ],
+            ProbePlan.CreateServerAdmissionArguments(
+                [(fit, new Api.FitGeometryToPointGroupRequest { ReportDeviations = true })]));
     }
 
     [Theory]

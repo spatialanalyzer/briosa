@@ -86,7 +86,7 @@ internal sealed class OperationExecutor(
             {
                 outcome = await _executor.ExecuteAsync(
                     new WorkerCommandSubmission(operation.OperationId, () => createCommand(request),
-                        RetainedRequestBudget(request)),
+                        RetainedRequestBudget(request), request as Google.Protobuf.IMessage),
                     effectiveCorrelationId,
                     cancellationToken).ConfigureAwait(false);
             }
