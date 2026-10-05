@@ -67,7 +67,7 @@ public sealed class TypedPointNameConstructionTests
     }
 
     [Fact]
-    public void PointNameOperationsAreSingleRegisteredSafeReadOnlyOperations()
+    public void PointNameOperationsAreSingleRegisteredReadOnlyOperations()
     {
         var operations = new[]
         {
@@ -81,7 +81,12 @@ public sealed class TypedPointNameConstructionTests
         {
             Assert.Single(SpatialAnalyzerApi.Operations, item => item.OperationId == operation.OperationId);
             Assert.Equal(Api.OperationExecutionScope.GlobalStateRead, operation.ExecutionScope);
-            Assert.Equal(Api.ReplaySafety.Safe, operation.ReplaySafety);
+            // Re-prompting an operator is not a safe replay (#242).
+            Assert.Equal(
+                operation.OperationId.EndsWith("_runtime_select", StringComparison.Ordinal)
+                    ? Api.ReplaySafety.Unsafe
+                    : Api.ReplaySafety.Safe,
+                operation.ReplaySafety);
             Assert.Empty(operation.RiskFlags);
         }
     }

@@ -1,6 +1,9 @@
 using System.Globalization;
 using System.Text;
+using Briosa.Server.Operations;
+using Briosa.Server.Security;
 using Briosa.Worker.Control;
+using Microsoft.Extensions.Configuration;
 using Api = global::Briosa;
 
 namespace Briosa.LicensedProbes;
@@ -24,14 +27,90 @@ internal sealed class ProbePlan
     public IReadOnlyList<string> FullyQualifiedMethods =>
         [.. Steps.Select(static step => step.Operation.FullyQualifiedMethod).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal)];
 
+    /// <summary>
+    /// The non-default admission profile the public phase needs. The packaged
+    /// <c>standard</c> profile excludes the device and operator-guided probes.
+    /// </summary>
+    public const string ServerAdmissionProfile = "device";
+
+    /// <summary>
+    /// The server command-line arguments that admit what the public phase needs:
+    /// <see cref="ServerAdmissionProfile"/> plus one per-operation <c>allow</c>
+    /// override for each probed operation that profile does not admit (for
+    /// example an operator-guided selector). No setting can admit an exclusive
+    /// workflow, so a plan that needs one is refused.
+    /// </summary>
+    public IReadOnlyList<string> ServerAdmissionArguments => CreateServerAdmissionArguments(FullyQualifiedMethods);
+
     public static ProbePlan Create(ProbePhase phase, FixtureManifest manifest)
     {
         ArgumentNullException.ThrowIfNull(manifest);
         manifest.Validate();
         var steps = ProbeCatalog.Create(phase, manifest);
         Validate(phase, steps);
-        return new ProbePlan(phase, steps, manifest.IsPlaceholder);
+        var plan = new ProbePlan(phase, steps, manifest.IsPlaceholder);
+        if (phase == ProbePhase.PublicApi)
+        {
+            // Fails closed when a public probe needs an exclusive workflow.
+            _ = plan.ServerAdmissionArguments;
+        }
+
+        return plan;
     }
+
+    internal static IReadOnlyList<string> CreateServerAdmissionArguments(IReadOnlyList<string> fullyQualifiedMethods)
+    {
+        ArgumentNullException.ThrowIfNull(fullyQualifiedMethods);
+        var operations = SpatialAnalyzerApi.Operations.ToDictionary(
+            static operation => operation.FullyQualifiedMethod, StringComparer.Ordinal);
+        var profile = OperationPolicy.Create(PolicyConfiguration([]), SpatialAnalyzerApi.Operations);
+        var overrides = new List<KeyValuePair<string, string?>>();
+        foreach (var method in fullyQualifiedMethods)
+        {
+            if (!operations.TryGetValue(method, out var operation))
+            {
+                throw new InvalidOperationException($"Probe RPC '{method}' is not a registered operation.");
+            }
+
+            var decision = profile.Evaluate(operation.OperationId);
+            if (decision.Kind == OperationPolicyDecisionKind.Allowed)
+            {
+                continue;
+            }
+
+            if (!string.Equals(decision.PolicyRule, $"profile.{ServerAdmissionProfile}", StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException(
+                    $"Probe operation '{operation.OperationId}' cannot be admitted ({decision.DiagnosticCode}).");
+            }
+
+            overrides.Add(new(
+                $"{OperationPolicy.OverridesKey}:{operation.OperationId.Replace('.', ':')}",
+                OperationPolicy.AllowValue));
+        }
+
+        // Prove the arguments admit every probed operation before anyone uses them.
+        var admitted = OperationPolicy.Create(PolicyConfiguration(overrides), SpatialAnalyzerApi.Operations);
+        if (fullyQualifiedMethods.Any(method =>
+                admitted.Evaluate(operations[method].OperationId).Kind != OperationPolicyDecisionKind.Allowed))
+        {
+            throw new InvalidOperationException("The probe admission settings do not admit every probed operation.");
+        }
+
+        return
+        [
+            $"--{OperationPolicy.ProfileKey}={ServerAdmissionProfile}",
+            .. overrides
+                .Select(static setting => $"--{setting.Key}={setting.Value}")
+                .Order(StringComparer.Ordinal)
+        ];
+    }
+
+    private static IConfiguration PolicyConfiguration(IEnumerable<KeyValuePair<string, string?>> overrides) =>
+        new ConfigurationBuilder()
+            .AddInMemoryCollection(
+                overrides.Prepend(new(OperationPolicy.ProfileKey, ServerAdmissionProfile)))
+            .Build();
 
     /// <summary>Enforces the session safety invariants before anything can connect.</summary>
     public static void Validate(ProbePhase phase, IReadOnlyList<ProbeStep> steps)
@@ -123,7 +202,17 @@ internal sealed class ProbePlan
         text.Append(PlaceholderFixtures
             ? "Fixture manifest: built-in placeholder. Manual fixture values are never printed.\n"
             : "Fixture manifest: supplied and validated. Manual fixture values are never printed.\n");
-        text.Append(CultureInfo.InvariantCulture, $"Steps: {Steps.Count}. Probes: {string.Join(", ", ProbesCovered())}.\n\n");
+        text.Append(CultureInfo.InvariantCulture, $"Steps: {Steps.Count}. Probes: {string.Join(", ", ProbesCovered())}.\n");
+        if (Phase == ProbePhase.PublicApi)
+        {
+            text.Append("Server admission: start Briosa.Server.exe with\n");
+            foreach (var argument in ServerAdmissionArguments)
+            {
+                text.Append("  ").Append(argument).Append('\n');
+            }
+        }
+
+        text.Append('\n');
         for (var index = 0; index < Steps.Count; index++)
         {
             var step = Steps[index];

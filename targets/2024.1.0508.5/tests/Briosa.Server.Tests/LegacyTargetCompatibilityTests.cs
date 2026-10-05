@@ -5,6 +5,7 @@ using Briosa.Server.Operations.FileOperations;
 using Briosa.Server.Operations.GdtOperations;
 using Briosa.Server.Operations.InstrumentOperations;
 using Briosa.Server.Operations.RelationshipOperations;
+using Briosa.Server.Security;
 using Briosa.Worker.Control;
 using Api = global::Briosa;
 
@@ -129,7 +130,7 @@ public sealed class LegacyTargetCompatibilityTests
     }
 
     [Fact]
-    public void CribSheetAndProjectionUseCompleteExactBindingsWithoutWorkflowOwnership()
+    public void CribSheetAndProjectionUseCompleteExactBindingsAndStayExclusiveWorkflows()
     {
         var instrument = new Api.CollectionInstrumentId { CollectionName = "fixture", InstrumentId = 1 };
         var cribCommand = RunCribSheetOperation.CreateCommand(new Api.RunCribSheetRequest
@@ -150,10 +151,28 @@ public sealed class LegacyTargetCompatibilityTests
 
         var stopCommand = StopProjectionOperation.CreateCommand(new Api.StopProjectionRequest { Instrument = instrument });
         Assert.Equal("Instrument ID", Assert.Single(stopCommand.InputArguments).Name);
+        // The reviewed classification replaces the 2024 hyphenated descriptor flags:
+        // instrument-control is device_session, at-risk-no-runtime-validation is a
+        // validation status, and the projection session is an exclusive workflow
+        // that no profile, flag, or override admits.
+        var policy = OperationPolicyTests.CreatePolicy(
+            profile: "full",
+            settings: new()
+            {
+                ["Overrides:instrument_operations:run_crib_sheet"] = "allow",
+                ["Overrides:instrument_operations:project_objects"] = "allow",
+                ["Overrides:instrument_operations:stop_projection"] = "allow"
+            });
         foreach (var descriptor in new[] { RunCribSheetOperation.Descriptor, ProjectObjectsOperation.Descriptor, StopProjectionOperation.Descriptor })
         {
             Assert.Equal(Api.ReplaySafety.Unsafe, descriptor.ReplaySafety);
-            Assert.Contains("at-risk-no-runtime-validation", descriptor.RiskFlags);
+            var row = OperationClassification.Find(descriptor.OperationId).Row!;
+            Assert.Equal(OperationValidationStatus.AtRiskUnvalidated, row.ValidationStatus);
+            Assert.True(row.Risks.HasFlag(OperationRisks.DeviceSession));
+            Assert.Equal(OperationIsolationClass.ExclusiveWorkflow, row.Isolation);
+            var decision = policy.Evaluate(descriptor.OperationId);
+            Assert.Equal(OperationPolicyDecisionKind.Denied, decision.Kind);
+            Assert.Equal("operation-isolation-unsupported", decision.DiagnosticCode);
         }
         Assert.Empty(RunCribSheetOperation.OutputContracts);
         Assert.Empty(ProjectObjectsOperation.OutputContracts);

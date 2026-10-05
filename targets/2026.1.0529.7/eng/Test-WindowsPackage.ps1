@@ -124,12 +124,11 @@ try {
     Assert-Condition -Condition ($configuration.Briosa.Endpoint.Port -eq 50051) -Message "The packaged endpoint port is incorrect."
     Assert-Condition -Condition ($configuration.Briosa.SpatialAnalyzer.Host -eq "localhost") -Message "The packaged SpatialAnalyzer target must default to localhost."
     Assert-Condition -Condition ($configuration.Briosa.Worker.ExecutionWatchdogTimeout -eq "00:00:30") -Message "The packaged execution watchdog default is incorrect."
-    $packagedAllow = @($configuration.Briosa.Security.Operations.Allow)
-    $sourceAllow = @($sourceConfiguration.Briosa.Security.Operations.Allow)
-    Assert-Condition -Condition ($packagedAllow.Count -eq $sourceAllow.Count -and ($packagedAllow -join "`n") -eq ($sourceAllow -join "`n")) -Message "The packaged operation allowlist differs from the reviewed source configuration."
-    $packagedDeny = @($configuration.Briosa.Security.Operations.Deny)
-    $sourceDeny = @($sourceConfiguration.Briosa.Security.Operations.Deny)
-    Assert-Condition -Condition ($packagedDeny.Count -eq $sourceDeny.Count -and ($packagedDeny -join "`n") -eq ($sourceDeny -join "`n")) -Message "The packaged operation denylist differs from the reviewed source configuration."
+    $packagedOperations = $configuration.Briosa.Security.Operations
+    $sourceOperations = $sourceConfiguration.Briosa.Security.Operations
+    Assert-Condition -Condition ($packagedOperations.Profile -ceq "standard") -Message "The packaged admission profile must be standard."
+    Assert-Condition -Condition (($packagedOperations | ConvertTo-Json -Depth 10 -Compress) -ceq ($sourceOperations | ConvertTo-Json -Depth 10 -Compress)) -Message "The packaged operation policy differs from the reviewed source configuration."
+    Assert-Condition -Condition (-not ($packagedOperations.PSObject.Properties.Name | Where-Object { $_ -in @("Allow", "Deny") })) -Message "The packaged configuration must not contain the retired Allow or Deny keys."
 
     foreach ($requiredFile in @(
         "Briosa.Server.exe",
@@ -208,12 +207,12 @@ try {
     $defaultLogDirectory = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'Briosa\logs\2026.1.0529.7'
     $previousLogs = @(Get-ChildItem -LiteralPath $defaultLogDirectory -Filter 'briosa-*.jsonl' -ErrorAction SilentlyContinue |
         Select-Object -ExpandProperty Name)
-    # Launch from a foreign working directory whose poison settings (a duplicate
-    # allowlist entry) fail startup if the host reads configuration from it.
+    # Launch from a foreign working directory whose poison settings (an unknown
+    # admission profile) fail startup if the host reads configuration from it.
     $foreignWorkingDirectory = Join-Path $temporaryRoot "foreign-cwd"
     [IO.Directory]::CreateDirectory($foreignWorkingDirectory) | Out-Null
     Set-Content -LiteralPath (Join-Path $foreignWorkingDirectory "appsettings.json") -Encoding utf8 -Value `
-        '{"Briosa":{"Security":{"Operations":{"Allow":["variables.set_double_variable","variables.set_double_variable"]}}}}'
+        '{"Briosa":{"Security":{"Operations":{"Profile":"poison-profile"}}}}'
     $workerVariable = "Briosa__Worker__ExecutablePath"
     $previousWorkerPath = [Environment]::GetEnvironmentVariable($workerVariable)
     [Environment]::SetEnvironmentVariable(

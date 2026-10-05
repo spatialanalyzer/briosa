@@ -189,7 +189,7 @@ try {
             "Briosa__Worker__ExecutablePath" = $workerPath
             "Briosa__Worker__ExecutionWatchdogTimeout" = $scenarioDefinition.watchdog_timeout
             "Briosa__SpatialAnalyzer__ExecutablePath" = $applicationPath
-            "Briosa__Security__Operations__Deny__0" = $(if ($scenarioDefinition.deny_get_working_directory) { "file_operations.get_working_directory" } else { $null })
+            "Briosa__Security__Operations__Overrides__file_operations__get_working_directory" = $(if ($scenarioDefinition.deny_get_working_directory) { "deny" } else { $null })
             "Briosa__SpatialAnalyzer__Identity__ActivatedSdk__OperatorAttestation__Version" = [string]$scenarioDefinition.activated_sdk_version
             "Briosa__SpatialAnalyzer__Identity__ActivatedSdk__OperatorAttestation__Reference" = "portable-conformance-host"
             "Briosa__SpatialAnalyzer__Identity__ConnectedSpatialAnalyzer__OperatorAttestation__Version" = [string]$scenarioDefinition.connected_sa_version

@@ -114,7 +114,7 @@ public sealed class TypedCollectionNameConstructionTests
     }
 
     [Fact]
-    public void CollectionNameOperationsHaveSingleReadOnlySafeRegistration()
+    public void CollectionNameOperationsHaveSingleReadOnlyRegistration()
     {
         var operations = new[]
         {
@@ -131,7 +131,12 @@ public sealed class TypedCollectionNameConstructionTests
         {
             Assert.Single(SpatialAnalyzerApi.Operations, item => item.OperationId == operation.OperationId);
             Assert.Equal(Api.OperationExecutionScope.GlobalStateRead, operation.ExecutionScope);
-            Assert.Equal(Api.ReplaySafety.Safe, operation.ReplaySafety);
+            // Re-prompting an operator is not a safe replay (#242).
+            Assert.Equal(
+                operation.OperationId.EndsWith("_runtime_select", StringComparison.Ordinal)
+                    ? Api.ReplaySafety.Unsafe
+                    : Api.ReplaySafety.Safe,
+                operation.ReplaySafety);
             Assert.Empty(operation.RiskFlags);
         }
 

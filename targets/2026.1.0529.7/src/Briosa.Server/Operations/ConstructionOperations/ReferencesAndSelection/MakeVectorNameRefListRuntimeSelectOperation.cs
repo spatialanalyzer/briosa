@@ -12,7 +12,7 @@ internal static class MakeVectorNameRefListRuntimeSelectOperation
         "construction_operations.make_vector_name_ref_list_runtime_select",
         "Make a Vector Name Ref List - Runtime Select", "briosa.ConstructionOperations",
         "MakeVectorNameRefListRuntimeSelect", "/briosa.ConstructionOperations/MakeVectorNameRefListRuntimeSelect",
-        "read_only", Api.OperationExecutionScope.GlobalStateRead, Api.ReplaySafety.Safe, []);
+        "read_only", Api.OperationExecutionScope.GlobalStateRead, Api.ReplaySafety.Unsafe, []);
     public static IReadOnlyList<OperationOutputContract> OutputContracts { get; } =
         [new("resultant_vector_name_list", "Resultant Vector Name List", WorkerMpValueKind.VectorNameList)];
 

@@ -10,6 +10,13 @@ These three `briosa.InstrumentOperations` RPCs are implemented for SA
 | `ProjectObjects` | `instrument`, nonempty `objects_to_project` | Requests projection of the supplied objects with the selected projector. |
 | `StopProjection` | `instrument` | Independent stop request. No preceding call or caller-owned projection session is required. |
 
+The reviewed classification table marks all three as `ExclusiveWorkflow`
+device-session operations: crib sheets and projection start or stop work that
+spans calls. In the current `single_tenant` mode they are denied under every
+admission profile, flag, and override until a lease design is accepted. The
+licensed scenarios below can run only after that changes. See
+[workflow isolation](workflow-isolation.md).
+
 All three return `MpExecutionDetails` on success. Briosa retrieves the MP result
 after `ExecuteStep` returns true and reports success only for code `2`. Other
 codes are preserved in `OperationError.mp_execution` in the binary gRPC error

@@ -13,7 +13,7 @@ internal static class MakeCollectionInstrumentRefListRuntimeSelectOperation
         "Make a Collection Instrument Reference List- Runtime Select", "briosa.ConstructionOperations",
         "MakeCollectionInstrumentRefListRuntimeSelect",
         "/briosa.ConstructionOperations/MakeCollectionInstrumentRefListRuntimeSelect",
-        "read_only", Api.OperationExecutionScope.GlobalStateRead, Api.ReplaySafety.Safe, []);
+        "read_only", Api.OperationExecutionScope.GlobalStateRead, Api.ReplaySafety.Unsafe, []);
     public static IReadOnlyList<OperationOutputContract> OutputContracts { get; } =
         [new("resultant_collection_instrument_ref_list", "Resultant Collection Instrument Reference List",
             WorkerMpValueKind.CollectionInstrumentIdList)];

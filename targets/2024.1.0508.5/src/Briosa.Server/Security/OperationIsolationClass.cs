@@ -1,9 +1,10 @@
 namespace Briosa.Server.Security;
 
 /// <summary>
-/// The intended isolation class of an operation (D1, #242). It records the review
-/// outcome only; the registered descriptor's execution scope still governs
-/// admission until the reclassification step of #293.
+/// The reviewed isolation class of an operation (D1, #242).
+/// <see cref="OperationPolicy"/> treats <see cref="ExclusiveWorkflow"/> as the
+/// operation's effective execution scope and denies it under every profile,
+/// flag, and override.
 /// </summary>
 internal enum OperationIsolationClass
 {

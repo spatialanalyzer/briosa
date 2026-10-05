@@ -13,10 +13,13 @@ namespace Briosa.Server.Security;
 /// </summary>
 /// <remarks>
 /// This table is hand-reviewed data and the source of truth for the
-/// classification. Add exactly one row with each new operation. It is not yet
-/// consumed by <see cref="OperationPolicy"/>; the registered descriptors still
-/// govern admission. Lookups fail closed: an operation without exactly one
-/// complete row is <see cref="OperationClassificationStatus.Unreviewed"/>.
+/// classification. Add exactly one row with each new operation.
+/// <see cref="OperationPolicy"/> admits operations from these rows through the
+/// configured <see cref="OperationAdmissionProfile"/>, flags, and overrides, and
+/// an <see cref="OperationIsolationClass.ExclusiveWorkflow"/> row becomes the
+/// operation's effective execution scope. Lookups fail closed: an operation
+/// without exactly one complete row is
+/// <see cref="OperationClassificationStatus.Unreviewed"/> and is denied.
 /// The seed and its provenance are recorded in <c>eng/classification</c>, and
 /// <c>eng/Test-OperationClassificationTwins.ps1</c> compares rows across targets.
 /// Keep one row per line in the form below so that check can read it.

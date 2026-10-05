@@ -95,8 +95,9 @@ public sealed class DevelopmentGrpcReflectionTests
             serverInfo.ConnectedSpatialAnalyzerIdentity.Source);
         var capabilities = await discovery.ListCapabilitiesAsync(
             new Api.ListCapabilitiesRequest()).ResponseAsync.ConfigureAwait(true);
+        // The packaged standard profile, narrowed by one per-operation deny.
         Assert.Equal(
-            SpatialAnalyzerApi.Operations
+            OperationPolicyTests.CreatePolicy(profile: "standard").AllowedOperations
                 .Where(operation => operation.OperationId != "variables.set_double_variable")
                 .Select(operation => operation.OperationId)
                 .Order(StringComparer.Ordinal),
@@ -232,7 +233,7 @@ public sealed class DevelopmentGrpcReflectionTests
                 RedirectStandardError = true
             };
             startInfo.ArgumentList.Add($"--Briosa:Endpoint:Port={port}");
-            startInfo.ArgumentList.Add("--Briosa:Security:Operations:Deny:0=variables.set_double_variable");
+            startInfo.ArgumentList.Add("--Briosa:Security:Operations:Overrides:variables:set_double_variable=deny");
             startInfo.ArgumentList.Add($"--Briosa:Worker:ExecutablePath={smokeWorker}");
             startInfo.ArgumentList.Add(
                 "--Briosa:SpatialAnalyzer:Identity:ActivatedSdk:OperatorAttestation:Version=");

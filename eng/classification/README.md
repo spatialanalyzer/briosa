@@ -13,8 +13,12 @@ editing the table, and add a row with every new operation. The target's
 `OperationClassificationTests` fail when a row is missing, extra, or incomplete.
 The files here are review artifacts and are not read by any build or test.
 
-At step 1 of #293 the tables are not consumed by `OperationPolicy`. The
-registered descriptors still govern admission, scope, and replay safety.
+`OperationPolicy` admits operations from these tables (#293 steps 2 and 3).
+A row's risk flags decide which profiles admit the operation, and an
+`exclusive_workflow` row becomes the operation's effective execution scope, which
+no setting can admit. The descriptors still supply effect, replay safety, and
+the MP binding. The profile definitions in `classify.py` match
+`OperationAdmissionProfile` in each target.
 
 ## Files
 

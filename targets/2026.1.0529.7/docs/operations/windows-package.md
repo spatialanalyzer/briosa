@@ -45,7 +45,7 @@ The packaged default binds unencrypted HTTP/2 to loopback only at `127.0.0.1:500
 ./Briosa.Server.exe
 ```
 
-The server reads its packaged `appsettings.json`, including the operation allowlist, from the package directory regardless of the current working directory. Only an explicit `--contentRoot`, `ASPNETCORE_CONTENTROOT`, or `DOTNET_CONTENTROOT` selects a different configuration directory.
+The server reads its packaged `appsettings.json`, including the operation admission profile, from the package directory regardless of the current working directory. Only an explicit `--contentRoot`, `ASPNETCORE_CONTENTROOT`, or `DOTNET_CONTENTROOT` selects a different configuration directory.
 
 The default SpatialAnalyzer SDK target is `localhost`. That configured target identifies where Briosa connects; it does not identify the activated SDK or connected application release. The worker observes the file/product version of the SDK process uniquely created during activation. The connected SA version still requires independent operator evidence; an SDK attestation is also needed when its runtime version cannot be observed. Supply the version/reference pairs through Control Center's Connection setup or the configuration documented in [the health and discovery guide](health-and-discovery.md). Missing evidence remains live but not ready; a verified mismatch cannot be overridden.
 

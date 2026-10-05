@@ -187,6 +187,38 @@ public sealed class ProbePlanTests
         Assert.DoesNotContain(TestSupport.Sentinel, text, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void PublicPhaseNamesItsNonDefaultServerAdmission()
+    {
+        var plan = ProbePlan.Create(ProbePhase.PublicApi, TestSupport.SentinelManifest());
+
+        var arguments = plan.ServerAdmissionArguments;
+
+        Assert.Equal("--Briosa:Security:Operations:Profile=device", arguments[0]);
+        Assert.Contains(
+            "--Briosa:Security:Operations:Overrides:construction_operations:make_collection_vector_group_name_ref_list_runtime_select=allow",
+            arguments);
+        Assert.All(arguments.Skip(1), argument =>
+        {
+            Assert.StartsWith("--Briosa:Security:Operations:Overrides:", argument, StringComparison.Ordinal);
+            Assert.EndsWith("=allow", argument, StringComparison.Ordinal);
+        });
+        var text = plan.RenderDryRun();
+        Assert.Contains("Server admission: start Briosa.Server.exe with", text, StringComparison.Ordinal);
+        Assert.All(arguments, argument => Assert.Contains(argument, text, StringComparison.Ordinal));
+        Assert.DoesNotContain("Server admission", ProbePlan.Create(ProbePhase.Worker, TestSupport.SentinelManifest()).RenderDryRun(),
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void NoAdmissionSettingCanReachAnExclusiveWorkflow()
+    {
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            ProbePlan.CreateServerAdmissionArguments(["/briosa.InstrumentOperations/StartInstrumentInterface"]));
+
+        Assert.Contains("operation-isolation-unsupported", exception.Message, StringComparison.Ordinal);
+    }
+
     [Theory]
     [InlineData("5-6", new[] { "5", "6" })]
     [InlineData("12", new[] { "12" })]

@@ -11,8 +11,10 @@ internal sealed partial class OperationAuditLogger(ILogger<OperationAuditLogger>
     {
         ArgumentNullException.ThrowIfNull(policy);
         LogPolicyLoaded(
-            policy.AllowCount,
-            policy.DenyCount,
+            policy.Profile.Name,
+            policy.AllowedOperations.Count,
+            policy.FlagSettingCount,
+            policy.OverrideCount,
             policy.TargetIsolationMode,
             policy.Fingerprint);
     }
@@ -60,6 +62,7 @@ internal sealed partial class OperationAuditLogger(ILogger<OperationAuditLogger>
                 effect,
                 executionScope,
                 allowedRiskFlags,
+                decision.PolicyRule,
                 decision.DiagnosticCode);
             return;
         }
@@ -77,6 +80,7 @@ internal sealed partial class OperationAuditLogger(ILogger<OperationAuditLogger>
             effect,
             executionScope,
             rejectedRiskFlags,
+            decision.PolicyRule,
             decision.DiagnosticCode);
     }
 
@@ -124,10 +128,12 @@ internal sealed partial class OperationAuditLogger(ILogger<OperationAuditLogger>
     [LoggerMessage(
         EventId = 2000,
         Level = LogLevel.Information,
-        Message = "Operation policy loaded with {AllowCount} allowed and {DenyCount} denied IDs for target isolation mode {TargetIsolationMode}; fingerprint {PolicyFingerprint}.")]
+        Message = "Operation policy loaded with admission profile {AdmissionProfile} admitting {AdmittedOperationCount} operations, {FlagSettingCount} flag settings, and {OverrideCount} operation overrides for target isolation mode {TargetIsolationMode}; fingerprint {PolicyFingerprint}.")]
     private partial void LogPolicyLoaded(
-        int allowCount,
-        int denyCount,
+        string admissionProfile,
+        int admittedOperationCount,
+        int flagSettingCount,
+        int overrideCount,
         global::Briosa.TargetIsolationMode targetIsolationMode,
         string policyFingerprint);
 
@@ -149,20 +155,21 @@ internal sealed partial class OperationAuditLogger(ILogger<OperationAuditLogger>
         EventId = 2002,
         Level = LogLevel.Debug,
         SkipEnabledCheck = true,
-        Message = "Request {CorrelationId} policy allowed operation {OperationId}, effect {Effect}, execution scope {ExecutionScope}, risk flags {RiskFlags}, diagnostic {DiagnosticCode}.")]
+        Message = "Request {CorrelationId} policy allowed operation {OperationId}, effect {Effect}, execution scope {ExecutionScope}, risk flags {RiskFlags}, policy rule {PolicyRule}, diagnostic {DiagnosticCode}.")]
     private partial void LogPolicyAllowed(
         Guid correlationId,
         string operationId,
         string effect,
         global::Briosa.OperationExecutionScope executionScope,
         string riskFlags,
+        string policyRule,
         string diagnosticCode);
 
     [LoggerMessage(
         EventId = 2003,
         SkipEnabledCheck = true,
         Level = LogLevel.Warning,
-        Message = "Request {CorrelationId} policy rejected operation {OperationId} as {PolicyDecision}, effect {Effect}, execution scope {ExecutionScope}, risk flags {RiskFlags}, diagnostic {DiagnosticCode}.")]
+        Message = "Request {CorrelationId} policy rejected operation {OperationId} as {PolicyDecision}, effect {Effect}, execution scope {ExecutionScope}, risk flags {RiskFlags}, policy rule {PolicyRule}, diagnostic {DiagnosticCode}.")]
     private partial void LogPolicyRejected(
         Guid correlationId,
         string operationId,
@@ -170,6 +177,7 @@ internal sealed partial class OperationAuditLogger(ILogger<OperationAuditLogger>
         string effect,
         global::Briosa.OperationExecutionScope executionScope,
         string riskFlags,
+        string policyRule,
         string diagnosticCode);
 
     [LoggerMessage(
