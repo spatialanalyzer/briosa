@@ -33,9 +33,8 @@ public sealed class RuntimePerformanceEvidenceTests
                 heartbeatTimeout: TimeSpan.FromSeconds(1),
                 startupTimeout: TimeSpan.FromSeconds(5),
                 shutdownTimeout: TimeSpan.FromSeconds(1)),
-            new WorkerExecutionPolicy(
-                watchdogTimeout: TimeSpan.FromSeconds(2),
-                queueCapacity: 64),
+            // Synthetic performance-<n> IDs are not registered operations.
+            TestDurationClasses.SyntheticQuickPolicy(TimeSpan.FromSeconds(2), queueCapacity: 64),
             identityPolicy: ExactTargetIdentityPolicy.CreateForTesting(
                 "2026.1.0529.7",
                 activatedSdkVersion: "2026.1.0529.7",
