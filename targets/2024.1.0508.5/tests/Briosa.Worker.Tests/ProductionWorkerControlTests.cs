@@ -191,6 +191,127 @@ public sealed class ProductionWorkerControlTests
         }
     }
 
+    // A getter fault together with a value the private channel cannot encode
+    // (oversized text or NaN) must still reach the host as the SDK call fault,
+    // dropping only that value and keeping every other output's status.
+    [Theory]
+    [InlineData("Result", 3)]
+    [InlineData("Planar Offset", 2)]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "The production connection manager owns and disposes the adapter, the adapter owns the fake SDK calls, and the diagnostics writer holds no resources.")]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2025:Ensure tasks using IDisposable instances complete before the instances are disposed", Justification = "The diagnostics writer is never disposed and the host task is awaited before the test ends.")]
+    public async Task GetterFaultWithAnUndeliverableValueStaysAnSdkCallFault(
+        string undeliverableOutput, int faultedGetter)
+    {
+        var calls = new SpatialAnalyzerSdkAdapterTests.RecordingSdkCalls
+        {
+            FaultPhase = SpatialAnalyzerSdkAdapterTests.SdkFaultPhase.Getter,
+            FaultOrdinal = faultedGetter,
+            FaultStepName = UndeliverableStep,
+            UndeliverableOutputName = undeliverableOutput
+        };
+
+        var execution = await ExecuteUndeliverableCommand(calls);
+
+        var fault = Assert.IsType<WorkerSdkCallFaulted>(execution);
+        Assert.Equal(WorkerSdkCallPhase.OutputGetter, fault.Phase);
+        Assert.Equal(WorkerSdkFaultDiagnosticCodes.OutputGetter, fault.DiagnosticCode);
+        Assert.True(fault.MpSucceeded);
+        Assert.Equal(2, fault.MpResultCode);
+        Assert.Equal(UndeliverableOutputs.Select(output => output.Name), fault.Outputs.Select(output => output.Name));
+        for (var index = 0; index < fault.Outputs.Count; index++)
+        {
+            var output = fault.Outputs[index];
+            if (output.Name == undeliverableOutput)
+            {
+                Assert.Equal(WorkerUnavailableOutputReason.EncodingRejected,
+                    Assert.IsType<WorkerUnavailableOutput>(output).Reason);
+            }
+            else if (index == faultedGetter - 1)
+            {
+                Assert.Equal(WorkerUnavailableOutputReason.SdkCallFaulted,
+                    Assert.IsType<WorkerUnavailableOutput>(output).Reason);
+            }
+            else
+            {
+                Assert.IsType<WorkerRetrievedOutput>(output);
+            }
+        }
+    }
+
+    // Without an SDK call fault, an undeliverable value keeps today's bounded
+    // outputs-unavailable result.
+    [Theory]
+    [InlineData("Result")]
+    [InlineData("Planar Offset")]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "The production connection manager owns and disposes the adapter, the adapter owns the fake SDK calls, and the diagnostics writer holds no resources.")]
+    public async Task UndeliverableValueWithoutAFaultStaysOutputsUnavailable(string undeliverableOutput)
+    {
+        var calls = new SpatialAnalyzerSdkAdapterTests.RecordingSdkCalls
+        {
+            UndeliverableOutputName = undeliverableOutput
+        };
+
+        var execution = await ExecuteUndeliverableCommand(calls);
+
+        var unavailable = Assert.IsType<WorkerMpOutputsUnavailable>(execution);
+        Assert.Equal(WorkerExecutionDelivery.OutputEncodingRejected, unavailable.DiagnosticCode);
+        Assert.True(unavailable.MpSucceeded);
+        Assert.Empty(unavailable.OutputValues);
+    }
+
+    private const string UndeliverableStep = "Undeliverable Step";
+
+    private static readonly WorkerMpOutputArgument[] UndeliverableOutputs =
+    [
+        new("Planar Offset", WorkerMpValueKind.FloatingPoint),
+        new("Result", WorkerMpValueKind.Text),
+        new("Count", WorkerMpValueKind.WholeNumber)
+    ];
+
+    // Runs one command through the production control host, adapter and named
+    // pipe, then proves the pipe and worker stay usable.
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "The production connection manager owns and disposes the adapter, the adapter owns the fake SDK calls, and the diagnostics writer holds no resources.")]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2025:Ensure tasks using IDisposable instances complete before the instances are disposed", Justification = "The diagnostics writer is never disposed and the host task is awaited before the helper returns.")]
+    private static async Task<WorkerMpExecutionResult> ExecuteUndeliverableCommand(
+        SpatialAnalyzerSdkAdapterTests.RecordingSdkCalls calls)
+    {
+        var name = $"briosa-control-test-{Guid.NewGuid():N}";
+        using var pipe = new NamedPipeServerStream(name, PipeDirection.InOut, 1,
+            PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        var diagnostics = new StringWriter();
+        var host = WorkerControlHost.RunAsync(name, "localhost",
+            () => new SpatialAnalyzerSdkAdapter(calls), diagnostics);
+        try
+        {
+            await pipe.WaitForConnectionAsync(timeout.Token).ConfigureAwait(false);
+            using var channel = new WorkerControlChannel(pipe, leaveOpen: true);
+            await ConnectAndVerify(channel, timeout.Token).ConfigureAwait(false);
+
+            var response = await Exchange(channel, WorkerControlMessage.Execute(Guid.NewGuid(),
+                new("undeliverable", UndeliverableStep, [], UndeliverableOutputs)), timeout.Token).ConfigureAwait(false);
+            Assert.Equal(WorkerExecutionResponseStatus.Completed, response.ExecutionResponse!.Status);
+            var execution = response.ExecutionResponse.Execution!;
+
+            Assert.Equal(WorkerControlMessageKind.Pong,
+                (await Exchange(channel, WorkerControlMessage.Ping(Guid.NewGuid()), timeout.Token).ConfigureAwait(false)).Kind);
+            var next = await Exchange(channel, WorkerControlMessage.Execute(Guid.NewGuid(),
+                new("normal", "Normal", [], [new("Value", WorkerMpValueKind.Text)])), timeout.Token).ConfigureAwait(false);
+            Assert.Equal("scripted-output",
+                (Assert.Single(next.ExecutionResponse!.Execution!.OutputValues).ReadValue() as WorkerTextValue)?.Value);
+            Assert.Equal(WorkerControlMessageKind.Stopped,
+                (await Exchange(channel, WorkerControlMessage.Stop(Guid.NewGuid()), timeout.Token).ConfigureAwait(false)).Kind);
+            Assert.Equal(0, await host.WaitAsync(timeout.Token).ConfigureAwait(false));
+            Assert.Empty(diagnostics.ToString());
+            return execution;
+        }
+        finally
+        {
+            await pipe.DisposeAsync().ConfigureAwait(false);
+            await host.WaitAsync(TimeSpan.FromSeconds(3)).ConfigureAwait(false);
+        }
+    }
+
     [Fact]
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "The production connection manager owns and disposes the adapter, the adapter owns the fake SDK calls, and the diagnostics writer holds no resources.")]
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2025:Ensure tasks using IDisposable instances complete before the instances are disposed", Justification = "The diagnostics writer is never disposed and the host task is awaited before the test ends.")]

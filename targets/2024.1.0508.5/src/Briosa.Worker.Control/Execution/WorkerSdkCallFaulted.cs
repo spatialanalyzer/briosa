@@ -7,7 +7,9 @@ namespace Briosa.Worker.Control;
 /// proven <see cref="Phase"/> and a value-free diagnostic code, never exception
 /// text. Only an <see cref="WorkerSdkCallPhase.OutputGetter"/> fault follows
 /// retrieved MP code 2; it keeps every output in request order, with at least the
-/// faulted output unavailable.
+/// faulted output unavailable. An output-getter fault with no outputs means the
+/// per-output evidence was withheld because even its value-free form could not
+/// be encoded; the host then reports every requested output as failed.
 /// </summary>
 public sealed record WorkerSdkCallFaulted : WorkerMpExecutionResult
 {
@@ -28,7 +30,7 @@ public sealed record WorkerSdkCallFaulted : WorkerMpExecutionResult
         }
 
         if (phase == WorkerSdkCallPhase.OutputGetter
-                ? !outputs.Any(output => output is { Retrieved: false })
+                ? outputs.Count != 0 && !outputs.Any(output => output is { Retrieved: false })
                 : outputs.Count != 0)
         {
             throw new ArgumentException(

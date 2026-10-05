@@ -54,7 +54,7 @@ the exception text:
 | `SetStep` or an input setter | `sdk-call-faulted-before-execute` | `Internal` | `NotStarted` | `DoNotReplay` | none |
 | `ExecuteStep` | `sdk-execute-step-faulted` | `Internal` | `StartedOutcomeUnknown` | `ReconcileBeforeReplay` | `ResultUnavailable`, outputs `NotAttempted` |
 | `GetMPStepResult` | `sdk-mp-result-retrieval-faulted` | `Internal` | `StartedOutcomeUnknown` | `ReconcileBeforeReplay` | `ResultUnavailable`, outputs `NotAttempted` |
-| An output getter after code `2` | `sdk-output-getter-faulted` | `DataLoss` | `Completed` | `DoNotReplay` | `Succeeded`, code `2`, each output `Retrieved` or `Failed` |
+| An output getter after code `2` | `sdk-output-getter-faulted` | `DataLoss` | `Completed` | `DoNotReplay` | `Succeeded`, code `2`, each output `Retrieved` or `Failed` with its own code |
 
 Recovery guidance is `None` in every phase. A fault before `ExecuteStep` is not
 reported as `SdkArgumentRejected`, because no argument was rejected. It stays
@@ -63,8 +63,22 @@ retry into a possibly unhealthy SDK is not safe. Clients refresh SDK state and
 retry deliberately. A fault in `ExecuteStep` or `GetMPStepResult` is
 `ReconcileBeforeReplay` regardless of the operation's replay safety. A faulted
 getter makes only its own output unavailable; the remaining getters still run,
-and retrieved outputs are reported as `Retrieved`. Each failed output carries
-the `sdk-output-getter-faulted` code.
+and retrieved outputs are reported as `Retrieved`. Each failed output carries its
+own value-free code: `sdk-output-getter-faulted` for the getter that threw,
+`sdk-output-retrieval-failed` for a getter that returned no usable value, and
+`worker-output-encoding-rejected` for a value the worker could not deliver.
+
+An output-getter fault keeps its kind even when another output's value cannot
+cross the 64 KiB private worker channel, for example because it is non-finite or
+oversized. The worker drops only the values that cannot be encoded, starting
+with any that cannot be encoded on their own and then the largest, and keeps the
+phase, diagnostic code and every output's status. If even the value-free output
+list does not fit, the worker withholds per-output evidence: the error is still
+`SdkCallFaulted`, and every requested output is `Failed` with
+`worker-output-encoding-rejected`. That frame has a fixed size, so the fault
+always arrives. Faults before or during execution carry no output values, so they
+cannot exceed the bound. Without an SDK call fault, an undeliverable value still
+reports `DataLoss`/`OutputRetrievalFailure` with `worker-output-encoding-rejected`.
 
 `SdkCallFaulted` replaces the interim 0.9.2 mappings, which reported these faults
 as `Internal`, `MpResultRetrievalFailure`, or `OutputRetrievalFailure`. The

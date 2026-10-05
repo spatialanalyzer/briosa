@@ -282,7 +282,7 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
             WorkerSdkFaultDiagnosticCodes.For(phase));
 
     private static bool IsFaultedOutput(WorkerMpOutputValue output) =>
-        output is WorkerUnavailableOutput { DiagnosticCode: WorkerSdkFaultDiagnosticCodes.OutputGetter };
+        output is WorkerUnavailableOutput { Reason: WorkerUnavailableOutputReason.SdkCallFaulted };
 
     // Faults that leave the adapter, its STA, or the process untrustworthy. They
     // are never converted into a typed per-call outcome.
@@ -309,7 +309,8 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
             return new WorkerUnavailableOutput(
                 argument.Name,
                 argument.Kind,
-                WorkerSdkFaultDiagnosticCodes.OutputGetter);
+                WorkerSdkFaultDiagnosticCodes.OutputGetter,
+                WorkerUnavailableOutputReason.SdkCallFaulted);
         }
     }
 

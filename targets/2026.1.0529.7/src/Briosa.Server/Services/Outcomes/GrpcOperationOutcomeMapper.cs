@@ -293,7 +293,7 @@ internal static class GrpcOperationOutcomeMapper
                         MpExecutionState.ResultUnavailable,
                         OutputRetrievalState.NotAttempted),
                     "A SpatialAnalyzer SDK call failed after MP execution may have started.");
-            case WorkerSdkCallPhase.OutputGetter when OutputsMatch(outputs, fault.Outputs):
+            case WorkerSdkCallPhase.OutputGetter when fault.Outputs.Count == 0 || OutputsMatch(outputs, fault.Outputs):
                 return CreateFailure(
                     StatusCode.DataLoss,
                     operationId,
@@ -304,7 +304,7 @@ internal static class GrpcOperationOutcomeMapper
                     ReplayGuidance.DoNotReplay,
                     replaySafety,
                     generation,
-                    CreateSuccessfulMpDetails(fault, outputs),
+                    CreateSdkFaultOutputDetails(fault, outputs),
                     "The MP command succeeded, but a SpatialAnalyzer SDK call failed while retrieving its outputs.");
             default:
                 return CreateInternalFailure(
@@ -555,6 +555,49 @@ internal static class GrpcOperationOutcomeMapper
                 retrieval.DiagnosticCode = NormalizeDiagnosticCode(
                     execution.DiagnosticCode,
                     "sdk-output-retrieval-failed");
+            }
+
+            details.OutputRetrievals.Add(retrieval);
+        }
+
+        return details;
+    }
+
+    // MP code 2 was retrieved before an output getter threw. Each output keeps its
+    // own status and a value-free reason: the faulted getter, a value the worker
+    // could not deliver, or a getter that returned no usable value. Withheld
+    // per-output evidence (no outputs) reports every requested output as failed.
+    private static MpExecutionDetails CreateSdkFaultOutputDetails(
+        WorkerSdkCallFaulted fault,
+        IReadOnlyList<OperationOutputContract> outputs)
+    {
+        var details = new MpExecutionDetails
+        {
+            State = MpExecutionState.Succeeded,
+            MpResultCode = 2
+        };
+        for (var index = 0; index < outputs.Count; index++)
+        {
+            var value = fault.Outputs.Count == 0 ? null : fault.Outputs[index];
+            var retrieved = value is not null && value.Retrieved && HasTypedValue(value);
+            var retrieval = new OutputRetrievalDetails
+            {
+                FieldName = outputs[index].FieldName,
+                State = retrieved
+                    ? OutputRetrievalState.Retrieved
+                    : OutputRetrievalState.Failed
+            };
+            if (!retrieved)
+            {
+                retrieval.DiagnosticCode = value switch
+                {
+                    null => WorkerExecutionDelivery.OutputEncodingRejected,
+                    WorkerUnavailableOutput { Reason: WorkerUnavailableOutputReason.SdkCallFaulted } =>
+                        WorkerSdkFaultDiagnosticCodes.OutputGetter,
+                    WorkerUnavailableOutput { Reason: WorkerUnavailableOutputReason.EncodingRejected } =>
+                        WorkerExecutionDelivery.OutputEncodingRejected,
+                    _ => "sdk-output-retrieval-failed"
+                };
             }
 
             details.OutputRetrievals.Add(retrieval);

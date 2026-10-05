@@ -459,7 +459,8 @@ public sealed class GrpcOperationOutcomeMapperTests
             WorkerSdkCallPhase.OutputGetter,
             5,
             [
-                new WorkerUnavailableOutput("Directory", WorkerMpValueKind.Text, WorkerSdkFaultDiagnosticCodes.OutputGetter),
+                new WorkerUnavailableOutput("Directory", WorkerMpValueKind.Text,
+                    WorkerSdkFaultDiagnosticCodes.OutputGetter, WorkerUnavailableOutputReason.SdkCallFaulted),
                 new WorkerRetrievedOutput("Count", WorkerMpValueKind.WholeNumber, new WorkerIntegerValue(3))
             ],
             WorkerSdkFaultDiagnosticCodes.OutputGetter)));
@@ -519,6 +520,132 @@ public sealed class GrpcOperationOutcomeMapperTests
         Assert.Equal(OperationFailureKind.Internal, error.Kind);
         Assert.Equal("worker-output-shape-invalid", error.DiagnosticCode);
         Assert.Equal(ExecutionDisposition.Completed, error.ExecutionDisposition);
+    }
+
+    // A getter fault together with an oversized or non-finite value: the channel
+    // rejects the full result before writing, the worker's bounded fallback
+    // keeps the fault, and the host still reports SdkCallFaulted with each
+    // output's own status.
+    [Theory]
+    [InlineData("oversized")]
+    [InlineData("non-finite")]
+    public void GetterFaultWithAnUndeliverableValueStillMapsToSdkCallFaulted(string undeliverable)
+    {
+        var fault = new WorkerSdkCallFaulted(
+            WorkerSdkCallPhase.OutputGetter,
+            5,
+            UndeliverableValues(undeliverable,
+                new WorkerUnavailableOutput("Count", WorkerMpValueKind.WholeNumber,
+                    WorkerSdkFaultDiagnosticCodes.OutputGetter, WorkerUnavailableOutputReason.SdkCallFaulted)),
+            WorkerSdkFaultDiagnosticCodes.OutputGetter);
+
+        var outcome = FromWorker(ThroughBoundedDelivery(fault));
+        var exception = Assert.Throws<RpcException>(() =>
+            GrpcOperationOutcomeMapper.RequireSuccess(
+                outcome,
+                OperationId,
+                ReplaySafety.Safe,
+                UndeliverableContract,
+                callerDeadlineExceeded: false));
+        var error = Error(exception);
+
+        Assert.Equal(StatusCode.DataLoss, exception.StatusCode);
+        Assert.Equal(OperationFailureKind.SdkCallFaulted, error.Kind);
+        Assert.Equal("sdk-output-getter-faulted", error.DiagnosticCode);
+        Assert.Equal(ExecutionDisposition.Completed, error.ExecutionDisposition);
+        Assert.Equal(RecoveryGuidance.None, error.RecoveryGuidance);
+        Assert.Equal(ReplayGuidance.DoNotReplay, error.ReplayGuidance);
+        Assert.Equal(MpExecutionState.Succeeded, error.MpExecution.State);
+        Assert.Equal(2, error.MpExecution.MpResultCode);
+        var undeliverableField = undeliverable == "oversized" ? "result" : "offset";
+        var retrievedField = undeliverable == "oversized" ? "offset" : "result";
+        var states = error.MpExecution.OutputRetrievals.ToDictionary(retrieval => retrieval.FieldName);
+        Assert.Equal(3, states.Count);
+        Assert.Equal(OutputRetrievalState.Failed, states[undeliverableField].State);
+        Assert.Equal("worker-output-encoding-rejected", states[undeliverableField].DiagnosticCode);
+        Assert.Equal(OutputRetrievalState.Retrieved, states[retrievedField].State);
+        Assert.False(states[retrievedField].HasDiagnosticCode);
+        Assert.Equal(OutputRetrievalState.Failed, states["count"].State);
+        Assert.Equal("sdk-output-getter-faulted", states["count"].DiagnosticCode);
+        var audit = OperationAuditSummary.Create(outcome);
+        Assert.Equal("succeeded", audit.MpOutcome);
+        Assert.Equal("sdk_call_faulted", audit.OutputRetrievalOutcome);
+    }
+
+    // Without an SDK call fault, the same undeliverable values keep today's
+    // OutputRetrievalFailure.
+    [Theory]
+    [InlineData("oversized")]
+    [InlineData("non-finite")]
+    public void UndeliverableValueWithoutAFaultStaysOutputRetrievalFailure(string undeliverable)
+    {
+        var execution = new WorkerMpResultAvailable(
+            2,
+            5,
+            UndeliverableValues(undeliverable,
+                new WorkerRetrievedOutput("Count", WorkerMpValueKind.WholeNumber, new WorkerIntegerValue(3))),
+            null);
+
+        var outcome = FromWorker(ThroughBoundedDelivery(execution));
+        var exception = Assert.Throws<RpcException>(() =>
+            GrpcOperationOutcomeMapper.RequireSuccess(
+                outcome,
+                OperationId,
+                ReplaySafety.Safe,
+                UndeliverableContract,
+                callerDeadlineExceeded: false));
+        var error = Error(exception);
+
+        Assert.Equal(StatusCode.DataLoss, exception.StatusCode);
+        Assert.Equal(OperationFailureKind.OutputRetrievalFailure, error.Kind);
+        Assert.Equal("worker-output-encoding-rejected", error.DiagnosticCode);
+        Assert.Equal(ExecutionDisposition.Completed, error.ExecutionDisposition);
+        Assert.Equal(ReplayGuidance.DoNotReplay, error.ReplayGuidance);
+        Assert.All(error.MpExecution.OutputRetrievals,
+            retrieval => Assert.Equal(OutputRetrievalState.Failed, retrieval.State));
+    }
+
+    // Fail closed: when not even a value-free output list fits the frame bound,
+    // the fault arrives with its per-output evidence withheld and every requested
+    // output is reported as failed. The kind stays SdkCallFaulted.
+    [Fact]
+    public void SdkCallFaultWhosePerOutputEvidenceCannotFitIsStillSdkCallFaulted()
+    {
+        var names = Enumerable.Range(0, 80)
+            .Select(index => $"{index:D2}{new string('n', 1_000)}")
+            .ToArray();
+        OperationOutputContract[] contract =
+        [
+            .. names.Select((name, index) => new OperationOutputContract($"field_{index}", name, WorkerMpValueKind.Text))
+        ];
+        WorkerMpOutputValue[] values =
+        [
+            .. names[..^1].Select(name => new WorkerRetrievedOutput(name, WorkerMpValueKind.Text, new WorkerTextValue("ok"))),
+            new WorkerUnavailableOutput(names[^1], WorkerMpValueKind.Text,
+                WorkerSdkFaultDiagnosticCodes.OutputGetter, WorkerUnavailableOutputReason.SdkCallFaulted)
+        ];
+        var fault = new WorkerSdkCallFaulted(
+            WorkerSdkCallPhase.OutputGetter, 5, values, WorkerSdkFaultDiagnosticCodes.OutputGetter);
+
+        var delivered = ThroughBoundedDelivery(fault);
+        Assert.Empty(Assert.IsType<WorkerSdkCallFaulted>(delivered.Execution).Outputs);
+        var error = Error(Assert.Throws<RpcException>(() =>
+            GrpcOperationOutcomeMapper.RequireSuccess(
+                FromWorker(delivered),
+                OperationId,
+                ReplaySafety.Safe,
+                contract,
+                callerDeadlineExceeded: false)));
+
+        Assert.Equal(OperationFailureKind.SdkCallFaulted, error.Kind);
+        Assert.Equal("sdk-output-getter-faulted", error.DiagnosticCode);
+        Assert.Equal(ExecutionDisposition.Completed, error.ExecutionDisposition);
+        Assert.Equal(80, error.MpExecution.OutputRetrievals.Count);
+        Assert.All(error.MpExecution.OutputRetrievals, retrieval =>
+        {
+            Assert.Equal(OutputRetrievalState.Failed, retrieval.State);
+            Assert.Equal("worker-output-encoding-rejected", retrieval.DiagnosticCode);
+        });
     }
 
     [Fact]
@@ -695,12 +822,53 @@ public sealed class GrpcOperationOutcomeMapperTests
             diagnosticCode ?? "completed",
             Generation: 7);
 
+    private static readonly OperationOutputContract[] UndeliverableContract =
+    [
+        new("offset", "Planar Offset", WorkerMpValueKind.FloatingPoint),
+        new("result", "Result", WorkerMpValueKind.Text),
+        new("count", "Count", WorkerMpValueKind.WholeNumber)
+    ];
+
+    private static WorkerMpOutputValue[] UndeliverableValues(string undeliverable, WorkerMpOutputValue count) =>
+    [
+        new WorkerRetrievedOutput("Planar Offset", WorkerMpValueKind.FloatingPoint,
+            new WorkerDoubleValue(undeliverable == "non-finite" ? double.NaN : 1.25)),
+        new WorkerRetrievedOutput("Result", WorkerMpValueKind.Text, new WorkerTextValue(
+            undeliverable == "oversized" ? new string('x', WorkerControlProtocol.MaximumMessageBytes + 1) : "ok")),
+        count
+    ];
+
+    // Sends the result as the production worker host does: the channel rejects
+    // an unencodable result before writing any bytes, and WorkerExecutionDelivery
+    // supplies the bounded replacement that crosses the channel instead.
+    private static WorkerExecutionResponse ThroughBoundedDelivery(WorkerMpExecutionResult execution)
+    {
+        var correlationId = Guid.NewGuid();
+        var response = new WorkerExecutionResponse(
+            WorkerExecutionResponseStatus.Completed,
+            execution,
+            Connection(WorkerConnectionState.Connected),
+            DiagnosticCode: null);
+        using var stream = new MemoryStream();
+        using var channel = new WorkerControlChannel(stream, leaveOpen: true);
+        Assert.Throws<WorkerMessageRejectedException>(() =>
+            channel.Send(WorkerControlMessage.ExecutionResult(correlationId, response)));
+        Assert.Equal(0, stream.Length);
+        channel.Send(WorkerExecutionDelivery.Undeliverable(correlationId, response));
+        stream.Position = 0;
+        return channel.Receive().ExecutionResponse!;
+    }
+
+    private static WorkerExecutionOutcome FromWorker(WorkerExecutionResponse response) =>
+        WorkerExecutionOutcome.FromWorkerResponse(response, generation: 7, Guid.NewGuid());
+
     private static WorkerSdkCallFaulted SdkCallFault(WorkerSdkCallPhase phase) =>
         new(
             phase,
             5,
             phase == WorkerSdkCallPhase.OutputGetter
-                ? [new WorkerUnavailableOutput("Directory", WorkerMpValueKind.Text, WorkerSdkFaultDiagnosticCodes.OutputGetter)]
+                ? [new WorkerUnavailableOutput("Directory", WorkerMpValueKind.Text,
+                    WorkerSdkFaultDiagnosticCodes.OutputGetter, WorkerUnavailableOutputReason.SdkCallFaulted)]
                 : [],
             WorkerSdkFaultDiagnosticCodes.For(phase));
 
