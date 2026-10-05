@@ -224,6 +224,23 @@ Status text is never parsed to reconstruct policy. Public error values preserve
 the server's execution disposition, recovery guidance, replay guidance, and
 replay-safety classification as separate dimensions.
 
+Clients expose every `OperationFailureKind` value as a distinct typed failure
+kind, never folded into a generic or neighbouring kind. In particular,
+`OPERATION_FAILURE_KIND_SDK_CALL_FAULTED` (17) reports that one SDK call threw
+during the MP sequence. Clients surface it as its own kind and read the proven
+phase from the execution disposition alone:
+
+- `NotStarted`: the fault came before `ExecuteStep`. Replay guidance is
+  `DoNotReplay`; nothing executed, but the SDK just threw, so the client never
+  retries automatically.
+- `StartedOutcomeUnknown`: `ExecuteStep` or MP result retrieval faulted. Replay
+  guidance is `ReconcileBeforeReplay`.
+- `Completed`: an output getter faulted after MP success. Retrieved outputs and
+  the failed output remain distinguishable through output retrieval details.
+
+Clients do not map this kind to `Internal`, `MpResultRetrievalFailure`, or
+`OutputRetrievalFailure`, the interim 0.9.2 representations.
+
 Raw generated and transport error types are not part of the supported shared
 contract. Whether a language retains an underlying diagnostic privately or
 through its conventional cause mechanism is language-specific and must not require
@@ -340,7 +357,7 @@ gRPC server over deterministic fake-worker scenarios for:
 - lifecycle and readiness;
 - exact-target and protocol compatibility;
 - capability subsets;
-- typed operation failures;
+- typed operation failures, including SDK call faults;
 - deadlines and cancellation;
 - disconnection, worker crash, and watchdog replacement;
 - completion ambiguity, replay guidance, and recovery; and

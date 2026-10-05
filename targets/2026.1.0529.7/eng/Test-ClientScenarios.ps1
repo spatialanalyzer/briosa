@@ -226,6 +226,20 @@ $scenarios = @(
         }
     },
     [pscustomobject]@{
+        Worker = "sdk-call-faulted"
+        Client = "sdk-call-faulted"
+        Watchdog = $null
+        DenyOperation = $false
+        Expected = [pscustomobject]@{
+            ReadyForMp = $true
+            GrpcStatus = "INTERNAL"
+            OperationSucceeded = $false
+            TypedErrorObserved = $true
+            RecoverySucceeded = $false
+            FailureKinds = @("SdkCallFaulted")
+        }
+    },
+    [pscustomobject]@{
         Worker = "delay-first-execute"
         Client = "deadline"
         Watchdog = $null

@@ -38,6 +38,7 @@
               "disconnected",
               "mp-failure",
               "output-failure",
+              "sdk-call-faulted",
               "delay-first-execute",
               "hang-first-execute"
             ]

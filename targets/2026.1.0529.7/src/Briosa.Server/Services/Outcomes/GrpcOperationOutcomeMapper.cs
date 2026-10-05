@@ -60,26 +60,14 @@ internal static class GrpcOperationOutcomeMapper
                 outcome.ExecutionDisposition,
                 "worker-result-missing");
 
-        if (execution is WorkerArgumentsRejected
-            {
-                DiagnosticCode: WorkerSdkFaultDiagnosticCodes.BeforeExecute
-            })
+        if (execution is WorkerSdkCallFaulted fault)
         {
-            // An SDK call faulted before ExecuteStep. Nothing rejected the caller's
-            // argument, so this is not SdkArgumentRejected; it remains provably
-            // NotStarted, and the healthy worker needs no replacement.
-            throw CreateFailure(
-                StatusCode.Internal,
+            throw CreateSdkCallFaultedFailure(
+                fault,
                 operationId,
-                OperationFailureKind.Internal,
-                WorkerSdkFaultDiagnosticCodes.BeforeExecute,
-                ExecutionDisposition.NotStarted,
-                RecoveryGuidance.None,
-                ReplayGuidance.DoNotReplay,
                 replaySafety,
                 outcome.Generation,
-                mpExecution: null,
-                "A SpatialAnalyzer SDK call failed before MP execution started.");
+                outputs);
         }
 
         if (!execution.ExecuteStepReturned)
@@ -257,6 +245,78 @@ internal static class GrpcOperationOutcomeMapper
             generation,
             details ?? throw new ArgumentNullException(nameof(details)),
             "Briosa could not map the returned value to the exact-target result contract.");
+
+    // One SDK call threw while the worker stayed healthy, so the worker generation
+    // needs no replacement. The proven phase alone selects the disposition; neither
+    // the status text nor the trailer carries exception text. Even a NotStarted
+    // fault is DoNotReplay: nothing executed, but automatic retry into an SDK that
+    // just threw is not safe.
+    private static RpcException CreateSdkCallFaultedFailure(
+        WorkerSdkCallFaulted fault,
+        string operationId,
+        ReplaySafety replaySafety,
+        int generation,
+        IReadOnlyList<OperationOutputContract> outputs)
+    {
+        var diagnosticCode = NormalizeDiagnosticCode(
+            fault.DiagnosticCode,
+            WorkerSdkFaultDiagnosticCodes.For(fault.Phase));
+        switch (fault.Phase)
+        {
+            case WorkerSdkCallPhase.BeforeExecute:
+                return CreateFailure(
+                    StatusCode.Internal,
+                    operationId,
+                    OperationFailureKind.SdkCallFaulted,
+                    diagnosticCode,
+                    ExecutionDisposition.NotStarted,
+                    RecoveryGuidance.None,
+                    ReplayGuidance.DoNotReplay,
+                    replaySafety,
+                    generation,
+                    mpExecution: null,
+                    "A SpatialAnalyzer SDK call failed before MP execution started.");
+            case WorkerSdkCallPhase.ExecuteStep or WorkerSdkCallPhase.MpResultRetrieval:
+                return CreateFailure(
+                    StatusCode.Internal,
+                    operationId,
+                    OperationFailureKind.SdkCallFaulted,
+                    diagnosticCode,
+                    ExecutionDisposition.StartedOutcomeUnknown,
+                    RecoveryGuidance.None,
+                    ReplayGuidance.ReconcileBeforeReplay,
+                    replaySafety,
+                    generation,
+                    CreateMpDetails(
+                        fault,
+                        outputs,
+                        MpExecutionState.ResultUnavailable,
+                        OutputRetrievalState.NotAttempted),
+                    "A SpatialAnalyzer SDK call failed after MP execution may have started.");
+            case WorkerSdkCallPhase.OutputGetter when OutputsMatch(outputs, fault.Outputs):
+                return CreateFailure(
+                    StatusCode.DataLoss,
+                    operationId,
+                    OperationFailureKind.SdkCallFaulted,
+                    diagnosticCode,
+                    ExecutionDisposition.Completed,
+                    RecoveryGuidance.None,
+                    ReplayGuidance.DoNotReplay,
+                    replaySafety,
+                    generation,
+                    CreateSuccessfulMpDetails(fault, outputs),
+                    "The MP command succeeded, but a SpatialAnalyzer SDK call failed while retrieving its outputs.");
+            default:
+                return CreateInternalFailure(
+                    operationId,
+                    replaySafety,
+                    generation,
+                    fault.Phase == WorkerSdkCallPhase.OutputGetter
+                        ? WorkerExecutionDisposition.Completed
+                        : WorkerExecutionDisposition.StartedOutcomeUnknown,
+                    "worker-output-shape-invalid");
+        }
+    }
 
     private static RpcException CreateTransportFailure(
         WorkerExecutionOutcome outcome,

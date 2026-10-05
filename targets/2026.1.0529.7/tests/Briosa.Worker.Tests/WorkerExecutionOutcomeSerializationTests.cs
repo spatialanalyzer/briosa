@@ -45,7 +45,15 @@ public sealed class WorkerExecutionOutcomeSerializationTests
             new WorkerMpOutputsUnavailable(4, "worker-output-encoding-rejected"),
             new WorkerMpResultAvailable(-1, 4, [], "mp-failed"),
             new WorkerMpResultAvailable(2, 5,
-                [new WorkerRetrievedOutput("Value", WorkerMpValueKind.FloatingPoint, new WorkerDoubleValue(0))], null)
+                [new WorkerRetrievedOutput("Value", WorkerMpValueKind.FloatingPoint, new WorkerDoubleValue(0))], null),
+            new WorkerSdkCallFaulted(WorkerSdkCallPhase.BeforeExecute, 6, [], WorkerSdkFaultDiagnosticCodes.BeforeExecute),
+            new WorkerSdkCallFaulted(WorkerSdkCallPhase.ExecuteStep, 7, [], WorkerSdkFaultDiagnosticCodes.ExecuteStep),
+            new WorkerSdkCallFaulted(WorkerSdkCallPhase.MpResultRetrieval, 8, [], WorkerSdkFaultDiagnosticCodes.MpResultRetrieval),
+            new WorkerSdkCallFaulted(WorkerSdkCallPhase.OutputGetter, 9,
+                [
+                    new WorkerUnavailableOutput("Missing", WorkerMpValueKind.Text),
+                    new WorkerRetrievedOutput("Value", WorkerMpValueKind.FloatingPoint, new WorkerDoubleValue(1))
+                ], WorkerSdkFaultDiagnosticCodes.OutputGetter)
         ];
         foreach (var outcome in outcomes)
         {
@@ -70,7 +78,79 @@ public sealed class WorkerExecutionOutcomeSerializationTests
             Assert.Equal(outcome.MpResultCode, decoded.MpResultCode);
             Assert.Equal(outcome.DurationMilliseconds, decoded.DurationMilliseconds);
             Assert.Equal(outcome.OutputValues, decoded.OutputValues);
+            Assert.Equal(outcome.DiagnosticCode, decoded.DiagnosticCode);
+            if (outcome is WorkerSdkCallFaulted fault)
+            {
+                Assert.Equal(fault.Phase, Assert.IsType<WorkerSdkCallFaulted>(decoded).Phase);
+            }
         }
+    }
+
+    // A missing, zero, or unknown phase must never decode as a NotStarted fault.
+    [Theory]
+    [InlineData(null)]
+    [InlineData(0)]
+    [InlineData(5)]
+    public void SdkCallFaultWithoutAKnownPhaseIsAChannelFailure(int? phase)
+    {
+        var execution = new Dictionary<string, object?>
+        {
+            ["outcome"] = "sdk-call-faulted",
+            ["durationMilliseconds"] = 1,
+            ["outputs"] = Array.Empty<object>(),
+            ["diagnosticCode"] = WorkerSdkFaultDiagnosticCodes.BeforeExecute
+        };
+        if (phase is not null)
+        {
+            execution["phase"] = phase;
+        }
+
+        var payload = JsonSerializer.SerializeToUtf8Bytes(new
+        {
+            ProtocolVersion = WorkerControlProtocol.CurrentVersion,
+            Kind = WorkerControlMessageKind.ExecutionResult,
+            CorrelationId = Guid.NewGuid(),
+            ExecutionResponse = new
+            {
+                Status = WorkerExecutionResponseStatus.Completed,
+                Execution = execution,
+                Connection = new WorkerConnectionSnapshot(WorkerConnectionState.Disconnected,
+                    WorkerExecutionReadinessState.Unverified, null, 0, 1, "disconnected", DateTimeOffset.UnixEpoch)
+            }
+        }, JsonSerializerOptions.Web);
+        using var stream = new MemoryStream();
+        Span<byte> header = stackalloc byte[sizeof(int)];
+        BinaryPrimitives.WriteInt32LittleEndian(header, payload.Length);
+        stream.Write(header);
+        stream.Write(payload);
+        stream.Position = 0;
+        using var channel = new WorkerControlChannel(stream, leaveOpen: true);
+        Assert.Throws<InvalidDataException>(() => channel.Receive());
+    }
+
+    [Theory]
+    [InlineData((int)WorkerSdkCallPhase.BeforeExecute, true)]
+    [InlineData((int)WorkerSdkCallPhase.ExecuteStep, true)]
+    [InlineData((int)WorkerSdkCallPhase.MpResultRetrieval, true)]
+    [InlineData((int)WorkerSdkCallPhase.OutputGetter, false)]
+    public void SdkCallFaultOutputsMustMatchItsPhase(int phase, bool withRetrievedOutput)
+    {
+        WorkerMpOutputValue[] outputs = withRetrievedOutput
+            ? [new WorkerRetrievedOutput("Value", WorkerMpValueKind.FloatingPoint, new WorkerDoubleValue(1))]
+            : [];
+        Assert.Throws<ArgumentException>(() => new WorkerSdkCallFaulted(
+            (WorkerSdkCallPhase)phase, 0, outputs, "sdk-call-faulted"));
+    }
+
+    [Fact]
+    public void SdkCallFaultRequiresAnUnavailableGetterOutputAndADiagnosticCode()
+    {
+        Assert.Throws<ArgumentException>(() => new WorkerSdkCallFaulted(
+            WorkerSdkCallPhase.OutputGetter, 0,
+            [new WorkerRetrievedOutput("Value", WorkerMpValueKind.FloatingPoint, new WorkerDoubleValue(1))],
+            WorkerSdkFaultDiagnosticCodes.OutputGetter));
+        Assert.Throws<ArgumentException>(() => new WorkerSdkCallFaulted(
+            WorkerSdkCallPhase.ExecuteStep, 0, [], " "));
     }
 
     [Theory]

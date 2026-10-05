@@ -73,8 +73,11 @@ internal sealed record WorkerExecutionOutcome
             correlationId);
     }
 
+    // An SDK call fault proves its phase: before ExecuteStep nothing started, and
+    // only an output-getter fault follows a retrieved MP result.
     private static WorkerExecutionDisposition DispositionFor(WorkerMpExecutionResult execution) =>
-        execution is WorkerArgumentsRejected
+        execution is WorkerArgumentsRejected or
+            WorkerSdkCallFaulted { Phase: WorkerSdkCallPhase.BeforeExecute }
             ? WorkerExecutionDisposition.NotStarted
             : execution.MpResultRetrieved
                 ? WorkerExecutionDisposition.Completed

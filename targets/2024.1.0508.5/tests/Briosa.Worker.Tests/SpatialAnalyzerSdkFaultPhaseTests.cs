@@ -28,9 +28,9 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         var result = ExecuteOnce(calls);
 
         Assert.Equal(["SetStep:Fault Phase"], calls.Events);
-        var rejected = Assert.IsType<WorkerArgumentsRejected>(result);
-        Assert.Equal(WorkerSdkFaultDiagnosticCodes.BeforeExecute, rejected.DiagnosticCode);
+        AssertFault(result, WorkerSdkCallPhase.BeforeExecute);
         Assert.False(result.ExecuteStepReturned);
+        Assert.Null(result.MpResultCode);
         Assert.Empty(result.OutputValues);
     }
 
@@ -46,9 +46,9 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         string[] setters = ["SetStringArg:First", "SetIntegerArg:Second", "SetBoolArg:Third"];
         string[] expected = ["SetStep:Fault Phase", .. setters.Take(ordinal)];
         Assert.Equal(expected, calls.Events);
-        var rejected = Assert.IsType<WorkerArgumentsRejected>(result);
-        Assert.Equal(WorkerSdkFaultDiagnosticCodes.BeforeExecute, rejected.DiagnosticCode);
-        Assert.NotEqual("sdk-argument-rejected", rejected.DiagnosticCode);
+        AssertFault(result, WorkerSdkCallPhase.BeforeExecute);
+        Assert.False(result.ExecuteStepReturned);
+        Assert.NotEqual("sdk-argument-rejected", result.DiagnosticCode);
     }
 
     [Fact]
@@ -58,10 +58,11 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         var result = ExecuteOnce(calls);
 
         Assert.Equal("ExecuteStep", calls.Events[^1]);
-        var unavailable = Assert.IsType<WorkerMpResultUnavailable>(result);
-        Assert.Equal(WorkerSdkFaultDiagnosticCodes.ExecuteStep, unavailable.DiagnosticCode);
+        AssertFault(result, WorkerSdkCallPhase.ExecuteStep);
+        Assert.False(result.ExecuteStepReturned);
         Assert.False(result.MpResultRetrieved);
         Assert.Null(result.MpResultCode);
+        Assert.Empty(result.OutputValues);
     }
 
     [Fact]
@@ -71,9 +72,10 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         var result = ExecuteOnce(calls);
 
         Assert.Equal(["ExecuteStep", "GetMPStepResult"], calls.Events.TakeLast(2));
-        var unavailable = Assert.IsType<WorkerMpResultUnavailable>(result);
-        Assert.Equal(WorkerSdkFaultDiagnosticCodes.MpResultRetrieval, unavailable.DiagnosticCode);
+        AssertFault(result, WorkerSdkCallPhase.MpResultRetrieval);
+        Assert.True(result.ExecuteStepReturned);
         Assert.False(result.MpResultRetrieved);
+        Assert.Null(result.MpResultCode);
         Assert.Empty(result.OutputValues);
     }
 
@@ -89,10 +91,10 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         Assert.Equal(
             ["GetDoubleArg:Planar Offset", "GetStringArg:Result", "GetIntegerArg:Count"],
             calls.Events.TakeLast(3));
-        var available = Assert.IsType<WorkerMpResultAvailable>(result);
-        Assert.Equal(2, available.ResultCode);
+        var fault = AssertFault(result, WorkerSdkCallPhase.OutputGetter);
+        Assert.Equal(2, result.MpResultCode);
         Assert.True(result.MpSucceeded);
-        Assert.Equal(WorkerSdkFaultDiagnosticCodes.OutputGetter, result.DiagnosticCode);
+        Assert.Equal(fault.Outputs, result.OutputValues);
         for (var index = 0; index < result.OutputValues.Count; index++)
         {
             var output = result.OutputValues[index];
@@ -102,6 +104,21 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
 
         var faulted = Assert.IsType<WorkerUnavailableOutput>(result.OutputValues[ordinal - 1]);
         Assert.Equal(WorkerSdkFaultDiagnosticCodes.OutputGetter, faulted.DiagnosticCode);
+    }
+
+    [Fact]
+    public void AGetterFaultIsReportedEvenWhenAnotherGetterOnlyReturnedFalse()
+    {
+        using var calls = new RecordingSdkCalls
+        {
+            FaultPhase = SdkFaultPhase.Getter,
+            FaultOrdinal = 1,
+            FailedOutputName = "Result"
+        };
+        var result = ExecuteOnce(calls);
+
+        AssertFault(result, WorkerSdkCallPhase.OutputGetter);
+        Assert.Equal([false, false, true], result.OutputValues.Select(output => output.Retrieved));
     }
 
     [Theory]
@@ -129,10 +146,21 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         }
 
         var encoded = Encoding.UTF8.GetString(stream.ToArray());
+        Assert.Contains("\"outcome\":\"sdk-call-faulted\"", encoded, StringComparison.Ordinal);
         Assert.Contains(result.DiagnosticCode!, encoded, StringComparison.Ordinal);
         Assert.DoesNotContain("Sensitive", encoded, StringComparison.Ordinal);
         Assert.DoesNotContain("fault text", encoded, StringComparison.Ordinal);
         Assert.DoesNotContain("Sensitive", result.ToString(), StringComparison.Ordinal);
+
+        stream.Position = 0;
+        using var reader = new WorkerControlChannel(stream, leaveOpen: true);
+        var decoded = Assert.IsType<WorkerSdkCallFaulted>(reader.Receive().ExecutionResponse!.Execution);
+        var sent = Assert.IsType<WorkerSdkCallFaulted>(result);
+        Assert.Equal(sent.Phase, decoded.Phase);
+        Assert.Equal(sent.DiagnosticCode, decoded.DiagnosticCode);
+        Assert.Equal(sent.ExecuteStepReturned, decoded.ExecuteStepReturned);
+        Assert.Equal(sent.MpResultCode, decoded.MpResultCode);
+        Assert.Equal(sent.Outputs.Select(output => output.Retrieved), decoded.Outputs.Select(output => output.Retrieved));
     }
 
     [Theory]
@@ -164,7 +192,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         };
         using var adapter = new SpatialAnalyzerSdkAdapter(calls);
 
-        Assert.IsType<WorkerMpResultUnavailable>(adapter.Execute(FaultPhaseCommand));
+        AssertFault(adapter.Execute(FaultPhaseCommand), WorkerSdkCallPhase.ExecuteStep);
         var next = adapter.Execute(new WorkerMpCommand(
             "next", "Next", [], [new WorkerMpOutputArgument("Result", WorkerMpValueKind.Text)]));
 
@@ -192,6 +220,14 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
 
         Assert.Equal(SdkExecutionReadinessState.OperatorRecoveryRequired, verified.ExecutionReadinessState);
         Assert.Equal("execution-readiness-probe-failed", verified.DiagnosticCode);
+    }
+
+    private static WorkerSdkCallFaulted AssertFault(WorkerMpExecutionResult result, WorkerSdkCallPhase phase)
+    {
+        var fault = Assert.IsType<WorkerSdkCallFaulted>(result);
+        Assert.Equal(phase, fault.Phase);
+        Assert.Equal(WorkerSdkFaultDiagnosticCodes.For(phase), fault.DiagnosticCode);
+        return fault;
     }
 
     private static RecordingSdkCalls FaultAt(SdkFaultPhase phase, int ordinal = 1) =>

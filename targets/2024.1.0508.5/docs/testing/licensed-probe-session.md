@@ -106,6 +106,12 @@ death) are not included. They need their own authorization.
   | `MpResultUnavailable`: `ExecuteStep` returned true; `GetMPStepResult` returned false | Started, outcome unknown | Never |
   | `Indeterminate`: timeout, cancellation, lost channel, or untyped failure | Started, outcome unknown | Never |
 
+  An SDK call that throws is classified by its proven phase, as the shipped
+  server reports `SdkCallFaulted`: a fault before `ExecuteStep` is `NotStarted`
+  and is not accepted; a fault in `ExecuteStep` or `GetMPStepResult` is
+  `Indeterminate`; a getter fault after MP code `2` is `OutputRetrievalFailed`.
+  The record keeps the value-free `sdk-*-faulted` diagnostic code.
+
   The dispositions match the shipped server. Anything not accepted stops the
   session and leaves the remaining steps not run. This includes a not-started
   refusal, an unmet requirement, and every outcome whose completion is unknown.

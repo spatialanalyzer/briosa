@@ -84,9 +84,7 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
         }
         catch (Exception exception) when (IsPerCallSdkFault(exception))
         {
-            return new WorkerArgumentsRejected(
-                (long)Stopwatch.GetElapsedTime(started).TotalMilliseconds,
-                WorkerSdkFaultDiagnosticCodes.BeforeExecute);
+            return SdkCallFaulted(WorkerSdkCallPhase.BeforeExecute, started);
         }
 
         bool executeStepReturned;
@@ -96,9 +94,7 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
         }
         catch (Exception exception) when (IsPerCallSdkFault(exception))
         {
-            return new WorkerMpResultUnavailable(
-                (long)Stopwatch.GetElapsedTime(started).TotalMilliseconds,
-                WorkerSdkFaultDiagnosticCodes.ExecuteStep);
+            return SdkCallFaulted(WorkerSdkCallPhase.ExecuteStep, started);
         }
 
         var mpResultRetrieved = false;
@@ -111,9 +107,7 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
             }
             catch (Exception exception) when (IsPerCallSdkFault(exception))
             {
-                return new WorkerMpResultUnavailable(
-                    (long)Stopwatch.GetElapsedTime(started).TotalMilliseconds,
-                    WorkerSdkFaultDiagnosticCodes.MpResultRetrieval);
+                return SdkCallFaulted(WorkerSdkCallPhase.MpResultRetrieval, started);
             }
         }
 
@@ -138,6 +132,17 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
         }
 
         var durationMilliseconds = (long)Stopwatch.GetElapsedTime(started).TotalMilliseconds;
+        if (outputValues.Any(IsFaultedOutput))
+        {
+            // A faulted getter is reported as the SDK fault it is, keeping every
+            // output (retrieved or not) in request order.
+            return new WorkerSdkCallFaulted(
+                WorkerSdkCallPhase.OutputGetter,
+                durationMilliseconds,
+                outputValues,
+                WorkerSdkFaultDiagnosticCodes.OutputGetter);
+        }
+
         if (!executeStepReturned) return new WorkerExecuteRejected(durationMilliseconds, diagnosticCode);
         if (!mpResultRetrieved) return new WorkerMpResultUnavailable(durationMilliseconds, diagnosticCode);
         return new WorkerMpResultAvailable(resultCode, durationMilliseconds, outputValues, diagnosticCode);
@@ -269,6 +274,16 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
                 SetVectorNameList(sdk, argument.Name, value),
             _ => SetSpecializedInputArgument(sdk, argument)
         };
+
+    private static WorkerSdkCallFaulted SdkCallFaulted(WorkerSdkCallPhase phase, long started) =>
+        new(
+            phase,
+            (long)Stopwatch.GetElapsedTime(started).TotalMilliseconds,
+            [],
+            WorkerSdkFaultDiagnosticCodes.For(phase));
+
+    private static bool IsFaultedOutput(WorkerMpOutputValue output) =>
+        output is WorkerUnavailableOutput { DiagnosticCode: WorkerSdkFaultDiagnosticCodes.OutputGetter };
 
     // Faults that leave the adapter, its STA, or the process untrustworthy. They
     // are never converted into a typed per-call outcome.

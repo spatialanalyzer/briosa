@@ -110,6 +110,7 @@ try {
         "capability-denied",
         "mp-failure",
         "output-failure",
+        "sdk-call-faulted",
         "deadline",
         "cancellation",
         "watchdog-recovery",

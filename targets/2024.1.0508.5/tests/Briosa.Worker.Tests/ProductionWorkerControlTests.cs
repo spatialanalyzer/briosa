@@ -154,19 +154,23 @@ public sealed class ProductionWorkerControlTests
             Assert.Equal(diagnosticCode, execution.DiagnosticCode);
             Assert.Equal(WorkerExecutionReadinessState.ExecutionReady,
                 response.ExecutionResponse.Connection.ExecutionReadinessState);
-            switch (phase)
+            var fault = Assert.IsType<WorkerSdkCallFaulted>(execution);
+            Assert.Equal(phase switch
             {
-                case SpatialAnalyzerSdkAdapterTests.SdkFaultPhase.SetStep or
-                    SpatialAnalyzerSdkAdapterTests.SdkFaultPhase.Setter:
-                    Assert.IsType<WorkerArgumentsRejected>(execution);
-                    break;
-                case SpatialAnalyzerSdkAdapterTests.SdkFaultPhase.Getter:
-                    Assert.True(execution.MpSucceeded);
-                    Assert.False(Assert.Single(execution.OutputValues).Retrieved);
-                    break;
-                default:
-                    Assert.IsType<WorkerMpResultUnavailable>(execution);
-                    break;
+                SpatialAnalyzerSdkAdapterTests.SdkFaultPhase.SetStep or
+                    SpatialAnalyzerSdkAdapterTests.SdkFaultPhase.Setter => WorkerSdkCallPhase.BeforeExecute,
+                SpatialAnalyzerSdkAdapterTests.SdkFaultPhase.ExecuteStep => WorkerSdkCallPhase.ExecuteStep,
+                SpatialAnalyzerSdkAdapterTests.SdkFaultPhase.GetMPStepResult => WorkerSdkCallPhase.MpResultRetrieval,
+                _ => WorkerSdkCallPhase.OutputGetter
+            }, fault.Phase);
+            if (phase == SpatialAnalyzerSdkAdapterTests.SdkFaultPhase.Getter)
+            {
+                Assert.True(execution.MpSucceeded);
+                Assert.False(Assert.Single(execution.OutputValues).Retrieved);
+            }
+            else
+            {
+                Assert.Empty(execution.OutputValues);
             }
 
             Assert.Equal(WorkerControlMessageKind.Pong,
