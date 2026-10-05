@@ -949,7 +949,7 @@
       "old_name": "overwrite_existing_file_false_append",
       "new_name": "overwrite_existing_file",
       "mp_label": "Overwrite existing file? (FALSE = Append)",
-      "note": "False appends to the existing file."
+      "note": "False fails if the file already exists; it does not append."
     },
     {
       "operation_id": "file_operations.export_vector_container_to_ascii_file",

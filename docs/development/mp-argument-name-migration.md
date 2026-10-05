@@ -95,7 +95,7 @@ See the [cross-product validation record and release sequence](mp-argument-name-
 | Direct CAD Access | input | `cad_file_units_leave_blank_to_use_the_units_specified_in_the_file` | `cad_file_units` | An empty value uses the units specified in the file. | Both targets |
 | Export ASCII Point Set | input | `maximum_precision_scientific_notation` | `maximum_precision` | MP qualifier: Scientific Notation. | Both targets |
 | Export ASCII Points | input | `maximum_precision_scientific_notation` | `maximum_precision` | MP qualifier: Scientific Notation. | Both targets |
-| Export Vector Container to ASCII File | input | `overwrite_existing_file_false_append` | `overwrite_existing_file` | False appends to the existing file. | Both targets |
+| Export Vector Container to ASCII File | input | `overwrite_existing_file_false_append` | `overwrite_existing_file` | False fails if the file already exists; it does not append. | Both targets |
 | Export Vector Container to ASCII File | input | `use_full_precision_scientific_notation` | `use_full_precision` | MP qualifier: Scientific Notation. | Both targets |
 | Import SA File | input | `selected_collections_optional` | `selected_collections` | Optional in the MP editor; the existing API presence and omission behavior is unchanged. | Both targets |
 | Make GD&T Feature Check Annotation | input | `per_unit_area_length_distance` | `per_unit_length_distance` | MP qualifier: area. | Both targets |
