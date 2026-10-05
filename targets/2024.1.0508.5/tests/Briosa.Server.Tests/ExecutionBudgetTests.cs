@@ -389,7 +389,7 @@ public sealed class ExecutionBudgetTests
         Assert.Equal(TimeSpan.FromSeconds(30), options.ExecutionWatchdogTimeout);
         Assert.Equal(TimeSpan.FromMinutes(10), options.LongRunningExecutionWatchdogTimeout);
         Assert.Equal(TimeSpan.FromMinutes(30), options.InteractiveExecutionWatchdogTimeout);
-        Assert.Equal(TimeSpan.FromSeconds(10), options.ReadinessProbeTimeout);
+        Assert.Equal(TimeSpan.FromSeconds(30), options.ReadinessProbeTimeout);
         Assert.Equal(TimeSpan.FromSeconds(10), options.StartupTimeout);
         Assert.Equal(options.ExecutionWatchdogTimeout, supervisor.ExecutionPolicy.WatchdogTimeout);
         Assert.Equal(options.LongRunningExecutionWatchdogTimeout,
@@ -421,6 +421,32 @@ public sealed class ExecutionBudgetTests
         Assert.Equal(TimeSpan.FromSeconds(40), supervisor.LifecyclePolicy.StartupTimeout);
         Assert.True(supervisor.ExecutionPolicy.TryGetExecutionBudget(LongRunningOperation, out _, out var budget));
         Assert.Equal(TimeSpan.FromMinutes(20), budget);
+    }
+
+    // The probe and quick defaults are both 30 s, so independence is proved by
+    // configuring one and observing that the other does not follow it.
+    [Theory]
+    [InlineData(WorkerProcessOptions.ExecutionWatchdogTimeoutKey, "00:02:00")]
+    [InlineData(WorkerProcessOptions.ReadinessProbeTimeoutKey, "00:00:05")]
+    public async Task ReadinessProbeBoundAndQuickWatchdogAreConfiguredIndependently(string key, string value)
+    {
+        var provider = BuildProvider(new Dictionary<string, string?> { [key] = value });
+        await using var providerScope = provider.ConfigureAwait(true);
+        var supervisor = provider.GetRequiredService<WorkerProcessSupervisor>();
+        var configured = TimeSpan.Parse(value, System.Globalization.CultureInfo.InvariantCulture);
+
+        if (key == WorkerProcessOptions.ExecutionWatchdogTimeoutKey)
+        {
+            Assert.Equal(configured, supervisor.ExecutionPolicy.WatchdogTimeout);
+            Assert.Equal(WorkerProcessOptions.DefaultReadinessProbeTimeout,
+                supervisor.LifecyclePolicy.ReadinessProbeTimeout);
+        }
+        else
+        {
+            Assert.Equal(configured, supervisor.LifecyclePolicy.ReadinessProbeTimeout);
+            Assert.Equal(WorkerProcessOptions.DefaultExecutionWatchdogTimeout,
+                supervisor.ExecutionPolicy.WatchdogTimeout);
+        }
     }
 
     [Theory]

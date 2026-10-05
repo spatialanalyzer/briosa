@@ -32,8 +32,12 @@ internal sealed record WorkerProcessOptions(
     /// <summary>Execution budget for <c>interactive</c> operations.</summary>
     internal static readonly TimeSpan DefaultInteractiveExecutionWatchdogTimeout = TimeSpan.FromMinutes(30);
 
-    /// <summary>Bound for the private execution-readiness probe exchange.</summary>
-    internal static readonly TimeSpan DefaultReadinessProbeTimeout = TimeSpan.FromSeconds(10);
+    /// <summary>
+    /// Bound for the private execution-readiness probe exchange. It keeps the
+    /// probe's earlier effective bound (the 30 s execution watchdog it used to
+    /// share); no licensed evidence yet supports a shorter first-call bound.
+    /// </summary>
+    internal static readonly TimeSpan DefaultReadinessProbeTimeout = TimeSpan.FromSeconds(30);
 
     /// <summary>Bound for worker launch, COM activation, Ready, and ConnectEx.</summary>
     internal static readonly TimeSpan DefaultStartupTimeout = TimeSpan.FromSeconds(10);
