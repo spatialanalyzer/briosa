@@ -189,8 +189,8 @@ public sealed class WorkerProcessSupervisorTests
                 2 => "hang-on-verify",
                 _ => "normal"
             }),
-            CreatePolicy(),
-            CreateExecutionPolicy(TimeSpan.FromMilliseconds(150)),
+            CreatePolicy(readinessProbeTimeout: TimeSpan.FromMilliseconds(150)),
+            CreateExecutionPolicy(),
             timeProvider: clock);
 
         Assert.True((await StartWithinProcessBound(supervisor)).Succeeded, supervisor.Current.DiagnosticCode);
@@ -234,8 +234,10 @@ public sealed class WorkerProcessSupervisorTests
         var clock = new HeartbeatTestClock();
         await using var supervisor = CreateSupervisor(
             generation => CreateLaunch(generation == 1 ? firstScenario : "normal"),
-            CreatePolicy(heartbeatInterval: TimeSpan.FromSeconds(10)),
-            CreateExecutionPolicy(TimeSpan.FromMilliseconds(150)),
+            CreatePolicy(
+                heartbeatInterval: TimeSpan.FromSeconds(10),
+                readinessProbeTimeout: TimeSpan.FromMilliseconds(150)),
+            CreateExecutionPolicy(),
             timeProvider: clock);
 
         var starting = supervisor.StartAsync();
@@ -298,8 +300,9 @@ public sealed class WorkerProcessSupervisorTests
     {
         await using var supervisor = CreateSupervisor(
             _ => CreateLaunch("hang-on-verify"),
-            CreatePolicy(heartbeatInterval: TimeSpan.FromSeconds(10)),
-            CreateExecutionPolicy(TimeSpan.FromSeconds(5)));
+            CreatePolicy(
+                heartbeatInterval: TimeSpan.FromSeconds(10),
+                readinessProbeTimeout: TimeSpan.FromSeconds(5)));
         using var cancellation = new CancellationTokenSource();
 
         var starting = supervisor.StartAsync(cancellation.Token);
@@ -1387,7 +1390,8 @@ public sealed class WorkerProcessSupervisorTests
         int queueCapacity = 16) =>
         new(
             watchdogTimeout ?? TimeSpan.FromSeconds(2),
-            queueCapacity);
+            queueCapacity,
+            durationClassOf: TestDurationClasses.ReviewedOrSyntheticQuick);
 
     // Virtual-time tests fire server-side deadlines explicitly, but a real fake
     // worker process must still start and exit within a generous real bound.
@@ -1403,13 +1407,15 @@ public sealed class WorkerProcessSupervisorTests
     private static WorkerLifecyclePolicy CreatePolicy(
         TimeSpan? heartbeatInterval = null,
         TimeSpan? shutdownTimeout = null,
-        int lifecycleHistoryCapacity = 256) =>
+        int lifecycleHistoryCapacity = 256,
+        TimeSpan? readinessProbeTimeout = null) =>
         new(
             heartbeatInterval ?? HeartbeatInterval,
             heartbeatTimeout: HeartbeatTimeout,
             startupTimeout: TimeSpan.FromSeconds(5),
             shutdownTimeout ?? TimeSpan.FromMilliseconds(500),
-            lifecycleHistoryCapacity);
+            lifecycleHistoryCapacity,
+            readinessProbeTimeout);
 
     private static async Task<WorkerExecutionSnapshot> WaitForExecution(
         WorkerProcessSupervisor supervisor,

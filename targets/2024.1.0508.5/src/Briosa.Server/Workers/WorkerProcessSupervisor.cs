@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Text.Json;
 using Briosa.Server.Operations;
+using Briosa.Server.Security;
 using Briosa.Server.Services;
 using Briosa.Worker.Control;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -57,7 +58,7 @@ internal sealed partial class WorkerProcessSupervisor :
         _processFactory = processFactory;
         _policy = policy;
         _executionPolicy = executionPolicy ?? new WorkerExecutionPolicy(
-            TimeSpan.FromSeconds(30),
+            WorkerProcessOptions.DefaultExecutionWatchdogTimeout,
             queueCapacity: 64);
         _identityPolicy = identityPolicy ?? ExactTargetIdentityPolicy.CreateRuntimeOnly(
             SpatialAnalyzerApi.TargetVersion);
@@ -98,6 +99,10 @@ internal sealed partial class WorkerProcessSupervisor :
             }
         }
     }
+
+    internal WorkerLifecyclePolicy LifecyclePolicy => _policy;
+
+    internal WorkerExecutionPolicy ExecutionPolicy => _executionPolicy;
 
     public WorkerExecutionSnapshot ExecutionSnapshot => new(
         _executionPolicy.QueueCapacity,
@@ -505,6 +510,16 @@ internal sealed partial class WorkerProcessSupervisor :
                 WorkerExecutionDisposition.NotStarted);
         }
 
+        // The host chooses the execution budget from the reviewed duration class
+        // before admission. An operation without one never executes.
+        if (!_executionPolicy.TryGetExecutionBudget(
+                submission.OperationId, out var durationClass, out var executionBudget))
+        {
+            return new WorkerExecutionOutcome(WorkerExecutionStatus.PolicyDenied,
+                WorkerExecutionDisposition.NotStarted, null, Current.Connection,
+                "operation-duration-unreviewed", Current.Generation, effectiveCorrelationId);
+        }
+
         var queue = _executionQueue;
         var snapshot = Current;
         if (queue is null || queue.IsClosed || queue.Generation != snapshot.Generation ||
@@ -537,7 +552,8 @@ internal sealed partial class WorkerProcessSupervisor :
             cancellationToken.ThrowIfCancellationRequested();
             queue.CancellationToken.ThrowIfCancellationRequested();
             item = new ExecutionWorkItem(command, effectiveCorrelationId, queue.Generation,
-                Activity.Current?.Context ?? default, submission.RetainedBytes);
+                Activity.Current?.Context ?? default, submission.RetainedBytes,
+                durationClass, executionBudget);
             if (!queue.TryWrite(item))
             {
                 return Unavailable(
@@ -776,14 +792,16 @@ internal sealed partial class WorkerProcessSupervisor :
 
             // A cancelled length-prefixed exchange cannot safely share its pipe with Stop.
             // Runtime-loop cancellation stops admission; this operation's watchdog owns
-            // cancellation after the request enters the channel.
+            // cancellation after the request enters the channel. Its budget was
+            // chosen at admission from the operation's reviewed duration class.
             using var watchdog = new CancellationTokenSource(
-                _executionPolicy.WatchdogTimeout, _timeProvider);
+                item.ExecutionBudget, _timeProvider);
             try
             {
                 exchangeStarted = _timeProvider.GetTimestamp();
                 exchange = BriosaTelemetry.Start("briosa.worker.exchange", command.OperationId, item.ParentContext);
-                LogExecutionDispatched(correlationId, command.OperationId, generation);
+                LogExecutionDispatched(correlationId, command.OperationId, generation,
+                    item.DurationClass, item.ExecutionBudget.TotalMilliseconds);
                 requestMayHaveStarted = true;
                 item.DispatchDisposition = WorkerExecutionDisposition.StartedOutcomeUnknown;
                 var executionResponse = await WorkerCommandExchange.RunAsync(
@@ -1079,7 +1097,8 @@ internal sealed partial class WorkerProcessSupervisor :
         CancellationToken cancellationToken)
     {
         var worker = Worker ?? throw new InvalidOperationException("The worker is missing.");
-        using var deadline = new CancellationTokenSource(_executionPolicy.WatchdogTimeout, _timeProvider);
+        // The probe has its own bound; duration-class execution budgets never apply.
+        using var deadline = new CancellationTokenSource(_policy.ReadinessProbeTimeout, _timeProvider);
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, deadline.Token);
         var correlationId = Guid.NewGuid();
         try
@@ -1491,8 +1510,9 @@ internal sealed partial class WorkerProcessSupervisor :
         connection.Failure != WorkerConnectionFailure.None;
 
     [LoggerMessage(EventId = 1300, Level = LogLevel.Information,
-        Message = "Dispatch {CorrelationId} operation {OperationId} on generation {Generation}.")]
-    private partial void LogExecutionDispatched(Guid correlationId, string operationId, int generation);
+        Message = "Dispatch {CorrelationId} operation {OperationId} on generation {Generation} with duration class {DurationClass} and execution budget {ExecutionBudgetMilliseconds} ms.")]
+    private partial void LogExecutionDispatched(Guid correlationId, string operationId, int generation,
+        OperationDurationClass durationClass, double executionBudgetMilliseconds);
 
     [LoggerMessage(EventId = 1301,
         Message = "Execution resolved {CorrelationId} operation {OperationId} generation {Generation}: disposition {ExecutionDisposition}, MP retrieved {MpResultRetrieved}, code {MpResultCode}, outcome {MpOutcome}, outputs {OutputRetrievalOutcome}, SDK {SdkDurationMilliseconds} ms, admission {AdmissionMilliseconds} ms, queue {QueueMilliseconds} ms, exchange {ExchangeMilliseconds} ms, replay {ReplaySafety}, diagnostic {DiagnosticCode}.")]

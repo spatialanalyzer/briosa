@@ -125,8 +125,11 @@ executed later, after the caller has received `StartedOutcomeUnknown`. The queue
 also drains any later worker response so the private pipe cannot become
 desynchronized.
 
-The independent execution watchdog protects worker availability. When it expires,
-the supervisor terminates the worker process tree and requires an explicit
+The independent execution watchdog protects worker availability. Its budget is
+chosen on the server from the operation's reviewed duration class (`quick`,
+`long_running`, or `interactive`); an operation without one is not executed.
+The readiness probe and worker startup have separate bounds. When the watchdog
+expires, the supervisor terminates the worker process tree and requires an explicit
 generation-checked SDK recovery request. There is no automatic restart budget.
 The affected operation remains
 `StartedOutcomeUnknown`. A watchdog timeout is not reported as the caller's
