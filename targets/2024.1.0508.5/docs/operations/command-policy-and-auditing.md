@@ -126,7 +126,8 @@ Discovery reports the operation's reviewed row, so an advertised operation can
 still deny a request that enables an option. A denied request names the option
 field in its audit rule, for example `option.show_results_dialog/flag.interactive_ui`;
 the option's value is never recorded. An admitted request carries its effective
-duration class to the worker supervisor.
+duration class to the worker supervisor, which arms that class's execution
+budget; see [worker time bounds](windows-package.md#worker-time-bounds).
 
 `OperationClassificationTests` in this target pins the exact number of
 operations each profile admits. The default-profile contract in

@@ -66,21 +66,52 @@ internal sealed class WorkerExecutionPolicy
     public bool TryGetExecutionBudget(
         string operationId,
         out OperationDurationClass durationClass,
+        out TimeSpan budget) =>
+        TryGetExecutionBudget(operationId, effectiveDurationClass: null, out durationClass, out budget);
+
+    /// <summary>
+    /// Selects the execution budget for one admitted request. Admission policy
+    /// supplies <paramref name="effectiveDurationClass"/>, for example
+    /// <see cref="OperationDurationClass.Interactive"/> when the request turns on
+    /// operator UI. Without it the operation's reviewed class applies. The
+    /// effective class may only escalate: the budget is never shorter than the
+    /// reviewed class's budget. Returns false, failing closed, when the operation
+    /// has no reviewed class or the effective class is not a reviewed value.
+    /// </summary>
+    public bool TryGetExecutionBudget(
+        string operationId,
+        OperationDurationClass? effectiveDurationClass,
+        out OperationDurationClass durationClass,
         out TimeSpan budget)
     {
         ArgumentNullException.ThrowIfNull(operationId);
-        durationClass = _durationClassOf(operationId);
-        budget = durationClass switch
-        {
-            OperationDurationClass.Quick => WatchdogTimeout,
-            OperationDurationClass.LongRunning => LongRunningWatchdogTimeout,
-            OperationDurationClass.Interactive => InteractiveWatchdogTimeout,
-            _ => TimeSpan.Zero
-        };
-        if (budget > TimeSpan.Zero) return true;
         durationClass = OperationDurationClass.Unspecified;
-        return false;
+        budget = TimeSpan.Zero;
+        var reviewed = _durationClassOf(operationId);
+        var reviewedBudget = BudgetFor(reviewed);
+        if (reviewedBudget <= TimeSpan.Zero) return false;
+        if (effectiveDurationClass is not { } effective)
+        {
+            durationClass = reviewed;
+            budget = reviewedBudget;
+            return true;
+        }
+
+        var effectiveBudget = BudgetFor(effective);
+        if (effectiveBudget <= TimeSpan.Zero) return false;
+        (durationClass, budget) = effectiveBudget >= reviewedBudget
+            ? (effective, effectiveBudget)
+            : (reviewed, reviewedBudget);
+        return true;
     }
+
+    private TimeSpan BudgetFor(OperationDurationClass durationClass) => durationClass switch
+    {
+        OperationDurationClass.Quick => WatchdogTimeout,
+        OperationDurationClass.LongRunning => LongRunningWatchdogTimeout,
+        OperationDurationClass.Interactive => InteractiveWatchdogTimeout,
+        _ => TimeSpan.Zero
+    };
 
     /// <summary>The reviewed duration class, or <c>Unspecified</c> for a missing or unreviewed row.</summary>
     internal static OperationDurationClass ReviewedDurationClass(string operationId) =>

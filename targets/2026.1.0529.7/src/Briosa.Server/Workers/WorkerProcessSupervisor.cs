@@ -510,10 +510,13 @@ internal sealed partial class WorkerProcessSupervisor :
                 WorkerExecutionDisposition.NotStarted);
         }
 
-        // The host chooses the execution budget from the reviewed duration class
-        // before admission. An operation without one never executes.
-        if (!_executionPolicy.TryGetExecutionBudget(
-                submission.OperationId, out var durationClass, out var executionBudget))
+        // The host chooses the execution budget before admission from the request's
+        // effective duration class, set by admission policy (for example interactive
+        // when the request turns on operator UI), or else the reviewed class. It is
+        // never shorter than the reviewed class's budget. An operation without a
+        // reviewed class never executes.
+        if (!_executionPolicy.TryGetExecutionBudget(submission.OperationId,
+                submission.DurationClass, out var durationClass, out var executionBudget))
         {
             return new WorkerExecutionOutcome(WorkerExecutionStatus.PolicyDenied,
                 WorkerExecutionDisposition.NotStarted, null, Current.Connection,

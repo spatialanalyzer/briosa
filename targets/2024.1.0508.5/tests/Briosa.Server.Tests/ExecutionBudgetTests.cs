@@ -1,10 +1,14 @@
 using System.Text.Json;
 using Briosa.Server.Operations;
 using Briosa.Server.Security;
+using Briosa.Server.Services;
 using Briosa.Server.Workers;
 using Briosa.Worker.Control;
+using Google.Protobuf;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
+using Api = global::Briosa;
 
 namespace Briosa.Server.Tests;
 
@@ -19,6 +23,9 @@ public sealed class ExecutionBudgetTests
     private const string LongRunningOperation = "file_operations.backup_now";
     private const string InteractiveOperation =
         "construction_operations.construct_circles_from_surface_faces_runtime_select";
+
+    // A quick operation whose caller option can open an operator dialog.
+    private const string QueryPointsToObjects = "analysis_operations.query_points_to_objects";
 
     // Distinct from each other and from every lifecycle bound below, so a
     // scheduled timer identifies exactly which bound the supervisor armed.
@@ -68,6 +75,128 @@ public sealed class ExecutionBudgetTests
         Assert.False(policy.TryGetExecutionBudget("any", out var selected, out var budget));
         Assert.Equal(OperationDurationClass.Unspecified, selected);
         Assert.Equal(TimeSpan.Zero, budget);
+    }
+
+    [Theory]
+    [InlineData(null, (int)OperationDurationClass.Quick, 3)]
+    [InlineData((int)OperationDurationClass.Quick, (int)OperationDurationClass.Quick, 3)]
+    [InlineData((int)OperationDurationClass.LongRunning, (int)OperationDurationClass.LongRunning, 7)]
+    [InlineData((int)OperationDurationClass.Interactive, (int)OperationDurationClass.Interactive, 13)]
+    public void EffectiveRequestClassEscalatesAQuickRow(int? effective, int expectedClass, int expectedSeconds)
+    {
+        var policy = CreateExecutionPolicy(_ => OperationDurationClass.Quick);
+
+        Assert.True(policy.TryGetExecutionBudget(
+            "any", (OperationDurationClass?)effective, out var selected, out var budget));
+        Assert.Equal((OperationDurationClass)expectedClass, selected);
+        Assert.Equal(TimeSpan.FromSeconds(expectedSeconds), budget);
+    }
+
+    [Fact]
+    public void EffectiveRequestClassNeverShortensTheReviewedBudget()
+    {
+        var policy = CreateExecutionPolicy(_ => OperationDurationClass.LongRunning);
+        // An operator may configure interactive shorter than long_running.
+        var shortInteractive = new WorkerExecutionPolicy(QuickBudget, queueCapacity: 4,
+            longRunningWatchdogTimeout: TimeSpan.FromSeconds(20),
+            interactiveWatchdogTimeout: InteractiveBudget,
+            durationClassOf: _ => OperationDurationClass.LongRunning);
+
+        Assert.True(policy.TryGetExecutionBudget("any", OperationDurationClass.Quick, out var quickClass, out var quick));
+        Assert.True(shortInteractive.TryGetExecutionBudget(
+            "any", OperationDurationClass.Interactive, out var interactiveClass, out var interactive));
+        Assert.Equal(OperationDurationClass.LongRunning, quickClass);
+        Assert.Equal(LongRunningBudget, quick);
+        Assert.Equal(OperationDurationClass.LongRunning, interactiveClass);
+        Assert.Equal(TimeSpan.FromSeconds(20), interactive);
+    }
+
+    [Theory]
+    [InlineData((int)OperationDurationClass.Quick, (int)OperationDurationClass.Unspecified)]
+    [InlineData((int)OperationDurationClass.Quick, 99)]
+    [InlineData((int)OperationDurationClass.Unspecified, (int)OperationDurationClass.Interactive)]
+    public void UnreviewedRowOrEffectiveClassFailsClosed(int reviewed, int effective)
+    {
+        var policy = CreateExecutionPolicy(_ => (OperationDurationClass)reviewed);
+
+        Assert.False(policy.TryGetExecutionBudget(
+            "any", (OperationDurationClass)effective, out var selected, out var budget));
+        Assert.Equal(OperationDurationClass.Unspecified, selected);
+        Assert.Equal(TimeSpan.Zero, budget);
+    }
+
+    [Fact]
+    public async Task UnspecifiedEffectiveClassDoesNotExecute()
+    {
+        // The budget is chosen before readiness, so no worker is started.
+        await using var supervisor = CreateSupervisor("normal", new HeartbeatTestClock());
+        var mapped = false;
+
+        var rejected = await supervisor.ExecuteAsync(
+            new WorkerCommandSubmission(QuickOperation, () =>
+            {
+                mapped = true;
+                return Command(QuickOperation);
+            }, DurationClass: OperationDurationClass.Unspecified),
+            Guid.NewGuid());
+
+        Assert.Equal(WorkerExecutionStatus.PolicyDenied, rejected.Status);
+        Assert.Equal(WorkerExecutionDisposition.NotStarted, rejected.ExecutionDisposition);
+        Assert.Equal("operation-duration-unreviewed", rejected.DiagnosticCode);
+        Assert.False(mapped);
+    }
+
+    // PR #298 review: a caller-enabled operator dialog must receive the
+    // interactive budget, not the quick watchdog of the operation's table row.
+    [Theory]
+    [InlineData("results-dialog", 13)]
+    [InlineData("default-request", 3)]
+    [InlineData("long-running", 7)]
+    public async Task AdmittedRequestArmsItsEffectiveDurationClassBudget(string requestCase, int budgetSeconds)
+    {
+        var (operationId, request) = requestCase switch
+        {
+            "results-dialog" => (QueryPointsToObjects, Populated<Api.QueryPointsToObjectsRequest>(
+                request => request.ShowResultsDialog = true)),
+            "default-request" => (QueryPointsToObjects, Populated<Api.QueryPointsToObjectsRequest>(
+                request => request.ShowResultsDialog = false)),
+            _ => (LongRunningOperation, (IMessage)Populated<Api.BackupNowRequest>(_ => { }))
+        };
+        var budget = TimeSpan.FromSeconds(budgetSeconds);
+        var clock = new HeartbeatTestClock();
+        await using var supervisor = CreateSupervisor("hang-on-execute", clock);
+        var enforcer = new PolicyEnforcingWorkerCommandExecutor(supervisor, supervisor,
+            OperationPolicyTests.CreatePolicy(
+                profile: "standard", settings: new() { ["Flags:interactive_ui"] = "allow" }),
+            new OperationAuditLogger(NullLogger<OperationAuditLogger>.Instance));
+        Assert.True((await supervisor.StartAsync().WaitAsync(ProcessBound)).Succeeded,
+            supervisor.Current.DiagnosticCode);
+
+        var executing = enforcer.ExecuteAsync(
+            new WorkerCommandSubmission(operationId,
+                () => OperationConditionalOptionTests.OperationBuilder.For(operationId).Create(request),
+                Request: request),
+            Guid.NewGuid());
+        WorkerExecutionOutcome outcome;
+        try
+        {
+            await clock.WaitForScheduledAsync(budget);
+            // Advancing past every shorter budget, including the quick one, fires nothing.
+            clock.Advance(budget - Tick);
+            Assert.False(executing.IsCompleted);
+            Assert.True(supervisor.Current.ReadyForExecution);
+
+            await clock.FireNextAsync(budget);
+            outcome = await executing.WaitAsync(ProcessBound);
+        }
+        finally
+        {
+            ReleaseEveryBound(clock);
+        }
+
+        Assert.Equal(WorkerExecutionStatus.WatchdogTimeout, outcome.Status);
+        Assert.Equal(WorkerExecutionDisposition.StartedOutcomeUnknown, outcome.ExecutionDisposition);
+        Assert.Equal(operationId, supervisor.Current.LastIncident!.OperationId);
     }
 
     [Fact]
@@ -414,6 +543,14 @@ public sealed class ExecutionBudgetTests
             "2024.1.0508.5",
             activatedSdkVersion: "2024.1.0508.5",
             connectedSpatialAnalyzerVersion: "2024.1.0508.5");
+
+    private static T Populated<T>(Action<T> configure)
+        where T : IMessage, new()
+    {
+        var request = OperationConditionalOptionTests.RequestPopulator.Create<T>();
+        configure(request);
+        return request;
+    }
 
     private static WorkerMpCommand Command(string operationId) =>
         new(operationId, "Scripted Step", [], []);
