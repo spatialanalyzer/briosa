@@ -91,6 +91,6 @@ internal sealed class SafeLogState : IReadOnlyList<KeyValuePair<string, object?>
         "WorkerState" or "RecoveryCount" or "Termination" or "ConnectionState" or "ExecutionReadinessState" or
         "StatusCode" or "ActivatedSdkIdentitySource" or "ActivatedSdkIdentityMatchState" or
         "ConnectedSaIdentitySource" or "ConnectedSaIdentityMatchState" or "AdmissionMilliseconds" or
-        "QueueMilliseconds" or "ExchangeMilliseconds" or "Rpc" or "ApplicationState" or "Ownership" or
+        "QueueMilliseconds" or "ExchangeMilliseconds" or "DurationClass" or "ExecutionBudgetMilliseconds" or "Rpc" or "ApplicationState" or "Ownership" or
         "DroppedRecords" or "SinkFailures";
 }

@@ -123,7 +123,11 @@ try {
     Assert-Condition -Condition ($configuration.Briosa.Endpoint.Address -eq "127.0.0.1") -Message "The packaged loopback address is incorrect."
     Assert-Condition -Condition ($configuration.Briosa.Endpoint.Port -eq 50051) -Message "The packaged endpoint port is incorrect."
     Assert-Condition -Condition ($configuration.Briosa.SpatialAnalyzer.Host -eq "localhost") -Message "The packaged SpatialAnalyzer target must default to localhost."
-    Assert-Condition -Condition ($configuration.Briosa.Worker.ExecutionWatchdogTimeout -eq "00:00:30") -Message "The packaged execution watchdog default is incorrect."
+    # Worker timing defaults have one authoritative source, WorkerProcessOptions;
+    # the packaged configuration must not repeat or override them.
+    foreach ($timingKey in @("ExecutionWatchdogTimeout", "LongRunningExecutionWatchdogTimeout", "InteractiveExecutionWatchdogTimeout", "ReadinessProbeTimeout", "StartupTimeout")) {
+        Assert-Condition -Condition ($null -eq $configuration.Briosa.Worker.PSObject.Properties[$timingKey]) -Message "The packaged configuration must not set Briosa:Worker:$timingKey; its default is defined by the server."
+    }
     $packagedOperations = $configuration.Briosa.Security.Operations
     $sourceOperations = $sourceConfiguration.Briosa.Security.Operations
     Assert-Condition -Condition ($packagedOperations.Profile -ceq "standard") -Message "The packaged admission profile must be standard."
