@@ -38,6 +38,13 @@ the packaged runner from its own test script:
   -FixtureArguments @("path/to/Client.Conformance.dll")
 ```
 
+A scenario may declare `minimum_contract_major`. The package includes it only
+once the target's compatibility contract reaches that major, and it removes the
+field from the packaged contract. Retained clients for the current major never
+receive a scenario their fixture cannot know. `sdk-call-faulted` (#294) is
+defined with `minimum_contract_major: 3`; the compatibility-major-3 freeze
+activates it, and major-3 client fixtures must then support it.
+
 Scenario definitions describe only portable setup and the behavior to exercise.
 The fixture remains responsible for asserting its language-specific public
 states, results, and exception types before it returns `success: true`.

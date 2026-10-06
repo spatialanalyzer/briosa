@@ -316,6 +316,25 @@ internal static class SmokeWorkerProgram
             Thread.Sleep(300);
         }
 
+        if (options.Scenario == SmokeWorkerScenario.SdkCallFaulted &&
+            executionCount == 1)
+        {
+            // A per-call SDK fault in ExecuteStep: the outcome is unknown, but the
+            // worker generation stays in service for later executions.
+            channel.Send(WorkerControlMessage.ExecutionResult(
+                message.CorrelationId,
+                new WorkerExecutionResponse(
+                    WorkerExecutionResponseStatus.Completed,
+                    new WorkerSdkCallFaulted(
+                        WorkerSdkCallPhase.ExecuteStep,
+                        durationMilliseconds: 5,
+                        [],
+                        WorkerSdkFaultDiagnosticCodes.ExecuteStep),
+                    connection,
+                    DiagnosticCode: null)));
+            return;
+        }
+
         var mpSucceeded = options.Scenario != SmokeWorkerScenario.MpFailure;
         var outputFailure = options.Scenario == SmokeWorkerScenario.OutputFailure;
         var diagnosticCode = !mpSucceeded
@@ -432,6 +451,7 @@ internal static class SmokeWorkerProgram
         Disconnected,
         MpFailure,
         OutputFailure,
+        SdkCallFaulted,
         DelayFirstExecute,
         HangFirstExecute
     }
@@ -460,6 +480,7 @@ internal static class SmokeWorkerProgram
                 "disconnected" => SmokeWorkerScenario.Disconnected,
                 "mp-failure" => SmokeWorkerScenario.MpFailure,
                 "output-failure" => SmokeWorkerScenario.OutputFailure,
+                "sdk-call-faulted" => SmokeWorkerScenario.SdkCallFaulted,
                 "delay-first-execute" => SmokeWorkerScenario.DelayFirstExecute,
                 "hang-first-execute" => SmokeWorkerScenario.HangFirstExecute,
                 _ => throw new ArgumentOutOfRangeException(

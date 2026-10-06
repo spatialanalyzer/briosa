@@ -8,6 +8,7 @@ namespace Briosa.Worker.Control;
 [JsonDerivedType(typeof(WorkerMpResultUnavailable), "result-unavailable")]
 [JsonDerivedType(typeof(WorkerMpResultAvailable), "result-available")]
 [JsonDerivedType(typeof(WorkerMpOutputsUnavailable), "outputs-unavailable")]
+[JsonDerivedType(typeof(WorkerSdkCallFaulted), "sdk-call-faulted")]
 public abstract record WorkerMpExecutionResult
 {
     protected WorkerMpExecutionResult(long durationMilliseconds, string? diagnosticCode)
@@ -22,22 +23,36 @@ public abstract record WorkerMpExecutionResult
 
     // These projections preserve the independent evidence consumed by audit and
     // public outcomes. They cannot be assigned contradictory values or arrive on
-    // the wire independently from the concrete outcome.
+    // the wire independently from the concrete outcome. An SDK call fault
+    // projects only what its phase proves: a faulted ExecuteStep did not return,
+    // and only an output-getter fault follows retrieved MP code 2.
     [JsonIgnore]
-    public bool ExecuteStepReturned => this is WorkerMpResultUnavailable or WorkerMpResultAvailable or WorkerMpOutputsUnavailable;
+    public bool ExecuteStepReturned => this is WorkerMpResultUnavailable or WorkerMpResultAvailable or WorkerMpOutputsUnavailable or
+        WorkerSdkCallFaulted { Phase: WorkerSdkCallPhase.MpResultRetrieval or WorkerSdkCallPhase.OutputGetter };
 
     [JsonIgnore]
-    public bool MpResultRetrieved => this is WorkerMpResultAvailable or WorkerMpOutputsUnavailable;
+    public bool MpResultRetrieved => this is WorkerMpResultAvailable or WorkerMpOutputsUnavailable or
+        WorkerSdkCallFaulted { Phase: WorkerSdkCallPhase.OutputGetter };
 
     [JsonIgnore]
-    public bool MpSucceeded => this is WorkerMpResultAvailable { ResultCode: 2 } or WorkerMpOutputsUnavailable;
+    public bool MpSucceeded => this is WorkerMpResultAvailable { ResultCode: 2 } or WorkerMpOutputsUnavailable or
+        WorkerSdkCallFaulted { Phase: WorkerSdkCallPhase.OutputGetter };
 
     [JsonIgnore]
-    public int? MpResultCode => this switch { WorkerMpResultAvailable result => result.ResultCode, WorkerMpOutputsUnavailable => 2, _ => null };
+    public int? MpResultCode => this switch
+    {
+        WorkerMpResultAvailable result => result.ResultCode,
+        WorkerMpOutputsUnavailable or WorkerSdkCallFaulted { Phase: WorkerSdkCallPhase.OutputGetter } => 2,
+        _ => null
+    };
 
     [JsonIgnore]
-    public IReadOnlyList<WorkerMpOutputValue> OutputValues =>
-        this is WorkerMpResultAvailable result ? result.Outputs : [];
+    public IReadOnlyList<WorkerMpOutputValue> OutputValues => this switch
+    {
+        WorkerMpResultAvailable result => result.Outputs,
+        WorkerSdkCallFaulted fault => fault.Outputs,
+        _ => []
+    };
 
     // Compatibility adapter for retained fake-worker evidence fixtures. The real SDK
     // constructs explicit outcome alternatives directly.

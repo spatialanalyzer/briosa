@@ -472,10 +472,7 @@ internal sealed class SdkConnectionManager : IAsyncDisposable
     {
         // A per-call SDK fault during the probe keeps the code an escaping
         // adapter exception produces.
-        if (execution.DiagnosticCode is WorkerSdkFaultDiagnosticCodes.BeforeExecute or
-            WorkerSdkFaultDiagnosticCodes.ExecuteStep or
-            WorkerSdkFaultDiagnosticCodes.MpResultRetrieval or
-            WorkerSdkFaultDiagnosticCodes.OutputGetter)
+        if (execution is WorkerSdkCallFaulted)
         {
             return (false, "execution-readiness-probe-failed");
         }

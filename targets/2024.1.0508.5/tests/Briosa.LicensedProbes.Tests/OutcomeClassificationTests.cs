@@ -140,6 +140,52 @@ public sealed class OutcomeClassificationTests
         Assert.Equal("worker:completed", outcome.Transport);
     }
 
+    // An SDK call fault classifies by its proven phase, matching the server's
+    // SdkCallFaulted dispositions. Only a getter fault after MP success is a
+    // determinate answer; a fault before ExecuteStep is a not-started refusal.
+    [Theory]
+    [InlineData((int)WorkerSdkCallPhase.BeforeExecute, nameof(ProbeOutcomeKind.NotStarted), "NotStarted", false, false)]
+    [InlineData((int)WorkerSdkCallPhase.ExecuteStep, nameof(ProbeOutcomeKind.Indeterminate), "StartedOutcomeUnknown", true, false)]
+    [InlineData((int)WorkerSdkCallPhase.MpResultRetrieval, nameof(ProbeOutcomeKind.Indeterminate), "StartedOutcomeUnknown", true, false)]
+    [InlineData((int)WorkerSdkCallPhase.OutputGetter, nameof(ProbeOutcomeKind.OutputRetrievalFailed), "Completed", false, true)]
+    public void WorkerSdkCallFaultsCarryTheServerDispositionOfTheirPhase(
+        int phase, string kind, string disposition, bool completionUnknown, bool accepted)
+    {
+        var sdkPhase = (WorkerSdkCallPhase)phase;
+        var fault = new WorkerSdkCallFaulted(
+            sdkPhase,
+            1,
+            sdkPhase == WorkerSdkCallPhase.OutputGetter ? [RetrievedCount, MissingOutput] : [],
+            WorkerSdkFaultDiagnosticCodes.For(sdkPhase));
+
+        var outcome = WorkerOutcomes.FromResponse(Completed(fault), NoObservation);
+
+        Assert.Equal(Enum.Parse<ProbeOutcomeKind>(kind), outcome.Kind);
+        Assert.Equal(disposition, outcome.ExecutionDisposition);
+        Assert.Equal(completionUnknown, outcome.CompletionUnknown);
+        Assert.Equal(accepted, ProbeOutcomes.AnyDeterminateSdkOutcome.Accepts(outcome));
+        Assert.Equal(WorkerSdkFaultDiagnosticCodes.For(sdkPhase), outcome.DiagnosticCode);
+        Assert.Equal(sdkPhase == WorkerSdkCallPhase.BeforeExecute ? null : sdkPhase != WorkerSdkCallPhase.ExecuteStep,
+            outcome.ExecuteStepReturned);
+        Assert.Empty(outcome.Observations);
+    }
+
+    [Theory]
+    [InlineData(Api.ExecutionDisposition.NotStarted, nameof(ProbeOutcomeKind.NotStarted), false)]
+    [InlineData(Api.ExecutionDisposition.StartedOutcomeUnknown, nameof(ProbeOutcomeKind.Indeterminate), true)]
+    [InlineData(Api.ExecutionDisposition.Completed, nameof(ProbeOutcomeKind.OutputRetrievalFailed), false)]
+    public void PublicSdkCallFaultsClassifyByDisposition(Api.ExecutionDisposition disposition, string kind, bool completionUnknown)
+    {
+        Assert.Equal(
+            Enum.Parse<ProbeOutcomeKind>(kind),
+            PublicOutcomes.Classify(new Api.OperationError
+            {
+                Kind = Api.OperationFailureKind.SdkCallFaulted,
+                ExecutionDisposition = disposition
+            }));
+        Assert.Equal(completionUnknown, Enum.Parse<ProbeOutcomeKind>(kind).IsCompletionUnknown());
+    }
+
     [Fact]
     public void WorkerOutcomesPreserveTheSdkEvidenceOfUnknownCompletion()
     {
@@ -168,6 +214,7 @@ public sealed class OutcomeClassificationTests
     [InlineData(nameof(ProbeOutcomeKind.MpFailed), "Completed")]
     [InlineData(nameof(ProbeOutcomeKind.OutputRetrievalFailed), "Completed")]
     [InlineData(nameof(ProbeOutcomeKind.ArgumentRejected), "NotStarted")]
+    [InlineData(nameof(ProbeOutcomeKind.NotStarted), "NotStarted")]
     [InlineData(nameof(ProbeOutcomeKind.ExecuteStepRejected), "StartedOutcomeUnknown")]
     [InlineData(nameof(ProbeOutcomeKind.MpResultUnavailable), "StartedOutcomeUnknown")]
     [InlineData(nameof(ProbeOutcomeKind.Indeterminate), "StartedOutcomeUnknown")]

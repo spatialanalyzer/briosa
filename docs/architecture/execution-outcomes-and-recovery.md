@@ -1,7 +1,7 @@
 # Execution outcomes and recovery
 
 - Status: Current
-- Last reviewed: 2026-08-01
+- Last reviewed: 2026-10-04
 
 ## Serialized MP execution
 
@@ -43,20 +43,46 @@ preserved separately rather than replaced with a default value.
 
 ### SDK call faults
 
-An exception from one SDK call is reported in the phase that Briosa can prove.
-The worker records only a value-free diagnostic code, never the exception text:
+An exception from one SDK call is reported with the dedicated failure kind
+`SdkCallFaulted` (`OPERATION_FAILURE_KIND_SDK_CALL_FAULTED`). The execution
+disposition carries the phase that Briosa can prove. The worker sends a dedicated
+private SDK-fault result with that phase and a value-free diagnostic code, never
+the exception text:
 
-| Faulting call | Diagnostic code | Public outcome |
-| --- | --- | --- |
-| `SetStep` or an input setter | `sdk-call-faulted-before-execute` | `Internal`/`Internal`, `NotStarted`, `DoNotReplay` |
-| `ExecuteStep` | `sdk-execute-step-faulted` | `Internal`/`MpResultRetrievalFailure`, `StartedOutcomeUnknown` |
-| `GetMPStepResult` | `sdk-mp-result-retrieval-faulted` | `Internal`/`MpResultRetrievalFailure`, `StartedOutcomeUnknown` |
-| An output getter after code `2` | `sdk-output-getter-faulted` | `DataLoss`/`OutputRetrievalFailure`, `Completed` |
+| Faulting call | Diagnostic code | gRPC status | Disposition | Replay guidance | MP details |
+| --- | --- | --- | --- | --- | --- |
+| `SetStep` or an input setter | `sdk-call-faulted-before-execute` | `Internal` | `NotStarted` | `DoNotReplay` | none |
+| `ExecuteStep` | `sdk-execute-step-faulted` | `Internal` | `StartedOutcomeUnknown` | `ReconcileBeforeReplay` | `ResultUnavailable`, outputs `NotAttempted` |
+| `GetMPStepResult` | `sdk-mp-result-retrieval-faulted` | `Internal` | `StartedOutcomeUnknown` | `ReconcileBeforeReplay` | `ResultUnavailable`, outputs `NotAttempted` |
+| An output getter after code `2` | `sdk-output-getter-faulted` | `DataLoss` | `Completed` | `DoNotReplay` | `Succeeded`, code `2`, each output `Retrieved` or `Failed` with its own code |
 
-A fault before `ExecuteStep` is not reported as `SdkArgumentRejected`, because no
-argument was rejected. A faulted getter makes only its own output unavailable; the
-remaining getters still run. A dedicated public representation for SDK faults
-remains an open design question.
+Recovery guidance is `None` in every phase. A fault before `ExecuteStep` is not
+reported as `SdkArgumentRejected`, because no argument was rejected. It stays
+`DoNotReplay` even though nothing executed: the SDK just threw, so automatic
+retry into a possibly unhealthy SDK is not safe. Clients refresh SDK state and
+retry deliberately. A fault in `ExecuteStep` or `GetMPStepResult` is
+`ReconcileBeforeReplay` regardless of the operation's replay safety. A faulted
+getter makes only its own output unavailable; the remaining getters still run,
+and retrieved outputs are reported as `Retrieved`. Each failed output carries its
+own value-free code: `sdk-output-getter-faulted` for the getter that threw,
+`sdk-output-retrieval-failed` for a getter that returned no usable value, and
+`worker-output-encoding-rejected` for a value the worker could not deliver.
+
+An output-getter fault keeps its kind even when another output's value cannot
+cross the 64 KiB private worker channel, for example because it is non-finite or
+oversized. The worker drops only the values that cannot be encoded, starting
+with any that cannot be encoded on their own and then the largest, and keeps the
+phase, diagnostic code and every output's status. If even the value-free output
+list does not fit, the worker withholds per-output evidence: the error is still
+`SdkCallFaulted`, and every requested output is `Failed` with
+`worker-output-encoding-rejected`. That frame has a fixed size, so the fault
+always arrives. Faults before or during execution carry no output values, so they
+cannot exceed the bound. Without an SDK call fault, an undeliverable value still
+reports `DataLoss`/`OutputRetrievalFailure` with `worker-output-encoding-rejected`.
+
+`SdkCallFaulted` replaces the interim 0.9.2 mappings, which reported these faults
+as `Internal`, `MpResultRetrievalFailure`, or `OutputRetrievalFailure`. The
+existing `MpExecutionState` values are unchanged.
 
 These per-call faults leave the worker STA healthy, so the worker generation stays
 in service and the private pipe stays usable. Loss of the SDK process is still
@@ -108,12 +134,14 @@ Missing or unspecified disposition is never interpreted as `NotStarted`.
 | Validation, unsupported operation, policy denial, or unavailable before enqueue | `NotStarted` | Request-specific or `Unavailable` |
 | Admission capacity exhausted before mapping | `NotStarted` | `ResourceExhausted` |
 | Setter rejected before `ExecuteStep` | `NotStarted` | `FailedPrecondition` |
-| SDK call faulted before `ExecuteStep` | `NotStarted` | `Internal` |
+| SDK call faulted before `ExecuteStep` (`SdkCallFaulted`) | `NotStarted` | `Internal` |
 | Cancellation or deadline after enqueue | `StartedOutcomeUnknown`; the request stays queued and may still be dispatched | `Cancelled` or `DeadlineExceeded` |
 | `ExecuteStep` invoked but response lost, watchdog elapsed, or worker failed | `StartedOutcomeUnknown` | `Unavailable` |
-| MP result could not be retrieved, or `ExecuteStep` or `GetMPStepResult` faulted | `StartedOutcomeUnknown` | `Internal` |
+| MP result could not be retrieved | `StartedOutcomeUnknown` | `Internal` |
+| `ExecuteStep` or `GetMPStepResult` faulted (`SdkCallFaulted`) | `StartedOutcomeUnknown` | `Internal` |
 | Retrieved MP failure | `Completed` | `FailedPrecondition` |
-| Output getter failed or faulted after MP success | `Completed` | `DataLoss` |
+| Output getter failed after MP success | `Completed` | `DataLoss` |
+| Output getter faulted after MP success (`SdkCallFaulted`) | `Completed` | `DataLoss` |
 
 ## Cancellation, watchdogs, and replacement
 

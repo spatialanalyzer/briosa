@@ -217,6 +217,11 @@ internal static class SmokeClientProgram
                 OperationFailureKind.OutputRetrievalFailure,
                 OutputRetrievalState.Failed,
                 cancellationToken).ConfigureAwait(false),
+            SmokeScenario.SdkCallFaulted => await ExecuteSdkCallFaulted(
+                fileClient,
+                serverInfo,
+                options.Timeout,
+                cancellationToken).ConfigureAwait(false),
             SmokeScenario.Deadline => await ExecuteInterrupted(
                 fileClient,
                 serverInfo,
@@ -370,6 +375,41 @@ internal static class SmokeClientProgram
         return new ScenarioOutcome(
             OperationSucceeded: false,
             expectedStatus,
+            TypedErrorObserved: true,
+            error.Kind.ToString(),
+            RecoverySucceeded: false);
+    }
+
+    private static async Task<ScenarioOutcome> ExecuteSdkCallFaulted(
+        TargetProtocol.FileOperations.FileOperationsClient client,
+        GetServerInfoResponse serverInfo,
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
+    {
+        RequireReady(serverInfo);
+        var error = await RequireFailure(
+                client,
+                timeout,
+                StatusCode.Internal,
+                cancellationToken)
+            .ConfigureAwait(false);
+        if (error.Kind != OperationFailureKind.SdkCallFaulted ||
+            error.DiagnosticCode != "sdk-execute-step-faulted" ||
+            error.ExecutionDisposition != ExecutionDisposition.StartedOutcomeUnknown ||
+            error.RecoveryGuidance != RecoveryGuidance.None ||
+            error.ReplayGuidance != ReplayGuidance.ReconcileBeforeReplay ||
+            error.MpExecution is not { State: MpExecutionState.ResultUnavailable } ||
+            error.MpExecution.HasMpResultCode)
+        {
+            throw new SmokeFailureException("unexpected-sdk-call-fault-shape");
+        }
+
+        // A per-call SDK fault keeps the worker generation in service.
+        await RequireSuccessfulOperation(client, timeout, cancellationToken)
+            .ConfigureAwait(false);
+        return new ScenarioOutcome(
+            OperationSucceeded: false,
+            StatusCode.Internal,
             TypedErrorObserved: true,
             error.Kind.ToString(),
             RecoverySucceeded: false);
@@ -803,6 +843,7 @@ internal static class SmokeClientProgram
         Unavailable,
         MpFailure,
         OutputFailure,
+        SdkCallFaulted,
         Deadline,
         Cancellation,
         WatchdogRecovery,
@@ -834,6 +875,7 @@ internal static class SmokeClientProgram
                 "unavailable" => SmokeScenario.Unavailable,
                 "mp-failure" => SmokeScenario.MpFailure,
                 "output-failure" => SmokeScenario.OutputFailure,
+                "sdk-call-faulted" => SmokeScenario.SdkCallFaulted,
                 "deadline" => SmokeScenario.Deadline,
                 "cancellation" => SmokeScenario.Cancellation,
                 "watchdog-recovery" => SmokeScenario.WatchdogRecovery,

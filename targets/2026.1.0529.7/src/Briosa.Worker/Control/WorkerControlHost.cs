@@ -116,19 +116,16 @@ internal static class WorkerControlHost
         {
             await channel.SendAsync(message).ConfigureAwait(false);
         }
-        catch (WorkerMessageRejectedException) when (message.ExecutionResponse?.Execution is { MpSucceeded: true })
+        catch (WorkerMessageRejectedException) when (message.ExecutionResponse is
+            { Execution: WorkerSdkCallFaulted or { MpSucceeded: true } } response)
         {
             // Encoding failed before any frame bytes were written. The MP already
-            // completed: preserve that fact in a bounded response and keep the pipe.
-            // Actual I/O failures never enter this fallback.
-            var response = message.ExecutionResponse;
-            await channel.SendAsync(WorkerControlMessage.ExecutionResult(message.CorrelationId,
-                new WorkerExecutionResponse(
-                    WorkerExecutionResponseStatus.Completed,
-                    new WorkerMpOutputsUnavailable(response.Execution.DurationMilliseconds,
-                        "worker-output-encoding-rejected"),
-                    response.Connection,
-                    "worker-output-encoding-rejected"))).ConfigureAwait(false);
+            // completed, or an SDK call faulted: send a bounded response that keeps
+            // that evidence (an SDK call fault stays one, dropping only the values
+            // that cannot be encoded) and keep the pipe. Actual I/O failures never
+            // enter this fallback.
+            await channel.SendAsync(WorkerExecutionDelivery.Undeliverable(message.CorrelationId, response))
+                .ConfigureAwait(false);
         }
     }
 

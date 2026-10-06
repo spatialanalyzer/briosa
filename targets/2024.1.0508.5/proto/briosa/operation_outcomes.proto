@@ -75,6 +75,11 @@ enum OperationFailureKind {
   OPERATION_FAILURE_KIND_SDK_ARGUMENT_REJECTED = 15;
   // Admission rejected the request before mapping or dispatch. No automatic retry.
   OPERATION_FAILURE_KIND_OVERLOADED = 16;
+  // An SDK call threw during the MP sequence. The execution disposition carries
+  // the proven phase: NOT_STARTED before ExecuteStep, STARTED_OUTCOME_UNKNOWN
+  // during ExecuteStep or MP result retrieval, and COMPLETED when an output
+  // getter threw after MP success. No automatic retry.
+  OPERATION_FAILURE_KIND_SDK_CALL_FAULTED = 17;
 }
 
 // Records retrieval state by the public operation result field name.
