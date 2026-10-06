@@ -28,7 +28,7 @@ internal static class MoveRobotMachineToNamedDestinationOperation
                 new("Destination Name", WorkerMpValueKind.Text,
                     new WorkerTextValue(request.DestinationName), "SetStringArg"),
                 new("Acknowledge Arrival", WorkerMpValueKind.Logical,
-                    new WorkerBooleanValue(request.HasAcknowledgeArrival && request.AcknowledgeArrival), "SetBoolArg")
+                    new WorkerBooleanValue(!request.HasAcknowledgeArrival || request.AcknowledgeArrival), "SetBoolArg")
             ],
             [new("Actual Transform In Working (result)", WorkerMpValueKind.Transform, "GetTransformArg")]);
     }

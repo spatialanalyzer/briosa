@@ -214,7 +214,13 @@ non-sensitive attestation references, as for `Test-LicensedSpatialAnalyzer.ps1`.
 3. Extract the package. Start `Briosa.Server.exe` with
    `--Briosa:Desktop:Mode=Disabled`, the loopback port, and the four
    `--Briosa:SpatialAnalyzer:Identity:...:OperatorAttestation:...` values,
-   exactly as `eng/Test-LicensedSpatialAnalyzer.ps1` does.
+   exactly as `eng/Test-LicensedSpatialAnalyzer.ps1` does. Add the
+   `Server admission` arguments that the public-phase dry run prints. The
+   packaged `standard` profile does not admit the device and operator-guided
+   probes, so the harness needs `--Briosa:Security:Operations:Profile=device`
+   plus a per-operation `allow` override for each operator-guided selector. The
+   harness refuses a plan that needs an exclusive workflow, which no setting can
+   admit.
 4. Run `Briosa.LifecycleClient --address http://127.0.0.1:50051 --scenario external-connect --timeout-seconds 90`.
    It must report `ready_for_mp`.
 5. Run the public phase:

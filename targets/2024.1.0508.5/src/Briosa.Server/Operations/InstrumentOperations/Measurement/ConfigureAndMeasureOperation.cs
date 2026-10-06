@@ -19,7 +19,7 @@ internal static class ConfigureAndMeasureOperation
     {
         ArgumentNullException.ThrowIfNull(request);
         var measurementMode = request.HasMeasurementMode ? request.MeasurementMode : string.Empty;
-        var measureImmediately = request.HasMeasureImmediately && request.MeasureImmediately;
+        var measureImmediately = !request.HasMeasureImmediately || request.MeasureImmediately;
         var waitForCompletion = !request.HasWaitForCompletion || request.WaitForCompletion;
         var timeoutSeconds = request.HasTimeoutSeconds ? request.TimeoutSeconds : 0d;
 

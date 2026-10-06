@@ -3,23 +3,22 @@ using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Text.Json;
+using Briosa.Server.Operations;
+using Briosa.Server.Security;
+using Microsoft.Extensions.Configuration;
 
 namespace Briosa.Server.Tests;
 
 public sealed class ServerContentRootTests
 {
-    // A duplicate allowlist entry fails startup if this file is ever loaded.
+    // An unknown admission profile fails startup if this file is ever loaded.
     private const string PoisonSettings =
         """
         {
           "Briosa": {
             "Security": {
               "Operations": {
-                "Allow": [
-                  "variables.set_double_variable",
-                  "variables.set_double_variable"
-                ]
+                "Profile": "poison-profile"
               }
             }
           }
@@ -37,13 +36,14 @@ public sealed class ServerContentRootTests
             await using var serverScope = server.ConfigureAwait(true);
 
             await server.WaitForListenerAsync(port).ConfigureAwait(true);
-            var (allowCount, denyCount) = ReadPackagePolicyCounts();
-            // The package allowlist, not an empty or cwd-supplied one, is active.
+            var (profile, admittedCount) = ReadPackagePolicy();
+            // The packaged admission profile, not a cwd-supplied one, is active.
             await server.WaitForOutputAsync(string.Create(
                 CultureInfo.InvariantCulture,
-                $"AllowCount={allowCount} DenyCount={denyCount} ")).ConfigureAwait(true);
+                $"AdmissionProfile={profile} AdmittedOperationCount={admittedCount} ")).ConfigureAwait(true);
 
-            Assert.True(allowCount > 1);
+            Assert.Equal("standard", profile);
+            Assert.True(admittedCount > 1);
             Assert.False(server.HasExited);
         }
         finally
@@ -83,17 +83,13 @@ public sealed class ServerContentRootTests
         return directory;
     }
 
-    private static (int AllowCount, int DenyCount) ReadPackagePolicyCounts()
+    private static (string Profile, int AdmittedCount) ReadPackagePolicy()
     {
-        using var settings = JsonDocument.Parse(
-            File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "appsettings.json")));
-        var operations = settings.RootElement
-            .GetProperty("Briosa")
-            .GetProperty("Security")
-            .GetProperty("Operations");
-        return (
-            operations.GetProperty("Allow").GetArrayLength(),
-            operations.GetProperty("Deny").GetArrayLength());
+        var configuration = new ConfigurationBuilder()
+            .AddJsonFile(Path.Combine(AppContext.BaseDirectory, "appsettings.json"))
+            .Build();
+        var policy = OperationPolicy.Create(configuration, SpatialAnalyzerApi.Operations);
+        return (policy.Profile.Name, policy.AllowedOperations.Count);
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage(

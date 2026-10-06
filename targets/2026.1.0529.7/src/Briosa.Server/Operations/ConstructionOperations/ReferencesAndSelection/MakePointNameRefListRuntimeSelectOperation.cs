@@ -11,7 +11,7 @@ internal static class MakePointNameRefListRuntimeSelectOperation
     public static OperationDescriptor Descriptor { get; } = new(
         "construction_operations.make_point_name_ref_list_runtime_select", "Make a Point Name Ref List - Runtime Select",
         "briosa.ConstructionOperations", "MakePointNameRefListRuntimeSelect", "/briosa.ConstructionOperations/MakePointNameRefListRuntimeSelect",
-        "read_only", Api.OperationExecutionScope.GlobalStateRead, Api.ReplaySafety.Safe, []);
+        "read_only", Api.OperationExecutionScope.GlobalStateRead, Api.ReplaySafety.Unsafe, []);
     public static IReadOnlyList<OperationOutputContract> OutputContracts { get; } =
         [new("resultant_point_name_list", "Resultant Point Name List", WorkerMpValueKind.PointNameList)];
 

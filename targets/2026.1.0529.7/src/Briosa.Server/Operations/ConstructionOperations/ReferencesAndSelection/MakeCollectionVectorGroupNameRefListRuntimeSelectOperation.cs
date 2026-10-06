@@ -12,7 +12,7 @@ internal static class MakeCollectionVectorGroupNameRefListRuntimeSelectOperation
         "Make a Collection Vector Group Name Ref List - Runtime Select", "briosa.ConstructionOperations",
         "MakeCollectionVectorGroupNameRefListRuntimeSelect",
         "/briosa.ConstructionOperations/MakeCollectionVectorGroupNameRefListRuntimeSelect", "read_only",
-        Api.OperationExecutionScope.GlobalStateRead, Api.ReplaySafety.Safe, []);
+        Api.OperationExecutionScope.GlobalStateRead, Api.ReplaySafety.Unsafe, []);
     public static IReadOnlyList<OperationOutputContract> OutputContracts { get; } =
         [new("resultant_collection_vector_group_name_reference_list",
             "Resultant Collection Vector Group Name Reference List", WorkerMpValueKind.CollectionVectorGroupNameList)];

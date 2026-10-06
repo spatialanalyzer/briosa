@@ -12,7 +12,7 @@ internal static class MakeRelationshipRefListRuntimeSelectOperation
         "construction_operations.make_relationship_ref_list_runtime_select",
         "Make a Relationship Reference List- Runtime Select", "briosa.ConstructionOperations",
         "MakeRelationshipRefListRuntimeSelect", "/briosa.ConstructionOperations/MakeRelationshipRefListRuntimeSelect",
-        "read_only", Api.OperationExecutionScope.GlobalStateRead, Api.ReplaySafety.Safe, []);
+        "read_only", Api.OperationExecutionScope.GlobalStateRead, Api.ReplaySafety.Unsafe, []);
     public static IReadOnlyList<OperationOutputContract> OutputContracts { get; } =
         [new("resultant_relationship_ref_list", "Resultant Relationship Reference List", WorkerMpValueKind.CollectionItemNameList)];
 

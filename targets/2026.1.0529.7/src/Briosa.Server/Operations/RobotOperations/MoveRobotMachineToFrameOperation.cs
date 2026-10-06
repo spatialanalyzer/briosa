@@ -30,7 +30,7 @@ internal static class MoveRobotMachineToFrameOperation
                 new("Use SA Kinematics", WorkerMpValueKind.Logical,
                     new WorkerBooleanValue(request.HasUseSaKinematics && request.UseSaKinematics), "SetBoolArg"),
                 new("Acknowledge Arrival", WorkerMpValueKind.Logical,
-                    new WorkerBooleanValue(request.HasAcknowledgeArrival && request.AcknowledgeArrival), "SetBoolArg")
+                    new WorkerBooleanValue(!request.HasAcknowledgeArrival || request.AcknowledgeArrival), "SetBoolArg")
             ],
             [new("Actual Transform In Working (result)", WorkerMpValueKind.Transform, "GetTransformArg")]);
     }

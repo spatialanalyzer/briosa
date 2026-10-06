@@ -76,7 +76,7 @@ Debug source hosting enables the standard .NET user-secrets provider for these s
 
 ## Capabilities
 
-`briosa.DiscoveryService/ListCapabilities` lists only handwritten operations registered in the current build, supported by the current isolation mode, and enabled by runtime policy. Each entry includes its stable operation ID, gRPC service and RPC, fully qualified method, reviewed read-only/mutating/unknown effect classification, replay safety, and execution scope. A missing runtime allowlist produces an empty operation list. Unknown and `exclusive_workflow` scopes are not advertised in the current `single_tenant` mode.
+`briosa.DiscoveryService/ListCapabilities` lists only handwritten operations registered in the current build, supported by the current isolation mode, and enabled by runtime policy. Each entry includes its stable operation ID, gRPC service and RPC, fully qualified method, reviewed read-only/mutating/unknown effect classification, replay safety, and execution scope. The packaged `standard` admission profile, narrowed or widened by configured flags and overrides, decides the list; a missing profile fails startup. Unknown and `exclusive_workflow` scopes are not advertised in the current `single_tenant` mode.
 
 Serialization covers one MP sequence, not a workflow spanning RPCs. See the [workflow-isolation guide](workflow-isolation.md) before coordinating multiple operations through one target.
 

@@ -177,10 +177,12 @@ public sealed class RuntimePerformanceEvidenceTests
 
     private static Action CreateDiscoveryAction()
     {
-        var policyValues = SpatialAnalyzerApi.Operations
-            .Select((operation, index) => new KeyValuePair<string, string?>(
-                $"{OperationPolicy.AllowKey}:{index}",
-                operation.OperationId));
+        // The widest admissible surface: every operation except exclusive workflows.
+        var policyValues = new Dictionary<string, string?>(StringComparer.Ordinal)
+        {
+            [OperationPolicy.ProfileKey] = "full",
+            [$"{OperationPolicy.FlagsKey}:interactive_ui"] = OperationPolicy.AllowValue
+        };
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(policyValues)
             .Build();

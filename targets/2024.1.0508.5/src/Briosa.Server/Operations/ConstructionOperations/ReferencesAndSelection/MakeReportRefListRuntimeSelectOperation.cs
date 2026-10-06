@@ -12,7 +12,7 @@ internal static class MakeReportRefListRuntimeSelectOperation
         "construction_operations.make_report_ref_list_runtime_select", "Make a Report Ref List - Runtime Select",
         "briosa.ConstructionOperations", "MakeReportRefListRuntimeSelect",
         "/briosa.ConstructionOperations/MakeReportRefListRuntimeSelect", "read_only",
-        Api.OperationExecutionScope.GlobalStateRead, Api.ReplaySafety.Safe, []);
+        Api.OperationExecutionScope.GlobalStateRead, Api.ReplaySafety.Unsafe, []);
     public static IReadOnlyList<OperationOutputContract> OutputContracts { get; } =
         [new("report_list", "Report List", WorkerMpValueKind.CollectionItemNameList)];
 

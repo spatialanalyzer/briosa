@@ -21,6 +21,20 @@ internal static class SmokeClientProgram
     private const string ExpectedFileOperation =
         "/briosa.FileOperations/GetWorkingDirectory";
     private const string ErrorTrailerName = "briosa-operation-error-bin";
+
+    // The smoke and licensed reads. The packaged standard profile must admit
+    // them (the default-profile contract decided on #242).
+    private static readonly IReadOnlyList<string> SmokeReadMethods =
+        [
+            ExpectedFileOperation,
+            "/briosa.UtilityOperations/GetActiveUnits",
+            "/briosa.UtilityOperations/GetWorkingFrameProperties",
+            "/briosa.ConstructionOperations/GetActiveCollectionName",
+            "/briosa.AnalysisOperations/GetNumberOfCollections",
+            "/briosa.AnalysisOperations/GetIthCollectionName",
+            "/briosa.AnalysisOperations/GetObjectReportingFrame",
+            "/briosa.RelationshipOperations/GetRelationshipReportingFrame"
+        ];
     private static readonly IReadOnlyList<ServiceDescriptor> MpServices =
         [
             TargetProtocol.AnalysisOperations.Descriptor,
@@ -137,17 +151,27 @@ internal static class SmokeClientProgram
             throw new SmokeFailureException("capability-target-identity-mismatch");
         }
 
-        var expectedOperations = MpServices
+        // The packaged profile admits a reviewed subset of the protocol. Every
+        // advertised operation must be a protocol method, advertised once, and
+        // never an exclusive workflow; the smoke reads must be present unless the
+        // scenario denies GetWorkingDirectory with a per-operation override.
+        var protocolMethods = MpServices
             .SelectMany(service => service.Methods.Select(method =>
                 $"/{service.FullName}/{method.Name}"))
-            .Where(method => expectOperation || method != ExpectedFileOperation)
-            .Order(StringComparer.Ordinal);
+            .ToHashSet(StringComparer.Ordinal);
         var advertisedOperations = capabilities.Operations
             .Select(operation => operation.FullyQualifiedMethod)
-            .Order(StringComparer.Ordinal);
-        if (!expectedOperations.SequenceEqual(
-                advertisedOperations,
-                StringComparer.Ordinal))
+            .ToArray();
+        var advertised = advertisedOperations.ToHashSet(StringComparer.Ordinal);
+        var expectedReads = SmokeReadMethods
+            .Where(method => expectOperation || method != ExpectedFileOperation);
+        if (advertised.Count != advertisedOperations.Length ||
+            !advertised.IsSubsetOf(protocolMethods) ||
+            !expectedReads.All(advertised.Contains) ||
+            advertised.Contains(ExpectedFileOperation) != expectOperation ||
+            capabilities.Operations.Any(operation =>
+                operation.ExecutionScope is not (OperationExecutionScope.SelfContained or
+                    OperationExecutionScope.GlobalStateRead or OperationExecutionScope.GlobalStateMutation)))
         {
             throw new SmokeFailureException("operation-policy-capability-mismatch");
         }

@@ -81,7 +81,7 @@ The profile sets `ASPNETCORE_ENVIRONMENT=Development`. A Debug build places the
 complete real `Briosa.Worker` cohort beside the server, but it does not start
 that worker, activate the SDK, launch SpatialAnalyzer, or call `ConnectEx`.
 The profile does not supply identity evidence, change the endpoint, or widen
-the operation allowlist.
+the packaged `standard` admission profile.
 
 Leave this terminal open. In another PowerShell terminal, use the commands in
 the following sections.
@@ -199,22 +199,32 @@ SpatialAnalyzer values.
 The handwritten operation registry is the maximum API surface the binary can
 express, not an authorization list. `ListCapabilities` is the authority for the
 operations the current process admits. The committed runtime policy in
-`src/Briosa.Server/appsettings.json` is the source of truth for defaults;
-reflection and Development mode do not expand it. The shipped default
-allowlist names every registered operation, including state-mutating ones, so
-a source run admits the whole registered surface unless you deny operations.
-A reflected operation that is absent from `ListCapabilities` remains denied
-before worker or SDK execution.
+`src/Briosa.Server/appsettings.json` selects the `standard` admission profile;
+reflection and Development mode do not expand it. `standard` admits document
+automation, including file reads, file writes, and destructive model edits. It
+does not admit device, external IO, code execution, file deletion, interactive,
+or exclusive-workflow operations. A reflected operation that is absent from
+`ListCapabilities` remains denied before worker or SDK execution.
 
-.NET configuration merges indexed arrays by index. An environment-variable,
-user-secret, or command-line value for `Briosa:Security:Operations:Allow`
-replaces or appends individual entries; it cannot remove packaged entries.
-Because the packaged list already names every registered ID, such an override
-cannot narrow it: a changed entry duplicates another ID or names an unknown
-one, and either fails startup. To narrow a run, add exact operation IDs to the
-indexed `Briosa:Security:Operations:Deny` configuration, which takes
-precedence, restart the server, and confirm the result with `ListCapabilities`.
-Unknown, empty, duplicate, or non-array policy values fail startup.
+Each policy key is a single value, so a user secret, environment variable, or
+command-line value can narrow or widen one decision. For example, deny one
+operation for a run:
+
+```powershell
+dotnet run --project src/Briosa.Server --launch-profile SpatialAnalyzer -- `
+  --Briosa:Security:Operations:Overrides:variables:set_double_variable=deny
+```
+
+or select a wider profile and opt in to operator prompts:
+
+```powershell
+dotnet user-secrets set "Briosa:Security:Operations:Profile" "device" --project src/Briosa.Server
+dotnet user-secrets set "Briosa:Security:Operations:Flags:interactive_ui" "allow" --project src/Briosa.Server
+```
+
+Restart the server and confirm the result with `ListCapabilities`. A missing
+`Profile`, the retired `Allow`/`Deny` arrays, or an unknown name or value fails
+startup. No setting admits an exclusive workflow.
 
 Before calling any operation against a real session, review its exact
 operation ID, inputs, effect, execution scope, replay safety, and expected

@@ -52,7 +52,7 @@ internal static class DirectCadAccessOperation
             new("Import into Folders matching CAD file hierarchy", WorkerMpValueKind.Logical, new WorkerBooleanValue(request.HasImportIntoFoldersMatchingCadFileHierarchy && request.ImportIntoFoldersMatchingCadFileHierarchy), "SetBoolArg"),
             new("Remove Empty Folders", WorkerMpValueKind.Logical, new WorkerBooleanValue(!request.HasRemoveEmptyFolders || request.RemoveEmptyFolders), "SetBoolArg"),
             new("Surface Normals Mode (1 or 2)", WorkerMpValueKind.WholeNumber, new WorkerIntegerValue(request.HasSurfaceNormalsMode ? request.SurfaceNormalsMode : 1), "SetIntegerArg"),
-            new("Prompt on Missing Components", WorkerMpValueKind.Logical, new WorkerBooleanValue(!request.HasPromptOnMissingComponents || request.PromptOnMissingComponents), "SetBoolArg"),
+            new("Prompt on Missing Components", WorkerMpValueKind.Logical, new WorkerBooleanValue(request.HasPromptOnMissingComponents && request.PromptOnMissingComponents), "SetBoolArg"),
             new("Selective Import", WorkerMpValueKind.Logical, new WorkerBooleanValue(request.HasSelectiveImport && request.SelectiveImport), "SetBoolArg"),
             new("Surface Compatibility Mode", WorkerMpValueKind.Logical, new WorkerBooleanValue(request.SurfaceCompatibilityMode), "SetBoolArg"),
             new("Explode Surfaces", WorkerMpValueKind.Logical, new WorkerBooleanValue(request.HasExplodeSurfaces && request.ExplodeSurfaces), "SetBoolArg"),

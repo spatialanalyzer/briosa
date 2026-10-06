@@ -28,7 +28,7 @@ internal static class AutoMeasureSpecifiedGeometryOperation
             new("Mode/Profile", WorkerMpValueKind.Text,
                 new WorkerTextValue(request.ModeProfile), "SetStringArg"),
             new("Wait for Complete", WorkerMpValueKind.Logical,
-                new WorkerBooleanValue(request.WaitForComplete), "SetBoolArg")
+                new WorkerBooleanValue(!request.HasWaitForComplete || request.WaitForComplete), "SetBoolArg")
         ], []);
     }
 

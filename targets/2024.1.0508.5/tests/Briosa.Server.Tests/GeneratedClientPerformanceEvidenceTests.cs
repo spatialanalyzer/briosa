@@ -242,8 +242,10 @@ public sealed class GeneratedClientPerformanceEvidenceTests
         string[] operations = ["variables.get_double_variable", "variables.get_named_double_list_variable",
             "variables.set_named_double_list_variable", "relationship_operations.get_relationship_fit_constraints_scalar_type",
             "relationship_operations.set_relationship_fit_constraints_scalar_type"];
-        for (var index = 0; index < operations.Length; index++)
-            settings[$"{OperationPolicy.AllowKey}:{index}"] = operations[index];
+        // A narrow profile plus explicit per-operation admission for the sampled RPCs.
+        settings[OperationPolicy.ProfileKey] = "read-only";
+        foreach (var operation in operations)
+            settings[$"{OperationPolicy.OverridesKey}:{operation.Replace('.', ':')}"] = OperationPolicy.AllowValue;
         return settings;
     }
 
