@@ -33,9 +33,8 @@ public sealed class RuntimePerformanceEvidenceTests
                 heartbeatTimeout: TimeSpan.FromSeconds(1),
                 startupTimeout: TimeSpan.FromSeconds(5),
                 shutdownTimeout: TimeSpan.FromSeconds(1)),
-            new WorkerExecutionPolicy(
-                watchdogTimeout: TimeSpan.FromSeconds(2),
-                queueCapacity: 64),
+            // Synthetic performance-<n> IDs are not registered operations.
+            TestDurationClasses.SyntheticQuickPolicy(TimeSpan.FromSeconds(2), queueCapacity: 64),
             identityPolicy: ExactTargetIdentityPolicy.CreateForTesting(
                 "2024.1.0508.5",
                 activatedSdkVersion: "2024.1.0508.5",
@@ -177,10 +176,12 @@ public sealed class RuntimePerformanceEvidenceTests
 
     private static Action CreateDiscoveryAction()
     {
-        var policyValues = SpatialAnalyzerApi.Operations
-            .Select((operation, index) => new KeyValuePair<string, string?>(
-                $"{OperationPolicy.AllowKey}:{index}",
-                operation.OperationId));
+        // The widest admissible surface: every operation except exclusive workflows.
+        var policyValues = new Dictionary<string, string?>(StringComparer.Ordinal)
+        {
+            [OperationPolicy.ProfileKey] = "full",
+            [$"{OperationPolicy.FlagsKey}:interactive_ui"] = OperationPolicy.AllowValue
+        };
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(policyValues)
             .Build();

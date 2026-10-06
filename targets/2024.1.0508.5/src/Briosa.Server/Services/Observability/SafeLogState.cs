@@ -83,13 +83,14 @@ internal sealed class SafeLogState : IReadOnlyList<KeyValuePair<string, object?>
 
     private static bool AllowedProperty(string name) => name is
         "CorrelationId" or "ActorCategory" or "Endpoint" or "OperationId" or "Effect" or
-        "ExecutionScope" or "RiskFlags" or "PolicyDecision" or "AllowCount" or "DenyCount" or
+        "ExecutionScope" or "RiskFlags" or "PolicyDecision" or "AdmissionProfile" or "AdmittedOperationCount" or
+        "FlagSettingCount" or "OverrideCount" or "PolicyRule" or
         "TargetIsolationMode" or "PolicyFingerprint" or "Generation" or "RequestDurationMilliseconds" or
         "SdkDurationMilliseconds" or "ExecutionDisposition" or "MpOutcome" or "OutputRetrievalOutcome" or
         "MpResultCode" or "MpResultRetrieved" or "GrpcStatus" or "DiagnosticCode" or "ReplaySafety" or
         "WorkerState" or "RecoveryCount" or "Termination" or "ConnectionState" or "ExecutionReadinessState" or
         "StatusCode" or "ActivatedSdkIdentitySource" or "ActivatedSdkIdentityMatchState" or
         "ConnectedSaIdentitySource" or "ConnectedSaIdentityMatchState" or "AdmissionMilliseconds" or
-        "QueueMilliseconds" or "ExchangeMilliseconds" or "Rpc" or "ApplicationState" or "Ownership" or
+        "QueueMilliseconds" or "ExchangeMilliseconds" or "DurationClass" or "ExecutionBudgetMilliseconds" or "Rpc" or "ApplicationState" or "Ownership" or
         "DroppedRecords" or "SinkFailures";
 }

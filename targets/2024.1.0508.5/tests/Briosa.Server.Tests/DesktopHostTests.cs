@@ -18,7 +18,9 @@ public sealed class DesktopHostTests
     {
         var instance = DesktopProtocol.NewInstance();
         var credential = DesktopProtocol.NewCredential();
-        var configuration = new ConfigurationBuilder().Build();
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?> { [OperationPolicy.ProfileKey] = "standard" })
+            .Build();
         await using var supervisor = CreateSupervisor("disconnected");
         var application = new FakeApplication();
         await using var sdk = new SpatialAnalyzerSdkLifecycleCoordinator(supervisor, new(supervisor), application);
@@ -60,7 +62,9 @@ public sealed class DesktopHostTests
     [Fact]
     public async Task StartupFailureIsObservableAsRecoveryRequired()
     {
-        var configuration = new ConfigurationBuilder().Build();
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?> { [OperationPolicy.ProfileKey] = "standard" })
+            .Build();
         await using var supervisor = CreateSupervisor("sdk-activation-failed");
         var application = new FakeApplication();
         await using var sdk = new SpatialAnalyzerSdkLifecycleCoordinator(supervisor, new(supervisor), application);
@@ -84,7 +88,9 @@ public sealed class DesktopHostTests
     [Fact]
     public async Task ReconnectWithoutExecutionReadinessRepliesWithTypedDiagnostic()
     {
-        var configuration = new ConfigurationBuilder().Build();
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?> { [OperationPolicy.ProfileKey] = "standard" })
+            .Build();
         await using var supervisor = CreateSupervisor("disconnected", attested: false);
         var application = new FakeApplication();
         await using var sdk = new SpatialAnalyzerSdkLifecycleCoordinator(supervisor, new(supervisor), application);

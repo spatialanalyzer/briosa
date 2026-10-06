@@ -25,7 +25,7 @@ internal static class MeasureSinglePointHereOperation
             new("Target ID", WorkerMpValueKind.PointName,
                 PointNameMapper.Required(request.TargetId, "target_id"), "SetPointNameArg"),
             new("Measure Immediately", WorkerMpValueKind.Logical,
-                new WorkerBooleanValue(request.MeasureImmediately), "SetBoolArg")
+                new WorkerBooleanValue(!request.HasMeasureImmediately || request.MeasureImmediately), "SetBoolArg")
         };
         if (request.HtmlPromptFile is not null)
         {

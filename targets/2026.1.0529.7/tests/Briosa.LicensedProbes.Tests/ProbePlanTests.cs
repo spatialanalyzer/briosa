@@ -187,6 +187,63 @@ public sealed class ProbePlanTests
         Assert.DoesNotContain(TestSupport.Sentinel, text, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void PublicPhaseNamesItsNonDefaultServerAdmission()
+    {
+        var plan = ProbePlan.Create(ProbePhase.PublicApi, TestSupport.SentinelManifest());
+
+        var arguments = plan.ServerAdmissionArguments;
+
+        Assert.Equal("--Briosa:Security:Operations:Profile=device", arguments[0]);
+        Assert.Contains(
+            "--Briosa:Security:Operations:Overrides:construction_operations:make_collection_vector_group_name_ref_list_runtime_select=allow",
+            arguments);
+        Assert.All(arguments.Skip(1), argument =>
+        {
+            Assert.StartsWith("--Briosa:Security:Operations:Overrides:", argument, StringComparison.Ordinal);
+            Assert.EndsWith("=allow", argument, StringComparison.Ordinal);
+        });
+        var text = plan.RenderDryRun();
+        Assert.Contains("Server admission: start Briosa.Server.exe with", text, StringComparison.Ordinal);
+        Assert.All(arguments, argument => Assert.Contains(argument, text, StringComparison.Ordinal));
+        Assert.DoesNotContain("Server admission", ProbePlan.Create(ProbePhase.Worker, TestSupport.SentinelManifest()).RenderDryRun(),
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void NoAdmissionSettingCanReachAnExclusiveWorkflow()
+    {
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            ProbePlan.CreateServerAdmissionArguments([("/briosa.InstrumentOperations/StartInstrumentInterface", null)]));
+
+        Assert.Contains("operation-isolation-unsupported", exception.Message, StringComparison.Ordinal);
+
+        // A request that leaves the robot moving after the call returns is never admitted.
+        var nonWaiting = Assert.Throws<InvalidOperationException>(() =>
+            ProbePlan.CreateServerAdmissionArguments(
+            [
+                ("/briosa.RobotOperations/MoveRobotMachineToFrame",
+                    new Api.MoveRobotMachineToFrameRequest { AcknowledgeArrival = false })
+            ]));
+        Assert.Contains("operation-option-isolation-unsupported", nonWaiting.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void AdmissionReadsEachProbeRequestsOptions()
+    {
+        const string fit = "/briosa.AnalysisOperations/FitGeometryToPointGroup";
+        Assert.Equal(
+            ["--Briosa:Security:Operations:Profile=device"],
+            ProbePlan.CreateServerAdmissionArguments([(fit, new Api.FitGeometryToPointGroupRequest())]));
+        Assert.Equal(
+            [
+                "--Briosa:Security:Operations:Profile=device",
+                "--Briosa:Security:Operations:Overrides:analysis_operations:fit_geometry_to_point_group=allow"
+            ],
+            ProbePlan.CreateServerAdmissionArguments(
+                [(fit, new Api.FitGeometryToPointGroupRequest { ReportDeviations = true })]));
+    }
+
     [Theory]
     [InlineData("5-6", new[] { "5", "6" })]
     [InlineData("12", new[] { "12" })]

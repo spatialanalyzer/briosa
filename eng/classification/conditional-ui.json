@@ -1,5 +1,5 @@
 {
-  "description": "Reviewed caller-reachable operator UI that does not make an operation interactive_ui (#293). Each entry is one (operation, request field): the value that opens operator UI, Briosa's current default, and the exact-target documentation. A later #293 step uses the caller_option entries for a server-side argument guard. caller_option_default_flips entries are classified by the planned breaking-release default. job_or_file_state entries have no enabling field and are listed for the maintainer. Operations that already carry interactive_ui are not listed, except for the default-flip fields. eng/Test-OperationClassificationTwins.ps1 checks that every operation is registered by each listed target.",
+  "description": "Reviewed caller-reachable operator UI that does not make an operation interactive_ui (#293). Each entry is one (operation, request field): the value that opens operator UI, Briosa's default, and the exact-target documentation. Each caller_option and caller_option_default_flips entry has a machine-readable guard: the enabling condition and what Briosa sends when the field is absent. Each target's Security/OperationConditionalOptions.cs transcribes these guards, and OperationPolicy admits a request that enables the option only as an interactive_ui, interactive-duration request. eng/Test-OperationConditionalOptions.ps1 requires the JSON and the C# tables to agree. caller_option_default_flips entries record the defaults the breaking release flipped so that operator UI is opt-in. job_or_file_state entries have no enabling field; they are documented, not guarded. Operations that already carry interactive_ui are not listed, except for the default-flip fields. eng/Test-OperationClassificationTwins.ps1 checks that every operation is registered by each listed target.",
   "entries": [
     {
       "operation_id": "analysis_operations.best_fit_transformation_group_to_group",
@@ -13,6 +13,10 @@
       "enables_ui_when": "true",
       "briosa_default": "false",
       "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_true",
+        "absent": "sends_false"
+      },
       "behavior": "Displays the best-fit interface for the fit.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 653",
@@ -31,6 +35,10 @@
       "enables_ui_when": "true",
       "briosa_default": "false",
       "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_true",
+        "absent": "sends_false"
+      },
       "behavior": "Displays a dialog showing the fit results.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 649",
@@ -49,6 +57,10 @@
       "enables_ui_when": "true",
       "briosa_default": "false",
       "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_true",
+        "absent": "sends_false"
+      },
       "behavior": "Displays a dialog showing the fit results.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 650",
@@ -67,6 +79,10 @@
       "enables_ui_when": "true",
       "briosa_default": "false",
       "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_true",
+        "absent": "sends_false"
+      },
       "behavior": "Displays a dialog showing the fit results.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 651",
@@ -85,6 +101,10 @@
       "enables_ui_when": "true",
       "briosa_default": "false",
       "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_true",
+        "absent": "sends_false"
+      },
       "behavior": "Shows the query dialog for the operator to interact with.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 638",
@@ -103,6 +123,10 @@
       "enables_ui_when": "true",
       "briosa_default": "false",
       "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_true",
+        "absent": "sends_false"
+      },
       "behavior": "Shows the query dialog for the operator to interact with.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 639",
@@ -121,6 +145,10 @@
       "enables_ui_when": "true",
       "briosa_default": "false",
       "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_true",
+        "absent": "sends_false"
+      },
       "behavior": "Opens the vector group properties window when the command completes.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 640",
@@ -139,6 +167,10 @@
       "enables_ui_when": "true",
       "briosa_default": "false",
       "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_true",
+        "absent": "sends_false"
+      },
       "behavior": "Displays a dialog showing the renaming results.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 565",
@@ -157,6 +189,10 @@
       "enables_ui_when": "true",
       "briosa_default": "false",
       "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_true",
+        "absent": "sends_false"
+      },
       "behavior": "Displays a dialog showing the renaming results.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 564",
@@ -169,18 +205,22 @@
         "2026.1.0529.7",
         "2024.1.0508.5"
       ],
-      "trigger": "caller_option",
+      "trigger": "caller_option_default_flips",
       "field": "prompt_on_missing_components",
       "mp_argument": "Prompt on Missing Components",
       "enables_ui_when": "true",
-      "briosa_default": "true",
-      "briosa_default_enables_ui": true,
+      "briosa_default": "false",
+      "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_true",
+        "absent": "sends_false"
+      },
       "behavior": "Notifies the operator when the CAD model has missing components; the prompt appears only for such a model.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 57",
         "2026.1.0529.7": "Documentation/Content/Topics/Scripting/MPCommandListing/FileOperations/FileImport/DirectCADAccess.htm"
       },
-      "note": "Candidate for a default flip: the guard would otherwise reject a default request."
+      "note": "The breaking release flipped the Briosa default to false (maintainer decision, 2026-10-05); prompting the operator about missing components is opt-in."
     },
     {
       "operation_id": "file_operations.direct_cad_access",
@@ -194,6 +234,10 @@
       "enables_ui_when": "true",
       "briosa_default": "false",
       "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_true",
+        "absent": "sends_false"
+      },
       "behavior": "Displays the Selective Import dialog when the file opens.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 57",
@@ -212,6 +256,10 @@
       "enables_ui_when": "true",
       "briosa_default": "false",
       "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_true",
+        "absent": "sends_false"
+      },
       "behavior": "Lets the operator select the collections to import.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 45",
@@ -230,6 +278,10 @@
       "enables_ui_when": "true",
       "briosa_default": "false",
       "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_true",
+        "absent": "sends_false"
+      },
       "behavior": "Displays the entity list for the operator to choose what to import.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 50",
@@ -248,6 +300,10 @@
       "enables_ui_when": "true",
       "briosa_default": "false",
       "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_true",
+        "absent": "sends_false"
+      },
       "behavior": "Displays a detailed summary of the imported file.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 50",
@@ -266,6 +322,10 @@
       "enables_ui_when": "false",
       "briosa_default": "true",
       "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_false",
+        "absent": "sends_true"
+      },
       "behavior": "Leaves the converter dialog open for operator interaction.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 48",
@@ -283,6 +343,10 @@
       "enables_ui_when": "false",
       "briosa_default": "true",
       "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_false",
+        "absent": "sends_true"
+      },
       "behavior": "Prompts the operator to select the holes to fill.",
       "documentation": {
         "2026.1.0529.7": "Documentation/Content/Topics/Scripting/MPCommandListing/CloudMeshOps/MeshOperations/MeshFillHoles.htm"
@@ -300,6 +364,10 @@
       "enables_ui_when": "true",
       "briosa_default": "false",
       "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_true",
+        "absent": "sends_false"
+      },
       "behavior": "Requires the operator to confirm the deletion.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 1036",
@@ -318,6 +386,10 @@
       "enables_ui_when": "true",
       "briosa_default": "false",
       "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_true",
+        "absent": "sends_false"
+      },
       "behavior": "Displays a watch window of the probe deviation.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 1138",
@@ -336,6 +408,10 @@
       "enables_ui_when": "true",
       "briosa_default": "false",
       "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_true",
+        "absent": "sends_false"
+      },
       "behavior": "Displays the best-fit interface.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 1069",
@@ -354,6 +430,10 @@
       "enables_ui_when": "true",
       "briosa_default": "false",
       "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_true",
+        "absent": "sends_false"
+      },
       "behavior": "Displays the best-fit interface.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 1071",
@@ -372,6 +452,14 @@
       "enables_ui_when": "Yes or OnToleranceViolation",
       "briosa_default": "required; no default",
       "briosa_default_enables_ui": null,
+      "guard": {
+        "condition": "when_one_of",
+        "values": [
+          "SHOW_USMN_DIALOG_YES",
+          "SHOW_USMN_DIALOG_ON_TOLERANCE_VIOLATION"
+        ],
+        "absent": "rejected"
+      },
       "behavior": "Shows the USMN dialog always, or when a tolerance is violated.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 1064",
@@ -390,6 +478,10 @@
       "enables_ui_when": "any file",
       "briosa_default": "unset",
       "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_present",
+        "absent": "sends_nothing"
+      },
       "behavior": "Displays the HTML file to the operator as a prompt.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 1026",
@@ -408,6 +500,10 @@
       "enables_ui_when": "any file",
       "briosa_default": "unset",
       "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_present",
+        "absent": "sends_nothing"
+      },
       "behavior": "Displays the HTML file to the operator as a prompt.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 1028",
@@ -426,6 +522,10 @@
       "enables_ui_when": "any file",
       "briosa_default": "unset",
       "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_present",
+        "absent": "sends_nothing"
+      },
       "behavior": "Displays the HTML prompt to the operator before measurement.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 1023",
@@ -444,6 +544,10 @@
       "enables_ui_when": "any file",
       "briosa_default": "unset",
       "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_present",
+        "absent": "sends_nothing"
+      },
       "behavior": "Displays the HTML file as prompted instructions.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 1022",
@@ -462,6 +566,10 @@
       "enables_ui_when": "a non-empty string",
       "briosa_default": "empty",
       "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_non_empty",
+        "absent": "sends_nothing"
+      },
       "behavior": "Displays the prompt to the operator before the alignment routine starts.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 1182",
@@ -478,8 +586,12 @@
       "field": "check_type",
       "mp_argument": "Check Type",
       "enables_ui_when": "a UI check string, such as Camera View, Show UI, ADM, IFM, API DI iVision Dlg or API DI Run iVision Teach",
-      "briosa_default": "required; no default",
-      "briosa_default_enables_ui": null,
+      "briosa_default": "empty",
+      "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_non_empty",
+        "absent": "sends_nothing"
+      },
       "behavior": "Several documented check strings open instrument windows or guided routines; Run iVision Teach waits for the operator to click targets.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 1091",
@@ -498,6 +610,10 @@
       "enables_ui_when": "true",
       "briosa_default": "false",
       "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_true",
+        "absent": "sends_false"
+      },
       "behavior": "Pauses the MP until the operator closes the watch window.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 1044",
@@ -516,6 +632,10 @@
       "enables_ui_when": "true",
       "briosa_default": "false",
       "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_true",
+        "absent": "sends_false"
+      },
       "behavior": "Pauses the MP until the operator closes the watch window.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 1045",
@@ -534,6 +654,10 @@
       "enables_ui_when": "true",
       "briosa_default": "false",
       "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_true",
+        "absent": "sends_false"
+      },
       "behavior": "Pauses the MP until the operator closes the watch window.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 1043",
@@ -552,6 +676,10 @@
       "enables_ui_when": "true",
       "briosa_default": "false",
       "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_true",
+        "absent": "sends_false"
+      },
       "behavior": "Pauses the MP until the operator closes the watch window.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 1042",
@@ -570,6 +698,10 @@
       "enables_ui_when": "true",
       "briosa_default": "false",
       "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_true",
+        "absent": "sends_false"
+      },
       "behavior": "Pauses the MP until the operator closes the watch window.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 1041",
@@ -588,6 +720,10 @@
       "enables_ui_when": "true",
       "briosa_default": "false",
       "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_true",
+        "absent": "sends_false"
+      },
       "behavior": "Displays the analysis results dialog.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 788",
@@ -606,6 +742,10 @@
       "enables_ui_when": "true",
       "briosa_default": "false",
       "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_true",
+        "absent": "sends_false"
+      },
       "behavior": "Displays the fit dialog to the operator during execution.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 771",
@@ -624,6 +764,10 @@
       "enables_ui_when": "true",
       "briosa_default": "false",
       "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_true",
+        "absent": "sends_false"
+      },
       "behavior": "Displays the fit dialog.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 772",
@@ -638,10 +782,14 @@
       ],
       "trigger": "caller_option",
       "field": "display_closest_point_watch_window",
-      "mp_argument": "Display Closest Point Watch Window",
+      "mp_argument": "Display Closest Point Watch Window?",
       "enables_ui_when": "true",
       "briosa_default": "false",
       "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_true",
+        "absent": "sends_false"
+      },
       "behavior": "Displays a watch window when trapping starts.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 753",
@@ -660,6 +808,10 @@
       "enables_ui_when": "true",
       "briosa_default": "false",
       "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_true",
+        "absent": "sends_false"
+      },
       "behavior": "Displays the report window.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 978",
@@ -678,6 +830,10 @@
       "enables_ui_when": "true",
       "briosa_default": "false",
       "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_true",
+        "absent": "sends_false"
+      },
       "behavior": "Displays the report window.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 924",
@@ -696,6 +852,10 @@
       "enables_ui_when": "true",
       "briosa_default": "false",
       "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_true",
+        "absent": "sends_false"
+      },
       "behavior": "Displays the report window.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 923",
@@ -714,6 +874,10 @@
       "enables_ui_when": "true",
       "briosa_default": "false",
       "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_true",
+        "absent": "sends_false"
+      },
       "behavior": "Displays the combined report.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 918",
@@ -732,6 +896,10 @@
       "enables_ui_when": "true",
       "briosa_default": "false",
       "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_true",
+        "absent": "sends_false"
+      },
       "behavior": "Displays the chart interface to the operator during execution.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 939",
@@ -750,6 +918,10 @@
       "enables_ui_when": "true",
       "briosa_default": "false",
       "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_true",
+        "absent": "sends_false"
+      },
       "behavior": "Displays the report when it is generated.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 921",
@@ -768,6 +940,10 @@
       "enables_ui_when": "true",
       "briosa_default": "false",
       "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_true",
+        "absent": "sends_false"
+      },
       "behavior": "Displays the generated report.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 962",
@@ -786,6 +962,10 @@
       "enables_ui_when": "true",
       "briosa_default": "false",
       "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_true",
+        "absent": "sends_false"
+      },
       "behavior": "Displays the chart once it is created.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 942",
@@ -804,6 +984,10 @@
       "enables_ui_when": "true",
       "briosa_default": "false",
       "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_true",
+        "absent": "sends_false"
+      },
       "behavior": "Opens the output file for viewing.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 926",
@@ -822,6 +1006,10 @@
       "enables_ui_when": "true",
       "briosa_default": "false",
       "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_true",
+        "absent": "sends_false"
+      },
       "behavior": "Opens the PDF for viewing.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 925",
@@ -840,6 +1028,10 @@
       "enables_ui_when": "true",
       "briosa_default": "false",
       "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_true",
+        "absent": "sends_false"
+      },
       "behavior": "Displays the calibration interface.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 1216",
@@ -858,6 +1050,10 @@
       "enables_ui_when": "true",
       "briosa_default": "false",
       "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_true",
+        "absent": "sends_false"
+      },
       "behavior": "Displays the calibration interface.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 1217",
@@ -876,6 +1072,10 @@
       "enables_ui_when": "true",
       "briosa_default": "true",
       "briosa_default_enables_ui": true,
+      "guard": {
+        "condition": "when_true",
+        "absent": "sends_true"
+      },
       "behavior": "Displays the view Control dialog; the documentation does not say it waits for the operator.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 191",
@@ -895,6 +1095,14 @@
       "enables_ui_when": "Automatic or Manual",
       "briosa_default": "required; no default",
       "briosa_default_enables_ui": null,
+      "guard": {
+        "condition": "when_one_of",
+        "values": [
+          "SA_INTERACTION_MODE_MANUAL",
+          "SA_INTERACTION_MODE_AUTOMATIC"
+        ],
+        "absent": "rejected"
+      },
       "behavior": "Sets how many dialogs that need operator interaction SA shows while an MP runs; Silent shows few or none. The setting persists for the life of the application.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 1309",
@@ -911,14 +1119,18 @@
       "field": "measure_immediately",
       "mp_argument": "Measure Immediately",
       "enables_ui_when": "false",
-      "briosa_default": "false",
-      "briosa_default_enables_ui": true,
+      "briosa_default": "true",
+      "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_false",
+        "absent": "sends_true"
+      },
       "behavior": "Prompts the operator to take the measurement.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 1023",
         "2026.1.0529.7": "Documentation/Content/Topics/Scripting/MPCommandListing/InstrumentOperations/MeasureSinglePointHere.htm"
       },
-      "note": "The planned breaking release flips the Briosa default to true; the classification already assumes it."
+      "note": "The breaking release flipped the Briosa default to true; waiting for the operator is opt-in."
     },
     {
       "operation_id": "instrument_operations.configure_and_measure",
@@ -930,14 +1142,18 @@
       "field": "measure_immediately",
       "mp_argument": "Measure Immediately",
       "enables_ui_when": "false",
-      "briosa_default": "false",
-      "briosa_default_enables_ui": true,
+      "briosa_default": "true",
+      "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_false",
+        "absent": "sends_true"
+      },
       "behavior": "The operator initiates the measurement.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 1053",
         "2026.1.0529.7": "Documentation/Content/Topics/Scripting/MPCommandListing/InstrumentOperations/ConfigureAndMeasure.htm"
       },
-      "note": "The planned breaking release flips the Briosa default to true; the classification already assumes it."
+      "note": "The breaking release flipped the Briosa default to true; waiting for the operator is opt-in."
     },
     {
       "operation_id": "instrument_operations.measure_existing_single_point",
@@ -949,14 +1165,18 @@
       "field": "measure_immediately",
       "mp_argument": "Measure Immediately",
       "enables_ui_when": "false",
-      "briosa_default": "false",
-      "briosa_default_enables_ui": true,
+      "briosa_default": "true",
+      "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_false",
+        "absent": "sends_true"
+      },
       "behavior": "The operator controls when the measurement starts.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 1026",
         "2026.1.0529.7": "Documentation/Content/Topics/Scripting/MPCommandListing/InstrumentOperations/MeasureExistingSinglePoint.htm"
       },
-      "note": "The planned breaking release flips the Briosa default to true; the classification already assumes it."
+      "note": "The breaking release flipped the Briosa default to true; waiting for the operator is opt-in."
     },
     {
       "operation_id": "instrument_operations.measure_existing_single_point_and_compare",
@@ -968,14 +1188,18 @@
       "field": "measure_immediately",
       "mp_argument": "Measure Immediately",
       "enables_ui_when": "false",
-      "briosa_default": "false",
-      "briosa_default_enables_ui": true,
+      "briosa_default": "true",
+      "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_false",
+        "absent": "sends_true"
+      },
       "behavior": "The operator controls when the measurement starts.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 1028",
         "2026.1.0529.7": "Documentation/Content/Topics/Scripting/MPCommandListing/InstrumentOperations/MeasureExistingSinglePointCompare.htm"
       },
-      "note": "The planned breaking release flips the Briosa default to true; the classification already assumes it."
+      "note": "The breaking release flipped the Briosa default to true; waiting for the operator is opt-in."
     },
     {
       "operation_id": "instrument_operations.auto_measure_points",
@@ -987,14 +1211,18 @@
       "field": "auto_start",
       "mp_argument": "Auto Start?",
       "enables_ui_when": "false",
-      "briosa_default": "false",
-      "briosa_default_enables_ui": true,
+      "briosa_default": "true",
+      "briosa_default_enables_ui": false,
+      "guard": {
+        "condition": "when_false",
+        "absent": "sends_true"
+      },
       "behavior": "The operator triggers the measurement. The operation is already interactive_ui because its auto-measure dialog always opens.",
       "documentation": {
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 1131",
         "2026.1.0529.7": "Documentation/Content/Topics/Scripting/MPCommandListing/InstrumentOperations/AutoMeasurePoints.htm"
       },
-      "note": "The planned breaking release flips the Briosa default to true; the classification already assumes it."
+      "note": "The breaking release flipped the Briosa default to true; waiting for the operator is opt-in."
     },
     {
       "operation_id": "file_operations.save",

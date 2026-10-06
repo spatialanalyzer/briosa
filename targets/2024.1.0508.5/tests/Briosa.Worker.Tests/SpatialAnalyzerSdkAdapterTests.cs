@@ -685,6 +685,10 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
 
         public string? FailedOutputName { get; init; }
 
+        // A getter for this output succeeds with a value the private channel cannot
+        // encode: NaN for a double, a string over the frame bound for text.
+        public string? UndeliverableOutputName { get; init; }
+
         public string? MalformedOutputName { get; init; }
 
         public Dictionary<string, IReadOnlyList<string>> ReferenceArguments { get; } = [];
@@ -915,7 +919,7 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
         public bool GetDoubleArg(string name, ref double value)
         {
             Record($"GetDoubleArg:{name}");
-            value = 1.25;
+            value = name == UndeliverableOutputName ? double.NaN : 1.25;
             return true;
         }
 
@@ -925,7 +929,9 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
             var retrieved = name != FailedOutputName;
             if (retrieved)
             {
-                value = "scripted-output";
+                value = name == UndeliverableOutputName
+                    ? new string('x', WorkerControlProtocol.MaximumMessageBytes + 1)
+                    : "scripted-output";
             }
 
             return retrieved;

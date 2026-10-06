@@ -26,19 +26,25 @@ internal readonly record struct OperationAuditSummary(
                 MpResultCode: null);
         }
 
+        if (execution is WorkerSdkCallFaulted fault)
+        {
+            // A getter fault follows MP success, so only output retrieval faulted.
+            var outputGetter = fault.Phase == WorkerSdkCallPhase.OutputGetter;
+            return new OperationAuditSummary(
+                FormatExecutionDisposition(outcome?.ExecutionDisposition),
+                outputGetter ? "succeeded" : "sdk_call_faulted",
+                outputGetter ? "sdk_call_faulted" : "not_attempted",
+                execution.DurationMilliseconds,
+                execution.MpResultCode);
+        }
+
         if (!execution.ExecuteStepReturned)
         {
             return new OperationAuditSummary(
                 FormatExecutionDisposition(outcome?.ExecutionDisposition),
-                execution switch
-                {
-                    WorkerArgumentsRejected
-                    {
-                        DiagnosticCode: WorkerSdkFaultDiagnosticCodes.BeforeExecute
-                    } => "sdk_call_faulted",
-                    WorkerArgumentsRejected => "argument_rejected",
-                    _ => "execute_step_rejected"
-                },
+                execution is WorkerArgumentsRejected
+                    ? "argument_rejected"
+                    : "execute_step_rejected",
                 "not_attempted",
                 execution.DurationMilliseconds,
                 execution.MpResultCode);

@@ -12,7 +12,7 @@ internal static class MakePictureNameRefListRuntimeSelectOperation
         "construction_operations.make_picture_name_ref_list_runtime_select", "Make a Picture Name Ref List - Runtime Select",
         "briosa.ConstructionOperations", "MakePictureNameRefListRuntimeSelect",
         "/briosa.ConstructionOperations/MakePictureNameRefListRuntimeSelect", "read_only",
-        Api.OperationExecutionScope.GlobalStateRead, Api.ReplaySafety.Safe, []);
+        Api.OperationExecutionScope.GlobalStateRead, Api.ReplaySafety.Unsafe, []);
     public static IReadOnlyList<OperationOutputContract> OutputContracts { get; } =
         [new("picture_name_list", "Picture Name List", WorkerMpValueKind.CollectionItemNameList)];
 

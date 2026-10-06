@@ -13,8 +13,13 @@ editing the table, and add a row with every new operation. The target's
 `OperationClassificationTests` fail when a row is missing, extra, or incomplete.
 The files here are review artifacts and are not read by any build or test.
 
-At step 1 of #293 the tables are not consumed by `OperationPolicy`. The
-registered descriptors still govern admission, scope, and replay safety.
+`OperationPolicy` admits operations from these tables (#293 steps 2 and 3).
+A row's risk flags decide which profiles admit the operation, and an
+`exclusive_workflow` row becomes the operation's effective execution scope, which
+no setting can admit. The descriptors still supply effect, replay safety, and
+the MP binding. The profile definitions in `classify.py` match
+`OperationAdmissionProfile` in each target. Each request is also read against
+the guards of the conditional option lists; see [Request guard](#request-guard).
 
 ## Files
 
@@ -24,8 +29,8 @@ registered descriptors still govern admission, scope, and replay safety.
 | `classify.py` | The rules used for the decision, plus the corrections made in review. It writes the CSVs from a descriptor dump. |
 | `Export-OperationDescriptors.ps1` | Dumps a built target's compiled registry (`SpatialAnalyzerApi.Operations`) as `descriptors-<target>.json`, the input of `classify.py`. |
 | `target-differences.json` | Reviewed shared operations whose rows may differ between targets. It is read by `eng/Test-OperationClassificationTwins.ps1`. |
-| `conditional-ui.json` | Reviewed caller-reachable operator UI that does not make an operation `interactive_ui`, for the planned argument guard. See [Conditional behavior](#conditional-behavior). `eng/Test-OperationClassificationTwins.ps1` checks its operation IDs. |
-| `conditional-background.json` | Reviewed caller options that let an admissible operation return while device work keeps running, for the planned argument guard. See [Ongoing device workflows considered](#ongoing-device-workflows-considered). `eng/Test-OperationClassificationTwins.ps1` checks its operation IDs and that each operation is admissible. |
+| `conditional-ui.json` | Reviewed caller-reachable operator UI that does not make an operation `interactive_ui`, with the machine-readable guard each target's request classifier enforces. See [Conditional behavior](#conditional-behavior) and [Request guard](#request-guard). `eng/Test-OperationClassificationTwins.ps1` checks its operation IDs. |
+| `conditional-background.json` | Reviewed caller options that let an admissible operation return while device work keeps running, with their guards. See [Ongoing device workflows considered](#ongoing-device-workflows-considered) and [Request guard](#request-guard). `eng/Test-OperationClassificationTwins.ps1` checks its operation IDs and that each operation is admissible. |
 
 The CSV columns are the operation id, its registered effect, a primary family
 (a review aid only), the snake_case risk flags, the duration class, the
@@ -160,17 +165,17 @@ maintainer approved three rules for classifying them:
    appears only when the caller turns an option on (Show Interface, Show Results
    Dialog, Report Deviations, Verify Results, Use Fit Dialog, Pause MP Until
    Closed, an HTML prompt file, a user prompt, and so on) does not set
-   `interactive_ui`. A later #293 step adds a server-side argument guard that
-   rejects those options unless the caller opted into interactive operations.
-3. **`measure_immediately` and `auto_start` are classified by their planned
-   defaults.** The planned breaking release flips both Briosa defaults to true,
-   so `measure_single_point_here`, `configure_and_measure`,
-   `measure_existing_single_point`, `measure_existing_single_point_and_compare`
-   and the Auto Start option of `auto_measure_points` are classified by the
-   post-flip behavior: that option alone does not make them `interactive_ui`.
-   This change classifies them only; request defaults and runtime code are
-   unchanged. `auto_measure_points` stays `interactive_ui` because its
-   auto-measure dialog always opens.
+   `interactive_ui`. The request guard (see [Request guard](#request-guard))
+   treats a request that turns such an option on as `interactive_ui`, so it is
+   denied unless the caller opted into interactive operations.
+3. **`measure_immediately` and `auto_start` default to true.** The breaking
+   release flipped both Briosa defaults to true, so `measure_single_point_here`,
+   `configure_and_measure`, `measure_existing_single_point`,
+   `measure_existing_single_point_and_compare` and the Auto Start option of
+   `auto_measure_points` are classified by the immediate behavior: that option
+   alone does not make them `interactive_ui`. A request that sends `false` is
+   guarded like any other caller-enabled UI. `auto_measure_points` stays
+   `interactive_ui` because its auto-measure dialog always opens.
    `measure_existing_single_point_manual_guide` also stays `interactive_ui`:
    manual guiding, where the operator releases the motors and steers the head,
    is operator-driven whatever its Measure Immediately option says.
@@ -200,9 +205,10 @@ it through:
 
 `conditional-ui.json` lists every caller-reachable operator UI that rule 2
 leaves unflagged, one entry per operation and request field: the value that
-opens the UI, Briosa's current default, whether that default opens it, and the
-documentation in each target. The step-2 guard is to use the `caller_option`
-entries. The `caller_option_default_flips` entries are the rule 3 fields. The
+opens the UI, Briosa's default, whether that default opens it, the guard, and
+the documentation in each target. The request guard uses the `caller_option`
+and `caller_option_default_flips` entries; the latter are the rule 3 fields and
+the decided `direct_cad_access` flip described below. The
 `job_or_file_state` entries have no enabling field and are listed for the
 maintainer: `file_operations.save` opens Save As when the job has never been
 named, `export_vector_container_to_ascii_file` asks before overwriting an
@@ -258,20 +264,20 @@ the device or operator work keeps running, but only when the caller asks them
 not to wait. The maintainer approved this policy, recorded on #293:
 
 - The rows stay `admissible` and are classified by their waiting behavior.
-- A later #293 step adds an argument guard that rejects the non-waiting value
-  with `NotStarted` until a lease design exists.
-- In the planned breaking release, Briosa's default flips to waiting for
+- The request guard rejects the non-waiting value with `NotStarted` as an
+  exclusive workflow until a lease design exists.
+- The breaking release flipped Briosa's default to waiting for
   `auto_measure_specified_geometry` (Wait for Complete) and for
   `move_robot_machine_to_frame` and `move_robot_machine_to_named_destination`
-  (Acknowledge Arrival). Those three are the only options whose current default
-  does not wait. Request defaults and runtime code are unchanged here.
+  (Acknowledge Arrival). Those three were the only options whose default did not
+  wait.
 
 `conditional-background.json` lists these options in the same shape as
 `conditional-ui.json`: one entry per operation and request field, with the
 targets, the trigger (`caller_option`, or `caller_option_default_flips` for the
 three default flips), the MP argument, the value that leaves work running,
-Briosa's current default and whether it leaves work running, a short behavior
-note, and the documentation in each target. Each option was checked in each
+Briosa's default and whether it leaves work running, the guard, a short
+behavior note, and the documentation in each target. Each option was checked in each
 target's documentation and operation mapping, which passes it through. A sweep
 of every request field for wait, acknowledge, return, immediate, hold, block and
 continue wording found no other such option on an admissible operation:
@@ -284,16 +290,21 @@ target. `eng/Test-OperationClassificationTwins.ps1` checks that each entry names
 exactly the targets that register the operation and that every listed operation
 is `admissible`.
 
-Two caller options open UI with Briosa's current defaults but are not
-`interactive_ui`. Both are candidates for a default flip, because the step-2
-guard would otherwise reject a default request:
+One caller option opens UI with Briosa's default but is not `interactive_ui`.
+It remains a candidate for a default flip, because the request guard rejects a
+default request unless the caller opted into interactive operations:
 
-- `file_operations.direct_cad_access` `prompt_on_missing_components` (default
-  true) notifies the operator only when the CAD model has missing components, so
-  the UI depends on the file as well as the option.
 - `view_control.set_point_of_view_from_instrument_updates`
   `display_view_control` (default true) displays the view Control dialog;
-  neither release says the dialog waits for the operator.
+  neither release says the dialog waits for the operator. The operation is an
+  `exclusive_workflow`, so no request is admitted today.
+
+Decided flip (maintainer decision, 2026-10-05):
+`file_operations.direct_cad_access` `prompt_on_missing_components` now defaults
+to false. It notifies the operator only when the CAD model has missing
+components, so the UI depends on the file as well as the option. Its entry in
+`conditional-ui.json` is a `caller_option_default_flips` entry; a request that
+sends true needs the interactive opt-in.
 
 ## Regenerate the seed
 
@@ -311,3 +322,41 @@ Then compare the output with the committed CSVs and the tables. Once a table
 has been edited, the CSV no longer has to match it. Regenerating is a review
 aid for an SA-version migration or a broad reclassification, not a build step.
 Do not generate table rows or operations from it.
+
+## Request guard
+
+Each `caller_option` and `caller_option_default_flips` entry in
+`conditional-ui.json` and `conditional-background.json` has a `guard` object:
+
+| Key | Values | Meaning |
+|---|---|---|
+| `condition` | `when_true`, `when_false`, `when_present`, `when_non_empty`, `when_one_of` | Which request value enables the option: a Boolean value, a message (such as a file reference) that is present, a string that is not empty, or one of the enum values in `values` (protobuf value names). |
+| `values` | protobuf enum value names | Only for `when_one_of`. |
+| `absent` | `sends_true`, `sends_false`, `sends_nothing`, `rejected` | What Briosa sends when the caller omits the field: a Boolean value, nothing (or an empty value) that does not enable the option, or a request-mapping rejection for a required field. |
+
+`briosa_default_enables_ui` and `briosa_default_leaves_work_running` follow from
+the guard. Each target's `src/Briosa.Server/Security/OperationConditionalOptions.cs`
+transcribes the guards of the entries that name it, one row per line, with the
+operation, request field, MP argument, effect, and trigger.
+`eng/Test-OperationConditionalOptions.ps1` fails, in CI, when an entry and a row
+differ in either direction, or when a default flag disagrees with its guard.
+
+Before mapping, reservation, or dispatch, `OperationRequestClassifier` reads the
+typed request against those rows. A request that enables a UI option gains
+`interactive_ui` and the `interactive` duration class; a request that enables a
+background option is an exclusive workflow. A field the request type does not
+declare with presence fails closed. `OperationConditionalOptionTests` builds the
+real MP command for an omitted, an enabling, and a non-enabling value of every
+entry and requires the classifier's verdict to match the MP argument the
+mapping sends, so the guard cannot drift from the mapping. That test corrected
+the recorded MP argument of
+`relationship_operations.make_group_to_nominal_group_relationship` to the
+label the mapping sends, `Display Closest Point Watch Window?`.
+
+`instrument_operational_check` takes a free-form Check Type, and the documented
+UI check strings are examples, not a closed list. Its guard is `when_non_empty`,
+so every explicit check type needs the interactive opt-in. The maintainer
+approved keeping it fail-closed (2026-10-05). Loosening it needs a reviewed list
+of check strings that open no operator UI, recorded in the seed and enforced by
+the guard. The `job_or_file_state` entries have no request field and are not
+guarded.

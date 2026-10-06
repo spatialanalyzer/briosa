@@ -27,14 +27,36 @@ target can express. Runtime policy may reduce that set but cannot enable an RPC
 absent from the protobuf contract, implementation, and `SpatialAnalyzerApi`
 registry.
 
-`Briosa:Security:Operations:Allow` and `Deny` use exact operation IDs. A missing
-allowlist enables nothing, deny wins over allow, and empty, duplicate, scalar, or
-unknown IDs fail startup. Policy is fixed for the process lifetime. Discovery
-reports only the admitted subset. Each target's shipped default allowlist names
-every registered operation, including state-mutating ones, so a packaged server
-admits its whole registered surface unless an operator configures `Deny`.
-Overrides merge the indexed allowlist by index and cannot remove packaged
-entries.
+Admission comes from each target's reviewed classification table
+(`Security/OperationClassification.cs`). It holds one row per registered
+operation with risk flags, duration class, validation status, and isolation
+class. The operator selects `Briosa:Security:Operations:Profile` (`read-only`,
+`standard`, `device`, or `full`). It can be adjusted with
+`Flags:<risk_flag>` and `Overrides:<service>:<operation>` set to `allow` or
+`deny`. The packaged default is `standard`: document automation including file
+reads, file writes, and destructive model edits. It excludes device, external
+IO, code execution, file deletion, and interactive operations.
+
+The first matching rule decides:
+
+1. unregistered or binding mismatch;
+2. unreviewed metadata;
+3. `ExclusiveWorkflow`, which nothing can override (invariant 13);
+4. per-operation deny;
+5. per-operation allow;
+6. flag deny; and
+7. the profile.
+
+`interactive_ui` is in no profile and needs an explicit opt-in. Each request
+is also read against a reviewed table of caller options before mapping or
+dispatch: an option that opens operator UI makes the request `interactive_ui`
+with the `interactive` duration class, and an option that lets the call return
+while device work keeps running makes it an exclusive workflow. An unreadable
+request fails closed. A missing
+`Profile`, the retired `Allow`/`Deny` arrays, and unknown names or values fail
+startup. Policy is fixed for the process lifetime. Discovery reports only the
+admitted subset. Validation status never affects admission. See the
+[migration note](../development/admission-profile-migration.md).
 
 Each operation descriptor explicitly records:
 
@@ -44,9 +66,12 @@ Each operation descriptor explicitly records:
 - replay safety; and
 - any risk flags.
 
-Risk flags are sparse: most descriptors have none. They are recorded in audit
-events; only an `unknown` flag affects admission. Unknown or unsupported
-metadata fails closed. Policy denial occurs before worker
+The classification row, not the descriptor, supplies the reviewed risk flags
+and isolation class. Descriptor risk flags remain author declarations recorded
+in audit events, and an `unknown` descriptor flag still fails closed. A missing
+classification row, unknown effect, unspecified or unknown replay safety, or
+unreviewed scope fails closed. An `ExclusiveWorkflow` row becomes the operation's effective
+execution scope. Policy denial occurs before worker
 enqueue or SDK execution and returns a typed value-free `PermissionDenied` outcome
 with `NotStarted` disposition.
 

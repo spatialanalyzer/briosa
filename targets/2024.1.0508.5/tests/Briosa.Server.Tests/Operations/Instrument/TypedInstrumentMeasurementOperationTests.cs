@@ -50,7 +50,8 @@ public sealed class TypedInstrumentMeasurementOperationTests
             existing.InputArguments.Select(argument => argument.Name));
         Assert.Equal(WorkerObjectTypeValue.PointGroup,
             existing.InputArguments[2].RequireValue<WorkerCollectionObjectNameValue>().ObjectType);
-        Assert.False(existing.InputArguments[3].RequireValue<WorkerBooleanValue>().Value);
+        // Measure Immediately defaults to true since the breaking release (#293).
+        Assert.True(existing.InputArguments[3].RequireValue<WorkerBooleanValue>().Value);
 
         var compare = MeasureExistingSinglePointAndCompareOperation.CreateCommand(new()
         {
@@ -94,7 +95,7 @@ public sealed class TypedInstrumentMeasurementOperationTests
             TargetId = target
         });
         Assert.Equal(3, here.InputArguments.Count);
-        Assert.False(here.InputArguments[2].RequireValue<WorkerBooleanValue>().Value);
+        Assert.True(here.InputArguments[2].RequireValue<WorkerBooleanValue>().Value);
     }
 
     [Fact]

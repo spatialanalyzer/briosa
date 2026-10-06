@@ -235,8 +235,15 @@ public sealed class DiscoveryServiceTests
 
         Assert.Equal("2024.1.0508.5", response.SpatialAnalyzerTarget);
         Assert.Equal("briosa", response.ProtocolPackage);
-        Assert.Equal(SpatialAnalyzerApi.Operations.Count, response.Operations.Count);
-        foreach (var descriptor in SpatialAnalyzerApi.Operations)
+        var policy = CreatePolicy();
+        Assert.Equal(policy.AllowedOperations.Count, response.Operations.Count);
+        Assert.True(response.Operations.Count < SpatialAnalyzerApi.Operations.Count);
+        Assert.Equal(
+            policy.AllowedOperations.Select(operation => operation.OperationId),
+            response.Operations.Select(operation => operation.OperationId));
+        Assert.DoesNotContain(response.Operations, operation =>
+            operation.ExecutionScope == global::Briosa.OperationExecutionScope.ExclusiveWorkflow);
+        foreach (var descriptor in policy.AllowedOperations)
         {
             var operation = Assert.Single(
                 response.Operations,
@@ -260,10 +267,12 @@ public sealed class DiscoveryServiceTests
         var response = new ServerDiscoveryService(
             new FakeWorkerStatusProvider(Snapshot(WorkerLifecycleState.Stopped, null)),
             new FakeBuildIdentityProvider(),
-            CreatePolicy(allow: false))
+            CreatePolicy(denyWorkingDirectory: true))
             .CreateCapabilities();
 
-        Assert.Empty(response.Operations);
+        Assert.DoesNotContain(response.Operations, operation =>
+            operation.OperationId == "file_operations.get_working_directory");
+        Assert.Equal(CreatePolicy().AllowedOperations.Count - 1, response.Operations.Count);
     }
 
     [Fact]
@@ -329,24 +338,12 @@ public sealed class DiscoveryServiceTests
 
         Assert.Equal(expected, provider.CreateVersionCoordinates());
     }
-    private static OperationPolicy CreatePolicy(bool allow = true)
-    {
-        var values = new Dictionary<string, string?>(StringComparer.Ordinal);
-        if (allow)
-        {
-            for (var index = 0; index < SpatialAnalyzerApi.Operations.Count; index++)
-            {
-                values.Add(
-                    $"{OperationPolicy.AllowKey}:{index}",
-                    SpatialAnalyzerApi.Operations[index].OperationId);
-            }
-        }
-
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(values)
-            .Build();
-        return OperationPolicy.Create(configuration, SpatialAnalyzerApi.Operations);
-    }
+    private static OperationPolicy CreatePolicy(bool denyWorkingDirectory = false) =>
+        OperationPolicyTests.CreatePolicy(
+            profile: "standard",
+            settings: denyWorkingDirectory
+                ? new() { ["Overrides:file_operations:get_working_directory"] = "deny" }
+                : null);
     private static WorkerLifecycleSnapshot Snapshot(
         WorkerLifecycleState workerState,
         WorkerConnectionState? connectionState,

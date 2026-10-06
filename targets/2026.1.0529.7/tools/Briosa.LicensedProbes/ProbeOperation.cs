@@ -192,6 +192,8 @@ internal static class PublicOutcomes
             OperationFailureKind.MpFailure => ProbeOutcomeKind.MpFailed,
             OperationFailureKind.MpResultRetrievalFailure => ProbeOutcomeKind.MpResultUnavailable,
             OperationFailureKind.OutputRetrievalFailure => ProbeOutcomeKind.OutputRetrievalFailed,
+            // Completed only when an output getter threw after MP success.
+            OperationFailureKind.SdkCallFaulted => ProbeOutcomeKind.OutputRetrievalFailed,
             _ => ProbeOutcomeKind.Indeterminate
         };
     }
@@ -265,6 +267,9 @@ internal static class WorkerOutcomes
             WorkerExecuteRejected => ProbeOutcomeKind.ExecuteStepRejected,
             WorkerMpResultUnavailable => ProbeOutcomeKind.MpResultUnavailable,
             WorkerMpOutputsUnavailable => ProbeOutcomeKind.OutputRetrievalFailed,
+            WorkerSdkCallFaulted { Phase: WorkerSdkCallPhase.BeforeExecute } => ProbeOutcomeKind.NotStarted,
+            WorkerSdkCallFaulted { Phase: WorkerSdkCallPhase.OutputGetter } => ProbeOutcomeKind.OutputRetrievalFailed,
+            WorkerSdkCallFaulted => ProbeOutcomeKind.Indeterminate,
             WorkerMpResultAvailable { ResultCode: not 2 } => ProbeOutcomeKind.MpFailed,
             WorkerMpResultAvailable when outputs.Any(output => !output.Retrieved) => ProbeOutcomeKind.OutputRetrievalFailed,
             WorkerMpResultAvailable => ProbeOutcomeKind.Succeeded,
@@ -276,7 +281,9 @@ internal static class WorkerOutcomes
         return new ProbeOutcome(
             kind,
             "worker:completed",
-            execution is WorkerArgumentsRejected ? null : execution.ExecuteStepReturned,
+            execution is WorkerArgumentsRejected or WorkerSdkCallFaulted { Phase: WorkerSdkCallPhase.BeforeExecute }
+                ? null
+                : execution.ExecuteStepReturned,
             execution.ExecuteStepReturned ? execution.MpResultRetrieved : null,
             execution.MpResultCode,
             outputs,
@@ -287,11 +294,12 @@ internal static class WorkerOutcomes
     }
 
     // Mirrors the shipped server's GrpcOperationOutcomeMapper: a rejected argument
-    // never started; ExecuteStep false after the setters, or a missing MP result
-    // after ExecuteStep true, leaves completion unknown; an MP code means completed.
+    // or an SDK fault before ExecuteStep never started; ExecuteStep false after the
+    // setters, a missing MP result after ExecuteStep true, or an SDK fault in either
+    // call leaves completion unknown; an MP code means completed.
     internal static string DispositionOf(ProbeOutcomeKind kind) => kind switch
     {
-        ProbeOutcomeKind.ArgumentRejected => "NotStarted",
+        ProbeOutcomeKind.ArgumentRejected or ProbeOutcomeKind.NotStarted => "NotStarted",
         ProbeOutcomeKind.Succeeded or ProbeOutcomeKind.MpFailed or ProbeOutcomeKind.OutputRetrievalFailed => "Completed",
         _ => ProbeOutcome.StartedOutcomeUnknown
     };

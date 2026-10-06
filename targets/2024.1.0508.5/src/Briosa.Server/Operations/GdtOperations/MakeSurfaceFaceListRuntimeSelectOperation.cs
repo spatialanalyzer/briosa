@@ -10,7 +10,7 @@ internal static class MakeSurfaceFaceListRuntimeSelectOperation
     public static OperationDescriptor Descriptor { get; } = new(
         "gdt_operations.make_surface_face_list_runtime_select", "Make Surface Face List - Runtime Select",
         "briosa.GdtOperations", "MakeSurfaceFaceListRuntimeSelect", "/briosa.GdtOperations/MakeSurfaceFaceListRuntimeSelect",
-        "read_only", Api.OperationExecutionScope.GlobalStateRead, Api.ReplaySafety.Safe, []);
+        "read_only", Api.OperationExecutionScope.GlobalStateRead, Api.ReplaySafety.Unsafe, []);
     public static IReadOnlyList<OperationOutputContract> OutputContracts { get; } =
         [new("surface_faces", "Selected Surface Faces", WorkerMpValueKind.Text)];
 

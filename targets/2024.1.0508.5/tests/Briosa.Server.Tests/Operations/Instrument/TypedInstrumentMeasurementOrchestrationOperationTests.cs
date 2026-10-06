@@ -35,7 +35,8 @@ public sealed class TypedInstrumentMeasurementOrchestrationOperationTests
             ["SetColInstIdArg", "SetPointNameArg", "SetStringArg", "SetBoolArg", "SetBoolArg", "SetDoubleArg"],
             configure.InputArguments.Select(argument => argument.SdkBinding));
         Assert.Equal(string.Empty, configure.InputArguments[2].RequireValue<WorkerTextValue>().Value);
-        Assert.False(configure.InputArguments[3].RequireValue<WorkerBooleanValue>().Value);
+        // Measure Immediately defaults to true since the breaking release (#293).
+        Assert.True(configure.InputArguments[3].RequireValue<WorkerBooleanValue>().Value);
         Assert.True(configure.InputArguments[4].RequireValue<WorkerBooleanValue>().Value);
         Assert.Equal(0d, configure.InputArguments[5].RequireValue<WorkerDoubleValue>().Value);
 

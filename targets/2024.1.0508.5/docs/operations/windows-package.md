@@ -45,7 +45,7 @@ The packaged default binds unencrypted HTTP/2 to loopback only at `127.0.0.1:500
 ./Briosa.Server.exe
 ```
 
-The server reads its packaged `appsettings.json`, including the operation allowlist, from the package directory regardless of the current working directory. Only an explicit `--contentRoot`, `ASPNETCORE_CONTENTROOT`, or `DOTNET_CONTENTROOT` selects a different configuration directory.
+The server reads its packaged `appsettings.json`, including the operation admission profile, from the package directory regardless of the current working directory. Only an explicit `--contentRoot`, `ASPNETCORE_CONTENTROOT`, or `DOTNET_CONTENTROOT` selects a different configuration directory.
 
 The default SpatialAnalyzer SDK target is `localhost`. That configured target identifies where Briosa connects; it does not identify the activated SDK or connected application release. The worker observes the file/product version of the SDK process uniquely created during activation. The connected SA version still requires independent operator evidence; an SDK attestation is also needed when its runtime version cannot be observed. Supply the version/reference pairs through Control Center's Connection setup or the configuration documented in [the health and discovery guide](health-and-discovery.md). Missing evidence remains live but not ready; a verified mismatch cannot be overridden.
 
@@ -55,7 +55,23 @@ LAN, Internet, reverse-proxy, tunnel, shared-host, and other remotely reachable 
 
 The worker admission budget defaults to 32 MiB and can be set with `Briosa__Worker__MaxRetainedWorkMiB` (1–1024 MiB). Each accepted request reserves 16 KiB plus eight times its protobuf wire size, capped at 1 MiB, before MP command mapping. The reservation remains charged while queued or in flight; this is a conservative retained-work budget, not an exact CLR heap measurement. The existing queue count remains an independent limit. Worker response frames are limited separately to 64 KiB, with one active exchange per worker.
 
-The worker execution watchdog defaults to 30 seconds. Set `Briosa__Worker__ExecutionWatchdogTimeout` to a positive .NET `TimeSpan` no greater than ten minutes only when deployment evidence justifies an override. A client deadline or cancellation stops that caller from waiting; it does not claim to cancel synchronous COM work already in flight.
+### Worker time bounds
+
+The server chooses each request's execution budget from its effective duration class (`quick`, `long_running`, or `interactive`). That is the operation's reviewed class in the target's classification table, unless admission escalates it: a request whose caller option turns on operator UI, such as `show_results_dialog`, is admitted only with the `interactive_ui` opt-in and runs under the interactive budget. A request never receives less than its operation's reviewed budget. The readiness probe and worker startup have their own bounds; duration classes never apply to them. Every value is a .NET `TimeSpan` (`hh:mm:ss`). The server validates them at startup and refuses to start, naming the configuration key, if a value is malformed, not positive, above its maximum, or a longer-class budget is shorter than the quick budget. The defaults are defined once, in the server; the packaged `appsettings.json` does not repeat them.
+
+| Configuration key (environment variable form) | Bounds | Default | Maximum |
+| --- | --- | --- | --- |
+| `Briosa__Worker__ExecutionWatchdogTimeout` | Execution of `quick` operations | 30 seconds | 10 minutes |
+| `Briosa__Worker__LongRunningExecutionWatchdogTimeout` | Execution of `long_running` operations (device actions, motion, scans, heavy document and cloud work) | 10 minutes | 2 hours; not shorter than the quick budget |
+| `Briosa__Worker__InteractiveExecutionWatchdogTimeout` | Execution of `interactive` operations (prompts, runtime selection, pick, drag, manual guide) | 30 minutes | 8 hours; not shorter than the quick budget |
+| `Briosa__Worker__ReadinessProbeTimeout` | The private execution-readiness probe after an explicit connect | 30 seconds | 10 minutes |
+| `Briosa__Worker__StartupTimeout` | Worker launch, COM activation, the worker Ready message, and `ConnectEx` | 10 seconds | 5 minutes |
+
+Every execution budget is enforced by the same watchdog. When it expires after dispatch, the supervisor terminates the worker, reports `OPERATION_FAILURE_KIND_WORKER_WATCHDOG_TIMEOUT` with `EXECUTION_DISPOSITION_STARTED_OUTCOME_UNKNOWN`, and requires explicit SDK recovery. The interrupted operation is never replayed. An operation without a reviewed duration class does not execute: the call is rejected as a policy denial before dispatch, with `EXECUTION_DISPOSITION_NOT_STARTED` and the diagnostic `operation-duration-unreviewed`.
+
+The defaults are conservative starting points, not measurements. The quick budget keeps its 0.9 value. Ten minutes covers routine long operations, while a hung device or document call still releases the single serialized worker in bounded time. Thirty minutes gives an operator time to answer a prompt without leaving the worker blocked for a whole session. The readiness probe keeps its earlier effective bound of 30 seconds, which it used to share with the quick watchdog; it performs one trivial MP read, but no licensed evidence yet supports a shorter bound for the first call after `ConnectEx`. Each bound is configured independently, so changing the quick budget no longer changes the probe bound. Startup keeps its earlier fixed 10 seconds. Raise a bound only when deployment evidence justifies it, and note that the queue is serialized: other requests wait, and a stop or recovery request waits for an in-flight call, for up to the longest budget in use.
+
+A client deadline or cancellation stops that caller from waiting; it does not claim to cancel synchronous COM work already in flight.
 
 Use standard gRPC health checks named `briosa.liveness` and `briosa.readiness`. See `HEALTH-AND-DISCOVERY.md` for discovery and response semantics.
 

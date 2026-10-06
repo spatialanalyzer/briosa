@@ -83,6 +83,43 @@ public sealed class WorkerControlChannel(Stream stream, bool leaveOpen = false) 
         }
     }
 
+    // Encodes without writing, so a caller can choose a bounded replacement before
+    // any frame bytes reach the stream.
+    internal static bool TryEncode(WorkerControlMessage message)
+    {
+        try
+        {
+            _ = Serialize(message);
+            return true;
+        }
+        catch (WorkerMessageRejectedException)
+        {
+            return false;
+        }
+    }
+
+    // Measures one output value as the channel would encode it. Invalid or
+    // non-finite values cannot be encoded.
+    internal static bool TryMeasureOutput(WorkerMpOutputValue output, out int length)
+    {
+        ArgumentNullException.ThrowIfNull(output);
+        length = 0;
+        if (!Enum.IsDefined(output.Kind) || string.IsNullOrWhiteSpace(output.Name) || !HasOutputValueForKind(output))
+        {
+            return false;
+        }
+
+        try
+        {
+            length = JsonSerializer.SerializeToUtf8Bytes(output, WorkerControlJsonContext.Default.WorkerMpOutputValue).Length;
+            return true;
+        }
+        catch (Exception exception) when (exception is ArgumentException or JsonException or NotSupportedException)
+        {
+            return false;
+        }
+    }
+
     private static WorkerControlMessage Deserialize(ReadOnlySpan<byte> payload)
     {
         try

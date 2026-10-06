@@ -12,7 +12,7 @@ internal static class MakeCollectionInstrumentIdRuntimeSelectOperation
         "construction_operations.make_collection_instrument_id_runtime_select",
         "Make a Collection Instrument ID - Runtime Select", "briosa.ConstructionOperations",
         "MakeCollectionInstrumentIdRuntimeSelect", "/briosa.ConstructionOperations/MakeCollectionInstrumentIdRuntimeSelect",
-        "read_only", Api.OperationExecutionScope.GlobalStateRead, Api.ReplaySafety.Safe, []);
+        "read_only", Api.OperationExecutionScope.GlobalStateRead, Api.ReplaySafety.Unsafe, []);
     public static IReadOnlyList<OperationOutputContract> OutputContracts { get; } =
         [new("instrument_id", "Instrument ID", WorkerMpValueKind.CollectionInstrumentId)];
 

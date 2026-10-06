@@ -36,7 +36,7 @@ internal static class MeasureExistingSinglePointAndCompareOperation
                 CollectionObjectNameMapper.Required(request.GroupNameForNewPoint, "group_name_for_new_point",
                     WorkerObjectTypeValue.PointGroup), "SetCollectionObjectNameArg2"),
             new("Measure Immediately", WorkerMpValueKind.Logical,
-                new WorkerBooleanValue(request.MeasureImmediately), "SetBoolArg")
+                new WorkerBooleanValue(!request.HasMeasureImmediately || request.MeasureImmediately), "SetBoolArg")
         };
         if (request.HtmlPromptFile is not null)
         {

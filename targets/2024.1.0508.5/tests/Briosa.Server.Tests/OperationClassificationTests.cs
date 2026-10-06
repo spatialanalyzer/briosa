@@ -4,11 +4,11 @@ using Briosa.Server.Security;
 namespace Briosa.Server.Tests;
 
 /// <summary>
-/// Pins the reviewed D1 classification table (#242, #293 step 1). The table is
-/// not consumed by <see cref="OperationPolicy"/> yet; these tests check its
-/// completeness, vocabulary, decided mappings, and the profile admission counts
-/// the decision expects, computed from the table with the proposal's profile
-/// definitions as test data.
+/// Pins the reviewed D1 classification table (#242, #293). These tests check its
+/// completeness, vocabulary, and decided mappings, and that
+/// <see cref="OperationPolicy"/> admits the counts the reviewed table implies under
+/// each profile. The counts are also recomputed from the table with an
+/// independent copy of the proposal's profile definitions.
 /// </summary>
 public sealed class OperationClassificationTests
 {
@@ -22,6 +22,8 @@ public sealed class OperationClassificationTests
         };
 
     private const int ExpectedInteractiveOperations = 59;
+
+    private const int ExpectedExclusiveOperations = 45;
 
     private static readonly string[] SessionLifecycles =
         [
@@ -168,7 +170,19 @@ public sealed class OperationClassificationTests
             Assert.Equal(
                 ExpectedProfileAdmission[profile.Name],
                 SpatialAnalyzerApi.Operations.Count(operation => OperationProfileAdmission.Admits(profile, operation)));
+            var policy = OperationPolicyTests.CreatePolicy(profile: profile.Name);
+            Assert.Equal(ExpectedProfileAdmission[profile.Name], policy.AllowedOperations.Count);
+            Assert.Equal(
+                SpatialAnalyzerApi.Operations
+                    .Where(operation => OperationProfileAdmission.Admits(profile, operation))
+                    .Select(operation => operation.OperationId)
+                    .Order(StringComparer.Ordinal),
+                policy.AllowedOperations.Select(operation => operation.OperationId));
         }
+
+        Assert.Equal(
+            ExpectedProfileAdmission.Keys.Order(StringComparer.Ordinal),
+            OperationAdmissionProfile.All.Select(profile => profile.Name).Order(StringComparer.Ordinal));
 
         var interactive = OperationClassification.Rows
             .Where(row => row.Risks.HasFlag(OperationRisks.InteractiveUi))
@@ -180,6 +194,53 @@ public sealed class OperationClassificationTests
             operation => Assert.DoesNotContain(
                 OperationProfileAdmission.Profiles,
                 profile => OperationProfileAdmission.Admits(profile, operation)));
+        Assert.All(
+            OperationAdmissionProfile.All,
+            profile => Assert.DoesNotContain(
+                OperationPolicyTests.CreatePolicy(profile: profile.Name).AllowedOperations,
+                operation => interactive.Contains(operation.OperationId)));
+    }
+
+    [Fact]
+    public void ConditionalOptionTableHasTheReviewedEntries()
+    {
+        // 2024.1.0508.5: operator-UI options (48 caller options and 6 default flips) and
+        // background-work options (7 caller options and 3 default flips).
+        Assert.Equal(
+            [
+                (OperationOptionEffect.InteractiveUi, OperationOptionTrigger.CallerOption, 48),
+                (OperationOptionEffect.InteractiveUi, OperationOptionTrigger.DefaultFlip, 6),
+                (OperationOptionEffect.BackgroundWork, OperationOptionTrigger.CallerOption, 7),
+                (OperationOptionEffect.BackgroundWork, OperationOptionTrigger.DefaultFlip, 3)
+            ],
+            OperationConditionalOptions.Entries
+                .GroupBy(entry => (entry.Effect, entry.Trigger))
+                .OrderBy(group => group.Key.Effect)
+                .ThenBy(group => group.Key.Trigger)
+                .Select(group => (group.Key.Effect, group.Key.Trigger, group.Count())));
+        Assert.Equal(64, OperationConditionalOptions.Entries.Count);
+    }
+
+    [Fact]
+    public void ExclusiveWorkflowsAreDeniedUnderEveryProfileAndOptIn()
+    {
+        var exclusive = OperationClassification.Rows
+            .Where(row => row.Isolation == OperationIsolationClass.ExclusiveWorkflow)
+            .Select(row => row.OperationId)
+            .ToArray();
+        Assert.Equal(ExpectedExclusiveOperations, exclusive.Length);
+
+        var widest = OperationPolicyTests.CreatePolicy(
+            profile: "full",
+            settings: new() { ["Flags:interactive_ui"] = "allow" });
+        Assert.Equal(SpatialAnalyzerApi.Operations.Count - ExpectedExclusiveOperations, widest.AllowedOperations.Count);
+        foreach (var operationId in exclusive)
+        {
+            var decision = widest.Evaluate(operationId);
+            Assert.Equal(OperationPolicyDecisionKind.Denied, decision.Kind);
+            Assert.Equal("operation-isolation-unsupported", decision.DiagnosticCode);
+            Assert.Equal(global::Briosa.OperationExecutionScope.ExclusiveWorkflow, decision.Operation!.ExecutionScope);
+        }
     }
 
     [Fact]

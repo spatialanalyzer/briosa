@@ -119,6 +119,27 @@ try {
             "The conformance contract is missing scenario '$requiredScenario'."
     }
 
+    # Contract-gated scenarios ship exactly when the target contract reaches
+    # their major, without the gate field.
+    $contractMajor = [int](Get-Content -LiteralPath (Join-Path $targetRoot "compatibility.json") -Raw |
+        ConvertFrom-Json).major
+    $sourceContractText = Get-Content -LiteralPath (Join-Path $targetRoot "conformance\client\v1\scenarios.json") -Raw
+    Assert-Condition ($sourceContractText | Test-Json -SchemaFile (Join-Path $targetRoot "conformance\client\v1\scenarios.schema.json")) `
+        "The source conformance scenario contract does not satisfy its schema."
+    $sourceContract = $sourceContractText | ConvertFrom-Json
+    Assert-Condition (@($contract.scenarios | Where-Object {
+                $_.PSObject.Properties.Name -contains "minimum_contract_major" }).Count -eq 0) `
+        "The packaged conformance contract must not contain contract gates."
+    foreach ($sourceScenario in @($sourceContract.scenarios)) {
+        $gated = $sourceScenario.PSObject.Properties.Name -contains "minimum_contract_major"
+        $active = -not $gated -or [int]$sourceScenario.minimum_contract_major -le $contractMajor
+        Assert-Condition ($active -eq ($sourceScenario.id -in $scenarioIds)) `
+            "Scenario '$($sourceScenario.id)' is packaged contrary to its contract gate."
+    }
+    Assert-Condition (@($sourceContract.scenarios | Where-Object {
+                $_.id -eq "sdk-call-faulted" -and [int]$_.minimum_contract_major -eq 3 }).Count -eq 1) `
+        "The sdk-call-faulted scenario must be gated on contract major 3."
+
     $tokens = $null
     $parseErrors = $null
     [Management.Automation.Language.Parser]::ParseFile(

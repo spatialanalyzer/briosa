@@ -40,12 +40,17 @@ internal sealed class PolicyEnforcingWorkerCommandExecutor(
         var effectiveCorrelationId = correlationId != Guid.Empty
             ? correlationId
             : Guid.NewGuid();
-        var decision = _policy.Evaluate(submission.OperationId);
+        // Classify the typed request before mapping, reservation, or dispatch.
+        var decision = _policy.EvaluateRequest(submission.OperationId, submission.Request);
         _auditLogger.PolicyEvaluated(effectiveCorrelationId, decision);
         return decision.Kind switch
         {
             OperationPolicyDecisionKind.Allowed => _dispatcher.ExecuteAsync(
-                submission with { CreateCommand = () => CreateValidatedCommand(submission) },
+                submission with
+                {
+                    CreateCommand = () => CreateValidatedCommand(submission),
+                    DurationClass = decision.DurationClass
+                },
                 effectiveCorrelationId,
                 cancellationToken),
             OperationPolicyDecisionKind.Denied => Task.FromResult(Rejected(
@@ -63,7 +68,7 @@ internal sealed class PolicyEnforcingWorkerCommandExecutor(
     {
         var command = submission.CreateCommand();
         if (command.OperationId != submission.OperationId ||
-            _policy.Evaluate(command).Kind != OperationPolicyDecisionKind.Allowed)
+            _policy.EvaluateRequest(command, submission.Request).Kind != OperationPolicyDecisionKind.Allowed)
         {
             throw new ArgumentException("The operation command does not match its registration.");
         }

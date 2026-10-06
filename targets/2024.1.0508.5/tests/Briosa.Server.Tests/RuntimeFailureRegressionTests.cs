@@ -41,7 +41,7 @@ public sealed class RuntimeFailureRegressionTests
         var clock = new HeartbeatTestClock();
         var supervisor = new WorkerProcessSupervisor(new Factory(worker),
             new WorkerLifecyclePolicy(TimeSpan.FromMinutes(5), TimeSpan.FromSeconds(1),
-                TimeSpan.FromMilliseconds(50), TimeSpan.FromSeconds(1)), timeProvider: clock);
+                TimeSpan.FromMilliseconds(50), TimeSpan.FromSeconds(1)), TestDurationClasses.SyntheticQuickPolicy(), clock);
         await using var supervisorScope = supervisor.ConfigureAwait(true);
         var starting = supervisor.StartAsync();
         await worker.StartupEntered.Task.WaitAsync(HangGuard);
@@ -321,7 +321,7 @@ public sealed class RuntimeFailureRegressionTests
         var supervisor = new WorkerProcessSupervisor(new SequenceFactory(first, second),
             new WorkerLifecyclePolicy(TimeSpan.FromMinutes(5), TimeSpan.FromSeconds(1),
                 TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(1)),
-            new WorkerExecutionPolicy(TimeSpan.FromSeconds(5), 2), new HeartbeatTestClock());
+            TestDurationClasses.SyntheticQuickPolicy(TimeSpan.FromSeconds(5), 2), new HeartbeatTestClock());
         await using var supervisorLifetime = supervisor.ConfigureAwait(true);
         Assert.True((await supervisor.StartAsync()).Succeeded);
         var mappingEntered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -397,7 +397,7 @@ public sealed class RuntimeFailureRegressionTests
         var supervisor = new WorkerProcessSupervisor(new Factory(worker),
             new WorkerLifecyclePolicy(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(2),
                 TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(1)),
-            new WorkerExecutionPolicy(TimeSpan.FromSeconds(5), 2), clock);
+            TestDurationClasses.SyntheticQuickPolicy(TimeSpan.FromSeconds(5), 2), clock);
         await using var supervisorLifetime = supervisor.ConfigureAwait(true);
         Assert.True((await supervisor.StartAsync()).Succeeded);
         var active = supervisor.ExecuteAsync(Plain());
@@ -427,7 +427,7 @@ public sealed class RuntimeFailureRegressionTests
         var clock = new HeartbeatTestClock();
         var supervisor = new WorkerProcessSupervisor(new Factory(worker),
             new WorkerLifecyclePolicy(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1),
-                TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(1)), timeProvider: clock);
+                TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(1)), TestDurationClasses.SyntheticQuickPolicy(), clock);
         await using var supervisorLifetime = supervisor.ConfigureAwait(true);
         Assert.True((await supervisor.StartAsync()).Succeeded);
         await clock.FireNextAsync();
@@ -485,7 +485,7 @@ public sealed class RuntimeFailureRegressionTests
         var clock = new HeartbeatTestClock();
         var supervisor = new WorkerProcessSupervisor(factory,
             new WorkerLifecyclePolicy(TimeSpan.FromMinutes(5), TimeSpan.FromSeconds(1),
-                TimeSpan.FromSeconds(5), CleanupBound), timeProvider: clock);
+                TimeSpan.FromSeconds(5), CleanupBound), TestDurationClasses.SyntheticQuickPolicy(), clock);
         await using var supervisorScope = supervisor.ConfigureAwait(true);
         Assert.True((await supervisor.StartAsync()).Succeeded);
         try
@@ -531,7 +531,7 @@ public sealed class RuntimeFailureRegressionTests
         var clock = new HeartbeatTestClock();
         var supervisor = new WorkerProcessSupervisor(new Factory(worker),
             new WorkerLifecyclePolicy(TimeSpan.FromMinutes(5), TimeSpan.FromSeconds(1),
-                TimeSpan.FromSeconds(5), CleanupBound), timeProvider: clock);
+                TimeSpan.FromSeconds(5), CleanupBound), TestDurationClasses.SyntheticQuickPolicy(), clock);
         await using var supervisorScope = supervisor.ConfigureAwait(true);
         Assert.True((await supervisor.StartAsync()).Succeeded);
         try
@@ -562,7 +562,7 @@ public sealed class RuntimeFailureRegressionTests
         var clock = new HeartbeatTestClock();
         var supervisor = new WorkerProcessSupervisor(new Factory(worker),
             new WorkerLifecyclePolicy(TimeSpan.FromMinutes(5), TimeSpan.FromSeconds(1),
-                TimeSpan.FromSeconds(5), CleanupBound), timeProvider: clock);
+                TimeSpan.FromSeconds(5), CleanupBound), TestDurationClasses.SyntheticQuickPolicy(), clock);
         await using var supervisorScope = supervisor.ConfigureAwait(true);
         using var caller = new CancellationTokenSource();
         var starting = supervisor.StartAsync(caller.Token);
@@ -603,7 +603,7 @@ public sealed class RuntimeFailureRegressionTests
         new Factory(worker),
         new WorkerLifecyclePolicy(TimeSpan.FromMinutes(5),
             TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(1)),
-        new WorkerExecutionPolicy(TimeSpan.FromSeconds(5), 2), new HeartbeatTestClock());
+        TestDurationClasses.SyntheticQuickPolicy(TimeSpan.FromSeconds(5), 2), new HeartbeatTestClock());
 
     private sealed class Factory(IWorkerProcess worker) : IWorkerProcessFactory
     {

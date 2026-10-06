@@ -190,7 +190,7 @@ public sealed class SpatialAnalyzerSdkLifecycleCoordinatorTests
             new SpatialAnalyzerSdkLifecycleStateProjection(supervisor),
             new FakeApplicationStateProvider(RunningApplication(1)));
         var starting = Assert.ThrowsAsync<SdkLifecycleException>(() => coordinator.StartAsync(CancellationToken.None));
-        await clock.FireNextAsync(WatchdogTimeout);
+        await clock.FireNextAsync(ReadinessProbeTimeout);
         var failure = await starting.WaitAsync(ProcessBound);
         Assert.Equal(Grpc.Core.StatusCode.DeadlineExceeded, failure.StatusCode);
         Assert.Equal(WorkerLifecycleFailure.ReadinessTimeout, supervisor.Current.LifecycleFailure);
@@ -398,6 +398,7 @@ public sealed class SpatialAnalyzerSdkLifecycleCoordinatorTests
     // worker process must still start and exit within a generous real bound.
     private static readonly TimeSpan ProcessBound = TimeSpan.FromSeconds(30);
     private static readonly TimeSpan WatchdogTimeout = TimeSpan.FromSeconds(2);
+    private static readonly TimeSpan ReadinessProbeTimeout = TimeSpan.FromSeconds(4);
 
     private static WorkerProcessSupervisor CreateSupervisor(
         Func<int, string> scenarioFactory,
@@ -412,7 +413,8 @@ public sealed class SpatialAnalyzerSdkLifecycleCoordinatorTests
                 heartbeatInterval: TimeSpan.FromMilliseconds(25),
                 heartbeatTimeout: TimeSpan.FromMilliseconds(250),
                 startupTimeout: startupTimeout ?? TimeSpan.FromSeconds(3),
-                shutdownTimeout: shutdownTimeout ?? TimeSpan.FromSeconds(2)),
+                shutdownTimeout: shutdownTimeout ?? TimeSpan.FromSeconds(2),
+                readinessProbeTimeout: ReadinessProbeTimeout),
             new WorkerExecutionPolicy(
                 watchdogTimeout: WatchdogTimeout,
                 queueCapacity: 4),

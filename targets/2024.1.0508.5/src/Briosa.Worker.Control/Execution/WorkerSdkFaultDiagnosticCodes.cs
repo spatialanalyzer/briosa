@@ -18,4 +18,14 @@ public static class WorkerSdkFaultDiagnosticCodes
 
     /// <summary>An output getter faulted after retrieved MP code 2.</summary>
     public const string OutputGetter = "sdk-output-getter-faulted";
+
+    /// <summary>The code that names <paramref name="phase"/>.</summary>
+    public static string For(WorkerSdkCallPhase phase) => phase switch
+    {
+        WorkerSdkCallPhase.BeforeExecute => BeforeExecute,
+        WorkerSdkCallPhase.ExecuteStep => ExecuteStep,
+        WorkerSdkCallPhase.MpResultRetrieval => MpResultRetrieval,
+        WorkerSdkCallPhase.OutputGetter => OutputGetter,
+        _ => throw new ArgumentOutOfRangeException(nameof(phase), "The SDK call phase is unknown.")
+    };
 }

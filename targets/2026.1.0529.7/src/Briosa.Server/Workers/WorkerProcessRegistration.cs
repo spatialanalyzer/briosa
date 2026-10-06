@@ -35,12 +35,15 @@ internal static class WorkerProcessRegistration
             var policy = new WorkerLifecyclePolicy(
                 heartbeatInterval: TimeSpan.FromSeconds(1),
                 heartbeatTimeout: TimeSpan.FromSeconds(5),
-                startupTimeout: TimeSpan.FromSeconds(10),
-                shutdownTimeout: TimeSpan.FromSeconds(5));
+                startupTimeout: workerOptions.StartupTimeout,
+                shutdownTimeout: TimeSpan.FromSeconds(5),
+                readinessProbeTimeout: workerOptions.ReadinessProbeTimeout);
             var executionPolicy = new WorkerExecutionPolicy(
                 watchdogTimeout: workerOptions.ExecutionWatchdogTimeout,
                 queueCapacity: 64,
-                maxRetainedWorkBytes: workerOptions.MaxRetainedWorkMiB * 1024 * 1024);
+                maxRetainedWorkBytes: workerOptions.MaxRetainedWorkMiB * 1024 * 1024,
+                longRunningWatchdogTimeout: workerOptions.LongRunningExecutionWatchdogTimeout,
+                interactiveWatchdogTimeout: workerOptions.InteractiveExecutionWatchdogTimeout);
             return new WorkerProcessSupervisor(
                 processFactory,
                 policy,

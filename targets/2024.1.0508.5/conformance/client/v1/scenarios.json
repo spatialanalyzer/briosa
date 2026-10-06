@@ -82,6 +82,18 @@
       "exercise": "typed-failure"
     },
     {
+      "id": "sdk-call-faulted",
+      "minimum_contract_major": 3,
+      "startup_mode": "default",
+      "worker_scenario": "sdk-call-faulted",
+      "start_external_application": false,
+      "activated_sdk_version": "2024.1.0508.5",
+      "connected_sa_version": "2024.1.0508.5",
+      "deny_get_working_directory": false,
+      "watchdog_timeout": null,
+      "exercise": "typed-failure"
+    },
+    {
       "id": "deadline",
       "startup_mode": "default",
       "worker_scenario": "delay-first-execute",

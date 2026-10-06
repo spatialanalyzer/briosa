@@ -106,6 +106,12 @@ death) are not included. They need their own authorization.
   | `MpResultUnavailable`: `ExecuteStep` returned true; `GetMPStepResult` returned false | Started, outcome unknown | Never |
   | `Indeterminate`: timeout, cancellation, lost channel, or untyped failure | Started, outcome unknown | Never |
 
+  An SDK call that throws is classified by its proven phase, as the shipped
+  server reports `SdkCallFaulted`: a fault before `ExecuteStep` is `NotStarted`
+  and is not accepted; a fault in `ExecuteStep` or `GetMPStepResult` is
+  `Indeterminate`; a getter fault after MP code `2` is `OutputRetrievalFailed`.
+  The record keeps the value-free `sdk-*-faulted` diagnostic code.
+
   The dispositions match the shipped server. Anything not accepted stops the
   session and leaves the remaining steps not run. This includes a not-started
   refusal, an unmet requirement, and every outcome whose completion is unknown.
@@ -214,7 +220,13 @@ non-sensitive attestation references, as for `Test-LicensedSpatialAnalyzer.ps1`.
 3. Extract the package. Start `Briosa.Server.exe` with
    `--Briosa:Desktop:Mode=Disabled`, the loopback port, and the four
    `--Briosa:SpatialAnalyzer:Identity:...:OperatorAttestation:...` values,
-   exactly as `eng/Test-LicensedSpatialAnalyzer.ps1` does.
+   exactly as `eng/Test-LicensedSpatialAnalyzer.ps1` does. Add the
+   `Server admission` arguments that the public-phase dry run prints. The
+   packaged `standard` profile does not admit the device and operator-guided
+   probes, so the harness needs `--Briosa:Security:Operations:Profile=device`
+   plus a per-operation `allow` override for each operator-guided selector. The
+   harness refuses a plan that needs an exclusive workflow, which no setting can
+   admit.
 4. Run `Briosa.LifecycleClient --address http://127.0.0.1:50051 --scenario external-connect --timeout-seconds 90`.
    It must report `ready_for_mp`.
 5. Run the public phase:

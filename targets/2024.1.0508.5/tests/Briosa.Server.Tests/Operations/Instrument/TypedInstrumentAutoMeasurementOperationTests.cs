@@ -53,8 +53,9 @@ public sealed class TypedInstrumentAutoMeasurementOperationTests
             ReferenceGroup = new Api.CollectionObjectName { CollectionName = "Points", ObjectName = "Nominal" },
             ActualsGroup = new Api.CollectionObjectName { CollectionName = "Points", ObjectName = "Measured" }
         });
+        // Auto Start defaults to true since the breaking release (#293).
         Assert.Equal(
-            [false, false, true, false],
+            [false, false, true, true],
             points.InputArguments.Skip(3).Select(argument => argument.RequireValue<WorkerBooleanValue>().Value));
         Assert.Equal(WorkerObjectTypeValue.PointGroup,
             points.InputArguments[1].RequireValue<WorkerCollectionObjectNameValue>().ObjectType);
@@ -67,7 +68,8 @@ public sealed class TypedInstrumentAutoMeasurementOperationTests
         Assert.Equal(WorkerObjectTypeValue.Any,
             geometry.InputArguments[1].RequireValue<WorkerCollectionObjectNameValue>().ObjectType);
         Assert.Equal(string.Empty, geometry.InputArguments[2].RequireValue<WorkerTextValue>().Value);
-        Assert.False(geometry.InputArguments[3].RequireValue<WorkerBooleanValue>().Value);
+        // Wait for Complete defaults to true since the breaking release (#293).
+        Assert.True(geometry.InputArguments[3].RequireValue<WorkerBooleanValue>().Value);
 
         var intersections = AutoMeasureSurfaceVectorIntersectionsOperation.CreateCommand(new()
         {

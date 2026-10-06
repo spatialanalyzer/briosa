@@ -11,7 +11,7 @@ internal static class MakeCollectionObjectNameRuntimeSelectOperation
     public static OperationDescriptor Descriptor { get; } = new(
         "construction_operations.make_collection_object_name_runtime_select", "Make a Collection Object Name - Runtime Select",
         "briosa.ConstructionOperations", "MakeCollectionObjectNameRuntimeSelect", "/briosa.ConstructionOperations/MakeCollectionObjectNameRuntimeSelect",
-        "read_only", Api.OperationExecutionScope.GlobalStateRead, Api.ReplaySafety.Safe, []);
+        "read_only", Api.OperationExecutionScope.GlobalStateRead, Api.ReplaySafety.Unsafe, []);
     public static IReadOnlyList<OperationOutputContract> OutputContracts { get; } =
         [new("resultant_collection_object_name", "Resultant Collection Object Name", WorkerMpValueKind.CollectionObjectName)];
 

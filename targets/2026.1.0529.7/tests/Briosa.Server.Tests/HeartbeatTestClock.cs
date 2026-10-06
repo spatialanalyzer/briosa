@@ -43,6 +43,11 @@ internal sealed class HeartbeatTestClock : TimeProvider
     public Task<ScheduledTimer> FireNextAsync(TimeSpan dueTime, int count = 1) =>
         FireNextAsync(timer => timer.DueTime == dueTime, count);
 
+    // Waits until a timer scheduled with this delay exists without advancing time,
+    // so a test can prove which bound was armed before moving the clock.
+    public Task<ScheduledTimer> WaitForScheduledAsync(TimeSpan dueTime) =>
+        WaitForScheduledAsync(timer => timer.DueTime == dueTime, count: 1);
+
     public void Advance(TimeSpan delta)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(delta, TimeSpan.Zero);
