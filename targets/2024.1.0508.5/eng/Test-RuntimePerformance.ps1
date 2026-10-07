@@ -44,15 +44,29 @@ if ($NoBuild) {
 
 try {
     [Environment]::SetEnvironmentVariable($variableName, $evidencePath)
-    [Environment]::SetEnvironmentVariable($grpcVariableName, $(if ($IncludeGrpc) { $outputRoot } else { $null }))
+    # SetEnvironmentVariable would turn $null into a defined-but-empty variable,
+    # so absent values are removed instead.
+    if ($IncludeGrpc) {
+        [Environment]::SetEnvironmentVariable($grpcVariableName, $outputRoot)
+    } else {
+        Remove-Item -LiteralPath "Env:$grpcVariableName" -ErrorAction SilentlyContinue
+    }
     & dotnet @arguments
     if ($LASTEXITCODE -ne 0) {
         throw "The vendor-independent runtime performance harness failed with exit code $LASTEXITCODE."
     }
 }
 finally {
-    [Environment]::SetEnvironmentVariable($variableName, $previousEvidencePath)
-    [Environment]::SetEnvironmentVariable($grpcVariableName, $previousGrpcDirectory)
+    if ($null -eq $previousEvidencePath) {
+        Remove-Item -LiteralPath "Env:$variableName" -ErrorAction SilentlyContinue
+    } else {
+        [Environment]::SetEnvironmentVariable($variableName, $previousEvidencePath)
+    }
+    if ($null -eq $previousGrpcDirectory) {
+        Remove-Item -LiteralPath "Env:$grpcVariableName" -ErrorAction SilentlyContinue
+    } else {
+        [Environment]::SetEnvironmentVariable($grpcVariableName, $previousGrpcDirectory)
+    }
 }
 
 if (-not (Test-Path -LiteralPath $evidencePath -PathType Leaf)) {

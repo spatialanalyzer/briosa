@@ -109,7 +109,12 @@ try {
         "--filter", "FullyQualifiedName~ProductionWorkerCompletesControlLifecycleWithoutSpatialAnalyzer")
 }
 finally {
-    [Environment]::SetEnvironmentVariable($workerOutputVariable, $previousWorkerOutput)
+    # SetEnvironmentVariable would restore $null as a defined-but-empty variable.
+    if ($null -eq $previousWorkerOutput) {
+        Remove-Item -LiteralPath "Env:$workerOutputVariable" -ErrorAction SilentlyContinue
+    } else {
+        [Environment]::SetEnvironmentVariable($workerOutputVariable, $previousWorkerOutput)
+    }
 }
 
 Write-Host (

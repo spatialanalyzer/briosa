@@ -236,7 +236,12 @@ try {
         $serverProcess = Start-Process @processArguments
     }
     finally {
-        [Environment]::SetEnvironmentVariable($workerVariable, $previousWorkerPath)
+        # SetEnvironmentVariable would restore $null as a defined-but-empty variable.
+        if ($null -eq $previousWorkerPath) {
+            Remove-Item -LiteralPath "Env:$workerVariable" -ErrorAction SilentlyContinue
+        } else {
+            [Environment]::SetEnvironmentVariable($workerVariable, $previousWorkerPath)
+        }
     }
 
     $listening = $false
