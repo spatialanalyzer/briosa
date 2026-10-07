@@ -57,7 +57,11 @@ internal enum StepClassification
     NotRun,
     Observed,
     Unexpected,
-    Refused
+    Refused,
+
+    // Removed from the plan by an operator --exclude-probe; never sent. Distinct
+    // from NotRun, which is a planned step that a stop or refusal prevented.
+    Excluded
 }
 
 internal sealed record HypothesisResult(string Label, string ObservationKey, string ExpectedValue, bool Matched);
@@ -80,7 +84,12 @@ internal sealed record ProbeSessionRecord(
     string? StoppedAt,
     string? StopReason)
 {
-    public bool Completed => StopReason is null && !DryRun && Steps.All(static step => step.Classification == StepClassification.Observed);
+    /// <summary>Probe numbers the operator excluded, ascending. Their steps are recorded as excluded.</summary>
+    public IReadOnlyList<int> ExcludedProbes { get; init; } = [];
+
+    /// <summary>Every step that was not excluded was observed as planned.</summary>
+    public bool Completed => StopReason is null && !DryRun &&
+        Steps.All(static step => step.Classification is StepClassification.Observed or StepClassification.Excluded);
 }
 
 /// <summary>
@@ -102,7 +111,10 @@ internal static class ProbeSession
         ArgumentNullException.ThrowIfNull(clock);
         var now = clock.GetUtcNow();
         return new ProbeSessionRecord(plan.Phase, DryRun: true, plan.PlaceholderFixtures, now, now, SessionIdentity.None,
-            [.. plan.Steps.Select(static step => NotRun(step))], StoppedAt: null, StopReason: null);
+            [.. plan.CatalogSteps.Select(step => plan.IsExcluded(step) ? Excluded(step) : NotRun(step))], StoppedAt: null, StopReason: null)
+        {
+            ExcludedProbes = plan.ExcludedProbes
+        };
     }
 
     public static async Task<ProbeSessionRecord> RunAsync(
@@ -122,7 +134,7 @@ internal static class ProbeSession
         }
 
         var started = clock.GetUtcNow();
-        var records = new List<ProbeStepRecord>(plan.Steps.Count);
+        var records = new List<ProbeStepRecord>(plan.CatalogSteps.Count);
         SessionIdentity identity;
         try
         {
@@ -130,17 +142,27 @@ internal static class ProbeSession
         }
         catch (ProbeRefusedException refusal)
         {
-            records.AddRange(plan.Steps.Select(static step => NotRun(step)));
+            records.AddRange(plan.CatalogSteps.Select(step => plan.IsExcluded(step) ? Excluded(step) : NotRun(step)));
             return new ProbeSessionRecord(plan.Phase, DryRun: false, plan.PlaceholderFixtures, started, clock.GetUtcNow(),
-                operatorIdentity, records, StoppedAt: null, refusal.DiagnosticCode);
+                operatorIdentity, records, StoppedAt: null, refusal.DiagnosticCode)
+            {
+                ExcludedProbes = plan.ExcludedProbes
+            };
         }
 
         var history = new Dictionary<string, ProbeOutcome>(StringComparer.Ordinal);
         var created = new HashSet<string>(StringComparer.Ordinal);
         string? stoppedAt = null;
         string? stopReason = null;
-        foreach (var step in plan.Steps)
+        foreach (var step in plan.CatalogSteps)
         {
+            // An operator-excluded step is recorded in its catalog position and never sent.
+            if (plan.IsExcluded(step))
+            {
+                records.Add(Excluded(step));
+                continue;
+            }
+
             if (stopReason is not null)
             {
                 records.Add(NotRun(step));
@@ -188,10 +210,15 @@ internal static class ProbeSession
         }
 
         return new ProbeSessionRecord(plan.Phase, DryRun: false, plan.PlaceholderFixtures, started, clock.GetUtcNow(),
-            identity, records, stoppedAt, stopReason);
+            identity, records, stoppedAt, stopReason)
+        {
+            ExcludedProbes = plan.ExcludedProbes
+        };
     }
 
     private static ProbeStepRecord NotRun(ProbeStep step) => new(step, null, StepClassification.NotRun, [], null);
+
+    private static ProbeStepRecord Excluded(ProbeStep step) => new(step, null, StepClassification.Excluded, [], null);
 
     private static SessionIdentity Merge(SessionIdentity runtime, SessionIdentity operatorIdentity) => runtime with
     {
