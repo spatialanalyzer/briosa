@@ -18,6 +18,9 @@ internal sealed record ProbeOptions
         "--harness-revision"
     };
 
+    // The only option that may repeat: each occurrence names one more probe.
+    private const string ExcludeProbe = "--exclude-probe";
+
     public ProbePhase Phase { get; init; }
 
     public bool DryRun { get; init; }
@@ -42,11 +45,18 @@ internal sealed record ProbeOptions
 
     public TimeSpan OperatorTimeout { get; init; } = TimeSpan.FromSeconds(300);
 
+    /// <summary>
+    /// Catalog probe numbers the operator excluded, ascending. Whether each one
+    /// belongs to the selected phase is checked when the plan is built.
+    /// </summary>
+    public IReadOnlyList<int> ExcludedProbes { get; init; } = [];
+
     public static ProbeOptions Parse(IReadOnlyList<string> arguments)
     {
         ArgumentNullException.ThrowIfNull(arguments);
         var flags = new HashSet<string>(StringComparer.Ordinal);
         var values = new Dictionary<string, string>(StringComparer.Ordinal);
+        var excluded = new SortedSet<int>();
         for (var index = 0; index < arguments.Count; index++)
         {
             var argument = arguments[index];
@@ -60,6 +70,15 @@ internal sealed record ProbeOptions
             {
                 if (!flags.Add(argument))
                     throw new ProbeUsageException($"Option '{argument}' is repeated.");
+                continue;
+            }
+
+            if (string.Equals(argument, ExcludeProbe, StringComparison.Ordinal))
+            {
+                if (index + 1 >= arguments.Count)
+                    throw new ProbeUsageException($"Option '{argument}' needs a value.");
+                if (!excluded.Add(ProbeNumber(arguments[++index])))
+                    throw new ProbeUsageException($"Probe #{arguments[index]} is excluded more than once.");
                 continue;
             }
 
@@ -93,7 +112,8 @@ internal sealed record ProbeOptions
             HarnessRevision = Value(values, "--harness-revision"),
             WorkerPath = Value(values, "--worker-path"),
             StepTimeout = Seconds(values, "--step-timeout-seconds", 120, 5, 600),
-            OperatorTimeout = Seconds(values, "--operator-timeout-seconds", 300, 30, 1800)
+            OperatorTimeout = Seconds(values, "--operator-timeout-seconds", 300, 30, 1800),
+            ExcludedProbes = [.. excluded]
         };
 
         foreach (var reference in new[] { options.ConnectedSaAttestationReference, options.ActivatedSdkAttestationReference })
@@ -139,6 +159,17 @@ internal sealed record ProbeOptions
             options.ConnectedSaAttestationReference is null)
             throw new ProbeUsageException("The worker phase requires an exact connected-SA attestation and reference.");
         return options;
+    }
+
+    // One catalog probe number in canonical form ("11", never "011", "+11", or "5-6").
+    private static int ProbeNumber(string text)
+    {
+        if (!int.TryParse(text, NumberStyles.None, CultureInfo.InvariantCulture, out var number) ||
+            !string.Equals(number.ToString(CultureInfo.InvariantCulture), text, StringComparison.Ordinal))
+            throw new ProbeUsageException($"{ExcludeProbe} takes one probe number from the approved list, for example 11.");
+        if (!ProbeCatalog.ProbeNumbers.Contains(text, StringComparer.Ordinal))
+            throw new ProbeUsageException($"{ExcludeProbe} {text} is not a probe in the approved list (1 to {ProbeCatalog.ProbeNumbers.Count}).");
+        return number;
     }
 
     internal static bool IsSafeReference(string value) =>

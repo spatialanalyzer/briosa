@@ -9,21 +9,57 @@ using Api = global::Briosa;
 
 namespace Briosa.LicensedProbes;
 
-/// <summary>A validated, ordered, immutable list of steps for one phase.</summary>
+/// <summary>
+/// A validated, ordered, immutable list of steps for one phase, less any probes
+/// the operator excluded. Guard and fixture setup steps are never excluded.
+/// </summary>
 internal sealed class ProbePlan
 {
-    private ProbePlan(ProbePhase phase, IReadOnlyList<ProbeStep> steps, bool placeholderFixtures)
+    public const string ExclusionReason = "reason not recorded by harness";
+
+    private ProbePlan(
+        ProbePhase phase,
+        IReadOnlyList<ProbeStep> catalogSteps,
+        IReadOnlySet<string> excludedStepIds,
+        IReadOnlyList<int> excludedProbes,
+        bool placeholderFixtures)
     {
         Phase = phase;
-        Steps = steps;
+        CatalogSteps = catalogSteps;
+        ExcludedStepIds = excludedStepIds;
+        ExcludedProbes = excludedProbes;
+        Steps = [.. catalogSteps.Where(step => !excludedStepIds.Contains(step.Id))];
         PlaceholderFixtures = placeholderFixtures;
     }
 
     public ProbePhase Phase { get; }
 
+    /// <summary>The steps that run, in order. Excluded steps are never sent.</summary>
     public IReadOnlyList<ProbeStep> Steps { get; }
 
+    /// <summary>Every catalog step of the phase in order, including excluded ones.</summary>
+    public IReadOnlyList<ProbeStep> CatalogSteps { get; }
+
+    public IReadOnlySet<string> ExcludedStepIds { get; }
+
+    /// <summary>Probe numbers the operator excluded, ascending.</summary>
+    public IReadOnlyList<int> ExcludedProbes { get; }
+
     public bool PlaceholderFixtures { get; }
+
+    public bool IsExcluded(ProbeStep step)
+    {
+        ArgumentNullException.ThrowIfNull(step);
+        return ExcludedStepIds.Contains(step.Id);
+    }
+
+    /// <summary>The statement every output carries when probes were excluded.</summary>
+    public static string ExclusionStatement(IReadOnlyList<int> excludedProbes)
+    {
+        ArgumentNullException.ThrowIfNull(excludedProbes);
+        var probes = string.Join(", ", excludedProbes.Select(static probe => "#" + probe.ToString(CultureInfo.InvariantCulture)));
+        return $"Excluded by operator: {probes} — {ExclusionReason}";
+    }
 
     public IReadOnlyList<string> FullyQualifiedMethods =>
         [.. Steps.Select(static step => step.Operation.FullyQualifiedMethod).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal)];
@@ -45,13 +81,26 @@ internal sealed class ProbePlan
     public IReadOnlyList<string> ServerAdmissionArguments => CreateServerAdmissionArguments(
         [.. Steps.Select(static step => (step.Operation.FullyQualifiedMethod, (IMessage?)step.Request))]);
 
-    public static ProbePlan Create(ProbePhase phase, FixtureManifest manifest)
+    public static ProbePlan Create(ProbePhase phase, FixtureManifest manifest) => Create(phase, manifest, []);
+
+    /// <summary>
+    /// Builds the phase plan less the excluded probes. An exclusion that is not in
+    /// this phase, splits a step serving several probes, removes a prerequisite of
+    /// a remaining step, or leaves no probe is refused with <see cref="ProbeUsageException"/>.
+    /// </summary>
+    public static ProbePlan Create(ProbePhase phase, FixtureManifest manifest, IReadOnlyCollection<int> excludedProbes)
     {
         ArgumentNullException.ThrowIfNull(manifest);
+        ArgumentNullException.ThrowIfNull(excludedProbes);
         manifest.Validate();
-        var steps = ProbeCatalog.Create(phase, manifest);
-        Validate(phase, steps);
-        var plan = new ProbePlan(phase, steps, manifest.IsPlaceholder);
+        var catalog = ProbeCatalog.Create(phase, manifest);
+        Validate(phase, catalog);
+        var probes = excludedProbes.Distinct().Order().ToList();
+        var excluded = SelectExcludedSteps(phase, catalog, probes);
+        var plan = new ProbePlan(phase, catalog, excluded, probes, manifest.IsPlaceholder);
+
+        // The remaining plan must satisfy every invariant the full plan does.
+        Validate(phase, plan.Steps);
         if (phase == ProbePhase.PublicApi)
         {
             // Fails closed when a public probe needs an exclusive workflow.
@@ -60,6 +109,77 @@ internal sealed class ProbePlan
 
         return plan;
     }
+
+    /// <summary>The identifiers of the probe, variant, and check steps an exclusion removes.</summary>
+    internal static IReadOnlySet<string> SelectExcludedSteps(
+        ProbePhase phase, IReadOnlyList<ProbeStep> catalog, IReadOnlyList<int> excludedProbes)
+    {
+        ArgumentNullException.ThrowIfNull(catalog);
+        ArgumentNullException.ThrowIfNull(excludedProbes);
+        var removed = new HashSet<string>(StringComparer.Ordinal);
+        if (excludedProbes.Count == 0)
+        {
+            return removed;
+        }
+
+        var excluded = excludedProbes.Select(static probe => probe.ToString(CultureInfo.InvariantCulture)).ToHashSet(StringComparer.Ordinal);
+        foreach (var probe in excluded)
+        {
+            if (!catalog.Any(step => IsProbeOrCheck(step) && ExpandProbe(step.Probe).Contains(probe, StringComparer.Ordinal)))
+            {
+                throw new ProbeUsageException(
+                    $"Probe #{probe} has no steps in the {PhaseName(phase)} phase; --exclude-probe accepts only probes of the selected phase.");
+            }
+        }
+
+        foreach (var step in catalog)
+        {
+            // Guard and fixture setup steps are never excluded.
+            if (!IsProbeOrCheck(step))
+            {
+                continue;
+            }
+
+            var served = ExpandProbe(step.Probe).ToList();
+            var hits = served.Count(excluded.Contains);
+            if (hits == 0)
+            {
+                continue;
+            }
+
+            if (hits != served.Count)
+            {
+                throw new ProbeUsageException(
+                    $"Step '{step.Id}' serves probes {string.Join(" and ", served.Select(static p => $"#{p}"))} together; exclude all of them or none.");
+            }
+
+            removed.Add(step.Id);
+        }
+
+        var byId = catalog.ToDictionary(static step => step.Id, StringComparer.Ordinal);
+        foreach (var step in catalog.Where(step => !removed.Contains(step.Id)))
+        {
+            foreach (var prerequisite in step.Prerequisites.Where(removed.Contains))
+            {
+                var owner = string.Join(" and ", ExpandProbe(byId[prerequisite].Probe).Select(static p => $"#{p}"));
+                var dependent = string.Join(" and ", ExpandProbe(step.Probe).Select(static p => $"#{p}"));
+                throw new ProbeUsageException(
+                    $"Excluding probe {owner} would remove '{prerequisite}', a prerequisite of remaining step '{step.Id}'" +
+                    (dependent.Length > 0
+                        ? $"; also exclude probe {dependent} (--exclude-probe {string.Join(" --exclude-probe ", ExpandProbe(step.Probe))}) or do not exclude {owner}."
+                        : "; that exclusion is not allowed."));
+            }
+        }
+
+        if (!catalog.Any(step => IsProbeOrCheck(step) && !removed.Contains(step.Id)))
+        {
+            throw new ProbeUsageException($"The exclusions leave no probe in the {PhaseName(phase)} phase.");
+        }
+
+        return removed;
+    }
+
+    private static bool IsProbeOrCheck(ProbeStep step) => step.Kind is ProbeStepKind.Probe or ProbeStepKind.Check;
 
     internal static IReadOnlyList<string> CreateServerAdmissionArguments(
         IReadOnlyList<(string Method, IMessage? Request)> requests)
@@ -133,10 +253,15 @@ internal sealed class ProbePlan
         Require(steps.Select(static step => step.Id).Distinct(StringComparer.Ordinal).Count() == steps.Count,
             "Probe step identifiers must be unique.");
         var created = new HashSet<string>(StringComparer.Ordinal);
+        var earlier = new HashSet<string>(StringComparer.Ordinal);
         foreach (var step in steps)
         {
             Require(step.Phase == phase, $"Step '{step.Id}' belongs to another phase.");
             Require(step.Acceptable != ProbeOutcomes.None, $"Step '{step.Id}' accepts no outcome.");
+
+            // A step's control or before-count must run earlier in the same session.
+            Require(step.Prerequisites.All(earlier.Contains),
+                $"Step '{step.Id}' has a prerequisite that does not run before it.");
 
             // Only determinate outcomes can be accepted; completion-unknown kinds have no flag.
             Require((step.Acceptable & ~ProbeOutcomes.AnyDeterminateSdkOutcome) == ProbeOutcomes.None,
@@ -186,6 +311,8 @@ internal sealed class ProbePlan
                 Require(step.Kind == ProbeStepKind.Setup, $"Step '{step.Id}' creates a fixture outside setup.");
                 Require(created.Add(step.CreatesFixture), $"Fixture '{step.CreatesFixture}' is created twice.");
             }
+
+            earlier.Add(step.Id);
         }
     }
 
@@ -208,6 +335,14 @@ internal sealed class ProbePlan
             ? "Fixture manifest: built-in placeholder. Manual fixture values are never printed.\n"
             : "Fixture manifest: supplied and validated. Manual fixture values are never printed.\n");
         text.Append(CultureInfo.InvariantCulture, $"Steps: {Steps.Count}. Probes: {string.Join(", ", ProbesCovered())}.\n");
+        if (ExcludedProbes.Count > 0)
+        {
+            text.Append(ExclusionStatement(ExcludedProbes)).Append(".\n");
+            text.Append(CultureInfo.InvariantCulture,
+                $"Excluded steps (never sent): {string.Join(", ", CatalogSteps.Where(IsExcluded).Select(static step => step.Id))}. ")
+                .Append("Guard and fixture setup steps are never excluded.\n");
+        }
+
         if (Phase == ProbePhase.PublicApi)
         {
             text.Append("Server admission: start Briosa.Server.exe with\n");
@@ -218,11 +353,19 @@ internal sealed class ProbePlan
         }
 
         text.Append('\n');
-        for (var index = 0; index < Steps.Count; index++)
+        var index = 0;
+        foreach (var step in CatalogSteps)
         {
-            var step = Steps[index];
+            if (IsExcluded(step))
+            {
+                text.Append(CultureInfo.InvariantCulture,
+                    $"[---] {step.Id} ({KindName(step.Kind)}, probe {step.Probe}) {step.Purpose}\n");
+                text.Append("      Excluded by operator; never sent.\n");
+                continue;
+            }
+
             text.Append(CultureInfo.InvariantCulture,
-                $"[{index + 1:D3}] {step.Id} ({KindName(step.Kind)}, probe {step.Probe}) {step.Purpose}\n");
+                $"[{++index:D3}] {step.Id} ({KindName(step.Kind)}, probe {step.Probe}) {step.Purpose}\n");
             text.Append(CultureInfo.InvariantCulture, $"      RPC {step.Operation.FullyQualifiedMethod}");
             text.Append(Phase == ProbePhase.Worker ? " sequence sent directly to the worker\n" : "\n");
             foreach (var line in DescribeSequence(step))
@@ -245,6 +388,11 @@ internal sealed class ProbePlan
             if (step.Requirement is not null)
             {
                 text.Append(CultureInfo.InvariantCulture, $"      requires: {step.Requirement.Description}\n");
+            }
+
+            if (step.Prerequisites.Count > 0)
+            {
+                text.Append(CultureInfo.InvariantCulture, $"      prerequisites (run earlier): {string.Join(", ", step.Prerequisites)}\n");
             }
 
             foreach (var hypothesis in step.Hypotheses)
