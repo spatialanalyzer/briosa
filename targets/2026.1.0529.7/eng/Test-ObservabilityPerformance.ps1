@@ -27,6 +27,11 @@ try {
     }
 }
 finally {
-    [Environment]::SetEnvironmentVariable($variable, $previous)
+    # SetEnvironmentVariable would restore $null as a defined-but-empty variable.
+    if ($null -eq $previous) {
+        Remove-Item -LiteralPath "Env:$variable" -ErrorAction SilentlyContinue
+    } else {
+        [Environment]::SetEnvironmentVariable($variable, $previous)
+    }
 }
 Write-Host "Portable logging-pipeline evidence complete. SpatialAnalyzer was not used."
