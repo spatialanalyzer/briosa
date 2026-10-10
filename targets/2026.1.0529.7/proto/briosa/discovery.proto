@@ -12,7 +12,8 @@ service DiscoveryService {
   // Returns build coordinates and a safe current runtime summary.
   rpc GetServerInfo(GetServerInfoRequest) returns (GetServerInfoResponse);
 
-  // Lists only implemented operations enabled by the active runtime policy.
+  // Lists implemented operations enabled by the active runtime policy, with
+  // their reviewed classification. include_denied also lists denied operations.
   rpc ListCapabilities(ListCapabilitiesRequest) returns (ListCapabilitiesResponse);
 }
 
@@ -108,14 +109,27 @@ enum ConnectedSpatialAnalyzerVersionState {
   CONNECTED_SPATIAL_ANALYZER_VERSION_STATE_OPERATOR_ATTESTED_MISMATCH = 5;
 }
 
-message ListCapabilitiesRequest {}
+message ListCapabilitiesRequest {
+  // False, the default, lists only the operations the active policy admits.
+  // True also lists every registered operation the policy denies, each with
+  // its denial reason in OperationCapability.admission.
+  bool include_denied = 1;
+}
 
 message ListCapabilitiesResponse {
   reserved 1, 2;
   reserved "catalog_id", "catalog_revision", "target_protocol_package";
   string spatial_analyzer_target = 3;
   string protocol_package = 4;
+  // Ordered by operation_id.
   repeated OperationCapability operations = 5;
+  // The resolved named admission profile: read-only, standard, device, or full.
+  string admission_profile = 6;
+  // A value-free "sha256:<hex>" digest over the resolved profile, flag settings,
+  // per-operation overrides, and the reviewed classification and request options
+  // of every registered operation. It changes whenever an admission input
+  // changes and never reveals a configured value.
+  string policy_fingerprint = 7;
 }
 
 message OperationCapability {
@@ -126,6 +140,86 @@ message OperationCapability {
   OperationEffect effect = 5;
   ReplaySafety replay_safety = 6;
   OperationExecutionScope execution_scope = 7;
+  // The reviewed risk flags of the operation's classification row, in the
+  // declaration order of OperationRiskFlag. Empty when no risk applies. A
+  // request option can add interactive_ui at call time; discovery reports the
+  // reviewed row only.
+  repeated OperationRiskFlag risk_flags = 8;
+  // The reviewed duration class, which selects the server execution budget.
+  OperationDurationClass duration_class = 9;
+  // The recorded validation gap. It is informational and never affects admission.
+  OperationValidationStatus validation_status = 10;
+  // Whether the active policy admits the operation's reviewed row, and if not,
+  // which precedence step denied it. Denied values appear only when the request
+  // set include_denied.
+  OperationAdmission admission = 11;
+}
+
+// The closed risk vocabulary decided on #242. A profile admits an operation
+// when it admits every flag on the operation's reviewed row.
+enum OperationRiskFlag {
+  OPERATION_RISK_FLAG_UNSPECIFIED = 0;
+  // Reads paths or existence, never file content.
+  OPERATION_RISK_FLAG_FILESYSTEM_METADATA = 1;
+  // Reads caller-named file content.
+  OPERATION_RISK_FLAG_FILESYSTEM_READ = 2;
+  // Creates or overwrites caller-named files.
+  OPERATION_RISK_FLAG_FILESYSTEM_WRITE = 3;
+  // Deletes files.
+  OPERATION_RISK_FLAG_FILESYSTEM_DELETE = 4;
+  // Removes SA objects, or discards or replaces unsaved job state.
+  OPERATION_RISK_FLAG_DESTRUCTIVE = 5;
+  // Runs or stops MP code.
+  OPERATION_RISK_FLAG_CODE_EXECUTION = 6;
+  // Can move hardware such as a tracker head, robot, or projector.
+  OPERATION_RISK_FLAG_PHYSICAL_MOTION = 7;
+  // Requires or controls a live instrument, robot, or appliance session.
+  OPERATION_RISK_FLAG_DEVICE_SESSION = 8;
+  // Changes configuration that a live device session consumes.
+  OPERATION_RISK_FLAG_DEVICE_CONFIG = 9;
+  // Blocks on operator input or opens operator UI.
+  OPERATION_RISK_FLAG_INTERACTIVE_UI = 10;
+  // Talks to systems other than SpatialAnalyzer, such as OPC DA or an appliance IP address.
+  OPERATION_RISK_FLAG_EXTERNAL_IO = 11;
+}
+
+// The reviewed execution-duration class of an operation. Unspecified means unreviewed.
+enum OperationDurationClass {
+  OPERATION_DURATION_CLASS_UNSPECIFIED = 0;
+  // Completes within the default execution watchdog.
+  OPERATION_DURATION_CLASS_QUICK = 1;
+  // Device actions, sessions, motion, and heavy document operations.
+  OPERATION_DURATION_CLASS_LONG_RUNNING = 2;
+  // Waits for an unbounded amount of operator time.
+  OPERATION_DURATION_CLASS_INTERACTIVE = 3;
+}
+
+// The recorded validation gap of an operation. Unspecified means unreviewed.
+enum OperationValidationStatus {
+  OPERATION_VALIDATION_STATUS_UNSPECIFIED = 0;
+  // No validation gap is recorded.
+  OPERATION_VALIDATION_STATUS_NO_RECORDED_GAP = 1;
+  // A licensed fixture is still needed to validate the operation.
+  OPERATION_VALIDATION_STATUS_FIXTURE_PENDING = 2;
+  // At risk: no runtime validation exists for the exact target.
+  OPERATION_VALIDATION_STATUS_AT_RISK_UNVALIDATED = 3;
+}
+
+// The active policy's static decision for an operation's reviewed row.
+enum OperationAdmission {
+  OPERATION_ADMISSION_UNSPECIFIED = 0;
+  OPERATION_ADMISSION_ADMITTED = 1;
+  // The profile, widened by flags set to allow, does not admit every risk flag,
+  // or the read-only effect filter excludes the operation.
+  OPERATION_ADMISSION_DENIED_PROFILE = 2;
+  // A risk flag of the operation is set to deny.
+  OPERATION_ADMISSION_DENIED_FLAG = 3;
+  // A per-operation override is set to deny.
+  OPERATION_ADMISSION_DENIED_OVERRIDE = 4;
+  // An exclusive workflow, which no setting admits in the current isolation mode.
+  OPERATION_ADMISSION_DENIED_EXCLUSIVE = 5;
+  // The operation's classification metadata is not reviewed.
+  OPERATION_ADMISSION_DENIED_UNREVIEWED = 6;
 }
 
 // Classifies an operation's dependency on SpatialAnalyzer application-global state.

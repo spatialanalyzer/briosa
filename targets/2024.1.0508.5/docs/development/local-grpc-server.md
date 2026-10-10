@@ -115,6 +115,15 @@ grpcurl -plaintext -d '{}' 127.0.0.1:50051 briosa.DiscoveryService/GetServerInfo
 grpcurl -plaintext -d '{}' 127.0.0.1:50051 briosa.DiscoveryService/ListCapabilities
 ```
 
+`ListCapabilities` also reports the `admissionProfile`, the value-free
+`policyFingerprint`, and each operation's `riskFlags`, `durationClass`, and
+`validationStatus`. To see every registered operation with the reason the
+policy denies it, request the denied entries too:
+
+```powershell
+'{"includeDenied":true}' | grpcurl -plaintext -d '@' 127.0.0.1:50051 briosa.DiscoveryService/ListCapabilities
+```
+
 The initial summary reports a stopped SDK generation and `readyForMp: false`.
 Start the SDK explicitly, retain its generation, and connect it to the
 already-running local application:
@@ -222,7 +231,9 @@ dotnet user-secrets set "Briosa:Security:Operations:Profile" "device" --project 
 dotnet user-secrets set "Briosa:Security:Operations:Flags:interactive_ui" "allow" --project src/Briosa.Server
 ```
 
-Restart the server and confirm the result with `ListCapabilities`. A missing
+Restart the server and confirm the result with `ListCapabilities`: its
+`admissionProfile` and `policyFingerprint` change, and with `includeDenied` each
+denied operation reports its `admission` reason. A missing
 `Profile`, the retired `Allow`/`Deny` arrays, or an unknown name or value fails
 startup. No setting admits an exclusive workflow.
 

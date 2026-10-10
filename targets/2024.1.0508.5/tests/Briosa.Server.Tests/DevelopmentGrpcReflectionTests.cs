@@ -108,6 +108,15 @@ public sealed class DevelopmentGrpcReflectionTests
         Assert.All(capabilities.Operations, operation => Assert.Equal(
             declared[operation.OperationId].Effect,
             operation.Effect));
+        Assert.Equal("standard", capabilities.AdmissionProfile);
+        var allCapabilities = await discovery.ListCapabilitiesAsync(
+            new Api.ListCapabilitiesRequest { IncludeDenied = true }).ResponseAsync.ConfigureAwait(true);
+        Assert.Equal(SpatialAnalyzerApi.Operations.Count, allCapabilities.Operations.Count);
+        Assert.Equal(capabilities.PolicyFingerprint, allCapabilities.PolicyFingerprint);
+        Assert.Equal(
+            Api.OperationAdmission.DeniedOverride,
+            allCapabilities.Operations.Single(operation =>
+                operation.OperationId == "variables.set_double_variable").Admission);
         var variables = new Api.Variables.VariablesClient(host.Channel);
         var denied = await Assert.ThrowsAsync<RpcException>(async () =>
             await variables.SetDoubleVariableAsync(new Api.SetDoubleVariableRequest
