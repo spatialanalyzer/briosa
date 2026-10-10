@@ -29,7 +29,7 @@ scenario table covers:
   replacement without replay; and
 - an unsupported exact-target service package.
 
-Every scenario validates structural status, typed error shape where applicable, readiness, recovery, and capability advertisement. It never prints command arguments or returned SpatialAnalyzer values.
+Every scenario validates structural status, typed error shape where applicable, readiness, recovery, and capability advertisement. Capability checks require the packaged `standard` admission profile, a value-free policy fingerprint, and a reviewed risk-flag list, duration class, and validation status on every advertised operation. A second request with `include_denied` must list every advertised operation unchanged plus the denied ones, including each exclusive workflow as `DENIED_EXCLUSIVE`; the policy-denial scenario must report Get Working Directory as `DENIED_OVERRIDE`. It never prints command arguments or returned SpatialAnalyzer values.
 
 These scenarios require Windows x64 and .NET but do not start SpatialAnalyzer or require a license.
 

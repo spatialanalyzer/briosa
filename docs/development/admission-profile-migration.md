@@ -130,6 +130,15 @@ that checks discovery before calling an operation sees the narrower default.
 A denied call still returns the typed, value-free `PermissionDenied` outcome
 with a `NotStarted` disposition.
 
+Discovery also reports the resolved `admission_profile`, the value-free
+`policy_fingerprint`, and each operation's reviewed `risk_flags`,
+`duration_class`, `validation_status`, and `admission`. A request with
+`include_denied` additionally lists every denied operation with the precedence
+step that denied it, which replaces guessing from a missing entry. These fields
+are additive: clients built for contract major 2 ignore them. The
+[client behavioral contract](../architecture/client-library-behavioral-contract.md#compatibility-and-capabilities)
+lists what major-3 clients expose.
+
 The behavioral contract major is still 2 on `main`. The bump to contract major 3,
 the new client candidates and fixture sources, retiring the major-1 retained
 clients, and the 0.4.0 expected-incompatible checks all land together in the
