@@ -36,7 +36,7 @@ The outcome-mapper matrix validates present default-like values, failed retrieva
 
 These tests prove host survival, bounded shutdown, generation changes, queue serialization, cancellation before and after admission, uncertain completion, readiness, identity gating, and cleanup.
 
-Cancellation can stop a caller from entering the queue or waiting for a response. It does not claim to cancel a synchronous SDK call already in progress. A watchdog or worker loss faults the generation and leaves later calls unadmitted until explicit recovery. Replacement restores availability but does not prove whether the command completed or make replay safe.
+Cancellation can stop a caller from entering the queue, abandon a request that the supervisor has not yet claimed so that it never reaches the worker, or stop the caller waiting for a dispatched response. After the supervisor accepts a lifecycle exchange, caller cancellation no longer interrupts it. It does not claim to cancel a synchronous SDK call already in progress. A watchdog or worker loss faults the generation and leaves later calls unadmitted until explicit recovery. Replacement restores availability but does not prove whether the command completed or make replay safe.
 
 ## Packaged client boundary
 

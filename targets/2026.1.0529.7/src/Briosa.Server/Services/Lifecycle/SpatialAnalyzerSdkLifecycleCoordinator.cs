@@ -19,20 +19,32 @@ internal sealed class SpatialAnalyzerSdkLifecycleCoordinator(
     private readonly SpatialAnalyzerSdkLifecycleStateProjection _stateProjection =
         stateProjection;
     private readonly IWorkerLifecycleController _supervisor = supervisor;
+    private int _disposeState;
 
     public global::Briosa.SpatialAnalyzerSdkLifecycleState Current =>
         _stateProjection.Current;
 
+    // Start, Connect, Reconnect, and Recover detach from the caller once the supervisor
+    // accepts them (F10, #305). The transition keeps the gate until it finishes under
+    // its own bounds, so a caller that stopped waiting leaves no partial transition.
     public async Task<global::Briosa.SpatialAnalyzerSdkLifecycleState> StartAsync(
         CancellationToken cancellationToken)
     {
         EnterTransition(cancellationToken);
+        var acceptance = new LifecycleAcceptance(cancellationToken);
+        return await WaitForTransitionAsync(acceptance, StartTransitionAsync(acceptance))
+            .ConfigureAwait(false);
+    }
+
+    private async Task<global::Briosa.SpatialAnalyzerSdkLifecycleState> StartTransitionAsync(
+        LifecycleAcceptance acceptance)
+    {
         try
         {
             RequireStopped(_supervisor.Current);
 
             var transition = await CallSupervisorAsync(
-                () => _supervisor.StartAsync(cancellationToken),
+                () => _supervisor.StartAsync(acceptance),
                 RequireStopped).ConfigureAwait(false);
             if (!transition.Succeeded)
             {
@@ -68,11 +80,21 @@ internal sealed class SpatialAnalyzerSdkLifecycleCoordinator(
         CancellationToken cancellationToken)
     {
         EnterTransition(cancellationToken);
+        var acceptance = new LifecycleAcceptance(cancellationToken);
+        return await WaitForTransitionAsync(acceptance,
+            ConnectTransitionAsync(expectedGeneration, reconnect, acceptance)).ConfigureAwait(false);
+    }
+
+    private async Task<global::Briosa.SpatialAnalyzerSdkLifecycleState> ConnectTransitionAsync(
+        int expectedGeneration,
+        bool reconnect,
+        LifecycleAcceptance acceptance)
+    {
         try
         {
             ValidateGeneration(expectedGeneration);
             var applicationBeforeConnect = await _applicationStateProvider
-                .GetCurrentAsync(cancellationToken).ConfigureAwait(false);
+                .GetCurrentAsync(acceptance.CallerToken).ConfigureAwait(false);
             var current = _supervisor.Current;
             RequireConnectableGeneration(current);
 
@@ -90,7 +112,7 @@ internal sealed class SpatialAnalyzerSdkLifecycleCoordinator(
             RequireConnectionTransition(current, reconnect);
 
             var transition = await CallSupervisorAsync(
-                () => _supervisor.ConnectAsync(expectedGeneration, cancellationToken),
+                () => _supervisor.ConnectAsync(expectedGeneration, acceptance),
                 fresh =>
                 {
                     RequireGeneration(fresh, expectedGeneration);
@@ -148,8 +170,10 @@ internal sealed class SpatialAnalyzerSdkLifecycleCoordinator(
                     recoveryGuidance);
             }
 
+            // The association belongs to the accepted transition, so a caller that
+            // stopped waiting cannot leave a connected generation without it.
             var applicationAfterConnect = await _applicationStateProvider
-                .GetCurrentAsync(cancellationToken).ConfigureAwait(false);
+                .GetCurrentAsync(CancellationToken.None).ConfigureAwait(false);
             var associated = await CallSupervisorAsync(
                 () => _supervisor.AssociateApplicationGenerationAsync(
                     expectedGeneration,
@@ -158,7 +182,7 @@ internal sealed class SpatialAnalyzerSdkLifecycleCoordinator(
                     applicationBeforeConnect.ApplicationGeneration ==
                         applicationAfterConnect.ApplicationGeneration
                         ? applicationAfterConnect.ApplicationGeneration
-                        : null, cancellationToken),
+                        : null, CancellationToken.None),
                 fresh => RequireGeneration(fresh, expectedGeneration)).ConfigureAwait(false);
             return SpatialAnalyzerSdkLifecycleStateProjection.ToPublicState(associated);
         }
@@ -178,9 +202,19 @@ internal sealed class SpatialAnalyzerSdkLifecycleCoordinator(
             ValidateGeneration(expectedGeneration);
             RequireStoppable(_supervisor.Current);
 
-            var transition = await CallSupervisorAsync(
-                () => _supervisor.StopAsync(cancellationToken),
-                RequireStoppable).ConfigureAwait(false);
+            // The caller keeps waiting for an accepted teardown; it can only withdraw
+            // the request before the supervisor accepts it.
+            WorkerLifecycleResult transition;
+            try
+            {
+                transition = await CallSupervisorAsync(
+                    () => _supervisor.StopAsync(cancellationToken),
+                    RequireStoppable).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw RequestWithdrawn();
+            }
             var snapshot = transition.Snapshot;
             var stopped = SpatialAnalyzerSdkLifecycleStateProjection.ToPublicState(snapshot);
             if (snapshot.LifecycleTimedOut)
@@ -215,6 +249,16 @@ internal sealed class SpatialAnalyzerSdkLifecycleCoordinator(
         CancellationToken cancellationToken)
     {
         EnterTransition(cancellationToken);
+        var acceptance = new LifecycleAcceptance(cancellationToken);
+        return await WaitForTransitionAsync(acceptance,
+            RecoverTransitionAsync(expectedGeneration, mode, acceptance)).ConfigureAwait(false);
+    }
+
+    private async Task<global::Briosa.SpatialAnalyzerSdkLifecycleState> RecoverTransitionAsync(
+        int expectedGeneration,
+        global::Briosa.SpatialAnalyzerSdkRecoveryMode mode,
+        LifecycleAcceptance acceptance)
+    {
         try
         {
             ValidateGeneration(expectedGeneration);
@@ -229,7 +273,7 @@ internal sealed class SpatialAnalyzerSdkLifecycleCoordinator(
             RequireRecoverable(_supervisor.Current);
 
             var transition = await CallSupervisorAsync(
-                () => _supervisor.RecoverSdkAsync(expectedGeneration, cancellationToken),
+                () => _supervisor.RecoverSdkAsync(expectedGeneration, acceptance),
                 fresh =>
                 {
                     RequireGeneration(fresh, expectedGeneration);
@@ -263,11 +307,45 @@ internal sealed class SpatialAnalyzerSdkLifecycleCoordinator(
         }
     }
 
-    public ValueTask DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
+        if (Interlocked.Exchange(ref _disposeState, 1) != 0) return;
+
+        // A detached transition owns the gate until it finishes under its own bounds.
+        await _gate.WaitAsync(CancellationToken.None).ConfigureAwait(false);
         _gate.Dispose();
-        return ValueTask.CompletedTask;
     }
+
+    // The caller's wait ends at its cancellation; an accepted transition does not.
+    private async Task<global::Briosa.SpatialAnalyzerSdkLifecycleState> WaitForTransitionAsync(
+        LifecycleAcceptance acceptance,
+        Task<global::Briosa.SpatialAnalyzerSdkLifecycleState> transition)
+    {
+        try
+        {
+            return await acceptance.WaitAsync(transition, () => throw CallerStoppedWaiting())
+                .ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (acceptance.CallerToken.IsCancellationRequested)
+        {
+            throw RequestWithdrawn();
+        }
+    }
+
+    // Before acceptance nothing changed, so the caller has nothing to reconcile.
+    private SdkLifecycleException RequestWithdrawn() =>
+        SdkLifecycleException.Cancelled(
+            "sdk-lifecycle-request-withdrawn",
+            Current,
+            global::Briosa.LifecycleRecoveryGuidance.None);
+
+    // The accepted transition continues and records its own terminal state. The
+    // caller refreshes state through GetSpatialAnalyzerSdkState or discovery.
+    private SdkLifecycleException CallerStoppedWaiting() =>
+        SdkLifecycleException.Cancelled(
+            "sdk-lifecycle-caller-stopped-waiting",
+            Current,
+            global::Briosa.LifecycleRecoveryGuidance.RefreshState);
 
     private void ValidateGeneration(int expectedGeneration)
     {
@@ -287,7 +365,7 @@ internal sealed class SpatialAnalyzerSdkLifecycleCoordinator(
 
     private void EnterTransition(CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
+        if (cancellationToken.IsCancellationRequested) throw RequestWithdrawn();
         if (!_gate.Wait(0, CancellationToken.None))
         {
             throw SdkLifecycleException.Aborted(

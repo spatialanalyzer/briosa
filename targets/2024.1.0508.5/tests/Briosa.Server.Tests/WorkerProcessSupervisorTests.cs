@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Threading.Channels;
 using Briosa.Server.Workers;
 using Briosa.Worker.Control;
+using Microsoft.Extensions.Logging;
 using ServerIdentityMatchState = Briosa.Server.Workers.RuntimeIdentityMatchState;
 using ServerIdentitySource = Briosa.Server.Workers.RuntimeIdentityEvidenceSource;
 
@@ -295,29 +296,96 @@ public sealed class WorkerProcessSupervisorTests
             supervisor.Current.DiagnosticCode);
     }
 
+    // #305 (F10) deliberately replaced the earlier rule that cancelling the caller
+    // during verification quarantines the target. The caller stops waiting; the
+    // accepted probe keeps running, and only its own bound can quarantine.
     [Fact]
-    public async Task CancellationDuringVerificationStillQuarantinesAmbiguousOwnership()
+    public async Task CallerCancellationDuringVerificationLeavesTheProbeToItsOwnBound()
     {
+        var clock = new HeartbeatTestClock();
+        // Distinct from the five-second startup bound, so the wait matches the probe.
+        var probeBound = TimeSpan.FromSeconds(7);
         await using var supervisor = CreateSupervisor(
             _ => CreateLaunch("hang-on-verify"),
             CreatePolicy(
                 heartbeatInterval: TimeSpan.FromSeconds(10),
-                readinessProbeTimeout: TimeSpan.FromSeconds(5)));
+                readinessProbeTimeout: probeBound),
+            timeProvider: clock);
         using var cancellation = new CancellationTokenSource();
 
-        var starting = supervisor.StartAsync(cancellation.Token);
-        _ = await WaitFor(
-            supervisor,
-            snapshot => snapshot.Connection?.ExecutionReadinessState ==
-                WorkerExecutionReadinessState.Verifying);
-        await cancellation.CancelAsync();
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(
-            () => starting);
+        try
+        {
+            var starting = supervisor.StartAsync(cancellation.Token);
+            await clock.WaitForScheduledAsync(probeBound);
+            await cancellation.CancelAsync();
+            var detached = Assert.IsType<WorkerLifecycleDetached>(await starting.WaitAsync(ProcessBound));
 
-        Assert.Equal("execution-readiness-probe-cancelled", supervisor.Current.DiagnosticCode);
-        Assert.Equal(
-            WorkerExecutionReadinessState.OperatorRecoveryRequired,
-            supervisor.Current.Connection!.ExecutionReadinessState);
+            Assert.Equal(
+                WorkerExecutionReadinessState.Verifying,
+                detached.Snapshot.Connection!.ExecutionReadinessState);
+            Assert.Equal(
+                WorkerExecutionReadinessState.Verifying,
+                supervisor.Current.Connection!.ExecutionReadinessState);
+            Assert.NotNull(supervisor.Current.ProcessId);
+
+            await clock.FireNextAsync(probeBound);
+            var quarantined = await WaitFor(
+                supervisor,
+                snapshot => snapshot.State == WorkerLifecycleState.Degraded && snapshot.ProcessId is null);
+            Assert.Equal("execution-readiness-probe-timeout", quarantined.DiagnosticCode);
+            Assert.Equal(WorkerLifecycleFailure.ReadinessTimeout, quarantined.LifecycleFailure);
+            Assert.Equal(
+                WorkerExecutionReadinessState.OperatorRecoveryRequired,
+                quarantined.Connection!.ExecutionReadinessState);
+            Assert.DoesNotContain(
+                supervisor.History,
+                snapshot => snapshot.DiagnosticCode.Contains("cancelled", StringComparison.Ordinal));
+        }
+        catch
+        {
+            // Lets disposal finish when an assertion fails before the bound fires.
+            clock.Advance(TimeSpan.FromHours(9));
+            throw;
+        }
+    }
+
+    [Fact]
+    public async Task CallerCancellationDuringConnectExLeavesTheExchangeToTheStartupBound()
+    {
+        var clock = new HeartbeatTestClock();
+        var startupBound = TimeSpan.FromSeconds(5);
+        await using var supervisor = CreateSupervisor(
+            _ => CreateLaunch("hang-on-connect"),
+            CreatePolicy(heartbeatInterval: TimeSpan.FromSeconds(10)),
+            timeProvider: clock);
+        Assert.True((await StartWithinProcessBound(supervisor)).Succeeded, supervisor.Current.DiagnosticCode);
+        using var cancellation = new CancellationTokenSource();
+
+        try
+        {
+            var connecting = supervisor.ConnectAsync(supervisor.Current.Generation, cancellation.Token);
+            await clock.WaitForScheduledAsync(startupBound);
+            await cancellation.CancelAsync();
+            var detached = Assert.IsType<WorkerLifecycleDetached>(await connecting.WaitAsync(ProcessBound));
+
+            Assert.Equal(WorkerConnectionState.Connecting, detached.Snapshot.Connection!.State);
+            Assert.Equal(WorkerLifecycleState.Starting, supervisor.Current.State);
+            await clock.FireNextAsync(startupBound);
+            var retired = await WaitFor(
+                supervisor,
+                snapshot => snapshot.State == WorkerLifecycleState.Degraded);
+            Assert.Equal("connect-ex-timeout", retired.DiagnosticCode);
+            Assert.Equal(WorkerLifecycleFailure.ConnectionTimeout, retired.LifecycleFailure);
+            Assert.DoesNotContain(
+                supervisor.History,
+                snapshot => snapshot.DiagnosticCode.Contains("cancelled", StringComparison.Ordinal));
+        }
+        catch
+        {
+            // Lets disposal finish when an assertion fails before the bound fires.
+            clock.Advance(TimeSpan.FromHours(9));
+            throw;
+        }
     }
 
     [Fact]
@@ -458,41 +526,57 @@ public sealed class WorkerProcessSupervisorTests
         Assert.Equal(0, drained.ClientCancellationsAfterAdmission);
     }
 
+    // #305 (F9) replaced the earlier rule that a request cancelled while queued may
+    // still be dispatched later. A hanging exchange holds the single consumer on the
+    // virtual clock, so the queued request cannot be claimed before it is abandoned.
     [Fact]
-    public async Task CancellationAfterAdmissionDrainsToATerminalOutcome()
+    public async Task CancellationWhileQueuedAbandonsTheRequestWithoutDispatch()
     {
+        var clock = new HeartbeatTestClock();
         await using var supervisor = CreateSupervisor(
-            _ => CreateLaunch("delay-first-execute"),
+            _ => CreateLaunch("hang-on-execute"),
             CreatePolicy(heartbeatInterval: TimeSpan.FromSeconds(10)),
-            CreateExecutionPolicy(queueCapacity: 2));
+            CreateExecutionPolicy(TimeSpan.FromMilliseconds(150), queueCapacity: 2),
+            timeProvider: clock);
 
-        Assert.True((await supervisor.StartAsync()).Succeeded, supervisor.Current.DiagnosticCode);
+        Assert.True((await StartWithinProcessBound(supervisor)).Succeeded, supervisor.Current.DiagnosticCode);
         var active = supervisor.ExecuteAsync(CreateCommand("active"));
-        _ = await WaitForExecution(
-            supervisor,
-            snapshot => snapshot.ActiveExecutions == 1);
+        await clock.WaitForScheduledAsync(TimeSpan.FromMilliseconds(150));
         using var cancellation = new CancellationTokenSource();
         var queued = supervisor.ExecuteAsync(
-            CreateCommand("cancelled-after-admission"),
+            CreateCommand("cancelled-while-queued"),
             cancellation.Token);
         _ = await WaitForExecution(
             supervisor,
             snapshot => snapshot.QueuedRequests == 1);
 
         await cancellation.CancelAsync();
-        var cancelled = await queued;
-        _ = await active;
+        WorkerExecutionOutcome abandoned;
+        try
+        {
+            abandoned = await queued.WaitAsync(ProcessBound);
+        }
+        catch
+        {
+            // Lets disposal finish: the hung exchange ends only at its virtual budget.
+            clock.Advance(TimeSpan.FromHours(9));
+            throw;
+        }
+        await clock.FireNextAsync(TimeSpan.FromMilliseconds(150));
+        var timedOut = await active.WaitAsync(ProcessBound);
         var drained = await WaitForExecution(
             supervisor,
-            snapshot => snapshot.TerminalRequests == 2);
+            snapshot => snapshot.TerminalRequests == 2 && snapshot.QueuedRequests == 0);
 
-        Assert.Equal(WorkerExecutionStatus.ClientCancelled, cancelled.Status);
-        Assert.Equal(
-            WorkerExecutionDisposition.StartedOutcomeUnknown,
-            cancelled.ExecutionDisposition);
+        Assert.Equal(WorkerExecutionStatus.ClientCancelled, abandoned.Status);
+        Assert.Equal(WorkerExecutionDisposition.NotStarted, abandoned.ExecutionDisposition);
+        Assert.Equal("queued-request-abandoned", abandoned.DiagnosticCode);
+        Assert.Equal(1, abandoned.Generation);
+        Assert.Equal(WorkerExecutionStatus.WatchdogTimeout, timedOut.Status);
+        Assert.Equal("active", supervisor.Current.LastIncident!.OperationId);
         Assert.Equal(2, drained.AdmittedRequests);
         Assert.Equal(2, drained.TerminalRequests);
-        Assert.Equal(0, drained.QueuedRequests);
+        Assert.Equal(1, drained.AbandonedRequests);
         Assert.Equal(0, drained.ActiveExecutions);
         Assert.Equal(1, drained.ClientCancellationsAfterAdmission);
     }
@@ -678,18 +762,28 @@ public sealed class WorkerProcessSupervisorTests
     }
 
     [Fact]
-    public async Task CallerCancellationAfterEnqueueIsUnknownWithoutDesynchronizingThePipe()
+    public async Task CallerCancellationAfterDispatchIsUnknownWithoutDesynchronizingThePipe()
     {
-        await using var supervisor = CreateSupervisor(
-            _ => CreateLaunch("delay-first-execute"),
-            CreatePolicy(heartbeatInterval: TimeSpan.FromSeconds(10)));
+        var dispatched = new DispatchSignal();
+        await using var supervisor = new WorkerProcessSupervisor(
+            new NamedPipeWorkerProcessFactory(_ => CreateLaunch("delay-first-execute")),
+            CreatePolicy(heartbeatInterval: TimeSpan.FromSeconds(10)),
+            CreateExecutionPolicy(),
+            logger: dispatched,
+            identityPolicy: ExactTargetIdentityPolicy.CreateForTesting(
+                "2024.1.0508.5",
+                activatedSdkVersion: "2024.1.0508.5",
+                connectedSpatialAnalyzerVersion: "2024.1.0508.5"));
 
         Assert.True((await supervisor.StartAsync()).Succeeded, supervisor.Current.DiagnosticCode);
-        using var clientCancellation = new CancellationTokenSource(
-            TimeSpan.FromMilliseconds(50));
-        var cancelled = await supervisor.ExecuteAsync(
+        using var clientCancellation = new CancellationTokenSource();
+        var waiting = supervisor.ExecuteAsync(
             CreateCommand("cancelled-wait"),
             clientCancellation.Token);
+        // The consumer claimed the request before logging its dispatch.
+        await dispatched.Dispatched.WaitAsync(ProcessBound);
+        await clientCancellation.CancelAsync();
+        var cancelled = await waiting;
         var next = await supervisor.ExecuteAsync(CreateCommand("after-cancellation"));
 
         Assert.Equal(WorkerExecutionStatus.ClientCancelled, cancelled.Status);
@@ -1135,6 +1229,8 @@ public sealed class WorkerProcessSupervisorTests
         Assert.Equal(WorkerTerminationKind.Forced, supervisor.Current.LastTermination);
     }
 
+    // With a caller that cancels, #305 (F10) keeps the owned child alive until the
+    // startup bound rather than terminating it at once; both paths end the same way.
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
@@ -1153,18 +1249,51 @@ public sealed class WorkerProcessSupervisorTests
         if (cancelCaller)
         {
             await caller.CancelAsync();
-            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => starting);
-            Assert.Equal(WorkerLifecycleState.Stopped, supervisor.Current.State);
+            try
+            {
+                var detached = Assert.IsType<WorkerLifecycleDetached>(
+                    await starting.WaitAsync(TimeSpan.FromSeconds(6)));
+                Assert.Equal(WorkerLifecycleState.Starting, detached.Snapshot.State);
+                Assert.False(factory.Child!.HasExited);
+            }
+            catch
+            {
+                // Lets disposal finish: the startup ends only at its virtual bound.
+                clock.Advance(TimeSpan.FromHours(9));
+                throw;
+            }
+            await clock.FireNextAsync(TimeSpan.FromMilliseconds(500));
+            _ = await WaitFor(supervisor, snapshot => snapshot.State == WorkerLifecycleState.Degraded &&
+                snapshot.ProcessId is null);
         }
         else
         {
             await clock.FireNextAsync(TimeSpan.FromMilliseconds(500));
             Assert.False((await starting.WaitAsync(TimeSpan.FromSeconds(6))).Succeeded);
-            Assert.Equal("worker-startup-timeout", supervisor.Current.DiagnosticCode);
         }
+        Assert.Equal("worker-startup-timeout", supervisor.Current.DiagnosticCode);
+        Assert.Equal(WorkerLifecycleFailure.StartupTimeout, supervisor.Current.LifecycleFailure);
         Assert.NotNull(factory.Child);
         Assert.True(factory.Child.ExitConfirmedBeforeDisposal);
         Assert.False(supervisor.Current.ReadyForExecution);
+    }
+
+    // Completes when the supervisor logs a dispatch, which follows the consumer's claim.
+    private sealed class DispatchSignal : ILogger<WorkerProcessSupervisor>
+    {
+        private readonly TaskCompletionSource _dispatched = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public Task Dispatched => _dispatched.Task;
+
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+
+        public bool IsEnabled(LogLevel logLevel) => true;
+
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception,
+            Func<TState, Exception?, string> formatter)
+        {
+            if (eventId.Id == 1300) _dispatched.TrySetResult();
+        }
     }
 
     private sealed class StartupTrackingFactory(IWorkerProcessFactory factory) : IWorkerProcessFactory

@@ -15,4 +15,7 @@ internal sealed record WorkerExecutionSnapshot(
 {
     public long ReservedWorkBytes { get; init; }
     public long MaxRetainedWorkBytes { get; init; }
+
+    /// <summary>Admitted requests whose callers abandoned them before dispatch.</summary>
+    public long AbandonedRequests { get; init; }
 }

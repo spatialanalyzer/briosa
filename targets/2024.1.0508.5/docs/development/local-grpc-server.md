@@ -252,8 +252,10 @@ complete logs in a public report.
 | Reflection or grpcui reports the reflection service as unimplemented | The host is not both a Debug build and in the `Development` environment. | Start the source host with the documented `SpatialAnalyzer` profile. Do not try to enable reflection in a Release package. |
 | An operation is reflected but returns `PERMISSION_DENIED` or is absent from `ListCapabilities` | Reflection described a compiled schema that runtime policy does not admit. | Leave it denied unless its exact operation has received a deliberate real-SA review. Do not broaden policy automatically. |
 
-The clean recovery sequence is also required after a timeout, cancellation,
-worker crash, lost response, or uncertain port ownership. Do not automatically
+The clean recovery sequence is also required after a timeout, worker crash,
+lost response, or uncertain port ownership. Caller cancellation alone does not
+fault the generation: refresh SDK state first, because an accepted lifecycle
+request finishes under its own bound. Do not automatically
 replay a call whose completion is ambiguous. Never induce these failures during
 this manual real-SA workflow; use the portable fake harness instead.
 

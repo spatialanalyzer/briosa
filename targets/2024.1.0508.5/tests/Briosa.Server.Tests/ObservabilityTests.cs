@@ -302,7 +302,8 @@ public sealed class ObservabilityTests
         using var parent = new Activity("test-parent");
         parent.Start();
         var task = Run(executor, correlation, cancellation.Token);
-        await Until(() => supervisor.ExecutionSnapshot.ActiveExecutions == 1);
+        // Cancel only after dispatch: a request cancelled before its claim is abandoned (#305).
+        await Until(() => sink.Events.Any(entry => EventName(entry) == "ExecutionDispatched"));
         await cancellation.CancelAsync();
         var error = await Assert.ThrowsAsync<RpcException>(() => task);
         Assert.Equal(StatusCode.Cancelled, error.StatusCode);
