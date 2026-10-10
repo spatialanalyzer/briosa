@@ -123,7 +123,7 @@
       "activated_sdk_version": "2024.1.0508.5",
       "connected_sa_version": "2024.1.0508.5",
       "deny_get_working_directory": false,
-      "watchdog_timeout": "00:00:00.250",
+      "watchdog_timeout": "00:00:05.000",
       "exercise": "worker-loss"
     },
     {

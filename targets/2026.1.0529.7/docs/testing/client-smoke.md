@@ -33,6 +33,15 @@ Every scenario validates structural status, typed error shape where applicable, 
 
 These scenarios require Windows x64 and .NET but do not start SpatialAnalyzer or require a license.
 
+Each scenario stops only the processes it started: the server with its child
+worker, and the fake application. It never selects processes by name, so runs in
+other worktrees or for the other target on the same machine are unaffected. Each
+server writes its log files to the scenario's temporary directory instead of the
+user's Briosa log directory. When a scenario fails, the script copies the server
+console and file logs and the client output to
+`artifacts/client-scenarios-diagnostics/<run>/<scenario>`, or to the directory
+passed as `-DiagnosticsDirectory`. CI uploads that directory when the step fails.
+
 ## First-party client conformance artifact
 
 `eng/New-ClientConformancePackage.ps1` packages this real server together with a

@@ -119,6 +119,18 @@ try {
             "The conformance contract is missing scenario '$requiredScenario'."
     }
 
+    # A scripted hang never returns, so a watchdog budget only has to exceed a
+    # cold worker's first execution. 250 ms expired on a legitimate first call
+    # on a slow runner (#302); keep generous headroom.
+    foreach ($watchdogScenario in @($contract.scenarios | Where-Object { $null -ne $_.watchdog_timeout })) {
+        $watchdogBudget = [TimeSpan]::ParseExact(
+            [string]$watchdogScenario.watchdog_timeout,
+            "hh\:mm\:ss\.fff",
+            [Globalization.CultureInfo]::InvariantCulture)
+        Assert-Condition ($watchdogBudget -ge [TimeSpan]::FromSeconds(2)) `
+            "Scenario '$($watchdogScenario.id)' has a watchdog budget too short for a cold worker's first execution."
+    }
+
     # Contract-gated scenarios ship exactly when the target contract reaches
     # their major, without the gate field.
     $contractMajor = [int](Get-Content -LiteralPath (Join-Path $targetRoot "compatibility.json") -Raw |
@@ -186,6 +198,72 @@ $definition = Get-Content -LiteralPath $Contract -Raw | ConvertFrom-Json
         FixtureTimeoutSeconds = 30
     }
     & $runnerPath @runnerArguments
+
+    # A failing fixture keeps its complete stderr and the scenario's server log
+    # directory (#302). The gate supplies the directory through the environment.
+    $failingFixturePath = Join-Path $temporaryRoot "failing-fixture.ps1"
+    $failingFixtureSource = @'
+[CmdletBinding()]
+param(
+    [Parameter(Mandatory)][string]$Scenario,
+    [Parameter(Mandatory)][string]$Contract
+)
+$logDirectory = $env:Briosa__Logging__File__Directory
+if ([string]::IsNullOrWhiteSpace($logDirectory) -or
+    -not $logDirectory.EndsWith("\$Scenario\server-logs", [StringComparison]::OrdinalIgnoreCase)) {
+    [Console]::Error.WriteLine("server-log-directory-not-scenario-scoped")
+    exit 3
+}
+[IO.Directory]::CreateDirectory($logDirectory) | Out-Null
+[IO.File]::WriteAllText((Join-Path $logDirectory "server-log-marker.jsonl"), "server-log-marker")
+foreach ($index in 1..200) {
+    [Console]::Error.WriteLine("fixture-trace-line-$index")
+}
+exit 1
+'@
+    [IO.File]::WriteAllText(
+        $failingFixturePath,
+        $failingFixtureSource,
+        [Text.UTF8Encoding]::new($false))
+    $diagnosticsRoot = Join-Path $temporaryRoot "conformance-diagnostics"
+    $previousDiagnosticsDirectory = $env:BRIOSA_CONFORMANCE_DIAGNOSTICS_DIRECTORY
+    $env:BRIOSA_CONFORMANCE_DIAGNOSTICS_DIRECTORY = $diagnosticsRoot
+    $failure = $null
+    $runnerOutput = [Collections.Generic.List[string]]::new()
+    try {
+        $failingRunnerArguments = @{
+            FixtureCommand = (Get-Process -Id $PID).Path
+            FixtureArguments = @("-NoProfile", "-File", $failingFixturePath)
+            Scenario = @("default-ready")
+            FixtureTimeoutSeconds = 30
+        }
+        & $runnerPath @failingRunnerArguments *>&1 |
+            ForEach-Object { $runnerOutput.Add([string]$_) }
+    }
+    catch {
+        $failure = $_
+    }
+    finally {
+        $env:BRIOSA_CONFORMANCE_DIAGNOSTICS_DIRECTORY = $previousDiagnosticsDirectory
+    }
+    Assert-Condition ($null -ne $failure -and
+        "$failure" -like "*failed scenario 'default-ready' with exit code 1*") `
+        "The conformance runner did not reject a failing fixture."
+    Assert-Condition ($runnerOutput -contains "fixture-trace-line-1" -and
+        $runnerOutput -contains "fixture-trace-line-200") `
+        "The conformance runner did not print the complete fixture stderr."
+    $scenarioDiagnostics = Join-Path $diagnosticsRoot "default-ready"
+    $savedError = @(Get-Content -LiteralPath (Join-Path $scenarioDiagnostics "fixture.stderr.txt"))
+    Assert-Condition ($savedError.Count -eq 200 -and
+        $savedError[0] -eq "fixture-trace-line-1" -and
+        $savedError[-1] -eq "fixture-trace-line-200") `
+        "The conformance runner did not keep the complete fixture stderr."
+    Assert-Condition ((Get-Content -LiteralPath (Join-Path $scenarioDiagnostics "server-logs\server-log-marker.jsonl") -Raw) -eq
+        "server-log-marker") `
+        "The conformance runner did not keep the scenario's server logs."
+    Assert-Condition ((Test-Path -LiteralPath (Join-Path $scenarioDiagnostics "failure.txt") -PathType Leaf) -and
+        -not (Test-Path -LiteralPath (Join-Path $scenarioDiagnostics "fake-application"))) `
+        "The conformance runner diagnostics have an unexpected shape."
 
     $applicationRoot = Join-Path $temporaryRoot "launchable-fake-application"
     [IO.Directory]::CreateDirectory($applicationRoot) | Out-Null
