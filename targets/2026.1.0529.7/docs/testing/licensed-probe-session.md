@@ -343,3 +343,9 @@ the draft, add follow-up tasks, and commit it under `docs/testing/evidence/`
 as observations, not vendor guarantees. A record made with `--exclude-probe`
 must carry the justification for each exclusion before it is committed. Never
 transfer one target's observations to the other target.
+
+## Recorded sessions
+
+| Date | Record |
+| --- | --- |
+| 2026-10-07 | [Licensed probe session on SA `2026.1.0529.7`](evidence/probe-277-2026.1.0529.7-2026-10-07.md). Both phases completed, with probes excluded through `--exclude-probe`. The record lists the open questions and follow-up issues. |
