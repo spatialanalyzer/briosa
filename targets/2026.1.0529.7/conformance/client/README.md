@@ -45,6 +45,17 @@ receive a scenario their fixture cannot know. `sdk-call-faulted` (#294) is
 defined with `minimum_contract_major: 3`; the compatibility-major-3 freeze
 activates it, and major-3 client fixtures must then support it.
 
+The `capability-denied` scenario runs the packaged `standard` profile with one
+per-operation override that denies `file_operations.get_working_directory`.
+Fixtures for every contract major assert that the operation is absent from the
+admitted capability set and that calling it returns the typed policy denial.
+Major-3 fixtures also assert, through their public API, that the admission
+profile is `standard`, that every admitted capability carries a reviewed
+duration class and validation status, and that the diagnostic listing of denied
+operations (`include_denied`) reports `get_working_directory` as denied by an
+override. The server sends these discovery fields to every client; earlier
+fixtures ignore them.
+
 Scenario definitions describe only portable setup and the behavior to exercise.
 The fixture remains responsible for asserting its language-specific public
 states, results, and exception types before it returns `success: true`.

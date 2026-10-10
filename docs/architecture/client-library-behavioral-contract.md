@@ -345,6 +345,34 @@ compiled into the package is admitted. Capability and compatibility information
 is represented with handwritten public values rather than generated discovery
 messages.
 
+`ListCapabilities` also reports the active admission policy and each
+operation's reviewed classification
+([health and discovery](../../targets/2026.1.0529.7/docs/operations/health-and-discovery.md#capabilities)).
+Clients adopting compatibility major 3:
+
+- expose the generation's `admission_profile` name and `policy_fingerprint`.
+  The fingerprint is opaque: compare it only for equality, for example to tell
+  whether a replacement generation runs under the same policy;
+- expose each capability's risk flags, duration class, validation status, and
+  admission as handwritten values. Risk flags form an ordered set, and an empty
+  set means that no reviewed risk applies. An enum value added in a later
+  revision maps to a distinct unknown member; it never fails discovery and is
+  never folded into a known value;
+- take admission from the server's `admission` value. They do not recompute it
+  from risk flags or profile names, and they do not refuse an admitted
+  operation because of its validation status, which is informational;
+- treat a capability as the operation's reviewed row. A request option can still
+  turn on operator UI or leave work running, and the server can deny that
+  request with a typed `PermissionDenied`. Clients do not pre-validate request
+  options from discovery;
+- offer an explicit diagnostic listing that sets `include_denied` and returns
+  each denied operation with its denial reason. Denied entries never enter the
+  generation's admitted set and never make an operation callable; and
+- may use `duration_class` to choose a default per-call deadline only where
+  the language contract already provides a configured default command timeout.
+  Such a default never applies a `QUICK` budget to a `LONG_RUNNING` or
+  `INTERACTIVE` operation.
+
 Package semantic version, Briosa server semantic version, exact SpatialAnalyzer
 target, protocol artifact identity, and runtime architecture remain separate
 coordinates as described by the
@@ -358,7 +386,8 @@ gRPC server over deterministic fake-worker scenarios for:
 
 - lifecycle and readiness;
 - exact-target and protocol compatibility;
-- capability subsets;
+- capability subsets, and from compatibility major 3 the admission profile,
+  capability classification, and denial reasons;
 - typed operation failures, including SDK call faults once clients adopt
   compatibility major 3;
 - deadlines and cancellation;

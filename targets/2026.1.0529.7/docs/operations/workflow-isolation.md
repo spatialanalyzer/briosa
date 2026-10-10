@@ -14,7 +14,7 @@ The worker queue serializes each complete MP sequence. It does not reserve appli
 | `exclusive_workflow` | Requires ownership across RPCs, such as a device, trapping, watch, robot, or appliance session. Denied under every profile, flag, and override because leases are not implemented. |
 | `unknown` or unspecified | Denied because the isolation review is incomplete. |
 
-An operation can appear in capability discovery only when it has a reviewed classification row and descriptor scope, the current isolation mode supports it, and the runtime admission profile, flags, and overrides enable it. A row whose isolation class is `ExclusiveWorkflow` makes `exclusive_workflow` the operation's effective scope; no profile, flag, or `allow` override can bypass the isolation denial.
+An operation can appear in capability discovery only when it has a reviewed classification row and descriptor scope, the current isolation mode supports it, and the runtime admission profile, flags, and overrides enable it. A row whose isolation class is `ExclusiveWorkflow` makes `exclusive_workflow` the operation's effective scope; no profile, flag, or `allow` override can bypass the isolation denial. A discovery request with `include_denied` lists such an operation with admission `DENIED_EXCLUSIVE`.
 
 ## Command-family inventory
 

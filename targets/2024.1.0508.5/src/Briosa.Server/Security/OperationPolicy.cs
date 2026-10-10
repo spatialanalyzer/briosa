@@ -50,6 +50,8 @@ internal sealed class OperationPolicy
     internal const string ClassificationRule = "classification";
     internal const string IsolationRule = "isolation";
     internal const string OverrideRule = "override";
+    internal const string FlagRulePrefix = "flag.";
+    internal const string ProfileRulePrefix = "profile.";
     internal const string OptionRulePrefix = "option.";
 
     internal const string MigrationGuide =
@@ -98,9 +100,11 @@ internal sealed class OperationPolicy
             .Aggregate(OperationRisks.None, (all, flag) => all | flag.Key);
         _deniedFlags = flags.Where(flag => !flag.Value)
             .Aggregate(OperationRisks.None, (all, flag) => all | flag.Key);
-        AllowedOperations = _operations.Values
-            .Where(operation => Evaluate(operation.OperationId).Kind == OperationPolicyDecisionKind.Allowed)
+        Operations = _operations.Values
             .OrderBy(operation => operation.OperationId, StringComparer.Ordinal)
+            .ToArray();
+        AllowedOperations = Operations
+            .Where(operation => Evaluate(operation.OperationId).Kind == OperationPolicyDecisionKind.Allowed)
             .ToArray();
         ClassificationFingerprint = CreateClassificationFingerprint(_classification, _requestClassifier);
         Fingerprint = CreateFingerprint(profile, _flags, _overrides, ClassificationFingerprint);
@@ -112,6 +116,12 @@ internal sealed class OperationPolicy
     /// work running.
     /// </summary>
     public IReadOnlyList<OperationDescriptor> AllowedOperations { get; }
+
+    /// <summary>
+    /// Every registered operation, admitted or not, with its effective execution
+    /// scope, ordered by operation ID.
+    /// </summary>
+    public IReadOnlyList<OperationDescriptor> Operations { get; }
 
     /// <summary>The resolved admission profile.</summary>
     public OperationAdmissionProfile Profile { get; }
@@ -183,6 +193,19 @@ internal sealed class OperationPolicy
     /// </summary>
     public OperationPolicyDecision Evaluate(string operationId) =>
         EvaluateCore(operationId, classification: null);
+
+    /// <summary>
+    /// Returns the classification lookup this policy decides a registered
+    /// operation from, or <see cref="OperationClassificationLookup.Unreviewed"/>
+    /// for an unregistered operation.
+    /// </summary>
+    public OperationClassificationLookup FindClassification(string operationId)
+    {
+        ArgumentNullException.ThrowIfNull(operationId);
+        return _classification.TryGetValue(operationId, out var lookup)
+            ? lookup
+            : OperationClassificationLookup.Unreviewed;
+    }
 
     /// <summary>
     /// Decides one typed request before mapping or dispatch. The request's
@@ -296,14 +319,14 @@ internal sealed class OperationPolicy
         if (deniedFlags != OperationRisks.None)
         {
             var first = OperationRiskVocabulary.Members.First(risk => deniedFlags.HasFlag(risk));
-            var flagRule = $"flag.{OperationRiskVocabulary.GetName(first)}";
+            var flagRule = FlagRulePrefix + OperationRiskVocabulary.GetName(first);
             return (row.Risks & _deniedFlags) == OperationRisks.None
                 ? OptionDenied(operation, ui!, flagRule)
                 : Denied(operation, flagRule);
         }
 
         // 7. Profile, widened by flags set to allow, over the effective risks.
-        var profileRule = $"profile.{Profile.Name}";
+        var profileRule = ProfileRulePrefix + Profile.Name;
         if (Profile.Admits(risks, operation.Effect, _allowedFlags))
         {
             return Allowed(operation, WithOption(ui, profileRule), duration);

@@ -72,7 +72,8 @@ Operations whose isolation class is `ExclusiveWorkflow` are multi-call device,
 trapping, watch, robot-interface, and appliance session lifecycles. They are
 denied under every profile, flag, and override until an accepted lease design
 exists (AGENTS.md invariant 13). Their effective execution scope is
-`exclusive_workflow`, and they are never advertised.
+`exclusive_workflow`. They are never advertised as admitted; a discovery request
+with `include_denied` lists them as `DENIED_EXCLUSIVE`.
 
 Validation status (`no_recorded_gap`, `fixture_pending`, `at_risk_unvalidated`)
 is recorded for review and audit. It never affects admission.
@@ -122,10 +123,12 @@ a never-named job, an overwrite confirmation, a missing measurement profile)
 cannot be decided from the request. They are documented in the seed, not
 guarded.
 
-Discovery reports the operation's reviewed row, so an advertised operation can
-still deny a request that enables an option. A denied request names the option
-field in its audit rule, for example `option.show_results_dialog/flag.interactive_ui`;
-the option's value is never recorded. An admitted request carries its effective
+Discovery reports the operation's reviewed row (its `risk_flags` and
+`duration_class`), so an advertised operation can still deny a request that
+enables an option. Discovery does not yet describe the options themselves. A
+denied request names the option field in its audit rule, for example
+`option.show_results_dialog/flag.interactive_ui`; the option's value is never
+recorded. An admitted request carries its effective
 duration class to the worker supervisor, which arms that class's execution
 budget; see [worker time bounds](windows-package.md#worker-time-bounds).
 
@@ -156,8 +159,15 @@ SDK execution and returns a typed, value-free `PermissionDenied` outcome with a
 `NotStarted` disposition.
 
 Configuration cannot create an operation that is absent from handwritten source.
-`DiscoveryService/ListCapabilities` reports exactly the admitted operations. It is
-the correct way for a client to learn what the current process admits.
+`DiscoveryService/ListCapabilities` reports exactly the admitted operations,
+together with the resolved `admission_profile`, the `policy_fingerprint`, and
+each operation's reviewed risk flags, duration class, and validation status. It
+is the correct way for a client to learn what the current process admits. With
+`include_denied`, it also lists every denied registered operation, and its
+`admission` names the step above that decided: `DENIED_UNREVIEWED` (step 2),
+`DENIED_EXCLUSIVE` (step 3), `DENIED_OVERRIDE` (step 4), `DENIED_FLAG` (step 6),
+or `DENIED_PROFILE` (step 7). These are static decisions for the reviewed row;
+see the [discovery guide](health-and-discovery.md#capabilities).
 
 ## Audit events
 
@@ -169,9 +179,11 @@ and eventual worker execution resolution are separate correlated events.
 At startup Briosa records the resolved admission profile, the numbers of
 admitted operations, flag settings, and overrides, the target isolation mode,
 and a value-free policy fingerprint. The fingerprint is a SHA-256 over the
-resolved profile, flags, overrides, and the classification rows of every
-registered operation, so any configuration or table change produces a new
-fingerprint.
+resolved profile, flags, overrides, and the classification rows and reviewed
+request options of every registered operation, so any configuration or table
+change produces a new fingerprint. `ListCapabilities` reports the same value in
+`policy_fingerprint`, so a client can match a discovery response to the audit
+record of the policy that produced it.
 
 For each admitted or rejected request, Briosa records structural metadata:
 
