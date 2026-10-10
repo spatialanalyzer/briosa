@@ -305,6 +305,15 @@ jobs:
           ./eng/Test-ClientScenarios.ps1
           -PackagePath artifacts/package-smoke/briosa-0.1.0-ci-sa-${{ matrix.target.sa_version }}-win-x64.zip
 
+      - name: Upload client scenario diagnostics
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: client-scenario-diagnostics-sa-${{ matrix.target.sa_version }}
+          path: ${{ matrix.target.path }}/artifacts/client-scenarios-diagnostics
+          if-no-files-found: ignore
+          retention-days: 14
+
   retained-client-compatibility:
     needs: package-smoke
     uses: ./.github/workflows/retained-client-compatibility.yml

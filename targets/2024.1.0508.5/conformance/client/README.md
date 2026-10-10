@@ -38,6 +38,14 @@ the packaged runner from its own test script:
   -FixtureArguments @("path/to/Client.Conformance.dll")
 ```
 
+When a scenario fails, the runner prints the fixture's complete stderr. If
+`-DiagnosticsDirectory` or the `BRIOSA_CONFORMANCE_DIAGNOSTICS_DIRECTORY`
+environment variable names a directory, the runner also copies the fixture's
+stdout and stderr, the server's log files, and the failure message to
+`<directory>/<scenario>`. The runner points each scenario's server log files at
+that scenario's temporary directory. A fixture that passes explicit logging
+options to its client overrides that location.
+
 A scenario may declare `minimum_contract_major`. The package includes it only
 once the target's compatibility contract reaches that major, and it removes the
 field from the packaged contract. Retained clients for the current major never
@@ -46,5 +54,9 @@ defined with `minimum_contract_major: 3`; the compatibility-major-3 freeze
 activates it, and major-3 client fixtures must then support it.
 
 Scenario definitions describe only portable setup and the behavior to exercise.
+A scenario's `watchdog_timeout` must leave headroom for a cold worker's first
+execution on a slow or busy runner. The `hang-first-execute` worker never
+returns from its scripted hang, so a longer budget only lengthens the scenario,
+while a tight one can expire on a legitimate first execution (#302).
 The fixture remains responsible for asserting its language-specific public
 states, results, and exception types before it returns `success: true`.
