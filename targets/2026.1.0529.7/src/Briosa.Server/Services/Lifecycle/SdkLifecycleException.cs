@@ -68,6 +68,18 @@ internal sealed class SdkLifecycleException : Exception
         new(Grpc.Core.StatusCode.Unavailable, kind, diagnosticCode, state,
             recoveryGuidance);
 
+    // The caller stopped waiting (cancellation or its gRPC deadline). gRPC does not
+    // deliver a response to such a caller, so the detail serves in-process callers and
+    // the audit. The diagnostic says whether the request was withdrawn before
+    // acceptance or continues detached; no lifecycle failure kind is specific to it.
+    public static SdkLifecycleException Cancelled(
+        string diagnosticCode,
+        global::Briosa.SpatialAnalyzerSdkLifecycleState state,
+        global::Briosa.LifecycleRecoveryGuidance recoveryGuidance) =>
+        new(Grpc.Core.StatusCode.Cancelled,
+            global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.StateConflict,
+            diagnosticCode, state, recoveryGuidance);
+
     public static SdkLifecycleException DeadlineExceeded(
         global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind kind,
         string diagnosticCode,

@@ -297,17 +297,17 @@ public sealed class SpatialAnalyzerSdkLifecycleTypedErrorTests
 
         public int Calls { get; private set; }
 
-        public Task<WorkerLifecycleResult> StartAsync(CancellationToken cancellationToken = default) =>
+        public Task<WorkerLifecycleResult> StartAsync(LifecycleAcceptance acceptance) =>
             Reject();
 
         public Task<WorkerLifecycleResult> ConnectAsync(
             int expectedGeneration,
-            CancellationToken cancellationToken = default) =>
+            LifecycleAcceptance acceptance) =>
             Reject();
 
         public Task<WorkerLifecycleResult> RecoverSdkAsync(
             int expectedGeneration,
-            CancellationToken cancellationToken = default) =>
+            LifecycleAcceptance acceptance) =>
             Reject();
 
         public Task<WorkerLifecycleResult> StopAsync(CancellationToken cancellationToken = default) =>

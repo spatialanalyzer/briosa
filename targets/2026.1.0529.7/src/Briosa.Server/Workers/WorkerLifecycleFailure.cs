@@ -12,6 +12,5 @@ internal enum WorkerLifecycleFailure
     ReadinessTimeout,
     StopFailed,
     StopTimeout,
-    CleanupIncomplete,
-    Cancelled
+    CleanupIncomplete
 }

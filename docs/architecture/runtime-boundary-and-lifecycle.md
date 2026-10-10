@@ -1,7 +1,7 @@
 # Runtime boundary and lifecycle
 
 - Status: Current
-- Last reviewed: 2026-09-25
+- Last reviewed: 2026-10-10
 
 ## Process and COM ownership
 
@@ -120,14 +120,44 @@ worker loss, or ambiguous ownership quarantines the target and requires explicit
 operator recovery rather than repeatedly launching clients against an uncertain
 SDK owner.
 
-Caller cancellation or a gRPC deadline does not roll back a lifecycle
-transition that has already begun. Cancelling while a new worker is starting
-forcibly terminates that worker and, once cleanup completes, leaves the SDK
-stopped until it is started again. Cancelling during the `ConnectEx` exchange
-retires the generation as faulted, and cancelling during the readiness probe
-quarantines the target as requiring operator recovery. Either of those two
-outcomes requires the explicit recover-and-connect sequence before MP work is
-admitted again.
+Caller cancellation or a gRPC deadline neither rolls back nor interrupts a
+lifecycle exchange that the supervisor has accepted. Start, Connect, Reconnect,
+and Recover each pass one atomic acceptance point after their generation and
+state checks and before their first transition. Exactly one of the caller's
+cancellation and the acceptance wins:
+
+- **Before acceptance**, including while the request still waits for the
+  supervisor's internal gates, cancellation withdraws the request.
+  Nothing is launched, sent, or changed. The caller receives `CANCELLED` with
+  diagnostic `sdk-lifecycle-request-withdrawn` and recovery guidance `NONE`.
+- **After acceptance**, the exchange no longer observes the caller's token. Worker
+  launch, COM activation, and the Ready message finish under
+  `Briosa:Worker:StartupTimeout`; `ConnectEx` under the same startup bound; the
+  readiness probe under `Briosa:Worker:ReadinessProbeTimeout`; and recovery
+  cleanup under the shutdown bound. A caller that stops waiting receives
+  `CANCELLED` with diagnostic `sdk-lifecycle-caller-stopped-waiting`, the state at
+  that moment, and recovery guidance `REFRESH_STATE`. The exchange holds the
+  lifecycle transition until it finishes, so a concurrent lifecycle request gets
+  `sdk-lifecycle-transition-in-progress`. It then records its terminal state and
+  incident evidence exactly as it would for a caller that waited. The caller refreshes state
+  through `GetSpatialAnalyzerSdkState`, discovery, or a later lifecycle RPC.
+
+Caller cancellation therefore never terminates a starting worker, retires a
+connecting generation, or quarantines a target during the readiness probe. Only
+an exchange's own bound, its result, or worker loss can do that. Such outcomes are
+the same as for a caller that waited: a timed-out `ConnectEx` faults the
+generation, and a timed-out or ambiguous probe requires operator recovery. Stop
+keeps its caller waiting for an accepted teardown, which its shutdown bound
+limits; cancellation before Stop is accepted withdraws it the same way. Server
+shutdown waits for an accepted exchange to reach its own outcome before stopping
+the generation.
+
+gRPC does not deliver a response to a caller that cancelled or exceeded its
+deadline, so remote callers observe only the transport status. The typed
+lifecycle detail and its audit record (`LifecycleRejected`) serve in-process
+callers and operators. No lifecycle failure kind is specific to caller
+cancellation; the detail carries the `STATE_CONFLICT` kind and the diagnostic code
+distinguishes the two cases.
 
 Public readiness requires all of the following:
 

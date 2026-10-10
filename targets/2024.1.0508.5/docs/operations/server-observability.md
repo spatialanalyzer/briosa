@@ -88,6 +88,12 @@ ServerInstanceId, SpatialAnalyzerTarget, and applicable event metadata.
 
 RPC completion and SDK completion are different observations. A cancelled RPC can record unknown
 execution and later have an ExecutionResolved event with a retrieved MP result.
+A request cancelled while still queued is abandoned instead. Its RpcFailed and
+ExecutionResolved events both report `not_started` with diagnostic
+`queued-request-abandoned`, and no ExecutionDispatched event follows. A lifecycle
+caller that stops waiting is recorded as LifecycleRejected with gRPC status
+`Cancelled`; later WorkerTransition events record the accepted exchange's
+terminal state.
 Correlate by CorrelationId, ServerInstanceId and Generation. Later evidence does
 not change the original response or authorize replay. Only MP result code 2,
 successfully retrieved, means MP success. Output retrieval remains separate.
