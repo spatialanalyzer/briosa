@@ -71,7 +71,7 @@ Every execution budget is enforced by the same watchdog. When it expires after d
 
 The defaults are conservative starting points, not measurements. The quick budget keeps its 0.9 value. Ten minutes covers routine long operations, while a hung device or document call still releases the single serialized worker in bounded time. Thirty minutes gives an operator time to answer a prompt without leaving the worker blocked for a whole session. The readiness probe keeps its earlier effective bound of 30 seconds, which it used to share with the quick watchdog; it performs one trivial MP read, but no licensed evidence yet supports a shorter bound for the first call after `ConnectEx`. Each bound is configured independently, so changing the quick budget no longer changes the probe bound. Startup keeps its earlier fixed 10 seconds. Raise a bound only when deployment evidence justifies it, and note that the queue is serialized: other requests wait, and a stop or recovery request waits for an in-flight call, for up to the longest budget in use.
 
-A client deadline or cancellation stops that caller from waiting; it does not claim to cancel synchronous COM work already in flight.
+A client deadline or cancellation stops that caller from waiting; it does not claim to cancel synchronous COM work already in flight. An MP request that the supervisor has not yet claimed is abandoned and never executed. Once the server accepts Start, Connect, Reconnect, or Recover, the exchange continues under the startup, readiness-probe, and shutdown bounds above even if the caller stops waiting.
 
 Use standard gRPC health checks named `briosa.liveness` and `briosa.readiness`. See `HEALTH-AND-DISCOVERY.md` for discovery and response semantics.
 

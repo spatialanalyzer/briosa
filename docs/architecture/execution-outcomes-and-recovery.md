@@ -1,7 +1,7 @@
 # Execution outcomes and recovery
 
 - Status: Current
-- Last reviewed: 2026-10-04
+- Last reviewed: 2026-10-10
 
 ## Serialized MP execution
 
@@ -135,7 +135,8 @@ Missing or unspecified disposition is never interpreted as `NotStarted`.
 | Admission capacity exhausted before mapping | `NotStarted` | `ResourceExhausted` |
 | Setter rejected before `ExecuteStep` | `NotStarted` | `FailedPrecondition` |
 | SDK call faulted before `ExecuteStep` (`SdkCallFaulted`) | `NotStarted` | `Internal` |
-| Cancellation or deadline after enqueue | `StartedOutcomeUnknown`; the request stays queued and may still be dispatched | `Cancelled` or `DeadlineExceeded` |
+| Cancellation or deadline while queued, before the supervisor claims the request | `NotStarted`; the request is abandoned and never sent to the worker | `Cancelled` or `DeadlineExceeded` |
+| Cancellation or deadline after the supervisor claims the request | `StartedOutcomeUnknown`; the exchange still drains | `Cancelled` or `DeadlineExceeded` |
 | `ExecuteStep` invoked but response lost, watchdog elapsed, or worker failed | `StartedOutcomeUnknown` | `Unavailable` |
 | MP result could not be retrieved | `StartedOutcomeUnknown` | `Internal` |
 | `ExecuteStep` or `GetMPStepResult` faulted (`SdkCallFaulted`) | `StartedOutcomeUnknown` | `Internal` |
@@ -145,13 +146,34 @@ Missing or unspecified disposition is never interpreted as `NotStarted`.
 
 ## Cancellation, watchdogs, and replacement
 
-Caller cancellation and gRPC deadlines stop that caller from waiting. They do not
-cancel a synchronous COM call or withdraw an admitted request. Once a request
-enters the supervisor queue, the queue retains ownership: a request whose caller
-stopped waiting stays queued and may still be dispatched to the worker and
-executed later, after the caller has received `StartedOutcomeUnknown`. The queue
-also drains any later worker response so the private pipe cannot become
-desynchronized.
+Caller cancellation and gRPC deadlines stop that caller from waiting. They never
+cancel a synchronous COM call. Each admitted request leaves the queued state
+exactly once, by one atomic transition: either its caller abandons it, or the
+supervisor's single consumer claims it to resolve or dispatch it.
+
+- **Abandoned.** When cancellation or the deadline arrives while the request is
+  still queued, the caller wins the transition. Only such a request's RPC fails
+  with `NotStarted`: failure kind `CallerCancelled` or `CallerDeadlineExceeded`,
+  diagnostic `queued-request-abandoned`, and replay guidance `MayReplay`. The
+  request is never sent to the worker, and its queue reservation is released
+  without a worker exchange.
+- **Claimed.** Once the consumer has claimed the request, cancellation only ends
+  the caller's wait. The RPC fails with `StartedOutcomeUnknown` and diagnostic
+  `client-wait-cancelled`, even if the consumer then resolves the request before
+  dispatch. A dispatched exchange drains under its execution budget and resolves
+  with its own typed outcome, and the queue reads every worker response so the
+  private pipe cannot become desynchronized.
+
+Briosa never retries either request. The supervisor records one resolution per
+admitted request (`ExecutionResolved`): an abandoned request has disposition
+`not_started` and diagnostic `queued-request-abandoned`. A gRPC client that
+cancels or exceeds its deadline does not receive the server's typed detail, so
+its own call cannot tell abandonment from dispatch. It treats the outcome as
+unknown and reconciles before any caller-initiated replay; the server audit
+records which transition happened. Server shutdown races abandonment in the same
+way: once shutdown closes admission, each request still queued is resolved
+exactly once, either by its caller's abandonment or as `Unavailable` with
+`NotStarted`, and none is dispatched.
 
 The independent execution watchdog protects worker availability. Its budget is
 chosen on the server from the request's effective duration class (`quick`,

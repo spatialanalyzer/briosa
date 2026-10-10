@@ -2,15 +2,17 @@ namespace Briosa.Server.Workers;
 
 internal interface IWorkerLifecycleController : IWorkerStatusProvider
 {
-    Task<WorkerLifecycleResult> StartAsync(CancellationToken cancellationToken = default);
+    // Each task completes with the exchange's terminal result. The caller's token in
+    // the acceptance applies only until the supervisor accepts the request (F10, #305).
+    Task<WorkerLifecycleResult> StartAsync(LifecycleAcceptance acceptance);
 
     Task<WorkerLifecycleResult> ConnectAsync(
         int expectedGeneration,
-        CancellationToken cancellationToken = default);
+        LifecycleAcceptance acceptance);
 
     Task<WorkerLifecycleResult> RecoverSdkAsync(
         int expectedGeneration,
-        CancellationToken cancellationToken = default);
+        LifecycleAcceptance acceptance);
 
     Task<WorkerLifecycleResult> StopAsync(CancellationToken cancellationToken = default);
 
