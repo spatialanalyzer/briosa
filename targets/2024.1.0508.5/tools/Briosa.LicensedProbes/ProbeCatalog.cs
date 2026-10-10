@@ -72,7 +72,8 @@ internal static class ProbeCatalog
         {
             Requirement = new ProbeRequirement(
                 "collection_count increased by exactly one",
-                static (history, outcome) => CollectionCountIncreased(history, outcome))
+                static (history, outcome) => CollectionCountIncreased(history, outcome)),
+            Prerequisites = ["g-collections-before"]
         });
     }
 
@@ -294,7 +295,7 @@ internal static class ProbeCatalog
                 UseNumberSuffix = true
             });
 
-        AddDeleteProbe(steps, "15", FixtureNames.DeleteCloudAllBounds, FixtureNames.DeleteCloudAllBoundsKey,
+        AddDeleteProbe(steps, "15", FixtureNames.DeleteCloudAllBounds, FixtureNames.DeleteCloudAllBoundsKey, [],
             "All six bounds set, Delete Inside = TRUE",
             static request =>
             {
@@ -306,7 +307,8 @@ internal static class ProbeCatalog
                 new ProbeHypothesis("all six bounds honored (two points inside)", "points_count", "6"),
                 new ProbeHypothesis("nothing deleted", "points_count", "8")
             ]);
-        AddDeleteProbe(steps, "16", FixtureNames.DeleteCloudPartialBounds, FixtureNames.DeleteCloudPartialBoundsKey,
+        // #16 asks whether omitted bounds are retained from #15, so p15 must run first.
+        AddDeleteProbe(steps, "16", FixtureNames.DeleteCloudPartialBounds, FixtureNames.DeleteCloudPartialBoundsKey, ["p15"],
             "Only X bounds set (Y and Z omitted), Delete Inside = TRUE",
             static request =>
             {
@@ -394,9 +396,11 @@ internal static class ProbeCatalog
         steps.Check("c06-blank-named", "6", "Count harness-named bounding planes matching *6B in B277",
             ObjectsNamed(FixtureNames.Collection, "*6B", Api.ObjectType.Plane));
 
-        // #17-18: labels that differ only by letter case. p02-shipped is the exact-label control for #17.
+        // #17-18: labels that differ only by letter case. p02-shipped is the exact-label control for #17,
+        // so excluding #2 without #17 is refused.
         steps.Variant("p17-recased", "17", "Fit with 'Group to Fit' instead of the exact 'Group To Fit'",
-            ProbeOperations.FitGeometryToPointGroup, Fit("FIT17R", seed), CommandVariant.Recase(GroupToFitLabel, GroupToFitRecased));
+            ProbeOperations.FitGeometryToPointGroup, Fit("FIT17R", seed), CommandVariant.Recase(GroupToFitLabel, GroupToFitRecased),
+            "p02-shipped");
         steps.Check("c17-recased", "17", "Count planes named FIT17R", ObjectsNamed(FixtureNames.Collection, "FIT17R", Api.ObjectType.Plane));
         var unique = new Api.MakePointNameEnsureUniqueRequest { PointName = Point(FixtureNames.GroupOne, "P1"), UseNumberSuffix = true };
         steps.Control("p18-shipped", "18", "Ensure-unique point name with the exact 'Use Number Suffix?' label",
@@ -458,6 +462,7 @@ internal static class ProbeCatalog
         string probe,
         string cloud,
         string fixtureKey,
+        IReadOnlyList<string> earlierProbes,
         string purpose,
         Action<Api.DeleteCloudPointsByXYZRangeRequest> bounds,
         IReadOnlyList<ProbeHypothesis> hypotheses)
@@ -479,14 +484,16 @@ internal static class ProbeCatalog
         steps.Add(new ProbeStep($"p{probe}", probe, ProbeStepKind.Probe, steps.Phase, purpose,
             ProbeOperations.DeleteCloudPointsByXyzRange, request, CommandVariant.Shipped, ProbeOutcomes.AnyDeterminateSdkOutcome)
         {
-            DestructiveTarget = fixtureKey
+            DestructiveTarget = fixtureKey,
+            Prerequisites = [$"c{probe}-before", .. earlierProbes]
         });
         steps.Add(new ProbeStep($"c{probe}-after", probe, ProbeStepKind.Check, steps.Phase,
             $"Count points in disposable cloud {cloud} after deletion",
             ProbeOperations.GetCloudPointCount, new Api.GetCloudPointCountRequest { CloudName = cloudName },
             CommandVariant.Shipped, ProbeOutcomes.Succeeded)
         {
-            Hypotheses = hypotheses
+            Hypotheses = hypotheses,
+            Prerequisites = [$"p{probe}"]
         });
     }
 
@@ -643,9 +650,14 @@ internal static class ProbeCatalog
             _steps.Add(new(id, probe, ProbeStepKind.Probe, Phase, purpose, operation, request, CommandVariant.Shipped,
                 ProbeOutcomes.AnyDeterminateSdkOutcome));
 
-        public void Variant(string id, string probe, string purpose, ProbeOperation operation, IMessage request, CommandVariant variant) =>
+        public void Variant(
+            string id, string probe, string purpose, ProbeOperation operation, IMessage request, CommandVariant variant,
+            params string[] prerequisites) =>
             _steps.Add(new(id, probe, ProbeStepKind.Probe, Phase, purpose, operation, request, variant,
-                ProbeOutcomes.AnyDeterminateSdkOutcome));
+                ProbeOutcomes.AnyDeterminateSdkOutcome)
+            {
+                Prerequisites = prerequisites
+            });
 
         // A worker control validates the fixture; anything but success stops the session.
         public void Control(string id, string probe, string purpose, ProbeOperation operation, IMessage request) =>
