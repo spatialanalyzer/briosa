@@ -1,7 +1,9 @@
+using System.Buffers;
 using System.Collections.Frozen;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using Briosa.Worker.Control;
 using Google.Protobuf;
 
@@ -50,10 +52,17 @@ internal sealed class OperationPolicy
     internal const string ClassificationRule = "classification";
     internal const string IsolationRule = "isolation";
     internal const string OverrideRule = "override";
+    internal const string FlagRulePrefix = "flag.";
+    internal const string ProfileRulePrefix = "profile.";
     internal const string OptionRulePrefix = "option.";
 
     internal const string MigrationGuide =
         "See docs/development/admission-profile-migration.md.";
+
+    // Part of the fingerprint. Increment it whenever EvaluateCore, CheckBinding,
+    // or OperationAdmissionProfile.Admits decides the same inputs differently,
+    // so equal fingerprints keep meaning equal decisions across builds.
+    internal const int SemanticsVersion = 1;
 
     // .NET configuration keys are case-insensitive, so the section names are
     // too. Profile, risk flag, service, and operation names and the allow/deny
@@ -98,12 +107,16 @@ internal sealed class OperationPolicy
             .Aggregate(OperationRisks.None, (all, flag) => all | flag.Key);
         _deniedFlags = flags.Where(flag => !flag.Value)
             .Aggregate(OperationRisks.None, (all, flag) => all | flag.Key);
-        AllowedOperations = _operations.Values
-            .Where(operation => Evaluate(operation.OperationId).Kind == OperationPolicyDecisionKind.Allowed)
+        Operations = _operations.Values
             .OrderBy(operation => operation.OperationId, StringComparer.Ordinal)
             .ToArray();
+        AllowedOperations = Operations
+            .Where(operation => Evaluate(operation.OperationId).Kind == OperationPolicyDecisionKind.Allowed)
+            .ToArray();
+        RegistryFingerprint = CreateRegistryFingerprint(Operations);
         ClassificationFingerprint = CreateClassificationFingerprint(_classification, _requestClassifier);
-        Fingerprint = CreateFingerprint(profile, _flags, _overrides, ClassificationFingerprint);
+        Fingerprint = CreateFingerprint(
+            profile, _targetIsolationMode, _flags, _overrides, RegistryFingerprint, ClassificationFingerprint);
     }
 
     /// <summary>
@@ -112,6 +125,12 @@ internal sealed class OperationPolicy
     /// work running.
     /// </summary>
     public IReadOnlyList<OperationDescriptor> AllowedOperations { get; }
+
+    /// <summary>
+    /// Every registered operation, admitted or not, with its effective execution
+    /// scope, ordered by operation ID.
+    /// </summary>
+    public IReadOnlyList<OperationDescriptor> Operations { get; }
 
     /// <summary>The resolved admission profile.</summary>
     public OperationAdmissionProfile Profile { get; }
@@ -126,10 +145,20 @@ internal sealed class OperationPolicy
     public int OverrideCount => _overrides.Count;
 
     /// <summary>
-    /// A value-free SHA-256 over the resolved profile, flags, overrides, and the
-    /// classification rows and conditional options of every registered operation.
+    /// A value-free SHA-256 over every input of a static admission decision: the
+    /// policy semantics version, the resolved profile and its definition, the
+    /// target isolation mode, flags, overrides, <see cref="RegistryFingerprint"/>,
+    /// and <see cref="ClassificationFingerprint"/>. Equal fingerprints mean equal
+    /// decisions for every operation.
     /// </summary>
     public string Fingerprint { get; }
+
+    /// <summary>
+    /// A SHA-256 over the admission metadata of every registered operation
+    /// descriptor: operation ID, MP step, effect, replay safety, effective
+    /// execution scope, and author risk flags.
+    /// </summary>
+    public string RegistryFingerprint { get; }
 
     /// <summary>
     /// A SHA-256 over the classification rows and conditional options of every
@@ -183,6 +212,19 @@ internal sealed class OperationPolicy
     /// </summary>
     public OperationPolicyDecision Evaluate(string operationId) =>
         EvaluateCore(operationId, classification: null);
+
+    /// <summary>
+    /// Returns the classification lookup this policy decides a registered
+    /// operation from, or <see cref="OperationClassificationLookup.Unreviewed"/>
+    /// for an unregistered operation.
+    /// </summary>
+    public OperationClassificationLookup FindClassification(string operationId)
+    {
+        ArgumentNullException.ThrowIfNull(operationId);
+        return _classification.TryGetValue(operationId, out var lookup)
+            ? lookup
+            : OperationClassificationLookup.Unreviewed;
+    }
 
     /// <summary>
     /// Decides one typed request before mapping or dispatch. The request's
@@ -296,14 +338,14 @@ internal sealed class OperationPolicy
         if (deniedFlags != OperationRisks.None)
         {
             var first = OperationRiskVocabulary.Members.First(risk => deniedFlags.HasFlag(risk));
-            var flagRule = $"flag.{OperationRiskVocabulary.GetName(first)}";
+            var flagRule = FlagRulePrefix + OperationRiskVocabulary.GetName(first);
             return (row.Risks & _deniedFlags) == OperationRisks.None
                 ? OptionDenied(operation, ui!, flagRule)
                 : Denied(operation, flagRule);
         }
 
         // 7. Profile, widened by flags set to allow, over the effective risks.
-        var profileRule = $"profile.{Profile.Name}";
+        var profileRule = ProfileRulePrefix + Profile.Name;
         if (Profile.Admits(risks, operation.Effect, _allowedFlags))
         {
             return Allowed(operation, WithOption(ui, profileRule), duration);
@@ -500,8 +542,7 @@ internal sealed class OperationPolicy
             classification
                 .OrderBy(pair => pair.Key, StringComparer.Ordinal)
                 .Select(pair => (pair.Value.Row is { } row && pair.Value.IsReviewed
-                    ? string.Create(CultureInfo.InvariantCulture,
-                        $"{pair.Key}|{(int)row.Risks}|{row.Duration}|{row.ValidationStatus}|{row.Isolation}")
+                    ? $"{pair.Key}|{FormatRisks(row.Risks)}|{row.Duration}|{row.ValidationStatus}|{row.Isolation}"
                     : $"{pair.Key}|unreviewed") +
                     string.Concat(requestClassifier.OptionsFor(pair.Key).Select(option =>
                         $"|option:{option.Field},{option.Effect},{option.Condition},{option.Absence}," +
@@ -509,23 +550,80 @@ internal sealed class OperationPolicy
         return Hash(canonical);
     }
 
+    // Every descriptor member that a decision reads: the operation ID
+    // (registration), the MP step (binding check), the effect (unknown effect and
+    // the read-only filter), replay safety (unreviewed values), the effective
+    // execution scope (isolation), and the author risk flags (an "unknown" flag).
+    // JSON keeps the encoding unambiguous for any string value.
+    private static string CreateRegistryFingerprint(IEnumerable<OperationDescriptor> operations)
+    {
+        var buffer = new ArrayBufferWriter<byte>();
+        using (var writer = new Utf8JsonWriter(buffer))
+        {
+            writer.WriteStartArray();
+            foreach (var operation in operations.OrderBy(operation => operation.OperationId, StringComparer.Ordinal))
+            {
+                writer.WriteStartArray();
+                writer.WriteStringValue(operation.OperationId);
+                writer.WriteStringValue(operation.MpStep);
+                writer.WriteStringValue(operation.Effect.ToString());
+                writer.WriteStringValue(operation.ReplaySafety.ToString());
+                writer.WriteStringValue(operation.ExecutionScope.ToString());
+                writer.WriteStartArray();
+                foreach (var riskFlag in operation.RiskFlags.Order(StringComparer.Ordinal))
+                {
+                    writer.WriteStringValue(riskFlag);
+                }
+
+                writer.WriteEndArray();
+                writer.WriteEndArray();
+            }
+
+            writer.WriteEndArray();
+        }
+
+        return $"sha256:{Convert.ToHexString(SHA256.HashData(buffer.WrittenSpan))}";
+    }
+
     private static string CreateFingerprint(
         OperationAdmissionProfile profile,
+        global::Briosa.TargetIsolationMode targetIsolationMode,
         IReadOnlyDictionary<OperationRisks, bool> flags,
         IReadOnlyDictionary<string, bool> overrides,
+        string registryFingerprint,
         string classificationFingerprint)
     {
         var canonical = string.Join(
             '\n',
-            new[] { $"profile:{profile.Name}" }
+            new[]
+            {
+                string.Create(CultureInfo.InvariantCulture, $"semantics:{SemanticsVersion}"),
+                $"profile:{profile.Name}",
+                $"profile-risks:{FormatRisks(profile.AdmittedRisks)}",
+                $"profile-read-only-effect:{(profile.ReadOnlyEffectOnly ? "true" : "false")}",
+                $"isolation:{targetIsolationMode}"
+            }
                 .Concat(flags
                     .Select(flag => $"flag:{OperationRiskVocabulary.GetName(flag.Key)}={Format(flag.Value)}")
                     .Order(StringComparer.Ordinal))
                 .Concat(overrides
                     .Select(item => $"override:{item.Key}={Format(item.Value)}")
                     .Order(StringComparer.Ordinal))
+                .Append($"registry:{registryFingerprint}")
                 .Append($"classification:{classificationFingerprint}"));
         return Hash(canonical);
+    }
+
+    // Vocabulary names, not bit values, so a reordered enum cannot alias two
+    // different risk sets. Bits outside the vocabulary are kept as a number.
+    private static string FormatRisks(OperationRisks risks)
+    {
+        var known = risks & OperationRiskVocabulary.All;
+        var names = string.Join(',', OperationRiskVocabulary.GetNames(known));
+        var unknown = risks & ~OperationRiskVocabulary.All;
+        return unknown == OperationRisks.None
+            ? names
+            : string.Create(CultureInfo.InvariantCulture, $"{names}+{(int)unknown}");
     }
 
     private static string Format(bool allow) => allow ? AllowValue : DenyValue;

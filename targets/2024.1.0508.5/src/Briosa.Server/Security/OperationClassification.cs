@@ -1,8 +1,8 @@
 using System.Collections.Frozen;
-using static Briosa.Server.Security.OperationDurationClass;
+using static Briosa.OperationDurationClass;
 using static Briosa.Server.Security.OperationIsolationClass;
 using static Briosa.Server.Security.OperationRisks;
-using static Briosa.Server.Security.OperationValidationStatus;
+using static Briosa.OperationValidationStatus;
 
 namespace Briosa.Server.Security;
 

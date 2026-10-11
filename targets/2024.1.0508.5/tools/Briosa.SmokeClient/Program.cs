@@ -18,6 +18,7 @@ internal static class SmokeClientProgram
 {
     private const string ExpectedSpatialAnalyzerTarget = "2024.1.0508.5";
     private const string ExpectedProtocolPackage = "briosa";
+    private const string ExpectedAdmissionProfile = "standard";
     private const string ExpectedFileOperation =
         "/briosa.FileOperations/GetWorkingDirectory";
     private const string ErrorTrailerName = "briosa-operation-error-bin";
@@ -97,10 +98,19 @@ internal static class SmokeClientProgram
                     deadline: deadline,
                     cancellationToken: timeout.Token)
                 .ResponseAsync.ConfigureAwait(false);
+            var allCapabilities = await discoveryClient.ListCapabilitiesAsync(
+                    new ListCapabilitiesRequest { IncludeDenied = true },
+                    deadline: deadline,
+                    cancellationToken: timeout.Token)
+                .ResponseAsync.ConfigureAwait(false);
 
             ValidateIdentity(
                 serverInfo,
                 capabilities,
+                options.ExpectOperation);
+            ValidateCapabilityClassification(
+                capabilities,
+                allCapabilities,
                 options.ExpectOperation);
             var outcome = await ExecuteScenario(
                     options,
@@ -155,10 +165,7 @@ internal static class SmokeClientProgram
         // advertised operation must be a protocol method, advertised once, and
         // never an exclusive workflow; the smoke reads must be present unless the
         // scenario denies GetWorkingDirectory with a per-operation override.
-        var protocolMethods = MpServices
-            .SelectMany(service => service.Methods.Select(method =>
-                $"/{service.FullName}/{method.Name}"))
-            .ToHashSet(StringComparer.Ordinal);
+        var protocolMethods = ProtocolMethods();
         var advertisedOperations = capabilities.Operations
             .Select(operation => operation.FullyQualifiedMethod)
             .ToArray();
@@ -176,6 +183,78 @@ internal static class SmokeClientProgram
             throw new SmokeFailureException("operation-policy-capability-mismatch");
         }
     }
+
+    // Discovery reports the packaged standard profile, a value-free fingerprint,
+    // and each operation's reviewed classification. Denied operations, including
+    // every exclusive workflow, appear only when the request sets include_denied.
+    private static void ValidateCapabilityClassification(
+        ListCapabilitiesResponse capabilities,
+        ListCapabilitiesResponse allCapabilities,
+        bool expectOperation)
+    {
+        if (capabilities.AdmissionProfile != ExpectedAdmissionProfile ||
+            !Regex.IsMatch(capabilities.PolicyFingerprint, "^sha256:[0-9A-F]{64}$") ||
+            allCapabilities.AdmissionProfile != capabilities.AdmissionProfile ||
+            allCapabilities.PolicyFingerprint != capabilities.PolicyFingerprint ||
+            allCapabilities.SpatialAnalyzerTarget != capabilities.SpatialAnalyzerTarget ||
+            allCapabilities.ProtocolPackage != capabilities.ProtocolPackage)
+        {
+            throw new SmokeFailureException("capability-policy-identity-mismatch");
+        }
+
+        var workingDirectory = capabilities.Operations.SingleOrDefault(operation =>
+            operation.FullyQualifiedMethod == ExpectedFileOperation);
+        if (capabilities.Operations.Any(operation =>
+                operation.Admission != OperationAdmission.Admitted ||
+                !HasReviewedClassification(operation)) ||
+            !capabilities.Operations.Any(operation => operation.RiskFlags.Count > 0) ||
+            (workingDirectory is not null &&
+                (workingDirectory.RiskFlags.Count != 1 ||
+                    workingDirectory.RiskFlags[0] != OperationRiskFlag.FilesystemMetadata ||
+                    workingDirectory.DurationClass != OperationDurationClass.Quick)))
+        {
+            throw new SmokeFailureException("capability-classification-mismatch");
+        }
+
+        var listed = allCapabilities.Operations
+            .Select(operation => operation.FullyQualifiedMethod)
+            .ToArray();
+        var deniedWorkingDirectory = allCapabilities.Operations.SingleOrDefault(operation =>
+            operation.FullyQualifiedMethod == ExpectedFileOperation);
+        if (!allCapabilities.Operations
+                .Where(operation => operation.Admission == OperationAdmission.Admitted)
+                .SequenceEqual(capabilities.Operations) ||
+            listed.Length <= capabilities.Operations.Count ||
+            listed.Distinct(StringComparer.Ordinal).Count() != listed.Length ||
+            !listed.ToHashSet(StringComparer.Ordinal).IsSubsetOf(ProtocolMethods()) ||
+            allCapabilities.Operations.Any(operation =>
+                !Enum.IsDefined(operation.Admission) ||
+                operation.Admission == OperationAdmission.Unspecified ||
+                !HasReviewedClassification(operation) ||
+                (operation.ExecutionScope == OperationExecutionScope.ExclusiveWorkflow) !=
+                    (operation.Admission == OperationAdmission.DeniedExclusive)) ||
+            !allCapabilities.Operations.Any(operation =>
+                operation.Admission == OperationAdmission.DeniedExclusive) ||
+            deniedWorkingDirectory?.Admission !=
+                (expectOperation ? OperationAdmission.Admitted : OperationAdmission.DeniedOverride))
+        {
+            throw new SmokeFailureException("denied-capability-mismatch");
+        }
+    }
+
+    private static bool HasReviewedClassification(OperationCapability operation) =>
+        Enum.IsDefined(operation.DurationClass) &&
+        operation.DurationClass != OperationDurationClass.Unspecified &&
+        Enum.IsDefined(operation.ValidationStatus) &&
+        operation.ValidationStatus != OperationValidationStatus.Unspecified &&
+        operation.RiskFlags.All(flag => Enum.IsDefined(flag) && flag != OperationRiskFlag.Unspecified) &&
+        operation.RiskFlags.Distinct().Count() == operation.RiskFlags.Count;
+
+    private static HashSet<string> ProtocolMethods() =>
+        MpServices
+            .SelectMany(service => service.Methods.Select(method =>
+                $"/{service.FullName}/{method.Name}"))
+            .ToHashSet(StringComparer.Ordinal);
 
     private static async Task<ScenarioOutcome> ExecuteScenario(
         SmokeOptions options,

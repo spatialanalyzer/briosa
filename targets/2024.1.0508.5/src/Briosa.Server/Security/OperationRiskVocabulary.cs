@@ -1,7 +1,8 @@
 namespace Briosa.Server.Security;
 
 /// <summary>
-/// Maps each <see cref="OperationRisks"/> member to its reviewed snake_case name.
+/// Maps each <see cref="OperationRisks"/> member to its reviewed snake_case name
+/// and to its discovery wire value, <see cref="global::Briosa.OperationRiskFlag"/>.
 /// </summary>
 internal static class OperationRiskVocabulary
 {
@@ -39,12 +40,35 @@ internal static class OperationRiskVocabulary
         OperationRisks.DeviceConfig => "device_config",
         OperationRisks.InteractiveUi => "interactive_ui",
         OperationRisks.ExternalIo => "external_io",
-        _ => throw new ArgumentOutOfRangeException(nameof(risk), risk,
-            "The value is not exactly one operation risk vocabulary member.")
+        _ => throw NotOneMember(risk)
     };
 
     /// <summary>Returns the snake_case names of every member in a combination, in declaration order.</summary>
-    public static IReadOnlyList<string> GetNames(OperationRisks risks)
+    public static IReadOnlyList<string> GetNames(OperationRisks risks) =>
+        MembersOf(risks).Select(GetName).ToArray();
+
+    /// <summary>Returns the discovery wire value of exactly one vocabulary member.</summary>
+    public static global::Briosa.OperationRiskFlag GetWireFlag(OperationRisks risk) => risk switch
+    {
+        OperationRisks.FilesystemMetadata => global::Briosa.OperationRiskFlag.FilesystemMetadata,
+        OperationRisks.FilesystemRead => global::Briosa.OperationRiskFlag.FilesystemRead,
+        OperationRisks.FilesystemWrite => global::Briosa.OperationRiskFlag.FilesystemWrite,
+        OperationRisks.FilesystemDelete => global::Briosa.OperationRiskFlag.FilesystemDelete,
+        OperationRisks.Destructive => global::Briosa.OperationRiskFlag.Destructive,
+        OperationRisks.CodeExecution => global::Briosa.OperationRiskFlag.CodeExecution,
+        OperationRisks.PhysicalMotion => global::Briosa.OperationRiskFlag.PhysicalMotion,
+        OperationRisks.DeviceSession => global::Briosa.OperationRiskFlag.DeviceSession,
+        OperationRisks.DeviceConfig => global::Briosa.OperationRiskFlag.DeviceConfig,
+        OperationRisks.InteractiveUi => global::Briosa.OperationRiskFlag.InteractiveUi,
+        OperationRisks.ExternalIo => global::Briosa.OperationRiskFlag.ExternalIo,
+        _ => throw NotOneMember(risk)
+    };
+
+    /// <summary>Returns the discovery wire values of every member in a combination, in declaration order.</summary>
+    public static IReadOnlyList<global::Briosa.OperationRiskFlag> GetWireFlags(OperationRisks risks) =>
+        MembersOf(risks).Select(GetWireFlag).ToArray();
+
+    private static IEnumerable<OperationRisks> MembersOf(OperationRisks risks)
     {
         if ((risks & ~All) != OperationRisks.None)
         {
@@ -52,6 +76,9 @@ internal static class OperationRiskVocabulary
                 "The value contains bits outside the operation risk vocabulary.");
         }
 
-        return Members.Where(risk => risks.HasFlag(risk)).Select(GetName).ToArray();
+        return Members.Where(risk => risks.HasFlag(risk));
     }
+
+    private static ArgumentOutOfRangeException NotOneMember(OperationRisks risk) =>
+        new(nameof(risk), risk, "The value is not exactly one operation risk vocabulary member.");
 }

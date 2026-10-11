@@ -1,5 +1,5 @@
 using Briosa.Server.Security;
-using static Briosa.Server.Security.OperationDurationClass;
+using static Briosa.OperationDurationClass;
 using static Briosa.Server.Security.OperationRisks;
 
 namespace Briosa.Server.Tests;
