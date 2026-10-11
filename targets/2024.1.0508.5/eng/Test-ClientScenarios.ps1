@@ -5,7 +5,10 @@ param(
 
     [string]$Configuration = "Release",
 
-    [switch]$NoBuild
+    [switch]$NoBuild,
+
+    # A failing scenario copies its server logs and client output here.
+    [string]$DiagnosticsDirectory = "artifacts\client-scenarios-diagnostics"
 )
 
 Set-StrictMode -Version Latest
@@ -27,6 +30,13 @@ $smokeWorkerOutput = Split-Path -Parent $smokeWorkerExe
 $temporaryBase = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
 $temporaryRoot = Join-Path $temporaryBase "briosa-client-scenarios-$([Guid]::NewGuid().ToString('N'))"
 $extractRoot = Join-Path $temporaryRoot "package"
+$diagnosticsRoot = Join-Path ([IO.Path]::GetFullPath($DiagnosticsDirectory, $repositoryRoot)) `
+    ("{0:yyyyMMddTHHmmss}Z-{1}" -f [DateTime]::UtcNow, [Guid]::NewGuid().ToString('N').Substring(0, 8))
+# Each client bounds its whole run, not one call. watchdog-recovery waits out
+# its watchdog budget before recovering, and a busy machine slows every cold
+# server and worker start: under parallel build load that scenario took up to
+# 13 s of the former 15 s budget (#302).
+$clientTimeoutSeconds = "30"
 
 function Invoke-DotNet {
     param([Parameter(Mandatory)][string[]]$Arguments)
@@ -79,6 +89,155 @@ function Wait-ForListener {
     return $false
 }
 
+function Get-ChildProcessRecord {
+    param(
+        [Parameter(Mandatory)][int]$ParentId,
+        [Parameter(Mandatory)][DateTime]$ParentStartTime
+    )
+
+    # Identify children by parent process ID and creation time, never by image
+    # name. Concurrent runs on one machine (another worktree, the other target,
+    # or a test suite) start workers with the same name, and killing them makes
+    # those runs fail with Unavailable or not-ready lifecycle errors (#302).
+    return @(Get-CimInstance -ClassName Win32_Process `
+            -Filter "ParentProcessId = $ParentId" -ErrorAction SilentlyContinue |
+        Where-Object { $_.CreationDate -ge $ParentStartTime.AddSeconds(-1) })
+}
+
+function Stop-ScenarioProcess {
+    param(
+        [Diagnostics.Process]$Process,
+        [Nullable[DateTime]]$StartTime
+    )
+
+    # Stops one process this harness started, then the children it launched
+    # (the server's SDK worker). Returns the IDs of processes that did not exit.
+    if ($null -eq $Process) {
+        return @()
+    }
+
+    $children = @()
+    if ($null -ne $StartTime) {
+        try {
+            $children = @(Get-ChildProcessRecord -ParentId $Process.Id -ParentStartTime $StartTime)
+        }
+        catch {
+            # Still stop the process itself; the tree kill covers live children.
+            Write-Warning "Could not list child processes of $($Process.Id): $_"
+        }
+    }
+    try {
+        if (-not $Process.HasExited) {
+            $Process.Kill($true)
+        }
+    }
+    catch [InvalidOperationException] {
+        # The process exited after HasExited was read.
+    }
+    $survivors = [Collections.Generic.List[int]]::new()
+    if (-not $Process.WaitForExit(30000)) {
+        $survivors.Add($Process.Id)
+    }
+
+    foreach ($child in $children) {
+        $childProcess = Get-Process -Id $child.ProcessId -ErrorAction SilentlyContinue
+        if ($null -eq $childProcess) {
+            continue
+        }
+        try {
+            # A recycled process ID belongs to someone else.
+            if ([Math]::Abs(($childProcess.StartTime - $child.CreationDate).TotalSeconds) -gt 1) {
+                continue
+            }
+            if (-not $childProcess.HasExited) {
+                $childProcess.Kill($true)
+            }
+        }
+        catch [InvalidOperationException] {
+            # The child exited after it was found.
+        }
+        if (-not $childProcess.WaitForExit(10000)) {
+            $survivors.Add($child.ProcessId)
+        }
+        $childProcess.Dispose()
+    }
+
+    return $survivors.ToArray()
+}
+
+function Save-ScenarioDiagnostics {
+    param(
+        [Parameter(Mandatory)][object]$Scenario,
+        [Parameter(Mandatory)][string]$ScenarioRoot,
+        [Parameter(Mandatory)][string]$Failure,
+        [Parameter(Mandatory)][System.Collections.IDictionary]$Timing
+    )
+
+    $destination = Join-Path $diagnosticsRoot $Scenario.Client
+    [IO.Directory]::CreateDirectory($destination) | Out-Null
+    foreach ($item in @(Get-ChildItem -LiteralPath $ScenarioRoot -Force)) {
+        # The fake application directory holds only copied test binaries.
+        if ($item.Name -ne "fake-spatial-analyzer") {
+            Copy-Item -LiteralPath $item.FullName -Destination $destination -Recurse -Force
+        }
+    }
+    [ordered]@{
+        scenario = $Scenario.Client
+        worker_scenario = $Scenario.Worker
+        watchdog_timeout = $Scenario.Watchdog
+        failure = $Failure
+        timing_milliseconds = $Timing
+    } | ConvertTo-Json -Depth 4 |
+        Set-Content -LiteralPath (Join-Path $destination "failure.json") -Encoding utf8
+    Write-Host "Saved diagnostics for client scenario '$($Scenario.Client)' to '$destination'."
+}
+
+function Write-ScenarioLog {
+    param(
+        [Parameter(Mandatory)][string]$Title,
+        [Parameter(Mandatory)][string]$Path
+    )
+
+    if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
+        return
+    }
+
+    Write-Host "--- $Title ---"
+    foreach ($line in [IO.File]::ReadAllLines($Path)) {
+        $redactedLine = $line.Replace($temporaryRoot, "<temporary-root>", [StringComparison]::OrdinalIgnoreCase)
+        $redactedLine = $redactedLine.Replace($repositoryRoot, "<repository-root>", [StringComparison]::OrdinalIgnoreCase)
+        Write-Host $redactedLine
+    }
+    Write-Host "--- end $Title ---"
+}
+
+function Publish-ScenarioFailure {
+    param(
+        [Parameter(Mandatory)][object]$Scenario,
+        [Parameter(Mandatory)][string]$ScenarioRoot,
+        [Parameter(Mandatory)][string]$Failure,
+        [Parameter(Mandatory)][System.Collections.IDictionary]$Timing
+    )
+
+    # The single path for every rejected scenario, whether startup, a client
+    # exit code, report validation, or cleanup failed: print the complete
+    # client output and server logs, then keep them with the diagnostics.
+    foreach ($log in @(
+            [pscustomobject]@{ Title = "lifecycle client output"; Name = "lifecycle-client.log" },
+            [pscustomobject]@{ Title = "smoke client output"; Name = "smoke-client.log" },
+            [pscustomobject]@{ Title = "server stderr"; Name = "server.stderr.log" },
+            [pscustomobject]@{ Title = "server stdout"; Name = "server.stdout.log" })) {
+        Write-ScenarioLog `
+            -Title "$($log.Title) for $($Scenario.Client)" `
+            -Path (Join-Path $ScenarioRoot $log.Name)
+    }
+    Save-ScenarioDiagnostics `
+        -Scenario $Scenario `
+        -ScenarioRoot $ScenarioRoot `
+        -Failure $Failure `
+        -Timing $Timing
+}
+
 function Start-ScenarioServer {
     param(
         [Parameter(Mandatory)][string]$ServerExecutable,
@@ -89,6 +248,7 @@ function Start-ScenarioServer {
         [Parameter(Mandatory)][string]$StandardOutput,
         [Parameter(Mandatory)][string]$StandardError,
         [Parameter(Mandatory)][string]$SpatialAnalyzerExecutable,
+        [Parameter(Mandatory)][string]$LogDirectory,
         [string]$WatchdogTimeout,
         [switch]$DenyOperation
     )
@@ -113,6 +273,9 @@ function Start-ScenarioServer {
         "Briosa__SpatialAnalyzer__Identity__ActivatedSdk__OperatorAttestation__Reference" = "portable-fake-worker"
         "Briosa__SpatialAnalyzer__Identity__ConnectedSpatialAnalyzer__OperatorAttestation__Version" = "2024.1.0508.5"
         "Briosa__SpatialAnalyzer__Identity__ConnectedSpatialAnalyzer__OperatorAttestation__Reference" = "portable-fake-worker"
+        # Keep each scenario's server log with its diagnostics instead of the
+        # user's shared Briosa log directory.
+        "Briosa__Logging__File__Directory" = $LogDirectory
     }
     $previousValues = [ordered]@{}
     foreach ($entry in $environmentValues.GetEnumerator()) {
@@ -270,7 +433,11 @@ $scenarios = @(
     [pscustomobject]@{
         Worker = "hang-first-execute"
         Client = "watchdog-recovery"
-        Watchdog = "00:00:00.250"
+        # The scripted hang never returns, so the budget only has to exceed a
+        # cold worker's first execution with headroom. 250 ms did not: a slow
+        # runner could expire it before the first worker claimed the hang, or
+        # on the replacement worker's first call (#302).
+        Watchdog = "00:00:05.000"
         DenyOperation = $false
         Expected = [pscustomobject]@{
             ReadyForMp = $true
@@ -340,31 +507,37 @@ try {
 
     foreach ($scenario in $scenarios) {
         $serverProcess = $null
+        $serverStartTime = $null
         $fakeApplication = $null
-        $beforeWorkers = @(
-            Get-Process -Name "Briosa.SmokeWorker" -ErrorAction SilentlyContinue |
-                Select-Object -ExpandProperty Id)
+        $fakeApplicationStartTime = $null
+        $scenarioFailure = $null
+        $timing = [ordered]@{}
+        $stopwatch = [Diagnostics.Stopwatch]::StartNew()
         $scenarioRoot = Join-Path $temporaryRoot $scenario.Client
         [IO.Directory]::CreateDirectory($scenarioRoot) | Out-Null
         $statePath = Join-Path $scenarioRoot "worker-state"
         $standardOutput = Join-Path $scenarioRoot "server.stdout.log"
         $standardError = Join-Path $scenarioRoot "server.stderr.log"
+        $serverLogDirectory = Join-Path $scenarioRoot "server-logs"
+        $lifecycleLog = Join-Path $scenarioRoot "lifecycle-client.log"
+        $clientLog = Join-Path $scenarioRoot "smoke-client.log"
         $fakeApplicationRoot = Join-Path $scenarioRoot "fake-spatial-analyzer"
-        [IO.Directory]::CreateDirectory($fakeApplicationRoot) | Out-Null
-        Copy-Item -LiteralPath (Join-Path $smokeWorkerOutput "Briosa.SmokeWorker.dll") -Destination $fakeApplicationRoot
-        Copy-Item -LiteralPath (Join-Path $smokeWorkerOutput "Briosa.SmokeWorker.deps.json") -Destination $fakeApplicationRoot
-        Copy-Item -LiteralPath (Join-Path $smokeWorkerOutput "Briosa.SmokeWorker.runtimeconfig.json") -Destination $fakeApplicationRoot
-        Copy-Item -LiteralPath (Join-Path $smokeWorkerOutput "Briosa.Worker.Control.dll") -Destination $fakeApplicationRoot
         $fakeApplicationExecutable = Join-Path $fakeApplicationRoot "Spatial Analyzer64.exe"
-        Copy-Item -LiteralPath $smokeWorkerExe -Destination $fakeApplicationExecutable
-        $port = Get-AvailablePort
         try {
+            [IO.Directory]::CreateDirectory($fakeApplicationRoot) | Out-Null
+            Copy-Item -LiteralPath (Join-Path $smokeWorkerOutput "Briosa.SmokeWorker.dll") -Destination $fakeApplicationRoot
+            Copy-Item -LiteralPath (Join-Path $smokeWorkerOutput "Briosa.SmokeWorker.deps.json") -Destination $fakeApplicationRoot
+            Copy-Item -LiteralPath (Join-Path $smokeWorkerOutput "Briosa.SmokeWorker.runtimeconfig.json") -Destination $fakeApplicationRoot
+            Copy-Item -LiteralPath (Join-Path $smokeWorkerOutput "Briosa.Worker.Control.dll") -Destination $fakeApplicationRoot
+            Copy-Item -LiteralPath $smokeWorkerExe -Destination $fakeApplicationExecutable
+            $port = Get-AvailablePort
             $fakeApplication = Start-Process `
                 -FilePath $fakeApplicationExecutable `
                 -ArgumentList @("--hold") `
                 -WorkingDirectory $fakeApplicationRoot `
                 -WindowStyle Hidden `
                 -PassThru
+            $fakeApplicationStartTime = $fakeApplication.StartTime
             $serverArguments = @{
                 ServerExecutable = $serverExecutable
                 WorkingDirectory = $packageRoot
@@ -374,27 +547,16 @@ try {
                 StandardOutput = $standardOutput
                 StandardError = $standardError
                 SpatialAnalyzerExecutable = $fakeApplicationExecutable
+                LogDirectory = $serverLogDirectory
                 WatchdogTimeout = $scenario.Watchdog
                 DenyOperation = $scenario.DenyOperation
             }
             $serverProcess = Start-ScenarioServer @serverArguments
+            $serverStartTime = $serverProcess.StartTime
             if (-not (Wait-ForListener -Process $serverProcess -Port $port)) {
-                foreach ($log in @(
-                    [pscustomobject]@{ Name = "stdout"; Path = $standardOutput },
-                    [pscustomobject]@{ Name = "stderr"; Path = $standardError })) {
-                    if (Test-Path -LiteralPath $log.Path -PathType Leaf) {
-                        Write-Host "--- server $($log.Name) for $($scenario.Client) ---"
-                        foreach ($line in Get-Content -LiteralPath $log.Path) {
-                            $redactedLine = $line.Replace($temporaryRoot, "<temporary-root>", [StringComparison]::OrdinalIgnoreCase)
-                            $redactedLine = $redactedLine.Replace($repositoryRoot, "<repository-root>", [StringComparison]::OrdinalIgnoreCase)
-                            $redactedLine = $redactedLine.Replace($packageRoot, "<package-root>", [StringComparison]::OrdinalIgnoreCase)
-                            Write-Host $redactedLine
-                        }
-                    }
-                }
-
                 throw "The packaged server did not listen for scenario '$($scenario.Client)'."
             }
+            $timing.listen = $stopwatch.ElapsedMilliseconds
 
             $lifecycleScenario = if ($scenario.Worker -eq "disconnected") {
                 "start-sdk"
@@ -406,11 +568,15 @@ try {
                 $lifecycleClientDll,
                 "--address", "http://127.0.0.1:$port",
                 "--scenario", $lifecycleScenario,
-                "--timeout-seconds", "15")
+                "--timeout-seconds", $clientTimeoutSeconds)
+            $phaseStarted = $stopwatch.ElapsedMilliseconds
             $lifecycleOutput = @(
                 & dotnet @lifecycleArguments 2>&1 |
                     ForEach-Object { [string]$_ })
-            if ($LASTEXITCODE -ne 0) {
+            $lifecycleExitCode = $LASTEXITCODE
+            $timing.lifecycle = $stopwatch.ElapsedMilliseconds - $phaseStarted
+            Set-Content -LiteralPath $lifecycleLog -Value $lifecycleOutput -Encoding utf8
+            if ($lifecycleExitCode -ne 0) {
                 throw "Lifecycle setup failed scenario '$($scenario.Client)': $($lifecycleOutput -join ' ')"
             }
 
@@ -418,11 +584,15 @@ try {
                 $smokeClientDll,
                 "--address", "http://127.0.0.1:$port",
                 "--scenario", $scenario.Client,
-                "--timeout-seconds", "15")
+                "--timeout-seconds", $clientTimeoutSeconds)
+            $phaseStarted = $stopwatch.ElapsedMilliseconds
             $clientOutput = @(
                 & dotnet @clientArguments 2>&1 |
                     ForEach-Object { [string]$_ })
-            if ($LASTEXITCODE -ne 0) {
+            $clientExitCode = $LASTEXITCODE
+            $timing.client = $stopwatch.ElapsedMilliseconds - $phaseStarted
+            Set-Content -LiteralPath $clientLog -Value $clientOutput -Encoding utf8
+            if ($clientExitCode -ne 0) {
                 throw "The client failed scenario '$($scenario.Client)': $($clientOutput -join ' ')"
             }
 
@@ -447,27 +617,42 @@ try {
                     $report.failure_kind -notin $expectedFailureKinds)) {
                 throw "The client failure kind does not match scenario '$($scenario.Client)'."
             }
-
-            Write-Host "Passed client scenario: $($scenario.Client)"
+        }
+        catch {
+            $scenarioFailure = $_
         }
         finally {
-            if ($null -ne $serverProcess -and -not $serverProcess.HasExited) {
-                Stop-Process -Id $serverProcess.Id -Force
-                $serverProcess.WaitForExit()
-            }
-            if ($null -ne $fakeApplication -and -not $fakeApplication.HasExited) {
-                Stop-Process -Id $fakeApplication.Id -Force
-                $fakeApplication.WaitForExit()
-            }
-
-            Start-Sleep -Milliseconds 500
-            $newWorkers = @(
-                Get-Process -Name "Briosa.SmokeWorker" -ErrorAction SilentlyContinue |
-                    Where-Object { $_.Id -notin $beforeWorkers })
-            foreach ($worker in $newWorkers) {
-                Stop-Process -Id $worker.Id -Force
+            # Stop only the processes this scenario started, with their children.
+            $survivors = [Collections.Generic.List[string]]::new()
+            foreach ($owned in @(
+                    @{ Process = $serverProcess; StartTime = $serverStartTime },
+                    @{ Process = $fakeApplication; StartTime = $fakeApplicationStartTime })) {
+                try {
+                    foreach ($survivor in @(Stop-ScenarioProcess @owned)) {
+                        $survivors.Add([string]$survivor)
+                    }
+                }
+                catch {
+                    $survivors.Add("cleanup of process $($owned.Process.Id) failed: $_")
+                }
             }
         }
+
+        if ($null -eq $scenarioFailure -and $survivors.Count -gt 0) {
+            $scenarioFailure = "Processes started for scenario '$($scenario.Client)' did not stop: $($survivors -join '; ')."
+        }
+        if ($null -ne $scenarioFailure) {
+            $timing.total = $stopwatch.ElapsedMilliseconds
+            Publish-ScenarioFailure `
+                -Scenario $scenario `
+                -ScenarioRoot $scenarioRoot `
+                -Failure "$scenarioFailure" `
+                -Timing $timing
+            throw $scenarioFailure
+        }
+
+        Write-Host ("Passed client scenario: {0} (lifecycle {1} ms, client {2} ms)" -f
+            $scenario.Client, $timing.lifecycle, $timing.client)
     }
 
     Write-Host "All packaged client scenarios passed without SpatialAnalyzer."

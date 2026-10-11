@@ -8,7 +8,12 @@ param(
     [string[]]$Scenario = @(),
 
     [ValidateRange(5, 600)]
-    [int]$FixtureTimeoutSeconds = 60
+    [int]$FixtureTimeoutSeconds = 60,
+
+    # A failing scenario copies the full fixture output and the server's log
+    # files here. Callers that cannot pass the parameter, such as a client
+    # repository's test script, can set BRIOSA_CONFORMANCE_DIAGNOSTICS_DIRECTORY.
+    [string]$DiagnosticsDirectory = $env:BRIOSA_CONFORMANCE_DIAGNOSTICS_DIRECTORY
 )
 
 Set-StrictMode -Version Latest
@@ -83,10 +88,90 @@ function New-ProcessStartInfo {
     return $startInfo
 }
 
+function Get-SafeText {
+    param([AllowEmptyString()][string]$Text)
+
+    return $Text.Replace($temporaryRoot, "<temporary-root>")
+}
+
+function Save-FixtureOutput {
+    param(
+        [Parameter(Mandatory)][string]$ScenarioRoot,
+        [AllowEmptyString()][string]$Output,
+        [AllowEmptyString()][string]$ErrorOutput
+    )
+
+    $encoding = [Text.UTF8Encoding]::new($false)
+    [IO.File]::WriteAllText(
+        (Join-Path $ScenarioRoot "fixture.stdout.txt"), (Get-SafeText $Output), $encoding)
+    [IO.File]::WriteAllText(
+        (Join-Path $ScenarioRoot "fixture.stderr.txt"), (Get-SafeText $ErrorOutput), $encoding)
+}
+
+function Write-FixtureError {
+    param(
+        [Parameter(Mandatory)][string]$ScenarioId,
+        [Parameter(Mandatory)][string]$ScenarioRoot
+    )
+
+    # Print every saved line so a CI log keeps the complete client traceback.
+    Write-Host "--- client fixture stderr for $ScenarioId ---"
+    $errorPath = Join-Path $ScenarioRoot "fixture.stderr.txt"
+    if (Test-Path -LiteralPath $errorPath -PathType Leaf) {
+        foreach ($line in [IO.File]::ReadAllLines($errorPath)) {
+            Write-Host $line
+        }
+    }
+    else {
+        Write-Host "(no fixture stderr was captured)"
+    }
+    Write-Host "--- end client fixture stderr for $ScenarioId ---"
+}
+
+function Save-ScenarioDiagnostics {
+    param(
+        [Parameter(Mandatory)][string]$ScenarioId,
+        [Parameter(Mandatory)][string]$ScenarioRoot,
+        [Parameter(Mandatory)][string]$Failure
+    )
+
+    if ([string]::IsNullOrWhiteSpace($DiagnosticsDirectory)) {
+        return
+    }
+
+    $destination = Join-Path ([IO.Path]::GetFullPath($DiagnosticsDirectory)) $ScenarioId
+    [IO.Directory]::CreateDirectory($destination) | Out-Null
+    foreach ($item in @(Get-ChildItem -LiteralPath $ScenarioRoot -Force)) {
+        # The fake application directory holds only copied package binaries.
+        if ($item.Name -ne "fake-application") {
+            Copy-Item -LiteralPath $item.FullName -Destination $destination -Recurse -Force
+        }
+    }
+    [IO.File]::WriteAllText(
+        (Join-Path $destination "failure.txt"),
+        (Get-SafeText $Failure) + [Environment]::NewLine,
+        [Text.UTF8Encoding]::new($false))
+    Write-Host "Saved diagnostics for conformance scenario '$ScenarioId' to '$destination'."
+}
+
+function Publish-ScenarioFailure {
+    param(
+        [Parameter(Mandatory)][string]$ScenarioId,
+        [Parameter(Mandatory)][string]$ScenarioRoot,
+        [Parameter(Mandatory)][string]$Failure
+    )
+
+    # The single path for every rejected scenario, whether the fixture failed,
+    # timed out, or returned an unacceptable report, or cleanup found a problem.
+    Write-FixtureError -ScenarioId $ScenarioId -ScenarioRoot $ScenarioRoot
+    Save-ScenarioDiagnostics -ScenarioId $ScenarioId -ScenarioRoot $ScenarioRoot -Failure $Failure
+}
+
 function Invoke-Fixture {
     param(
         [Parameter(Mandatory)][object]$ScenarioDefinition,
-        [Parameter(Mandatory)][hashtable]$Environment
+        [Parameter(Mandatory)][hashtable]$Environment,
+        [Parameter(Mandatory)][string]$ScenarioRoot
     )
 
     $arguments = @($FixtureArguments) + @(
@@ -107,13 +192,26 @@ function Invoke-Fixture {
         $outputTask = $process.StandardOutput.ReadToEndAsync()
         $errorTask = $process.StandardError.ReadToEndAsync()
         if (-not $process.WaitForExit($FixtureTimeoutSeconds * 1000)) {
-            Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue
+            try {
+                $process.Kill($true)
+            }
+            catch [InvalidOperationException] {
+                # The fixture exited after the wait elapsed.
+            }
+            Stop-PackageProcesses
+            if ([Threading.Tasks.Task]::WaitAll(@($outputTask, $errorTask), 5000)) {
+                Save-FixtureOutput `
+                    -ScenarioRoot $ScenarioRoot `
+                    -Output $outputTask.GetAwaiter().GetResult() `
+                    -ErrorOutput $errorTask.GetAwaiter().GetResult()
+            }
             throw "The client fixture timed out in scenario '$($ScenarioDefinition.id)'."
         }
         $output = $outputTask.GetAwaiter().GetResult().Trim()
         $errorOutput = $errorTask.GetAwaiter().GetResult().Trim()
+        Save-FixtureOutput -ScenarioRoot $ScenarioRoot -Output $output -ErrorOutput $errorOutput
         if ($process.ExitCode -ne 0) {
-            $safeError = $errorOutput.Replace($temporaryRoot, "<temporary-root>")
+            $safeError = Get-SafeText $errorOutput
             throw "The client fixture failed scenario '$($ScenarioDefinition.id)' with exit code $($process.ExitCode): $safeError"
         }
         if ([string]::IsNullOrWhiteSpace($output)) {
@@ -171,12 +269,7 @@ try {
         $statePath = Join-Path $scenarioRoot "worker-state"
         $exitSignalPath = Join-Path $scenarioRoot "worker-exit"
         $applicationRoot = Join-Path $scenarioRoot "fake-application"
-        [IO.Directory]::CreateDirectory($applicationRoot) | Out-Null
-        Copy-Item -Path (Join-Path $packageRoot "fake-worker\*") `
-            -Destination $applicationRoot -Recurse
         $applicationPath = Join-Path $applicationRoot "Spatial Analyzer64.exe"
-        Move-Item -LiteralPath (Join-Path $applicationRoot "Briosa.SmokeWorker.exe") `
-            -Destination $applicationPath
         $externalApplication = $null
         $environment = @{
             "BRIOSA_SERVER_PATH" = $serverPath
@@ -194,8 +287,16 @@ try {
             "Briosa__SpatialAnalyzer__Identity__ActivatedSdk__OperatorAttestation__Reference" = "portable-conformance-host"
             "Briosa__SpatialAnalyzer__Identity__ConnectedSpatialAnalyzer__OperatorAttestation__Version" = [string]$scenarioDefinition.connected_sa_version
             "Briosa__SpatialAnalyzer__Identity__ConnectedSpatialAnalyzer__OperatorAttestation__Reference" = "portable-conformance-host"
+            # Keep the server's log files with this scenario's diagnostics.
+            "Briosa__Logging__File__Directory" = (Join-Path $scenarioRoot "server-logs")
         }
+        $scenarioFailure = $null
         try {
+            [IO.Directory]::CreateDirectory($applicationRoot) | Out-Null
+            Copy-Item -Path (Join-Path $packageRoot "fake-worker\*") `
+                -Destination $applicationRoot -Recurse
+            Move-Item -LiteralPath (Join-Path $applicationRoot "Briosa.SmokeWorker.exe") `
+                -Destination $applicationPath
             if ($scenarioDefinition.start_external_application) {
                 $applicationStartInfo = New-ProcessStartInfo `
                     -FilePath $applicationPath `
@@ -206,7 +307,8 @@ try {
 
             $report = Invoke-Fixture `
                 -ScenarioDefinition $scenarioDefinition `
-                -Environment $environment
+                -Environment $environment `
+                -ScenarioRoot $scenarioRoot
             if ($report.schema_version -ne 1 -or
                 $report.contract_id -ne $contract.contract_id -or
                 $report.scenario -ne $scenarioDefinition.id -or
@@ -223,8 +325,9 @@ try {
             if ($unexpectedProcesses.Count -ne 0) {
                 throw "The client left package-owned processes running after scenario '$($scenarioDefinition.id)'."
             }
-
-            Write-Host "Passed client conformance scenario: $($scenarioDefinition.id)"
+        }
+        catch {
+            $scenarioFailure = $_
         }
         finally {
             if ($null -ne $externalApplication -and -not $externalApplication.HasExited) {
@@ -236,6 +339,17 @@ try {
             }
             Stop-PackageProcesses
         }
+
+        if ($null -ne $scenarioFailure) {
+            # After cleanup, so the server has released its log files.
+            Publish-ScenarioFailure `
+                -ScenarioId $scenarioDefinition.id `
+                -ScenarioRoot $scenarioRoot `
+                -Failure "$scenarioFailure"
+            throw $scenarioFailure
+        }
+
+        Write-Host "Passed client conformance scenario: $($scenarioDefinition.id)"
     }
 }
 finally {
