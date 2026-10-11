@@ -111,13 +111,19 @@ function Save-FixtureOutput {
 function Write-FixtureError {
     param(
         [Parameter(Mandatory)][string]$ScenarioId,
-        [AllowEmptyString()][string]$ErrorOutput
+        [Parameter(Mandatory)][string]$ScenarioRoot
     )
 
-    # Print every line so a CI log keeps the complete client traceback.
+    # Print every saved line so a CI log keeps the complete client traceback.
     Write-Host "--- client fixture stderr for $ScenarioId ---"
-    foreach ($line in (Get-SafeText $ErrorOutput) -split "\r?\n") {
-        Write-Host $line
+    $errorPath = Join-Path $ScenarioRoot "fixture.stderr.txt"
+    if (Test-Path -LiteralPath $errorPath -PathType Leaf) {
+        foreach ($line in [IO.File]::ReadAllLines($errorPath)) {
+            Write-Host $line
+        }
+    }
+    else {
+        Write-Host "(no fixture stderr was captured)"
     }
     Write-Host "--- end client fixture stderr for $ScenarioId ---"
 }
@@ -146,6 +152,19 @@ function Save-ScenarioDiagnostics {
         (Get-SafeText $Failure) + [Environment]::NewLine,
         [Text.UTF8Encoding]::new($false))
     Write-Host "Saved diagnostics for conformance scenario '$ScenarioId' to '$destination'."
+}
+
+function Publish-ScenarioFailure {
+    param(
+        [Parameter(Mandatory)][string]$ScenarioId,
+        [Parameter(Mandatory)][string]$ScenarioRoot,
+        [Parameter(Mandatory)][string]$Failure
+    )
+
+    # The single path for every rejected scenario, whether the fixture failed,
+    # timed out, or returned an unacceptable report, or cleanup found a problem.
+    Write-FixtureError -ScenarioId $ScenarioId -ScenarioRoot $ScenarioRoot
+    Save-ScenarioDiagnostics -ScenarioId $ScenarioId -ScenarioRoot $ScenarioRoot -Failure $Failure
 }
 
 function Invoke-Fixture {
@@ -181,12 +200,10 @@ function Invoke-Fixture {
             }
             Stop-PackageProcesses
             if ([Threading.Tasks.Task]::WaitAll(@($outputTask, $errorTask), 5000)) {
-                $errorOutput = $errorTask.GetAwaiter().GetResult()
                 Save-FixtureOutput `
                     -ScenarioRoot $ScenarioRoot `
                     -Output $outputTask.GetAwaiter().GetResult() `
-                    -ErrorOutput $errorOutput
-                Write-FixtureError -ScenarioId $ScenarioDefinition.id -ErrorOutput $errorOutput
+                    -ErrorOutput $errorTask.GetAwaiter().GetResult()
             }
             throw "The client fixture timed out in scenario '$($ScenarioDefinition.id)'."
         }
@@ -194,7 +211,6 @@ function Invoke-Fixture {
         $errorOutput = $errorTask.GetAwaiter().GetResult().Trim()
         Save-FixtureOutput -ScenarioRoot $ScenarioRoot -Output $output -ErrorOutput $errorOutput
         if ($process.ExitCode -ne 0) {
-            Write-FixtureError -ScenarioId $ScenarioDefinition.id -ErrorOutput $errorOutput
             $safeError = Get-SafeText $errorOutput
             throw "The client fixture failed scenario '$($ScenarioDefinition.id)' with exit code $($process.ExitCode): $safeError"
         }
@@ -253,12 +269,7 @@ try {
         $statePath = Join-Path $scenarioRoot "worker-state"
         $exitSignalPath = Join-Path $scenarioRoot "worker-exit"
         $applicationRoot = Join-Path $scenarioRoot "fake-application"
-        [IO.Directory]::CreateDirectory($applicationRoot) | Out-Null
-        Copy-Item -Path (Join-Path $packageRoot "fake-worker\*") `
-            -Destination $applicationRoot -Recurse
         $applicationPath = Join-Path $applicationRoot "Spatial Analyzer64.exe"
-        Move-Item -LiteralPath (Join-Path $applicationRoot "Briosa.SmokeWorker.exe") `
-            -Destination $applicationPath
         $externalApplication = $null
         $environment = @{
             "BRIOSA_SERVER_PATH" = $serverPath
@@ -281,6 +292,11 @@ try {
         }
         $scenarioFailure = $null
         try {
+            [IO.Directory]::CreateDirectory($applicationRoot) | Out-Null
+            Copy-Item -Path (Join-Path $packageRoot "fake-worker\*") `
+                -Destination $applicationRoot -Recurse
+            Move-Item -LiteralPath (Join-Path $applicationRoot "Briosa.SmokeWorker.exe") `
+                -Destination $applicationPath
             if ($scenarioDefinition.start_external_application) {
                 $applicationStartInfo = New-ProcessStartInfo `
                     -FilePath $applicationPath `
@@ -325,8 +341,8 @@ try {
         }
 
         if ($null -ne $scenarioFailure) {
-            # Copy after cleanup so the server has released its log files.
-            Save-ScenarioDiagnostics `
+            # After cleanup, so the server has released its log files.
+            Publish-ScenarioFailure `
                 -ScenarioId $scenarioDefinition.id `
                 -ScenarioRoot $scenarioRoot `
                 -Failure "$scenarioFailure"

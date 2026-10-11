@@ -38,13 +38,15 @@ the packaged runner from its own test script:
   -FixtureArguments @("path/to/Client.Conformance.dll")
 ```
 
-When a scenario fails, the runner prints the fixture's complete stderr. If
-`-DiagnosticsDirectory` or the `BRIOSA_CONFORMANCE_DIAGNOSTICS_DIRECTORY`
-environment variable names a directory, the runner also copies the fixture's
-stdout and stderr, the server's log files, and the failure message to
-`<directory>/<scenario>`. The runner points each scenario's server log files at
-that scenario's temporary directory. A fixture that passes explicit logging
-options to its client overrides that location.
+Whatever rejects a scenario, including a fixture that exits successfully with a
+missing, invalid, or unsuccessful report, the runner prints the fixture's
+complete stderr. If `-DiagnosticsDirectory` or the
+`BRIOSA_CONFORMANCE_DIAGNOSTICS_DIRECTORY` environment variable names a
+directory, the runner also copies the fixture's stdout and stderr, the server's
+log files, and the failure message to `<directory>/<scenario>`. The runner
+points each scenario's server log files at that scenario's temporary directory.
+A fixture that passes explicit logging options to its client overrides that
+location.
 
 A scenario may declare `minimum_contract_major`. The package includes it only
 once the target's compatibility contract reaches that major, and it removes the

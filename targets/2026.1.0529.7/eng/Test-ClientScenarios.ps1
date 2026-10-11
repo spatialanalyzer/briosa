@@ -192,6 +192,52 @@ function Save-ScenarioDiagnostics {
     Write-Host "Saved diagnostics for client scenario '$($Scenario.Client)' to '$destination'."
 }
 
+function Write-ScenarioLog {
+    param(
+        [Parameter(Mandatory)][string]$Title,
+        [Parameter(Mandatory)][string]$Path
+    )
+
+    if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
+        return
+    }
+
+    Write-Host "--- $Title ---"
+    foreach ($line in [IO.File]::ReadAllLines($Path)) {
+        $redactedLine = $line.Replace($temporaryRoot, "<temporary-root>", [StringComparison]::OrdinalIgnoreCase)
+        $redactedLine = $redactedLine.Replace($repositoryRoot, "<repository-root>", [StringComparison]::OrdinalIgnoreCase)
+        Write-Host $redactedLine
+    }
+    Write-Host "--- end $Title ---"
+}
+
+function Publish-ScenarioFailure {
+    param(
+        [Parameter(Mandatory)][object]$Scenario,
+        [Parameter(Mandatory)][string]$ScenarioRoot,
+        [Parameter(Mandatory)][string]$Failure,
+        [Parameter(Mandatory)][System.Collections.IDictionary]$Timing
+    )
+
+    # The single path for every rejected scenario, whether startup, a client
+    # exit code, report validation, or cleanup failed: print the complete
+    # client output and server logs, then keep them with the diagnostics.
+    foreach ($log in @(
+            [pscustomobject]@{ Title = "lifecycle client output"; Name = "lifecycle-client.log" },
+            [pscustomobject]@{ Title = "smoke client output"; Name = "smoke-client.log" },
+            [pscustomobject]@{ Title = "server stderr"; Name = "server.stderr.log" },
+            [pscustomobject]@{ Title = "server stdout"; Name = "server.stdout.log" })) {
+        Write-ScenarioLog `
+            -Title "$($log.Title) for $($Scenario.Client)" `
+            -Path (Join-Path $ScenarioRoot $log.Name)
+    }
+    Save-ScenarioDiagnostics `
+        -Scenario $Scenario `
+        -ScenarioRoot $ScenarioRoot `
+        -Failure $Failure `
+        -Timing $Timing
+}
+
 function Start-ScenarioServer {
     param(
         [Parameter(Mandatory)][string]$ServerExecutable,
@@ -476,15 +522,15 @@ try {
         $lifecycleLog = Join-Path $scenarioRoot "lifecycle-client.log"
         $clientLog = Join-Path $scenarioRoot "smoke-client.log"
         $fakeApplicationRoot = Join-Path $scenarioRoot "fake-spatial-analyzer"
-        [IO.Directory]::CreateDirectory($fakeApplicationRoot) | Out-Null
-        Copy-Item -LiteralPath (Join-Path $smokeWorkerOutput "Briosa.SmokeWorker.dll") -Destination $fakeApplicationRoot
-        Copy-Item -LiteralPath (Join-Path $smokeWorkerOutput "Briosa.SmokeWorker.deps.json") -Destination $fakeApplicationRoot
-        Copy-Item -LiteralPath (Join-Path $smokeWorkerOutput "Briosa.SmokeWorker.runtimeconfig.json") -Destination $fakeApplicationRoot
-        Copy-Item -LiteralPath (Join-Path $smokeWorkerOutput "Briosa.Worker.Control.dll") -Destination $fakeApplicationRoot
         $fakeApplicationExecutable = Join-Path $fakeApplicationRoot "Spatial Analyzer64.exe"
-        Copy-Item -LiteralPath $smokeWorkerExe -Destination $fakeApplicationExecutable
-        $port = Get-AvailablePort
         try {
+            [IO.Directory]::CreateDirectory($fakeApplicationRoot) | Out-Null
+            Copy-Item -LiteralPath (Join-Path $smokeWorkerOutput "Briosa.SmokeWorker.dll") -Destination $fakeApplicationRoot
+            Copy-Item -LiteralPath (Join-Path $smokeWorkerOutput "Briosa.SmokeWorker.deps.json") -Destination $fakeApplicationRoot
+            Copy-Item -LiteralPath (Join-Path $smokeWorkerOutput "Briosa.SmokeWorker.runtimeconfig.json") -Destination $fakeApplicationRoot
+            Copy-Item -LiteralPath (Join-Path $smokeWorkerOutput "Briosa.Worker.Control.dll") -Destination $fakeApplicationRoot
+            Copy-Item -LiteralPath $smokeWorkerExe -Destination $fakeApplicationExecutable
+            $port = Get-AvailablePort
             $fakeApplication = Start-Process `
                 -FilePath $fakeApplicationExecutable `
                 -ArgumentList @("--hold") `
@@ -508,20 +554,6 @@ try {
             $serverProcess = Start-ScenarioServer @serverArguments
             $serverStartTime = $serverProcess.StartTime
             if (-not (Wait-ForListener -Process $serverProcess -Port $port)) {
-                foreach ($log in @(
-                    [pscustomobject]@{ Name = "stdout"; Path = $standardOutput },
-                    [pscustomobject]@{ Name = "stderr"; Path = $standardError })) {
-                    if (Test-Path -LiteralPath $log.Path -PathType Leaf) {
-                        Write-Host "--- server $($log.Name) for $($scenario.Client) ---"
-                        foreach ($line in Get-Content -LiteralPath $log.Path) {
-                            $redactedLine = $line.Replace($temporaryRoot, "<temporary-root>", [StringComparison]::OrdinalIgnoreCase)
-                            $redactedLine = $redactedLine.Replace($repositoryRoot, "<repository-root>", [StringComparison]::OrdinalIgnoreCase)
-                            $redactedLine = $redactedLine.Replace($packageRoot, "<package-root>", [StringComparison]::OrdinalIgnoreCase)
-                            Write-Host $redactedLine
-                        }
-                    }
-                }
-
                 throw "The packaged server did not listen for scenario '$($scenario.Client)'."
             }
             $timing.listen = $stopwatch.ElapsedMilliseconds
@@ -611,7 +643,7 @@ try {
         }
         if ($null -ne $scenarioFailure) {
             $timing.total = $stopwatch.ElapsedMilliseconds
-            Save-ScenarioDiagnostics `
+            Publish-ScenarioFailure `
                 -Scenario $scenario `
                 -ScenarioRoot $scenarioRoot `
                 -Failure "$scenarioFailure" `
