@@ -175,8 +175,10 @@ public sealed class RuntimeFailureRegressionTests
         Assert.Equal(WorkerExecutionStatus.Completed, (await supervisor.ExecuteAsync(Plain())).Status);
     }
 
+    // #305 (F10) deliberately replaced the earlier rule that a cancelled startup kills
+    // its child: an accepted Start finishes under the startup bound instead.
     [Fact]
-    public async Task CancellingStartupCleansUpTheCreatedChild()
+    public async Task CancellingAnAcceptedStartupLetsTheChildFinishStarting()
     {
         var worker = new CoordinatedWorker { HoldStartup = true };
         await using var workerLifetime = worker.ConfigureAwait(true);
@@ -184,13 +186,27 @@ public sealed class RuntimeFailureRegressionTests
         using var caller = new CancellationTokenSource();
         var starting = supervisor.StartAsync(caller.Token);
         await worker.StartupEntered.Task.WaitAsync(HangGuard);
-        await caller.CancelAsync();
+        try
+        {
+            await caller.CancelAsync();
+            var detached = Assert.IsType<WorkerLifecycleDetached>(await starting.WaitAsync(HangGuard));
+            Assert.Equal(WorkerLifecycleState.Starting, detached.Snapshot.State);
+            Assert.False(worker.HasExited);
+            Assert.False(WorkerReadinessHealthCheck.IsReady(supervisor.Current));
+        }
+        finally
+        {
+            // Lets disposal finish even when an assertion fails: the virtual startup
+            // bound never expires on its own.
+            worker.ReleaseStartup.TrySetResult();
+        }
 
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => starting);
-
-        Assert.True(worker.HasExited);
-        Assert.Equal(WorkerLifecycleState.Stopped, supervisor.Current.State);
-        Assert.False(WorkerReadinessHealthCheck.IsReady(supervisor.Current));
+        using var timeout = new CancellationTokenSource(HangGuard);
+        while (!WorkerReadinessHealthCheck.IsReady(supervisor.Current))
+            await Task.Delay(TimeSpan.FromMilliseconds(5), timeout.Token);
+        Assert.False(worker.HasExited);
+        Assert.Equal(0, worker.TerminationCount);
+        Assert.Equal(WorkerExecutionStatus.Completed, (await supervisor.ExecuteAsync(Plain())).Status);
     }
 
     [Fact]
@@ -358,14 +374,16 @@ public sealed class RuntimeFailureRegressionTests
     [Fact]
     public async Task SnapshotsOwnApplicationAssociationAndReadinessAcrossAllProjections()
     {
-        var worker = new CoordinatedWorker();
+        var worker = new CoordinatedWorker { ReadyDisconnected = true };
         await using var workerLifetime = worker.ConfigureAwait(true);
         await using var supervisor = CreateSupervisor(worker);
         var projection = new SpatialAnalyzerSdkLifecycleStateProjection(supervisor);
         var firstRead = projection.Current;
         Assert.Equal((ulong)supervisor.Current.StateRevision, firstRead.StateRevision);
         Assert.True((await supervisor.StartAsync()).Succeeded);
-        await supervisor.AssociateApplicationGenerationAsync(1, 7);
+        // Connect publishes readiness and its application association in one snapshot.
+        Assert.True((await supervisor.ConnectAsync(1, new LifecycleAcceptance(CancellationToken.None),
+            _ => Task.FromResult<int?>(7))).Succeeded);
         var snapshot = supervisor.Current;
         Assert.Equal(7, snapshot.ApplicationGeneration);
         Assert.True(snapshot.AdmissionOpen);
@@ -376,18 +394,15 @@ public sealed class RuntimeFailureRegressionTests
         Assert.Equal(snapshot, supervisor.Current);
         Assert.Contains(supervisor.History, state => state.State == WorkerLifecycleState.Ready &&
             !state.AdmissionOpen && !state.ReadyForExecution);
+        Assert.DoesNotContain(supervisor.History, state => state.ReadyForExecution && state.ApplicationGeneration != 7);
 
-        await supervisor.AssociateApplicationGenerationAsync(1, null);
-        Assert.Null(supervisor.Current.ApplicationGeneration);
-        Assert.False(projection.Current.HasApplicationGeneration);
         await Assert.ThrowsAsync<WorkerGenerationConflictException>(() =>
-            supervisor.AssociateApplicationGenerationAsync(2, 9));
+            supervisor.ConnectAsync(2, new LifecycleAcceptance(CancellationToken.None), _ => Task.FromResult<int?>(9)));
         await supervisor.StopAsync();
-        await supervisor.AssociateApplicationGenerationAsync(1, 9);
         Assert.False(supervisor.Current.AdmissionOpen);
         Assert.Null(supervisor.Current.ApplicationGeneration);
+        Assert.False(projection.Current.HasApplicationGeneration);
     }
-
     [Fact]
     public async Task HeartbeatDoesNotQueueAheadOfAcceptedExecution()
     {
@@ -554,8 +569,10 @@ public sealed class RuntimeFailureRegressionTests
         Assert.Equal(WorkerLifecycleState.Stopped, supervisor.Current.State);
     }
 
+    // A caller that stopped waiting leaves startup to its bound (#305); when that bound
+    // expires and cleanup cannot confirm exit, the generation stays faulted.
     [Fact]
-    public async Task CancelledStartupWithUnconfirmedExitRemainsFaultedWithoutAConnectionSnapshot()
+    public async Task DetachedStartupTimeoutWithUnconfirmedExitRemainsFaultedWithoutAConnectionSnapshot()
     {
         var worker = new CoordinatedWorker { HoldStartup = true, HoldTermination = true };
         await using var workerScope = worker.ConfigureAwait(true);
@@ -570,8 +587,15 @@ public sealed class RuntimeFailureRegressionTests
         try
         {
             await caller.CancelAsync();
+            Assert.IsType<WorkerLifecycleDetached>(await starting.WaitAsync(HangGuard));
+            Assert.Equal(0, worker.TerminationCount);
+            await clock.FireNextAsync(TimeSpan.FromSeconds(5));
             await clock.FireNextAsync(CleanupBound, count: 2);
-            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => starting.WaitAsync(HangGuard));
+            using (var timeout = new CancellationTokenSource(HangGuard))
+            {
+                while (supervisor.Current.CleanupStatus is null)
+                    await Task.Delay(TimeSpan.FromMilliseconds(5), timeout.Token);
+            }
             Assert.Null(supervisor.Current.Connection);
             Assert.Equal(WorkerCleanupStatus.ExitUnconfirmed, supervisor.Current.CleanupStatus);
             var projected = new SpatialAnalyzerSdkLifecycleStateProjection(supervisor).Current;
@@ -582,6 +606,8 @@ public sealed class RuntimeFailureRegressionTests
         }
         finally
         {
+            // Releasing startup only matters if an assertion failed before the bound expired.
+            worker.ReleaseStartup.TrySetResult();
             worker.ReleaseTermination.TrySetResult();
         }
         await supervisor.StopAsync();
@@ -616,6 +642,7 @@ public sealed class RuntimeFailureRegressionTests
         private WorkerControlMessage? _request;
         private bool _readySent;
         public bool HoldStartup { get; init; }
+        public bool ReadyDisconnected { get; init; }
         public bool HoldTermination { get; init; }
         public int TerminationCount { get; private set; }
         public TaskCompletionSource ReleaseTermination { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -660,11 +687,15 @@ public sealed class RuntimeFailureRegressionTests
                 StartupEntered.TrySetResult();
                 if (HoldStartup) await ReleaseStartup.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
                 _readySent = true;
-                return WorkerControlMessage.Ready(123, Connection(WorkerExecutionReadinessState.Unverified));
+                return WorkerControlMessage.Ready(123, ReadyDisconnected
+                    ? Connection(WorkerExecutionReadinessState.Unverified) with { State = WorkerConnectionState.Disconnected }
+                    : Connection(WorkerExecutionReadinessState.Unverified));
             }
             var request = _request!;
             switch (request.Kind)
             {
+                case WorkerControlMessageKind.Connect:
+                    return WorkerControlMessage.ConnectionResult(request.CorrelationId, Connection(WorkerExecutionReadinessState.Unverified));
                 case WorkerControlMessageKind.VerifyExecution:
                     return WorkerControlMessage.ExecutionVerificationResult(request.CorrelationId, Connection(WorkerExecutionReadinessState.ExecutionReady));
                 case WorkerControlMessageKind.Execute:

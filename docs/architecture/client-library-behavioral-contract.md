@@ -1,7 +1,7 @@
 # First-party client behavioral contract
 
 - Status: Current v1 design contract; client implementations may still be pre-conformance
-- Last reviewed: 2026-08-10
+- Last reviewed: 2026-10-10
 
 ## Purpose and authority
 
@@ -188,6 +188,27 @@ runtime generation is not an MP command.
 Cancellation or deadline expiry stops that caller from waiting. It does not prove
 that SpatialAnalyzer did not execute the command, that execution was cancelled,
 or that effects were rolled back.
+
+The server decides the disposition of an interrupted MP command atomically (see
+[execution outcomes](execution-outcomes-and-recovery.md#cancellation-watchdogs-and-replacement)).
+A command still queued when the caller's cancellation or deadline reaches the
+server is abandoned: it is never executed later. A command the server had already
+claimed drains under its server execution budget. gRPC does not deliver the
+server's typed detail to a caller that cancelled or exceeded its deadline, so a
+client cannot learn from that call which case applied. It reports caller
+cancellation or the caller deadline without inventing an execution disposition,
+never replays automatically, and leaves reconciliation to the application.
+
+Lifecycle requests follow the same rule (see
+[runtime boundary](runtime-boundary-and-lifecycle.md#execution-channel-verification)).
+Cancelling Start, Connect, Reconnect, or Recover before the server accepts it
+prevents the work. After acceptance the server finishes the exchange under its
+own bounds even though the client stopped waiting, so a startup that the client
+abandoned may still produce a running or ready generation. The client refreshes
+SDK state before deciding what to do next. It treats
+`sdk-lifecycle-transition-in-progress` as a signal to refresh and retry later,
+and it stops a generation it owns only after the accepted transition has ended.
+Client startup budgets do not shorten the server's lifecycle bounds.
 
 ## Client validation boundary
 
