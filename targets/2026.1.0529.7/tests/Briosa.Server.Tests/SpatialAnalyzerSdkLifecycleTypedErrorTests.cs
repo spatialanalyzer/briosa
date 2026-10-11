@@ -302,7 +302,8 @@ public sealed class SpatialAnalyzerSdkLifecycleTypedErrorTests
 
         public Task<WorkerLifecycleResult> ConnectAsync(
             int expectedGeneration,
-            LifecycleAcceptance acceptance) =>
+            LifecycleAcceptance acceptance,
+            Func<CancellationToken, Task<int?>>? applicationGeneration) =>
             Reject();
 
         public Task<WorkerLifecycleResult> RecoverSdkAsync(
@@ -313,11 +314,6 @@ public sealed class SpatialAnalyzerSdkLifecycleTypedErrorTests
         public Task<WorkerLifecycleResult> StopAsync(CancellationToken cancellationToken = default) =>
             Reject();
 
-        public Task<WorkerLifecycleSnapshot> AssociateApplicationGenerationAsync(
-            int expectedGeneration,
-            int? applicationGeneration,
-            CancellationToken cancellationToken = default) =>
-            Task.FromResult(Current);
 
         private Task<WorkerLifecycleResult> Reject()
         {

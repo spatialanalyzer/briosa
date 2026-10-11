@@ -374,14 +374,16 @@ public sealed class RuntimeFailureRegressionTests
     [Fact]
     public async Task SnapshotsOwnApplicationAssociationAndReadinessAcrossAllProjections()
     {
-        var worker = new CoordinatedWorker();
+        var worker = new CoordinatedWorker { ReadyDisconnected = true };
         await using var workerLifetime = worker.ConfigureAwait(true);
         await using var supervisor = CreateSupervisor(worker);
         var projection = new SpatialAnalyzerSdkLifecycleStateProjection(supervisor);
         var firstRead = projection.Current;
         Assert.Equal((ulong)supervisor.Current.StateRevision, firstRead.StateRevision);
         Assert.True((await supervisor.StartAsync()).Succeeded);
-        await supervisor.AssociateApplicationGenerationAsync(1, 7);
+        // Connect publishes readiness and its application association in one snapshot.
+        Assert.True((await supervisor.ConnectAsync(1, new LifecycleAcceptance(CancellationToken.None),
+            _ => Task.FromResult<int?>(7))).Succeeded);
         var snapshot = supervisor.Current;
         Assert.Equal(7, snapshot.ApplicationGeneration);
         Assert.True(snapshot.AdmissionOpen);
@@ -392,18 +394,15 @@ public sealed class RuntimeFailureRegressionTests
         Assert.Equal(snapshot, supervisor.Current);
         Assert.Contains(supervisor.History, state => state.State == WorkerLifecycleState.Ready &&
             !state.AdmissionOpen && !state.ReadyForExecution);
+        Assert.DoesNotContain(supervisor.History, state => state.ReadyForExecution && state.ApplicationGeneration != 7);
 
-        await supervisor.AssociateApplicationGenerationAsync(1, null);
-        Assert.Null(supervisor.Current.ApplicationGeneration);
-        Assert.False(projection.Current.HasApplicationGeneration);
         await Assert.ThrowsAsync<WorkerGenerationConflictException>(() =>
-            supervisor.AssociateApplicationGenerationAsync(2, 9));
+            supervisor.ConnectAsync(2, new LifecycleAcceptance(CancellationToken.None), _ => Task.FromResult<int?>(9)));
         await supervisor.StopAsync();
-        await supervisor.AssociateApplicationGenerationAsync(1, 9);
         Assert.False(supervisor.Current.AdmissionOpen);
         Assert.Null(supervisor.Current.ApplicationGeneration);
+        Assert.False(projection.Current.HasApplicationGeneration);
     }
-
     [Fact]
     public async Task HeartbeatDoesNotQueueAheadOfAcceptedExecution()
     {
@@ -643,6 +642,7 @@ public sealed class RuntimeFailureRegressionTests
         private WorkerControlMessage? _request;
         private bool _readySent;
         public bool HoldStartup { get; init; }
+        public bool ReadyDisconnected { get; init; }
         public bool HoldTermination { get; init; }
         public int TerminationCount { get; private set; }
         public TaskCompletionSource ReleaseTermination { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -687,11 +687,15 @@ public sealed class RuntimeFailureRegressionTests
                 StartupEntered.TrySetResult();
                 if (HoldStartup) await ReleaseStartup.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
                 _readySent = true;
-                return WorkerControlMessage.Ready(123, Connection(WorkerExecutionReadinessState.Unverified));
+                return WorkerControlMessage.Ready(123, ReadyDisconnected
+                    ? Connection(WorkerExecutionReadinessState.Unverified) with { State = WorkerConnectionState.Disconnected }
+                    : Connection(WorkerExecutionReadinessState.Unverified));
             }
             var request = _request!;
             switch (request.Kind)
             {
+                case WorkerControlMessageKind.Connect:
+                    return WorkerControlMessage.ConnectionResult(request.CorrelationId, Connection(WorkerExecutionReadinessState.Unverified));
                 case WorkerControlMessageKind.VerifyExecution:
                     return WorkerControlMessage.ExecutionVerificationResult(request.CorrelationId, Connection(WorkerExecutionReadinessState.ExecutionReady));
                 case WorkerControlMessageKind.Execute:

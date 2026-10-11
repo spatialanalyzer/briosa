@@ -134,13 +134,21 @@ cancellation and the acceptance wins:
   launch, COM activation, and the Ready message finish under
   `Briosa:Worker:StartupTimeout`; `ConnectEx` under the same startup bound; the
   readiness probe under `Briosa:Worker:ReadinessProbeTimeout`; and recovery
-  cleanup under the shutdown bound. A caller that stops waiting receives
-  `CANCELLED` with diagnostic `sdk-lifecycle-caller-stopped-waiting`, the state at
-  that moment, and recovery guidance `REFRESH_STATE`. The exchange holds the
-  lifecycle transition until it finishes, so a concurrent lifecycle request gets
-  `sdk-lifecycle-transition-in-progress`. It then records its terminal state and
-  incident evidence exactly as it would for a caller that waited. The caller refreshes state
-  through `GetSpatialAnalyzerSdkState`, discovery, or a later lifecycle RPC.
+  cleanup under the shutdown bound. After a successful probe, Connect confirms
+  that the application generation it observed before `ConnectEx` is still
+  current, again under the startup bound, and publishes that association in the
+  same state change that reports readiness. MP admission therefore opens only
+  after the association, and admitted MP work can never delay it. If the
+  application generation changed or cannot be confirmed in time, the generation
+  becomes ready without an application generation and with diagnostic
+  `worker-execution-ready-application-unconfirmed`. A caller that stops waiting
+  receives `CANCELLED` with diagnostic `sdk-lifecycle-caller-stopped-waiting`,
+  the state at that moment, and recovery guidance `REFRESH_STATE`. The exchange
+  holds the lifecycle transition until it finishes, so a concurrent lifecycle
+  request gets `sdk-lifecycle-transition-in-progress`. It then records its
+  terminal state and incident evidence exactly as it would for a caller that
+  waited. The caller refreshes state through `GetSpatialAnalyzerSdkState`,
+  discovery, or a later lifecycle RPC.
 
 Caller cancellation therefore never terminates a starting worker, retires a
 connecting generation, or quarantines a target during the readiness probe. Only

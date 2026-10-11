@@ -112,7 +112,8 @@ internal sealed class SpatialAnalyzerSdkLifecycleCoordinator(
             RequireConnectionTransition(current, reconnect);
 
             var transition = await CallSupervisorAsync(
-                () => _supervisor.ConnectAsync(expectedGeneration, acceptance),
+                () => _supervisor.ConnectAsync(expectedGeneration, acceptance,
+                    token => ConfirmApplicationGenerationAsync(applicationBeforeConnect, token)),
                 fresh =>
                 {
                     RequireGeneration(fresh, expectedGeneration);
@@ -170,26 +171,31 @@ internal sealed class SpatialAnalyzerSdkLifecycleCoordinator(
                     recoveryGuidance);
             }
 
-            // The association belongs to the accepted transition, so a caller that
-            // stopped waiting cannot leave a connected generation without it.
-            var applicationAfterConnect = await _applicationStateProvider
-                .GetCurrentAsync(CancellationToken.None).ConfigureAwait(false);
-            var associated = await CallSupervisorAsync(
-                () => _supervisor.AssociateApplicationGenerationAsync(
-                    expectedGeneration,
-                    applicationBeforeConnect.HasApplicationGeneration &&
-                    applicationAfterConnect.HasApplicationGeneration &&
-                    applicationBeforeConnect.ApplicationGeneration ==
-                        applicationAfterConnect.ApplicationGeneration
-                        ? applicationAfterConnect.ApplicationGeneration
-                        : null, CancellationToken.None),
-                fresh => RequireGeneration(fresh, expectedGeneration)).ConfigureAwait(false);
-            return SpatialAnalyzerSdkLifecycleStateProjection.ToPublicState(associated);
+            // The supervisor published readiness and the application association in one
+            // snapshot, so nothing remains that could wait behind admitted MP work.
+            return SpatialAnalyzerSdkLifecycleStateProjection.ToPublicState(transition.Snapshot);
         }
         finally
         {
             _gate.Release();
         }
+    }
+
+    // Associates the generation with the application only if the application
+    // generation observed before ConnectEx is still current once the probe succeeds.
+    // The supervisor calls this inside the accepted Connect, under its own bound and
+    // before MP admission opens.
+    private async Task<int?> ConfirmApplicationGenerationAsync(
+        global::Briosa.SpatialAnalyzerLifecycleState applicationBeforeConnect,
+        CancellationToken cancellationToken)
+    {
+        var applicationAfterConnect = await _applicationStateProvider
+            .GetCurrentAsync(cancellationToken).ConfigureAwait(false);
+        return applicationBeforeConnect.HasApplicationGeneration &&
+            applicationAfterConnect.HasApplicationGeneration &&
+            applicationBeforeConnect.ApplicationGeneration == applicationAfterConnect.ApplicationGeneration
+                ? applicationAfterConnect.ApplicationGeneration
+                : null;
     }
 
     public async Task<global::Briosa.SpatialAnalyzerSdkLifecycleState> StopAsync(

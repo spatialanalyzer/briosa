@@ -888,6 +888,222 @@ public sealed class CancellationDetachmentTests
         Assert.Equal("sdk-lifecycle-caller-stopped-waiting", rejected.Value("DiagnosticCode"));
     }
 
+    // PR #315 review (P2): the accepted Connect must finish its application-generation
+    // association before MP admission opens. Otherwise an interactive MP admitted in
+    // between holds the supervisor gate, the association waits behind it, and the
+    // detached transition keeps the coordinator gate until the MP watchdog fires.
+    // These are the review's steps: Connect and Verify complete, the application's
+    // second state read is held, a hanging interactive MP is submitted, the read is
+    // released, and the Connect caller cancels.
+    [Fact]
+    public async Task ConnectAssociationCannotWaitBehindNewlyAdmittedMpWork()
+    {
+        var mp = new Hold();
+        var secondRead = new Hold();
+        var worker = new ScriptedWorker { ReadyConnected = false, ExecuteHold = id => id == "interactive" ? mp : null };
+        var (supervisor, clock, _) = Create(worker);
+        await using var supervisorScope = supervisor.ConfigureAwait(false);
+        var coordinator = new SpatialAnalyzerSdkLifecycleCoordinator(supervisor,
+            new SpatialAnalyzerSdkLifecycleStateProjection(supervisor), new HeldApplication(5, 2, secondRead));
+        await using var coordinatorScope = coordinator.ConfigureAwait(false);
+        _ = await coordinator.StartAsync(CancellationToken.None);
+        using var cancellation = new CancellationTokenSource();
+        try
+        {
+            var connecting = coordinator.ConnectAsync(1, reconnect: false, cancellation.Token);
+            await secondRead.Entered.WaitAsync(HangGuard);
+            Assert.Equal(1, worker.VerifyCount);
+
+            // The association is still pending, so MP admission must be closed.
+            Assert.False(coordinator.Current.ReadyForMp);
+            Assert.False(supervisor.Current.AdmissionOpen);
+            var interactive = supervisor.ExecuteAsync(new WorkerCommandSubmission(
+                "interactive", () => Plain("interactive"), DurationClass: OperationDurationClass.Interactive),
+                Guid.NewGuid());
+            var rejected = await interactive.WaitAsync(HangGuard);
+            Assert.Equal(WorkerExecutionStatus.Unavailable, rejected.Status);
+            Assert.Equal(WorkerExecutionDisposition.NotStarted, rejected.ExecutionDisposition);
+
+            secondRead.Release();
+            await cancellation.CancelAsync();
+            try
+            {
+                Assert.True((await connecting.WaitAsync(HangGuard)).ReadyForMp);
+            }
+            catch (SdkLifecycleException stoppedWaiting)
+            {
+                Assert.Equal("sdk-lifecycle-caller-stopped-waiting", stoppedWaiting.Detail.DiagnosticCode);
+            }
+
+            // Readiness and the association are published together.
+            var connected = await WaitForCoordinator(coordinator, state => state.ReadyForMp);
+            Assert.Equal(5, connected.ApplicationGeneration);
+            clock.Advance(TimeSpan.FromSeconds(60));
+            var stopped = await StopWhenIdleAsync(coordinator, 1);
+            Assert.Equal(global::Briosa.SpatialAnalyzerSdkState.Stopped, stopped.SdkState);
+            Assert.Empty(worker.ExecutedOperations);
+        }
+        finally
+        {
+            secondRead.Release();
+            mp.Release();
+        }
+    }
+
+    // The association and newly admitted MP work in either order: work submitted
+    // during the association is rejected NotStarted; work admitted afterwards cannot
+    // hold the coordinator, which the finished transition has already released.
+    [Theory]
+    [InlineData("mp-during-association")]
+    [InlineData("mp-after-association")]
+    public async Task AssociationAndNewlyAdmittedMpWorkCannotBlockEachOther(string order)
+    {
+        var mp = new Hold();
+        var secondRead = new Hold();
+        var worker = new ScriptedWorker { ReadyConnected = false, ExecuteHold = id => id == "interactive" ? mp : null };
+        var (supervisor, clock, _) = Create(worker);
+        await using var supervisorScope = supervisor.ConfigureAwait(false);
+        var coordinator = new SpatialAnalyzerSdkLifecycleCoordinator(supervisor,
+            new SpatialAnalyzerSdkLifecycleStateProjection(supervisor), new HeldApplication(5, 2, secondRead));
+        _ = await coordinator.StartAsync(CancellationToken.None);
+        try
+        {
+            var connecting = coordinator.ConnectAsync(1, reconnect: false, CancellationToken.None);
+            await secondRead.Entered.WaitAsync(HangGuard);
+            Task<WorkerExecutionOutcome>? interactive = null;
+            if (order == "mp-during-association")
+                interactive = supervisor.ExecuteAsync(new WorkerCommandSubmission(
+                    "interactive", () => Plain("interactive"), DurationClass: OperationDurationClass.Interactive),
+                    Guid.NewGuid());
+            secondRead.Release();
+            var connected = await connecting.WaitAsync(HangGuard);
+            Assert.True(connected.ReadyForMp);
+            Assert.Equal(5, connected.ApplicationGeneration);
+
+            if (interactive is not null)
+            {
+                var rejected = await interactive.WaitAsync(HangGuard);
+                Assert.Equal(WorkerExecutionStatus.Unavailable, rejected.Status);
+                Assert.Equal(WorkerExecutionDisposition.NotStarted, rejected.ExecutionDisposition);
+                Assert.Empty(worker.ExecutedOperations);
+            }
+            else
+            {
+                interactive = supervisor.ExecuteAsync(new WorkerCommandSubmission(
+                    "interactive", () => Plain("interactive"), DurationClass: OperationDurationClass.Interactive),
+                    Guid.NewGuid());
+                await mp.Entered.WaitAsync(HangGuard);
+            }
+
+            // The coordinator is idle: a lifecycle request gets its own typed answer.
+            var notRequired = await Assert.ThrowsAsync<SdkLifecycleException>(() =>
+                coordinator.ConnectAsync(1, reconnect: true, CancellationToken.None));
+            Assert.Equal(global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.ReconnectNotRequired,
+                notRequired.Detail.Kind);
+            await coordinator.DisposeAsync().AsTask().WaitAsync(HangGuard);
+        }
+        finally
+        {
+            secondRead.Release();
+            mp.Release();
+            await coordinator.DisposeAsync();
+        }
+    }
+
+    // Stop and disposal during the association: the association belongs to the
+    // accepted Connect and has its own bound (the startup bound), so they wait for at
+    // most that bound. On expiry the generation is still published ready, with an
+    // unconfirmed application generation, and the coordinator gate is released.
+    [Fact]
+    public async Task StopAndDisposalDuringAssociationWaitOnlyForItsBound()
+    {
+        var secondRead = new Hold();
+        var worker = new ScriptedWorker { ReadyConnected = false };
+        var (supervisor, clock, _) = Create(worker);
+        await using var supervisorScope = supervisor.ConfigureAwait(false);
+        var coordinator = new SpatialAnalyzerSdkLifecycleCoordinator(supervisor,
+            new SpatialAnalyzerSdkLifecycleStateProjection(supervisor), new HeldApplication(5, 2, secondRead));
+        _ = await coordinator.StartAsync(CancellationToken.None);
+        using var cancellation = new CancellationTokenSource();
+        try
+        {
+            var connecting = coordinator.ConnectAsync(1, reconnect: false, cancellation.Token);
+            await secondRead.Entered.WaitAsync(HangGuard);
+            await cancellation.CancelAsync();
+            var stoppedWaiting = await Assert.ThrowsAsync<SdkLifecycleException>(() => connecting.WaitAsync(HangGuard));
+            Assert.Equal("sdk-lifecycle-caller-stopped-waiting", stoppedWaiting.Detail.DiagnosticCode);
+            Assert.False(stoppedWaiting.Detail.State.ReadyForMp);
+
+            var inProgress = await Assert.ThrowsAsync<SdkLifecycleException>(() =>
+                coordinator.StopAsync(1, CancellationToken.None));
+            Assert.Equal("sdk-lifecycle-transition-in-progress", inProgress.Detail.DiagnosticCode);
+            var hostStop = supervisor.StopAsync();
+            var disposing = coordinator.DisposeAsync().AsTask();
+            Assert.False(hostStop.IsCompleted);
+            Assert.False(disposing.IsCompleted);
+
+            await clock.FireNextAsync(StartupTimeout);
+            await disposing.WaitAsync(HangGuard);
+            var stopped = await hostStop.WaitAsync(HangGuard);
+
+            Assert.True(stopped.Succeeded);
+            Assert.Equal(WorkerTerminationKind.Graceful, stopped.Snapshot.LastTermination);
+            var published = Assert.Single(supervisor.History, state => state.ReadyForExecution);
+            Assert.Equal("worker-execution-ready-application-unconfirmed", published.DiagnosticCode);
+            Assert.Null(published.ApplicationGeneration);
+            Assert.Equal(1, worker.StopCount);
+        }
+        finally
+        {
+            secondRead.Release();
+            clock.Advance(TimeSpan.FromHours(9));
+            await coordinator.DisposeAsync();
+        }
+    }
+
+    // The supervisor resolves the Connect's application association before readiness
+    // is published, then publishes both in one snapshot. A lookup that does not confirm
+    // the generation, or that fails, still publishes readiness, unassociated.
+    [Theory]
+    [InlineData("confirmed")]
+    [InlineData("changed")]
+    [InlineData("faulted")]
+    public async Task ConnectPublishesReadinessAndApplicationAssociationTogether(string lookup)
+    {
+        var worker = new ScriptedWorker { ReadyConnected = false };
+        var (supervisor, _, _) = Create(worker);
+        await using var scope = supervisor.ConfigureAwait(false);
+        Assert.True((await supervisor.StartAsync()).Succeeded);
+        var association = new Hold();
+
+        var connecting = supervisor.ConnectAsync(1, new LifecycleAcceptance(CancellationToken.None), async token =>
+        {
+            await association.WaitAsync(token).ConfigureAwait(false);
+            return lookup switch
+            {
+                "confirmed" => 9,
+                "changed" => null,
+                _ => throw new InvalidOperationException("Scripted application lookup fault.")
+            };
+        });
+        await association.Entered.WaitAsync(HangGuard);
+        Assert.False(supervisor.Current.ReadyForExecution);
+        Assert.False(supervisor.Current.AdmissionOpen);
+        var rejected = await supervisor.ExecuteAsync(Plain("during-association")).WaitAsync(HangGuard);
+        Assert.Equal(WorkerExecutionStatus.Unavailable, rejected.Status);
+        Assert.Equal(WorkerExecutionDisposition.NotStarted, rejected.ExecutionDisposition);
+        association.Release();
+        var connected = Assert.IsType<WorkerLifecycleSucceeded>(await connecting.WaitAsync(HangGuard));
+
+        var ready = Assert.Single(supervisor.History, state => state.ReadyForExecution);
+        Assert.Equal(connected.Snapshot, ready);
+        Assert.Equal(lookup == "confirmed" ? 9 : null, ready.ApplicationGeneration);
+        Assert.Equal(lookup == "confirmed" ? "worker-execution-ready" : "worker-execution-ready-application-unconfirmed",
+            ready.DiagnosticCode);
+        Assert.Empty(worker.ExecutedOperations);
+        Assert.Equal(WorkerExecutionStatus.Completed, (await supervisor.ExecuteAsync(Plain("after"))).Status);
+    }
+
     private static WorkerMpCommand Plain(string operationId) => new(operationId, "Cancellation", [], []);
 
     private static ExecutionWorkItem WorkItem() => new(Plain("unit"), Guid.NewGuid(), 1, default, 1,
@@ -992,6 +1208,27 @@ public sealed class CancellationDetachmentTests
 
         public ValueTask<IWorkerProcess> StartAsync(int generation, CancellationToken cancellationToken = default) =>
             ValueTask.FromResult<IWorkerProcess>(workers[Interlocked.Increment(ref _starts) - 1]);
+    }
+
+    // A running application whose Nth state read can be held; the read honors the
+    // caller's token, as the application coordinator's gate does.
+    private sealed class HeldApplication(int generation, int heldRead, Hold hold) : ISpatialAnalyzerLifecycleStateProvider
+    {
+        private int _reads;
+
+        public async Task<global::Briosa.SpatialAnalyzerLifecycleState> GetCurrentAsync(CancellationToken cancellationToken)
+        {
+            if (Interlocked.Increment(ref _reads) == heldRead)
+                await hold.WaitAsync(cancellationToken).ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
+            return new global::Briosa.SpatialAnalyzerLifecycleState
+            {
+                StateRevision = 1,
+                ApplicationState = global::Briosa.SpatialAnalyzerApplicationState.Running,
+                Ownership = global::Briosa.SpatialAnalyzerOwnership.External,
+                ApplicationGeneration = generation
+            };
+        }
     }
 
     private sealed class RunningApplication(int generation) : ISpatialAnalyzerLifecycleStateProvider

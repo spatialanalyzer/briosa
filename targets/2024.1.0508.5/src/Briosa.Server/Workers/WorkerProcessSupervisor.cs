@@ -132,10 +132,11 @@ internal sealed partial class WorkerProcessSupervisor :
         RunLifecycleAsync(StartCoreAsync, acceptance);
 
     public Task<WorkerLifecycleResult> ConnectAsync(int expectedGeneration, CancellationToken cancellationToken = default) =>
-        WaitAsCallerAsync(acceptance => ConnectAsync(expectedGeneration, acceptance), cancellationToken);
+        WaitAsCallerAsync(acceptance => ConnectAsync(expectedGeneration, acceptance, null), cancellationToken);
 
-    public Task<WorkerLifecycleResult> ConnectAsync(int expectedGeneration, LifecycleAcceptance acceptance) =>
-        RunLifecycleAsync(accepted => ConnectCoreAsync(expectedGeneration, accepted), acceptance);
+    public Task<WorkerLifecycleResult> ConnectAsync(int expectedGeneration, LifecycleAcceptance acceptance,
+        Func<CancellationToken, Task<int?>>? applicationGeneration) =>
+        RunLifecycleAsync(accepted => ConnectCoreAsync(expectedGeneration, accepted, applicationGeneration), acceptance);
 
     public Task<WorkerLifecycleResult> RecoverSdkAsync(int expectedGeneration, CancellationToken cancellationToken = default) =>
         WaitAsCallerAsync(acceptance => RecoverSdkAsync(expectedGeneration, acceptance), cancellationToken);
@@ -213,7 +214,8 @@ internal sealed partial class WorkerProcessSupervisor :
 
     private async Task<WorkerLifecycleResult> ConnectCoreAsync(
         int expectedGeneration,
-        LifecycleAcceptance acceptance)
+        LifecycleAcceptance acceptance,
+        Func<CancellationToken, Task<int?>>? applicationGeneration)
     {
         ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposeState) != 0, this);
         await _gate.WaitAsync(acceptance.CallerToken).ConfigureAwait(false);
@@ -252,44 +254,46 @@ internal sealed partial class WorkerProcessSupervisor :
 
             // The accepted ConnectEx exchange runs under the startup bound only. A caller
             // that stops waiting cannot interrupt it or retire the generation.
-            using var timeout = new CancellationTokenSource(_policy.StartupTimeout, _timeProvider);
             var correlationId = Guid.NewGuid();
             WorkerControlMessage response;
-            try
+            using (var timeout = new CancellationTokenSource(_policy.StartupTimeout, _timeProvider))
             {
-                await worker.SendAsync(
-                    WorkerControlMessage.Connect(correlationId),
-                    timeout.Token).ConfigureAwait(false);
-                response = await worker.ReceiveAsync(timeout.Token).ConfigureAwait(false);
-                if (response.Kind != WorkerControlMessageKind.ConnectionResult ||
-                    response.CorrelationId != correlationId ||
-                    response.Connection is null ||
-                    !ExactTargetIdentityPolicy.IsWellFormed(
-                        response.Connection.RuntimeIdentity))
+                try
                 {
-                    throw new InvalidDataException(
-                        "The worker returned an invalid connection response.");
+                    await worker.SendAsync(
+                        WorkerControlMessage.Connect(correlationId),
+                        timeout.Token).ConfigureAwait(false);
+                    response = await worker.ReceiveAsync(timeout.Token).ConfigureAwait(false);
+                    if (response.Kind != WorkerControlMessageKind.ConnectionResult ||
+                        response.CorrelationId != correlationId ||
+                        response.Connection is null ||
+                        !ExactTargetIdentityPolicy.IsWellFormed(
+                            response.Connection.RuntimeIdentity))
+                    {
+                        throw new InvalidDataException(
+                            "The worker returned an invalid connection response.");
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    // Only the startup bound can cancel this exchange.
+                    await RetireWorkerAsync(
+                        "connect-ex-timeout",
+                        connecting, lifecycleFailure: WorkerLifecycleFailure.ConnectionTimeout).ConfigureAwait(false);
+                    return CaptureLifecycleResult(false);
+                }
+                catch (Exception exception) when (IsRecoverableProcessFailure(exception))
+                {
+                    await RetireWorkerAsync(
+                        worker.HasExited
+                            ? "worker-exited-during-connect"
+                            : "sdk-connection-control-failed",
+                        connecting, lifecycleFailure: WorkerLifecycleFailure.ConnectionFailed).ConfigureAwait(false);
+                    return CaptureLifecycleResult(false);
                 }
             }
-            catch (OperationCanceledException)
-            {
-                // Only the startup bound can cancel this exchange.
-                await RetireWorkerAsync(
-                    "connect-ex-timeout",
-                    connecting, lifecycleFailure: WorkerLifecycleFailure.ConnectionTimeout).ConfigureAwait(false);
-                return CaptureLifecycleResult(false);
-            }
-            catch (Exception exception) when (IsRecoverableProcessFailure(exception))
-            {
-                await RetireWorkerAsync(
-                    worker.HasExited
-                        ? "worker-exited-during-connect"
-                        : "sdk-connection-control-failed",
-                    connecting, lifecycleFailure: WorkerLifecycleFailure.ConnectionFailed).ConfigureAwait(false);
-                return CaptureLifecycleResult(false);
-            }
 
-            return await ApplyConnectionResultAsync(response.Connection!, current)
+            return await ApplyConnectionResultAsync(response.Connection!, current, applicationGeneration)
                 .ConfigureAwait(false);
         }
         finally
@@ -301,7 +305,8 @@ internal sealed partial class WorkerProcessSupervisor :
     // Called with _gate held; the returned result captures the transition it describes.
     private async Task<WorkerLifecycleResult> ApplyConnectionResultAsync(
         WorkerConnectionSnapshot connection,
-        WorkerLifecycleSnapshot beforeConnection)
+        WorkerLifecycleSnapshot beforeConnection,
+        Func<CancellationToken, Task<int?>>? applicationGeneration)
     {
         if (connection.State != WorkerConnectionState.Connected)
         {
@@ -351,7 +356,7 @@ internal sealed partial class WorkerProcessSupervisor :
                 DiagnosticCode = "execution-readiness-probe-started",
                 TransitionedAt = _timeProvider.GetUtcNow()
             });
-        var verified = await VerifyWorkerExecutionAsync(connection)
+        var verified = await VerifyWorkerExecutionAsync(connection, applicationGeneration)
             .ConfigureAwait(false);
         return CaptureLifecycleResult(verified);
     }
@@ -395,32 +400,6 @@ internal sealed partial class WorkerProcessSupervisor :
         }
     }
 
-
-    public async Task<WorkerLifecycleSnapshot> AssociateApplicationGenerationAsync(int expectedGeneration,
-        int? applicationGeneration, CancellationToken cancellationToken = default)
-    {
-        await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
-        try
-        {
-            var current = Current;
-            if (current.Generation != expectedGeneration)
-                throw new WorkerGenerationConflictException(expectedGeneration, current.Generation);
-            if (current.State != WorkerLifecycleState.Ready ||
-                current.Connection?.State != WorkerConnectionState.Connected ||
-                current.ApplicationGeneration == applicationGeneration) return current;
-            PublishSnapshot(current with
-            {
-                ApplicationGeneration = applicationGeneration,
-                StateRevision = Interlocked.Increment(ref _stateRevision),
-                TransitionedAt = _timeProvider.GetUtcNow()
-            });
-            return Current;
-        }
-        finally
-        {
-            _gate.Release();
-        }
-    }
 
     // The caller keeps waiting for an accepted teardown, which its shutdown bounds limit.
     public Task<WorkerLifecycleResult> StopAsync(CancellationToken cancellationToken = default) =>
@@ -1146,76 +1125,116 @@ internal sealed partial class WorkerProcessSupervisor :
     }
 
     private async Task<bool> VerifyWorkerExecutionAsync(
-        WorkerConnectionSnapshot attachedConnection)
+        WorkerConnectionSnapshot attachedConnection,
+        Func<CancellationToken, Task<int?>>? applicationGeneration = null)
     {
         var worker = Worker ?? throw new InvalidOperationException("The worker is missing.");
+        var correlationId = Guid.NewGuid();
+        WorkerConnectionSnapshot verified;
         // The probe has its own bound; duration-class execution budgets never apply.
         // It belongs to an accepted exchange, so caller cancellation cannot quarantine.
-        using var timeout = new CancellationTokenSource(_policy.ReadinessProbeTimeout, _timeProvider);
-        var correlationId = Guid.NewGuid();
-        try
+        using (var timeout = new CancellationTokenSource(_policy.ReadinessProbeTimeout, _timeProvider))
         {
-            await worker.SendAsync(
-                WorkerControlMessage.VerifyExecution(correlationId),
-                timeout.Token).ConfigureAwait(false);
-            var response = await worker.ReceiveAsync(timeout.Token).ConfigureAwait(false);
-            if (response.Kind != WorkerControlMessageKind.ExecutionVerificationResult ||
-                response.CorrelationId != correlationId ||
-                response.Connection is null ||
-                response.Connection.State != WorkerConnectionState.Connected ||
-                response.Connection.RuntimeIdentity != attachedConnection.RuntimeIdentity ||
-                !ExactTargetIdentityPolicy.IsWellFormed(
-                    response.Connection.RuntimeIdentity))
+            try
             {
-                throw new InvalidDataException(
-                    "The worker returned an invalid execution-verification response.");
-            }
+                await worker.SendAsync(
+                    WorkerControlMessage.VerifyExecution(correlationId),
+                    timeout.Token).ConfigureAwait(false);
+                var response = await worker.ReceiveAsync(timeout.Token).ConfigureAwait(false);
+                if (response.Kind != WorkerControlMessageKind.ExecutionVerificationResult ||
+                    response.CorrelationId != correlationId ||
+                    response.Connection is null ||
+                    response.Connection.State != WorkerConnectionState.Connected ||
+                    response.Connection.RuntimeIdentity != attachedConnection.RuntimeIdentity ||
+                    !ExactTargetIdentityPolicy.IsWellFormed(
+                        response.Connection.RuntimeIdentity))
+                {
+                    throw new InvalidDataException(
+                        "The worker returned an invalid execution-verification response.");
+                }
 
-            if (response.Connection.ExecutionReadinessState ==
-                WorkerExecutionReadinessState.ExecutionReady)
+                if (response.Connection.ExecutionReadinessState !=
+                    WorkerExecutionReadinessState.ExecutionReady)
+                {
+                    await QuarantineExecutionTargetAsync(
+                        response.Connection,
+                        WorkerTerminationKind.Forced,
+                        response.Connection.DiagnosticCode,
+                        competingClientSuspected: false).ConfigureAwait(false);
+                    return false;
+                }
+
+                verified = response.Connection;
+            }
+            catch (OperationCanceledException)
             {
-                Transition(
-                    WorkerLifecycleState.Ready,
-                    _reportedProcessId,
-                    Current.LastTermination,
-                    "worker-execution-ready",
-                    response.Connection);
-                return true;
+                // Only the probe bound can cancel this exchange.
+                await QuarantineExecutionTargetAsync(
+                    attachedConnection,
+                    WorkerTerminationKind.Forced,
+                    "execution-readiness-probe-timeout",
+                    competingClientSuspected: true, failure: WorkerLifecycleFailure.ReadinessTimeout).ConfigureAwait(false);
+                return false;
             }
+            catch (Exception exception) when (IsRecoverableProcessFailure(exception))
+            {
+                var termination = worker.HasExited
+                    ? WorkerTerminationKind.Crash
+                    : WorkerTerminationKind.Forced;
+                await QuarantineExecutionTargetAsync(
+                    attachedConnection,
+                    termination,
+                    worker.HasExited
+                        ? "execution-readiness-worker-exited"
+                        : "execution-readiness-control-failed",
+                    competingClientSuspected: true).ConfigureAwait(false);
+                return false;
+            }
+        }
 
-            await QuarantineExecutionTargetAsync(
-                response.Connection,
-                WorkerTerminationKind.Forced,
-                response.Connection.DiagnosticCode,
-                competingClientSuspected: false).ConfigureAwait(false);
-            return false;
-        }
-        catch (OperationCanceledException)
+        if (applicationGeneration is null)
         {
-            // Only the probe bound can cancel this exchange.
-            await QuarantineExecutionTargetAsync(
-                attachedConnection,
-                WorkerTerminationKind.Forced,
-                "execution-readiness-probe-timeout",
-                competingClientSuspected: true, failure: WorkerLifecycleFailure.ReadinessTimeout).ConfigureAwait(false);
-            return false;
+            Transition(
+                WorkerLifecycleState.Ready,
+                _reportedProcessId,
+                Current.LastTermination,
+                "worker-execution-ready",
+                verified);
+            return true;
         }
-        catch (Exception exception) when (IsRecoverableProcessFailure(exception))
-        {
-            var termination = worker.HasExited
-                ? WorkerTerminationKind.Crash
-                : WorkerTerminationKind.Forced;
-            await QuarantineExecutionTargetAsync(
-                attachedConnection,
-                termination,
-                worker.HasExited
-                    ? "execution-readiness-worker-exited"
-                    : "execution-readiness-control-failed",
-                competingClientSuspected: true).ConfigureAwait(false);
-            return false;
-        }
+
+        // Readiness opens MP admission, so the Connect's application association is
+        // resolved first and published in the same snapshot. Admitted MP work can then
+        // never hold the gate ahead of the association (PR #315 review).
+        var associated = await ResolveApplicationGenerationAsync(applicationGeneration).ConfigureAwait(false);
+        Transition(
+            WorkerLifecycleState.Ready,
+            _reportedProcessId,
+            Current.LastTermination,
+            associated.HasValue ? "worker-execution-ready" : "worker-execution-ready-application-unconfirmed",
+            verified,
+            associateApplication: true,
+            applicationGeneration: associated);
+        return true;
     }
 
+    // Called with _gate held, inside the accepted Connect, before readiness is
+    // published. The startup bound limits it: the association is evidence about the
+    // application, not a readiness condition, so a generation that is not confirmed
+    // in time, or whose lookup fails, stays unassociated.
+    private async Task<int?> ResolveApplicationGenerationAsync(
+        Func<CancellationToken, Task<int?>> applicationGeneration)
+    {
+        using var bound = new CancellationTokenSource(_policy.StartupTimeout, _timeProvider);
+        try
+        {
+            return await applicationGeneration(bound.Token).WaitAsync(bound.Token).ConfigureAwait(false);
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            return null;
+        }
+    }
     private async Task QuarantineExecutionTargetAsync(
         WorkerConnectionSnapshot connection,
         WorkerTerminationKind termination,
@@ -1451,7 +1470,9 @@ internal sealed partial class WorkerProcessSupervisor :
         WorkerConnectionSnapshot? connection = null,
         WorkerIncidentSnapshot? incident = null,
         WorkerCleanupStatus? cleanupStatus = null,
-        WorkerLifecycleFailure lifecycleFailure = WorkerLifecycleFailure.None)
+        WorkerLifecycleFailure lifecycleFailure = WorkerLifecycleFailure.None,
+        bool associateApplication = false,
+        int? applicationGeneration = null)
     {
         var snapshot = new WorkerLifecycleSnapshot(
             state,
@@ -1468,7 +1489,9 @@ internal sealed partial class WorkerProcessSupervisor :
             AdmissionOpen: state == WorkerLifecycleState.Ready &&
                 _executionQueue is { IsClosed: false } queue && queue.Generation == _generation,
             ApplicationGeneration: connection?.State == WorkerConnectionState.Connected
-                ? (Current.Generation == _generation ? Current.ApplicationGeneration : null)
+                ? associateApplication
+                    ? applicationGeneration
+                    : Current.Generation == _generation ? Current.ApplicationGeneration : null
                 : null,
             CleanupStatus: cleanupStatus, LifecycleFailure: lifecycleFailure);
         PublishSnapshot(snapshot);
