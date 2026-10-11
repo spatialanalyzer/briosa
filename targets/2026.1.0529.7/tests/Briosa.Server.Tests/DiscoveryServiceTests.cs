@@ -542,8 +542,12 @@ public sealed class DiscoveryServiceTests
     public void PolicyFingerprintAlgorithmIsPinned()
     {
         // One reviewed row and no options: a change to the canonical form, or to
-        // the names of the duration and validation values it hashes, changes
-        // every deployed fingerprint and must be deliberate.
+        // the names of the values it hashes, changes every deployed fingerprint
+        // and must be deliberate. The values below changed deliberately when the
+        // digest gained the descriptor admission metadata (registry), the profile
+        // definition, the isolation mode, and the semantics version, and when
+        // classification risks switched from bit values to vocabulary names. Each
+        // value was computed independently from the documented canonical form.
         const string operationId = "file_operations.get_working_directory";
         var operation = SpatialAnalyzerApi.Operations.Single(candidate => candidate.OperationId == operationId);
         var row = new OperationClassificationRow(
@@ -559,11 +563,19 @@ public sealed class DiscoveryServiceTests
 
         var response = CreateService(policy).CreateCapabilities();
 
+        // [["file_operations.get_working_directory","Get Working Directory",
+        //   "ReadOnly","Safe","GlobalStateRead",["filesystem_metadata"]]]
         Assert.Equal(
-            "sha256:4889C014C50C63229C83A418CC5BE795ED6C2AA7C5FB6D87D43B977010E66E6A",
+            "sha256:49C553815856BEF168D5367B1E72B0499A0E6C18CC30B348B4175B24214CDCF3",
+            policy.RegistryFingerprint);
+        // file_operations.get_working_directory|filesystem_metadata|Quick|NoRecordedGap|Admissible
+        Assert.Equal(
+            "sha256:1B1D3C287B9EDC4DC024E80510CD3307F03D89DE64B359E51187F15807C1214C",
             policy.ClassificationFingerprint);
+        // semantics:1, profile:standard, profile-risks:<names>, profile-read-only-effect:false,
+        // isolation:SingleTenant, registry:<above>, classification:<above>, one per line.
         Assert.Equal(
-            "sha256:1CA661CA0F0A92D1F53E9C803FD605E50922F8A9721A1DFD60196976E2658277",
+            "sha256:05ED756AFEA7859E0935EEF9CF1186BF875A23C7233BD4D982D2647451830A36",
             response.PolicyFingerprint);
         Assert.Equal([OperationRiskFlag.FilesystemMetadata], Assert.Single(response.Operations).RiskFlags);
     }

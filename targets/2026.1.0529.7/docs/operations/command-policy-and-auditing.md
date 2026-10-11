@@ -178,10 +178,14 @@ and eventual worker execution resolution are separate correlated events.
 
 At startup Briosa records the resolved admission profile, the numbers of
 admitted operations, flag settings, and overrides, the target isolation mode,
-and a value-free policy fingerprint. The fingerprint is a SHA-256 over the
-resolved profile, flags, overrides, and the classification rows and reviewed
-request options of every registered operation, so any configuration or table
-change produces a new fingerprint. `ListCapabilities` reports the same value in
+and a value-free policy fingerprint. The fingerprint is a SHA-256 over every
+input of a static admission decision: a policy semantics version, the resolved
+profile and its definition, the isolation mode, flags, overrides, and for every
+registered operation its descriptor metadata (operation ID, MP step, effect,
+replay safety, effective execution scope, and author risk flags), classification
+row, and reviewed request options. Any configuration, descriptor, or table change
+that could change a decision produces a new fingerprint, and equal fingerprints
+mean equal static decisions. `ListCapabilities` reports the same value in
 `policy_fingerprint`, so a client can match a discovery response to the audit
 record of the policy that produced it.
 

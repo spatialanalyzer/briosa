@@ -83,7 +83,7 @@ The response reports the active policy:
 | Field | Meaning |
 | --- | --- |
 | `admission_profile` | The resolved profile name: `read-only`, `standard`, `device`, or `full`. |
-| `policy_fingerprint` | The value-free `sha256:<hex>` policy fingerprint that startup also records in the audit log. It covers the profile, flag settings, overrides, and the reviewed classification of every registered operation, so two servers with equal fingerprints make the same static admission decisions. It never reveals a configured value. |
+| `policy_fingerprint` | The value-free `sha256:<hex>` policy fingerprint that startup also records in the audit log. It covers every admission input: the policy semantics version, the profile and its definition, the isolation mode, flag settings, overrides, and for every registered operation its descriptor metadata (MP step, effect, replay safety, execution scope, and author risk flags), reviewed classification, and request options. Any change to an input changes the fingerprint, and two servers with equal fingerprints make the same static admission decisions. It never reveals a configured value. |
 
 Each entry includes its stable operation ID, gRPC service and RPC, fully qualified method, reviewed read-only/mutating/unknown effect classification, replay safety, and execution scope, plus its reviewed classification row from [`OperationClassification.cs`](../../src/Briosa.Server/Security/OperationClassification.cs):
 

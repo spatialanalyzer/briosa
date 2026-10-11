@@ -125,10 +125,13 @@ message ListCapabilitiesResponse {
   repeated OperationCapability operations = 5;
   // The resolved named admission profile: read-only, standard, device, or full.
   string admission_profile = 6;
-  // A value-free "sha256:<hex>" digest over the resolved profile, flag settings,
-  // per-operation overrides, and the reviewed classification and request options
-  // of every registered operation. It changes whenever an admission input
-  // changes and never reveals a configured value.
+  // A value-free "sha256:<hex>" digest over every admission input: the policy
+  // semantics version, the resolved profile and its definition, the isolation
+  // mode, flag settings, per-operation overrides, and for every registered
+  // operation its descriptor metadata (MP step, effect, replay safety, execution
+  // scope, author risk flags), reviewed classification, and request options. It
+  // changes whenever an admission input changes, equal values mean equal static
+  // admission decisions, and it never reveals a configured value.
   string policy_fingerprint = 7;
 }
 
