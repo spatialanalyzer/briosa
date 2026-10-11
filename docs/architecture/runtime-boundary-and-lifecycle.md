@@ -138,9 +138,12 @@ cancellation and the acceptance wins:
   that the application generation it observed before `ConnectEx` is still
   current, again under the startup bound, and publishes that association in the
   same state change that reports readiness. MP admission therefore opens only
-  after the association, and admitted MP work can never delay it. If the
-  application generation changed or cannot be confirmed in time, the generation
-  becomes ready without an application generation and with diagnostic
+  after the association, and admitted MP work can never delay it. Only an
+  observation that the same generation is still `RUNNING` confirms it; an
+  exited application, or one whose latest observation is unconfirmed (see
+  [application observation](#spatialanalyzer-application-ownership)), does not.
+  If the application generation changed or cannot be confirmed in time, the
+  generation becomes ready without an application generation and with diagnostic
   `worker-execution-ready-application-unconfirmed`. Heartbeats cannot run while
   the lookup holds the supervisor, so Connect then applies the heartbeat's checks
   itself: an exited worker, or a heartbeat that fell due during the lookup and
@@ -198,6 +201,36 @@ exact current generation, server-launched ownership, and a stopped SDK. It asks
 the retained process to close normally and does not escalate to machine-wide or
 uncertain process termination. Server shutdown stops its SDK generation but
 does not close SpatialAnalyzer.
+
+The server observes applications it did not launch on each application-state
+request and twice during each Connect. It lists running processes and their
+image names from one system snapshot and opens only processes with the
+configured executable's image name (`Spatial Analyzer64`, compared without
+regard to case) to confirm their exact executable path and start time. The cost
+therefore follows the number of SpatialAnalyzer processes, not the number of
+processes on the machine. A candidate that cannot be read is not selected.
+
+A scan can miss a running application whose details it could not read, so one
+missed scan does not end an external application's generation. The server
+checks the selected process directly by process ID, image name, and start time,
+without reading its modules:
+
+- **Same process still running.** The miss is ignored. State, generation, and
+  diagnostic stay as they were.
+- **Exit confirmed.** The process ID is unused, belongs to another program or to
+  a process with another start time, or the process has exited. The exit is
+  reported at once: `EXITED` with the same generation, or a new generation for
+  the one other eligible application found (a restart).
+- **Check failed too.** The application stays `RUNNING` with the same generation
+  and diagnostic `external-spatial-analyzer-unconfirmed`. Seeing the process
+  again restores `external-spatial-analyzer-running`. The third consecutive
+  unconfirmed observation treats the application as gone. If another eligible
+  application is running meanwhile, the state is `AMBIGUOUS`, because a restart
+  cannot be told apart from a second instance.
+
+Application observation never opens or closes MP admission. Readiness rests on
+the worker generation's own identity and probe evidence, and an unconfirmed
+observation cannot confirm a Connect's application association.
 
 ## Observability boundary
 
