@@ -9,6 +9,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 $targetRoot = Split-Path -Parent $PSScriptRoot
 $ledger = Get-Content -LiteralPath (Join-Path $targetRoot "docs/development/runtime-contract-migration.json") -Raw | ConvertFrom-Json
+Import-Module (Join-Path $PSScriptRoot "RetiredOperations.psm1") -Force
 $temporaryRoot = Join-Path ([IO.Path]::GetTempPath()) "briosa-runtime-migration-$([Guid]::NewGuid().ToString('N'))"
 [IO.Directory]::CreateDirectory($temporaryRoot) | Out-Null
 
@@ -45,6 +46,10 @@ try {
     Invoke-Buf -Arguments ($buildArguments + @("--exclude-source-info", "--as-file-descriptor-set", "-o", $currentPath))
     $baseline = Get-Content -LiteralPath $baselinePath -Raw | ConvertFrom-Json -AsHashtable
     $current = Get-Content -LiteralPath $currentPath -Raw | ConvertFrom-Json -AsHashtable
+    $retired = @(Remove-ReviewedOperationRetirement -Baseline $baseline -Current $current `
+        -LedgerPath (Join-Path $targetRoot "docs/development/retired-operations.json"))
+    $retiredBaselinePath = Join-Path $temporaryRoot "baseline-without-retired.json"
+    [IO.File]::WriteAllText($retiredBaselinePath, ($baseline | ConvertTo-Json -Depth 100 -Compress))
     $oldMessages = @{}
     $newMessages = @{}
     foreach ($file in $baseline.file) {
@@ -83,8 +88,8 @@ try {
     if ($seen.Count -ne 3) { throw "Expected exactly three reviewed robot ID corrections." }
     $normalizedPath = Join-Path $temporaryRoot "reviewed-runtime.json"
     [IO.File]::WriteAllText($normalizedPath, ($current | ConvertTo-Json -Depth 100 -Compress))
-    Invoke-Buf -Arguments @("breaking", $normalizedPath, "--against", $baselinePath, "--config", (Join-Path $targetRoot "buf.yaml"))
-    Write-Host "Verified three reviewed robot ID corrections; all remaining FILE checks passed."
+    Invoke-Buf -Arguments @("breaking", $normalizedPath, "--against", $retiredBaselinePath, "--config", (Join-Path $targetRoot "buf.yaml"))
+    Write-Host "Verified three reviewed robot ID corrections and $($retired.Count) reviewed operation retirement(s); all remaining FILE checks passed."
 }
 finally {
     Pop-Location

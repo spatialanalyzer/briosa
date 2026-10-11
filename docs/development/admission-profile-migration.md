@@ -39,8 +39,11 @@ for the profile definitions and precedence.
 
 | Target | Registered | `read-only` | `standard` (default) | `device` | `full` | Exclusive (never admitted) | Interactive (opt-in only) |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| 2026.1.0529.7 | 1,027 | 185 | 811 | 912 | 929 | 42 | 59 |
-| 2024.1.0508.5 | 996 | 181 | 792 | 878 | 895 | 45 | 59 |
+| 2026.1.0529.7 | 1,022 | 184 | 806 | 907 | 924 | 42 | 59 |
+| 2024.1.0508.5 | 991 | 180 | 787 | 873 | 890 | 45 | 59 |
+
+The counts exclude the five operations per target removed in the same major
+release; see [operation retirement](operation-retirement.md).
 
 Compared with the previous default, `standard` stops admitting these:
 

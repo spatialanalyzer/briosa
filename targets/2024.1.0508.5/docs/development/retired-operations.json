@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "spatial_analyzer_target": "2024.1.0508.5",
+  "description": "Reviewed operation retirements. eng/Verify-Protocol.ps1 removes exactly these RPCs, and the request, result and enum types they alone use, from the baseline descriptor before the FILE breaking check. Every other protocol change keeps the normal rules. Tests require each retired operation to be absent from the registry, discovery, classification and generated protocol.",
+  "decision": "D2 point 5 (https://github.com/spatialanalyzer/briosa/issues/243#issuecomment-6107759671) as decided on #308 (https://github.com/spatialanalyzer/briosa/issues/308#issuecomment-6109883364) and #310 (2026-10-11): delete operations whose NOT_SUPPORTED substitution does not work on the exact target.",
+  "retired_in_contract_major": 3,
+  "evidence": "docs/testing/evidence/probe-277-2024.1.0508.5-2026-10-07.md",
+  "operations": [
+    {
+      "operation_id": "construction_operations.make_callout_view_ref_list_wildcard_selection",
+      "mp_step": "Make a Callout View Ref List - WildCard Selection",
+      "service": "briosa.ConstructionOperations",
+      "rpc": "MakeCalloutViewRefListWildcardSelection",
+      "request": "briosa.MakeCalloutViewRefListWildcardSelectionRequest",
+      "result": "briosa.MakeCalloutViewRefListWildcardSelectionResult",
+      "enums": [],
+      "issue": 308,
+      "probe": 7,
+      "reason": "MP code 2, but the output getter never returned the callout view list (outputs 0 of 1). The SDK marks the result NOT_SUPPORTED and the interop has no callout-view list getter."
+    },
+    {
+      "operation_id": "construction_operations.add_collection_instruments_to_ref_list_wildcard_selection",
+      "mp_step": "Add Collection Instruments to a Ref List - WildCard Selection",
+      "service": "briosa.ConstructionOperations",
+      "rpc": "AddCollectionInstrumentsToRefListWildcardSelection",
+      "request": "briosa.AddCollectionInstrumentsToRefListWildcardSelectionRequest",
+      "result": "briosa.AddCollectionInstrumentsToRefListWildcardSelectionResult",
+      "enums": [],
+      "issue": 308,
+      "probe": 14,
+      "reason": "MP code 2, but reading the input list back never returned a value (outputs 0 of 1). The MP documents no return argument, so no getter exists."
+    },
+    {
+      "operation_id": "construction_operations.set_callout_view_properties",
+      "mp_step": "Set Callout View Properties",
+      "service": "briosa.ConstructionOperations",
+      "rpc": "SetCalloutViewProperties",
+      "request": "briosa.SetCalloutViewPropertiesRequest",
+      "result": "briosa.SetCalloutViewPropertiesResult",
+      "enums": [],
+      "issue": 310,
+      "probe": 8,
+      "reason": "SA rejects the substituted collection-object list setter for the callout view list (MP code -1). The SDK marks the argument NOT_SUPPORTED and the interop has no callout-view list setter."
+    },
+    {
+      "operation_id": "construction_operations.construct_circles_lines_from_surfaces",
+      "mp_step": "Construct Circles (Lines) From Surfaces",
+      "service": "briosa.ConstructionOperations",
+      "rpc": "ConstructCirclesLinesFromSurfaces",
+      "request": "briosa.ConstructCirclesLinesFromSurfacesRequest",
+      "result": "briosa.ConstructCirclesLinesFromSurfacesResult",
+      "enums": [
+        "briosa.CircleLineMode"
+      ],
+      "issue": 310,
+      "probe": 9,
+      "reason": "SA rejects Circle Line Mode sent with SetStringArg for both Circle and Line (MP code -1). The SDK marks the Circle Line Mode Type setter NOT_SUPPORTED and the interop has none."
+    },
+    {
+      "operation_id": "construction_operations.mirror_objects",
+      "mp_step": "Mirror Object(s)",
+      "service": "briosa.ConstructionOperations",
+      "rpc": "MirrorObjects",
+      "request": "briosa.MirrorObjectsRequest",
+      "result": "briosa.MirrorObjectsResult",
+      "enums": [
+        "briosa.MirrorFramePlane"
+      ],
+      "issue": 310,
+      "probe": 10,
+      "reason": "SA rejects the frame plane sent with SetStringArg (MP code -1). The SDK marks the MP Plane Type setter NOT_SUPPORTED and the interop has none."
+    }
+  ]
+}

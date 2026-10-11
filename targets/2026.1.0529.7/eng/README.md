@@ -15,7 +15,7 @@ dotnet test Briosa.slnx -c Release --no-build --no-restore
 ./eng/Verify-InteropArtifacts.ps1 -NoBuild
 ```
 
-- `Verify-Protocol.ps1` formats, lints, and builds the handwritten protobuf contracts with Buf. `-AgainstRef` optionally runs the file-level breaking check.
+- `Verify-Protocol.ps1` formats, lints, and builds the handwritten protobuf contracts with Buf. `-AgainstRef` optionally runs the file-level breaking check. `RetiredOperations.psm1` removes only the operations listed in `docs/development/retired-operations.json` from the baseline first; see [operation retirement](../../../docs/development/operation-retirement.md).
 - `Verify-InteropArtifacts.ps1` verifies the approved interop assembly, canonical API manifest, provenance, and binary allowlist.
 - `Test-LocalSpatialAnalyzerHost.ps1` verifies Debug source-host composition without starting SpatialAnalyzer.
 - `Test-RuntimePerformance.ps1` runs vendor-independent fake-worker measurements and structural bounded-state checks.

@@ -109,7 +109,6 @@ cloud_and_mesh_operations.raster_scan_edge_inspection,state_mutation,model_mutat
 cloud_and_mesh_operations.reset_cloud_bounding_box,state_mutation,model_mutation,,quick,no_recorded_gap,admissible,,false,true,true,true
 cloud_and_mesh_operations.rgb_cloud_point_filter,state_mutation,model_mutation,,quick,no_recorded_gap,admissible,,false,true,true,true
 cloud_and_mesh_operations.set_cloud_default_clipping_plane,state_mutation,model_mutation,,quick,no_recorded_gap,admissible,,false,true,true,true
-construction_operations.add_collection_instruments_to_ref_list_wildcard_selection,state_mutation,model_mutation,,quick,no_recorded_gap,admissible,,false,true,true,true
 construction_operations.add_surface_to_mesh_offset_along_reference_direction,state_mutation,model_mutation,,quick,no_recorded_gap,admissible,,false,true,true,true
 construction_operations.auto_arrange_callout_view,state_mutation,model_mutation,,quick,no_recorded_gap,admissible,,false,true,true,true
 construction_operations.average_set_of_groups,state_mutation,model_mutation,,quick,no_recorded_gap,admissible,,false,true,true,true
@@ -125,7 +124,6 @@ construction_operations.construct_b_splines_from_surfaces,state_mutation,model_m
 construction_operations.construct_boundary_points_from_cloud,state_mutation,model_mutation,,quick,no_recorded_gap,admissible,,false,true,true,true
 construction_operations.construct_circle,state_mutation,model_mutation,,quick,no_recorded_gap,admissible,,false,true,true,true
 construction_operations.construct_circles_from_surface_faces_runtime_select,state_mutation,interactive_ui,interactive_ui,interactive,no_recorded_gap,admissible,,false,false,false,false
-construction_operations.construct_circles_lines_from_surfaces,state_mutation,model_mutation,,quick,no_recorded_gap,admissible,,false,true,true,true
 construction_operations.construct_collection,state_mutation,model_mutation,,quick,no_recorded_gap,admissible,,false,true,true,true
 construction_operations.construct_cone,state_mutation,model_mutation,,quick,no_recorded_gap,admissible,,false,true,true,true
 construction_operations.construct_cones_from_surface_faces_runtime_select,state_mutation,interactive_ui,interactive_ui,interactive,no_recorded_gap,admissible,,false,false,false,false
@@ -276,7 +274,6 @@ construction_operations.get_ith_callout_position_in_callout_view,read_only,pure_
 construction_operations.get_number_of_callouts_in_callout_view,read_only,pure_read,,quick,no_recorded_gap,admissible,,true,true,true,true
 construction_operations.get_working_transform_of_object_fixed_xyz,read_only,pure_read,,quick,no_recorded_gap,admissible,,true,true,true,true
 construction_operations.invert_transform,state_mutation,model_mutation,,quick,no_recorded_gap,admissible,,false,true,true,true
-construction_operations.make_callout_view_ref_list_wildcard_selection,read_only,pure_read,,quick,no_recorded_gap,admissible,,true,true,true,true
 construction_operations.make_collection_instrument_id_runtime_select,read_only,interactive_ui,interactive_ui,interactive,no_recorded_gap,admissible,,false,false,false,false
 construction_operations.make_collection_instrument_ref_list_runtime_select,read_only,interactive_ui,interactive_ui,interactive,no_recorded_gap,admissible,,false,false,false,false
 construction_operations.make_collection_item_name_ref_list_wildcard_selection,read_only,pure_read,,quick,no_recorded_gap,admissible,,true,true,true,true
@@ -306,7 +303,6 @@ construction_operations.make_transform_from_doubles_fixed_xyz,read_only,pure_rea
 construction_operations.make_vector_name_ref_list_from_vector_group,read_only,pure_read,,quick,no_recorded_gap,admissible,,true,true,true,true
 construction_operations.make_vector_name_ref_list_runtime_select,read_only,interactive_ui,interactive_ui,interactive,no_recorded_gap,admissible,,false,false,false,false
 construction_operations.make_vector_names_unique_in_vector_group,state_mutation,model_mutation,,quick,no_recorded_gap,admissible,,false,true,true,true
-construction_operations.mirror_objects,state_mutation,model_mutation,,quick,no_recorded_gap,admissible,,false,true,true,true
 construction_operations.move_objects_point_to_point_delta,state_mutation,model_mutation,,quick,no_recorded_gap,admissible,,false,true,true,true
 construction_operations.move_objects_to_a_collection,state_mutation,model_mutation,,quick,no_recorded_gap,admissible,,false,true,true,true
 construction_operations.rename_callout_view,state_mutation,destructive_model,destructive,quick,no_recorded_gap,admissible,,false,true,true,true
@@ -315,7 +311,6 @@ construction_operations.rename_item,state_mutation,destructive_model,destructive
 construction_operations.rename_object,state_mutation,destructive_model,destructive,quick,no_recorded_gap,admissible,,false,true,true,true
 construction_operations.rename_point,state_mutation,destructive_model,destructive,quick,no_recorded_gap,admissible,,false,true,true,true
 construction_operations.rename_points_with_name_pattern,state_mutation,model_mutation,,quick,no_recorded_gap,admissible,,false,true,true,true
-construction_operations.set_callout_view_properties,state_mutation,model_mutation,,quick,no_recorded_gap,admissible,,false,true,true,true
 construction_operations.set_collection_instrument_ref_list_variable,state_mutation,model_mutation,,quick,no_recorded_gap,admissible,,false,true,true,true
 construction_operations.set_default_callout_view_properties,state_mutation,model_mutation,,quick,no_recorded_gap,admissible,,false,true,true,true
 construction_operations.set_ith_callout_position_in_callout_view,state_mutation,model_mutation,,quick,no_recorded_gap,admissible,,false,true,true,true

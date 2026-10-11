@@ -15,7 +15,19 @@ public sealed class ProbeCatalogTests
             .Distinct(StringComparer.Ordinal)
             .Order(StringComparer.Ordinal);
 
-        Assert.Equal(ProbeCatalog.ProbeNumbers.Order(StringComparer.Ordinal), covered);
+        Assert.Equal(ProbeCatalog.ActiveProbeNumbers.Order(StringComparer.Ordinal), covered);
+    }
+
+    [Fact]
+    public void RetiredProbesHaveNoStepsInEitherPhase()
+    {
+        Assert.Equal(["7", "8", "9", "10", "14"], ProbeCatalog.RetiredProbeNumbers);
+        Assert.All(ProbeCatalog.RetiredProbeNumbers, probe => Assert.Contains(probe, ProbeCatalog.ProbeNumbers));
+        foreach (var phase in new[] { ProbePhase.PublicApi, ProbePhase.Worker })
+        {
+            Assert.DoesNotContain(Plan(phase).Steps, step =>
+                ProbePlan.ExpandProbe(step.Probe).Intersect(ProbeCatalog.RetiredProbeNumbers, StringComparer.Ordinal).Any());
+        }
     }
 
     [Fact]

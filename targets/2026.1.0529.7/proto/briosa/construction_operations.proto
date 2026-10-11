@@ -10,7 +10,6 @@ option csharp_namespace = "Briosa";
 service ConstructionOperations {
   // Executes the "Get Active Collection Name" MP command.
   rpc GetActiveCollectionName(GetActiveCollectionNameRequest) returns (GetActiveCollectionNameResult);
-  rpc AddCollectionInstrumentsToRefListWildcardSelection(AddCollectionInstrumentsToRefListWildcardSelectionRequest) returns (AddCollectionInstrumentsToRefListWildcardSelectionResult);
   rpc AddSurfaceToMeshOffsetAlongReferenceDirection(AddSurfaceToMeshOffsetAlongReferenceDirectionRequest) returns (AddSurfaceToMeshOffsetAlongReferenceDirectionResult);
   rpc AutoArrangeCalloutView(AutoArrangeCalloutViewRequest) returns (AutoArrangeCalloutViewResult);
   rpc AverageSetOfGroups(AverageSetOfGroupsRequest) returns (AverageSetOfGroupsResult);
@@ -26,7 +25,6 @@ service ConstructionOperations {
   rpc ConstructBSplinesFromSurfaces(ConstructBSplinesFromSurfacesRequest) returns (ConstructBSplinesFromSurfacesResult);
   rpc ConstructCircle(ConstructCircleRequest) returns (ConstructCircleResult);
   rpc ConstructCirclesFromSurfaceFacesRuntimeSelect(ConstructCirclesFromSurfaceFacesRuntimeSelectRequest) returns (ConstructCirclesFromSurfaceFacesRuntimeSelectResult);
-  rpc ConstructCirclesLinesFromSurfaces(ConstructCirclesLinesFromSurfacesRequest) returns (ConstructCirclesLinesFromSurfacesResult);
   rpc ConstructCollection(ConstructCollectionRequest) returns (ConstructCollectionResult);
   rpc ConstructCone(ConstructConeRequest) returns (ConstructConeResult);
   rpc ConstructConesFromSurfaceFacesRuntimeSelect(ConstructConesFromSurfaceFacesRuntimeSelectRequest) returns (ConstructConesFromSurfaceFacesRuntimeSelectResult);
@@ -177,7 +175,6 @@ service ConstructionOperations {
   rpc GetNumberOfCalloutsInCalloutView(GetNumberOfCalloutsInCalloutViewRequest) returns (GetNumberOfCalloutsInCalloutViewResult);
   rpc GetWorkingTransformOfObjectFixedXyz(GetWorkingTransformOfObjectFixedXyzRequest) returns (GetWorkingTransformOfObjectFixedXyzResult);
   rpc InvertTransform(InvertTransformRequest) returns (InvertTransformResult);
-  rpc MakeCalloutViewRefListWildcardSelection(MakeCalloutViewRefListWildcardSelectionRequest) returns (MakeCalloutViewRefListWildcardSelectionResult);
   rpc MakeCollectionInstrumentIdRuntimeSelect(MakeCollectionInstrumentIdRuntimeSelectRequest) returns (MakeCollectionInstrumentIdRuntimeSelectResult);
   rpc MakeCollectionInstrumentRefListRuntimeSelect(MakeCollectionInstrumentRefListRuntimeSelectRequest) returns (MakeCollectionInstrumentRefListRuntimeSelectResult);
   rpc MakeCollectionItemNameRefListWildcardSelection(MakeCollectionItemNameRefListWildcardSelectionRequest) returns (MakeCollectionItemNameRefListWildcardSelectionResult);
@@ -207,7 +204,6 @@ service ConstructionOperations {
   rpc MakeVectorNameRefListFromVectorGroup(MakeVectorNameRefListFromVectorGroupRequest) returns (MakeVectorNameRefListFromVectorGroupResult);
   rpc MakeVectorNameRefListRuntimeSelect(MakeVectorNameRefListRuntimeSelectRequest) returns (MakeVectorNameRefListRuntimeSelectResult);
   rpc MakeVectorNamesUniqueInVectorGroup(MakeVectorNamesUniqueInVectorGroupRequest) returns (MakeVectorNamesUniqueInVectorGroupResult);
-  rpc MirrorObjects(MirrorObjectsRequest) returns (MirrorObjectsResult);
   rpc MoveObjectsPointToPointDelta(MoveObjectsPointToPointDeltaRequest) returns (MoveObjectsPointToPointDeltaResult);
   rpc MoveObjectsToACollection(MoveObjectsToACollectionRequest) returns (MoveObjectsToACollectionResult);
   rpc RenameCalloutView(RenameCalloutViewRequest) returns (RenameCalloutViewResult);
@@ -216,7 +212,6 @@ service ConstructionOperations {
   rpc RenameObject(RenameObjectRequest) returns (RenameObjectResult);
   rpc RenamePoint(RenamePointRequest) returns (RenamePointResult);
   rpc RenamePointsWithNamePattern(RenamePointsWithNamePatternRequest) returns (RenamePointsWithNamePatternResult);
-  rpc SetCalloutViewProperties(SetCalloutViewPropertiesRequest) returns (SetCalloutViewPropertiesResult);
   rpc SetCollectionInstrumentRefListVariable(SetCollectionInstrumentRefListVariableRequest) returns (SetCollectionInstrumentRefListVariableResult);
   rpc SetDefaultCalloutViewProperties(SetDefaultCalloutViewPropertiesRequest) returns (SetDefaultCalloutViewPropertiesResult);
   rpc SetIthCalloutPositionInCalloutView(SetIthCalloutPositionInCalloutViewRequest) returns (SetIthCalloutPositionInCalloutViewResult);
@@ -413,15 +408,6 @@ message SetDefaultCalloutViewPropertiesResult {
   MpExecutionDetails execution = 1000;
 }
 
-message SetCalloutViewPropertiesRequest {
-  repeated CollectionItemName callout_views = 1;
-  optional CalloutViewProperties properties = 2;
-}
-
-message SetCalloutViewPropertiesResult {
-  MpExecutionDetails execution = 1000;
-}
-
 message DeleteCalloutViewRequest {
   optional CollectionItemName callout_view = 1;
 }
@@ -603,16 +589,6 @@ message CalloutViewProperties {
   optional Font font = 9;
 }
 
-message MakeCalloutViewRefListWildcardSelectionRequest {
-  optional string collection_wildcard_criteria = 1; // default "*"
-  optional string callout_view_wildcard_criteria = 2; // default "*"
-}
-
-message MakeCalloutViewRefListWildcardSelectionResult {
-  repeated CollectionItemName callout_views = 1;
-  MpExecutionDetails execution = 1000;
-}
-
 message ConstructCircleRequest {
   optional CollectionObjectName circle_name = 1;
   optional Vector circle_center = 2;
@@ -620,26 +596,6 @@ message ConstructCircleRequest {
   optional double circle_radius = 4;
 }
 message ConstructCircleResult {
-  MpExecutionDetails execution = 1000;
-}
-
-enum CircleLineMode {
-  CIRCLE_LINE_MODE_UNSPECIFIED = 0;
-  CIRCLE_LINE_MODE_CIRCLE = 1;
-  CIRCLE_LINE_MODE_LINE = 2;
-}
-message ConstructCirclesLinesFromSurfacesRequest {
-  repeated CollectionObjectName surfaces = 1;
-  optional double minimum_diameter = 2;
-  optional double maximum_diameter = 3;
-  optional double tolerance = 4;
-  optional bool single_surface = 5;
-  optional CircleLineMode circle_line_mode = 6;
-  optional CollectionName destination_collection_name = 7;
-  optional string base_name = 8;
-}
-message ConstructCirclesLinesFromSurfacesResult {
-  repeated CollectionObjectName geometry_objects = 1;
   MpExecutionDetails execution = 1000;
 }
 
@@ -1156,16 +1112,6 @@ message SetCollectionInstrumentRefListVariableRequest {
   repeated CollectionInstrumentId value = 2;
 }
 message SetCollectionInstrumentRefListVariableResult {
-  MpExecutionDetails execution = 1000;
-}
-
-message AddCollectionInstrumentsToRefListWildcardSelectionRequest {
-  repeated CollectionInstrumentId collection_instrument_ref_list = 1;
-  optional string collection_wildcard_criteria = 2;
-  optional string instrument_wildcard_criteria = 3;
-}
-message AddCollectionInstrumentsToRefListWildcardSelectionResult {
-  repeated CollectionInstrumentId collection_instrument_ref_list = 1;
   MpExecutionDetails execution = 1000;
 }
 
@@ -2429,24 +2375,6 @@ message MakeVectorNamesUniqueInVectorGroupRequest {
 }
 
 message MakeVectorNamesUniqueInVectorGroupResult {
-  MpExecutionDetails execution = 1000;
-}
-
-enum MirrorFramePlane {
-  MIRROR_FRAME_PLANE_UNSPECIFIED = 0;
-  MIRROR_FRAME_PLANE_XY = 1;
-  MIRROR_FRAME_PLANE_XZ = 2;
-  MIRROR_FRAME_PLANE_YZ = 3;
-}
-
-message MirrorObjectsRequest {
-  repeated CollectionObjectName objects = 1;
-  optional CollectionObjectName frame_name = 2;
-  optional MirrorFramePlane frame_plane_to_mirror_around = 3;
-  optional bool copy = 4;
-}
-
-message MirrorObjectsResult {
   MpExecutionDetails execution = 1000;
 }
 

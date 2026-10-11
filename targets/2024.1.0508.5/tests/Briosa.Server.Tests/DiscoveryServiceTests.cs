@@ -412,6 +412,19 @@ public sealed class DiscoveryServiceTests
     }
 
     [Fact]
+    public void IncludeDeniedNeverListsRetiredOperations()
+    {
+        var retired = RetiredOperationTests.LoadLedger().Operations
+            .Select(operation => operation.OperationId)
+            .ToHashSet(StringComparer.Ordinal);
+
+        var all = CreateService(CreatePolicy()).CreateCapabilities(includeDenied: true);
+
+        Assert.NotEmpty(retired);
+        Assert.DoesNotContain(all.Operations, operation => retired.Contains(operation.OperationId));
+    }
+
+    [Fact]
     public async Task ListCapabilitiesRpcHonorsIncludeDenied()
     {
         var service = CreateService(CreatePolicy());

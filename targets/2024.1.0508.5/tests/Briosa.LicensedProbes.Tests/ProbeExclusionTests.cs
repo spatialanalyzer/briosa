@@ -376,6 +376,8 @@ public sealed class ProbeExclusionTests
     [InlineData("public-api", "17", "no steps in the public-api phase")]
     [InlineData("worker", "11", "no steps in the worker phase")]
     [InlineData("public-api", "24", "not a probe in the approved list")]
+    [InlineData("public-api", "7", "names a retired probe")]
+    [InlineData("worker", "14", "names a retired probe")]
     public async Task ARefusedExclusionExitsWithAUsageErrorBeforeAnyTransport(string phase, string probe, string message)
     {
         var (exit, output, error) = await Run("--phase", phase, "--dry-run", "--exclude-probe", probe);

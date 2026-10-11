@@ -37,6 +37,10 @@ try {
     $null = [IO.Directory]::CreateDirectory((Join-Path $fixture 'docs/development'))
     Copy-Item -LiteralPath (Join-Path $target 'eng/Test-MpArgumentNameMigration.ps1') -Destination (Join-Path $fixture 'eng')
     Copy-Item -LiteralPath (Join-Path $target 'docs/development/mp-argument-name-migration.json') -Destination (Join-Path $fixture 'docs/development')
+    # The reviewed operation retirements (#308, #310) are the only other accepted
+    # difference from the pinned baseline; eng/Test-RetiredOperationPolicy.ps1 tests them.
+    Copy-Item -LiteralPath (Join-Path $target 'eng/RetiredOperations.psm1') -Destination (Join-Path $fixture 'eng')
+    Copy-Item -LiteralPath (Join-Path $target 'docs/development/retired-operations.json') -Destination (Join-Path $fixture 'docs/development')
     $baseline = Join-Path $fixture 'baseline.json'
     & $BufPath build "$gitDirectory#ref=$($ledger.baseline),subdir=$subdirectory" --exclude-source-info --as-file-descriptor-set -o $baseline
     if ($LASTEXITCODE -ne 0) { throw 'Cannot build the pinned baseline.' }

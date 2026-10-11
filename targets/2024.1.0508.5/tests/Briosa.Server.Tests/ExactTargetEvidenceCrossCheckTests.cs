@@ -208,10 +208,10 @@ public sealed partial class ExactTargetEvidenceCrossCheckTests
         Assert.Contains(observed["robot_calibration_appliance_node_operations.clear_calibration_appliance_node_trap_manager_requests"].Inputs,
             binding => binding == new ObservedBinding("Calibration Appliance Node", "SetCollectionObjectNameArg2"));
         // Enum-dependent text literals are observed for each reviewed choice.
-        Assert.Contains(observed["construction_operations.construct_circles_lines_from_surfaces"].Inputs,
-            binding => binding == new ObservedBinding("Circle Line Mode", "SetStringArg"));
-        Assert.Contains(observed["construction_operations.construct_circles_lines_from_surfaces"].Outputs,
-            binding => binding == new ObservedBinding("Geometry Objects", "GetCollectionObjectNameRefListArg"));
+        Assert.Contains(observed["construction_operations.construct_polygonized_surface_from_point_clouds"].Inputs,
+            binding => binding == new ObservedBinding("Mesh Orientation", "SetStringArg"));
+        Assert.Contains(observed["construction_operations.construct_b_splines_from_surfaces"].Outputs,
+            binding => binding == new ObservedBinding("B-Spline List", "GetCollectionObjectNameRefListArg"));
     }
 
     [Fact]

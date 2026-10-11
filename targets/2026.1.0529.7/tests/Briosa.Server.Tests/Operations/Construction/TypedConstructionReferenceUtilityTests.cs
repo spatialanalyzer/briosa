@@ -12,11 +12,9 @@ public sealed class TypedConstructionReferenceUtilityTests
 {
     private static readonly string[] Ids =
     [
-        "construction_operations.add_collection_instruments_to_ref_list_wildcard_selection",
         "construction_operations.construct_surfaces_by_dissecting_surfaces_from_ref_list",
         "construction_operations.construct_vector_group_from_vector_name_ref_list",
         "construction_operations.get_collection_instrument_ref_list_variable",
-        "construction_operations.make_callout_view_ref_list_wildcard_selection",
         "construction_operations.make_collection_instrument_id_runtime_select",
         "construction_operations.make_collection_instrument_ref_list_runtime_select",
         "construction_operations.make_collection_vector_group_name_ref_list_runtime_select",
@@ -43,24 +41,15 @@ public sealed class TypedConstructionReferenceUtilityTests
     }
 
     [Fact]
-    public void InstrumentListsPreserveBindingOrderAndWildcardDefaults()
+    public void InstrumentListsPreserveBindingOrder()
     {
         Assert.Throws<ArgumentException>(() => SetCollectionInstrumentRefListVariableOperation.CreateCommand(new()));
-        Assert.Throws<ArgumentException>(() => AddCollectionInstrumentsToRefListWildcardSelectionOperation.CreateCommand(new()));
         var instrument = new Api.CollectionInstrumentId { CollectionName = "C", InstrumentId = 7 };
         var set = SetCollectionInstrumentRefListVariableOperation.CreateCommand(new()
             { Name = "instruments", Value = { instrument } });
         Assert.Equal(["SetStringArg", "SetColInstIdRefListArg"], set.InputArguments.Select(input => input.SdkBinding));
         Assert.Equal(7, Assert.Single(set.InputArguments[1]
             .RequireValue<WorkerCollectionInstrumentIdListValue>().Values).InstrumentId);
-
-        var add = AddCollectionInstrumentsToRefListWildcardSelectionOperation.CreateCommand(new()
-            { CollectionInstrumentRefList = { instrument } });
-        Assert.Equal(["SetColInstIdRefListArg", "SetStringArg", "SetStringArg"],
-            add.InputArguments.Select(input => input.SdkBinding));
-        Assert.Equal(["*", "*"], add.InputArguments.Skip(1)
-            .Select(input => input.RequireValue<WorkerTextValue>().Value));
-        Assert.Equal("GetColInstIdRefListArg", Assert.Single(add.OutputArguments).SdkBinding);
 
         var get = GetCollectionInstrumentRefListVariableOperation.CreateCommand(new() { Name = "instruments" });
         Assert.Equal("SetStringArg", Assert.Single(get.InputArguments).SdkBinding);
@@ -74,10 +63,6 @@ public sealed class TypedConstructionReferenceUtilityTests
     [Fact]
     public void ReferenceSelectorsPreserveExactBindingsAndDefaults()
     {
-        var callouts = MakeCalloutViewRefListWildcardSelectionOperation.CreateCommand(new());
-        Assert.Equal(["*", "*"], callouts.InputArguments
-            .Select(input => input.RequireValue<WorkerTextValue>().Value));
-        Assert.Equal("GetCollectionObjectNameRefListArg", Assert.Single(callouts.OutputArguments).SdkBinding);
         var events = MakeEventRefListWildcardSelectionOperation.CreateCommand(new());
         Assert.Equal(["*", "*"], events.InputArguments
             .Select(input => input.RequireValue<WorkerTextValue>().Value));
@@ -147,11 +132,11 @@ public sealed class TypedConstructionReferenceUtilityTests
             new WorkerRetrievedOutput("Instrument ID", WorkerMpValueKind.CollectionInstrumentId, instrument)))
             .InstrumentId.InstrumentId);
 
-        var item = new WorkerRetrievedOutput("Resultant Callout View List", WorkerMpValueKind.CollectionItemNameList,
+        var item = new WorkerRetrievedOutput("Resultant Collection Item Name Reference List", WorkerMpValueKind.CollectionItemNameList,
             new WorkerCollectionItemNameListValue(
                 [new WorkerCollectionItemNameValue("C", "CV", WorkerItemTypeValue.CalloutView)]));
-        Assert.Equal(Api.ItemType.CalloutView, Assert.Single(
-            MakeCalloutViewRefListWildcardSelectionOperation.CreateResult(Success(item)).CalloutViews).ItemType);
+        Assert.Equal(Api.ItemType.CalloutView, Assert.Single(MakeCollectionItemNameRefListWildcardSelectionOperation
+            .CreateResult(Success(item)).ResultantCollectionItemNameRefList).ItemType);
         var surface = new WorkerRetrievedOutput("Resultant Surfaces List", WorkerMpValueKind.CollectionObjectNameList,
             new WorkerCollectionObjectNameListValue(
                 [new WorkerCollectionObjectNameValue("C", "S", WorkerObjectTypeValue.Surface)]));
