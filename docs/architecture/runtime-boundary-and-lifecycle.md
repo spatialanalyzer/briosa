@@ -141,14 +141,19 @@ cancellation and the acceptance wins:
   after the association, and admitted MP work can never delay it. If the
   application generation changed or cannot be confirmed in time, the generation
   becomes ready without an application generation and with diagnostic
-  `worker-execution-ready-application-unconfirmed`. A caller that stops waiting
-  receives `CANCELLED` with diagnostic `sdk-lifecycle-caller-stopped-waiting`,
-  the state at that moment, and recovery guidance `REFRESH_STATE`. The exchange
-  holds the lifecycle transition until it finishes, so a concurrent lifecycle
-  request gets `sdk-lifecycle-transition-in-progress`. It then records its
-  terminal state and incident evidence exactly as it would for a caller that
-  waited. The caller refreshes state through `GetSpatialAnalyzerSdkState`,
-  discovery, or a later lifecycle RPC.
+  `worker-execution-ready-application-unconfirmed`. Heartbeats cannot run while
+  the lookup holds the supervisor, so Connect then applies the heartbeat's checks
+  itself: an exited worker, or a heartbeat that fell due during the lookup and
+  fails, retires the generation with the heartbeat's diagnostic (for example
+  `worker-exited`), and Connect fails instead of reporting readiness. A caller
+  that stops waiting receives `CANCELLED` with diagnostic
+  `sdk-lifecycle-caller-stopped-waiting`, the state at that moment, and recovery
+  guidance `REFRESH_STATE`. The exchange holds the lifecycle transition until it
+  finishes, so a concurrent lifecycle request gets
+  `sdk-lifecycle-transition-in-progress`. It then records its terminal state and
+  incident evidence exactly as it would for a caller that waited. The caller
+  refreshes state through `GetSpatialAnalyzerSdkState`, discovery, or a later
+  lifecycle RPC.
 
 Caller cancellation therefore never terminates a starting worker, retires a
 connecting generation, or quarantines a target during the readiness probe. Only

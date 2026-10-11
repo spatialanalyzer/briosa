@@ -360,10 +360,18 @@ public sealed class SpatialAnalyzerSdkLifecycleCoordinatorTests
             projection,
             new FakeApplicationStateProvider(RunningApplication(3)));
         var started = await coordinator.StartAsync(CancellationToken.None);
-        _ = await coordinator.ConnectAsync(
-            started.SdkGeneration,
-            reconnect: false,
-            CancellationToken.None);
+        try
+        {
+            _ = await coordinator.ConnectAsync(
+                started.SdkGeneration,
+                reconnect: false,
+                CancellationToken.None);
+        }
+        catch (SdkLifecycleException)
+        {
+            // A heartbeat that fell due before readiness was published found the
+            // loss inside Connect (#305); later heartbeats find it otherwise.
+        }
 
         var faulted = await WaitForState(
             coordinator,

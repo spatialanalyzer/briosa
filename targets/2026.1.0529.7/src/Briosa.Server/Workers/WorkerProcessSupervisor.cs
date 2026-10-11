@@ -1165,6 +1165,8 @@ internal sealed partial class WorkerProcessSupervisor :
                 }
 
                 verified = response.Connection;
+                // A successful probe is also proof of life for the heartbeat schedule.
+                _lastSuccessfulExchange = _timeProvider.GetTimestamp();
             }
             catch (OperationCanceledException)
             {
@@ -1207,6 +1209,19 @@ internal sealed partial class WorkerProcessSupervisor :
         // resolved first and published in the same snapshot. Admitted MP work can then
         // never hold the gate ahead of the association (PR #315 review).
         var associated = await ResolveApplicationGenerationAsync(applicationGeneration).ConfigureAwait(false);
+
+        // The lookup can hold the gate for up to its bound, and heartbeats skip that
+        // interval. Before readiness opens admission, apply the heartbeat's own checks
+        // and retire a dead worker exactly as the heartbeat would (PR #315 review).
+        var (alive, diagnosticCode, faultedConnection) =
+            await RecheckLivenessAfterHoldAsync().ConfigureAwait(false);
+        if (!alive)
+        {
+            await RetireWorkerAsync(diagnosticCode, faultedConnection,
+                lifecycleFailure: WorkerLifecycleFailure.ConnectionFailed).ConfigureAwait(false);
+            return false;
+        }
+
         Transition(
             WorkerLifecycleState.Ready,
             _reportedProcessId,
@@ -1235,6 +1250,27 @@ internal sealed partial class WorkerProcessSupervisor :
             return null;
         }
     }
+
+    // Called with _gate held after a section in which heartbeats could not run. A
+    // missing or exited worker fails at once. If a heartbeat fell due during the hold,
+    // the heartbeat exchange runs now, under its own timeout, so a broken channel, an
+    // unresponsive worker, or a lost SDK process is found before admission opens.
+    private async Task<(bool Healthy, string DiagnosticCode, WorkerConnectionSnapshot? Connection)>
+        RecheckLivenessAfterHoldAsync()
+    {
+        if (Worker is { HasExited: false } &&
+            _timeProvider.GetElapsedTime(_lastSuccessfulExchange) < _policy.HeartbeatInterval)
+            return (true, "worker-responsive", null);
+        try
+        {
+            return await ProbeWorkerAsync().ConfigureAwait(false);
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            return (false, "worker-heartbeat-monitor-failed", null);
+        }
+    }
+
     private async Task QuarantineExecutionTargetAsync(
         WorkerConnectionSnapshot connection,
         WorkerTerminationKind termination,

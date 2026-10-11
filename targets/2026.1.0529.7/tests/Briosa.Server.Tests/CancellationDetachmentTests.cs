@@ -41,6 +41,10 @@ public sealed class CancellationDetachmentTests
     private static readonly TimeSpan ReadinessProbeTimeout = TimeSpan.FromSeconds(4);
     private static readonly TimeSpan ExecutionBudget = TimeSpan.FromSeconds(3);
 
+    // Shorter than the startup bound, so a heartbeat can fall due during an
+    // application lookup before the lookup's own bound expires.
+    private static readonly TimeSpan ShortHeartbeatInterval = TimeSpan.FromSeconds(5);
+
     // Only a hang guard: handshakes and virtual time order every step.
     private static readonly TimeSpan HangGuard = TimeSpan.FromSeconds(30);
 
@@ -1104,6 +1108,136 @@ public sealed class CancellationDetachmentTests
         Assert.Equal(WorkerExecutionStatus.Completed, (await supervisor.ExecuteAsync(Plain("after"))).Status);
     }
 
+    // PR #315 follow-up review (P2): the application lookup holds the supervisor gate
+    // for up to its bound, so heartbeats skip that interval. A worker that exits
+    // meanwhile must be retired, as the heartbeat would retire it, before readiness is
+    // published, whether the lookup confirmed, timed out, or failed. This follows the
+    // review's steps: hold the second application read, let the worker exit, fire the
+    // heartbeat, and release the read (or let its bound expire).
+    [Theory]
+    [InlineData("confirmed")]
+    [InlineData("timeout")]
+    [InlineData("faulted")]
+    public async Task WorkerExitDuringAssociationRetiresTheGenerationInsteadOfPublishingReadiness(string lookup)
+    {
+        var secondRead = new Hold();
+        var worker = new ScriptedWorker { ReadyConnected = false };
+        var (supervisor, clock, _) = Create(worker, heartbeatInterval: ShortHeartbeatInterval);
+        await using var supervisorScope = supervisor.ConfigureAwait(false);
+        var coordinator = new SpatialAnalyzerSdkLifecycleCoordinator(supervisor,
+            new SpatialAnalyzerSdkLifecycleStateProjection(supervisor),
+            new HeldApplication(5, 2, secondRead, faultHeldRead: lookup == "faulted"));
+        await using var coordinatorScope = coordinator.ConfigureAwait(false);
+        _ = await coordinator.StartAsync(CancellationToken.None);
+        try
+        {
+            var connecting = coordinator.ConnectAsync(1, reconnect: false, CancellationToken.None);
+            await secondRead.Entered.WaitAsync(HangGuard);
+            Assert.False(coordinator.Current.ReadyForMp);
+            worker.Crash();
+            // The heartbeat falls due, but it cannot inspect the worker while the
+            // lookup holds the gate.
+            await clock.FireNextAsync(ShortHeartbeatInterval);
+            Assert.Equal(WorkerLifecycleState.Starting, supervisor.Current.State);
+            if (lookup == "timeout") await clock.FireNextAsync(StartupTimeout);
+            else secondRead.Release();
+
+            var failure = await Assert.ThrowsAsync<SdkLifecycleException>(() => connecting.WaitAsync(HangGuard));
+            Assert.Equal(StatusCode.Unavailable, failure.StatusCode);
+            Assert.Equal(global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.SdkConnectionFailed, failure.Detail.Kind);
+            Assert.Equal("worker-exited", failure.Detail.DiagnosticCode);
+            Assert.Equal(global::Briosa.LifecycleRecoveryGuidance.RecoverSdkWithoutReplay,
+                failure.Detail.RecoveryGuidance);
+            Assert.Equal(global::Briosa.SpatialAnalyzerSdkState.Faulted, failure.Detail.State.SdkState);
+            Assert.False(failure.Detail.State.ReadyForMp);
+            Assert.DoesNotContain(supervisor.History, state => state.ReadyForExecution);
+            Assert.Equal(WorkerLifecycleFailure.ConnectionFailed, supervisor.Current.LifecycleFailure);
+            Assert.Equal(WorkerIncidentKind.WorkerProcessExited, supervisor.Current.LastIncident!.Kind);
+            Assert.False(supervisor.Current.AdmissionOpen);
+            var rejected = await supervisor.ExecuteAsync(Plain("after-exit")).WaitAsync(HangGuard);
+            Assert.Equal(WorkerExecutionStatus.Unavailable, rejected.Status);
+            Assert.Equal(WorkerExecutionDisposition.NotStarted, rejected.ExecutionDisposition);
+            Assert.Empty(worker.ExecutedOperations);
+        }
+        finally
+        {
+            secondRead.Release();
+            clock.Advance(TimeSpan.FromHours(9));
+        }
+    }
+
+    // A heartbeat that fell due during the lookup runs before readiness is published:
+    // a healthy worker answers it and the Connect succeeds; a broken control channel
+    // retires the generation with the heartbeat's own diagnostic.
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task HeartbeatMissedDuringAssociationRunsBeforeReadiness(bool channelFaults)
+    {
+        var secondRead = new Hold();
+        var worker = new ScriptedWorker { ReadyConnected = false };
+        var (supervisor, clock, _) = Create(worker, heartbeatInterval: ShortHeartbeatInterval);
+        await using var supervisorScope = supervisor.ConfigureAwait(false);
+        var coordinator = new SpatialAnalyzerSdkLifecycleCoordinator(supervisor,
+            new SpatialAnalyzerSdkLifecycleStateProjection(supervisor), new HeldApplication(5, 2, secondRead));
+        await using var coordinatorScope = coordinator.ConfigureAwait(false);
+        _ = await coordinator.StartAsync(CancellationToken.None);
+        try
+        {
+            var connecting = coordinator.ConnectAsync(1, reconnect: false, CancellationToken.None);
+            await secondRead.Entered.WaitAsync(HangGuard);
+            worker.PingFaults = channelFaults;
+            await clock.FireNextAsync(ShortHeartbeatInterval);
+            Assert.Equal(0, worker.PingCount);
+            secondRead.Release();
+
+            if (channelFaults)
+            {
+                var failure = await Assert.ThrowsAsync<SdkLifecycleException>(() => connecting.WaitAsync(HangGuard));
+                Assert.Equal("worker-control-failed", failure.Detail.DiagnosticCode);
+                Assert.Equal(global::Briosa.SpatialAnalyzerSdkState.Faulted, failure.Detail.State.SdkState);
+                Assert.DoesNotContain(supervisor.History, state => state.ReadyForExecution);
+                Assert.Equal(WorkerIncidentKind.ControlChannelLost, supervisor.Current.LastIncident!.Kind);
+            }
+            else
+            {
+                var connected = await connecting.WaitAsync(HangGuard);
+                Assert.True(connected.ReadyForMp);
+                Assert.Equal(5, connected.ApplicationGeneration);
+                Assert.Equal(1, worker.PingCount);
+            }
+        }
+        finally
+        {
+            secondRead.Release();
+            clock.Advance(TimeSpan.FromHours(9));
+        }
+    }
+
+    // A worker that exits right after readiness is published is retired by the next
+    // heartbeat, as before.
+    [Fact]
+    public async Task WorkerExitRightAfterReadinessIsRetiredByTheNextHeartbeat()
+    {
+        var worker = new ScriptedWorker { ReadyConnected = false };
+        var (supervisor, clock, _) = Create(worker, heartbeatInterval: ShortHeartbeatInterval);
+        await using var supervisorScope = supervisor.ConfigureAwait(false);
+        var coordinator = new SpatialAnalyzerSdkLifecycleCoordinator(supervisor,
+            new SpatialAnalyzerSdkLifecycleStateProjection(supervisor), new RunningApplication(5));
+        await using var coordinatorScope = coordinator.ConfigureAwait(false);
+        _ = await coordinator.StartAsync(CancellationToken.None);
+        var connected = await coordinator.ConnectAsync(1, reconnect: false, CancellationToken.None);
+        Assert.True(connected.ReadyForMp);
+
+        worker.Crash();
+        await clock.FireNextAsync(ShortHeartbeatInterval);
+        var retired = await WaitFor(supervisor, state => state.State == WorkerLifecycleState.Degraded);
+
+        Assert.Equal("worker-exited", retired.DiagnosticCode);
+        Assert.False(coordinator.Current.ReadyForMp);
+        Assert.Equal(WorkerIncidentKind.WorkerProcessExited, supervisor.Current.LastIncident!.Kind);
+    }
+
     private static WorkerMpCommand Plain(string operationId) => new(operationId, "Cancellation", [], []);
 
     private static ExecutionWorkItem WorkItem() => new(Plain("unit"), Guid.NewGuid(), 1, default, 1,
@@ -1112,13 +1246,14 @@ public sealed class CancellationDetachmentTests
     private static (WorkerProcessSupervisor Supervisor, HeartbeatTestClock Clock, SequenceFactory Factory) Create(
         ScriptedWorker first,
         ScriptedWorker? second = null,
-        ILogger<WorkerProcessSupervisor>? supervisorLogger = null)
+        ILogger<WorkerProcessSupervisor>? supervisorLogger = null,
+        TimeSpan? heartbeatInterval = null)
     {
         var clock = new HeartbeatTestClock();
         var factory = new SequenceFactory(second is null ? [first] : [first, second]);
         var supervisor = new WorkerProcessSupervisor(factory,
-            new WorkerLifecyclePolicy(HeartbeatInterval, HeartbeatTimeout, StartupTimeout, ShutdownTimeout,
-                readinessProbeTimeout: ReadinessProbeTimeout),
+            new WorkerLifecyclePolicy(heartbeatInterval ?? HeartbeatInterval, HeartbeatTimeout, StartupTimeout,
+                ShutdownTimeout, readinessProbeTimeout: ReadinessProbeTimeout),
             TestDurationClasses.SyntheticQuickPolicy(ExecutionBudget, queueCapacity: 4),
             clock,
             supervisorLogger);
@@ -1212,14 +1347,19 @@ public sealed class CancellationDetachmentTests
 
     // A running application whose Nth state read can be held; the read honors the
     // caller's token, as the application coordinator's gate does.
-    private sealed class HeldApplication(int generation, int heldRead, Hold hold) : ISpatialAnalyzerLifecycleStateProvider
+    private sealed class HeldApplication(int generation, int heldRead, Hold hold, bool faultHeldRead = false)
+        : ISpatialAnalyzerLifecycleStateProvider
     {
         private int _reads;
 
         public async Task<global::Briosa.SpatialAnalyzerLifecycleState> GetCurrentAsync(CancellationToken cancellationToken)
         {
             if (Interlocked.Increment(ref _reads) == heldRead)
+            {
                 await hold.WaitAsync(cancellationToken).ConfigureAwait(false);
+                if (faultHeldRead) throw new InvalidOperationException("Scripted application lookup fault.");
+            }
+
             cancellationToken.ThrowIfCancellationRequested();
             return new global::Briosa.SpatialAnalyzerLifecycleState
             {
@@ -1259,6 +1399,7 @@ public sealed class CancellationDetachmentTests
         private int _stopCount;
         private int _terminationCount;
         private int _exited;
+        private int _pingFaults;
 
         public bool ReadyConnected { get; init; } = true;
         public bool ReadyFaulted { get; init; }
@@ -1279,6 +1420,16 @@ public sealed class CancellationDetachmentTests
         public IReadOnlyList<string> ExecutedOperations => [.. _executed];
         public bool HasExited => Volatile.Read(ref _exited) != 0;
         public int? ExitCode => HasExited ? 0 : null;
+
+        // A later ping fails as a broken control channel would.
+        public bool PingFaults
+        {
+            get => Volatile.Read(ref _pingFaults) != 0;
+            set => Volatile.Write(ref _pingFaults, value ? 1 : 0);
+        }
+
+        // The worker process exits on its own, without a supervisor termination.
+        public void Crash() => MarkExited();
 
         public async ValueTask SendAsync(WorkerControlMessage message, CancellationToken cancellationToken = default)
         {
@@ -1317,6 +1468,7 @@ public sealed class CancellationDetachmentTests
                 case WorkerControlMessageKind.Ping:
                     var ping = PingHold(Volatile.Read(ref _pingCount) + 1);
                     if (ping is not null) await ping.WaitAsync(cancellationToken).ConfigureAwait(false);
+                    if (PingFaults) throw new IOException("Scripted control channel fault.");
                     Interlocked.Increment(ref _pingCount);
                     return WorkerControlMessage.Pong(request.CorrelationId,
                         Connection(WorkerConnectionState.Connected, WorkerExecutionReadinessState.ExecutionReady));
