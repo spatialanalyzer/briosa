@@ -11,7 +11,8 @@ namespace Briosa.LicensedProbes;
 /// </summary>
 internal static class ProbeRecorder
 {
-    public const int SchemaVersion = 1;
+    // 2 adds the "exclusions" object and the "excluded" step classification.
+    public const int SchemaVersion = 2;
 
     public static string FileStem(ProbeSessionRecord record)
     {
@@ -61,6 +62,7 @@ internal static class ProbeRecorder
             json.WriteBoolean("completed", record.Completed);
             WriteNullable(json, "stopped_at", record.StoppedAt);
             WriteNullable(json, "stop_reason", record.StopReason);
+            WriteExclusions(json, record);
             json.WriteStartObject("identity");
             WriteNullable(json, "server_version", record.Identity.ServerVersion);
             WriteNullable(json, "server_source_revision", record.Identity.ServerSourceRevision);
@@ -82,6 +84,33 @@ internal static class ProbeRecorder
         }
 
         return Encoding.UTF8.GetString(buffer.ToArray()) + "\n";
+    }
+
+    // Always present, so a record with no exclusions says so explicitly.
+    private static void WriteExclusions(Utf8JsonWriter json, ProbeSessionRecord record)
+    {
+        json.WriteStartObject("exclusions");
+        var any = record.ExcludedProbes.Count > 0;
+        WriteNullable(json, "statement", any ? ProbePlan.ExclusionStatement(record.ExcludedProbes) : null);
+        WriteNullable(json, "excluded_by", any ? "operator" : null);
+
+        // The harness never records why; the committed evidence must.
+        json.WriteBoolean("reason_recorded_by_harness", false);
+        json.WriteStartArray("probes");
+        foreach (var probe in record.ExcludedProbes)
+        {
+            json.WriteNumberValue(probe);
+        }
+
+        json.WriteEndArray();
+        json.WriteStartArray("steps");
+        foreach (var step in record.Steps.Where(static step => step.Classification == StepClassification.Excluded))
+        {
+            json.WriteStringValue(step.Step.Id);
+        }
+
+        json.WriteEndArray();
+        json.WriteEndObject();
     }
 
     private static void WriteStep(Utf8JsonWriter json, ProbeStepRecord record)
@@ -211,6 +240,15 @@ internal static class ProbeRecorder
             text.Append(Introduction(record)).Append("\n\n");
         }
 
+        if (record.ExcludedProbes.Count > 0)
+        {
+            var excluded = record.Steps.Where(static step => step.Classification == StepClassification.Excluded).Select(static step => $"`{step.Step.Id}`");
+            text.Append(CultureInfo.InvariantCulture,
+                $"**{ProbePlan.ExclusionStatement(record.ExcludedProbes)}.** Excluded steps, never sent: {string.Join(", ", excluded)}. ")
+                .Append("Guard and fixture setup steps are never excluded. ")
+                .Append("The justification for each exclusion must be stated in the committed evidence.\n\n");
+        }
+
         text.Append("| Step | # | MP step | Variant | Observed result |\n");
         text.Append("| --- | --- | --- | --- | --- |\n");
         foreach (var step in record.Steps.Where(static step => step.Step.Kind is ProbeStepKind.Probe or ProbeStepKind.Check))
@@ -280,6 +318,11 @@ internal static class ProbeRecorder
     internal static string ResultText(ProbePhase phase, ProbeStepRecord record)
     {
         ArgumentNullException.ThrowIfNull(record);
+        if (record.Classification == StepClassification.Excluded)
+        {
+            return "Excluded by operator; not sent.";
+        }
+
         var outcome = record.Outcome;
         if (outcome is null)
         {
@@ -351,6 +394,7 @@ internal static class ProbeRecorder
         StepClassification.Observed => "observed",
         StepClassification.Unexpected => "unexpected",
         StepClassification.Refused => "refused",
+        StepClassification.Excluded => "excluded",
         _ => "not-run"
     };
 

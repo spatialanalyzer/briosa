@@ -54,7 +54,7 @@ exactly as it will be sent, using labels only and never values.
 | 10 | Mirror frame plane via `SetStringArg` | public | `p10` |
 | 11 | Mesh Orientation via `SetStringArg` | public | `p11`, `c11` |
 | 12 to 14 | Getters without evidence | public | `p12`, `p13`, `p14` |
-| 15, 16 | Restored `DeleteCloudPointsByXYZRange` bounds | public, disposable clouds only | `c15-*`, `p15`, `c16-*`, `p16` |
+| 15, 16 | Restored `DeleteCloudPointsByXYZRange` bounds | public, disposable clouds only | `c15-*`, `p15`, `c16-*`, `p16` (after `p15`, because #16 asks whether bounds are retained from #15) |
 | 17, 18 | Label case sensitivity | worker (the API cannot recase a label) | `p17-recased` (control `p02-shipped`), `p18-shipped`, `p18-recased` |
 | 19 to 21 | SDK step text (#246) | worker (both texts on both targets) | `p19-*`, `p20-*`, `p21-*` |
 | 22 | Vector group runtime-select getter (0.9.1) | public; the operator selects `B277::VG1` | `p22` |
@@ -122,6 +122,10 @@ death) are not included. They need their own authorization.
   is unknown, including `ExecuteStep` returning false or `GetMPStepResult`
   returning false, no further step is sent and nothing is retried. In the worker
   phase the harness also terminates its worker, as the server watchdog does.
+- **Operator exclusions only remove probes.** `--exclude-probe` removes one
+  probe's probe, variant, and check steps. It never removes a guard or fixture
+  setup step, and the remaining plan must pass the same validation. See
+  [Excluding probes](#excluding-probes).
 - **No sensitive data.** Records hold labels, MP step text, dispositions, MP
   codes, output retrieval, and counts of harness-created objects. They never
   hold argument or returned values, manifest contents, paths, or license data.
@@ -205,6 +209,54 @@ Without `--fixtures`, the dry run uses a built-in placeholder manifest. With
 `--output-directory`, it also writes JSON and markdown plan records marked as
 dry runs. Those records are not evidence.
 
+## Excluding probes
+
+`--exclude-probe <n>` removes probe `n` from the selected phase. `n` is one probe
+number from the approved list (the `#` column above), for example `11`. Repeat
+the option to exclude several probes. It is accepted in dry runs and licensed
+runs of both phases. Use it to collect the remaining probes when one probe
+cannot run, for example after it stopped a session. Rerun the whole phase on a
+clean SA as described in [When a session stops](#when-a-session-stops).
+
+```powershell
+& $probe --phase public-api --dry-run --fixtures C:\briosa-277\fixtures.json --exclude-probe 11
+```
+
+The harness refuses, before any client starts and with exit code `2`:
+
+- a value that is not one canonical probe number (`011`, `+11`, and `5-6` are
+  refused), a number outside the approved list, or the same number twice;
+- a probe that has no steps in the selected phase, for example `17` in the
+  public phase or `11` in the worker phase;
+- a probe that shares a step with another probe unless both are excluded:
+  `5` and `6` share `p05-06-value` (public) and `p05-06-shipped` (worker);
+- an exclusion that would remove a prerequisite of a remaining step. The plan
+  declares these explicitly, and the dry run prints them as
+  `prerequisites (run earlier)`. `p17-recased` needs its control
+  `p02-shipped`, so the worker phase refuses `--exclude-probe 2` unless
+  `--exclude-probe 17` is also given. `p16` needs `p15`, so the public phase
+  refuses `--exclude-probe 15` unless `16` is also excluded;
+- an exclusion that leaves no probe in the phase.
+
+Excluding a probe removes only its probe, variant, and check steps, for example
+`p11` and `c11`. Guard and fixture setup steps always run, including fixtures
+that only the excluded probe uses, so the remaining probes see the same SA
+state as in the full plan. The destructive `p15` and `p16` still require their
+disposable clouds and before-counts.
+
+The dry-run output, the JSON record, and the markdown record each state the
+exclusion, for example
+`Excluded by operator: #11 — reason not recorded by harness`. Excluded steps
+keep their place in the records with the classification `excluded` (markdown:
+"Excluded by operator; not sent."), which is distinct from `not-run`, a planned
+step that a stop or refusal prevented. A licensed run completes, with exit code
+`0`, when every step that was not excluded is observed.
+
+The harness does not record why a probe was excluded. **Every exclusion must be
+justified in the committed evidence**: name the earlier record that stopped (or
+the other reason), the step, and its stop reason, and state that the excluded
+probe remains unanswered by this record.
+
 ## Licensed session (only after the session-time go-ahead)
 
 Use the package and harness built from the same reviewed commit. Pass
@@ -262,7 +314,7 @@ non-sensitive attestation references, as for `Test-LicensedSpatialAnalyzer.ps1`.
 
 4. Run `Test-LicensedRunnerState.ps1 -Phase Postflight`. Close SA without saving.
 
-Exit code `0` means every step was observed as planned. `1` means the session
+Exit code `0` means every step that was not excluded was observed as planned. `1` means the session
 stopped or was refused, and the record says where and why. `2` means a usage or
 manifest error, and nothing started.
 
@@ -275,13 +327,25 @@ the licensed-runner recovery steps: close residual Briosa and SDK processes,
 close every SA instance, and start a clean one. Other stop reasons, such as a
 failed fixture step, unmet requirement, or failed control, also end the phase.
 After fixing the cause, rerun the whole phase from step 1 on a clean SA. Steps
-are never resumed or replayed individually.
+are never resumed or replayed individually. To collect the remaining probes
+without the probe that stopped the session, rerun the whole phase from step 1
+on a clean SA with `--exclude-probe` (see [Excluding probes](#excluding-probes)).
+The rerun repeats every guard, fixture, and remaining probe step; it never
+resumes the stopped session.
 
 ## Recording
 
-Each phase writes `probe-277-<phase>-2024.1.0508.5.json` (structured, schema 1)
+Each phase writes `probe-277-<phase>-2024.1.0508.5.json` (structured, schema 2;
+schema 2 adds the `exclusions` object and the `excluded` step classification)
 and a markdown draft in the style of
 [`string-setters-2026-09-28.md`](evidence/string-setters-2026-09-28.md). Review
 the draft, add follow-up tasks, and commit it under `docs/testing/evidence/`
-as observations, not vendor guarantees. Never transfer one target's
-observations to the other target.
+as observations, not vendor guarantees. A record made with `--exclude-probe`
+must carry the justification for each exclusion before it is committed. Never
+transfer one target's observations to the other target.
+
+## Recorded sessions
+
+| Date | Record |
+| --- | --- |
+| 2026-10-07 | [Licensed probe session on SA `2024.1.0508.5`](evidence/probe-277-2024.1.0508.5-2026-10-07.md). Both phases completed, with probes excluded through `--exclude-probe`. The record lists the open questions and follow-up issues. |

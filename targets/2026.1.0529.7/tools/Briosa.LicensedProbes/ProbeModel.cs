@@ -133,6 +133,11 @@ internal sealed record ProbeStep(
 
     public ProbeRequirement? Requirement { get; init; }
 
+    // Steps that must run earlier in the same session for this step's result to
+    // mean what the plan says (for example a control or a before-count). An
+    // operator exclusion that would remove one of them is refused.
+    public IReadOnlyList<string> Prerequisites { get; init; } = [];
+
     /// <summary>The exact sequence shipped by this target for the request.</summary>
     public WorkerMpCommand ShippedCommand => Operation.Build(Request);
 

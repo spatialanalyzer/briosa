@@ -15,6 +15,7 @@ internal static class LicensedProbeProgram
               --connected-sa-attested-version 2024.1.0508.5 --connected-sa-attestation-reference <id>
           Optional: --activated-sdk-attestation-reference <id> --harness-revision <sha>
               --step-timeout-seconds <5-600> --operator-timeout-seconds <30-1800>
+              --exclude-probe <n> (repeatable; a probe number of the selected phase, e.g. 11)
         """;
 
     public static IProbeTransport CreateTransport(ProbeOptions options)
@@ -39,11 +40,11 @@ internal static class LicensedProbeProgram
         ArgumentNullException.ThrowIfNull(clock);
 
         ProbeOptions options;
-        FixtureManifest manifest;
+        ProbePlan plan;
         try
         {
             options = ProbeOptions.Parse(arguments);
-            manifest = options.FixturesPath is null
+            var manifest = options.FixturesPath is null
                 ? FixtureManifest.Placeholder
                 : FixtureManifest.Parse(await File.ReadAllTextAsync(options.FixturesPath, cancellationToken).ConfigureAwait(false));
             if (!options.DryRun && !File.Exists(manifest.UiProfileFile))
@@ -51,6 +52,9 @@ internal static class LicensedProbeProgram
             if (options.OutputDirectory is not null && Directory.Exists(options.OutputDirectory) &&
                 Directory.EnumerateFileSystemEntries(options.OutputDirectory).Any())
                 throw new ProbeUsageException("--output-directory must be new or empty; records are never overwritten.");
+
+            // An exclusion outside this phase or of a prerequisite is a usage error.
+            plan = ProbePlan.Create(options.Phase, manifest, options.ExcludedProbes);
         }
         catch (ProbeUsageException exception)
         {
@@ -70,7 +74,6 @@ internal static class LicensedProbeProgram
             return 2;
         }
 
-        var plan = ProbePlan.Create(options.Phase, manifest);
         if (options.DryRun)
         {
             await output.WriteAsync(plan.RenderDryRun()).ConfigureAwait(false);
@@ -102,9 +105,16 @@ internal static class LicensedProbeProgram
 
         var written = ProbeRecorder.Write(record, options.OutputDirectory!);
         var observed = record.Steps.Count(static step => step.Classification == StepClassification.Observed);
+        var excluded = record.Steps.Count(static step => step.Classification == StepClassification.Excluded);
         await output.WriteLineAsync(string.Create(CultureInfo.InvariantCulture,
-            $"Phase {ProbePlan.PhaseName(record.Phase)}: {observed} of {record.Steps.Count} steps observed; " +
+            $"Phase {ProbePlan.PhaseName(record.Phase)}: {observed} of {record.Steps.Count - excluded} steps observed; " +
+            $"excluded_steps={excluded}; " +
             $"completed={record.Completed}; stopped_at={record.StoppedAt ?? "none"}; stop_reason={record.StopReason ?? "none"}.")).ConfigureAwait(false);
+        if (record.ExcludedProbes.Count > 0)
+        {
+            await output.WriteLineAsync(ProbePlan.ExclusionStatement(record.ExcludedProbes) + ".").ConfigureAwait(false);
+        }
+
         await output.WriteLineAsync($"Records: {Path.GetFileName(written.JsonPath)}, {Path.GetFileName(written.MarkdownPath)}").ConfigureAwait(false);
         return record.Completed ? 0 : 1;
     }
