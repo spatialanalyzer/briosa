@@ -35,11 +35,11 @@ internal static class ProbeCatalog
     public static IReadOnlyList<string> ProbeNumbers { get; } =
         [.. Enumerable.Range(1, 23).Select(static number => number.ToString(CultureInfo.InvariantCulture))];
 
-    // Retired with the operations they probed (#308, #310): the operations were removed
-    // because these probes showed their NOT_SUPPORTED substitutions do not work on either
-    // exact target. Their numbers keep their meaning in the 2026-10-07 records; the plan
-    // no longer sends them.
-    public static IReadOnlyList<string> RetiredProbeNumbers { get; } = ["7", "8", "9", "10", "14"];
+    // Retired with the operations they probed (#308, #310, #307): the operations were
+    // removed because these probes showed their NOT_SUPPORTED substitutions do not work
+    // on either exact target. Their numbers keep their meaning in the 2026-10-07 records;
+    // the plan no longer sends them.
+    public static IReadOnlyList<string> RetiredProbeNumbers { get; } = ["7", "8", "9", "10", "14", "15", "16"];
 
     public static IReadOnlyList<string> ActiveProbeNumbers { get; } =
         [.. ProbeNumbers.Except(RetiredProbeNumbers, StringComparer.Ordinal)];
@@ -130,16 +130,6 @@ internal static class ProbeCatalog
     internal static IReadOnlyList<(string Name, double X, double Y, double Z)> MeasuredPoints { get; } =
         [("P1", 0, 0, 0.1), ("P2", 100, 0, 5), ("P3", 0, 100, 5)];
 
-    // Every point has X = 5 except the two outside the X range. The deleted
-    // count distinguishes how omitted Y/Z bounds are treated (#16):
-    // unbounded deletes six, bounds retained from #15 delete two, zero bounds
-    // delete one, and an ignored range deletes none.
-    internal static IReadOnlyList<(string Name, double X, double Y, double Z)> DeletePoints { get; } =
-    [
-        ("D1", 0, 0, 0), ("D2", 5, 5, 5), ("D3", 5, 0, 0), ("D4", 5, 20, 20),
-        ("D5", 20, 20, 20), ("D7", 5, 21, 21), ("D8", 5, 8, 8), ("D9", 5, 9, 9)
-    ];
-
     private static void AddCommonGeometry(StepList steps)
     {
         AddPointGroup(steps, FixtureNames.GroupOne, GroupOnePoints);
@@ -197,7 +187,6 @@ internal static class ProbeCatalog
     private static void AddPublicFixtures(StepList steps)
     {
         AddCommonGeometry(steps);
-        AddPointGroup(steps, FixtureNames.GroupDelete, DeletePoints);
         steps.Setup("s-grid-GRID", "Lay out a planar 5 x 5 point grid for the polygonize cloud",
             ProbeOperations.ConstructPointsOnGrid, new Api.ConstructPointsLayoutOnGridRequest
             {
@@ -208,10 +197,6 @@ internal static class ProbeCatalog
                 ZMin = 0, ZMax = 0, ZCount = 1
             });
         steps.Add(CloudSetup("s-cloud-CPOLY", FixtureNames.GroupGrid, FixtureNames.PolygonizeCloud, null, steps.Phase));
-        steps.Add(CloudSetup("s-cloud-CDEL15", FixtureNames.GroupDelete, FixtureNames.DeleteCloudAllBounds,
-            FixtureNames.DeleteCloudAllBoundsKey, steps.Phase));
-        steps.Add(CloudSetup("s-cloud-CDEL16", FixtureNames.GroupDelete, FixtureNames.DeleteCloudPartialBounds,
-            FixtureNames.DeleteCloudPartialBoundsKey, steps.Phase));
     }
 
     private static void AddWorkerFixtures(StepList steps) => AddCommonGeometry(steps);
@@ -246,32 +231,6 @@ internal static class ProbeCatalog
                 CollectionObjectName = Object(FixtureNames.GroupOne, Api.ObjectType.PointGroup),
                 UseNumberSuffix = true
             });
-
-        AddDeleteProbe(steps, "15", FixtureNames.DeleteCloudAllBounds, FixtureNames.DeleteCloudAllBoundsKey, [],
-            "All six bounds set, Delete Inside = TRUE",
-            static request =>
-            {
-                request.XMin = 4; request.XMax = 6;
-                request.YMin = 15; request.YMax = 25;
-                request.ZMin = 15; request.ZMax = 25;
-            },
-            [
-                new ProbeHypothesis("all six bounds honored (two points inside)", "points_count", "6"),
-                new ProbeHypothesis("nothing deleted", "points_count", "8")
-            ]);
-        // #16 asks whether omitted bounds are retained from #15, so p15 must run first.
-        AddDeleteProbe(steps, "16", FixtureNames.DeleteCloudPartialBounds, FixtureNames.DeleteCloudPartialBoundsKey, ["p15"],
-            "Only X bounds set (Y and Z omitted), Delete Inside = TRUE",
-            static request =>
-            {
-                request.XMin = 4; request.XMax = 6;
-            },
-            [
-                new ProbeHypothesis("omitted Y/Z bounds not applied (unbounded)", "points_count", "2"),
-                new ProbeHypothesis("omitted Y/Z bounds retained from #15", "points_count", "6"),
-                new ProbeHypothesis("omitted Y/Z bounds treated as zero", "points_count", "7"),
-                new ProbeHypothesis("nothing deleted", "points_count", "8")
-            ]);
 
         steps.Probe("p23", "23", "Vector group properties with a one-third in-tolerance fraction",
             ProbeOperations.GetVectorGroupProperties, new Api.GetVectorGroupPropertiesRequest
@@ -399,46 +358,6 @@ internal static class ProbeCatalog
             ProbeOperations.SetUserInterfaceProfile, Profile(manifest), CommandVariant.Omit(ProfileFileLabel));
         steps.Variant("p04-blank", "4", "User interface profile with a blank file",
             ProbeOperations.SetUserInterfaceProfile, Profile(manifest), CommandVariant.Blank(ProfileFileLabel));
-    }
-
-    private static void AddDeleteProbe(
-        StepList steps,
-        string probe,
-        string cloud,
-        string fixtureKey,
-        IReadOnlyList<string> earlierProbes,
-        string purpose,
-        Action<Api.DeleteCloudPointsByXYZRangeRequest> bounds,
-        IReadOnlyList<ProbeHypothesis> hypotheses)
-    {
-        var cloudName = Object(cloud, Api.ObjectType.Cloud);
-        steps.Add(new ProbeStep($"c{probe}-before", probe, ProbeStepKind.Check, steps.Phase,
-            $"Count points in disposable cloud {cloud} before deletion",
-            ProbeOperations.GetCloudPointCount, new Api.GetCloudPointCountRequest { CloudName = cloudName },
-            CommandVariant.Shipped, ProbeOutcomes.Succeeded)
-        {
-            Hypotheses = [new ProbeHypothesis("fixture intact", "points_count", "8")],
-            Requirement = new ProbeRequirement("the disposable cloud holds exactly the eight fixture points",
-                static (_, outcome) => outcome.Observations.TryGetValue("points_count", out var count) &&
-                    string.Equals(count, "8", StringComparison.Ordinal))
-        });
-        var request = new Api.DeleteCloudPointsByXYZRangeRequest { DeleteInside = true };
-        request.CloudNames.Add(cloudName);
-        bounds(request);
-        steps.Add(new ProbeStep($"p{probe}", probe, ProbeStepKind.Probe, steps.Phase, purpose,
-            ProbeOperations.DeleteCloudPointsByXyzRange, request, CommandVariant.Shipped, ProbeOutcomes.AnyDeterminateSdkOutcome)
-        {
-            DestructiveTarget = fixtureKey,
-            Prerequisites = [$"c{probe}-before", .. earlierProbes]
-        });
-        steps.Add(new ProbeStep($"c{probe}-after", probe, ProbeStepKind.Check, steps.Phase,
-            $"Count points in disposable cloud {cloud} after deletion",
-            ProbeOperations.GetCloudPointCount, new Api.GetCloudPointCountRequest { CloudName = cloudName },
-            CommandVariant.Shipped, ProbeOutcomes.Succeeded)
-        {
-            Hypotheses = hypotheses,
-            Prerequisites = [$"p{probe}"]
-        });
     }
 
     private static ProbeStep CloudSetup(string id, string group, string cloud, string? fixtureKey, ProbePhase phase) =>

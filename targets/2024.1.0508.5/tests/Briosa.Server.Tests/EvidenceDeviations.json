@@ -45,54 +45,6 @@
       "provenance": "evidence/sa/2024.1.0508.5/bindings.json: construct_polygonized_surface_from_point_clouds ordinal 1; src/Briosa.Server/Operations/ConstructionOperations/PointsAndClouds/ConstructPolygonizedSurfaceFromPointCloudsOperation.cs; #290 seed."
     },
     {
-      "command": "Delete Cloud Points by X Y Z Range",
-      "argument": "X Min",
-      "binding": "SetDoubleArg",
-      "kind": "setter-not-supported",
-      "rationale": "NOT_SUPPORTED substitution: the captured 2024 signature records this optional bound as a binding not emitted by the exporter. The operation sends a present bound with SetDoubleArg and omits an absent one, matching the reviewed contract restored by #236. No licensed 2024 observation; at-risk.",
-      "provenance": "evidence/sa/2024.1.0508.5/bindings.json: delete_cloud_points_by_xyz_range ordinal 1 (setter unavailable); #236; ExactSdkBindingRegressionTests; #290 first run."
-    },
-    {
-      "command": "Delete Cloud Points by X Y Z Range",
-      "argument": "X Max",
-      "binding": "SetDoubleArg",
-      "kind": "setter-not-supported",
-      "rationale": "NOT_SUPPORTED substitution: the captured 2024 signature records this optional bound as a binding not emitted by the exporter. The operation sends a present bound with SetDoubleArg and omits an absent one, matching the reviewed contract restored by #236. No licensed 2024 observation; at-risk.",
-      "provenance": "evidence/sa/2024.1.0508.5/bindings.json: delete_cloud_points_by_xyz_range ordinal 2 (setter unavailable); #236; ExactSdkBindingRegressionTests; #290 first run."
-    },
-    {
-      "command": "Delete Cloud Points by X Y Z Range",
-      "argument": "Y Min",
-      "binding": "SetDoubleArg",
-      "kind": "setter-not-supported",
-      "rationale": "NOT_SUPPORTED substitution: the captured 2024 signature records this optional bound as a binding not emitted by the exporter. The operation sends a present bound with SetDoubleArg and omits an absent one, matching the reviewed contract restored by #236. No licensed 2024 observation; at-risk.",
-      "provenance": "evidence/sa/2024.1.0508.5/bindings.json: delete_cloud_points_by_xyz_range ordinal 3 (setter unavailable); #236; ExactSdkBindingRegressionTests; #290 first run."
-    },
-    {
-      "command": "Delete Cloud Points by X Y Z Range",
-      "argument": "Y Max",
-      "binding": "SetDoubleArg",
-      "kind": "setter-not-supported",
-      "rationale": "NOT_SUPPORTED substitution: the captured 2024 signature records this optional bound as a binding not emitted by the exporter. The operation sends a present bound with SetDoubleArg and omits an absent one, matching the reviewed contract restored by #236. No licensed 2024 observation; at-risk.",
-      "provenance": "evidence/sa/2024.1.0508.5/bindings.json: delete_cloud_points_by_xyz_range ordinal 4 (setter unavailable); #236; ExactSdkBindingRegressionTests; #290 first run."
-    },
-    {
-      "command": "Delete Cloud Points by X Y Z Range",
-      "argument": "Z Min",
-      "binding": "SetDoubleArg",
-      "kind": "setter-not-supported",
-      "rationale": "NOT_SUPPORTED substitution: the captured 2024 signature records this optional bound as a binding not emitted by the exporter. The operation sends a present bound with SetDoubleArg and omits an absent one, matching the reviewed contract restored by #236. No licensed 2024 observation; at-risk.",
-      "provenance": "evidence/sa/2024.1.0508.5/bindings.json: delete_cloud_points_by_xyz_range ordinal 5 (setter unavailable); #236; ExactSdkBindingRegressionTests; #290 first run."
-    },
-    {
-      "command": "Delete Cloud Points by X Y Z Range",
-      "argument": "Z Max",
-      "binding": "SetDoubleArg",
-      "kind": "setter-not-supported",
-      "rationale": "NOT_SUPPORTED substitution: the captured 2024 signature records this optional bound as a binding not emitted by the exporter. The operation sends a present bound with SetDoubleArg and omits an absent one, matching the reviewed contract restored by #236. No licensed 2024 observation; at-risk.",
-      "provenance": "evidence/sa/2024.1.0508.5/bindings.json: delete_cloud_points_by_xyz_range ordinal 6 (setter unavailable); #236; ExactSdkBindingRegressionTests; #290 first run."
-    },
-    {
       "command": "Make a Point Name - Ensure Unique",
       "argument": "Point Name",
       "binding": "GetPointNameArg",

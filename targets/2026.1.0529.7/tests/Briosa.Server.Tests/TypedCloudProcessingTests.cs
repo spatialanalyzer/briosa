@@ -96,7 +96,6 @@ public sealed class TypedCloudProcessingTests
         {
             CloudNames = { clouds }, Points = { pointA }
         }, options);
-        await client.DeleteCloudPointsByXYZRangeAsync(new() { CloudNames = { clouds } }, options);
         await client.GenerateGeneralMeshAsync(new()
         {
             OutputMeshName = Object("Meshes", "MeshA"), CloudsToMesh = { clouds }
@@ -108,7 +107,7 @@ public sealed class TypedCloudProcessingTests
         }, options);
 
         Assert.Equal("Inspection completed", raster.SummaryResult);
-        Assert.Equal(15, worker.Commands.Count);
+        Assert.Equal(14, worker.Commands.Count);
         Assert.Equal(7, worker.Commands[0].InputArguments.Count);
         Assert.Equal(0, worker.Commands[0].InputArguments[4].RequireValue<WorkerDoubleValue>().Value);
         Assert.Equal(0, worker.Commands[0].InputArguments[5].RequireValue<WorkerIntegerValue>().Value);
@@ -147,11 +146,10 @@ public sealed class TypedCloudProcessingTests
 
         Assert.Equal(0, worker.Commands[11].InputArguments[2].RequireValue<WorkerDoubleValue>().Value);
         Assert.False(worker.Commands[11].InputArguments[3].RequireValue<WorkerBooleanValue>().Value);
-        Assert.Equal(["Cloud Names", "Delete Inside"], worker.Commands[12].InputArguments.Select(argument => argument.Name));
-        Assert.Equal(6, worker.Commands[13].InputArguments.Count);
-        Assert.True(worker.Commands[13].InputArguments[4].RequireValue<WorkerBooleanValue>().Value);
-        Assert.True(worker.Commands[13].InputArguments[5].RequireValue<WorkerBooleanValue>().Value);
-        Assert.Equal("C:\\temp\\mesh.json", worker.Commands[14].InputArguments[6].RequireValue<WorkerTextValue>().Value);
+        Assert.Equal(6, worker.Commands[12].InputArguments.Count);
+        Assert.True(worker.Commands[12].InputArguments[4].RequireValue<WorkerBooleanValue>().Value);
+        Assert.True(worker.Commands[12].InputArguments[5].RequireValue<WorkerBooleanValue>().Value);
+        Assert.Equal("C:\\temp\\mesh.json", worker.Commands[13].InputArguments[6].RequireValue<WorkerTextValue>().Value);
     }
 
     [Fact]
@@ -207,7 +205,6 @@ public sealed class TypedCloudProcessingTests
             FilterCloudsToVectorGroupsResolvePointsOperation.Descriptor,
             RGBCloudPointFilterOperation.Descriptor,
             DeleteCloudPointsByRadialDistanceFromPointsOperation.Descriptor,
-            DeleteCloudPointsByXYZRangeOperation.Descriptor,
             GenerateGeneralMeshOperation.Descriptor
         };
 
@@ -219,7 +216,6 @@ public sealed class TypedCloudProcessingTests
         }
 
         Assert.Equal(DestructiveRiskFlags, DeleteCloudPointsByRadialDistanceFromPointsOperation.Descriptor.RiskFlags);
-        Assert.Equal(DestructiveRiskFlags, DeleteCloudPointsByXYZRangeOperation.Descriptor.RiskFlags);
     }
 
 

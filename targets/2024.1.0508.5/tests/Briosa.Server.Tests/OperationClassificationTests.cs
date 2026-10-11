@@ -16,9 +16,9 @@ public sealed class OperationClassificationTests
         new(StringComparer.Ordinal)
         {
             ["read-only"] = 180,
-            ["standard"] = 787,
-            ["device"] = 873,
-            ["full"] = 890
+            ["standard"] = 786,
+            ["device"] = 872,
+            ["full"] = 889
         };
 
     private const int ExpectedInteractiveOperations = 59;

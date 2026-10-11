@@ -146,10 +146,13 @@ internal static class ProbeOperations
             ("differs_from_input", Observations.Flag(result.CollectionObjectName is not null &&
                 !string.Equals(result.CollectionObjectName.ObjectName, request.CollectionObjectName.ObjectName, StringComparison.Ordinal)))));
 
-    public static ProbeOperation DeleteCloudPointsByXyzRange { get; } = Op<Api.DeleteCloudPointsByXYZRangeRequest, Api.DeleteCloudPointsByXYZRangeResult>(
-        Ops.CloudAndMeshOperations.DeleteCloudPointsByXYZRangeOperation.Descriptor,
-        Ops.CloudAndMeshOperations.DeleteCloudPointsByXYZRangeOperation.CreateCommand,
-        static (invoker, request, options) => CloudAndMesh(invoker).DeleteCloudPointsByXYZRangeAsync(request, options),
+    // The reviewed destructive operation. No planned step uses it since probes 15 and 16
+    // were retired with Delete Cloud Points by X Y Z Range (#307); it is the #307
+    // re-probe control (R0), and ProbePlan limits it to one harness-created cloud.
+    public static ProbeOperation DeleteCloudPointsByRadialDistanceFromPoints { get; } = Op<Api.DeleteCloudPointsByRadialDistanceFromPointsRequest, Api.DeleteCloudPointsByRadialDistanceFromPointsResult>(
+        Ops.CloudAndMeshOperations.DeleteCloudPointsByRadialDistanceFromPointsOperation.Descriptor,
+        Ops.CloudAndMeshOperations.DeleteCloudPointsByRadialDistanceFromPointsOperation.CreateCommand,
+        static (invoker, request, options) => CloudAndMesh(invoker).DeleteCloudPointsByRadialDistanceFromPointsAsync(request, options),
         static result => result.Execution);
 
     public static ProbeOperation VectorGroupRuntimeSelect { get; } = Op<Api.MakeCollectionVectorGroupNameRefListRuntimeSelectRequest, Api.MakeCollectionVectorGroupNameRefListRuntimeSelectResult>(

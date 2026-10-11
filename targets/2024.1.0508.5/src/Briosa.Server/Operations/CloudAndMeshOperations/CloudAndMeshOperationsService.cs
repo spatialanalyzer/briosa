@@ -98,11 +98,6 @@ internal sealed class CloudAndMeshOperationsService(OperationExecutor executor)
         executor.ExecuteAsync(request, context, DeleteCloudPointsByRadialDistanceFromPointsOperation.Descriptor,
             DeleteCloudPointsByRadialDistanceFromPointsOperation.CreateCommand, DeleteCloudPointsByRadialDistanceFromPointsOperation.OutputContracts, DeleteCloudPointsByRadialDistanceFromPointsOperation.CreateResult);
 
-    [OperationImplementation("cloud_and_mesh_operations.delete_cloud_points_by_xyz_range")]
-    public override Task<Api.DeleteCloudPointsByXYZRangeResult> DeleteCloudPointsByXYZRange(Api.DeleteCloudPointsByXYZRangeRequest request, ServerCallContext context) =>
-        executor.ExecuteAsync(request, context, DeleteCloudPointsByXYZRangeOperation.Descriptor,
-            DeleteCloudPointsByXYZRangeOperation.CreateCommand, DeleteCloudPointsByXYZRangeOperation.OutputContracts, DeleteCloudPointsByXYZRangeOperation.CreateResult);
-
     [OperationImplementation("cloud_and_mesh_operations.generate_general_mesh")]
     public override Task<Api.GenerateGeneralMeshResult> GenerateGeneralMesh(Api.GenerateGeneralMeshRequest request, ServerCallContext context) =>
         executor.ExecuteAsync(request, context, GenerateGeneralMeshOperation.Descriptor,

@@ -5,7 +5,9 @@ compatibility contract stays at major 2 until the major-3 freeze pull request
 bumps it. Decided by D2 point 5 on
 [#243](https://github.com/spatialanalyzer/briosa/issues/243#issuecomment-6107759671)
 and on [#308](https://github.com/spatialanalyzer/briosa/issues/308#issuecomment-6109883364)
-and [#310](https://github.com/spatialanalyzer/briosa/issues/310#issuecomment-6109883530).
+and [#310](https://github.com/spatialanalyzer/briosa/issues/310#issuecomment-6109883530),
+and for `DeleteCloudPointsByXYZRange` on
+[#307](https://github.com/spatialanalyzer/briosa/issues/307#issuecomment-6113702460).
 
 An operation is retired, meaning deleted as a complete vertical slice, when
 licensed evidence on the exact target shows that it cannot work through the SDK
@@ -27,12 +29,13 @@ exact-target evidence of either target.
 | `construction_operations.set_callout_view_properties` | Set Callout View Properties | 8 | MP code -1. | The SDK marks the callout view list `NOT_SUPPORTED`; the interop has no callout-view list setter, and the collection-object list setter was rejected. |
 | `construction_operations.construct_circles_lines_from_surfaces` | Construct Circles (Lines) From Surfaces | 9 | MP code -1 for both `Circle` and `Line`. | The SDK marks the Circle Line Mode Type setter `NOT_SUPPORTED`; the interop has none. |
 | `construction_operations.mirror_objects` | Mirror Object(s) | 10 | MP code -1. | The SDK marks the MP Plane Type setter `NOT_SUPPORTED`; the interop has none. |
+| `cloud_and_mesh_operations.delete_cloud_points_by_xyz_range` | Delete Cloud Points by X Y Z Range | 15, 16 | MP code -1 with all six bounds and with only the X bounds; no point was deleted. | The six bounds are Optional Double, which the SDK marks `NOT_SUPPORTED`; no interop setter carries an optional double, and no other MP uses the type. Without its bounds the step is not a range delete. |
 
 The evidence is each target's probe record:
 [2026](../../targets/2026.1.0529.7/docs/testing/evidence/probe-277-2026.1.0529.7-2026-10-07.md)
 and [2024](../../targets/2024.1.0508.5/docs/testing/evidence/probe-277-2024.1.0508.5-2026-10-07.md).
 The records stay unchanged as history. The licensed probe harness no longer
-sends probes 7 to 10 and 14, and their numbers are not reused.
+sends probes 7 to 10 and 14 to 16, and their numbers are not reused.
 
 `ConstructPolygonizedSurfaceFromPointClouds` is not retired. Its Mesh
 Orientation substitution stays at risk until the isolated re-probe in
@@ -43,15 +46,18 @@ Orientation substitution stays at risk until the isolated re-probe in
 - Regenerate from the major-3 protocol artifact. The RPCs, their request and
   result messages, and the `CircleLineMode` and `MirrorFramePlane` enums are
   gone, so code that used them stops compiling instead of failing at run time.
-- Remove client facades and methods for the five operations.
+- Remove client facades and methods for the six operations.
 - To select callout views, `MakeCollectionItemNameRefListWildcardSelection` with
   the callout-view item type uses a different MP step. That item type has not
   been observed on a licensed run.
 - A reference list is a client-side value in Briosa, so a caller that needs an
   instrument list can build it directly.
 - No replacement exists for setting callout view properties on a list, for
-  circle and line extraction from surfaces, or for mirroring objects on these
-  exact targets.
+  circle and line extraction from surfaces, for mirroring objects, or for
+  deleting cloud points by an X Y Z box on these exact targets.
+  `DeleteCloudPointsByRadialDistanceFromPoints` deletes by distance from points;
+  it has different semantics and no licensed validation yet (it is the control
+  step of the #307 re-probe).
 
 ## How the protocol check accepts exactly these removals
 

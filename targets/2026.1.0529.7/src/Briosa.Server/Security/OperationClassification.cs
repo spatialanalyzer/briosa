@@ -124,7 +124,6 @@ internal static class OperationClassification
             new("cloud_and_mesh_operations.cloud_display_control", None, Quick, NoRecordedGap, Admissible),
             new("cloud_and_mesh_operations.consolidate_mesh", None, Quick, NoRecordedGap, Admissible),
             new("cloud_and_mesh_operations.delete_cloud_points_by_radial_distance_from_points", Destructive, Quick, NoRecordedGap, Admissible),
-            new("cloud_and_mesh_operations.delete_cloud_points_by_xyz_range", Destructive, Quick, NoRecordedGap, Admissible),
             new("cloud_and_mesh_operations.enable_all_cloud_cross_sections", None, Quick, NoRecordedGap, Admissible),
             new("cloud_and_mesh_operations.enable_disable_cloud_cross_sections", None, Quick, NoRecordedGap, Admissible),
             new("cloud_and_mesh_operations.enable_single_cloud_cross_section", None, Quick, NoRecordedGap, Admissible),

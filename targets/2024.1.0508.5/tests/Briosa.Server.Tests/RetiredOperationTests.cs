@@ -54,6 +54,31 @@ public sealed class RetiredOperationTests
         });
     }
 
+    [Fact]
+    public void LedgerListsExactlyTheReviewedRetirements()
+    {
+        // #308 (probes 7, 14), #310 (probes 8 to 10) and #307 (probes 15, 16), decided 2026-10-11.
+        var expected = new Dictionary<string, (int Issue, int[] Probes)>(StringComparer.Ordinal)
+        {
+            ["construction_operations.make_callout_view_ref_list_wildcard_selection"] = (308, [7]),
+            ["construction_operations.add_collection_instruments_to_ref_list_wildcard_selection"] = (308, [14]),
+            ["construction_operations.set_callout_view_properties"] = (310, [8]),
+            ["construction_operations.construct_circles_lines_from_surfaces"] = (310, [9]),
+            ["construction_operations.mirror_objects"] = (310, [10]),
+            ["cloud_and_mesh_operations.delete_cloud_points_by_xyz_range"] = (307, [15, 16])
+        };
+
+        var ledger = LoadLedger();
+
+        Assert.Equal(expected.Keys.Order(StringComparer.Ordinal),
+            ledger.Operations.Select(operation => operation.OperationId).Order(StringComparer.Ordinal));
+        Assert.All(ledger.Operations, operation =>
+        {
+            Assert.Equal(expected[operation.OperationId].Issue, operation.Issue);
+            Assert.Equal(expected[operation.OperationId].Probes, operation.Probes);
+        });
+    }
+
     [Theory]
     [MemberData(nameof(RetiredOperationIds))]
     public void RetiredOperationIsNotRegisteredRoutedOrClassified(string operationId)
@@ -111,6 +136,8 @@ public sealed class RetiredOperationTests
                 operation.GetProperty("request").GetString()!,
                 operation.GetProperty("result").GetString()!,
                 [.. operation.GetProperty("enums").EnumerateArray().Select(name => name.GetString()!)],
+                operation.GetProperty("issue").GetInt32(),
+                [.. operation.GetProperty("probes").EnumerateArray().Select(probe => probe.GetInt32())],
                 operation.GetProperty("reason").GetString()!))
             .ToArray();
         return new RetiredOperationLedger(
@@ -209,5 +236,7 @@ public sealed class RetiredOperationTests
         string Request,
         string Result,
         IReadOnlyList<string> Enums,
+        int Issue,
+        IReadOnlyList<int> Probes,
         string Reason);
 }

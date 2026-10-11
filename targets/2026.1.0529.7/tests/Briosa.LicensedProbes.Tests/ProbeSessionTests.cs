@@ -251,26 +251,12 @@ public sealed class ProbeSessionTests
     }
 
     [Fact]
-    public async Task AModifiedDisposableCloudStopsBeforeTheDeletion()
-    {
-        var plan = Plan(ProbePhase.PublicApi);
-        var transport = new FakeTransport(ProbePhase.PublicApi, step => step.Id == "c15-before"
-            ? TestSupport.Outcome(ProbeOutcomeKind.Succeeded, ("points_count", "9"))
-            : TestSupport.Succeeding(step));
-
-        var record = await Run(plan, transport);
-
-        Assert.Equal("c15-before", record.StoppedAt);
-        Assert.DoesNotContain("p15", transport.Executed);
-    }
-
-    [Fact]
     public async Task HypothesesAreEvaluatedAgainstObservations()
     {
         var record = await Run(Plan(ProbePhase.PublicApi), new FakeTransport(ProbePhase.PublicApi, TestSupport.Succeeding));
 
-        var partial = record.Steps.Single(static step => step.Step.Id == "c16-after");
-        Assert.Equal("omitted Y/Z bounds not applied (unbounded)", Assert.Single(partial.Hypotheses, static h => h.Matched).Label);
+        var planes = record.Steps.Single(static step => step.Step.Id == "c05-06-value");
+        Assert.Equal("both named planes created", Assert.Single(planes.Hypotheses, static h => h.Matched).Label);
     }
 
     [Fact]

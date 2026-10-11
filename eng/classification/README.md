@@ -139,16 +139,17 @@ otherwise, both releases document the operation the same way.
 
 | | 2026.1.0529.7 | 2024.1.0508.5 |
 |---|---:|---:|
-| Operations | 1,022 | 991 |
+| Operations | 1,021 | 990 |
 | `exclusive_workflow` | 42 | 45 |
 | `interactive_ui` | 59 | 59 |
-| `read-only` / `standard` / `device` / `full` | 184 / 806 / 907 / 924 | 180 / 787 / 873 / 890 |
+| `read-only` / `standard` / `device` / `full` | 184 / 805 / 906 / 923 | 180 / 786 / 872 / 889 |
 
-These counts follow the removal of five operations per target for
-[#308](https://github.com/spatialanalyzer/briosa/issues/308) and
-[#310](https://github.com/spatialanalyzer/briosa/issues/310) (one `read-only`
-operation and four `standard` ones; none was exclusive or interactive). Before
-that removal the counts were 1,027 and 996 operations, and 185 / 811 / 912 / 929
+These counts follow the removal of six operations per target for
+[#308](https://github.com/spatialanalyzer/briosa/issues/308),
+[#310](https://github.com/spatialanalyzer/briosa/issues/310) and
+[#307](https://github.com/spatialanalyzer/briosa/issues/307). All six were
+admitted by `standard`, one also by `read-only`, and none was exclusive or
+interactive. Before that removal the counts were 1,027 and 996 operations, and 185 / 811 / 912 / 929
 (2026) and 181 / 792 / 878 / 895 (2024) admissions.
 
 Before the review corrections, the decision's counts were 43 (2026) and 46

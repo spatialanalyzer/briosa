@@ -117,17 +117,11 @@ public sealed class ProbeExclusionTests
         Assert.Contains("s-grid-GRID", Ids(plan.Steps));
         Assert.Contains("s-cloud-CPOLY", Ids(plan.Steps));
 
-        // The destructive probes keep their disposable clouds and before-counts.
-        foreach (var id in new[] { "s-cloud-CDEL15", "s-cloud-CDEL16", "c15-before", "p15", "c15-after", "c16-before", "p16", "c16-after" })
-        {
-            Assert.Contains(id, Ids(plan.Steps));
-        }
-
         Assert.DoesNotContain(ProbeOperations.ConstructPolygonizedSurface.FullyQualifiedMethod, plan.FullyQualifiedMethods);
     }
 
     [Theory]
-    [InlineData(false, new[] { 5, 6, 15 })]
+    [InlineData(false, new[] { 5, 6 })]
     [InlineData(true, new[] { 2, 5, 6 })]
     public void EveryAcceptedSingleExclusionKeepsEveryGuardAndFixtureStep(bool worker, int[] refusedAlone)
     {
@@ -194,22 +188,7 @@ public sealed class ProbeExclusionTests
         var steps = Plan(ProbePhase.Worker).Steps;
 
         Assert.Equal(["p02-shipped"], steps.Single(static step => step.Id == "p17-recased").Prerequisites);
-        Assert.Contains("p15", Plan(ProbePhase.PublicApi).Steps.Single(static step => step.Id == "p16").Prerequisites);
         Assert.Contains("prerequisites (run earlier): p02-shipped", Plan(ProbePhase.Worker).RenderDryRun(), StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public void ExcludingProbe15WithoutProbe16IsRefusedButBothTogetherKeepTheirClouds()
-    {
-        var exception = Assert.Throws<ProbeUsageException>(() => Plan(ProbePhase.PublicApi, 15));
-        Assert.Contains("'p16'", exception.Message, StringComparison.Ordinal);
-        Assert.Contains("--exclude-probe 16", exception.Message, StringComparison.Ordinal);
-
-        var plan = Plan(ProbePhase.PublicApi, 15, 16);
-        Assert.DoesNotContain(plan.Steps, static step => step.DestructiveTarget is not null);
-        Assert.Contains("s-cloud-CDEL15", Ids(plan.Steps));
-        Assert.Contains("s-cloud-CDEL16", Ids(plan.Steps));
-        Assert.Contains("p15", Ids(Plan(ProbePhase.PublicApi, 16).Steps));
     }
 
     [Theory]
@@ -378,6 +357,7 @@ public sealed class ProbeExclusionTests
     [InlineData("public-api", "24", "not a probe in the approved list")]
     [InlineData("public-api", "7", "names a retired probe")]
     [InlineData("worker", "14", "names a retired probe")]
+    [InlineData("public-api", "15", "names a retired probe")]
     public async Task ARefusedExclusionExitsWithAUsageErrorBeforeAnyTransport(string phase, string probe, string message)
     {
         var (exit, output, error) = await Run("--phase", phase, "--dry-run", "--exclude-probe", probe);

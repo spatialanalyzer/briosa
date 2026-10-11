@@ -67,54 +67,6 @@
       "provenance": "bindings/sa/2026.1.0529.7/registry.json: SetMeshOrientationTypeArg blocked_missing_interop; inventory/sa/2026.1.0529.7/inventory.json: Construct Polygonized Surface from Point Clouds sdk_order 1; #272 seed."
     },
     {
-      "command": "Delete Cloud Points by X Y Z Range",
-      "argument": "X Min",
-      "binding": "SetDoubleArg",
-      "kind": "setter-not-supported",
-      "rationale": "NOT_SUPPORTED substitution found by the first run: the SDK sample marks this Optional Double bound NOT_SUPPORTED (method null). The operation sends a present bound with SetDoubleArg and omits an absent one, matching the reviewed v0.8.0 contract restored by #236. No licensed observation; at-risk.",
-      "provenance": "inventory/sa/2026.1.0529.7/inventory.json: Delete Cloud Points by X Y Z Range sdk_order 1 (sdk_setter_unavailable); #236 (#256); ExactSdkBindingRegressionTests."
-    },
-    {
-      "command": "Delete Cloud Points by X Y Z Range",
-      "argument": "X Max",
-      "binding": "SetDoubleArg",
-      "kind": "setter-not-supported",
-      "rationale": "NOT_SUPPORTED substitution found by the first run: the SDK sample marks this Optional Double bound NOT_SUPPORTED (method null). The operation sends a present bound with SetDoubleArg and omits an absent one, matching the reviewed v0.8.0 contract restored by #236. No licensed observation; at-risk.",
-      "provenance": "inventory/sa/2026.1.0529.7/inventory.json: Delete Cloud Points by X Y Z Range sdk_order 2 (sdk_setter_unavailable); #236 (#256); ExactSdkBindingRegressionTests."
-    },
-    {
-      "command": "Delete Cloud Points by X Y Z Range",
-      "argument": "Y Min",
-      "binding": "SetDoubleArg",
-      "kind": "setter-not-supported",
-      "rationale": "NOT_SUPPORTED substitution found by the first run: the SDK sample marks this Optional Double bound NOT_SUPPORTED (method null). The operation sends a present bound with SetDoubleArg and omits an absent one, matching the reviewed v0.8.0 contract restored by #236. No licensed observation; at-risk.",
-      "provenance": "inventory/sa/2026.1.0529.7/inventory.json: Delete Cloud Points by X Y Z Range sdk_order 3 (sdk_setter_unavailable); #236 (#256); ExactSdkBindingRegressionTests."
-    },
-    {
-      "command": "Delete Cloud Points by X Y Z Range",
-      "argument": "Y Max",
-      "binding": "SetDoubleArg",
-      "kind": "setter-not-supported",
-      "rationale": "NOT_SUPPORTED substitution found by the first run: the SDK sample marks this Optional Double bound NOT_SUPPORTED (method null). The operation sends a present bound with SetDoubleArg and omits an absent one, matching the reviewed v0.8.0 contract restored by #236. No licensed observation; at-risk.",
-      "provenance": "inventory/sa/2026.1.0529.7/inventory.json: Delete Cloud Points by X Y Z Range sdk_order 4 (sdk_setter_unavailable); #236 (#256); ExactSdkBindingRegressionTests."
-    },
-    {
-      "command": "Delete Cloud Points by X Y Z Range",
-      "argument": "Z Min",
-      "binding": "SetDoubleArg",
-      "kind": "setter-not-supported",
-      "rationale": "NOT_SUPPORTED substitution found by the first run: the SDK sample marks this Optional Double bound NOT_SUPPORTED (method null). The operation sends a present bound with SetDoubleArg and omits an absent one, matching the reviewed v0.8.0 contract restored by #236. No licensed observation; at-risk.",
-      "provenance": "inventory/sa/2026.1.0529.7/inventory.json: Delete Cloud Points by X Y Z Range sdk_order 5 (sdk_setter_unavailable); #236 (#256); ExactSdkBindingRegressionTests."
-    },
-    {
-      "command": "Delete Cloud Points by X Y Z Range",
-      "argument": "Z Max",
-      "binding": "SetDoubleArg",
-      "kind": "setter-not-supported",
-      "rationale": "NOT_SUPPORTED substitution found by the first run: the SDK sample marks this Optional Double bound NOT_SUPPORTED (method null). The operation sends a present bound with SetDoubleArg and omits an absent one, matching the reviewed v0.8.0 contract restored by #236. No licensed observation; at-risk.",
-      "provenance": "inventory/sa/2026.1.0529.7/inventory.json: Delete Cloud Points by X Y Z Range sdk_order 6 (sdk_setter_unavailable); #236 (#256); ExactSdkBindingRegressionTests."
-    },
-    {
       "command": "Make a Point Name - Ensure Unique",
       "argument": "Point Name",
       "binding": "GetPointNameArg",

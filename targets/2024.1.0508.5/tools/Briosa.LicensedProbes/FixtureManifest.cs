@@ -118,17 +118,10 @@ internal static class FixtureNames
     public const string GroupOne = "G1";
     public const string GroupRotated = "G2";
     public const string GroupMeasured = "G3";
-    public const string GroupDelete = "GDEL";
     public const string GroupGrid = "GRID";
     public const string PlaneA = "PA";
     public const string PlaneB = "PB";
     public const string PolygonizeCloud = "CPOLY";
-    public const string DeleteCloudAllBounds = "CDEL15";
-    public const string DeleteCloudPartialBounds = "CDEL16";
     public const string Relationship = "R1";
     public const string VectorGroup = "VG1";
-
-    // Fixture keys tracked by the session for destructive-step authorization.
-    public const string DeleteCloudAllBoundsKey = "cloud:" + DeleteCloudAllBounds;
-    public const string DeleteCloudPartialBoundsKey = "cloud:" + DeleteCloudPartialBounds;
 }

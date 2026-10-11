@@ -153,7 +153,6 @@ internal static class SpatialAnalyzerApi
             FilterCloudsToVectorGroupsResolvePointsOperation.Descriptor,
             RGBCloudPointFilterOperation.Descriptor,
             DeleteCloudPointsByRadialDistanceFromPointsOperation.Descriptor,
-            DeleteCloudPointsByXYZRangeOperation.Descriptor,
             GenerateGeneralMeshOperation.Descriptor,
             ConstructCrossSectionCloudOperation.Descriptor,
             ConstructCrossSectionCloudUserSelectOperation.Descriptor,
