@@ -192,11 +192,22 @@ internal sealed class SpatialAnalyzerSdkLifecycleCoordinator(
         var applicationAfterConnect = await _applicationStateProvider
             .GetCurrentAsync(cancellationToken).ConfigureAwait(false);
         return applicationBeforeConnect.HasApplicationGeneration &&
-            applicationAfterConnect.HasApplicationGeneration &&
+            ConfirmsRunningGeneration(applicationAfterConnect) &&
             applicationBeforeConnect.ApplicationGeneration == applicationAfterConnect.ApplicationGeneration
                 ? applicationAfterConnect.ApplicationGeneration
                 : null;
     }
+
+    // Current evidence that the generation is running. An exited generation, or one
+    // held while its process could not be observed (#317), does not confirm it.
+    private static bool ConfirmsRunningGeneration(
+        global::Briosa.SpatialAnalyzerLifecycleState application) =>
+        application.ApplicationState == global::Briosa.SpatialAnalyzerApplicationState.Running &&
+        application.HasApplicationGeneration &&
+        !string.Equals(
+            application.DiagnosticCode,
+            SpatialAnalyzerLifecycleCoordinator.UnconfirmedDiagnosticCode,
+            StringComparison.Ordinal);
 
     public async Task<global::Briosa.SpatialAnalyzerSdkLifecycleState> StopAsync(
         int expectedGeneration,

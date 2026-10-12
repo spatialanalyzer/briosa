@@ -167,6 +167,152 @@ public sealed class SpatialAnalyzerLifecycleCoordinatorTests
         Assert.Null(platform.StartedProcess);
     }
 
+    // #317: a scan can miss a running SpatialAnalyzer whose details it could not read.
+    // The direct check then finds the same process ID and start time, so the state and
+    // generation stay as they were instead of reporting an exit and then a restart.
+    [Fact]
+    public async Task MissedScanOfTheSameRunningProcessKeepsStateAndGeneration()
+    {
+        using var executable = TemporaryFile.Create();
+        var platform = new FakeProcessPlatform();
+        var running = new SpatialAnalyzerProcessObservation(
+            new SpatialAnalyzerProcessIdentity(41, 4200));
+        platform.Observations.Add(running);
+        using var coordinator = CreateCoordinator(executable.Path, platform);
+        var first = await coordinator.GetCurrentAsync(CancellationToken.None);
+
+        platform.Observations.Clear();
+        platform.Presence = _ => SpatialAnalyzerProcessPresence.Running;
+        var missed = await coordinator.GetCurrentAsync(CancellationToken.None);
+        platform.Observations.Add(running);
+        var seenAgain = await coordinator.GetCurrentAsync(CancellationToken.None);
+
+        Assert.Equal(global::Briosa.SpatialAnalyzerApplicationState.Running, first.ApplicationState);
+        Assert.Equal(first, missed);
+        Assert.Equal(first, seenAgain);
+        // Only the missed scan checks the selected process directly.
+        Assert.Equal(1, platform.PresenceChecks);
+    }
+
+    // When the direct check cannot read the process either, the selection is held and
+    // reported as unconfirmed with the same generation. Seeing the process again
+    // restores the confirmed state and restarts the count; the third consecutive
+    // unconfirmed observation treats the application as gone.
+    [Fact]
+    public async Task UnconfirmableObservationsKeepTheGenerationUntilTheyRepeat()
+    {
+        using var executable = TemporaryFile.Create();
+        var platform = new FakeProcessPlatform();
+        var running = new SpatialAnalyzerProcessObservation(
+            new SpatialAnalyzerProcessIdentity(41, 4200));
+        platform.Observations.Add(running);
+        platform.Presence = _ => SpatialAnalyzerProcessPresence.Unknown;
+        using var coordinator = CreateCoordinator(executable.Path, platform);
+        var first = await coordinator.GetCurrentAsync(CancellationToken.None);
+
+        platform.Observations.Clear();
+        var unconfirmed = await coordinator.GetCurrentAsync(CancellationToken.None);
+        platform.Observations.Add(running);
+        var confirmed = await coordinator.GetCurrentAsync(CancellationToken.None);
+        platform.Observations.Clear();
+        var held = new[]
+        {
+            await coordinator.GetCurrentAsync(CancellationToken.None),
+            await coordinator.GetCurrentAsync(CancellationToken.None)
+        };
+        var gone = await coordinator.GetCurrentAsync(CancellationToken.None);
+
+        foreach (var state in held.Prepend(unconfirmed))
+        {
+            Assert.Equal(global::Briosa.SpatialAnalyzerApplicationState.Running, state.ApplicationState);
+            Assert.Equal(global::Briosa.SpatialAnalyzerOwnership.External, state.Ownership);
+            Assert.Equal(first.ApplicationGeneration, state.ApplicationGeneration);
+            Assert.Equal("external-spatial-analyzer-unconfirmed", state.DiagnosticCode);
+        }
+
+        Assert.Equal(global::Briosa.SpatialAnalyzerApplicationState.Running, confirmed.ApplicationState);
+        Assert.Equal(first.ApplicationGeneration, confirmed.ApplicationGeneration);
+        Assert.Equal("external-spatial-analyzer-running", confirmed.DiagnosticCode);
+        Assert.Equal(global::Briosa.SpatialAnalyzerApplicationState.Exited, gone.ApplicationState);
+        Assert.Equal(global::Briosa.SpatialAnalyzerOwnership.None, gone.Ownership);
+        Assert.Equal(first.ApplicationGeneration, gone.ApplicationGeneration);
+        Assert.Equal("external-spatial-analyzer-exited", gone.DiagnosticCode);
+    }
+
+    // A confirmed exit is reported on the first missed scan, and an application seen
+    // after it is a new generation.
+    [Fact]
+    public async Task ConfirmedExitIsReportedOnTheFirstMissedScan()
+    {
+        using var executable = TemporaryFile.Create();
+        var platform = new FakeProcessPlatform();
+        platform.Observations.Add(new SpatialAnalyzerProcessObservation(
+            new SpatialAnalyzerProcessIdentity(41, 4200)));
+        using var coordinator = CreateCoordinator(executable.Path, platform);
+        var first = await coordinator.GetCurrentAsync(CancellationToken.None);
+
+        platform.Observations.Clear();
+        platform.Presence = _ => SpatialAnalyzerProcessPresence.Exited;
+        var exited = await coordinator.GetCurrentAsync(CancellationToken.None);
+        platform.Observations.Add(new SpatialAnalyzerProcessObservation(
+            new SpatialAnalyzerProcessIdentity(51, 5200)));
+        var next = await coordinator.GetCurrentAsync(CancellationToken.None);
+
+        Assert.Equal(global::Briosa.SpatialAnalyzerApplicationState.Exited, exited.ApplicationState);
+        Assert.Equal(first.ApplicationGeneration, exited.ApplicationGeneration);
+        Assert.Equal("external-spatial-analyzer-exited", exited.DiagnosticCode);
+        Assert.Equal(global::Briosa.SpatialAnalyzerApplicationState.Running, next.ApplicationState);
+        Assert.Equal(first.ApplicationGeneration + 1, next.ApplicationGeneration);
+    }
+
+    // A restart is a new process ID, or the same process ID with a new start time. The
+    // first scan that sees it reports a new generation.
+    [Theory]
+    [InlineData(51, 5200)]
+    [InlineData(41, 5200)]
+    public async Task RestartIsANewGenerationOnTheFirstScan(int processId, long startTicks)
+    {
+        using var executable = TemporaryFile.Create();
+        var platform = new FakeProcessPlatform();
+        platform.Observations.Add(new SpatialAnalyzerProcessObservation(
+            new SpatialAnalyzerProcessIdentity(41, 4200)));
+        using var coordinator = CreateCoordinator(executable.Path, platform);
+        var first = await coordinator.GetCurrentAsync(CancellationToken.None);
+
+        platform.Observations.Clear();
+        platform.Observations.Add(new SpatialAnalyzerProcessObservation(
+            new SpatialAnalyzerProcessIdentity(processId, startTicks)));
+        var restarted = await coordinator.GetCurrentAsync(CancellationToken.None);
+
+        Assert.Equal(global::Briosa.SpatialAnalyzerApplicationState.Running, restarted.ApplicationState);
+        Assert.Equal(global::Briosa.SpatialAnalyzerOwnership.External, restarted.Ownership);
+        Assert.Equal(first.ApplicationGeneration + 1, restarted.ApplicationGeneration);
+        Assert.Equal("external-spatial-analyzer-running", restarted.DiagnosticCode);
+    }
+
+    // If the selected process cannot be checked while another eligible application is
+    // running, a restart cannot be told apart from a second instance.
+    [Fact]
+    public async Task UnconfirmableSelectionBesideAnotherEligibleApplicationIsAmbiguous()
+    {
+        using var executable = TemporaryFile.Create();
+        var platform = new FakeProcessPlatform();
+        platform.Observations.Add(new SpatialAnalyzerProcessObservation(
+            new SpatialAnalyzerProcessIdentity(41, 4200)));
+        using var coordinator = CreateCoordinator(executable.Path, platform);
+        _ = await coordinator.GetCurrentAsync(CancellationToken.None);
+
+        platform.Observations.Clear();
+        platform.Observations.Add(new SpatialAnalyzerProcessObservation(
+            new SpatialAnalyzerProcessIdentity(51, 5200)));
+        platform.Presence = _ => SpatialAnalyzerProcessPresence.Unknown;
+        var state = await coordinator.GetCurrentAsync(CancellationToken.None);
+
+        Assert.Equal(global::Briosa.SpatialAnalyzerApplicationState.Ambiguous, state.ApplicationState);
+        Assert.Equal(global::Briosa.SpatialAnalyzerOwnership.None, state.Ownership);
+        Assert.False(state.HasApplicationGeneration);
+    }
+
     private static SpatialAnalyzerLifecycleCoordinator CreateCoordinator(
         string executablePath,
         FakeProcessPlatform platform,
@@ -211,8 +357,25 @@ public sealed class SpatialAnalyzerLifecycleCoordinatorTests
 
         public bool LastUseShellExecute { get; private set; }
 
+        // The direct check. By default it agrees with the scan, like a scan that read
+        // every candidate.
+        public Func<SpatialAnalyzerProcessIdentity, SpatialAnalyzerProcessPresence>? Presence { get; set; }
+
+        public int PresenceChecks { get; private set; }
+
         public IReadOnlyList<SpatialAnalyzerProcessObservation> ObserveEligibleProcesses(
-            string executablePath) => Observations;
+            string executablePath) => [.. Observations];
+
+        public SpatialAnalyzerProcessPresence ObserveProcess(
+            string executablePath,
+            SpatialAnalyzerProcessIdentity identity)
+        {
+            PresenceChecks++;
+            return Presence?.Invoke(identity) ??
+                (Observations.Any(observation => observation.Identity == identity)
+                    ? SpatialAnalyzerProcessPresence.Running
+                    : SpatialAnalyzerProcessPresence.Exited);
+        }
 
         public ISpatialAnalyzerOwnedProcess Start(ProcessStartInfo startInfo)
         {

@@ -14,6 +14,12 @@ internal sealed partial class SpatialAnalyzerLifecycleCoordinator(
     TimeProvider timeProvider,
     ILogger<SpatialAnalyzerLifecycleCoordinator>? logger = null) : ISpatialAnalyzerLifecycleStateProvider, IDisposable
 {
+    // An external application stays selected until a direct check confirms that it
+    // exited, or until this many consecutive observations could neither see nor check
+    // it (#317). Until then it keeps its generation, reported with this diagnostic.
+    internal const int UnconfirmedObservationLimit = 3;
+    internal const string UnconfirmedDiagnosticCode = "external-spatial-analyzer-unconfirmed";
+
     private readonly SemaphoreSlim _gate = new(1, 1);
     private readonly SpatialAnalyzerApplicationOptions _options = options;
     private readonly ISpatialAnalyzerProcessPlatform _processPlatform = processPlatform;
@@ -31,6 +37,7 @@ internal sealed partial class SpatialAnalyzerLifecycleCoordinator(
         DiagnosticCode = "spatial-analyzer-not-running"
     };
     private int _applicationGeneration;
+    private int _unconfirmedObservations;
     private int _disposeState;
 
     public async Task<global::Briosa.SpatialAnalyzerLifecycleState> GetCurrentAsync(
@@ -410,9 +417,32 @@ internal sealed partial class SpatialAnalyzerLifecycleCoordinator(
             return;
         }
 
-        var observations = _processPlatform.ObserveEligibleProcesses(
-            _options.ExecutablePath);
-        if (observations.Count == 0)
+        var observed = _processPlatform.ObserveEligibleProcesses(_options.ExecutablePath)
+            .Select(static observation => observation.Identity)
+            .ToList();
+        var unconfirmed = false;
+        if (_selectedIdentity is { } selected && !observed.Contains(selected))
+        {
+            // A scan skips a process it cannot read, so one missed scan does not show
+            // that the selected application exited (#317). Check it directly first.
+            switch (_processPlatform.ObserveProcess(_options.ExecutablePath, selected))
+            {
+                case SpatialAnalyzerProcessPresence.Running:
+                    observed.Add(selected);
+                    break;
+                case SpatialAnalyzerProcessPresence.Unknown when
+                    _unconfirmedObservations + 1 < UnconfirmedObservationLimit:
+                    observed.Add(selected);
+                    unconfirmed = true;
+                    break;
+                default:
+                    // Exited, or unconfirmed too many times in a row: gone.
+                    break;
+            }
+        }
+
+        _unconfirmedObservations = unconfirmed ? _unconfirmedObservations + 1 : 0;
+        if (observed.Count == 0)
         {
             if (_current.ApplicationState ==
                 global::Briosa.SpatialAnalyzerApplicationState.Running)
@@ -440,9 +470,12 @@ internal sealed partial class SpatialAnalyzerLifecycleCoordinator(
             return;
         }
 
-        if (observations.Count > 1)
+        if (observed.Count > 1)
         {
+            // An unconfirmed selection beside another eligible application could be
+            // either a second instance or a restart, so it is ambiguous too.
             _selectedIdentity = null;
+            _unconfirmedObservations = 0;
             TransitionIfChanged(
                 global::Briosa.SpatialAnalyzerApplicationState.Ambiguous,
                 global::Briosa.SpatialAnalyzerOwnership.None,
@@ -451,17 +484,26 @@ internal sealed partial class SpatialAnalyzerLifecycleCoordinator(
             return;
         }
 
-        var observed = observations[0].Identity;
-        if (_selectedIdentity != observed)
+        var identity = observed[0];
+        if (_selectedIdentity != identity)
         {
-            _selectedIdentity = observed;
+            _selectedIdentity = identity;
             _applicationGeneration++;
             Transition(
                 global::Briosa.SpatialAnalyzerApplicationState.Running,
                 global::Briosa.SpatialAnalyzerOwnership.External,
                 _applicationGeneration,
                 "external-spatial-analyzer-running");
+            return;
         }
+
+        // The same application keeps its generation. An unconfirmed observation is
+        // reported as such, so it cannot confirm a Connect's association.
+        TransitionIfChanged(
+            global::Briosa.SpatialAnalyzerApplicationState.Running,
+            global::Briosa.SpatialAnalyzerOwnership.External,
+            _applicationGeneration,
+            unconfirmed ? UnconfirmedDiagnosticCode : "external-spatial-analyzer-running");
     }
 
     private void TransitionIfChanged(

@@ -80,6 +80,86 @@ public sealed class SpatialAnalyzerSdkLifecycleCoordinatorTests
         Assert.False(stopped.HasApplicationGeneration);
     }
 
+    // #317: a scan that misses the running application just before Connect, because it
+    // could not read the process, no longer reports the application exited. Connect
+    // proceeds and associates the same application generation.
+    [Fact]
+    public async Task ConnectAfterAMissedScanKeepsTheApplicationAndItsAssociation()
+    {
+        await using var supervisor = CreateSupervisor(_ => "disconnected");
+        var projection = new SpatialAnalyzerSdkLifecycleStateProjection(supervisor);
+        var platform = new MissableProcessPlatform(new SpatialAnalyzerProcessIdentity(41, 4200));
+        using var application = new SpatialAnalyzerLifecycleCoordinator(
+            new SpatialAnalyzerApplicationOptions(
+                @"C:\SpatialAnalyzer\x64\Spatial Analyzer64.exe",
+                TimeSpan.FromSeconds(1),
+                TimeSpan.FromSeconds(1)),
+            platform,
+            projection,
+            TimeProvider.System);
+        await using var coordinator = new SpatialAnalyzerSdkLifecycleCoordinator(
+            supervisor,
+            projection,
+            application);
+        var observed = await application.GetCurrentAsync(CancellationToken.None);
+        var started = await coordinator.StartAsync(CancellationToken.None);
+
+        platform.MissNextScan();
+        var connected = await coordinator.ConnectAsync(
+            started.SdkGeneration,
+            reconnect: false,
+            CancellationToken.None);
+
+        Assert.Equal(global::Briosa.SpatialAnalyzerApplicationState.Running, observed.ApplicationState);
+        Assert.False(platform.MissPending);
+        Assert.True(connected.ReadyForMp);
+        Assert.Equal(observed.ApplicationGeneration, connected.ApplicationGeneration);
+        Assert.Equal("worker-execution-ready", connected.DiagnosticCode);
+        Assert.Equal(observed, await application.GetCurrentAsync(CancellationToken.None));
+    }
+
+    // #317: Connect associates its generation with the application only when the read
+    // after the probe confirms that the same application generation is still running.
+    // An observation reported as unconfirmed, or an exited application, leaves the
+    // ready generation unassociated. Readiness itself rests on the worker's evidence.
+    [Theory]
+    [InlineData("unconfirmed")]
+    [InlineData("exited")]
+    public async Task ConnectDoesNotAssociateAnApplicationThatIsNotConfirmedRunning(
+        string afterProbe)
+    {
+        await using var supervisor = CreateSupervisor(_ => "disconnected");
+        var after = RunningApplication(7);
+        after.StateRevision = 3;
+        if (afterProbe == "unconfirmed")
+        {
+            after.DiagnosticCode = "external-spatial-analyzer-unconfirmed";
+        }
+        else
+        {
+            after.ApplicationState = global::Briosa.SpatialAnalyzerApplicationState.Exited;
+            after.Ownership = global::Briosa.SpatialAnalyzerOwnership.None;
+            after.DiagnosticCode = "external-spatial-analyzer-exited";
+        }
+
+        var application = new SequencedApplicationStateProvider(RunningApplication(7), after);
+        await using var coordinator = new SpatialAnalyzerSdkLifecycleCoordinator(
+            supervisor,
+            new SpatialAnalyzerSdkLifecycleStateProjection(supervisor),
+            application);
+        var started = await coordinator.StartAsync(CancellationToken.None);
+
+        var connected = await coordinator.ConnectAsync(
+            started.SdkGeneration,
+            reconnect: false,
+            CancellationToken.None);
+
+        Assert.Equal(2, application.Reads);
+        Assert.True(connected.ReadyForMp);
+        Assert.False(connected.HasApplicationGeneration);
+        Assert.Equal("worker-execution-ready-application-unconfirmed", connected.DiagnosticCode);
+    }
+
     [Fact]
     public async Task SdkStartupTimeoutReturnsTypedDeadline()
     {
@@ -471,6 +551,52 @@ public sealed class SpatialAnalyzerSdkLifecycleCoordinatorTests
 
             await Task.Delay(TimeSpan.FromMilliseconds(20), timeout.Token);
         }
+    }
+
+    // Returns each state in turn, then repeats the last.
+    private sealed class SequencedApplicationStateProvider(
+        params global::Briosa.SpatialAnalyzerLifecycleState[] states)
+        : ISpatialAnalyzerLifecycleStateProvider
+    {
+        private int _reads;
+
+        public int Reads => Volatile.Read(ref _reads);
+
+        public Task<global::Briosa.SpatialAnalyzerLifecycleState> GetCurrentAsync(
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var read = Interlocked.Increment(ref _reads);
+            return Task.FromResult(states[Math.Min(read, states.Length) - 1].Clone());
+        }
+    }
+
+    // One running SpatialAnalyzer that the next scan can be made to miss, as a scan
+    // that could not read the process would. The direct check still finds it.
+    private sealed class MissableProcessPlatform(SpatialAnalyzerProcessIdentity running)
+        : ISpatialAnalyzerProcessPlatform
+    {
+        private int _missNext;
+
+        public bool MissPending => Volatile.Read(ref _missNext) == 1;
+
+        public void MissNextScan() => Volatile.Write(ref _missNext, 1);
+
+        public IReadOnlyList<SpatialAnalyzerProcessObservation> ObserveEligibleProcesses(
+            string executablePath) =>
+            Interlocked.Exchange(ref _missNext, 0) == 1
+                ? []
+                : [new SpatialAnalyzerProcessObservation(running)];
+
+        public SpatialAnalyzerProcessPresence ObserveProcess(
+            string executablePath,
+            SpatialAnalyzerProcessIdentity identity) =>
+            identity == running
+                ? SpatialAnalyzerProcessPresence.Running
+                : SpatialAnalyzerProcessPresence.Exited;
+
+        public ISpatialAnalyzerOwnedProcess Start(System.Diagnostics.ProcessStartInfo startInfo) =>
+            throw new NotSupportedException();
     }
 
     private sealed class FakeApplicationStateProvider(
