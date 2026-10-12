@@ -17,7 +17,8 @@ The "current" columns describe `origin/main` at `0c7ff7a` (contract 2.0); the
 |---|---|
 | `argument-defaults-<target>.csv` | The reviewed table, one row per argument, per exact-SA target. |
 | `scalar-presence-<target>.csv` | F7 appendix: optional scalar request fields whose absent value is the protobuf zero value or an empty string. |
-| `audit_scalar_presence.py` | The audit tool that writes the appendix. It reads source and writes a CSV; it generates no operations. |
+| `optional-inputs-<target>.csv` | Every optional MP input in the target's evidence, with the operation it matched and its absent behavior. See [Optional-input coverage](#optional-input-coverage). |
+| `audit_scalar_presence.py` | The audit tool that writes the appendix and the coverage files. It reads source and writes CSVs; it generates no operations. |
 
 Each target has its own files because each cites its own licensed evidence. The
 two targets' operation mappings for every row are identical files today, and
@@ -95,10 +96,94 @@ Both targets have the same 24 rows.
 
 The twelve F6 arguments are the 5 `optional_omit` rows, the 3 fit rows, the 2
 `unchanged_pending_probe` rows, and the two `make_points_to_points_relationship`
-rows. A cross-check of all 98 input arguments that the 2026 inventory marks
-optional found that 25 are not implemented, and that exactly these twelve are
-rejected when absent. The other 61 are omitted, sent blank, or sent a default
-when absent.
+rows. The coverage check below confirms that these twelve are the only
+optional inputs rejected when absent.
+
+## Optional-input coverage
+
+`optional-inputs-<target>.csv` lists every optional MP input in the target's
+evidence, with the registered operation and argument entry it matched and what
+the server does when the field is absent. `audit_scalar_presence.py` writes it,
+and `--check` compares it with the committed file.
+
+| Status | 2026.1.0529.7 | 2024.1.0508.5 |
+|---|---:|---:|
+| Optional inputs in the evidence | 98 | 57 |
+| Not implemented (no registered operation) | 15 | — |
+| Implemented, but the SDK records no setter for the input | 1 | 0 |
+| Rejected when absent | 12 | 7 |
+| Omitted when absent | 39 | 41 |
+| A default is sent when absent | 31 | 9 |
+| Implemented in total | 83 | 57 |
+
+Every input rejected when absent has a row in the defaults table. No new F6 row
+was found.
+
+**2026** reads the committed inventory: every input whose presence is
+`optional`. An operation matches when its descriptor MP step is the same text
+as the inventory `mp_step` or one of the entry's `sdk_evidence.mp_step` values.
+The argument entry then matches on the exact SDK label and setter in the
+operation's source, with no name normalization. That alone matches 75 inputs,
+the maintainer's lower bound on #318. Seven more match through a reviewed alias,
+because the inventory import recorded one identity twice without joining them,
+and one more matches its operation but has no setter. Each alias is listed in
+the script with both exact texts:
+
+- **Three LADAR feature-measure inputs.** The documentation entries `Set LADAR
+  Feature Measure Circle`, `Cylinder` and `Slot` carry no SDK evidence. The SDK
+  steps were recorded as separate SDK-only entries (`Set LADAR FeatureMeas
+  Circle` and so on), and the operations register those steps.
+- **Four inputs whose documented row has no setter.** The same inventory
+  command has a not-documented SDK row with the setter:
+  - the bounding-plane `Resulting ‘High’ Plane Name (optional)` and `Low`, sent
+    as `Resulting 'High' Plane Name` and `Low`;
+  - `Additional Note (blank for none)`, sent as `Additional Notes (blank for
+    none)`;
+  - `Measurement Mode (optional)`, sent as `Measurement Mode`.
+
+The input without a setter is `Report Name (optional)` of
+`generate_quick_report_from_tab_order`. The operation is registered, but the
+SDK records no setter for that documented input, and Briosa sends none.
+
+The first version of this table reported 25 inputs not implemented and 61
+omitted or defaulted. It matched only the documentation `mp_step`, so it missed
+ten implemented inputs. Four belong to operations whose SDK step text differs:
+
+- `Save As...`
+- `Construct Frame on Object`
+- `Align Two Targets with Axis (WCF - X)`
+- `'Build' Target`
+
+Three are the LADAR inputs above. The other three belong to two operations whose
+descriptors are declared through a helper the first search did not read:
+`point_at_target`, and the two `lr_apdis_activate_mcm_calibration` inputs. The
+corrected 2026 figures are 83 implemented: 12 rejected, 70 omitted or defaulted,
+and 1 without a setter.
+
+**2024** has no committed inventory, so presence comes from the curated binding
+facts: every input of a registered operation whose label says "optional" or
+"blank for none". The curated facts cover only registered operations, so
+nothing is "not implemented". Labels miss optional inputs that are not marked,
+so these 57 are not comparable with the 2026 count. Examples are Ask for Point
+Name's `Initial Value`, the Points to Points tolerance and constraint, and the
+plane names, which the defaults table covers. The exporter's
+`SetCollectionObjectNameArg` is read as Briosa's reviewed
+`SetCollectionObjectNameArg2` adapter. The 54 inputs that both files list have
+the same status on both targets.
+
+**Status.** It comes from the argument entry in the operation source:
+
+- `omitted_when_absent`: the entry is added only under an `if`, or inside a
+  conditional expression.
+- `rejected_when_absent`: an unconditional entry whose value goes through a
+  `Required` or `RequiredList` mapper.
+- `default_sent`: any other unconditional entry.
+
+A throwaway test confirmed every implemented status on both targets (82 on
+2026, 57 on 2024). For each operation, it filled a request and cleared each
+field, then called the real `CreateCommand` and named the field that removes,
+rejects or changes the argument. It also confirmed each descriptor step against
+the compiled registry. The test is not committed.
 
 ## Evidence
 
@@ -291,12 +376,12 @@ to SA and needs no licensed observation; see open question 6.
    review aid, not a CI gate. The F6/F7 change regenerates and reviews the
    appendix.
 
-## Regenerate the appendix
+## Regenerate the generated files
 
 Run from the repository root with Python 3.12 or later:
 
 ```powershell
-python eng/classification/audit_scalar_presence.py          # rewrite both CSVs
+python eng/classification/audit_scalar_presence.py          # rewrite the generated CSVs
 python eng/classification/audit_scalar_presence.py --check  # compare only
 ```
 
