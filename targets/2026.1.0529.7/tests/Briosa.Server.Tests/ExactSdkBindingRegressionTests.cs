@@ -1,7 +1,6 @@
 using System.Text.Json.Nodes;
 using Briosa.Server.Operations;
 using Briosa.Server.Operations.AnalysisOperations;
-using Briosa.Server.Operations.CloudAndMeshOperations;
 using Briosa.Server.Operations.FileOperations;
 using Briosa.Server.Operations.InstrumentOperations;
 using Briosa.Server.Operations.ReportingOperations;
@@ -83,80 +82,6 @@ public sealed class ExactSdkBindingRegressionTests
 
         Assert.Equal(expectedStep, Assert.Single(sdkSteps));
         Assert.Equal(expectedStep, descriptor.MpStep);
-    }
-
-    [Fact]
-    public void DeleteCloudPointsByXYZRangeUsesTheExactSdkStep()
-    {
-        var command = DeleteCloudPointsByXYZRangeOperation.CreateCommand(new() { CloudNames = { Cloud() } });
-
-        Assert.Equal("Delete Cloud Points by X Y Z Range", DeleteCloudPointsByXYZRangeOperation.Descriptor.MpStep);
-        Assert.Equal(DeleteCloudPointsByXYZRangeOperation.Descriptor.MpStep, command.StepName);
-        Assert.Single(InventoryCommands.Value, candidate => HasSdkStep(candidate!, command.StepName));
-    }
-
-    [Fact]
-    public void DeleteCloudPointsByXYZRangeOmitsEveryAbsentBound()
-    {
-        var command = DeleteCloudPointsByXYZRangeOperation.CreateCommand(new() { CloudNames = { Cloud() } });
-
-        Assert.Equal(["Cloud Names", "Delete Inside"], command.InputArguments.Select(argument => argument.Name));
-        Assert.Equal("SetCollectionObjectNameRefListArg", command.InputArguments[0].SdkBinding);
-        Assert.Equal("SetBoolArg", command.InputArguments[1].SdkBinding);
-        Assert.False(command.InputArguments[1].RequireValue<WorkerBooleanValue>().Value);
-        Assert.Throws<ArgumentException>(() => DeleteCloudPointsByXYZRangeOperation.CreateCommand(new()));
-    }
-
-    [Fact]
-    public void DeleteCloudPointsByXYZRangeSendsEveryPresentBoundInSdkOrder()
-    {
-        var command = DeleteCloudPointsByXYZRangeOperation.CreateCommand(new()
-        {
-            CloudNames = { Cloud() },
-            XMin = -1.5,
-            XMax = 1.5,
-            YMin = -2.5,
-            YMax = 2.5,
-            ZMin = -3.5,
-            ZMax = 3.5,
-            DeleteInside = true
-        });
-        var inventoryNames = InventoryCommands.Value
-            .Single(candidate => HasSdkStep(candidate!, command.StepName))!["arguments"]!.AsArray()
-            .OrderBy(argument => argument!["sdk_order"]!.GetValue<int>())
-            .Select(argument => argument!["sdk_binding"]!["setter"]!["argument_name"]!.GetValue<string>());
-
-        Assert.Equal(inventoryNames, command.InputArguments.Select(argument => argument.Name));
-        Assert.Equal(
-            ["Cloud Names", "X Min", "X Max", "Y Min", "Y Max", "Z Min", "Z Max", "Delete Inside"],
-            command.InputArguments.Select(argument => argument.Name));
-        var bounds = command.InputArguments.Skip(1).Take(6).ToArray();
-        Assert.All(bounds, argument =>
-        {
-            Assert.Equal("SetDoubleArg", argument.SdkBinding);
-            Assert.Equal(WorkerMpValueKind.FloatingPoint, argument.Kind);
-        });
-        Assert.Equal([-1.5, 1.5, -2.5, 2.5, -3.5, 3.5],
-            bounds.Select(argument => argument.RequireValue<WorkerDoubleValue>().Value));
-        Assert.True(command.InputArguments[7].RequireValue<WorkerBooleanValue>().Value);
-    }
-
-    [Fact]
-    public void DeleteCloudPointsByXYZRangeSendsOnlyThePresentSubsetIncludingExplicitZero()
-    {
-        var command = DeleteCloudPointsByXYZRangeOperation.CreateCommand(new()
-        {
-            CloudNames = { Cloud() },
-            XMin = 1,
-            YMin = 0,
-            ZMax = 5
-        });
-
-        Assert.Equal(["Cloud Names", "X Min", "Y Min", "Z Max", "Delete Inside"],
-            command.InputArguments.Select(argument => argument.Name));
-        Assert.Equal([1d, 0d, 5d],
-            command.InputArguments.Skip(1).Take(3).Select(argument => argument.RequireValue<WorkerDoubleValue>().Value));
-        Assert.False(command.InputArguments[4].RequireValue<WorkerBooleanValue>().Value);
     }
 
     private static WorkerMpCommand CreateLabelCommand(string operationId) => operationId switch
@@ -242,12 +167,6 @@ public sealed class ExactSdkBindingRegressionTests
         var path = Path.Combine(root.FullName, "inventory", "sa", SpatialAnalyzerApi.TargetVersion, "inventory.json");
         return JsonNode.Parse(File.ReadAllText(path))!["commands"]!.AsArray();
     }
-
-    private static Api.CollectionObjectName Cloud() => new()
-    {
-        CollectionName = "Scans",
-        ObjectName = "CloudA"
-    };
 
     private static Api.CollectionObjectName Object(string name) => new()
     {

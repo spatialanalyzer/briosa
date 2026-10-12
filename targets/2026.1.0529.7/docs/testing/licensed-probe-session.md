@@ -48,13 +48,11 @@ exactly as it will be sent, using labels only and never values.
 | 3 | Chart template chart | value: public. Omit and blank: worker. | `p03-*` |
 | 4 | UI profile file | value: public. Omit and blank: worker. | `p04-*` |
 | 5, 6 | Bounding plane High and Low names (SDK defaults `HighPlane` and `LowPlane`) | value: public. Omit and blank: worker. | `p05-06-*`, `p05-*`, `p06-*`, plus default-name and harness-name counts |
-| 7 | Callout view list getter substitute | public | `p07` |
-| 8 | Callout view list setter substitute | public | `p08` |
-| 9 | Circle Line Mode via `SetStringArg` | public | `p09-circle`, `p09-line` |
-| 10 | Mirror frame plane via `SetStringArg` | public | `p10` |
+| 7 to 10 | Retired: the callout view list getter and setter, Circle Line Mode, and mirror frame plane substitutions | none | none (see below) |
 | 11 | Mesh Orientation via `SetStringArg` | public | `p11`, `c11` |
-| 12 to 14 | Getters without evidence | public | `p12`, `p13`, `p14` |
-| 15, 16 | Restored `DeleteCloudPointsByXYZRange` bounds | public, disposable clouds only | `c15-*`, `p15`, `c16-*`, `p16` (after `p15`, because #16 asks whether bounds are retained from #15) |
+| 12, 13 | Getters without evidence | public | `p12`, `p13` |
+| 14 | Retired: the instrument reference list getter after a wildcard add | none | none (see below) |
+| 15, 16 | Retired: the restored `DeleteCloudPointsByXYZRange` bounds | none | none (see below) |
 | 17, 18 | Label case sensitivity | worker (the API cannot recase a label) | `p17-recased` (control `p02-shipped`), `p18-shipped`, `p18-recased` |
 | 19 to 21 | SDK step text (#246) | worker (both texts on both targets) | `p19-*`, `p20-*`, `p21-*` |
 | 22 | Vector group runtime-select getter (0.9.1) | public; the operator selects `B277::VG1` | `p22` |
@@ -70,6 +68,18 @@ states which text this target ships.
 The optional SDK-ownership probes from #252 (worker crash, watchdog kill, parent
 death) are not included. They need their own authorization.
 
+**Retired probes.** Probes 7 to 10 and 14 to 16 answered their questions in the
+2026-10-07 session (see [Recorded sessions](#recorded-sessions)): on both exact targets the
+substituted getters returned nothing and the substituted setters were rejected
+with MP code `-1`. Their operations were removed for contract major 3
+([#308](https://github.com/spatialanalyzer/briosa/issues/308),
+[#310](https://github.com/spatialanalyzer/briosa/issues/310),
+[#307](https://github.com/spatialanalyzer/briosa/issues/307)), so the plan no
+longer sends them and `--exclude-probe` refuses their numbers. The numbers are
+not reused, so the 2026-10-07 records keep their meaning. Retiring them also
+removes the "Encountered an improper argument." dialog that preceded `p11` in
+that session.
+
 ## Safety controls
 
 - **Explicit confirmation.** A licensed run requires `--confirm-licensed-sa2026`.
@@ -84,13 +94,14 @@ death) are not included. They need their own authorization.
   harness counts processes by name only.
 - **Harness-owned fixtures.** Setup counts collections, creates `B277`, and
   requires the count to rise by exactly one. Manual fixtures may never use `B277`.
-- **Destructive scope.** Only `p15` and `p16` destroy anything. Each deletes
-  points from one disposable cloud that this session created in `B277`. Plan
-  validation proves that the request names only that cloud and that an earlier
-  setup step creates it. The session refuses the step unless that creation
-  succeeded in the same session. The cloud must hold exactly its eight fixture
-  points just before deletion. The worker phase never runs destructive
-  operations.
+- **Destructive scope.** No planned step destroys anything since probes 15
+  and 16 were retired. The guards stay for a future reviewed destructive step:
+  the only accepted destructive request is
+  `DeleteCloudPointsByRadialDistanceFromPoints` (the #307 re-probe control).
+  Plan validation proves that it names only one disposable cloud in `B277`,
+  points only in `B277`, and that an earlier setup step creates the cloud. The
+  session refuses the step unless that creation succeeded in the same session.
+  The worker phase never runs destructive operations.
 - **Stop on the first unexpected disposition.** Guards, setup steps, and worker
   controls accept only success. Wildcard checks also accept an MP failure,
   because an empty match may be reported that way. Probes and variants accept
@@ -139,15 +150,11 @@ runs.
 
 | Fixture | Purpose |
 | --- | --- |
-| `G1` with points P1 to P6: four corners of a 100-unit square at z = 0, plus two points at z = ±20 | Fits, bounding planes, ensure-unique, mirror, show/hide |
+| `G1` with points P1 to P6: four corners of a 100-unit square at z = 0, plus two points at z = ±20 | Fits, bounding planes, ensure-unique, show/hide |
 | `G2`: `G1` rotated 1° about Z | Group-to-group orientation (#19) |
 | `PA` (normal +Z) and `PB` (45° to `PA`) | Seed geometry, reference plane, angle (#20) |
 | `G3`: measured P1 to P3, one within ±1 and two 5 units out | Relationship `R1` and vector group `VG1` (one third in tolerance) |
-| `GDEL` and the disposable clouds `CDEL15` and `CDEL16` (eight points each) | #15 and #16. The deleted count distinguishes unbounded, retained, zero, and ignored bounds. |
 | `GRID` (5 × 5 planar) and cloud `CPOLY` | Polygonize (#11) |
-| `F1` (identity frame) | Mirror (#10) |
-| `CY1` and surface `SCYL` | Circle/line extraction (#9), unless the manifest names a surface |
-| Callout view `V1`, created through a text callout | #7 and #8, unless the manifest names a callout view |
 
 The worker phase creates only `G1`, `G2`, `PA`, `PB`, `G3`, `R1`, and `VG1`.
 
@@ -158,7 +165,7 @@ target in a disposable job that contains a collection named, for example,
 `B277M`, and never a collection named `B277`. Save the job and reopen it at the
 start of each phase. **Never save the job after a phase.**
 
-1. **USMN instruments (#1, #14).** Two instruments in `B277M`, each with
+1. **USMN instruments (#1).** Two instruments in `B277M`, each with
    observations to the same four or more targets. Simulated observations are
    acceptable. Also a nominal point group, for example `Nominals`, that has the
    same target names. A manual USMN on this data must solve.
@@ -167,11 +174,6 @@ start of each phase. **Never save the job after a phase.**
 3. **User-interface profile file (#4).** Export a UI profile to a local file.
    Record its full path and profile name. This probe changes the active UI
    profile, so restore your own profile after the session.
-4. **Optional circle/line surface (#9).** A surface with at least one cylindrical
-   feature, imported from a non-proprietary test part. Without it, the
-   programmatic `SCYL` is used.
-5. **Optional callout view (#7, #8).** Needed only if the `s-callout-V1` setup
-   step fails.
 
 Fixture manifest (the harness reads it; its values never appear in any output):
 
@@ -186,11 +188,13 @@ Fixture manifest (the harness reads it; its values never appear in any output):
   "usmn_nominals_group": { "collection": "B277M", "name": "Nominals" },
   "template_chart_name": "B277M Template",
   "ui_profile_name": "Default",
-  "ui_profile_file": "C:\\briosa-277\\profile.xml",
-  "circle_line_surface": null,
-  "callout_view": null
+  "ui_profile_file": "C:\\briosa-277\\profile.xml"
 }
 ```
+
+The manifest no longer accepts `circle_line_surface` or `callout_view`; they
+served the retired probes. Remove both keys from a manifest written for the
+2026-10-07 session, or the harness refuses it as an unknown property.
 
 ## Dry run
 
@@ -225,7 +229,8 @@ clean SA as described in [When a session stops](#when-a-session-stops).
 The harness refuses, before any client starts and with exit code `2`:
 
 - a value that is not one canonical probe number (`011`, `+11`, and `5-6` are
-  refused), a number outside the approved list, or the same number twice;
+  refused), a number outside the approved list, a retired probe (7 to 10,
+  14 to 16), or the same number twice;
 - a probe that has no steps in the selected phase, for example `17` in the
   public phase or `11` in the worker phase;
 - a probe that shares a step with another probe unless both are excluded:
@@ -234,15 +239,13 @@ The harness refuses, before any client starts and with exit code `2`:
   declares these explicitly, and the dry run prints them as
   `prerequisites (run earlier)`. `p17-recased` needs its control
   `p02-shipped`, so the worker phase refuses `--exclude-probe 2` unless
-  `--exclude-probe 17` is also given. `p16` needs `p15`, so the public phase
-  refuses `--exclude-probe 15` unless `16` is also excluded;
+  `--exclude-probe 17` is also given;
 - an exclusion that leaves no probe in the phase.
 
 Excluding a probe removes only its probe, variant, and check steps, for example
 `p11` and `c11`. Guard and fixture setup steps always run, including fixtures
 that only the excluded probe uses, so the remaining probes see the same SA
-state as in the full plan. The destructive `p15` and `p16` still require their
-disposable clouds and before-counts.
+state as in the full plan.
 
 The dry-run output, the JSON record, and the markdown record each state the
 exclusion, for example

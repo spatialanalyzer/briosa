@@ -33,9 +33,7 @@ internal static class TestSupport
     {
         "g-collections-before" => Outcome(ProbeOutcomeKind.Succeeded, ("collection_count", "3")),
         "g-collections-after" => Outcome(ProbeOutcomeKind.Succeeded, ("collection_count", "4")),
-        "c15-before" or "c16-before" => Outcome(ProbeOutcomeKind.Succeeded, ("points_count", "8")),
-        "c15-after" => Outcome(ProbeOutcomeKind.Succeeded, ("points_count", "6")),
-        "c16-after" => Outcome(ProbeOutcomeKind.Succeeded, ("points_count", "2")),
+        "c05-06-value" => Outcome(ProbeOutcomeKind.Succeeded, ("match_count", "2")),
         _ => Outcome(ProbeOutcomeKind.Succeeded)
     };
 }

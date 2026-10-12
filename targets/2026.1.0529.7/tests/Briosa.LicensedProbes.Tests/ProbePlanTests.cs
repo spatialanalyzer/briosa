@@ -20,11 +20,14 @@ public sealed class ProbePlanTests
             CreatesFixture = key
         };
 
-    private static ProbeStep Delete(string collection, string cloud, string? target, ProbePhase phase = ProbePhase.PublicApi)
+    private static ProbeStep Delete(
+        string collection, string cloud, string? target, ProbePhase phase = ProbePhase.PublicApi,
+        string pointCollection = FixtureNames.Collection)
     {
-        var request = new Api.DeleteCloudPointsByXYZRangeRequest { DeleteInside = true, XMin = 1, XMax = 2 };
+        var request = new Api.DeleteCloudPointsByRadialDistanceFromPointsRequest { Radius = 1, DeleteInside = true };
         request.CloudNames.Add(new Api.CollectionObjectName { CollectionName = collection, ObjectName = cloud, ObjectType = Api.ObjectType.Cloud });
-        return new ProbeStep("p-delete", "15", ProbeStepKind.Probe, phase, "delete", ProbeOperations.DeleteCloudPointsByXyzRange,
+        request.Points.Add(new Api.PointName { CollectionName = pointCollection, GroupName = "G", TargetName = "P1" });
+        return new ProbeStep("p-delete", "1", ProbeStepKind.Probe, phase, "delete", ProbeOperations.DeleteCloudPointsByRadialDistanceFromPoints,
             request, CommandVariant.Shipped, ProbeOutcomes.AnyDeterminateSdkOutcome)
         {
             DestructiveTarget = target
@@ -155,6 +158,13 @@ public sealed class ProbePlanTests
     }
 
     [Fact]
+    public void ValidationRefusesADeleteAroundPointsOutsideTheHarnessCollection()
+    {
+        Assert.Throws<InvalidOperationException>(() => ProbePlan.Validate(ProbePhase.PublicApi,
+            [CreateCloud("C1", "cloud:C1"), Delete(FixtureNames.Collection, "C1", "cloud:C1", pointCollection: "OTHER")]));
+    }
+
+    [Fact]
     public void ValidationRefusesAnyDestructiveStepInTheWorkerPhase()
     {
         var create = CreateCloud("C1", "cloud:C1") with { Phase = ProbePhase.Worker };
@@ -177,12 +187,11 @@ public sealed class ProbePlanTests
     }
 
     [Fact]
-    public void PublicDryRunMarksDestructiveAndOperatorSteps()
+    public void PublicDryRunMarksOperatorStepsAndHasNoDestructiveStep()
     {
         var text = ProbePlan.Create(ProbePhase.PublicApi, TestSupport.SentinelManifest()).RenderDryRun();
 
-        Assert.Contains("DESTRUCTIVE: only the harness-created cloud:CDEL15", text, StringComparison.Ordinal);
-        Assert.Contains("DESTRUCTIVE: only the harness-created cloud:CDEL16", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("DESTRUCTIVE", text, StringComparison.Ordinal);
         Assert.Contains("OPERATOR:", text, StringComparison.Ordinal);
         Assert.DoesNotContain(TestSupport.Sentinel, text, StringComparison.Ordinal);
     }

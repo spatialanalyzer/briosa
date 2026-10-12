@@ -169,6 +169,8 @@ internal sealed record ProbeOptions
             throw new ProbeUsageException($"{ExcludeProbe} takes one probe number from the approved list, for example 11.");
         if (!ProbeCatalog.ProbeNumbers.Contains(text, StringComparer.Ordinal))
             throw new ProbeUsageException($"{ExcludeProbe} {text} is not a probe in the approved list (1 to {ProbeCatalog.ProbeNumbers.Count}).");
+        if (ProbeCatalog.RetiredProbeNumbers.Contains(text, StringComparer.Ordinal))
+            throw new ProbeUsageException($"{ExcludeProbe} {text} names a retired probe; its operation was removed and the plan no longer sends it.");
         return number;
     }
 

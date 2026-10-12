@@ -85,7 +85,7 @@ public sealed class ProbeRecorderTests
     {
         var markdown = ProbeRecorder.ToMarkdown(await Session(ProbePhase.PublicApi, TestSupport.Succeeding));
 
-        Assert.Contains("Matches: omitted Y/Z bounds not applied (unbounded).", markdown, StringComparison.Ordinal);
+        Assert.Contains("Matches: both named planes created.", markdown, StringComparison.Ordinal);
         Assert.Contains("Public RPC `fake`", markdown, StringComparison.Ordinal);
         Assert.DoesNotContain(TestSupport.Sentinel, markdown, StringComparison.Ordinal);
     }

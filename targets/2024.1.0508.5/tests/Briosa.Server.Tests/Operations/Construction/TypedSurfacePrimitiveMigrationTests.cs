@@ -27,18 +27,12 @@ public sealed class TypedSurfacePrimitiveMigrationTests
         {
             SurfaceList = { Object("surface") }
         }, options);
-        var circles = await client.ConstructCirclesLinesFromSurfacesAsync(new()
-        {
-            Surfaces = { Object("surface") }, CircleLineMode = Api.CircleLineMode.Circle,
-            DestinationCollectionName = new() { Name = "derived" }
-        }, options);
         var selected = await client.ConstructCylindersFromSurfaceFacesRuntimeSelectAsync(new(), options);
 
-        Assert.All(new[] { spline.Execution, splines.Execution, circles.Execution, selected.Execution },
+        Assert.All(new[] { spline.Execution, splines.Execution, selected.Execution },
             detail => Assert.Equal(Api.MpExecutionState.Succeeded, detail.State));
         Assert.Equal(Api.ObjectType.BSpline, Assert.Single(splines.BSplineList).ObjectType);
-        Assert.Equal("result", Assert.Single(circles.GeometryObjects).ObjectName);
-        Assert.Equal(4, worker.Commands.Count);
+        Assert.Equal(3, worker.Commands.Count);
         Assert.Equal(WorkerObjectTypeValue.BSpline,
             worker.Commands[0].InputArguments[0].RequireValue<WorkerCollectionObjectNameValue>().ObjectType);
         Assert.Equal(WorkerObjectTypeValue.Plane,
@@ -46,20 +40,12 @@ public sealed class TypedSurfacePrimitiveMigrationTests
         Assert.Equal(0.0001, worker.Commands[0].InputArguments[3].RequireValue<WorkerDoubleValue>().Value);
         Assert.Single(worker.Commands[1].InputArguments);
         Assert.Equal("SetCollectionObjectNameRefListArg", worker.Commands[1].InputArguments[0].SdkBinding);
-        Assert.Equal("Circle", worker.Commands[2].InputArguments[5].RequireValue<WorkerTextValue>().Value);
-        Assert.Equal(0.02, worker.Commands[2].InputArguments[3].RequireValue<WorkerDoubleValue>().Value);
-        Assert.Empty(worker.Commands[3].InputArguments);
+        Assert.Empty(worker.Commands[2].InputArguments);
 
         var missingSurface = await Assert.ThrowsAsync<RpcException>(async () =>
             await client.ConstructBSplinesFromSurfacesAsync(new(), options));
-        var invalidMode = await Assert.ThrowsAsync<RpcException>(async () =>
-            await client.ConstructCirclesLinesFromSurfacesAsync(new()
-            {
-                Surfaces = { Object("surface") }, DestinationCollectionName = new() { Name = "derived" }
-            }, options));
         Assert.Equal(StatusCode.InvalidArgument, missingSurface.StatusCode);
-        Assert.Equal(StatusCode.InvalidArgument, invalidMode.StatusCode);
-        Assert.Equal(4, worker.Commands.Count);
+        Assert.Equal(3, worker.Commands.Count);
     }
 
     [Fact]
@@ -89,7 +75,6 @@ public sealed class TypedSurfacePrimitiveMigrationTests
             ConstructBSplineFromIntersectionOfSurfacesOperation.Descriptor,
             ConstructBSplinesFromSurfacesOperation.Descriptor,
             ConstructCirclesFromSurfaceFacesRuntimeSelectOperation.Descriptor,
-            ConstructCirclesLinesFromSurfacesOperation.Descriptor,
             ConstructConesFromSurfaceFacesRuntimeSelectOperation.Descriptor,
             ConstructCylindersFromSurfaceFacesRuntimeSelectOperation.Descriptor,
             ConstructLineFromInstrumentShotOperation.Descriptor,
@@ -201,9 +186,6 @@ public sealed class TypedSurfacePrimitiveMigrationTests
                 "construction_operations.construct_b_splines_from_surfaces" =>
                 [new WorkerRetrievedOutput("B-Spline List", WorkerMpValueKind.CollectionObjectNameList,
                     new WorkerCollectionObjectNameListValue([new("part", "spline", WorkerObjectTypeValue.BSpline)]))],
-                "construction_operations.construct_circles_lines_from_surfaces" =>
-                [new WorkerRetrievedOutput("Geometry Objects", WorkerMpValueKind.CollectionObjectNameList,
-                    new WorkerCollectionObjectNameListValue([new("part", "result", WorkerObjectTypeValue.Circle)]))],
                 _ => []
             };
             var execution = WorkerMpExecutionResult.FromEvidence(true, true, true, 2, 1, outputs, "completed");

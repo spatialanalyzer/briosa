@@ -1,6 +1,3 @@
-using System.Globalization;
-using Api = global::Briosa;
-
 namespace Briosa.LicensedProbes.Tests;
 
 public sealed class ProbeCatalogTests
@@ -15,7 +12,19 @@ public sealed class ProbeCatalogTests
             .Distinct(StringComparer.Ordinal)
             .Order(StringComparer.Ordinal);
 
-        Assert.Equal(ProbeCatalog.ProbeNumbers.Order(StringComparer.Ordinal), covered);
+        Assert.Equal(ProbeCatalog.ActiveProbeNumbers.Order(StringComparer.Ordinal), covered);
+    }
+
+    [Fact]
+    public void RetiredProbesHaveNoStepsInEitherPhase()
+    {
+        Assert.Equal(["7", "8", "9", "10", "14", "15", "16"], ProbeCatalog.RetiredProbeNumbers);
+        Assert.All(ProbeCatalog.RetiredProbeNumbers, probe => Assert.Contains(probe, ProbeCatalog.ProbeNumbers));
+        foreach (var phase in new[] { ProbePhase.PublicApi, ProbePhase.Worker })
+        {
+            Assert.DoesNotContain(Plan(phase).Steps, step =>
+                ProbePlan.ExpandProbe(step.Probe).Intersect(ProbeCatalog.RetiredProbeNumbers, StringComparer.Ordinal).Any());
+        }
     }
 
     [Fact]
@@ -109,53 +118,18 @@ public sealed class ProbeCatalogTests
     }
 
     [Fact]
-    public void DestructiveStepsTargetOnlyCloudsTheHarnessCreatedEarlier()
+    public void NoPlannedStepIsDestructive()
     {
-        var steps = Plan(ProbePhase.PublicApi).Steps;
-        var destructive = steps.Where(static step => step.Operation.IsDestructive).ToList();
-
-        Assert.Equal(2, destructive.Count);
-        foreach (var step in destructive)
+        // Probes 15 and 16 were the only destructive steps; they were retired with their
+        // operation (#307). The destructive-step guards stay for the #307 re-probe control.
+        foreach (var phase in new[] { ProbePhase.PublicApi, ProbePhase.Worker })
         {
-            var index = steps.ToList().IndexOf(step);
-            var creator = Assert.Single(steps, candidate => candidate.CreatesFixture == step.DestructiveTarget);
-            Assert.True(steps.ToList().IndexOf(creator) < index);
-            Assert.Equal(ProbeStepKind.Setup, creator.Kind);
-            Assert.Equal(ProbeOperations.GetCloudPointCount, steps[index - 1].Operation);
-            Assert.Equal(ProbeOperations.GetCloudPointCount, steps[index + 1].Operation);
-            var request = Assert.IsType<Api.DeleteCloudPointsByXYZRangeRequest>(step.Request);
-            var cloud = Assert.Single(request.CloudNames);
-            Assert.Equal(FixtureNames.Collection, cloud.CollectionName);
-            Assert.True(request.DeleteInside);
+            Assert.All(Plan(phase).Steps, step =>
+            {
+                Assert.False(step.Operation.IsDestructive);
+                Assert.Null(step.DestructiveTarget);
+            });
         }
-    }
-
-    [Fact]
-    public void DeleteHypothesesFollowFromTheFixtureGeometry()
-    {
-        var points = ProbeCatalog.DeletePoints;
-        static bool Inside(double value, double minimum, double maximum) => value >= minimum && value <= maximum;
-        int Remaining(Func<(string Name, double X, double Y, double Z), bool> deleted) => points.Count(point => !deleted(point));
-
-        var expected = new Dictionary<string, int>(StringComparer.Ordinal)
-        {
-            ["all six bounds honored (two points inside)"] = Remaining(p => Inside(p.X, 4, 6) && Inside(p.Y, 15, 25) && Inside(p.Z, 15, 25)),
-            ["omitted Y/Z bounds not applied (unbounded)"] = Remaining(p => Inside(p.X, 4, 6)),
-            ["omitted Y/Z bounds retained from #15"] = Remaining(p => Inside(p.X, 4, 6) && Inside(p.Y, 15, 25) && Inside(p.Z, 15, 25)),
-            ["omitted Y/Z bounds treated as zero"] = Remaining(p => Inside(p.X, 4, 6) && p.Y == 0 && p.Z == 0),
-            ["nothing deleted"] = points.Count
-        };
-        var steps = Plan(ProbePhase.PublicApi).Steps;
-        var hypotheses = steps.Where(static step => step.Id is "c15-after" or "c16-after").SelectMany(static step => step.Hypotheses).ToList();
-
-        Assert.Equal(8, points.Count);
-        Assert.NotEmpty(hypotheses);
-        Assert.All(hypotheses, hypothesis =>
-            Assert.Equal(expected[hypothesis.Label].ToString(CultureInfo.InvariantCulture), hypothesis.ExpectedValue));
-
-        // Every #16 interpretation must be distinguishable by count alone.
-        var partial = steps.Single(static step => step.Id == "c16-after").Hypotheses.Select(static h => h.ExpectedValue).ToList();
-        Assert.Equal(partial.Count, partial.Distinct(StringComparer.Ordinal).Count());
     }
 
     [Fact]

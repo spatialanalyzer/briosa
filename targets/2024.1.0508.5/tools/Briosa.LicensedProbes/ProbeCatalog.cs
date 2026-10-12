@@ -35,6 +35,15 @@ internal static class ProbeCatalog
     public static IReadOnlyList<string> ProbeNumbers { get; } =
         [.. Enumerable.Range(1, 23).Select(static number => number.ToString(CultureInfo.InvariantCulture))];
 
+    // Retired with the operations they probed (#308, #310, #307): the operations were
+    // removed because these probes showed their NOT_SUPPORTED substitutions do not work
+    // on either exact target. Their numbers keep their meaning in the 2026-10-07 records;
+    // the plan no longer sends them.
+    public static IReadOnlyList<string> RetiredProbeNumbers { get; } = ["7", "8", "9", "10", "14", "15", "16"];
+
+    public static IReadOnlyList<string> ActiveProbeNumbers { get; } =
+        [.. ProbeNumbers.Except(RetiredProbeNumbers, StringComparer.Ordinal)];
+
     public static IReadOnlyList<ProbeStep> Create(ProbePhase phase, FixtureManifest manifest)
     {
         ArgumentNullException.ThrowIfNull(manifest);
@@ -42,7 +51,7 @@ internal static class ProbeCatalog
         AddCollectionGuard(steps);
         if (phase == ProbePhase.PublicApi)
         {
-            AddPublicFixtures(steps, manifest);
+            AddPublicFixtures(steps);
             AddPublicProbes(steps, manifest);
         }
         else
@@ -121,16 +130,6 @@ internal static class ProbeCatalog
     internal static IReadOnlyList<(string Name, double X, double Y, double Z)> MeasuredPoints { get; } =
         [("P1", 0, 0, 0.1), ("P2", 100, 0, 5), ("P3", 0, 100, 5)];
 
-    // Every point has X = 5 except the two outside the X range. The deleted
-    // count distinguishes how omitted Y/Z bounds are treated (#16):
-    // unbounded deletes six, bounds retained from #15 delete two, zero bounds
-    // delete one, and an ignored range deletes none.
-    internal static IReadOnlyList<(string Name, double X, double Y, double Z)> DeletePoints { get; } =
-    [
-        ("D1", 0, 0, 0), ("D2", 5, 5, 5), ("D3", 5, 0, 0), ("D4", 5, 20, 20),
-        ("D5", 20, 20, 20), ("D7", 5, 21, 21), ("D8", 5, 8, 8), ("D9", 5, 9, 9)
-    ];
-
     private static void AddCommonGeometry(StepList steps)
     {
         AddPointGroup(steps, FixtureNames.GroupOne, GroupOnePoints);
@@ -185,10 +184,9 @@ internal static class ProbeCatalog
             });
     }
 
-    private static void AddPublicFixtures(StepList steps, FixtureManifest manifest)
+    private static void AddPublicFixtures(StepList steps)
     {
         AddCommonGeometry(steps);
-        AddPointGroup(steps, FixtureNames.GroupDelete, DeletePoints);
         steps.Setup("s-grid-GRID", "Lay out a planar 5 x 5 point grid for the polygonize cloud",
             ProbeOperations.ConstructPointsOnGrid, new Api.ConstructPointsLayoutOnGridRequest
             {
@@ -199,45 +197,6 @@ internal static class ProbeCatalog
                 ZMin = 0, ZMax = 0, ZCount = 1
             });
         steps.Add(CloudSetup("s-cloud-CPOLY", FixtureNames.GroupGrid, FixtureNames.PolygonizeCloud, null, steps.Phase));
-        steps.Add(CloudSetup("s-cloud-CDEL15", FixtureNames.GroupDelete, FixtureNames.DeleteCloudAllBounds,
-            FixtureNames.DeleteCloudAllBoundsKey, steps.Phase));
-        steps.Add(CloudSetup("s-cloud-CDEL16", FixtureNames.GroupDelete, FixtureNames.DeleteCloudPartialBounds,
-            FixtureNames.DeleteCloudPartialBoundsKey, steps.Phase));
-        steps.Setup("s-frame-F1", "Construct identity frame F1", ProbeOperations.ConstructFrame,
-            new Api.ConstructFrameRequest
-            {
-                NewFrameName = Object(FixtureNames.Frame, Api.ObjectType.Frame),
-                TransformInWorkingCoordinates = Identity()
-            });
-        if (manifest.CircleLineSurface is null)
-        {
-            steps.Setup("s-cylinder-CY1", "Construct cylinder CY1 away from the other fixtures", ProbeOperations.ConstructCylinder,
-                new Api.ConstructCylinderRequest
-                {
-                    CylinderName = Object(FixtureNames.Cylinder, Api.ObjectType.Cylinder),
-                    CylinderEndPoint = Vector(200, 0, 0),
-                    CylinderAxis = Vector(0, 0, 1),
-                    CylinderDiameter = 20,
-                    CylinderLength = 30
-                });
-            steps.Setup("s-surface-SCYL", "Construct surface SCYL from cylinder CY1", ProbeOperations.ConstructSurfaceFromCylinder,
-                new Api.ConstructSurfaceFromCylinderRequest
-                {
-                    ResultingSurfaceName = Object(FixtureNames.CylinderSurface, Api.ObjectType.Surface),
-                    CylinderName = Object(FixtureNames.Cylinder, Api.ObjectType.Cylinder)
-                });
-        }
-
-        if (manifest.CalloutView is null)
-        {
-            var callout = new Api.CreateTextCalloutRequest
-            {
-                DestinationCalloutView = CalloutView(manifest),
-                CalloutAnchorPoint = Point(FixtureNames.GroupOne, "P1")
-            };
-            callout.Text.Add("B277");
-            steps.Setup("s-callout-V1", "Create a text callout in callout view V1", ProbeOperations.CreateTextCallout, callout);
-        }
     }
 
     private static void AddWorkerFixtures(StepList steps) => AddCommonGeometry(steps);
@@ -255,28 +214,6 @@ internal static class ProbeCatalog
             ObjectsNamed(FixtureNames.Collection, "*56V", Api.ObjectType.Plane),
             new ProbeHypothesis("both named planes created", "match_count", "2"));
 
-        steps.Probe("p07", "7", "Callout view wildcard output via the substitute list getter",
-            ProbeOperations.CalloutViewWildcardSelection, new Api.MakeCalloutViewRefListWildcardSelectionRequest
-            {
-                CollectionWildcardCriteria = CalloutView(manifest).CollectionName,
-                CalloutViewWildcardCriteria = "*"
-            });
-        var properties = new Api.SetCalloutViewPropertiesRequest { Properties = new Api.CalloutViewProperties() };
-        properties.CalloutViews.Add(CalloutView(manifest));
-        steps.Probe("p08", "8", "Callout view properties via the substitute list setter",
-            ProbeOperations.SetCalloutViewProperties, properties);
-        steps.Probe("p09-circle", "9", "Circle Line Mode = Circle via SetStringArg",
-            ProbeOperations.ConstructCirclesLinesFromSurfaces, CirclesLines(manifest, Api.CircleLineMode.Circle, "CIR9"));
-        steps.Probe("p09-line", "9", "Circle Line Mode = Line via SetStringArg",
-            ProbeOperations.ConstructCirclesLinesFromSurfaces, CirclesLines(manifest, Api.CircleLineMode.Line, "LIN9"));
-        var mirror = new Api.MirrorObjectsRequest
-        {
-            FrameName = Object(FixtureNames.Frame, Api.ObjectType.Frame),
-            FramePlaneToMirrorAround = Api.MirrorFramePlane.Yz,
-            Copy = true
-        };
-        mirror.Objects.Add(Object(FixtureNames.GroupOne, Api.ObjectType.PointGroup));
-        steps.Probe("p10", "10", "Mirror frame plane via SetStringArg (copy)", ProbeOperations.MirrorObjects, mirror);
         var polygonize = new Api.ConstructPolygonizedSurfaceFromPointCloudsRequest
         {
             MeshOrientation = Api.MeshOrientationType.UseCurrentWorkingFrame,
@@ -295,32 +232,6 @@ internal static class ProbeCatalog
                 UseNumberSuffix = true
             });
 
-        AddDeleteProbe(steps, "15", FixtureNames.DeleteCloudAllBounds, FixtureNames.DeleteCloudAllBoundsKey, [],
-            "All six bounds set, Delete Inside = TRUE",
-            static request =>
-            {
-                request.XMin = 4; request.XMax = 6;
-                request.YMin = 15; request.YMax = 25;
-                request.ZMin = 15; request.ZMax = 25;
-            },
-            [
-                new ProbeHypothesis("all six bounds honored (two points inside)", "points_count", "6"),
-                new ProbeHypothesis("nothing deleted", "points_count", "8")
-            ]);
-        // #16 asks whether omitted bounds are retained from #15, so p15 must run first.
-        AddDeleteProbe(steps, "16", FixtureNames.DeleteCloudPartialBounds, FixtureNames.DeleteCloudPartialBoundsKey, ["p15"],
-            "Only X bounds set (Y and Z omitted), Delete Inside = TRUE",
-            static request =>
-            {
-                request.XMin = 4; request.XMax = 6;
-            },
-            [
-                new ProbeHypothesis("omitted Y/Z bounds not applied (unbounded)", "points_count", "2"),
-                new ProbeHypothesis("omitted Y/Z bounds retained from #15", "points_count", "6"),
-                new ProbeHypothesis("omitted Y/Z bounds treated as zero", "points_count", "7"),
-                new ProbeHypothesis("nothing deleted", "points_count", "8")
-            ]);
-
         steps.Probe("p23", "23", "Vector group properties with a one-third in-tolerance fraction",
             ProbeOperations.GetVectorGroupProperties, new Api.GetVectorGroupPropertiesRequest
             {
@@ -332,14 +243,6 @@ internal static class ProbeCatalog
             ProbeOperations.LocateInstrumentsUsmn, Usmn(manifest));
         steps.Probe("p03-value", "3", "Chart with a template chart value (public API)",
             ProbeOperations.CreateChartFromVectorGroup, Chart(manifest, "B277 C3V"));
-        var instruments = new Api.AddCollectionInstrumentsToRefListWildcardSelectionRequest
-        {
-            CollectionWildcardCriteria = "*",
-            InstrumentWildcardCriteria = "*"
-        };
-        instruments.CollectionInstrumentRefList.Add(Instrument(manifest.UsmnInstruments[0]));
-        steps.Probe("p14", "14", "Instrument reference list getter after wildcard add",
-            ProbeOperations.AddCollectionInstrumentsWildcardSelection, instruments);
         steps.Probe("p04-value", "4", "User interface profile with a profile file value (public API)",
             ProbeOperations.SetUserInterfaceProfile, Profile(manifest));
         steps.Add(new ProbeStep("p22", "22", ProbeStepKind.Probe, steps.Phase,
@@ -457,46 +360,6 @@ internal static class ProbeCatalog
             ProbeOperations.SetUserInterfaceProfile, Profile(manifest), CommandVariant.Blank(ProfileFileLabel));
     }
 
-    private static void AddDeleteProbe(
-        StepList steps,
-        string probe,
-        string cloud,
-        string fixtureKey,
-        IReadOnlyList<string> earlierProbes,
-        string purpose,
-        Action<Api.DeleteCloudPointsByXYZRangeRequest> bounds,
-        IReadOnlyList<ProbeHypothesis> hypotheses)
-    {
-        var cloudName = Object(cloud, Api.ObjectType.Cloud);
-        steps.Add(new ProbeStep($"c{probe}-before", probe, ProbeStepKind.Check, steps.Phase,
-            $"Count points in disposable cloud {cloud} before deletion",
-            ProbeOperations.GetCloudPointCount, new Api.GetCloudPointCountRequest { CloudName = cloudName },
-            CommandVariant.Shipped, ProbeOutcomes.Succeeded)
-        {
-            Hypotheses = [new ProbeHypothesis("fixture intact", "points_count", "8")],
-            Requirement = new ProbeRequirement("the disposable cloud holds exactly the eight fixture points",
-                static (_, outcome) => outcome.Observations.TryGetValue("points_count", out var count) &&
-                    string.Equals(count, "8", StringComparison.Ordinal))
-        });
-        var request = new Api.DeleteCloudPointsByXYZRangeRequest { DeleteInside = true };
-        request.CloudNames.Add(cloudName);
-        bounds(request);
-        steps.Add(new ProbeStep($"p{probe}", probe, ProbeStepKind.Probe, steps.Phase, purpose,
-            ProbeOperations.DeleteCloudPointsByXyzRange, request, CommandVariant.Shipped, ProbeOutcomes.AnyDeterminateSdkOutcome)
-        {
-            DestructiveTarget = fixtureKey,
-            Prerequisites = [$"c{probe}-before", .. earlierProbes]
-        });
-        steps.Add(new ProbeStep($"c{probe}-after", probe, ProbeStepKind.Check, steps.Phase,
-            $"Count points in disposable cloud {cloud} after deletion",
-            ProbeOperations.GetCloudPointCount, new Api.GetCloudPointCountRequest { CloudName = cloudName },
-            CommandVariant.Shipped, ProbeOutcomes.Succeeded)
-        {
-            Hypotheses = hypotheses,
-            Prerequisites = [$"p{probe}"]
-        });
-    }
-
     private static ProbeStep CloudSetup(string id, string group, string cloud, string? fixtureKey, ProbePhase phase) =>
         new(id, "setup", ProbeStepKind.Setup, phase, $"Construct cloud {cloud} from point group {group}",
             ProbeOperations.ConstructCloudFromGroup, new Api.ConstructPointCloudsFromExistingPointGroupRequest
@@ -536,20 +399,6 @@ internal static class ProbeCatalog
         ResultingLowPlaneName = Object(low, Api.ObjectType.Plane),
         OverrideTargetPointOffsets = false
     };
-
-    private static Api.ConstructCirclesLinesFromSurfacesRequest CirclesLines(FixtureManifest manifest, Api.CircleLineMode mode, string baseName)
-    {
-        var request = new Api.ConstructCirclesLinesFromSurfacesRequest
-        {
-            CircleLineMode = mode,
-            DestinationCollectionName = new Api.CollectionName { Name = FixtureNames.Collection },
-            BaseName = baseName
-        };
-        request.Surfaces.Add(manifest.CircleLineSurface is { } surface
-            ? new Api.CollectionObjectName { CollectionName = surface.Collection, ObjectName = surface.Name, ObjectType = Api.ObjectType.Surface }
-            : Object(FixtureNames.CylinderSurface, Api.ObjectType.Surface));
-        return request;
-    }
 
     private static Api.LocateInstrumentsUsmnRequest Usmn(FixtureManifest manifest)
     {
@@ -593,16 +442,6 @@ internal static class ProbeCatalog
         ProfileFileName = new Api.FileReference { Path = manifest.UiProfileFile, EmbeddedFile = false }
     };
 
-    private static Api.CollectionItemName CalloutView(FixtureManifest manifest) =>
-        manifest.CalloutView is { } view
-            ? new Api.CollectionItemName { CollectionName = view.Collection, ItemName = view.Name, ItemType = Api.ItemType.CalloutView }
-            : new Api.CollectionItemName
-            {
-                CollectionName = FixtureNames.Collection,
-                ItemName = FixtureNames.CalloutView,
-                ItemType = Api.ItemType.CalloutView
-            };
-
     private static Api.CollectionInstrumentId Instrument(ManifestInstrument instrument) =>
         new() { CollectionName = instrument.Collection, InstrumentId = instrument.InstrumentId };
 
@@ -613,13 +452,6 @@ internal static class ProbeCatalog
         new() { CollectionName = FixtureNames.Collection, GroupName = group, TargetName = target };
 
     private static Api.Vector Vector(double x, double y, double z) => new() { X = x, Y = y, Z = z };
-
-    private static Api.Transform Identity()
-    {
-        var transform = new Api.Transform();
-        transform.Values.AddRange([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
-        return transform;
-    }
 
     /// <summary>Accumulates steps for one phase with the reviewed acceptance sets.</summary>
     private sealed class StepList(ProbePhase phase)

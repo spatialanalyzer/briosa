@@ -115,7 +115,9 @@ MP documentation ordinal, SDK order, and protobuf field number are separate
 claims. Result field `1000` is reserved for `MpExecutionDetails execution`.
 Removed published fields are reserved rather than reused after the first public
 release. Buf formats, lints, and compiles each target contract; breaking checks use
-an explicit released reference once one exists.
+an explicit released reference once one exists. Removing an operation is a
+reviewed contract-major change recorded in a ledger; see
+[operation retirement](../development/operation-retirement.md).
 
 ## Discovery and health
 

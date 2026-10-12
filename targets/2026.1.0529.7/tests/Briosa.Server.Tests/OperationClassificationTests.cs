@@ -15,10 +15,10 @@ public sealed class OperationClassificationTests
     private static readonly Dictionary<string, int> ExpectedProfileAdmission =
         new(StringComparer.Ordinal)
         {
-            ["read-only"] = 185,
-            ["standard"] = 811,
-            ["device"] = 912,
-            ["full"] = 929
+            ["read-only"] = 184,
+            ["standard"] = 805,
+            ["device"] = 906,
+            ["full"] = 923
         };
 
     private const int ExpectedInteractiveOperations = 59;

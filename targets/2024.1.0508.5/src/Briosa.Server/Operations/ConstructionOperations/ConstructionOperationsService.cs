@@ -22,12 +22,6 @@ internal sealed class ConstructionOperationsService(OperationExecutor operationE
             GetActiveCollectionNameOperation.OutputContracts,
             GetActiveCollectionNameOperation.CreateResult);
 
-    [OperationImplementation("construction_operations.add_collection_instruments_to_ref_list_wildcard_selection")]
-    public override Task<Api.AddCollectionInstrumentsToRefListWildcardSelectionResult> AddCollectionInstrumentsToRefListWildcardSelection(Api.AddCollectionInstrumentsToRefListWildcardSelectionRequest request, ServerCallContext context) =>
-        _operationExecutor.ExecuteAsync(request, context, AddCollectionInstrumentsToRefListWildcardSelectionOperation.Descriptor,
-            AddCollectionInstrumentsToRefListWildcardSelectionOperation.CreateCommand, AddCollectionInstrumentsToRefListWildcardSelectionOperation.OutputContracts,
-            AddCollectionInstrumentsToRefListWildcardSelectionOperation.CreateResult);
-
     [OperationImplementation("construction_operations.add_surface_to_mesh_offset_along_reference_direction")]
     public override Task<Api.AddSurfaceToMeshOffsetAlongReferenceDirectionResult> AddSurfaceToMeshOffsetAlongReferenceDirection(Api.AddSurfaceToMeshOffsetAlongReferenceDirectionRequest request, ServerCallContext context) =>
         _operationExecutor.ExecuteAsync(request, context, AddSurfaceToMeshOffsetAlongReferenceDirectionOperation.Descriptor,
@@ -102,11 +96,6 @@ internal sealed class ConstructionOperationsService(OperationExecutor operationE
     public override Task<Api.ConstructCirclesFromSurfaceFacesRuntimeSelectResult> ConstructCirclesFromSurfaceFacesRuntimeSelect(Api.ConstructCirclesFromSurfaceFacesRuntimeSelectRequest request, ServerCallContext context) =>
         _operationExecutor.ExecuteAsync(request, context, ConstructCirclesFromSurfaceFacesRuntimeSelectOperation.Descriptor,
             ConstructCirclesFromSurfaceFacesRuntimeSelectOperation.CreateCommand, ConstructCirclesFromSurfaceFacesRuntimeSelectOperation.OutputContracts, ConstructCirclesFromSurfaceFacesRuntimeSelectOperation.CreateResult);
-
-    [OperationImplementation("construction_operations.construct_circles_lines_from_surfaces")]
-    public override Task<Api.ConstructCirclesLinesFromSurfacesResult> ConstructCirclesLinesFromSurfaces(Api.ConstructCirclesLinesFromSurfacesRequest request, ServerCallContext context) =>
-        _operationExecutor.ExecuteAsync(request, context, ConstructCirclesLinesFromSurfacesOperation.Descriptor,
-            ConstructCirclesLinesFromSurfacesOperation.CreateCommand, ConstructCirclesLinesFromSurfacesOperation.OutputContracts, ConstructCirclesLinesFromSurfacesOperation.CreateResult);
 
     [OperationImplementation("construction_operations.construct_collection")]
     public override Task<Api.ConstructCollectionResult> ConstructCollection(Api.ConstructCollectionRequest request, ServerCallContext context) =>
@@ -884,12 +873,6 @@ internal sealed class ConstructionOperationsService(OperationExecutor operationE
         _operationExecutor.ExecuteAsync(request, context, InvertTransformOperation.Descriptor,
             InvertTransformOperation.CreateCommand, InvertTransformOperation.OutputContracts, InvertTransformOperation.CreateResult);
 
-    [OperationImplementation("construction_operations.make_callout_view_ref_list_wildcard_selection")]
-    public override Task<Api.MakeCalloutViewRefListWildcardSelectionResult> MakeCalloutViewRefListWildcardSelection(Api.MakeCalloutViewRefListWildcardSelectionRequest request, ServerCallContext context) =>
-        _operationExecutor.ExecuteAsync(request, context, MakeCalloutViewRefListWildcardSelectionOperation.Descriptor,
-            MakeCalloutViewRefListWildcardSelectionOperation.CreateCommand, MakeCalloutViewRefListWildcardSelectionOperation.OutputContracts,
-            MakeCalloutViewRefListWildcardSelectionOperation.CreateResult);
-
     [OperationImplementation("construction_operations.make_collection_instrument_id_runtime_select")]
     public override Task<Api.MakeCollectionInstrumentIdRuntimeSelectResult> MakeCollectionInstrumentIdRuntimeSelect(Api.MakeCollectionInstrumentIdRuntimeSelectRequest request, ServerCallContext context) =>
         _operationExecutor.ExecuteAsync(request, context, MakeCollectionInstrumentIdRuntimeSelectOperation.Descriptor,
@@ -1052,11 +1035,6 @@ internal sealed class ConstructionOperationsService(OperationExecutor operationE
             MakeVectorNamesUniqueInVectorGroupOperation.CreateCommand, MakeVectorNamesUniqueInVectorGroupOperation.OutputContracts,
             MakeVectorNamesUniqueInVectorGroupOperation.CreateResult);
 
-    [OperationImplementation("construction_operations.mirror_objects")]
-    public override Task<Api.MirrorObjectsResult> MirrorObjects(Api.MirrorObjectsRequest request, ServerCallContext context) =>
-        _operationExecutor.ExecuteAsync(request, context, MirrorObjectsOperation.Descriptor,
-            MirrorObjectsOperation.CreateCommand, MirrorObjectsOperation.OutputContracts, MirrorObjectsOperation.CreateResult);
-
     [OperationImplementation("construction_operations.move_objects_point_to_point_delta")]
     public override Task<Api.MoveObjectsPointToPointDeltaResult> MoveObjectsPointToPointDelta(Api.MoveObjectsPointToPointDeltaRequest request, ServerCallContext context) =>
         _operationExecutor.ExecuteAsync(request, context, MoveObjectsPointToPointDeltaOperation.Descriptor,
@@ -1096,11 +1074,6 @@ internal sealed class ConstructionOperationsService(OperationExecutor operationE
     public override Task<Api.RenamePointsWithNamePatternResult> RenamePointsWithNamePattern(Api.RenamePointsWithNamePatternRequest request, ServerCallContext context) =>
         _operationExecutor.ExecuteAsync(request, context, RenamePointsWithNamePatternOperation.Descriptor,
             RenamePointsWithNamePatternOperation.CreateCommand, RenamePointsWithNamePatternOperation.OutputContracts, RenamePointsWithNamePatternOperation.CreateResult);
-
-    [OperationImplementation("construction_operations.set_callout_view_properties")]
-    public override Task<Api.SetCalloutViewPropertiesResult> SetCalloutViewProperties(Api.SetCalloutViewPropertiesRequest request, ServerCallContext context) =>
-        _operationExecutor.ExecuteAsync(request, context, SetCalloutViewPropertiesOperation.Descriptor,
-            SetCalloutViewPropertiesOperation.CreateCommand, SetCalloutViewPropertiesOperation.OutputContracts, SetCalloutViewPropertiesOperation.CreateResult);
 
     [OperationImplementation("construction_operations.set_collection_instrument_ref_list_variable")]
     public override Task<Api.SetCollectionInstrumentRefListVariableResult> SetCollectionInstrumentRefListVariable(Api.SetCollectionInstrumentRefListVariableRequest request, ServerCallContext context) =>

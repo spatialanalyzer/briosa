@@ -60,7 +60,6 @@ service CloudAndMeshOperations {
   rpc GetCloudRGBValuesNearPoint(GetCloudRGBValuesNearPointRequest) returns (GetCloudRGBValuesNearPointResult);
   rpc SubdivideCloudByPointSpacing(SubdivideCloudByPointSpacingRequest) returns (SubdivideCloudByPointSpacingResult);
   rpc DeleteCloudPointsByRadialDistanceFromPoints(DeleteCloudPointsByRadialDistanceFromPointsRequest) returns (DeleteCloudPointsByRadialDistanceFromPointsResult);
-  rpc DeleteCloudPointsByXYZRange(DeleteCloudPointsByXYZRangeRequest) returns (DeleteCloudPointsByXYZRangeResult);
   rpc GenerateGeneralMesh(GenerateGeneralMeshRequest) returns (GenerateGeneralMeshResult);
   rpc ConsolidateMesh(ConsolidateMeshRequest) returns (ConsolidateMeshResult);
   rpc MeshVolume(MeshVolumeRequest) returns (MeshVolumeResult);
@@ -371,21 +370,6 @@ message DeleteCloudPointsByRadialDistanceFromPointsRequest {
 }
 
 message DeleteCloudPointsByRadialDistanceFromPointsResult {
-  MpExecutionDetails execution = 1000;
-}
-
-message DeleteCloudPointsByXYZRangeRequest {
-  repeated CollectionObjectName cloud_names = 1;
-  optional double x_min = 2;
-  optional double x_max = 3;
-  optional double y_min = 4;
-  optional double y_max = 5;
-  optional double z_min = 6;
-  optional double z_max = 7;
-  optional bool delete_inside = 8;
-}
-
-message DeleteCloudPointsByXYZRangeResult {
   MpExecutionDetails execution = 1000;
 }
 

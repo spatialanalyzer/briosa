@@ -316,13 +316,16 @@ internal sealed class ProbePlan
         }
     }
 
-    // The only reviewed destructive operation deletes cloud points; its request
-    // may name exactly one cloud, the harness-created disposable target.
+    // The only reviewed destructive operation deletes cloud points around points; its
+    // request may name exactly one cloud, the harness-created disposable target, and
+    // only points in the harness collection. (Delete Cloud Points by X Y Z Range, the
+    // operation of the retired probes 15 and 16, was removed for #307.)
     private static bool TargetsOnly(ProbeStep step) =>
-        step.Request is Api.DeleteCloudPointsByXYZRangeRequest delete &&
+        step.Request is Api.DeleteCloudPointsByRadialDistanceFromPointsRequest delete &&
         delete.CloudNames.Count == 1 &&
         string.Equals(delete.CloudNames[0].CollectionName, FixtureNames.Collection, StringComparison.Ordinal) &&
-        string.Equals("cloud:" + delete.CloudNames[0].ObjectName, step.DestructiveTarget, StringComparison.Ordinal);
+        string.Equals("cloud:" + delete.CloudNames[0].ObjectName, step.DestructiveTarget, StringComparison.Ordinal) &&
+        delete.Points.All(static point => string.Equals(point.CollectionName, FixtureNames.Collection, StringComparison.Ordinal));
 
     /// <summary>Renders the planned SDK sequences without connecting to anything.</summary>
     public string RenderDryRun()

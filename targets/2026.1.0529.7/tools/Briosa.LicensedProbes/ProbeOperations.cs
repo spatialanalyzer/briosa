@@ -60,24 +60,6 @@ internal static class ProbeOperations
         static (invoker, request, options) => Construction(invoker).ConstructPlaneAsync(request, options),
         static result => result.Execution);
 
-    public static ProbeOperation ConstructFrame { get; } = Op<Api.ConstructFrameRequest, Api.ConstructFrameResult>(
-        Ops.ConstructionOperations.ConstructFrameOperation.Descriptor,
-        Ops.ConstructionOperations.ConstructFrameOperation.CreateCommand,
-        static (invoker, request, options) => Construction(invoker).ConstructFrameAsync(request, options),
-        static result => result.Execution);
-
-    public static ProbeOperation ConstructCylinder { get; } = Op<Api.ConstructCylinderRequest, Api.ConstructCylinderResult>(
-        Ops.ConstructionOperations.ConstructCylinderOperation.Descriptor,
-        Ops.ConstructionOperations.ConstructCylinderOperation.CreateCommand,
-        static (invoker, request, options) => Construction(invoker).ConstructCylinderAsync(request, options),
-        static result => result.Execution);
-
-    public static ProbeOperation ConstructSurfaceFromCylinder { get; } = Op<Api.ConstructSurfaceFromCylinderRequest, Api.ConstructSurfaceFromCylinderResult>(
-        Ops.ConstructionOperations.ConstructSurfaceFromCylinderOperation.Descriptor,
-        Ops.ConstructionOperations.ConstructSurfaceFromCylinderOperation.CreateCommand,
-        static (invoker, request, options) => Construction(invoker).ConstructSurfaceFromCylinderAsync(request, options),
-        static result => result.Execution);
-
     public static ProbeOperation MakePointsToPointsRelationship { get; } = Op<Api.MakePointsToPointsRelationshipRequest, Api.MakePointsToPointsRelationshipResult>(
         Ops.RelationshipOperations.MakePointsToPointsRelationshipOperation.Descriptor,
         Ops.RelationshipOperations.MakePointsToPointsRelationshipOperation.CreateCommand,
@@ -88,12 +70,6 @@ internal static class ProbeOperations
         Ops.ConstructionOperations.ConstructVectorGroupFromRelationshipOperation.Descriptor,
         Ops.ConstructionOperations.ConstructVectorGroupFromRelationshipOperation.CreateCommand,
         static (invoker, request, options) => Construction(invoker).ConstructVectorGroupFromRelationshipAsync(request, options),
-        static result => result.Execution);
-
-    public static ProbeOperation CreateTextCallout { get; } = Op<Api.CreateTextCalloutRequest, Api.CreateTextCalloutResult>(
-        Ops.ConstructionOperations.CreateTextCalloutOperation.Descriptor,
-        Ops.ConstructionOperations.CreateTextCalloutOperation.CreateCommand,
-        static (invoker, request, options) => Construction(invoker).CreateTextCalloutAsync(request, options),
         static result => result.Execution);
 
     public static ProbeOperation GetCloudPointCount { get; } = Op<Api.GetCloudPointCountRequest, Api.GetCloudPointCountResult>(
@@ -134,40 +110,14 @@ internal static class ProbeOperations
         static (invoker, request, options) => Construction(invoker).ConstructPlanesBoundingPointGroupAsync(request, options),
         static result => result.Execution);
 
-    // NOT_SUPPORTED substitutions (#7-11).
-    public static ProbeOperation CalloutViewWildcardSelection { get; } = Op<Api.MakeCalloutViewRefListWildcardSelectionRequest, Api.MakeCalloutViewRefListWildcardSelectionResult>(
-        Ops.ConstructionOperations.MakeCalloutViewRefListWildcardSelectionOperation.Descriptor,
-        Ops.ConstructionOperations.MakeCalloutViewRefListWildcardSelectionOperation.CreateCommand,
-        static (invoker, request, options) => Construction(invoker).MakeCalloutViewRefListWildcardSelectionAsync(request, options),
-        static result => result.Execution,
-        static (_, result) => Observations.Of(("callout_view_count", Observations.Count(result.CalloutViews.Count))));
-
-    public static ProbeOperation SetCalloutViewProperties { get; } = Op<Api.SetCalloutViewPropertiesRequest, Api.SetCalloutViewPropertiesResult>(
-        Ops.ConstructionOperations.SetCalloutViewPropertiesOperation.Descriptor,
-        Ops.ConstructionOperations.SetCalloutViewPropertiesOperation.CreateCommand,
-        static (invoker, request, options) => Construction(invoker).SetCalloutViewPropertiesAsync(request, options),
-        static result => result.Execution);
-
-    public static ProbeOperation ConstructCirclesLinesFromSurfaces { get; } = Op<Api.ConstructCirclesLinesFromSurfacesRequest, Api.ConstructCirclesLinesFromSurfacesResult>(
-        Ops.ConstructionOperations.ConstructCirclesLinesFromSurfacesOperation.Descriptor,
-        Ops.ConstructionOperations.ConstructCirclesLinesFromSurfacesOperation.CreateCommand,
-        static (invoker, request, options) => Construction(invoker).ConstructCirclesLinesFromSurfacesAsync(request, options),
-        static result => result.Execution,
-        static (_, result) => Observations.Of(("geometry_object_count", Observations.Count(result.GeometryObjects.Count))));
-
-    public static ProbeOperation MirrorObjects { get; } = Op<Api.MirrorObjectsRequest, Api.MirrorObjectsResult>(
-        Ops.ConstructionOperations.MirrorObjectsOperation.Descriptor,
-        Ops.ConstructionOperations.MirrorObjectsOperation.CreateCommand,
-        static (invoker, request, options) => Construction(invoker).MirrorObjectsAsync(request, options),
-        static result => result.Execution);
-
+    // The remaining NOT_SUPPORTED substitution (#11); #7-10 were retired with their operations.
     public static ProbeOperation ConstructPolygonizedSurface { get; } = Op<Api.ConstructPolygonizedSurfaceFromPointCloudsRequest, Api.ConstructPolygonizedSurfaceFromPointCloudsResult>(
         Ops.ConstructionOperations.ConstructPolygonizedSurfaceFromPointCloudsOperation.Descriptor,
         Ops.ConstructionOperations.ConstructPolygonizedSurfaceFromPointCloudsOperation.CreateCommand,
         static (invoker, request, options) => Construction(invoker).ConstructPolygonizedSurfaceFromPointCloudsAsync(request, options),
         static result => result.Execution);
 
-    // Getters without licensed evidence (#12-14) and the 0.9.1 getters (#22-23).
+    // Getters without licensed evidence (#12-13; #14 was retired with its operation) and the 0.9.1 getters (#22-23).
     public static ProbeOperation MakePointNameEnsureUnique { get; } = Op<Api.MakePointNameEnsureUniqueRequest, Api.MakePointNameEnsureUniqueResult>(
         Ops.ConstructionOperations.MakePointNameEnsureUniqueOperation.Descriptor,
         Ops.ConstructionOperations.MakePointNameEnsureUniqueOperation.CreateCommand,
@@ -196,19 +146,13 @@ internal static class ProbeOperations
             ("differs_from_input", Observations.Flag(result.CollectionObjectName is not null &&
                 !string.Equals(result.CollectionObjectName.ObjectName, request.CollectionObjectName.ObjectName, StringComparison.Ordinal)))));
 
-    public static ProbeOperation AddCollectionInstrumentsWildcardSelection { get; } = Op<Api.AddCollectionInstrumentsToRefListWildcardSelectionRequest, Api.AddCollectionInstrumentsToRefListWildcardSelectionResult>(
-        Ops.ConstructionOperations.AddCollectionInstrumentsToRefListWildcardSelectionOperation.Descriptor,
-        Ops.ConstructionOperations.AddCollectionInstrumentsToRefListWildcardSelectionOperation.CreateCommand,
-        static (invoker, request, options) => Construction(invoker).AddCollectionInstrumentsToRefListWildcardSelectionAsync(request, options),
-        static result => result.Execution,
-        static (request, result) => Observations.Of(
-            ("input_instrument_count", Observations.Count(request.CollectionInstrumentRefList.Count)),
-            ("instrument_count", Observations.Count(result.CollectionInstrumentRefList.Count))));
-
-    public static ProbeOperation DeleteCloudPointsByXyzRange { get; } = Op<Api.DeleteCloudPointsByXYZRangeRequest, Api.DeleteCloudPointsByXYZRangeResult>(
-        Ops.CloudAndMeshOperations.DeleteCloudPointsByXYZRangeOperation.Descriptor,
-        Ops.CloudAndMeshOperations.DeleteCloudPointsByXYZRangeOperation.CreateCommand,
-        static (invoker, request, options) => CloudAndMesh(invoker).DeleteCloudPointsByXYZRangeAsync(request, options),
+    // The reviewed destructive operation. No planned step uses it since probes 15 and 16
+    // were retired with Delete Cloud Points by X Y Z Range (#307); it is the #307
+    // re-probe control (R0), and ProbePlan limits it to one harness-created cloud.
+    public static ProbeOperation DeleteCloudPointsByRadialDistanceFromPoints { get; } = Op<Api.DeleteCloudPointsByRadialDistanceFromPointsRequest, Api.DeleteCloudPointsByRadialDistanceFromPointsResult>(
+        Ops.CloudAndMeshOperations.DeleteCloudPointsByRadialDistanceFromPointsOperation.Descriptor,
+        Ops.CloudAndMeshOperations.DeleteCloudPointsByRadialDistanceFromPointsOperation.CreateCommand,
+        static (invoker, request, options) => CloudAndMesh(invoker).DeleteCloudPointsByRadialDistanceFromPointsAsync(request, options),
         static result => result.Execution);
 
     public static ProbeOperation VectorGroupRuntimeSelect { get; } = Op<Api.MakeCollectionVectorGroupNameRefListRuntimeSelectRequest, Api.MakeCollectionVectorGroupNameRefListRuntimeSelectResult>(

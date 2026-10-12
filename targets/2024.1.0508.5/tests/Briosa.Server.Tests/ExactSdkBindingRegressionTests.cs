@@ -1,5 +1,4 @@
 using Briosa.Server.Operations.AnalysisOperations;
-using Briosa.Server.Operations.CloudAndMeshOperations;
 using Briosa.Server.Operations.FileOperations;
 using Briosa.Server.Operations.InstrumentOperations;
 using Briosa.Server.Operations.RelationshipOperations;
@@ -49,74 +48,6 @@ public sealed class ExactSdkBindingRegressionTests
 
     // Provenance (v0.8.0): WaveB/CloudAndMeshOperationCatalog.cs lines 221-233 (step text, SDK order,
     // OmittedDouble bounds) and 264-266 (OmittedDouble sets OmitWhenAbsent).
-    [Fact]
-    public void DeleteCloudPointsByXYZRangeUsesTheExactSdkStep()
-    {
-        var command = DeleteCloudPointsByXYZRangeOperation.CreateCommand(new() { CloudNames = { Cloud() } });
-
-        Assert.Equal("Delete Cloud Points by X Y Z Range", DeleteCloudPointsByXYZRangeOperation.Descriptor.MpStep);
-        Assert.Equal(DeleteCloudPointsByXYZRangeOperation.Descriptor.MpStep, command.StepName);
-    }
-
-    [Fact]
-    public void DeleteCloudPointsByXYZRangeOmitsEveryAbsentBound()
-    {
-        var command = DeleteCloudPointsByXYZRangeOperation.CreateCommand(new() { CloudNames = { Cloud() } });
-
-        Assert.Equal(["Cloud Names", "Delete Inside"], command.InputArguments.Select(argument => argument.Name));
-        Assert.Equal("SetCollectionObjectNameRefListArg", command.InputArguments[0].SdkBinding);
-        Assert.Equal("SetBoolArg", command.InputArguments[1].SdkBinding);
-        Assert.False(command.InputArguments[1].RequireValue<WorkerBooleanValue>().Value);
-        Assert.Throws<ArgumentException>(() => DeleteCloudPointsByXYZRangeOperation.CreateCommand(new()));
-    }
-
-    [Fact]
-    public void DeleteCloudPointsByXYZRangeSendsEveryPresentBoundInSdkOrder()
-    {
-        var command = DeleteCloudPointsByXYZRangeOperation.CreateCommand(new()
-        {
-            CloudNames = { Cloud() },
-            XMin = -1.5,
-            XMax = 1.5,
-            YMin = -2.5,
-            YMax = 2.5,
-            ZMin = -3.5,
-            ZMax = 3.5,
-            DeleteInside = true
-        });
-
-        Assert.Equal(
-            ["Cloud Names", "X Min", "X Max", "Y Min", "Y Max", "Z Min", "Z Max", "Delete Inside"],
-            command.InputArguments.Select(argument => argument.Name));
-        var bounds = command.InputArguments.Skip(1).Take(6).ToArray();
-        Assert.All(bounds, argument =>
-        {
-            Assert.Equal("SetDoubleArg", argument.SdkBinding);
-            Assert.Equal(WorkerMpValueKind.FloatingPoint, argument.Kind);
-        });
-        Assert.Equal([-1.5, 1.5, -2.5, 2.5, -3.5, 3.5],
-            bounds.Select(argument => argument.RequireValue<WorkerDoubleValue>().Value));
-        Assert.True(command.InputArguments[7].RequireValue<WorkerBooleanValue>().Value);
-    }
-
-    [Fact]
-    public void DeleteCloudPointsByXYZRangeSendsOnlyThePresentSubsetIncludingExplicitZero()
-    {
-        var command = DeleteCloudPointsByXYZRangeOperation.CreateCommand(new()
-        {
-            CloudNames = { Cloud() },
-            XMin = 1,
-            YMin = 0,
-            ZMax = 5
-        });
-
-        Assert.Equal(["Cloud Names", "X Min", "Y Min", "Z Max", "Delete Inside"],
-            command.InputArguments.Select(argument => argument.Name));
-        Assert.Equal([1d, 0d, 5d],
-            command.InputArguments.Skip(1).Take(3).Select(argument => argument.RequireValue<WorkerDoubleValue>().Value));
-        Assert.False(command.InputArguments[4].RequireValue<WorkerBooleanValue>().Value);
-    }
-
     private static WorkerMpCommand CreateLabelCommand(string operationId) => operationId switch
     {
         "analysis_operations.fit_geometry_to_point_group" => FitGeometryToPointGroupOperation.CreateCommand(new()
@@ -175,12 +106,6 @@ public sealed class ExactSdkBindingRegressionTests
             VectorNameFormat = Api.ExportVectorNameFormat.Vector
         }),
         _ => throw new ArgumentOutOfRangeException(nameof(operationId), operationId, "No request fixture is defined.")
-    };
-
-    private static Api.CollectionObjectName Cloud() => new()
-    {
-        CollectionName = "Scans",
-        ObjectName = "CloudA"
     };
 
     private static Api.CollectionObjectName Object(string name) => new()

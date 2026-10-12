@@ -20,7 +20,7 @@ internal sealed record FixtureManifest
 
     public string SpatialAnalyzerTarget { get; init; } = string.Empty;
 
-    // At least two instruments with common measured targets (USMN, #1 and #14).
+    // At least two instruments with common measured targets (USMN, #1).
     public IReadOnlyList<ManifestInstrument> UsmnInstruments { get; init; } = [];
 
     // The nominal point group for the USMN value variant (#1).
@@ -33,12 +33,6 @@ internal sealed record FixtureManifest
 
     // An exported user-interface profile file (#4). The path is never recorded.
     public string UiProfileFile { get; init; } = string.Empty;
-
-    // Optional manual replacement for the programmatic cylinder surface (#9).
-    public ManifestObject? CircleLineSurface { get; init; }
-
-    // Optional manual replacement for the programmatic callout view (#7-8).
-    public ManifestObject? CalloutView { get; init; }
 
     [JsonIgnore]
     public bool IsPlaceholder { get; init; }
@@ -86,15 +80,11 @@ internal sealed record FixtureManifest
         Require(!string.IsNullOrWhiteSpace(UiProfileName), "ui_profile_name must not be blank.");
         Require(!string.IsNullOrWhiteSpace(UiProfileFile) && Path.IsPathFullyQualified(UiProfileFile),
             "ui_profile_file must be a fully qualified path.");
-        Require(CircleLineSurface is null or { IsValid: true }, "circle_line_surface is incomplete.");
-        Require(CalloutView is null or { IsValid: true }, "callout_view is incomplete.");
 
         // Manual fixtures never live in the harness-owned collection, so the
         // harness can prove it created everything it may destroy.
         var collections = UsmnInstruments.Select(static instrument => instrument.Collection)
-            .Append(UsmnNominalsGroup!.Collection)
-            .Concat(CircleLineSurface is null ? [] : [CircleLineSurface.Collection])
-            .Concat(CalloutView is null ? [] : [CalloutView.Collection]);
+            .Append(UsmnNominalsGroup!.Collection);
         Require(collections.All(static name => !string.Equals(name, FixtureNames.Collection, StringComparison.OrdinalIgnoreCase)),
             "Manual fixtures must not use the harness-owned collection.");
     }
@@ -128,21 +118,10 @@ internal static class FixtureNames
     public const string GroupOne = "G1";
     public const string GroupRotated = "G2";
     public const string GroupMeasured = "G3";
-    public const string GroupDelete = "GDEL";
     public const string GroupGrid = "GRID";
     public const string PlaneA = "PA";
     public const string PlaneB = "PB";
-    public const string Frame = "F1";
-    public const string Cylinder = "CY1";
-    public const string CylinderSurface = "SCYL";
     public const string PolygonizeCloud = "CPOLY";
-    public const string DeleteCloudAllBounds = "CDEL15";
-    public const string DeleteCloudPartialBounds = "CDEL16";
     public const string Relationship = "R1";
     public const string VectorGroup = "VG1";
-    public const string CalloutView = "V1";
-
-    // Fixture keys tracked by the session for destructive-step authorization.
-    public const string DeleteCloudAllBoundsKey = "cloud:" + DeleteCloudAllBounds;
-    public const string DeleteCloudPartialBoundsKey = "cloud:" + DeleteCloudPartialBounds;
 }

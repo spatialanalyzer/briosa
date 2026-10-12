@@ -8,6 +8,8 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 $targetRoot = Split-Path -Parent $PSScriptRoot
 $ledger = Get-Content -LiteralPath (Join-Path $targetRoot "docs/development/mp-argument-name-migration.json") -Raw | ConvertFrom-Json
+$retirementLedger = Join-Path $targetRoot "docs/development/retired-operations.json"
+Import-Module (Join-Path $PSScriptRoot "RetiredOperations.psm1") -Force
 $temporaryRoot = Join-Path ([IO.Path]::GetTempPath()) "briosa-name-migration-$([Guid]::NewGuid().ToString('N'))"
 [IO.Directory]::CreateDirectory($temporaryRoot) | Out-Null
 
@@ -35,7 +37,19 @@ try {
     $baselineHash = (Get-FileHash -LiteralPath $baselinePath -Algorithm SHA256).Hash.ToLowerInvariant()
     if ($baselineHash -ne $ledger.baseline_descriptor_sha256) {
         # An unrelated or already-migrated baseline receives the ordinary strict check.
-        Invoke-Buf -Arguments @("breaking", "--against", $Against)
+        # Only the reviewed operation retirements are removed from its ephemeral copy.
+        $baseline = Get-Content -LiteralPath $baselinePath -Raw | ConvertFrom-Json -AsHashtable
+        $current = Get-Content -LiteralPath $currentPath -Raw | ConvertFrom-Json -AsHashtable
+        $retired = @(Remove-ReviewedOperationRetirement -Baseline $baseline -Current $current -LedgerPath $retirementLedger)
+        if ($retired.Count -eq 0) {
+            Invoke-Buf -Arguments @("breaking", "--against", $Against)
+            return
+        }
+
+        $retiredBaselinePath = Join-Path $temporaryRoot "baseline-without-retired.json"
+        [IO.File]::WriteAllText($retiredBaselinePath, ($baseline | ConvertTo-Json -Depth 100 -Compress))
+        Invoke-Buf -Arguments @("breaking", $currentPath, "--against", $retiredBaselinePath, "--config", (Join-Path $targetRoot "buf.yaml"))
+        Write-Host "Verified $($retired.Count) reviewed operation retirement(s); all remaining FILE checks passed."
         return
     }
 
@@ -49,6 +63,9 @@ try {
 
     $baseline = Get-Content -LiteralPath $baselinePath -Raw | ConvertFrom-Json -AsHashtable
     $current = Get-Content -LiteralPath $currentPath -Raw | ConvertFrom-Json -AsHashtable
+    $retired = @(Remove-ReviewedOperationRetirement -Baseline $baseline -Current $current -LedgerPath $retirementLedger)
+    $retiredBaselinePath = Join-Path $temporaryRoot "baseline-without-retired.json"
+    [IO.File]::WriteAllText($retiredBaselinePath, ($baseline | ConvertTo-Json -Depth 100 -Compress))
     $oldMessages = @{}
     $newMessages = @{}
     foreach ($file in $baseline.file) {
@@ -90,9 +107,10 @@ try {
     [IO.File]::WriteAllText($normalizedPath, ($current | ConvertTo-Json -Depth 100 -Compress))
     # Restore only the explicitly reviewed names in an ephemeral descriptor, then
     # apply the repository's full FILE policy. Types, presence, RPCs, and every
-    # unlisted field remain subject to the normal breaking rules.
-    Invoke-Buf -Arguments @("breaking", $normalizedPath, "--against", $baselinePath, "--config", (Join-Path $targetRoot "buf.yaml"))
-    Write-Host "Verified $($seen.Count) reviewed field renames; WIRE and remaining FILE checks passed."
+    # unlisted field remain subject to the normal breaking rules. The baseline
+    # copy omits only the reviewed operation retirements.
+    Invoke-Buf -Arguments @("breaking", $normalizedPath, "--against", $retiredBaselinePath, "--config", (Join-Path $targetRoot "buf.yaml"))
+    Write-Host "Verified $($seen.Count) reviewed field renames and $($retired.Count) reviewed operation retirement(s); WIRE and remaining FILE checks passed."
 }
 finally {
     Pop-Location
