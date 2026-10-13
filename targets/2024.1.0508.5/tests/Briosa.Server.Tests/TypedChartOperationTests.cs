@@ -71,13 +71,27 @@ public sealed class TypedChartOperationTests
             AuxDataSetToChart = Api.DatasetType.Y,
             TemplateChartName = new Api.ChartName { Name = "Template" }
         }));
-        Assert.Throws<ArgumentException>(() => CreateChartFromVectorGroupOperation.CreateCommand(new()
+        // #243 D2: the template chart is optional. An absent template omits its setter, and
+        // an explicit empty name is rejected.
+        var withoutTemplate = CreateChartFromVectorGroupOperation.CreateCommand(new()
         {
             NewChartName = new Api.ChartName { Name = "Run" },
             VectorGroupName = Object("Vectors"),
             ChartType = Api.ChartType.RunChart,
             DataSetToChart = Api.DatasetType.X,
             AuxDataSetToChart = Api.DatasetType.Y
+        });
+        Assert.Equal(6, withoutTemplate.InputArguments.Count);
+        Assert.DoesNotContain(withoutTemplate.InputArguments, argument => argument.Name == "Template Chart Name (optional)");
+        Assert.Equal("Show Interface?", withoutTemplate.InputArguments[5].Name);
+        Assert.Throws<ArgumentException>(() => CreateChartFromVectorGroupOperation.CreateCommand(new()
+        {
+            NewChartName = new Api.ChartName { Name = "Run" },
+            VectorGroupName = Object("Vectors"),
+            ChartType = Api.ChartType.RunChart,
+            DataSetToChart = Api.DatasetType.X,
+            AuxDataSetToChart = Api.DatasetType.Y,
+            TemplateChartName = new Api.ChartName { Name = " " }
         }));
 
         Assert.Throws<ArgumentException>(() => DeleteChartOperation.CreateCommand(new()));

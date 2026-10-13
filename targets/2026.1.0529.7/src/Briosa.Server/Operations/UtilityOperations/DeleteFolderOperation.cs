@@ -1,3 +1,4 @@
+using Briosa.Server.Operations.Values;
 using Briosa.Server.Security;
 using Briosa.Server.Services;
 using Briosa.Worker.Control;
@@ -18,7 +19,8 @@ internal static class DeleteFolderOperation
         ArgumentNullException.ThrowIfNull(request);
         return new(Descriptor.OperationId, Descriptor.MpStep,
             [new("Folder Path", WorkerMpValueKind.Text,
-                new WorkerTextValue(request.FolderPath), "SetStringArg")], []);
+                RequiredValueMapper.NonEmptyText(request.HasFolderPath, request.FolderPath, "folder_path"),
+                "SetStringArg")], []);
     }
 
     public static Api.DeleteFolderResult CreateResult(SuccessfulOperationExecution completed) =>

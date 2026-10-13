@@ -1,9 +1,13 @@
 using System.Globalization;
 using System.Reflection;
 using Briosa.Server.Operations;
+using Briosa.Server.Operations.UtilityOperations;
+using Briosa.Server.Services;
+using Briosa.Server.Workers;
 using Briosa.Worker.Control;
 using Google.Protobuf;
 using Google.Protobuf.Reflection;
+using Grpc.Core;
 using Api = global::Briosa;
 
 namespace Briosa.Server.Tests;
@@ -122,7 +126,46 @@ public sealed class ArgumentDefaultsTests
         }
     }
 
+    [Fact]
+    public async Task RejectedArgumentFailsValidationAtThePublicSeamBeforeDispatch()
+    {
+        var worker = new RecordingWorker();
+        var grpcHost = await GrpcTestHost.StartAsync<UtilityOperationsService>(worker).ConfigureAwait(true);
+        await using var grpcLifetime = grpcHost.ConfigureAwait(true);
+        var client = new Api.UtilityOperations.UtilityOperationsClient(grpcHost.Channel);
+
+        // R3: a ScaleObjects request without a scale factor is no longer sent as 0.
+        var exception = await Assert.ThrowsAsync<RpcException>(async () => await client.ScaleObjectsAsync(new()
+        {
+            Objects = { new Api.CollectionObjectName { CollectionName = "A", ObjectName = "Plane" } }
+        }).ConfigureAwait(true)).ConfigureAwait(true);
+
+        Assert.Equal(StatusCode.InvalidArgument, exception.StatusCode);
+        var error = Api.OperationError.Parser.ParseFrom(Assert.Single(
+            exception.Trailers, entry => entry.Key == GrpcOperationOutcomeMapper.ErrorTrailerName).ValueBytes);
+        Assert.Equal("utility_operations.scale_objects", error.OperationId);
+        Assert.Equal(Api.OperationFailureKind.Validation, error.Kind);
+        Assert.Equal("request-validation-failed", error.DiagnosticCode);
+        Assert.Equal(Api.ExecutionDisposition.NotStarted, error.ExecutionDisposition);
+        Assert.Empty(worker.Commands);
+    }
+
     private static string Key(ArgumentDefaultRow row) => $"{row.OperationId} {row.ProtoField} {row.MpArgument}";
+
+    private sealed class RecordingWorker : IWorkerCommandExecutor
+    {
+        public List<WorkerMpCommand> Commands { get; } = [];
+
+        public Task<WorkerExecutionOutcome> ExecuteAsync(
+            WorkerMpCommand command,
+            CancellationToken cancellationToken = default)
+        {
+            Commands.Add(command);
+            var execution = WorkerMpExecutionResult.FromEvidence(true, true, true, 2, 1, [], "completed");
+            return Task.FromResult(new WorkerExecutionOutcome(
+                WorkerExecutionStatus.Completed, WorkerExecutionDisposition.Completed, execution, null, "completed", 1));
+        }
+    }
 
     private static void AssertOutcome(string outcome, MethodInfo create, IMessage request, ArgumentDefaultRow row)
     {

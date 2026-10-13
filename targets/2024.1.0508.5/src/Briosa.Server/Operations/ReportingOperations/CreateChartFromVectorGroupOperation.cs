@@ -17,8 +17,8 @@ internal static class CreateChartFromVectorGroupOperation
     public static WorkerMpCommand CreateCommand(Api.CreateChartFromVectorGroupRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        return new(Descriptor.OperationId, Descriptor.MpStep,
-        [
+        var inputs = new List<WorkerMpInputArgument>
+        {
             new("New Chart Name", WorkerMpValueKind.ChartName,
                 ChartNameMapper.Required(request.NewChartName, "new_chart_name"), "SetChartNameArg"),
             new("Vector Group Name", WorkerMpValueKind.CollectionObjectName,
@@ -31,12 +31,18 @@ internal static class CreateChartFromVectorGroupOperation
                     request.HasDataSetToChart ? request.DataSetToChart : null, "data_set_to_chart")), "SetDatasetTypeArg"),
             new("Aux Data Set to Chart", WorkerMpValueKind.VectorComponent,
                 new WorkerChoiceValue<WorkerVectorComponentValue>(DatasetTypeMapper.Required(
-                    request.HasAuxDataSetToChart ? request.AuxDataSetToChart : null, "aux_data_set_to_chart")), "SetDatasetTypeArg"),
-            new("Template Chart Name (optional)", WorkerMpValueKind.ChartName,
-                ChartNameMapper.Required(request.TemplateChartName, "template_chart_name"), "SetChartNameArg"),
-            new("Show Interface?", WorkerMpValueKind.Logical,
-                new WorkerBooleanValue(request.ShowInterface), "SetBoolArg")
-        ], []);
+                    request.HasAuxDataSetToChart ? request.AuxDataSetToChart : null, "aux_data_set_to_chart")), "SetDatasetTypeArg")
+        };
+        // #243 D2: omitted when absent; an explicit empty name is rejected.
+        if (request.TemplateChartName is not null)
+        {
+            inputs.Add(new("Template Chart Name (optional)", WorkerMpValueKind.ChartName,
+                ChartNameMapper.Required(request.TemplateChartName, "template_chart_name"), "SetChartNameArg"));
+        }
+
+        inputs.Add(new("Show Interface?", WorkerMpValueKind.Logical,
+            new WorkerBooleanValue(request.ShowInterface), "SetBoolArg"));
+        return new(Descriptor.OperationId, Descriptor.MpStep, inputs, []);
     }
 
     public static Api.CreateChartFromVectorGroupResult CreateResult(SuccessfulOperationExecution completed) =>

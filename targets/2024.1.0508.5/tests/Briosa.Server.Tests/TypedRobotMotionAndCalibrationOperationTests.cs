@@ -76,7 +76,13 @@ public sealed class TypedRobotMotionAndCalibrationOperationTests
             .Select(argument => argument.RequireValue<WorkerBooleanValue>().Value));
         Assert.Single(toFrame.OutputArguments);
 
-        var jointPose = MoveRobotMachineToJointPoseSixDofOperation.CreateCommand(new() { MachineId = machine });
+        // #243 D2 (R1): every joint is required; an omitted joint is rejected instead of sent as 0.
+        Assert.Throws<ArgumentException>(() =>
+            MoveRobotMachineToJointPoseSixDofOperation.CreateCommand(new() { MachineId = machine }));
+        var jointPose = MoveRobotMachineToJointPoseSixDofOperation.CreateCommand(new()
+        {
+            MachineId = machine, Joint1 = 0, Joint2 = 0, Joint3 = 0, Joint4 = 0, Joint5 = 0, Joint6 = 0
+        });
         Assert.Equal(7, jointPose.InputArguments.Count);
         Assert.All(jointPose.InputArguments.Skip(1), argument =>
             Assert.Equal(0d, argument.RequireValue<WorkerDoubleValue>().Value));

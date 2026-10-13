@@ -1,3 +1,4 @@
+using Briosa.Server.Operations.Values;
 using Briosa.Server.Security;
 using Briosa.Server.Services;
 using Briosa.Worker.Control;
@@ -25,7 +26,8 @@ internal static class DeleteRobotCalibrationOperation
                     new WorkerCollectionMachineIdValue(request.MachineId.CollectionName, request.MachineId.MachineId),
                     "SetColMachineIdArg"),
                 new("Calibration Name", WorkerMpValueKind.Text,
-                    new WorkerTextValue(request.CalibrationName), "SetStringArg")
+                    RequiredValueMapper.NonEmptyText(request.HasCalibrationName, request.CalibrationName, "calibration_name"),
+                    "SetStringArg")
             ], []);
     }
 

@@ -1,3 +1,4 @@
+using Briosa.Server.Operations.Values;
 using Briosa.Server.Security;
 using Briosa.Server.Services;
 using Briosa.Worker.Control;
@@ -23,12 +24,18 @@ internal static class MoveRobotMachineToJointPoseSixDofOperation
             [
                 new("Machine ID", WorkerMpValueKind.CollectionMachineId,
                     new WorkerCollectionMachineIdValue(request.MachineId.CollectionName, request.MachineId.MachineId), "SetColMachineIdArg"),
-                new("Joint 1", WorkerMpValueKind.FloatingPoint, new WorkerDoubleValue(request.Joint1), "SetDoubleArg"),
-                new("Joint 2", WorkerMpValueKind.FloatingPoint, new WorkerDoubleValue(request.Joint2), "SetDoubleArg"),
-                new("Joint 3", WorkerMpValueKind.FloatingPoint, new WorkerDoubleValue(request.Joint3), "SetDoubleArg"),
-                new("Joint 4", WorkerMpValueKind.FloatingPoint, new WorkerDoubleValue(request.Joint4), "SetDoubleArg"),
-                new("Joint 5", WorkerMpValueKind.FloatingPoint, new WorkerDoubleValue(request.Joint5), "SetDoubleArg"),
-                new("Joint 6", WorkerMpValueKind.FloatingPoint, new WorkerDoubleValue(request.Joint6), "SetDoubleArg")
+                new("Joint 1", WorkerMpValueKind.FloatingPoint,
+                    RequiredValueMapper.Double(request.HasJoint1, request.Joint1, "joint_1"), "SetDoubleArg"),
+                new("Joint 2", WorkerMpValueKind.FloatingPoint,
+                    RequiredValueMapper.Double(request.HasJoint2, request.Joint2, "joint_2"), "SetDoubleArg"),
+                new("Joint 3", WorkerMpValueKind.FloatingPoint,
+                    RequiredValueMapper.Double(request.HasJoint3, request.Joint3, "joint_3"), "SetDoubleArg"),
+                new("Joint 4", WorkerMpValueKind.FloatingPoint,
+                    RequiredValueMapper.Double(request.HasJoint4, request.Joint4, "joint_4"), "SetDoubleArg"),
+                new("Joint 5", WorkerMpValueKind.FloatingPoint,
+                    RequiredValueMapper.Double(request.HasJoint5, request.Joint5, "joint_5"), "SetDoubleArg"),
+                new("Joint 6", WorkerMpValueKind.FloatingPoint,
+                    RequiredValueMapper.Double(request.HasJoint6, request.Joint6, "joint_6"), "SetDoubleArg")
             ], []);
     }
 

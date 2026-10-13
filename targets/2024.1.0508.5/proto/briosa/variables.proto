@@ -64,6 +64,8 @@ message ClearNamedDoubleListVariableResult {
 }
 
 message DeleteVariableRequest {
+  // Required and not empty (major 3): an omitted, empty or whitespace-only value is
+  // rejected before dispatch.
   optional string name = 1;
 }
 
@@ -72,6 +74,8 @@ message DeleteVariableResult {
 }
 
 message DeleteVariablesWildcardMatchRequest {
+  // Required and not empty (major 3): an omitted, empty or whitespace-only value is
+  // rejected before dispatch.
   optional string variable_wildcard_criteria = 1;
 }
 

@@ -1,3 +1,4 @@
+using Briosa.Server.Operations.Values;
 using Briosa.Server.Security;
 using Briosa.Server.Services;
 using Briosa.Worker.Control;
@@ -22,7 +23,8 @@ internal static class DeleteFoldersByWildcardOperation
         ArgumentNullException.ThrowIfNull(request);
         return new(Descriptor.OperationId, Descriptor.MpStep,
         [
-            new("Search String", WorkerMpValueKind.Text, new WorkerTextValue(request.SearchString), "SetStringArg"),
+            new("Search String", WorkerMpValueKind.Text,
+                RequiredValueMapper.NonEmptyText(request.HasSearchString, request.SearchString, "search_string"), "SetStringArg"),
             new("Case Sensitive Search", WorkerMpValueKind.Logical,
                 new WorkerBooleanValue(request.HasCaseSensitiveSearch ? request.CaseSensitiveSearch : true), "SetBoolArg"),
             new("Allow Deleting all Folders", WorkerMpValueKind.Logical,

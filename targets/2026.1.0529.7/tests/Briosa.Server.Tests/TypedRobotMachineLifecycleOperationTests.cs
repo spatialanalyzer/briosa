@@ -93,9 +93,15 @@ public sealed class TypedRobotMachineLifecycleOperationTests
         Assert.Equal("Parameter Value", Assert.Single(get.OutputArguments).Name);
         Assert.Equal("GetDoubleArg", Assert.Single(get.OutputArguments).SdkBinding);
 
-        var set = SetRobotMachineParameterOperation.CreateCommand(new()
+        // #243 D2 (R5): the parameter value is required; an omitted value is rejected instead of sent as 0.
+        Assert.Throws<ArgumentException>(() => SetRobotMachineParameterOperation.CreateCommand(new()
         {
             MachineId = new() { CollectionName = "Robot", MachineId = 4 }
+        }));
+        var set = SetRobotMachineParameterOperation.CreateCommand(new()
+        {
+            MachineId = new() { CollectionName = "Robot", MachineId = 4 },
+            ParameterValue = 0
         });
         Assert.Equal(new WorkerCollectionMachineIdValue("Robot", 4),
             set.InputArguments[0].RequireValue<WorkerCollectionMachineIdValue>());
@@ -147,33 +153,40 @@ public sealed class TypedRobotMachineLifecycleOperationTests
         Assert.Equal(26, getCommand.OutputArguments.Count);
         Assert.Equal("", getCommand.InputArguments[1].RequireValue<WorkerTextValue>().Value);
 
-        var setRequest = new Api.SetRobotMachineModelLinkParametersRequest
+        var setRequest = WithLinkParameters(new Api.SetRobotMachineModelLinkParametersRequest
         {
             MachineId = new() { CollectionName = "Robot", MachineId = 4 },
             LinkName = "Link 1",
             LinkType = Api.RobotModelLinkType.SixDof,
             ActiveJointComponent = Api.RobotActiveJointComponent.Rz,
             SegmentCgInSegment = new() { X = 1, Y = 2, Z = 3 }
-        };
+        });
         var setCommand = SetRobotMachineModelLinkParametersOperation.CreateCommand(setRequest);
         Assert.Equal(27, setCommand.InputArguments.Count);
         Assert.Equal("6DOF", setCommand.InputArguments[2].RequireValue<WorkerTextValue>().Value);
         Assert.Equal("Rz", setCommand.InputArguments[16].RequireValue<WorkerTextValue>().Value);
         Assert.Equal(new WorkerVectorValue(1, 2, 3), setCommand.InputArguments[26].RequireValue<WorkerVectorValue>());
 
-        var defaults = SetRobotMachineModelLinkParametersOperation.CreateCommand(new()
+        // #243 D2 (R5): all 22 parameters are required; a partial request is rejected
+        // instead of overwriting the omitted parameters with 0 or false.
+        Assert.Throws<ArgumentException>(() => SetRobotMachineModelLinkParametersOperation.CreateCommand(new()
         {
             MachineId = new() { CollectionName = "Robot", MachineId = 4 },
             SegmentCgInSegment = new()
-        });
+        }));
+        var defaults = SetRobotMachineModelLinkParametersOperation.CreateCommand(WithLinkParameters(new()
+        {
+            MachineId = new() { CollectionName = "Robot", MachineId = 4 },
+            SegmentCgInSegment = new()
+        }));
         Assert.Equal("DH", defaults.InputArguments[2].RequireValue<WorkerTextValue>().Value);
         Assert.Equal("NONE", defaults.InputArguments[16].RequireValue<WorkerTextValue>().Value);
-        Assert.Throws<ArgumentException>(() => SetRobotMachineModelLinkParametersOperation.CreateCommand(new()
+        Assert.Throws<ArgumentException>(() => SetRobotMachineModelLinkParametersOperation.CreateCommand(WithLinkParameters(new()
         {
             MachineId = new() { CollectionName = "Robot", MachineId = 4 },
             LinkType = Api.RobotModelLinkType.Unspecified,
             SegmentCgInSegment = new()
-        }));
+        })));
 
         var outputValues = GetRobotMachineModelLinkParametersOperation.OutputContracts
             .Select((contract, index) => new WorkerRetrievedOutput(contract.ArgumentName, contract.Kind,
@@ -292,11 +305,11 @@ public sealed class TypedRobotMachineLifecycleOperationTests
             DestinationTransform = new() { Values = { Enumerable.Range(0, 16).Select(index => (double)index) } },
             ReferenceFrame = new() { CollectionName = "Collection", ObjectName = "Reference" }
         }, options);
-        await client.SetRobotMachineModelLinkParametersAsync(new()
+        await client.SetRobotMachineModelLinkParametersAsync(WithLinkParameters(new()
         {
             MachineId = new() { CollectionName = "Robot", MachineId = 4 },
             SegmentCgInSegment = new()
-        }, options);
+        }), options);
         var modelLink = await client.GetRobotMachineModelLinkParametersAsync(new()
         {
             MachineId = new() { CollectionName = "Robot", MachineId = 4 }
@@ -376,5 +389,34 @@ public sealed class TypedRobotMachineLifecycleOperationTests
             return Task.FromResult(new WorkerExecutionOutcome(WorkerExecutionStatus.Completed,
                 WorkerExecutionDisposition.Completed, execution, null, "completed", 1));
         }
+    }
+
+    // #243 D2 (R5): every model-link parameter is required, so test requests set all 22.
+    private static Api.SetRobotMachineModelLinkParametersRequest WithLinkParameters(
+        Api.SetRobotMachineModelLinkParametersRequest request)
+    {
+        request.DhAlphaComponent = 0;
+        request.DhAComponent = 0;
+        request.DhDComponent = 0;
+        request.DhThetaComponent = 0;
+        request.DhXAxisDeflectionFactor = 0;
+        request.DhYAxisDeflectionFactor = 0;
+        request.DhZAxisDeflectionFactor = 0;
+        request.SixDofXComponent = 0;
+        request.SixDofYComponent = 0;
+        request.SixDofZComponent = 0;
+        request.SixDofRxComponent = 0;
+        request.SixDofRyComponent = 0;
+        request.SixDofRzComponent = 0;
+        request.EncoderOffsetValue = 0;
+        request.MinimumEncoderLimit = 0;
+        request.MaximumEncoderLimit = 0;
+        request.EncoderSenseNegative = false;
+        request.IncludeAdditionalEncoder = false;
+        request.AdditionalEncoderIndexOffset = 0;
+        request.AdditionalEncoderSenseNegative = false;
+        request.SegmentOriginMassKg = 0;
+        request.SegmentCgMassKg = 0;
+        return request;
     }
 }

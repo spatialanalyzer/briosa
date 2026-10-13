@@ -237,7 +237,8 @@ message CreateChartFromVectorGroupRequest {
   optional ChartType chart_type = 3;
   optional DatasetType data_set_to_chart = 4;
   optional DatasetType aux_data_set_to_chart = 5;
-  // Optional in the MP editor; the existing API presence and omission behavior is unchanged.
+  // Optional (major 3): omitted when absent; an empty name is rejected. A name that
+  // matches no chart opens a blocking SpatialAnalyzer dialog.
   optional ChartName template_chart_name = 6;
   optional bool show_interface = 7;
 }
@@ -513,6 +514,8 @@ message RefreshReportBarResult {
 }
 
 message RemoveReportTagRequest {
+  // Required and not empty (major 3): an omitted, empty or whitespace-only value is
+  // rejected before dispatch.
   optional string tag_name = 1;
 }
 

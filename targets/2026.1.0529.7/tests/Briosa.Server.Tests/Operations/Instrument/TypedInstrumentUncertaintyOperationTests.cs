@@ -74,14 +74,26 @@ public sealed class TypedInstrumentUncertaintyOperationTests
         Assert.Throws<ArgumentException>(() =>
             GetInstrumentPartTemperatureOperation.CreateCommand(new()));
 
-        var weatherDefaults = SetInstrumentWeatherSettingOperation.CreateCommand(new()
+        // #243 D2 (R2): set_automatically is required. The three values are required when
+        // it is false, and an omitted value is still sent as 0 when it is true.
+        Assert.Throws<ArgumentException>(() => SetInstrumentWeatherSettingOperation.CreateCommand(new()
         {
             Instrument = Instrument()
+        }));
+        Assert.Throws<ArgumentException>(() => SetInstrumentWeatherSettingOperation.CreateCommand(new()
+        {
+            Instrument = Instrument(),
+            SetAutomatically = false
+        }));
+        var weatherDefaults = SetInstrumentWeatherSettingOperation.CreateCommand(new()
+        {
+            Instrument = Instrument(),
+            SetAutomatically = true
         });
         Assert.Equal(0, weatherDefaults.InputArguments[1].RequireValue<WorkerDoubleValue>().Value);
         Assert.Equal(0, weatherDefaults.InputArguments[2].RequireValue<WorkerDoubleValue>().Value);
         Assert.Equal(0, weatherDefaults.InputArguments[3].RequireValue<WorkerDoubleValue>().Value);
-        Assert.False(weatherDefaults.InputArguments[4].RequireValue<WorkerBooleanValue>().Value);
+        Assert.True(weatherDefaults.InputArguments[4].RequireValue<WorkerBooleanValue>().Value);
 
         var weatherOverrides = SetInstrumentWeatherSettingOperation.CreateCommand(new()
         {
@@ -145,7 +157,7 @@ public sealed class TypedInstrumentUncertaintyOperationTests
             Instrument = Instrument(),
             CovarianceMatrix = CovarianceMatrix()
         });
-        await client.SetInstrumentWeatherSettingAsync(new() { Instrument = Instrument() });
+        await client.SetInstrumentWeatherSettingAsync(new() { Instrument = Instrument(), SetAutomatically = true });
         await client.SetXyzInstrumentUncertaintiesAsync(new() { Instrument = Instrument() });
 
         Assert.Equal(OperationIds, worker.Commands.Select(command => command.OperationId));
