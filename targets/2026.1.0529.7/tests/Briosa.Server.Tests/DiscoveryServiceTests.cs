@@ -293,6 +293,15 @@ public sealed class DiscoveryServiceTests
     [InlineData("instrument_operations.set_instrument_measurement_mode_profile", OperationAdmission.DeniedProfile,
         OperationDurationClass.Quick, OperationValidationStatus.NoRecordedGap,
         new[] { OperationRiskFlag.DeviceConfig })]
+    [InlineData("instrument_operations.set_absolute_instrument_scale_factor", OperationAdmission.DeniedProfile,
+        OperationDurationClass.Quick, OperationValidationStatus.NoRecordedGap,
+        new[] { OperationRiskFlag.DeviceConfig })]
+    [InlineData("instrument_operations.set_multiply_instrument_scale_factor", OperationAdmission.DeniedProfile,
+        OperationDurationClass.Quick, OperationValidationStatus.NoRecordedGap,
+        new[] { OperationRiskFlag.DeviceConfig })]
+    [InlineData("robot_operations.set_robot_machine_model_link_parameters", OperationAdmission.DeniedProfile,
+        OperationDurationClass.Quick, OperationValidationStatus.NoRecordedGap,
+        new[] { OperationRiskFlag.DeviceConfig })]
     [InlineData("process_flow_operations.ask_for_double", OperationAdmission.DeniedProfile,
         OperationDurationClass.Interactive, OperationValidationStatus.NoRecordedGap,
         new[] { OperationRiskFlag.InteractiveUi })]

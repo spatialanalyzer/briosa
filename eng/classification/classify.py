@@ -273,6 +273,11 @@ REVIEW_DEVICE_CONFIG = R(
     'instrument_operations.enable_disable_point_set_scan_mode',
     'instrument_operations.enable_disable_frame_set_scan_mode_all_instruments',
     'instrument_operations.enable_disable_frame_set_scan_mode_by_instrument',
+    # Decided on #243 (2026-10-13, question 7): the instrument applies its scale factor to
+    # every later measurement, and the robot model's link parameters drive its kinematics.
+    'instrument_operations.set_absolute_instrument_scale_factor',
+    'instrument_operations.set_multiply_instrument_scale_factor',
+    'robot_operations.set_robot_machine_model_link_parameters',
 )
 # Points, steers or homes the instrument or projector (physical_motion).
 REVIEW_MOTION = R(

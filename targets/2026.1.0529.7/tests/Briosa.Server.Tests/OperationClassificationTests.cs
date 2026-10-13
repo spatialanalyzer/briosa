@@ -16,7 +16,7 @@ public sealed class OperationClassificationTests
         new(StringComparer.Ordinal)
         {
             ["read-only"] = 184,
-            ["standard"] = 805,
+            ["standard"] = 802,
             ["device"] = 906,
             ["full"] = 923
         };
@@ -251,6 +251,34 @@ public sealed class OperationClassificationTests
         foreach (var operationId in DefaultProfileContract)
         {
             Assert.True(OperationProfileAdmission.Admits(standard, operations[operationId]), operationId);
+        }
+    }
+
+    // #243 decision of 2026-10-13, question 7: the instrument scale-factor setters (R4) and the
+    // robot model-link setter (R5) change what the instrument or robot applies, so they carry
+    // device_config and the default standard profile no longer admits them.
+    private static readonly string[] DecidedDeviceConfigOperations =
+        [
+            "instrument_operations.set_absolute_instrument_scale_factor",
+            "instrument_operations.set_multiply_instrument_scale_factor",
+            "robot_operations.set_robot_machine_model_link_parameters"
+        ];
+
+    [Fact]
+    public void ScaleFactorAndRobotModelSettersNeedTheDeviceProfile()
+    {
+        var standard = OperationPolicyTests.CreatePolicy(profile: "standard");
+        var device = OperationPolicyTests.CreatePolicy(profile: "device");
+
+        foreach (var operationId in DecidedDeviceConfigOperations)
+        {
+            var row = OperationClassification.Find(operationId).Row!;
+            Assert.Equal(OperationRisks.DeviceConfig, row.Risks);
+            Assert.Equal(OperationDurationClass.Quick, row.Duration);
+            Assert.Equal(OperationIsolationClass.Admissible, row.Isolation);
+            Assert.Equal(OperationPolicyDecisionKind.Denied, standard.Evaluate(operationId).Kind);
+            Assert.DoesNotContain(standard.AllowedOperations, operation => operation.OperationId == operationId);
+            Assert.Equal(OperationPolicyDecisionKind.Allowed, device.Evaluate(operationId).Kind);
         }
     }
 
