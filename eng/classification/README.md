@@ -129,6 +129,8 @@ otherwise, both releases document the operation the same way.
 | `instrument_operations.jump_instrument_to_new_location` | `admissible` → `exclusive_workflow` | Stops the live instrument's interface, adds a new instrument and starts its interface, like `start_instrument_interface`. | p. 1161; `InstrumentOperations/JumpInstrumentToNewLocation.htm` |
 | `instrument_operations.set_absolute_instrument_scale_factor`, `set_multiply_instrument_scale_factor` | + `device_config` | Sets, or multiplies, the scale factor the instrument applies to its later measurements; the documentation marks both "CAUTION!". Decided on [#243](https://github.com/spatialanalyzer/briosa/issues/243#issuecomment-6147618560) (question 7). | pp. 1085–1086; `InstrumentOperations/SetAbsoluteInstrumentScale.htm`, `SetmultiplyInstrumentScale.htm` |
 | `robot_operations.set_robot_machine_model_link_parameters` | + `device_config` | Overwrites the DH, 6DOF, encoder and mass parameters of a robot/machine model link, which drive its kinematics. Decided on [#243](https://github.com/spatialanalyzer/briosa/issues/243#issuecomment-6147618560) (question 7). | p. 1204; `RobotOperations/Set Robot Machine Model Link.htm` |
+| `robot_operations.set_active_robot_calibration`, `set_robot_calibration_tool_frame`, `set_robot_calibration_measurement_offset_in_tool_frame` | + `device_config` | Activates a robot calibration, the compensated kinematic model the robot then uses, or sets the tool and measurement frames of a calibration. Decided on [#243](https://github.com/spatialanalyzer/briosa/issues/243#issuecomment-6167068161) (question 7 extended). | pp. 1219–1221; `RobotOperations/Set Active Robot Calibration.htm`, `Set Robot Calibration Tool.htm`, `Set Robot Calibration Measurement.htm` |
+| `instrument_operations.set_probe_offset_frame_offline` | + `device_config` | Defines a 6D probe's offset frame from previously measured frames; the probe's later measurements use it, as with `set_probe_offset_frame_online`. Decided on [#243](https://github.com/spatialanalyzer/briosa/issues/243#issuecomment-6167068161) (question 7 extended). | p. 1031; `InstrumentOperations/SetProbeOffsetFrameOffline.htm` |
 | `file_operations.rename_general_file` | + `filesystem_read`, `filesystem_delete` | The source file's content moves to the destination and the source no longer exists, like `copy_general_file`'s read. | p. 34; `FileOperations/RenameGeneralFile.htm` |
 | `file_operations.prepare_qdas_data_list` | − `filesystem_write` | Builds the QDAS data list in memory; it takes no file argument. | p. 91; `FileOperations/QDASFileExport/PrepareQDASDataList.htm` |
 | `file_operations.get_qdas_catalog_entries` | − `filesystem_read` | Reads the catalog already loaded by Import QDAS Catalog File; it takes no path. | p. 88; `FileOperations/QDASFileExport/GetQDASCatalogEntries.htm` |
@@ -147,7 +149,7 @@ otherwise, both releases document the operation the same way.
 | Operations | 1,021 | 990 |
 | `exclusive_workflow` | 42 | 45 |
 | `interactive_ui` | 59 | 59 |
-| `read-only` / `standard` / `device` / `full` | 184 / 802 / 906 / 923 | 180 / 783 / 872 / 889 |
+| `read-only` / `standard` / `device` / `full` | 184 / 798 / 906 / 923 | 180 / 779 / 872 / 889 |
 
 These counts follow the removal of six operations per target for
 [#308](https://github.com/spatialanalyzer/briosa/issues/308),

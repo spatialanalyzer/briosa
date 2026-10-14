@@ -278,6 +278,13 @@ REVIEW_DEVICE_CONFIG = R(
     'instrument_operations.set_absolute_instrument_scale_factor',
     'instrument_operations.set_multiply_instrument_scale_factor',
     'robot_operations.set_robot_machine_model_link_parameters',
+    # Extended on #243 (2026-10-14): the active robot calibration and its tool and measurement
+    # frames compensate the robot's kinematics, and the offline probe offset is applied to the
+    # probe's later measurements, like set_probe_offset_frame_online.
+    'robot_operations.set_active_robot_calibration',
+    'robot_operations.set_robot_calibration_tool_frame',
+    'robot_operations.set_robot_calibration_measurement_offset_in_tool_frame',
+    'instrument_operations.set_probe_offset_frame_offline',
 )
 # Points, steers or homes the instrument or projector (physical_motion).
 REVIEW_MOTION = R(

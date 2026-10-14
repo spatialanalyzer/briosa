@@ -372,7 +372,9 @@ to SA and needs no licensed observation; see open question 6.
 7. **Unflagged scale and robot-model setters.** R4 and the R5 model-link
    operation carried no risk flag, so `standard` admitted them. Decided
    (2026-10-13): they carry `device_config`, so only `device` and `full` admit
-   them.
+   them. Extended (2026-10-14) to the robot calibration setters and
+   `set_probe_offset_frame_offline`; `set_robot_machine_base_transform` stays in
+   `standard`.
 8. **Appendix drift.** Recommended: keep `audit_scalar_presence.py --check` a
    review aid, not a CI gate. The F6/F7 change regenerates and reviews the
    appendix.

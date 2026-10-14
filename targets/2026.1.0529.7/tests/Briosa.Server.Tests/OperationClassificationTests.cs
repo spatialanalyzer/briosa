@@ -16,7 +16,7 @@ public sealed class OperationClassificationTests
         new(StringComparer.Ordinal)
         {
             ["read-only"] = 184,
-            ["standard"] = 802,
+            ["standard"] = 798,
             ["device"] = 906,
             ["full"] = 923
         };
@@ -254,14 +254,19 @@ public sealed class OperationClassificationTests
         }
     }
 
-    // #243 decision of 2026-10-13, question 7: the instrument scale-factor setters (R4) and the
-    // robot model-link setter (R5) change what the instrument or robot applies, so they carry
+    // #243 decisions of 2026-10-13 and 2026-10-14, question 7: the instrument scale-factor
+    // setters (R4), the robot model-link setter (R5), the robot calibration setters and the
+    // offline probe offset change what the instrument or robot applies, so they carry
     // device_config and the default standard profile no longer admits them.
     private static readonly string[] DecidedDeviceConfigOperations =
         [
             "instrument_operations.set_absolute_instrument_scale_factor",
             "instrument_operations.set_multiply_instrument_scale_factor",
-            "robot_operations.set_robot_machine_model_link_parameters"
+            "robot_operations.set_robot_machine_model_link_parameters",
+            "robot_operations.set_active_robot_calibration",
+            "robot_operations.set_robot_calibration_tool_frame",
+            "robot_operations.set_robot_calibration_measurement_offset_in_tool_frame",
+            "instrument_operations.set_probe_offset_frame_offline"
         ];
 
     [Fact]
