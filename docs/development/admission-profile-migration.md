@@ -39,11 +39,25 @@ for the profile definitions and precedence.
 
 | Target | Registered | `read-only` | `standard` (default) | `device` | `full` | Exclusive (never admitted) | Interactive (opt-in only) |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| 2026.1.0529.7 | 1,021 | 184 | 805 | 906 | 923 | 42 | 59 |
-| 2024.1.0508.5 | 990 | 180 | 786 | 872 | 889 | 45 | 59 |
+| 2026.1.0529.7 | 1,021 | 184 | 798 | 906 | 923 | 42 | 59 |
+| 2024.1.0508.5 | 990 | 180 | 779 | 872 | 889 | 45 | 59 |
 
 The counts exclude the six operations per target removed in the same major
-release; see [operation retirement](operation-retirement.md).
+release; see [operation retirement](operation-retirement.md). They include the
+seven device-configuration setters reclassified on #243 (question 7,
+[2026-10-13](https://github.com/spatialanalyzer/briosa/issues/243#issuecomment-6147618560)
+and [2026-10-14](https://github.com/spatialanalyzer/briosa/issues/243#issuecomment-6167068161)).
+These now carry `device_config`, so only `device` and `full` admit them:
+
+- `set_absolute_instrument_scale_factor` and `set_multiply_instrument_scale_factor`;
+- `set_robot_machine_model_link_parameters`;
+- `set_active_robot_calibration`, `set_robot_calibration_tool_frame` and
+  `set_robot_calibration_measurement_offset_in_tool_frame`;
+- `set_probe_offset_frame_offline`.
+
+`set_robot_machine_base_transform` stays in `standard`: like
+`set_instrument_transform`, it places an object in the job model rather than
+configuring the device.
 
 Compared with the previous default, `standard` stops admitting these:
 

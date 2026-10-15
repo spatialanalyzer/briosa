@@ -366,8 +366,8 @@ profile admits. The rows still under review carry their ID in `review_flag`.
 | R1 | `move_robot_machine_to_joint_pose_six_dof` `joint_1` to `joint_6` | Required in major 3 (Q6). |
 | R2 | `set_instrument_weather_setting` `temperature`, `pressure`, `relative_humidity`, `set_automatically` | Required in major 3; the three values only when `set_automatically` is false (Q6). |
 | R3 | `scale_objects` `scale_factor` | Required in major 3 (Q6). |
-| R4 | `set_absolute_instrument_scale_factor`, `set_multiply_instrument_scale_factor` `scale_factor` | Required in major 3 (Q6). Their `device_config` flag (Q7) is a separate change. |
-| R5 | `set_robot_machine_model_link_parameters` (22 fields); `set_robot_machine_parameter` `parameter_value` | Required in major 3 (Q6). The model-link `device_config` flag (Q7) is a separate change. |
+| R4 | `set_absolute_instrument_scale_factor`, `set_multiply_instrument_scale_factor` `scale_factor` | Required in major 3 (Q6). Both carry `device_config` (Q7), so `standard` no longer admits them. |
+| R5 | `set_robot_machine_model_link_parameters` (22 fields); `set_robot_machine_parameter` `parameter_value` | Required in major 3 (Q6). The model-link operation carries `device_config` (Q7); `set_robot_machine_parameter` already did. |
 | R6 | `delete_measurement_observation` and `move_measurement_observation` `observation_index`; `delete_ith_vector_from_vector_group` `vector_index` | Required in major 3 (Q6). |
 | R7 | `delete_folder` `folder_path`; `delete_variable` `name`; `delete_variables_wildcard_match` `variable_wildcard_criteria`; `delete_vector_by_name` `vector_name`; `delete_collections_by_wildcard` and `delete_folders_by_wildcard` `search_string`; `delete_robot_calibration` `calibration_name`; `remove_report_tag` `tag_name` | Required and not empty in major 3 (Q6). |
 | R8 | `auto_measure_vectors` angle, high and low tolerance; `scale_bar_check` temperature, bar length, CTE and tolerance; `locate_instrument_ref_tie_in` `tolerance`; `construct_vector_group_area_profile_check` `area_radius` and `area_tolerance`; `construct_tcp_fixture` `point_match_threshold` | Under review with the probes. A zero tolerance or limit that, unlike the `(0.0 for none)` arguments, is not documented as "none" either fails every check or disables it. |
@@ -391,7 +391,7 @@ on each target send false when absent, which is the non-destructive choice:
 | Q4 | Tolerance and constraint stay required; clients may offer an explicit all-disabled value. | Client impact. |
 | Q5 | Transcribed per-target test tables plus a root agreement script. | How the code is checked. |
 | Q6 | R1 to R7 are required (R2 conditional, R7 also rejects empty); the manual-guide `measure_immediately` defaults to true. | `required_risky_default` and `default_flip` rows. |
-| Q7 | The R4 and R5 model-link operations get `device_config`. | A separate change. The appendix's `narrowest_profile` column follows it; whichever change merges second regenerates the appendix. |
+| Q7 | The R4 instrument scale-factor operations and the R5 model-link operation carry `device_config`, so only `device` and `full` admit them. Extended (2026-10-14) to `set_active_robot_calibration`, `set_robot_calibration_tool_frame`, `set_robot_calibration_measurement_offset_in_tool_frame` and `set_probe_offset_frame_offline`; `set_robot_machine_base_transform` stays in `standard`. | #324. The appendix's `narrowest_profile` column follows it. |
 | Q8 | `audit_scalar_presence.py --check` is a CI gate. | `.github/workflows/ci.yml`. |
 
 Still open: the fit seed (#311), the R8 to R11 defaults, and the optional strings
