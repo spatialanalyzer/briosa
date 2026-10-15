@@ -335,8 +335,8 @@ handling of the zero value is unobserved unless stated. The rows carry the ID in
 | R1 | `move_robot_machine_to_joint_pose_six_dof` `joint_1` to `joint_6` | device | Any joint the caller leaves out is sent as 0, so the robot is commanded toward a pose the caller did not ask for. |
 | R2 | `set_instrument_weather_setting` `temperature`, `pressure`, `relative_humidity`, `set_automatically` | device | `Set Automatically?` defaults to false, and SA documents that the supplied values are then used. An empty request sets 0 °F, 0 mmHg and 0 % on the instrument, which skews its later measurements. |
 | R3 | `scale_objects` `scale_factor` | standard | Documented by Briosa as 0. An omitted factor scales the objects by zero about the working frame. |
-| R4 | `set_absolute_instrument_scale_factor`, `set_multiply_instrument_scale_factor` `scale_factor` | standard | Sets the instrument's scale to 0, or multiplies it by 0. These rows have no risk flag, so `standard` admits them. |
-| R5 | `set_robot_machine_model_link_parameters` (22 fields); `set_robot_machine_parameter` `parameter_value` | standard; device | A partial request overwrites every DH, 6DOF, encoder and mass parameter it omits with 0 or false. The model-link operation has no risk flag. |
+| R4 | `set_absolute_instrument_scale_factor`, `set_multiply_instrument_scale_factor` `scale_factor` | device | Sets the instrument's scale to 0, or multiplies it by 0. Both now carry `device_config` (question 7), so `standard` no longer admits them. |
+| R5 | `set_robot_machine_model_link_parameters` (22 fields); `set_robot_machine_parameter` `parameter_value` | device | A partial request overwrites every DH, 6DOF, encoder and mass parameter it omits with 0 or false. The model-link operation now carries `device_config` (question 7). |
 | R6 | `delete_measurement_observation` and `move_measurement_observation` `observation_index`; `delete_ith_vector_from_vector_group` `vector_index` | standard | A destructive operation whose omitted index targets index 0, so it either removes the first item or fails, depending on SA's unobserved indexing. |
 | R7 | `delete_folder` `folder_path`; `delete_variable` `name`; `delete_variables_wildcard_match` `variable_wildcard_criteria`; `delete_vector_by_name` `vector_name`; `delete_collections_by_wildcard` and `delete_folders_by_wildcard` `search_string`; `delete_robot_calibration` `calibration_name`; `remove_report_tag` `tag_name` | standard | A destructive operation is sent an empty target name or pattern, and what SA does with it is unobserved. The two wildcard deletes also send `Allow Deleting all …` as false. |
 | R8 | `auto_measure_vectors` angle, high and low tolerance; `scale_bar_check` temperature, bar length, CTE and tolerance; `locate_instrument_ref_tie_in` `tolerance`; `construct_vector_group_area_profile_check` `area_radius` and `area_tolerance`; `construct_tcp_fixture` `point_match_threshold` | standard / device | A zero tolerance or limit that, unlike the `(0.0 for none)` arguments, is not documented as "none". It either fails every check or disables it. |
@@ -370,8 +370,11 @@ to SA and needs no licensed observation; see open question 6.
    bounded exception to point 4, because rejecting before dispatch sends
    nothing to SA. Review R6 to R11 with the probes.
 7. **Unflagged scale and robot-model setters.** R4 and the R5 model-link
-   operation carry no risk flag, so `standard` admits them. Recommended: review
-   them for `device_config` in a classification follow-up.
+   operation carried no risk flag, so `standard` admitted them. Decided
+   (2026-10-13): they carry `device_config`, so only `device` and `full` admit
+   them. Extended (2026-10-14) to the robot calibration setters and
+   `set_probe_offset_frame_offline`; `set_robot_machine_base_transform` stays in
+   `standard`.
 8. **Appendix drift.** Recommended: keep `audit_scalar_presence.py --check` a
    review aid, not a CI gate. The F6/F7 change regenerates and reviews the
    appendix.
