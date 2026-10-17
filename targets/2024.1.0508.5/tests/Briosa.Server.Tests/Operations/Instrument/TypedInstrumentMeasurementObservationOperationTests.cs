@@ -34,7 +34,11 @@ public sealed class TypedInstrumentMeasurementObservationOperationTests
         var instrument = new Api.CollectionInstrumentId { CollectionName = "Trackers", InstrumentId = 4 };
         var point = new Api.PointName { CollectionName = "Points", GroupName = "Measured", TargetName = "P1" };
 
-        var deleteObservation = DeleteMeasurementObservationOperation.CreateCommand(new() { PointName = point });
+        // #243 D2 (R6): the observation index is required; an omitted index is rejected instead of sent as 0.
+        Assert.Throws<ArgumentException>(() =>
+            DeleteMeasurementObservationOperation.CreateCommand(new() { PointName = point }));
+        var deleteObservation = DeleteMeasurementObservationOperation.CreateCommand(
+            new() { PointName = point, ObservationIndex = 0 });
         Assert.Equal(0, deleteObservation.InputArguments[1].RequireValue<WorkerIntegerValue>().Value);
         Assert.False(deleteObservation.InputArguments[2].RequireValue<WorkerBooleanValue>().Value);
         Assert.Equal("destructive", Assert.Single(DeleteMeasurementObservationOperation.Descriptor.RiskFlags));
@@ -56,6 +60,7 @@ public sealed class TypedInstrumentMeasurementObservationOperationTests
         var move = MoveMeasurementObservationOperation.CreateCommand(new()
         {
             SourcePointName = point,
+            ObservationIndex = 0,
             DestinationPointName = new Api.PointName { CollectionName = "Points", GroupName = "Measured", TargetName = "P2" }
         });
         Assert.Equal(0, move.InputArguments[1].RequireValue<WorkerIntegerValue>().Value);
@@ -75,13 +80,14 @@ public sealed class TypedInstrumentMeasurementObservationOperationTests
         var instrument = new Api.CollectionInstrumentId { CollectionName = "Trackers", InstrumentId = 4 };
         var point = new Api.PointName { CollectionName = "Points", GroupName = "Measured", TargetName = "P1" };
 
-        await client.DeleteMeasurementObservationAsync(new() { PointName = point }, options);
+        await client.DeleteMeasurementObservationAsync(new() { PointName = point, ObservationIndex = 0 }, options);
         await client.DeleteMeasurementsAsync(new() { Instrument = instrument, PointName = point }, options);
         var count = await client.GetNumberOfObservationsOnTargetAsync(new() { Point = point }, options);
         var info = await client.GetObservationInfoAsync(new() { Point = point }, options);
         await client.MoveMeasurementObservationAsync(new()
         {
             SourcePointName = point,
+            ObservationIndex = 0,
             DestinationPointName = new Api.PointName { CollectionName = "Points", GroupName = "Measured", TargetName = "P2" }
         }, options);
 

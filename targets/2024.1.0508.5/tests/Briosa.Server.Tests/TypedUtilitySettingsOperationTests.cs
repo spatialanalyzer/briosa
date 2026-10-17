@@ -107,7 +107,14 @@ public sealed class TypedUtilitySettingsOperationTests
             interaction.InputArguments[2].RequireValue<WorkerChoiceValue<WorkerMpDialogInteractionModeValue>>().Value);
         Assert.Throws<ArgumentException>(() => SetInteractionModeOperation.CreateCommand(new()));
 
-        Assert.Throws<ArgumentException>(() => SetUserInterfaceProfileOperation.CreateCommand(new()));
+        // #243 D2: the profile file is optional. An absent file omits its setter, and an
+        // explicit empty path is rejected.
+        var profileOnly = SetUserInterfaceProfileOperation.CreateCommand(new());
+        Assert.Equal("Profile Name", Assert.Single(profileOnly.InputArguments).Name);
+        Assert.Throws<ArgumentException>(() => SetUserInterfaceProfileOperation.CreateCommand(new()
+        {
+            ProfileFileName = new Api.FileReference { Path = " " }
+        }));
         var profile = SetUserInterfaceProfileOperation.CreateCommand(new()
         {
             ProfileFileName = new Api.FileReference { Path = "profile.sa" }

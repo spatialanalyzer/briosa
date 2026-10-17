@@ -19,18 +19,26 @@ internal static class SetInstrumentWeatherSettingOperation
     public static WorkerMpCommand CreateCommand(Api.SetInstrumentWeatherSettingRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
+        // #243 D2 (R2): set_automatically is required. The three values are required
+        // only when it is false; when it is true SA ignores them, so an omitted value
+        // is still sent as 0.
+        var automatic = RequiredValueMapper.Boolean(
+            request.HasSetAutomatically, request.SetAutomatically, "set_automatically");
+        WorkerDoubleValue Setting(bool present, double value, string fieldName) =>
+            automatic.Value ? new(present ? value : 0) : RequiredValueMapper.Double(present, value, fieldName);
+
         return new(Descriptor.OperationId, Descriptor.MpStep,
             [
                 new("Instrument's ID", WorkerMpValueKind.CollectionInstrumentId,
                     InstrumentIdMapper.Required(request.Instrument, "instrument"), "SetColInstIdArg"),
                 new("Temperature (F)", WorkerMpValueKind.FloatingPoint,
-                    new WorkerDoubleValue(request.Temperature), "SetDoubleArg"),
+                    Setting(request.HasTemperature, request.Temperature, "temperature"), "SetDoubleArg"),
                 new("Pressure (mmHg)", WorkerMpValueKind.FloatingPoint,
-                    new WorkerDoubleValue(request.Pressure), "SetDoubleArg"),
+                    Setting(request.HasPressure, request.Pressure, "pressure"), "SetDoubleArg"),
                 new("Humidity (%Rel)", WorkerMpValueKind.FloatingPoint,
-                    new WorkerDoubleValue(request.RelativeHumidity), "SetDoubleArg"),
+                    Setting(request.HasRelativeHumidity, request.RelativeHumidity, "relative_humidity"), "SetDoubleArg"),
                 new("Set Automatically? (Ignore above values)", WorkerMpValueKind.Logical,
-                    new WorkerBooleanValue(request.SetAutomatically), "SetBoolArg")
+                    automatic, "SetBoolArg")
             ], []);
     }
 

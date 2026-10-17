@@ -1,3 +1,4 @@
+using Briosa.Server.Operations.Values;
 using Briosa.Server.Security;
 using Briosa.Server.Services;
 using Briosa.Worker.Control;
@@ -27,7 +28,8 @@ internal static class SetRobotMachineParameterOperation
                 new("Parameter Name", WorkerMpValueKind.Text,
                     new WorkerTextValue(request.ParameterName), "SetStringArg"),
                 new("Parameter Value", WorkerMpValueKind.FloatingPoint,
-                    new WorkerDoubleValue(request.ParameterValue), "SetDoubleArg")
+                    RequiredValueMapper.Double(request.HasParameterValue, request.ParameterValue, "parameter_value"),
+                    "SetDoubleArg")
             ], []);
     }
 

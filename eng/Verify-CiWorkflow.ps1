@@ -45,6 +45,19 @@ for ($index = 0; $index -lt $expectedPrefix.Count; $index++) {
     }
 }
 
+# The reviewed tables that govern admission and request mapping (#293, #243) are
+# CI gates, not review aids.
+$workflowText = Get-Content -LiteralPath $resolvedWorkflowPath -Raw
+foreach ($gate in @(
+        './eng/Test-OperationClassificationTwins.ps1 -Strict',
+        './eng/Test-OperationConditionalOptions.ps1',
+        './eng/Test-ArgumentDefaults.ps1',
+        'python eng/classification/audit_scalar_presence.py --check')) {
+    if (-not [regex]::IsMatch($workflowText, '(?m)^\s+run: ' + [regex]::Escape($gate) + '\s*$')) {
+        throw "Ordinary CI workflow must run the reviewed table gate '$gate'."
+    }
+}
+
 $githubDirectory = Join-Path (Split-Path -Parent $PSScriptRoot) '.github'
 foreach ($file in Get-ChildItem -LiteralPath $githubDirectory -Recurse -File -Include '*.yml', '*.yaml') {
     $actionReferences = [regex]::Matches(
@@ -59,5 +72,5 @@ foreach ($file in Get-ChildItem -LiteralPath $githubDirectory -Recurse -File -In
 
 Write-Host (
     "Ordinary CI workflow runs pull-request validation once, limits push validation to main, " +
-    "cancels superseded runs, and retains read-only contents permission. " +
+    "cancels superseded runs, retains read-only contents permission, and runs the reviewed table gates. " +
     "External workflow and composite actions use immutable commit SHAs.")

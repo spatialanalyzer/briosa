@@ -119,6 +119,18 @@ an explicit released reference once one exists. Removing an operation is a
 reviewed contract-major change recorded in a ledger; see
 [operation retirement](../development/operation-retirement.md).
 
+A request field's absent and explicitly empty behavior is a reviewed contract
+claim too. For the arguments listed in the reviewed
+[argument defaults table](../../eng/classification/argument-defaults.md),
+contract major 3 omits an absent optional argument's setter rather than sending
+it blank, rejects an explicit empty name or path before dispatch unless the
+evidence documents blank as a value, and rejects the listed risky scalars when
+absent instead of sending zero. Other arguments keep their current behavior
+pending further review or licensed probes: some optional strings are still sent
+blank when absent, and the deferred risky scalars are still sent as zero. A
+guard test checks every target's mappings against the table; see the
+[argument defaults migration](../development/argument-defaults-migration.md).
+
 ## Discovery and health
 
 The standard `grpc.health.v1.Health` service exposes separate `briosa.liveness`
