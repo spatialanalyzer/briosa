@@ -27,6 +27,13 @@ jobs:
         with:
           fetch-depth: 0
 
+      # Target isolation evaluates MSBuild properties with dotnet. Install the pinned
+      # SDK instead of relying on whichever SDKs the runner image preinstalls.
+      - name: Install .NET SDK
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+
       - name: Verify ordinary CI workflow policy
         shell: pwsh
         run: ./eng/Verify-CiWorkflow.ps1

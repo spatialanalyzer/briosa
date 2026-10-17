@@ -16,10 +16,14 @@ NuGet Audit also checks resolved direct and transitive dependencies
 at restore time, with warnings treated as errors. Repository settings live in
 GitHub rather than this checkout.
 
-`global.json` pins SDK 10.0.401, including runtime 10.0.12. This replaces the
-10.0.10 runtime that the initial graph identified as affected by Microsoft's
-[.NET runtime advisory](https://github.com/advisories/GHSA-c494-m2fq-59mx) and
-[Windows Desktop advisory](https://github.com/advisories/GHSA-jqhp-238x-qhgf).
+`global.json` pins SDK 10.0.402, including runtime 10.0.13 from Microsoft's
+October 2026 .NET 10 servicing release
+([release notes](https://github.com/dotnet/core/blob/main/release-notes/10.0/10.0.13/10.0.13.md)).
+This replaces SDK 10.0.401 and its 10.0.12 runtime, which the dependency graph
+reported as affected by that release's .NET, ASP.NET Core and Windows Desktop
+runtime advisories. Self-contained publishing bundles the runtime packs of the
+pinned SDK, so the SDK pin decides the shipped runtime. Dependabot proposes
+later SDK servicing releases as `global.json` update PRs.
 Install the pinned SDK when updating a development or licensed-validation host.
 Previously published self-contained packages need rebuilding and republishing
 before they contain the patched runtime; changing this repository does not patch
@@ -61,9 +65,11 @@ it does not modify protection for other repositories.
   complete snapshot. Dependency review waits up to ten minutes for snapshots,
   then fails if GitHub still reports an incomplete comparison. Resolve submission
   failures and rerun dependency review before merging.
-- Dependabot checks weekly for Actions, each target's NuGet packages, and the
-  Python publishing requirements. Routine minor/patch updates are grouped;
-  NuGet security fixes have separate groups. Maintainers review and merge updates.
+- Dependabot checks weekly for Actions, each target's NuGet packages, the
+  `global.json` .NET SDK pin and the Python publishing requirements. Routine
+  minor/patch updates are grouped; NuGet security fixes have separate groups.
+  SDK major versions are ignored, so moving to a new .NET major stays a
+  deliberate change. Maintainers review and merge updates.
 - Third-party Actions are pinned to immutable commit SHAs, enforced by the existing
   workflow policy check. Dependabot maintains these pins.
 

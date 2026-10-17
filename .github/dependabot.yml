@@ -34,6 +34,17 @@ updates:
         applies-to: security-updates
         patterns: ['*']
 
+  # The SDK pin decides the runtime packs that self-contained packages bundle,
+  # so .NET servicing releases arrive as global.json update PRs. A new .NET
+  # major is a deliberate change, not a routine update.
+  - package-ecosystem: dotnet-sdk
+    directory: /
+    schedule:
+      interval: weekly
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
+
   - package-ecosystem: pip
     directory: /eng/publishing
     schedule:
