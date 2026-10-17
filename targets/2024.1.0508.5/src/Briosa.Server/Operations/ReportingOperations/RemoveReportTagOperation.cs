@@ -1,3 +1,4 @@
+using Briosa.Server.Operations.Values;
 using Briosa.Server.Security;
 using Briosa.Server.Services;
 using Briosa.Worker.Control;
@@ -17,7 +18,8 @@ internal static class RemoveReportTagOperation
     {
         ArgumentNullException.ThrowIfNull(request);
         return new(Descriptor.OperationId, Descriptor.MpStep,
-            [new("Tag Name", WorkerMpValueKind.Text, new WorkerTextValue(request.TagName), "SetStringArg")], []);
+            [new("Tag Name", WorkerMpValueKind.Text,
+                RequiredValueMapper.NonEmptyText(request.HasTagName, request.TagName, "tag_name"), "SetStringArg")], []);
     }
 
     public static Api.RemoveReportTagResult CreateResult(SuccessfulOperationExecution completed) =>

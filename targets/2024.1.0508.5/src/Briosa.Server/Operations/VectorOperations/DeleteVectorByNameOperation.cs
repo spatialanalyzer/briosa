@@ -20,7 +20,8 @@ internal static class DeleteVectorByNameOperation
         [
             new("Vector Group Name", WorkerMpValueKind.CollectionObjectName,
                 CollectionObjectNameMapper.Required(request.VectorGroupName, "vector_group_name"), "SetCollectionObjectNameArg2"),
-            new("Vector Name", WorkerMpValueKind.Text, new WorkerTextValue(request.VectorName), "SetStringArg")
+            new("Vector Name", WorkerMpValueKind.Text,
+                RequiredValueMapper.NonEmptyText(request.HasVectorName, request.VectorName, "vector_name"), "SetStringArg")
         ], []);
     }
     public static Api.DeleteVectorByNameResult CreateResult(SuccessfulOperationExecution completed) =>

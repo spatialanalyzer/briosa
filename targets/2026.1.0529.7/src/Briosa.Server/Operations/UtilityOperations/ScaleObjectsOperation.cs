@@ -21,7 +21,8 @@ internal static class ScaleObjectsOperation
         [
             new("Objects", WorkerMpValueKind.CollectionObjectNameList,
                 CollectionObjectNameMapper.RequiredList(request.Objects, "objects"), "SetCollectionObjectNameRefListArg"),
-            new("Scale Factor", WorkerMpValueKind.FloatingPoint, new WorkerDoubleValue(request.ScaleFactor), "SetDoubleArg")
+            new("Scale Factor", WorkerMpValueKind.FloatingPoint,
+                RequiredValueMapper.Double(request.HasScaleFactor, request.ScaleFactor, "scale_factor"), "SetDoubleArg")
         ], []);
     }
 

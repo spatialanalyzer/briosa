@@ -22,7 +22,7 @@ internal static class SetAbsoluteInstrumentScaleFactorOperation
                 new("Instrument's ID", WorkerMpValueKind.CollectionInstrumentId,
                     InstrumentIdMapper.Required(request.Instrument, "instrument"), "SetColInstIdArg"),
                 new("Scale Factor", WorkerMpValueKind.FloatingPoint,
-                    new WorkerDoubleValue(request.ScaleFactor), "SetDoubleArg")
+                    RequiredValueMapper.Double(request.HasScaleFactor, request.ScaleFactor, "scale_factor"), "SetDoubleArg")
             ], []);
     }
 

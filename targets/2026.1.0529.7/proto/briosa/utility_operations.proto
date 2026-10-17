@@ -70,6 +70,8 @@ message CloseAllWatchWindowsResult {
 }
 
 message DeleteFolderRequest {
+  // Required and not empty (major 3): an omitted, empty or whitespace-only value is
+  // rejected before dispatch.
   optional string folder_path = 1;
 }
 
@@ -307,6 +309,7 @@ message MoveObjectsDragGraphicallyResult {
 
 message ScaleObjectsRequest {
   repeated CollectionObjectName objects = 1;
+  // Required (major 3): an omitted value is rejected before dispatch instead of being sent as 0.
   optional double scale_factor = 2;
 }
 
@@ -481,7 +484,7 @@ message SetPointNotesResult {
 
 message SetUserInterfaceProfileRequest {
   optional string profile_name = 1;
-  // Optional in the MP editor; the existing API presence and omission behavior is unchanged.
+  // Optional (major 3): omitted when absent; an empty path is rejected.
   optional FileReference profile_file_name = 2;
 }
 

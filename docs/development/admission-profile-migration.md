@@ -99,6 +99,7 @@ These request defaults changed so that waiting is the default:
 | `instrument_operations.configure_and_measure` | `measure_immediately` | `false` | `true` |
 | `instrument_operations.measure_existing_single_point` | `measure_immediately` | `false` | `true` |
 | `instrument_operations.measure_existing_single_point_and_compare` | `measure_immediately` | `false` | `true` |
+| `instrument_operations.measure_existing_single_point_manual_guide` | `measure_immediately` | `false` | `true` |
 | `instrument_operations.auto_measure_points` | `auto_start` | `false` | `true` |
 | `instrument_operations.auto_measure_specified_geometry` | `wait_for_complete` | `false` | `true` |
 | `robot_operations.move_robot_machine_to_frame` | `acknowledge_arrival` | `false` | `true` |

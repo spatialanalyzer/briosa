@@ -57,7 +57,10 @@ public sealed class TypedReportTagOperationTests
         Assert.Equal(4, value.TagValueAsInteger);
         Assert.Equal(2.5d, value.TagValueAsDouble);
 
-        Assert.Equal(string.Empty, RemoveReportTagOperation.CreateCommand(new()).InputArguments[0]
+        // #243 D2 (R7): the tag name is required and must not be empty.
+        Assert.Throws<ArgumentException>(() => RemoveReportTagOperation.CreateCommand(new()));
+        Assert.Throws<ArgumentException>(() => RemoveReportTagOperation.CreateCommand(new() { TagName = " " }));
+        Assert.Equal("Old", RemoveReportTagOperation.CreateCommand(new() { TagName = "Old" }).InputArguments[0]
             .RequireValue<WorkerTextValue>().Value);
         var asDouble = SetReportTagValueFromDoubleOperation.CreateCommand(new()
         {

@@ -82,6 +82,8 @@ message CreateRobotCalibrationResult {
 
 message DeleteRobotCalibrationRequest {
   optional CollectionMachineId machine_id = 1;
+  // Required and not empty (major 3): an omitted, empty or whitespace-only value is
+  // rejected before dispatch.
   optional string calibration_name = 2;
 }
 
@@ -231,6 +233,8 @@ message MoveRobotMachineToFrameResult {
 
 message MoveRobotMachineToJointPoseSixDofRequest {
   optional CollectionMachineId machine_id = 1;
+  // Every joint is required (major 3): an omitted joint is rejected before dispatch
+  // instead of being sent as 0.
   optional double joint_1 = 2;
   optional double joint_2 = 3;
   optional double joint_3 = 4;
@@ -391,6 +395,9 @@ message SetRobotMachineModelLinkParametersRequest {
   optional CollectionMachineId machine_id = 1;
   optional string link_name = 2;
   optional RobotModelLinkType link_type = 3;
+  // The scalar parameters from dh_alpha_component through segment_cg_mass_kg are
+  // required (major 3): a request that omits one is rejected before dispatch instead
+  // of overwriting it with 0 or false.
   optional double dh_alpha_component = 4;
   optional double dh_a_component = 5;
   optional double dh_d_component = 6;
@@ -424,6 +431,7 @@ message SetRobotMachineModelLinkParametersResult {
 message SetRobotMachineParameterRequest {
   optional CollectionMachineId machine_id = 1;
   optional string parameter_name = 2;
+  // Required (major 3): an omitted value is rejected before dispatch instead of being sent as 0.
   optional double parameter_value = 3;
 }
 

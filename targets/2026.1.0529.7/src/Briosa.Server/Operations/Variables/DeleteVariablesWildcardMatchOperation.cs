@@ -1,3 +1,4 @@
+using Briosa.Server.Operations.Values;
 using Briosa.Server.Security;
 using Briosa.Server.Services;
 using Briosa.Worker.Control;
@@ -20,7 +21,9 @@ internal static class DeleteVariablesWildcardMatchOperation
     {
         ArgumentNullException.ThrowIfNull(request);
         return new(Descriptor.OperationId, Descriptor.MpStep,
-            [new("Variable Wildcard Criteria", WorkerMpValueKind.Text, new WorkerTextValue(request.VariableWildcardCriteria), "SetStringArg")], []);
+            [new("Variable Wildcard Criteria", WorkerMpValueKind.Text,
+                RequiredValueMapper.NonEmptyText(request.HasVariableWildcardCriteria, request.VariableWildcardCriteria,
+                    "variable_wildcard_criteria"), "SetStringArg")], []);
     }
 
     public static Api.DeleteVariablesWildcardMatchResult CreateResult(SuccessfulOperationExecution completed) =>

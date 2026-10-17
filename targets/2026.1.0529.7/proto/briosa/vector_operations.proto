@@ -58,6 +58,7 @@ message AutoRangeAndSetVectorGroupColorizationSelectedResult {
 
 message DeleteIthVectorFromVectorGroupRequest {
   optional CollectionObjectName vector_group_name = 1;
+  // Required (major 3): an omitted value is rejected before dispatch instead of being sent as 0.
   optional int32 vector_index = 2;
 }
 
@@ -67,6 +68,8 @@ message DeleteIthVectorFromVectorGroupResult {
 
 message DeleteVectorByNameRequest {
   optional CollectionObjectName vector_group_name = 1;
+  // Required and not empty (major 3): an omitted, empty or whitespace-only value is
+  // rejected before dispatch.
   optional string vector_name = 2;
 }
 

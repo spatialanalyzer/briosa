@@ -21,7 +21,8 @@ internal static class DeleteIthVectorFromVectorGroupOperation
         [
             new("Vector Group Name", WorkerMpValueKind.CollectionObjectName,
                 CollectionObjectNameMapper.Required(request.VectorGroupName, "vector_group_name"), "SetCollectionObjectNameArg2"),
-            new("Vector Index", WorkerMpValueKind.WholeNumber, new WorkerIntegerValue(request.VectorIndex), "SetIntegerArg")
+            new("Vector Index", WorkerMpValueKind.WholeNumber,
+                RequiredValueMapper.Integer(request.HasVectorIndex, request.VectorIndex, "vector_index"), "SetIntegerArg")
         ], []);
     }
     public static Api.DeleteIthVectorFromVectorGroupResult CreateResult(SuccessfulOperationExecution completed) =>

@@ -11,7 +11,9 @@ hand-reviewed row per registered operation: risk flags, duration class,
 validation status, and intended isolation class. Change a classification by
 editing the table, and add a row with every new operation. The target's
 `OperationClassificationTests` fail when a row is missing, extra, or incomplete.
-The files here are review artifacts and are not read by any build or test.
+The classification seed files here are review artifacts and are not read by any
+build or test. The argument defaults table and the generated F7 files are
+checked in CI; see their rows below.
 
 `OperationPolicy` admits operations from these tables (#293 steps 2 and 3).
 A row's risk flags decide which profiles admit the operation, and an
@@ -31,8 +33,8 @@ the guards of the conditional option lists; see [Request guard](#request-guard).
 | `target-differences.json` | Reviewed shared operations whose rows may differ between targets. It is read by `eng/Test-OperationClassificationTwins.ps1`. |
 | `conditional-ui.json` | Reviewed caller-reachable operator UI that does not make an operation `interactive_ui`, with the machine-readable guard each target's request classifier enforces. See [Conditional behavior](#conditional-behavior) and [Request guard](#request-guard). `eng/Test-OperationClassificationTwins.ps1` checks its operation IDs. |
 | `conditional-background.json` | Reviewed caller options that let an admissible operation return while device work keeps running, with their guards. See [Ongoing device workflows considered](#ongoing-device-workflows-considered) and [Request guard](#request-guard). `eng/Test-OperationClassificationTwins.ps1` checks its operation IDs and that each operation is admissible. |
-| `argument-defaults-<target>.csv` | The reviewed D2 defaults table ([#243](https://github.com/spatialanalyzer/briosa/issues/243)): one row per decided or F6 argument, with its current and major-3 behavior when absent, explicitly empty, and set, and its evidence and client impact. See [argument-defaults.md](argument-defaults.md). |
-| `scalar-presence-<target>.csv`, `audit_scalar_presence.py` | The F7 appendix: optional scalar request fields whose absent value is sent as the protobuf zero value or an empty string, with a shortlist of risky defaults, and the audit tool that writes it. See [argument-defaults.md](argument-defaults.md#f7-appendix-presence-insensitive-optional-scalars). |
+| `argument-defaults-<target>.csv` | The reviewed D2 defaults table ([#243](https://github.com/spatialanalyzer/briosa/issues/243)): one row per decided or F6 argument, with its contract 2.0 and major-3 behavior when absent, explicitly empty, and set, and its evidence and client impact. Each target's `tests/Briosa.Server.Tests/ArgumentDefaultsTable.cs` transcribes it, `ArgumentDefaultsTests` checks the mappings against it, and `eng/Test-ArgumentDefaults.ps1` requires the CSV and the transcription to agree, in CI. See [argument-defaults.md](argument-defaults.md). |
+| `scalar-presence-<target>.csv`, `audit_scalar_presence.py` | The F7 appendix: optional scalar request fields whose absent value is sent as the protobuf zero value or an empty string, with a shortlist of risky defaults, and the audit tool that writes it. CI runs `audit_scalar_presence.py --check`. See [argument-defaults.md](argument-defaults.md#f7-appendix-presence-insensitive-optional-scalars). |
 | `optional-inputs-<target>.csv` | Every optional MP input in the target's evidence, matched to its registered operation and argument entry, with what the server does when it is absent. Written by `audit_scalar_presence.py`. See [argument-defaults.md](argument-defaults.md#optional-input-coverage). |
 
 The CSV columns are the operation id, its registered effect, a primary family
@@ -193,7 +195,8 @@ maintainer approved three rules for classifying them:
    `interactive_ui` because its auto-measure dialog always opens.
    `measure_existing_single_point_manual_guide` also stays `interactive_ui`:
    manual guiding, where the operator releases the motors and steers the head,
-   is operator-driven whatever its Measure Immediately option says.
+   is operator-driven whatever its Measure Immediately option says. Since
+   major 3 that option also defaults to true (#243).
 
 Rule 1 changed these rows in both targets. Each option was checked in both
 releases' documentation, and in each target's operation mapping, which passes

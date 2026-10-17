@@ -23,7 +23,8 @@ internal static class DeleteMeasurementObservationOperation
             new("Point Name", WorkerMpValueKind.PointName,
                 PointNameMapper.Required(request.PointName, "point_name"), "SetPointNameArg"),
             new("Observation index", WorkerMpValueKind.WholeNumber,
-                new WorkerIntegerValue(request.ObservationIndex), "SetIntegerArg"),
+                RequiredValueMapper.Integer(request.HasObservationIndex, request.ObservationIndex, "observation_index"),
+                "SetIntegerArg"),
             new("Delete point if no measurements remain?", WorkerMpValueKind.Logical,
                 new WorkerBooleanValue(request.DeletePointIfNoMeasurementsRemain), "SetBoolArg")
         ], []);

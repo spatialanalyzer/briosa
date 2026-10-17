@@ -26,13 +26,24 @@ internal static class LocateInstrumentsUsmnOperation
             ? MapShowUsmnDialog(request.ShowUsmnDialog)
             : throw new ArgumentException("Request field 'show_usmn_dialog' is required.", nameof(request));
 
-        return new(Descriptor.OperationId, Descriptor.MpStep,
-        [
+        var inputs = new List<WorkerMpInputArgument>
+        {
             new("Instruments to Locate", WorkerMpValueKind.CollectionInstrumentIdList,
-                InstrumentIdMapper.RequiredList(request.Instruments, "instruments"), "SetColInstIdRefListArg"),
-            new("Nominals Group Name (blank for none)", WorkerMpValueKind.CollectionObjectName,
-                CollectionObjectNameMapper.Required(request.NominalsGroup, "nominals_group", WorkerObjectTypeValue.PointGroup),
-                "SetCollectionObjectNameArg2"),
+                InstrumentIdMapper.RequiredList(request.Instruments, "instruments"), "SetColInstIdRefListArg")
+        };
+        // #243 D2: omitted when absent. An explicit empty name is sent blank, the
+        // documented "blank for none" form that probe 1 observed SA accept.
+        if (request.NominalsGroup is { } nominals)
+        {
+            inputs.Add(new("Nominals Group Name (blank for none)", WorkerMpValueKind.CollectionObjectName,
+                string.IsNullOrWhiteSpace(nominals.ObjectName)
+                    ? new WorkerCollectionObjectNameValue(string.Empty, string.Empty, WorkerObjectTypeValue.PointGroup)
+                    : CollectionObjectNameMapper.Required(nominals, "nominals_group", WorkerObjectTypeValue.PointGroup),
+                "SetCollectionObjectNameArg2"));
+        }
+
+        inputs.AddRange(
+        [
             new("Output Group Name (to be established)", WorkerMpValueKind.CollectionObjectName,
                 CollectionObjectNameMapper.Required(request.OutputGroup, "output_group", WorkerObjectTypeValue.PointGroup),
                 "SetCollectionObjectNameArg2"),
@@ -57,7 +68,8 @@ internal static class LocateInstrumentsUsmnOperation
                 new WorkerIntegerValue(request.HasAnalysisSamples ? request.AnalysisSamples : 300), "SetIntegerArg"),
             new("Analysis Time Limit (Minutes - 0 for none)", WorkerMpValueKind.FloatingPoint,
                 new WorkerDoubleValue(request.HasAnalysisTimeLimit ? request.AnalysisTimeLimit : 4.0), "SetDoubleArg")
-        ],
+        ]);
+        return new(Descriptor.OperationId, Descriptor.MpStep, inputs,
         [
             new("RMS Error Value", WorkerMpValueKind.FloatingPoint, "GetDoubleArg"),
             new("Max Error Value", WorkerMpValueKind.FloatingPoint, "GetDoubleArg")

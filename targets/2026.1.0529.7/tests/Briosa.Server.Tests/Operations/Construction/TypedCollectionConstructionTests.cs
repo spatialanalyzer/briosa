@@ -39,8 +39,9 @@ public sealed class TypedCollectionConstructionTests
         }, options);
         var selected = await client.SetOrConstructDefaultCollectionAsync(new() { CollectionName = new() { Name = "renamed" } }, options);
         var deleted = await client.DeleteCollectionAsync(new() { CollectionName = new() { Name = "copy" } }, options);
-        var collectionsDeleted = await client.DeleteCollectionsByWildcardAsync(new(), options);
-        var foldersDeleted = await client.DeleteFoldersByWildcardAsync(new() { CaseSensitiveSearch = false }, options);
+        var collectionsDeleted = await client.DeleteCollectionsByWildcardAsync(new() { SearchString = "Temp*" }, options);
+        var foldersDeleted = await client.DeleteFoldersByWildcardAsync(
+            new() { SearchString = "Temp*", CaseSensitiveSearch = false }, options);
 
         Assert.All(new[] { created.Execution, folders.Execution, copied.Execution, moved.Execution, renamed.Execution,
             selected.Execution, deleted.Execution, collectionsDeleted.Execution, foldersDeleted.Execution },
@@ -117,11 +118,14 @@ public sealed class TypedCollectionConstructionTests
     {
         var collection = DeleteCollectionsByWildcardOperation.CreateCommand(new()
         {
-            CaseSensitiveSearch = false, AllowDeletingAllCollections = true
+            SearchString = "Temp*", CaseSensitiveSearch = false, AllowDeletingAllCollections = true
         });
         Assert.False(collection.InputArguments[1].RequireValue<WorkerBooleanValue>().Value);
         Assert.True(collection.InputArguments[2].RequireValue<WorkerBooleanValue>().Value);
-        var folder = DeleteFoldersByWildcardOperation.CreateCommand(new());
+        // #243 D2 (R7): the search string is required and must not be empty.
+        Assert.Throws<ArgumentException>(() => DeleteFoldersByWildcardOperation.CreateCommand(new()));
+        Assert.Throws<ArgumentException>(() => DeleteCollectionsByWildcardOperation.CreateCommand(new() { SearchString = " " }));
+        var folder = DeleteFoldersByWildcardOperation.CreateCommand(new() { SearchString = "Temp*" });
         Assert.True(folder.InputArguments[1].RequireValue<WorkerBooleanValue>().Value);
         Assert.False(folder.InputArguments[2].RequireValue<WorkerBooleanValue>().Value);
         Assert.All(folder.OutputArguments, output => Assert.Equal("GetIntegerArg", output.SdkBinding));

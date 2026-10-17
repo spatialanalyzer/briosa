@@ -1,3 +1,4 @@
+using Briosa.Server.Operations.Values;
 using Briosa.Server.Security;
 using Briosa.Server.Services;
 using Briosa.Worker.Control;
@@ -18,7 +19,8 @@ internal static class DeleteVariableOperation
     {
         ArgumentNullException.ThrowIfNull(request);
         return new(Descriptor.OperationId, Descriptor.MpStep,
-            [new("Name", WorkerMpValueKind.Text, new WorkerTextValue(request.Name), "SetStringArg")], []);
+            [new("Name", WorkerMpValueKind.Text,
+                RequiredValueMapper.NonEmptyText(request.HasName, request.Name, "name"), "SetStringArg")], []);
     }
 
     public static Api.DeleteVariableResult CreateResult(SuccessfulOperationExecution completed) =>
