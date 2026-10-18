@@ -101,7 +101,7 @@ adapted from `spatialanalyzer/briosa-installer` commit
 `8577b56630cb7673ff2b1870ad7d35e4e0ede952` (`BrandTheme.cs`, `LayeredPlanes.cs`,
 and `Styles.xaml`), under Apache-2.0. Only application namespaces/resource paths
 and target-local presentation details differ. The artwork is brand v2 (Caliper b)
-from `spatialanalyzer/briosa-brand` commit `f08fc75acdc36ebc4e9ac6167523efbbeb383f44`,
+from `spatialanalyzer/briosa-brand@v2.0.0` (commit `a5250e8`),
 applied as in spatialanalyzer/briosa-installer#30: the header shows the compact
 horizontal logo, and the app, launcher, windows, and tray share the installer's
 void-tile ICO and its derivation record. The approved brand assets remain

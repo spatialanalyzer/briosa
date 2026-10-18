@@ -1,6 +1,6 @@
 {
-  "source": "spatialanalyzer/briosa-brand@f08fc75acdc36ebc4e9ac6167523efbbeb383f44",
-  "commit": "f08fc75acdc36ebc4e9ac6167523efbbeb383f44",
+  "source": "spatialanalyzer/briosa-brand@v2.0.0",
+  "commit": "a5250e8e2fc48fc07c94069f4c89e33b65f2cc21",
   "inputs": {
     "icons/favicon.svg": "d5afbede085a94c9c25dbe2bef1d20a09dc2a63961c755c95313af4672bd2792",
     "icons/app-icon.svg": "93cb8ea788ff53ed55813d63d3476fb00c43d58066166a5192ae468913520148"
