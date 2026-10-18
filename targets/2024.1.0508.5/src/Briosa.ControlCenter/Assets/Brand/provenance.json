@@ -6,6 +6,10 @@
   "checksumsSha256": "b5fa47d832876fc28aaa21c7df3ff468901a3d553a8be6a2c96cc79761ffdaa0",
   "assets": [
     {
+      "path": "colors.json",
+      "sha256": "91529f6cdf6c3b617f5d9029de960c2dea1d9dfe95d4deedb63205419cad59e0"
+    },
+    {
       "path": "fonts/Inter-OFL.txt",
       "sha256": "5b9321a4298cfeb6b34354164a1c3afc3db114569984c502b9b35d988fd58c57"
     },

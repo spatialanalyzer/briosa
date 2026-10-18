@@ -10,4 +10,7 @@
   <ItemGroup>
     <ProjectReference Include="../../src/Briosa.ControlCenter/Briosa.ControlCenter.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="../../src/Briosa.ControlCenter/Assets/Brand/colors.json" Link="Fixtures/colors.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>
