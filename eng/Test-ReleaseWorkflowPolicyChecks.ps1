@@ -66,6 +66,15 @@ try {
     Assert-Rejected 'OIDC without an environment' {
         param($d) Set-WorkflowText $d 'release.yml' "    permissions:`n      contents: write`n" "    permissions:`n      contents: write`n      id-token: write`n"
     } 'release\.yml:publish requests an OIDC token without a reviewed environment'
+    Assert-Rejected 'R2 renewal in the signing environment' {
+        param($d) Set-WorkflowText $d 'publish-r2.yml' "    environment: r2-publication`n" "    environment: release-signing`n"
+    } 'publish-r2\.yml:publish uses environment ''release-signing'', which is not in the reviewed'
+    Assert-Rejected 'R2 credentials outside the R2 job' {
+        param($d) Set-WorkflowText $d 'sign-catalog.yml' "          KEY_ID: `${{ vars.AZURE_CATALOG_KEY_ID }}`n" "          KEY_ID: `${{ vars.AZURE_CATALOG_KEY_ID }}`n          R2_SECRET_ACCESS_KEY: `${{ secrets.R2_SECRET_ACCESS_KEY }}`n"
+    } 'sign-catalog\.yml references R2 credentials outside the r2-publication job'
+    Assert-Rejected 'executable signing in the R2 environment' {
+        param($d) Set-WorkflowText $d 'publish-r2.yml' "      - name: Install pinned R2 client`n" "      - uses: ./.github/actions/sign-package`n      - name: Install pinned R2 client`n"
+    } 'must not sign executables in the r2-publication environment'
     Assert-Rejected 'eligibility from a fixed ref' {
         param($d) Set-WorkflowText $d 'release.yml' '-Ref $env:GITHUB_REF' "-Ref 'refs/heads/main'"
     } 'Resolve-ReleaseVersion\.ps1 -Ref'
@@ -76,7 +85,7 @@ try {
         param($d) Set-WorkflowText $d 'release.yml' "    if: inputs.publish && needs.version.outputs.eligible == 'true'" "    if: needs.version.outputs.eligible == 'true'"
     } 'must create a draft release'
 
-    Write-Host 'Release workflow policy rejects tag triggers, unreviewed environments, wider signing refs, OIDC without an environment, and non-draft releases.'
+    Write-Host 'Release workflow policy rejects tag triggers, unreviewed environments, wider signing refs, OIDC without an environment, misplaced R2 credentials, executable signing in the R2 environment, and non-draft releases.'
 }
 finally {
     $resolvedRoot = [IO.Path]::GetFullPath($root)
