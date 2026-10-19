@@ -68,8 +68,8 @@ installation used Azure CLI 2.90.0. Do not copy token caches between accounts.
 3. Create a Standard Key Vault with Azure RBAC, soft deletion, and purge protection.
    Generate the RSA 4096 catalog key inside it. Do not generate or upload a test key
    as the production publisher key.
-4. Create Entra app registrations `briosa-github-server` and
-   `briosa-github-installer` in the same directory. Portal registration also creates
+4. Create Entra app registrations `briosa-github-server`, `briosa-github-installer`,
+   and `briosa-github-r2` in the same directory. Portal registration also creates
    the associated service principal. CLI-created app registrations may require
    `az ad sp create --id <application-client-id>` if no service principal exists.
 5. Add the GitHub federated credentials described below. Do not create client
@@ -110,8 +110,11 @@ why an identity is absent. Confirm the correct picker and directory first.
 | `briosa-github-server` | Artifact Signing Certificate Profile Signer | `briosasigning/certificateProfiles/briosa-public` |
 | `briosa-github-installer` | Artifact Signing Certificate Profile Signer | Same profile |
 | `briosa-github-server` | Key Vault Crypto User | `briosa-release-kv/keys/briosa-catalog` |
+| `briosa-github-r2` | Key Vault Crypto User | `briosa-release-kv/keys/briosa-catalog` |
 
-The installer identity has no catalog-key grant. The initial account/vault-wide
+The installer identity has no catalog-key grant. The R2 identity has no Artifact
+Signing grant, so the unattended R2 publication environment can renew catalog
+signatures but cannot sign executables. The initial account/vault-wide
 grants were replaced with these resource-specific grants. No app needs Owner,
 Contributor, User Access Administrator, or Identity Verifier for release signing.
 
@@ -123,10 +126,12 @@ $account = "/subscriptions/$subscription/resourceGroups/briosa-release/providers
 $vault = "/subscriptions/$subscription/resourceGroups/briosa-release/providers/Microsoft.KeyVault/vaults/briosa-release-kv"
 $server = az ad sp list --display-name briosa-github-server --query "[?displayName=='briosa-github-server'].id" -o tsv
 $installer = az ad sp list --display-name briosa-github-installer --query "[?displayName=='briosa-github-installer'].id" -o tsv
+$r2 = az ad sp list --display-name briosa-github-r2 --query "[?displayName=='briosa-github-r2'].id" -o tsv
 # Check each lookup is one exact identity before assigning anything.
 az role assignment create --assignee-object-id $server --assignee-principal-type ServicePrincipal --role 'Artifact Signing Certificate Profile Signer' --scope "$account/certificateProfiles/briosa-public"
 az role assignment create --assignee-object-id $installer --assignee-principal-type ServicePrincipal --role 'Artifact Signing Certificate Profile Signer' --scope "$account/certificateProfiles/briosa-public"
 az role assignment create --assignee-object-id $server --assignee-principal-type ServicePrincipal --role 'Key Vault Crypto User' --scope "$vault/keys/briosa-catalog"
+az role assignment create --assignee-object-id $r2 --assignee-principal-type ServicePrincipal --role 'Key Vault Crypto User' --scope "$vault/keys/briosa-catalog"
 ```
 
 ## GitHub OIDC and environments
@@ -137,6 +142,15 @@ deployment branch policy permits only branch `main`, plus the exact branch of an
 Signing jobs declare that environment and have `id-token: write`; ordinary PR CI
 has no Azure credentials or OIDC permission. Builds finish before the package
 signing job authenticates.
+
+This repository also has **`r2-publication`**, used only by the publish job of
+[`publish-r2.yml`](../../.github/workflows/publish-r2.yml). It admits only branch
+`main` and has no required reviewer, so the weekly catalog renewal runs unattended.
+It holds the R2 credentials and authenticates as `briosa-github-r2`, which can sign
+catalogs but not executables. Renewal re-signs only the reviewed catalog on `main`,
+and publication uploads only published-release assets that carry valid
+**David Lucas** signatures and reproduce that catalog, so the environment cannot
+introduce new trusted code.
 
 The installer initially had an empty environment called `briosa-signing`; it did
 not match the Azure trust. The correctly named environment replaced it. The unused
@@ -151,6 +165,10 @@ Each app registration has a federated credential with:
 | Audience | `api://AzureADTokenExchange` |
 | Server subject | `repo:spatialanalyzer@307099018/briosa@1306759642:environment:release-signing` |
 | Installer subject | `repo:spatialanalyzer@307099018/briosa-installer@1358817864:environment:release-signing` |
+
+`briosa-github-r2` has one credential named `github-r2-publication` with the same
+issuer and audience and subject
+`repo:spatialanalyzer@307099018/briosa@1306759642:environment:r2-publication`.
 
 These repositories use GitHub's immutable repository/owner IDs in the subject.
 Do not replace these with the older name-only `repo:owner/repo:environment:...`
@@ -178,6 +196,13 @@ environment. Use the app's **Application (client) ID**, not its object ID:
 | `AZURE_SIGNING_CERTIFICATE_PROFILE` | `briosa-public` | Same |
 | `AZURE_CATALOG_KEY_ID` | Exact versioned key URI in `eng/signing/azure.json` | Not needed |
 
+The briosa `r2-publication` environment sets `AZURE_CLIENT_ID` to the client ID of
+`briosa-github-r2`, the same `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`, and
+`AZURE_CATALOG_KEY_ID` as the server, and `R2_ACCOUNT_ID`. It needs no Artifact
+Signing variables. Its R2 secrets are described in the
+[hosting runbook](hosting.md#configure-publishing-access); `release-signing` holds no
+R2 credentials.
+
 Example: `gh variable set AZURE_CLIENT_ID --repo spatialanalyzer/briosa --env release-signing --body <client-id>`.
 Workflow expressions use `vars`, not `secrets`. `azure/login` obtains short-lived
 credentials from the GitHub OIDC token. The package-signing action reads the
@@ -193,9 +218,9 @@ workflows within this design (no tag-push triggers, environments only in listed
 jobs, signing jobs limited to `main` or a release line); it is a review aid, not
 the boundary.
 
-The environments still permit administrator bypass and have no required reviewer,
-because the scheduled R2 renewal shares this one; #249 records the plan to separate
-it and then require the maintainer's approval for every signing deployment.
+`release-signing` requires the maintainer's approval for every deployment and does
+not allow administrator bypass. While there is one maintainer, self-review is
+allowed; add a second reviewer and prevent self-review when stewardship expands.
 Approving a `release-signing` deployment and publishing a draft release are
 maintainer actions; automation and agents never do either. [GitHub environment protection](https://docs.github.com/en/actions/reference/workflows-and-actions/deployments-and-environments)
 
@@ -314,7 +339,8 @@ explicitly managed nonproduction signing; production workflows use Key Vault.
 
 Current signatures last 30 days. The separate
 [R2 publication workflow](../../.github/workflows/publish-r2.yml) renews the unchanged
-reviewed catalog weekly and checks public metadata daily. See the
+reviewed catalog weekly in its own `r2-publication` environment and checks public
+metadata daily. See the
 [hosting runbook](hosting.md) for credentials, publication, failure notifications,
 and recovery. New package entries require an explicit publication after review;
 the renewal schedule does not publish pending catalog changes.

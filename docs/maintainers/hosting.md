@@ -390,11 +390,15 @@ only after that object is verified. Portable ZIP downloads remain available.
 
 Create an R2 Object Read & Write token scoped only to briosa-downloads. Store
 its S3 Access Key ID and Secret Access Key as R2_ACCESS_KEY_ID and
-R2_SECRET_ACCESS_KEY secrets in the briosa repository's release-signing
-environment. Set the R2_ACCOUNT_ID environment variable to the owning account
-ID. Never commit the token, its S3 secret, or a credentials export. The existing
-Azure OIDC identity and version-pinned key sign the catalog; the R2 token cannot
-sign a trusted catalog by itself. The workflow has no object-deletion operation.
+R2_SECRET_ACCESS_KEY secrets in the briosa repository's r2-publication
+environment, which admits only branch main and is used only by the R2 workflow's
+publish job. Set the R2_ACCOUNT_ID environment variable there to the owning account
+ID. Never commit the token, its S3 secret, or a credentials export. The
+catalog-only Azure identity briosa-github-r2 and the version-pinned key sign the
+catalog; the R2 token cannot sign a trusted catalog by itself, and the environment
+cannot sign executables. The workflow has no object-deletion operation. See the
+[signing runbook](release-signing.md#github-oidc-and-environments) for the
+environment's Azure variables.
 
 ### Publish or renew
 
