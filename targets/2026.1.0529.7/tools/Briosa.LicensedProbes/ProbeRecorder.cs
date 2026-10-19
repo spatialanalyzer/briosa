@@ -12,7 +12,9 @@ namespace Briosa.LicensedProbes;
 internal static class ProbeRecorder
 {
     // 2 adds the "exclusions" object and the "excluded" step classification.
-    public const int SchemaVersion = 2;
+    // 3 adds "interaction_mode", and per step the planned operator checkpoints, the
+    // operator's observations, the client deadline, and the elapsed time.
+    public const int SchemaVersion = 3;
 
     public static string FileStem(ProbeSessionRecord record)
     {
@@ -63,6 +65,7 @@ internal static class ProbeRecorder
             WriteNullable(json, "stopped_at", record.StoppedAt);
             WriteNullable(json, "stop_reason", record.StopReason);
             WriteExclusions(json, record);
+            WriteInteractionMode(json, record.InteractionMode);
             json.WriteStartObject("identity");
             WriteNullable(json, "server_version", record.Identity.ServerVersion);
             WriteNullable(json, "server_source_revision", record.Identity.ServerSourceRevision);
@@ -113,6 +116,23 @@ internal static class ProbeRecorder
         json.WriteEndObject();
     }
 
+    // Null when the plan never changes SA's interaction mode.
+    private static void WriteInteractionMode(Utf8JsonWriter json, InteractionModeSettings? mode)
+    {
+        if (mode is null)
+        {
+            json.WriteNull("interaction_mode");
+            return;
+        }
+
+        json.WriteStartObject("interaction_mode");
+        json.WriteString("restore_sa_interaction_mode", InteractionModeSettings.ModeName(mode.Restore));
+        json.WriteBoolean("restore_supplied_by_operator", mode.Supplied);
+        json.WriteString("mp_interaction_mode", "Halt on Failure or Partial Success");
+        json.WriteString("mp_dialog_interaction_mode", "Allow Application Interaction");
+        json.WriteEndObject();
+    }
+
     private static void WriteStep(Utf8JsonWriter json, ProbeStepRecord record)
     {
         var step = record.Step;
@@ -139,7 +159,42 @@ internal static class ProbeRecorder
         json.WriteString("acceptable", ProbePlan.AcceptableName(step.Acceptable));
         WriteNullable(json, "destructive_target", step.DestructiveTarget);
         json.WriteBoolean("requires_operator", step.RequiresOperator);
+        json.WriteStartArray("operator_checkpoints");
+        foreach (var timing in new[] { OperatorCheckpoint.Before, OperatorCheckpoint.After }.Where(timing => step.Checkpoints.HasFlag(timing)))
+        {
+            json.WriteStringValue(FileOperatorConsole.TimingName(timing));
+        }
+
+        json.WriteEndArray();
+        if (step.ClientTimeout is { } deadline)
+        {
+            json.WriteNumber("client_timeout_seconds", (long)deadline.TotalSeconds);
+        }
+        else
+        {
+            json.WriteNull("client_timeout_seconds");
+        }
+
         json.WriteString("classification", ClassificationName(record.Classification));
+        if (record.ElapsedMilliseconds is { } elapsed)
+        {
+            json.WriteNumber("elapsed_ms", elapsed);
+        }
+        else
+        {
+            json.WriteNull("elapsed_ms");
+        }
+
+        json.WriteStartArray("operator_observations");
+        foreach (var observation in record.OperatorObservations)
+        {
+            json.WriteStartObject();
+            json.WriteString("timing", FileOperatorConsole.TimingName(observation.Timing));
+            json.WriteString("text", observation.Text);
+            json.WriteEndObject();
+        }
+
+        json.WriteEndArray();
         if (record.Outcome is null)
         {
             json.WriteNull("outcome");
@@ -238,6 +293,16 @@ internal static class ProbeRecorder
         else
         {
             text.Append(Introduction(record)).Append("\n\n");
+        }
+
+        if (!record.DryRun && record.InteractionMode is { } mode)
+        {
+            text.Append(CultureInfo.InvariantCulture,
+                $"**Interaction mode.** Probe 25's baseline and restore steps send SA Interaction Mode `{InteractionModeSettings.ModeName(mode.Restore)}` ")
+                .Append(mode.Supplied ? "(the operator's restore mode)" : "(a placeholder)")
+                .Append(" and its Silent step sends `Silent`, each with MP mode `Halt on Failure or Partial Success` and MP dialog mode ")
+                .Append("`Allow Application Interaction`. SA keeps these across restarts and has no getter. ")
+                .Append("The table shows which of these steps ran.\n\n");
         }
 
         if (record.ExcludedProbes.Count > 0)
@@ -368,6 +433,12 @@ internal static class ProbeRecorder
         {
             var matched = record.Hypotheses.Where(static hypothesis => hypothesis.Matched).Select(static hypothesis => hypothesis.Label).ToList();
             text.Append(matched.Count > 0 ? $" Matches: {string.Join("; ", matched)}." : " No listed hypothesis matched.");
+        }
+
+        foreach (var observation in record.OperatorObservations)
+        {
+            text.Append(CultureInfo.InvariantCulture,
+                $" Operator {(observation.Timing == OperatorCheckpoint.Before ? "before dispatch" : "after the result")}: `{observation.Text}`.");
         }
 
         if (record.Classification == StepClassification.Unexpected)

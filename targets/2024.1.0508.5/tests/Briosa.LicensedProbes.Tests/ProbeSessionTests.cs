@@ -12,7 +12,8 @@ public sealed class ProbeSessionTests
     private static ProbePlan Plan(ProbePhase phase) => ProbePlan.Create(phase, TestSupport.SentinelManifest());
 
     private static Task<ProbeSessionRecord> Run(ProbePlan plan, FakeTransport transport) =>
-        ProbeSession.RunAsync(plan, transport, Clock, new SessionIdentity { HarnessRevision = new string('a', 40) }, CancellationToken.None);
+        ProbeSession.RunAsync(plan, transport, Clock, new SessionIdentity { HarnessRevision = new string('a', 40) }, new FakeOperator(),
+            CancellationToken.None);
 
     [Theory]
     [InlineData(false)]

@@ -34,8 +34,33 @@ internal static class TestSupport
         "g-collections-before" => Outcome(ProbeOutcomeKind.Succeeded, ("collection_count", "3")),
         "g-collections-after" => Outcome(ProbeOutcomeKind.Succeeded, ("collection_count", "4")),
         "c05-06-value" => Outcome(ProbeOutcomeKind.Succeeded, ("match_count", "2")),
+        "c24-sentinel-before" or "c24-sentinel-after" or "c24-r0-before" or "c24-r0a-before" =>
+            Outcome(ProbeOutcomeKind.Succeeded, ("points_count", "8")),
+        "c24-r0-after" or "c24-r0a-after" => Outcome(ProbeOutcomeKind.Succeeded, ("points_count", "7")),
         _ => Outcome(ProbeOutcomeKind.Succeeded)
     };
+}
+
+/// <summary>Answers every checkpoint at once (or never, for chosen ones) and records the calls.</summary>
+internal sealed class FakeOperator(Func<ProbeStep, OperatorCheckpoint, string?>? answer = null) : IOperatorConsole
+{
+    public List<string> Checkpoints { get; } = [];
+
+    public List<string> Dispatched { get; } = [];
+
+    public void Dispatching(ProbeStep step, int ordinal, int count) => Dispatched.Add(step.Id);
+
+    public void Completed(ProbeStep step, int ordinal, int count, ProbeOutcome outcome, long elapsedMilliseconds)
+    {
+    }
+
+    public Task<string?> CheckpointAsync(ProbeStep step, OperatorCheckpoint timing, CancellationToken cancellationToken)
+    {
+        Checkpoints.Add($"{step.Id}:{FileOperatorConsole.TimingName(timing)}");
+        return Task.FromResult(answer is null ? "none" : answer(step, timing));
+    }
+
+    public static Func<ProbeOptions, TextWriter, IOperatorConsole> Factory { get; } = static (_, _) => new FakeOperator();
 }
 
 internal sealed class FakeTransport(ProbePhase phase, Func<ProbeStep, ProbeOutcome> respond) : IProbeTransport
