@@ -132,9 +132,11 @@ az role assignment create --assignee-object-id $server --assignee-principal-type
 ## GitHub OIDC and environments
 
 Both repositories use an environment named exactly **`release-signing`**. Its
-deployment branch policies permit branch `main` and tags `v*`. Signing jobs declare
-that environment and have `id-token: write`; ordinary PR CI has no Azure credentials
-or OIDC permission. Builds finish before the package signing job authenticates.
+deployment branch policy permits only branch `main`, plus the exact branch of an open
+[hotfix release line](#hotfix-release-lines) in this repository. It admits no tags.
+Signing jobs declare that environment and have `id-token: write`; ordinary PR CI
+has no Azure credentials or OIDC permission. Builds finish before the package
+signing job authenticates.
 
 The installer initially had an empty environment called `briosa-signing`; it did
 not match the Azure trust. The correctly named environment was created with the
@@ -182,38 +184,78 @@ credentials from the GitHub OIDC token. The package-signing action reads the
 reviewed endpoint, account, profile, and expected publisher from `azure.json`.
 Microsoft's login and signing actions are pinned to reviewed commit SHAs.
 
-The configured environments use branch/tag restrictions and permit administrator
-bypass; they currently have no additional required-reviewer gate. Maintainers with
-permission to change trusted refs/workflows can authorize signing. Revisit reviewer
-requirements when project stewardship expands; never loosen the ref restriction
-just to test a PR. [GitHub environment protection](https://docs.github.com/en/actions/reference/workflows-and-actions/deployments-and-environments)
+GitHub runs a dispatched or pushed workflow from that ref's commit, so a check in a
+workflow file binds only commits that keep it. The environment's branch policy is
+the boundary: it admits only protected branches, which change only through reviewed
+PRs, so a signing job always runs reviewed code. Never loosen the ref restriction
+just to test a PR. `eng/Verify-ReleaseWorkflowPolicy.ps1` keeps the reviewed
+workflows within this design (no tag-push triggers, environments only in listed
+jobs, signing jobs limited to `main` or a release line); it is a review aid, not
+the boundary.
+
+The environments still permit administrator bypass and have no required reviewer,
+because the scheduled R2 renewal shares this one; #249 records the plan to separate
+it and then require the maintainer's approval for every signing deployment.
+Approving a `release-signing` deployment and publishing a draft release are
+maintainer actions; automation and agents never do either. [GitHub environment protection](https://docs.github.com/en/actions/reference/workflows-and-actions/deployments-and-environments)
 
 ## Build and sign products
 
-Both repositories' `release.yml` workflows support manual dispatch with an explicit
-semantic version. A dispatch produces workflow artifacts without a GitHub Release;
-pushing an approved `v*` tag publishes the final signed product to GitHub Releases.
-Do not use a product release tag just to test authentication.
+Both repositories' `release.yml` workflows run only from a manual dispatch with an
+explicit semantic version; no workflow runs on tag pushes. To release:
+
+1. Merge the release changes to `main` through a reviewed PR.
+2. Dispatch `release.yml` on `main` with the version and `publish: true`. With
+   `publish: false` the run still signs the build but only retains workflow artifacts.
+3. When the build and validation jobs pass, approve the `release-signing` deployment.
+4. The `publish` job creates a **draft** GitHub Release with the signed assets,
+   targeting the dispatched commit. Review it, then publish it; publishing creates
+   the `v<version>` tag at that commit. If GitHub refuses to create the draft for a
+   tag that does not exist yet, push the tag at the dispatched commit and rerun the
+   failed job; an existing tag is accepted only when it points there.
+
+A dispatch on any other branch is an unsigned dry run. Do not dispatch a product
+version just to test authentication; use the signing probes below.
 
 In this repository, the `version` job also decides signing eligibility and checks
 version order before any product build:
 
-- The released commit is eligible only when it is an ancestor of `origin/main`.
-  A `v*` tag on any other commit fails the workflow. A manual dispatch from a
-  commit outside `main` continues as an unsigned dry run; the `sign` job requires
-  both an allowed ref and `eligible == 'true'`.
-- The requested version must be greater than every stable `v*` tag in the
-  repository except the tag being released, including tags on the same or later
-  commits. A lower version therefore cannot be released beside or behind an
-  existing release.
+- A dispatch on `main` is eligible, and its commit must be on `main`. The version
+  must be greater than every stable `v*` tag in the repository except its own,
+  including tags on the same or later commits, so a lower version cannot be
+  released beside or behind an existing release.
+- A dispatch on an open release line `release/<major>.<minor>` is eligible when the
+  version is in that line and greater than every stable tag of the line, and the
+  commit descends from a stable release of the line that is on `main`. Later
+  releases on `main` do not block the line.
+- Any other branch is an unsigned dry run, ordered like `main`. Tag refs and other
+  refs fail, and so does a version whose tag already points to another commit. The
+  `sign` job also requires an allowed ref and `eligible == 'true'`.
 - The `validate` job compares protobuf contracts with the highest stable `v*` tag
   reachable from the released commit, excluding only the tag being released.
 - `eng/Resolve-ReleaseVersion.ps1` implements these checks;
   `eng/Test-ResolveReleaseVersionPolicy.ps1` exercises them against a temporary
   Git repository.
 
-These checks restrict which commits reach signing. They do not add a reviewer
-approval; see the environment protection notes above.
+These checks run from the dispatched branch's reviewed workflow. The environment's
+branch policy keeps every other ref from signing; see the environment notes above.
+
+### Hotfix release lines
+
+`main` can carry unreleased breaking work. To ship a fix for an earlier release in
+this repository, open a reviewed release line instead of tagging a commit outside
+`main`:
+
+1. Create `release/<major>.<minor>` at the line's latest stable release tag.
+2. Protect the branch like `main` (PR required, squash only, linear history, no
+   force push or deletion, creation by organization owners only, and the line's CI
+   checks), then add its exact name to `release-signing`'s deployment branches.
+   Never add a `release/*` pattern.
+3. If the line's release workflow predates dispatch-only releases, backport it and
+   `Resolve-ReleaseVersion.ps1` in the line's first PR, and make CI run on PRs into
+   the line.
+4. Land fixes through PRs, then dispatch `release.yml` on the line as above.
+5. Remove the branch from `release-signing` when the line closes.
 
 1. Validate every target (locked restore, committed interop artifacts, protocol
    compatibility, naming policy, Release build and tests, and Debug development
@@ -264,9 +306,9 @@ The signer requires an explicit key version and verifies the result against the
 pinned public key before atomically replacing the signature envelope. Failed
 signing or an unexpected key preserves the prior envelope.
 
-For a catalog committed and reviewed on an allowed repository ref, dispatch
-`sign-catalog.yml` with its repository-relative `catalog_path`. It produces a
-`signed-release-catalog` workflow artifact. It does not upload files to R2.
+For a catalog committed and reviewed on `main`, dispatch `sign-catalog.yml` on
+`main` with its repository-relative `catalog_path`; the file must validate against
+the release catalog schema. It produces a `signed-release-catalog` workflow artifact. It does not upload files to R2.
 The original `-PrivateKeyPath` option remains only for disposable local tests and
 explicitly managed nonproduction signing; production workflows use Key Vault.
 

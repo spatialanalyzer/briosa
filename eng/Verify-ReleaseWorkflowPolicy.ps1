@@ -124,7 +124,7 @@ foreach ($workflow in $workflows) {
         if (-not $expected.Signing) { continue }
         $condition = [string]$job.If
         if (-not $condition.Contains($mainOnly, [StringComparison]::Ordinal) -or $condition.Contains('refs/tags', [StringComparison]::Ordinal)) {
-            throw "$key must run only on main (`if: $mainOnly`) and never on tag refs."
+            throw "$key must run only on main ($mainOnly) and never on tag refs."
         }
         $allowsOtherRefs = $condition.Replace($mainOnly, '').Contains('github.ref', [StringComparison]::Ordinal)
         if ($allowsOtherRefs -and -not ($expected.ContainsKey('ReleaseLines') -and $condition.Contains($releaseLine, [StringComparison]::Ordinal))) {
