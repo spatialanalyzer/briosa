@@ -211,8 +211,10 @@ try {
     $brandMetadata = Join-Path $packageRoot "metadata\desktop-brand"
     [IO.Directory]::CreateDirectory($brandMetadata) | Out-Null
     [IO.Directory]::CreateDirectory((Join-Path $brandMetadata "fonts")) | Out-Null
-    Copy-Item -LiteralPath (Join-Path $repositoryRoot "src\Briosa.ControlCenter\Assets\Brand\fonts\OFL.txt") `
-        -Destination (Join-Path $brandMetadata "fonts\OFL.txt")
+    foreach ($license in "Inter-OFL.txt", "Saira-OFL.txt") {
+        Copy-Item -LiteralPath (Join-Path $repositoryRoot "src\Briosa.ControlCenter\Assets\Brand\fonts\$license") `
+            -Destination (Join-Path $brandMetadata "fonts\$license")
+    }
     Copy-Item -LiteralPath (Join-Path $repositoryRoot "src\Briosa.ControlCenter\Assets\Brand\THIRD-PARTY-NOTICES.md") `
         -Destination (Join-Path $brandMetadata "THIRD-PARTY-NOTICES.md")
     Copy-Item -LiteralPath (Join-Path $repositoryRoot "src\Briosa.ControlCenter\Assets\Brand\LICENSE") `

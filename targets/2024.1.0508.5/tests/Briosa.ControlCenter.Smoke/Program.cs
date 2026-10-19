@@ -69,6 +69,9 @@ internal static class Program
         BrandTheme.Apply(app, dark: false, highContrast: true);
         if (app.Resources["BriosaWorkspaceBrush"] is not SolidColorBrush contrast || contrast.Color != SystemColors.WindowColor)
             throw new InvalidOperationException("High contrast retained decorative planes.");
+        // Uses the current system colors, so a non-contrast session shows the black logo on a white window.
+        ((ListBox)window.FindName("Navigation")).SelectedIndex = 0;
+        Save(window, Path.Combine(output, "overview-high-contrast.png"), 1140, 800, 1);
         window.Exit();
         app.Shutdown();
         Console.WriteLine("WPF layout, state gating, and automation labels passed. No server or SDK was started.");

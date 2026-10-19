@@ -122,7 +122,7 @@ public sealed class BrandTheme : IDisposable
         resources["BriosaTextSelectionBrush"] = Brush(highContrast ? SystemColors.HighlightColor : accent);
         resources["BriosaTextSelectionTextBrush"] = Brush(highContrast ? SystemColors.HighlightTextColor : onAccent);
         var logo = highContrast ? (Luminance(navBackground) < .5 ? "white" : "black") : dark ? "inverse" : "color";
-        resources["BriosaLogo"] = Bitmap($"Brand/png/logos/briosa-horizontal-{logo}.png");
+        resources["BriosaLogo"] = Bitmap($"Brand/png/logos/briosa-horizontal-compact-{logo}.png");
         // Native vector geometry is non-interactive and completely removed in high contrast.
         resources["BriosaWorkspaceBrush"] = highContrast ? Brush(SystemColors.WindowColor) : LayeredPlanes.Create(dark, darkBase, Silver, Cyan);
         // Let WPF's high-contrast resource dictionary own all native control colors.
