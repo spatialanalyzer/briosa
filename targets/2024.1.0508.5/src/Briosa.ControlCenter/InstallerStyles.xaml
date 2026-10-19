@@ -82,7 +82,8 @@
     <Setter Property="ColumnHeaderHeight" Value="34" />
     <Setter Property="GridLinesVisibility" Value="None" />
     <Setter Property="BorderThickness" Value="0" />
-    <Setter Property="Background" Value="Transparent" />
+    <!-- Opaque rows keep the workspace grid out of tabular text. -->
+    <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefaultBrush}" />
     <Setter Property="HorizontalScrollBarVisibility" Value="Disabled" />
     <Setter Property="RowStyle">
       <Setter.Value>

@@ -1,5 +1,7 @@
 using System.Windows;
 using System.IO;
+using System.Text.Json;
+using System.Windows.Automation;
 using System.Windows.Automation.Peers;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -45,12 +47,13 @@ internal static class Program
         var stop = (Button)window.FindName("StopButton");
         if (!stop.IsEnabled || new ButtonAutomationPeer(stop).GetName().Length == 0) throw new InvalidOperationException("Owned stop control is inaccessible.");
         BrandTheme.ApplyPreference(app, "light");
-        CheckContrast(app, "TextFillColorPrimaryBrush", "CardBackgroundFillColorDefaultBrush");
-        CheckContrast(app, "AccentButtonForeground", "AccentButtonBackground");
+        CheckTheme(app, "light");
         Save(window, Path.Combine(output, "overview.png"), 1140, 800, 1);
+        var brand = (Image)window.FindName("BrandImage");
+        if (brand.ActualWidth < 170 || AutomationProperties.GetName(brand) != "Briosa Control Center")
+            throw new InvalidOperationException("The header logo is below its 170 px minimum or lacks its accessible name.");
         BrandTheme.ApplyPreference(app, "dark");
-        CheckContrast(app, "TextFillColorPrimaryBrush", "CardBackgroundFillColorDefaultBrush");
-        CheckContrast(app, "AccentButtonForeground", "AccentButtonBackground");
+        CheckTheme(app, "dark");
         Save(window, Path.Combine(output, "overview-dark.png"), 1140, 800, 1);
         window.Render(state.Unavailable());
         if (stop.IsEnabled) throw new InvalidOperationException("Stale status enabled management.");
@@ -68,7 +71,7 @@ internal static class Program
         Save(window, Path.Combine(output, "connection-setup.png"), 1140, 800, 1);
         BrandTheme.Apply(app, dark: false, highContrast: true);
         if (app.Resources["BriosaWorkspaceBrush"] is not SolidColorBrush contrast || contrast.Color != SystemColors.WindowColor)
-            throw new InvalidOperationException("High contrast retained decorative planes.");
+            throw new InvalidOperationException("High contrast retained the decorative grid.");
         // Uses the current system colors, so a non-contrast session shows the black logo on a white window.
         ((ListBox)window.FindName("Navigation")).SelectedIndex = 0;
         Save(window, Path.Combine(output, "overview-high-contrast.png"), 1140, 800, 1);
@@ -78,17 +81,58 @@ internal static class Program
         return 0;
     }
 
-    private static void CheckContrast(Application app, string text, string background)
+    // Brand v2 tokens apply unchanged (light accents use link blue because the light jaw is
+    // only 3.08:1 on clean room); text keeps 4.5:1 and boundaries 3:1 in each palette.
+    private static void CheckTheme(Application app, string theme)
+    {
+        using var tokens = JsonDocument.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", "colors.json")));
+        var palette = tokens.RootElement.GetProperty("themes").GetProperty(theme);
+        foreach (var (key, token) in new[] { ("ApplicationBackgroundBrush", "ground"), ("TextFillColorPrimaryBrush", "ink"),
+            ("TextFillColorSecondaryBrush", "ink-2"), ("AccentFillColorDefaultBrush", theme == "dark" ? "accent" : "link") })
+            if (Resolve(app, key) != (System.Windows.Media.Color)ColorConverter.ConvertFromString(palette.GetProperty(token).GetString()!))
+                throw new InvalidOperationException($"{theme} {key} is not the brand's {token} token.");
+        foreach (var surface in new[] { "ApplicationBackgroundBrush", "CardBackgroundFillColorDefaultBrush" })
+            foreach (var text in new[] { "TextFillColorPrimaryBrush", "TextFillColorSecondaryBrush", "AccentTextFillColorPrimaryBrush", "BriosaWarningBrush" })
+                CheckContrast(app, theme, text, surface, 4.5);
+        foreach (var state in new[] { "", "PointerOver", "Pressed" })
+        {
+            CheckContrast(app, theme, "AccentButtonForeground" + state, "AccentButtonBackground" + state, 4.5);
+            CheckContrast(app, theme, "ButtonForeground" + state, "ButtonBackground" + state, 4.5);
+            CheckContrast(app, theme, "ButtonBorderBrush" + state, "ButtonBackground" + state, 3);
+        }
+        CheckContrast(app, theme, "BriosaNavigationSelectedTextColor", "BriosaNavigationSelectedColor", 4.5);
+        CheckContrast(app, theme, "BriosaNavigationSelectedColor", "BriosaNavigationBrush", 3);
+        CheckContrast(app, theme, "DataGridRowSelectedForegroundThemeBrush", "DataGridRowSelectedBackgroundThemeBrush", 4.5);
+        CheckContrast(app, theme, "KeyboardFocusBorderColorBrush", "CardBackgroundFillColorDefaultBrush", 3);
+        // The measurement grid keeps its pitch and 1-pixel lines instead of stretching with the window.
+        if (app.Resources["BriosaWorkspaceBrush"] is not DrawingBrush { Stretch: Stretch.None, IsFrozen: true, Drawing: DrawingGroup grid } ||
+            grid.Children.Count == 0 || !grid.Children.All(d => d is GeometryDrawing))
+            throw new InvalidOperationException($"{theme} background is not an unscaled native vector grid.");
+        // The header draws the brand's Control Center compact logo from its outlined SVG, never a raster.
+        if (app.Resources["BriosaLogo"] is not DrawingImage { IsFrozen: true, Width: 511, Drawing: DrawingGroup logo } || !Vector(logo))
+            throw new InvalidOperationException($"{theme} header logo is not the brand's vector artwork.");
+        static bool Vector(DrawingGroup group) => group.Children.All(d => d is GeometryDrawing || d is DrawingGroup child && Vector(child));
+    }
+
+    private static void CheckContrast(Application app, string theme, string foreground, string background, double minimum)
     {
         static double Luminance(System.Windows.Media.Color color)
         {
             static double Channel(byte value) { var c = value / 255d; return c <= .04045 ? c / 12.92 : Math.Pow((c + .055) / 1.055, 2.4); }
             return .2126 * Channel(color.R) + .7152 * Channel(color.G) + .0722 * Channel(color.B);
         }
-        var a = Luminance(((SolidColorBrush)app.Resources[text]).Color);
-        var b = Luminance(((SolidColorBrush)app.Resources[background]).Color);
-        if ((Math.Max(a, b) + .05) / (Math.Min(a, b) + .05) < 4.5) throw new InvalidOperationException("Insufficient theme contrast.");
+        var a = Luminance(Resolve(app, foreground));
+        var b = Luminance(Resolve(app, background));
+        var contrast = (Math.Max(a, b) + .05) / (Math.Min(a, b) + .05);
+        if (contrast < minimum) throw new InvalidOperationException($"{theme} {foreground} on {background}: {contrast:F2}:1 is below {minimum}:1.");
     }
+
+    private static System.Windows.Media.Color Resolve(Application app, string key) => app.Resources[key] switch
+    {
+        SolidColorBrush { Color.A: 255 } brush => brush.Color,
+        System.Windows.Media.Color { A: 255 } color => color,
+        _ => throw new InvalidOperationException($"{key} is not an opaque color.")
+    };
 
     private static void Save(MainWindow window, string path, int width, int height, double scale)
     {

@@ -3,22 +3,37 @@ using System.ComponentModel;
 using System.Security;
 using System.Windows;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Microsoft.Win32;
 
 namespace Briosa.ControlCenter;
 
-/// <summary>Maps Briosa v1 colors to native Fluent controls without replacing their templates.</summary>
+/// <summary>Maps Briosa brand v2 colors to native Fluent controls without replacing their templates.</summary>
 public sealed class BrandTheme : IDisposable
 {
     private readonly Application app;
     private static readonly HashSet<string> nativeOverrides = [];
-    private static readonly Dictionary<string, BitmapSource> images = [];
-    private static readonly WpfColor Blue = WpfColor.FromRgb(0, 56, 117);
-    private static readonly WpfColor Cyan = WpfColor.FromRgb(0, 186, 241);
-    private static readonly WpfColor Graphite = WpfColor.FromRgb(88, 91, 98);
-    private static readonly WpfColor Silver = WpfColor.FromRgb(242, 242, 242);
+    // Brand v2 (Caliper b) tokens, as vendored in Assets/Brand/colors.json.
+    private static readonly WpfColor Void = WpfColor.FromRgb(4, 11, 23);
+    private static readonly WpfColor CleanRoom = WpfColor.FromRgb(243, 247, 251);
+    private static readonly WpfColor DarkInk = WpfColor.FromRgb(234, 243, 255);
+    private static readonly WpfColor DarkInk2 = WpfColor.FromRgb(157, 179, 207);
+    private static readonly WpfColor DarkInk3 = WpfColor.FromRgb(118, 144, 176);
+    private static readonly WpfColor DarkJaw = WpfColor.FromRgb(0, 186, 241);
+    private static readonly WpfColor DarkPointSmall = WpfColor.FromRgb(139, 231, 255);
+    private static readonly WpfColor DarkEdge = WpfColor.FromRgb(34, 58, 83);
+    private static readonly WpfColor LightInk = WpfColor.FromRgb(6, 26, 51);
+    private static readonly WpfColor LightInk2 = WpfColor.FromRgb(70, 96, 126);
+    private static readonly WpfColor LightInk3 = WpfColor.FromRgb(83, 108, 140);
+    private static readonly WpfColor LightJaw = WpfColor.FromRgb(0, 150, 214);
+    private static readonly WpfColor LightLink = WpfColor.FromRgb(0, 109, 182);
+    private static readonly WpfColor LightLine = WpfColor.FromRgb(185, 201, 219);
+    private static readonly WpfColor DarkDeviationPlus1 = WpfColor.FromRgb(255, 210, 63);
+    private static readonly WpfColor LightDeviationPlus1 = WpfColor.FromRgb(217, 154, 0);
+    // The translucent line colors: dark-edge is this tint at 26% over void and
+    // light-line is the light tint at 24% over clean room.
+    private static readonly WpfColor DarkEdgeTint = WpfColor.FromRgb(120, 190, 255);
+    private static readonly WpfColor LightLineTint = WpfColor.FromRgb(0, 56, 117);
     private bool disposed;
 
     public BrandTheme(Application app)
@@ -81,25 +96,28 @@ public sealed class BrandTheme : IDisposable
         foreach (var key in nativeOverrides) resources.Remove(key);
         nativeOverrides.Clear();
         var white = Colors.White;
-        // A deeper graphite shade for long desktop sessions; the brand color
-        // remains the light-mode text color and the source for neutral tints.
-        var darkBase = Mix(Graphite, Colors.Black, .66); // #1E1F21
-        var text = dark ? white : Graphite;
-        var background = dark ? darkBase : white;
-        var surface = dark ? Mix(darkBase, white, .045) : Silver;
-        var control = dark ? Mix(darkBase, white, .07) : white;
-        var border = dark ? Mix(darkBase, Silver, .43) : Mix(Graphite, white, .25);
-        var accent = dark ? Cyan : Blue;
-        var onAccent = dark ? Blue : white;
-        // Pair every accent fill with its foreground. Light-theme interaction
-        // darkens blue; dark-theme interaction lifts cyan without losing contrast.
-        var accentHover = Mix(accent, dark ? white : Colors.Black, .08);
-        var accentPressed = Mix(accent, dark ? white : Colors.Black, .16);
-        var selected = Mix(background, accent, dark ? .12 : .10);
-        var selectedHover = Mix(background, accent, dark ? .20 : .16);
-        var hover = dark ? Mix(darkBase, white, .12) : Silver;
-        var pressed = dark ? Mix(darkBase, white, .17) : Mix(Silver, Graphite, .10);
-        var navBackground = highContrast ? SystemColors.WindowColor : dark ? Mix(darkBase, Colors.Black, .14) : Silver;
+        // Dark mode keeps the brand's void ground; light mode uses clean room with white
+        // panels. Neutral tints blend the brand's line tint over each ground, so surfaces
+        // keep the palette's blue cast.
+        var tint = dark ? DarkEdgeTint : LightLineTint;
+        var text = dark ? DarkInk : LightInk;
+        var background = dark ? Void : CleanRoom;
+        var surface = dark ? Mix(Void, tint, .06) : white;
+        var control = dark ? Mix(Void, tint, .09) : white;
+        var border = dark ? Mix(Void, tint, .56) : Mix(LightInk3, white, .22);
+        var strongBorder = dark ? Mix(Void, tint, .72) : Mix(LightInk3, LightInk, .25);
+        // light-jaw is only 3.08:1 on clean room, so light-mode accents use link blue.
+        var accent = dark ? DarkJaw : LightLink;
+        var onAccent = dark ? Void : white;
+        // Pair every accent fill with its foreground. Light-theme interaction deepens
+        // link blue toward ink; dark-theme interaction lifts the jaw toward its point.
+        var accentHover = dark ? Mix(DarkJaw, DarkPointSmall, .2) : Mix(LightLink, LightInk, .14);
+        var accentPressed = dark ? Mix(DarkJaw, DarkPointSmall, .4) : Mix(LightLink, LightInk, .28);
+        var selected = Mix(surface, accent, dark ? .14 : .09);
+        var selectedHover = Mix(surface, accent, dark ? .22 : .15);
+        var hover = dark ? Mix(Void, tint, .14) : Mix(white, tint, .06);
+        var pressed = dark ? Mix(Void, tint, .19) : Mix(white, tint, .11);
+        var navBackground = highContrast ? SystemColors.WindowColor : dark ? Mix(Void, Colors.Black, .14) : white;
         var navText = highContrast ? SystemColors.WindowTextColor : text;
         var navSelected = highContrast ? SystemColors.HighlightColor : accent;
         var navSelectedText = highContrast ? SystemColors.HighlightTextColor : dark ? navBackground : white;
@@ -108,13 +126,14 @@ public sealed class BrandTheme : IDisposable
         resources["BriosaNavigationSelectedColor"] = navSelected;
         resources["BriosaNavigationSelectedHoverColor"] = highContrast ? SystemColors.HighlightColor : accentHover;
         resources["BriosaNavigationSelectedTextColor"] = navSelectedText;
-        resources["BriosaNavigationHoverColor"] = highContrast ? SystemColors.ControlColor : dark ? Mix(darkBase, white, .10) : Mix(Silver, Graphite, .06);
+        resources["BriosaNavigationHoverColor"] = highContrast ? SystemColors.ControlColor : dark ? Mix(navBackground, tint, .10) : hover;
         resources["BriosaNavigationBrush"] = Brush(navBackground);
         resources["BriosaNavigationTextBrush"] = Brush(navText);
-        resources["BriosaHeadingBrush"] = Brush(highContrast ? SystemColors.WindowTextColor : dark ? white : Blue);
-        // Semantic amber complements blue while staying readable on each card surface.
+        resources["BriosaHeadingBrush"] = Brush(highContrast ? SystemColors.WindowTextColor : text);
+        // Warning accents use the deviation scale's +1 step; the light step is darkened
+        // until it reads as text on both the clean-room ground and white panels.
         resources["BriosaWarningBrush"] = Brush(highContrast ? SystemColors.WindowTextColor :
-            dark ? WpfColor.FromRgb(255, 196, 107) : WpfColor.FromRgb(156, 87, 0));
+            dark ? DarkDeviationPlus1 : Mix(LightDeviationPlus1, Colors.Black, .36));
         resources["BriosaSelectionBorderBrush"] = Brush(highContrast ? SystemColors.HighlightColor : accent);
         resources["BriosaSectionSelectedTextBrush"] = Brush(highContrast ? SystemColors.WindowTextColor : accent);
         // WPF otherwise blends SelectionBrush with the input surface and inherits
@@ -122,9 +141,10 @@ public sealed class BrandTheme : IDisposable
         resources["BriosaTextSelectionBrush"] = Brush(highContrast ? SystemColors.HighlightColor : accent);
         resources["BriosaTextSelectionTextBrush"] = Brush(highContrast ? SystemColors.HighlightTextColor : onAccent);
         var logo = highContrast ? (Luminance(navBackground) < .5 ? "white" : "black") : dark ? "inverse" : "color";
-        resources["BriosaLogo"] = Bitmap($"Brand/png/logos/briosa-horizontal-compact-{logo}.png");
+        resources["BriosaLogo"] = BrandArtwork.Load($"Brand/suite/briosa-control-center-compact-{logo}.svg");
         // Native vector geometry is non-interactive and completely removed in high contrast.
-        resources["BriosaWorkspaceBrush"] = highContrast ? Brush(SystemColors.WindowColor) : LayeredPlanes.Create(dark, darkBase, Silver, Cyan);
+        resources["BriosaWorkspaceBrush"] = highContrast ? Brush(SystemColors.WindowColor) :
+            MeasurementGrid.Create(dark, tint, dark ? DarkInk3 : LightInk3, dark ? DarkJaw : LightJaw);
         // Let WPF's high-contrast resource dictionary own all native control colors.
         if (highContrast) return;
 
@@ -135,22 +155,24 @@ public sealed class BrandTheme : IDisposable
         }
         Paint(background, "ApplicationBackgroundBrush", "WindowBackground");
         Paint(surface, "CardBackgroundFillColorDefaultBrush", "CardBackgroundFillColorSecondaryBrush", "LayerFillColorDefaultBrush",
-            "DataGridHeaderBackground", "DataGridColumnHeaderBackground", "ExpanderHeaderBackground", "ExpanderContentBackground");
-        Paint(text, "TextFillColorPrimaryBrush", "TextFillColorSecondaryBrush", "ListBoxItemForeground", "ButtonForeground",
+            "DataGridHeaderBackground", "DataGridColumnHeaderBackground", "ExpanderHeaderBackground", "ExpanderContentBackground",
+            "ListBoxBackground");
+        Paint(text, "TextFillColorPrimaryBrush", "ListBoxItemForeground", "ButtonForeground",
             "ButtonForegroundPointerOver", "ButtonForegroundPressed", "TextControlForeground", "TextControlForegroundPointerOver", "TextControlForegroundFocused",
             "ComboBoxForeground", "ComboBoxForegroundPointerOver", "ComboBoxForegroundPressed", "ComboBoxForegroundFocused", "ComboBoxForegroundFocusedPressed",
             "ComboBoxDropDownForeground", "ComboBoxItemForeground", "ComboBoxItemForegroundSelected", "CheckBoxForegroundUnchecked",
             "CheckBoxForegroundChecked", "DataGridColumnHeaderForeground", "ExpanderHeaderForeground", "TabViewForeground");
+        Paint(dark ? DarkInk2 : LightInk2, "TextFillColorSecondaryBrush");
         Paint(control, "ControlFillColorDefaultBrush", "ControlFillColorInputActiveBrush", "ButtonBackground", "TextControlBackground",
             "TextControlBackgroundFocused", "ComboBoxBackground", "ComboBoxBackgroundFocused", "ComboBoxDropDownBackground");
         Paint(hover, "ButtonBackgroundPointerOver", "TextControlBackgroundPointerOver",
             "ComboBoxBackgroundPointerOver", "ComboBoxDropDownBackgroundPointerOver",
             "ListBoxItemUnselectedBackgroundPointerOverThemeBrush");
         Paint(pressed, "ButtonBackgroundPressed", "ComboBoxBackgroundPressed");
-        Paint(dark ? Mix(darkBase, white, .18) : Mix(Graphite, white, .65), "ControlElevationBorderBrush");
+        Paint(dark ? DarkEdge : LightLine, "ControlElevationBorderBrush");
         Paint(border, "ButtonBorderBrush", "TextControlBorderBrush", "TextControlElevationBorderBrush",
             "ComboBoxBorderBrush", "ComboBoxDropDownBorderBrush");
-        Paint(dark ? Mix(darkBase, Silver, .56) : Mix(Graphite, white, .15),
+        Paint(strongBorder,
             "ButtonBorderBrushPointerOver", "ButtonBorderBrushPressed", "TextControlBorderBrushPointerOver",
             "ComboBoxBorderBrushPointerOver", "ComboBoxBorderBrushPressed");
         Paint(accent, "AccentFillColorDefaultBrush", "AccentButtonBackground", "AccentButtonBorderBrush",
@@ -167,22 +189,8 @@ public sealed class BrandTheme : IDisposable
         Paint(selected, "ListBoxItemSelectedBackgroundThemeBrush", "DataGridRowSelectedBackgroundThemeBrush",
             "ComboBoxItemBackgroundSelected", "TabViewItemHeaderBackgroundSelected");
         Paint(selectedHover, "ListBoxItemSelectedBackgroundPointerOverThemeBrush", "ListBoxItemSelectedBackgroundPressedThemeBrush");
-        Paint(dark ? white : Blue, "ListBoxItemSelectedForegroundThemeBrush", "DataGridRowSelectedForegroundThemeBrush");
+        Paint(text, "ListBoxItemSelectedForegroundThemeBrush", "DataGridRowSelectedForegroundThemeBrush");
         Paint(accent, "AccentFillColorSelectedTextBackgroundBrush", "TextControlSelectionHighlightColor");
-    }
-
-    private static BitmapSource Bitmap(string path)
-    {
-        if (!images.TryGetValue(path, out var image))
-        {
-            var bitmap = new BitmapImage();
-            bitmap.BeginInit();
-            bitmap.CacheOption = BitmapCacheOption.OnLoad;
-            bitmap.UriSource = new Uri($"pack://application:,,,/Briosa.ControlCenter.App;component/Assets/{path}");
-            bitmap.EndInit(); bitmap.Freeze();
-            images[path] = image = bitmap;
-        }
-        return image;
     }
 
     private static SolidColorBrush Brush(WpfColor color) { var brush = new SolidColorBrush(color); brush.Freeze(); return brush; }
