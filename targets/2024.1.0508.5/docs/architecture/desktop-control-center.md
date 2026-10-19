@@ -100,8 +100,8 @@ control styles, brand palette mapping, and vector measurement grid are adapted
 from Briosa Installer's `BrandTheme.cs`, `MeasurementGrid.cs`, and `Styles.xaml`
 (spatialanalyzer/briosa-installer#32), under Apache-2.0. Only application
 namespaces/resource paths and target-local presentation details differ. The
-artwork is brand v2 (Caliper b) from `spatialanalyzer/briosa-brand@v2.0.0`
-(commit `a5250e8`), applied as in spatialanalyzer/briosa-installer#30: the app,
+artwork is brand v2 (Caliper b) from `spatialanalyzer/briosa-brand@v2.1.0`
+(commit `705dbfc`), applied as in spatialanalyzer/briosa-installer#30: the app,
 launcher, windows, and tray share the installer's void-tile ICO and its derivation
 record. The header shows the brand's Control Center compact logo, added in brand
 v2.1.0, with CONTROL CENTER set under BRIOSA at the wordmark's width. It is drawn

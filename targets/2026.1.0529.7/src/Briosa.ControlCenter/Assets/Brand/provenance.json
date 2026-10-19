@@ -1,8 +1,8 @@
 {
-  "source": "spatialanalyzer/briosa-brand@8388a564680f1d4e5a0fb37ba0df69f3e91e66c0",
-  "commit": "8388a564680f1d4e5a0fb37ba0df69f3e91e66c0",
-  "release": null,
-  "packSha256": null,
+  "source": "spatialanalyzer/briosa-brand@v2.1.0",
+  "commit": "705dbfc8624936f1179b31b79c9804c13405b510",
+  "release": "https://github.com/spatialanalyzer/briosa-brand/releases/tag/v2.1.0",
+  "packSha256": "de02b47a46cd5bd368d67273c634b87c5058e107f11cac85664fe5fffa5c4db3",
   "checksumsSha256": "e086c3f87d762e58f5c55b4eb4f71eb64f743d7c649b224e0775a4081598b443",
   "assets": [
     {
