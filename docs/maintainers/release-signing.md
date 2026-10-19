@@ -139,8 +139,8 @@ has no Azure credentials or OIDC permission. Builds finish before the package
 signing job authenticates.
 
 The installer initially had an empty environment called `briosa-signing`; it did
-not match the Azure trust. The correctly named environment was created with the
-same `main`/`v*` restrictions. The unused original is not referenced by workflows.
+not match the Azure trust. The correctly named environment replaced it. The unused
+original is not referenced by workflows and can be deleted.
 
 Each app registration has a federated credential with:
 
