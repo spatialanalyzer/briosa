@@ -17,7 +17,7 @@
   <ItemGroup>
     <ProjectReference Include="../Briosa.Desktop/Briosa.Desktop.csproj" />
     <Resource Include="Assets/AppIcon/briosa.ico" />
-    <Resource Include="Assets/Brand/png/logos/*.png" />
+    <Resource Include="Assets/Brand/suite/*.svg" />
     <Resource Include="Assets/Brand/fonts/Inter-Variable.ttf" />
   </ItemGroup>
 </Project>

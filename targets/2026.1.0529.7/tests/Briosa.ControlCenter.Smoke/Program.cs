@@ -1,6 +1,7 @@
 using System.Windows;
 using System.IO;
 using System.Text.Json;
+using System.Windows.Automation;
 using System.Windows.Automation.Peers;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -48,6 +49,9 @@ internal static class Program
         BrandTheme.ApplyPreference(app, "light");
         CheckTheme(app, "light");
         Save(window, Path.Combine(output, "overview.png"), 1140, 800, 1);
+        var brand = (Image)window.FindName("BrandImage");
+        if (brand.ActualWidth < 170 || AutomationProperties.GetName(brand) != "Briosa Control Center")
+            throw new InvalidOperationException("The header logo is below its 170 px minimum or lacks its accessible name.");
         BrandTheme.ApplyPreference(app, "dark");
         CheckTheme(app, "dark");
         Save(window, Path.Combine(output, "overview-dark.png"), 1140, 800, 1);
@@ -104,6 +108,10 @@ internal static class Program
         if (app.Resources["BriosaWorkspaceBrush"] is not DrawingBrush { Stretch: Stretch.None, IsFrozen: true, Drawing: DrawingGroup grid } ||
             grid.Children.Count == 0 || !grid.Children.All(d => d is GeometryDrawing))
             throw new InvalidOperationException($"{theme} background is not an unscaled native vector grid.");
+        // The header draws the brand's Control Center compact logo from its outlined SVG, never a raster.
+        if (app.Resources["BriosaLogo"] is not DrawingImage { IsFrozen: true, Width: 511, Drawing: DrawingGroup logo } || !Vector(logo))
+            throw new InvalidOperationException($"{theme} header logo is not the brand's vector artwork.");
+        static bool Vector(DrawingGroup group) => group.Children.All(d => d is GeometryDrawing || d is DrawingGroup child && Vector(child));
     }
 
     private static void CheckContrast(Application app, string theme, string foreground, string background, double minimum)

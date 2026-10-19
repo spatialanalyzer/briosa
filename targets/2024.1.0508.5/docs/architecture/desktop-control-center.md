@@ -101,10 +101,13 @@ from Briosa Installer's `BrandTheme.cs`, `MeasurementGrid.cs`, and `Styles.xaml`
 (spatialanalyzer/briosa-installer#32), under Apache-2.0. Only application
 namespaces/resource paths and target-local presentation details differ. The
 artwork is brand v2 (Caliper b) from `spatialanalyzer/briosa-brand@v2.0.0`
-(commit `a5250e8`), applied as in spatialanalyzer/briosa-installer#30: the header
-shows the compact horizontal logo, and the app, launcher, windows, and tray share
-the installer's void-tile ICO and its derivation record. The approved brand assets
-remain byte-exact, with provenance and the Inter and Saira font licenses retained.
+(commit `a5250e8`), applied as in spatialanalyzer/briosa-installer#30: the app,
+launcher, windows, and tray share the installer's void-tile ICO and its derivation
+record. The header shows the brand's Control Center compact logo, added in brand
+v2.1.0, with CONTROL CENTER set under BRIOSA at the wordmark's width. It is drawn
+from the vendored SVG as native vector geometry at 172 logical pixels, so it stays
+sharp at every display scale. The approved brand assets remain byte-exact, with
+provenance and the Inter and Saira font licenses retained.
 
 Control Center uses the installer's palette from the vendored brand v2
 `colors.json`: void with a deeper sidebar in dark mode, and clean room with a white
@@ -114,7 +117,7 @@ Scanline measurement grid with a vernier rule replaces the retired Layered Plane
 background, and data grids use opaque surfaces. In Windows high contrast the grid
 is removed and system colors take priority. The smoke harness checks the applied
 tokens against `colors.json`, 4.5:1 text and 3:1 boundary contrast in both
-palettes, and the unscaled vector grid. Appearance can follow Windows or select
+palettes, the unscaled vector grid, and the vector header logo. Appearance can follow Windows or select
 Light/Dark in Details & support; the choice persists outside the package. Compact
 windows stack the status cards.
 

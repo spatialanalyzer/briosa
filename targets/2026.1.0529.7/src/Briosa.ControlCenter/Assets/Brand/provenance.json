@@ -1,13 +1,13 @@
 {
-  "source": "spatialanalyzer/briosa-brand@v2.0.0",
-  "commit": "a5250e8e2fc48fc07c94069f4c89e33b65f2cc21",
-  "release": "https://github.com/spatialanalyzer/briosa-brand/releases/tag/v2.0.0",
-  "packSha256": "e35ad96039bfa62595c41f313fc48c95f7154b41665752837a298021928dcfd7",
-  "checksumsSha256": "b5fa47d832876fc28aaa21c7df3ff468901a3d553a8be6a2c96cc79761ffdaa0",
+  "source": "spatialanalyzer/briosa-brand@8388a564680f1d4e5a0fb37ba0df69f3e91e66c0",
+  "commit": "8388a564680f1d4e5a0fb37ba0df69f3e91e66c0",
+  "release": null,
+  "packSha256": null,
+  "checksumsSha256": "e086c3f87d762e58f5c55b4eb4f71eb64f743d7c649b224e0775a4081598b443",
   "assets": [
     {
       "path": "colors.json",
-      "sha256": "91529f6cdf6c3b617f5d9029de960c2dea1d9dfe95d4deedb63205419cad59e0"
+      "sha256": "78782f6dff99cf69ca112de04dee22f3221d54c6d9d55820e7c6bed71139e3c5"
     },
     {
       "path": "fonts/Inter-OFL.txt",
@@ -26,20 +26,20 @@
       "sha256": "1eb85fc97224598dad1852b5d6483bbcf0aa8608790dcc657a5a2a761ae9c8c6"
     },
     {
-      "path": "png/logos/briosa-horizontal-compact-black.png",
-      "sha256": "e577ce3b0ed88a5ff8bc423fe4216ec19215e938c8f6e301a01bce7c8ac4a297"
+      "path": "suite/briosa-control-center-compact-black.svg",
+      "sha256": "da59951f049d2208f4b70f49ff7ac4726cb4f5f7a2ddcc18ff105cf14f10f57a"
     },
     {
-      "path": "png/logos/briosa-horizontal-compact-color.png",
-      "sha256": "123994a93a6a708fca316ec5941a19817df90608e6fecb2c3a4369623fb880b5"
+      "path": "suite/briosa-control-center-compact-color.svg",
+      "sha256": "2fe3373308aa398ee65949d5338f4b76db0dbdc4b25aae45b3eef2e75ac2dbb0"
     },
     {
-      "path": "png/logos/briosa-horizontal-compact-inverse.png",
-      "sha256": "605bb35bddc6d41a6b5ffbb1d9d385ef394ad31336cc70e342977f56635e64d5"
+      "path": "suite/briosa-control-center-compact-inverse.svg",
+      "sha256": "698cb0336b62282843b5cb51ee6ef92af950f6d3bd41f16cad014e68fc6db327"
     },
     {
-      "path": "png/logos/briosa-horizontal-compact-white.png",
-      "sha256": "784aa2bf5dda3245aebf9b11a2a5dec802291559e943d61ee74cc573f5b2145e"
+      "path": "suite/briosa-control-center-compact-white.svg",
+      "sha256": "15d6afafdc14f984d038110a4f076c3bb347bc8efd2ddb04612976888d66293c"
     },
     {
       "path": "THIRD-PARTY-NOTICES.md",

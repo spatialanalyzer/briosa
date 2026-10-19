@@ -3,7 +3,6 @@ using System.ComponentModel;
 using System.Security;
 using System.Windows;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Microsoft.Win32;
 
@@ -14,7 +13,6 @@ public sealed class BrandTheme : IDisposable
 {
     private readonly Application app;
     private static readonly HashSet<string> nativeOverrides = [];
-    private static readonly Dictionary<string, BitmapSource> images = [];
     // Brand v2 (Caliper b) tokens, as vendored in Assets/Brand/colors.json.
     private static readonly WpfColor Void = WpfColor.FromRgb(4, 11, 23);
     private static readonly WpfColor CleanRoom = WpfColor.FromRgb(243, 247, 251);
@@ -143,7 +141,7 @@ public sealed class BrandTheme : IDisposable
         resources["BriosaTextSelectionBrush"] = Brush(highContrast ? SystemColors.HighlightColor : accent);
         resources["BriosaTextSelectionTextBrush"] = Brush(highContrast ? SystemColors.HighlightTextColor : onAccent);
         var logo = highContrast ? (Luminance(navBackground) < .5 ? "white" : "black") : dark ? "inverse" : "color";
-        resources["BriosaLogo"] = Bitmap($"Brand/png/logos/briosa-horizontal-compact-{logo}.png");
+        resources["BriosaLogo"] = BrandArtwork.Load($"Brand/suite/briosa-control-center-compact-{logo}.svg");
         // Native vector geometry is non-interactive and completely removed in high contrast.
         resources["BriosaWorkspaceBrush"] = highContrast ? Brush(SystemColors.WindowColor) :
             MeasurementGrid.Create(dark, tint, dark ? DarkInk3 : LightInk3, dark ? DarkJaw : LightJaw);
@@ -193,20 +191,6 @@ public sealed class BrandTheme : IDisposable
         Paint(selectedHover, "ListBoxItemSelectedBackgroundPointerOverThemeBrush", "ListBoxItemSelectedBackgroundPressedThemeBrush");
         Paint(text, "ListBoxItemSelectedForegroundThemeBrush", "DataGridRowSelectedForegroundThemeBrush");
         Paint(accent, "AccentFillColorSelectedTextBackgroundBrush", "TextControlSelectionHighlightColor");
-    }
-
-    private static BitmapSource Bitmap(string path)
-    {
-        if (!images.TryGetValue(path, out var image))
-        {
-            var bitmap = new BitmapImage();
-            bitmap.BeginInit();
-            bitmap.CacheOption = BitmapCacheOption.OnLoad;
-            bitmap.UriSource = new Uri($"pack://application:,,,/Briosa.ControlCenter.App;component/Assets/{path}");
-            bitmap.EndInit(); bitmap.Freeze();
-            images[path] = image = bitmap;
-        }
-        return image;
     }
 
     private static SolidColorBrush Brush(WpfColor color) { var brush = new SolidColorBrush(color); brush.Freeze(); return brush; }

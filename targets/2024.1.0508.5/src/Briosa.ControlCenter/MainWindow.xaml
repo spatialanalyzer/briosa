@@ -8,10 +8,7 @@
     <Grid.ColumnDefinitions><ColumnDefinition Width="208" /><ColumnDefinition /></Grid.ColumnDefinitions>
     <Border Background="{DynamicResource BriosaNavigationBrush}" BorderBrush="{DynamicResource ControlElevationBorderBrush}" BorderThickness="0,0,1,0" TextElement.Foreground="{DynamicResource BriosaNavigationTextBrush}">
       <DockPanel Margin="16,26,16,20">
-        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,26">
-          <Image x:Name="BrandImage" Source="{DynamicResource BriosaLogo}" Width="160" Stretch="Uniform" AutomationProperties.Name="Briosa" />
-          <TextBlock Text="Control Center" Margin="12,6,0,0" />
-        </StackPanel>
+        <Image x:Name="BrandImage" DockPanel.Dock="Top" Margin="0,0,0,26" Source="{DynamicResource BriosaLogo}" Width="172" Stretch="Uniform" HorizontalAlignment="Center" AutomationProperties.Name="Briosa Control Center" />
         <StackPanel DockPanel.Dock="Bottom" Margin="12,20,0,0"><TextBlock Text="Briosa server" FontSize="12" /><TextBlock Text="SA 2024.1.0508.5" FontSize="11" Margin="0,4,0,0" /></StackPanel>
         <ListBox x:Name="Navigation" SelectedIndex="0" SelectionChanged="NavigationChanged" ItemContainerStyle="{StaticResource NavigationItem}" Background="Transparent" BorderThickness="0" VerticalAlignment="Top" AutomationProperties.Name="Control Center navigation">
           <ListBox.Resources>
