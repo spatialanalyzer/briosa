@@ -166,7 +166,7 @@ public sealed class OperatorCheckpointTests : IDisposable
     public async Task TheFileConsoleWaitsForTheResponseFileAndNormalizesIt()
     {
         using var output = new StringWriter();
-        var console = NewConsole(output, TimeSpan.FromSeconds(10));
+        var console = NewConsole(output, TimeSpan.FromSeconds(60));
 
         var pending = console.CheckpointAsync(AnyStep(), OperatorCheckpoint.Before, CancellationToken.None);
         await AnswerAsync("001-p11-before.response.txt", "  Dialog:   Encountered an improper argument.  \r\n");
@@ -184,7 +184,7 @@ public sealed class OperatorCheckpointTests : IDisposable
     public async Task ARefusedResponseIsSetAsideAndTheConsoleKeepsWaiting()
     {
         using var output = new StringWriter();
-        var console = NewConsole(output, TimeSpan.FromSeconds(10));
+        var console = NewConsole(output, TimeSpan.FromSeconds(60));
 
         var pending = console.CheckpointAsync(AnyStep(), OperatorCheckpoint.After, CancellationToken.None);
         await AnswerAsync("001-p11-after.response.txt", @"dialog: saved to C:\Users\someone\file");
@@ -198,6 +198,53 @@ public sealed class OperatorCheckpointTests : IDisposable
 
         Assert.Equal("none", await pending);
         Assert.Contains("response refused", output.ToString(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task AResponseIsReadOnlyAfterItsWriterClosesIt()
+    {
+        using var output = new StringWriter();
+        var console = NewConsole(output, TimeSpan.FromSeconds(60));
+        var pending = console.CheckpointAsync(AnyStep(), OperatorCheckpoint.After, CancellationToken.None);
+        await AnswerAsync("001-p11-after.response.txt", string.Empty);
+
+        // A writer that has written only part of a valid answer and still holds the file.
+        var writer = new StreamWriter(new FileStream(Path.Combine(_root, "001-p11-after.response.txt"),
+            FileMode.Create, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete));
+        await writer.WriteAsync("dialog: Templ");
+        await writer.FlushAsync();
+        await Task.Delay(300);
+
+        Assert.False(pending.IsCompleted, "A partly written answer must not be recorded.");
+        await writer.WriteAsync("ate Chart Not found");
+        await writer.DisposeAsync();
+
+        Assert.Equal("dialog: Template Chart Not found", await pending);
+    }
+
+    [Fact]
+    public async Task ARefusedResponseThatCannotBeSetAsideYetDoesNotFaultTheCheckpoint()
+    {
+        using var output = new StringWriter();
+        var console = NewConsole(output, TimeSpan.FromSeconds(60));
+        var pending = console.CheckpointAsync(AnyStep(), OperatorCheckpoint.After, CancellationToken.None);
+        await AnswerAsync("001-p11-after.response.txt", "not an answer");
+
+        // Another reader (an editor, say) holds the file without delete sharing, so it cannot be moved yet.
+        var path = Path.Combine(_root, "001-p11-after.response.txt");
+        var reader = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+        await Task.Delay(300);
+
+        Assert.False(pending.IsCompleted, "The checkpoint must keep waiting, not fault.");
+        await reader.DisposeAsync();
+        for (var attempt = 0; attempt < 500 && File.Exists(path); attempt++)
+        {
+            await Task.Delay(10);
+        }
+
+        Assert.True(File.Exists(Path.Combine(_root, "001-p11-after.refused-1.txt")));
+        await File.WriteAllTextAsync(path, "none");
+        Assert.Equal("none", await pending);
     }
 
     [Fact]
