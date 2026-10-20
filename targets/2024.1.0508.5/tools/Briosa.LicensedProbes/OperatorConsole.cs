@@ -80,10 +80,14 @@ internal sealed class FileOperatorConsole : IOperatorConsole
                     return observation;
                 }
 
-                // Keep the refused answer for the operator; never record it.
-                File.Move(response, Path.Combine(_directory,
-                    string.Create(CultureInfo.InvariantCulture, $"{name}.refused-{++refused}.txt")));
-                Write($"OPERATOR CHECKPOINT {name}: response refused. {OperatorObservationText.Rule} Write it again.");
+                // Keep the refused answer for the operator; never record it. While another
+                // process still holds the file, it stays in place and is read again later.
+                var setAside = Path.Combine(_directory, string.Create(CultureInfo.InvariantCulture, $"{name}.refused-{refused + 1}.txt"));
+                if (TryMove(response, setAside))
+                {
+                    refused++;
+                    Write($"OPERATOR CHECKPOINT {name}: response refused. {OperatorObservationText.Rule} Write it again.");
+                }
             }
 
             if (_clock.GetUtcNow() >= deadline)
@@ -127,7 +131,9 @@ internal sealed class FileOperatorConsole : IOperatorConsole
 
         try
         {
-            using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+            // Sharing read only fails while any writer still holds the file, so a partly
+            // written answer is never read.
+            using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
             using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
             text = reader.ReadToEnd();
         }
@@ -139,6 +145,23 @@ internal sealed class FileOperatorConsole : IOperatorConsole
 
         // An empty file is still being written.
         return text.Trim().Length > 0;
+    }
+
+    private static bool TryMove(string source, string destination)
+    {
+        try
+        {
+            File.Move(source, destination);
+            return true;
+        }
+        catch (IOException)
+        {
+            return false;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return false;
+        }
     }
 
     private void Write(string line)
