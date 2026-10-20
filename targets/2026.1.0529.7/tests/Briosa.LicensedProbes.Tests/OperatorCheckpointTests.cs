@@ -153,13 +153,21 @@ public sealed class OperatorCheckpointTests : IDisposable
 
     private async Task AnswerAsync(string fileName, string text)
     {
-        var request = Path.Combine(_root, fileName.Replace(FileOperatorConsole.ResponseSuffix, FileOperatorConsole.RequestSuffix, StringComparison.Ordinal));
-        for (var attempt = 0; attempt < 500 && !File.Exists(request); attempt++)
+        await WaitForRequestAsync(fileName);
+        await File.WriteAllTextAsync(Path.Combine(_root, fileName), text);
+    }
+
+    // The console writes the request file before it starts polling for the response.
+    private async Task WaitForRequestAsync(string responseFileName)
+    {
+        var request = Path.Combine(_root,
+            responseFileName.Replace(FileOperatorConsole.ResponseSuffix, FileOperatorConsole.RequestSuffix, StringComparison.Ordinal));
+        for (var attempt = 0; attempt < 1000 && !File.Exists(request); attempt++)
         {
             await Task.Delay(10);
         }
 
-        await File.WriteAllTextAsync(Path.Combine(_root, fileName), text);
+        Assert.True(File.Exists(request));
     }
 
     [Fact]
@@ -206,11 +214,13 @@ public sealed class OperatorCheckpointTests : IDisposable
         using var output = new StringWriter();
         var console = NewConsole(output, TimeSpan.FromSeconds(60));
         var pending = console.CheckpointAsync(AnyStep(), OperatorCheckpoint.After, CancellationToken.None);
-        await AnswerAsync("001-p11-after.response.txt", string.Empty);
+        await WaitForRequestAsync("001-p11-after.response.txt");
 
         // A writer that has written only part of a valid answer and still holds the file.
+        // CreateNew creates the file and the writer's handle in one call, so the console
+        // can never see the file without this writer.
         var writer = new StreamWriter(new FileStream(Path.Combine(_root, "001-p11-after.response.txt"),
-            FileMode.Create, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete));
+            FileMode.CreateNew, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete));
         await writer.WriteAsync("dialog: Templ");
         await writer.FlushAsync();
         await Task.Delay(300);
@@ -228,21 +238,25 @@ public sealed class OperatorCheckpointTests : IDisposable
         using var output = new StringWriter();
         var console = NewConsole(output, TimeSpan.FromSeconds(60));
         var pending = console.CheckpointAsync(AnyStep(), OperatorCheckpoint.After, CancellationToken.None);
-        await AnswerAsync("001-p11-after.response.txt", "not an answer");
+        await WaitForRequestAsync("001-p11-after.response.txt");
 
-        // Another reader (an editor, say) holds the file without delete sharing, so it cannot be moved yet.
+        // The move fails as it does when another process still holds the answer: here
+        // its set-aside name is taken, so File.Move throws an IOException.
         var path = Path.Combine(_root, "001-p11-after.response.txt");
-        var reader = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+        var setAside = Path.Combine(_root, "001-p11-after.refused-1.txt");
+        await File.WriteAllTextAsync(setAside, "taken");
+        await File.WriteAllTextAsync(path, "not an answer");
         await Task.Delay(300);
 
         Assert.False(pending.IsCompleted, "The checkpoint must keep waiting, not fault.");
-        await reader.DisposeAsync();
-        for (var attempt = 0; attempt < 500 && File.Exists(path); attempt++)
+        Assert.True(File.Exists(path));
+        File.Delete(setAside);
+        for (var attempt = 0; attempt < 1000 && File.Exists(path); attempt++)
         {
             await Task.Delay(10);
         }
 
-        Assert.True(File.Exists(Path.Combine(_root, "001-p11-after.refused-1.txt")));
+        Assert.Equal("not an answer", await File.ReadAllTextAsync(setAside));
         await File.WriteAllTextAsync(path, "none");
         Assert.Equal("none", await pending);
     }
