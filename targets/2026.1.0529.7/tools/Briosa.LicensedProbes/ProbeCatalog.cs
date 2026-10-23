@@ -5,10 +5,10 @@ using Api = global::Briosa;
 namespace Briosa.LicensedProbes;
 
 /// <summary>
-/// The maintainer-approved probe list from #277, expressed as immutable steps.
-/// The public phase runs every probe the public API can express; the worker
-/// phase runs only what the public API intentionally cannot express (a skipped
-/// setter, a blank required value, a recased label, alternate step text).
+/// The maintainer-approved probe list from #277 and its follow-ups, expressed as
+/// immutable steps. The public phase runs every probe the public API can express;
+/// the worker phase runs only what the public API intentionally cannot express (a
+/// skipped setter, a blank required value, a recased label, alternate step text).
 /// </summary>
 internal static class ProbeCatalog
 {
@@ -32,8 +32,28 @@ internal static class ProbeCatalog
     public const string NumberSuffixLabel = "Use Number Suffix?";
     public const string NumberSuffixRecased = "Use number suffix?";
 
+    // #312: the gesture SA's help documents for completing a runtime selection.
+    public const string RuntimeSelectPrompt =
+        "Briosa probe 22: press F2, select vector group B277::VG1 in the selection tree, click OK, then press Enter.";
+    public const string RuntimeSelectSilentPrompt =
+        "Briosa probe 25 (Silent): press F2, select vector group B277::VG1 in the selection tree, click OK, then press Enter.";
+
+    // Probe 25: the operator replaces the initial answer with the entry; the record
+    // keeps only which of the two harness constants came back.
+    public const string AskInitialAnswer = "B277-initial";
+    public const string AskOperatorEntry = "B277-entered";
+    public const string AskPrompt = "Briosa probe 25: replace the answer with B277-entered, then click OK.";
+    public const string AskSilentPrompt = "Briosa probe 25 (Silent): replace the answer with B277-entered, then click OK.";
+
+    // Probe 25: a template chart name that matches no chart opens "Template Chart Not found".
+    public const string MissingTemplateChart = "B277 no such template";
+
+    // Longer than the server's 600 s long-running budget, so for #309 the server's
+    // watchdog, not the client deadline, decides whether the polygonize stalled.
+    public static TimeSpan PolygonizeClientTimeout { get; } = TimeSpan.FromSeconds(630);
+
     public static IReadOnlyList<string> ProbeNumbers { get; } =
-        [.. Enumerable.Range(1, 23).Select(static number => number.ToString(CultureInfo.InvariantCulture))];
+        [.. Enumerable.Range(1, 25).Select(static number => number.ToString(CultureInfo.InvariantCulture))];
 
     // Retired with the operations they probed (#308, #310, #307): the operations were
     // removed because these probes showed their NOT_SUPPORTED substitutions do not work
@@ -44,22 +64,41 @@ internal static class ProbeCatalog
     public static IReadOnlyList<string> ActiveProbeNumbers { get; } =
         [.. ProbeNumbers.Except(RetiredProbeNumbers, StringComparer.Ordinal)];
 
-    public static IReadOnlyList<ProbeStep> Create(ProbePhase phase, FixtureManifest manifest)
+    public static IReadOnlyList<ProbeStep> Create(ProbePhase phase, FixtureManifest manifest, InteractionModeSettings interactionMode)
     {
         ArgumentNullException.ThrowIfNull(manifest);
+        ArgumentNullException.ThrowIfNull(interactionMode);
         var steps = new StepList(phase);
         AddCollectionGuard(steps);
         if (phase == ProbePhase.PublicApi)
         {
             AddPublicFixtures(steps);
             AddPublicProbes(steps, manifest);
+            AddPublicInteractionModeProbe(steps, interactionMode);
         }
         else
         {
             AddWorkerFixtures(steps);
             AddWorkerProbes(steps, manifest);
+            AddWorkerInteractionModeProbe(steps, interactionMode);
         }
 
+        return steps.ToList();
+    }
+
+    /// <summary>
+    /// The recovery plan for a session that stopped after probe 25 set Silent: one
+    /// step that restores SA Interaction Mode. It creates no fixture and touches no job object.
+    /// </summary>
+    public static IReadOnlyList<ProbeStep> CreateInteractionModeRestore(ProbePhase phase, InteractionModeSettings interactionMode)
+    {
+        ArgumentNullException.ThrowIfNull(interactionMode);
+        var steps = new StepList(phase);
+        steps.Add(steps.NewControl("p25-restore", "25", "Restore SA Interaction Mode after a stopped session (recovery only)",
+            ProbeOperations.SetInteractionMode, InteractionMode(interactionMode.Restore)) with
+        {
+            Checkpoints = OperatorCheckpoint.After
+        });
         return steps.ToList();
     }
 
@@ -107,7 +146,7 @@ internal static class ProbeCatalog
         }
     }
 
-    // Six points, non-coplanar so bounding planes and fits are well defined.
+    // Six points, non-coplanar so bounding planes are well defined.
     internal static IReadOnlyList<(string Name, double X, double Y, double Z)> GroupOnePoints { get; } =
     [
         ("P1", 0, 0, 0), ("P2", 100, 0, 0), ("P3", 0, 100, 0),
@@ -125,15 +164,29 @@ internal static class ProbeCatalog
                 point.Z);
         })];
 
+    // #311: the four coplanar corners of G1. Both targets document MP code 4 for this
+    // fit as PARTIAL SUCCESS (the fit tolerance was exceeded), which G1's +/-20 points
+    // caused; a plane through coplanar points is within any tolerance.
+    internal static IReadOnlyList<(string Name, double X, double Y, double Z)> FitPoints { get; } = [.. GroupOnePoints.Take(4)];
+
     // Measured points: one within a +/-1 magnitude tolerance and two outside,
     // so the in-tolerance percentage is one third (a fractional value).
     internal static IReadOnlyList<(string Name, double X, double Y, double Z)> MeasuredPoints { get; } =
         [("P1", 0, 0, 0.1), ("P2", 100, 0, 5), ("P3", 0, 100, 5)];
 
+    // Probe 24 (#307 R0): the probe 277 delete group. Only D1 lies within 1 unit of D1;
+    // the nearest other point is 5 units away.
+    internal static IReadOnlyList<(string Name, double X, double Y, double Z)> DeletePoints { get; } =
+    [
+        ("D1", 0, 0, 0), ("D2", 5, 5, 5), ("D3", 5, 0, 0), ("D4", 5, 20, 20),
+        ("D5", 20, 20, 20), ("D7", 5, 21, 21), ("D8", 5, 8, 8), ("D9", 5, 9, 9)
+    ];
+
     private static void AddCommonGeometry(StepList steps)
     {
         AddPointGroup(steps, FixtureNames.GroupOne, GroupOnePoints);
         AddPointGroup(steps, FixtureNames.GroupRotated, RotatedPoints);
+        AddPointGroup(steps, FixtureNames.GroupFit, FitPoints);
         steps.Setup("s-plane-PA", "Construct reference plane PA (normal +Z)", ProbeOperations.ConstructPlane,
             new Api.ConstructPlaneRequest
             {
@@ -197,14 +250,38 @@ internal static class ProbeCatalog
                 ZMin = 0, ZMax = 0, ZCount = 1
             });
         steps.Add(CloudSetup("s-cloud-CPOLY", FixtureNames.GroupGrid, FixtureNames.PolygonizeCloud, null, steps.Phase));
+        AddPointGroup(steps, FixtureNames.GroupDelete, DeletePoints);
+        steps.Add(CloudSetup("s-cloud-CDELR", FixtureNames.GroupDelete, FixtureNames.DeleteCloudR0,
+            FixtureNames.CloudKey(FixtureNames.DeleteCloudR0), steps.Phase));
+        steps.Add(CloudSetup("s-cloud-CDELRA", FixtureNames.GroupDelete, FixtureNames.DeleteCloudR0a,
+            FixtureNames.CloudKey(FixtureNames.DeleteCloudR0a), steps.Phase));
+
+        // The sentinel is never a destructive target, so it has no fixture key.
+        steps.Add(CloudSetup("s-cloud-CDELS", FixtureNames.GroupDelete, FixtureNames.DeleteSentinelCloud, null, steps.Phase));
     }
 
     private static void AddWorkerFixtures(StepList steps) => AddCommonGeometry(steps);
 
     private static void AddPublicProbes(StepList steps, FixtureManifest manifest)
     {
-        // Programmatic fixtures first; probes that need manual fixtures run last.
-        steps.Probe("p02-value", "2", "Fit with a seed geometry value (public API)",
+        // #309: probe 11 runs first after the fixtures, so no earlier probe can leave a
+        // dialog behind, and the operator confirms that none is open before it is sent.
+        var polygonize = new Api.ConstructPolygonizedSurfaceFromPointCloudsRequest
+        {
+            MeshOrientation = Api.MeshOrientationType.UseCurrentWorkingFrame,
+            PolygonizedSurfaceName = Object("MESH11", Api.ObjectType.ScanStripeMesh)
+        };
+        polygonize.PointCloudList.Add(Object(FixtureNames.PolygonizeCloud, Api.ObjectType.Cloud));
+        steps.Add(steps.NewProbe("p11", "11", "Mesh Orientation via SetStringArg, first after the fixtures with no dialog open",
+            ProbeOperations.ConstructPolygonizedSurface, polygonize) with
+        {
+            Checkpoints = OperatorCheckpoint.Before | OperatorCheckpoint.After,
+            ClientTimeout = PolygonizeClientTimeout
+        });
+        steps.Check("c11", "11", "Count objects named MESH11*", ObjectsNamed(FixtureNames.Collection, "MESH11*", Api.ObjectType.Any));
+
+        // Programmatic fixtures next; probes that need manual fixtures run after them.
+        steps.Probe("p02-value", "2", "Fit the coplanar group GFIT with a seed geometry value (public API)",
             ProbeOperations.FitGeometryToPointGroup, Fit("FIT2V", Object(FixtureNames.PlaneA, Api.ObjectType.Plane)));
         steps.Check("c02-value", "2", "Count planes named FIT2V", ObjectsNamed(FixtureNames.Collection, "FIT2V", Api.ObjectType.Plane));
 
@@ -213,15 +290,6 @@ internal static class ProbeCatalog
         steps.Check("c05-06-value", "5-6", "Count planes named *56V",
             ObjectsNamed(FixtureNames.Collection, "*56V", Api.ObjectType.Plane),
             new ProbeHypothesis("both named planes created", "match_count", "2"));
-
-        var polygonize = new Api.ConstructPolygonizedSurfaceFromPointCloudsRequest
-        {
-            MeshOrientation = Api.MeshOrientationType.UseCurrentWorkingFrame,
-            PolygonizedSurfaceName = Object("MESH11", Api.ObjectType.ScanStripeMesh)
-        };
-        polygonize.PointCloudList.Add(Object(FixtureNames.PolygonizeCloud, Api.ObjectType.Cloud));
-        steps.Probe("p11", "11", "Mesh Orientation via SetStringArg", ProbeOperations.ConstructPolygonizedSurface, polygonize);
-        steps.Check("c11", "11", "Count objects named MESH11*", ObjectsNamed(FixtureNames.Collection, "MESH11*", Api.ObjectType.Any));
 
         steps.Probe("p12", "12", "Point name getter after Ensure Unique", ProbeOperations.MakePointNameEnsureUnique,
             new Api.MakePointNameEnsureUniqueRequest { PointName = Point(FixtureNames.GroupOne, "P1"), UseNumberSuffix = true });
@@ -238,30 +306,156 @@ internal static class ProbeCatalog
                 VectorGroupName = Object(FixtureNames.VectorGroup, Api.ObjectType.VectorGroup)
             });
 
+        AddRadialDeleteProbe(steps);
+
         // Manual fixtures.
         steps.Probe("p01-value", "1", "USMN with a nominals group value (public API)",
             ProbeOperations.LocateInstrumentsUsmn, Usmn(manifest));
         steps.Probe("p03-value", "3", "Chart with a template chart value (public API)",
-            ProbeOperations.CreateChartFromVectorGroup, Chart(manifest, "B277 C3V"));
+            ProbeOperations.CreateChartFromVectorGroup, Chart(manifest.TemplateChartName, "B277 C3V"));
         steps.Probe("p04-value", "4", "User interface profile with a profile file value (public API)",
             ProbeOperations.SetUserInterfaceProfile, Profile(manifest));
-        steps.Add(new ProbeStep("p22", "22", ProbeStepKind.Probe, steps.Phase,
-            "Runtime-select vector group list getter (operator selects B277::VG1)",
+
+        // #312: in the interaction mode the session started with.
+        steps.Add(steps.NewProbe("p22", "22",
+            "Runtime-select vector group list getter (operator: F2, select B277::VG1 in the selection tree, OK, Enter)",
             ProbeOperations.VectorGroupRuntimeSelect, new Api.MakeCollectionVectorGroupNameRefListRuntimeSelectRequest
             {
-                UserPrompt = "Briosa #277 probe: select vector group B277::VG1 and confirm."
-            },
-            CommandVariant.Shipped, ProbeOutcomes.AnyDeterminateSdkOutcome)
+                UserPrompt = RuntimeSelectPrompt
+            }) with
         {
-            RequiresOperator = true
+            RequiresOperator = true,
+            Checkpoints = OperatorCheckpoint.After
         });
+    }
+
+    // Probe 24 (#307 R0, and the #310 confound): the sibling radial delete with the same
+    // Cloud Names binding and value form as the deleted X Y Z range operation. Each
+    // delete has its own disposable cloud, bracketed by point counts, and an untouched
+    // sentinel cloud is counted before and after the block.
+    private static void AddRadialDeleteProbe(StepList steps)
+    {
+        var sentinel = Object(FixtureNames.DeleteSentinelCloud, Api.ObjectType.Cloud);
+        steps.Add(CloudCount(steps, "c24-sentinel-before", $"Count the sentinel cloud {FixtureNames.DeleteSentinelCloud}; no step targets it",
+            sentinel, eightRequired: true));
+        AddRadialDelete(steps, "r0", FixtureNames.DeleteCloudR0, Api.ObjectType.Cloud,
+            "R0: delete cloud points within 1 of D1, Cloud Names element typed Cloud");
+        AddRadialDelete(steps, "r0a", FixtureNames.DeleteCloudR0a, Api.ObjectType.Any,
+            "R0a: R0 with the Cloud Names element typed Any");
+        steps.Add(CloudCount(steps, "c24-sentinel-after",
+            $"Count the sentinel cloud {FixtureNames.DeleteSentinelCloud} again; anything but 8 is a containment failure",
+            sentinel, eightRequired: true) with
+        {
+            Prerequisites = ["c24-sentinel-before", "p24-r0", "p24-r0a"]
+        });
+    }
+
+    private static void AddRadialDelete(StepList steps, string name, string cloud, Api.ObjectType elementType, string purpose)
+    {
+        var counted = Object(cloud, Api.ObjectType.Cloud);
+        steps.Add(CloudCount(steps, $"c24-{name}-before", $"Count points in disposable cloud {cloud} before deletion",
+            counted, eightRequired: true));
+        var request = new Api.DeleteCloudPointsByRadialDistanceFromPointsRequest { Radius = 1, DeleteInside = true };
+        request.CloudNames.Add(Object(cloud, elementType));
+        request.Points.Add(Point(FixtureNames.GroupDelete, "D1"));
+        steps.Add(steps.NewProbe($"p24-{name}", "24", purpose, ProbeOperations.DeleteCloudPointsByRadialDistanceFromPoints, request) with
+        {
+            DestructiveTarget = FixtureNames.CloudKey(cloud),
+            Prerequisites = [$"c24-{name}-before"],
+            Checkpoints = OperatorCheckpoint.After
+        });
+
+        // An emptied or removed cloud may fail the count, so a failure is an observation here.
+        steps.Add(CloudCount(steps, $"c24-{name}-after", $"Count points in disposable cloud {cloud} after deletion",
+            counted, eightRequired: false) with
+        {
+            Hypotheses =
+            [
+                new ProbeHypothesis("D1 deleted and nothing else", "points_count", "7"),
+                new ProbeHypothesis("nothing deleted", "points_count", "8")
+            ],
+            Prerequisites = [$"p24-{name}"]
+        });
+    }
+
+    // Probe 25 (#313), public part. The baseline step first sets the restore mode, so
+    // that the baseline and Silent steps differ only in SA Interaction Mode. The operator
+    // records any dialog after every step; the restore step ends the block.
+    private static void AddPublicInteractionModeProbe(StepList steps, InteractionModeSettings mode)
+    {
+        void Watched(ProbeStep step, params string[] prerequisites) =>
+            steps.Add(step with { Checkpoints = OperatorCheckpoint.After, Prerequisites = prerequisites });
+
+        Watched(steps.NewControl("p25-baseline", "25", "Set SA Interaction Mode to the restore mode before the baseline steps",
+            ProbeOperations.SetInteractionMode, InteractionMode(mode.Restore)));
+        Watched(steps.NewCheck("c25-zero-match-baseline", "25", "Wildcard selection that matches nothing, before Silent", NoMatch()),
+            "p25-baseline");
+        Watched(steps.NewProbe("p25-chart-missing-baseline", "25", "Chart whose template chart matches no chart, before Silent",
+            ProbeOperations.CreateChartFromVectorGroup, Chart(MissingTemplateChart, "B277 C25B")), "p25-baseline");
+        Watched(steps.NewProbe("p25-ask-baseline", "25", "Ask for String, before Silent (operator: enter B277-entered, OK)",
+            ProbeOperations.AskForString, Ask(AskPrompt)) with { RequiresOperator = true }, "p25-baseline");
+
+        Watched(steps.NewControl("p25-silent", "25", "Set SA Interaction Mode to Silent",
+            ProbeOperations.SetInteractionMode, InteractionMode(Api.SaInteractionMode.Silent)), "p25-baseline");
+        Watched(steps.NewCheck("c25-zero-match-silent", "25", "Wildcard selection that matches nothing, under Silent", NoMatch()),
+            "p25-silent");
+        Watched(steps.NewProbe("p25-chart-missing-silent", "25", "Chart whose template chart matches no chart, under Silent",
+            ProbeOperations.CreateChartFromVectorGroup, Chart(MissingTemplateChart, "B277 C25S")), "p25-silent");
+        Watched(steps.NewProbe("p25-runtime-select-silent", "25",
+            "Runtime-select vector group list under Silent (operator: F2, select B277::VG1, OK, Enter, if SA prompts)",
+            ProbeOperations.VectorGroupRuntimeSelect, new Api.MakeCollectionVectorGroupNameRefListRuntimeSelectRequest
+            {
+                UserPrompt = RuntimeSelectSilentPrompt
+            }) with { RequiresOperator = true }, "p25-silent");
+        Watched(steps.NewProbe("p25-ask-silent", "25", "Ask for String under Silent (operator: enter B277-entered, OK, if SA prompts)",
+            ProbeOperations.AskForString, Ask(AskSilentPrompt)) with { RequiresOperator = true }, "p25-silent");
+
+        Watched(steps.NewControl("p25-restore", "25", "Restore SA Interaction Mode",
+            ProbeOperations.SetInteractionMode, InteractionMode(mode.Restore)), "p25-silent");
+    }
+
+    // Probe 25 (#313), worker part: the blank High and Low plane names, which the public
+    // API rejects before dispatch, before and under Silent.
+    private static void AddWorkerInteractionModeProbe(StepList steps, InteractionModeSettings mode)
+    {
+        void Watched(ProbeStep step, params string[] prerequisites) =>
+            steps.Add(step with { Checkpoints = OperatorCheckpoint.After, Prerequisites = prerequisites });
+
+        Watched(steps.NewControl("p25-baseline", "25", "Set SA Interaction Mode to the restore mode before the baseline steps",
+            ProbeOperations.SetInteractionMode, InteractionMode(mode.Restore)));
+        Watched(steps.NewVariant("p25-blank-high-baseline", "25", "Bounding planes with a blank High name, before Silent",
+            ProbeOperations.ConstructPlanesBoundingPointGroup, Bounding("H25B", "L25B"), CommandVariant.Blank(HighPlaneLabel)),
+            "p25-baseline");
+        Watched(steps.NewVariant("p25-blank-low-baseline", "25", "Bounding planes with a blank Low name, before Silent",
+            ProbeOperations.ConstructPlanesBoundingPointGroup, Bounding("H25C", "L25C"), CommandVariant.Blank(LowPlaneLabel)),
+            "p25-baseline");
+
+        Watched(steps.NewControl("p25-silent", "25", "Set SA Interaction Mode to Silent",
+            ProbeOperations.SetInteractionMode, InteractionMode(Api.SaInteractionMode.Silent)), "p25-baseline");
+        Watched(steps.NewVariant("p25-blank-high-silent", "25", "Bounding planes with a blank High name, under Silent",
+            ProbeOperations.ConstructPlanesBoundingPointGroup, Bounding("H25S", "L25S"), CommandVariant.Blank(HighPlaneLabel)),
+            "p25-silent");
+        Watched(steps.NewCheck("c25-blank-high-silent-named", "25", "Count harness-named bounding planes matching *25S in B277",
+            ObjectsNamed(FixtureNames.Collection, "*25S", Api.ObjectType.Plane)), "p25-silent");
+        Watched(steps.NewCheck("c25-blank-high-silent-defaults", "25", "Count planes named HighPlane* in every collection",
+            ObjectsNamed("*", "HighPlane*", Api.ObjectType.Plane)), "p25-silent");
+        Watched(steps.NewVariant("p25-blank-low-silent", "25", "Bounding planes with a blank Low name, under Silent",
+            ProbeOperations.ConstructPlanesBoundingPointGroup, Bounding("H25T", "L25T"), CommandVariant.Blank(LowPlaneLabel)),
+            "p25-silent");
+        Watched(steps.NewCheck("c25-blank-low-silent-named", "25", "Count harness-named bounding planes matching *25T in B277",
+            ObjectsNamed(FixtureNames.Collection, "*25T", Api.ObjectType.Plane)), "p25-silent");
+        Watched(steps.NewCheck("c25-blank-low-silent-defaults", "25", "Count planes named LowPlane* in every collection",
+            ObjectsNamed("*", "LowPlane*", Api.ObjectType.Plane)), "p25-silent");
+
+        Watched(steps.NewControl("p25-restore", "25", "Restore SA Interaction Mode",
+            ProbeOperations.SetInteractionMode, InteractionMode(mode.Restore)), "p25-silent");
     }
 
     private static void AddWorkerProbes(StepList steps, FixtureManifest manifest)
     {
         // #2 seed geometry: shipped control, skipped setter, blank value.
         var seed = Object(FixtureNames.PlaneA, Api.ObjectType.Plane);
-        steps.Control("p02-shipped", "2", "Fit with a seed geometry value (shipped sequence)",
+        steps.Control("p02-shipped", "2", "Fit the coplanar group GFIT with a seed geometry value (shipped sequence)",
             ProbeOperations.FitGeometryToPointGroup, Fit("FIT2W", seed));
         steps.Check("c02-shipped", "2", "Count planes named FIT2W", ObjectsNamed(FixtureNames.Collection, "FIT2W", Api.ObjectType.Plane));
         steps.Variant("p02-omit", "2", "Fit with the seed geometry setter skipped",
@@ -347,11 +541,11 @@ internal static class ProbeCatalog
         steps.Variant("p01-blank", "1", "USMN with a blank nominals group", ProbeOperations.LocateInstrumentsUsmn, usmn,
             CommandVariant.Blank(NominalsLabel));
         steps.Control("p03-shipped", "3", "Chart with a template chart value (shipped sequence)",
-            ProbeOperations.CreateChartFromVectorGroup, Chart(manifest, "B277 C3W"));
+            ProbeOperations.CreateChartFromVectorGroup, Chart(manifest.TemplateChartName, "B277 C3W"));
         steps.Variant("p03-omit", "3", "Chart with the template setter skipped",
-            ProbeOperations.CreateChartFromVectorGroup, Chart(manifest, "B277 C3O"), CommandVariant.Omit(TemplateChartLabel));
+            ProbeOperations.CreateChartFromVectorGroup, Chart(manifest.TemplateChartName, "B277 C3O"), CommandVariant.Omit(TemplateChartLabel));
         steps.Variant("p03-blank", "3", "Chart with a blank template chart name",
-            ProbeOperations.CreateChartFromVectorGroup, Chart(manifest, "B277 C3B"), CommandVariant.Blank(TemplateChartLabel));
+            ProbeOperations.CreateChartFromVectorGroup, Chart(manifest.TemplateChartName, "B277 C3B"), CommandVariant.Blank(TemplateChartLabel));
         steps.Control("p04-shipped", "4", "User interface profile with a profile file (shipped sequence)",
             ProbeOperations.SetUserInterfaceProfile, Profile(manifest));
         steps.Variant("p04-omit", "4", "User interface profile with the file setter skipped",
@@ -372,6 +566,20 @@ internal static class ProbeCatalog
             CreatesFixture = fixtureKey
         };
 
+    // A before-count or sentinel count must succeed with exactly the eight fixture points.
+    private static ProbeStep CloudCount(StepList steps, string id, string purpose, Api.CollectionObjectName cloud, bool eightRequired) =>
+        new(id, "24", ProbeStepKind.Check, steps.Phase, purpose,
+            ProbeOperations.GetCloudPointCount, new Api.GetCloudPointCountRequest { CloudName = cloud },
+            CommandVariant.Shipped, eightRequired ? ProbeOutcomes.Succeeded : ProbeOutcomes.Succeeded | ProbeOutcomes.MpFailed)
+        {
+            Hypotheses = eightRequired ? [new ProbeHypothesis("fixture intact", "points_count", "8")] : [],
+            Requirement = eightRequired
+                ? new ProbeRequirement("the cloud holds exactly the eight fixture points",
+                    static (_, outcome) => outcome.Observations.TryGetValue("points_count", out var count) &&
+                        string.Equals(count, "8", StringComparison.Ordinal))
+                : null
+        };
+
     private static Api.MakeCollectionObjectNameRefListWildcardSelectionRequest ObjectsNamed(
         string collection, string pattern, Api.ObjectType type) =>
         new()
@@ -381,10 +589,13 @@ internal static class ProbeCatalog
             ObjectType = type
         };
 
+    private static Api.MakeCollectionObjectNameRefListWildcardSelectionRequest NoMatch() =>
+        ObjectsNamed(FixtureNames.Collection, "NOMATCH25*", Api.ObjectType.Any);
+
     private static Api.FitGeometryToPointGroupRequest Fit(string result, Api.CollectionObjectName seed) => new()
     {
         GeometryType = Api.GeometryType.Plane,
-        GroupToFit = Object(FixtureNames.GroupOne, Api.ObjectType.PointGroup),
+        GroupToFit = Object(FixtureNames.GroupFit, Api.ObjectType.PointGroup),
         ResultingObjectName = Object(result, Api.ObjectType.Plane),
         ReportDeviations = false,
         IgnoreOutOfTolerancePoints = false,
@@ -425,14 +636,14 @@ internal static class ProbeCatalog
         return request;
     }
 
-    private static Api.CreateChartFromVectorGroupRequest Chart(FixtureManifest manifest, string name) => new()
+    private static Api.CreateChartFromVectorGroupRequest Chart(string templateChartName, string name) => new()
     {
         NewChartName = new Api.ChartName { Name = name },
         VectorGroupName = Object(FixtureNames.VectorGroup, Api.ObjectType.VectorGroup),
         ChartType = Api.ChartType.RunChart,
         DataSetToChart = Api.DatasetType.Magnitude,
         AuxDataSetToChart = Api.DatasetType.Magnitude,
-        TemplateChartName = new Api.ChartName { Name = manifest.TemplateChartName },
+        TemplateChartName = new Api.ChartName { Name = templateChartName },
         ShowInterface = false
     };
 
@@ -440,6 +651,20 @@ internal static class ProbeCatalog
     {
         ProfileName = manifest.UiProfileName,
         ProfileFileName = new Api.FileReference { Path = manifest.UiProfileFile, EmbeddedFile = false }
+    };
+
+    private static Api.SetInteractionModeRequest InteractionMode(Api.SaInteractionMode mode) => new()
+    {
+        SaInteractionMode = mode,
+        MeasurementPlanInteractionMode = InteractionModeSettings.MpInteractionMode,
+        MeasurementPlanDialogInteractionMode = InteractionModeSettings.MpDialogInteractionMode
+    };
+
+    private static Api.AskForStringRequest Ask(string prompt) => new()
+    {
+        QuestionToAsk = prompt,
+        PasswordEntry = false,
+        InitialAnswer = AskInitialAnswer
     };
 
     private static Api.CollectionInstrumentId Instrument(ManifestInstrument instrument) =>
@@ -468,34 +693,65 @@ internal static class ProbeCatalog
         public void Setup(string id, string purpose, ProbeOperation operation, IMessage request) =>
             _steps.Add(new(id, "setup", ProbeStepKind.Setup, Phase, purpose, operation, request, CommandVariant.Shipped, ProbeOutcomes.Succeeded));
 
-        // Wildcard selections may report an empty match as an MP failure; both are observations.
         public void Check(string id, string probe, string purpose, IMessage request, params ProbeHypothesis[] hypotheses) =>
-            _steps.Add(new(id, probe, ProbeStepKind.Check, Phase, purpose, ProbeOperations.ObjectWildcardSelection, request,
-                CommandVariant.Shipped, ProbeOutcomes.Succeeded | ProbeOutcomes.MpFailed)
-            {
-                Hypotheses = hypotheses
-            });
+            _steps.Add(NewCheck(id, probe, purpose, request) with { Hypotheses = hypotheses });
 
-        // Public probes and worker variants: every determinate SDK outcome is an observation.
-        // An outcome whose completion is unknown is never accepted; it stops the session.
         public void Probe(string id, string probe, string purpose, ProbeOperation operation, IMessage request) =>
-            _steps.Add(new(id, probe, ProbeStepKind.Probe, Phase, purpose, operation, request, CommandVariant.Shipped,
-                ProbeOutcomes.AnyDeterminateSdkOutcome));
+            _steps.Add(NewProbe(id, probe, purpose, operation, request));
 
         public void Variant(
             string id, string probe, string purpose, ProbeOperation operation, IMessage request, CommandVariant variant,
             params string[] prerequisites) =>
-            _steps.Add(new(id, probe, ProbeStepKind.Probe, Phase, purpose, operation, request, variant,
-                ProbeOutcomes.AnyDeterminateSdkOutcome)
-            {
-                Prerequisites = prerequisites
-            });
+            _steps.Add(NewVariant(id, probe, purpose, operation, request, variant) with { Prerequisites = prerequisites });
 
-        // A worker control validates the fixture; anything but success stops the session.
         public void Control(string id, string probe, string purpose, ProbeOperation operation, IMessage request) =>
-            _steps.Add(new(id, probe, ProbeStepKind.Probe, Phase, purpose, operation, request, CommandVariant.Shipped,
-                ProbeOutcomes.Succeeded));
+            _steps.Add(NewControl(id, probe, purpose, operation, request));
+
+        // Wildcard selections may report an empty match as an MP failure; both are observations.
+        public ProbeStep NewCheck(string id, string probe, string purpose, IMessage request) =>
+            new(id, probe, ProbeStepKind.Check, Phase, purpose, ProbeOperations.ObjectWildcardSelection, request,
+                CommandVariant.Shipped, ProbeOutcomes.Succeeded | ProbeOutcomes.MpFailed);
+
+        // Public probes and worker variants: every determinate SDK outcome is an observation.
+        // An outcome whose completion is unknown is never accepted; it stops the session.
+        public ProbeStep NewProbe(string id, string probe, string purpose, ProbeOperation operation, IMessage request) =>
+            new(id, probe, ProbeStepKind.Probe, Phase, purpose, operation, request, CommandVariant.Shipped,
+                ProbeOutcomes.AnyDeterminateSdkOutcome);
+
+        public ProbeStep NewVariant(
+            string id, string probe, string purpose, ProbeOperation operation, IMessage request, CommandVariant variant) =>
+            new(id, probe, ProbeStepKind.Probe, Phase, purpose, operation, request, variant, ProbeOutcomes.AnyDeterminateSdkOutcome);
+
+        // A control validates the fixture or sets session state; anything but success stops the session.
+        public ProbeStep NewControl(string id, string probe, string purpose, ProbeOperation operation, IMessage request) =>
+            new(id, probe, ProbeStepKind.Probe, Phase, purpose, operation, request, CommandVariant.Shipped, ProbeOutcomes.Succeeded);
 
         public List<ProbeStep> ToList() => [.. _steps];
     }
+}
+
+/// <summary>
+/// The SA Interaction Mode values probe 25 sends (#313). SA persists the SA
+/// Interaction Mode and the MP Dialog Interaction Mode across restarts and has no
+/// getter, so the operator supplies the mode to restore. The MP modes are fixed.
+/// </summary>
+internal sealed record InteractionModeSettings(Api.SaInteractionMode Restore, bool Supplied)
+{
+    // SA documents that the MP Interaction Mode returns to this value when a script exits.
+    public const Api.MpInteractionMode MpInteractionMode = Api.MpInteractionMode.HaltOnFailureOrPartialSuccess;
+
+    // Maintainer decision (2026-10-19): the baseline, Silent, and restore steps all allow
+    // application interaction, so the operator can use SA's UI during prompts.
+    public const Api.MpDialogInteractionMode MpDialogInteractionMode = Api.MpDialogInteractionMode.AllowApplicationInteraction;
+
+    // Dry runs and portable tests only; a licensed run that changes the mode requires the operator's value.
+    public static InteractionModeSettings Placeholder { get; } = new(Api.SaInteractionMode.Manual, Supplied: false);
+
+    public static string ModeName(Api.SaInteractionMode mode) => mode switch
+    {
+        Api.SaInteractionMode.Manual => "Manual",
+        Api.SaInteractionMode.Automatic => "Automatic",
+        Api.SaInteractionMode.Silent => "Silent",
+        _ => "unspecified"
+    };
 }

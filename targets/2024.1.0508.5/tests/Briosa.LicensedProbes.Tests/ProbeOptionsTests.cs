@@ -98,6 +98,40 @@ public sealed class ProbeOptionsTests
         Assert.Throws<ProbeUsageException>(() => ProbeOptions.Parse([.. PublicLicensed, option, value]));
     }
 
+    [Theory]
+    [InlineData("manual", Briosa.SaInteractionMode.Manual)]
+    [InlineData("automatic", Briosa.SaInteractionMode.Automatic)]
+    public void TheRestoreModeIsParsedAsSupplied(string value, Briosa.SaInteractionMode expected)
+    {
+        var options = ProbeOptions.Parse([.. PublicLicensed, ProbeOptions.RestoreModeOption, value]);
+
+        Assert.Equal(expected, options.RestoreSaInteractionMode);
+        Assert.Equal(new InteractionModeSettings(expected, Supplied: true), options.InteractionMode);
+        Assert.False(ProbeOptions.Parse(PublicLicensed).InteractionMode.Supplied);
+    }
+
+    [Theory]
+    [InlineData("silent")]
+    [InlineData("Manual")]
+    [InlineData("0")]
+    [InlineData("")]
+    public void ARestoreModeOtherThanManualOrAutomaticIsRefused(string value)
+    {
+        Assert.Throws<ProbeUsageException>(() => ProbeOptions.Parse([.. PublicLicensed, ProbeOptions.RestoreModeOption, value]));
+    }
+
+    [Fact]
+    public void TheRestoreOnlyPlanNeedsARestoreModeAndTakesNoExclusion()
+    {
+        Assert.True(ProbeOptions.Parse([.. WorkerLicensed, ProbeOptions.RestoreOnlyFlag, ProbeOptions.RestoreModeOption, "manual"])
+            .InteractionModeRestoreOnly);
+        Assert.Throws<ProbeUsageException>(() => ProbeOptions.Parse([.. PublicLicensed, ProbeOptions.RestoreOnlyFlag]));
+        Assert.Throws<ProbeUsageException>(() => ProbeOptions.Parse(
+            [.. PublicLicensed, ProbeOptions.RestoreOnlyFlag, ProbeOptions.RestoreModeOption, "manual", "--exclude-probe", "11"]));
+        Assert.Throws<ProbeUsageException>(() => ProbeOptions.Parse(
+            [.. PublicLicensed, ProbeOptions.RestoreOnlyFlag, ProbeOptions.RestoreOnlyFlag, ProbeOptions.RestoreModeOption, "manual"]));
+    }
+
     [Fact]
     public void TimeoutsAreParsed()
     {
