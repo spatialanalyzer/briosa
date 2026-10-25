@@ -1,5 +1,7 @@
 using Briosa.Server.Services;
 using Briosa.Server.Workers;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -58,6 +60,26 @@ public sealed class HostShutdownBoundTests
             services => services.Configure<HostOptions>(host => host.ShutdownTimeout = configured));
 
         Assert.Equal(configured, options.ShutdownTimeout);
+    }
+
+    // The bound reaches a web host built as Program builds it, after the host's own
+    // shutdownTimeoutSeconds setting: a longer setting wins, a shorter one is raised.
+    [Theory]
+    [InlineData(null, 105)]
+    [InlineData("600", 600)]
+    [InlineData("60", 105)]
+    public async Task WebHostUsesTheLifecycleShutdownBound(string? shutdownTimeoutSeconds, int expectedSeconds)
+    {
+        var builder = WebApplication.CreateSlimBuilder();
+        if (shutdownTimeoutSeconds is not null)
+            builder.Configuration[WebHostDefaults.ShutdownTimeoutKey] = shutdownTimeoutSeconds;
+        builder.Services.AddWorkerProcessLifecycle(builder.Configuration);
+        builder.Services.AddSpatialAnalyzerLifecycle(builder.Configuration);
+        await using var app = builder.Build();
+
+        var options = app.Services.GetRequiredService<IOptions<HostOptions>>().Value;
+
+        Assert.Equal(TimeSpan.FromSeconds(expectedSeconds), options.ShutdownTimeout);
     }
 
     // The host options as the server's registrations configure them. The host's own
