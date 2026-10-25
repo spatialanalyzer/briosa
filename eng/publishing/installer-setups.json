@@ -32,6 +32,14 @@
         "size": 92637672,
         "sha256": "2085bd05e39f28c36b68b37938f19f19fdf082adb83993e4d9d5c2427e9df42a"
       }
+    },
+    {
+      "version": "0.4.0",
+      "artifact": {
+        "path": "packages/installer/0.4.0/briosa-installer-0.4.0-win-x64-setup.exe",
+        "size": 92659760,
+        "sha256": "a875cd34d836c82f1ed0e809172909e5a47dbfc1280a204eb909266685077ebf"
+      }
     }
   ]
 }

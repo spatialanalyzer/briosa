@@ -118,18 +118,17 @@ public sealed class ProbeCatalogTests
     }
 
     [Fact]
-    public void NoPlannedStepIsDestructive()
+    public void OnlyTheTwoR0DeletesAreDestructive()
     {
-        // Probes 15 and 16 were the only destructive steps; they were retired with their
-        // operation (#307). The destructive-step guards stay for the #307 re-probe control.
-        foreach (var phase in new[] { ProbePhase.PublicApi, ProbePhase.Worker })
-        {
-            Assert.All(Plan(phase).Steps, step =>
-            {
-                Assert.False(step.Operation.IsDestructive);
-                Assert.Null(step.DestructiveTarget);
-            });
-        }
+        // Probes 15 and 16 were retired with their operation (#307). The only destructive
+        // steps are the #307 re-probe controls R0 and R0a, each on its own disposable cloud.
+        var destructive = Plan(ProbePhase.PublicApi).Steps.Where(static step => step.Operation.IsDestructive).ToList();
+
+        Assert.Equal(["p24-r0", "p24-r0a"], destructive.Select(static step => step.Id));
+        Assert.Equal(
+            [FixtureNames.CloudKey(FixtureNames.DeleteCloudR0), FixtureNames.CloudKey(FixtureNames.DeleteCloudR0a)],
+            destructive.Select(static step => step.DestructiveTarget));
+        Assert.DoesNotContain(Plan(ProbePhase.Worker).Steps, static step => step.Operation.IsDestructive || step.DestructiveTarget is not null);
     }
 
     [Fact]
