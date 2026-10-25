@@ -231,7 +231,20 @@ the decided `direct_cad_access` flip described below. The
 maintainer: `file_operations.save` opens Save As when the job has never been
 named, `export_vector_container_to_ascii_file` asks before overwriting an
 existing file, and `configure_and_measure` asks about a missing measurement
-profile unless the SA interaction mode is Silent. Operations that are already
+profile unless the SA interaction mode is Silent. Four more come from the
+licensed probe sessions, not the documentation, and list their evidence records
+([#313](https://github.com/spatialanalyzer/briosa/issues/313)). Each opens a
+blocking dialog that holds the MP until the operator clicks OK, after which the
+MP returns code 3:
+`make_collection_object_name_ref_list_wildcard_selection` when nothing matches
+("No objects matched specified criteria."), `create_chart_from_vector_group`
+when the template chart names no chart ("Template Chart Not found"), and
+`construct_planes_bounding_point_group` for a blank High or Low plane name
+("Blank 'High' Plane Not Allowed!", "Blank 'Low' Plane Not Allowed!"). The public
+API cannot send a blank plane name. Under SA interaction mode Silent each of the
+four returned code 3 at once, without the dialog, on both targets; the server
+setting `Briosa:SpatialAnalyzer:InteractionMode` can apply Silent after each
+Connect. Operations that are already
 `interactive_ui` are not listed, except for the rule 3 fields. Progress bars,
 callout and report content, graphics display options, and operations whose
 purpose is to show or hide a window are not operator UI and are not listed.
