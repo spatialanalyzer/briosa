@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Briosa.Server.Workers;
 
 namespace Briosa.Server.Services;
 
@@ -12,7 +13,8 @@ internal sealed partial class SpatialAnalyzerLifecycleCoordinator(
     ISpatialAnalyzerProcessPlatform processPlatform,
     ISpatialAnalyzerSdkLifecycleStateProvider sdkStateProvider,
     TimeProvider timeProvider,
-    ILogger<SpatialAnalyzerLifecycleCoordinator>? logger = null) : ISpatialAnalyzerLifecycleStateProvider, IDisposable
+    ILogger<SpatialAnalyzerLifecycleCoordinator>? logger = null)
+    : ISpatialAnalyzerLifecycleStateProvider, IDisposable, IAsyncDisposable
 {
     // An external application stays selected until a direct check confirms that it
     // exited, or until this many consecutive observations could neither see nor check
@@ -55,12 +57,33 @@ internal sealed partial class SpatialAnalyzerLifecycleCoordinator(
         }
     }
 
+    // An accepted launch detaches from its caller (#322), as Start, Connect, and Recover
+    // do (#315). It keeps the gate while it waits for the main window under its own
+    // bound, so a caller that stopped waiting leaves no partial transition behind.
     public async Task<global::Briosa.SpatialAnalyzerLifecycleState> LaunchAsync(
         global::Briosa.LaunchSpatialAnalyzerRequest request,
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
+        if (cancellationToken.IsCancellationRequested) throw RequestWithdrawn();
         EnterMutation(cancellationToken);
+        var acceptance = new LifecycleAcceptance(cancellationToken);
+        try
+        {
+            return await acceptance.WaitAsync(
+                LaunchTransitionAsync(request, acceptance),
+                () => throw CallerStoppedWaiting()).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw RequestWithdrawn();
+        }
+    }
+
+    private async Task<global::Briosa.SpatialAnalyzerLifecycleState> LaunchTransitionAsync(
+        global::Briosa.LaunchSpatialAnalyzerRequest request,
+        LifecycleAcceptance acceptance)
+    {
         try
         {
             RefreshObservedState();
@@ -104,6 +127,9 @@ internal sealed partial class SpatialAnalyzerLifecycleCoordinator(
                     global::Briosa.LifecycleRecoveryGuidance.CorrectEnvironment);
             }
 
+            // Every precondition held; from here only the launch's own outcome or its
+            // startup bound ends it.
+            acceptance.Accept();
             _applicationGeneration++;
             Transition(
                 global::Briosa.SpatialAnalyzerApplicationState.Starting,
@@ -138,9 +164,7 @@ internal sealed partial class SpatialAnalyzerLifecycleCoordinator(
                     global::Briosa.LifecycleRecoveryGuidance.CorrectEnvironment);
             }
 
-            using var timeout = CancellationTokenSource.CreateLinkedTokenSource(
-                cancellationToken);
-            timeout.CancelAfter(_options.StartupTimeout);
+            using var timeout = new CancellationTokenSource(_options.StartupTimeout, _timeProvider);
             try
             {
                 while (!_ownedProcess.IsApplicationWindowReady)
@@ -166,9 +190,10 @@ internal sealed partial class SpatialAnalyzerLifecycleCoordinator(
                     _ownedProcess.Refresh();
                 }
             }
-            catch (OperationCanceledException) when (
-                !cancellationToken.IsCancellationRequested)
+            catch (OperationCanceledException)
             {
+                // Only the startup bound can cancel the wait. The process keeps running
+                // and stays STARTING until an observation sees its window or its exit.
                 throw SpatialAnalyzerLifecycleException.DeadlineExceeded(
                     global::Briosa.SpatialAnalyzerLifecycleFailureKind.Timeout,
                     "spatial-analyzer-startup-timeout",
@@ -289,6 +314,7 @@ internal sealed partial class SpatialAnalyzerLifecycleCoordinator(
         }
     }
 
+    // A detached launch owns the gate until it finishes under its own bound (#322).
     public void Dispose()
     {
         if (Interlocked.Exchange(ref _disposeState, 1) != 0)
@@ -296,9 +322,41 @@ internal sealed partial class SpatialAnalyzerLifecycleCoordinator(
             return;
         }
 
+        _gate.Wait(CancellationToken.None);
+        ReleaseResources();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (Interlocked.Exchange(ref _disposeState, 1) != 0)
+        {
+            return;
+        }
+
+        await _gate.WaitAsync(CancellationToken.None).ConfigureAwait(false);
+        ReleaseResources();
+    }
+
+    private void ReleaseResources()
+    {
         _ownedProcess?.Dispose();
         _gate.Dispose();
     }
+
+    // Before acceptance nothing changed, so the caller has nothing to reconcile.
+    private SpatialAnalyzerLifecycleException RequestWithdrawn() =>
+        SpatialAnalyzerLifecycleException.Cancelled(
+            "application-lifecycle-request-withdrawn",
+            _current.Clone(),
+            global::Briosa.LifecycleRecoveryGuidance.None);
+
+    // The accepted launch continues and records its own outcome. The caller refreshes
+    // state through GetSpatialAnalyzerState.
+    private SpatialAnalyzerLifecycleException CallerStoppedWaiting() =>
+        SpatialAnalyzerLifecycleException.Cancelled(
+            "application-lifecycle-caller-stopped-waiting",
+            _current.Clone(),
+            global::Briosa.LifecycleRecoveryGuidance.RefreshState);
 
     private ProcessStartInfo CreateStartInfo(
         global::Briosa.LaunchSpatialAnalyzerRequest request)

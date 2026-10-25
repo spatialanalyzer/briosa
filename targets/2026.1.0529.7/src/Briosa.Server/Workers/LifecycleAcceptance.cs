@@ -1,8 +1,9 @@
 namespace Briosa.Server.Workers;
 
 /// <summary>
-/// Decides one Start, Connect, Recover, or Stop request between its caller's
-/// cancellation and the supervisor's acceptance (F10, #305). Exactly one wins. A
+/// Decides one Start, Connect, Recover, or Stop request (F10, #305), or one
+/// SpatialAnalyzer launch (#322), between its caller's cancellation and its
+/// acceptance. Exactly one wins. A
 /// caller that withdraws first prevents the work and leaves state unchanged. Once
 /// accepted, the exchange no longer observes the caller's token: it completes under
 /// its own lifecycle bounds and records its terminal state.

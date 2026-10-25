@@ -336,6 +336,7 @@ public sealed class SpatialAnalyzerLifecycleCoordinatorTests
         var clock = new HeartbeatTestClock();
         using var coordinator = CreateCoordinator(
             executable.Path, platform, timeProvider: clock, startupTimeout: ApplicationStartupTimeout);
+        using var expiry = new LaunchBoundExpiry(clock);
         using var cancellation = new CancellationTokenSource();
 
         var launching = coordinator.LaunchAsync(
@@ -435,6 +436,64 @@ public sealed class SpatialAnalyzerLifecycleCoordinatorTests
         Assert.Equal(before, await coordinator.GetCurrentAsync(CancellationToken.None));
     }
 
+    // A caller that keeps waiting gets the startup bound's typed timeout. The bound runs
+    // on the coordinator's clock, and the server-launched process stays STARTING.
+    [Fact]
+    public async Task WaitingCallerReceivesTheStartupTimeoutAtTheLaunchBound()
+    {
+        using var executable = TemporaryFile.Create();
+        var platform = new FakeProcessPlatform { WindowReadyAtStart = false };
+        var clock = new HeartbeatTestClock();
+        using var coordinator = CreateCoordinator(
+            executable.Path, platform, timeProvider: clock, startupTimeout: ApplicationStartupTimeout);
+        using var expiry = new LaunchBoundExpiry(clock);
+
+        var launching = coordinator.LaunchAsync(
+            new global::Briosa.LaunchSpatialAnalyzerRequest(), CancellationToken.None);
+        var process = Assert.IsType<FakeOwnedProcess>(platform.StartedProcess);
+        await clock.FireNextAsync(ApplicationStartupTimeout);
+        var timedOut = await Assert.ThrowsAsync<SpatialAnalyzerLifecycleException>(
+            () => launching.WaitAsync(HangGuard));
+
+        Assert.Equal(Grpc.Core.StatusCode.DeadlineExceeded, timedOut.StatusCode);
+        Assert.Equal(global::Briosa.SpatialAnalyzerLifecycleFailureKind.Timeout, timedOut.Detail.Kind);
+        Assert.Equal("spatial-analyzer-startup-timeout", timedOut.Detail.DiagnosticCode);
+        Assert.Equal(
+            global::Briosa.SpatialAnalyzerApplicationState.Starting,
+            timedOut.Detail.State.ApplicationState);
+        Assert.Equal(
+            global::Briosa.SpatialAnalyzerOwnership.ServerLaunched,
+            timedOut.Detail.State.Ownership);
+        Assert.False(process.CloseRequested);
+    }
+
+    // #322: disposal, as at host shutdown, waits for a detached launch to end under its
+    // bound before it releases the launched process. It never closes SpatialAnalyzer.
+    [Fact]
+    public async Task DisposalWaitsForADetachedLaunch()
+    {
+        using var executable = TemporaryFile.Create();
+        var platform = new FakeProcessPlatform { WindowReadyAtStart = false };
+        var clock = new HeartbeatTestClock();
+        var coordinator = CreateCoordinator(
+            executable.Path, platform, timeProvider: clock, startupTimeout: ApplicationStartupTimeout);
+        using var cancellation = new CancellationTokenSource();
+        var launching = coordinator.LaunchAsync(
+            new global::Briosa.LaunchSpatialAnalyzerRequest(), cancellation.Token);
+        var process = Assert.IsType<FakeOwnedProcess>(platform.StartedProcess);
+        await cancellation.CancelAsync();
+        _ = await Assert.ThrowsAsync<SpatialAnalyzerLifecycleException>(() => launching.WaitAsync(HangGuard));
+
+        var disposing = coordinator.DisposeAsync().AsTask();
+        Assert.False(disposing.IsCompleted);
+        Assert.False(process.Disposed);
+        await clock.FireNextAsync(ApplicationStartupTimeout);
+        await disposing.WaitAsync(HangGuard);
+
+        Assert.True(process.Disposed);
+        Assert.False(process.CloseRequested);
+    }
+
     // #322 through the gRPC service: the typed detach of a caller that stopped waiting
     // is audited, although gRPC does not deliver a response to that caller.
     [Fact]
@@ -445,6 +504,7 @@ public sealed class SpatialAnalyzerLifecycleCoordinatorTests
         var clock = new HeartbeatTestClock();
         using var coordinator = CreateCoordinator(
             executable.Path, platform, timeProvider: clock, startupTimeout: ApplicationStartupTimeout);
+        using var expiry = new LaunchBoundExpiry(clock);
         var audit = new CapturingLogger<LifecycleAuditLogger>();
         var service = new SpatialAnalyzerLifecycleService(coordinator, new LifecycleAuditLogger(audit));
         using var cancellation = new CancellationTokenSource();
@@ -588,13 +648,21 @@ public sealed class SpatialAnalyzerLifecycleCoordinatorTests
         public Task WaitForExitAsync(CancellationToken cancellationToken) =>
             Task.CompletedTask;
 
+        public bool Disposed { get; private set; }
+
         public void Refresh()
         {
         }
 
-        public void Dispose()
-        {
-        }
+        public void Dispose() => Disposed = true;
+    }
+
+    // Declared after its coordinator, so it is disposed first. It moves virtual time past
+    // the launch bound, so a failed test cannot leave a detached launch waiting forever
+    // while the coordinator's disposal waits for it.
+    private sealed class LaunchBoundExpiry(HeartbeatTestClock clock) : IDisposable
+    {
+        public void Dispose() => clock.Advance(ApplicationStartupTimeout);
     }
 
     // Captures structured log state so tests can assert value-free audit evidence.
