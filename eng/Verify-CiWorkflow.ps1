@@ -45,14 +45,15 @@ for ($index = 0; $index -lt $expectedPrefix.Count; $index++) {
     }
 }
 
-# The reviewed tables that govern admission and request mapping (#293, #243) are
-# CI gates, not review aids.
+# The reviewed tables that govern admission and request mapping (#293, #243) and the
+# release-trust workflow policy (#249) are CI gates, not review aids.
 $workflowText = Get-Content -LiteralPath $resolvedWorkflowPath -Raw
 foreach ($gate in @(
         './eng/Test-OperationClassificationTwins.ps1 -Strict',
         './eng/Test-OperationConditionalOptions.ps1',
         './eng/Test-ArgumentDefaults.ps1',
-        'python eng/classification/audit_scalar_presence.py --check')) {
+        'python eng/classification/audit_scalar_presence.py --check',
+        './eng/Verify-ReleaseWorkflowPolicy.ps1')) {
     if (-not [regex]::IsMatch($workflowText, '(?m)^\s+run: ' + [regex]::Escape($gate) + '\s*$')) {
         throw "Ordinary CI workflow must run the reviewed table gate '$gate'."
     }

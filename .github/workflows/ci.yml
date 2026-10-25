@@ -44,6 +44,14 @@ jobs:
           ./eng/Verify-LicensedRunnerWorkflow.ps1
           ./eng/Verify-LicensedRunnerWorkflow.ps1 -SpatialAnalyzerVersion 2024.1.0508.5
 
+      - name: Verify release workflow trust policy
+        shell: pwsh
+        run: ./eng/Verify-ReleaseWorkflowPolicy.ps1
+
+      - name: Test release workflow trust policy checks
+        shell: pwsh
+        run: ./eng/Test-ReleaseWorkflowPolicyChecks.ps1
+
       - name: Verify exact-target product isolation
         shell: pwsh
         run: ./eng/Verify-TargetIsolation.ps1
