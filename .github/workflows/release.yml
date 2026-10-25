@@ -363,7 +363,20 @@ jobs:
 
           & gh @releaseArguments @files
           if ($LASTEXITCODE -ne 0) {
-            throw "Draft GitHub Release creation failed."
+            # GitHub refuses this for the workflow token when the commit's workflow files
+            # differ from main, for example after a workflow change merged during approval.
+            @(
+              "## Draft release $tag was refused"
+              ''
+              "GitHub would not let the workflow token create the draft release for ``$env:GITHUB_SHA``. This happens when that commit's workflow files differ from main, for example after a workflow change merged while this run waited for approval. The signed files are this run's artifacts; nothing was released."
+              ''
+              'To release this commit as approved, the maintainer:'
+              ''
+              "1. Pushes the tag at this commit over SSH: ``git push git@github.com:$env:GITHUB_REPOSITORY.git ${env:GITHUB_SHA}:refs/tags/$tag``."
+              '2. Uses **Re-run failed jobs** on this run. With the tag in place GitHub creates no tag, so the draft is created with the same signed files.'
+              "3. If the draft is still refused, downloads this run's signed files with ``gh run download $env:GITHUB_RUN_ID --repo $env:GITHUB_REPOSITORY --pattern 'briosa-$env:PACKAGE_VERSION-sa-*-release-assets'``, then creates the draft on the Releases page from the existing tag $tag with every downloaded file."
+            ) -join "`n" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+            throw "The workflow token could not create the draft release for $tag; see the job summary for the recovery."
           }
           "Draft release $tag targets $env:GITHUB_SHA. Review it and publish it to create the tag." |
             Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
