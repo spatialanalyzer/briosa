@@ -68,15 +68,17 @@ internal sealed class ProbeOperation<TRequest, TResult> : ProbeOperation
         {
             using var call = _call(invoker, typed, options);
             var result = await call.ResponseAsync.ConfigureAwait(false);
-            return PublicOutcomes.FromSuccess(
-                _execution(result),
-                Observe(() => _observePublic?.Invoke(typed, result)));
+            return PublicOutcomes.FromSuccess(_execution(result), ObservePublic(typed, result));
         }
         catch (RpcException exception)
         {
             return PublicOutcomes.FromRpcException(exception);
         }
     }
+
+    /// <summary>The value-free observations of one successful public result.</summary>
+    internal IReadOnlyDictionary<string, string> ObservePublic(TRequest request, TResult result) =>
+        Observe(() => _observePublic?.Invoke(request, result));
 
     public override IReadOnlyDictionary<string, string> ObserveWorker(IMessage request, IReadOnlyList<WorkerMpOutputValue> outputs) =>
         Observe(() => _observeWorker?.Invoke(Typed(request), outputs));

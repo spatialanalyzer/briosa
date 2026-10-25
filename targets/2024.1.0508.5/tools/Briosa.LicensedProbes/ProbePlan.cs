@@ -22,7 +22,9 @@ internal sealed class ProbePlan
         IReadOnlyList<ProbeStep> catalogSteps,
         IReadOnlySet<string> excludedStepIds,
         IReadOnlyList<int> excludedProbes,
-        bool placeholderFixtures)
+        bool placeholderFixtures,
+        InteractionModeSettings interactionMode,
+        bool interactionModeRestoreOnly)
     {
         Phase = phase;
         CatalogSteps = catalogSteps;
@@ -30,9 +32,20 @@ internal sealed class ProbePlan
         ExcludedProbes = excludedProbes;
         Steps = [.. catalogSteps.Where(step => !excludedStepIds.Contains(step.Id))];
         PlaceholderFixtures = placeholderFixtures;
+        InteractionMode = interactionMode;
+        InteractionModeRestoreOnly = interactionModeRestoreOnly;
     }
 
     public ProbePhase Phase { get; }
+
+    public InteractionModeSettings InteractionMode { get; }
+
+    /// <summary>The recovery plan: only the probe 25 restore step.</summary>
+    public bool InteractionModeRestoreOnly { get; }
+
+    /// <summary>A step that runs changes SA's persisted interaction mode (probe 25).</summary>
+    public bool SetsInteractionMode =>
+        Steps.Any(static step => ReferenceEquals(step.Operation, ProbeOperations.SetInteractionMode));
 
     /// <summary>The steps that run, in order. Excluded steps are never sent.</summary>
     public IReadOnlyList<ProbeStep> Steps { get; }
@@ -83,27 +96,51 @@ internal sealed class ProbePlan
 
     public static ProbePlan Create(ProbePhase phase, FixtureManifest manifest) => Create(phase, manifest, []);
 
+    public static ProbePlan Create(ProbePhase phase, FixtureManifest manifest, IReadOnlyCollection<int> excludedProbes) =>
+        Create(phase, manifest, excludedProbes, InteractionModeSettings.Placeholder);
+
     /// <summary>
     /// Builds the phase plan less the excluded probes. An exclusion that is not in
     /// this phase, splits a step serving several probes, removes a prerequisite of
     /// a remaining step, or leaves no probe is refused with <see cref="ProbeUsageException"/>.
     /// </summary>
-    public static ProbePlan Create(ProbePhase phase, FixtureManifest manifest, IReadOnlyCollection<int> excludedProbes)
+    public static ProbePlan Create(
+        ProbePhase phase, FixtureManifest manifest, IReadOnlyCollection<int> excludedProbes, InteractionModeSettings interactionMode)
     {
         ArgumentNullException.ThrowIfNull(manifest);
         ArgumentNullException.ThrowIfNull(excludedProbes);
+        ArgumentNullException.ThrowIfNull(interactionMode);
         manifest.Validate();
-        var catalog = ProbeCatalog.Create(phase, manifest);
+        var catalog = ProbeCatalog.Create(phase, manifest, interactionMode);
         Validate(phase, catalog);
         var probes = excludedProbes.Distinct().Order().ToList();
         var excluded = SelectExcludedSteps(phase, catalog, probes);
-        var plan = new ProbePlan(phase, catalog, excluded, probes, manifest.IsPlaceholder);
+        var plan = new ProbePlan(phase, catalog, excluded, probes, manifest.IsPlaceholder, interactionMode, interactionModeRestoreOnly: false);
 
         // The remaining plan must satisfy every invariant the full plan does.
         Validate(phase, plan.Steps);
         if (phase == ProbePhase.PublicApi)
         {
             // Fails closed when a public probe needs an exclusive workflow.
+            _ = plan.ServerAdmissionArguments;
+        }
+
+        return plan;
+    }
+
+    /// <summary>
+    /// The recovery plan after a session stopped between probe 25's Silent and restore
+    /// steps: it only restores SA Interaction Mode, on a clean SA, in either phase.
+    /// </summary>
+    public static ProbePlan CreateInteractionModeRestore(ProbePhase phase, InteractionModeSettings interactionMode)
+    {
+        ArgumentNullException.ThrowIfNull(interactionMode);
+        var steps = ProbeCatalog.CreateInteractionModeRestore(phase, interactionMode);
+        Validate(phase, steps);
+        var plan = new ProbePlan(phase, steps, new HashSet<string>(StringComparer.Ordinal), [], placeholderFixtures: false,
+            interactionMode, interactionModeRestoreOnly: true);
+        if (phase == ProbePhase.PublicApi)
+        {
             _ = plan.ServerAdmissionArguments;
         }
 
@@ -254,10 +291,23 @@ internal sealed class ProbePlan
             "Probe step identifiers must be unique.");
         var created = new HashSet<string>(StringComparer.Ordinal);
         var earlier = new HashSet<string>(StringComparer.Ordinal);
+        var silent = false;
         foreach (var step in steps)
         {
             Require(step.Phase == phase, $"Step '{step.Id}' belongs to another phase.");
             Require(step.Acceptable != ProbeOutcomes.None, $"Step '{step.Id}' accepts no outcome.");
+            Require(step.ClientTimeout is null || (step.ClientTimeout > TimeSpan.Zero && step.ClientTimeout <= MaximumClientTimeout),
+                $"Step '{step.Id}' has a client deadline outside the reviewed range.");
+
+            // SA keeps its interaction mode across restarts and has no getter, so a step
+            // that sets it is a control whose failure stops the session.
+            if (step.Request is Api.SetInteractionModeRequest mode)
+            {
+                Require(step.Kind == ProbeStepKind.Probe && step.Variant.Kind == VariantKind.Shipped &&
+                    step.Acceptable == ProbeOutcomes.Succeeded && step.Checkpoints.HasFlag(OperatorCheckpoint.After),
+                    $"Step '{step.Id}' changes SA Interaction Mode; it must be a shipped control the operator checks afterwards.");
+                silent = mode.SaInteractionMode == Api.SaInteractionMode.Silent;
+            }
 
             // A step's control or before-count must run earlier in the same session.
             Require(step.Prerequisites.All(earlier.Contains),
@@ -314,12 +364,18 @@ internal sealed class ProbePlan
 
             earlier.Add(step.Id);
         }
+
+        // A plan never ends with SA left in Silent: a later step must restore another mode.
+        Require(!silent, "A plan that sets SA Interaction Mode to Silent must restore another mode in a later step.");
     }
 
-    // The only reviewed destructive operation deletes cloud points around points; its
-    // request may name exactly one cloud, the harness-created disposable target, and
-    // only points in the harness collection. (Delete Cloud Points by X Y Z Range, the
-    // operation of the retired probes 15 and 16, was removed for #307.)
+    /// <summary>The longest client deadline a step may declare.</summary>
+    public static TimeSpan MaximumClientTimeout { get; } = TimeSpan.FromHours(1);
+
+    // The only reviewed destructive operation deletes cloud points around points (probe 24,
+    // the #307 control R0); its request may name exactly one cloud, the harness-created
+    // disposable target, and only points in the harness collection. (Delete Cloud Points by
+    // X Y Z Range, the operation of the retired probes 15 and 16, was removed for #307.)
     private static bool TargetsOnly(ProbeStep step) =>
         step.Request is Api.DeleteCloudPointsByRadialDistanceFromPointsRequest delete &&
         delete.CloudNames.Count == 1 &&
@@ -344,6 +400,28 @@ internal sealed class ProbePlan
             text.Append(CultureInfo.InvariantCulture,
                 $"Excluded steps (never sent): {string.Join(", ", CatalogSteps.Where(IsExcluded).Select(static step => step.Id))}. ")
                 .Append("Guard and fixture setup steps are never excluded.\n");
+        }
+
+        if (InteractionModeRestoreOnly)
+        {
+            text.Append("Recovery plan: only restores SA Interaction Mode after a session stopped inside probe 25.\n");
+        }
+
+        if (SetsInteractionMode)
+        {
+            // Harness constants and the operator's restore mode; no manifest value.
+            text.Append(CultureInfo.InvariantCulture,
+                $"Interaction mode (probe 25): the baseline and restore steps send SA mode {InteractionModeSettings.ModeName(InteractionMode.Restore)} ")
+                .Append(InteractionMode.Supplied
+                    ? "(from --restore-sa-interaction-mode)"
+                    : "(placeholder; a licensed run requires --restore-sa-interaction-mode)")
+                .Append(", the Silent step sends Silent, and every step sends MP mode Halt on Failure or Partial Success ")
+                .Append("and MP dialog mode Allow Application Interaction. SA keeps these across restarts.\n");
+        }
+
+        if (Steps.Any(static step => step.Checkpoints != OperatorCheckpoint.None))
+        {
+            text.Append("Operator checkpoints: a licensed run pauses at each one until the operator writes its response file.\n");
         }
 
         if (Phase == ProbePhase.PublicApi)
@@ -385,7 +463,22 @@ internal sealed class ProbePlan
 
             if (step.RequiresOperator)
             {
-                text.Append("      OPERATOR: SpatialAnalyzer prompts for a selection during this step\n");
+                text.Append("      OPERATOR: SpatialAnalyzer prompts the operator during this step\n");
+            }
+
+            if (step.Checkpoints.HasFlag(OperatorCheckpoint.Before))
+            {
+                text.Append("      CHECKPOINT before dispatch: the operator confirms that no SpatialAnalyzer dialog is open\n");
+            }
+
+            if (step.Checkpoints.HasFlag(OperatorCheckpoint.After))
+            {
+                text.Append("      CHECKPOINT after the result: the operator records and dismisses any dialog\n");
+            }
+
+            if (step.ClientTimeout is { } deadline)
+            {
+                text.Append(CultureInfo.InvariantCulture, $"      client deadline: {deadline.TotalSeconds:0} s\n");
             }
 
             if (step.Requirement is not null)

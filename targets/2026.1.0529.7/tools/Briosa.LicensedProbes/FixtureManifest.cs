@@ -119,9 +119,19 @@ internal static class FixtureNames
     public const string GroupRotated = "G2";
     public const string GroupMeasured = "G3";
     public const string GroupGrid = "GRID";
+    public const string GroupFit = "GFIT";
+    public const string GroupDelete = "GDEL";
     public const string PlaneA = "PA";
     public const string PlaneB = "PB";
     public const string PolygonizeCloud = "CPOLY";
     public const string Relationship = "R1";
     public const string VectorGroup = "VG1";
+
+    // Probe 24 (#307 R0): one disposable cloud per destructive step, and a sentinel
+    // that no step targets. A destructive target's key is "cloud:" plus its name.
+    public const string DeleteCloudR0 = "CDELR";
+    public const string DeleteCloudR0a = "CDELRA";
+    public const string DeleteSentinelCloud = "CDELS";
+
+    public static string CloudKey(string cloud) => "cloud:" + cloud;
 }

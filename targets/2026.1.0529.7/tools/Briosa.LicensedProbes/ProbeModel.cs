@@ -101,6 +101,22 @@ internal static class ProbeOutcomeKindExtensions
     }
 }
 
+/// <summary>
+/// Where a licensed run pauses for the operator. The session sends nothing until
+/// the operator answers, and an unanswered checkpoint stops the session.
+/// </summary>
+[Flags]
+internal enum OperatorCheckpoint
+{
+    None = 0,
+
+    // Before dispatch: the operator confirms that no SpatialAnalyzer dialog is open.
+    Before = 1,
+
+    // After the result: the operator records any dialog the step raised and dismisses it.
+    After = 2
+}
+
 /// <summary>A labelled interpretation of one structural observation.</summary>
 internal sealed record ProbeHypothesis(string Label, string ObservationKey, string ExpectedValue);
 
@@ -128,6 +144,11 @@ internal sealed record ProbeStep(
     public string? CreatesFixture { get; init; }
 
     public bool RequiresOperator { get; init; }
+
+    public OperatorCheckpoint Checkpoints { get; init; }
+
+    // Replaces the session's step or operator timeout as this step's client deadline.
+    public TimeSpan? ClientTimeout { get; init; }
 
     public IReadOnlyList<ProbeHypothesis> Hypotheses { get; init; } = [];
 
