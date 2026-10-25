@@ -1309,11 +1309,21 @@ internal sealed partial class WorkerProcessSupervisor :
 
     // Called with _gate held when an exchange's bound has elapsed (#313). A blocking
     // SpatialAnalyzer dialog is reported as such; the probe only reads window state,
-    // and the dialog is left for the operator.
-    private string StalledExchangeDiagnostic(string timeoutDiagnosticCode) =>
-        _modalDialogProbe?.Observe() == SpatialAnalyzerModalDialogState.ModalDialogOpen
-            ? ModalDialogDiagnosticCode
-            : timeoutDiagnosticCode;
+    // and the dialog is left for the operator. The check is advisory, so its failure
+    // keeps the timeout code and never replaces the timeout's handling.
+    private string StalledExchangeDiagnostic(string timeoutDiagnosticCode)
+    {
+        try
+        {
+            return _modalDialogProbe?.Observe() == SpatialAnalyzerModalDialogState.ModalDialogOpen
+                ? ModalDialogDiagnosticCode
+                : timeoutDiagnosticCode;
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            return timeoutDiagnosticCode;
+        }
+    }
 
     private void LogInteractionMode(LogLevel level, int? mpResultCode, string diagnosticCode) =>
         LogInteractionModeApplied(level, _interactionMode,
