@@ -21,6 +21,7 @@ to correct and resend.
 | `reporting_operations.create_chart_from_vector_group` | `template_chart_name` | Absent or empty: rejected | Absent: setter omitted. Empty: rejected. |
 | `utility_operations.set_user_interface_profile` | `profile_file_name` | Absent or empty: rejected | Absent: setter omitted. Empty: rejected. |
 | `construction_operations.construct_planes_bounding_point_group` | `resulting_high_plane_name`, `resulting_low_plane_name` | Absent or empty: rejected | Absent: setter omitted, and SpatialAnalyzer uses its default plane name. Empty: rejected. |
+| `analysis_operations.fit_geometry_to_point_group`, `fit_geometry_to_points`, `fit_geometry_to_point_group_projected_to_plane` | `starting_condition_geometry` | Absent or empty: rejected | Absent: setter omitted, and SpatialAnalyzer fits without a starting geometry. Empty: rejected. |
 | `robot_operations.move_robot_machine_to_joint_pose_six_dof` | `joint_1` to `joint_6` | Absent: sent as 0 | Absent: rejected |
 | `instrument_operations.set_instrument_weather_setting` | `set_automatically` | Absent: sent as false | Absent: rejected |
 | `instrument_operations.set_instrument_weather_setting` | `temperature`, `pressure`, `relative_humidity` | Absent: sent as 0 | Absent: rejected when `set_automatically` is false; sent as 0 when it is true |
@@ -47,8 +48,8 @@ zero, false or blank default sends that value explicitly.
 - The relationship `tolerance` and `constraint` of the four `make_*_relationship`
   operations stay required. A caller that wants no limits passes an options
   value with every limit disabled.
-- The fit seed geometry, Ask for Point Name's `initial_value` and Import SA
-  File's `selected_collections` stay required until licensed probes settle them.
+- Ask for Point Name's `initial_value` and Import SA File's
+  `selected_collections` stay required until licensed probes settle them.
 - Other optional strings that are sent blank when absent keep that behavior
   until a probe shows that omitting the setter is equivalent.
 
@@ -57,9 +58,10 @@ zero, false or blank default sends that value explicitly.
 All six first-party client products (dotnet, js and py, one package per exact-SA
 target) change the same way:
 
-- Make the template chart and the profile file optional, with no default value,
-  and leave the field unset when the caller omits it. The USMN nominals group and
-  the bounding plane names are already optional.
+- Make the template chart, the profile file and the fit seed
+  (`starting_condition_geometry` of the three fit operations) optional, with no
+  default value, and leave the field unset when the caller omits it. The USMN
+  nominals group and the bounding plane names are already optional.
 - Make the relationship tolerance and constraint required. A client may offer a
   named all-disabled value, for example `ToleranceVectorOptions.NoLimits`, that
   the caller passes explicitly. It is never an implicit default.
