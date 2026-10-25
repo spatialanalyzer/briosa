@@ -8,6 +8,8 @@ param(
 # is each environment's branch rules and required reviewers, not this script. The
 # script keeps reviewed workflows from drifting: no tag-push trigger, environments
 # only in the listed jobs, and every signing job limited to main or a release line.
+# Scheduled R2 renewal has its own environment (D11): it holds the R2 credentials and
+# a catalog-only Azure identity, needs no reviewer, and never signs executables.
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -23,7 +25,7 @@ $releaseLine = "startsWith(github.ref, 'refs/heads/release/')"
 $environmentJobs = @{
     'licensed-sa.yml:licensed-sa'      = @{ Environment = 'licensed-sa-2026-1-0529-7'; Events = @('workflow_dispatch'); Signing = $false }
     'licensed-sa-2024.yml:licensed-sa' = @{ Environment = 'licensed-sa-2024-1-0508-5'; Events = @('workflow_dispatch'); Signing = $false }
-    'publish-r2.yml:publish'           = @{ Environment = 'release-signing'; Events = @('workflow_dispatch', 'schedule'); Signing = $true }
+    'publish-r2.yml:publish'           = @{ Environment = 'r2-publication'; Events = @('workflow_dispatch', 'schedule'); Signing = $true }
     'release.yml:sign'                 = @{ Environment = 'release-signing'; Events = @('workflow_dispatch'); Signing = $true; ReleaseLines = $true }
     'sign-catalog.yml:sign'            = @{ Environment = 'release-signing'; Events = @('workflow_dispatch'); Signing = $true }
     'signing-smoke.yml:signing'        = @{ Environment = 'release-signing'; Events = @('workflow_dispatch'); Signing = $true }
@@ -136,6 +138,24 @@ foreach ($key in $environmentJobs.Keys) {
     if (-not $found.ContainsKey($key)) { throw "Reviewed environment job '$key' is missing or names a different environment." }
 }
 
+# R2 credentials live only in the R2 environment and its one job, which signs
+# catalogs with the catalog-only identity and never runs Authenticode signing.
+foreach ($workflow in $workflows) {
+    $references = [regex]::Matches(($workflow.Lines -join "`n"), 'secrets\.R2_').Count
+    foreach ($name in $workflow.Jobs.Keys) {
+        $job = $workflow.Jobs[$name]
+        if ($job.Environment -ceq 'r2-publication') {
+            if ($job.Text -match 'artifact-signing-action|actions/sign-package') {
+                throw "$($workflow.Name):$name must not sign executables in the r2-publication environment."
+            }
+            $references -= [regex]::Matches($job.Text, 'secrets\.R2_').Count
+        }
+    }
+    if ($references -ne 0) {
+        throw "$($workflow.Name) references R2 credentials outside the r2-publication job."
+    }
+}
+
 # The release workflow decides eligibility from the dispatched ref and leaves the tag
 # to the maintainer, who creates it by publishing the draft release.
 $release = $workflows | Where-Object Name -ceq 'release.yml'
@@ -165,4 +185,5 @@ if ($publish.Text -notmatch ':refs/tags/\$tag' -or $publish.Text -notmatch 'Re-r
 
 Write-Host (
     'Release workflows never run on tag pushes, name environments only in reviewed jobs, ' +
-    'limit signing to main or a release line, and leave tag creation to the published draft release.')
+    'limit signing to main or a release line, keep R2 credentials in the R2 environment, ' +
+    'and leave tag creation to the published draft release.')
