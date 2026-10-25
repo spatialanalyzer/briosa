@@ -115,11 +115,13 @@ one side or no longer match. The report is advisory: it adds workflow warnings a
 a job summary but does not fail CI. See the [engineering checks](../../eng/README.md).
 
 One repository semantic version may produce independently identified server and
-protocol artifacts for several exact SA releases. The release workflow resolves
-the version, requires it to be greater than every other stable `v*` tag in the
-repository wherever that tag points, and
-records whether the commit is on `main`. A tag on a commit outside `main` fails;
-a manual dispatch outside `main` builds an unsigned dry run. A validation job
+protocol artifacts for several exact SA releases. The release workflow runs only
+from a manual dispatch. It resolves the version, requires it to be greater than
+every other stable `v*` tag in the repository wherever that tag points (or, on an
+open `release/<major>.<minor>` hotfix line, every stable tag of that line), and
+decides signing eligibility from the dispatched branch. A dispatch on any other
+branch builds an unsigned dry run; tag refs fail, because publishing the reviewed
+draft release creates the tag. A validation job
 repeats the CI restore, interop, protocol, naming-policy, build, and test gates for
 every target before packaging. Release assembly verifies every matrix result before
 publication. Language-client packages are built and versioned in their own

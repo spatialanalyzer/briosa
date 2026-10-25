@@ -43,8 +43,9 @@ function Assert-Rejected([string]$Name, [hashtable]$Parameters, [string]$Pattern
     if (-not $actual.Failed) { throw "$Name was accepted; expected rejection matching '$Pattern'." }
     if ($actual.Error -notmatch $Pattern) { throw "$Name failed with '$($actual.Error)', expected '$Pattern'." }
 }
-function Push([string]$Tag, [string]$Commit) { @{ EventName = 'push'; TagName = $Tag; Commit = $Commit } }
-function Dispatch([string]$Version, [string]$Commit) { @{ EventName = 'workflow_dispatch'; DispatchVersion = $Version; Commit = $Commit } }
+# Releases run only from workflow_dispatch; the dispatched ref decides eligibility.
+function Dispatch([string]$Ref, [string]$Version, [string]$Commit) { @{ Ref = $Ref; Version = $Version; Commit = $Commit } }
+function Main([string]$Version, [string]$Commit) { Dispatch 'refs/heads/main' $Version $Commit }
 
 try {
     [IO.Directory]::CreateDirectory($fixture) | Out-Null
@@ -68,29 +69,61 @@ try {
 
     # A lower version on the commit that already carries a higher release.
     Invoke-FixtureGit tag v0.9.2 $merge | Out-Null
-    Assert-Rejected 'lower tag on a released commit' (Push 'v0.9.2' $merge) 'not greater than the highest stable release v0\.10\.0'
+    Assert-Rejected 'lower version on a released commit' (Main '0.9.2' $merge) 'not greater than the highest stable release v0\.10\.0'
     Invoke-FixtureGit tag -d v0.9.2 | Out-Null
 
     # A lower version on an older main commit than an existing release.
     Invoke-FixtureGit tag v0.9.2 $middle | Out-Null
-    Assert-Rejected 'lower tag on an older commit' (Push 'v0.9.2' $middle) 'not greater than the highest stable release v0\.10\.0'
+    Assert-Rejected 'lower version on an older commit' (Main '0.9.2' $middle) 'not greater than the highest stable release v0\.10\.0'
     Invoke-FixtureGit tag -d v0.9.2 | Out-Null
 
-    # Re-running an existing release excludes only its own tag.
-    Assert-Accepted 'rerun of the released tag' (Push 'v0.10.0' $merge) 'v0.9.1' 'true'
-    # A higher release on the same commit keeps the other stable tag as its baseline.
+    # An existing tag for the version must point at the dispatched commit: a rerun, or
+    # a tag pushed before the dispatch. It is excluded from the version order.
+    Assert-Accepted 'rerun of a released version' (Main '0.10.0' $merge) 'v0.9.1' 'true'
     Invoke-FixtureGit tag v0.10.1 $merge | Out-Null
-    Assert-Accepted 'higher tag on a released commit' (Push 'v0.10.1' $merge) 'v0.10.0' 'true'
+    Assert-Accepted 'higher tag on a released commit' (Main '0.10.1' $merge) 'v0.10.0' 'true'
     Invoke-FixtureGit tag -d v0.10.1 | Out-Null
+    Assert-Rejected 'existing version on another commit' (Main '0.10.0' $head) 'v0\.10\.0 already points to'
+    Invoke-FixtureGit tag v0.12.0 $topic | Out-Null
+    Assert-Rejected 'tag pushed on another commit' (Main '0.12.0' $head) 'v0\.12\.0 already points to'
+    Invoke-FixtureGit tag -d v0.12.0 | Out-Null
+
     # Tags reachable only through a merge's second parent count; prereleases never do.
-    Assert-Accepted 'next release on main' (Push 'v0.11.0' $head) 'v0.10.0' 'true'
-    Assert-Accepted 'dispatch on main' (Dispatch '0.11.0' $head) 'v0.10.0' 'true'
-    Assert-Accepted 'prerelease dispatch outside main' (Dispatch '0.11.0-rc.2' $topic) 'v0.10.0' 'false'
-    Assert-Accepted 'no reachable baseline' (Dispatch '0.12.0' $root) '' 'true'
-    Assert-Rejected 'dispatch of an existing version' (Dispatch '0.10.0' $head) 'not greater than the highest stable release v0\.10\.0'
-    Assert-Rejected 'tag outside main' (Push 'v0.12.0' $topic) 'does not point to a commit on main'
-    Assert-Rejected 'unsupported version' (Dispatch '1.0' $head) 'not a supported semantic version'
-    Assert-Rejected 'non-version tag' (Push 'release-1' $head) 'not a v-prefixed tag'
+    Assert-Accepted 'next release on main' (Main '0.11.0' $head) 'v0.10.0' 'true'
+    Assert-Accepted 'no reachable baseline' (Main '0.12.0' $root) '' 'true'
+    Assert-Rejected 'main ref with a commit outside main' (Main '0.12.0' $topic) 'is not on main'
+
+    # Any other branch is an unsigned dry run, ordered like main.
+    Assert-Accepted 'prerelease dry run outside main' (Dispatch 'refs/heads/topic' '0.11.0-rc.2' $topic) 'v0.10.0' 'false'
+    Assert-Accepted 'unrecognized release branch name' (Dispatch 'refs/heads/release/next' '0.11.0-rc.2' $topic) 'v0.10.0' 'false'
+    Assert-Rejected 'dry run of an old version' (Dispatch 'refs/heads/topic' '0.9.9' $topic) 'not greater than the highest stable release v0\.10\.0'
+
+    # Publishing the draft release creates the tag, so tag refs never release.
+    Assert-Rejected 'tag ref' (Dispatch 'refs/tags/v0.12.0' '0.12.0' $head) 'Dispatch releases from main or a release branch'
+    Assert-Rejected 'pull request ref' (Dispatch 'refs/pull/1/merge' '0.12.0' $head) 'not a branch'
+    Assert-Rejected 'unsupported version' (Main '1.0' $head) 'not a supported semantic version'
+
+    # A release line is cut from a stable release of that line on main. Later releases
+    # on main do not block its hotfixes; releases of the same line do.
+    Invoke-FixtureGit tag v0.11.0 $head | Out-Null
+    Invoke-FixtureGit switch --quiet -c release/0.10 $merge | Out-Null
+    $hotfix = New-FixtureCommit 'hotfix'
+    Invoke-FixtureGit switch --quiet main | Out-Null
+    $line = 'refs/heads/release/0.10'
+    Assert-Accepted 'hotfix behind a later main release' (Dispatch $line '0.10.1' $hotfix) 'v0.10.0' 'true'
+    Assert-Accepted 'hotfix prerelease' (Dispatch $line '0.10.1-rc.1' $hotfix) 'v0.10.0' 'true'
+    Assert-Rejected 'hotfix outside its line' (Dispatch $line '0.11.1' $hotfix) 'not in the 0\.10 release line'
+    Assert-Rejected 'hotfix below its line' (Dispatch $line '0.10.0-rc.9' $hotfix) 'not greater than the highest stable 0\.10 release v0\.10\.0'
+    Invoke-FixtureGit tag v0.10.1 $hotfix | Out-Null
+    Invoke-FixtureGit switch --quiet release/0.10 | Out-Null
+    $hotfix2 = New-FixtureCommit 'hotfix-two'
+    Invoke-FixtureGit switch --quiet main | Out-Null
+    Assert-Accepted 'second hotfix on a line' (Dispatch $line '0.10.2' $hotfix2) 'v0.10.1' 'true'
+    Assert-Rejected 'repeated hotfix version' (Dispatch $line '0.10.1' $hotfix2) 'v0\.10\.1 already points to'
+    Assert-Accepted 'main still orders after hotfixes' (Main '0.11.1' $head) 'v0.11.0' 'true'
+    Assert-Rejected 'line without a release of its own' (Dispatch 'refs/heads/release/0.12' '0.12.1' $head) 'must descend from a stable v0\.12\.\* release on main'
+    Invoke-FixtureGit tag v0.13.0 $topic | Out-Null
+    Assert-Rejected 'line cut from a release outside main' (Dispatch 'refs/heads/release/0.13' '0.13.1' $topic) 'must descend from a stable v0\.13\.\* release on main'
 
     Write-Host 'Release version resolution policy tests passed.'
 }
