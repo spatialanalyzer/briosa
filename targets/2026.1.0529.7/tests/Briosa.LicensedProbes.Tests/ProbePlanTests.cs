@@ -187,12 +187,19 @@ public sealed class ProbePlanTests
     }
 
     [Fact]
-    public void PublicDryRunMarksOperatorStepsAndHasNoDestructiveStep()
+    public void PublicDryRunMarksOperatorStepsAndOnlyTheR0DeletesAsDestructive()
     {
         var text = ProbePlan.Create(ProbePhase.PublicApi, TestSupport.SentinelManifest()).RenderDryRun();
+        var destructive = text.Split('\n').Where(static line => line.Contains("DESTRUCTIVE", StringComparison.Ordinal)).ToList();
 
-        Assert.DoesNotContain("DESTRUCTIVE", text, StringComparison.Ordinal);
+        Assert.Equal(
+            [
+                "      DESTRUCTIVE: only the harness-created cloud:CDELR; refused unless created this session",
+                "      DESTRUCTIVE: only the harness-created cloud:CDELRA; refused unless created this session"
+            ],
+            destructive);
         Assert.Contains("OPERATOR:", text, StringComparison.Ordinal);
+        Assert.Contains("CHECKPOINT before dispatch", text, StringComparison.Ordinal);
         Assert.DoesNotContain(TestSupport.Sentinel, text, StringComparison.Ordinal);
     }
 

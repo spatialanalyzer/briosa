@@ -34,7 +34,7 @@ public sealed class LicensedProbeProgramTests : IDisposable
     {
         using var output = new StringWriter();
         using var error = new StringWriter();
-        var exit = await LicensedProbeProgram.RunAsync(arguments, output, error, factory, new FixedClock(), CancellationToken.None);
+        var exit = await LicensedProbeProgram.RunAsync(arguments, output, error, factory, FakeOperator.Factory, new FixedClock(), CancellationToken.None);
         return (exit, output.ToString(), error.ToString());
     }
 
@@ -77,7 +77,8 @@ public sealed class LicensedProbeProgramTests : IDisposable
         Directory.CreateDirectory(output);
         await File.WriteAllTextAsync(Path.Combine(output, "keep.txt"), "x");
 
-        var (exit, _, _) = await Run(Forbidden, "--phase", "public-api", ProbeTarget.ConfirmFlag, "--fixtures", Manifest(), "--output-directory", output);
+        var (exit, _, _) = await Run(Forbidden, "--phase", "public-api", ProbeTarget.ConfirmFlag, "--fixtures", Manifest(), "--output-directory", output,
+            ProbeOptions.RestoreModeOption, "manual");
 
         Assert.Equal(2, exit);
     }
@@ -107,7 +108,8 @@ public sealed class LicensedProbeProgramTests : IDisposable
                 transport = new FakeTransport(options.Phase, TestSupport.Succeeding);
                 return transport;
             },
-            "--phase", "public-api", ProbeTarget.ConfirmFlag, "--fixtures", Manifest(), "--output-directory", output);
+            "--phase", "public-api", ProbeTarget.ConfirmFlag, "--fixtures", Manifest(), "--output-directory", output,
+            ProbeOptions.RestoreModeOption, "manual");
 
         Assert.Equal(0, exit);
         Assert.NotNull(transport);
@@ -124,9 +126,59 @@ public sealed class LicensedProbeProgramTests : IDisposable
         var (exit, console, _) = await Run(options => new FakeTransport(options.Phase, step => step.Id == "p02-value"
                 ? ProbeOutcome.Unknown("grpc:DeadlineExceeded", "untyped-rpc-failure")
                 : TestSupport.Succeeding(step)),
-            "--phase", "public-api", ProbeTarget.ConfirmFlag, "--fixtures", Manifest(), "--output-directory", Path.Combine(_root, "stopped"));
+            "--phase", "public-api", ProbeTarget.ConfirmFlag, "--fixtures", Manifest(), "--output-directory", Path.Combine(_root, "stopped"),
+            ProbeOptions.RestoreModeOption, "manual");
 
         Assert.Equal(1, exit);
         Assert.Contains("stopped_at=p02-value", console, StringComparison.Ordinal);
+        Assert.Contains(ProbeOptions.RestoreOnlyFlag, console, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("public-api")]
+    [InlineData("worker")]
+    public async Task ALicensedRunThatChangesTheInteractionModeNeedsTheOperatorsRestoreMode(string phase)
+    {
+        string[] worker = phase == "worker"
+            ?
+            [
+                "--worker-path", Path.Combine(_root, "Briosa.Worker.exe"), "--connected-sa-attested-version", ProbeTarget.SpatialAnalyzerTarget,
+                "--connected-sa-attestation-reference", "r-connected"
+            ]
+            : [];
+
+        var (exit, _, error) = await Run(Forbidden, ["--phase", phase, ProbeTarget.ConfirmFlag, "--fixtures", Manifest(),
+            "--output-directory", Path.Combine(_root, "no-restore"), .. worker]);
+
+        Assert.Equal(2, exit);
+        Assert.Contains(ProbeOptions.RestoreModeOption, error, StringComparison.Ordinal);
+        Assert.False(Directory.Exists(Path.Combine(_root, "no-restore")));
+    }
+
+    [Fact]
+    public async Task ExcludingProbe25RunsWithoutARestoreMode()
+    {
+        FakeTransport? transport = null;
+
+        var (exit, _, _) = await Run(options => transport = new FakeTransport(options.Phase, TestSupport.Succeeding),
+            "--phase", "public-api", ProbeTarget.ConfirmFlag, "--fixtures", Manifest(), "--output-directory", Path.Combine(_root, "x25"),
+            "--exclude-probe", "25");
+
+        Assert.Equal(0, exit);
+        Assert.DoesNotContain(transport!.Executed, static id => id.Contains("25", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task TheRestoreOnlyRunSendsOnlyTheRestoreStep()
+    {
+        FakeTransport? transport = null;
+
+        var (exit, console, _) = await Run(options => transport = new FakeTransport(options.Phase, TestSupport.Succeeding),
+            "--phase", "public-api", ProbeTarget.ConfirmFlag, "--fixtures", Manifest(), "--output-directory", Path.Combine(_root, "restore"),
+            ProbeOptions.RestoreOnlyFlag, ProbeOptions.RestoreModeOption, "automatic");
+
+        Assert.Equal(0, exit);
+        Assert.Equal(["p25-restore"], transport!.Executed);
+        Assert.Contains("completed=True", console, StringComparison.Ordinal);
     }
 }
