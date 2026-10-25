@@ -235,12 +235,30 @@ explicit semantic version; no workflow runs on tag pushes. To release:
 3. When the build and validation jobs pass, approve the `release-signing` deployment.
 4. The `publish` job creates a **draft** GitHub Release with the signed assets,
    targeting the dispatched commit. Review it, then publish it; publishing creates
-   the `v<version>` tag at that commit. If GitHub refuses to create the draft for a
-   tag that does not exist yet, push the tag at the dispatched commit and rerun the
-   failed job; an existing tag is accepted only when it points there.
+   the `v<version>` tag at that commit. If GitHub refuses the draft, see
+   [If the draft release is refused](#if-the-draft-release-is-refused).
 
 A dispatch on any other branch is an unsigned dry run. Do not dispatch a product
 version just to test authentication; use the signing probes below.
+
+### If the draft release is refused
+
+GitHub does not let the workflow token create a release whose commit has workflow
+files that differ from `main`, for example when a workflow change merges while the
+signing approval is pending. The `publish` job then fails after signing; nothing is
+released, and its job summary repeats these steps. To release the approved commit
+with the same signed files:
+
+1. Push the tag at the run's commit with your own credentials over SSH:
+   `git push git@github.com:spatialanalyzer/briosa.git <commit>:refs/tags/v<version>`.
+   The release tag ruleset lets organization owners create it, and the `version`
+   job accepts an existing tag only when it points at the dispatched commit.
+2. Use **Re-run failed jobs** on the same run. With the tag in place GitHub creates
+   no tag, so the `publish` job creates the draft with the same signed files.
+3. If the draft is still refused, download the run's signed files with
+   `gh run download <run-id> --repo spatialanalyzer/briosa --pattern 'briosa-<version>-sa-*-release-assets'`
+   and create the draft on the Releases page from the existing tag, attaching every
+   downloaded file.
 
 In this repository, the `version` job also decides signing eligibility and checks
 version order before any product build:

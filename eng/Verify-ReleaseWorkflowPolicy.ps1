@@ -176,6 +176,12 @@ if ($publish.If -notmatch '^inputs\.publish && needs\.version\.outputs\.eligible
     $publish.Text -notmatch '''--draft''' -or $publish.Text -notmatch '''--target'',\s*\$env:GITHUB_SHA') {
     throw 'The release.yml publish job must create a draft release targeting the signed commit, only when publish is requested.'
 }
+# GitHub refuses release creation by the workflow token when the signed commit has
+# workflow files that differ from main; the summary must give the maintainer's
+# recovery for the same commit and signed files.
+if ($publish.Text -notmatch ':refs/tags/\$tag' -or $publish.Text -notmatch 'Re-run failed jobs' -or $publish.Text -notmatch 'gh run download') {
+    throw "The release.yml publish job must write the maintainer's recovery for the signed commit when the draft release is refused."
+}
 
 Write-Host (
     'Release workflows never run on tag pushes, name environments only in reviewed jobs, ' +

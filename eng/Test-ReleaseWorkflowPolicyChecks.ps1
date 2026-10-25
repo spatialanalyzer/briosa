@@ -84,6 +84,9 @@ try {
     Assert-Rejected 'publish without the input' {
         param($d) Set-WorkflowText $d 'release.yml' "    if: inputs.publish && needs.version.outputs.eligible == 'true'" "    if: needs.version.outputs.eligible == 'true'"
     } 'must create a draft release'
+    Assert-Rejected 'draft refusal without a recovery' {
+        param($d) Set-WorkflowText $d 'release.yml' 'Re-run failed jobs' 'Retry'
+    } 'must write the maintainer''s recovery'
 
     Write-Host 'Release workflow policy rejects tag triggers, unreviewed environments, wider signing refs, OIDC without an environment, misplaced R2 credentials, executable signing in the R2 environment, and non-draft releases.'
 }
