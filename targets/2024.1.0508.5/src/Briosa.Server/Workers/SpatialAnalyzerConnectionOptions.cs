@@ -8,6 +8,10 @@ internal sealed record SpatialAnalyzerConnectionOptions(
 {
     internal const string HostKey = "Briosa:SpatialAnalyzer:Host";
     internal const string DefaultHost = "localhost";
+    internal const string InteractionModeKey = "Briosa:SpatialAnalyzer:InteractionMode";
+
+    public SpatialAnalyzerInteractionMode InteractionMode { get; init; } =
+        SpatialAnalyzerInteractionMode.Unchanged;
 
     public static SpatialAnalyzerConnectionOptions BindAndValidate(
         IConfiguration configuration)

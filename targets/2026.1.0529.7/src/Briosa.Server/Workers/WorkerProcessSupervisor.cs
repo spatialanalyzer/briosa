@@ -23,6 +23,7 @@ internal sealed partial class WorkerProcessSupervisor :
     private readonly TimeProvider _timeProvider;
     private readonly ILogger<WorkerProcessSupervisor> _logger;
     private readonly BriosaTelemetry? _telemetry;
+    private readonly SpatialAnalyzerInteractionMode _interactionMode;
     private WorkerExecutionQueue? _executionQueue;
     private WorkerHeartbeatMonitor? _heartbeatMonitor;
     private WorkerProcessLifetime? _processLifetime;
@@ -52,7 +53,8 @@ internal sealed partial class WorkerProcessSupervisor :
         TimeProvider? timeProvider = null,
         ILogger<WorkerProcessSupervisor>? logger = null,
         ExactTargetIdentityPolicy? identityPolicy = null,
-        BriosaTelemetry? telemetry = null)
+        BriosaTelemetry? telemetry = null,
+        SpatialAnalyzerInteractionMode interactionMode = SpatialAnalyzerInteractionMode.Unchanged)
     {
         ArgumentNullException.ThrowIfNull(processFactory);
         ArgumentNullException.ThrowIfNull(policy);
@@ -66,6 +68,7 @@ internal sealed partial class WorkerProcessSupervisor :
         _timeProvider = timeProvider ?? TimeProvider.System;
         _logger = logger ?? NullLogger<WorkerProcessSupervisor>.Instance;
         _telemetry = telemetry;
+        _interactionMode = interactionMode;
         telemetry?.Attach(this);
         _current = new WorkerLifecycleSnapshot(
             WorkerLifecycleState.Stopped,
@@ -104,6 +107,8 @@ internal sealed partial class WorkerProcessSupervisor :
     internal WorkerLifecyclePolicy LifecyclePolicy => _policy;
 
     internal WorkerExecutionPolicy ExecutionPolicy => _executionPolicy;
+
+    internal SpatialAnalyzerInteractionMode InteractionMode => _interactionMode;
 
     public WorkerExecutionSnapshot ExecutionSnapshot => new(
         _executionPolicy.QueueCapacity,
