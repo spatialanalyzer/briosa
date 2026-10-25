@@ -10,7 +10,7 @@ public sealed class ProbeRecorderTests
             {
                 ConnectedSpatialAnalyzerAttestedVersion = ProbeTarget.SpatialAnalyzerTarget,
                 ConnectedSpatialAnalyzerAttestationReference = "r277-connected"
-            }, CancellationToken.None);
+            }, new FakeOperator(), CancellationToken.None);
 
     [Fact]
     public async Task JsonRecordsStructureWithoutManualValues()

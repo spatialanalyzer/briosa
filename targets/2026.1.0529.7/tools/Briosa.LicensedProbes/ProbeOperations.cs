@@ -146,9 +146,9 @@ internal static class ProbeOperations
             ("differs_from_input", Observations.Flag(result.CollectionObjectName is not null &&
                 !string.Equals(result.CollectionObjectName.ObjectName, request.CollectionObjectName.ObjectName, StringComparison.Ordinal)))));
 
-    // The reviewed destructive operation. No planned step uses it since probes 15 and 16
-    // were retired with Delete Cloud Points by X Y Z Range (#307); it is the #307
-    // re-probe control (R0), and ProbePlan limits it to one harness-created cloud.
+    // The reviewed destructive operation: probe 24, the #307 re-probe control R0 (probes 15
+    // and 16 were retired with Delete Cloud Points by X Y Z Range). ProbePlan limits it to
+    // one harness-created cloud.
     public static ProbeOperation DeleteCloudPointsByRadialDistanceFromPoints { get; } = Op<Api.DeleteCloudPointsByRadialDistanceFromPointsRequest, Api.DeleteCloudPointsByRadialDistanceFromPointsResult>(
         Ops.CloudAndMeshOperations.DeleteCloudPointsByRadialDistanceFromPointsOperation.Descriptor,
         Ops.CloudAndMeshOperations.DeleteCloudPointsByRadialDistanceFromPointsOperation.CreateCommand,
@@ -172,6 +172,24 @@ internal static class ProbeOperations
             ("total_vectors", Observations.Count(result.TotalVectors)),
             ("percent_in_tolerance_fractional", Observations.Flag(IsFractional(result.VectorsInTolerance2))),
             ("percent_out_of_tolerance_fractional", Observations.Flag(IsFractional(result.VectorsOutOfTolerance2)))));
+
+    // Probe 25 (#313): SA Interaction Mode and an operator prompt under it.
+    public static ProbeOperation SetInteractionMode { get; } = Op<Api.SetInteractionModeRequest, Api.SetInteractionModeResult>(
+        Ops.UtilityOperations.SetInteractionModeOperation.Descriptor,
+        Ops.UtilityOperations.SetInteractionModeOperation.CreateCommand,
+        static (invoker, request, options) => Utility(invoker).SetInteractionModeAsync(request, options),
+        static result => result.Execution);
+
+    // The answer is a value, so only its comparison with the two harness constants is recorded.
+    public static ProbeOperation AskForString { get; } = Op<Api.AskForStringRequest, Api.AskForStringResult>(
+        Ops.ProcessFlowOperations.AskForStringOperation.Descriptor,
+        Ops.ProcessFlowOperations.AskForStringOperation.CreateCommand,
+        static (invoker, request, options) => ProcessFlow(invoker).AskForStringAsync(request, options),
+        static result => result.Execution,
+        static (request, result) => Observations.Of(
+            ("answer_is_initial", Observations.Flag(string.Equals(result.Answer, request.InitialAnswer, StringComparison.Ordinal))),
+            ("answer_is_operator_entry", Observations.Flag(
+                string.Equals(result.Answer, ProbeCatalog.AskOperatorEntry, StringComparison.Ordinal)))));
 
     // Step-text probes (#19-21).
     public static ProbeOperation ComputeGroupToGroupOrientation { get; } = Op<Api.ComputeGroupToGroupOrientationRxRyRzRequest, Api.ComputeGroupToGroupOrientationRxRyRzResult>(
@@ -214,6 +232,8 @@ internal static class ProbeOperations
     private static Api.ConstructionOperations.ConstructionOperationsClient Construction(CallInvoker invoker) => new(invoker);
 
     private static Api.InstrumentOperations.InstrumentOperationsClient Instrument(CallInvoker invoker) => new(invoker);
+
+    private static Api.ProcessFlowOperations.ProcessFlowOperationsClient ProcessFlow(CallInvoker invoker) => new(invoker);
 
     private static Api.RelationshipOperations.RelationshipOperationsClient Relationship(CallInvoker invoker) => new(invoker);
 

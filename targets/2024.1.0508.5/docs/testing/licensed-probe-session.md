@@ -5,7 +5,9 @@
 `2024.1.0508.5`. It settles specific binding questions that portable tests cannot
 answer. It is not broad validation of the operation surface.
 
-The maintainer approved the probe list on 2026-10-03. **Attaching to a running
+The maintainer approved the probe list on 2026-10-03, and the second session's
+changes (probes 24 and 25, and the re-runs of probes 2, 11, 17, and 22) on
+2026-10-19. **Attaching to a running
 SpatialAnalyzer still needs a separate maintainer go-ahead at session time**
 (AGENTS.md validation level 5). Until then, use the dry run only. The harness is
 never packaged, never part of a licensed-runner payload, and never run by
@@ -49,14 +51,30 @@ exactly as it will be sent, using labels only and never values.
 | 4 | UI profile file | value: public. Omit and blank: worker. | `p04-*` |
 | 5, 6 | Bounding plane High and Low names (SDK defaults `HighPlane` and `LowPlane`) | value: public. Omit and blank: worker. | `p05-06-*`, `p05-*`, `p06-*`, plus default-name and harness-name counts |
 | 7 to 10 | Retired: the callout view list getter and setter, Circle Line Mode, and mirror frame plane substitutions | none | none (see below) |
-| 11 | Mesh Orientation via `SetStringArg` | public | `p11`, `c11` |
+| 11 | Mesh Orientation via `SetStringArg`, in isolation ([#309](https://github.com/spatialanalyzer/briosa/issues/309)) | public; the first probe after the fixtures, with operator checkpoints before and after | `p11`, `c11` |
 | 12, 13 | Getters without evidence | public | `p12`, `p13` |
 | 14 | Retired: the instrument reference list getter after a wildcard add | none | none (see below) |
 | 15, 16 | Retired: the restored `DeleteCloudPointsByXYZRange` bounds | none | none (see below) |
 | 17, 18 | Label case sensitivity | worker (the API cannot recase a label) | `p17-recased` (control `p02-shipped`), `p18-shipped`, `p18-recased` |
 | 19 to 21 | SDK step text (#246) | worker (both texts on both targets) | `p19-*`, `p20-*`, `p21-*` |
-| 22 | Vector group runtime-select getter (0.9.1) | public; the operator selects `B277::VG1` | `p22` |
+| 22 | Vector group runtime-select getter (0.9.1), with the gesture SA's help documents ([#312](https://github.com/spatialanalyzer/briosa/issues/312)) | public; the operator completes the selection | `p22` |
 | 23 | Vector group fractional percentages (0.9.1) | public | `p23` |
+| 24 | R0 and R0a: does the radial delete accept the `Cloud Names` reference list that the deleted X Y Z range operation sent ([#307](https://github.com/spatialanalyzer/briosa/issues/307), [#310](https://github.com/spatialanalyzer/briosa/issues/310))? | public; destructive on disposable clouds only | `c24-*`, `p24-r0`, `p24-r0a` |
+| 25 | Does SA Interaction Mode Silent suppress the observed blocking dialogs, and do prompts still work under it ([#313](https://github.com/spatialanalyzer/briosa/issues/313))? | public: zero-match wildcard, missing template chart, runtime select, Ask for String. Worker: blank High and Low plane names. | `p25-*`, `c25-*`; see [Probe 25](#probe-25-interaction-mode) |
+
+**Probe 2 fixture ([#311](https://github.com/spatialanalyzer/briosa/issues/311)).** The fits
+in probes 2 and 17 fit the coplanar group `GFIT` (the four corners of `G1`). The
+2026-10-07 session fitted `G1`, whose two points at z = ±20 exceed the default
+fit profile's tolerance. Both targets' MP documentation lists that case as
+`PARTIAL SUCCESS` ("the fit was successful, but the tolerance was exceeded"),
+which is the MP code `4` that session recorded. A blank `Fit Profile Name`, which
+the shipped mapping sends when the field is absent, selects the default profile.
+
+**Probe 22 gesture ([#312](https://github.com/spatialanalyzer/briosa/issues/312)).**
+The SA 2024 User Manual (chapter 6, "F2 Selection") gives this gesture for a
+selection prompt, and says that a selection in the tree needs a double-click.
+During `p22`, press **F2**, select `B277::VG1` in the selection tree, click
+**OK**, then press **Enter**.
 
 Step texts for #19 to #21 are the SDK View Code forms, which are authoritative
 per #246: `Compute Group to Group Orientation (Rx,Ry,Rz)`,
@@ -94,14 +112,27 @@ that session.
   harness counts processes by name only.
 - **Harness-owned fixtures.** Setup counts collections, creates `B277`, and
   requires the count to rise by exactly one. Manual fixtures may never use `B277`.
-- **Destructive scope.** No planned step destroys anything since probes 15
-  and 16 were retired. The guards stay for a future reviewed destructive step:
-  the only accepted destructive request is
-  `DeleteCloudPointsByRadialDistanceFromPoints` (the #307 re-probe control).
-  Plan validation proves that it names only one disposable cloud in `B277`,
-  points only in `B277`, and that an earlier setup step creates the cloud. The
-  session refuses the step unless that creation succeeded in the same session.
-  The worker phase never runs destructive operations.
+- **Destructive scope.** Only probe 24's two steps destroy anything: `p24-r0`
+  and `p24-r0a` each delete the points within 1 unit of `D1` from their own
+  disposable 8-point cloud (`CDELR`, `CDELRA`). The only accepted destructive
+  request is `DeleteCloudPointsByRadialDistanceFromPoints`. Plan validation
+  proves that it names only one disposable cloud in `B277`, points only in
+  `B277`, and that an earlier setup step creates the cloud. The session refuses
+  the step unless that creation succeeded in the same session. Each delete
+  requires a before-count of exactly 8, and the sentinel cloud `CDELS`, which no
+  step targets, must still hold 8 points after both deletes, or the session
+  stops as a containment failure. The worker phase never runs destructive
+  operations.
+- **Operator checkpoints.** A licensed run pauses at each checkpoint the dry
+  run lists, and sends nothing until the operator answers it (see
+  [Operator checkpoints](#operator-checkpoints)). An unanswered checkpoint stops
+  the session (`operator-checkpoint-not-confirmed`). After a step, the step's own
+  result is kept.
+- **Interaction mode.** SA keeps its interaction mode across restarts and has no
+  getter. Probe 25 therefore changes it only between its own baseline and restore
+  steps, the plan refuses to end with Silent in effect, and a licensed run that
+  includes probe 25 requires the operator's `--restore-sa-interaction-mode`. See
+  [Probe 25](#probe-25-interaction-mode).
 - **Stop on the first unexpected disposition.** Guards, setup steps, and worker
   controls accept only success. Wildcard checks also accept an MP failure,
   because an empty match may be reported that way. Probes and variants accept
@@ -154,9 +185,11 @@ runs.
 | `G2`: `G1` rotated 1° about Z | Group-to-group orientation (#19) |
 | `PA` (normal +Z) and `PB` (45° to `PA`) | Seed geometry, reference plane, angle (#20) |
 | `G3`: measured P1 to P3, one within ±1 and two 5 units out | Relationship `R1` and vector group `VG1` (one third in tolerance) |
+| `GFIT`: the four coplanar corners of `G1` | Fits (#2, #17) |
 | `GRID` (5 × 5 planar) and cloud `CPOLY` | Polygonize (#11) |
+| `GDEL` (eight points D1 to D9 without D6, as in the 2026-10-07 session) and clouds `CDELR`, `CDELRA`, and the sentinel `CDELS`, each built from `GDEL` | Radial delete controls (#24) |
 
-The worker phase creates only `G1`, `G2`, `PA`, `PB`, `G3`, `R1`, and `VG1`.
+The worker phase creates only `G1`, `G2`, `GFIT`, `PA`, `PB`, `G3`, `R1`, and `VG1`.
 
 ### Prepared manually
 
@@ -195,6 +228,79 @@ Fixture manifest (the harness reads it; its values never appear in any output):
 The manifest no longer accepts `circle_line_surface` or `callout_view`; they
 served the retired probes. Remove both keys from a manifest written for the
 2026-10-07 session, or the harness refuses it as an unknown property.
+
+## Probe 25: interaction mode
+
+Probe 25 runs last in each phase. It verifies, before the
+[#313](https://github.com/spatialanalyzer/briosa/issues/313) `InteractionMode`
+setting is built, what SA Interaction Mode Silent does to the blocking dialogs
+the 2026-10-07 session observed.
+
+| Step | Public phase | Worker phase |
+| --- | --- | --- |
+| Baseline | `p25-baseline` sets the restore mode | `p25-baseline` sets the restore mode |
+| Before Silent | zero-match wildcard (`c25-zero-match-baseline`), template chart that matches no chart (`p25-chart-missing-baseline`), Ask for String (`p25-ask-baseline`) | blank High and Low plane names (`p25-blank-*-baseline`) |
+| Silent | `p25-silent` | `p25-silent` |
+| Under Silent | the same three triggers, plus the runtime select with the probe 22 gesture | the same two blanks, with harness-name and default-name counts |
+| Restore | `p25-restore` | `p25-restore` |
+
+- **Modes.** `Set Interaction Mode` sets three values at once. Every probe 25
+  step sends MP mode `Halt on Failure or Partial Success`, which SA documents as
+  the value it returns to when a script exits, and MP dialog mode
+  `Allow Application Interaction` (maintainer decision, 2026-10-19), so the
+  operator can use SA's UI during prompts. Only the SA mode changes: the
+  baseline and restore steps send `--restore-sa-interaction-mode`, the Silent
+  step sends `Silent`. The baseline step makes the before-Silent steps a control
+  in the same SA instance.
+- **The restore mode comes from the operator.** SA persists the SA mode and the
+  MP dialog mode across restarts and has no getter. On the probe machine a value
+  named `InteractionMode` exists under
+  `HKCU\Software\New River Kinematics\Spatial Analyzer\Settings`. Read it before
+  the session, at the `p25-baseline`, `p25-silent`, and `p25-restore`
+  checkpoints, and include it in the checkpoint answer, for example
+  `none; InteractionMode registry value 0`. Whether and when SA writes it, and
+  which mode each value means, are observations for the evidence record, not
+  facts the harness relies on.
+- **Dialogs that Silent does not suppress block the MP** until the operator
+  clicks OK, as in the 2026-10-07 session. Watch the screen during every probe
+  25 step and dismiss such a dialog promptly. In the public phase, start the
+  server with a 2-minute quick budget and the harness with a longer step timeout
+  (see [Phase 1](#phase-1-public-api)), so a dismissal is not overtaken by the
+  watchdog.
+- **Prompts.** For `p25-ask-baseline` and `p25-ask-silent`, replace the answer
+  with `B277-entered` and click OK. The record keeps only whether the answer was
+  the initial answer or that entry. For `p25-runtime-select-silent`, use the
+  probe 22 gesture. Under Silent, SA may not prompt at all; record what it does.
+- **If a session stops inside probe 25** after `p25-silent`, SA stays in Silent.
+  Recover as in [When a session stops](#when-a-session-stops), then run the
+  same phase with `--interaction-mode-restore-only --restore-sa-interaction-mode <mode>`
+  on a clean SA. That plan sends only `p25-restore`.
+- `--exclude-probe 25` removes the whole block; the run then needs no restore mode.
+
+## Operator checkpoints
+
+A licensed run prints one progress line when it dispatches each step and one
+when the step returns, with the step identifier, the outcome kind, the MP code,
+and the elapsed time. At each checkpoint it writes a request file into the
+`checkpoints` folder of `--output-directory`, prints its name, and waits up to
+`--operator-timeout-seconds` for the matching `.response.txt` file. Write one
+line to it:
+
+- `none`, optionally followed by a note after `;`, when no dialog was open; or
+- `dialog: <exact title and text>`, including a dialog you dismissed while the
+  step ran, and what you did, for example
+  `dialog: Template Chart Not found (dismissed with OK during the step)`.
+
+The answer must be printable ASCII, at most 300 characters, with no backslash,
+backtick, or pipe, so no path can be recorded by mistake. A refused answer is set
+aside as `.refused-<n>.txt` and the harness keeps waiting. Checkpoints:
+
+| Step | When | Why |
+| --- | --- | --- |
+| `p11` | before and after | #309: no dialog may be open when the polygonize is sent |
+| `p24-r0`, `p24-r0a` | after | #307: record any dialog from the delete before the next step |
+| `p22` | after | #312: record the gesture and any dialog |
+| every probe 25 step | after | #313: record whether each trigger opened a dialog |
 
 ## Dry run
 
@@ -279,22 +385,30 @@ non-sensitive attestation references, as for `Test-LicensedSpatialAnalyzer.ps1`.
    `Server admission` arguments that the public-phase dry run prints. The
    packaged `standard` profile does not admit the device and operator-guided
    probes, so the harness needs `--Briosa:Security:Operations:Profile=device`
-   plus a per-operation `allow` override for each operator-guided selector. The
-   harness refuses a plan that needs an exclusive workflow, which no setting can
-   admit.
+   plus a per-operation `allow` override for each operator-guided selector and
+   for the probe 25 operations. The harness refuses a plan that needs an
+   exclusive workflow, which no setting can admit. Also add
+   `--Briosa:Worker:ExecutionWatchdogTimeout=00:02:00`: probe 25 opens dialogs
+   that block a quick MP until the operator dismisses them, and the default
+   30 s quick budget would end the run as an unknown outcome first. Record the
+   setting in the evidence.
 4. Run `Briosa.LifecycleClient --address http://127.0.0.1:50051 --scenario external-connect --timeout-seconds 90`.
    It must report `ready_for_mp`.
-5. Run the public phase:
+5. Run the public phase. Its client step timeout must exceed the 2-minute quick
+   budget:
 
    ```powershell
    & $probe --phase public-api --confirm-licensed-sa2024 `
      --fixtures C:\briosa-277\fixtures.json `
      --output-directory artifacts\probe-277\public-api `
-     --address http://127.0.0.1:50051 --harness-revision <sha>
+     --address http://127.0.0.1:50051 --harness-revision <sha> `
+     --step-timeout-seconds 150 --restore-sa-interaction-mode <manual|automatic>
    ```
 
-   During `p22`, SA prompts for a vector group. Select `B277::VG1` and confirm
-   within `--operator-timeout-seconds` (default 300).
+   Answer each [operator checkpoint](#operator-checkpoints) as it is printed.
+   During `p22`, SA prompts for a vector group: press **F2**, select `B277::VG1`
+   in the selection tree, click **OK**, then press **Enter**, within
+   `--operator-timeout-seconds` (default 300).
 6. Run `Briosa.LifecycleClient ... --scenario stop-sdk`, stop the server, and run
    `Test-LicensedRunnerState.ps1 -Phase Postflight`.
 
@@ -312,8 +426,12 @@ non-sensitive attestation references, as for `Test-LicensedSpatialAnalyzer.ps1`.
      --worker-path <extracted package>\Briosa.Worker.exe `
      --connected-sa-attested-version 2024.1.0508.5 `
      --connected-sa-attestation-reference <reference> `
-     --harness-revision <sha>
+     --harness-revision <sha> --restore-sa-interaction-mode <manual|automatic>
    ```
+
+   Answer each [operator checkpoint](#operator-checkpoints) as it is printed. The
+   worker's step timeout (`--step-timeout-seconds`, default 120 s) is its only
+   watchdog, so dismiss a blocking dialog well within it.
 
 4. Run `Test-LicensedRunnerState.ps1 -Phase Postflight`. Close SA without saving.
 
@@ -336,10 +454,18 @@ on a clean SA with `--exclude-probe` (see [Excluding probes](#excluding-probes))
 The rerun repeats every guard, fixture, and remaining probe step; it never
 resumes the stopped session.
 
+If the stop came after `p25-silent` and before `p25-restore` completed, SA is
+still in Silent, and it stays so across restarts. After recovery, on a clean SA,
+run the same phase with `--interaction-mode-restore-only` and the same
+`--restore-sa-interaction-mode` before anything else. It sends only
+`p25-restore`, and needs no fixture job.
+
 ## Recording
 
-Each phase writes `probe-277-<phase>-2024.1.0508.5.json` (structured, schema 2;
-schema 2 adds the `exclusions` object and the `excluded` step classification)
+Each phase writes `probe-277-<phase>-2024.1.0508.5.json` (structured, schema 3;
+schema 2 added the `exclusions` object and the `excluded` step classification;
+schema 3 adds `interaction_mode` and, per step, the planned checkpoints, the
+operator's checkpoint answers, the client deadline, and the elapsed time)
 and a markdown draft in the style of
 [`string-setters-2026-09-28.md`](evidence/string-setters-2026-09-28.md). Review
 the draft, add follow-up tasks, and commit it under `docs/testing/evidence/`
@@ -352,3 +478,4 @@ transfer one target's observations to the other target.
 | Date | Record |
 | --- | --- |
 | 2026-10-07 | [Licensed probe session on SA `2024.1.0508.5`](evidence/probe-277-2024.1.0508.5-2026-10-07.md). Both phases completed, with probes excluded through `--exclude-probe`. The record lists the open questions and follow-up issues. |
+| 2026-10-25 | [Licensed probe session 2 on SA `2024.1.0508.5`](evidence/probe-session-2-2024.1.0508.5-2026-10-25.md). Both phases completed; probe 11 stalled public run 1 and was excluded from run 2. The record answers probes 2, 11, 17, 22, 24, and 25 and lists the follow-ups. |
