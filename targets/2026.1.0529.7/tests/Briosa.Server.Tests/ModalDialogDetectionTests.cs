@@ -77,6 +77,28 @@ public sealed class ModalDialogDetectionTests
     }
 
     [Fact]
+    public async Task AFailedDialogCheckKeepsTheGenericDiagnostic()
+    {
+        var clock = new HeartbeatTestClock();
+        var process = new ScriptedWorkerProcess(_ => null);
+        await using var supervisor = CreateSupervisor(
+            new ScriptedWorkerProcessFactory(_ => process), SpatialAnalyzerInteractionMode.Unchanged, clock,
+            modalDialogProbe: new ThrowingModalDialogProbe());
+        Assert.True((await supervisor.StartAsync().WaitAsync(HangGuard)).Succeeded, supervisor.Current.DiagnosticCode);
+
+        var executing = supervisor.ExecuteAsync(CreateCommand());
+        await process.Held.WaitAsync(HangGuard);
+        await clock.FireNextAsync(ExecutionWatchdogTimeout).WaitAsync(HangGuard);
+        var outcome = await executing.WaitAsync(HangGuard);
+
+        // The check is advisory: its failure neither escapes nor changes the outcome.
+        Assert.Equal(WorkerExecutionStatus.WatchdogTimeout, outcome.Status);
+        Assert.Equal("worker-execution-watchdog-timeout", outcome.DiagnosticCode);
+        Assert.Equal(WorkerLifecycleState.Degraded, supervisor.Current.State);
+        Assert.True(process.HasExited);
+    }
+
+    [Fact]
     public async Task ReadinessProbeHeldByAModalDialogRequiresOperatorRecovery()
     {
         var clock = new HeartbeatTestClock();
@@ -287,6 +309,11 @@ public sealed class ModalDialogDetectionTests
             Interlocked.Increment(ref _calls);
             return state;
         }
+    }
+
+    private sealed class ThrowingModalDialogProbe : ISpatialAnalyzerModalDialogProbe
+    {
+        public SpatialAnalyzerModalDialogState Observe() => throw new UnauthorizedAccessException();
     }
 
     private sealed class FixedProcessPlatform(IReadOnlyList<int> processIds) : ISpatialAnalyzerProcessPlatform
