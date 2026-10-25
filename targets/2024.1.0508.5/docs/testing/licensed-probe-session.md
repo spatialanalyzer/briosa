@@ -478,3 +478,4 @@ transfer one target's observations to the other target.
 | Date | Record |
 | --- | --- |
 | 2026-10-07 | [Licensed probe session on SA `2024.1.0508.5`](evidence/probe-277-2024.1.0508.5-2026-10-07.md). Both phases completed, with probes excluded through `--exclude-probe`. The record lists the open questions and follow-up issues. |
+| 2026-10-25 | [Licensed probe session 2 on SA `2024.1.0508.5`](evidence/probe-session-2-2024.1.0508.5-2026-10-25.md). Both phases completed; probe 11 stalled public run 1 and was excluded from run 2. The record answers probes 2, 11, 17, 22, 24, and 25 and lists the follow-ups. |
