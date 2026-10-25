@@ -115,6 +115,8 @@ internal sealed partial class WorkerProcessSupervisor :
 
     internal ISpatialAnalyzerModalDialogProbe? ModalDialogProbe => _modalDialogProbe;
 
+    internal const string ModalDialogDiagnosticCode = "sa-modal-dialog-open";
+
     public WorkerExecutionSnapshot ExecutionSnapshot => new(
         _executionPolicy.QueueCapacity,
         Volatile.Read(ref _queuedRequestCount),
@@ -863,8 +865,9 @@ internal sealed partial class WorkerProcessSupervisor :
             }
             catch (OperationCanceledException) when (watchdog.IsCancellationRequested)
             {
+                var diagnosticCode = StalledExchangeDiagnostic("worker-execution-watchdog-timeout");
                 await RetireWorkerAsync(
-                    "worker-execution-watchdog-timeout",
+                    diagnosticCode,
                     incidentKind: WorkerIncidentKind.WatchdogTerminated,
                     operationId: command.OperationId,
                     executionDisposition:
@@ -875,7 +878,7 @@ internal sealed partial class WorkerProcessSupervisor :
                     WorkerExecutionDisposition.StartedOutcomeUnknown,
                     Execution: null,
                     Connection: null,
-                    "worker-execution-watchdog-timeout",
+                    diagnosticCode,
                     generation,
                     correlationId);
             }
@@ -1180,12 +1183,15 @@ internal sealed partial class WorkerProcessSupervisor :
             }
             catch (OperationCanceledException)
             {
-                // Only the probe bound can cancel this exchange.
+                // Only the probe bound can cancel this exchange. An open SpatialAnalyzer
+                // dialog explains the stall, so it does not suggest a competing client.
+                var stalled = StalledExchangeDiagnostic("execution-readiness-probe-timeout");
                 await QuarantineExecutionTargetAsync(
                     attachedConnection,
                     WorkerTerminationKind.Forced,
-                    "execution-readiness-probe-timeout",
-                    competingClientSuspected: true, failure: WorkerLifecycleFailure.ReadinessTimeout).ConfigureAwait(false);
+                    stalled,
+                    competingClientSuspected: stalled != ModalDialogDiagnosticCode,
+                    failure: WorkerLifecycleFailure.ReadinessTimeout).ConfigureAwait(false);
                 return false;
             }
             catch (Exception exception) when (IsRecoverableProcessFailure(exception))
@@ -1276,7 +1282,7 @@ internal sealed partial class WorkerProcessSupervisor :
             catch (OperationCanceledException)
             {
                 // Only the bound can cancel this exchange.
-                diagnosticCode = "interaction-mode-apply-timeout";
+                diagnosticCode = StalledExchangeDiagnostic("interaction-mode-apply-timeout");
                 failure = WorkerLifecycleFailure.ReadinessTimeout;
             }
             catch (WorkerMessageRejectedException)
@@ -1300,6 +1306,14 @@ internal sealed partial class WorkerProcessSupervisor :
             failure).ConfigureAwait(false);
         return false;
     }
+
+    // Called with _gate held when an exchange's bound has elapsed (#313). A blocking
+    // SpatialAnalyzer dialog is reported as such; the probe only reads window state,
+    // and the dialog is left for the operator.
+    private string StalledExchangeDiagnostic(string timeoutDiagnosticCode) =>
+        _modalDialogProbe?.Observe() == SpatialAnalyzerModalDialogState.ModalDialogOpen
+            ? ModalDialogDiagnosticCode
+            : timeoutDiagnosticCode;
 
     private void LogInteractionMode(LogLevel level, int? mpResultCode, string diagnosticCode) =>
         LogInteractionModeApplied(level, _interactionMode,
