@@ -51,7 +51,8 @@ internal static class WorkerProcessRegistration
                 timeProvider: provider.GetService<TimeProvider>(),
                 logger: provider.GetRequiredService<ILogger<WorkerProcessSupervisor>>(),
                 identityPolicy: provider.GetRequiredService<ExactTargetIdentityPolicy>(),
-                telemetry: provider.GetService<BriosaTelemetry>());
+                telemetry: provider.GetService<BriosaTelemetry>(),
+                interactionMode: spatialAnalyzerOptions.InteractionMode);
         });
         services.TryAddSingleton<OperationAuditLogger>();
         services.TryAddSingleton(_ => OperationPolicy.Create(

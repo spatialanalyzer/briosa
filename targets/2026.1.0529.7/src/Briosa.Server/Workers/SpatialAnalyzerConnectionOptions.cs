@@ -28,6 +28,22 @@ internal sealed record SpatialAnalyzerConnectionOptions(
 
         return new SpatialAnalyzerConnectionOptions(
             DefaultHost,
-            SpatialAnalyzerIdentityOptions.BindAndValidate(configuration));
+            SpatialAnalyzerIdentityOptions.BindAndValidate(configuration))
+        {
+            InteractionMode = ReadInteractionMode(configuration)
+        };
     }
+
+    // Only the exact names are accepted, and a rejected value is not echoed.
+    private static SpatialAnalyzerInteractionMode ReadInteractionMode(
+        IConfiguration configuration) =>
+        configuration[InteractionModeKey] switch
+        {
+            null or "Unchanged" => SpatialAnalyzerInteractionMode.Unchanged,
+            "Silent" => SpatialAnalyzerInteractionMode.Silent,
+            "Automatic" => SpatialAnalyzerInteractionMode.Automatic,
+            "Manual" => SpatialAnalyzerInteractionMode.Manual,
+            _ => throw new InvalidOperationException(
+                $"Configuration value '{InteractionModeKey}' must be Unchanged, Silent, Automatic, or Manual.")
+        };
 }

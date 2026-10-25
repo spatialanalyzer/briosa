@@ -1199,6 +1199,8 @@ internal sealed partial class WorkerProcessSupervisor :
             }
         }
 
+        if (!await ApplyInteractionModeAsync(worker, verified).ConfigureAwait(false)) return false;
+
         if (applicationGeneration is null)
         {
             Transition(
@@ -1237,6 +1239,68 @@ internal sealed partial class WorkerProcessSupervisor :
             applicationGeneration: associated);
         return true;
     }
+
+    // Called with _gate held after a verified readiness probe, before readiness is
+    // published (#313). The worker accepts MP work only after the probe, and no admitted
+    // MP can run before this step. SA has no getter for the mode, so the MP code is the
+    // only evidence. A configured mode that is not applied keeps readiness closed:
+    // without it, a state-triggered dialog can hold the STA until the watchdog fires.
+    private async Task<bool> ApplyInteractionModeAsync(IWorkerProcess worker, WorkerConnectionSnapshot verified)
+    {
+        if (SpatialAnalyzerInteractionModeCommand.Create(_interactionMode) is not { } command) return true;
+        int? mpResultCode = null;
+        string diagnosticCode;
+        var failure = WorkerLifecycleFailure.ReadinessFailed;
+        // The step has the readiness probe's bound; duration-class budgets never apply.
+        using (var timeout = new CancellationTokenSource(_policy.ReadinessProbeTimeout, _timeProvider))
+        {
+            try
+            {
+                var response = await WorkerCommandExchange.RunAsync(
+                    worker, command, Guid.NewGuid(), verified.RuntimeIdentity, timeout.Token).ConfigureAwait(false);
+                _lastSuccessfulExchange = _timeProvider.GetTimestamp();
+                mpResultCode = response.Execution?.MpResultCode;
+                if (response.Execution is { MpSucceeded: true })
+                {
+                    LogInteractionMode(LogLevel.Information, mpResultCode, "interaction-mode-applied");
+                    return true;
+                }
+
+                diagnosticCode = "interaction-mode-not-applied";
+            }
+            catch (OperationCanceledException)
+            {
+                // Only the bound can cancel this exchange.
+                diagnosticCode = "interaction-mode-apply-timeout";
+                failure = WorkerLifecycleFailure.ReadinessTimeout;
+            }
+            catch (WorkerMessageRejectedException)
+            {
+                diagnosticCode = "interaction-mode-not-applied";
+            }
+            catch (Exception exception) when (IsRecoverableProcessFailure(exception))
+            {
+                diagnosticCode = worker.HasExited
+                    ? "execution-readiness-worker-exited"
+                    : "execution-readiness-control-failed";
+            }
+        }
+
+        LogInteractionMode(LogLevel.Warning, mpResultCode, diagnosticCode);
+        await QuarantineExecutionTargetAsync(
+            verified,
+            worker.HasExited ? WorkerTerminationKind.Crash : WorkerTerminationKind.Forced,
+            diagnosticCode,
+            competingClientSuspected: false,
+            failure).ConfigureAwait(false);
+        return false;
+    }
+
+    private void LogInteractionMode(LogLevel level, int? mpResultCode, string diagnosticCode) =>
+        LogInteractionModeApplied(level, _interactionMode,
+            SpatialAnalyzerInteractionModeCommand.MpInteractionMode,
+            SpatialAnalyzerInteractionModeCommand.MpDialogInteractionMode,
+            Current.Generation, mpResultCode, diagnosticCode);
 
     // Called with _gate held, inside the accepted Connect, before readiness is
     // published. The startup bound limits it: the association is evidence about the
@@ -1584,6 +1648,18 @@ internal sealed partial class WorkerProcessSupervisor :
         RuntimeIdentityMatchState? activatedSdkIdentityMatchState,
         RuntimeIdentityEvidenceSource? connectedSaIdentitySource,
         RuntimeIdentityMatchState? connectedSaIdentityMatchState);
+
+    [LoggerMessage(
+        EventId = 1202,
+        Message = "SA interaction mode {SaInteractionMode} with MP mode {MpInteractionMode} and MP dialog mode {MpDialogInteractionMode} on generation {Generation}: MP result {MpResultCode}, diagnostic {DiagnosticCode}.")]
+    private partial void LogInteractionModeApplied(
+        LogLevel level,
+        SpatialAnalyzerInteractionMode saInteractionMode,
+        global::Briosa.MpInteractionMode mpInteractionMode,
+        global::Briosa.MpDialogInteractionMode mpDialogInteractionMode,
+        int generation,
+        int? mpResultCode,
+        string diagnosticCode);
 
 
 
