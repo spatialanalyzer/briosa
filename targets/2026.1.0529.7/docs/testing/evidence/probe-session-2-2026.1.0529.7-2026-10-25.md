@@ -133,8 +133,8 @@ All three mode steps returned MP code `2`.
 ## Follow-up
 
 - [#309](https://github.com/spatialanalyzer/briosa/issues/309): probe 11 is answered. The Mesh Orientation `SetStringArg` substitution raises "Encountered an improper argument." and the MP never completes. The disposition (unsupported or removed) is the maintainer's decision.
-- [#311](https://github.com/spatialanalyzer/briosa/issues/311): the fit request is fixed, and probes 2 and 17 are answered. Both targets document fit code `4` as `PARTIAL SUCCESS`. How the server reports a partial success that did create its result is an open design question.
-- [#312](https://github.com/spatialanalyzer/briosa/issues/312): the gesture is confirmed. The vector group runtime-select getter returns nothing after a completed selection; this is a new finding.
+- [#311](https://github.com/spatialanalyzer/briosa/issues/311): the fit request is fixed, and probes 2 and 17 are answered. Both targets document fit code `4` as `PARTIAL SUCCESS`. How the server reports a partial success that did create its result is an open design question ([#351](https://github.com/spatialanalyzer/briosa/issues/351)).
+- [#312](https://github.com/spatialanalyzer/briosa/issues/312): the gesture is confirmed. The vector group runtime-select getter returns nothing after a completed selection; this is a new finding, tracked in [#350](https://github.com/spatialanalyzer/briosa/issues/350).
 - [#313](https://github.com/spatialanalyzer/briosa/issues/313): Silent is verified on this target, and the `InteractionMode` setting can proceed.
 - [#307](https://github.com/spatialanalyzer/briosa/issues/307), [#310](https://github.com/spatialanalyzer/briosa/issues/310): R0 shows the cloud reference list works, and the B steps were skipped by the maintainer's decision.
 - [#252](https://github.com/spatialanalyzer/briosa/issues/252): the SDK process again outlived a watchdog-terminated worker.
