@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using Briosa.Server.Operations;
+using Briosa.Server.Services;
 using Briosa.Server.Workers;
 using Briosa.Worker.Control;
 using Microsoft.Extensions.Logging;
@@ -10,8 +11,9 @@ namespace Briosa.Server.Tests;
 // after every successful Connect, before readiness is published, and is audited.
 public sealed class InteractionModeApplicationTests
 {
-    private static readonly TimeSpan HangGuard = TimeSpan.FromSeconds(30);
-    private static readonly TimeSpan ReadinessProbeTimeout = TimeSpan.FromSeconds(7);
+    internal static readonly TimeSpan HangGuard = TimeSpan.FromSeconds(30);
+    internal static readonly TimeSpan ReadinessProbeTimeout = TimeSpan.FromSeconds(7);
+    internal static readonly TimeSpan ExecutionWatchdogTimeout = TimeSpan.FromSeconds(13);
 
     [Fact]
     public async Task UnchangedSendsNoInteractionModeCommand()
@@ -204,7 +206,8 @@ public sealed class InteractionModeApplicationTests
         IWorkerProcessFactory factory,
         SpatialAnalyzerInteractionMode mode,
         TimeProvider? timeProvider = null,
-        ILogger<WorkerProcessSupervisor>? logger = null) =>
+        ILogger<WorkerProcessSupervisor>? logger = null,
+        ISpatialAnalyzerModalDialogProbe? modalDialogProbe = null) =>
         new(
             factory,
             new WorkerLifecyclePolicy(
@@ -214,7 +217,7 @@ public sealed class InteractionModeApplicationTests
                 shutdownTimeout: TimeSpan.FromSeconds(3),
                 readinessProbeTimeout: ReadinessProbeTimeout),
             new WorkerExecutionPolicy(
-                TimeSpan.FromSeconds(13),
+                ExecutionWatchdogTimeout,
                 queueCapacity: 4,
                 durationClassOf: TestDurationClasses.ReviewedOrSyntheticQuick),
             timeProvider,
@@ -223,7 +226,8 @@ public sealed class InteractionModeApplicationTests
                 SpatialAnalyzerApi.TargetVersion,
                 activatedSdkVersion: SpatialAnalyzerApi.TargetVersion,
                 connectedSpatialAnalyzerVersion: SpatialAnalyzerApi.TargetVersion),
-            interactionMode: mode);
+            interactionMode: mode,
+            modalDialogProbe: modalDialogProbe);
 
     internal static WorkerMpCommand CreateCommand() =>
         new("file_operations.get_working_directory", "Get Working Directory", [],

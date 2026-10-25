@@ -24,6 +24,7 @@ internal sealed partial class WorkerProcessSupervisor :
     private readonly ILogger<WorkerProcessSupervisor> _logger;
     private readonly BriosaTelemetry? _telemetry;
     private readonly SpatialAnalyzerInteractionMode _interactionMode;
+    private readonly ISpatialAnalyzerModalDialogProbe? _modalDialogProbe;
     private WorkerExecutionQueue? _executionQueue;
     private WorkerHeartbeatMonitor? _heartbeatMonitor;
     private WorkerProcessLifetime? _processLifetime;
@@ -54,7 +55,8 @@ internal sealed partial class WorkerProcessSupervisor :
         ILogger<WorkerProcessSupervisor>? logger = null,
         ExactTargetIdentityPolicy? identityPolicy = null,
         BriosaTelemetry? telemetry = null,
-        SpatialAnalyzerInteractionMode interactionMode = SpatialAnalyzerInteractionMode.Unchanged)
+        SpatialAnalyzerInteractionMode interactionMode = SpatialAnalyzerInteractionMode.Unchanged,
+        ISpatialAnalyzerModalDialogProbe? modalDialogProbe = null)
     {
         ArgumentNullException.ThrowIfNull(processFactory);
         ArgumentNullException.ThrowIfNull(policy);
@@ -69,6 +71,7 @@ internal sealed partial class WorkerProcessSupervisor :
         _logger = logger ?? NullLogger<WorkerProcessSupervisor>.Instance;
         _telemetry = telemetry;
         _interactionMode = interactionMode;
+        _modalDialogProbe = modalDialogProbe;
         telemetry?.Attach(this);
         _current = new WorkerLifecycleSnapshot(
             WorkerLifecycleState.Stopped,
@@ -109,6 +112,8 @@ internal sealed partial class WorkerProcessSupervisor :
     internal WorkerExecutionPolicy ExecutionPolicy => _executionPolicy;
 
     internal SpatialAnalyzerInteractionMode InteractionMode => _interactionMode;
+
+    internal ISpatialAnalyzerModalDialogProbe? ModalDialogProbe => _modalDialogProbe;
 
     public WorkerExecutionSnapshot ExecutionSnapshot => new(
         _executionPolicy.QueueCapacity,
