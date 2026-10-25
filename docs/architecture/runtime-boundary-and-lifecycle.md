@@ -166,7 +166,7 @@ generation, and a timed-out or ambiguous probe requires operator recovery. Stop
 keeps its caller waiting for an accepted teardown, which its shutdown bound
 limits; cancellation before Stop is accepted withdraws it the same way. Server
 shutdown waits for an accepted exchange to reach its own outcome before stopping
-the generation.
+the generation (see [server shutdown](#server-shutdown)).
 
 gRPC does not deliver a response to a caller that cancelled or exceeded its
 deadline, so remote callers observe only the transport status. The typed
@@ -193,6 +193,23 @@ server configuration and accepts only the reviewed job, quick-start instrument,
 and minimized launch inputs. The server retains the launched process ID and
 creation time as an opaque application generation; public state never exposes
 the operating-system identity.
+
+A launch follows the same acceptance rule as the SDK exchanges. It is accepted
+after its state, SDK, input, and installation checks, immediately before the
+server starts the process. Cancellation before acceptance withdraws it: nothing
+starts, and the caller receives `CANCELLED` with diagnostic
+`application-lifecycle-request-withdrawn` and recovery guidance `NONE`. After
+acceptance the server waits for the application's main window under
+`Briosa:SpatialAnalyzer:ApplicationStartupTimeout` whether or not the caller is
+still waiting. A caller that stops waiting receives `CANCELLED` with diagnostic
+`application-lifecycle-caller-stopped-waiting`, the state at that moment, and
+recovery guidance `REFRESH_STATE`. The launch holds the application lifecycle
+until it ends, so a concurrent launch or close gets
+`application-lifecycle-transition-in-progress`, and an application-state request
+waits for it. When the window appears, the launch records `RUNNING`. If the bound
+expires first, the launched process keeps running and stays `STARTING` until a
+later observation sees its window or its exit; the server does not close it. As
+for the SDK lifecycle, both details carry the `STATE_CONFLICT` kind.
 
 An exact-target application observed by executable path but not launched by the
 current server is `External`. Multiple eligible applications are `Ambiguous`.
@@ -231,6 +248,38 @@ without reading its modules:
 Application observation never opens or closes MP admission. Readiness rests on
 the worker generation's own identity and probe evidence, and an unconfirmed
 observation cannot confirm a Connect's application association.
+
+## Server shutdown
+
+A graceful server stop, such as Ctrl+C or Control Center's **Stop server**, lets
+accepted lifecycle work reach its own outcome and then stops the worker. The
+server sets the host's shutdown bound (`HostOptions.ShutdownTimeout`) from the
+configured lifecycle bounds, so that this wait completes. A Connect can wait
+behind an accepted launch, so the bound is the sum of:
+
+1. the application startup bound, `Briosa:SpatialAnalyzer:ApplicationStartupTimeout`;
+2. the longest accepted SDK exchange, counted to its typed failure:
+   - Connect: `ConnectEx` and the application association under
+     `Briosa:Worker:StartupTimeout` each, the readiness probe under
+     `Briosa:Worker:ReadinessProbeTimeout`, the liveness check under the heartbeat
+     timeout, and forced worker cleanup under the worker shutdown timeout;
+   - Recover: the heartbeat drain and faulted-worker cleanup, then a replacement
+     start that can include the readiness probe and its cleanup;
+   - Start: the startup bound, plus the readiness probe and cleanup when the
+     worker reports an attached SDK;
+3. the worker stop: heartbeat drain, stop exchange, and forced cleanup.
+
+The heartbeat timeout and worker shutdown timeout are fixed at 5 seconds each.
+At the default settings Connect is the longest exchange (60 seconds), and the
+bound is 30 + 60 + 15 = 105 seconds. A longer host shutdown timeout configured
+for the host itself is kept. The bound limits only how long a stop may wait: a
+server with nothing in flight stops as quickly as before.
+
+An MP command still in flight is not part of the bound. The worker stop waits
+for it under its execution budget, which can be hours for an interactive
+command. A command that outlasts the bound ends the host's graceful stop early:
+the host reports a shutdown failure, still waits for the command and stops the
+worker, and the server process then exits with an error.
 
 ## Observability boundary
 
