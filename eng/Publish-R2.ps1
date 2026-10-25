@@ -34,6 +34,12 @@ if ($Mode -eq 'check') {
     Write-Host 'Public catalog matches the reviewed source, verifies, bypasses cache, and has at least seven days remaining.'
     exit 0
 }
+# azure/login exchanges the job's GitHub OIDC token, which Entra accepts as a client assertion for only a
+# few minutes. Publication downloads and verifies every retained release before signing, so obtain the
+# Key Vault token now; the CLI caches it (about an hour) for Sign-ReleaseCatalog.ps1 (#347).
+if ($env:AZURE_CATALOG_KEY_ID -cne $config.catalogKeyId) { throw 'Unexpected catalog signing key version.' }
+& az account get-access-token --resource https://vault.azure.net --only-show-errors --output none
+if ($LASTEXITCODE -ne 0) { throw 'Could not obtain a Key Vault token for catalog signing.' }
 Invoke-Publisher snapshot
 $priorCatalog = Join-Path $work 'prior/catalog.json'
 if (Test-Path -LiteralPath $priorCatalog) {
@@ -89,7 +95,6 @@ if ($Mode -eq 'publish') {
     }
     Invoke-Publisher upload
 }
-if ($env:AZURE_CATALOG_KEY_ID -cne $config.catalogKeyId) { throw 'Unexpected catalog signing key version.' }
 & "$PSScriptRoot/Sign-ReleaseCatalog.ps1" -CatalogPath $catalogPath -AzureKeyId $env:AZURE_CATALOG_KEY_ID -PublicKeyPath $publicKey -ValidDays 30
 & "$PSScriptRoot/Test-CatalogSignature.ps1" -CatalogPath $catalogPath -PublicKeyPath $publicKey
 Invoke-Publisher commit

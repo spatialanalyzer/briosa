@@ -22,6 +22,24 @@ internal interface IProbeTransport : IAsyncDisposable
     Task<ProbeOutcome> ExecuteAsync(ProbeStep step, CancellationToken cancellationToken);
 }
 
+/// <summary>
+/// The operator at the SpatialAnalyzer desktop. It reports each step as it is
+/// dispatched and completed, and it answers checkpoints. Progress carries step
+/// identifiers, outcome kinds, and MP codes only, never values.
+/// </summary>
+internal interface IOperatorConsole
+{
+    void Dispatching(ProbeStep step, int ordinal, int count);
+
+    void Completed(ProbeStep step, int ordinal, int count, ProbeOutcome outcome, long elapsedMilliseconds);
+
+    /// <summary>
+    /// Waits for the operator's observation at one checkpoint. Returns null when
+    /// the operator did not answer in time or the session was cancelled.
+    /// </summary>
+    Task<string?> CheckpointAsync(ProbeStep step, OperatorCheckpoint timing, CancellationToken cancellationToken);
+}
+
 /// <summary>A refusal before any MP work, carrying one stable diagnostic code.</summary>
 [SuppressMessage("Design", "CA1032:Implement standard exception constructors",
     Justification = "The refusal carries exactly one stable diagnostic code and never wraps vendor exceptions.")]
@@ -66,12 +84,21 @@ internal enum StepClassification
 
 internal sealed record HypothesisResult(string Label, string ObservationKey, string ExpectedValue, bool Matched);
 
+/// <summary>What the operator reported at one checkpoint, already validated as value-free text.</summary>
+internal sealed record OperatorObservation(OperatorCheckpoint Timing, string Text);
+
 internal sealed record ProbeStepRecord(
     ProbeStep Step,
     ProbeOutcome? Outcome,
     StepClassification Classification,
     IReadOnlyList<HypothesisResult> Hypotheses,
-    bool? RequirementSatisfied);
+    bool? RequirementSatisfied)
+{
+    public IReadOnlyList<OperatorObservation> OperatorObservations { get; init; } = [];
+
+    // From dispatch to the transport's answer, by the session clock. Null when not sent.
+    public long? ElapsedMilliseconds { get; init; }
+}
 
 internal sealed record ProbeSessionRecord(
     ProbePhase Phase,
@@ -86,6 +113,9 @@ internal sealed record ProbeSessionRecord(
 {
     /// <summary>Probe numbers the operator excluded, ascending. Their steps are recorded as excluded.</summary>
     public IReadOnlyList<int> ExcludedProbes { get; init; } = [];
+
+    /// <summary>The interaction-mode settings when the plan changes SA's interaction mode; otherwise null.</summary>
+    public InteractionModeSettings? InteractionMode { get; init; }
 
     /// <summary>Every step that was not excluded was observed as planned.</summary>
     public bool Completed => StopReason is null && !DryRun &&
@@ -103,6 +133,7 @@ internal static class ProbeSession
     public const string UnexpectedDispositionStop = "unexpected-disposition";
     public const string RequirementStop = "requirement-not-satisfied";
     public const string DestructiveRefusalStop = "destructive-target-not-created-by-harness";
+    public const string CheckpointStop = "operator-checkpoint-not-confirmed";
 
     /// <summary>Records the plan without starting any transport.</summary>
     public static ProbeSessionRecord DryRun(ProbePlan plan, TimeProvider clock)
@@ -113,7 +144,8 @@ internal static class ProbeSession
         return new ProbeSessionRecord(plan.Phase, DryRun: true, plan.PlaceholderFixtures, now, now, SessionIdentity.None,
             [.. plan.CatalogSteps.Select(step => plan.IsExcluded(step) ? Excluded(step) : NotRun(step))], StoppedAt: null, StopReason: null)
         {
-            ExcludedProbes = plan.ExcludedProbes
+            ExcludedProbes = plan.ExcludedProbes,
+            InteractionMode = plan.SetsInteractionMode ? plan.InteractionMode : null
         };
     }
 
@@ -122,12 +154,14 @@ internal static class ProbeSession
         IProbeTransport transport,
         TimeProvider clock,
         SessionIdentity operatorIdentity,
+        IOperatorConsole console,
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(plan);
         ArgumentNullException.ThrowIfNull(transport);
         ArgumentNullException.ThrowIfNull(clock);
         ArgumentNullException.ThrowIfNull(operatorIdentity);
+        ArgumentNullException.ThrowIfNull(console);
         if (transport.Phase != plan.Phase)
         {
             throw new InvalidOperationException("The transport serves a different phase than the plan.");
@@ -146,7 +180,8 @@ internal static class ProbeSession
             return new ProbeSessionRecord(plan.Phase, DryRun: false, plan.PlaceholderFixtures, started, clock.GetUtcNow(),
                 operatorIdentity, records, StoppedAt: null, refusal.DiagnosticCode)
             {
-                ExcludedProbes = plan.ExcludedProbes
+                ExcludedProbes = plan.ExcludedProbes,
+                InteractionMode = plan.SetsInteractionMode ? plan.InteractionMode : null
             };
         }
 
@@ -154,6 +189,7 @@ internal static class ProbeSession
         var created = new HashSet<string>(StringComparer.Ordinal);
         string? stoppedAt = null;
         string? stopReason = null;
+        var ordinal = 0;
         foreach (var step in plan.CatalogSteps)
         {
             // An operator-excluded step is recorded in its catalog position and never sent.
@@ -169,6 +205,8 @@ internal static class ProbeSession
                 continue;
             }
 
+            ordinal++;
+
             // Defence in depth: the plan already proves this, and the session
             // re-checks that the disposable target was actually created now.
             if (step.DestructiveTarget is not null && !created.Contains(step.DestructiveTarget))
@@ -179,7 +217,27 @@ internal static class ProbeSession
                 continue;
             }
 
+            // The step is sent only after the operator confirms SA's screen.
+            var operatorObservations = new List<OperatorObservation>();
+            if (step.Checkpoints.HasFlag(OperatorCheckpoint.Before))
+            {
+                var before = await console.CheckpointAsync(step, OperatorCheckpoint.Before, cancellationToken).ConfigureAwait(false);
+                if (before is null)
+                {
+                    records.Add(new ProbeStepRecord(step, ProbeOutcome.Refused("operator-checkpoint-not-confirmed"),
+                        StepClassification.Refused, [], null));
+                    (stoppedAt, stopReason) = (step.Id, CheckpointStop);
+                    continue;
+                }
+
+                operatorObservations.Add(new OperatorObservation(OperatorCheckpoint.Before, before));
+            }
+
+            console.Dispatching(step, ordinal, plan.Steps.Count);
+            var dispatched = clock.GetUtcNow();
             var outcome = await transport.ExecuteAsync(step, cancellationToken).ConfigureAwait(false);
+            var elapsed = (long)(clock.GetUtcNow() - dispatched).TotalMilliseconds;
+            console.Completed(step, ordinal, plan.Steps.Count, outcome, elapsed);
             history[step.Id] = outcome;
             var accepted = step.Acceptable.Accepts(outcome);
             bool? requirement = step.Requirement is null || !accepted ? null : step.Requirement.IsSatisfied(history, outcome);
@@ -189,18 +247,48 @@ internal static class ProbeSession
                     string.Equals(observed, hypothesis.ExpectedValue, StringComparison.Ordinal)))
                 .ToList();
 
+            // Whatever the outcome, the operator records and dismisses any dialog
+            // before anything else is sent.
+            var unanswered = false;
+            if (step.Checkpoints.HasFlag(OperatorCheckpoint.After))
+            {
+                var after = await console.CheckpointAsync(step, OperatorCheckpoint.After, cancellationToken).ConfigureAwait(false);
+                if (after is null)
+                {
+                    unanswered = true;
+                }
+                else
+                {
+                    operatorObservations.Add(new OperatorObservation(OperatorCheckpoint.After, after));
+                }
+            }
+
             if (accepted && requirement != false)
             {
-                records.Add(new ProbeStepRecord(step, outcome, StepClassification.Observed, hypotheses, requirement));
+                records.Add(new ProbeStepRecord(step, outcome, StepClassification.Observed, hypotheses, requirement)
+                {
+                    OperatorObservations = operatorObservations,
+                    ElapsedMilliseconds = elapsed
+                });
                 if (step.CreatesFixture is not null && outcome.Kind == ProbeOutcomeKind.Succeeded)
                 {
                     created.Add(step.CreatesFixture);
                 }
 
+                // The step's own result stands; nothing later is sent without the operator.
+                if (unanswered)
+                {
+                    (stoppedAt, stopReason) = (step.Id, CheckpointStop);
+                }
+
                 continue;
             }
 
-            records.Add(new ProbeStepRecord(step, outcome, StepClassification.Unexpected, hypotheses, requirement));
+            records.Add(new ProbeStepRecord(step, outcome, StepClassification.Unexpected, hypotheses, requirement)
+            {
+                OperatorObservations = operatorObservations,
+                ElapsedMilliseconds = elapsed
+            });
             stoppedAt = step.Id;
             // ExecuteStep false, a missing MP result, or any other unknown completion:
             // the step is never replayed and no later step runs.
@@ -212,7 +300,8 @@ internal static class ProbeSession
         return new ProbeSessionRecord(plan.Phase, DryRun: false, plan.PlaceholderFixtures, started, clock.GetUtcNow(),
             identity, records, stoppedAt, stopReason)
         {
-            ExcludedProbes = plan.ExcludedProbes
+            ExcludedProbes = plan.ExcludedProbes,
+            InteractionMode = plan.SetsInteractionMode ? plan.InteractionMode : null
         };
     }
 
