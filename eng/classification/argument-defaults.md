@@ -7,8 +7,9 @@ completed by the maintainer's
 (Q1 to Q8 below). For each argument it records what the server does when the
 request field is absent, explicitly empty, or set, with the rule, evidence, and
 client impact. It covers the twelve F6 arguments, the relationship tolerance and
-constraint inverse gap, the substitutions D2 point 5 removed, Mesh Orientation,
-and the risky F7 defaults that Q6 makes required. An appendix lists the optional
+constraint inverse gap, the substitutions removed under D2 point 5 (Mesh
+Orientation among them since #309), and the risky F7 defaults that Q6 makes
+required. An appendix lists the optional
 scalar request fields whose presence the server still ignores.
 
 The `major3_*` columns are the behavior the code implements for contract
@@ -33,7 +34,7 @@ summarizes what changes.
 
 1. **An absent optional argument omits its setter.** It is never sent blank.
    Rule 1 covers the arguments this table lists, the ones major 3 changes. It
-   does not yet cover every optional string: the 228 (2026) and 222 (2024)
+   does not yet cover every optional string: the 227 (2026) and 221 (2024)
    optional strings that are still sent blank when absent keep that behavior
    until a licensed probe shows that omitting the setter is equivalent (Q3). The
    appendix records them.
@@ -58,9 +59,10 @@ summarizes what changes.
    explicitly, but never an implicit default (Q4).
 5. **Substitutions that the evidence shows don't work are removed** in major 3
    ([#308](https://github.com/spatialanalyzer/briosa/issues/308),
-   [#310](https://github.com/spatialanalyzer/briosa/issues/310)). Mesh
-   Orientation stays at risk
-   ([#309](https://github.com/spatialanalyzer/briosa/issues/309)).
+   [#310](https://github.com/spatialanalyzer/briosa/issues/310)). So is the
+   Mesh Orientation substitution, which licensed session 2 showed stalls the
+   worker until the watchdog ends it
+   ([#309](https://github.com/spatialanalyzer/briosa/issues/309#issuecomment-6404290445)).
 6. **Risky defaults R1 to R7 become required** (Q6). An absent field is rejected
    before dispatch, so nothing new reaches SA:
    - R1: the robot joint-pose joints;
@@ -92,7 +94,7 @@ the field type (Q1):
 
 | Column | Meaning |
 |---|---|
-| `category` | `optional_omit` (rule 2), `required_clients_align` (rule 4, relationship inverse gap), `unchanged_pending_311` (fit seed), `unchanged_pending_probe` (other F6 arguments), `removed_in_major_3` (rule 5), `at_risk_309` (Mesh Orientation), `required_risky_default` (rule 6, R1 to R7), `default_flip` (rule 6, the manual-guide default). |
+| `category` | `optional_omit` (rule 2), `required_clients_align` (rule 4, relationship inverse gap), `unchanged_pending_311` (fit seed), `unchanged_pending_probe` (other F6 arguments), `removed_in_major_3` (rule 5), `required_risky_default` (rule 6, R1 to R7), `default_flip` (rule 6, the manual-guide default). |
 | `operation_id`, `mp_step` | The public operation ID and the exact MP step text the server sends. |
 | `mp_argument`, `direction`, `sdk_binding` | The exact SDK argument label, input or output, and the setter or getter the server calls. |
 | `proto_field`, `proto_field_number`, `proto_type` | The request (or, for outputs, result) field, as `Message.field`, with its number and declared type. |
@@ -128,8 +130,7 @@ Both targets have the same 72 rows.
 | `required_clients_align` | 8 | `Tolerance` and `Constraint` of `make_group_to_group_relationship`, `make_group_to_nominal_group_relationship`, `make_point_to_point_relationship` and `make_points_to_points_relationship` | None on the server. The clients make both required. |
 | `unchanged_pending_311` | 3 | `Starting Condition Geometry (optional)` of the three fit operations | None until #311 re-runs probe 2. |
 | `unchanged_pending_probe` | 2 | `ask_for_point_name` `Initial Value`; `import_sa_file` `Selected Collections (optional)` | None. Neither was probed. |
-| `removed_in_major_3` | 5 | The callout view and instrument wildcard getters (#308); the callout view list, Circle Line Mode and mirror frame plane setters (#310) | Removed by #320. |
-| `at_risk_309` | 1 | `construct_polygonized_surface_from_point_clouds` `Mesh Orientation` | None; at risk until the isolated re-probe. |
+| `removed_in_major_3` | 6 | The callout view and instrument wildcard getters (#308); the callout view list, Circle Line Mode and mirror frame plane setters (#310); the `construct_polygonized_surface_from_point_clouds` `Mesh Orientation` setter (#309) | The operation is removed: #308 and #310 by #320, #309 after licensed session 2. |
 | `required_risky_default` | 47 | R1: 6 joints. R2: 4 weather fields. R3: 1 and R4: 2 scale factors. R5: 22 model-link parameters and the robot parameter value. R6: 3 indexes. R7: 8 names and patterns. | Absent: sent as 0, false or blank → rejected (R2 values only when `set_automatically` is false). R7 explicit empty: sent blank → rejected. |
 | `default_flip` | 1 | `measure_existing_single_point_manual_guide` `Measure Immediately` | Absent: false → true. |
 
@@ -204,8 +205,10 @@ same status on both targets.
 
 ## Evidence
 
-- Each row cites only its own target's licensed record:
-  `targets/<target>/docs/testing/evidence/probe-277-<target>-2026-10-07.md`.
+- Each row cites only its own target's licensed records:
+  `targets/<target>/docs/testing/evidence/probe-277-<target>-2026-10-07.md` and,
+  for the rows licensed session 2 settled,
+  `targets/<target>/docs/testing/evidence/probe-session-2-<target>-2026-10-25.md`.
   Nothing is transferred between targets. For example, the 2026 record shows a
   blocking "Template Chart Not found" dialog for a template name that matches
   no chart, which the 2024 session did not exercise.
@@ -301,15 +304,17 @@ defect.
 
 | | 2026.1.0529.7 | 2024.1.0508.5 |
 |---|---:|---:|
-| `optional` scalar request fields | 1,600 | 1,528 |
-| Presence ignored: absent sends the zero value (`ignored`) | 475 | 473 |
+| `optional` scalar request fields | 1,598 | 1,526 |
+| Presence ignored: absent sends the zero value (`ignored`) | 474 | 472 |
 | Presence ignored but rejected later (`ignored_validated`) | 1 | 1 |
-| Both presence-ignored rows by type: `bool` / `string` / `double` / `int32` | 150 / 147 / 96 / 83 | 149 / 147 / 96 / 82 |
-| Operations with at least one such field | 275 | 274 |
+| Both presence-ignored rows by type: `bool` / `string` / `double` / `int32` | 150 / 146 / 96 / 83 | 149 / 146 / 96 / 82 |
+| Operations with at least one such field | 274 | 273 |
 | Presence checked, but absent still sends an empty string (`checked_sends_blank`) | 82 | 76 |
 
-Before major 3 the presence-ignored counts were 524 and 522; the 48 decided
-fields per target now check presence.
+Before major 3 the presence-ignored counts were 524 and 522. The 48 decided
+fields per target now check presence, and the `user_prompt` of
+`make_collection_vector_group_name_ref_list_runtime_select` left with that
+operation (#350).
 
 For `ignored` rows the server sends `false`, `0` or an empty string, and an
 explicit zero cannot be told apart from an omitted field. The one
@@ -317,8 +322,8 @@ explicit zero cannot be told apart from an omitted field. The one
 `collection_containing_relationships`, is rejected when empty. The
 `checked_sends_blank` rows are not presence-insensitive. They are listed
 because rule 1 forbids sending blank for an absent optional argument it covers.
-In all, an absent optional string is still sent as an empty string for 228
-fields on 2026 and 222 on 2024 (Q3).
+In all, an absent optional string is still sent as an empty string for 227
+fields on 2026 and 221 on 2024 (Q3).
 
 Columns: `operation_id`, `request_message`, `field`, `field_number`,
 `proto_type`, `presence`, `mp_argument` and `sdk_setter` (as the mapping sends

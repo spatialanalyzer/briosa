@@ -6,7 +6,7 @@ namespace Briosa.LicensedProbes.Tests;
 
 public sealed class ProbeExclusionTests
 {
-    private const string Statement11 = "Excluded by operator: #11 — reason not recorded by harness";
+    private const string Statement2 = "Excluded by operator: #2 — reason not recorded by harness";
 
     private static readonly FixedClock Clock = new();
 
@@ -38,9 +38,9 @@ public sealed class ProbeExclusionTests
                 ]
                 : [ProbeTarget.ConfirmFlag, "--fixtures", "m.json", "--output-directory", "out"];
 
-        var options = ProbeOptions.Parse(["--phase", phase, "--exclude-probe", "11", .. mode, "--exclude-probe", "3"]);
+        var options = ProbeOptions.Parse(["--phase", phase, "--exclude-probe", "12", .. mode, "--exclude-probe", "3"]);
 
-        Assert.Equal([3, 11], options.ExcludedProbes);
+        Assert.Equal([3, 12], options.ExcludedProbes);
         Assert.Empty(ProbeOptions.Parse(["--phase", phase, .. mode]).ExcludedProbes);
     }
 
@@ -48,7 +48,7 @@ public sealed class ProbeExclusionTests
     public void ADuplicateExclusionIsRefused()
     {
         var exception = Assert.Throws<ProbeUsageException>(() =>
-            ProbeOptions.Parse(["--phase", "public-api", "--dry-run", "--exclude-probe", "11", "--exclude-probe", "11"]));
+            ProbeOptions.Parse(["--phase", "public-api", "--dry-run", "--exclude-probe", "12", "--exclude-probe", "12"]));
 
         Assert.Contains("more than once", exception.Message, StringComparison.Ordinal);
     }
@@ -66,13 +66,13 @@ public sealed class ProbeExclusionTests
     }
 
     [Theory]
-    [InlineData("011")]
-    [InlineData("+11")]
-    [InlineData("-11")]
-    [InlineData(" 11")]
-    [InlineData("11.0")]
+    [InlineData("012")]
+    [InlineData("+12")]
+    [InlineData("-12")]
+    [InlineData(" 12")]
+    [InlineData("12.0")]
     [InlineData("5-6")]
-    [InlineData("p11")]
+    [InlineData("p12")]
     [InlineData("")]
     public void AnInvalidProbeNumberIsRefused(string probe)
     {
@@ -89,8 +89,8 @@ public sealed class ProbeExclusionTests
     [Theory]
     [InlineData(false, 17)]
     [InlineData(false, 19)]
-    [InlineData(true, 11)]
-    [InlineData(true, 22)]
+    [InlineData(true, 12)]
+    [InlineData(true, 23)]
     public void AProbeOutsideTheSelectedPhaseIsRefused(bool worker, int probe)
     {
         var phase = Phase(worker);
@@ -102,22 +102,21 @@ public sealed class ProbeExclusionTests
     // Plan filtering
 
     [Fact]
-    public void ExcludingProbe11RemovesOnlyItsProbeAndCheckSteps()
+    public void ExcludingProbe2RemovesOnlyItsProbeAndCheckSteps()
     {
         var full = Plan(ProbePhase.PublicApi);
-        var plan = Plan(ProbePhase.PublicApi, 11);
+        var plan = Plan(ProbePhase.PublicApi, 2);
 
-        Assert.Equal(["c11", "p11"], plan.ExcludedStepIds.Order(StringComparer.Ordinal));
-        Assert.Equal([11], plan.ExcludedProbes);
+        Assert.Equal(["c02-value", "p02-value"], plan.ExcludedStepIds.Order(StringComparer.Ordinal));
+        Assert.Equal([2], plan.ExcludedProbes);
         Assert.Equal(Ids(full.Steps), Ids(plan.CatalogSteps));
-        Assert.Equal(Ids(full.Steps).Where(static id => id is not ("p11" or "c11")), Ids(plan.Steps));
-        Assert.DoesNotContain("11", plan.ProbesCovered());
+        Assert.Equal(Ids(full.Steps).Where(static id => id is not ("p02-value" or "c02-value")), Ids(plan.Steps));
+        Assert.DoesNotContain("2", plan.ProbesCovered());
 
-        // The polygonize fixtures stay even though only #11 used them.
-        Assert.Contains("s-grid-GRID", Ids(plan.Steps));
-        Assert.Contains("s-cloud-CPOLY", Ids(plan.Steps));
+        // The fit group stays even though, in this phase, only #2 uses it.
+        Assert.All(ProbeCatalog.FitPoints, point => Assert.Contains($"s-point-{FixtureNames.GroupFit}-{point.Name}", Ids(plan.Steps)));
 
-        Assert.DoesNotContain(ProbeOperations.ConstructPolygonizedSurface.FullyQualifiedMethod, plan.FullyQualifiedMethods);
+        Assert.DoesNotContain(ProbeOperations.FitGeometryToPointGroup.FullyQualifiedMethod, plan.FullyQualifiedMethods);
     }
 
     [Theory]
@@ -232,14 +231,14 @@ public sealed class ProbeExclusionTests
     [Fact]
     public void TheDryRunStatesTheExclusionAndMarksExcludedSteps()
     {
-        var plan = Plan(ProbePhase.PublicApi, 11);
+        var plan = Plan(ProbePhase.PublicApi, 2);
 
         var text = plan.RenderDryRun();
 
-        Assert.Contains(Statement11 + ".", text, StringComparison.Ordinal);
-        Assert.Contains("Excluded steps (never sent): p11, c11.", text, StringComparison.Ordinal);
-        Assert.Contains("[---] p11 (probe, probe 11)", text, StringComparison.Ordinal);
-        Assert.Contains("[---] c11 (check, probe 11)", text, StringComparison.Ordinal);
+        Assert.Contains(Statement2 + ".", text, StringComparison.Ordinal);
+        Assert.Contains("Excluded steps (never sent): p02-value, c02-value.", text, StringComparison.Ordinal);
+        Assert.Contains("[---] p02-value (probe, probe 2)", text, StringComparison.Ordinal);
+        Assert.Contains("[---] c02-value (check, probe 2)", text, StringComparison.Ordinal);
         Assert.Contains("Excluded by operator; never sent.", text, StringComparison.Ordinal);
         Assert.Contains(string.Create(CultureInfo.InvariantCulture, $"[{plan.Steps.Count:D3}]"), text, StringComparison.Ordinal);
         Assert.DoesNotContain(string.Create(CultureInfo.InvariantCulture, $"[{plan.Steps.Count + 1:D3}]"), text, StringComparison.Ordinal);
@@ -250,23 +249,23 @@ public sealed class ProbeExclusionTests
     [Fact]
     public async Task ExcludedStepsAreNeverSentAndTheRemainingPlanCompletes()
     {
-        var plan = Plan(ProbePhase.PublicApi, 11);
+        var plan = Plan(ProbePhase.PublicApi, 2);
         var transport = new FakeTransport(ProbePhase.PublicApi, TestSupport.Succeeding);
 
         var record = await ProbeSession.RunAsync(plan, transport, Clock, SessionIdentity.None, new FakeOperator(), CancellationToken.None);
 
         Assert.True(record.Completed);
         Assert.Equal(Ids(plan.Steps), transport.Executed);
-        Assert.DoesNotContain("p11", transport.Executed);
+        Assert.DoesNotContain("p02-value", transport.Executed);
         Assert.Equal(Ids(plan.CatalogSteps), record.Steps.Select(static step => step.Step.Id));
-        Assert.Equal(StepClassification.Excluded, record.Steps.Single(static step => step.Step.Id == "p11").Classification);
-        Assert.Equal([11], record.ExcludedProbes);
+        Assert.Equal(StepClassification.Excluded, record.Steps.Single(static step => step.Step.Id == "p02-value").Classification);
+        Assert.Equal([2], record.ExcludedProbes);
     }
 
     [Fact]
     public async Task RecordsDistinguishExcludedFromNotRun()
     {
-        var plan = Plan(ProbePhase.PublicApi, 11);
+        var plan = Plan(ProbePhase.PublicApi, 2);
         var transport = new FakeTransport(ProbePhase.PublicApi, step => step.Id == "p12"
             ? ProbeOutcome.Unknown("grpc:DeadlineExceeded", "untyped-rpc-failure")
             : TestSupport.Succeeding(step));
@@ -280,24 +279,24 @@ public sealed class ProbeExclusionTests
         var markdown = ProbeRecorder.ToMarkdown(record);
 
         Assert.Equal(ProbeRecorder.SchemaVersion, root.GetProperty("schema_version").GetInt32());
-        Assert.Equal(Statement11, exclusions.GetProperty("statement").GetString());
+        Assert.Equal(Statement2, exclusions.GetProperty("statement").GetString());
         Assert.Equal("operator", exclusions.GetProperty("excluded_by").GetString());
         Assert.False(exclusions.GetProperty("reason_recorded_by_harness").GetBoolean());
-        Assert.Equal([11], exclusions.GetProperty("probes").EnumerateArray().Select(static probe => probe.GetInt32()));
-        Assert.Equal(["p11", "c11"], exclusions.GetProperty("steps").EnumerateArray().Select(static step => step.GetString()));
-        Assert.Equal("excluded", steps["p11"]);
-        Assert.Equal("excluded", steps["c11"]);
+        Assert.Equal([2], exclusions.GetProperty("probes").EnumerateArray().Select(static probe => probe.GetInt32()));
+        Assert.Equal(["p02-value", "c02-value"], exclusions.GetProperty("steps").EnumerateArray().Select(static step => step.GetString()));
+        Assert.Equal("excluded", steps["p02-value"]);
+        Assert.Equal("excluded", steps["c02-value"]);
         Assert.Equal("unexpected", steps["p12"]);
         Assert.Equal("not-run", steps["p13"]);
 
-        Assert.Contains($"**{Statement11}.**", markdown, StringComparison.Ordinal);
+        Assert.Contains($"**{Statement2}.**", markdown, StringComparison.Ordinal);
         Assert.Contains("justification for each exclusion must be stated in the committed evidence", markdown, StringComparison.Ordinal);
-        Assert.Contains("| `p11` | 11 |", markdown, StringComparison.Ordinal);
+        Assert.Contains("| `p02-value` | 2 |", markdown, StringComparison.Ordinal);
         Assert.Contains("Excluded by operator; not sent.", markdown, StringComparison.Ordinal);
         var notRun = markdown.Split('\n').Single(static line => line.StartsWith("Not run:", StringComparison.Ordinal));
         Assert.Contains("`p13`", notRun, StringComparison.Ordinal);
-        Assert.DoesNotContain("`p11`", notRun, StringComparison.Ordinal);
-        Assert.DoesNotContain("`c11`", notRun, StringComparison.Ordinal);
+        Assert.DoesNotContain("`p02-value`", notRun, StringComparison.Ordinal);
+        Assert.DoesNotContain("`c02-value`", notRun, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -344,20 +343,22 @@ public sealed class ProbeExclusionTests
     [Fact]
     public async Task TheDryRunCommandPrintsTheExclusion()
     {
-        var (exit, output, _) = await Run("--phase", "public-api", "--dry-run", "--exclude-probe", "11");
+        var (exit, output, _) = await Run("--phase", "public-api", "--dry-run", "--exclude-probe", "2");
 
         Assert.Equal(0, exit);
-        Assert.Contains(Statement11, output, StringComparison.Ordinal);
+        Assert.Contains(Statement2, output, StringComparison.Ordinal);
     }
 
     [Theory]
     [InlineData("worker", "2", "--exclude-probe 17")]
     [InlineData("public-api", "17", "no steps in the public-api phase")]
-    [InlineData("worker", "11", "no steps in the worker phase")]
+    [InlineData("worker", "12", "no steps in the worker phase")]
     [InlineData("public-api", "26", "not a probe in the approved list")]
     [InlineData("public-api", "7", "names a retired probe")]
+    [InlineData("public-api", "11", "names a retired probe")]
     [InlineData("worker", "14", "names a retired probe")]
     [InlineData("public-api", "15", "names a retired probe")]
+    [InlineData("public-api", "22", "names a retired probe")]
     public async Task ARefusedExclusionExitsWithAUsageErrorBeforeAnyTransport(string phase, string probe, string message)
     {
         var (exit, output, error) = await Run("--phase", phase, "--dry-run", "--exclude-probe", probe);

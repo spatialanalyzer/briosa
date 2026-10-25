@@ -36,7 +36,7 @@ internal static class ArgumentDefaultsTable
             new("construction_operations.set_callout_view_properties", "SetCalloutViewPropertiesRequest.callout_views", "Callout View List", "SetCollectionObjectNameRefListArg", "removed", "removed", "removed"),
             new("construction_operations.construct_circles_lines_from_surfaces", "ConstructCirclesLinesFromSurfacesRequest.circle_line_mode", "Circle Line Mode", "SetStringArg", "removed", "removed", "removed"),
             new("construction_operations.mirror_objects", "MirrorObjectsRequest.frame_plane_to_mirror_around", "Frame Plane to Mirror Around", "SetStringArg", "removed", "removed", "removed"),
-            new("construction_operations.construct_polygonized_surface_from_point_clouds", "ConstructPolygonizedSurfaceFromPointCloudsRequest.mesh_orientation", "Mesh Orientation", "SetStringArg", "rejected", "not_applicable", "sent"),
+            new("construction_operations.construct_polygonized_surface_from_point_clouds", "ConstructPolygonizedSurfaceFromPointCloudsRequest.mesh_orientation", "Mesh Orientation", "SetStringArg", "removed", "removed", "removed"),
             new("construction_operations.delete_collections_by_wildcard", "DeleteCollectionsByWildcardRequest.search_string", "Search String", "SetStringArg", "rejected", "rejected", "sent"),
             new("construction_operations.delete_folders_by_wildcard", "DeleteFoldersByWildcardRequest.search_string", "Search String", "SetStringArg", "rejected", "rejected", "sent"),
             new("instrument_operations.delete_measurement_observation", "DeleteMeasurementObservationRequest.observation_index", "Observation index", "SetIntegerArg", "rejected", "not_applicable", "sent"),
