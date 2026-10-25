@@ -81,7 +81,7 @@ internal sealed class PublicApiTransport : IProbeTransport
     public async Task<ProbeOutcome> ExecuteAsync(ProbeStep step, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(step);
-        var timeout = step.RequiresOperator ? _operatorTimeout : _stepTimeout;
+        var timeout = step.ClientTimeout ?? (step.RequiresOperator ? _operatorTimeout : _stepTimeout);
         var options = new CallOptions(deadline: DateTime.UtcNow.Add(timeout), cancellationToken: cancellationToken);
         try
         {

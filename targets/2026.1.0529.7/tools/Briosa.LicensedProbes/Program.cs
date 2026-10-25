@@ -9,4 +9,5 @@ Console.CancelKeyPress += (_, eventArgs) =>
 };
 
 return await LicensedProbeProgram.RunAsync(
-    args, Console.Out, Console.Error, LicensedProbeProgram.CreateTransport, TimeProvider.System, cancellation.Token).ConfigureAwait(false);
+    args, Console.Out, Console.Error, LicensedProbeProgram.CreateTransport, LicensedProbeProgram.CreateOperatorConsole,
+    TimeProvider.System, cancellation.Token).ConfigureAwait(false);

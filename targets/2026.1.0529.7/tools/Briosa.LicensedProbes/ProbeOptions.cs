@@ -1,4 +1,5 @@
 using System.Globalization;
+using Api = global::Briosa;
 
 namespace Briosa.LicensedProbes;
 
@@ -8,14 +9,17 @@ namespace Briosa.LicensedProbes;
 /// </summary>
 internal sealed record ProbeOptions
 {
-    private static readonly HashSet<string> Flags = new(StringComparer.Ordinal) { "--dry-run", ProbeTarget.ConfirmFlag };
+    public const string RestoreModeOption = "--restore-sa-interaction-mode";
+    public const string RestoreOnlyFlag = "--interaction-mode-restore-only";
+
+    private static readonly HashSet<string> Flags = new(StringComparer.Ordinal) { "--dry-run", ProbeTarget.ConfirmFlag, RestoreOnlyFlag };
 
     private static readonly HashSet<string> Valued = new(StringComparer.Ordinal)
     {
         "--phase", "--fixtures", "--output-directory", "--address", "--worker-path",
         "--connected-sa-attested-version", "--connected-sa-attestation-reference",
         "--activated-sdk-attestation-reference", "--step-timeout-seconds", "--operator-timeout-seconds",
-        "--harness-revision"
+        "--harness-revision", RestoreModeOption
     };
 
     // The only option that may repeat: each occurrence names one more probe.
@@ -50,6 +54,19 @@ internal sealed record ProbeOptions
     /// belongs to the selected phase is checked when the plan is built.
     /// </summary>
     public IReadOnlyList<int> ExcludedProbes { get; init; } = [];
+
+    /// <summary>
+    /// The SA Interaction Mode probe 25 restores, from the operator: SA has no getter,
+    /// so the harness cannot read the mode in effect before the session.
+    /// </summary>
+    public Api.SaInteractionMode? RestoreSaInteractionMode { get; init; }
+
+    /// <summary>Run only the probe 25 restore step (recovery after a stopped session).</summary>
+    public bool InteractionModeRestoreOnly { get; init; }
+
+    public InteractionModeSettings InteractionMode => RestoreSaInteractionMode is { } mode
+        ? new InteractionModeSettings(mode, Supplied: true)
+        : InteractionModeSettings.Placeholder;
 
     public static ProbeOptions Parse(IReadOnlyList<string> arguments)
     {
@@ -113,8 +130,24 @@ internal sealed record ProbeOptions
             WorkerPath = Value(values, "--worker-path"),
             StepTimeout = Seconds(values, "--step-timeout-seconds", 120, 5, 600),
             OperatorTimeout = Seconds(values, "--operator-timeout-seconds", 300, 30, 1800),
-            ExcludedProbes = [.. excluded]
+            ExcludedProbes = [.. excluded],
+            RestoreSaInteractionMode = Value(values, RestoreModeOption) switch
+            {
+                null => null,
+                "manual" => Api.SaInteractionMode.Manual,
+                "automatic" => Api.SaInteractionMode.Automatic,
+                _ => throw new ProbeUsageException($"{RestoreModeOption} must be manual or automatic; Silent is never restored.")
+            },
+            InteractionModeRestoreOnly = flags.Contains(RestoreOnlyFlag)
         };
+
+        if (options.InteractionModeRestoreOnly)
+        {
+            if (options.ExcludedProbes.Count > 0)
+                throw new ProbeUsageException($"{RestoreOnlyFlag} runs one step; --exclude-probe does not apply.");
+            if (options.RestoreSaInteractionMode is null)
+                throw new ProbeUsageException($"{RestoreOnlyFlag} requires {RestoreModeOption}.");
+        }
 
         foreach (var reference in new[] { options.ConnectedSaAttestationReference, options.ActivatedSdkAttestationReference })
         {

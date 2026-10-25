@@ -131,7 +131,7 @@ internal sealed class WorkerTransport : IProbeTransport
         try
         {
             var response = await RequestAsync(WorkerControlMessage.Execute(Guid.NewGuid(), step.Command),
-                WorkerControlMessageKind.ExecutionResult, _stepTimeout, cancellationToken).ConfigureAwait(false);
+                WorkerControlMessageKind.ExecutionResult, step.ClientTimeout ?? _stepTimeout, cancellationToken).ConfigureAwait(false);
             var outcome = response.ExecutionResponse is { } execution
                 ? WorkerOutcomes.FromResponse(execution, outputs => step.Operation.ObserveWorker(step.Request, outputs))
                 : ProbeOutcome.Unknown("worker:invalid-response", "worker-response-invalid");

@@ -55,7 +55,7 @@ public sealed class ProbeExclusionTests
 
     [Theory]
     [InlineData("0")]
-    [InlineData("24")]
+    [InlineData("26")]
     [InlineData("99")]
     public void AnUnknownProbeNumberIsRefused(string probe)
     {
@@ -253,7 +253,7 @@ public sealed class ProbeExclusionTests
         var plan = Plan(ProbePhase.PublicApi, 11);
         var transport = new FakeTransport(ProbePhase.PublicApi, TestSupport.Succeeding);
 
-        var record = await ProbeSession.RunAsync(plan, transport, Clock, SessionIdentity.None, CancellationToken.None);
+        var record = await ProbeSession.RunAsync(plan, transport, Clock, SessionIdentity.None, new FakeOperator(), CancellationToken.None);
 
         Assert.True(record.Completed);
         Assert.Equal(Ids(plan.Steps), transport.Executed);
@@ -270,7 +270,7 @@ public sealed class ProbeExclusionTests
         var transport = new FakeTransport(ProbePhase.PublicApi, step => step.Id == "p12"
             ? ProbeOutcome.Unknown("grpc:DeadlineExceeded", "untyped-rpc-failure")
             : TestSupport.Succeeding(step));
-        var record = await ProbeSession.RunAsync(plan, transport, Clock, SessionIdentity.None, CancellationToken.None);
+        var record = await ProbeSession.RunAsync(plan, transport, Clock, SessionIdentity.None, new FakeOperator(), CancellationToken.None);
 
         using var document = JsonDocument.Parse(ProbeRecorder.ToJson(record));
         var root = document.RootElement;
@@ -279,7 +279,7 @@ public sealed class ProbeExclusionTests
             .ToDictionary(static step => step.GetProperty("id").GetString()!, static step => step.GetProperty("classification").GetString());
         var markdown = ProbeRecorder.ToMarkdown(record);
 
-        Assert.Equal(2, root.GetProperty("schema_version").GetInt32());
+        Assert.Equal(ProbeRecorder.SchemaVersion, root.GetProperty("schema_version").GetInt32());
         Assert.Equal(Statement11, exclusions.GetProperty("statement").GetString());
         Assert.Equal("operator", exclusions.GetProperty("excluded_by").GetString());
         Assert.False(exclusions.GetProperty("reason_recorded_by_harness").GetBoolean());
@@ -337,7 +337,7 @@ public sealed class ProbeExclusionTests
         using var output = new StringWriter();
         using var error = new StringWriter();
         var exit = await LicensedProbeProgram.RunAsync(arguments, output, error,
-            static _ => throw new InvalidOperationException("No transport may be created."), Clock, CancellationToken.None);
+            static _ => throw new InvalidOperationException("No transport may be created."), FakeOperator.Factory, Clock, CancellationToken.None);
         return (exit, output.ToString(), error.ToString());
     }
 
@@ -354,7 +354,7 @@ public sealed class ProbeExclusionTests
     [InlineData("worker", "2", "--exclude-probe 17")]
     [InlineData("public-api", "17", "no steps in the public-api phase")]
     [InlineData("worker", "11", "no steps in the worker phase")]
-    [InlineData("public-api", "24", "not a probe in the approved list")]
+    [InlineData("public-api", "26", "not a probe in the approved list")]
     [InlineData("public-api", "7", "names a retired probe")]
     [InlineData("worker", "14", "names a retired probe")]
     [InlineData("public-api", "15", "names a retired probe")]
