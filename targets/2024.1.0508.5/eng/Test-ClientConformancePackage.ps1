@@ -148,9 +148,11 @@ try {
         Assert-Condition ($active -eq ($sourceScenario.id -in $scenarioIds)) `
             "Scenario '$($sourceScenario.id)' is packaged contrary to its contract gate."
     }
-    Assert-Condition (@($sourceContract.scenarios | Where-Object {
-                $_.id -eq "sdk-call-faulted" -and [int]$_.minimum_contract_major -eq 3 }).Count -eq 1) `
-        "The sdk-call-faulted scenario must be gated on contract major 3."
+    foreach ($majorThreeScenario in @("sdk-call-faulted", "mp-partial-success")) {
+        Assert-Condition (@($sourceContract.scenarios | Where-Object {
+                    $_.id -eq $majorThreeScenario -and [int]$_.minimum_contract_major -eq 3 }).Count -eq 1) `
+            "The $majorThreeScenario scenario must be gated on contract major 3."
+    }
 
     $tokens = $null
     $parseErrors = $null

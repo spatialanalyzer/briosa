@@ -1,7 +1,7 @@
 # Execution outcomes and recovery
 
 - Status: Current
-- Last reviewed: 2026-10-10
+- Last reviewed: 2026-10-25
 
 ## Serialized MP execution
 
@@ -12,7 +12,8 @@ worker generation. One worker-owned STA serializes each complete MP sequence:
 2. set every supplied input argument in reviewed order;
 3. call `ExecuteStep`;
 4. retrieve the MP result with `GetMPStepResult`; and
-5. retrieve requested output arguments only after MP success.
+5. retrieve requested output arguments only after MP success (code `2`) or
+   partial success (code `4`).
 
 No request may interleave another request's sequence. Queue serialization protects
 the SDK call protocol; it does not create application transactions or isolate
@@ -37,9 +38,52 @@ the service runs and therefore need not include an `OperationError` trailer.
 An SDK argument setter returning false stops the sequence before `ExecuteStep`.
 `ExecuteStep` returning true means only that the call was accepted. Briosa then
 calls `GetMPStepResult`; its Boolean means that the numeric result was retrieved,
-and result code `2` is the success state. All other codes are retained as MP
-failure. Output getters run only after retrieved code `2`, and a failed getter is
-preserved separately rather than replaced with a default value.
+and result code `2` is the success state. Code `4` is a partial success (below).
+All other codes are retained as MP failure. Output getters run only after
+retrieved code `2` or `4`, and a failed getter is preserved separately rather
+than replaced with a default value.
+
+### Partial success (MP code 4)
+
+SpatialAnalyzer defines `PARTIAL SUCCESS` as a command that worked but did not
+have its full intended effect, for example a fit that exceeded its tolerance or
+a command that processed some, but not all, of the named objects
+([#351](https://github.com/spatialanalyzer/briosa/issues/351)). Briosa reports
+it as a success:
+
+- The RPC returns `OK` with its outputs, retrieved as after code `2`.
+- `execution.state` is `PartialSuccess` (`MP_EXECUTION_STATE_PARTIAL_SUCCESS`)
+  and `execution.mp_result_code` is `4`. A full success reports `Succeeded` and
+  code `2`. The state belongs to that one call.
+- The disposition is `Completed`. A success carries no error trailer, so the
+  replay rule is stated here: the work was done, and a caller must not replay
+  the call to change its outcome.
+- If an output then fails, the `DataLoss` error (`OutputRetrievalFailure`, or
+  `SdkCallFaulted` for a getter that threw) carries `PartialSuccess` and code
+  `4`, so the code is never lost. Both stay `Completed` and `DoNotReplay`.
+- The audit MP outcome is `partial_success`.
+- The execution-readiness probe still requires code `2`.
+
+The rule covers every operation, whether or not its target documentation lists
+code `4`, except a reviewed per-target list of operations whose documentation
+says code `4` leaves the requested work undone. Those keep the MP failure
+mapping: `FailedPrecondition`, `MpFailure`, `mp-command-failed`, `Completed`,
+`DoNotReplay`, state `Failed` and code `4`. None of them has outputs, because the
+worker retrieves outputs after code `4` without knowing the operation. The list
+is in each target's `MpPartialSuccessExceptions` and is the same on both targets:
+
+| Operation | Code `4` in the target documentation |
+| --- | --- |
+| `construction_operations.construct_point_from_survey_target_center` | no target point was found, so no point is constructed |
+| `file_operations.open_sa_file` | the file was found but could not be opened (2026); also listed on 2024 |
+| `file_operations.open_template_file` | the template was found but could not be opened (2026); also listed on 2024 |
+| `reporting_operations.set_report_options_for_object` | report options are not available for the object |
+
+The 2024 documentation does not list code `4` for the two open-file commands.
+They are listed on 2024 too, because a false success that discards the open job
+is worse than a false failure. Neither discovery nor the policy fingerprint
+changes: the fingerprint covers admission inputs only, and each call reports its
+own state.
 
 ### SDK call faults
 
@@ -54,7 +98,7 @@ the exception text:
 | `SetStep` or an input setter | `sdk-call-faulted-before-execute` | `Internal` | `NotStarted` | `DoNotReplay` | none |
 | `ExecuteStep` | `sdk-execute-step-faulted` | `Internal` | `StartedOutcomeUnknown` | `ReconcileBeforeReplay` | `ResultUnavailable`, outputs `NotAttempted` |
 | `GetMPStepResult` | `sdk-mp-result-retrieval-faulted` | `Internal` | `StartedOutcomeUnknown` | `ReconcileBeforeReplay` | `ResultUnavailable`, outputs `NotAttempted` |
-| An output getter after code `2` | `sdk-output-getter-faulted` | `DataLoss` | `Completed` | `DoNotReplay` | `Succeeded`, code `2`, each output `Retrieved` or `Failed` with its own code |
+| An output getter after code `2` or `4` | `sdk-output-getter-faulted` | `DataLoss` | `Completed` | `DoNotReplay` | `Succeeded` with code `2`, or `PartialSuccess` with code `4`; each output `Retrieved` or `Failed` with its own code |
 
 Recovery guidance is `None` in every phase. A fault before `ExecuteStep` is not
 reported as `SdkArgumentRejected`, because no argument was rejected. It stays
@@ -81,8 +125,7 @@ cannot exceed the bound. Without an SDK call fault, an undeliverable value still
 reports `DataLoss`/`OutputRetrievalFailure` with `worker-output-encoding-rejected`.
 
 `SdkCallFaulted` replaces the interim 0.9.2 mappings, which reported these faults
-as `Internal`, `MpResultRetrievalFailure`, or `OutputRetrievalFailure`. The
-existing `MpExecutionState` values are unchanged.
+as `Internal`, `MpResultRetrievalFailure`, or `OutputRetrievalFailure`.
 
 These per-call faults leave the worker STA healthy, so the worker generation stays
 in service and the private pipe stays usable. Loss of the SDK process is still
@@ -96,8 +139,9 @@ response. The supervisor then retires the generation and reports
 
 ## Public result and error model
 
-Every strongly typed result contains `MpExecutionDetails execution = 1000`.
-Successful scalar fields use protobuf presence when absence must remain distinct
+Every strongly typed result contains `MpExecutionDetails execution = 1000`. On
+an `OK` result its state is `Succeeded` (code `2`) or `PartialSuccess` (code
+`4`). Successful scalar fields use protobuf presence when absence must remain distinct
 from an empty string, zero, or false. Output retrieval details identify the public
 field and distinguish `Retrieved`, `NotAttempted`, and `Failed` without containing
 the field value.
@@ -140,7 +184,8 @@ Missing or unspecified disposition is never interpreted as `NotStarted`.
 | `ExecuteStep` invoked but response lost, watchdog elapsed, or worker failed | `StartedOutcomeUnknown` | `Unavailable` |
 | MP result could not be retrieved | `StartedOutcomeUnknown` | `Internal` |
 | `ExecuteStep` or `GetMPStepResult` faulted (`SdkCallFaulted`) | `StartedOutcomeUnknown` | `Internal` |
-| Retrieved MP failure | `Completed` | `FailedPrecondition` |
+| Retrieved MP partial success (code `4`) | `Completed` | `OK` |
+| Retrieved MP failure, or code `4` from a listed operation | `Completed` | `FailedPrecondition` |
 | Output getter failed after MP success | `Completed` | `DataLoss` |
 | Output getter faulted after MP success (`SdkCallFaulted`) | `Completed` | `DataLoss` |
 
@@ -206,7 +251,8 @@ claim.
 Thin clients do not automatically replay `StartedOutcomeUnknown` operations by
 default. Recovery of worker availability and permission to replay are independent
 decisions. An output-getter failure after MP success never justifies replay merely
-to recover the missing output.
+to recover the missing output, and a partial success is never replayed to change
+its outcome.
 
 ## Global-state and workflow isolation
 

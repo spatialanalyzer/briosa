@@ -140,8 +140,8 @@ that session.
 
   | Outcome | Execution disposition | Accepted by probes and variants |
   | --- | --- | --- |
-  | `Succeeded`: MP code `2` and every output retrieved | Completed | Yes |
-  | `MpFailed`: `GetMPStepResult` returned true with another MP code | Completed | Yes |
+  | `Succeeded`: MP code `2`, or code `4` (`PARTIAL SUCCESS`), and every output retrieved | Completed | Yes |
+  | `MpFailed`: `GetMPStepResult` returned true with another MP code, or code `4` from an operation on the server's exception list | Completed | Yes |
   | `OutputRetrievalFailed`: an MP code, but an output was not retrieved | Completed | Yes |
   | `ArgumentRejected`: a setter returned false; `ExecuteStep` was not called | Not started | Yes |
   | `ExecuteStepRejected`: setters returned true; `ExecuteStep` returned false | Started, outcome unknown | Never |
@@ -151,8 +151,14 @@ that session.
   An SDK call that throws is classified by its proven phase, as the shipped
   server reports `SdkCallFaulted`: a fault before `ExecuteStep` is `NotStarted`
   and is not accepted; a fault in `ExecuteStep` or `GetMPStepResult` is
-  `Indeterminate`; a getter fault after MP code `2` is `OutputRetrievalFailed`.
+  `Indeterminate`; a getter fault after MP code `2` or `4` is `OutputRetrievalFailed`.
   The record keeps the value-free `sdk-*-faulted` diagnostic code.
+
+  Code `4` is classified as the shipped server reports it
+  ([#351](https://github.com/spatialanalyzer/briosa/issues/351)): a partial
+  success is `Succeeded`, and the record keeps MP code `4`. The four operations
+  on the server's `MpPartialSuccessExceptions` list report code `4` as
+  `MpFailed`.
 
   The dispositions match the shipped server. Anything not accepted stops the
   session and leaves the remaining steps not run. This includes a not-started

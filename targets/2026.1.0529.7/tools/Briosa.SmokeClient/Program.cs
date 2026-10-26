@@ -301,6 +301,11 @@ internal static class SmokeClientProgram
                 serverInfo,
                 options.Timeout,
                 cancellationToken).ConfigureAwait(false),
+            SmokeScenario.MpPartialSuccess => await ExecuteMpPartialSuccess(
+                fileClient,
+                serverInfo,
+                options.Timeout,
+                cancellationToken).ConfigureAwait(false),
             SmokeScenario.Deadline => await ExecuteInterrupted(
                 fileClient,
                 serverInfo,
@@ -491,6 +496,39 @@ internal static class SmokeClientProgram
             StatusCode.Internal,
             TypedErrorObserved: true,
             error.Kind.ToString(),
+            RecoverySucceeded: false);
+    }
+
+    // MP code 4 (PARTIAL SUCCESS) is a completed success: the output is returned
+    // and the execution says it was partial. The next call reports full success,
+    // so the state belongs to each call.
+    private static async Task<ScenarioOutcome> ExecuteMpPartialSuccess(
+        TargetProtocol.FileOperations.FileOperationsClient client,
+        GetServerInfoResponse serverInfo,
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
+    {
+        RequireReady(serverInfo);
+        var result = await client.GetWorkingDirectoryAsync(
+                new TargetProtocol.GetWorkingDirectoryRequest(),
+                deadline: DateTime.UtcNow.Add(timeout),
+                cancellationToken: cancellationToken)
+            .ResponseAsync.ConfigureAwait(false);
+        if (!result.HasDirectory ||
+            result.Execution is not { State: MpExecutionState.PartialSuccess, HasMpResultCode: true, MpResultCode: 4 } ||
+            result.Execution.OutputRetrievals.Count != 1 ||
+            result.Execution.OutputRetrievals[0].State != OutputRetrievalState.Retrieved)
+        {
+            throw new SmokeFailureException("unexpected-partial-success-shape");
+        }
+
+        await RequireSuccessfulOperation(client, timeout, cancellationToken)
+            .ConfigureAwait(false);
+        return new ScenarioOutcome(
+            OperationSucceeded: true,
+            StatusCode.OK,
+            TypedErrorObserved: false,
+            FailureKind: null,
             RecoverySucceeded: false);
     }
 
@@ -923,6 +961,7 @@ internal static class SmokeClientProgram
         MpFailure,
         OutputFailure,
         SdkCallFaulted,
+        MpPartialSuccess,
         Deadline,
         Cancellation,
         WatchdogRecovery,
@@ -955,6 +994,7 @@ internal static class SmokeClientProgram
                 "mp-failure" => SmokeScenario.MpFailure,
                 "output-failure" => SmokeScenario.OutputFailure,
                 "sdk-call-faulted" => SmokeScenario.SdkCallFaulted,
+                "mp-partial-success" => SmokeScenario.MpPartialSuccess,
                 "deadline" => SmokeScenario.Deadline,
                 "cancellation" => SmokeScenario.Cancellation,
                 "watchdog-recovery" => SmokeScenario.WatchdogRecovery,

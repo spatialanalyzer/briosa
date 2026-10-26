@@ -127,7 +127,10 @@ internal static class GrpcOperationOutcomeMapper
                 "SpatialAnalyzer did not return the MP execution result.");
         }
 
-        if (!execution.MpSucceeded)
+        // Code 4 (PARTIAL SUCCESS) did the work, except for the reviewed operations
+        // whose target documentation says it leaves the work undone (#351).
+        if (!execution.MpSucceeded ||
+            execution.MpPartialSuccess && MpPartialSuccessExceptions.ReportsFailure(operationId))
         {
             var details = CreateMpDetails(
                 execution,
@@ -155,7 +158,7 @@ internal static class GrpcOperationOutcomeMapper
                 NormalizeDiagnosticCode(execution.DiagnosticCode, "worker-output-encoding-rejected"),
                 ExecutionDisposition.Completed, RecoveryGuidance.None, ReplayGuidance.DoNotReplay,
                 replaySafety, outcome.Generation,
-                CreateMpDetails(execution, outputs, MpExecutionState.Succeeded, OutputRetrievalState.Failed),
+                CreateMpDetails(execution, outputs, CompletedState(execution), OutputRetrievalState.Failed),
                 "The MP command succeeded, but its output values could not be delivered.");
         }
 
@@ -532,7 +535,7 @@ internal static class GrpcOperationOutcomeMapper
     {
         var details = new MpExecutionDetails
         {
-            State = MpExecutionState.Succeeded
+            State = CompletedState(execution)
         };
         if (execution.MpResultCode is { } resultCode)
         {
@@ -563,7 +566,7 @@ internal static class GrpcOperationOutcomeMapper
         return details;
     }
 
-    // MP code 2 was retrieved before an output getter threw. Each output keeps its
+    // MP code 2 or 4 was retrieved before an output getter threw. Each output keeps its
     // own status and a value-free reason: the faulted getter, a value the worker
     // could not deliver, or a getter that returned no usable value. Withheld
     // per-output evidence (no outputs) reports every requested output as failed.
@@ -573,8 +576,8 @@ internal static class GrpcOperationOutcomeMapper
     {
         var details = new MpExecutionDetails
         {
-            State = MpExecutionState.Succeeded,
-            MpResultCode = 2
+            State = CompletedState(fault),
+            MpResultCode = fault.ResultCode!.Value
         };
         for (var index = 0; index < outputs.Count; index++)
         {
@@ -605,6 +608,10 @@ internal static class GrpcOperationOutcomeMapper
 
         return details;
     }
+
+    // A retrieved code 4 is reported as its own state, never folded into Succeeded.
+    private static MpExecutionState CompletedState(WorkerMpExecutionResult execution) =>
+        execution.MpPartialSuccess ? MpExecutionState.PartialSuccess : MpExecutionState.Succeeded;
 
     private static bool OutputsMatch(
         IReadOnlyList<OperationOutputContract> requested,

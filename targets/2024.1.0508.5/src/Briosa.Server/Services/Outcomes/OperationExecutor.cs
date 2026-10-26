@@ -128,7 +128,7 @@ internal sealed class OperationExecutor(
                 operation.OperationId,
                 outcome.Generation,
                 RequestDurationMilliseconds(startedAt),
-                OperationAuditSummary.Create(outcome));
+                OperationAuditSummary.Create(outcome, operation.OperationId));
             rpcStatus = StatusCode.OK;
             return result;
         }
@@ -140,7 +140,7 @@ internal sealed class OperationExecutor(
                 operation.OperationId,
                 outcome?.Generation ?? 0,
                 RequestDurationMilliseconds(startedAt),
-                OperationAuditSummary.Create(outcome),
+                OperationAuditSummary.Create(outcome, operation.OperationId),
                 exception.StatusCode,
                 GrpcOperationOutcomeMapper.GetDiagnosticCode(exception));
             throw;

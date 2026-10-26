@@ -12,6 +12,11 @@ enum MpExecutionState {
   MP_EXECUTION_STATE_FAILED = 3;
   MP_EXECUTION_STATE_RESULT_UNAVAILABLE = 4;
   MP_EXECUTION_STATE_ARGUMENT_REJECTED = 5;
+  // SpatialAnalyzer returned MP code 4 (PARTIAL SUCCESS): the command did its
+  // work but did not have its full intended effect. The call is a completed
+  // success with its outputs, so do not replay it. An operation whose target
+  // documentation says code 4 leaves the work undone reports it as FAILED.
+  MP_EXECUTION_STATE_PARTIAL_SUCCESS = 6;
 }
 
 // Describes what happened when Briosa requested one result-only argument.

@@ -1,7 +1,7 @@
 # First-party client behavioral contract
 
 - Status: Current v1 design contract; client implementations may still be pre-conformance
-- Last reviewed: 2026-10-10
+- Last reviewed: 2026-10-25
 
 ## Purpose and authority
 
@@ -141,6 +141,33 @@ Public output cardinality follows the top-level MP outputs:
 Ordinary success results do not use a generic command envelope and do not mix in
 gRPC status, trailers, execution disposition, or other transport metadata.
 Multiple-output properties preserve MP output identity and order.
+
+### Partial success
+
+An MP that returns code `4` (PARTIAL SUCCESS) did its work. The server returns
+`OK` with its outputs, and `execution` reports state `PartialSuccess` and code
+`4` (see
+[execution outcomes](execution-outcomes-and-recovery.md#partial-success-mp-code-4)).
+At compatibility major 3, every first-party client:
+
+1. Treats a partial success as a success. It returns the outputs under the
+   cardinality rule above, never throws for it, and never retries it.
+2. Makes the MP completion observable for each call without changing return
+   types. The completion is a typed value with a state (`Succeeded` or
+   `PartialSuccess`) and the MP code. The language contract picks the idiom,
+   for example an optional per-call callback or observer in the call options:
+   `onMpCompletion` in JavaScript, a keyword-only `on_mp_completion` in Python,
+   or an optional observer argument or call-options overload in .NET. It is a
+   call control like cancellation, not a parallel operation form. A client-wide
+   hook may be added on top, but it does not replace the per-call value,
+   because concurrent calls must stay distinguishable.
+3. Exposes `PartialSuccess` inside typed failure details as its own MP state,
+   never folded into `Succeeded` or an unknown state. Code `4` from an
+   operation on the server's exception list arrives as an ordinary `MpFailure`
+   with code `4`.
+4. Passes the `mp-partial-success` conformance scenario.
+5. Documents that a partial success did its work, where to read the
+   indication, and the exception list.
 
 Public optionality follows the semantic success contract rather than protobuf
 defaults, language truthiness, or zero values. A required-on-success value remains
@@ -411,6 +438,7 @@ gRPC server over deterministic fake-worker scenarios for:
   capability classification, and denial reasons;
 - typed operation failures, including SDK call faults once clients adopt
   compatibility major 3;
+- partial success (MP code `4`) once clients adopt compatibility major 3;
 - deadlines and cancellation;
 - disconnection, worker crash, and watchdog replacement;
 - completion ambiguity, replay guidance, and recovery; and

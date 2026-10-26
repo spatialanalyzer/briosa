@@ -44,7 +44,7 @@ public sealed class OperationAuditLoggerTests
             operation.OperationId,
             outcome.Generation,
             requestDurationMilliseconds: 18,
-            OperationAuditSummary.Create(outcome));
+            OperationAuditSummary.Create(outcome, operation.OperationId));
 
         var start = Assert.Single(sink.Entries, entry => entry.EventId == 2001);
         var completed = Assert.Single(sink.Entries, entry => entry.EventId == 2004);
@@ -67,7 +67,7 @@ public sealed class OperationAuditLoggerTests
             Execution: null,
             Connection: null,
             "worker-execution-control-failed",
-            Generation: 5));
+            Generation: 5), "file_operations.get_working_directory");
 
         Assert.Equal("started_outcome_unknown", summary.ExecutionDisposition);
         Assert.Equal("outcome_unknown", summary.MpOutcome);
@@ -103,7 +103,7 @@ public sealed class OperationAuditLoggerTests
             "file_operations.get_working_directory",
             outcome.Generation,
             requestDurationMilliseconds: 10,
-            OperationAuditSummary.Create(outcome),
+            OperationAuditSummary.Create(outcome, "file_operations.get_working_directory"),
             StatusCode.DataLoss,
             outcome.DiagnosticCode);
 

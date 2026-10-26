@@ -414,7 +414,7 @@ public sealed class GrpcOperationOutcomeMapperTests
         Assert.Equal(WorkerExecutionDisposition.NotStarted, outcome.ExecutionDisposition);
         Assert.Equal("sdk-call-faulted-before-execute", error.DiagnosticCode);
         Assert.Null(error.MpExecution);
-        var audit = OperationAuditSummary.Create(outcome);
+        var audit = OperationAuditSummary.Create(outcome, OperationId);
         Assert.Equal("not_started", audit.ExecutionDisposition);
         Assert.Equal("sdk_call_faulted", audit.MpOutcome);
         Assert.Equal("not_attempted", audit.OutputRetrievalOutcome);
@@ -441,7 +441,7 @@ public sealed class GrpcOperationOutcomeMapperTests
         Assert.Equal(MpExecutionState.ResultUnavailable, error.MpExecution.State);
         Assert.False(error.MpExecution.HasMpResultCode);
         Assert.Equal(OutputRetrievalState.NotAttempted, Assert.Single(error.MpExecution.OutputRetrievals).State);
-        var audit = OperationAuditSummary.Create(outcome);
+        var audit = OperationAuditSummary.Create(outcome, OperationId);
         Assert.Equal("started_outcome_unknown", audit.ExecutionDisposition);
         Assert.Equal("sdk_call_faulted", audit.MpOutcome);
         Assert.Equal("not_attempted", audit.OutputRetrievalOutcome);
@@ -464,7 +464,8 @@ public sealed class GrpcOperationOutcomeMapperTests
                     WorkerSdkFaultDiagnosticCodes.OutputGetter, WorkerUnavailableOutputReason.SdkCallFaulted),
                 new WorkerRetrievedOutput("Count", WorkerMpValueKind.WholeNumber, new WorkerIntegerValue(3))
             ],
-            WorkerSdkFaultDiagnosticCodes.OutputGetter)));
+            WorkerSdkFaultDiagnosticCodes.OutputGetter,
+            resultCode: 2)));
 
         var error = Error(Assert.Throws<RpcException>(() =>
             GrpcOperationOutcomeMapper.RequireSuccess(
@@ -492,7 +493,7 @@ public sealed class GrpcOperationOutcomeMapperTests
                 Assert.Equal(OutputRetrievalState.Retrieved, retrieved.State);
                 Assert.False(retrieved.HasDiagnosticCode);
             });
-        var audit = OperationAuditSummary.Create(outcome);
+        var audit = OperationAuditSummary.Create(outcome, OperationId);
         Assert.Equal("completed", audit.ExecutionDisposition);
         Assert.Equal("succeeded", audit.MpOutcome);
         Assert.Equal("sdk_call_faulted", audit.OutputRetrievalOutcome);
@@ -506,7 +507,8 @@ public sealed class GrpcOperationOutcomeMapperTests
             WorkerSdkCallPhase.OutputGetter,
             5,
             [new WorkerUnavailableOutput("Other", WorkerMpValueKind.Text)],
-            WorkerSdkFaultDiagnosticCodes.OutputGetter));
+            WorkerSdkFaultDiagnosticCodes.OutputGetter,
+            resultCode: 2));
 
         var exception = Assert.Throws<RpcException>(() =>
             GrpcOperationOutcomeMapper.RequireSuccess(
@@ -538,7 +540,8 @@ public sealed class GrpcOperationOutcomeMapperTests
             UndeliverableValues(undeliverable,
                 new WorkerUnavailableOutput("Count", WorkerMpValueKind.WholeNumber,
                     WorkerSdkFaultDiagnosticCodes.OutputGetter, WorkerUnavailableOutputReason.SdkCallFaulted)),
-            WorkerSdkFaultDiagnosticCodes.OutputGetter);
+            WorkerSdkFaultDiagnosticCodes.OutputGetter,
+            resultCode: 2);
 
         var outcome = FromWorker(ThroughBoundedDelivery(fault));
         var exception = Assert.Throws<RpcException>(() =>
@@ -568,7 +571,7 @@ public sealed class GrpcOperationOutcomeMapperTests
         Assert.False(states[retrievedField].HasDiagnosticCode);
         Assert.Equal(OutputRetrievalState.Failed, states["count"].State);
         Assert.Equal("sdk-output-getter-faulted", states["count"].DiagnosticCode);
-        var audit = OperationAuditSummary.Create(outcome);
+        var audit = OperationAuditSummary.Create(outcome, OperationId);
         Assert.Equal("succeeded", audit.MpOutcome);
         Assert.Equal("sdk_call_faulted", audit.OutputRetrievalOutcome);
     }
@@ -626,7 +629,7 @@ public sealed class GrpcOperationOutcomeMapperTests
                 WorkerSdkFaultDiagnosticCodes.OutputGetter, WorkerUnavailableOutputReason.SdkCallFaulted)
         ];
         var fault = new WorkerSdkCallFaulted(
-            WorkerSdkCallPhase.OutputGetter, 5, values, WorkerSdkFaultDiagnosticCodes.OutputGetter);
+            WorkerSdkCallPhase.OutputGetter, 5, values, WorkerSdkFaultDiagnosticCodes.OutputGetter, resultCode: 2);
 
         var delivered = ThroughBoundedDelivery(fault);
         Assert.Empty(Assert.IsType<WorkerSdkCallFaulted>(delivered.Execution).Outputs);
@@ -871,7 +874,8 @@ public sealed class GrpcOperationOutcomeMapperTests
                 ? [new WorkerUnavailableOutput("Directory", WorkerMpValueKind.Text,
                     WorkerSdkFaultDiagnosticCodes.OutputGetter, WorkerUnavailableOutputReason.SdkCallFaulted)]
                 : [],
-            WorkerSdkFaultDiagnosticCodes.For(phase));
+            WorkerSdkFaultDiagnosticCodes.For(phase),
+            phase == WorkerSdkCallPhase.OutputGetter ? 2 : null);
 
     // Sends the worker result through the production private-channel encoding.
     private static WorkerMpExecutionResult OverPrivateChannel(WorkerMpExecutionResult execution)

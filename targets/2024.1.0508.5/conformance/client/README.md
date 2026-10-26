@@ -51,9 +51,17 @@ location.
 A scenario may declare `minimum_contract_major`. The package includes it only
 once the target's compatibility contract reaches that major, and it removes the
 field from the packaged contract. Retained clients for the current major never
-receive a scenario their fixture cannot know. `sdk-call-faulted` (#294) is
-defined with `minimum_contract_major: 3`; the compatibility-major-3 freeze
-activates it, and major-3 client fixtures must then support it.
+receive a scenario their fixture cannot know. `sdk-call-faulted` (#294) and
+`mp-partial-success` (#351) are defined with `minimum_contract_major: 3`; the
+compatibility-major-3 freeze activates them, and major-3 client fixtures must
+then support them.
+
+In `mp-partial-success`, the fake worker returns MP code 4 (PARTIAL SUCCESS)
+with the working directory for the first execution and code 2 afterwards. The
+fixture calls `get_working_directory` twice and asserts, through its public
+API, that both calls return the directory without an error, that the first
+call's MP completion is `PartialSuccess` with code 4, and that the second
+call's is `Succeeded` with code 2.
 
 The `capability-denied` scenario runs the packaged `standard` profile with one
 per-operation override that denies `file_operations.get_working_directory`.

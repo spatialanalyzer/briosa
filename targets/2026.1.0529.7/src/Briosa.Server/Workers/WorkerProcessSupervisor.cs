@@ -753,10 +753,10 @@ internal sealed partial class WorkerProcessSupervisor :
         using var resolution = BriosaTelemetry.Start("briosa.execution.resolved",
             item.Command.OperationId, item.ParentContext);
         _telemetry?.Resolved(item.Command.OperationId, outcome);
-        var summary = OperationAuditSummary.Create(outcome);
+        var summary = OperationAuditSummary.Create(outcome, item.Command.OperationId);
         var level = outcome.Status is WorkerExecutionStatus.WorkerFailure or WorkerExecutionStatus.WatchdogTimeout
             ? LogLevel.Error
-            : summary.MpOutcome == "succeeded" && summary.OutputRetrievalOutcome == "retrieved"
+            : summary.MpOutcome is "succeeded" or "partial_success" && summary.OutputRetrievalOutcome == "retrieved"
                 ? LogLevel.Information : LogLevel.Warning;
         if (_logger.IsEnabled(level))
         {

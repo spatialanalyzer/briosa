@@ -1,4 +1,5 @@
 using System.Globalization;
+using Briosa.Server.Services;
 using Briosa.Worker.Control;
 using Google.Protobuf;
 using Grpc.Core;
@@ -130,7 +131,8 @@ internal static class PublicOutcomes
 
     public static ProbeOutcome FromSuccess(MpExecutionDetails? execution, IReadOnlyDictionary<string, string> observations)
     {
-        if (execution is null || execution.State != MpExecutionState.Succeeded)
+        // A partial success (MP code 4) is a completed success; its code is recorded.
+        if (execution is null || execution.State is not (MpExecutionState.Succeeded or MpExecutionState.PartialSuccess))
         {
             return ProbeOutcome.Unknown("grpc:OK", "success-without-succeeded-execution");
         }
@@ -213,12 +215,13 @@ internal static class PublicOutcomes
         {
             MpExecutionState.ArgumentRejected => null,
             MpExecutionState.ExecuteStepRejected => false,
-            MpExecutionState.Succeeded or MpExecutionState.Failed or MpExecutionState.ResultUnavailable => true,
+            MpExecutionState.Succeeded or MpExecutionState.PartialSuccess or MpExecutionState.Failed or
+                MpExecutionState.ResultUnavailable => true,
             _ => null
         };
         bool? mpResultRetrieved = execution?.State switch
         {
-            MpExecutionState.Succeeded or MpExecutionState.Failed => true,
+            MpExecutionState.Succeeded or MpExecutionState.PartialSuccess or MpExecutionState.Failed => true,
             MpExecutionState.ResultUnavailable => false,
             _ => null
         };
@@ -249,10 +252,12 @@ internal static class WorkerOutcomes
 {
     public static ProbeOutcome FromResponse(
         WorkerExecutionResponse response,
-        Func<IReadOnlyList<WorkerMpOutputValue>, IReadOnlyDictionary<string, string>> observe)
+        Func<IReadOnlyList<WorkerMpOutputValue>, IReadOnlyDictionary<string, string>> observe,
+        string operationId)
     {
         ArgumentNullException.ThrowIfNull(response);
         ArgumentNullException.ThrowIfNull(observe);
+        ArgumentException.ThrowIfNullOrWhiteSpace(operationId);
         if (response.Status != WorkerExecutionResponseStatus.Completed || response.Execution is null)
         {
             return new ProbeOutcome(ProbeOutcomeKind.NotStarted, "worker:unavailable", null, null, null, [],
@@ -272,7 +277,11 @@ internal static class WorkerOutcomes
             WorkerSdkCallFaulted { Phase: WorkerSdkCallPhase.BeforeExecute } => ProbeOutcomeKind.NotStarted,
             WorkerSdkCallFaulted { Phase: WorkerSdkCallPhase.OutputGetter } => ProbeOutcomeKind.OutputRetrievalFailed,
             WorkerSdkCallFaulted => ProbeOutcomeKind.Indeterminate,
-            WorkerMpResultAvailable { ResultCode: not 2 } => ProbeOutcomeKind.MpFailed,
+            // Code 4 is a partial success unless the server's exception list says
+            // the operation left the work undone.
+            WorkerMpResultAvailable { MpSucceeded: false } => ProbeOutcomeKind.MpFailed,
+            WorkerMpResultAvailable { MpPartialSuccess: true } when MpPartialSuccessExceptions.ReportsFailure(operationId) =>
+                ProbeOutcomeKind.MpFailed,
             WorkerMpResultAvailable when outputs.Any(output => !output.Retrieved) => ProbeOutcomeKind.OutputRetrievalFailed,
             WorkerMpResultAvailable => ProbeOutcomeKind.Succeeded,
             _ => ProbeOutcomeKind.Indeterminate

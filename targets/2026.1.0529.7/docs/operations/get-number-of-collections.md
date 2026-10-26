@@ -24,7 +24,7 @@ The worker performs the sequence on its single SDK-owning STA:
 1. `SetStep("Get Number of Collections")`
 2. `ExecuteStep`
 3. `GetMPStepResult`
-4. require retrieved MP result code `2`
+4. require retrieved MP result code `2`, or `4` (a partial success, reported as `PARTIAL_SUCCESS`)
 5. `GetIntegerArg("Total Count", ...)`
 
 If the MP result fails, the output getter is not called. If the getter fails, the RPC fails with `DataLoss` and never substitutes a count.

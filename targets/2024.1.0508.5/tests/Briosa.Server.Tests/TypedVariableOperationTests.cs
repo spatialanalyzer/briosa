@@ -121,7 +121,7 @@ public sealed class TypedVariableOperationTests
         var details = Api.OperationError.Parser.ParseFrom(Assert.Single(error.Trailers).ValueBytes);
         Assert.Equal(Api.OperationFailureKind.SdkArgumentRejected, details.Kind);
         Assert.Equal(Api.ExecutionDisposition.NotStarted, details.ExecutionDisposition);
-        Assert.Equal("argument_rejected", OperationAuditSummary.Create(outcome).MpOutcome);
+        Assert.Equal("argument_rejected", OperationAuditSummary.Create(outcome, "typed-argument-rejection").MpOutcome);
     }
 
     [Fact]

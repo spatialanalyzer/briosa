@@ -97,6 +97,8 @@ public sealed class OutcomeClassificationTests
             "connect-ex-connected", DateTimeOffset.UnixEpoch),
         null);
 
+    private const string ProbedOperationId = "file_operations.get_working_directory";
+
     private static readonly Func<IReadOnlyList<WorkerMpOutputValue>, IReadOnlyDictionary<string, string>> NoObservation =
         static _ => Observations.Of(("observed", "true"));
 
@@ -111,7 +113,7 @@ public sealed class OutcomeClassificationTests
         "arguments-rejected" => new WorkerArgumentsRejected(1, "sdk-argument-rejected"),
         "execute-rejected" => new WorkerExecuteRejected(1, "execute-step-rejected"),
         "result-unavailable" => new WorkerMpResultUnavailable(1, "sdk-mp-result-retrieval-failed"),
-        "outputs-unavailable" => new WorkerMpOutputsUnavailable(1, "worker-output-encoding-rejected"),
+        "outputs-unavailable" => new WorkerMpOutputsUnavailable(2, 1, "worker-output-encoding-rejected"),
         "mp-failed" => new WorkerMpResultAvailable(0, 1, [], "mp-command-failed"),
         "output-retrieval-failed" => new WorkerMpResultAvailable(2, 1, [RetrievedCount, MissingOutput], "sdk-output-retrieval-failed"),
         "succeeded" => new WorkerMpResultAvailable(2, 1, [RetrievedCount], null),
@@ -130,7 +132,7 @@ public sealed class OutcomeClassificationTests
     [InlineData("succeeded", nameof(ProbeOutcomeKind.Succeeded), "Completed", false)]
     public void WorkerOutcomesCarryTheServerDispositionForEveryResultType(string result, string kind, string disposition, bool completionUnknown)
     {
-        var outcome = WorkerOutcomes.FromResponse(Completed(WorkerResult(result)), NoObservation);
+        var outcome = WorkerOutcomes.FromResponse(Completed(WorkerResult(result)), NoObservation, ProbedOperationId);
 
         Assert.Equal(Enum.Parse<ProbeOutcomeKind>(kind), outcome.Kind);
         Assert.Equal(disposition, outcome.ExecutionDisposition);
@@ -156,9 +158,10 @@ public sealed class OutcomeClassificationTests
             sdkPhase,
             1,
             sdkPhase == WorkerSdkCallPhase.OutputGetter ? [RetrievedCount, MissingOutput] : [],
-            WorkerSdkFaultDiagnosticCodes.For(sdkPhase));
+            WorkerSdkFaultDiagnosticCodes.For(sdkPhase),
+            sdkPhase == WorkerSdkCallPhase.OutputGetter ? 2 : null);
 
-        var outcome = WorkerOutcomes.FromResponse(Completed(fault), NoObservation);
+        var outcome = WorkerOutcomes.FromResponse(Completed(fault), NoObservation, ProbedOperationId);
 
         Assert.Equal(Enum.Parse<ProbeOutcomeKind>(kind), outcome.Kind);
         Assert.Equal(disposition, outcome.ExecutionDisposition);
@@ -189,9 +192,9 @@ public sealed class OutcomeClassificationTests
     [Fact]
     public void WorkerOutcomesPreserveTheSdkEvidenceOfUnknownCompletion()
     {
-        var rejected = WorkerOutcomes.FromResponse(Completed(new WorkerExecuteRejected(1, "execute-step-rejected")), NoObservation);
-        var unavailable = WorkerOutcomes.FromResponse(Completed(new WorkerMpResultUnavailable(1, "sdk-mp-result-retrieval-failed")), NoObservation);
-        var argument = WorkerOutcomes.FromResponse(Completed(new WorkerArgumentsRejected(1, "sdk-argument-rejected")), NoObservation);
+        var rejected = WorkerOutcomes.FromResponse(Completed(new WorkerExecuteRejected(1, "execute-step-rejected")), NoObservation, ProbedOperationId);
+        var unavailable = WorkerOutcomes.FromResponse(Completed(new WorkerMpResultUnavailable(1, "sdk-mp-result-retrieval-failed")), NoObservation, ProbedOperationId);
+        var argument = WorkerOutcomes.FromResponse(Completed(new WorkerArgumentsRejected(1, "sdk-argument-rejected")), NoObservation, ProbedOperationId);
 
         Assert.False(rejected.ExecuteStepReturned);
         Assert.Null(rejected.MpResultRetrieved);
@@ -203,7 +206,7 @@ public sealed class OutcomeClassificationTests
         Assert.Empty(rejected.Observations);
         Assert.Empty(unavailable.Observations);
 
-        var failed = WorkerOutcomes.FromResponse(Completed(new WorkerMpResultAvailable(0, 1, [], "mp-command-failed")), NoObservation);
+        var failed = WorkerOutcomes.FromResponse(Completed(new WorkerMpResultAvailable(0, 1, [], "mp-command-failed")), NoObservation, ProbedOperationId);
         Assert.Equal(ProbeOutcomeKind.MpFailed, failed.Kind);
         Assert.Equal(0, failed.MpResultCode);
         Assert.Empty(failed.Observations);
@@ -246,8 +249,8 @@ public sealed class OutcomeClassificationTests
         var retrieved = new WorkerRetrievedOutput("Total Count", WorkerMpValueKind.WholeNumber, new WorkerIntegerValue(4));
         var missing = new WorkerUnavailableOutput("Other", WorkerMpValueKind.WholeNumber, "sdk-output-retrieval-failed");
 
-        var success = WorkerOutcomes.FromResponse(Completed(new WorkerMpResultAvailable(2, 1, [retrieved], null)), NoObservation);
-        var partial = WorkerOutcomes.FromResponse(Completed(new WorkerMpResultAvailable(2, 1, [retrieved, missing], "sdk-output-retrieval-failed")), NoObservation);
+        var success = WorkerOutcomes.FromResponse(Completed(new WorkerMpResultAvailable(2, 1, [retrieved], null)), NoObservation, ProbedOperationId);
+        var partial = WorkerOutcomes.FromResponse(Completed(new WorkerMpResultAvailable(2, 1, [retrieved, missing], "sdk-output-retrieval-failed")), NoObservation, ProbedOperationId);
 
         Assert.Equal(ProbeOutcomeKind.Succeeded, success.Kind);
         Assert.Equal("true", success.Observations["observed"]);
@@ -263,7 +266,7 @@ public sealed class OutcomeClassificationTests
                 "sdk-not-ready", DateTimeOffset.UnixEpoch),
             "sdk-not-ready");
 
-        Assert.Equal(ProbeOutcomeKind.NotStarted, WorkerOutcomes.FromResponse(response, NoObservation).Kind);
+        Assert.Equal(ProbeOutcomeKind.NotStarted, WorkerOutcomes.FromResponse(response, NoObservation, ProbedOperationId).Kind);
     }
 
     [Fact]

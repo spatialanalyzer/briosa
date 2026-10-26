@@ -2,7 +2,7 @@ using System.Collections.Immutable;
 
 namespace Briosa.Worker.Control;
 
-/// <summary>A retrieved raw MP code; only code 2 permits output retrieval.</summary>
+/// <summary>A retrieved raw MP code; only codes 2 and 4 permit output retrieval.</summary>
 public sealed record WorkerMpResultAvailable : WorkerMpExecutionResult
 {
     private readonly ImmutableArray<WorkerMpOutputValue> _outputs;
@@ -15,7 +15,7 @@ public sealed record WorkerMpResultAvailable : WorkerMpExecutionResult
         : base(durationMilliseconds, diagnosticCode)
     {
         ArgumentNullException.ThrowIfNull(outputs);
-        if (resultCode != 2 && outputs.Count != 0)
+        if (!WorkerMpResultCodes.PermitsOutputRetrieval(resultCode) && outputs.Count != 0)
         {
             throw new ArgumentException("Outputs cannot be retrieved after an unsuccessful MP result.", nameof(outputs));
         }

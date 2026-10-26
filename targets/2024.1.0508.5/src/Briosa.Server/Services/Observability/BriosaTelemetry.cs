@@ -77,7 +77,7 @@ internal sealed class BriosaTelemetry : IDisposable
         _exchangeDuration.Record(milliseconds / 1000, new KeyValuePair<string, object?>("briosa.operation", OperationId(operation)));
     public void Resolved(string operation, WorkerExecutionOutcome outcome)
     {
-        var summary = OperationAuditSummary.Create(outcome);
+        var summary = OperationAuditSummary.Create(outcome, operation);
         var tags = new TagList
         {
             { "briosa.operation", OperationId(operation) },

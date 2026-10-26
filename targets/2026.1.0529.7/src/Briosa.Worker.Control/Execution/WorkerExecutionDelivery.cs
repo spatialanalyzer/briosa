@@ -26,7 +26,8 @@ public static class WorkerExecutionDelivery
             { MpSucceeded: true } execution => WorkerControlMessage.ExecutionResult(correlationId,
                 new WorkerExecutionResponse(
                     WorkerExecutionResponseStatus.Completed,
-                    new WorkerMpOutputsUnavailable(execution.DurationMilliseconds, OutputEncodingRejected),
+                    new WorkerMpOutputsUnavailable(execution.MpResultCode!.Value, execution.DurationMilliseconds,
+                        OutputEncodingRejected),
                     response.Connection,
                     OutputEncodingRejected)),
             _ => throw new WorkerMessageRejectedException("The worker execution result could not be encoded.")
@@ -97,7 +98,8 @@ public static class WorkerExecutionDelivery
         IReadOnlyList<WorkerMpOutputValue> outputs) =>
         WorkerControlMessage.ExecutionResult(correlationId, new WorkerExecutionResponse(
             WorkerExecutionResponseStatus.Completed,
-            new WorkerSdkCallFaulted(fault.Phase, fault.DurationMilliseconds, outputs, fault.DiagnosticCode!),
+            new WorkerSdkCallFaulted(fault.Phase, fault.DurationMilliseconds, outputs, fault.DiagnosticCode!,
+                fault.ResultCode),
             response.Connection,
             response.DiagnosticCode));
 }

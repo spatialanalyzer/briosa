@@ -9,8 +9,8 @@ Production-adapter tests use an injectable synchronous call surface to verify ex
 1. the exact `SetStep` call occurs first;
 2. input setters run in MP argument order;
 3. `ExecuteStep` precedes `GetMPStepResult`;
-4. success requires retrieved result code `2`; and
-5. exact output getters run only after MP success.
+4. success requires retrieved result code `2`, or `4` for a partial success; and
+5. exact output getters run only after code `2` or `4`.
 
 Reusable codec tests cover scalar, list, identity/reference, and structured value marshaling retained by the worker. Testing an internal codec does not make any MP command public.
 

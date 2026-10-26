@@ -111,7 +111,9 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
             }
         }
 
-        var mpSucceeded = mpResultRetrieved && resultCode == 2;
+        // Code 2 (SUCCESS) and code 4 (PARTIAL SUCCESS) both mean the MP did its
+        // work, so its outputs are retrieved; the host decides how code 4 is reported.
+        var mpSucceeded = mpResultRetrieved && WorkerMpResultCodes.PermitsOutputRetrieval(resultCode);
         IReadOnlyList<WorkerMpOutputValue> outputValues = [];
         var diagnosticCode = executeStepReturned switch
         {
@@ -140,7 +142,8 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
                 WorkerSdkCallPhase.OutputGetter,
                 durationMilliseconds,
                 outputValues,
-                WorkerSdkFaultDiagnosticCodes.OutputGetter);
+                WorkerSdkFaultDiagnosticCodes.OutputGetter,
+                resultCode);
         }
 
         if (!executeStepReturned) return new WorkerExecuteRejected(durationMilliseconds, diagnosticCode);
@@ -292,7 +295,7 @@ internal sealed partial class SpatialAnalyzerSdkAdapter : ISpatialAnalyzerSdk
             InvalidComObjectException or ObjectDisposedException or SEHException or
             ThreadInterruptedException);
 
-    // The MP already completed with code 2: a faulted getter leaves only that
+    // The MP already completed with code 2 or 4: a faulted getter leaves only that
     // output unavailable, and later getters are still attempted.
     [SuppressMessage(
         "Design", "CA1031:Do not catch general exception types",
