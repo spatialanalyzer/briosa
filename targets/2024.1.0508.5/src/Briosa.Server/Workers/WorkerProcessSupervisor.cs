@@ -1146,6 +1146,8 @@ internal sealed partial class WorkerProcessSupervisor :
         WorkerConnectionSnapshot verified;
         // The probe has its own bound; duration-class execution budgets never apply.
         // It belongs to an accepted exchange, so caller cancellation cannot quarantine.
+        // A configured interaction mode step shares the bound, so the lifecycle and
+        // client budgets count one readiness bound per verification (PR #355 review).
         using (var timeout = new CancellationTokenSource(_policy.ReadinessProbeTimeout, _timeProvider))
         {
             try
@@ -1208,9 +1210,12 @@ internal sealed partial class WorkerProcessSupervisor :
                     competingClientSuspected: true).ConfigureAwait(false);
                 return false;
             }
-        }
 
-        if (!await ApplyInteractionModeAsync(worker, verified).ConfigureAwait(false)) return false;
+            if (!await ApplyInteractionModeAsync(worker, verified, timeout.Token).ConfigureAwait(false))
+            {
+                return false;
+            }
+        }
 
         if (applicationGeneration is null)
         {
@@ -1256,45 +1261,43 @@ internal sealed partial class WorkerProcessSupervisor :
     // MP can run before this step. SA has no getter for the mode, so the MP code is the
     // only evidence. A configured mode that is not applied keeps readiness closed:
     // without it, a state-triggered dialog can hold the STA until the watchdog fires.
-    private async Task<bool> ApplyInteractionModeAsync(IWorkerProcess worker, WorkerConnectionSnapshot verified)
+    private async Task<bool> ApplyInteractionModeAsync(
+        IWorkerProcess worker, WorkerConnectionSnapshot verified, CancellationToken readinessBound)
     {
         if (SpatialAnalyzerInteractionModeCommand.Create(_interactionMode) is not { } command) return true;
         int? mpResultCode = null;
         string diagnosticCode;
         var failure = WorkerLifecycleFailure.ReadinessFailed;
-        // The step has the readiness probe's bound; duration-class budgets never apply.
-        using (var timeout = new CancellationTokenSource(_policy.ReadinessProbeTimeout, _timeProvider))
+        // The step runs within the readiness probe's bound; duration-class budgets never apply.
+        try
         {
-            try
+            var response = await WorkerCommandExchange.RunAsync(
+                worker, command, Guid.NewGuid(), verified.RuntimeIdentity, readinessBound).ConfigureAwait(false);
+            _lastSuccessfulExchange = _timeProvider.GetTimestamp();
+            mpResultCode = response.Execution?.MpResultCode;
+            if (response.Execution is { MpSucceeded: true })
             {
-                var response = await WorkerCommandExchange.RunAsync(
-                    worker, command, Guid.NewGuid(), verified.RuntimeIdentity, timeout.Token).ConfigureAwait(false);
-                _lastSuccessfulExchange = _timeProvider.GetTimestamp();
-                mpResultCode = response.Execution?.MpResultCode;
-                if (response.Execution is { MpSucceeded: true })
-                {
-                    LogInteractionMode(LogLevel.Information, mpResultCode, "interaction-mode-applied");
-                    return true;
-                }
+                LogInteractionMode(LogLevel.Information, mpResultCode, "interaction-mode-applied");
+                return true;
+            }
 
-                diagnosticCode = "interaction-mode-not-applied";
-            }
-            catch (OperationCanceledException)
-            {
-                // Only the bound can cancel this exchange.
-                diagnosticCode = StalledExchangeDiagnostic("interaction-mode-apply-timeout");
-                failure = WorkerLifecycleFailure.ReadinessTimeout;
-            }
-            catch (WorkerMessageRejectedException)
-            {
-                diagnosticCode = "interaction-mode-not-applied";
-            }
-            catch (Exception exception) when (IsRecoverableProcessFailure(exception))
-            {
-                diagnosticCode = worker.HasExited
-                    ? "execution-readiness-worker-exited"
-                    : "execution-readiness-control-failed";
-            }
+            diagnosticCode = "interaction-mode-not-applied";
+        }
+        catch (OperationCanceledException)
+        {
+            // Only the bound can cancel this exchange.
+            diagnosticCode = StalledExchangeDiagnostic("interaction-mode-apply-timeout");
+            failure = WorkerLifecycleFailure.ReadinessTimeout;
+        }
+        catch (WorkerMessageRejectedException)
+        {
+            diagnosticCode = "interaction-mode-not-applied";
+        }
+        catch (Exception exception) when (IsRecoverableProcessFailure(exception))
+        {
+            diagnosticCode = worker.HasExited
+                ? "execution-readiness-worker-exited"
+                : "execution-readiness-control-failed";
         }
 
         LogInteractionMode(LogLevel.Warning, mpResultCode, diagnosticCode);
