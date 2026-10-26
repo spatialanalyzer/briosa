@@ -2,9 +2,8 @@
   "schema_version": 1,
   "spatial_analyzer_target": "2024.1.0508.5",
   "description": "Reviewed operation retirements. eng/Verify-Protocol.ps1 removes exactly these RPCs, and the request, result and enum types they alone use, from the baseline descriptor before the FILE breaking check. Every other protocol change keeps the normal rules. Tests require each retired operation to be absent from the registry, discovery, classification and generated protocol.",
-  "decision": "D2 point 5 (https://github.com/spatialanalyzer/briosa/issues/243#issuecomment-6107759671) as decided on #308 (https://github.com/spatialanalyzer/briosa/issues/308#issuecomment-6109883364), #310, and #307 (https://github.com/spatialanalyzer/briosa/issues/307#issuecomment-6113702460) (2026-10-11): delete operations whose NOT_SUPPORTED substitution does not work on the exact target.",
+  "decision": "D2 point 5 (https://github.com/spatialanalyzer/briosa/issues/243#issuecomment-6107759671) as decided on #308 (https://github.com/spatialanalyzer/briosa/issues/308#issuecomment-6109883364), #310, and #307 (https://github.com/spatialanalyzer/briosa/issues/307#issuecomment-6113702460) (2026-10-11): delete operations whose NOT_SUPPORTED substitution does not work on the exact target; and on #309 (https://github.com/spatialanalyzer/briosa/issues/309#issuecomment-6404290445) and #350 (https://github.com/spatialanalyzer/briosa/issues/350#issuecomment-6404290753) (2026-10-25): delete operations that licensed session 2 showed cannot work on the exact target.",
   "retired_in_contract_major": 3,
-  "evidence": "docs/testing/evidence/probe-277-2024.1.0508.5-2026-10-07.md",
   "operations": [
     {
       "operation_id": "construction_operations.make_callout_view_ref_list_wildcard_selection",
@@ -16,6 +15,7 @@
       "enums": [],
       "issue": 308,
       "probes": [7],
+      "evidence": "docs/testing/evidence/probe-277-2024.1.0508.5-2026-10-07.md",
       "reason": "MP code 2, but the output getter never returned the callout view list (outputs 0 of 1). The SDK marks the result NOT_SUPPORTED and the interop has no callout-view list getter."
     },
     {
@@ -28,6 +28,7 @@
       "enums": [],
       "issue": 308,
       "probes": [14],
+      "evidence": "docs/testing/evidence/probe-277-2024.1.0508.5-2026-10-07.md",
       "reason": "MP code 2, but reading the input list back never returned a value (outputs 0 of 1). The MP documents no return argument, so no getter exists."
     },
     {
@@ -40,6 +41,7 @@
       "enums": [],
       "issue": 310,
       "probes": [8],
+      "evidence": "docs/testing/evidence/probe-277-2024.1.0508.5-2026-10-07.md",
       "reason": "SA rejects the substituted collection-object list setter for the callout view list (MP code -1). The SDK marks the argument NOT_SUPPORTED and the interop has no callout-view list setter."
     },
     {
@@ -54,6 +56,7 @@
       ],
       "issue": 310,
       "probes": [9],
+      "evidence": "docs/testing/evidence/probe-277-2024.1.0508.5-2026-10-07.md",
       "reason": "SA rejects Circle Line Mode sent with SetStringArg for both Circle and Line (MP code -1). The SDK marks the Circle Line Mode Type setter NOT_SUPPORTED and the interop has none."
     },
     {
@@ -68,6 +71,7 @@
       ],
       "issue": 310,
       "probes": [10],
+      "evidence": "docs/testing/evidence/probe-277-2024.1.0508.5-2026-10-07.md",
       "reason": "SA rejects the frame plane sent with SetStringArg (MP code -1). The SDK marks the MP Plane Type setter NOT_SUPPORTED and the interop has none."
     },
     {
@@ -80,7 +84,36 @@
       "enums": [],
       "issue": 307,
       "probes": [15, 16],
+      "evidence": "docs/testing/evidence/probe-277-2024.1.0508.5-2026-10-07.md",
       "reason": "SA rejected the range bounds sent with SetDoubleArg (MP code -1) and deleted nothing. The six bounds are Optional Double, which the SDK marks NOT_SUPPORTED and the interop cannot set; without them the operation is not a range delete."
+    },
+    {
+      "operation_id": "construction_operations.construct_polygonized_surface_from_point_clouds",
+      "mp_step": "Construct Polygonized Surface from Point Clouds",
+      "service": "briosa.ConstructionOperations",
+      "rpc": "ConstructPolygonizedSurfaceFromPointClouds",
+      "request": "briosa.ConstructPolygonizedSurfaceFromPointCloudsRequest",
+      "result": "briosa.ConstructPolygonizedSurfaceFromPointCloudsResult",
+      "enums": [
+        "briosa.MeshOrientationType"
+      ],
+      "issue": 309,
+      "probes": [11],
+      "evidence": "docs/testing/evidence/probe-session-2-2024.1.0508.5-2026-10-25.md",
+      "reason": "Run first and in isolation, the Mesh Orientation sent with SetStringArg raised \"Encountered an improper argument.\" and the MP never completed; the server's 600 s long-running watchdog ended the worker. The SDK names SetMeshOrientationTypeArg, which the interop does not have."
+    },
+    {
+      "operation_id": "construction_operations.make_collection_vector_group_name_ref_list_runtime_select",
+      "mp_step": "Make a Collection Vector Group Name Ref List - Runtime Select",
+      "service": "briosa.ConstructionOperations",
+      "rpc": "MakeCollectionVectorGroupNameRefListRuntimeSelect",
+      "request": "briosa.MakeCollectionVectorGroupNameRefListRuntimeSelectRequest",
+      "result": "briosa.MakeCollectionVectorGroupNameRefListRuntimeSelectResult",
+      "enums": [],
+      "issue": 350,
+      "probes": [22],
+      "evidence": "docs/testing/evidence/probe-session-2-2024.1.0508.5-2026-10-25.md",
+      "reason": "With SA's documented F2 gesture the selection completed (MP code 2), but GetCollectionVectorGroupNameRefListArg, the SDK's getter for the documented result, returned nothing (outputs 0 of 1), also under Silent."
     }
   ]
 }

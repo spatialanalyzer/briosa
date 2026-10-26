@@ -39,10 +39,10 @@ for the profile definitions and precedence.
 
 | Target | Registered | `read-only` | `standard` (default) | `device` | `full` | Exclusive (never admitted) | Interactive (opt-in only) |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| 2026.1.0529.7 | 1,021 | 184 | 798 | 906 | 923 | 42 | 59 |
-| 2024.1.0508.5 | 990 | 180 | 779 | 872 | 889 | 45 | 59 |
+| 2026.1.0529.7 | 1,019 | 184 | 797 | 905 | 922 | 42 | 58 |
+| 2024.1.0508.5 | 988 | 180 | 778 | 871 | 888 | 45 | 58 |
 
-The counts exclude the six operations per target removed in the same major
+The counts exclude the eight operations per target removed in the same major
 release; see [operation retirement](operation-retirement.md). They include the
 seven device-configuration setters reclassified on #243 (question 7,
 [2026-10-13](https://github.com/spatialanalyzer/briosa/issues/243#issuecomment-6147618560)
