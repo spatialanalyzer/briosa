@@ -127,7 +127,7 @@ public sealed class ProbeOptionsTests
             .InteractionModeRestoreOnly);
         Assert.Throws<ProbeUsageException>(() => ProbeOptions.Parse([.. PublicLicensed, ProbeOptions.RestoreOnlyFlag]));
         Assert.Throws<ProbeUsageException>(() => ProbeOptions.Parse(
-            [.. PublicLicensed, ProbeOptions.RestoreOnlyFlag, ProbeOptions.RestoreModeOption, "manual", "--exclude-probe", "11"]));
+            [.. PublicLicensed, ProbeOptions.RestoreOnlyFlag, ProbeOptions.RestoreModeOption, "manual", "--exclude-probe", "12"]));
         Assert.Throws<ProbeUsageException>(() => ProbeOptions.Parse(
             [.. PublicLicensed, ProbeOptions.RestoreOnlyFlag, ProbeOptions.RestoreOnlyFlag, ProbeOptions.RestoreModeOption, "manual"]));
     }

@@ -182,7 +182,7 @@ DEVICE_CONFIG = R(
 LONG_RUNNING_EXTRA = R(
     'file_operations.import_e57_file', 'file_operations.import_polyworks_file', 'file_operations.open_sa_file',
     'file_operations.save', 'file_operations.save_as', 'cloud_and_mesh_operations.generate_general_mesh',
-    'construction_operations.construct_polygonized_surface_from_point_clouds', 'relationship_operations.do_relationship_fit',
+    'relationship_operations.do_relationship_fit',
     'relationship_operations.move_collections_by_minimizing_relationships', 'mp_subroutines.run_subroutine',
     'robot_operations.simulate_robot_machine_path_output_csv_file', 'reporting_operations.output_sa_report_to_pdf',
     'reporting_operations.output_sa_report_to_excel', 'file_operations.backup_now',
