@@ -61,22 +61,6 @@ public sealed class TypedSpecialSurfaceMigrationTests
             geometry.InputArguments[3].RequireValue<WorkerCollectionObjectNameValue>().ObjectType);
         Assert.Equal("SetCollectionNameArg", geometry.InputArguments[4].SdkBinding);
 
-        var polygon = ConstructPolygonizedSurfaceFromPointCloudsOperation.CreateCommand(new()
-        {
-            PointCloudList = { Object("cloud") }, MeshOrientation = Api.MeshOrientationType.UseCurrentWorkingFrame,
-            PolygonizedSurfaceName = Object("mesh")
-        });
-        Assert.Equal(WorkerObjectTypeValue.Cloud,
-            polygon.InputArguments[0].RequireValue<WorkerCollectionObjectNameListValue>().Values[0].ObjectType);
-        Assert.Equal("Use Current Working Frame", polygon.InputArguments[1].RequireValue<WorkerTextValue>().Value);
-        Assert.Equal(0, polygon.InputArguments[2].RequireValue<WorkerDoubleValue>().Value);
-        Assert.Equal(WorkerObjectTypeValue.ScanStripeMesh,
-            polygon.InputArguments[3].RequireValue<WorkerCollectionObjectNameValue>().ObjectType);
-        Assert.Throws<ArgumentException>(() => ConstructPolygonizedSurfaceFromPointCloudsOperation.CreateCommand(new()
-        {
-            PointCloudList = { Object("cloud") }, PolygonizedSurfaceName = Object("mesh")
-        }));
-
         var edge = GetGradientAtProjectedPointOnSurfaceEdgeOperation.CreateCommand(new()
         {
             PointToProject = Point("source"), SurfaceEdge = Object("edge"), SurfaceName = Object("surface"),
@@ -108,7 +92,6 @@ public sealed class TypedSpecialSurfaceMigrationTests
         [
             ConstructGeometryFromSurfacesOperation.Descriptor,
             ConstructObjectsFromSurfaceFacesRuntimeSelectOperation.Descriptor,
-            ConstructPolygonizedSurfaceFromPointCloudsOperation.Descriptor,
             GetGradientAtProjectedPointOnSurfaceOperation.Descriptor,
             GetGradientAtProjectedPointOnSurfaceEdgeOperation.Descriptor
         ];

@@ -31,8 +31,8 @@ public sealed class OperationOutputRetrievabilityTests
         var declarations = DeclaredOutputs();
 
         Assert.Contains(declarations, item =>
-            item.Declaration == $"{typeof(MakeCollectionVectorGroupNameRefListRuntimeSelectOperation).FullName}.OutputContracts" &&
-            item.Contracts.Any(contract => contract.Kind == WorkerMpValueKind.CollectionVectorGroupNameList));
+            item.Declaration == $"{typeof(MakeVectorNameRefListRuntimeSelectOperation).FullName}.OutputContracts" &&
+            item.Contracts.Any(contract => contract.Kind == WorkerMpValueKind.VectorNameList));
         Assert.Contains(declarations, item =>
             item.Declaration == $"{typeof(GetVectorGroupPropertiesOperation).FullName}.OutputContracts" &&
             item.Contracts.Any(contract => contract.ArgumentName == "% Vectors In Tolerance"));

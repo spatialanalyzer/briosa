@@ -18,7 +18,7 @@ public sealed class ProbeCatalogTests
     [Fact]
     public void RetiredProbesHaveNoStepsInEitherPhase()
     {
-        Assert.Equal(["7", "8", "9", "10", "14", "15", "16"], ProbeCatalog.RetiredProbeNumbers);
+        Assert.Equal(["7", "8", "9", "10", "11", "14", "15", "16", "22"], ProbeCatalog.RetiredProbeNumbers);
         Assert.All(ProbeCatalog.RetiredProbeNumbers, probe => Assert.Contains(probe, ProbeCatalog.ProbeNumbers));
         foreach (var phase in new[] { ProbePhase.PublicApi, ProbePhase.Worker })
         {

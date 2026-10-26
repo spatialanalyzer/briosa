@@ -112,7 +112,6 @@ service ConstructionOperations {
   rpc ConstructPointsSpacedAtDistanceOnCurves(ConstructPointsSpacedAtDistanceOnCurvesRequest) returns (ConstructPointsSpacedAtDistanceOnCurvesResult);
   rpc ConstructPointsSubsetWithGreatestSpacing(ConstructPointsSubsetWithGreatestSpacingRequest) returns (ConstructPointsSubsetWithGreatestSpacingResult);
   rpc ConstructPointsWildcardSelection(ConstructPointsWildcardSelectionRequest) returns (ConstructPointsWildcardSelectionResult);
-  rpc ConstructPolygonizedSurfaceFromPointClouds(ConstructPolygonizedSurfaceFromPointCloudsRequest) returns (ConstructPolygonizedSurfaceFromPointCloudsResult);
   rpc ConstructScaleBar(ConstructScaleBarRequest) returns (ConstructScaleBarResult);
   rpc ConstructSphere(ConstructSphereRequest) returns (ConstructSphereResult);
   rpc ConstructSpheresFromSurfaceFacesRuntimeSelect(ConstructSpheresFromSurfaceFacesRuntimeSelectRequest) returns (ConstructSpheresFromSurfaceFacesRuntimeSelectResult);
@@ -185,7 +184,6 @@ service ConstructionOperations {
   rpc MakeCollectionObjectNameRefListRuntimeSelect(MakeCollectionObjectNameRefListRuntimeSelectRequest) returns (MakeCollectionObjectNameRefListRuntimeSelectResult);
   rpc MakeCollectionObjectNameRefListWildcardSelection(MakeCollectionObjectNameRefListWildcardSelectionRequest) returns (MakeCollectionObjectNameRefListWildcardSelectionResult);
   rpc MakeCollectionObjectNameRuntimeSelect(MakeCollectionObjectNameRuntimeSelectRequest) returns (MakeCollectionObjectNameRuntimeSelectResult);
-  rpc MakeCollectionVectorGroupNameRefListRuntimeSelect(MakeCollectionVectorGroupNameRefListRuntimeSelectRequest) returns (MakeCollectionVectorGroupNameRefListRuntimeSelectResult);
   rpc MakeEventRefListWildcardSelection(MakeEventRefListWildcardSelectionRequest) returns (MakeEventRefListWildcardSelectionResult);
   rpc MakePictureNameRefListRuntimeSelect(MakePictureNameRefListRuntimeSelectRequest) returns (MakePictureNameRefListRuntimeSelectResult);
   rpc MakePointNameEnsureUnique(MakePointNameEnsureUniqueRequest) returns (MakePointNameEnsureUniqueResult);
@@ -2058,23 +2056,6 @@ message CreateHiddenPointResult {
   MpExecutionDetails execution = 1000;
 }
 
-enum MeshOrientationType {
-  MESH_ORIENTATION_TYPE_UNSPECIFIED = 0;
-  MESH_ORIENTATION_TYPE_USE_CURRENT_POINT_OF_VIEW = 1;
-  MESH_ORIENTATION_TYPE_USE_CURRENT_WORKING_FRAME = 2;
-}
-
-message ConstructPolygonizedSurfaceFromPointCloudsRequest {
-  repeated CollectionObjectName point_cloud_list = 1;
-  optional MeshOrientationType mesh_orientation = 2;
-  optional double grid_resolution = 3;
-  optional CollectionObjectName polygonized_surface_name = 4;
-}
-
-message ConstructPolygonizedSurfaceFromPointCloudsResult {
-  MpExecutionDetails execution = 1000;
-}
-
 message ConstructScaleBarRequest {
   optional CollectionItemName scale_bar_name = 1;
   optional PointName begin_target = 2;
@@ -2350,15 +2331,6 @@ message MakeVectorNameRefListRuntimeSelectRequest {
 
 message MakeVectorNameRefListRuntimeSelectResult {
   repeated VectorName resultant_vector_name_list = 1;
-  MpExecutionDetails execution = 1000;
-}
-
-message MakeCollectionVectorGroupNameRefListRuntimeSelectRequest {
-  optional string user_prompt = 1;
-}
-
-message MakeCollectionVectorGroupNameRefListRuntimeSelectResult {
-  repeated CollectionVectorGroupName resultant_collection_vector_group_name_reference_list = 1;
   MpExecutionDetails execution = 1000;
 }
 
