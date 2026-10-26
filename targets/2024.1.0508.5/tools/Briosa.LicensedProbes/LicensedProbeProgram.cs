@@ -17,7 +17,7 @@ internal static class LicensedProbeProgram
           Recovery after a session stopped inside probe 25: add --interaction-mode-restore-only to either form.
           Optional: --activated-sdk-attestation-reference <id> --harness-revision <sha>
               --step-timeout-seconds <5-600> --operator-timeout-seconds <30-1800>
-              --exclude-probe <n> (repeatable; a probe number of the selected phase, e.g. 11)
+              --exclude-probe <n> (repeatable; a probe number of the selected phase, e.g. 12)
           A licensed run pauses at operator checkpoints; answer each by writing its response file
           in the checkpoints folder of the output directory.
         """;

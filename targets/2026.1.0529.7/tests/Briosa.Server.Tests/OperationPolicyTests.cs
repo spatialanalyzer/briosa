@@ -28,7 +28,6 @@ public sealed class OperationPolicyTests
             "construction_operations.make_collection_name_runtime_select",
             "construction_operations.make_collection_object_name_ref_list_runtime_select",
             "construction_operations.make_collection_object_name_runtime_select",
-            "construction_operations.make_collection_vector_group_name_ref_list_runtime_select",
             "construction_operations.make_picture_name_ref_list_runtime_select",
             "construction_operations.make_point_name_ref_list_runtime_select",
             "construction_operations.make_point_name_runtime_select",

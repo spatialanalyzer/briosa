@@ -147,6 +147,19 @@ internal sealed class ProbePlan
         return plan;
     }
 
+    /// <summary>
+    /// A plan over explicit steps with no exclusions, validated like a catalog plan.
+    /// Portable tests use it for step options that no current catalog step sets, such
+    /// as a before-dispatch checkpoint or a step's own client deadline.
+    /// </summary>
+    internal static ProbePlan FromSteps(ProbePhase phase, IReadOnlyList<ProbeStep> steps)
+    {
+        ArgumentNullException.ThrowIfNull(steps);
+        Validate(phase, steps);
+        return new ProbePlan(phase, steps, new HashSet<string>(StringComparer.Ordinal), [], placeholderFixtures: true,
+            InteractionModeSettings.Placeholder, interactionModeRestoreOnly: false);
+    }
+
     /// <summary>The identifiers of the probe, variant, and check steps an exclusion removes.</summary>
     internal static IReadOnlySet<string> SelectExcludedSteps(
         ProbePhase phase, IReadOnlyList<ProbeStep> catalog, IReadOnlyList<int> excludedProbes)

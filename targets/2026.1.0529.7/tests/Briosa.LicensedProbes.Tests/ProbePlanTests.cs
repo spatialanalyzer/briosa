@@ -199,7 +199,8 @@ public sealed class ProbePlanTests
             ],
             destructive);
         Assert.Contains("OPERATOR:", text, StringComparison.Ordinal);
-        Assert.Contains("CHECKPOINT before dispatch", text, StringComparison.Ordinal);
+        Assert.Contains("CHECKPOINT after the result", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("CHECKPOINT before dispatch", text, StringComparison.Ordinal);
         Assert.DoesNotContain(TestSupport.Sentinel, text, StringComparison.Ordinal);
     }
 
@@ -212,7 +213,7 @@ public sealed class ProbePlanTests
 
         Assert.Equal("--Briosa:Security:Operations:Profile=device", arguments[0]);
         Assert.Contains(
-            "--Briosa:Security:Operations:Overrides:construction_operations:make_collection_vector_group_name_ref_list_runtime_select=allow",
+            "--Briosa:Security:Operations:Overrides:process_flow_operations:ask_for_string=allow",
             arguments);
         Assert.All(arguments.Skip(1), argument =>
         {
