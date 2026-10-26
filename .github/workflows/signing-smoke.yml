@@ -56,7 +56,7 @@ jobs:
           $signature = Get-AuthenticodeSignature artifacts/signing-smoke/Briosa.SigningProbe.ps1
           if ($signature.Status -ne 'Valid' -or -not $signature.TimeStamperCertificate -or $signature.SignerCertificate.GetNameInfo('SimpleName', $false) -cne 'David Lucas') { throw 'Authenticode validation failed.' }
           "Verified GitHub OIDC, timestamped Authenticode, and the pinned catalog signature." >> $env:GITHUB_STEP_SUMMARY
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: signing-verification-only
           path: artifacts/signing-smoke/*
