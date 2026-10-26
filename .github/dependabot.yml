@@ -1,10 +1,13 @@
 version: 2
 updates:
   # Include repository-local composite actions, which the root scan does not cover.
+  # The cooldown waits a week after an action release before proposing it.
   - package-ecosystem: github-actions
     directories: ['/', '/.github/actions/*']
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
     groups:
       actions:
         patterns: ['*']

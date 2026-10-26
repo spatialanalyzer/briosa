@@ -59,14 +59,6 @@
       "provenance": "docs/testing/evidence/string-setters-2026-09-28.md; bindings/sa/2026.1.0529.7/registry.json: SetMPGDTOptionsCheckValidatorTypeArg blocked_missing_interop; #272 seed."
     },
     {
-      "command": "Construct Polygonized Surface from Point Clouds",
-      "argument": "Mesh Orientation",
-      "binding": "SetStringArg",
-      "kind": "setter-method",
-      "rationale": "The SDK sample names SetMeshOrientationTypeArg, which is absent from committed interop and cannot be called. The operation sends reviewed Mesh Orientation literals with SetStringArg. No licensed observation covers this substitution yet, so it remains at-risk.",
-      "provenance": "bindings/sa/2026.1.0529.7/registry.json: SetMeshOrientationTypeArg blocked_missing_interop; inventory/sa/2026.1.0529.7/inventory.json: Construct Polygonized Surface from Point Clouds sdk_order 1; #272 seed."
-    },
-    {
       "command": "Make a Point Name - Ensure Unique",
       "argument": "Point Name",
       "binding": "GetPointNameArg",

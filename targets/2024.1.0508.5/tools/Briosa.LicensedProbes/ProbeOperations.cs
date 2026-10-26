@@ -42,12 +42,6 @@ internal static class ProbeOperations
         static (invoker, request, options) => Construction(invoker).ConstructPointInWorkingCoordinatesAsync(request, options),
         static result => result.Execution);
 
-    public static ProbeOperation ConstructPointsOnGrid { get; } = Op<Api.ConstructPointsLayoutOnGridRequest, Api.ConstructPointsLayoutOnGridResult>(
-        Ops.ConstructionOperations.ConstructPointsLayoutOnGridOperation.Descriptor,
-        Ops.ConstructionOperations.ConstructPointsLayoutOnGridOperation.CreateCommand,
-        static (invoker, request, options) => Construction(invoker).ConstructPointsLayoutOnGridAsync(request, options),
-        static result => result.Execution);
-
     public static ProbeOperation ConstructCloudFromGroup { get; } = Op<Api.ConstructPointCloudsFromExistingPointGroupRequest, Api.ConstructPointCloudsFromExistingPointGroupResult>(
         Ops.ConstructionOperations.ConstructPointCloudsFromExistingPointGroupOperation.Descriptor,
         Ops.ConstructionOperations.ConstructPointCloudsFromExistingPointGroupOperation.CreateCommand,
@@ -110,14 +104,8 @@ internal static class ProbeOperations
         static (invoker, request, options) => Construction(invoker).ConstructPlanesBoundingPointGroupAsync(request, options),
         static result => result.Execution);
 
-    // The remaining NOT_SUPPORTED substitution (#11); #7-10 were retired with their operations.
-    public static ProbeOperation ConstructPolygonizedSurface { get; } = Op<Api.ConstructPolygonizedSurfaceFromPointCloudsRequest, Api.ConstructPolygonizedSurfaceFromPointCloudsResult>(
-        Ops.ConstructionOperations.ConstructPolygonizedSurfaceFromPointCloudsOperation.Descriptor,
-        Ops.ConstructionOperations.ConstructPolygonizedSurfaceFromPointCloudsOperation.CreateCommand,
-        static (invoker, request, options) => Construction(invoker).ConstructPolygonizedSurfaceFromPointCloudsAsync(request, options),
-        static result => result.Execution);
-
-    // Getters without licensed evidence (#12-13; #14 was retired with its operation) and the 0.9.1 getters (#22-23).
+    // Getters without licensed evidence (#12-13; #14 was retired with its operation) and the 0.9.1 getter (#23; #22
+    // was retired with its operation).
     public static ProbeOperation MakePointNameEnsureUnique { get; } = Op<Api.MakePointNameEnsureUniqueRequest, Api.MakePointNameEnsureUniqueResult>(
         Ops.ConstructionOperations.MakePointNameEnsureUniqueOperation.Descriptor,
         Ops.ConstructionOperations.MakePointNameEnsureUniqueOperation.CreateCommand,
@@ -154,14 +142,6 @@ internal static class ProbeOperations
         Ops.CloudAndMeshOperations.DeleteCloudPointsByRadialDistanceFromPointsOperation.CreateCommand,
         static (invoker, request, options) => CloudAndMesh(invoker).DeleteCloudPointsByRadialDistanceFromPointsAsync(request, options),
         static result => result.Execution);
-
-    public static ProbeOperation VectorGroupRuntimeSelect { get; } = Op<Api.MakeCollectionVectorGroupNameRefListRuntimeSelectRequest, Api.MakeCollectionVectorGroupNameRefListRuntimeSelectResult>(
-        Ops.ConstructionOperations.MakeCollectionVectorGroupNameRefListRuntimeSelectOperation.Descriptor,
-        Ops.ConstructionOperations.MakeCollectionVectorGroupNameRefListRuntimeSelectOperation.CreateCommand,
-        static (invoker, request, options) => Construction(invoker).MakeCollectionVectorGroupNameRefListRuntimeSelectAsync(request, options),
-        static result => result.Execution,
-        static (_, result) => Observations.Of(("vector_group_count", Observations.Count(
-            result.ResultantCollectionVectorGroupNameReferenceList.Count))));
 
     public static ProbeOperation GetVectorGroupProperties { get; } = Op<Api.GetVectorGroupPropertiesRequest, Api.GetVectorGroupPropertiesResult>(
         Ops.VectorOperations.GetVectorGroupPropertiesOperation.Descriptor,

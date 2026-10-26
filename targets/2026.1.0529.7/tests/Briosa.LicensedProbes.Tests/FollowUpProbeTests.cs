@@ -2,8 +2,9 @@ using Api = global::Briosa;
 
 namespace Briosa.LicensedProbes.Tests;
 
-// The second licensed session's probes: #309 (probe 11), #311 (probe 2), #312
-// (probe 22), #307 R0 (probe 24), and #313 Silent verification (probe 25).
+// The second licensed session's probes that the plan still sends: #311 (probe 2),
+// #307 R0 (probe 24), and #313 Silent verification (probe 25). Probes 11 (#309) and
+// 22 (#312, #350) were retired with their operations.
 public sealed class FollowUpProbeTests
 {
     private static readonly FixedClock Clock = new();
@@ -13,29 +14,19 @@ public sealed class FollowUpProbeTests
 
     private static ProbeStep Step(ProbePhase phase, string id) => Plan(phase).Steps.Single(step => step.Id == id);
 
-    // #309
+    // Step options
 
     [Fact]
-    public void Probe11IsTheFirstProbeAfterTheFixturesAndWaitsForTheOperator()
+    public void AStepsClientDeadlineAppearsInTheDryRun()
     {
         var steps = Plan(ProbePhase.PublicApi).Steps;
+        Assert.All(steps, static step => Assert.Null(step.ClientTimeout));
 
-        var first = steps.First(static step => step.Kind is ProbeStepKind.Probe or ProbeStepKind.Check);
+        var plan = ProbePlan.FromSteps(ProbePhase.PublicApi,
+            [.. steps.Select(static step => step.Id == "p02-value" ? step with { ClientTimeout = TimeSpan.FromSeconds(630) } : step)]);
 
-        Assert.Equal("p11", first.Id);
-        Assert.Equal(OperatorCheckpoint.Before | OperatorCheckpoint.After, first.Checkpoints);
-        Assert.All(steps.TakeWhile(static step => step.Id != "p11"),
-            static step => Assert.True(step.Kind is ProbeStepKind.Guard or ProbeStepKind.Setup));
-    }
-
-    [Fact]
-    public void Probe11OutwaitsTheServersLongRunningBudget()
-    {
-        var p11 = Step(ProbePhase.PublicApi, "p11");
-
-        Assert.Equal(TimeSpan.FromSeconds(630), p11.ClientTimeout);
-        Assert.True(p11.ClientTimeout > TimeSpan.FromMinutes(10));
-        Assert.Contains("client deadline: 630 s", Plan(ProbePhase.PublicApi).RenderDryRun(), StringComparison.Ordinal);
+        Assert.Contains("client deadline: 630 s", plan.RenderDryRun(), StringComparison.Ordinal);
+        Assert.DoesNotContain("client deadline:", Plan(ProbePhase.PublicApi).RenderDryRun(), StringComparison.Ordinal);
     }
 
     [Fact]
@@ -75,20 +66,6 @@ public sealed class FollowUpProbeTests
             var ids = Plan(phase).Steps.Select(static step => step.Id).ToList();
             Assert.All(ProbeCatalog.FitPoints, point => Assert.Contains($"s-point-{FixtureNames.GroupFit}-{point.Name}", ids));
         }
-    }
-
-    // #312
-
-    [Fact]
-    public void Probe22PromptsForTheDocumentedGestureAndIsCheckedAfterwards()
-    {
-        var p22 = Step(ProbePhase.PublicApi, "p22");
-        var request = Assert.IsType<Api.MakeCollectionVectorGroupNameRefListRuntimeSelectRequest>(p22.Request);
-
-        Assert.True(p22.RequiresOperator);
-        Assert.Equal(OperatorCheckpoint.After, p22.Checkpoints);
-        Assert.Contains("press F2", request.UserPrompt, StringComparison.Ordinal);
-        Assert.Contains("click OK, then press Enter", request.UserPrompt, StringComparison.Ordinal);
     }
 
     // #307 R0
@@ -213,7 +190,6 @@ public sealed class FollowUpProbeTests
             Assert.InRange(ids.IndexOf($"{trigger}-silent"), silent + 1, ids.IndexOf("p25-restore") - 1);
         }
 
-        Assert.InRange(ids.IndexOf("p25-runtime-select-silent"), silent + 1, ids.IndexOf("p25-restore") - 1);
         var chart = Assert.IsType<Api.CreateChartFromVectorGroupRequest>(Step(ProbePhase.PublicApi, "p25-chart-missing-silent").Request);
         Assert.Equal(ProbeCatalog.MissingTemplateChart, chart.TemplateChartName.Name);
     }

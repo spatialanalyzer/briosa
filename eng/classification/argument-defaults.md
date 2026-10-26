@@ -7,8 +7,9 @@ completed by the maintainer's
 (Q1 to Q8 below). For each argument it records what the server does when the
 request field is absent, explicitly empty, or set, with the rule, evidence, and
 client impact. It covers the twelve F6 arguments, the relationship tolerance and
-constraint inverse gap, the substitutions D2 point 5 removed, Mesh Orientation,
-and the risky F7 defaults that Q6 makes required. An appendix lists the optional
+constraint inverse gap, the substitutions removed under D2 point 5 (Mesh
+Orientation among them since #309), and the risky F7 defaults that Q6 makes
+required. An appendix lists the optional
 scalar request fields whose presence the server still ignores.
 
 The `major3_*` columns are the behavior the code implements for contract
@@ -33,7 +34,7 @@ summarizes what changes.
 
 1. **An absent optional argument omits its setter.** It is never sent blank.
    Rule 1 covers the arguments this table lists, the ones major 3 changes. It
-   does not yet cover every optional string: the 228 (2026) and 222 (2024)
+   does not yet cover every optional string: the 227 (2026) and 221 (2024)
    optional strings that are still sent blank when absent keep that behavior
    until a licensed probe shows that omitting the setter is equivalent (Q3). The
    appendix records them.
@@ -41,7 +42,10 @@ summarizes what changes.
    nominals group, the `CreateChartFromVectorGroup` template chart, the
    `SetUserInterfaceProfile` profile file, and the
    `ConstructPlanesBoundingPointGroup` High and Low plane names. The High and
-   Low names are separate fields, so the table has five rows for them.
+   Low names are separate fields, so the table has five rows for them. The fit
+   seed geometry of the three fit operations follows, with three more rows, as
+   [decided on #311](https://github.com/spatialanalyzer/briosa/issues/311#issuecomment-6404291260)
+   after licensed session 2 (2026-10-25).
 3. **An explicit empty value is rejected before dispatch** with
    InvalidArgument and NotStarted (`request-validation-failed`), as a missing
    required field is. The one exception is the USMN nominals group, which the
@@ -50,17 +54,17 @@ summarizes what changes.
    collection and object names, as probe 1 sent it (Q2). An explicit empty plane
    name is rejected, because SA rejects it with a blocking dialog.
 4. **Unobserved arguments keep their behavior** until a licensed probe settles
-   them: the fit seed geometry (pending
-   [#311](https://github.com/spatialanalyzer/briosa/issues/311)), the other F6
-   arguments, and the optional scalars in the appendix. The relationship
-   tolerance and constraint stay required, and the clients change to match. A
+   them: the other F6 arguments and the optional scalars in the appendix. The
+   relationship tolerance and constraint stay required, and the clients change
+   to match. A
    client may offer a named all-disabled value that the caller passes
    explicitly, but never an implicit default (Q4).
 5. **Substitutions that the evidence shows don't work are removed** in major 3
    ([#308](https://github.com/spatialanalyzer/briosa/issues/308),
-   [#310](https://github.com/spatialanalyzer/briosa/issues/310)). Mesh
-   Orientation stays at risk
-   ([#309](https://github.com/spatialanalyzer/briosa/issues/309)).
+   [#310](https://github.com/spatialanalyzer/briosa/issues/310)). So is the
+   Mesh Orientation substitution, which licensed session 2 showed stalls the
+   worker until the watchdog ends it
+   ([#309](https://github.com/spatialanalyzer/briosa/issues/309#issuecomment-6404290445)).
 6. **Risky defaults R1 to R7 become required** (Q6). An absent field is rejected
    before dispatch, so nothing new reaches SA:
    - R1: the robot joint-pose joints;
@@ -92,7 +96,7 @@ the field type (Q1):
 
 | Column | Meaning |
 |---|---|
-| `category` | `optional_omit` (rule 2), `required_clients_align` (rule 4, relationship inverse gap), `unchanged_pending_311` (fit seed), `unchanged_pending_probe` (other F6 arguments), `removed_in_major_3` (rule 5), `at_risk_309` (Mesh Orientation), `required_risky_default` (rule 6, R1 to R7), `default_flip` (rule 6, the manual-guide default). |
+| `category` | `optional_omit` (rule 2), `required_clients_align` (rule 4, relationship inverse gap), `unchanged_pending_probe` (other F6 arguments), `removed_in_major_3` (rule 5), `required_risky_default` (rule 6, R1 to R7), `default_flip` (rule 6, the manual-guide default). |
 | `operation_id`, `mp_step` | The public operation ID and the exact MP step text the server sends. |
 | `mp_argument`, `direction`, `sdk_binding` | The exact SDK argument label, input or output, and the setter or getter the server calls. |
 | `proto_field`, `proto_field_number`, `proto_type` | The request (or, for outputs, result) field, as `Message.field`, with its number and declared type. |
@@ -124,18 +128,16 @@ Both targets have the same 72 rows.
 
 | Category | Rows | Arguments | Change in major 3 |
 |---|---:|---|---|
-| `optional_omit` | 5 | USMN `Nominals Group Name (blank for none)`; `Template Chart Name (optional)`; `Profile File Name (optional)`; `Resulting 'High' Plane Name`; `Resulting 'Low' Plane Name` | Absent: rejected → omitted. Explicit empty: stays rejected, except the nominals group, which is sent blank. |
+| `optional_omit` | 8 | USMN `Nominals Group Name (blank for none)`; `Template Chart Name (optional)`; `Profile File Name (optional)`; `Resulting 'High' Plane Name`; `Resulting 'Low' Plane Name`; `Starting Condition Geometry (optional)` of the three fit operations (#311) | Absent: rejected → omitted. Explicit empty: stays rejected, except the nominals group, which is sent blank. |
 | `required_clients_align` | 8 | `Tolerance` and `Constraint` of `make_group_to_group_relationship`, `make_group_to_nominal_group_relationship`, `make_point_to_point_relationship` and `make_points_to_points_relationship` | None on the server. The clients make both required. |
-| `unchanged_pending_311` | 3 | `Starting Condition Geometry (optional)` of the three fit operations | None until #311 re-runs probe 2. |
 | `unchanged_pending_probe` | 2 | `ask_for_point_name` `Initial Value`; `import_sa_file` `Selected Collections (optional)` | None. Neither was probed. |
-| `removed_in_major_3` | 5 | The callout view and instrument wildcard getters (#308); the callout view list, Circle Line Mode and mirror frame plane setters (#310) | Removed by #320. |
-| `at_risk_309` | 1 | `construct_polygonized_surface_from_point_clouds` `Mesh Orientation` | None; at risk until the isolated re-probe. |
+| `removed_in_major_3` | 6 | The callout view and instrument wildcard getters (#308); the callout view list, Circle Line Mode and mirror frame plane setters (#310); the `construct_polygonized_surface_from_point_clouds` `Mesh Orientation` setter (#309) | The operation is removed: #308 and #310 by #320, #309 after licensed session 2. |
 | `required_risky_default` | 47 | R1: 6 joints. R2: 4 weather fields. R3: 1 and R4: 2 scale factors. R5: 22 model-link parameters and the robot parameter value. R6: 3 indexes. R7: 8 names and patterns. | Absent: sent as 0, false or blank → rejected (R2 values only when `set_automatically` is false). R7 explicit empty: sent blank → rejected. |
 | `default_flip` | 1 | `measure_existing_single_point_manual_guide` `Measure Immediately` | Absent: false → true. |
 
-The twelve F6 arguments are the 5 `optional_omit` rows, the 3 fit rows, the 2
-`unchanged_pending_probe` rows, and the two `make_points_to_points_relationship`
-rows.
+The twelve F6 arguments are the 8 `optional_omit` rows (the 5 D2 point 2
+arguments and the 3 fit seeds), the 2 `unchanged_pending_probe` rows, and the
+two `make_points_to_points_relationship` rows.
 
 ## Optional-input coverage
 
@@ -148,12 +150,12 @@ the server does when the field is absent.
 | Optional inputs in the evidence | 98 | 57 |
 | Not implemented (no registered operation) | 15 | — |
 | Implemented, but the SDK records no setter for the input | 1 | 0 |
-| Rejected when absent | 7 | 4 |
-| Omitted when absent | 44 | 44 |
+| Rejected when absent | 4 | 1 |
+| Omitted when absent | 47 | 47 |
 | A default is sent when absent | 31 | 9 |
 | Implemented in total | 83 | 57 |
 
-Major 3 moved the five `optional_omit` inputs from rejected to omitted (three on
+Major 3 moved the eight `optional_omit` inputs from rejected to omitted (six on
 2024, whose label-based list does not include the plane names). Every input
 still rejected when absent has a defaults-table row.
 
@@ -204,8 +206,10 @@ same status on both targets.
 
 ## Evidence
 
-- Each row cites only its own target's licensed record:
-  `targets/<target>/docs/testing/evidence/probe-277-<target>-2026-10-07.md`.
+- Each row cites only its own target's licensed records:
+  `targets/<target>/docs/testing/evidence/probe-277-<target>-2026-10-07.md` and,
+  for the rows licensed session 2 settled,
+  `targets/<target>/docs/testing/evidence/probe-session-2-<target>-2026-10-25.md`.
   Nothing is transferred between targets. For example, the 2026 record shows a
   blocking "Template Chart Not found" dialog for a template name that matches
   no chart, which the 2024 session did not exercise.
@@ -213,6 +217,13 @@ same status on both targets.
   value were accepted for the nominals group, template chart and profile file,
   and an omitted plane name made SA use its default name. A blank plane name
   was rejected only after a blocking dialog.
+- Probe 2 in licensed session 2 behaved the same on both targets: a seed value,
+  a skipped seed setter and a blank seed each returned MP code 2 and created one
+  plane, fitting the coplanar group `GFIT`. Whether the seed changed the fit is
+  not distinguished. Both targets' documentation calls the seed optional and
+  usually not required, and names blank only for the fit profile name, so an
+  explicit empty seed is rejected. Only Fit Geometry to Point Group was probed;
+  the other two fits share its mapping, label and documentation.
 - No licensed observation covers the relationship tolerance and constraint,
   `Initial Value`, `Selected Collections`, or the R1 to R7 fields. Requiring the
   R1 to R7 fields needs none, because rejecting before dispatch sends nothing
@@ -234,6 +245,10 @@ empty strings.
   they become optional with no default value, and the field is left unset when
   omitted. Dotnet and py take the template chart as a positional parameter,
   which has to move behind the required parameters once it is optional.
+- **Fit seed.** All six require `starting_condition_geometry` for the three fit
+  operations today (dotnet as the last positional parameter, py as a required
+  keyword, js as a required member). In major 3 it becomes optional with no
+  default value and is left unset when omitted.
 - **Relationship tolerance and constraint.** All six make them optional today,
   and the server rejects the default call. In major 3 they become required, a
   breaking signature change. A caller that wants no limits passes options with
@@ -301,15 +316,17 @@ defect.
 
 | | 2026.1.0529.7 | 2024.1.0508.5 |
 |---|---:|---:|
-| `optional` scalar request fields | 1,600 | 1,528 |
-| Presence ignored: absent sends the zero value (`ignored`) | 475 | 473 |
+| `optional` scalar request fields | 1,598 | 1,526 |
+| Presence ignored: absent sends the zero value (`ignored`) | 474 | 472 |
 | Presence ignored but rejected later (`ignored_validated`) | 1 | 1 |
-| Both presence-ignored rows by type: `bool` / `string` / `double` / `int32` | 150 / 147 / 96 / 83 | 149 / 147 / 96 / 82 |
-| Operations with at least one such field | 275 | 274 |
+| Both presence-ignored rows by type: `bool` / `string` / `double` / `int32` | 150 / 146 / 96 / 83 | 149 / 146 / 96 / 82 |
+| Operations with at least one such field | 274 | 273 |
 | Presence checked, but absent still sends an empty string (`checked_sends_blank`) | 82 | 76 |
 
-Before major 3 the presence-ignored counts were 524 and 522; the 48 decided
-fields per target now check presence.
+Before major 3 the presence-ignored counts were 524 and 522. The 48 decided
+fields per target now check presence, and the `user_prompt` of
+`make_collection_vector_group_name_ref_list_runtime_select` left with that
+operation (#350).
 
 For `ignored` rows the server sends `false`, `0` or an empty string, and an
 explicit zero cannot be told apart from an omitted field. The one
@@ -317,8 +334,8 @@ explicit zero cannot be told apart from an omitted field. The one
 `collection_containing_relationships`, is rejected when empty. The
 `checked_sends_blank` rows are not presence-insensitive. They are listed
 because rule 1 forbids sending blank for an absent optional argument it covers.
-In all, an absent optional string is still sent as an empty string for 228
-fields on 2026 and 222 on 2024 (Q3).
+In all, an absent optional string is still sent as an empty string for 227
+fields on 2026 and 221 on 2024 (Q3).
 
 Columns: `operation_id`, `request_message`, `field`, `field_number`,
 `proto_type`, `presence`, `mp_argument` and `sdk_setter` (as the mapping sends
@@ -394,8 +411,11 @@ on each target send false when absent, which is the non-destructive choice:
 | Q7 | The R4 instrument scale-factor operations and the R5 model-link operation carry `device_config`, so only `device` and `full` admit them. Extended (2026-10-14) to `set_active_robot_calibration`, `set_robot_calibration_tool_frame`, `set_robot_calibration_measurement_offset_in_tool_frame` and `set_probe_offset_frame_offline`; `set_robot_machine_base_transform` stays in `standard`. | #324. The appendix's `narrowest_profile` column follows it. |
 | Q8 | `audit_scalar_presence.py --check` is a CI gate. | `.github/workflows/ci.yml`. |
 
-Still open: the fit seed (#311), the R8 to R11 defaults, and the optional strings
-still sent blank, each pending licensed probes.
+The fit seed was decided on #311 (2026-10-25): optional, omitted when absent,
+and rejected when explicitly empty, for all three fit operations.
+
+Still open: the R8 to R11 defaults and the optional strings still sent blank,
+each pending licensed probes.
 
 ## Regenerate the generated files
 
