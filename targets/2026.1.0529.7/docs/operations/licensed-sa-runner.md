@@ -25,6 +25,8 @@ A repository administrator must create an environment with these settings:
 | Administrator bypass | Disabled |
 | Environment secrets | None |
 
+`licensed-sa-2026-1-0529-7` was created with these settings on 2026-10-25, before any runner joined the group ([#353](https://github.com/spatialanalyzer/briosa/issues/353)). A job that names a missing environment creates it on its first run with no protection rules, so the environment must exist before a runner does. Don't delete it while the workflow can still be dispatched.
+
 The workflow intentionally remains queued if the group has no matching online runner. Do not work around that state by adding a repository-level runner or broadening workflow access.
 
 `main` is protected by the active organization `Default branch protection` ruleset and repository `Briosa CI requirements` ruleset. Together they require pull requests, resolved review threads, squash-only linear history, the Windows build/test and package-smoke checks against the current base, and rejection of force pushes and deletion. The organization ruleset currently requires zero approving reviews, so the pull-request requirement is not independent approval. Preserve both rulesets before bringing the licensed runner online. The environment must require explicit manual approval, and one approving code review plus prevent-self-review should be enabled when a second trusted maintainer is available.
