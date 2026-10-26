@@ -49,6 +49,9 @@ internal sealed class ScriptedWorkerProcess : IWorkerProcess
     /// <summary>Runs as each Execute arrives, before its response is written.</summary>
     public Action<WorkerMpCommand>? OnExecute { get; set; }
 
+    /// <summary>Runs as each answered readiness probe arrives, before its response is written.</summary>
+    public Action? OnVerify { get; set; }
+
     /// <summary>Completes when a probe or command is being held.</summary>
     public Task Held => _held.Task;
 
@@ -69,6 +72,7 @@ internal sealed class ScriptedWorkerProcess : IWorkerProcess
                 _held.TrySetResult();
                 break;
             case WorkerControlMessageKind.VerifyExecution:
+                OnVerify?.Invoke();
                 Write(WorkerControlMessage.ExecutionVerificationResult(message.CorrelationId,
                     Connection(WorkerExecutionReadinessState.ExecutionReady, "execution-readiness-verified")));
                 break;

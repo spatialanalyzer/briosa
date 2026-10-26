@@ -77,6 +77,31 @@ public sealed class ModalDialogDetectionTests
     }
 
     [Fact]
+    public async Task WatchdogBesideAnotherInstancesDialogKeepsTheGenericDiagnostic()
+    {
+        // With two eligible instances the connected one is unknown, so the other
+        // instance's dialog must not explain this stall (PR #355 review).
+        var clock = new HeartbeatTestClock();
+        var probe = new SpatialAnalyzerModalDialogProbe(
+            Options, new FixedProcessPlatform([SpatialAnalyzerProcessId, OtherProcessId]),
+            new RecordingWindowSource(new SpatialAnalyzerTopLevelWindow(
+                OtherProcessId, Visible: true, "#32770", OtherProcessId, OwnerEnabled: false)));
+        var process = new ScriptedWorkerProcess(_ => null);
+        await using var supervisor = CreateSupervisor(
+            new ScriptedWorkerProcessFactory(_ => process), SpatialAnalyzerInteractionMode.Unchanged, clock,
+            modalDialogProbe: probe);
+        Assert.True((await supervisor.StartAsync().WaitAsync(HangGuard)).Succeeded, supervisor.Current.DiagnosticCode);
+
+        var executing = supervisor.ExecuteAsync(CreateCommand());
+        await process.Held.WaitAsync(HangGuard);
+        await clock.FireNextAsync(ExecutionWatchdogTimeout).WaitAsync(HangGuard);
+        var outcome = await executing.WaitAsync(HangGuard);
+
+        Assert.Equal(WorkerExecutionStatus.WatchdogTimeout, outcome.Status);
+        Assert.Equal("worker-execution-watchdog-timeout", outcome.DiagnosticCode);
+    }
+
+    [Fact]
     public async Task AFailedDialogCheckKeepsTheGenericDiagnostic()
     {
         var clock = new HeartbeatTestClock();
@@ -253,6 +278,20 @@ public sealed class ModalDialogDetectionTests
     {
         var windows = new RecordingWindowSource();
         var probe = new SpatialAnalyzerModalDialogProbe(Options, new FixedProcessPlatform([]), windows);
+
+        Assert.Equal(SpatialAnalyzerModalDialogState.NotObserved, probe.Observe());
+        Assert.Empty(windows.Requests);
+    }
+
+    [Fact]
+    public void SeveralEligibleInstancesAreNotAnObservation()
+    {
+        // The lifecycle coordinator reports two eligible instances as an ambiguous
+        // selection, so a dialog cannot be attributed to the connected one.
+        var windows = new RecordingWindowSource(new SpatialAnalyzerTopLevelWindow(
+            OtherProcessId, Visible: true, "#32770", OtherProcessId, OwnerEnabled: false));
+        var probe = new SpatialAnalyzerModalDialogProbe(
+            Options, new FixedProcessPlatform([SpatialAnalyzerProcessId, OtherProcessId]), windows);
 
         Assert.Equal(SpatialAnalyzerModalDialogState.NotObserved, probe.Observe());
         Assert.Empty(windows.Requests);

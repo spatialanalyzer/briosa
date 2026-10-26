@@ -154,6 +154,33 @@ public sealed class InteractionModeApplicationTests
     }
 
     [Fact]
+    public async Task ProbeAndModeStepShareOneReadinessBound()
+    {
+        // The lifecycle shutdown and client startup budgets count one readiness bound
+        // per verification, so a configured mode adds none (PR #355 review).
+        var clock = new HeartbeatTestClock();
+        DateTimeOffset? probeStarted = null;
+        var process = new ScriptedWorkerProcess(_ => null)
+        {
+            OnVerify = () =>
+            {
+                probeStarted = clock.GetUtcNow();
+                clock.Advance(TimeSpan.FromSeconds(4));
+            }
+        };
+        await using var supervisor = CreateSupervisor(
+            new ScriptedWorkerProcessFactory(_ => process), SpatialAnalyzerInteractionMode.Silent, clock);
+
+        var starting = supervisor.StartAsync();
+        await process.Held.WaitAsync(HangGuard);
+        await clock.FireNextAsync(ReadinessProbeTimeout).WaitAsync(HangGuard);
+
+        Assert.False((await starting.WaitAsync(HangGuard)).Succeeded);
+        AssertQuarantined(supervisor, "interaction-mode-apply-timeout");
+        Assert.Equal(ReadinessProbeTimeout, clock.GetUtcNow() - probeStarted!.Value);
+    }
+
+    [Fact]
     public async Task AppliedAndRefusedModesAreAudited()
     {
         var logger = new CapturingLogger();
