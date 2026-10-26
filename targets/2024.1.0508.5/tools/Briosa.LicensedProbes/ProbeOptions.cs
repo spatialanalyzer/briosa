@@ -194,12 +194,12 @@ internal sealed record ProbeOptions
         return options;
     }
 
-    // One catalog probe number in canonical form ("11", never "011", "+11", or "5-6").
+    // One catalog probe number in canonical form ("12", never "012", "+12", or "5-6").
     private static int ProbeNumber(string text)
     {
         if (!int.TryParse(text, NumberStyles.None, CultureInfo.InvariantCulture, out var number) ||
             !string.Equals(number.ToString(CultureInfo.InvariantCulture), text, StringComparison.Ordinal))
-            throw new ProbeUsageException($"{ExcludeProbe} takes one probe number from the approved list, for example 11.");
+            throw new ProbeUsageException($"{ExcludeProbe} takes one probe number from the approved list, for example 12.");
         if (!ProbeCatalog.ProbeNumbers.Contains(text, StringComparer.Ordinal))
             throw new ProbeUsageException($"{ExcludeProbe} {text} is not a probe in the approved list (1 to {ProbeCatalog.ProbeNumbers.Count}).");
         if (ProbeCatalog.RetiredProbeNumbers.Contains(text, StringComparer.Ordinal))

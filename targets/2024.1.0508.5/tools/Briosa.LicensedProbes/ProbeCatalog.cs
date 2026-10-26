@@ -32,12 +32,6 @@ internal static class ProbeCatalog
     public const string NumberSuffixLabel = "Use Number Suffix?";
     public const string NumberSuffixRecased = "Use number suffix?";
 
-    // #312: the gesture SA's help documents for completing a runtime selection.
-    public const string RuntimeSelectPrompt =
-        "Briosa probe 22: press F2, select vector group B277::VG1 in the selection tree, click OK, then press Enter.";
-    public const string RuntimeSelectSilentPrompt =
-        "Briosa probe 25 (Silent): press F2, select vector group B277::VG1 in the selection tree, click OK, then press Enter.";
-
     // Probe 25: the operator replaces the initial answer with the entry; the record
     // keeps only which of the two harness constants came back.
     public const string AskInitialAnswer = "B277-initial";
@@ -48,18 +42,15 @@ internal static class ProbeCatalog
     // Probe 25: a template chart name that matches no chart opens "Template Chart Not found".
     public const string MissingTemplateChart = "B277 no such template";
 
-    // Longer than the server's 600 s long-running budget, so for #309 the server's
-    // watchdog, not the client deadline, decides whether the polygonize stalled.
-    public static TimeSpan PolygonizeClientTimeout { get; } = TimeSpan.FromSeconds(630);
-
     public static IReadOnlyList<string> ProbeNumbers { get; } =
         [.. Enumerable.Range(1, 25).Select(static number => number.ToString(CultureInfo.InvariantCulture))];
 
-    // Retired with the operations they probed (#308, #310, #307): the operations were
-    // removed because these probes showed their NOT_SUPPORTED substitutions do not work
-    // on either exact target. Their numbers keep their meaning in the 2026-10-07 records;
-    // the plan no longer sends them.
-    public static IReadOnlyList<string> RetiredProbeNumbers { get; } = ["7", "8", "9", "10", "14", "15", "16"];
+    // Retired with the operations they probed: the operations were removed because these
+    // probes showed they cannot work on either exact target. Probes 7 to 10 and 14 to 16
+    // (#308, #310, #307) found NOT_SUPPORTED substitutions that do not work; probe 11 (#309)
+    // found a substitution that stalls, and probe 22 (#350) a getter that returns nothing.
+    // Their numbers keep their meaning in the dated records; the plan no longer sends them.
+    public static IReadOnlyList<string> RetiredProbeNumbers { get; } = ["7", "8", "9", "10", "11", "14", "15", "16", "22"];
 
     public static IReadOnlyList<string> ActiveProbeNumbers { get; } =
         [.. ProbeNumbers.Except(RetiredProbeNumbers, StringComparer.Ordinal)];
@@ -240,16 +231,6 @@ internal static class ProbeCatalog
     private static void AddPublicFixtures(StepList steps)
     {
         AddCommonGeometry(steps);
-        steps.Setup("s-grid-GRID", "Lay out a planar 5 x 5 point grid for the polygonize cloud",
-            ProbeOperations.ConstructPointsOnGrid, new Api.ConstructPointsLayoutOnGridRequest
-            {
-                GroupName = Object(FixtureNames.GroupGrid, Api.ObjectType.PointGroup),
-                PointPrefix = "Q",
-                XMin = 0, XMax = 40, XCount = 5,
-                YMin = 0, YMax = 40, YCount = 5,
-                ZMin = 0, ZMax = 0, ZCount = 1
-            });
-        steps.Add(CloudSetup("s-cloud-CPOLY", FixtureNames.GroupGrid, FixtureNames.PolygonizeCloud, null, steps.Phase));
         AddPointGroup(steps, FixtureNames.GroupDelete, DeletePoints);
         steps.Add(CloudSetup("s-cloud-CDELR", FixtureNames.GroupDelete, FixtureNames.DeleteCloudR0,
             FixtureNames.CloudKey(FixtureNames.DeleteCloudR0), steps.Phase));
@@ -264,23 +245,7 @@ internal static class ProbeCatalog
 
     private static void AddPublicProbes(StepList steps, FixtureManifest manifest)
     {
-        // #309: probe 11 runs first after the fixtures, so no earlier probe can leave a
-        // dialog behind, and the operator confirms that none is open before it is sent.
-        var polygonize = new Api.ConstructPolygonizedSurfaceFromPointCloudsRequest
-        {
-            MeshOrientation = Api.MeshOrientationType.UseCurrentWorkingFrame,
-            PolygonizedSurfaceName = Object("MESH11", Api.ObjectType.ScanStripeMesh)
-        };
-        polygonize.PointCloudList.Add(Object(FixtureNames.PolygonizeCloud, Api.ObjectType.Cloud));
-        steps.Add(steps.NewProbe("p11", "11", "Mesh Orientation via SetStringArg, first after the fixtures with no dialog open",
-            ProbeOperations.ConstructPolygonizedSurface, polygonize) with
-        {
-            Checkpoints = OperatorCheckpoint.Before | OperatorCheckpoint.After,
-            ClientTimeout = PolygonizeClientTimeout
-        });
-        steps.Check("c11", "11", "Count objects named MESH11*", ObjectsNamed(FixtureNames.Collection, "MESH11*", Api.ObjectType.Any));
-
-        // Programmatic fixtures next; probes that need manual fixtures run after them.
+        // Programmatic fixtures first; probes that need manual fixtures run after them.
         steps.Probe("p02-value", "2", "Fit the coplanar group GFIT with a seed geometry value (public API)",
             ProbeOperations.FitGeometryToPointGroup, Fit("FIT2V", Object(FixtureNames.PlaneA, Api.ObjectType.Plane)));
         steps.Check("c02-value", "2", "Count planes named FIT2V", ObjectsNamed(FixtureNames.Collection, "FIT2V", Api.ObjectType.Plane));
@@ -315,18 +280,6 @@ internal static class ProbeCatalog
             ProbeOperations.CreateChartFromVectorGroup, Chart(manifest.TemplateChartName, "B277 C3V"));
         steps.Probe("p04-value", "4", "User interface profile with a profile file value (public API)",
             ProbeOperations.SetUserInterfaceProfile, Profile(manifest));
-
-        // #312: in the interaction mode the session started with.
-        steps.Add(steps.NewProbe("p22", "22",
-            "Runtime-select vector group list getter (operator: F2, select B277::VG1 in the selection tree, OK, Enter)",
-            ProbeOperations.VectorGroupRuntimeSelect, new Api.MakeCollectionVectorGroupNameRefListRuntimeSelectRequest
-            {
-                UserPrompt = RuntimeSelectPrompt
-            }) with
-        {
-            RequiresOperator = true,
-            Checkpoints = OperatorCheckpoint.After
-        });
     }
 
     // Probe 24 (#307 R0, and the #310 confound): the sibling radial delete with the same
@@ -401,12 +354,6 @@ internal static class ProbeCatalog
             "p25-silent");
         Watched(steps.NewProbe("p25-chart-missing-silent", "25", "Chart whose template chart matches no chart, under Silent",
             ProbeOperations.CreateChartFromVectorGroup, Chart(MissingTemplateChart, "B277 C25S")), "p25-silent");
-        Watched(steps.NewProbe("p25-runtime-select-silent", "25",
-            "Runtime-select vector group list under Silent (operator: F2, select B277::VG1, OK, Enter, if SA prompts)",
-            ProbeOperations.VectorGroupRuntimeSelect, new Api.MakeCollectionVectorGroupNameRefListRuntimeSelectRequest
-            {
-                UserPrompt = RuntimeSelectSilentPrompt
-            }) with { RequiresOperator = true }, "p25-silent");
         Watched(steps.NewProbe("p25-ask-silent", "25", "Ask for String under Silent (operator: enter B277-entered, OK, if SA prompts)",
             ProbeOperations.AskForString, Ask(AskSilentPrompt)) with { RequiresOperator = true }, "p25-silent");
 
