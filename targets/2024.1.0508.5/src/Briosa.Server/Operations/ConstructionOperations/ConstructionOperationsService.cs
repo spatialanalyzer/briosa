@@ -548,11 +548,6 @@ internal sealed class ConstructionOperationsService(OperationExecutor operationE
         _operationExecutor.ExecuteAsync(request, context, ConstructPointsWildcardSelectionOperation.Descriptor,
             ConstructPointsWildcardSelectionOperation.CreateCommand, ConstructPointsWildcardSelectionOperation.OutputContracts, ConstructPointsWildcardSelectionOperation.CreateResult);
 
-    [OperationImplementation("construction_operations.construct_polygonized_surface_from_point_clouds")]
-    public override Task<Api.ConstructPolygonizedSurfaceFromPointCloudsResult> ConstructPolygonizedSurfaceFromPointClouds(Api.ConstructPolygonizedSurfaceFromPointCloudsRequest request, ServerCallContext context) =>
-        _operationExecutor.ExecuteAsync(request, context, ConstructPolygonizedSurfaceFromPointCloudsOperation.Descriptor,
-            ConstructPolygonizedSurfaceFromPointCloudsOperation.CreateCommand, ConstructPolygonizedSurfaceFromPointCloudsOperation.OutputContracts, ConstructPolygonizedSurfaceFromPointCloudsOperation.CreateResult);
-
     [OperationImplementation("construction_operations.construct_scale_bar")]
     public override Task<Api.ConstructScaleBarResult> ConstructScaleBar(Api.ConstructScaleBarRequest request, ServerCallContext context) =>
         _operationExecutor.ExecuteAsync(request, context, ConstructScaleBarOperation.Descriptor,
@@ -931,12 +926,6 @@ internal sealed class ConstructionOperationsService(OperationExecutor operationE
     public override Task<Api.MakeCollectionObjectNameRuntimeSelectResult> MakeCollectionObjectNameRuntimeSelect(Api.MakeCollectionObjectNameRuntimeSelectRequest request, ServerCallContext context) =>
         _operationExecutor.ExecuteAsync(request, context, MakeCollectionObjectNameRuntimeSelectOperation.Descriptor,
             MakeCollectionObjectNameRuntimeSelectOperation.CreateCommand, MakeCollectionObjectNameRuntimeSelectOperation.OutputContracts, MakeCollectionObjectNameRuntimeSelectOperation.CreateResult);
-
-    [OperationImplementation("construction_operations.make_collection_vector_group_name_ref_list_runtime_select")]
-    public override Task<Api.MakeCollectionVectorGroupNameRefListRuntimeSelectResult> MakeCollectionVectorGroupNameRefListRuntimeSelect(Api.MakeCollectionVectorGroupNameRefListRuntimeSelectRequest request, ServerCallContext context) =>
-        _operationExecutor.ExecuteAsync(request, context, MakeCollectionVectorGroupNameRefListRuntimeSelectOperation.Descriptor,
-            MakeCollectionVectorGroupNameRefListRuntimeSelectOperation.CreateCommand, MakeCollectionVectorGroupNameRefListRuntimeSelectOperation.OutputContracts,
-            MakeCollectionVectorGroupNameRefListRuntimeSelectOperation.CreateResult);
 
     [OperationImplementation("construction_operations.make_event_ref_list_wildcard_selection")]
     public override Task<Api.MakeEventRefListWildcardSelectionResult> MakeEventRefListWildcardSelection(Api.MakeEventRefListWildcardSelectionRequest request, ServerCallContext context) =>

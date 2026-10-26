@@ -7,8 +7,8 @@ using Google.Protobuf.Reflection;
 namespace Briosa.Server.Tests;
 
 /// <summary>
-/// Operations retired by a reviewed decision (D2 point 5 on #243, decided on #308 and #310)
-/// are removed as complete vertical slices. The reviewed ledger in
+/// Operations retired by a reviewed decision (D2 point 5 on #243, decided on #308, #310 and
+/// #307, and the 2026-10-25 decisions on #309 and #350) are removed as complete vertical slices. The reviewed ledger in
 /// docs/development/retired-operations.json is also what eng/Verify-Protocol.ps1 uses to
 /// accept exactly these protobuf removals, so these tests keep the ledger and the code in step.
 /// </summary>
@@ -31,7 +31,6 @@ public sealed class RetiredOperationTests
         var ledger = LoadLedger();
         Assert.Equal(1, ledger.SchemaVersion);
         Assert.Equal(SpatialAnalyzerApi.TargetVersion, ledger.Target);
-        Assert.True(File.Exists(Path.Combine(TargetRoot(), ledger.Evidence)), ledger.Evidence);
 
         // A retirement is accepted only into the next contract major, or the current one
         // once the freeze has bumped it. Older entries must be removed with that major.
@@ -51,13 +50,17 @@ public sealed class RetiredOperationTests
             Assert.All(operation.Enums, name => Assert.StartsWith("briosa.", name, StringComparison.Ordinal));
             Assert.False(string.IsNullOrWhiteSpace(operation.MpStep));
             Assert.False(string.IsNullOrWhiteSpace(operation.Reason));
+            Assert.StartsWith("docs/testing/evidence/", operation.Evidence, StringComparison.Ordinal);
+            Assert.True(File.Exists(Path.Combine(TargetRoot(), operation.Evidence)), operation.Evidence);
         });
     }
 
     [Fact]
     public void LedgerListsExactlyTheReviewedRetirements()
     {
-        // #308 (probes 7, 14), #310 (probes 8 to 10) and #307 (probes 15, 16), decided 2026-10-11.
+        // #308 (probes 7, 14), #310 (probes 8 to 10) and #307 (probes 15, 16), decided 2026-10-11
+        // on the 2026-10-07 session; #309 (probe 11) and #350 (probe 22), decided 2026-10-25 on
+        // licensed session 2.
         var expected = new Dictionary<string, (int Issue, int[] Probes)>(StringComparer.Ordinal)
         {
             ["construction_operations.make_callout_view_ref_list_wildcard_selection"] = (308, [7]),
@@ -65,7 +68,9 @@ public sealed class RetiredOperationTests
             ["construction_operations.set_callout_view_properties"] = (310, [8]),
             ["construction_operations.construct_circles_lines_from_surfaces"] = (310, [9]),
             ["construction_operations.mirror_objects"] = (310, [10]),
-            ["cloud_and_mesh_operations.delete_cloud_points_by_xyz_range"] = (307, [15, 16])
+            ["cloud_and_mesh_operations.delete_cloud_points_by_xyz_range"] = (307, [15, 16]),
+            ["construction_operations.construct_polygonized_surface_from_point_clouds"] = (309, [11]),
+            ["construction_operations.make_collection_vector_group_name_ref_list_runtime_select"] = (350, [22])
         };
 
         var ledger = LoadLedger();
@@ -138,13 +143,13 @@ public sealed class RetiredOperationTests
                 [.. operation.GetProperty("enums").EnumerateArray().Select(name => name.GetString()!)],
                 operation.GetProperty("issue").GetInt32(),
                 [.. operation.GetProperty("probes").EnumerateArray().Select(probe => probe.GetInt32())],
+                operation.GetProperty("evidence").GetString()!,
                 operation.GetProperty("reason").GetString()!))
             .ToArray();
         return new RetiredOperationLedger(
             root.GetProperty("schema_version").GetInt32(),
             root.GetProperty("spatial_analyzer_target").GetString()!,
             root.GetProperty("retired_in_contract_major").GetInt32(),
-            root.GetProperty("evidence").GetString()!,
             operations);
     }
 
@@ -225,7 +230,6 @@ public sealed class RetiredOperationTests
         int SchemaVersion,
         string Target,
         int RetiredInContractMajor,
-        string Evidence,
         IReadOnlyList<RetiredOperation> Operations);
 
     internal sealed record RetiredOperation(
@@ -238,5 +242,6 @@ public sealed class RetiredOperationTests
         IReadOnlyList<string> Enums,
         int Issue,
         IReadOnlyList<int> Probes,
+        string Evidence,
         string Reason);
 }

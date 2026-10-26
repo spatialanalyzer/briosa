@@ -51,16 +51,16 @@ exactly as it will be sent, using labels only and never values.
 | 4 | UI profile file | value: public. Omit and blank: worker. | `p04-*` |
 | 5, 6 | Bounding plane High and Low names (SDK defaults `HighPlane` and `LowPlane`) | value: public. Omit and blank: worker. | `p05-06-*`, `p05-*`, `p06-*`, plus default-name and harness-name counts |
 | 7 to 10 | Retired: the callout view list getter and setter, Circle Line Mode, and mirror frame plane substitutions | none | none (see below) |
-| 11 | Mesh Orientation via `SetStringArg`, in isolation ([#309](https://github.com/spatialanalyzer/briosa/issues/309)) | public; the first probe after the fixtures, with operator checkpoints before and after | `p11`, `c11` |
+| 11 | Retired: the Mesh Orientation substitution | none | none (see below) |
 | 12, 13 | Getters without evidence | public | `p12`, `p13` |
 | 14 | Retired: the instrument reference list getter after a wildcard add | none | none (see below) |
 | 15, 16 | Retired: the restored `DeleteCloudPointsByXYZRange` bounds | none | none (see below) |
 | 17, 18 | Label case sensitivity | worker (the API cannot recase a label) | `p17-recased` (control `p02-shipped`), `p18-shipped`, `p18-recased` |
 | 19 to 21 | SDK step text (#246) | worker (both texts on both targets) | `p19-*`, `p20-*`, `p21-*` |
-| 22 | Vector group runtime-select getter (0.9.1), with the gesture SA's help documents ([#312](https://github.com/spatialanalyzer/briosa/issues/312)) | public; the operator completes the selection | `p22` |
+| 22 | Retired: the vector group runtime-select getter | none | none (see below) |
 | 23 | Vector group fractional percentages (0.9.1) | public | `p23` |
 | 24 | R0 and R0a: does the radial delete accept the `Cloud Names` reference list that the deleted X Y Z range operation sent ([#307](https://github.com/spatialanalyzer/briosa/issues/307), [#310](https://github.com/spatialanalyzer/briosa/issues/310))? | public; destructive on disposable clouds only | `c24-*`, `p24-r0`, `p24-r0a` |
-| 25 | Does SA Interaction Mode Silent suppress the observed blocking dialogs, and do prompts still work under it ([#313](https://github.com/spatialanalyzer/briosa/issues/313))? | public: zero-match wildcard, missing template chart, runtime select, Ask for String. Worker: blank High and Low plane names. | `p25-*`, `c25-*`; see [Probe 25](#probe-25-interaction-mode) |
+| 25 | Does SA Interaction Mode Silent suppress the observed blocking dialogs, and do prompts still work under it ([#313](https://github.com/spatialanalyzer/briosa/issues/313))? | public: zero-match wildcard, missing template chart, Ask for String. Worker: blank High and Low plane names. | `p25-*`, `c25-*`; see [Probe 25](#probe-25-interaction-mode) |
 
 **Probe 2 fixture ([#311](https://github.com/spatialanalyzer/briosa/issues/311)).** The fits
 in probes 2 and 17 fit the coplanar group `GFIT` (the four corners of `G1`). The
@@ -70,11 +70,12 @@ fit profile's tolerance. Both targets' MP documentation lists that case as
 which is the MP code `4` that session recorded. A blank `Fit Profile Name`, which
 the shipped mapping sends when the field is absent, selects the default profile.
 
-**Probe 22 gesture ([#312](https://github.com/spatialanalyzer/briosa/issues/312)).**
-The SA 2024 User Manual (chapter 6, "F2 Selection") gives this gesture for a
+**Runtime-select gesture ([#312](https://github.com/spatialanalyzer/briosa/issues/312)).**
+The SA 2024 User Manual (chapter 6, "F2 Selection") gives the gesture for a
 selection prompt, and says that a selection in the tree needs a double-click.
-During `p22`, press **F2**, select `B277::VG1` in the selection tree, click
-**OK**, then press **Enter**.
+Licensed session 2 completed the retired probe 22's selection with **F2**, a
+check in the selection tree, **OK**, then **Enter**. No step of the current plan
+prompts for a selection.
 
 Step texts for #19 to #21 are the SDK View Code forms, which are authoritative
 per #246: `Compute Group to Group Orientation (Rx,Ry,Rz)`,
@@ -97,6 +98,17 @@ longer sends them and `--exclude-probe` refuses their numbers. The numbers are
 not reused, so the 2026-10-07 records keep their meaning. Retiring them also
 removes the "Encountered an improper argument." dialog that preceded `p11` in
 that session.
+
+Probes 11 and 22 answered their questions in licensed session 2 (2026-10-25).
+Run first and in isolation, the Mesh Orientation substitution raised that same
+dialog and the MP never completed until the server's watchdog ended the worker.
+The runtime-select gesture completed probe 22's selection, but the vector group
+getter returned nothing. Their operations were removed for contract major 3
+([#309](https://github.com/spatialanalyzer/briosa/issues/309),
+[#350](https://github.com/spatialanalyzer/briosa/issues/350)), and the plan
+retires both numbers the same way. It also drops the `GRID` and `CPOLY`
+fixtures that only probe 11 used, and the runtime select that probe 25 sent
+under Silent.
 
 ## Safety controls
 
@@ -192,7 +204,6 @@ runs.
 | `PA` (normal +Z) and `PB` (45° to `PA`) | Seed geometry, reference plane, angle (#20) |
 | `G3`: measured P1 to P3, one within ±1 and two 5 units out | Relationship `R1` and vector group `VG1` (one third in tolerance) |
 | `GFIT`: the four coplanar corners of `G1` | Fits (#2, #17) |
-| `GRID` (5 × 5 planar) and cloud `CPOLY` | Polygonize (#11) |
 | `GDEL` (eight points D1 to D9 without D6, as in the 2026-10-07 session) and clouds `CDELR`, `CDELRA`, and the sentinel `CDELS`, each built from `GDEL` | Radial delete controls (#24) |
 
 The worker phase creates only `G1`, `G2`, `GFIT`, `PA`, `PB`, `G3`, `R1`, and `VG1`.
@@ -247,7 +258,7 @@ the 2026-10-07 session observed.
 | Baseline | `p25-baseline` sets the restore mode | `p25-baseline` sets the restore mode |
 | Before Silent | zero-match wildcard (`c25-zero-match-baseline`), template chart that matches no chart (`p25-chart-missing-baseline`), Ask for String (`p25-ask-baseline`) | blank High and Low plane names (`p25-blank-*-baseline`) |
 | Silent | `p25-silent` | `p25-silent` |
-| Under Silent | the same three triggers, plus the runtime select with the probe 22 gesture | the same two blanks, with harness-name and default-name counts |
+| Under Silent | the same three triggers | the same two blanks, with harness-name and default-name counts |
 | Restore | `p25-restore` | `p25-restore` |
 
 - **Modes.** `Set Interaction Mode` sets three values at once. Every probe 25
@@ -275,8 +286,8 @@ the 2026-10-07 session observed.
   watchdog.
 - **Prompts.** For `p25-ask-baseline` and `p25-ask-silent`, replace the answer
   with `B277-entered` and click OK. The record keeps only whether the answer was
-  the initial answer or that entry. For `p25-runtime-select-silent`, use the
-  probe 22 gesture. Under Silent, SA may not prompt at all; record what it does.
+  the initial answer or that entry. Under Silent, SA may not prompt at all;
+  record what it does.
 - **If a session stops inside probe 25** after `p25-silent`, SA stays in Silent.
   Recover as in [When a session stops](#when-a-session-stops), then run the
   same phase with `--interaction-mode-restore-only --restore-sa-interaction-mode <mode>`
@@ -303,9 +314,7 @@ aside as `.refused-<n>.txt` and the harness keeps waiting. Checkpoints:
 
 | Step | When | Why |
 | --- | --- | --- |
-| `p11` | before and after | #309: no dialog may be open when the polygonize is sent |
 | `p24-r0`, `p24-r0a` | after | #307: record any dialog from the delete before the next step |
-| `p22` | after | #312: record the gesture and any dialog |
 | every probe 25 step | after | #313: record whether each trigger opened a dialog |
 
 ## Dry run
@@ -328,23 +337,23 @@ dry runs. Those records are not evidence.
 ## Excluding probes
 
 `--exclude-probe <n>` removes probe `n` from the selected phase. `n` is one probe
-number from the approved list (the `#` column above), for example `11`. Repeat
+number from the approved list (the `#` column above), for example `24`. Repeat
 the option to exclude several probes. It is accepted in dry runs and licensed
 runs of both phases. Use it to collect the remaining probes when one probe
 cannot run, for example after it stopped a session. Rerun the whole phase on a
 clean SA as described in [When a session stops](#when-a-session-stops).
 
 ```powershell
-& $probe --phase public-api --dry-run --fixtures C:\briosa-277\fixtures.json --exclude-probe 11
+& $probe --phase public-api --dry-run --fixtures C:\briosa-277\fixtures.json --exclude-probe 24
 ```
 
 The harness refuses, before any client starts and with exit code `2`:
 
-- a value that is not one canonical probe number (`011`, `+11`, and `5-6` are
-  refused), a number outside the approved list, a retired probe (7 to 10,
-  14 to 16), or the same number twice;
+- a value that is not one canonical probe number (`024`, `+24`, and `5-6` are
+  refused), a number outside the approved list, a retired probe (7 to 11,
+  14 to 16, 22), or the same number twice;
 - a probe that has no steps in the selected phase, for example `17` in the
-  public phase or `11` in the worker phase;
+  public phase or `24` in the worker phase;
 - a probe that shares a step with another probe unless both are excluded:
   `5` and `6` share `p05-06-value` (public) and `p05-06-shipped` (worker);
 - an exclusion that would remove a prerequisite of a remaining step. The plan
@@ -355,13 +364,13 @@ The harness refuses, before any client starts and with exit code `2`:
 - an exclusion that leaves no probe in the phase.
 
 Excluding a probe removes only its probe, variant, and check steps, for example
-`p11` and `c11`. Guard and fixture setup steps always run, including fixtures
+`p02-value` and `c02-value` for probe 2 in the public phase. Guard and fixture setup steps always run, including fixtures
 that only the excluded probe uses, so the remaining probes see the same SA
 state as in the full plan.
 
 The dry-run output, the JSON record, and the markdown record each state the
 exclusion, for example
-`Excluded by operator: #11 — reason not recorded by harness`. Excluded steps
+`Excluded by operator: #24 — reason not recorded by harness`. Excluded steps
 keep their place in the records with the classification `excluded` (markdown:
 "Excluded by operator; not sent."), which is distinct from `not-run`, a planned
 step that a stop or refusal prevented. A licensed run completes, with exit code

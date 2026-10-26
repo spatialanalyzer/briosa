@@ -4,7 +4,7 @@ param(
     [string]$BufPath = 'buf'
 )
 
-# Proves the reviewed operation-retirement exception (#308, #310) is narrow. The
+# Proves the reviewed operation-retirement exception (#308, #310, #307, #309, #350) is narrow. The
 # protocol check removes the RPCs listed in docs/development/retired-operations.json,
 # and the request, result and enum types only they use, from an ephemeral baseline.
 # This test synthesizes a baseline that still defines the listed operations, then
