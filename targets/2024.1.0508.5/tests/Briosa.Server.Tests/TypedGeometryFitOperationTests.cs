@@ -65,6 +65,46 @@ public sealed class TypedGeometryFitOperationTests
     }
 
     [Fact]
+    public void AnAbsentFitSeedOmitsItsSetterAndAnEmptySeedIsRejected()
+    {
+        // #311: licensed session 2 accepted a seed value, a skipped seed setter, and a blank
+        // seed (probe 2). The seed is optional in major 3, and an empty one is rejected (D2).
+        const string seedLabel = "Starting Condition Geometry (optional)";
+        var group = new Api.CollectionObjectName { ObjectName = "group" };
+        var fit = new Api.CollectionObjectName { ObjectName = "fit" };
+        Func<Api.CollectionObjectName?, WorkerMpCommand>[] fits =
+        [
+            seed => FitGeometryToPointGroupOperation.CreateCommand(new()
+            {
+                GeometryType = Api.GeometryType.Plane, GroupToFit = group, ResultingObjectName = fit, StartingConditionGeometry = seed
+            }),
+            seed => FitGeometryToPointGroupProjectedToPlaneOperation.CreateCommand(new()
+            {
+                GeometryType = Api.GeometryType.Line, GroupToFit = group, ResultingObjectName = fit,
+                PlaneName = new Api.CollectionObjectName { ObjectName = "plane" }, StartingConditionGeometry = seed
+            }),
+            seed => FitGeometryToPointsOperation.CreateCommand(new()
+            {
+                GeometryType = Api.GeometryType.Plane, PointsToFit = { new Api.PointName { TargetName = "P1" } },
+                ResultingObjectName = fit, StartingConditionGeometry = seed
+            })
+        ];
+
+        foreach (var create in fits)
+        {
+            Assert.DoesNotContain(create(null).InputArguments, argument => argument.Name == seedLabel);
+
+            var sent = Assert.Single(create(new() { CollectionName = "A", ObjectName = "seed" }).InputArguments,
+                argument => argument.Name == seedLabel);
+            Assert.Equal("SetCollectionObjectNameArg2", sent.SdkBinding);
+            Assert.Equal("seed", sent.RequireValue<WorkerCollectionObjectNameValue>().ObjectName);
+
+            Assert.Throws<ArgumentException>(() => create(new() { CollectionName = "A", ObjectName = string.Empty }));
+            Assert.Throws<ArgumentException>(() => create(new() { CollectionName = "A", ObjectName = "  " }));
+        }
+    }
+
+    [Fact]
     public void ProjectedAndPointFitsPreserveInputOrderAndRejectEmptyPointLists()
     {
         var names = new Api.CollectionObjectName { ObjectName = "group" };

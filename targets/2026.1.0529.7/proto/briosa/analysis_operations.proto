@@ -218,7 +218,8 @@ message FitGeometryToPointGroupRequest {
   // -1.0 uses the profile tolerance.
   optional double fit_interface_tolerance = 6;
   optional bool ignore_out_of_tolerance_points = 7;
-  // Optional in the MP editor; the existing API presence and omission behavior is unchanged.
+  // Optional (major 3): omitted when absent, so SpatialAnalyzer fits without a starting
+  // geometry; an empty name is rejected.
   optional CollectionObjectName starting_condition_geometry = 8;
 }
 
@@ -236,7 +237,8 @@ message FitGeometryToPointGroupProjectedToPlaneRequest {
   // -1.0 uses the profile tolerance.
   optional double fit_interface_tolerance = 7;
   optional bool ignore_out_of_tolerance_points = 8;
-  // Optional in the MP editor; the existing API presence and omission behavior is unchanged.
+  // Optional (major 3): omitted when absent, so SpatialAnalyzer fits without a starting
+  // geometry; an empty name is rejected.
   optional CollectionObjectName starting_condition_geometry = 9;
 }
 
@@ -253,7 +255,8 @@ message FitGeometryToPointsRequest {
   // -1.0 uses the profile tolerance.
   optional double fit_interface_tolerance = 6;
   optional bool ignore_out_of_tolerance_points = 7;
-  // Optional in the MP editor; the existing API presence and omission behavior is unchanged.
+  // Optional (major 3): omitted when absent, so SpatialAnalyzer fits without a starting
+  // geometry; an empty name is rejected.
   optional CollectionObjectName starting_condition_geometry = 8;
 }
 

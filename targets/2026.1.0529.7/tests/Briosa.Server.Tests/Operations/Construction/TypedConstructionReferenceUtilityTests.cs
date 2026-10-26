@@ -17,7 +17,6 @@ public sealed class TypedConstructionReferenceUtilityTests
         "construction_operations.get_collection_instrument_ref_list_variable",
         "construction_operations.make_collection_instrument_id_runtime_select",
         "construction_operations.make_collection_instrument_ref_list_runtime_select",
-        "construction_operations.make_collection_vector_group_name_ref_list_runtime_select",
         "construction_operations.make_event_ref_list_wildcard_selection",
         "construction_operations.make_picture_name_ref_list_runtime_select",
         "construction_operations.make_relationship_ref_list_runtime_select",
@@ -79,8 +78,6 @@ public sealed class TypedConstructionReferenceUtilityTests
         Assert.Throws<ArgumentException>(() => MakeReportRefListFromCollectionOperation.CreateCommand(new()));
         Assert.Equal("SetCollectionNameArg", Assert.Single(MakeReportRefListFromCollectionOperation.CreateCommand(new()
             { CollectionName = new Api.CollectionName { Name = "C" } }).InputArguments).SdkBinding);
-        Assert.Equal("GetCollectionVectorGroupNameRefListArg", Assert.Single(
-            MakeCollectionVectorGroupNameRefListRuntimeSelectOperation.CreateCommand(new()).OutputArguments).SdkBinding);
     }
 
     [Fact]
@@ -146,11 +143,6 @@ public sealed class TypedConstructionReferenceUtilityTests
             new WorkerVectorNameListValue([new WorkerVectorNameValue("C", "G", "V")]));
         Assert.Equal("V", Assert.Single(MakeVectorNameRefListRuntimeSelectOperation.CreateResult(
             Success(vector)).ResultantVectorNameList).Name);
-        var vectorGroups = new WorkerRetrievedOutput("Resultant Collection Vector Group Name Reference List",
-            WorkerMpValueKind.CollectionVectorGroupNameList,
-            new WorkerCollectionVectorGroupNameListValue([new WorkerCollectionVectorGroupNameValue("C", "G")]));
-        Assert.Equal("G", Assert.Single(MakeCollectionVectorGroupNameRefListRuntimeSelectOperation.CreateResult(
-            Success(vectorGroups)).ResultantCollectionVectorGroupNameReferenceList).VectorGroupName);
         Assert.Equal("2026", MakeSystemStringOperation.CreateResult(Success(
             new WorkerRetrievedOutput("Resultant String", WorkerMpValueKind.Text,
                 new WorkerTextValue("2026")))).ResultantString);
