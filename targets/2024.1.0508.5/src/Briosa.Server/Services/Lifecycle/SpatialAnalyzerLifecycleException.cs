@@ -68,6 +68,18 @@ internal sealed class SpatialAnalyzerLifecycleException : Exception
         new(Grpc.Core.StatusCode.Unavailable, kind, diagnosticCode, state,
             recoveryGuidance);
 
+    // The caller stopped waiting (cancellation or its gRPC deadline). gRPC does not
+    // deliver a response to such a caller, so the detail serves in-process callers and
+    // the audit. The diagnostic says whether the request was withdrawn before
+    // acceptance or continues detached; no lifecycle failure kind is specific to it.
+    public static SpatialAnalyzerLifecycleException Cancelled(
+        string diagnosticCode,
+        global::Briosa.SpatialAnalyzerLifecycleState state,
+        global::Briosa.LifecycleRecoveryGuidance recoveryGuidance) =>
+        new(Grpc.Core.StatusCode.Cancelled,
+            global::Briosa.SpatialAnalyzerLifecycleFailureKind.StateConflict,
+            diagnosticCode, state, recoveryGuidance);
+
     public static SpatialAnalyzerLifecycleException DeadlineExceeded(
         global::Briosa.SpatialAnalyzerLifecycleFailureKind kind,
         string diagnosticCode,

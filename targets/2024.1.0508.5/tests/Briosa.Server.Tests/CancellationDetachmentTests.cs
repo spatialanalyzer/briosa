@@ -48,6 +48,10 @@ public sealed class CancellationDetachmentTests
     // Only a hang guard: handshakes and virtual time order every step.
     private static readonly TimeSpan HangGuard = TimeSpan.FromSeconds(30);
 
+    // The fixed bounds of the production lifecycle policy (WorkerProcessRegistration).
+    private static readonly TimeSpan ProductionHeartbeatTimeout = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan ProductionShutdownTimeout = TimeSpan.FromSeconds(5);
+
     // F9: each queued item leaves Queued exactly once, by claim or by abandonment.
     [Fact]
     public void ClaimAndAbandonmentAreMutuallyExclusive()
@@ -719,6 +723,49 @@ public sealed class CancellationDetachmentTests
         Assert.Equal(1, worker.VerifyCount);
         Assert.Equal(1, worker.StopCount);
         Assert.Contains(supervisor.History, state => state.ReadyForExecution);
+    }
+
+    // #321: host shutdown waits for an accepted exchange within the host shutdown
+    // timeout that the server's registrations configure. At the server defaults the
+    // host starts stopping while ConnectEx is outstanding. ConnectEx answers just inside
+    // its bound and the readiness probe then runs to its own bound: 39 seconds, past
+    // the .NET default of 30. The worker's hosted service still stops the worker once
+    // Connect has recorded its outcome.
+    [Fact]
+    public async Task HostShutdownOutlastsAnAcceptedConnectAtTheServerDefaults()
+    {
+        var hostShutdown = HostShutdownBoundTests.HostOptionsFor(new Dictionary<string, string?>()).ShutdownTimeout;
+        var connect = new Hold();
+        var verify = new Hold();
+        var worker = new ScriptedWorker { ReadyConnected = false, ConnectHold = connect, VerifyHold = verify };
+        var clock = new HeartbeatTestClock();
+        // The production lifecycle bounds. Heartbeats skip while Connect holds the
+        // supervisor, so only the heartbeat interval keeps this class's value.
+        var supervisor = new WorkerProcessSupervisor(new SequenceFactory([worker]),
+            new WorkerLifecyclePolicy(HeartbeatInterval, ProductionHeartbeatTimeout,
+                WorkerProcessOptions.DefaultStartupTimeout, ProductionShutdownTimeout,
+                readinessProbeTimeout: WorkerProcessOptions.DefaultReadinessProbeTimeout),
+            TestDurationClasses.SyntheticQuickPolicy(ExecutionBudget, queueCapacity: 4),
+            clock);
+        await using var scope = supervisor.ConfigureAwait(false);
+        Assert.True((await supervisor.StartAsync()).Succeeded);
+        var connecting = supervisor.ConnectAsync(1);
+        await connect.Entered.WaitAsync(HangGuard);
+
+        var hosted = new WorkerSupervisorHostedService(supervisor, NullLogger<WorkerSupervisorHostedService>.Instance);
+        using var shutdown = new CancellationTokenSource(hostShutdown, clock);
+        var stopping = hosted.StopAsync(shutdown.Token);
+        clock.Advance(WorkerProcessOptions.DefaultStartupTimeout - TimeSpan.FromSeconds(1));
+        connect.Release();
+        await verify.Entered.WaitAsync(HangGuard);
+        await clock.FireNextAsync(WorkerProcessOptions.DefaultReadinessProbeTimeout);
+        await stopping.WaitAsync(HangGuard);
+
+        var connected = await connecting.WaitAsync(HangGuard);
+        Assert.False(connected.Succeeded);
+        Assert.Equal(WorkerLifecycleFailure.ReadinessTimeout, connected.Snapshot.LifecycleFailure);
+        Assert.Equal(WorkerLifecycleState.Stopped, supervisor.Current.State);
+        Assert.False(shutdown.IsCancellationRequested);
     }
 
     // F10 at the coordinator: the caller that stops waiting receives a typed Cancelled

@@ -1,10 +1,18 @@
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using Briosa.Server.Services;
+using Microsoft.Extensions.Logging;
 
 namespace Briosa.Server.Tests;
 
 public sealed class SpatialAnalyzerLifecycleCoordinatorTests
 {
+    // A distinct bound, so the virtual clock can tell it from the window poll.
+    private static readonly TimeSpan ApplicationStartupTimeout = TimeSpan.FromSeconds(7);
+
+    // Only a hang guard: the virtual clock orders every launch step.
+    private static readonly TimeSpan HangGuard = TimeSpan.FromSeconds(30);
+
     [Fact]
     public async Task StateDiscoveryReportsOneExternalExactTargetWithoutOwnership()
     {
@@ -313,18 +321,231 @@ public sealed class SpatialAnalyzerLifecycleCoordinatorTests
         Assert.False(state.HasApplicationGeneration);
     }
 
+    // #322: like the SDK exchanges in #315, an accepted launch no longer observes its
+    // caller's cancellation. The caller gets a typed detach at once; the launch keeps
+    // the application lifecycle and waits for the window under its own bound. Either
+    // the window appears, and the launch records the running application, or the
+    // bound expires and the server-launched process stays STARTING.
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task CallerCancellationAfterLaunchAcceptanceLeavesTheWindowWaitToItsBound(bool exceedBound)
+    {
+        using var executable = TemporaryFile.Create();
+        var platform = new FakeProcessPlatform { WindowReadyAtStart = false };
+        var clock = new HeartbeatTestClock();
+        using var coordinator = CreateCoordinator(
+            executable.Path, platform, timeProvider: clock, startupTimeout: ApplicationStartupTimeout);
+        using var expiry = new LaunchBoundExpiry(clock);
+        using var cancellation = new CancellationTokenSource();
+
+        var launching = coordinator.LaunchAsync(
+            new global::Briosa.LaunchSpatialAnalyzerRequest(), cancellation.Token);
+        // Acceptance and the process start happen before the first wait.
+        var process = Assert.IsType<FakeOwnedProcess>(platform.StartedProcess);
+        await cancellation.CancelAsync();
+        var stoppedWaiting = await Assert.ThrowsAsync<SpatialAnalyzerLifecycleException>(
+            () => launching.WaitAsync(HangGuard));
+
+        Assert.Equal(Grpc.Core.StatusCode.Cancelled, stoppedWaiting.StatusCode);
+        Assert.Equal(
+            global::Briosa.SpatialAnalyzerLifecycleFailureKind.StateConflict,
+            stoppedWaiting.Detail.Kind);
+        Assert.Equal("application-lifecycle-caller-stopped-waiting", stoppedWaiting.Detail.DiagnosticCode);
+        Assert.Equal(
+            global::Briosa.LifecycleRecoveryGuidance.RefreshState,
+            stoppedWaiting.Detail.RecoveryGuidance);
+        Assert.Equal(
+            global::Briosa.SpatialAnalyzerApplicationState.Starting,
+            stoppedWaiting.Detail.State.ApplicationState);
+        Assert.Equal(
+            global::Briosa.SpatialAnalyzerOwnership.ServerLaunched,
+            stoppedWaiting.Detail.State.Ownership);
+        var generation = stoppedWaiting.Detail.State.ApplicationGeneration;
+
+        // The detached launch still owns the application lifecycle, so nothing can
+        // close or replace the application it started.
+        var closing = await Assert.ThrowsAsync<SpatialAnalyzerLifecycleException>(
+            () => coordinator.CloseOwnedAsync(generation, CancellationToken.None));
+        Assert.Equal("application-lifecycle-transition-in-progress", closing.Detail.DiagnosticCode);
+        var relaunching = await Assert.ThrowsAsync<SpatialAnalyzerLifecycleException>(
+            () => coordinator.LaunchAsync(
+                new global::Briosa.LaunchSpatialAnalyzerRequest(), CancellationToken.None));
+        Assert.Equal("application-lifecycle-transition-in-progress", relaunching.Detail.DiagnosticCode);
+        Assert.False(process.CloseRequested);
+        Assert.Equal(1, platform.Starts);
+
+        if (exceedBound)
+        {
+            await clock.FireNextAsync(ApplicationStartupTimeout);
+        }
+        else
+        {
+            process.WindowReady = true;
+            await clock.FireNextAsync();
+        }
+
+        var state = await coordinator.GetCurrentAsync(CancellationToken.None).WaitAsync(HangGuard);
+        Assert.Equal(
+            exceedBound
+                ? global::Briosa.SpatialAnalyzerApplicationState.Starting
+                : global::Briosa.SpatialAnalyzerApplicationState.Running,
+            state.ApplicationState);
+        Assert.Equal(global::Briosa.SpatialAnalyzerOwnership.ServerLaunched, state.Ownership);
+        Assert.Equal(generation, state.ApplicationGeneration);
+        Assert.Equal(
+            exceedBound ? "spatial-analyzer-starting" : "spatial-analyzer-running",
+            state.DiagnosticCode);
+        Assert.False(process.CloseRequested);
+    }
+
+    // #322: a launch cancelled before acceptance is withdrawn with a typed detail and
+    // starts nothing, whether the caller cancelled before calling or while the server
+    // was still checking the launch preconditions.
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task LaunchCancelledBeforeAcceptanceIsWithdrawnWithoutStartingAnything(bool duringChecks)
+    {
+        using var executable = TemporaryFile.Create();
+        var platform = new FakeProcessPlatform();
+        using var coordinator = CreateCoordinator(executable.Path, platform);
+        var before = await coordinator.GetCurrentAsync(CancellationToken.None);
+        using var cancellation = new CancellationTokenSource();
+        if (duringChecks)
+        {
+            platform.Observing = cancellation.Cancel;
+        }
+        else
+        {
+            await cancellation.CancelAsync();
+        }
+
+        var withdrawn = await Assert.ThrowsAsync<SpatialAnalyzerLifecycleException>(
+            () => coordinator.LaunchAsync(
+                new global::Briosa.LaunchSpatialAnalyzerRequest(), cancellation.Token));
+        platform.Observing = null;
+
+        Assert.Equal(Grpc.Core.StatusCode.Cancelled, withdrawn.StatusCode);
+        Assert.Equal(
+            global::Briosa.SpatialAnalyzerLifecycleFailureKind.StateConflict,
+            withdrawn.Detail.Kind);
+        Assert.Equal("application-lifecycle-request-withdrawn", withdrawn.Detail.DiagnosticCode);
+        Assert.Equal(global::Briosa.LifecycleRecoveryGuidance.None, withdrawn.Detail.RecoveryGuidance);
+        Assert.Null(platform.StartedProcess);
+        Assert.Equal(before, await coordinator.GetCurrentAsync(CancellationToken.None));
+    }
+
+    // A caller that keeps waiting gets the startup bound's typed timeout. The bound runs
+    // on the coordinator's clock, and the server-launched process stays STARTING.
+    [Fact]
+    public async Task WaitingCallerReceivesTheStartupTimeoutAtTheLaunchBound()
+    {
+        using var executable = TemporaryFile.Create();
+        var platform = new FakeProcessPlatform { WindowReadyAtStart = false };
+        var clock = new HeartbeatTestClock();
+        using var coordinator = CreateCoordinator(
+            executable.Path, platform, timeProvider: clock, startupTimeout: ApplicationStartupTimeout);
+        using var expiry = new LaunchBoundExpiry(clock);
+
+        var launching = coordinator.LaunchAsync(
+            new global::Briosa.LaunchSpatialAnalyzerRequest(), CancellationToken.None);
+        var process = Assert.IsType<FakeOwnedProcess>(platform.StartedProcess);
+        await clock.FireNextAsync(ApplicationStartupTimeout);
+        var timedOut = await Assert.ThrowsAsync<SpatialAnalyzerLifecycleException>(
+            () => launching.WaitAsync(HangGuard));
+
+        Assert.Equal(Grpc.Core.StatusCode.DeadlineExceeded, timedOut.StatusCode);
+        Assert.Equal(global::Briosa.SpatialAnalyzerLifecycleFailureKind.Timeout, timedOut.Detail.Kind);
+        Assert.Equal("spatial-analyzer-startup-timeout", timedOut.Detail.DiagnosticCode);
+        Assert.Equal(
+            global::Briosa.SpatialAnalyzerApplicationState.Starting,
+            timedOut.Detail.State.ApplicationState);
+        Assert.Equal(
+            global::Briosa.SpatialAnalyzerOwnership.ServerLaunched,
+            timedOut.Detail.State.Ownership);
+        Assert.False(process.CloseRequested);
+    }
+
+    // #322: disposal, as at host shutdown, waits for a detached launch to end under its
+    // bound before it releases the launched process. It never closes SpatialAnalyzer.
+    [Fact]
+    public async Task DisposalWaitsForADetachedLaunch()
+    {
+        using var executable = TemporaryFile.Create();
+        var platform = new FakeProcessPlatform { WindowReadyAtStart = false };
+        var clock = new HeartbeatTestClock();
+        var coordinator = CreateCoordinator(
+            executable.Path, platform, timeProvider: clock, startupTimeout: ApplicationStartupTimeout);
+        using var cancellation = new CancellationTokenSource();
+        var launching = coordinator.LaunchAsync(
+            new global::Briosa.LaunchSpatialAnalyzerRequest(), cancellation.Token);
+        var process = Assert.IsType<FakeOwnedProcess>(platform.StartedProcess);
+        await cancellation.CancelAsync();
+        _ = await Assert.ThrowsAsync<SpatialAnalyzerLifecycleException>(() => launching.WaitAsync(HangGuard));
+
+        var disposing = coordinator.DisposeAsync().AsTask();
+        Assert.False(disposing.IsCompleted);
+        Assert.False(process.Disposed);
+        await clock.FireNextAsync(ApplicationStartupTimeout);
+        await disposing.WaitAsync(HangGuard);
+
+        Assert.True(process.Disposed);
+        Assert.False(process.CloseRequested);
+    }
+
+    // #322 through the gRPC service: the typed detach of a caller that stopped waiting
+    // is audited, although gRPC does not deliver a response to that caller.
+    [Fact]
+    public async Task LaunchServiceAuditsACallerThatStoppedWaiting()
+    {
+        using var executable = TemporaryFile.Create();
+        var platform = new FakeProcessPlatform { WindowReadyAtStart = false };
+        var clock = new HeartbeatTestClock();
+        using var coordinator = CreateCoordinator(
+            executable.Path, platform, timeProvider: clock, startupTimeout: ApplicationStartupTimeout);
+        using var expiry = new LaunchBoundExpiry(clock);
+        var audit = new CapturingLogger<LifecycleAuditLogger>();
+        var service = new SpatialAnalyzerLifecycleService(coordinator, new LifecycleAuditLogger(audit));
+        using var cancellation = new CancellationTokenSource();
+
+        var call = service.LaunchSpatialAnalyzer(
+            new global::Briosa.LaunchSpatialAnalyzerRequest(),
+            new InMemoryServerCallContext(
+                "/briosa.SpatialAnalyzerLifecycle/LaunchSpatialAnalyzer", null, cancellation.Token));
+        var process = Assert.IsType<FakeOwnedProcess>(platform.StartedProcess);
+        await cancellation.CancelAsync();
+        var error = await Assert.ThrowsAsync<Grpc.Core.RpcException>(() => call.WaitAsync(HangGuard));
+        process.WindowReady = true;
+        await clock.FireNextAsync();
+
+        Assert.Equal(Grpc.Core.StatusCode.Cancelled, error.StatusCode);
+        var detail = global::Briosa.SpatialAnalyzerLifecycleError.Parser.ParseFrom(
+            Assert.Single(error.Trailers).ValueBytes);
+        Assert.Equal("LaunchSpatialAnalyzer", detail.Rpc);
+        Assert.Equal("application-lifecycle-caller-stopped-waiting", detail.DiagnosticCode);
+        var rejected = Assert.Single(audit.Entries, entry => entry.EventId.Id == 1302);
+        Assert.Equal("LaunchSpatialAnalyzer", rejected.Value("Rpc"));
+        Assert.Equal(Grpc.Core.StatusCode.Cancelled, rejected.Value("GrpcStatus"));
+        Assert.Equal("application-lifecycle-caller-stopped-waiting", rejected.Value("DiagnosticCode"));
+        var running = await coordinator.GetCurrentAsync(CancellationToken.None).WaitAsync(HangGuard);
+        Assert.Equal(global::Briosa.SpatialAnalyzerApplicationState.Running, running.ApplicationState);
+    }
+
     private static SpatialAnalyzerLifecycleCoordinator CreateCoordinator(
         string executablePath,
         FakeProcessPlatform platform,
-        FakeSdkStateProvider? sdk = null) =>
+        FakeSdkStateProvider? sdk = null,
+        TimeProvider? timeProvider = null,
+        TimeSpan? startupTimeout = null) =>
         new(
             new SpatialAnalyzerApplicationOptions(
                 executablePath,
-                TimeSpan.FromSeconds(1),
+                startupTimeout ?? TimeSpan.FromSeconds(1),
                 TimeSpan.FromSeconds(1)),
             platform,
             sdk ?? new FakeSdkStateProvider(global::Briosa.SpatialAnalyzerSdkState.Stopped),
-            TimeProvider.System);
+            timeProvider ?? TimeProvider.System);
 
     private sealed class FakeSdkStateProvider(
         global::Briosa.SpatialAnalyzerSdkState sdkState)
@@ -363,8 +584,19 @@ public sealed class SpatialAnalyzerLifecycleCoordinatorTests
 
         public int PresenceChecks { get; private set; }
 
+        public bool WindowReadyAtStart { get; init; } = true;
+
+        public int Starts { get; private set; }
+
+        // Runs during each scan, which the coordinator performs before accepting a launch.
+        public Action? Observing { get; set; }
+
         public IReadOnlyList<SpatialAnalyzerProcessObservation> ObserveEligibleProcesses(
-            string executablePath) => [.. Observations];
+            string executablePath)
+        {
+            Observing?.Invoke();
+            return [.. Observations];
+        }
 
         public SpatialAnalyzerProcessPresence ObserveProcess(
             string executablePath,
@@ -381,18 +613,28 @@ public sealed class SpatialAnalyzerLifecycleCoordinatorTests
         {
             LastArguments = [.. startInfo.ArgumentList];
             LastUseShellExecute = startInfo.UseShellExecute;
-            StartedProcess = new FakeOwnedProcess();
+            Starts++;
+            StartedProcess = new FakeOwnedProcess { WindowReady = WindowReadyAtStart };
             return StartedProcess;
         }
     }
 
     private sealed class FakeOwnedProcess : ISpatialAnalyzerOwnedProcess
     {
+        private volatile bool _windowReady;
+
         public SpatialAnalyzerProcessIdentity Identity { get; } = new(51, 5200);
 
         public bool HasExited { get; private set; }
 
-        public bool IsApplicationWindowReady => !HasExited;
+        // The test shows the main window while a launch waits for it.
+        public bool WindowReady
+        {
+            get => _windowReady;
+            set => _windowReady = value;
+        }
+
+        public bool IsApplicationWindowReady => !HasExited && WindowReady;
 
         public bool CloseRequested { get; private set; }
 
@@ -406,13 +648,41 @@ public sealed class SpatialAnalyzerLifecycleCoordinatorTests
         public Task WaitForExitAsync(CancellationToken cancellationToken) =>
             Task.CompletedTask;
 
+        public bool Disposed { get; private set; }
+
         public void Refresh()
         {
         }
 
-        public void Dispose()
-        {
-        }
+        public void Dispose() => Disposed = true;
+    }
+
+    // Declared after its coordinator, so it is disposed first. It moves virtual time past
+    // the launch bound, so a failed test cannot leave a detached launch waiting forever
+    // while the coordinator's disposal waits for it.
+    private sealed class LaunchBoundExpiry(HeartbeatTestClock clock) : IDisposable
+    {
+        public void Dispose() => clock.Advance(ApplicationStartupTimeout);
+    }
+
+    // Captures structured log state so tests can assert value-free audit evidence.
+    private sealed class CapturingLogger<T> : ILogger<T>
+    {
+        public ConcurrentQueue<LogEntry> Entries { get; } = new();
+
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+
+        public bool IsEnabled(LogLevel logLevel) => true;
+
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception,
+            Func<TState, Exception?, string> formatter) =>
+            Entries.Enqueue(new LogEntry(eventId,
+                state as IReadOnlyList<KeyValuePair<string, object?>> ?? []));
+    }
+
+    private sealed record LogEntry(EventId EventId, IReadOnlyList<KeyValuePair<string, object?>> State)
+    {
+        public object? Value(string name) => State.FirstOrDefault(pair => pair.Key == name).Value;
     }
 
     private sealed class TemporaryFile : IDisposable
