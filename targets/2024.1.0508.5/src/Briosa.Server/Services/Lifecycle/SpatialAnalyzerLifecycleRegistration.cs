@@ -16,6 +16,10 @@ internal static class SpatialAnalyzerLifecycleRegistration
         services.AddLifecycleShutdownBound("application", options.StartupTimeout);
         services.TryAddSingleton<ISpatialAnalyzerProcessPlatform,
             WindowsSpatialAnalyzerProcessPlatform>();
+        services.TryAddSingleton<ISpatialAnalyzerWindowSource,
+            WindowsSpatialAnalyzerWindowSource>();
+        services.TryAddSingleton<ISpatialAnalyzerModalDialogProbe,
+            SpatialAnalyzerModalDialogProbe>();
         services.TryAddSingleton<SpatialAnalyzerLifecycleCoordinator>();
         services.TryAddSingleton<ISpatialAnalyzerLifecycleStateProvider>(provider =>
             provider.GetRequiredService<SpatialAnalyzerLifecycleCoordinator>());

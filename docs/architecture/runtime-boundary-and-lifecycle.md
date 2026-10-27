@@ -133,8 +133,9 @@ cancellation and the acceptance wins:
 - **After acceptance**, the exchange no longer observes the caller's token. Worker
   launch, COM activation, and the Ready message finish under
   `Briosa:Worker:StartupTimeout`; `ConnectEx` under the same startup bound; the
-  readiness probe under `Briosa:Worker:ReadinessProbeTimeout`; and recovery
-  cleanup under the shutdown bound. After a successful probe, Connect confirms
+  readiness probe, with the configured interaction mode step, under one
+  `Briosa:Worker:ReadinessProbeTimeout` bound; and recovery cleanup under the
+  shutdown bound. After a successful probe, Connect confirms
   that the application generation it observed before `ConnectEx` is still
   current, again under the startup bound, and publishes that association in the
   same state change that reports readiness. MP admission therefore opens only

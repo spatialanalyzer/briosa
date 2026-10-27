@@ -76,6 +76,7 @@ ServerInstanceId, SpatialAnalyzerTarget, and applicable event metadata.
 | --- | --- | --- |
 | 1000 | ControlPlaneReady | Information |
 | 1201 | WorkerTransition | Information; Warning for blocked attached identity; Error for degraded worker |
+| 1202 | InteractionModeApplied (SaInteractionMode, MpInteractionMode, MpDialogInteractionMode, MpResultCode) | Information; Warning when the mode was not applied |
 | 1300 | ExecutionDispatched (includes DurationClass and ExecutionBudgetMilliseconds) | Information |
 | 1301 | ExecutionResolved | Information; Warning for unsuccessful outcomes; Error for watchdog/worker failure |
 | 1302 | LifecycleRejected | Warning |

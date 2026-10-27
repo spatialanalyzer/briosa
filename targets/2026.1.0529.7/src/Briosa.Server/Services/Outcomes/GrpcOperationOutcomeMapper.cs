@@ -397,7 +397,10 @@ internal static class GrpcOperationOutcomeMapper
                 OperationFailureKind.WorkerWatchdogTimeout,
                 diagnosticCode,
                 ExecutionDisposition.StartedOutcomeUnknown,
-                RecoveryGuidance.WorkerReplacement,
+                // A SpatialAnalyzer dialog still blocks SA after the worker is replaced.
+                diagnosticCode == WorkerProcessSupervisor.ModalDialogDiagnosticCode
+                    ? RecoveryGuidance.OperatorInterventionRequired
+                    : RecoveryGuidance.WorkerReplacement,
                 ReplayAfterAmbiguousCompletion(replaySafety),
                 replaySafety,
                 outcome.Generation,
