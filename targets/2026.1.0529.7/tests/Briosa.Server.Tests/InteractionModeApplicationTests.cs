@@ -88,6 +88,7 @@ public sealed class InteractionModeApplicationTests
 
     [Theory]
     [InlineData(3)]
+    [InlineData(4)]
     [InlineData(0)]
     [InlineData(-1)]
     public async Task ModeThatSaDoesNotAcceptKeepsReadinessClosed(int mpResultCode)
