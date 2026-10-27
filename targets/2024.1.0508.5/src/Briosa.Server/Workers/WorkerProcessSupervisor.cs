@@ -1275,7 +1275,8 @@ internal sealed partial class WorkerProcessSupervisor :
                 worker, command, Guid.NewGuid(), verified.RuntimeIdentity, readinessBound).ConfigureAwait(false);
             _lastSuccessfulExchange = _timeProvider.GetTimestamp();
             mpResultCode = response.Execution?.MpResultCode;
-            if (response.Execution is { MpSucceeded: true })
+            // Only code 2 shows the mode in place; a partial success does not.
+            if (response.Execution is { MpSucceeded: true, MpResultCode: 2 })
             {
                 LogInteractionMode(LogLevel.Information, mpResultCode, "interaction-mode-applied");
                 return true;
