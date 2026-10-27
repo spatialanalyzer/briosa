@@ -166,7 +166,10 @@ internal static class PublicOutcomes
         var kind = Classify(error);
         return FromExecution(
             kind, transport, error.MpExecution, error.DiagnosticCode, error.Kind.ToString(),
-            error.ExecutionDisposition.ToString(), ProbeOutcome.EmptyObservations);
+            error.ExecutionDisposition.ToString(), ProbeOutcome.EmptyObservations) with
+        {
+            RecoveryGuidance = error.RecoveryGuidance.ToString()
+        };
     }
 
     internal static ProbeOutcomeKind Classify(OperationError error)
@@ -240,7 +243,10 @@ internal static class PublicOutcomes
             SafeCode.OrNull(diagnosticCode),
             failureKind,
             disposition,
-            observations);
+            observations)
+        {
+            ExecutionState = execution?.State.ToString()
+        };
     }
 }
 

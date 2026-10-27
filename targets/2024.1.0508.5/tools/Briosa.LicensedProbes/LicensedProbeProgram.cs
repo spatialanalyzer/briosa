@@ -1,5 +1,7 @@
 using System.Globalization;
 using System.Text.Json;
+using Briosa.Server.Services;
+using Microsoft.Extensions.Configuration;
 
 namespace Briosa.LicensedProbes;
 
@@ -14,10 +16,11 @@ internal static class LicensedProbeProgram
               --output-directory <empty dir> --restore-sa-interaction-mode manual|automatic
               --worker-path <package>\Briosa.Worker.exe
               --connected-sa-attested-version 2024.1.0508.5 --connected-sa-attestation-reference <id>
-          Recovery after a session stopped inside probe 25: add --interaction-mode-restore-only to either form.
+          Recovery after a session stopped inside probe 25 or 29: add --interaction-mode-restore-only to either form.
           Optional: --activated-sdk-attestation-reference <id> --harness-revision <sha>
               --step-timeout-seconds <5-600> --operator-timeout-seconds <30-1800>
               --exclude-probe <n> (repeatable; a probe number of the selected phase, e.g. 12)
+              --probe <n> (repeatable; run only these probes of the selected phase; opt-in probes 26 to 29 need it)
           A licensed run pauses at operator checkpoints; answer each by writing its response file
           in the checkpoints folder of the output directory.
         """;
@@ -25,9 +28,20 @@ internal static class LicensedProbeProgram
     public static IProbeTransport CreateTransport(ProbeOptions options)
     {
         ArgumentNullException.ThrowIfNull(options);
-        return options.Phase == ProbePhase.PublicApi
-            ? new PublicApiTransport(options.Address!, options.StepTimeout, options.OperatorTimeout, ProcessCensus.Instance)
-            : new WorkerTransport(options.WorkerPath!, options.StepTimeout, ProcessCensus.Instance);
+        if (options.Phase == ProbePhase.PublicApi)
+        {
+            return new PublicApiTransport(options.Address!, options.StepTimeout, options.OperatorTimeout, ProcessCensus.Instance);
+        }
+
+        // The server's own modal-dialog detector (#313), bound as the packaged server binds it by
+        // default: the exact-target SpatialAnalyzer that installation discovery finds. It only
+        // reads that process's window state and never sends input.
+        var detector = new SpatialAnalyzerModalDialogProbe(
+            SpatialAnalyzerApplicationOptions.BindAndValidate(new ConfigurationBuilder().Build()),
+            new WindowsSpatialAnalyzerProcessPlatform(),
+            new WindowsSpatialAnalyzerWindowSource());
+        return new WorkerTransport(options.WorkerPath!, options.StepTimeout, ProcessCensus.Instance,
+            () => detector.Observe() == SpatialAnalyzerModalDialogState.ModalDialogOpen);
     }
 
     /// <summary>The licensed-run operator console: progress on standard output, checkpoints through files.</summary>
@@ -70,13 +84,13 @@ internal static class LicensedProbeProgram
             // An exclusion outside this phase or of a prerequisite is a usage error.
             plan = options.InteractionModeRestoreOnly
                 ? ProbePlan.CreateInteractionModeRestore(options.Phase, options.InteractionMode)
-                : ProbePlan.Create(options.Phase, manifest, options.ExcludedProbes, options.InteractionMode);
+                : ProbePlan.Create(options.Phase, manifest, options.ExcludedProbes, options.InteractionMode, options.SelectedProbes);
 
             // SA keeps the mode across restarts and has no getter: only the operator knows what to restore.
             if (!options.DryRun && plan.SetsInteractionMode && !options.InteractionMode.Supplied)
                 throw new ProbeUsageException(
-                    $"Probe 25 changes SA Interaction Mode; a licensed run requires {ProbeOptions.RestoreModeOption} manual|automatic " +
-                    "(or --exclude-probe 25).");
+                    $"The plan changes SA Interaction Mode (probes 25 to 29); a licensed run requires {ProbeOptions.RestoreModeOption} " +
+                    "manual|automatic, or --exclude-probe 25 in the default plan.");
         }
         catch (ProbeUsageException exception)
         {
@@ -138,7 +152,25 @@ internal static class LicensedProbeProgram
             await output.WriteLineAsync(ProbePlan.ExclusionStatement(record.ExcludedProbes) + ".").ConfigureAwait(false);
         }
 
-        if (plan.SetsInteractionMode && !record.Completed && !plan.InteractionModeRestoreOnly)
+        if (record.SelectedProbes.Count > 0)
+        {
+            await output.WriteLineAsync(ProbePlan.SelectionStatement(record.SelectedProbes) + ".").ConfigureAwait(false);
+        }
+
+        if (record.EndedInPlannedStall)
+        {
+            await output.WriteLineAsync(
+                "The last step stalled as planned: its completion is unknown and nothing was sent after it. " +
+                "Dismiss the dialog if it is still open, then follow the runbook's stall recovery before any further SDK use.").ConfigureAwait(false);
+        }
+
+        if (plan.ServerSetsSilent && !record.Completed)
+        {
+            await output.WriteLineAsync(
+                "The server set Silent at Connect, and SA stays in Silent unless the restore step completed: stop the server, " +
+                $"start it again without the Silent setting (InteractionMode=Unchanged), and run {ProbeOptions.RestoreOnlyFlag} on a clean SA.").ConfigureAwait(false);
+        }
+        else if (plan.SetsInteractionMode && !record.Completed && !plan.InteractionModeRestoreOnly)
         {
             await output.WriteLineAsync(
                 "If probe 25 set Silent before the stop, SA is still in Silent: after recovery, run this phase again with " +

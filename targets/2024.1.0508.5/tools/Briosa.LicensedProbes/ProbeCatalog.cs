@@ -42,8 +42,19 @@ internal static class ProbeCatalog
     // Probe 25: a template chart name that matches no chart opens "Template Chart Not found".
     public const string MissingTemplateChart = "B277 no such template";
 
+    // Probes 26 to 28: a public stall step's client deadline exceeds the 2-minute quick
+    // budget the runbook sets, so the server's watchdog ends it. In the worker phase the
+    // step's own deadline is the only watchdog.
+    public static TimeSpan PublicStallClientTimeout { get; } = TimeSpan.FromSeconds(240);
+
+    public static TimeSpan WorkerStallClientTimeout { get; } = TimeSpan.FromSeconds(60);
+
     public static IReadOnlyList<string> ProbeNumbers { get; } =
-        [.. Enumerable.Range(1, 25).Select(static number => number.ToString(CultureInfo.InvariantCulture))];
+        [.. Enumerable.Range(1, 32).Select(static number => number.ToString(CultureInfo.InvariantCulture))];
+
+    // Run only when --probe names them. Probes 26 to 28 each end their run with a planned
+    // stall, and probe 29 needs another server setting, so none can join the default plan.
+    public static IReadOnlyList<string> OptInProbeNumbers { get; } = ["26", "27", "28", "29"];
 
     // Retired with the operations they probed: the operations were removed because these
     // probes showed they cannot work on either exact target. Probes 7 to 10 and 14 to 16
@@ -66,20 +77,24 @@ internal static class ProbeCatalog
             AddPublicFixtures(steps);
             AddPublicProbes(steps, manifest);
             AddPublicInteractionModeProbe(steps, interactionMode);
+            AddInteractionModeSettingProbe(steps, interactionMode);
+            AddPublicStallProbes(steps, interactionMode);
         }
         else
         {
             AddWorkerFixtures(steps);
             AddWorkerProbes(steps, manifest);
             AddWorkerInteractionModeProbe(steps, interactionMode);
+            AddWorkerStallProbe(steps, interactionMode);
         }
 
         return steps.ToList();
     }
 
     /// <summary>
-    /// The recovery plan for a session that stopped after probe 25 set Silent: one
-    /// step that restores SA Interaction Mode. It creates no fixture and touches no job object.
+    /// The recovery plan for a session that stopped while SA was in Silent (after probe
+    /// 25's Silent step, or inside probe 29, whose server set it): one step that restores
+    /// SA Interaction Mode. It creates no fixture and touches no job object.
     /// </summary>
     public static IReadOnlyList<ProbeStep> CreateInteractionModeRestore(ProbePhase phase, InteractionModeSettings interactionMode)
     {
@@ -272,6 +287,8 @@ internal static class ProbeCatalog
             });
 
         AddRadialDeleteProbe(steps);
+        AddFitSeedOmittedProbe(steps);
+        AddPartialSuccessProbe(steps);
 
         // Manual fixtures.
         steps.Probe("p01-value", "1", "USMN with a nominals group value (public API)",
@@ -280,7 +297,99 @@ internal static class ProbeCatalog
             ProbeOperations.CreateChartFromVectorGroup, Chart(manifest.TemplateChartName, "B277 C3V"));
         steps.Probe("p04-value", "4", "User interface profile with a profile file value (public API)",
             ProbeOperations.SetUserInterfaceProfile, Profile(manifest));
+        AddRuntimeSelectProbe(steps, manifest);
     }
+
+    // Probe 31 (#311, #357): the shipped mappings of Fit Geometry to Points and Fit Geometry
+    // to Point Group Projected to Plane skip the seed setter when the seed is absent, by
+    // analogy with Fit Geometry to Point Group (probe 2). Points also gets a seeded control;
+    // the projected circle fit has no circle fixture to seed it.
+    private static void AddFitSeedOmittedProbe(StepList steps)
+    {
+        var created = new ProbeHypothesis("the fit created its object", "match_count", "1");
+        steps.Watched(steps.NewProbe("p31-points-value", "31", "Fit a plane to GFIT's four points with a seed geometry value (control)",
+            ProbeOperations.FitGeometryToPoints, FitToPoints("FIT31V", Object(FixtureNames.PlaneA, Api.ObjectType.Plane))));
+        steps.Watched(steps.NewCheck("c31-points-value", "31", "Count planes named FIT31V",
+            ObjectsNamed(FixtureNames.Collection, "FIT31V", Api.ObjectType.Plane)) with { Hypotheses = [created] }, "p31-points-value");
+        steps.Watched(steps.NewProbe("p31-points-omitted", "31", "Fit a plane to GFIT's four points with the seed omitted (no setter)",
+            ProbeOperations.FitGeometryToPoints, FitToPoints("FIT31O", seed: null)));
+        steps.Watched(steps.NewCheck("c31-points-omitted", "31", "Count planes named FIT31O",
+            ObjectsNamed(FixtureNames.Collection, "FIT31O", Api.ObjectType.Plane)) with { Hypotheses = [created] }, "p31-points-omitted");
+        steps.Watched(steps.NewProbe("p31-projected-omitted", "31", "Fit a circle to GFIT projected to PA with the seed omitted (no setter)",
+            ProbeOperations.FitGeometryToPointGroupProjectedToPlane, FitProjectedCircle("FIT31C")));
+        steps.Watched(steps.NewCheck("c31-projected-omitted", "31", "Count circles named FIT31C",
+            ObjectsNamed(FixtureNames.Collection, "FIT31C", Api.ObjectType.Circle)) with { Hypotheses = [created] }, "p31-projected-omitted");
+    }
+
+    // Probe 32 (#351, #360): the one code-4 trigger seen on both targets. Fitting G1, whose
+    // points at z = +/-20 exceed the default profile's tolerance, returned MP code 4
+    // (PARTIAL SUCCESS) in the 2026-10-07 session and created the plane. The shipped server
+    // now reports it as a success with the typed partial-success state.
+    private static void AddPartialSuccessProbe(StepList steps)
+    {
+        steps.Watched(steps.NewProbe("p32-partial", "32", "Fit the non-coplanar group G1 (tolerance exceeded) and read the typed partial success",
+            ProbeOperations.FitGeometryToPointGroup, Fit(FixtureNames.GroupOne, "FIT32", Object(FixtureNames.PlaneA, Api.ObjectType.Plane))) with
+        {
+            Hypotheses =
+            [
+                new ProbeHypothesis("a typed partial success", ProbeOutcome.FactPrefix + "execution_state", Api.MpExecutionState.PartialSuccess.ToString()),
+                new ProbeHypothesis("MP code 4 (PARTIAL SUCCESS)", ProbeOutcome.FactPrefix + "mp_result_code", "4")
+            ]
+        });
+        steps.Watched(steps.NewCheck("c32-partial", "32", "Count planes named FIT32",
+            ObjectsNamed(FixtureNames.Collection, "FIT32", Api.ObjectType.Plane)) with
+        {
+            Hypotheses = [new ProbeHypothesis("the partial fit created its plane", "match_count", "1")]
+        }, "p32-partial");
+    }
+
+    // Probe 30 (#350, #312): a sample of the 22 remaining runtime selects, one per list getter
+    // kind plus two single-value getters. Each prompt names the fixture and the gesture that
+    // completed probe 22's selection in licensed session 2: F2, a check in the selection
+    // tree, OK, then Enter.
+    private static void AddRuntimeSelectProbe(StepList steps, FixtureManifest manifest)
+    {
+        static bool InHarnessCollection(string collection) => string.Equals(collection, FixtureNames.Collection, StringComparison.Ordinal);
+        static bool IsP1(Api.PointName point) => InHarnessCollection(point.CollectionName) &&
+            string.Equals(point.GroupName, FixtureNames.GroupOne, StringComparison.Ordinal) && string.Equals(point.TargetName, "P1", StringComparison.Ordinal);
+        void Select(string id, string purpose, ProbeOperation operation, IMessage request) =>
+            steps.Watched(steps.NewProbe(id, "30", purpose, operation, request) with { RequiresOperator = true });
+
+        var instruments = manifest.UsmnInstruments;
+        Select("p30-point-list", "Point name list runtime select (GetPointNameRefListArg); operator selects B277::G1::P1",
+            ProbeOperations.PointNameRefListRuntimeSelect(IsP1),
+            new Api.MakePointNameRefListRuntimeSelectRequest { UserPrompt = RuntimeSelectPrompt("point B277::G1::P1") });
+        Select("p30-object-list", "Plane object name list runtime select (GetCollectionObjectNameRefListArg); operator selects B277::PA",
+            ProbeOperations.CollectionObjectNameRefListRuntimeSelect(static plane =>
+                InHarnessCollection(plane.CollectionName) && string.Equals(plane.ObjectName, FixtureNames.PlaneA, StringComparison.Ordinal)),
+            new Api.MakeCollectionObjectNameRefListRuntimeSelectRequest
+            {
+                UserPrompt = RuntimeSelectPrompt("plane B277::PA"),
+                ObjectType = Api.ObjectType.Plane
+            });
+        Select("p30-relationship-list", "Relationship list runtime select (GetCollectionObjectNameRefListArg); operator selects B277::R1",
+            ProbeOperations.RelationshipRefListRuntimeSelect(static relationship =>
+                InHarnessCollection(relationship.CollectionName) && string.Equals(relationship.ItemName, FixtureNames.Relationship, StringComparison.Ordinal)),
+            new Api.MakeRelationshipRefListRuntimeSelectRequest { UserPrompt = RuntimeSelectPrompt("relationship B277::R1") });
+        Select("p30-vector-list", "Vector name list runtime select (GetVectorNameRefListArg); operator selects one vector of B277::VG1",
+            ProbeOperations.VectorNameRefListRuntimeSelect(static vector =>
+                InHarnessCollection(vector.CollectionName) && string.Equals(vector.GroupName, FixtureNames.VectorGroup, StringComparison.Ordinal)),
+            new Api.MakeVectorNameRefListRuntimeSelectRequest { UserPrompt = RuntimeSelectPrompt("one vector of vector group B277::VG1") });
+        Select("p30-instrument-list", "Instrument list runtime select (GetColInstIdRefListArg); operator selects one USMN fixture instrument",
+            ProbeOperations.CollectionInstrumentRefListRuntimeSelect(instrument => instruments.Any(fixture =>
+                string.Equals(fixture.Collection, instrument.CollectionName, StringComparison.Ordinal) && fixture.InstrumentId == instrument.InstrumentId)),
+            new Api.MakeCollectionInstrumentRefListRuntimeSelectRequest { UserPrompt = RuntimeSelectPrompt("one of the USMN fixture instruments") });
+        Select("p30-point", "Point name runtime select (GetPointNameArg); operator selects B277::G1::P1",
+            ProbeOperations.PointNameRuntimeSelect(IsP1),
+            new Api.MakePointNameRuntimeSelectRequest { UserPrompt = RuntimeSelectPrompt("point B277::G1::P1") });
+        Select("p30-collection", "Collection name runtime select (GetCollectionNameArg); operator selects B277",
+            ProbeOperations.CollectionNameRuntimeSelect(static collection => InHarnessCollection(collection.Name)),
+            new Api.MakeCollectionNameRuntimeSelectRequest { UserPrompt = RuntimeSelectPrompt("collection B277") });
+    }
+
+    // The prompt SA shows during a probe 30 step. It names a harness fixture, never a manifest value.
+    public static string RuntimeSelectPrompt(string fixture) =>
+        $"Briosa probe 30: press F2, check {fixture} in the selection tree, click OK, then press Enter.";
 
     // Probe 24 (#307 R0, and the #310 confound): the sibling radial delete with the same
     // Cloud Names binding and value form as the deleted X Y Z range operation. Each
@@ -396,6 +505,63 @@ internal static class ProbeCatalog
 
         Watched(steps.NewControl("p25-restore", "25", "Restore SA Interaction Mode",
             ProbeOperations.SetInteractionMode, InteractionMode(mode.Restore)), "p25-silent");
+    }
+
+    // Probe 29 (#313, PR #355): the server applies Silent after Connect, from the setting
+    // --Briosa:SpatialAnalyzer:InteractionMode=Silent. Both public triggers should fail at
+    // once with no dialog, as under the Silent that probe 25 set. The restore step then
+    // returns SA to the operator's mode. The run holds no other probe.
+    private static void AddInteractionModeSettingProbe(StepList steps, InteractionModeSettings mode)
+    {
+        var failed = new ProbeHypothesis("MP failure, as under Silent in licensed session 2", ProbeOutcome.FactPrefix + "mp_result_code", "3");
+        void Setting(ProbeStep step) => steps.Watched(step with { ServerInteractionMode = Api.SaInteractionMode.Silent });
+
+        Setting(steps.NewCheck("c29-zero-match-setting", "29", "Wildcard selection that matches nothing, under the server's Silent setting",
+            NoMatch()) with { Hypotheses = [failed] });
+        Setting(steps.NewProbe("p29-chart-missing-setting", "29", "Chart whose template chart matches no chart, under the server's Silent setting",
+            ProbeOperations.CreateChartFromVectorGroup, Chart(MissingTemplateChart, "B277 C29S")) with { Hypotheses = [failed] });
+        Setting(steps.NewControl("p29-restore", "29", "Restore SA Interaction Mode after the server's Silent setting",
+            ProbeOperations.SetInteractionMode, InteractionMode(mode.Restore)));
+    }
+
+    // Probes 26 and 27 (#313, PR #355): with the server setting Unchanged and SA in Manual,
+    // a state-triggered dialog blocks the MP until the server's watchdog ends it. The server
+    // should then report sa-modal-dialog-open with operator-intervention guidance. Each
+    // probe ends its run, so each runs in a run of its own or last.
+    private static void AddPublicStallProbes(StepList steps, InteractionModeSettings mode)
+    {
+        AddStall(steps, "26", "p26-zero-match-stall", "Wildcard selection that matches nothing; leave its dialog open until the server reports",
+            ProbeOperations.ObjectWildcardSelection, NoMatch(), CommandVariant.Shipped,
+            StallExpectation.ServerReportsModalDialog, PublicStallClientTimeout, mode);
+        AddStall(steps, "27", "p27-chart-missing-stall", "Chart whose template chart matches no chart; leave its dialog open until the server reports",
+            ProbeOperations.CreateChartFromVectorGroup, Chart(MissingTemplateChart, "B277 C27D"), CommandVariant.Shipped,
+            StallExpectation.ServerReportsModalDialog, PublicStallClientTimeout, mode);
+    }
+
+    // Probe 28 (#313): the public API rejects a blank plane name before dispatch, so the
+    // server can never send the third trigger. The worker phase sends it, and the harness
+    // runs the server's own modal-dialog detector when the step's deadline ends it.
+    private static void AddWorkerStallProbe(StepList steps, InteractionModeSettings mode) =>
+        AddStall(steps, "28", "p28-blank-high-stall", "Bounding planes with a blank High name; leave its dialog open until the step's deadline",
+            ProbeOperations.ConstructPlanesBoundingPointGroup, Bounding("H28D", "L28D"), CommandVariant.Blank(HighPlaneLabel),
+            StallExpectation.HarnessReportsModalDialog, WorkerStallClientTimeout, mode);
+
+    // The baseline sets the restore mode, which a stall plan requires to be Manual, and the
+    // stall step follows it with checkpoints on both sides.
+    private static void AddStall(
+        StepList steps, string probe, string id, string purpose, ProbeOperation operation, IMessage request, CommandVariant variant,
+        StallExpectation stall, TimeSpan clientTimeout, InteractionModeSettings mode)
+    {
+        var baseline = $"p{probe}-baseline";
+        steps.Watched(steps.NewControl(baseline, probe, "Set SA Interaction Mode to the restore mode (Manual) before the stall",
+            ProbeOperations.SetInteractionMode, InteractionMode(mode.Restore)));
+        steps.Add(new ProbeStep(id, probe, ProbeStepKind.Probe, steps.Phase, purpose, operation, request, variant, ProbeOutcomes.None)
+        {
+            ExpectedStall = stall,
+            Checkpoints = OperatorCheckpoint.Before | OperatorCheckpoint.After,
+            ClientTimeout = clientTimeout,
+            Prerequisites = [baseline]
+        });
     }
 
     private static void AddWorkerProbes(StepList steps, FixtureManifest manifest)
@@ -539,14 +705,47 @@ internal static class ProbeCatalog
     private static Api.MakeCollectionObjectNameRefListWildcardSelectionRequest NoMatch() =>
         ObjectsNamed(FixtureNames.Collection, "NOMATCH25*", Api.ObjectType.Any);
 
-    private static Api.FitGeometryToPointGroupRequest Fit(string result, Api.CollectionObjectName seed) => new()
+    private static Api.FitGeometryToPointGroupRequest Fit(string result, Api.CollectionObjectName seed) =>
+        Fit(FixtureNames.GroupFit, result, seed);
+
+    private static Api.FitGeometryToPointGroupRequest Fit(string group, string result, Api.CollectionObjectName seed) => new()
     {
         GeometryType = Api.GeometryType.Plane,
-        GroupToFit = Object(FixtureNames.GroupFit, Api.ObjectType.PointGroup),
+        GroupToFit = Object(group, Api.ObjectType.PointGroup),
         ResultingObjectName = Object(result, Api.ObjectType.Plane),
         ReportDeviations = false,
         IgnoreOutOfTolerancePoints = false,
         StartingConditionGeometry = seed
+    };
+
+    // A null seed leaves the field absent, so the shipped mapping skips its setter (#357).
+    private static Api.FitGeometryToPointsRequest FitToPoints(string result, Api.CollectionObjectName? seed)
+    {
+        var request = new Api.FitGeometryToPointsRequest
+        {
+            GeometryType = Api.GeometryType.Plane,
+            ResultingObjectName = Object(result, Api.ObjectType.Plane),
+            ReportDeviations = false,
+            IgnoreOutOfTolerancePoints = false
+        };
+        request.PointsToFit.AddRange(FitPoints.Select(static point => Point(FixtureNames.GroupFit, point.Name)));
+        if (seed is not null)
+        {
+            request.StartingConditionGeometry = seed;
+        }
+
+        return request;
+    }
+
+    // GFIT's four corners lie on one circle, so a circle fit in PA (z = 0) is exact.
+    private static Api.FitGeometryToPointGroupProjectedToPlaneRequest FitProjectedCircle(string result) => new()
+    {
+        GeometryType = Api.GeometryType.Circle,
+        GroupToFit = Object(FixtureNames.GroupFit, Api.ObjectType.PointGroup),
+        PlaneName = Object(FixtureNames.PlaneA, Api.ObjectType.Plane),
+        ResultingObjectName = Object(result, Api.ObjectType.Circle),
+        ReportDeviations = false,
+        IgnoreOutOfTolerancePoints = false
     };
 
     private static Api.ConstructPlanesBoundingPointGroupRequest Bounding(string high, string low) => new()
@@ -633,6 +832,10 @@ internal static class ProbeCatalog
         public ProbePhase Phase { get; } = phase;
 
         public void Add(ProbeStep step) => _steps.Add(step);
+
+        // The operator records any dialog after the step, before anything else is sent.
+        public void Watched(ProbeStep step, params string[] prerequisites) =>
+            _steps.Add(step with { Checkpoints = OperatorCheckpoint.After, Prerequisites = prerequisites });
 
         public void Guard(string id, string probe, string purpose, ProbeOperation operation, IMessage request) =>
             _steps.Add(new(id, probe, ProbeStepKind.Guard, Phase, purpose, operation, request, CommandVariant.Shipped, ProbeOutcomes.Succeeded));

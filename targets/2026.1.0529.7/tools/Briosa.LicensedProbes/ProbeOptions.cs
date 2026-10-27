@@ -22,8 +22,9 @@ internal sealed record ProbeOptions
         "--harness-revision", RestoreModeOption
     };
 
-    // The only option that may repeat: each occurrence names one more probe.
+    // The only options that may repeat: each occurrence names one more probe.
     private const string ExcludeProbe = "--exclude-probe";
+    public const string SelectProbe = "--probe";
 
     public ProbePhase Phase { get; init; }
 
@@ -56,6 +57,12 @@ internal sealed record ProbeOptions
     public IReadOnlyList<int> ExcludedProbes { get; init; } = [];
 
     /// <summary>
+    /// Catalog probe numbers the operator selected with --probe, ascending: only these run.
+    /// Empty means the default plan, every probe that is not opt-in.
+    /// </summary>
+    public IReadOnlyList<int> SelectedProbes { get; init; } = [];
+
+    /// <summary>
     /// The SA Interaction Mode probe 25 restores, from the operator: SA has no getter,
     /// so the harness cannot read the mode in effect before the session.
     /// </summary>
@@ -74,6 +81,7 @@ internal sealed record ProbeOptions
         var flags = new HashSet<string>(StringComparer.Ordinal);
         var values = new Dictionary<string, string>(StringComparer.Ordinal);
         var excluded = new SortedSet<int>();
+        var selected = new SortedSet<int>();
         for (var index = 0; index < arguments.Count; index++)
         {
             var argument = arguments[index];
@@ -94,8 +102,20 @@ internal sealed record ProbeOptions
             {
                 if (index + 1 >= arguments.Count)
                     throw new ProbeUsageException($"Option '{argument}' needs a value.");
-                if (!excluded.Add(ProbeNumber(arguments[++index])))
+                var probe = ProbeNumber(ExcludeProbe, arguments[++index]);
+                if (ProbeCatalog.OptInProbeNumbers.Contains(arguments[index], StringComparer.Ordinal))
+                    throw new ProbeUsageException($"{ExcludeProbe} {arguments[index]} names an opt-in probe; it runs only when {SelectProbe} names it.");
+                if (!excluded.Add(probe))
                     throw new ProbeUsageException($"Probe #{arguments[index]} is excluded more than once.");
+                continue;
+            }
+
+            if (string.Equals(argument, SelectProbe, StringComparison.Ordinal))
+            {
+                if (index + 1 >= arguments.Count)
+                    throw new ProbeUsageException($"Option '{argument}' needs a value.");
+                if (!selected.Add(ProbeNumber(SelectProbe, arguments[++index])))
+                    throw new ProbeUsageException($"Probe #{arguments[index]} is selected more than once.");
                 continue;
             }
 
@@ -131,6 +151,7 @@ internal sealed record ProbeOptions
             StepTimeout = Seconds(values, "--step-timeout-seconds", 120, 5, 600),
             OperatorTimeout = Seconds(values, "--operator-timeout-seconds", 300, 30, 1800),
             ExcludedProbes = [.. excluded],
+            SelectedProbes = [.. selected],
             RestoreSaInteractionMode = Value(values, RestoreModeOption) switch
             {
                 null => null,
@@ -141,10 +162,13 @@ internal sealed record ProbeOptions
             InteractionModeRestoreOnly = flags.Contains(RestoreOnlyFlag)
         };
 
+        if (options.SelectedProbes.Count > 0 && options.ExcludedProbes.Count > 0)
+            throw new ProbeUsageException($"{SelectProbe} and {ExcludeProbe} cannot be combined; name only the probes to run.");
+
         if (options.InteractionModeRestoreOnly)
         {
-            if (options.ExcludedProbes.Count > 0)
-                throw new ProbeUsageException($"{RestoreOnlyFlag} runs one step; --exclude-probe does not apply.");
+            if (options.ExcludedProbes.Count > 0 || options.SelectedProbes.Count > 0)
+                throw new ProbeUsageException($"{RestoreOnlyFlag} runs one step; {ExcludeProbe} and {SelectProbe} do not apply.");
             if (options.RestoreSaInteractionMode is null)
                 throw new ProbeUsageException($"{RestoreOnlyFlag} requires {RestoreModeOption}.");
         }
@@ -195,15 +219,15 @@ internal sealed record ProbeOptions
     }
 
     // One catalog probe number in canonical form ("12", never "012", "+12", or "5-6").
-    private static int ProbeNumber(string text)
+    private static int ProbeNumber(string option, string text)
     {
         if (!int.TryParse(text, NumberStyles.None, CultureInfo.InvariantCulture, out var number) ||
             !string.Equals(number.ToString(CultureInfo.InvariantCulture), text, StringComparison.Ordinal))
-            throw new ProbeUsageException($"{ExcludeProbe} takes one probe number from the approved list, for example 12.");
+            throw new ProbeUsageException($"{option} takes one probe number from the approved list, for example 12.");
         if (!ProbeCatalog.ProbeNumbers.Contains(text, StringComparer.Ordinal))
-            throw new ProbeUsageException($"{ExcludeProbe} {text} is not a probe in the approved list (1 to {ProbeCatalog.ProbeNumbers.Count}).");
+            throw new ProbeUsageException($"{option} {text} is not a probe in the approved list (1 to {ProbeCatalog.ProbeNumbers.Count}).");
         if (ProbeCatalog.RetiredProbeNumbers.Contains(text, StringComparer.Ordinal))
-            throw new ProbeUsageException($"{ExcludeProbe} {text} names a retired probe; its operation was removed and the plan no longer sends it.");
+            throw new ProbeUsageException($"{option} {text} names a retired probe; its operation was removed and the plan no longer sends it.");
         return number;
     }
 

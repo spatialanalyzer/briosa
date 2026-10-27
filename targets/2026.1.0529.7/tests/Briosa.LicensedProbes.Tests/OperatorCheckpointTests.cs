@@ -119,7 +119,7 @@ public sealed class OperatorCheckpointTests : IDisposable
         var watched = steps[Watched];
         var markdown = ProbeRecorder.ToMarkdown(record);
 
-        Assert.Equal(3, document.RootElement.GetProperty("schema_version").GetInt32());
+        Assert.Equal(4, document.RootElement.GetProperty("schema_version").GetInt32());
         Assert.Equal(["before", "after"], watched.GetProperty("operator_checkpoints").EnumerateArray().Select(static t => t.GetString()));
         Assert.Equal(630, watched.GetProperty("client_timeout_seconds").GetInt64());
         Assert.Equal(0, watched.GetProperty("elapsed_ms").GetInt64());
@@ -195,6 +195,31 @@ public sealed class OperatorCheckpointTests : IDisposable
         Assert.Contains("OPERATOR CHECKPOINT 001-p24-r0-before: before dispatch of p24-r0.", text, StringComparison.Ordinal);
         Assert.Contains("001-p24-r0-before.response.txt", text, StringComparison.Ordinal);
         Assert.DoesNotContain(_root, text, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task TheFileConsoleTellsTheOperatorToLeaveAPlannedStallsDialogOpen()
+    {
+        using var output = new StringWriter();
+        var console = NewConsole(output, TimeSpan.FromSeconds(60));
+        var stall = ProbePlan.Create(ProbePhase.PublicApi, TestSupport.SentinelManifest(), [],
+            new InteractionModeSettings(Api.SaInteractionMode.Manual, Supplied: true), [26]).Steps[^1];
+
+        console.Dispatching(AnyStep(), 1, 2);
+        Assert.DoesNotContain("PLANNED STALL", output.ToString(), StringComparison.Ordinal);
+        console.Dispatching(stall, 2, 2);
+        var before = console.CheckpointAsync(stall, OperatorCheckpoint.Before, CancellationToken.None);
+        await AnswerAsync("001-p26-zero-match-stall-before.response.txt", "none");
+        await before;
+        var after = console.CheckpointAsync(stall, OperatorCheckpoint.After, CancellationToken.None);
+        await AnswerAsync("002-p26-zero-match-stall-after.response.txt", "dialog: No objects matched specified criteria.");
+
+        Assert.Equal("dialog: No objects matched specified criteria.", await after);
+        Assert.Contains("PLANNED STALL p26-zero-match-stall: do not dismiss the SpatialAnalyzer dialog", output.ToString(), StringComparison.Ordinal);
+        Assert.Contains("do not dismiss that one until the step has returned",
+            await File.ReadAllTextAsync(Path.Combine(_root, "001-p26-zero-match-stall-before.request.txt")), StringComparison.Ordinal);
+        Assert.Contains("This planned stall has returned. The dialog it opened should still be open",
+            await File.ReadAllTextAsync(Path.Combine(_root, "002-p26-zero-match-stall-after.request.txt")), StringComparison.Ordinal);
     }
 
     [Fact]

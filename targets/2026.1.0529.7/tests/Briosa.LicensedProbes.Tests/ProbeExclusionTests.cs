@@ -55,7 +55,7 @@ public sealed class ProbeExclusionTests
 
     [Theory]
     [InlineData("0")]
-    [InlineData("26")]
+    [InlineData("33")]
     [InlineData("99")]
     public void AnUnknownProbeNumberIsRefused(string probe)
     {
@@ -113,10 +113,13 @@ public sealed class ProbeExclusionTests
         Assert.Equal(Ids(full.Steps).Where(static id => id is not ("p02-value" or "c02-value")), Ids(plan.Steps));
         Assert.DoesNotContain("2", plan.ProbesCovered());
 
-        // The fit group stays even though, in this phase, only #2 uses it.
+        // The fit group's fixture steps stay with the probe that used them.
         Assert.All(ProbeCatalog.FitPoints, point => Assert.Contains($"s-point-{FixtureNames.GroupFit}-{point.Name}", Ids(plan.Steps)));
 
-        Assert.DoesNotContain(ProbeOperations.FitGeometryToPointGroup.FullyQualifiedMethod, plan.FullyQualifiedMethods);
+        // Only probe 32's partial-success fit still sends Fit Geometry to Point Group.
+        Assert.Equal(["p32-partial"], plan.Steps
+            .Where(static step => step.Operation.FullyQualifiedMethod == ProbeOperations.FitGeometryToPointGroup.FullyQualifiedMethod)
+            .Select(static step => step.Id));
     }
 
     [Theory]
@@ -353,7 +356,9 @@ public sealed class ProbeExclusionTests
     [InlineData("worker", "2", "--exclude-probe 17")]
     [InlineData("public-api", "17", "no steps in the public-api phase")]
     [InlineData("worker", "12", "no steps in the worker phase")]
-    [InlineData("public-api", "26", "not a probe in the approved list")]
+    [InlineData("public-api", "33", "not a probe in the approved list")]
+    [InlineData("public-api", "26", "names an opt-in probe")]
+    [InlineData("worker", "28", "names an opt-in probe")]
     [InlineData("public-api", "7", "names a retired probe")]
     [InlineData("public-api", "11", "names a retired probe")]
     [InlineData("worker", "14", "names a retired probe")]
