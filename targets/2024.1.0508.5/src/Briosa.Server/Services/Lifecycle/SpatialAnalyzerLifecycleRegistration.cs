@@ -14,6 +14,10 @@ internal static class SpatialAnalyzerLifecycleRegistration
             SpatialAnalyzerApplicationOptions.BindAndValidate(configuration));
         services.TryAddSingleton<ISpatialAnalyzerProcessPlatform,
             WindowsSpatialAnalyzerProcessPlatform>();
+        services.TryAddSingleton<ISpatialAnalyzerWindowSource,
+            WindowsSpatialAnalyzerWindowSource>();
+        services.TryAddSingleton<ISpatialAnalyzerModalDialogProbe,
+            SpatialAnalyzerModalDialogProbe>();
         services.TryAddSingleton<SpatialAnalyzerLifecycleCoordinator>();
         services.TryAddSingleton<ISpatialAnalyzerLifecycleStateProvider>(provider =>
             provider.GetRequiredService<SpatialAnalyzerLifecycleCoordinator>());

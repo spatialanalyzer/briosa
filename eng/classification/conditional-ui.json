@@ -1,5 +1,5 @@
 {
-  "description": "Reviewed caller-reachable operator UI that does not make an operation interactive_ui (#293). Each entry is one (operation, request field): the value that opens operator UI, Briosa's default, and the exact-target documentation. Each caller_option and caller_option_default_flips entry has a machine-readable guard: the enabling condition and what Briosa sends when the field is absent. Each target's Security/OperationConditionalOptions.cs transcribes these guards, and OperationPolicy admits a request that enables the option only as an interactive_ui, interactive-duration request. eng/Test-OperationConditionalOptions.ps1 requires the JSON and the C# tables to agree. caller_option_default_flips entries record the defaults the breaking release flipped so that operator UI is opt-in. job_or_file_state entries have no enabling field; they are documented, not guarded. Operations that already carry interactive_ui are not listed, except for the default-flip fields. eng/Test-OperationClassificationTwins.ps1 checks that every operation is registered by each listed target.",
+  "description": "Reviewed caller-reachable operator UI that does not make an operation interactive_ui (#293). Each entry is one (operation, request field): the value that opens operator UI, Briosa's default, and the exact-target documentation. Each caller_option and caller_option_default_flips entry has a machine-readable guard: the enabling condition and what Briosa sends when the field is absent. Each target's Security/OperationConditionalOptions.cs transcribes these guards, and OperationPolicy admits a request that enables the option only as an interactive_ui, interactive-duration request. eng/Test-OperationConditionalOptions.ps1 requires the JSON and the C# tables to agree. caller_option_default_flips entries record the defaults the breaking release flipped so that operator UI is opt-in. job_or_file_state entries have no enabling field; they are recorded, not guarded, and an entry observed at runtime but not documented lists its evidence records. Operations that already carry interactive_ui are not listed, except for the default-flip fields. eng/Test-OperationClassificationTwins.ps1 checks that every operation is registered by each listed target.",
   "entries": [
     {
       "operation_id": "analysis_operations.best_fit_transformation_group_to_group",
@@ -1277,6 +1277,122 @@
         "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 1053",
         "2026.1.0529.7": "Documentation/Content/Topics/Scripting/MPCommandListing/InstrumentOperations/ConfigureAndMeasure.htm"
       }
+    },
+    {
+      "operation_id": "construction_operations.make_collection_object_name_ref_list_wildcard_selection",
+      "targets": [
+        "2026.1.0529.7",
+        "2024.1.0508.5"
+      ],
+      "trigger": "job_or_file_state",
+      "field": null,
+      "mp_argument": null,
+      "enables_ui_when": "no object in the job matches the wildcard criteria and object type, and the SA interaction mode is not Silent",
+      "briosa_default": null,
+      "briosa_default_enables_ui": null,
+      "behavior": "Shows \"No objects matched specified criteria.\" (OK only) and blocks the MP until the operator dismisses it; the MP then returns code 3. Under Silent the MP returns code 3 at once, without the dialog or a side effect (probe 25, #313).",
+      "documentation": {
+        "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 508",
+        "2026.1.0529.7": "Documentation/Content/Topics/Scripting/MPCommandListing/ConstructionOperations/OtherMPTypes/MakeACollectionObjectNameReferenceListWildCard.htm"
+      },
+      "evidence": {
+        "2024.1.0508.5": [
+          "targets/2024.1.0508.5/docs/testing/evidence/probe-277-2024.1.0508.5-2026-10-07.md",
+          "targets/2024.1.0508.5/docs/testing/evidence/probe-session-2-2024.1.0508.5-2026-10-25.md"
+        ],
+        "2026.1.0529.7": [
+          "targets/2026.1.0529.7/docs/testing/evidence/probe-277-2026.1.0529.7-2026-10-07.md",
+          "targets/2026.1.0529.7/docs/testing/evidence/probe-session-2-2026.1.0529.7-2026-10-25.md"
+        ]
+      },
+      "note": "Observed on both targets, not documented. The dialog was seen under Manual; Automatic was not observed. Only this wildcard selection was exercised; the other wildcard selections may show the same dialog."
+    },
+    {
+      "operation_id": "reporting_operations.create_chart_from_vector_group",
+      "targets": [
+        "2026.1.0529.7",
+        "2024.1.0508.5"
+      ],
+      "trigger": "job_or_file_state",
+      "field": null,
+      "mp_argument": "Template Chart Name (optional)",
+      "enables_ui_when": "Template Chart Name names no chart in the job, and the SA interaction mode is not Silent",
+      "briosa_default": null,
+      "briosa_default_enables_ui": null,
+      "behavior": "Shows \"Template Chart Not found\" (OK only) and blocks the MP until the operator dismisses it; the MP then returns code 3 and creates no chart. Under Silent the MP returns code 3 at once, without the dialog or a side effect (probe 25, #313).",
+      "documentation": {
+        "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 939",
+        "2026.1.0529.7": "Documentation/Content/Topics/Scripting/MPCommandListing/ReportingOperations/CreateChartFromVectorGroup.htm"
+      },
+      "evidence": {
+        "2024.1.0508.5": [
+          "targets/2024.1.0508.5/docs/testing/evidence/probe-277-2024.1.0508.5-2026-10-07.md",
+          "targets/2024.1.0508.5/docs/testing/evidence/probe-session-2-2024.1.0508.5-2026-10-25.md"
+        ],
+        "2026.1.0529.7": [
+          "targets/2026.1.0529.7/docs/testing/evidence/probe-277-2026.1.0529.7-2026-10-07.md",
+          "targets/2026.1.0529.7/docs/testing/evidence/probe-session-2-2026.1.0529.7-2026-10-25.md"
+        ]
+      },
+      "note": "Observed on both targets (2024 first on 2026-10-25), not documented. The dialog was seen under Manual; Automatic was not observed. Briosa omits the argument when the request leaves it absent and rejects an empty name (#243 D2), so only a name that matches no chart reaches it."
+    },
+    {
+      "operation_id": "construction_operations.construct_planes_bounding_point_group",
+      "targets": [
+        "2026.1.0529.7",
+        "2024.1.0508.5"
+      ],
+      "trigger": "job_or_file_state",
+      "field": null,
+      "mp_argument": "Resulting 'High' Plane Name",
+      "enables_ui_when": "Resulting 'High' Plane Name is blank, and the SA interaction mode is not Silent",
+      "briosa_default": null,
+      "briosa_default_enables_ui": null,
+      "behavior": "Shows \"Blank 'High' Plane Not Allowed!\" and blocks the MP until the operator dismisses it; the MP then returns code 3 and creates no plane. Under Silent the MP returns code 3 at once, without the dialog or a side effect (probe 25, #313).",
+      "documentation": {
+        "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 350",
+        "2026.1.0529.7": "Documentation/Content/Topics/Scripting/MPCommandListing/ConstructionOperations/Planes/ConstructPlanes-BoundingPointGroup.htm"
+      },
+      "evidence": {
+        "2024.1.0508.5": [
+          "targets/2024.1.0508.5/docs/testing/evidence/probe-277-2024.1.0508.5-2026-10-07.md",
+          "targets/2024.1.0508.5/docs/testing/evidence/probe-session-2-2024.1.0508.5-2026-10-25.md"
+        ],
+        "2026.1.0529.7": [
+          "targets/2026.1.0529.7/docs/testing/evidence/probe-277-2026.1.0529.7-2026-10-07.md",
+          "targets/2026.1.0529.7/docs/testing/evidence/probe-session-2-2026.1.0529.7-2026-10-25.md"
+        ]
+      },
+      "note": "Observed on both targets through the worker, not documented. The dialog was seen under Manual; Automatic was not observed. The public API cannot send a blank name: Briosa rejects an empty name before dispatch and omits an absent one, so SA uses its default name (#243 D2)."
+    },
+    {
+      "operation_id": "construction_operations.construct_planes_bounding_point_group",
+      "targets": [
+        "2026.1.0529.7",
+        "2024.1.0508.5"
+      ],
+      "trigger": "job_or_file_state",
+      "field": null,
+      "mp_argument": "Resulting 'Low' Plane Name",
+      "enables_ui_when": "Resulting 'Low' Plane Name is blank, and the SA interaction mode is not Silent",
+      "briosa_default": null,
+      "briosa_default_enables_ui": null,
+      "behavior": "Shows \"Blank 'Low' Plane Not Allowed!\" and blocks the MP until the operator dismisses it; the MP then returns code 3 and creates no plane. Under Silent the MP returns code 3 at once, without the dialog or a side effect (probe 25, #313).",
+      "documentation": {
+        "2024.1.0508.5": "Documentation/MP Command Reference.pdf, p. 350",
+        "2026.1.0529.7": "Documentation/Content/Topics/Scripting/MPCommandListing/ConstructionOperations/Planes/ConstructPlanes-BoundingPointGroup.htm"
+      },
+      "evidence": {
+        "2024.1.0508.5": [
+          "targets/2024.1.0508.5/docs/testing/evidence/probe-277-2024.1.0508.5-2026-10-07.md",
+          "targets/2024.1.0508.5/docs/testing/evidence/probe-session-2-2024.1.0508.5-2026-10-25.md"
+        ],
+        "2026.1.0529.7": [
+          "targets/2026.1.0529.7/docs/testing/evidence/probe-277-2026.1.0529.7-2026-10-07.md",
+          "targets/2026.1.0529.7/docs/testing/evidence/probe-session-2-2026.1.0529.7-2026-10-25.md"
+        ]
+      },
+      "note": "Observed on both targets through the worker, not documented. The dialog was seen under Manual; Automatic was not observed. The public API cannot send a blank name: Briosa rejects an empty name before dispatch and omits an absent one, so SA uses its default name (#243 D2)."
     }
   ]
 }
