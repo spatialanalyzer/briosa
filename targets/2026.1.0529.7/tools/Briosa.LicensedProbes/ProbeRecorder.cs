@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using Api = global::Briosa;
 
 namespace Briosa.LicensedProbes;
 
@@ -14,7 +15,10 @@ internal static class ProbeRecorder
     // 2 adds the "exclusions" object and the "excluded" step classification.
     // 3 adds "interaction_mode", and per step the planned operator checkpoints, the
     // operator's observations, the client deadline, and the elapsed time.
-    public const int SchemaVersion = 3;
+    // 4 adds "ended_in_planned_stall", "selection", and "server_interaction_mode_setting",
+    // per step "expected_stall" and "server_interaction_mode", and per outcome
+    // "recovery_guidance" and "execution_state".
+    public const int SchemaVersion = 4;
 
     public static string FileStem(ProbeSessionRecord record)
     {
@@ -64,8 +68,11 @@ internal static class ProbeRecorder
             json.WriteBoolean("completed", record.Completed);
             WriteNullable(json, "stopped_at", record.StoppedAt);
             WriteNullable(json, "stop_reason", record.StopReason);
+            json.WriteBoolean("ended_in_planned_stall", record.EndedInPlannedStall);
             WriteExclusions(json, record);
+            WriteSelection(json, record);
             WriteInteractionMode(json, record.InteractionMode);
+            WriteNullable(json, "server_interaction_mode_setting", record.ServerInteractionModeSetting);
             json.WriteStartObject("identity");
             WriteNullable(json, "server_version", record.Identity.ServerVersion);
             WriteNullable(json, "server_source_revision", record.Identity.ServerSourceRevision);
@@ -116,6 +123,28 @@ internal static class ProbeRecorder
         json.WriteEndObject();
     }
 
+    // Null for the default plan; otherwise the probes the operator named with --probe.
+    private static void WriteSelection(Utf8JsonWriter json, ProbeSessionRecord record)
+    {
+        if (record.SelectedProbes.Count == 0)
+        {
+            json.WriteNull("selection");
+            return;
+        }
+
+        json.WriteStartObject("selection");
+        json.WriteString("statement", ProbePlan.SelectionStatement(record.SelectedProbes));
+        json.WriteString("selected_by", "operator");
+        json.WriteStartArray("probes");
+        foreach (var probe in record.SelectedProbes)
+        {
+            json.WriteNumberValue(probe);
+        }
+
+        json.WriteEndArray();
+        json.WriteEndObject();
+    }
+
     // Null when the plan never changes SA's interaction mode.
     private static void WriteInteractionMode(Utf8JsonWriter json, InteractionModeSettings? mode)
     {
@@ -156,7 +185,23 @@ internal static class ProbeRecorder
         }
 
         json.WriteEndArray();
-        json.WriteString("acceptable", ProbePlan.AcceptableName(step.Acceptable));
+        json.WriteString("acceptable", ProbePlan.AcceptanceText(step));
+        if (step.ExpectedStall is { } stall)
+        {
+            json.WriteStartObject("expected_stall");
+            json.WriteString("transport", stall.Transport);
+            json.WriteString("diagnostic_code", stall.DiagnosticCode);
+            WriteNullable(json, "failure_kind", stall.FailureKind);
+            WriteNullable(json, "recovery_guidance", stall.RecoveryGuidance);
+            json.WriteEndObject();
+        }
+        else
+        {
+            json.WriteNull("expected_stall");
+        }
+
+        WriteNullable(json, "server_interaction_mode",
+            step.ServerInteractionMode is { } setting ? InteractionModeSettings.ModeName(setting) : null);
         WriteNullable(json, "destructive_target", step.DestructiveTarget);
         json.WriteBoolean("requires_operator", step.RequiresOperator);
         json.WriteStartArray("operator_checkpoints");
@@ -268,6 +313,8 @@ internal static class ProbeRecorder
         WriteNullable(json, "diagnostic_code", outcome.DiagnosticCode);
         WriteNullable(json, "failure_kind", outcome.FailureKind);
         WriteNullable(json, "execution_disposition", outcome.ExecutionDisposition);
+        WriteNullable(json, "recovery_guidance", outcome.RecoveryGuidance);
+        WriteNullable(json, "execution_state", outcome.ExecutionState);
         json.WriteStartObject("observations");
         foreach (var (key, value) in outcome.Observations)
         {
@@ -298,11 +345,26 @@ internal static class ProbeRecorder
         if (!record.DryRun && record.InteractionMode is { } mode)
         {
             text.Append(CultureInfo.InvariantCulture,
-                $"**Interaction mode.** Probe 25's baseline and restore steps send SA Interaction Mode `{InteractionModeSettings.ModeName(mode.Restore)}` ")
+                $"**Interaction mode.** The plan's Set Interaction Mode steps send SA Interaction Mode `{InteractionModeSettings.ModeName(mode.Restore)}` ")
                 .Append(mode.Supplied ? "(the operator's restore mode)" : "(a placeholder)")
-                .Append(" and its Silent step sends `Silent`, each with MP mode `Halt on Failure or Partial Success` and MP dialog mode ")
+                .Append(", except a Silent step, which sends `Silent`. Each sends MP mode `Halt on Failure or Partial Success` and MP dialog mode ")
                 .Append("`Allow Application Interaction`. SA keeps these across restarts and has no getter. ")
                 .Append("The table shows which of these steps ran.\n\n");
+        }
+
+        if (record.ServerInteractionModeSetting is { } setting)
+        {
+            text.Append(CultureInfo.InvariantCulture,
+                $"**Server setting.** The plan needed the server started with `--Briosa:SpatialAnalyzer:InteractionMode={setting}`, as the dry run printed it")
+                .Append(string.Equals(setting, ProbePlan.UnchangedSetting, StringComparison.Ordinal)
+                    ? ", so only the plan's own steps set SA Interaction Mode.\n\n"
+                    : ". The server applies it after each Connect, before it reports ready.\n\n");
+        }
+
+        if (record.SelectedProbes.Count > 0)
+        {
+            text.Append(CultureInfo.InvariantCulture, $"**{ProbePlan.SelectionStatement(record.SelectedProbes)}.** ")
+                .Append("Guard and fixture setup steps always run.\n\n");
         }
 
         if (record.ExcludedProbes.Count > 0)
@@ -332,6 +394,13 @@ internal static class ProbeRecorder
             text.Append(string.Equals(record.StopReason, ProbeSession.UnknownOutcomeStop, StringComparison.Ordinal)
                 ? "Completion of that step is unknown. It was not replayed and later steps were not run; follow the runbook's recovery before any further SDK use.\n"
                 : "Later steps were not run and nothing was replayed.\n");
+        }
+        else if (record.EndedInPlannedStall)
+        {
+            var stall = record.Steps.Last(static step => step.Classification != StepClassification.Excluded).Step.Id;
+            text.Append(CultureInfo.InvariantCulture, $"\nThe run ended as planned in the stall of its last step, `{stall}`. ")
+                .Append("Completion of that step is unknown. It was not replayed and nothing was sent after it; ")
+                .Append("follow the runbook's stall recovery before any further SDK use.\n");
         }
 
         var notRun = record.Steps.Where(static step => step.Classification == StepClassification.NotRun).Select(static step => step.Step.Id).ToList();
@@ -396,6 +465,11 @@ internal static class ProbeRecorder
 
         var text = new StringBuilder();
         var code = outcome.MpResultCode?.ToString(CultureInfo.InvariantCulture) ?? "?";
+        if (record.Classification == StepClassification.Observed && record.Step.ExpectedStall is not null)
+        {
+            text.Append("Stalled as planned. ");
+        }
+
         if (phase == ProbePhase.PublicApi && outcome.Kind != ProbeOutcomeKind.RefusedByHarness)
         {
             text.Append(CultureInfo.InvariantCulture, $"Public RPC `{outcome.Transport}`; ");
@@ -424,9 +498,25 @@ internal static class ProbeRecorder
             text.Append(CultureInfo.InvariantCulture, $" `{key}` = `{value}`.");
         }
 
+        if (outcome.ExecutionState is { } state && outcome.Kind == ProbeOutcomeKind.Succeeded &&
+            !string.Equals(state, Api.MpExecutionState.Succeeded.ToString(), StringComparison.Ordinal))
+        {
+            text.Append(CultureInfo.InvariantCulture, $" Execution state `{state}`.");
+        }
+
         if (outcome.DiagnosticCode is not null && outcome.Kind != ProbeOutcomeKind.Succeeded)
         {
             text.Append(CultureInfo.InvariantCulture, $" Diagnostic `{outcome.DiagnosticCode}`.");
+        }
+
+        if (outcome.Kind == ProbeOutcomeKind.Indeterminate && outcome.FailureKind is not null)
+        {
+            text.Append(CultureInfo.InvariantCulture, $" Failure kind `{outcome.FailureKind}`.");
+        }
+
+        if (outcome.RecoveryGuidance is { } guidance && outcome.Kind != ProbeOutcomeKind.Succeeded)
+        {
+            text.Append(CultureInfo.InvariantCulture, $" Recovery guidance `{guidance}`.");
         }
 
         if (record.Hypotheses.Count > 0)

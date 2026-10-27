@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text;
 using Briosa.Server.Operations;
 using Briosa.Server.Security;
+using Briosa.Server.Workers;
 using Briosa.Worker.Control;
 using Google.Protobuf;
 using Microsoft.Extensions.Configuration;
@@ -10,8 +11,9 @@ using Api = global::Briosa;
 namespace Briosa.LicensedProbes;
 
 /// <summary>
-/// A validated, ordered, immutable list of steps for one phase, less any probes
-/// the operator excluded. Guard and fixture setup steps are never excluded.
+/// A validated, ordered, immutable list of steps for one phase: the probes the operator
+/// selected, or else every probe that is not opt-in, less any probes the operator
+/// excluded. Guard and fixture setup steps are never excluded.
 /// </summary>
 internal sealed class ProbePlan
 {
@@ -24,7 +26,8 @@ internal sealed class ProbePlan
         IReadOnlyList<int> excludedProbes,
         bool placeholderFixtures,
         InteractionModeSettings interactionMode,
-        bool interactionModeRestoreOnly)
+        bool interactionModeRestoreOnly,
+        IReadOnlyList<int> selectedProbes)
     {
         Phase = phase;
         CatalogSteps = catalogSteps;
@@ -34,6 +37,7 @@ internal sealed class ProbePlan
         PlaceholderFixtures = placeholderFixtures;
         InteractionMode = interactionMode;
         InteractionModeRestoreOnly = interactionModeRestoreOnly;
+        SelectedProbes = selectedProbes;
     }
 
     public ProbePhase Phase { get; }
@@ -43,20 +47,45 @@ internal sealed class ProbePlan
     /// <summary>The recovery plan: only the probe 25 restore step.</summary>
     public bool InteractionModeRestoreOnly { get; }
 
-    /// <summary>A step that runs changes SA's persisted interaction mode (probe 25).</summary>
+    /// <summary>A step that runs changes SA's persisted interaction mode (probes 25 to 29).</summary>
     public bool SetsInteractionMode =>
         Steps.Any(static step => ReferenceEquals(step.Operation, ProbeOperations.SetInteractionMode));
 
     /// <summary>The steps that run, in order. Excluded steps are never sent.</summary>
     public IReadOnlyList<ProbeStep> Steps { get; }
 
-    /// <summary>Every catalog step of the phase in order, including excluded ones.</summary>
+    /// <summary>Every step the plan was built from (the selected or default probes) in order, including excluded ones.</summary>
     public IReadOnlyList<ProbeStep> CatalogSteps { get; }
 
     public IReadOnlySet<string> ExcludedStepIds { get; }
 
     /// <summary>Probe numbers the operator excluded, ascending.</summary>
     public IReadOnlyList<int> ExcludedProbes { get; }
+
+    /// <summary>Probe numbers the operator selected with --probe, ascending; empty for the default plan.</summary>
+    public IReadOnlyList<int> SelectedProbes { get; }
+
+    /// <summary>The planned stall step that ends this plan (#313), or null.</summary>
+    public ProbeStep? StallStep => Steps.Count > 0 && Steps[^1].ExpectedStall is not null ? Steps[^1] : null;
+
+    /// <summary>
+    /// The server setting Briosa:SpatialAnalyzer:InteractionMode the public phase needs:
+    /// Silent for probe 29, otherwise Unchanged, so that only the plan's own steps set the mode.
+    /// </summary>
+    public string ServerInteractionModeSetting => ServerSetting(Steps) is { } mode
+        ? InteractionModeSettings.ModeName(mode)
+        : UnchangedSetting;
+
+    /// <summary>The server sets SA Interaction Mode to Silent at Connect (probe 29).</summary>
+    public bool ServerSetsSilent => ServerSetting(Steps) == Api.SaInteractionMode.Silent;
+
+    // The setting's default: the server never sets the mode.
+    public const string UnchangedSetting = "Unchanged";
+
+    /// <summary>The server argument for <see cref="ServerInteractionModeSetting"/>; none in the worker phase, which has no server.</summary>
+    public IReadOnlyList<string> ServerSettingArguments => Phase == ProbePhase.PublicApi
+        ? [$"--{SpatialAnalyzerConnectionOptions.InteractionModeKey}={ServerInteractionModeSetting}"]
+        : [];
 
     public bool PlaceholderFixtures { get; }
 
@@ -100,22 +129,42 @@ internal sealed class ProbePlan
         Create(phase, manifest, excludedProbes, InteractionModeSettings.Placeholder);
 
     /// <summary>
-    /// Builds the phase plan less the excluded probes. An exclusion that is not in
-    /// this phase, splits a step serving several probes, removes a prerequisite of
-    /// a remaining step, or leaves no probe is refused with <see cref="ProbeUsageException"/>.
+    /// Builds the phase plan: the selected probes, or with no selection every probe that
+    /// is not opt-in, less the excluded probes. A selection or exclusion that is not in
+    /// this phase, splits a step serving several probes, drops a prerequisite of a
+    /// remaining step, or leaves no probe is refused with <see cref="ProbeUsageException"/>,
+    /// and so is a selection combined with an exclusion.
     /// </summary>
     public static ProbePlan Create(
-        ProbePhase phase, FixtureManifest manifest, IReadOnlyCollection<int> excludedProbes, InteractionModeSettings interactionMode)
+        ProbePhase phase,
+        FixtureManifest manifest,
+        IReadOnlyCollection<int> excludedProbes,
+        InteractionModeSettings interactionMode,
+        IReadOnlyCollection<int>? selectedProbes = null)
     {
         ArgumentNullException.ThrowIfNull(manifest);
         ArgumentNullException.ThrowIfNull(excludedProbes);
         ArgumentNullException.ThrowIfNull(interactionMode);
         manifest.Validate();
-        var catalog = ProbeCatalog.Create(phase, manifest, interactionMode);
+        var selected = (selectedProbes ?? []).Distinct().Order().ToList();
+        if (selected.Count > 0 && excludedProbes.Count > 0)
+        {
+            throw new ProbeUsageException("--probe and --exclude-probe cannot be combined; name only the probes to run.");
+        }
+
+        var catalog = SelectSteps(phase, ProbeCatalog.Create(phase, manifest, interactionMode), selected);
         Validate(phase, catalog);
+
+        // The stall leaves no step to restore another mode afterwards, and #313 asks for SA in Manual.
+        if (catalog.Any(static step => step.ExpectedStall is not null) && interactionMode.Restore != Api.SaInteractionMode.Manual)
+        {
+            throw new ProbeUsageException(
+                $"A stall probe runs with SA in Manual and ends its run, so nothing could restore another mode; use {ProbeOptions.RestoreModeOption} manual.");
+        }
+
         var probes = excludedProbes.Distinct().Order().ToList();
         var excluded = SelectExcludedSteps(phase, catalog, probes);
-        var plan = new ProbePlan(phase, catalog, excluded, probes, manifest.IsPlaceholder, interactionMode, interactionModeRestoreOnly: false);
+        var plan = new ProbePlan(phase, catalog, excluded, probes, manifest.IsPlaceholder, interactionMode, interactionModeRestoreOnly: false, selected);
 
         // The remaining plan must satisfy every invariant the full plan does.
         Validate(phase, plan.Steps);
@@ -138,7 +187,7 @@ internal sealed class ProbePlan
         var steps = ProbeCatalog.CreateInteractionModeRestore(phase, interactionMode);
         Validate(phase, steps);
         var plan = new ProbePlan(phase, steps, new HashSet<string>(StringComparer.Ordinal), [], placeholderFixtures: false,
-            interactionMode, interactionModeRestoreOnly: true);
+            interactionMode, interactionModeRestoreOnly: true, selectedProbes: []);
         if (phase == ProbePhase.PublicApi)
         {
             _ = plan.ServerAdmissionArguments;
@@ -157,7 +206,90 @@ internal sealed class ProbePlan
         ArgumentNullException.ThrowIfNull(steps);
         Validate(phase, steps);
         return new ProbePlan(phase, steps, new HashSet<string>(StringComparer.Ordinal), [], placeholderFixtures: true,
-            InteractionModeSettings.Placeholder, interactionModeRestoreOnly: false);
+            InteractionModeSettings.Placeholder, interactionModeRestoreOnly: false, selectedProbes: []);
+    }
+
+    /// <summary>
+    /// The catalog steps a plan is built from. With no selection, every probe that is not
+    /// opt-in (<see cref="ProbeCatalog.OptInProbeNumbers"/>); with one, only the selected
+    /// probes. Guard and fixture setup steps are always kept.
+    /// </summary>
+    internal static IReadOnlyList<ProbeStep> SelectSteps(ProbePhase phase, IReadOnlyList<ProbeStep> catalog, IReadOnlyList<int> selectedProbes)
+    {
+        ArgumentNullException.ThrowIfNull(catalog);
+        ArgumentNullException.ThrowIfNull(selectedProbes);
+        if (selectedProbes.Count == 0)
+        {
+            return [.. catalog.Where(static step =>
+                !IsProbeOrCheck(step) || !ExpandProbe(step.Probe).Intersect(ProbeCatalog.OptInProbeNumbers, StringComparer.Ordinal).Any())];
+        }
+
+        var selected = selectedProbes.Select(static probe => probe.ToString(CultureInfo.InvariantCulture)).ToHashSet(StringComparer.Ordinal);
+        foreach (var probe in selected)
+        {
+            if (!catalog.Any(step => IsProbeOrCheck(step) && ExpandProbe(step.Probe).Contains(probe, StringComparer.Ordinal)))
+            {
+                throw new ProbeUsageException(
+                    $"Probe #{probe} has no steps in the {PhaseName(phase)} phase; --probe accepts only probes of the selected phase.");
+            }
+        }
+
+        var kept = new List<ProbeStep>();
+        foreach (var step in catalog)
+        {
+            if (!IsProbeOrCheck(step))
+            {
+                kept.Add(step);
+                continue;
+            }
+
+            var served = ExpandProbe(step.Probe).ToList();
+            var hits = served.Count(selected.Contains);
+            if (hits == 0)
+            {
+                continue;
+            }
+
+            if (hits != served.Count)
+            {
+                throw new ProbeUsageException(
+                    $"Step '{step.Id}' serves probes {string.Join(" and ", served.Select(static p => $"#{p}"))} together; select all of them or none.");
+            }
+
+            kept.Add(step);
+        }
+
+        var keptIds = kept.Select(static step => step.Id).ToHashSet(StringComparer.Ordinal);
+        var byId = catalog.ToDictionary(static step => step.Id, StringComparer.Ordinal);
+        foreach (var step in kept)
+        {
+            foreach (var prerequisite in step.Prerequisites.Where(prerequisite => !keptIds.Contains(prerequisite)))
+            {
+                var owner = ExpandProbe(byId[prerequisite].Probe).ToList();
+                throw new ProbeUsageException(
+                    $"Step '{step.Id}' needs '{prerequisite}' of probe {string.Join(" and ", owner.Select(static p => $"#{p}"))}; " +
+                    $"also select it (--probe {string.Join(" --probe ", owner)}).");
+            }
+        }
+
+        // The opt-in rules that validation enforces, as the operator's usage errors.
+        var stalls = kept.Where(static step => step.ExpectedStall is not null).Select(static step => $"#{step.Probe}").ToList();
+        if (stalls.Count > 1)
+        {
+            throw new ProbeUsageException(
+                $"Probes {string.Join(" and ", stalls)} each end their run in a planned stall; select one of them per run.");
+        }
+
+        var setting = kept.FirstOrDefault(static step => step.ServerInteractionMode is not null);
+        if (setting is { ServerInteractionMode: { } mode } &&
+            kept.Any(step => IsProbeOrCheck(step) && step.ServerInteractionMode != mode))
+        {
+            throw new ProbeUsageException(
+                $"Probe #{setting.Probe} needs the server setting {SpatialAnalyzerConnectionOptions.InteractionModeKey}={InteractionModeSettings.ModeName(mode)}; " +
+                $"run it alone (--probe {setting.Probe}).");
+        }
+
+        return kept;
     }
 
     /// <summary>The identifiers of the probe, variant, and check steps an exclusion removes.</summary>
@@ -302,15 +434,42 @@ internal sealed class ProbePlan
         Require(steps.Count > 0, "A probe plan must contain steps.");
         Require(steps.Select(static step => step.Id).Distinct(StringComparer.Ordinal).Count() == steps.Count,
             "Probe step identifiers must be unique.");
+
+        // A stall step ends its run on purpose (#313): it is the plan's only stall and its
+        // last step, so nothing can ever be sent after a stall.
+        Require(steps.Count(static step => step.ExpectedStall is not null) <= 1 && steps.Take(steps.Count - 1).All(static step => step.ExpectedStall is null),
+            "A stall step must be the plan's only stall step and its last step.");
+
+        // Probe 29 needs the server setting Silent, which would change every other probe's
+        // conditions, so its run holds no other probe. The server sets Silent at Connect.
+        var setting = ServerSetting(steps);
+        if (setting is not null)
+        {
+            Require(phase == ProbePhase.PublicApi, "A step needs a server setting, and the worker phase has no server.");
+            Require(steps.Where(IsProbeOrCheck).All(step => step.ServerInteractionMode == setting),
+                "A plan whose server needs another interaction mode setting holds no other probe.");
+        }
+
         var created = new HashSet<string>(StringComparer.Ordinal);
         var earlier = new HashSet<string>(StringComparer.Ordinal);
-        var silent = false;
+        var silent = setting == Api.SaInteractionMode.Silent;
         foreach (var step in steps)
         {
             Require(step.Phase == phase, $"Step '{step.Id}' belongs to another phase.");
-            Require(step.Acceptable != ProbeOutcomes.None, $"Step '{step.Id}' accepts no outcome.");
+            Require(step.Acceptable != ProbeOutcomes.None || step.ExpectedStall is not null, $"Step '{step.Id}' accepts no outcome.");
             Require(step.ClientTimeout is null || (step.ClientTimeout > TimeSpan.Zero && step.ClientTimeout <= MaximumClientTimeout),
                 $"Step '{step.Id}' has a client deadline outside the reviewed range.");
+
+            // A stall step accepts nothing but its stall, touches no fixture, and has the
+            // operator check SA before and after it under its own declared deadline.
+            if (step.ExpectedStall is not null)
+            {
+                Require(step.Kind == ProbeStepKind.Probe && step.Acceptable == ProbeOutcomes.None && step.Requirement is null &&
+                    step.CreatesFixture is null && step.DestructiveTarget is null && step.ServerInteractionMode is null,
+                    $"Step '{step.Id}' is a stall step; it accepts only its stall and creates or destroys nothing.");
+                Require(step.Checkpoints == (OperatorCheckpoint.Before | OperatorCheckpoint.After) && step.ClientTimeout is not null,
+                    $"Step '{step.Id}' is a stall step; it needs checkpoints before and after it and its own client deadline.");
+            }
 
             // SA keeps its interaction mode across restarts and has no getter, so a step
             // that sets it is a control whose failure stops the session.
@@ -353,10 +512,11 @@ internal sealed class ProbePlan
             }
 
             // A variant is the question itself: every determinate SDK outcome is an
-            // answer. An outcome whose completion is unknown is never an answer.
+            // answer. An outcome whose completion is unknown is never an answer, except
+            // the stall a stall step plans to end in.
             if (step.Variant.Kind != VariantKind.Shipped)
             {
-                Require(step.Acceptable == ProbeOutcomes.AnyDeterminateSdkOutcome,
+                Require(step.ExpectedStall is not null || step.Acceptable == ProbeOutcomes.AnyDeterminateSdkOutcome,
                     $"Step '{step.Id}' must record every determinate outcome of its variant.");
             }
 
@@ -380,6 +540,19 @@ internal sealed class ProbePlan
 
         // A plan never ends with SA left in Silent: a later step must restore another mode.
         Require(!silent, "A plan that sets SA Interaction Mode to Silent must restore another mode in a later step.");
+    }
+
+    // The one interaction-mode setting the steps need from the server, or null when none
+    // needs one. Steps that need different settings cannot share a server.
+    private static Api.SaInteractionMode? ServerSetting(IReadOnlyList<ProbeStep> steps)
+    {
+        var settings = steps.Select(static step => step.ServerInteractionMode).OfType<Api.SaInteractionMode>().Distinct().ToList();
+        if (settings.Count > 1)
+        {
+            throw new InvalidOperationException("The plan's steps need different server interaction mode settings.");
+        }
+
+        return settings.Count == 0 ? null : settings[0];
     }
 
     /// <summary>The longest client deadline a step may declare.</summary>
@@ -407,6 +580,11 @@ internal sealed class ProbePlan
             ? "Fixture manifest: built-in placeholder. Manual fixture values are never printed.\n"
             : "Fixture manifest: supplied and validated. Manual fixture values are never printed.\n");
         text.Append(CultureInfo.InvariantCulture, $"Steps: {Steps.Count}. Probes: {string.Join(", ", ProbesCovered())}.\n");
+        if (SelectedProbes.Count > 0)
+        {
+            text.Append(SelectionStatement(SelectedProbes)).Append(".\n");
+        }
+
         if (ExcludedProbes.Count > 0)
         {
             text.Append(ExclusionStatement(ExcludedProbes)).Append(".\n");
@@ -417,19 +595,42 @@ internal sealed class ProbePlan
 
         if (InteractionModeRestoreOnly)
         {
-            text.Append("Recovery plan: only restores SA Interaction Mode after a session stopped inside probe 25.\n");
+            text.Append("Recovery plan: only restores SA Interaction Mode after a session stopped inside probe 25 or 29.\n");
         }
 
         if (SetsInteractionMode)
         {
             // Harness constants and the operator's restore mode; no manifest value.
-            text.Append(CultureInfo.InvariantCulture,
-                $"Interaction mode (probe 25): the baseline and restore steps send SA mode {InteractionModeSettings.ModeName(InteractionMode.Restore)} ")
+            var modeSteps = Steps.Where(static step => step.Request is Api.SetInteractionModeRequest).ToList();
+            var probes = modeSteps.Select(static step => step.Probe).Distinct(StringComparer.Ordinal).ToList();
+            var silentStep = modeSteps.Any(static step => step.Request is Api.SetInteractionModeRequest
+            {
+                SaInteractionMode: Api.SaInteractionMode.Silent
+            });
+            var subject = (modeSteps.Any(static step => step.Id.EndsWith("-baseline", StringComparison.Ordinal)),
+                    modeSteps.Any(static step => step.Id.EndsWith("-restore", StringComparison.Ordinal))) switch
+            {
+                (true, true) => "the baseline and restore steps send",
+                (true, false) => "the baseline step sends",
+                (false, true) => "the restore step sends",
+                _ => "its steps send"
+            };
+            text.Append(CultureInfo.InvariantCulture, $"Interaction mode ({(probes.Count == 1 ? "probe" : "probes")} {string.Join(", ", probes)}): ")
+                .Append(ServerSetsSilent ? "the server's setting sets Silent after Connect, " : string.Empty)
+                .Append(CultureInfo.InvariantCulture, $"{subject} SA mode {InteractionModeSettings.ModeName(InteractionMode.Restore)} ")
                 .Append(InteractionMode.Supplied
                     ? "(from --restore-sa-interaction-mode)"
                     : "(placeholder; a licensed run requires --restore-sa-interaction-mode)")
-                .Append(", the Silent step sends Silent, and every step sends MP mode Halt on Failure or Partial Success ")
+                .Append(silentStep ? ", the Silent step sends Silent," : ",")
+                .Append(" and every step sends MP mode Halt on Failure or Partial Success ")
                 .Append("and MP dialog mode Allow Application Interaction. SA keeps these across restarts.\n");
+        }
+
+        if (StallStep is { } stall)
+        {
+            text.Append(CultureInfo.InvariantCulture,
+                $"Planned stall: the last step, {stall.Id}, should stall on a SpatialAnalyzer dialog until its watchdog ends it. ")
+                .Append("Leave that dialog open until the step returns. Nothing is sent after it; recover as the runbook says for a stall run.\n");
         }
 
         if (Steps.Any(static step => step.Checkpoints != OperatorCheckpoint.None))
@@ -441,6 +642,12 @@ internal sealed class ProbePlan
         {
             text.Append("Server admission: start Briosa.Server.exe with\n");
             foreach (var argument in ServerAdmissionArguments)
+            {
+                text.Append("  ").Append(argument).Append('\n');
+            }
+
+            text.Append("Server interaction mode setting (#313): also start it with\n");
+            foreach (var argument in ServerSettingArguments)
             {
                 text.Append("  ").Append(argument).Append('\n');
             }
@@ -467,7 +674,18 @@ internal sealed class ProbePlan
                 text.Append("      ").Append(line).Append('\n');
             }
 
-            text.Append(CultureInfo.InvariantCulture, $"      accept: {AcceptableName(step.Acceptable)}\n");
+            text.Append(CultureInfo.InvariantCulture, $"      accept: {AcceptanceText(step)}\n");
+            if (step.ExpectedStall is { } expected)
+            {
+                text.Append(CultureInfo.InvariantCulture, $"      STALL: {StallText(expected)}. Leave the dialog open until the step returns\n");
+            }
+
+            if (step.ServerInteractionMode is { } setting)
+            {
+                text.Append(CultureInfo.InvariantCulture,
+                    $"      server setting: {SpatialAnalyzerConnectionOptions.InteractionModeKey}={InteractionModeSettings.ModeName(setting)}\n");
+            }
+
             if (step.DestructiveTarget is not null)
             {
                 text.Append(CultureInfo.InvariantCulture,
@@ -573,6 +791,40 @@ internal sealed class ProbePlan
         ProbeStepKind.Check => "check",
         _ => "probe"
     };
+
+    /// <summary>The statement every output carries when the operator selected probes.</summary>
+    public static string SelectionStatement(IReadOnlyList<int> selectedProbes)
+    {
+        ArgumentNullException.ThrowIfNull(selectedProbes);
+        var probes = string.Join(", ", selectedProbes.Select(static probe => "#" + probe.ToString(CultureInfo.InvariantCulture)));
+        return $"Selected by operator (--probe): {probes}; no other probe is part of this plan";
+    }
+
+    /// <summary>What a step accepts: its determinate outcomes, or only its planned stall.</summary>
+    public static string AcceptanceText(ProbeStep step)
+    {
+        ArgumentNullException.ThrowIfNull(step);
+        return step.ExpectedStall is null ? AcceptableName(step.Acceptable) : "only its planned stall";
+    }
+
+    /// <summary>The expected stall in words: harness constants only.</summary>
+    public static string StallText(StallExpectation stall)
+    {
+        ArgumentNullException.ThrowIfNull(stall);
+        var text = new StringBuilder();
+        text.Append(CultureInfo.InvariantCulture, $"completion unknown through {stall.Transport} with diagnostic {stall.DiagnosticCode}");
+        if (stall.FailureKind is not null)
+        {
+            text.Append(CultureInfo.InvariantCulture, $", failure kind {stall.FailureKind}");
+        }
+
+        if (stall.RecoveryGuidance is not null)
+        {
+            text.Append(CultureInfo.InvariantCulture, $", recovery guidance {stall.RecoveryGuidance}");
+        }
+
+        return text.ToString();
+    }
 
     public static string AcceptableName(ProbeOutcomes outcomes) =>
         outcomes == ProbeOutcomes.AnyDeterminateSdkOutcome

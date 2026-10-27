@@ -119,7 +119,7 @@ public sealed class OperatorCheckpointTests : IDisposable
         var watched = steps[Watched];
         var markdown = ProbeRecorder.ToMarkdown(record);
 
-        Assert.Equal(3, document.RootElement.GetProperty("schema_version").GetInt32());
+        Assert.Equal(4, document.RootElement.GetProperty("schema_version").GetInt32());
         Assert.Equal(["before", "after"], watched.GetProperty("operator_checkpoints").EnumerateArray().Select(static t => t.GetString()));
         Assert.Equal(630, watched.GetProperty("client_timeout_seconds").GetInt64());
         Assert.Equal(0, watched.GetProperty("elapsed_ms").GetInt64());

@@ -86,6 +86,20 @@ internal static class ProbeOperations
         static (invoker, request, options) => Analysis(invoker).FitGeometryToPointGroupAsync(request, options),
         static result => result.Execution);
 
+    // Probe 31 (#311, #357): the two fits whose optional seed follows Fit Geometry to Point
+    // Group by analogy and was not probed itself.
+    public static ProbeOperation FitGeometryToPoints { get; } = Op<Api.FitGeometryToPointsRequest, Api.FitGeometryToPointsResult>(
+        Ops.AnalysisOperations.FitGeometryToPointsOperation.Descriptor,
+        Ops.AnalysisOperations.FitGeometryToPointsOperation.CreateCommand,
+        static (invoker, request, options) => Analysis(invoker).FitGeometryToPointsAsync(request, options),
+        static result => result.Execution);
+
+    public static ProbeOperation FitGeometryToPointGroupProjectedToPlane { get; } = Op<Api.FitGeometryToPointGroupProjectedToPlaneRequest, Api.FitGeometryToPointGroupProjectedToPlaneResult>(
+        Ops.AnalysisOperations.FitGeometryToPointGroupProjectedToPlaneOperation.Descriptor,
+        Ops.AnalysisOperations.FitGeometryToPointGroupProjectedToPlaneOperation.CreateCommand,
+        static (invoker, request, options) => Analysis(invoker).FitGeometryToPointGroupProjectedToPlaneAsync(request, options),
+        static result => result.Execution);
+
     public static ProbeOperation CreateChartFromVectorGroup { get; } = Op<Api.CreateChartFromVectorGroupRequest, Api.CreateChartFromVectorGroupResult>(
         Ops.ReportingOperations.CreateChartFromVectorGroupOperation.Descriptor,
         Ops.ReportingOperations.CreateChartFromVectorGroupOperation.CreateCommand,
@@ -189,6 +203,74 @@ internal static class ProbeOperations
         Ops.ViewControl.ShowHidePointsOperation.CreateCommand,
         static (invoker, request, options) => View(invoker).ShowHidePointsAsync(request, options),
         static result => result.Execution);
+
+    // Probe 30 (#350, #312): runtime selects, one per sampled getter. The operator selects
+    // one fixture; the record keeps only how many items came back and whether they are
+    // exactly that fixture, never a name.
+    public static ProbeOperation PointNameRefListRuntimeSelect(Func<Api.PointName, bool> isRequested) =>
+        Op<Api.MakePointNameRefListRuntimeSelectRequest, Api.MakePointNameRefListRuntimeSelectResult>(
+            Ops.ConstructionOperations.MakePointNameRefListRuntimeSelectOperation.Descriptor,
+            Ops.ConstructionOperations.MakePointNameRefListRuntimeSelectOperation.CreateCommand,
+            static (invoker, request, options) => Construction(invoker).MakePointNameRefListRuntimeSelectAsync(request, options),
+            static result => result.Execution,
+            (_, result) => Selection(result.ResultantPointNameList, isRequested));
+
+    public static ProbeOperation CollectionObjectNameRefListRuntimeSelect(Func<Api.CollectionObjectName, bool> isRequested) =>
+        Op<Api.MakeCollectionObjectNameRefListRuntimeSelectRequest, Api.MakeCollectionObjectNameRefListRuntimeSelectResult>(
+            Ops.ConstructionOperations.MakeCollectionObjectNameRefListRuntimeSelectOperation.Descriptor,
+            Ops.ConstructionOperations.MakeCollectionObjectNameRefListRuntimeSelectOperation.CreateCommand,
+            static (invoker, request, options) => Construction(invoker).MakeCollectionObjectNameRefListRuntimeSelectAsync(request, options),
+            static result => result.Execution,
+            (_, result) => Selection(result.ResultantCollectionObjectNameRefList, isRequested));
+
+    public static ProbeOperation RelationshipRefListRuntimeSelect(Func<Api.CollectionItemName, bool> isRequested) =>
+        Op<Api.MakeRelationshipRefListRuntimeSelectRequest, Api.MakeRelationshipRefListRuntimeSelectResult>(
+            Ops.ConstructionOperations.MakeRelationshipRefListRuntimeSelectOperation.Descriptor,
+            Ops.ConstructionOperations.MakeRelationshipRefListRuntimeSelectOperation.CreateCommand,
+            static (invoker, request, options) => Construction(invoker).MakeRelationshipRefListRuntimeSelectAsync(request, options),
+            static result => result.Execution,
+            (_, result) => Selection(result.ResultantRelationshipRefList, isRequested));
+
+    public static ProbeOperation VectorNameRefListRuntimeSelect(Func<Api.VectorName, bool> isRequested) =>
+        Op<Api.MakeVectorNameRefListRuntimeSelectRequest, Api.MakeVectorNameRefListRuntimeSelectResult>(
+            Ops.ConstructionOperations.MakeVectorNameRefListRuntimeSelectOperation.Descriptor,
+            Ops.ConstructionOperations.MakeVectorNameRefListRuntimeSelectOperation.CreateCommand,
+            static (invoker, request, options) => Construction(invoker).MakeVectorNameRefListRuntimeSelectAsync(request, options),
+            static result => result.Execution,
+            (_, result) => Selection(result.ResultantVectorNameList, isRequested));
+
+    public static ProbeOperation CollectionInstrumentRefListRuntimeSelect(Func<Api.CollectionInstrumentId, bool> isRequested) =>
+        Op<Api.MakeCollectionInstrumentRefListRuntimeSelectRequest, Api.MakeCollectionInstrumentRefListRuntimeSelectResult>(
+            Ops.ConstructionOperations.MakeCollectionInstrumentRefListRuntimeSelectOperation.Descriptor,
+            Ops.ConstructionOperations.MakeCollectionInstrumentRefListRuntimeSelectOperation.CreateCommand,
+            static (invoker, request, options) => Construction(invoker).MakeCollectionInstrumentRefListRuntimeSelectAsync(request, options),
+            static result => result.Execution,
+            (_, result) => Selection(result.ResultantCollectionInstrumentRefList, isRequested));
+
+    public static ProbeOperation PointNameRuntimeSelect(Func<Api.PointName, bool> isRequested) =>
+        Op<Api.MakePointNameRuntimeSelectRequest, Api.MakePointNameRuntimeSelectResult>(
+            Ops.ConstructionOperations.MakePointNameRuntimeSelectOperation.Descriptor,
+            Ops.ConstructionOperations.MakePointNameRuntimeSelectOperation.CreateCommand,
+            static (invoker, request, options) => Construction(invoker).MakePointNameRuntimeSelectAsync(request, options),
+            static result => result.Execution,
+            (_, result) => Selection<Api.PointName>(result.ResultantPointName is { } point ? [point] : [], isRequested));
+
+    public static ProbeOperation CollectionNameRuntimeSelect(Func<Api.CollectionName, bool> isRequested) =>
+        Op<Api.MakeCollectionNameRuntimeSelectRequest, Api.MakeCollectionNameRuntimeSelectResult>(
+            Ops.ConstructionOperations.MakeCollectionNameRuntimeSelectOperation.Descriptor,
+            Ops.ConstructionOperations.MakeCollectionNameRuntimeSelectOperation.CreateCommand,
+            static (invoker, request, options) => Construction(invoker).MakeCollectionNameRuntimeSelectAsync(request, options),
+            static result => result.Execution,
+            (_, result) => Selection<Api.CollectionName>(result.ResultantCollectionName is { } collection ? [collection] : [], isRequested));
+
+    internal static IReadOnlyDictionary<string, string> Selection<T>(IReadOnlyList<T> selected, Func<T, bool> isRequested)
+    {
+        ArgumentNullException.ThrowIfNull(selected);
+        ArgumentNullException.ThrowIfNull(isRequested);
+        return Observations.Of(
+            ("selection_count", Observations.Count(selected.Count)),
+            ("selection_is_requested", Observations.Flag(selected.Count == 1 && isRequested(selected[0]))));
+    }
 
     internal static bool IsFractional(double value) =>
         double.IsFinite(value) && Math.Abs(value - Math.Round(value)) > 1e-9;
