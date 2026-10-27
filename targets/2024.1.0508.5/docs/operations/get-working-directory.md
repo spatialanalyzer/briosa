@@ -26,7 +26,7 @@ The worker performs the sequence on its single SDK-owning STA:
 1. `SetStep("Get Working Directory")`
 2. `ExecuteStep`
 3. `GetMPStepResult`
-4. require retrieved MP result code `2`
+4. require retrieved MP result code `2`, or `4` (a partial success, reported as `PARTIAL_SUCCESS`)
 5. `GetStringArg("Directory", ...)`
 
 If the MP result fails, the output getter is not called. If the getter fails, the RPC fails with `DataLoss` and never substitutes an empty directory.

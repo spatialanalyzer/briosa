@@ -24,10 +24,12 @@ internal enum ProbeStepKind
 /// <summary>Classified result of one executed step.</summary>
 internal enum ProbeOutcomeKind
 {
-    // MP code 2 and every output retrieved. Completed.
+    // MP code 2, or code 4 (PARTIAL SUCCESS) as the shipped server reports it,
+    // and every output retrieved. Completed.
     Succeeded,
 
-    // GetMPStepResult returned true with an MP code other than 2. Completed.
+    // GetMPStepResult returned true with an MP code other than 2 or 4, or code 4
+    // from an operation the server's exception list reports as failed. Completed.
     MpFailed,
 
     // A setter returned false, so ExecuteStep was never called. Not started.

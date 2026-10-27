@@ -20,6 +20,6 @@ public enum WorkerSdkCallPhase
     /// <summary>GetMPStepResult faulted after ExecuteStep returned true.</summary>
     MpResultRetrieval = 3,
 
-    /// <summary>An output getter faulted after retrieved MP code 2.</summary>
+    /// <summary>An output getter faulted after retrieved MP code 2 or 4.</summary>
     OutputGetter = 4
 }

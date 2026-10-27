@@ -40,6 +40,7 @@
               "mp-failure",
               "output-failure",
               "sdk-call-faulted",
+              "mp-partial-success",
               "delay-first-execute",
               "hang-first-execute"
             ]

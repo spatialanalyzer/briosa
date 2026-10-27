@@ -29,7 +29,7 @@ The worker performs the sequence on its single SDK-owning STA:
 2. `SetIntegerArg("Collection Index", value)`
 3. `ExecuteStep`
 4. `GetMPStepResult`
-5. require retrieved MP result code `2`
+5. require retrieved MP result code `2`, or `4` (a partial success, reported as `PARTIAL_SUCCESS`)
 6. `GetCollectionNameArg("Resultant Name", ...)`
 
 If the MP result fails, the output getter is not called. If the getter fails, the RPC fails with `DataLoss` and never substitutes an empty collection name.

@@ -58,7 +58,6 @@ public sealed partial class SpatialAnalyzerSdkAdapterTests
     [InlineData(0)]
     [InlineData(1)]
     [InlineData(3)]
-    [InlineData(4)]
     [InlineData(5)]
     [InlineData(42)]
     public void NonSuccessMpCodesDoNotAttemptResultOnlyArgumentGetters(int resultCode)

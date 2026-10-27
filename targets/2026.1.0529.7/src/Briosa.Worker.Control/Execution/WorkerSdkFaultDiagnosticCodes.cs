@@ -16,7 +16,7 @@ public static class WorkerSdkFaultDiagnosticCodes
     /// <summary>GetMPStepResult faulted after ExecuteStep returned true.</summary>
     public const string MpResultRetrieval = "sdk-mp-result-retrieval-faulted";
 
-    /// <summary>An output getter faulted after retrieved MP code 2.</summary>
+    /// <summary>An output getter faulted after retrieved MP code 2 or 4.</summary>
     public const string OutputGetter = "sdk-output-getter-faulted";
 
     /// <summary>The code that names <paramref name="phase"/>.</summary>

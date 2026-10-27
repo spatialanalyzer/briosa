@@ -25,7 +25,7 @@ internal static class WorkerCommandExchange
         }
 
         if (response.Connection.RuntimeIdentity != expectedRuntimeIdentity ||
-            response.Execution is WorkerMpResultAvailable { ResultCode: 2 } execution &&
+            response.Execution is WorkerMpResultAvailable { MpSucceeded: true } execution &&
             !OutputsMatch(command.OutputArguments, execution.OutputValues))
         {
             throw new InvalidDataException("The worker execution response has an invalid result shape.");

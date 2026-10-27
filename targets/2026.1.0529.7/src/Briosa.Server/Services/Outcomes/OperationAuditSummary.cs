@@ -10,7 +10,7 @@ internal readonly record struct OperationAuditSummary(
     long? SdkDurationMilliseconds,
     int? MpResultCode)
 {
-    public static OperationAuditSummary Create(WorkerExecutionOutcome? outcome)
+    public static OperationAuditSummary Create(WorkerExecutionOutcome? outcome, string operationId)
     {
         var execution = outcome?.Execution;
         if (execution is null)
@@ -32,7 +32,7 @@ internal readonly record struct OperationAuditSummary(
             var outputGetter = fault.Phase == WorkerSdkCallPhase.OutputGetter;
             return new OperationAuditSummary(
                 FormatExecutionDisposition(outcome?.ExecutionDisposition),
-                outputGetter ? "succeeded" : "sdk_call_faulted",
+                outputGetter ? CompletedOutcome(execution) : "sdk_call_faulted",
                 outputGetter ? "sdk_call_faulted" : "not_attempted",
                 execution.DurationMilliseconds,
                 execution.MpResultCode);
@@ -60,7 +60,8 @@ internal readonly record struct OperationAuditSummary(
                 execution.MpResultCode);
         }
 
-        if (!execution.MpSucceeded)
+        if (!execution.MpSucceeded ||
+            execution.MpPartialSuccess && MpPartialSuccessExceptions.ReportsFailure(operationId))
         {
             return new OperationAuditSummary(
                 FormatExecutionDisposition(outcome?.ExecutionDisposition),
@@ -72,13 +73,16 @@ internal readonly record struct OperationAuditSummary(
 
         return new OperationAuditSummary(
             FormatExecutionDisposition(outcome?.ExecutionDisposition),
-            "succeeded",
+            CompletedOutcome(execution),
             execution is not WorkerMpOutputsUnavailable && execution.OutputValues.All(output => output.Retrieved)
                 ? "retrieved"
                 : "failed",
             execution.DurationMilliseconds,
             execution.MpResultCode);
     }
+
+    private static string CompletedOutcome(WorkerMpExecutionResult execution) =>
+        execution.MpPartialSuccess ? "partial_success" : "succeeded";
 
     private static string FormatExecutionDisposition(
         WorkerExecutionDisposition? disposition) =>

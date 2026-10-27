@@ -484,7 +484,7 @@ public sealed class RuntimeFailureRegressionTests
         Assert.Equal(global::Briosa.MpExecutionState.Succeeded, details.MpExecution.State);
         Assert.Equal(2, details.MpExecution.MpResultCode);
         Assert.Equal(global::Briosa.OutputRetrievalState.Failed, Assert.Single(details.MpExecution.OutputRetrievals).State);
-        Assert.Equal("failed", OperationAuditSummary.Create(outcome).OutputRetrievalOutcome);
+        Assert.Equal("failed", OperationAuditSummary.Create(outcome, "regression.output-loss").OutputRetrievalOutcome);
         Assert.True(supervisor.Current.ReadyForExecution);
         Assert.False(worker.HasExited);
     }
@@ -704,7 +704,7 @@ public sealed class RuntimeFailureRegressionTests
                     if (UnexpectedFailure) throw new ArgumentException("Consumer regression");
                     return WorkerControlMessage.ExecutionResult(request.CorrelationId, new(
                         UndefinedStatus ? (WorkerExecutionResponseStatus)999 : WorkerExecutionResponseStatus.Completed,
-                        UndefinedStatus ? null : OutputDeliveryLost ? new WorkerMpOutputsUnavailable(7, "worker-output-encoding-rejected") : WorkerMpExecutionResult.FromEvidence(true, true, true, 2, 1, [], null),
+                        UndefinedStatus ? null : OutputDeliveryLost ? new WorkerMpOutputsUnavailable(2, 7, "worker-output-encoding-rejected") : WorkerMpExecutionResult.FromEvidence(true, true, true, 2, 1, [], null),
                         Connection(WorkerExecutionReadinessState.ExecutionReady), null));
                 case WorkerControlMessageKind.Ping:
                     if (UnexpectedHeartbeatFailure) throw new ArgumentException("Monitor regression");

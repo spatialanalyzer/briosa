@@ -25,7 +25,9 @@ public abstract record WorkerMpExecutionResult
     // public outcomes. They cannot be assigned contradictory values or arrive on
     // the wire independently from the concrete outcome. An SDK call fault
     // projects only what its phase proves: a faulted ExecuteStep did not return,
-    // and only an output-getter fault follows retrieved MP code 2.
+    // and only an output-getter fault follows a retrieved MP code (2 or 4).
+    // MpSucceeded means SA reported that the command did its work, with code 2
+    // (SUCCESS) or 4 (PARTIAL SUCCESS); MpPartialSuccess singles out code 4.
     [JsonIgnore]
     public bool ExecuteStepReturned => this is WorkerMpResultUnavailable or WorkerMpResultAvailable or WorkerMpOutputsUnavailable or
         WorkerSdkCallFaulted { Phase: WorkerSdkCallPhase.MpResultRetrieval or WorkerSdkCallPhase.OutputGetter };
@@ -35,14 +37,17 @@ public abstract record WorkerMpExecutionResult
         WorkerSdkCallFaulted { Phase: WorkerSdkCallPhase.OutputGetter };
 
     [JsonIgnore]
-    public bool MpSucceeded => this is WorkerMpResultAvailable { ResultCode: 2 } or WorkerMpOutputsUnavailable or
-        WorkerSdkCallFaulted { Phase: WorkerSdkCallPhase.OutputGetter };
+    public bool MpSucceeded => MpResultRetrieved && WorkerMpResultCodes.PermitsOutputRetrieval(MpResultCode!.Value);
+
+    [JsonIgnore]
+    public bool MpPartialSuccess => MpSucceeded && MpResultCode == WorkerMpResultCodes.PartialSuccess;
 
     [JsonIgnore]
     public int? MpResultCode => this switch
     {
         WorkerMpResultAvailable result => result.ResultCode,
-        WorkerMpOutputsUnavailable or WorkerSdkCallFaulted { Phase: WorkerSdkCallPhase.OutputGetter } => 2,
+        WorkerMpOutputsUnavailable result => result.ResultCode,
+        WorkerSdkCallFaulted { Phase: WorkerSdkCallPhase.OutputGetter } fault => fault.ResultCode,
         _ => null
     };
 
@@ -69,7 +74,7 @@ public abstract record WorkerMpExecutionResult
         ArgumentNullException.ThrowIfNull(outputValues);
         if (!executeStepReturned && mpResultRetrieved ||
             mpResultRetrieved != mpResultCode.HasValue ||
-            mpSucceeded != (mpResultRetrieved && mpResultCode == 2) ||
+            mpSucceeded != (mpResultRetrieved && WorkerMpResultCodes.PermitsOutputRetrieval(mpResultCode!.Value)) ||
             !mpSucceeded && outputValues.Count != 0)
         {
             throw new ArgumentException("The SDK execution evidence is contradictory.");

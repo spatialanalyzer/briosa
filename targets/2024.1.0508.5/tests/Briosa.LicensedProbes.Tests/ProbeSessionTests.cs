@@ -62,7 +62,8 @@ public sealed class ProbeSessionTests
 
     // A worker-shaped outcome produced by the real classifier, not a hand-built record.
     private static ProbeOutcome FromWorker(ProbeStep step, WorkerMpExecutionResult execution) =>
-        WorkerOutcomes.FromResponse(WorkerCompleted(execution), outputs => step.Operation.ObserveWorker(step.Request, outputs));
+        WorkerOutcomes.FromResponse(WorkerCompleted(execution), outputs => step.Operation.ObserveWorker(step.Request, outputs),
+            step.Command.OperationId);
 
     private static WorkerMpExecutionResult UnknownCompletion(string name) => name switch
     {
@@ -152,7 +153,7 @@ public sealed class ProbeSessionTests
             {
                 "arguments-rejected" => new WorkerArgumentsRejected(1, "sdk-argument-rejected"),
                 "mp-failed" => new WorkerMpResultAvailable(0, 1, [], "mp-command-failed"),
-                _ => new WorkerMpOutputsUnavailable(1, "worker-output-encoding-rejected")
+                _ => new WorkerMpOutputsUnavailable(2, 1, "worker-output-encoding-rejected")
             }));
 
         var record = await Run(plan, transport);

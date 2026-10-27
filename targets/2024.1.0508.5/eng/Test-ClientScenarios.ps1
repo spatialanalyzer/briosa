@@ -403,6 +403,20 @@ $scenarios = @(
         }
     },
     [pscustomobject]@{
+        Worker = "mp-partial-success"
+        Client = "mp-partial-success"
+        Watchdog = $null
+        DenyOperation = $false
+        Expected = [pscustomobject]@{
+            ReadyForMp = $true
+            GrpcStatus = "OK"
+            OperationSucceeded = $true
+            TypedErrorObserved = $false
+            RecoverySucceeded = $false
+            FailureKinds = @()
+        }
+    },
+    [pscustomobject]@{
         Worker = "delay-first-execute"
         Client = "deadline"
         Watchdog = $null

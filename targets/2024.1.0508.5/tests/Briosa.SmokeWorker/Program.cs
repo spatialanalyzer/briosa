@@ -337,6 +337,10 @@ internal static class SmokeWorkerProgram
 
         var mpSucceeded = options.Scenario != SmokeWorkerScenario.MpFailure;
         var outputFailure = options.Scenario == SmokeWorkerScenario.OutputFailure;
+        // The first execution returns MP code 4 (PARTIAL SUCCESS) with its outputs;
+        // later executions return code 2, so the reported state is per call.
+        var partialSuccess = options.Scenario == SmokeWorkerScenario.MpPartialSuccess &&
+            executionCount == 1;
         var diagnosticCode = !mpSucceeded
             ? "scripted-mp-failure"
             : outputFailure
@@ -355,7 +359,7 @@ internal static class SmokeWorkerProgram
                     executeStepReturned: true,
                     mpResultRetrieved: true,
                     mpSucceeded,
-                    mpResultCode: mpSucceeded ? 2 : 3,
+                    mpResultCode: !mpSucceeded ? 3 : partialSuccess ? 4 : 2,
                     durationMilliseconds: 5,
                     outputs,
                     diagnosticCode),
@@ -452,6 +456,7 @@ internal static class SmokeWorkerProgram
         MpFailure,
         OutputFailure,
         SdkCallFaulted,
+        MpPartialSuccess,
         DelayFirstExecute,
         HangFirstExecute
     }
@@ -481,6 +486,7 @@ internal static class SmokeWorkerProgram
                 "mp-failure" => SmokeWorkerScenario.MpFailure,
                 "output-failure" => SmokeWorkerScenario.OutputFailure,
                 "sdk-call-faulted" => SmokeWorkerScenario.SdkCallFaulted,
+                "mp-partial-success" => SmokeWorkerScenario.MpPartialSuccess,
                 "delay-first-execute" => SmokeWorkerScenario.DelayFirstExecute,
                 "hang-first-execute" => SmokeWorkerScenario.HangFirstExecute,
                 _ => throw new ArgumentOutOfRangeException(

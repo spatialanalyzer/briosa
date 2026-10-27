@@ -12,7 +12,7 @@ All requests are empty. Every returned scalar has explicit protobuf presence, an
 
 ## SDK sequences
 
-The worker executes each sequence atomically on its single SDK-owning STA. Output getters run only after `ExecuteStep` succeeds and `GetMPStepResult` retrieves success code `2`.
+The worker executes each sequence atomically on its single SDK-owning STA. Output getters run only after `ExecuteStep` succeeds and `GetMPStepResult` retrieves success code `2` or partial-success code `4` ([#351](https://github.com/spatialanalyzer/briosa/issues/351)).
 
 `GetActiveCollectionName` then calls:
 

@@ -96,8 +96,10 @@ caller that stops waiting is recorded as LifecycleRejected with gRPC status
 `Cancelled`; later WorkerTransition events record the accepted exchange's
 terminal state.
 Correlate by CorrelationId, ServerInstanceId and Generation. Later evidence does
-not change the original response or authorize replay. Only MP result code 2,
-successfully retrieved, means MP success. Output retrieval remains separate.
+not change the original response or authorize replay. Only a retrieved MP result
+code 2 means MP success, and code 4 a partial success (MP outcome
+`partial_success`), except for the operations whose code 4 is reported as an MP
+failure (#351). Output retrieval remains separate.
 
 The metadata boundary discards raw messages, exceptions and ambient scopes from
 framework logs, preserving their category, ID, severity and a FrameworkEvent

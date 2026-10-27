@@ -42,7 +42,7 @@ public sealed class WorkerExecutionOutcomeSerializationTests
             new WorkerArgumentsRejected(1, "input-refused"),
             new WorkerExecuteRejected(2, "execute-refused"),
             new WorkerMpResultUnavailable(3, "result-missing"),
-            new WorkerMpOutputsUnavailable(4, "worker-output-encoding-rejected"),
+            new WorkerMpOutputsUnavailable(2, 4, "worker-output-encoding-rejected"),
             new WorkerMpResultAvailable(-1, 4, [], "mp-failed"),
             new WorkerMpResultAvailable(2, 5,
                 [new WorkerRetrievedOutput("Value", WorkerMpValueKind.FloatingPoint, new WorkerDoubleValue(0))], null),
@@ -57,8 +57,8 @@ public sealed class WorkerExecutionOutcomeSerializationTests
                     new WorkerUnavailableOutput("Rejected", WorkerMpValueKind.FloatingPoint,
                         reason: WorkerUnavailableOutputReason.EncodingRejected),
                     new WorkerRetrievedOutput("Value", WorkerMpValueKind.FloatingPoint, new WorkerDoubleValue(1))
-                ], WorkerSdkFaultDiagnosticCodes.OutputGetter),
-            new WorkerSdkCallFaulted(WorkerSdkCallPhase.OutputGetter, 10, [], WorkerSdkFaultDiagnosticCodes.OutputGetter)
+                ], WorkerSdkFaultDiagnosticCodes.OutputGetter, 2),
+            new WorkerSdkCallFaulted(WorkerSdkCallPhase.OutputGetter, 10, [], WorkerSdkFaultDiagnosticCodes.OutputGetter, 4)
         ];
         foreach (var outcome in outcomes)
         {
@@ -147,7 +147,7 @@ public sealed class WorkerExecutionOutcomeSerializationTests
     [Fact]
     public void OutputGetterFaultMayWithholdItsPerOutputEvidence() =>
         Assert.Empty(new WorkerSdkCallFaulted(
-            WorkerSdkCallPhase.OutputGetter, 0, [], WorkerSdkFaultDiagnosticCodes.OutputGetter).OutputValues);
+            WorkerSdkCallPhase.OutputGetter, 0, [], WorkerSdkFaultDiagnosticCodes.OutputGetter, 2).OutputValues);
 
     [Fact]
     public void OnlyANonDefaultUnavailableReasonCrossesTheChannel()
@@ -161,7 +161,7 @@ public sealed class WorkerExecutionOutcomeSerializationTests
                     new WorkerUnavailableOutput("Plain", WorkerMpValueKind.Text, "local-only"),
                     new WorkerUnavailableOutput("Faulted", WorkerMpValueKind.Text, "local-only",
                         WorkerUnavailableOutputReason.SdkCallFaulted)
-                ], WorkerSdkFaultDiagnosticCodes.OutputGetter),
+                ], WorkerSdkFaultDiagnosticCodes.OutputGetter, 2),
             new(WorkerConnectionState.Disconnected, WorkerExecutionReadinessState.Unverified,
                 null, 0, 1, "disconnected", DateTimeOffset.UnixEpoch), null)));
         using var document = JsonDocument.Parse(stream.ToArray().AsMemory(sizeof(int)));
@@ -191,6 +191,7 @@ public sealed class WorkerExecutionOutcomeSerializationTests
                     ["outcome"] = "sdk-call-faulted",
                     ["phase"] = (int)WorkerSdkCallPhase.OutputGetter,
                     ["durationMilliseconds"] = 1,
+                    ["resultCode"] = 2,
                     ["outputs"] = new object[]
                     {
                         new Dictionary<string, object?>
@@ -232,7 +233,7 @@ public sealed class WorkerExecutionOutcomeSerializationTests
         Assert.Throws<ArgumentException>(() => new WorkerSdkCallFaulted(
             WorkerSdkCallPhase.OutputGetter, 0,
             [new WorkerRetrievedOutput("Value", WorkerMpValueKind.FloatingPoint, new WorkerDoubleValue(1))],
-            WorkerSdkFaultDiagnosticCodes.OutputGetter));
+            WorkerSdkFaultDiagnosticCodes.OutputGetter, 2));
         Assert.Throws<ArgumentException>(() => new WorkerSdkCallFaulted(
             WorkerSdkCallPhase.ExecuteStep, 0, [], " "));
     }

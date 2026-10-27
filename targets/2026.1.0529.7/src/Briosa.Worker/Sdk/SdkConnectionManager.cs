@@ -482,9 +482,10 @@ internal sealed class SdkConnectionManager : IAsyncDisposable
             return (false, "execution-readiness-probe-rejected");
         }
 
+        // Only full success proves readiness; a partial success (code 4) does not.
         if (!execution.MpResultRetrieved ||
             !execution.MpSucceeded ||
-            execution.MpResultCode != 2)
+            execution.MpResultCode != WorkerMpResultCodes.Success)
         {
             return (false, "execution-readiness-probe-mp-failed");
         }
