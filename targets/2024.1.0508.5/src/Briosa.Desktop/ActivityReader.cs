@@ -66,6 +66,7 @@ public sealed class ActivityReader
             {
                 "ControlPlaneReady" => ("Server", "Server started."),
                 "WorkerTransition" => ("SDK", "SDK worker state changed."),
+                "InteractionModeApplied" => ("SDK", "SA interaction mode step recorded."),
                 "ExecutionDispatched" => ("Execution", "Command dispatched."),
                 "ExecutionResolved" => ("Execution", "Command execution observation recorded."),
                 "LifecycleRejected" => ("SDK", "Lifecycle action rejected."),
@@ -86,7 +87,7 @@ public sealed class ActivityReader
             if (level is not ("Verbose" or "Debug" or "Information" or "Warning" or "Error" or "Fatal")) return null;
             string Value(string key) => properties.TryGetProperty(key, out var value) ? value.ToString() : "";
             var details = new List<string>();
-            foreach (var key in new[] { "WorkerState", "ConnectionState", "ExecutionReadinessState", "ExecutionDisposition", "MpOutcome", "OutputRetrievalOutcome", "DiagnosticCode" })
+            foreach (var key in new[] { "WorkerState", "SaInteractionMode", "ConnectionState", "ExecutionReadinessState", "ExecutionDisposition", "MpOutcome", "OutputRetrievalOutcome", "DiagnosticCode" })
             {
                 var value = Value(key);
                 if (value.Length > 0 && SafeText.Code(value) != "unavailable") details.Add(key + ": " + value);

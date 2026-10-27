@@ -234,6 +234,30 @@ The affected operation remains
 deadline, and worker replacement does not establish the interrupted command's
 result.
 
+A SpatialAnalyzer modal dialog can hold an MP until an operator dismisses it
+([#313](https://github.com/spatialanalyzer/briosa/issues/313)). When a bound
+elapses (the execution watchdog, the readiness probe, or the interaction mode
+step), the supervisor checks whether a modal dialog of the exact-target
+SpatialAnalyzer process is open. It reads window ownership, visibility, enabled
+state and class only, never window text or input, and it never dismisses the
+dialog. If one is open, the diagnostic is `sa-modal-dialog-open` instead of the
+generic timeout code. While more than one exact-target instance is running, the
+connected instance is unknown, so the generic code remains. For an MP, the
+failure kind stays `WorkerWatchdogTimeout`
+with `StartedOutcomeUnknown`, and recovery guidance is
+`OperatorInterventionRequired`, because the dialog still blocks SpatialAnalyzer
+after the worker is replaced. A readiness probe held by a dialog requires
+operator recovery and no longer suggests a competing SDK client.
+
+The optional server setting `Briosa:SpatialAnalyzer:InteractionMode` (default
+`Unchanged`) sets SpatialAnalyzer's Interaction Mode after every successful
+Connect, before readiness is published, and audits each attempt. The step shares
+the readiness probe's bound, so it does not lengthen a Connect's worst case.
+Under `Silent`, the licensed probe sessions saw the observed state-triggered
+dialogs become an immediate MP failure on both targets, while operator prompts
+still worked. SpatialAnalyzer keeps the mode across restarts and has no getter
+for it. See each target's Windows package guide.
+
 ## Replay safety
 
 Every handwritten operation has an explicit exact-target replay-safety

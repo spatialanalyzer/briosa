@@ -106,6 +106,71 @@ public sealed class WorkerProcessRegistrationTests
         Assert.Equal("localhost", spatialAnalyzer.Host);
         Assert.Null(spatialAnalyzer.Identity.ActivatedSdk);
         Assert.Null(spatialAnalyzer.Identity.ConnectedSpatialAnalyzer);
+        Assert.Equal(SpatialAnalyzerInteractionMode.Unchanged, spatialAnalyzer.InteractionMode);
+    }
+
+    [Theory]
+    [InlineData("Unchanged")]
+    [InlineData("Silent")]
+    [InlineData("Automatic")]
+    [InlineData("Manual")]
+    public async Task ConfiguredInteractionModeReachesTheSupervisor(string value)
+    {
+        var expected = Enum.Parse<SpatialAnalyzerInteractionMode>(value);
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                [SpatialAnalyzerConnectionOptions.InteractionModeKey] = value
+            })
+            .Build();
+        var services = new ServiceCollection();
+        services.AddLogging();
+
+        services.AddWorkerProcessLifecycle(configuration);
+        await using var provider = services.BuildServiceProvider();
+
+        Assert.Equal(
+            expected,
+            provider.GetRequiredService<SpatialAnalyzerConnectionOptions>().InteractionMode);
+        Assert.Equal(
+            expected,
+            provider.GetRequiredService<WorkerProcessSupervisor>().InteractionMode);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData("silent")]
+    [InlineData("SILENT")]
+    [InlineData(" Silent")]
+    [InlineData("Silent ")]
+    [InlineData("Quiet")]
+    [InlineData("3")]
+    [InlineData("Silent\rforged")]
+    public void UnknownInteractionModeFailsStartupWithoutEchoingIt(string value)
+    {
+        ArgumentNullException.ThrowIfNull(value);
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                [SpatialAnalyzerConnectionOptions.InteractionModeKey] = value
+            })
+            .Build();
+        var services = new ServiceCollection();
+
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            services.AddWorkerProcessLifecycle(configuration));
+
+        Assert.Contains(
+            SpatialAnalyzerConnectionOptions.InteractionModeKey,
+            exception.Message,
+            StringComparison.Ordinal);
+        const string allowed = "Unchanged, Silent, Automatic, or Manual";
+        Assert.Contains(allowed, exception.Message, StringComparison.Ordinal);
+        if (value.Trim().Length > 0 && !allowed.Contains(value, StringComparison.Ordinal))
+        {
+            Assert.DoesNotContain(value, exception.Message, StringComparison.Ordinal);
+        }
     }
 
     [Theory]

@@ -23,6 +23,8 @@ internal sealed partial class WorkerProcessSupervisor :
     private readonly TimeProvider _timeProvider;
     private readonly ILogger<WorkerProcessSupervisor> _logger;
     private readonly BriosaTelemetry? _telemetry;
+    private readonly SpatialAnalyzerInteractionMode _interactionMode;
+    private readonly ISpatialAnalyzerModalDialogProbe? _modalDialogProbe;
     private WorkerExecutionQueue? _executionQueue;
     private WorkerHeartbeatMonitor? _heartbeatMonitor;
     private WorkerProcessLifetime? _processLifetime;
@@ -52,7 +54,9 @@ internal sealed partial class WorkerProcessSupervisor :
         TimeProvider? timeProvider = null,
         ILogger<WorkerProcessSupervisor>? logger = null,
         ExactTargetIdentityPolicy? identityPolicy = null,
-        BriosaTelemetry? telemetry = null)
+        BriosaTelemetry? telemetry = null,
+        SpatialAnalyzerInteractionMode interactionMode = SpatialAnalyzerInteractionMode.Unchanged,
+        ISpatialAnalyzerModalDialogProbe? modalDialogProbe = null)
     {
         ArgumentNullException.ThrowIfNull(processFactory);
         ArgumentNullException.ThrowIfNull(policy);
@@ -66,6 +70,8 @@ internal sealed partial class WorkerProcessSupervisor :
         _timeProvider = timeProvider ?? TimeProvider.System;
         _logger = logger ?? NullLogger<WorkerProcessSupervisor>.Instance;
         _telemetry = telemetry;
+        _interactionMode = interactionMode;
+        _modalDialogProbe = modalDialogProbe;
         telemetry?.Attach(this);
         _current = new WorkerLifecycleSnapshot(
             WorkerLifecycleState.Stopped,
@@ -104,6 +110,12 @@ internal sealed partial class WorkerProcessSupervisor :
     internal WorkerLifecyclePolicy LifecyclePolicy => _policy;
 
     internal WorkerExecutionPolicy ExecutionPolicy => _executionPolicy;
+
+    internal SpatialAnalyzerInteractionMode InteractionMode => _interactionMode;
+
+    internal ISpatialAnalyzerModalDialogProbe? ModalDialogProbe => _modalDialogProbe;
+
+    internal const string ModalDialogDiagnosticCode = "sa-modal-dialog-open";
 
     public WorkerExecutionSnapshot ExecutionSnapshot => new(
         _executionPolicy.QueueCapacity,
@@ -853,8 +865,9 @@ internal sealed partial class WorkerProcessSupervisor :
             }
             catch (OperationCanceledException) when (watchdog.IsCancellationRequested)
             {
+                var diagnosticCode = StalledExchangeDiagnostic("worker-execution-watchdog-timeout");
                 await RetireWorkerAsync(
-                    "worker-execution-watchdog-timeout",
+                    diagnosticCode,
                     incidentKind: WorkerIncidentKind.WatchdogTerminated,
                     operationId: command.OperationId,
                     executionDisposition:
@@ -865,7 +878,7 @@ internal sealed partial class WorkerProcessSupervisor :
                     WorkerExecutionDisposition.StartedOutcomeUnknown,
                     Execution: null,
                     Connection: null,
-                    "worker-execution-watchdog-timeout",
+                    diagnosticCode,
                     generation,
                     correlationId);
             }
@@ -1133,6 +1146,8 @@ internal sealed partial class WorkerProcessSupervisor :
         WorkerConnectionSnapshot verified;
         // The probe has its own bound; duration-class execution budgets never apply.
         // It belongs to an accepted exchange, so caller cancellation cannot quarantine.
+        // A configured interaction mode step shares the bound, so the lifecycle and
+        // client budgets count one readiness bound per verification (PR #355 review).
         using (var timeout = new CancellationTokenSource(_policy.ReadinessProbeTimeout, _timeProvider))
         {
             try
@@ -1170,12 +1185,15 @@ internal sealed partial class WorkerProcessSupervisor :
             }
             catch (OperationCanceledException)
             {
-                // Only the probe bound can cancel this exchange.
+                // Only the probe bound can cancel this exchange. An open SpatialAnalyzer
+                // dialog explains the stall, so it does not suggest a competing client.
+                var stalled = StalledExchangeDiagnostic("execution-readiness-probe-timeout");
                 await QuarantineExecutionTargetAsync(
                     attachedConnection,
                     WorkerTerminationKind.Forced,
-                    "execution-readiness-probe-timeout",
-                    competingClientSuspected: true, failure: WorkerLifecycleFailure.ReadinessTimeout).ConfigureAwait(false);
+                    stalled,
+                    competingClientSuspected: stalled != ModalDialogDiagnosticCode,
+                    failure: WorkerLifecycleFailure.ReadinessTimeout).ConfigureAwait(false);
                 return false;
             }
             catch (Exception exception) when (IsRecoverableProcessFailure(exception))
@@ -1190,6 +1208,11 @@ internal sealed partial class WorkerProcessSupervisor :
                         ? "execution-readiness-worker-exited"
                         : "execution-readiness-control-failed",
                     competingClientSuspected: true).ConfigureAwait(false);
+                return false;
+            }
+
+            if (!await ApplyInteractionModeAsync(worker, verified, timeout.Token).ConfigureAwait(false))
+            {
                 return false;
             }
         }
@@ -1232,6 +1255,85 @@ internal sealed partial class WorkerProcessSupervisor :
             applicationGeneration: associated);
         return true;
     }
+
+    // Called with _gate held after a verified readiness probe, before readiness is
+    // published (#313). The worker accepts MP work only after the probe, and no admitted
+    // MP can run before this step. SA has no getter for the mode, so the MP code is the
+    // only evidence. A configured mode that is not applied keeps readiness closed:
+    // without it, a state-triggered dialog can hold the STA until the watchdog fires.
+    private async Task<bool> ApplyInteractionModeAsync(
+        IWorkerProcess worker, WorkerConnectionSnapshot verified, CancellationToken readinessBound)
+    {
+        if (SpatialAnalyzerInteractionModeCommand.Create(_interactionMode) is not { } command) return true;
+        int? mpResultCode = null;
+        string diagnosticCode;
+        var failure = WorkerLifecycleFailure.ReadinessFailed;
+        // The step runs within the readiness probe's bound; duration-class budgets never apply.
+        try
+        {
+            var response = await WorkerCommandExchange.RunAsync(
+                worker, command, Guid.NewGuid(), verified.RuntimeIdentity, readinessBound).ConfigureAwait(false);
+            _lastSuccessfulExchange = _timeProvider.GetTimestamp();
+            mpResultCode = response.Execution?.MpResultCode;
+            // Only code 2 shows the mode in place; a partial success does not.
+            if (response.Execution is { MpSucceeded: true, MpResultCode: 2 })
+            {
+                LogInteractionMode(LogLevel.Information, mpResultCode, "interaction-mode-applied");
+                return true;
+            }
+
+            diagnosticCode = "interaction-mode-not-applied";
+        }
+        catch (OperationCanceledException)
+        {
+            // Only the bound can cancel this exchange.
+            diagnosticCode = StalledExchangeDiagnostic("interaction-mode-apply-timeout");
+            failure = WorkerLifecycleFailure.ReadinessTimeout;
+        }
+        catch (WorkerMessageRejectedException)
+        {
+            diagnosticCode = "interaction-mode-not-applied";
+        }
+        catch (Exception exception) when (IsRecoverableProcessFailure(exception))
+        {
+            diagnosticCode = worker.HasExited
+                ? "execution-readiness-worker-exited"
+                : "execution-readiness-control-failed";
+        }
+
+        LogInteractionMode(LogLevel.Warning, mpResultCode, diagnosticCode);
+        await QuarantineExecutionTargetAsync(
+            verified,
+            worker.HasExited ? WorkerTerminationKind.Crash : WorkerTerminationKind.Forced,
+            diagnosticCode,
+            competingClientSuspected: false,
+            failure).ConfigureAwait(false);
+        return false;
+    }
+
+    // Called with _gate held when an exchange's bound has elapsed (#313). A blocking
+    // SpatialAnalyzer dialog is reported as such; the probe only reads window state,
+    // and the dialog is left for the operator. The check is advisory, so its failure
+    // keeps the timeout code and never replaces the timeout's handling.
+    private string StalledExchangeDiagnostic(string timeoutDiagnosticCode)
+    {
+        try
+        {
+            return _modalDialogProbe?.Observe() == SpatialAnalyzerModalDialogState.ModalDialogOpen
+                ? ModalDialogDiagnosticCode
+                : timeoutDiagnosticCode;
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            return timeoutDiagnosticCode;
+        }
+    }
+
+    private void LogInteractionMode(LogLevel level, int? mpResultCode, string diagnosticCode) =>
+        LogInteractionModeApplied(level, _interactionMode,
+            SpatialAnalyzerInteractionModeCommand.MpInteractionMode,
+            SpatialAnalyzerInteractionModeCommand.MpDialogInteractionMode,
+            Current.Generation, mpResultCode, diagnosticCode);
 
     // Called with _gate held, inside the accepted Connect, before readiness is
     // published. The startup bound limits it: the association is evidence about the
@@ -1579,6 +1681,18 @@ internal sealed partial class WorkerProcessSupervisor :
         RuntimeIdentityMatchState? activatedSdkIdentityMatchState,
         RuntimeIdentityEvidenceSource? connectedSaIdentitySource,
         RuntimeIdentityMatchState? connectedSaIdentityMatchState);
+
+    [LoggerMessage(
+        EventId = 1202,
+        Message = "SA interaction mode {SaInteractionMode} with MP mode {MpInteractionMode} and MP dialog mode {MpDialogInteractionMode} on generation {Generation}: MP result {MpResultCode}, diagnostic {DiagnosticCode}.")]
+    private partial void LogInteractionModeApplied(
+        LogLevel level,
+        SpatialAnalyzerInteractionMode saInteractionMode,
+        global::Briosa.MpInteractionMode mpInteractionMode,
+        global::Briosa.MpDialogInteractionMode mpDialogInteractionMode,
+        int generation,
+        int? mpResultCode,
+        string diagnosticCode);
 
 
 

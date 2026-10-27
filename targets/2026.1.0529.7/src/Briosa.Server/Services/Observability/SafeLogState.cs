@@ -32,11 +32,12 @@ internal sealed class SafeLogState : IReadOnlyList<KeyValuePair<string, object?>
     public static SafeLogState Create<TState>(string category, EventId eventId, TState state, string instanceId)
     {
         var trusted = category.StartsWith("Briosa.Server.", StringComparison.Ordinal) &&
-            eventId.Id is 1000 or 1201 or 1300 or 1301 or 1302 or 1400 or 1401 or 1500 or 2000 or 2001 or 2002 or 2003 or 2004 or 2005;
+            eventId.Id is 1000 or 1201 or 1202 or 1300 or 1301 or 1302 or 1400 or 1401 or 1500 or 2000 or 2001 or 2002 or 2003 or 2004 or 2005;
         var name = trusted ? eventId.Id switch
         {
             1000 => "ControlPlaneReady",
             1201 => "WorkerTransition",
+            1202 => "InteractionModeApplied",
             1300 => "ExecutionDispatched",
             1301 => "ExecutionResolved",
             1302 => "LifecycleRejected",
@@ -92,5 +93,6 @@ internal sealed class SafeLogState : IReadOnlyList<KeyValuePair<string, object?>
         "StatusCode" or "ActivatedSdkIdentitySource" or "ActivatedSdkIdentityMatchState" or
         "ConnectedSaIdentitySource" or "ConnectedSaIdentityMatchState" or "AdmissionMilliseconds" or
         "QueueMilliseconds" or "ExchangeMilliseconds" or "DurationClass" or "ExecutionBudgetMilliseconds" or "Rpc" or "ApplicationState" or "Ownership" or
-        "DroppedRecords" or "SinkFailures";
+        "DroppedRecords" or "SinkFailures" or "SaInteractionMode" or "MpInteractionMode" or
+        "MpDialogInteractionMode";
 }
