@@ -208,7 +208,34 @@ abandoned may still produce a running or ready generation. The client refreshes
 SDK state before deciding what to do next. It treats
 `sdk-lifecycle-transition-in-progress` as a signal to refresh and retry later,
 and it stops a generation it owns only after the accepted transition has ended.
+`LaunchSpatialAnalyzer` follows the same rule: after acceptance the server keeps
+waiting for the application window under its own bound, and the client refreshes
+application state before it launches again.
 Client startup budgets do not shorten the server's lifecycle bounds.
+
+The default startup procedure runs within one overall client startup budget,
+whatever phases it selects. Every first-party client defaults it to 120 seconds,
+and its expiry is the client's startup timeout error. The clients apply no
+default deadline to individual lifecycle RPCs. The budget is sized from the
+server's lifecycle bounds so that, at the server defaults, a client does not give
+up while the server is still inside its own bounds:
+
+> client startup budget ≥ 3 × `StartupTimeout` + `ReadinessProbeTimeout` +
+> `ApplicationStartupTimeout` (when launching) + 10 s, plus a margin
+
+`StartupTimeout` (`Briosa:Worker:StartupTimeout`) bounds SDK start, `ConnectEx`,
+and Connect's application association. `ReadinessProbeTimeout`
+(`Briosa:Worker:ReadinessProbeTimeout`) bounds the readiness probe.
+`ApplicationStartupTimeout` (`Briosa:SpatialAnalyzer:ApplicationStartupTimeout`)
+bounds the wait for a launched application's window. The 10 seconds cover
+Connect's liveness check and the forced worker cleanup before a typed failure,
+5 seconds each. At the server defaults (10, 30, and 30 seconds), a startup that
+launches SpatialAnalyzer reaches readiness within 95 seconds and receives a typed
+server failure within 100 seconds. The 20-second margin covers server host
+startup, process observation, installation discovery, and round trips. Raising
+`StartupTimeout` by some amount raises the minimum budget by three times that
+amount; raising either other bound raises it by the same amount. A deployment
+that raises server bounds raises its client startup budget to match.
 
 ## Client validation boundary
 

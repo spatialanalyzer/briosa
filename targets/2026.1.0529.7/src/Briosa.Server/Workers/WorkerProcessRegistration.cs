@@ -25,6 +25,15 @@ internal static class WorkerProcessRegistration
         services.TryAddSingleton(spatialAnalyzerOptions);
         services.TryAddSingleton(identityPolicy);
 
+        var policy = new WorkerLifecyclePolicy(
+            heartbeatInterval: TimeSpan.FromSeconds(1),
+            heartbeatTimeout: TimeSpan.FromSeconds(5),
+            startupTimeout: workerOptions.StartupTimeout,
+            shutdownTimeout: TimeSpan.FromSeconds(5),
+            readinessProbeTimeout: workerOptions.ReadinessProbeTimeout);
+        // Host shutdown waits for an accepted SDK exchange, then stops the worker (#321).
+        services.AddLifecycleShutdownBound("worker", policy.AcceptedExchangeBound + policy.StopBound);
+
         services.TryAddSingleton(provider =>
         {
             var processFactory = new NamedPipeWorkerProcessFactory(
@@ -32,12 +41,6 @@ internal static class WorkerProcessRegistration
                     workerOptions.ExecutablePath,
                     ["--sa-host", spatialAnalyzerOptions.Host],
                     workingDirectory: Path.GetDirectoryName(workerOptions.ExecutablePath)));
-            var policy = new WorkerLifecyclePolicy(
-                heartbeatInterval: TimeSpan.FromSeconds(1),
-                heartbeatTimeout: TimeSpan.FromSeconds(5),
-                startupTimeout: workerOptions.StartupTimeout,
-                shutdownTimeout: TimeSpan.FromSeconds(5),
-                readinessProbeTimeout: workerOptions.ReadinessProbeTimeout);
             var executionPolicy = new WorkerExecutionPolicy(
                 watchdogTimeout: workerOptions.ExecutionWatchdogTimeout,
                 queueCapacity: 64,

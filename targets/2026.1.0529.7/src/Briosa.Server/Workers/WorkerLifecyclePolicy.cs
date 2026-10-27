@@ -42,6 +42,32 @@ internal sealed class WorkerLifecyclePolicy
     public TimeSpan ReadinessProbeTimeout { get; }
     public int LifecycleHistoryCapacity { get; }
 
+    /// <summary>
+    /// The longest an accepted Start, Connect, or Recover takes to its typed outcome,
+    /// failure cleanup included (#321). Connect runs ConnectEx and the application
+    /// association under the startup bound, the readiness probe, a liveness ping, and
+    /// forced cleanup. Recover drains the heartbeat and cleans up the faulted worker,
+    /// then starts a replacement whose Ready can report an attached SDK, which runs
+    /// the probe and its cleanup. Start alone is never longer than Recover.
+    /// </summary>
+    public TimeSpan AcceptedExchangeBound
+    {
+        get
+        {
+            var start = StartupTimeout + ReadinessProbeTimeout + ShutdownTimeout;
+            var connect = StartupTimeout + ReadinessProbeTimeout + StartupTimeout +
+                HeartbeatTimeout + ShutdownTimeout;
+            var recover = HeartbeatTimeout + ShutdownTimeout + start;
+            return connect > recover ? connect : recover;
+        }
+    }
+
+    /// <summary>
+    /// The worker stop after any accepted exchange: heartbeat drain, stop exchange, and
+    /// forced cleanup. An MP command still in flight adds its own execution budget.
+    /// </summary>
+    public TimeSpan StopBound => HeartbeatTimeout + ShutdownTimeout + ShutdownTimeout;
+
     private static void ThrowIfNonPositive(TimeSpan value, string parameterName)
     {
         if (value <= TimeSpan.Zero)

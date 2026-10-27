@@ -10,8 +10,10 @@ internal static class SpatialAnalyzerLifecycleRegistration
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configuration);
-        services.TryAddSingleton(
-            SpatialAnalyzerApplicationOptions.BindAndValidate(configuration));
+        var options = SpatialAnalyzerApplicationOptions.BindAndValidate(configuration);
+        services.TryAddSingleton(options);
+        // Host shutdown waits for an accepted launch (#322), which a Connect can queue behind.
+        services.AddLifecycleShutdownBound("application", options.StartupTimeout);
         services.TryAddSingleton<ISpatialAnalyzerProcessPlatform,
             WindowsSpatialAnalyzerProcessPlatform>();
         services.TryAddSingleton<ISpatialAnalyzerWindowSource,
