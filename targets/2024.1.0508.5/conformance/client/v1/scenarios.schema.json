@@ -42,6 +42,7 @@
               "sdk-call-faulted",
               "mp-partial-success",
               "delay-first-execute",
+              "delay-first-connect",
               "hang-first-execute"
             ]
           },
