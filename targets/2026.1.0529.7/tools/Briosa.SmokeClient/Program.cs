@@ -26,7 +26,7 @@ internal static class SmokeClientProgram
     // lifecycle-cancellation (#305): the fake worker holds its first ConnectEx reply
     // for 3 s, so this caller deadline expires after the server accepted the Connect
     // and well before the detached exchange finishes.
-    private static readonly TimeSpan InterruptedConnectDeadline = TimeSpan.FromMilliseconds(500);
+    private static readonly TimeSpan InterruptedConnectDeadline = TimeSpan.FromSeconds(1);
     private static readonly TimeSpan DetachedConnectReadinessLimit = TimeSpan.FromSeconds(20);
     private static readonly TimeSpan SdkStatePollInterval = TimeSpan.FromMilliseconds(100);
 

@@ -179,7 +179,7 @@ internal static class FakeSpatialAnalyzerApplication
 internal static class SmokeWorkerProgram
 {
     // delay-first-connect holds the first ConnectEx reply this long after the server
-    // accepted the Connect (#305). Within the hold, a 0.5 s caller deadline expires and
+    // accepted the Connect (#305). Within the hold, a 1 s caller deadline expires and
     // a second Connect arrives, with headroom for a slow runner (#302). The hold stays
     // well inside the server's 10 s StartupTimeout, which bounds an accepted ConnectEx,
     // and its 5 s heartbeat timeout.

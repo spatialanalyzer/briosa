@@ -72,7 +72,7 @@ and the fake worker holds its reply to the first Connect for 3 seconds. The
 fixture starts in `control-plane-only` mode, drives the SDK lifecycle itself,
 and asserts through its public API that:
 
-1. after it starts the SDK, a Connect with a deadline of about 0.5 seconds
+1. after it starts the SDK, a Connect with a deadline of about 1 second
    fails with the language's native deadline or cancellation outcome. The
    client invents no execution disposition and does not retry;
 2. a second Connect, sent at once, fails with the typed lifecycle error:
@@ -86,8 +86,9 @@ and asserts through its public API that:
 5. the fixture stops the SDK and shuts down cleanly. The runner checks that the
    external fake application is still running.
 
-The 3-second hold gives a slow runner time for the deadline to expire after
-the server accepts the first Connect and for the second Connect to arrive. It
+The deadline and the hold leave room on both sides. A slow runner has about a
+second for the server to accept the first Connect before the deadline expires,
+and the second Connect then has about 2 seconds before the hold ends. The hold
 stays well inside the server's 10-second `StartupTimeout`, which bounds an
 accepted Connect, and its 5-second heartbeat timeout.
 
