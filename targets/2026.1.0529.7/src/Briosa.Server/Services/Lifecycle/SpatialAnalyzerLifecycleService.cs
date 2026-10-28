@@ -4,11 +4,15 @@ using Grpc.Core;
 namespace Briosa.Server.Services;
 
 internal sealed class SpatialAnalyzerLifecycleService(
-    SpatialAnalyzerLifecycleCoordinator coordinator, LifecycleAuditLogger? auditLogger = null)
+    SpatialAnalyzerLifecycleCoordinator coordinator,
+    LifecycleAuditLogger? auditLogger = null,
+    TimeProvider? timeProvider = null)
     : global::Briosa.SpatialAnalyzerLifecycle.SpatialAnalyzerLifecycleBase
 {
     private const string ErrorMetadataKey =
         "briosa-spatial-analyzer-lifecycle-error-bin";
+
+    private readonly TimeProvider _timeProvider = timeProvider ?? TimeProvider.System;
 
     public override async Task<global::Briosa.GetSpatialAnalyzerStateResponse>
         GetSpatialAnalyzerState(
@@ -26,6 +30,7 @@ internal sealed class SpatialAnalyzerLifecycleService(
             ServerCallContext context) =>
         Execute(
             nameof(LaunchSpatialAnalyzer),
+            context,
             () => coordinator.LaunchAsync(request, context.CancellationToken),
             state => new global::Briosa.LaunchSpatialAnalyzerResponse { State = state });
 
@@ -35,6 +40,7 @@ internal sealed class SpatialAnalyzerLifecycleService(
             ServerCallContext context) =>
         Execute(
             nameof(CloseOwnedSpatialAnalyzer),
+            context,
             () => coordinator.CloseOwnedAsync(
                 request.ExpectedApplicationGeneration,
                 context.CancellationToken),
@@ -42,6 +48,7 @@ internal sealed class SpatialAnalyzerLifecycleService(
 
     private async Task<TResponse> Execute<TResponse>(
         string rpc,
+        ServerCallContext context,
         Func<Task<global::Briosa.SpatialAnalyzerLifecycleState>> action,
         Func<global::Briosa.SpatialAnalyzerLifecycleState, TResponse> responseFactory)
     {
@@ -49,8 +56,13 @@ internal sealed class SpatialAnalyzerLifecycleService(
         {
             return responseFactory(await action().ConfigureAwait(false));
         }
-        catch (SpatialAnalyzerLifecycleException exception)
+        catch (SpatialAnalyzerLifecycleException caught)
         {
+            // The coordinator only sees a cancelled token; the call's deadline tells a
+            // caller that cancelled from one whose deadline passed.
+            var exception = CallerDeadline.HasPassed(context.Deadline, _timeProvider)
+                ? caught.AsCallerDeadlineExceeded()
+                : caught;
             auditLogger?.Rejected(rpc, exception.StatusCode, exception.Detail.DiagnosticCode);
             exception.Detail.Rpc = rpc;
             var metadata = new Metadata

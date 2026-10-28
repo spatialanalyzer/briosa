@@ -178,6 +178,13 @@ internal static class FakeSpatialAnalyzerApplication
 
 internal static class SmokeWorkerProgram
 {
+    // delay-first-connect holds the first ConnectEx reply this long after the server
+    // accepted the Connect (#305). Within the hold, a 1 s caller deadline expires and
+    // a second Connect arrives, with headroom for a slow runner (#302). The hold stays
+    // well inside the server's 10 s StartupTimeout, which bounds an accepted ConnectEx,
+    // and its 5 s heartbeat timeout.
+    private static readonly TimeSpan FirstConnectHold = TimeSpan.FromSeconds(3);
+
     public static int Run(string[] arguments)
     {
         var options = SmokeWorkerOptions.Parse(arguments);
@@ -210,6 +217,7 @@ internal static class SmokeWorkerProgram
                 Environment.ProcessId,
                 connection));
             var executionCount = 0;
+            var connectCount = 0;
 
             while (true)
             {
@@ -232,6 +240,13 @@ internal static class SmokeWorkerProgram
                             connection));
                         break;
                     case WorkerControlMessageKind.Connect:
+                        connectCount++;
+                        if (options.Scenario == SmokeWorkerScenario.DelayFirstConnect &&
+                            connectCount == 1)
+                        {
+                            Thread.Sleep(FirstConnectHold);
+                        }
+
                         connection = ConnectionSnapshot(
                             options.Scenario,
                             WorkerExecutionReadinessState.Unverified);
@@ -336,11 +351,14 @@ internal static class SmokeWorkerProgram
         }
 
         var mpSucceeded = options.Scenario != SmokeWorkerScenario.MpFailure;
-        var outputFailure = options.Scenario == SmokeWorkerScenario.OutputFailure;
-        // The first execution returns MP code 4 (PARTIAL SUCCESS) with its outputs;
-        // later executions return code 2, so the reported state is per call.
+        // mp-partial-success: the first execution returns MP code 4 (PARTIAL SUCCESS)
+        // with its outputs and the second code 2, so the reported state is per call.
+        // The third returns code 4 without its outputs, so the code arrives inside a
+        // typed output failure. Later executions return code 2.
         var partialSuccess = options.Scenario == SmokeWorkerScenario.MpPartialSuccess &&
-            executionCount == 1;
+            executionCount is 1 or 3;
+        var outputFailure = options.Scenario == SmokeWorkerScenario.OutputFailure ||
+            (options.Scenario == SmokeWorkerScenario.MpPartialSuccess && executionCount == 3);
         var diagnosticCode = !mpSucceeded
             ? "scripted-mp-failure"
             : outputFailure
@@ -458,6 +476,7 @@ internal static class SmokeWorkerProgram
         SdkCallFaulted,
         MpPartialSuccess,
         DelayFirstExecute,
+        DelayFirstConnect,
         HangFirstExecute
     }
 
@@ -488,6 +507,7 @@ internal static class SmokeWorkerProgram
                 "sdk-call-faulted" => SmokeWorkerScenario.SdkCallFaulted,
                 "mp-partial-success" => SmokeWorkerScenario.MpPartialSuccess,
                 "delay-first-execute" => SmokeWorkerScenario.DelayFirstExecute,
+                "delay-first-connect" => SmokeWorkerScenario.DelayFirstConnect,
                 "hang-first-execute" => SmokeWorkerScenario.HangFirstExecute,
                 _ => throw new ArgumentOutOfRangeException(
                     nameof(arguments),

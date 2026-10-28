@@ -411,9 +411,10 @@ $scenarios = @(
             ReadyForMp = $true
             GrpcStatus = "OK"
             OperationSucceeded = $true
-            TypedErrorObserved = $false
+            # The third call's code 4 arrives inside a typed output failure.
+            TypedErrorObserved = $true
             RecoverySucceeded = $false
-            FailureKinds = @()
+            FailureKinds = @("OutputRetrievalFailure")
         }
     },
     [pscustomobject]@{
@@ -442,6 +443,24 @@ $scenarios = @(
             TypedErrorObserved = $false
             RecoverySucceeded = $true
             FailureKinds = @()
+        }
+    },
+    [pscustomobject]@{
+        # The client starts the SDK and connects itself (#305), so the server is
+        # not yet ready when it first reads ServerInfo. Its Connect deadline ends
+        # while the fake worker holds the first ConnectEx reply; the typed error is
+        # the concurrent Connect's transition-in-progress conflict.
+        Worker = "delay-first-connect"
+        Client = "lifecycle-cancellation"
+        Watchdog = $null
+        DenyOperation = $false
+        Expected = [pscustomobject]@{
+            ReadyForMp = $false
+            GrpcStatus = "DEADLINE_EXCEEDED"
+            OperationSucceeded = $false
+            TypedErrorObserved = $true
+            RecoverySucceeded = $true
+            FailureKinds = @("StateConflict")
         }
     },
     [pscustomobject]@{
@@ -572,11 +591,12 @@ try {
             }
             $timing.listen = $stopwatch.ElapsedMilliseconds
 
-            $lifecycleScenario = if ($scenario.Worker -eq "disconnected") {
-                "start-sdk"
-            }
-            else {
-                "external-connect"
+            $lifecycleScenario = switch ($scenario.Worker) {
+                "disconnected" { "start-sdk" }
+                # The client drives Start and Connect itself; setup only confirms
+                # that the SDK has not started.
+                "delay-first-connect" { "inert" }
+                default { "external-connect" }
             }
             $lifecycleArguments = @(
                 $lifecycleClientDll,
@@ -616,6 +636,14 @@ try {
                 throw "The client did not report success."
             }
 
+            # A timing-sensitive scenario reports its own steps, so each run shows
+            # its remaining headroom.
+            if ($null -ne $report.timing_milliseconds) {
+                foreach ($step in $report.timing_milliseconds.PSObject.Properties) {
+                    $timing["client_$($step.Name)"] = $step.Value
+                }
+            }
+
             if ($report.ready_for_mp -ne $scenario.Expected.ReadyForMp -or
                 $report.grpc_status -ne $scenario.Expected.GrpcStatus -or
                 $report.operation_succeeded -ne $scenario.Expected.OperationSucceeded -or
@@ -630,6 +658,12 @@ try {
                 ($expectedFailureKinds.Count -gt 0 -and
                     $report.failure_kind -notin $expectedFailureKinds)) {
                 throw "The client failure kind does not match scenario '$($scenario.Client)'."
+            }
+
+            # As in the conformance runner, the client must leave the externally
+            # owned fake application running.
+            if ($fakeApplication.HasExited) {
+                throw "The client terminated the externally owned fake application in scenario '$($scenario.Client)'."
             }
         }
         catch {
@@ -665,8 +699,11 @@ try {
             throw $scenarioFailure
         }
 
-        Write-Host ("Passed client scenario: {0} (lifecycle {1} ms, client {2} ms)" -f
-            $scenario.Client, $timing.lifecycle, $timing.client)
+        $clientSteps = @($timing.Keys | Where-Object { $_ -like "client_*" } |
+                ForEach-Object { "{0} {1} ms" -f $_.Substring(7), $timing[$_] })
+        Write-Host ("Passed client scenario: {0} (lifecycle {1} ms, client {2} ms{3})" -f
+            $scenario.Client, $timing.lifecycle, $timing.client,
+            $(if ($clientSteps.Count -gt 0) { "; " + ($clientSteps -join ", ") } else { "" }))
     }
 
     Write-Host "All packaged client scenarios passed without SpatialAnalyzer."

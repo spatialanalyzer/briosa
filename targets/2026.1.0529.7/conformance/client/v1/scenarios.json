@@ -128,6 +128,18 @@
       "exercise": "caller-interruption"
     },
     {
+      "id": "lifecycle-cancellation",
+      "minimum_contract_major": 3,
+      "startup_mode": "control-plane-only",
+      "worker_scenario": "delay-first-connect",
+      "start_external_application": true,
+      "activated_sdk_version": "2026.1.0529.7",
+      "connected_sa_version": "2026.1.0529.7",
+      "deny_get_working_directory": false,
+      "watchdog_timeout": null,
+      "exercise": "caller-interruption"
+    },
+    {
       "id": "watchdog-recovery",
       "startup_mode": "default",
       "worker_scenario": "hang-first-execute",

@@ -220,6 +220,14 @@ way: once shutdown closes admission, each request still queued is resolved
 exactly once, either by its caller's abandonment or as `Unavailable` with
 `NotStarted`, and none is dispatched.
 
+A caller that cancelled receives failure kind `CallerCancelled` with gRPC
+`Cancelled`. A caller whose gRPC deadline had passed when the server reported the
+interruption receives `CallerDeadlineExceeded` with `DeadlineExceeded`. A
+cancellation token does not say why it was cancelled, so the server compares the
+call's deadline with the current time. Lifecycle requests use the same rule and
+the two caller kinds of their own failure enums (see
+[runtime boundary](runtime-boundary-and-lifecycle.md#execution-channel-verification)).
+
 The independent execution watchdog protects worker availability. Its budget is
 chosen on the server from the request's effective duration class (`quick`,
 `long_running`, or `interactive`): the operation's reviewed class, escalated to

@@ -1,8 +1,6 @@
 # Operation retirement
 
-Status: on `main` for contract major 3, which is not released yet. The
-compatibility contract stays at major 2 until the major-3 freeze pull request
-bumps it. Decided by D2 point 5 on
+Status: at contract major 3, which is not released yet. Decided by D2 point 5 on
 [#243](https://github.com/spatialanalyzer/briosa/issues/243#issuecomment-6107759671)
 and on [#308](https://github.com/spatialanalyzer/briosa/issues/308#issuecomment-6109883364)
 and [#310](https://github.com/spatialanalyzer/briosa/issues/310#issuecomment-6109883530),

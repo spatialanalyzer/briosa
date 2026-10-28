@@ -165,7 +165,8 @@ At compatibility major 3, every first-party client:
    never folded into `Succeeded` or an unknown state. Code `4` from an
    operation on the server's exception list arrives as an ordinary `MpFailure`
    with code `4`.
-4. Passes the `mp-partial-success` conformance scenario.
+4. Passes the `mp-partial-success` conformance scenario. Its third call checks
+   item 3.
 5. Documents that a partial success did its work, where to read the
    indication, and the exception list.
 
@@ -235,10 +236,29 @@ abandoned may still produce a running or ready generation. The client refreshes
 SDK state before deciding what to do next. It treats
 `sdk-lifecycle-transition-in-progress` as a signal to refresh and retry later,
 and it stops a generation it owns only after the accepted transition has ended.
+Clients adopting compatibility major 3 pass the `lifecycle-cancellation`
+conformance scenario, which checks this sequence for Connect.
 `LaunchSpatialAnalyzer` follows the same rule: after acceptance the server keeps
 waiting for the application window under its own bound, and the client refreshes
 application state before it launches again.
 Client startup budgets do not shorten the server's lifecycle bounds.
+
+From compatibility major 3, a lifecycle failure detail reports the caller's own
+interruption with dedicated caller kinds. Both lifecycle failure enums carry
+them: values 19 and 20 of `SpatialAnalyzerSdkLifecycleFailureKind`, and 10 and
+11 of `SpatialAnalyzerLifecycleFailureKind`.
+- When the caller cancelled, the detail has `CALLER_CANCELLED` with `CANCELLED`.
+- When the caller's gRPC deadline had passed, it has `CALLER_DEADLINE_EXCEEDED`
+  with `DEADLINE_EXCEEDED`.
+
+A remote caller rarely receives this detail, because gRPC delivers no response
+after a cancellation or a deadline. Clients adopting compatibility major 3
+expose both values as distinct kinds. They surface them the way they surface
+the operation caller kinds: as the language-native cancellation or deadline
+outcome. They never report them as a state conflict and never retry
+automatically. The diagnostic code still tells the client whether to refresh
+state: `*-request-withdrawn` changed nothing, and `*-caller-stopped-waiting`
+continues detached.
 
 The default startup procedure runs within one overall client startup budget,
 whatever phases it selects. Every first-party client defaults it to 120 seconds,
@@ -465,8 +485,10 @@ gRPC server over deterministic fake-worker scenarios for:
   capability classification, and denial reasons;
 - typed operation failures, including SDK call faults once clients adopt
   compatibility major 3;
-- partial success (MP code `4`) once clients adopt compatibility major 3;
-- deadlines and cancellation;
+- partial success (MP code `4`), also inside a typed failure, once clients
+  adopt compatibility major 3;
+- deadlines and cancellation, and from compatibility major 3 a lifecycle
+  Connect whose caller stopped waiting after the server accepted it;
 - disconnection, worker crash, and watchdog replacement;
 - completion ambiguity, replay guidance, and recovery; and
 - shutdown and partial-startup cleanup.
