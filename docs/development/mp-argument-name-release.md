@@ -13,7 +13,7 @@ This completes the portable release validation for [Task #217](https://github.co
 
 Each client imports the published target-specific 0.8.0 protocol with `github_release` provenance. Both target packages were downloaded from each actual registry and installed into isolated consumers. Each new client package passes all 12 fake-SDK scenarios against released Servers 0.6.1, 0.7.0, and 0.8.0, including a call through a renamed MP input. The six retained client 0.2.0 packages also pass against 0.8.0 in the server release gate. Their conformance artifact hashes match the published release bundles.
 
-The [compatibility matrix](../../compatibility/matrix.json) now records 36 released-package pairs with 432 passing scenario runs, plus the original 24 development-candidate pairs. Candidate reports retain their original sources, hashes, and unpublished package status. The [retained inventory](../../compatibility/retained-clients.json) contains all twelve client 0.2.0 and 0.3.0 products so future server releases test both generations.
+The [compatibility matrix](../../compatibility/matrix.json) now records 36 released-package pairs with 432 passing scenario runs, plus the original 24 development-candidate pairs. Candidate reports retain their original sources, hashes, and unpublished package status. The [retained inventory](../../compatibility/retained-clients.json) contained all twelve client 0.2.0 and 0.3.0 products so future server releases would test both generations. For contract major 3 they moved to `retiredClients` (#250). Their evidence stays verifiable, but the gate no longer runs them.
 
 ## Installer, Catalog, Documentation, and Examples
 
