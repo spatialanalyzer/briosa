@@ -128,8 +128,8 @@ cancellation and the acceptance wins:
 
 - **Before acceptance**, including while the request still waits for the
   supervisor's internal gates, cancellation withdraws the request.
-  Nothing is launched, sent, or changed. The caller receives `CANCELLED` with
-  diagnostic `sdk-lifecycle-request-withdrawn` and recovery guidance `NONE`.
+  Nothing is launched, sent, or changed. The caller receives diagnostic
+  `sdk-lifecycle-request-withdrawn` and recovery guidance `NONE`.
 - **After acceptance**, the exchange no longer observes the caller's token. Worker
   launch, COM activation, and the Ready message finish under
   `Briosa:Worker:StartupTimeout`; `ConnectEx` under the same startup bound; the
@@ -150,7 +150,7 @@ cancellation and the acceptance wins:
   itself: an exited worker, or a heartbeat that fell due during the lookup and
   fails, retires the generation with the heartbeat's diagnostic (for example
   `worker-exited`), and Connect fails instead of reporting readiness. A caller
-  that stops waiting receives `CANCELLED` with diagnostic
+  that stops waiting receives diagnostic
   `sdk-lifecycle-caller-stopped-waiting`, the state at that moment, and recovery
   guidance `REFRESH_STATE`. The exchange holds the lifecycle transition until it
   finishes, so a concurrent lifecycle request gets
@@ -169,12 +169,22 @@ limits; cancellation before Stop is accepted withdraws it the same way. Server
 shutdown waits for an accepted exchange to reach its own outcome before stopping
 the generation (see [server shutdown](#server-shutdown)).
 
+The withdrawn and the stopped-waiting details both report the caller's
+interruption as MP calls do (see
+[execution outcomes](execution-outcomes-and-recovery.md#cancellation-watchdogs-and-replacement)).
+A caller that cancelled receives `CANCELLED` with failure kind `CALLER_CANCELLED`.
+A caller whose gRPC deadline had passed receives `DEADLINE_EXCEEDED` with
+`CALLER_DEADLINE_EXCEEDED`. A cancellation token does not say why it was
+cancelled, so the gRPC service compares the call's deadline with the current
+time, by the same rule as for MP calls. An in-process caller such as Control
+Center has no gRPC deadline and receives `CALLER_CANCELLED`. The diagnostic code
+still says whether the request was withdrawn, which changed nothing, or
+continues detached, which calls for a state refresh.
+
 gRPC does not deliver a response to a caller that cancelled or exceeded its
 deadline, so remote callers observe only the transport status. The typed
-lifecycle detail and its audit record (`LifecycleRejected`) serve in-process
-callers and operators. No lifecycle failure kind is specific to caller
-cancellation; the detail carries the `STATE_CONFLICT` kind and the diagnostic code
-distinguishes the two cases.
+lifecycle detail and its audit record (`LifecycleRejected`, with the same gRPC
+status) serve in-process callers and operators.
 
 Public readiness requires all of the following:
 
@@ -198,11 +208,11 @@ the operating-system identity.
 A launch follows the same acceptance rule as the SDK exchanges. It is accepted
 after its state, SDK, input, and installation checks, immediately before the
 server starts the process. Cancellation before acceptance withdraws it: nothing
-starts, and the caller receives `CANCELLED` with diagnostic
+starts, and the caller receives diagnostic
 `application-lifecycle-request-withdrawn` and recovery guidance `NONE`. After
 acceptance the server waits for the application's main window under
 `Briosa:SpatialAnalyzer:ApplicationStartupTimeout` whether or not the caller is
-still waiting. A caller that stops waiting receives `CANCELLED` with diagnostic
+still waiting. A caller that stops waiting receives diagnostic
 `application-lifecycle-caller-stopped-waiting`, the state at that moment, and
 recovery guidance `REFRESH_STATE`. The launch holds the application lifecycle
 until it ends, so a concurrent launch or close gets
@@ -210,7 +220,9 @@ until it ends, so a concurrent launch or close gets
 waits for it. When the window appears, the launch records `RUNNING`. If the bound
 expires first, the launched process keeps running and stays `STARTING` until a
 later observation sees its window or its exit; the server does not close it. As
-for the SDK lifecycle, both details carry the `STATE_CONFLICT` kind.
+for the SDK lifecycle, both details carry `CANCELLED` with `CALLER_CANCELLED`, or
+`DEADLINE_EXCEEDED` with `CALLER_DEADLINE_EXCEEDED` when the caller's gRPC
+deadline had passed.
 
 An exact-target application observed by executable path but not launched by the
 current server is `External`. Multiple eligible applications are `Ambiguous`.
