@@ -240,6 +240,24 @@ waiting for the application window under its own bound, and the client refreshes
 application state before it launches again.
 Client startup budgets do not shorten the server's lifecycle bounds.
 
+From compatibility major 3, a lifecycle failure detail reports the caller's own
+interruption with dedicated caller kinds. Both lifecycle failure enums carry
+them: values 19 and 20 of `SpatialAnalyzerSdkLifecycleFailureKind`, and 10 and
+11 of `SpatialAnalyzerLifecycleFailureKind`.
+- When the caller cancelled, the detail has `CALLER_CANCELLED` with `CANCELLED`.
+- When the caller's gRPC deadline had passed, it has `CALLER_DEADLINE_EXCEEDED`
+  with `DEADLINE_EXCEEDED`.
+
+A remote caller rarely receives this detail, because gRPC delivers no response
+after a cancellation or a deadline. Clients adopting compatibility major 3
+expose both values as distinct kinds. They surface them the way they surface
+the operation caller kinds: as the language-native cancellation or deadline
+outcome. They never report them as a state conflict and never retry
+automatically. The diagnostic code still tells the client whether to refresh
+state: `*-request-withdrawn` changed nothing, and `*-caller-stopped-waiting`
+continues detached. The `lifecycle-cancellation` conformance scenario
+exercises this sequence from compatibility major 3.
+
 The default startup procedure runs within one overall client startup budget,
 whatever phases it selects. Every first-party client defaults it to 120 seconds,
 and its expiry is the client's startup timeout error. The clients apply no
