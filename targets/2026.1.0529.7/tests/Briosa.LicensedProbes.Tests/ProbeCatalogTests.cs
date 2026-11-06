@@ -12,7 +12,8 @@ public sealed class ProbeCatalogTests
             .Distinct(StringComparer.Ordinal)
             .Order(StringComparer.Ordinal);
 
-        Assert.Equal(ProbeCatalog.ActiveProbeNumbers.Order(StringComparer.Ordinal), covered);
+        // The default plans leave out the opt-in probes, which run only when --probe names them.
+        Assert.Equal(ProbeCatalog.ActiveProbeNumbers.Except(ProbeCatalog.OptInProbeNumbers).Order(StringComparer.Ordinal), covered);
     }
 
     [Fact]

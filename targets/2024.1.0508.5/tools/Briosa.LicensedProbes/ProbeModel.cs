@@ -1,5 +1,8 @@
+using System.Globalization;
+using Briosa.Server.Workers;
 using Briosa.Worker.Control;
 using Google.Protobuf;
+using Api = global::Briosa;
 
 namespace Briosa.LicensedProbes;
 
@@ -119,8 +122,42 @@ internal enum OperatorCheckpoint
     After = 2
 }
 
-/// <summary>A labelled interpretation of one structural observation.</summary>
+/// <summary>
+/// A labelled interpretation of one structural observation, or of one outcome field
+/// named with the <c>outcome.</c> prefix (see <see cref="ProbeOutcome.Fact"/>).
+/// </summary>
 internal sealed record ProbeHypothesis(string Label, string ObservationKey, string ExpectedValue);
+
+/// <summary>
+/// The stall a stall step is planned to end in (#313): a SpatialAnalyzer dialog blocks
+/// the MP until a watchdog ends the step. Only a completion-unknown outcome with these
+/// values matches. A null field is not compared.
+/// </summary>
+internal sealed record StallExpectation(string Transport, string DiagnosticCode, string? FailureKind, string? RecoveryGuidance)
+{
+    // The diagnostic the server reports for a stall while a SpatialAnalyzer dialog is open.
+    public const string ModalDialogDiagnosticCode = WorkerProcessSupervisor.ModalDialogDiagnosticCode;
+
+    // The server's watchdog ends the exchange and reports the open dialog (PR #355).
+    public static StallExpectation ServerReportsModalDialog { get; } = new(
+        "grpc:" + Grpc.Core.StatusCode.Unavailable, ModalDialogDiagnosticCode,
+        Api.OperationFailureKind.WorkerWatchdogTimeout.ToString(), Api.RecoveryGuidance.OperatorInterventionRequired.ToString());
+
+    // The worker phase has no server: the harness's own step deadline ends the step and
+    // the server's detector, run by the harness, reports the open dialog.
+    public static StallExpectation HarnessReportsModalDialog { get; } = new(
+        WorkerTransport.TimeoutTransport, ModalDialogDiagnosticCode, null, null);
+
+    public bool Matches(ProbeOutcome outcome)
+    {
+        ArgumentNullException.ThrowIfNull(outcome);
+        return outcome is { Kind: ProbeOutcomeKind.Indeterminate, CompletionUnknown: true } &&
+            string.Equals(outcome.Transport, Transport, StringComparison.Ordinal) &&
+            string.Equals(outcome.DiagnosticCode, DiagnosticCode, StringComparison.Ordinal) &&
+            (FailureKind is null || string.Equals(outcome.FailureKind, FailureKind, StringComparison.Ordinal)) &&
+            (RecoveryGuidance is null || string.Equals(outcome.RecoveryGuidance, RecoveryGuidance, StringComparison.Ordinal));
+    }
+}
 
 /// <summary>A cross-step requirement such as "the collection count increased by one".</summary>
 internal sealed record ProbeRequirement(
@@ -151,6 +188,14 @@ internal sealed record ProbeStep(
 
     // Replaces the session's step or operator timeout as this step's client deadline.
     public TimeSpan? ClientTimeout { get; init; }
+
+    // A stall step (#313) accepts no determinate outcome: it is planned to end the run
+    // in this stall, and nothing is ever sent after it.
+    public StallExpectation? ExpectedStall { get; init; }
+
+    // The server setting Briosa:SpatialAnalyzer:InteractionMode this step needs (probe
+    // 29). Null when the step relies on the default, Unchanged.
+    public Api.SaInteractionMode? ServerInteractionMode { get; init; }
 
     public IReadOnlyList<ProbeHypothesis> Hypotheses { get; init; } = [];
 
@@ -185,9 +230,38 @@ internal sealed record ProbeOutcome(
 {
     public const string StartedOutcomeUnknown = "StartedOutcomeUnknown";
 
+    // The prefix of hypothesis keys that name an outcome field rather than an observation.
+    public const string FactPrefix = "outcome.";
+
     /// <summary>The call may have started and its completion is unknown, by kind or by reported disposition.</summary>
     public bool CompletionUnknown =>
         Kind.IsCompletionUnknown() || string.Equals(ExecutionDisposition, StartedOutcomeUnknown, StringComparison.Ordinal);
+
+    // The public error's recovery guidance (for example OperatorInterventionRequired). Null in the worker phase.
+    public string? RecoveryGuidance { get; init; }
+
+    // The public result's typed MP execution state (for example PartialSuccess, #351). Null in the worker phase.
+    public string? ExecutionState { get; init; }
+
+    /// <summary>
+    /// One outcome field by its <c>outcome.</c> name, or else one observation, for
+    /// hypotheses. Null when the outcome has no such value.
+    /// </summary>
+    public string? Fact(string key)
+    {
+        ArgumentNullException.ThrowIfNull(key);
+        return key switch
+        {
+            FactPrefix + "kind" => Kind.ToString(),
+            FactPrefix + "mp_result_code" => MpResultCode?.ToString(CultureInfo.InvariantCulture),
+            FactPrefix + "execution_state" => ExecutionState,
+            FactPrefix + "diagnostic_code" => DiagnosticCode,
+            FactPrefix + "failure_kind" => FailureKind,
+            FactPrefix + "recovery_guidance" => RecoveryGuidance,
+            _ when key.StartsWith(FactPrefix, StringComparison.Ordinal) => null,
+            _ => Observations.TryGetValue(key, out var value) ? value : null
+        };
+    }
 
     public static ProbeOutcome Refused(string diagnosticCode) =>
         new(ProbeOutcomeKind.RefusedByHarness, "harness", null, null, null, [],
