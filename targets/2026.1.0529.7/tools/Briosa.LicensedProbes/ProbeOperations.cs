@@ -247,6 +247,14 @@ internal static class ProbeOperations
             static result => result.Execution,
             (_, result) => Selection(result.ResultantCollectionInstrumentRefList, isRequested));
 
+    public static ProbeOperation CollectionInstrumentIdRuntimeSelect(Func<Api.CollectionInstrumentId, bool> isRequested) =>
+        Op<Api.MakeCollectionInstrumentIdRuntimeSelectRequest, Api.MakeCollectionInstrumentIdRuntimeSelectResult>(
+            Ops.ConstructionOperations.MakeCollectionInstrumentIdRuntimeSelectOperation.Descriptor,
+            Ops.ConstructionOperations.MakeCollectionInstrumentIdRuntimeSelectOperation.CreateCommand,
+            static (invoker, request, options) => Construction(invoker).MakeCollectionInstrumentIdRuntimeSelectAsync(request, options),
+            static result => result.Execution,
+            (_, result) => Selection<Api.CollectionInstrumentId>(result.InstrumentId is { } instrument ? [instrument] : [], isRequested));
+
     public static ProbeOperation PointNameRuntimeSelect(Func<Api.PointName, bool> isRequested) =>
         Op<Api.MakePointNameRuntimeSelectRequest, Api.MakePointNameRuntimeSelectResult>(
             Ops.ConstructionOperations.MakePointNameRuntimeSelectOperation.Descriptor,

@@ -7,7 +7,8 @@ answer. It is not broad validation of the operation surface.
 
 The maintainer approved the probe list on 2026-10-03, and the second session's
 changes (probes 24 and 25, and the re-runs of probes 2, 11, 17, and 22) on
-2026-10-19. Probes 26 to 32 prepare the third session: the `sa-modal-dialog-open`
+2026-10-19. Probes 26 to 32 prepare the third session, which does not run probe 28:
+the `sa-modal-dialog-open`
 report and the `InteractionMode` setting
 ([#313](https://github.com/spatialanalyzer/briosa/issues/313)), a sample of the
 runtime-select getters ([#350](https://github.com/spatialanalyzer/briosa/issues/350)),
@@ -68,9 +69,9 @@ exactly as it will be sent, using labels only and never values.
 | 24 | R0 and R0a: does the radial delete accept the `Cloud Names` reference list that the deleted X Y Z range operation sent ([#307](https://github.com/spatialanalyzer/briosa/issues/307), [#310](https://github.com/spatialanalyzer/briosa/issues/310))? | public; destructive on disposable clouds only | `c24-*`, `p24-r0`, `p24-r0a` |
 | 25 | Does SA Interaction Mode Silent suppress the observed blocking dialogs, and do prompts still work under it ([#313](https://github.com/spatialanalyzer/briosa/issues/313))? | public: zero-match wildcard, missing template chart, Ask for String. Worker: blank High and Low plane names. | `p25-*`, `c25-*`; see [Probe 25](#probe-25-interaction-mode) |
 | 26, 27 | With the setting `Unchanged` and SA in Manual, does the server report `sa-modal-dialog-open` when a dialog blocks an MP until its watchdog fires (#313)? 26: zero-match wildcard. 27: template chart that matches no chart. | public; opt-in; each ends its run in a planned stall | `p26-*`, `p27-*`; see [Probes 26 to 29](#probes-26-to-29-modal-dialogs-and-the-interactionmode-setting) |
-| 28 | Does the server's detector see the blank High plane name dialog (#313)? The public API rejects a blank name, so the server cannot send it. | worker; opt-in; ends its run in a planned stall | `p28-*` |
+| 28 | Does the server's detector see the blank High plane name dialog (#313)? The public API rejects a blank name, so the server cannot send it. | worker; opt-in; ends its run in a planned stall; not part of the third session | `p28-*` |
 | 29 | Does the server setting `InteractionMode=Silent` apply Silent after Connect, so that the public triggers fail at once (#313)? | public; opt-in; runs alone on a server started with the setting | `c29-*`, `p29-*` |
-| 30 | Do the runtime-select getters return the operator's selection ([#350](https://github.com/spatialanalyzer/briosa/issues/350), [#312](https://github.com/spatialanalyzer/briosa/issues/312))? A sample: one operation per list getter kind and two single-value getters. | public; the operator selects | `p30-*`; see [Probe 30](#probe-30-runtime-select-sample) |
+| 30 | Do the runtime-select getters return the operator's selection ([#350](https://github.com/spatialanalyzer/briosa/issues/350), [#312](https://github.com/spatialanalyzer/briosa/issues/312))? A sample: one operation per list getter kind and three single-value getters. | public; the operator selects | `p30-*`; see [Probe 30](#probe-30-runtime-select-sample) |
 | 31 | Do Fit Geometry to Points and Fit Geometry to Point Group Projected to Plane accept the omitted seed ([#311](https://github.com/spatialanalyzer/briosa/issues/311))? | public (the API omits the setter when the seed is absent) | `p31-*`, `c31-*` |
 | 32 | Is MP code 4 reported end to end as a typed partial success ([#351](https://github.com/spatialanalyzer/briosa/issues/351))? | public | `p32-partial`, `c32-partial` |
 
@@ -326,7 +327,7 @@ modal dialog, the server reports that diagnostic instead of the generic timeout
 code (see the
 [Windows package guide](../operations/windows-package.md#spatialanalyzer-interaction-mode)).
 These probes check both against the dialogs that licensed sessions 1 and 2
-observed. All four are opt-in.
+observed. All four are opt-in, and the third session runs 26, 27, and 29.
 
 | Probe | Run | Steps | Expected |
 | --- | --- | --- | --- |
@@ -349,12 +350,16 @@ observed. All four are opt-in.
   dismissed.
 - **Every other dialog** in the same run, for example a zero-match dialog from a
   count check, must still be dismissed promptly, before the quick budget ends.
-- **Why probe 28 runs in the worker phase.** The public API rejects a blank plane
-  name before dispatch, so a server can never send it. The worker phase has no
-  server. When a worker step's deadline elapses, the harness checks for a dialog
-  with the server's own detector (`SpatialAnalyzerModalDialogProbe`) before it ends
-  its worker, as the server's watchdog does. Probe 28 therefore checks the shipped
-  detection rule against the third dialog, but not the server's reporting path.
+- **Why probe 28 runs in the worker phase, and not in the third session.** The
+  public API rejects a blank plane name before dispatch, so a server can never send
+  it. The worker phase has no server. When a worker step's deadline elapses, the
+  harness checks for a dialog with the server's own detector
+  (`SpatialAnalyzerModalDialogProbe`) before it ends its worker, as the server's
+  watchdog does. Probe 28 therefore checks the shipped detection rule against the
+  third dialog, but not the server's reporting path. No caller can reach that
+  dialog, and licensed session 2 already showed that Silent suppresses both
+  blank-plane dialogs, so the third session leaves probe 28 out. It stays opt-in, and
+  the evidence records it as unrun.
 - **Probe 29's server setting.** Start the server with the setting that the dry
   run prints (`--Briosa:SpatialAnalyzer:InteractionMode=Silent`). For every other
   public plan, the dry run prints `Unchanged`. The setting persists the mode in SA.
@@ -368,7 +373,7 @@ observed. All four are opt-in.
 [#350](https://github.com/spatialanalyzer/briosa/issues/350) removed the vector
 group runtime select, because its getter returned nothing after a completed
 selection. The other 22 runtime-select operations per target stay until a sample
-of their getters is observed. Probe 30 covers every list getter kind, and two
+of their getters is observed. Probe 30 covers every list getter kind, and three
 single-value getters:
 
 | Step | Getter | Value kind | Operator selects |
@@ -377,7 +382,8 @@ single-value getters:
 | `p30-object-list` | `GetCollectionObjectNameRefListArg` | collection object name list (Object Type Plane) | `B277::PA` |
 | `p30-relationship-list` | `GetCollectionObjectNameRefListArg` | collection item name list | `B277::R1` |
 | `p30-vector-list` | `GetVectorNameRefListArg` | vector name list | one vector of `B277::VG1` |
-| `p30-instrument-list` | `GetColInstIdRefListArg` | collection instrument list | one USMN fixture instrument |
+| `p30-instrument-list` | `GetColInstIdRefListArg` | collection instrument list | the first USMN fixture instrument |
+| `p30-instrument` | `GetColInstIdArg` | collection instrument | the first USMN fixture instrument |
 | `p30-point` | `GetPointNameArg` | point name | `B277::G1::P1` |
 | `p30-collection` | `GetCollectionNameArg` | collection name | `B277` |
 
@@ -387,10 +393,24 @@ of items returned and whether they are exactly the requested fixture
 (`selection_count`, `selection_is_requested`), never a name. A getter that returns
 nothing is recorded as `OutputRetrievalFailed`, as the removed operation was.
 
+The first USMN fixture instrument is the first entry of `usmn_instruments` in the
+fixture manifest. Both instrument steps select it, and `selection_is_requested` is
+true only for that instrument.
+
+Reading the results:
+- `p30-object-list` and `p30-point` use getters that earlier sessions read after
+  other MP steps: the wildcard counts, and probe 12. A failure there points at the
+  runtime select rather than at the getter.
+- The two instrument steps are controls for each other. If both fail, investigate
+  their shared selection path before either getter.
+- A retirement decision stays scoped to the RPC and exact target observed. A failed
+  step does not retire the other operations of the family, or the same operation on
+  the other target.
+
 The sample leaves out:
 - the report and picture lists, which use the relationship list's getter and value
   kind and need fixtures this job does not have;
-- the object-name and instrument-ID single getters;
+- the object-name single getter, which probe 13 read after Ensure Unique;
 - the cloud-point select, which needs a pick in the graphics view;
 - the eight surface-face constructors and the surface-face list, which need CAD
   surfaces. The constructors have no getter.
@@ -594,21 +614,38 @@ manifest error, and nothing started.
 
 ### Third session: runs
 
-The third session runs only probes 26 to 32, in four runs per target. Each run
-starts as step 1 of its phase describes, from a clean SA with the fixture job,
-and every run uses `--restore-sa-interaction-mode manual`. The public runs keep
-the 2-minute quick budget and `--step-timeout-seconds 150`.
+The third session runs probes 26, 27, and 29 to 32, in three public runs per
+target. Each run starts as step 1 of phase 1 describes, from a clean SA with the
+fixture job, and every run uses `--restore-sa-interaction-mode manual`, the 2-minute
+quick budget, and `--step-timeout-seconds 150`.
+
+Build the packages from the reviewed merge commit with the label `0.10.0-probe-s3`.
+The label also appears as the server version in the records. Record the merge SHA
+and the SHA-256 of both targets' packages in the evidence. The probe build still
+declares compatibility 2.0 on both targets; the major-3 freeze raises it to 3.0
+separately.
 
 | Run | Phase | Selection | Server setting from the dry run | Ends with |
 | --- | --- | --- | --- | --- |
 | A | public | `--probe 30 --probe 31 --probe 32 --probe 26` | `Unchanged` | the planned stall `p26-zero-match-stall` |
 | B | public | `--probe 27` | `Unchanged` | the planned stall `p27-chart-missing-stall` |
 | C | public | `--probe 29` | `Silent` | `p29-restore` |
-| D | worker | `--probe 28` | none (no server) | the planned stall `p28-blank-high-stall` |
 
 In run C, check the server log for event 1202 with `interaction-mode-applied`
 before you run the harness. If run A stops before its stall, run probe 26 again
-alone with `--probe 26`.
+alone with `--probe 26`. The evidence records probe 28 as unrun.
+
+Before closing [#313](https://github.com/spatialanalyzer/briosa/issues/313), read
+these facts from each target's records. The harness exit code alone does not
+establish them:
+
+- **Runs A and B.** The stall step's `execution_disposition` is exactly
+  `StartedOutcomeUnknown`. The match for a planned stall compares the transport, the
+  diagnostic, the failure kind, and the recovery guidance, but not the disposition.
+- **Run C.** `c29-zero-match-setting` and `p29-chart-missing-setting` both have MP
+  code `3`, and the operator's answer after each one is `none`, so no dialog opened.
+  These steps accept other determinate outcomes too, and the MP code is a hypothesis
+  that does not stop the run.
 
 ### When a session stops
 

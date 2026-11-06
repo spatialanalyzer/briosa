@@ -361,7 +361,7 @@ public sealed class SessionThreeProbeTests
     // Probe 30: the runtime-select sample
 
     [Fact]
-    public void TheRuntimeSelectSampleCoversEveryListGetterKindAndTwoSingleGetters()
+    public void TheRuntimeSelectSampleCoversEveryListGetterKindAndThreeSingleGetters()
     {
         var plan = Select(ProbePhase.PublicApi, 30);
         var steps = plan.Steps.Where(static step => step.Probe == "30").ToList();
@@ -373,6 +373,7 @@ public sealed class SessionThreeProbeTests
                 ("p30-relationship-list", WorkerMpValueKind.CollectionItemNameList, "GetCollectionObjectNameRefListArg"),
                 ("p30-vector-list", WorkerMpValueKind.VectorNameList, "GetVectorNameRefListArg"),
                 ("p30-instrument-list", WorkerMpValueKind.CollectionInstrumentIdList, "GetColInstIdRefListArg"),
+                ("p30-instrument", WorkerMpValueKind.CollectionInstrumentId, "GetColInstIdArg"),
                 ("p30-point", WorkerMpValueKind.PointName, "GetPointNameArg"),
                 ("p30-collection", WorkerMpValueKind.CollectionName, "GetCollectionNameArg")
             ],
@@ -408,12 +409,6 @@ public sealed class SessionThreeProbeTests
         Assert.Equal(("2", "false"), Observe(Point("P1"), Point("P2")));
         Assert.Equal(("0", "false"), Observe());
 
-        var instruments = (ProbeOperation<Api.MakeCollectionInstrumentRefListRuntimeSelectRequest, Api.MakeCollectionInstrumentRefListRuntimeSelectResult>)
-            Step(plan, "p30-instrument-list").Operation;
-        var fixture = TestSupport.SentinelManifest().UsmnInstruments[1];
-        Assert.Equal("true", Instrument(fixture.Collection, fixture.InstrumentId)["selection_is_requested"]);
-        Assert.Equal("false", Instrument(fixture.Collection, 7)["selection_is_requested"]);
-
         (string Count, string Requested) Observe(params Api.PointName[] points)
         {
             var result = new Api.MakePointNameRefListRuntimeSelectResult();
@@ -425,15 +420,51 @@ public sealed class SessionThreeProbeTests
             return (observations["selection_count"], observations["selection_is_requested"]);
         }
 
-        IReadOnlyDictionary<string, string> Instrument(string collection, int id)
-        {
-            var result = new Api.MakeCollectionInstrumentRefListRuntimeSelectResult();
-            result.ResultantCollectionInstrumentRefList.Add(new Api.CollectionInstrumentId { CollectionName = collection, InstrumentId = id });
-            return instruments.ObservePublic(new Api.MakeCollectionInstrumentRefListRuntimeSelectRequest(), result);
-        }
-
         static Api.PointName Point(string target) =>
             new() { CollectionName = FixtureNames.Collection, GroupName = FixtureNames.GroupOne, TargetName = target };
+    }
+
+    // Both instrument getters read the same designated fixture, so each is a control for
+    // the other: the first USMN instrument matches, and the second USMN instrument does not.
+    [Fact]
+    public void BothInstrumentStepsAskForTheSameDesignatedInstrument()
+    {
+        var plan = Select(ProbePhase.PublicApi, 30);
+        var list = Step(plan, "p30-instrument-list");
+        var single = Step(plan, "p30-instrument");
+        var listOperation = (ProbeOperation<Api.MakeCollectionInstrumentRefListRuntimeSelectRequest, Api.MakeCollectionInstrumentRefListRuntimeSelectResult>)list.Operation;
+        var singleOperation = (ProbeOperation<Api.MakeCollectionInstrumentIdRuntimeSelectRequest, Api.MakeCollectionInstrumentIdRuntimeSelectResult>)single.Operation;
+        var fixtures = TestSupport.SentinelManifest().UsmnInstruments;
+        var prompt = Assert.IsType<Api.MakeCollectionInstrumentRefListRuntimeSelectRequest>(list.Request).UserPrompt;
+
+        Assert.Equal(prompt, Assert.IsType<Api.MakeCollectionInstrumentIdRuntimeSelectRequest>(single.Request).UserPrompt);
+        Assert.Contains("the first USMN fixture instrument", prompt, StringComparison.Ordinal);
+        Assert.Equal(("1", "true"), ListSelection(fixtures[0]));
+        Assert.Equal(("1", "false"), ListSelection(fixtures[1]));
+        Assert.Equal(("1", "true"), SingleSelection(fixtures[0]));
+        Assert.Equal(("1", "false"), SingleSelection(fixtures[1]));
+
+        var nothing = singleOperation.ObservePublic(new Api.MakeCollectionInstrumentIdRuntimeSelectRequest(),
+            new Api.MakeCollectionInstrumentIdRuntimeSelectResult());
+        Assert.Equal(("0", "false"), (nothing["selection_count"], nothing["selection_is_requested"]));
+
+        (string Count, string Requested) ListSelection(ManifestInstrument fixture)
+        {
+            var result = new Api.MakeCollectionInstrumentRefListRuntimeSelectResult();
+            result.ResultantCollectionInstrumentRefList.Add(Instrument(fixture));
+            var observations = listOperation.ObservePublic(new Api.MakeCollectionInstrumentRefListRuntimeSelectRequest(), result);
+            return (observations["selection_count"], observations["selection_is_requested"]);
+        }
+
+        (string Count, string Requested) SingleSelection(ManifestInstrument fixture)
+        {
+            var observations = singleOperation.ObservePublic(new Api.MakeCollectionInstrumentIdRuntimeSelectRequest(),
+                new Api.MakeCollectionInstrumentIdRuntimeSelectResult { InstrumentId = Instrument(fixture) });
+            return (observations["selection_count"], observations["selection_is_requested"]);
+        }
+
+        static Api.CollectionInstrumentId Instrument(ManifestInstrument fixture) =>
+            new() { CollectionName = fixture.Collection, InstrumentId = fixture.InstrumentId };
     }
 
     [Fact]

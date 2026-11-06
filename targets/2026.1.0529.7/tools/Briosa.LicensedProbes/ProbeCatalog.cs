@@ -344,9 +344,10 @@ internal static class ProbeCatalog
     }
 
     // Probe 30 (#350, #312): a sample of the 22 remaining runtime selects, one per list getter
-    // kind plus two single-value getters. Each prompt names the fixture and the gesture that
+    // kind plus three single-value getters. Each prompt names the fixture and the gesture that
     // completed probe 22's selection in licensed session 2: F2, a check in the selection
-    // tree, OK, then Enter.
+    // tree, OK, then Enter. Both instrument steps select the first USMN instrument, so that
+    // each is a control for the other's getter.
     private static void AddRuntimeSelectProbe(StepList steps, FixtureManifest manifest)
     {
         static bool InHarnessCollection(string collection) => string.Equals(collection, FixtureNames.Collection, StringComparison.Ordinal);
@@ -355,7 +356,11 @@ internal static class ProbeCatalog
         void Select(string id, string purpose, ProbeOperation operation, IMessage request) =>
             steps.Watched(steps.NewProbe(id, "30", purpose, operation, request) with { RequiresOperator = true });
 
-        var instruments = manifest.UsmnInstruments;
+        var designated = manifest.UsmnInstruments[0];
+        bool IsDesignated(Api.CollectionInstrumentId instrument) =>
+            string.Equals(designated.Collection, instrument.CollectionName, StringComparison.Ordinal) && designated.InstrumentId == instrument.InstrumentId;
+        var instrumentPrompt = RuntimeSelectPrompt("the first USMN fixture instrument");
+
         Select("p30-point-list", "Point name list runtime select (GetPointNameRefListArg); operator selects B277::G1::P1",
             ProbeOperations.PointNameRefListRuntimeSelect(IsP1),
             new Api.MakePointNameRefListRuntimeSelectRequest { UserPrompt = RuntimeSelectPrompt("point B277::G1::P1") });
@@ -375,10 +380,12 @@ internal static class ProbeCatalog
             ProbeOperations.VectorNameRefListRuntimeSelect(static vector =>
                 InHarnessCollection(vector.CollectionName) && string.Equals(vector.GroupName, FixtureNames.VectorGroup, StringComparison.Ordinal)),
             new Api.MakeVectorNameRefListRuntimeSelectRequest { UserPrompt = RuntimeSelectPrompt("one vector of vector group B277::VG1") });
-        Select("p30-instrument-list", "Instrument list runtime select (GetColInstIdRefListArg); operator selects one USMN fixture instrument",
-            ProbeOperations.CollectionInstrumentRefListRuntimeSelect(instrument => instruments.Any(fixture =>
-                string.Equals(fixture.Collection, instrument.CollectionName, StringComparison.Ordinal) && fixture.InstrumentId == instrument.InstrumentId)),
-            new Api.MakeCollectionInstrumentRefListRuntimeSelectRequest { UserPrompt = RuntimeSelectPrompt("one of the USMN fixture instruments") });
+        Select("p30-instrument-list", "Instrument list runtime select (GetColInstIdRefListArg); operator selects the first USMN fixture instrument",
+            ProbeOperations.CollectionInstrumentRefListRuntimeSelect(IsDesignated),
+            new Api.MakeCollectionInstrumentRefListRuntimeSelectRequest { UserPrompt = instrumentPrompt });
+        Select("p30-instrument", "Instrument ID runtime select (GetColInstIdArg); operator selects the first USMN fixture instrument",
+            ProbeOperations.CollectionInstrumentIdRuntimeSelect(IsDesignated),
+            new Api.MakeCollectionInstrumentIdRuntimeSelectRequest { UserPrompt = instrumentPrompt });
         Select("p30-point", "Point name runtime select (GetPointNameArg); operator selects B277::G1::P1",
             ProbeOperations.PointNameRuntimeSelect(IsP1),
             new Api.MakePointNameRuntimeSelectRequest { UserPrompt = RuntimeSelectPrompt("point B277::G1::P1") });
