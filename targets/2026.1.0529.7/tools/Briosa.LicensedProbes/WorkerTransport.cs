@@ -16,10 +16,15 @@ namespace Briosa.LicensedProbes;
 /// the worker owns the only SDK client on its single STA, reports runtime SDK
 /// identity, attaches with one ConnectEx attempt, and proves execution readiness
 /// before any probe. The harness sends each command once, never retries, and
-/// terminates the worker after an unknown outcome instead of replaying.
+/// terminates the worker after an unknown outcome instead of replaying. Like the
+/// server supervisor, it checks for a SpatialAnalyzer modal dialog when a step's
+/// deadline elapses (#313), with the server's own detector.
 /// </summary>
 internal sealed class WorkerTransport : IProbeTransport
 {
+    public const string TimeoutTransport = "worker:timeout";
+    public const string TimeoutDiagnosticCode = "worker-step-timeout";
+
     private static readonly TimeSpan ConnectTimeout = TimeSpan.FromSeconds(30);
     private static readonly TimeSpan StartupTimeout = TimeSpan.FromSeconds(60);
     private static readonly TimeSpan AttachTimeout = TimeSpan.FromSeconds(90);
@@ -28,19 +33,24 @@ internal sealed class WorkerTransport : IProbeTransport
     private readonly string _workerPath;
     private readonly TimeSpan _stepTimeout;
     private readonly IProcessCensus _census;
+    private readonly Func<bool>? _modalDialogOpen;
     private NamedPipeServerStream? _pipe;
     private WorkerControlChannel? _channel;
     private Process? _process;
     private bool _faulted;
 
-    public WorkerTransport(string workerPath, TimeSpan stepTimeout, IProcessCensus census)
+    public WorkerTransport(string workerPath, TimeSpan stepTimeout, IProcessCensus census, Func<bool>? modalDialogOpen = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(workerPath);
         ArgumentNullException.ThrowIfNull(census);
         _workerPath = workerPath;
         _stepTimeout = stepTimeout;
         _census = census;
+        _modalDialogOpen = modalDialogOpen;
     }
+
+    /// <summary>A step timeout checks for an open SpatialAnalyzer dialog.</summary>
+    internal bool DetectsModalDialogs => _modalDialogOpen is not null;
 
     public ProbePhase Phase => ProbePhase.Worker;
 
@@ -155,8 +165,10 @@ internal sealed class WorkerTransport : IProbeTransport
         }
         catch (Exception exception) when (exception is OperationCanceledException or TimeoutException)
         {
+            // The dialog is observed while the stalled worker still runs, as the server does.
+            var diagnosticCode = StalledStepDiagnostic(_modalDialogOpen);
             await FaultAsync().ConfigureAwait(false);
-            return ProbeOutcome.Unknown("worker:timeout", "worker-step-timeout");
+            return ProbeOutcome.Unknown(TimeoutTransport, diagnosticCode);
         }
         catch (Exception exception) when (exception is IOException or InvalidDataException)
         {
@@ -249,6 +261,21 @@ internal sealed class WorkerTransport : IProbeTransport
         }
         catch (OperationCanceledException)
         {
+        }
+    }
+
+    // Mirrors WorkerProcessSupervisor.StalledExchangeDiagnostic: an open SpatialAnalyzer
+    // dialog is reported as such, and the check is advisory, so its failure keeps the
+    // timeout code. The detector only reads window state; the dialog is left for the operator.
+    internal static string StalledStepDiagnostic(Func<bool>? modalDialogOpen)
+    {
+        try
+        {
+            return modalDialogOpen?.Invoke() == true ? StallExpectation.ModalDialogDiagnosticCode : TimeoutDiagnosticCode;
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            return TimeoutDiagnosticCode;
         }
     }
 

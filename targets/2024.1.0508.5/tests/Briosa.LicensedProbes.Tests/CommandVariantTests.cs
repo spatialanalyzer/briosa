@@ -19,6 +19,17 @@ public sealed class CommandVariantTests
         ],
         [new WorkerMpOutputArgument("Result", WorkerMpValueKind.FloatingPoint, "GetDoubleArg")]);
 
+    private static WorkerMpCommand WithList() => new(
+        "test.operation",
+        "Shipped Step",
+        [
+            new WorkerMpInputArgument("Use Number Suffix?", WorkerMpValueKind.Logical, new WorkerBooleanValue(true), "SetBoolArg"),
+            new WorkerMpInputArgument("Groups to be Excluded", WorkerMpValueKind.CollectionObjectNameList,
+                new WorkerCollectionObjectNameListValue([new WorkerCollectionObjectNameValue("B277", "G3", WorkerObjectTypeValue.PointGroup)]),
+                "SetCollectionObjectNameRefListArg")
+        ],
+        []);
+
     [Fact]
     public void ShippedVariantReturnsTheIdenticalCommand()
     {
@@ -65,6 +76,30 @@ public sealed class CommandVariantTests
     public void BlankRefusesKindsWithoutAReviewedBlankValue()
     {
         Assert.Throws<InvalidOperationException>(() => CommandVariant.Blank("Use Number Suffix?").Apply(Shipped()));
+    }
+
+    [Fact]
+    public void EmptyListKeepsTheBindingAndSendsNoItems()
+    {
+        var shipped = WithList();
+
+        var varied = CommandVariant.EmptyList("Groups to be Excluded").Apply(shipped);
+
+        var argument = varied.InputArguments[1];
+        Assert.Equal(("Groups to be Excluded", WorkerMpValueKind.CollectionObjectNameList, "SetCollectionObjectNameRefListArg"),
+            (argument.Name, argument.Kind, argument.SdkBinding));
+        Assert.Empty(Assert.IsType<WorkerCollectionObjectNameListValue>(argument.Value).Values);
+        Assert.Same(shipped.InputArguments[0], varied.InputArguments[0]);
+        Assert.Equal(shipped.OutputArguments, varied.OutputArguments);
+        Assert.Single(Assert.IsType<WorkerCollectionObjectNameListValue>(shipped.InputArguments[1].Value).Values);
+    }
+
+    [Fact]
+    public void EmptyListRefusesKindsWithoutAReviewedEmptyValue()
+    {
+        Assert.Throws<InvalidOperationException>(() => CommandVariant.EmptyList("Group To Fit").Apply(Shipped()));
+        Assert.Throws<InvalidOperationException>(() => CommandVariant.EmptyList("Missing").Apply(WithList()));
+        Assert.Throws<ArgumentException>(() => CommandVariant.EmptyList(" "));
     }
 
     [Fact]
@@ -116,5 +151,6 @@ public sealed class CommandVariantTests
         Assert.Equal("value", omit.TreatmentOf("Use Number Suffix?"));
         Assert.Equal("blank", CommandVariant.Blank("Group To Fit").TreatmentOf("Group To Fit"));
         Assert.Equal("recased", CommandVariant.Recase("Group To Fit", "Group to Fit").TreatmentOf("Group To Fit"));
+        Assert.Equal("empty", CommandVariant.EmptyList("Group To Fit").TreatmentOf("Group To Fit"));
     }
 }
