@@ -441,6 +441,7 @@ internal static class ProbeRecorder
         {
             VariantKind.OmitArgument => $"setter `{step.Variant.ArgumentLabel}` skipped",
             VariantKind.BlankArgument => $"`{step.Variant.ArgumentLabel}` blank",
+            VariantKind.EmptyListArgument => $"`{step.Variant.ArgumentLabel}` empty list",
             VariantKind.RecaseArgumentLabel => $"label `{step.Variant.Replacement}` (exact `{step.Variant.ArgumentLabel}`)",
             VariantKind.ReplaceStepText => string.Equals(step.Command.StepName, step.ShippedCommand.StepName, StringComparison.Ordinal)
                 ? "step text (shipped by this target)"
@@ -545,6 +546,7 @@ internal static class ProbeRecorder
     {
         VariantKind.OmitArgument => "omit-argument",
         VariantKind.BlankArgument => "blank-argument",
+        VariantKind.EmptyListArgument => "empty-list-argument",
         VariantKind.RecaseArgumentLabel => "recase-argument-label",
         VariantKind.ReplaceStepText => "replace-step-text",
         _ => "shipped"

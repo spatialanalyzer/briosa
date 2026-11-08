@@ -749,6 +749,7 @@ internal sealed class ProbePlan
             {
                 "omitted" => $"{Binding(argument)} \"{argument.Name}\" OMITTED (setter not called)",
                 "blank" => $"{Binding(argument)} \"{argument.Name}\" = BLANK",
+                "empty" => $"{Binding(argument)} \"{argument.Name}\" = EMPTY LIST",
                 "recased" => $"{Binding(argument)} \"{step.Variant.Replacement}\" = value (recased from \"{argument.Name}\")",
                 _ => $"{Binding(argument)} \"{argument.Name}\" = value"
             });

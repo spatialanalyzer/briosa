@@ -80,6 +80,20 @@ internal static class ProbeOperations
         static (invoker, request, options) => Instrument(invoker).LocateInstrumentsUsmnAsync(request, options),
         static result => result.Execution);
 
+    // Probe 33: USMN whose worker outputs go to one of a comparison's two observers, which
+    // keep the control's errors in memory and record only the comparison.
+    public static ProbeOperation LocateInstrumentsUsmnObserved(
+        Func<IReadOnlyList<WorkerMpOutputValue>, IReadOnlyDictionary<string, string>> observe)
+    {
+        ArgumentNullException.ThrowIfNull(observe);
+        return Op<Api.LocateInstrumentsUsmnRequest, Api.LocateInstrumentsUsmnResult>(
+            Ops.InstrumentOperations.LocateInstrumentsUsmnOperation.Descriptor,
+            Ops.InstrumentOperations.LocateInstrumentsUsmnOperation.CreateCommand,
+            static (invoker, request, options) => Instrument(invoker).LocateInstrumentsUsmnAsync(request, options),
+            static result => result.Execution,
+            observeWorker: (_, outputs) => observe(outputs));
+    }
+
     public static ProbeOperation FitGeometryToPointGroup { get; } = Op<Api.FitGeometryToPointGroupRequest, Api.FitGeometryToPointGroupResult>(
         Ops.AnalysisOperations.FitGeometryToPointGroupOperation.Descriptor,
         Ops.AnalysisOperations.FitGeometryToPointGroupOperation.CreateCommand,
@@ -314,4 +328,45 @@ internal static class ProbeOperations
     private static Api.VectorOperations.VectorOperationsClient Vector(CallInvoker invoker) => new(invoker);
 
     private static Api.ViewControl.ViewControlClient View(CallInvoker invoker) => new(invoker);
+}
+
+/// <summary>
+/// Probe 33: compares each variant's USMN errors with the control's. The control's RMS and
+/// maximum errors stay in memory for the variants of one plan and are never recorded,
+/// printed, or written. Observations say only that they were captured and whether a
+/// variant's errors equal them.
+/// </summary>
+internal sealed class UsmnErrorComparison
+{
+    // Equal within one part per million of the control's value, with a floor of 1e-9 in
+    // the job's units so that a zero error compares with zero.
+    public const double RelativeTolerance = 1e-6;
+    public const double AbsoluteTolerance = 1e-9;
+
+    private (double Rms, double Maximum)? _control;
+
+    // The control's observer: it keeps the errors and records only that it did.
+    public IReadOnlyDictionary<string, string> Capture(IReadOnlyList<WorkerMpOutputValue> outputs)
+    {
+        _control = Read(outputs);
+        return Observations.Of(("errors_captured", Observations.Flag(true)));
+    }
+
+    // A variant's observer: true when both errors equal the control's, and no-control when
+    // the control's errors were never captured.
+    public IReadOnlyDictionary<string, string> Compare(IReadOnlyList<WorkerMpOutputValue> outputs)
+    {
+        var errors = Read(outputs);
+        return Observations.Of(("errors_equal_control", _control is not { } control
+            ? "no-control"
+            : Observations.Flag(Equal(control.Rms, errors.Rms) && Equal(control.Maximum, errors.Maximum))));
+    }
+
+    internal static bool Equal(double control, double value) =>
+        double.IsFinite(control) && double.IsFinite(value) &&
+        Math.Abs(value - control) <= Math.Max(AbsoluteTolerance, RelativeTolerance * Math.Abs(control));
+
+    // The shipped result mapping's order: RMS Error Value, then Max Error Value.
+    private static (double Rms, double Maximum) Read(IReadOnlyList<WorkerMpOutputValue> outputs) =>
+        (outputs[0].RequireValue<WorkerDoubleValue>().Value, outputs[1].RequireValue<WorkerDoubleValue>().Value);
 }

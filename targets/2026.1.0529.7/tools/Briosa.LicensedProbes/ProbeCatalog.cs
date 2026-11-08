@@ -8,7 +8,8 @@ namespace Briosa.LicensedProbes;
 /// The maintainer-approved probe list from #277 and its follow-ups, expressed as
 /// immutable steps. The public phase runs every probe the public API can express;
 /// the worker phase runs only what the public API intentionally cannot express (a
-/// skipped setter, a blank required value, a recased label, alternate step text).
+/// skipped setter, a blank required value, an empty list, a recased label,
+/// alternate step text).
 /// </summary>
 internal static class ProbeCatalog
 {
@@ -31,6 +32,7 @@ internal static class ProbeCatalog
     public const string GroupToFitRecased = "Group to Fit";
     public const string NumberSuffixLabel = "Use Number Suffix?";
     public const string NumberSuffixRecased = "Use number suffix?";
+    public const string ExcludedGroupsLabel = "Groups to be Excluded";
 
     // Probe 25: the operator replaces the initial answer with the entry; the record
     // keeps only which of the two harness constants came back.
@@ -50,7 +52,7 @@ internal static class ProbeCatalog
     public static TimeSpan WorkerStallClientTimeout { get; } = TimeSpan.FromSeconds(60);
 
     public static IReadOnlyList<string> ProbeNumbers { get; } =
-        [.. Enumerable.Range(1, 32).Select(static number => number.ToString(CultureInfo.InvariantCulture))];
+        [.. Enumerable.Range(1, 33).Select(static number => number.ToString(CultureInfo.InvariantCulture))];
 
     // Run only when --probe names them. Probes 26 to 28 each end their run with a planned
     // stall, and probe 29 needs another server setting, so none can join the default plan.
@@ -672,6 +674,38 @@ internal static class ProbeCatalog
             ProbeOperations.SetUserInterfaceProfile, Profile(manifest), CommandVariant.Omit(ProfileFileLabel));
         steps.Variant("p04-blank", "4", "User interface profile with a blank file",
             ProbeOperations.SetUserInterfaceProfile, Profile(manifest), CommandVariant.Blank(ProfileFileLabel));
+        AddExcludedGroupsProbe(steps, manifest);
+    }
+
+    // Probe 33 (briosa-dotnet#39): every client offers USMN's Groups to be Excluded as
+    // optional, but the shipped mapping refuses an empty list before dispatch, so only the
+    // worker phase can ask SA. The control is probe 1's shipped request, which excludes G3, a
+    // group USMN does not use. A variant that SA runs correctly returns MP code 2, both
+    // outputs, and the control's errors. The errors stay in memory; only the comparison is
+    // recorded. The operator records any dialog after each step.
+    private static void AddExcludedGroupsProbe(StepList steps, FixtureManifest manifest)
+    {
+        var errors = new UsmnErrorComparison();
+        var usmn = Usmn(manifest);
+        ProbeHypothesis[] ran =
+        [
+            new("MP code 2", ProbeOutcome.FactPrefix + "mp_result_code", "2"),
+            new("both outputs retrieved", ProbeOutcome.FactPrefix + "outputs_retrieved", "2 of 2")
+        ];
+        ProbeHypothesis[] correct = [.. ran, new("the control's RMS and maximum errors", "errors_equal_control", "true")];
+
+        steps.Watched(steps.NewControl("p33-shipped", "33", "USMN excluding the unused group G3 (shipped sequence, the control)",
+            ProbeOperations.LocateInstrumentsUsmnObserved(errors.Capture), usmn) with { Hypotheses = ran });
+        steps.Watched(steps.NewVariant("p33-omit", "33", "USMN with the Groups to be Excluded setter skipped",
+            ProbeOperations.LocateInstrumentsUsmnObserved(errors.Compare), usmn, CommandVariant.Omit(ExcludedGroupsLabel)) with
+        {
+            Hypotheses = correct
+        }, "p33-shipped");
+        steps.Watched(steps.NewVariant("p33-empty", "33", "USMN with an empty Groups to be Excluded list",
+            ProbeOperations.LocateInstrumentsUsmnObserved(errors.Compare), usmn, CommandVariant.EmptyList(ExcludedGroupsLabel)) with
+        {
+            Hypotheses = correct
+        }, "p33-shipped");
     }
 
     private static ProbeStep CloudSetup(string id, string group, string cloud, string? fixtureKey, ProbePhase phase) =>

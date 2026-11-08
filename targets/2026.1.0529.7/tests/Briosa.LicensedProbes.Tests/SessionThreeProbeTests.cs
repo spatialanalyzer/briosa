@@ -8,11 +8,16 @@ namespace Briosa.LicensedProbes.Tests;
 
 // The third licensed session's probes: #313 modal-dialog detection (26 to 28) and the
 // InteractionMode setting (29), the runtime-select sample (30, #350), the fit seed omitted
-// (31, #357), and the typed partial success (32, #360). Probes 26 to 29 are opt-in.
+// (31, #357), the typed partial success (32, #360), and USMN's excluded groups omitted or
+// empty (33, briosa-dotnet#39). Probes 26 to 29 are opt-in.
 public sealed class SessionThreeProbeTests
 {
     private static readonly FixedClock Clock = new();
     private static readonly InteractionModeSettings Manual = new(Api.SaInteractionMode.Manual, Supplied: true);
+
+    // Probe 33's USMN errors. Their digits must never reach a record.
+    private const double Rms = 0.0173205;
+    private const double Maximum = 0.0271828;
 
     private static ProbePlan Select(ProbePhase phase, params int[] probes) =>
         ProbePlan.Create(phase, TestSupport.SentinelManifest(), [], Manual, probes);
@@ -87,7 +92,7 @@ public sealed class SessionThreeProbeTests
     [Theory]
     [InlineData("selected more than once", "--probe", "30", "--probe", "30")]
     [InlineData("names a retired probe", "--probe", "22")]
-    [InlineData("not a probe in the approved list", "--probe", "33")]
+    [InlineData("not a probe in the approved list", "--probe", "34")]
     [InlineData("takes one probe number", "--probe", "030")]
     [InlineData("cannot be combined", "--probe", "30", "--exclude-probe", "2")]
     [InlineData("names an opt-in probe", "--exclude-probe", "29")]
@@ -581,6 +586,262 @@ public sealed class SessionThreeProbeTests
         Assert.Equal("1", outcome.Fact("match_count"));
         Assert.Null(outcome.Fact("outcome.match_count"));
         Assert.Null(outcome.Fact("outcome.recovery_guidance"));
+    }
+
+    [Fact]
+    public void AnOutcomeFactCountsTheRetrievedOutputs()
+    {
+        var retrieved = new OutputObservation("RMS Error Value", true);
+        var missing = new OutputObservation("Max Error Value", false);
+
+        Assert.Equal("2 of 2",
+            (TestSupport.Outcome(ProbeOutcomeKind.Succeeded) with { Outputs = [retrieved, retrieved] }).Fact("outcome.outputs_retrieved"));
+        Assert.Equal("1 of 2",
+            (TestSupport.Outcome(ProbeOutcomeKind.OutputRetrievalFailed) with { Outputs = [retrieved, missing] }).Fact("outcome.outputs_retrieved"));
+        Assert.Null(TestSupport.Outcome(ProbeOutcomeKind.MpFailed).Fact("outcome.outputs_retrieved"));
+    }
+
+    // Probe 33: USMN excluded groups omitted or empty
+
+    // A worker-shaped outcome produced by the real classifier and the step's own observations.
+    private static ProbeOutcome FromWorker(ProbeStep step, WorkerMpExecutionResult execution) =>
+        WorkerOutcomes.FromResponse(
+            new WorkerExecutionResponse(WorkerExecutionResponseStatus.Completed, execution,
+                new WorkerConnectionSnapshot(WorkerConnectionState.Connected, WorkerExecutionReadinessState.ExecutionReady, 0, 1, 1,
+                    "connect-ex-connected", DateTimeOffset.UnixEpoch),
+                null),
+            outputs => step.Operation.ObserveWorker(step.Request, outputs), step.Command.OperationId);
+
+    // USMN's two outputs as the worker returns them after MP code 2.
+    private static WorkerMpResultAvailable Usmn(double rms, double maximum) => new(2, 1,
+    [
+        WorkerMpOutputValue.FromRetrieval("RMS Error Value", WorkerMpValueKind.FloatingPoint, true, new WorkerDoubleValue(rms)),
+        WorkerMpOutputValue.FromRetrieval("Max Error Value", WorkerMpValueKind.FloatingPoint, true, new WorkerDoubleValue(maximum))
+    ], null);
+
+    [Fact]
+    public void Probe33RunsInTheWorkerPhaseOnly()
+    {
+        var plan = Select(ProbePhase.Worker, 33);
+
+        Assert.Equal(["33"], plan.ProbesCovered());
+        Assert.Equal(["p33-shipped", "p33-omit", "p33-empty"],
+            plan.Steps.Where(static step => step.Probe == "33").Select(static step => step.Id));
+        Assert.False(plan.SetsInteractionMode);
+        Assert.Contains(ProbePlan.Create(ProbePhase.Worker, TestSupport.SentinelManifest()).Steps, static step => step.Id == "p33-empty");
+        Assert.Equal([33], ProbeOptions.Parse(["--phase", "worker", "--dry-run", "--probe", "33"]).SelectedProbes);
+        var exception = Assert.Throws<ProbeUsageException>(() => Select(ProbePhase.PublicApi, 33));
+        Assert.Contains("no steps in the public-api phase", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Probe33SendsTheShippedControlThenNoSetterThenAnEmptyList()
+    {
+        var plan = Select(ProbePhase.Worker, 33);
+        var control = Step(plan, "p33-shipped");
+        var omitted = Step(plan, "p33-omit");
+        var empty = Step(plan, "p33-empty");
+
+        // The control is probe 1's shipped request: it excludes G3, which USMN does not use.
+        var request = Assert.IsType<Api.LocateInstrumentsUsmnRequest>(control.Request);
+        var excluded = Assert.Single(request.ExcludedGroups);
+        Assert.Equal((FixtureNames.Collection, FixtureNames.GroupMeasured, Api.ObjectType.PointGroup),
+            (excluded.CollectionName, excluded.ObjectName, excluded.ObjectType));
+        Assert.Equal((VariantKind.Shipped, ProbeOutcomes.Succeeded), (control.Variant.Kind, control.Acceptable));
+        Assert.Equal((VariantKind.OmitArgument, ProbeCatalog.ExcludedGroupsLabel), (omitted.Variant.Kind, omitted.Variant.ArgumentLabel));
+        Assert.Equal((VariantKind.EmptyListArgument, ProbeCatalog.ExcludedGroupsLabel), (empty.Variant.Kind, empty.Variant.ArgumentLabel));
+        foreach (var variant in new[] { omitted, empty })
+        {
+            Assert.Equal(request, variant.Request);
+            Assert.Equal(ProbeOutcomes.AnyDeterminateSdkOutcome, variant.Acceptable);
+            Assert.Equal(["p33-shipped"], variant.Prerequisites);
+        }
+
+        Assert.All(new[] { control, omitted, empty }, static step => Assert.Equal(OperatorCheckpoint.After, step.Checkpoints));
+
+        var shipped = Shape(control.Command);
+        Assert.Contains((ProbeCatalog.ExcludedGroupsLabel, WorkerMpValueKind.CollectionObjectNameList, "SetCollectionObjectNameRefListArg", 1), shipped);
+        Assert.Equal(shipped.Where(static argument => argument.Name != ProbeCatalog.ExcludedGroupsLabel), Shape(omitted.Command));
+        Assert.Equal(
+            shipped.Select(static argument => argument.Name == ProbeCatalog.ExcludedGroupsLabel
+                ? (argument.Name, argument.Kind, argument.Binding, 0)
+                : argument),
+            Shape(empty.Command));
+
+        // Each argument's label, kind, and binding, and how many items an object-name list sends.
+        static List<(string Name, WorkerMpValueKind Kind, string? Binding, int Items)> Shape(WorkerMpCommand command) =>
+            [.. command.InputArguments.Select(static argument => (argument.Name, argument.Kind, argument.SdkBinding,
+                argument.Value is WorkerCollectionObjectNameListValue list ? list.Values.Count : -1))];
+    }
+
+    [Fact]
+    public void Probe33ExpectsMpCode2BothOutputsAndForEachVariantTheControlsErrors()
+    {
+        var plan = Select(ProbePhase.Worker, 33);
+        (string, string)[] ran = [(ProbeOutcome.FactPrefix + "mp_result_code", "2"), (ProbeOutcome.FactPrefix + "outputs_retrieved", "2 of 2")];
+        (string, string)[] same = [.. ran, ("errors_equal_control", "true")];
+
+        Assert.Equal(ran, Expected(Step(plan, "p33-shipped")));
+        Assert.Equal(same, Expected(Step(plan, "p33-omit")));
+        Assert.Equal(same, Expected(Step(plan, "p33-empty")));
+
+        static (string, string)[] Expected(ProbeStep step) =>
+            [.. step.Hypotheses.Select(static hypothesis => (hypothesis.ObservationKey, hypothesis.ExpectedValue))];
+    }
+
+    // The errors stay in the harness's memory: an observation says only whether a variant's
+    // errors equal the control's.
+    [Fact]
+    public void Probe33ComparesEachVariantsErrorsWithTheControlsWithoutKeepingThem()
+    {
+        var plan = Select(ProbePhase.Worker, 33);
+        var control = Step(plan, "p33-shipped");
+        var omitted = Step(plan, "p33-omit");
+        var empty = Step(plan, "p33-empty");
+
+        Assert.Equal("no-control", Observe(omitted, Rms, Maximum)["errors_equal_control"]);
+        Assert.Equal(["errors_captured"], Observe(control, Rms, Maximum).Keys);
+        Assert.Equal("true", Observe(control, Rms, Maximum)["errors_captured"]);
+        Assert.Equal("true", Observe(omitted, Rms, Maximum)["errors_equal_control"]);
+        Assert.Equal("true", Observe(empty, Rms * (1 + 1e-9), Maximum)["errors_equal_control"]);
+        Assert.Equal("false", Observe(empty, Rms * 1.001, Maximum)["errors_equal_control"]);
+        Assert.Equal("false", Observe(omitted, Rms, Maximum * 1.001)["errors_equal_control"]);
+        Assert.Equal(["errors_equal_control"], Observe(empty, Rms, Maximum).Keys);
+        Assert.Equal("unreadable-output-shape", omitted.Operation.ObserveWorker(omitted.Request, [])["observation"]);
+
+        static IReadOnlyDictionary<string, string> Observe(ProbeStep step, double rms, double maximum) =>
+            step.Operation.ObserveWorker(step.Request, Usmn(rms, maximum).Outputs);
+    }
+
+    [Theory]
+    [InlineData(0.0123456, 0.0123456, true)]
+    [InlineData(0.0123456, 0.01234561, true)]
+    [InlineData(0.0123456, 0.0123457, false)]
+    [InlineData(0.0, 0.0, true)]
+    [InlineData(0.0, 1e-12, true)]
+    [InlineData(0.0, 1e-6, false)]
+    [InlineData(double.NaN, double.NaN, false)]
+    [InlineData(double.PositiveInfinity, double.PositiveInfinity, false)]
+    public void ErrorsAreEqualWithinOnePartPerMillion(double control, double value, bool equal) =>
+        Assert.Equal(equal, UsmnErrorComparison.Equal(control, value));
+
+    [Fact]
+    public void TheDryRunShowsTheSkippedSetterAndTheEmptyListButNoValue()
+    {
+        var plan = Select(ProbePhase.Worker, 33);
+        var binding = $"SetCollectionObjectNameRefListArg \"{ProbeCatalog.ExcludedGroupsLabel}\"";
+
+        Assert.Contains($"{binding} = value", ProbePlan.DescribeSequence(Step(plan, "p33-shipped")));
+        Assert.Contains($"{binding} OMITTED (setter not called)", ProbePlan.DescribeSequence(Step(plan, "p33-omit")));
+        Assert.Contains($"{binding} = EMPTY LIST", ProbePlan.DescribeSequence(Step(plan, "p33-empty")));
+        Assert.DoesNotContain(TestSupport.Sentinel, plan.RenderDryRun(), StringComparison.Ordinal);
+    }
+
+    // The worker control channel carries the empty list unchanged, so the worker hands SA no items.
+    [Fact]
+    public void TheEmptyListCrossesTheWorkerControlChannel()
+    {
+        var command = Step(Select(ProbePhase.Worker, 33), "p33-empty").Command;
+        using var stream = new MemoryStream();
+        using (var sender = new WorkerControlChannel(stream, leaveOpen: true))
+        {
+            sender.Send(WorkerControlMessage.Execute(Guid.NewGuid(), command));
+        }
+
+        stream.Position = 0;
+        using var receiver = new WorkerControlChannel(stream, leaveOpen: true);
+        var received = Assert.Single(receiver.Receive().Command!.InputArguments,
+            static argument => argument.Name == ProbeCatalog.ExcludedGroupsLabel);
+
+        Assert.Empty(Assert.IsType<WorkerCollectionObjectNameListValue>(received.Value).Values);
+        Assert.Equal("SetCollectionObjectNameRefListArg", received.SdkBinding);
+    }
+
+    [Fact]
+    public async Task ListsThatSaRunsCorrectlyMatchEveryProbe33HypothesisEndToEnd()
+    {
+        var plan = Select(ProbePhase.Worker, 33);
+
+        var record = await Run(plan, step => step.Probe == "33" ? FromWorker(step, Usmn(Rms, Maximum)) : TestSupport.Succeeding(step));
+
+        Assert.True(record.Completed);
+        var steps = record.Steps.Where(static step => step.Step.Probe == "33").ToList();
+        Assert.Equal(3, steps.Count);
+        Assert.All(steps, static step => Assert.All(step.Hypotheses, static hypothesis => Assert.True(hypothesis.Matched)));
+        var markdown = ProbeRecorder.ToMarkdown(record);
+        var json = ProbeRecorder.ToJson(record);
+        Assert.Contains($"setter `{ProbeCatalog.ExcludedGroupsLabel}` skipped", markdown, StringComparison.Ordinal);
+        Assert.Contains($"`{ProbeCatalog.ExcludedGroupsLabel}` empty list", markdown, StringComparison.Ordinal);
+        Assert.Contains("`errors_equal_control` = `true`", markdown, StringComparison.Ordinal);
+        Assert.Contains("\"empty-list-argument\"", json, StringComparison.Ordinal);
+        foreach (var text in new[] { markdown, json })
+        {
+            Assert.DoesNotContain("173205", text, StringComparison.Ordinal);
+            Assert.DoesNotContain("271828", text, StringComparison.Ordinal);
+            Assert.DoesNotContain(TestSupport.Sentinel, text, StringComparison.Ordinal);
+        }
+    }
+
+    [Fact]
+    public async Task ARefusedListIsAnAnswerAndTheNextVariantStillRuns()
+    {
+        var plan = Select(ProbePhase.Worker, 33);
+
+        var record = await Run(plan, step => step.Id switch
+        {
+            "p33-shipped" => FromWorker(step, Usmn(Rms, Maximum)),
+            "p33-omit" => FromWorker(step, new WorkerMpResultAvailable(3, 1, [], "mp-command-failed")),
+            "p33-empty" => FromWorker(step, new WorkerArgumentsRejected(1, "sdk-argument-rejected")),
+            _ => TestSupport.Succeeding(step)
+        });
+
+        Assert.True(record.Completed);
+        var omitted = record.Steps.Single(static step => step.Step.Id == "p33-omit");
+        var empty = record.Steps.Single(static step => step.Step.Id == "p33-empty");
+        Assert.Equal((ProbeOutcomeKind.MpFailed, 3), (omitted.Outcome!.Kind, omitted.Outcome.MpResultCode));
+        Assert.Equal(ProbeOutcomeKind.ArgumentRejected, empty.Outcome!.Kind);
+        Assert.All(new[] { omitted, empty }, static step =>
+        {
+            Assert.Equal(StepClassification.Observed, step.Classification);
+            Assert.All(step.Hypotheses, static hypothesis => Assert.False(hypothesis.Matched));
+        });
+    }
+
+    [Fact]
+    public async Task OtherErrorsAreRecordedOnlyAsUnequal()
+    {
+        var plan = Select(ProbePhase.Worker, 33);
+
+        var record = await Run(plan, step => step.Id switch
+        {
+            "p33-omit" => FromWorker(step, Usmn(Rms * 2, Maximum)),
+            _ when step.Probe == "33" => FromWorker(step, Usmn(Rms, Maximum)),
+            _ => TestSupport.Succeeding(step)
+        });
+
+        Assert.True(record.Completed);
+        var omitted = record.Steps.Single(static step => step.Step.Id == "p33-omit");
+        Assert.Equal("false", omitted.Outcome!.Observations["errors_equal_control"]);
+        Assert.Equal([true, true, false], omitted.Hypotheses.Select(static hypothesis => hypothesis.Matched));
+        Assert.Equal("true", record.Steps.Single(static step => step.Step.Id == "p33-empty").Outcome!.Observations["errors_equal_control"]);
+    }
+
+    [Fact]
+    public async Task AnUnknownOutcomeForTheSkippedSetterEndsTheRunBeforeTheEmptyList()
+    {
+        var plan = Select(ProbePhase.Worker, 33);
+        var transport = new FakeTransport(plan.Phase, step => step.Id switch
+        {
+            "p33-shipped" => FromWorker(step, Usmn(Rms, Maximum)),
+            "p33-omit" => FromWorker(step, new WorkerExecuteRejected(1, "execute-step-rejected")),
+            _ => TestSupport.Succeeding(step)
+        });
+
+        var record = await ProbeSession.RunAsync(plan, transport, Clock, new SessionIdentity(), new FakeOperator(), CancellationToken.None);
+
+        Assert.Equal(("p33-omit", ProbeSession.UnknownOutcomeStop), (record.StoppedAt, record.StopReason));
+        Assert.DoesNotContain("p33-empty", transport.Executed);
+        Assert.Equal(StepClassification.NotRun, record.Steps.Single(static step => step.Step.Id == "p33-empty").Classification);
     }
 
     // Records

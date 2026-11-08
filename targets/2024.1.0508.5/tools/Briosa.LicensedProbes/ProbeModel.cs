@@ -245,7 +245,8 @@ internal sealed record ProbeOutcome(
 
     /// <summary>
     /// One outcome field by its <c>outcome.</c> name, or else one observation, for
-    /// hypotheses. Null when the outcome has no such value.
+    /// hypotheses. Null when the outcome has no such value. <c>outcome.outputs_retrieved</c>
+    /// counts retrieved outputs as the record states them, for example <c>2 of 2</c>.
     /// </summary>
     public string? Fact(string key)
     {
@@ -254,6 +255,9 @@ internal sealed record ProbeOutcome(
         {
             FactPrefix + "kind" => Kind.ToString(),
             FactPrefix + "mp_result_code" => MpResultCode?.ToString(CultureInfo.InvariantCulture),
+            FactPrefix + "outputs_retrieved" => Outputs.Count == 0
+                ? null
+                : string.Create(CultureInfo.InvariantCulture, $"{Outputs.Count(static output => output.Retrieved)} of {Outputs.Count}"),
             FactPrefix + "execution_state" => ExecutionState,
             FactPrefix + "diagnostic_code" => DiagnosticCode,
             FactPrefix + "failure_kind" => FailureKind,

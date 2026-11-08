@@ -7,14 +7,16 @@ answer. It is not broad validation of the operation surface.
 
 The maintainer approved the probe list on 2026-10-03, and the second session's
 changes (probes 24 and 25, and the re-runs of probes 2, 11, 17, and 22) on
-2026-10-19. Probes 26 to 32 prepare the third session, which does not run probe 28:
+2026-10-19. Probes 26 to 33 prepare the third session, which does not run probe 28:
 the `sa-modal-dialog-open`
 report and the `InteractionMode` setting
 ([#313](https://github.com/spatialanalyzer/briosa/issues/313)), a sample of the
 runtime-select getters ([#350](https://github.com/spatialanalyzer/briosa/issues/350)),
 the omitted fit seed ([#311](https://github.com/spatialanalyzer/briosa/issues/311)),
-and the typed partial success
-([#351](https://github.com/spatialanalyzer/briosa/issues/351)). **Attaching to a running
+the typed partial success
+([#351](https://github.com/spatialanalyzer/briosa/issues/351)), and USMN's excluded
+groups omitted or empty
+([briosa-dotnet#39](https://github.com/spatialanalyzer/briosa-dotnet/issues/39)). **Attaching to a running
 SpatialAnalyzer still needs a separate maintainer go-ahead at session time**
 (AGENTS.md validation level 5). Until then, use the dry run only. The harness is
 never packaged, never part of a licensed-runner payload, and never run by
@@ -28,7 +30,7 @@ from a clean SA instance. The phases never overlap.
 | Phase | Client | Runs |
 | --- | --- | --- |
 | `public-api` | The generated gRPC client against one packaged Briosa server. The server's single worker is the only SDK client. | Every probe the public API can express. The harness sends only shipped sequences. |
-| `worker` | The harness hosts one unchanged `Briosa.Worker.exe` from the same package over the existing private control protocol. No Briosa server runs. | Only what the public API intentionally cannot express: a skipped setter, a blank value the API rejects, a recased label, alternate step text. |
+| `worker` | The harness hosts one unchanged `Briosa.Worker.exe` from the same package over the existing private control protocol. No Briosa server runs. | Only what the public API intentionally cannot express: a skipped setter, a blank value or empty list the API rejects, a recased label, alternate step text. |
 
 The public path follows the existing SmokeClient licensed-scenario pattern: the
 target-specific confirmation flag, a loopback-only address, an exact target
@@ -46,9 +48,10 @@ diagnostic codes only, never raw exception text.
 
 Every worker command starts from the target's own shipped command builder for
 the same request that the public phase uses. At most one explicit variation is
-then applied: omit one setter, blank one value with the same SDK binding,
-recase one label, or replace the step text. The dry run prints each sequence
-exactly as it will be sent, using labels only and never values.
+then applied: omit one setter, blank one value with the same SDK binding, send
+one list with no items, recase one label, or replace the step text. The dry run
+prints each sequence exactly as it will be sent, using labels only and never
+values.
 
 | # | Question | Path | Steps |
 | --- | --- | --- | --- |
@@ -74,6 +77,7 @@ exactly as it will be sent, using labels only and never values.
 | 30 | Do the runtime-select getters return the operator's selection ([#350](https://github.com/spatialanalyzer/briosa/issues/350), [#312](https://github.com/spatialanalyzer/briosa/issues/312))? A sample: one operation per list getter kind and three single-value getters. | public; the operator selects | `p30-*`; see [Probe 30](#probe-30-runtime-select-sample) |
 | 31 | Do Fit Geometry to Points and Fit Geometry to Point Group Projected to Plane accept the omitted seed ([#311](https://github.com/spatialanalyzer/briosa/issues/311))? | public (the API omits the setter when the seed is absent) | `p31-*`, `c31-*` |
 | 32 | Is MP code 4 reported end to end as a typed partial success ([#351](https://github.com/spatialanalyzer/briosa/issues/351))? | public | `p32-partial`, `c32-partial` |
+| 33 | Does SA run USMN correctly with `Groups to be Excluded` omitted or empty ([briosa-dotnet#39](https://github.com/spatialanalyzer/briosa-dotnet/issues/39))? The public API rejects an empty list. | worker | `p33-*`; see [Probe 33](#probe-33-usmn-excluded-groups) |
 
 **Probe 2 fixture ([#311](https://github.com/spatialanalyzer/briosa/issues/311)).** The fits
 in probes 2 and 17 fit the coplanar group `GFIT` (the four corners of `G1`). The
@@ -211,8 +215,9 @@ under Silent.
   setup step, and the remaining plan must pass the same validation. See
   [Excluding probes](#excluding-probes).
 - **No sensitive data.** Records hold labels, MP step text, dispositions, MP
-  codes, output retrieval, and counts of harness-created objects. They never
-  hold argument or returned values, manifest contents, paths, or license data.
+  codes, output retrieval, counts of harness-created objects, and value-free
+  flags (probes 30 and 33). They never hold argument or returned values,
+  manifest contents, paths, or license data.
 
 ## Fixtures
 
@@ -239,7 +244,7 @@ target in a disposable job that contains a collection named, for example,
 `B277M`, and never a collection named `B277`. Save the job and reopen it at the
 start of each phase. **Never save the job after a phase.**
 
-1. **USMN instruments (#1).** Two instruments in `B277M`, each with
+1. **USMN instruments (#1, #33).** Two instruments in `B277M`, each with
    observations to the same four or more targets. Simulated observations are
    acceptable. Also a nominal point group, for example `Nominals`, that has the
    same target names. A manual USMN on this data must solve.
@@ -415,6 +420,56 @@ The sample leaves out:
 - the eight surface-face constructors and the surface-face list, which need CAD
   surfaces. The constructors have no getter.
 
+## Probe 33: USMN excluded groups
+
+Every client offers USMN's `excluded_groups` as optional
+([briosa-dotnet#39](https://github.com/spatialanalyzer/briosa-dotnet/issues/39)),
+but the shipped mapping requires at least one group. It refuses an empty list with
+`InvalidArgument` before SA sees the request, so only the worker phase can ask SA
+whether USMN needs the list. Probe 33 runs USMN three times on probe 1's fixtures:
+
+| Step | `Groups to be Excluded` | Expected if SA runs USMN correctly without the list |
+| --- | --- | --- |
+| `p33-shipped` | `G3`, as the shipped request sends it (the control) | MP code `2` and both outputs |
+| `p33-omit` | setter skipped | MP code `2`, both outputs, and the control's errors |
+| `p33-empty` | a list with no items | the same |
+
+- `G3` is a harness group that USMN does not use, so excluding it and excluding
+  nothing should give the same solution.
+- The harness keeps the control's RMS and maximum errors in memory. Each variant
+  records only `errors_equal_control`: `true` when both its errors equal the
+  control's within one part per million (an absolute 1e-9 for a zero error). No
+  error value is recorded.
+- The variants accept any determinate outcome, so an MP failure or a refused
+  setter is an answer, and the run continues. An outcome whose completion is
+  unknown stops the run as usual, and `p33-empty` is then recorded as not run.
+- USMN runs with `Show USMN Dialog` set to `No`. If a dialog opens anyway, dismiss
+  it within the step timeout and record its exact title and text at the checkpoint
+  after the step.
+- Excluding `G3` does not change the solution, so the probe cannot tell a skipped
+  setter from one that SA kept from the control. The shipped server already relies
+  on skipped setters elsewhere, for example for Quick Align's empty lists.
+
+**What the result decides.** Read each target's record on its own; a result never
+carries over to the other target.
+- If SA runs either variant correctly (all three of its hypotheses match), the
+  server accepts an empty `excluded_groups` before the protocol checkpoint
+  ([#363](https://github.com/spatialanalyzer/briosa/pull/363)). It skips the setter,
+  as it does for Quick Align's empty lists, or sends the empty list, whichever the
+  probe shows SA accepts. The clients keep the list optional.
+- If SA runs neither variant correctly, `excluded_groups` becomes required in the
+  0.5.0 clients.
+
+**Not covered.** The server also refuses five other lists when they are empty.
+The third session does not probe them:
+- Locate Instrument (Group to Surface Quick Fit) `other_objects_to_transform`:
+  neither fixture job has a surface to fit to, and adding one would need manual
+  work with licensed SA in both jobs. The list becomes required in the 0.5.0
+  clients, as the server requires it now.
+- Feature Inspection Auto Filter's `point_names`, `group_names`, `cloud_names`,
+  and `feature_check_name_list`: a probe would need CAD with feature checks. They
+  become required in the 0.5.0 clients.
+
 ## Operator checkpoints
 
 A licensed run prints one progress line when it dispatches each step and one
@@ -438,7 +493,7 @@ aside as `.refused-<n>.txt` and the harness keeps waiting. Checkpoints:
 | `p24-r0`, `p24-r0a` | after | #307: record any dialog from the delete before the next step |
 | every probe 25 step | after | #313: record whether each trigger opened a dialog |
 | the stall steps of probes 26 to 28 | before and after | #313: no dialog before the step; after it, the dialog that stalled it, still open |
-| every other step of probes 26 to 32 | after | record any dialog, including the selection prompt of probe 30 and a zero-match dialog from a count |
+| every other step of probes 26 to 33 | after | record any dialog, including the selection prompt of probe 30 and a zero-match dialog from a count |
 
 ## Dry run
 
@@ -516,6 +571,7 @@ repeat the probes that earlier sessions answered.
 
 ```powershell
 & $probe --phase public-api --dry-run --probe 30 --probe 31 --probe 32 --probe 26 --restore-sa-interaction-mode manual
+& $probe --phase worker --dry-run --probe 33
 ```
 
 The harness refuses, before any client starts and with exit code `2`:
@@ -614,10 +670,13 @@ manifest error, and nothing started.
 
 ### Third session: runs
 
-The third session runs probes 26, 27, and 29 to 32, in three public runs per
-target. Each run starts as step 1 of phase 1 describes, from a clean SA with the
-fixture job, and every run uses `--restore-sa-interaction-mode manual`, the 2-minute
-quick budget, and `--step-timeout-seconds 150`.
+The third session runs probes 26, 27, and 29 to 33, in three public runs and one
+worker run per target. Each run needs the maintainer's go-ahead, and each starts
+from a clean SA with the fixture job: a public run as step 1 of phase 1 describes,
+and run D as step 1 of phase 2 describes. Every run uses
+`--restore-sa-interaction-mode manual`. The public runs also use the 2-minute quick
+budget and `--step-timeout-seconds 150`. Run D has no server and no quick budget:
+the worker's default step timeout of 120 s is its only watchdog.
 
 Build the packages from the reviewed merge commit with the label `0.10.0-probe-s3`.
 The label also appears as the server version in the records. Record the merge SHA
@@ -630,10 +689,13 @@ separately.
 | A | public | `--probe 30 --probe 31 --probe 32 --probe 26` | `Unchanged` | the planned stall `p26-zero-match-stall` |
 | B | public | `--probe 27` | `Unchanged` | the planned stall `p27-chart-missing-stall` |
 | C | public | `--probe 29` | `Silent` | `p29-restore` |
+| D | worker | `--probe 33` | none (no server) | `p33-empty` |
 
 In run C, check the server log for event 1202 with `interaction-mode-applied`
 before you run the harness. If run A stops before its stall, run probe 26 again
-alone with `--probe 26`. The evidence records probe 28 as unrun.
+alone with `--probe 26`. The evidence records probe 28 as unrun. Read run D's
+record as [Probe 33](#probe-33-usmn-excluded-groups) describes before the server or
+the clients change `excluded_groups`.
 
 Before closing [#313](https://github.com/spatialanalyzer/briosa/issues/313), read
 these facts from each target's records. The harness exit code alone does not
@@ -695,8 +757,9 @@ schema 2 added the `exclusions` object and the `excluded` step classification;
 schema 3 added `interaction_mode` and, per step, the planned checkpoints, the
 operator's checkpoint answers, the client deadline, and the elapsed time;
 schema 4 adds `selection`, `server_interaction_mode_setting`, and
-`ended_in_planned_stall`, per step `expected_stall` and `server_interaction_mode`,
-and per outcome `recovery_guidance` and `execution_state`)
+`ended_in_planned_stall`, per step `expected_stall`, `server_interaction_mode`, and
+the `empty-list-argument` variant kind, and per outcome `recovery_guidance` and
+`execution_state`)
 and a markdown draft in the style of
 [`string-setters-2026-09-28.md`](evidence/string-setters-2026-09-28.md). Review
 the draft, add follow-up tasks, and commit it under `docs/testing/evidence/`

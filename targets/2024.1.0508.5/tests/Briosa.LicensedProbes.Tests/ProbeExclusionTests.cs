@@ -55,7 +55,7 @@ public sealed class ProbeExclusionTests
 
     [Theory]
     [InlineData("0")]
-    [InlineData("33")]
+    [InlineData("34")]
     [InlineData("99")]
     public void AnUnknownProbeNumberIsRefused(string probe)
     {
@@ -356,7 +356,7 @@ public sealed class ProbeExclusionTests
     [InlineData("worker", "2", "--exclude-probe 17")]
     [InlineData("public-api", "17", "no steps in the public-api phase")]
     [InlineData("worker", "12", "no steps in the worker phase")]
-    [InlineData("public-api", "33", "not a probe in the approved list")]
+    [InlineData("public-api", "34", "not a probe in the approved list")]
     [InlineData("public-api", "26", "names an opt-in probe")]
     [InlineData("worker", "28", "names an opt-in probe")]
     [InlineData("public-api", "7", "names a retired probe")]
