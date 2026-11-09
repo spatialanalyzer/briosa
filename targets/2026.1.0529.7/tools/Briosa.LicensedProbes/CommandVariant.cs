@@ -17,7 +17,10 @@ internal enum VariantKind
     RecaseArgumentLabel,
 
     // SetStep receives different step text; every argument is unchanged.
-    ReplaceStepText
+    ReplaceStepText,
+
+    // The named list setter is called with a list of no items and the same SDK binding.
+    EmptyListArgument
 }
 
 /// <summary>
@@ -44,6 +47,8 @@ internal sealed record CommandVariant
     public static CommandVariant Omit(string label) => new(VariantKind.OmitArgument, Require(label), null);
 
     public static CommandVariant Blank(string label) => new(VariantKind.BlankArgument, Require(label), null);
+
+    public static CommandVariant EmptyList(string label) => new(VariantKind.EmptyListArgument, Require(label), null);
 
     public static CommandVariant Recase(string label, string recased)
     {
@@ -82,6 +87,7 @@ internal sealed record CommandVariant
                 VariantKind.OmitArgument => "omitted",
                 VariantKind.BlankArgument => "blank",
                 VariantKind.RecaseArgumentLabel => "recased",
+                VariantKind.EmptyListArgument => "empty",
                 _ => "value"
             };
 
@@ -115,6 +121,10 @@ internal sealed record CommandVariant
                     arguments.Add(new WorkerMpInputArgument(
                         Replacement!, argument.Kind, argument.Value, argument.SdkBinding));
                     break;
+                case VariantKind.EmptyListArgument:
+                    arguments.Add(new WorkerMpInputArgument(
+                        argument.Name, argument.Kind, EmptyValue(argument), argument.SdkBinding));
+                    break;
                 default:
                     throw new InvalidOperationException("The variant does not replace an argument.");
             }
@@ -130,6 +140,14 @@ internal sealed record CommandVariant
         WorkerFileReferenceValue => new WorkerFileReferenceValue(string.Empty, EmbeddedFile: false),
         WorkerTextValue => new WorkerTextValue(string.Empty),
         _ => throw new InvalidOperationException("No reviewed blank value exists for this argument kind.")
+    };
+
+    // Empty keeps the SDK binding; only the reviewed collection object name list becomes a
+    // list of no items (probe 33).
+    private static WorkerCollectionObjectNameListValue EmptyValue(WorkerMpInputArgument argument) => argument.Value switch
+    {
+        WorkerCollectionObjectNameListValue => new WorkerCollectionObjectNameListValue([]),
+        _ => throw new InvalidOperationException("No reviewed empty value exists for this argument kind.")
     };
 
     private static string Require(string value)
