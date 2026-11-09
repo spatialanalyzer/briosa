@@ -20,11 +20,11 @@
     "curation_script": "eng/Update-Sa2024BindingFacts.ps1"
   },
   "summary": {
-    "operation_count": 988,
-    "captured_2024_signature_operation_count": 988,
+    "operation_count": 987,
+    "captured_2024_signature_operation_count": 987,
     "reference_signature_operation_count": 0,
     "unsourced_operation_count": 0,
-    "argument_count": 4045,
+    "argument_count": 4043,
     "quote_corrected_argument_count": 0,
     "unavailable_binding_count": 38,
     "unpublished_method_argument_count": 0,
