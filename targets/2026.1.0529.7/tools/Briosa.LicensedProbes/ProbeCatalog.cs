@@ -351,11 +351,12 @@ internal static class ProbeCatalog
         }, "p32-partial");
     }
 
-    // Probe 30 (#350, #312): a sample of the 22 remaining runtime selects, one per list getter
-    // kind plus three single-value getters. Each prompt names the fixture and the gesture that
+    // Probe 30 (#350, #312): a sample of the remaining runtime selects, one per list getter kind
+    // plus three single-value getters. Each prompt names the fixture and the gesture that
     // completed probe 22's selection in licensed session 2: F2, a check in the selection
     // tree, OK, then Enter. Both instrument steps select the first USMN instrument, so that
-    // each is a control for the other's getter.
+    // each is a control for the other's getter. The vector name list step went with its
+    // operation after licensed session 3 (RetiredStepIds).
     private static void AddRuntimeSelectProbe(StepList steps, FixtureManifest manifest)
     {
         static bool InHarnessCollection(string collection) => string.Equals(collection, FixtureNames.Collection, StringComparison.Ordinal);
@@ -384,10 +385,6 @@ internal static class ProbeCatalog
             ProbeOperations.RelationshipRefListRuntimeSelect(static relationship =>
                 InHarnessCollection(relationship.CollectionName) && string.Equals(relationship.ItemName, FixtureNames.Relationship, StringComparison.Ordinal)),
             new Api.MakeRelationshipRefListRuntimeSelectRequest { UserPrompt = RuntimeSelectPrompt("relationship B277::R1") });
-        Select("p30-vector-list", "Vector name list runtime select (GetVectorNameRefListArg); operator selects one vector of B277::VG1",
-            ProbeOperations.VectorNameRefListRuntimeSelect(static vector =>
-                InHarnessCollection(vector.CollectionName) && string.Equals(vector.GroupName, FixtureNames.VectorGroup, StringComparison.Ordinal)),
-            new Api.MakeVectorNameRefListRuntimeSelectRequest { UserPrompt = RuntimeSelectPrompt("one vector of vector group B277::VG1") });
         Select("p30-instrument-list", "Instrument list runtime select (GetColInstIdRefListArg); operator selects the first USMN fixture instrument",
             ProbeOperations.CollectionInstrumentRefListRuntimeSelect(IsDesignated),
             new Api.MakeCollectionInstrumentRefListRuntimeSelectRequest { UserPrompt = instrumentPrompt });

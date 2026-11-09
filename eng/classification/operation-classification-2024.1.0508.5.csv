@@ -298,7 +298,6 @@ construction_operations.make_system_string,read_only,pure_read,,quick,no_recorde
 construction_operations.make_transform_from_doubles_euler_parameters,read_only,pure_read,,quick,no_recorded_gap,admissible,,true,true,true,true
 construction_operations.make_transform_from_doubles_fixed_xyz,read_only,pure_read,,quick,no_recorded_gap,admissible,,true,true,true,true
 construction_operations.make_vector_name_ref_list_from_vector_group,read_only,pure_read,,quick,no_recorded_gap,admissible,,true,true,true,true
-construction_operations.make_vector_name_ref_list_runtime_select,read_only,interactive_ui,interactive_ui,interactive,no_recorded_gap,admissible,,false,false,false,false
 construction_operations.make_vector_names_unique_in_vector_group,state_mutation,model_mutation,,quick,no_recorded_gap,admissible,,false,true,true,true
 construction_operations.move_objects_point_to_point_delta,state_mutation,model_mutation,,quick,no_recorded_gap,admissible,,false,true,true,true
 construction_operations.move_objects_to_a_collection,state_mutation,model_mutation,,quick,no_recorded_gap,admissible,,false,true,true,true
