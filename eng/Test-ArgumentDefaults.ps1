@@ -9,8 +9,10 @@ param(
 # both directions: every CSV row has exactly one matching C# row and every C# row
 # has exactly one matching CSV row. It compares the operation, protobuf field, MP
 # argument, SDK binding, and the major-3 outcome when the field is absent,
-# explicitly empty, and set. It also checks the outcome vocabulary and that a
-# removed row is removed in all three columns. Any finding fails.
+# explicitly empty, and set. It also checks the outcome vocabulary, that a
+# removed row is removed in all three columns, and that a repeated field, whose
+# empty list is the absent value, has the same outcome in both columns. Only such
+# a field may omit its setter when explicitly empty. Any finding fails.
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -18,7 +20,7 @@ $ErrorActionPreference = 'Stop'
 $targetNames = @('2026.1.0529.7', '2024.1.0508.5')
 $resolvedRoot = [IO.Path]::GetFullPath($RepositoryRoot)
 $absentPattern = '^(omitted|rejected|sends_blank|removed|rejected_unless:[a-z0-9_]+|sends_default:(true|false|-?[0-9.]+))$'
-$emptyPattern = '^(rejected|sends_blank|sends_all_limits_disabled|not_applicable|removed)$'
+$emptyPattern = '^(omitted|rejected|sends_blank|sends_all_limits_disabled|not_applicable|removed)$'
 $valuePattern = '^(sent|removed)$'
 $rowPattern = [regex]::new(
     '^\s*new\("(?<id>[a-z0-9_]+\.[a-z0-9_]+)",\s*"(?<field>[A-Za-z0-9]+\.[a-z0-9_]+)",\s*"(?<mp>(?:[^"\\]|\\.)*)",\s*' +
@@ -55,6 +57,13 @@ foreach ($target in $targetNames) {
         }
         if (($entry.category -ceq 'removed_in_major_3') -ne (@($removed).Count -eq 3)) {
             $findings.Add("${label}: only the removed_in_major_3 category is removed.")
+        }
+        $repeated = $entry.proto_type -clike 'repeated *'
+        if ($repeated -and $entry.major3_explicit_empty -cne $entry.major3_absent) {
+            $findings.Add("${label}: a repeated field's empty list is its absent value, so both outcomes match.")
+        }
+        if (-not $repeated -and $entry.major3_explicit_empty -ceq 'omitted') {
+            $findings.Add("${label}: only a repeated field omits its setter when explicitly empty.")
         }
         $expected.Add((Format-Row $entry.operation_id $entry.proto_field $entry.mp_argument $entry.sdk_binding `
                     $entry.major3_absent $entry.major3_explicit_empty $entry.major3_value))
