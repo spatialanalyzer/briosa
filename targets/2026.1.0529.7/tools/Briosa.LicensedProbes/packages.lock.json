@@ -301,7 +301,7 @@
       },
       "Grpc.Reflection": {
         "type": "CentralTransitive",
-        "requested": "[2.84.0, )",
+        "requested": "[2.85.0, )",
         "resolved": "2.85.0",
         "contentHash": "JTRlQ/0kHpUxYVnjh8x/g42pategBhJl2wEOXTpxMAW0AKfGS9eGKJol+2LR/NdcH/8R5kZaVgp4D2Yzyp9K4A==",
         "dependencies": {
@@ -311,7 +311,7 @@
       },
       "Grpc.Tools": {
         "type": "CentralTransitive",
-        "requested": "[2.84.0, )",
+        "requested": "[2.85.0, )",
         "resolved": "2.85.0",
         "contentHash": "JpACpJuD56v9MBlgJEakwBLbbDifYwE3fpktbsKMPOI3yvs/VFFQVGnmWatu6mgZSNo7gzFe+TDmda9SOKg+NQ=="
       },
