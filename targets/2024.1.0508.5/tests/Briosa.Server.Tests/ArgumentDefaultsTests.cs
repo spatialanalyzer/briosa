@@ -26,7 +26,7 @@ public sealed class ArgumentDefaultsTests
 
     private static readonly string[] AbsentOutcomes = ["omitted", "rejected", "sends_blank", "removed"];
     private static readonly string[] EmptyOutcomes =
-        ["rejected", "sends_blank", "sends_all_limits_disabled", "not_applicable", "removed"];
+        ["omitted", "rejected", "sends_blank", "sends_all_limits_disabled", "not_applicable", "removed"];
     private static readonly string[] ValueOutcomes = ["sent", "removed"];
 
     public static TheoryData<string> RowKeys()
@@ -82,6 +82,17 @@ public sealed class ArgumentDefaultsTests
             .Single(method => method is not null)!;
         var field = Descriptor(requestType).FindFieldByName(row.ProtoField[(separator + 1)..]);
         Assert.NotNull(field);
+
+        // A repeated field has no presence: its explicitly empty list is the absent value,
+        // so both columns agree. Only such a field may omit its setter when empty.
+        if (field.IsRepeated)
+        {
+            Assert.Equal(row.Absent, row.ExplicitEmpty);
+        }
+        else
+        {
+            Assert.NotEqual("omitted", row.ExplicitEmpty);
+        }
 
         var baseline = Filled(requestType);
 

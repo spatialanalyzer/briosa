@@ -2,7 +2,7 @@
   "schema_version": 1,
   "spatial_analyzer_target": "2024.1.0508.5",
   "description": "Reviewed operation retirements. eng/Verify-Protocol.ps1 removes exactly these RPCs, and the request, result and enum types they alone use, from the baseline descriptor before the FILE breaking check. Every other protocol change keeps the normal rules. Tests require each retired operation to be absent from the registry, discovery, classification and generated protocol.",
-  "decision": "D2 point 5 (https://github.com/spatialanalyzer/briosa/issues/243#issuecomment-6107759671) as decided on #308 (https://github.com/spatialanalyzer/briosa/issues/308#issuecomment-6109883364), #310, and #307 (https://github.com/spatialanalyzer/briosa/issues/307#issuecomment-6113702460) (2026-10-11): delete operations whose NOT_SUPPORTED substitution does not work on the exact target; and on #309 (https://github.com/spatialanalyzer/briosa/issues/309#issuecomment-6404290445) and #350 (https://github.com/spatialanalyzer/briosa/issues/350#issuecomment-6404290753) (2026-10-25): delete operations that licensed session 2 showed cannot work on the exact target.",
+  "decision": "D2 point 5 (https://github.com/spatialanalyzer/briosa/issues/243#issuecomment-6107759671) as decided on #308 (https://github.com/spatialanalyzer/briosa/issues/308#issuecomment-6109883364), #310, and #307 (https://github.com/spatialanalyzer/briosa/issues/307#issuecomment-6113702460) (2026-10-11): delete operations whose NOT_SUPPORTED substitution does not work on the exact target; and on #309 (https://github.com/spatialanalyzer/briosa/issues/309#issuecomment-6404290445) and #350 (https://github.com/spatialanalyzer/briosa/issues/350#issuecomment-6404290753) (2026-10-25): delete operations that licensed session 2 showed cannot work on the exact target; and on #350 (https://github.com/spatialanalyzer/briosa/issues/350#issuecomment-6739535653) (2026-11-09): delete an operation whose selection no operator could complete on either exact target in licensed session 3, which leaves it unverified.",
   "retired_in_contract_major": 3,
   "operations": [
     {
@@ -114,6 +114,19 @@
       "probes": [22],
       "evidence": "docs/testing/evidence/probe-session-2-2024.1.0508.5-2026-10-25.md",
       "reason": "With SA's documented F2 gesture the selection completed (MP code 2), but GetCollectionVectorGroupNameRefListArg, the SDK's getter for the documented result, returned nothing (outputs 0 of 1), also under Silent."
+    },
+    {
+      "operation_id": "construction_operations.make_vector_name_ref_list_runtime_select",
+      "mp_step": "Make a Vector Name Ref List - Runtime Select",
+      "service": "briosa.ConstructionOperations",
+      "rpc": "MakeVectorNameRefListRuntimeSelect",
+      "request": "briosa.MakeVectorNameRefListRuntimeSelectRequest",
+      "result": "briosa.MakeVectorNameRefListRuntimeSelectResult",
+      "enums": [],
+      "issue": 350,
+      "probes": [30],
+      "evidence": "docs/testing/evidence/probe-session-3-2024.1.0508.5-2026-11-09.md",
+      "reason": "Unverified rather than rejected: no operator could complete the selection. F2 opened \"This selection mode does not allow a list.\", no vector could be picked in the 3D view, and Enter with nothing selected returned MP code 3, so GetVectorNameRefListArg was never read after a selection. It can return in a 3.x revision once a licensed session verifies it."
     }
   ]
 }

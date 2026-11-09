@@ -349,7 +349,7 @@ public sealed class SpatialAnalyzerLifecycleCoordinatorTests
 
         Assert.Equal(Grpc.Core.StatusCode.Cancelled, stoppedWaiting.StatusCode);
         Assert.Equal(
-            global::Briosa.SpatialAnalyzerLifecycleFailureKind.StateConflict,
+            global::Briosa.SpatialAnalyzerLifecycleFailureKind.CallerCancelled,
             stoppedWaiting.Detail.Kind);
         Assert.Equal("application-lifecycle-caller-stopped-waiting", stoppedWaiting.Detail.DiagnosticCode);
         Assert.Equal(
@@ -428,7 +428,7 @@ public sealed class SpatialAnalyzerLifecycleCoordinatorTests
 
         Assert.Equal(Grpc.Core.StatusCode.Cancelled, withdrawn.StatusCode);
         Assert.Equal(
-            global::Briosa.SpatialAnalyzerLifecycleFailureKind.StateConflict,
+            global::Briosa.SpatialAnalyzerLifecycleFailureKind.CallerCancelled,
             withdrawn.Detail.Kind);
         Assert.Equal("application-lifecycle-request-withdrawn", withdrawn.Detail.DiagnosticCode);
         Assert.Equal(global::Briosa.LifecycleRecoveryGuidance.None, withdrawn.Detail.RecoveryGuidance);
@@ -494,10 +494,19 @@ public sealed class SpatialAnalyzerLifecycleCoordinatorTests
         Assert.False(process.CloseRequested);
     }
 
-    // #322 through the gRPC service: the typed detach of a caller that stopped waiting
-    // is audited, although gRPC does not deliver a response to that caller.
-    [Fact]
-    public async Task LaunchServiceAuditsACallerThatStoppedWaiting()
+    // #322 and D-2 through the gRPC service: a launch caller that stopped waiting gets
+    // the caller failure kinds of the MP path. A cancelled caller gets CANCELLED with
+    // CALLER_CANCELLED; once the call's gRPC deadline has passed, it gets
+    // DEADLINE_EXCEEDED with CALLER_DEADLINE_EXCEEDED. The diagnostic and recovery
+    // guidance still tell a withdrawn launch from a detached one. The typed detail is
+    // audited with that status, although gRPC does not deliver a response to the caller.
+    [Theory]
+    [InlineData("withdrawn", false)]
+    [InlineData("withdrawn", true)]
+    [InlineData("stopped-waiting", false)]
+    [InlineData("stopped-waiting", true)]
+    public async Task LaunchServiceReportsCallerCancellationAndDeadlineWithTheCallerKinds(
+        string path, bool deadlinePassed)
     {
         using var executable = TemporaryFile.Create();
         var platform = new FakeProcessPlatform { WindowReadyAtStart = false };
@@ -508,29 +517,108 @@ public sealed class SpatialAnalyzerLifecycleCoordinatorTests
         var audit = new CapturingLogger<LifecycleAuditLogger>();
         var service = new SpatialAnalyzerLifecycleService(coordinator, new LifecycleAuditLogger(audit));
         using var cancellation = new CancellationTokenSource();
+        var withdrawn = path == "withdrawn";
+        if (withdrawn) await cancellation.CancelAsync();
 
         var call = service.LaunchSpatialAnalyzer(
             new global::Briosa.LaunchSpatialAnalyzerRequest(),
             new InMemoryServerCallContext(
-                "/briosa.SpatialAnalyzerLifecycle/LaunchSpatialAnalyzer", null, cancellation.Token));
-        var process = Assert.IsType<FakeOwnedProcess>(platform.StartedProcess);
-        await cancellation.CancelAsync();
+                "/briosa.SpatialAnalyzerLifecycle/LaunchSpatialAnalyzer",
+                CallDeadline(deadlinePassed),
+                cancellation.Token));
+        FakeOwnedProcess? process = null;
+        if (!withdrawn)
+        {
+            // Acceptance and the process start happen before the first wait.
+            process = Assert.IsType<FakeOwnedProcess>(platform.StartedProcess);
+            await cancellation.CancelAsync();
+        }
         var error = await Assert.ThrowsAsync<Grpc.Core.RpcException>(() => call.WaitAsync(HangGuard));
-        process.WindowReady = true;
-        await clock.FireNextAsync();
 
-        Assert.Equal(Grpc.Core.StatusCode.Cancelled, error.StatusCode);
+        var status = deadlinePassed
+            ? Grpc.Core.StatusCode.DeadlineExceeded
+            : Grpc.Core.StatusCode.Cancelled;
+        Assert.Equal(status, error.StatusCode);
         var detail = global::Briosa.SpatialAnalyzerLifecycleError.Parser.ParseFrom(
             Assert.Single(error.Trailers).ValueBytes);
         Assert.Equal("LaunchSpatialAnalyzer", detail.Rpc);
-        Assert.Equal("application-lifecycle-caller-stopped-waiting", detail.DiagnosticCode);
+        Assert.Equal(
+            deadlinePassed
+                ? global::Briosa.SpatialAnalyzerLifecycleFailureKind.CallerDeadlineExceeded
+                : global::Briosa.SpatialAnalyzerLifecycleFailureKind.CallerCancelled,
+            detail.Kind);
+        Assert.Equal(
+            withdrawn
+                ? "application-lifecycle-request-withdrawn"
+                : "application-lifecycle-caller-stopped-waiting",
+            detail.DiagnosticCode);
+        Assert.Equal(
+            withdrawn
+                ? global::Briosa.LifecycleRecoveryGuidance.None
+                : global::Briosa.LifecycleRecoveryGuidance.RefreshState,
+            detail.RecoveryGuidance);
+        Assert.Equal(detail.DiagnosticCode, error.Status.Detail);
         var rejected = Assert.Single(audit.Entries, entry => entry.EventId.Id == 1302);
         Assert.Equal("LaunchSpatialAnalyzer", rejected.Value("Rpc"));
-        Assert.Equal(Grpc.Core.StatusCode.Cancelled, rejected.Value("GrpcStatus"));
-        Assert.Equal("application-lifecycle-caller-stopped-waiting", rejected.Value("DiagnosticCode"));
+        Assert.Equal(status, rejected.Value("GrpcStatus"));
+        Assert.Equal(detail.DiagnosticCode, rejected.Value("DiagnosticCode"));
+
+        if (process is null)
+        {
+            // A withdrawn launch starts nothing.
+            Assert.Null(platform.StartedProcess);
+            return;
+        }
+
+        // The detached launch still finishes and records the running application.
+        process.WindowReady = true;
+        await clock.FireNextAsync();
         var running = await coordinator.GetCurrentAsync(CancellationToken.None).WaitAsync(HangGuard);
         Assert.Equal(global::Briosa.SpatialAnalyzerApplicationState.Running, running.ApplicationState);
     }
+
+    // D-2: only a caller interruption becomes the caller's deadline. A failure of its
+    // own keeps its kind and status, even when the call's deadline has passed by the
+    // time the service reports it.
+    [Fact]
+    public async Task LaunchServiceKeepsOtherFailuresAfterTheCallerDeadline()
+    {
+        using var executable = TemporaryFile.Create();
+        var platform = new FakeProcessPlatform { WindowReadyAtStart = false };
+        var clock = new HeartbeatTestClock();
+        using var coordinator = CreateCoordinator(
+            executable.Path, platform, timeProvider: clock, startupTimeout: ApplicationStartupTimeout);
+        using var expiry = new LaunchBoundExpiry(clock);
+        var audit = new CapturingLogger<LifecycleAuditLogger>();
+        var service = new SpatialAnalyzerLifecycleService(coordinator, new LifecycleAuditLogger(audit));
+        var launching = coordinator.LaunchAsync(
+            new global::Briosa.LaunchSpatialAnalyzerRequest(), CancellationToken.None);
+        var process = Assert.IsType<FakeOwnedProcess>(platform.StartedProcess);
+
+        var error = await Assert.ThrowsAsync<Grpc.Core.RpcException>(() => service.LaunchSpatialAnalyzer(
+            new global::Briosa.LaunchSpatialAnalyzerRequest(),
+            new InMemoryServerCallContext(
+                "/briosa.SpatialAnalyzerLifecycle/LaunchSpatialAnalyzer",
+                CallDeadline(passed: true),
+                CancellationToken.None)));
+        process.WindowReady = true;
+        await clock.FireNextAsync();
+        _ = await launching.WaitAsync(HangGuard);
+
+        Assert.Equal(Grpc.Core.StatusCode.Aborted, error.StatusCode);
+        var detail = global::Briosa.SpatialAnalyzerLifecycleError.Parser.ParseFrom(
+            Assert.Single(error.Trailers).ValueBytes);
+        Assert.Equal(global::Briosa.SpatialAnalyzerLifecycleFailureKind.StateConflict, detail.Kind);
+        Assert.Equal("application-lifecycle-transition-in-progress", detail.DiagnosticCode);
+        var rejected = Assert.Single(audit.Entries, entry => entry.EventId.Id == 1302);
+        Assert.Equal(Grpc.Core.StatusCode.Aborted, rejected.Value("GrpcStatus"));
+        Assert.Equal(1, platform.Starts);
+    }
+
+    // gRPC cancels a call's token when its deadline passes. A caller that cancels first
+    // can still have its deadline ahead of it.
+    private static DateTime CallDeadline(bool passed) =>
+        passed ? DateTime.UtcNow.AddSeconds(-1) : DateTime.UtcNow.AddHours(1);
 
     private static SpatialAnalyzerLifecycleCoordinator CreateCoordinator(
         string executablePath,

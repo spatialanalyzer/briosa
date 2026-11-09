@@ -9,7 +9,7 @@
         "2024.1.0508.5": "optional bool"
       },
       "rationale": "Exact-target MP bindings differ: SA 2026 takes one object-type choice and a point offset, while SA 2024 takes seven per-shape Booleans. Each target's request mirrors its own release; a client sending one target's request to the other server is misinterpreted on the wire.",
-      "decision": "Pending Wave 2b decision (#233)"
+      "decision": "Kept target-specific for contract major 3 (maintainer decision 2026-10-27, #275). Each target mirrors its own SA binding; raw clients must use the exact target's protocol artifact (docs/operations/protocol-artifacts.md). A general wrong-target enforcement design is deferred to #253."
     },
     {
       "message": "briosa.ConstructObjectsFromSurfaceFacesRuntimeSelectRequest",
@@ -19,7 +19,7 @@
         "2024.1.0508.5": "optional bool"
       },
       "rationale": "Same exact-target binding difference as field 1: SA 2026 point_offset (double) shares number 2 with SA 2024 construct_cylinders (bool), so the wire types are incompatible across targets.",
-      "decision": "Pending Wave 2b decision (#233)"
+      "decision": "Kept target-specific for contract major 3 (maintainer decision 2026-10-27, #275). Each target mirrors its own SA binding; raw clients must use the exact target's protocol artifact (docs/operations/protocol-artifacts.md). A general wrong-target enforcement design is deferred to #253."
     }
   ]
 }

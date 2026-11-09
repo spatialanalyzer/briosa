@@ -5,6 +5,9 @@ $root = [IO.Path]::GetFullPath($CompatibilityRoot)
 $matrix = Get-Content (Join-Path $root 'matrix.json') -Raw | ConvertFrom-Json
 if ($matrix.schemaVersion -ne 1) { throw 'Unknown matrix schema.' }
 $retained = Get-Content (Join-Path $root 'retained-clients.json') -Raw | ConvertFrom-Json
+# Published evidence stays verifiable after its client is retired from the live gate.
+$registryArtifacts = @($retained.clients)
+if ($retained.PSObject.Properties.Name -contains 'retiredClients') { $registryArtifacts += @($retained.retiredClients) }
 if (@($matrix.testedPairs).Count -eq 0) { throw 'A compatibility matrix requires tested pairs.' }
 $seen = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
 foreach ($pair in $matrix.testedPairs) {
@@ -72,7 +75,7 @@ foreach ($pair in $matrix.testedPairs) {
         throw 'Published status differs from package origin evidence.'
     }
     if ($pair.clientPublished) {
-        $record = @($retained.clients | Where-Object {
+        $record = @($registryArtifacts | Where-Object {
             $_.language -ceq $pair.language -and $_.target -ceq $pair.target -and
             $_.version -ceq $pair.clientVersion -and $_.sourceRevision -ceq $pair.clientSourceRevision -and
             $_.sha256 -ceq $pair.clientPackageSha256 -and $_.url -ceq $publishedUrl

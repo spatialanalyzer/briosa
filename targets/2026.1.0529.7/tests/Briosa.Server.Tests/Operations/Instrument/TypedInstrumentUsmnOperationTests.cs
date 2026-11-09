@@ -14,6 +14,7 @@ namespace Briosa.Server.Tests;
 public sealed class TypedInstrumentUsmnOperationTests
 {
     private const string OperationId = "instrument_operations.locate_instruments_usmn";
+    private const string ExcludedGroupsLabel = "Groups to be Excluded";
 
     [Fact]
     public void UsmnCommandPreservesExactDefaultsAndExplicitChoiceMapping()
@@ -81,6 +82,71 @@ public sealed class TypedInstrumentUsmnOperationTests
             LocateInstrumentsUsmnOperation.CreateCommand(ValidRequest(Api.ShowUsmnDialog.Unspecified)));
         Assert.Throws<ArgumentException>(() =>
             LocateInstrumentsUsmnOperation.CreateCommand(ValidRequest((Api.ShowUsmnDialog)99)));
+    }
+
+    // Probe 33 (licensed session 3, both targets): SA ran USMN correctly with the Groups to
+    // be Excluded setter skipped, and the SDK setter refused an empty list. So an empty list
+    // skips the setter, as Quick Align's optional lists do, and every other argument is sent
+    // as before.
+    [Fact]
+    public void UsmnWithNoExcludedGroupsSkipsTheExcludedGroupsSetter()
+    {
+        var shipped = LocateInstrumentsUsmnOperation.CreateCommand(ValidRequest());
+        var request = ValidRequest();
+        request.ExcludedGroups.Clear();
+
+        var command = LocateInstrumentsUsmnOperation.CreateCommand(request);
+
+        Assert.DoesNotContain(command.InputArguments, static argument => argument.Name == ExcludedGroupsLabel);
+        Assert.Equal(
+            shipped.InputArguments.Where(static argument => argument.Name != ExcludedGroupsLabel)
+                .Select(static argument => (argument.Name, argument.Kind, argument.SdkBinding)),
+            command.InputArguments.Select(static argument => (argument.Name, argument.Kind, argument.SdkBinding)));
+    }
+
+    [Fact]
+    public void UsmnSendsExcludedGroupsUnchanged()
+    {
+        var request = ValidRequest();
+        request.ExcludedGroups.Add(new Api.CollectionObjectName
+        {
+            CollectionName = "Scans", ObjectName = "Fixture", ObjectType = Api.ObjectType.PointGroup
+        });
+
+        var command = LocateInstrumentsUsmnOperation.CreateCommand(request);
+
+        var excluded = command.InputArguments[8];
+        Assert.Equal((ExcludedGroupsLabel, WorkerMpValueKind.CollectionObjectNameList, "SetCollectionObjectNameRefListArg"),
+            (excluded.Name, excluded.Kind, excluded.SdkBinding));
+        Assert.Equal(
+            new[]
+            {
+                new WorkerCollectionObjectNameValue("Points", "Excluded", WorkerObjectTypeValue.Any),
+                new WorkerCollectionObjectNameValue("Scans", "Fixture", WorkerObjectTypeValue.PointGroup)
+            },
+            excluded.RequireValue<WorkerCollectionObjectNameListValue>().Values);
+        Assert.Single(command.InputArguments, static argument => argument.Name == ExcludedGroupsLabel);
+    }
+
+    [Fact]
+    public async Task GeneratedClientCanLocateWithNoExcludedGroups()
+    {
+        var worker = new InstrumentWorker();
+        var grpcHost = await GrpcTestHost.StartAsync<InstrumentOperationsService>(worker).ConfigureAwait(true);
+        await using var grpcLifetime = grpcHost.ConfigureAwait(true);
+        var client = new Api.InstrumentOperations.InstrumentOperationsClient(grpcHost.Channel);
+        var request = ValidRequest();
+        request.ExcludedGroups.Clear();
+
+        var result = await client.LocateInstrumentsUsmnAsync(request,
+            new CallOptions(deadline: DateTime.UtcNow.AddSeconds(20)));
+
+        var command = Assert.Single(worker.Commands);
+        Assert.Equal(OperationId, command.OperationId);
+        Assert.Equal(12, command.InputArguments.Count);
+        Assert.DoesNotContain(command.InputArguments, static argument => argument.Name == ExcludedGroupsLabel);
+        Assert.Equal(3.25, result.RmsError);
+        Assert.Equal(5.25, result.MaximumError);
     }
 
     [Fact]

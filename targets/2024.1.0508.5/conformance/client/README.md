@@ -51,17 +51,46 @@ location.
 A scenario may declare `minimum_contract_major`. The package includes it only
 once the target's compatibility contract reaches that major, and it removes the
 field from the packaged contract. Retained clients for the current major never
-receive a scenario their fixture cannot know. `sdk-call-faulted` (#294) and
-`mp-partial-success` (#351) are defined with `minimum_contract_major: 3`; the
-compatibility-major-3 freeze activates them, and major-3 client fixtures must
-then support them.
+receive a scenario their fixture cannot know. `sdk-call-faulted` (#294),
+`mp-partial-success` (#351), and `lifecycle-cancellation` (#305) are defined
+with `minimum_contract_major: 3`. This target declares contract major 3, so
+its package includes all three, and major-3 client fixtures must support them.
 
 In `mp-partial-success`, the fake worker returns MP code 4 (PARTIAL SUCCESS)
-with the working directory for the first execution and code 2 afterwards. The
-fixture calls `get_working_directory` twice and asserts, through its public
-API, that both calls return the directory without an error, that the first
+with the working directory for the first execution, code 2 for the second, and
+code 4 without its output for the third. The fixture calls
+`get_working_directory` three times and asserts, through its public API, that
+the first two calls return the directory without an error, that the first
 call's MP completion is `PartialSuccess` with code 4, and that the second
-call's is `Succeeded` with code 2.
+call's is `Succeeded` with code 2. The third call fails with the typed output
+retrieval failure (DATA_LOSS, `OUTPUT_RETRIEVAL_FAILURE`, Completed,
+DoNotReplay), and its MP execution details still report `PartialSuccess` with
+code 4.
+
+In `lifecycle-cancellation`, the runner starts the external fake application,
+and the fake worker holds its reply to the first Connect for 3 seconds. The
+fixture starts in `control-plane-only` mode, drives the SDK lifecycle itself,
+and asserts through its public API that:
+
+1. after it starts the SDK, a Connect with a deadline of about 1 second
+   fails with the language's native deadline or cancellation outcome. The
+   client invents no execution disposition and does not retry;
+2. a second Connect, sent at once, fails with the typed lifecycle error:
+   ABORTED, `sdk-lifecycle-transition-in-progress`, and recovery guidance
+   REFRESH_STATE. The server finishes the first Connect on its own once it has
+   accepted it;
+3. refreshing SDK state, polling for at most about 20 seconds, shows the same
+   SDK generation ready for MP work, with no incident: the detached Connect
+   finished without a fault or quarantine;
+4. `get_working_directory` then succeeds; and
+5. the fixture stops the SDK and shuts down cleanly. The runner checks that the
+   external fake application is still running.
+
+The deadline and the hold leave room on both sides. A slow runner has about a
+second for the server to accept the first Connect before the deadline expires,
+and the second Connect then has about 2 seconds before the hold ends. The hold
+stays well inside the server's 10-second `StartupTimeout`, which bounds an
+accepted Connect, and its 5-second heartbeat timeout.
 
 The `capability-denied` scenario runs the packaged `standard` profile with one
 per-operation override that denies `file_operations.get_working_directory`.
