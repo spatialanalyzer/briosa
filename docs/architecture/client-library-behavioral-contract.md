@@ -1,7 +1,7 @@
 # First-party client behavioral contract
 
 - Status: Current v1 design contract; client implementations may still be pre-conformance
-- Last reviewed: 2026-10-25
+- Last reviewed: 2026-11-09
 
 ## Purpose and authority
 
@@ -170,6 +170,19 @@ At compatibility major 3, every first-party client:
 5. Documents that a partial success did its work, where to read the
    indication, and the exception list.
 
+At compatibility major 3, every first-party client also checks the `execution`
+of each successful MP call, whether or not the caller observes the completion.
+`execution` must be present, and its state and code must agree: `Succeeded`
+with code `2`, or `PartialSuccess` with code `4`. The code must be present too,
+because the server sets it on every success. Anything else, such as a missing
+`execution`, a missing code, or a state that disagrees with its code, is a
+protocol-contract failure.
+
+When the caller observes the completion, the client calls the observer after
+this check and before it maps the outputs, so the observer reports the
+completion even when output mapping then fails. Adding or removing an observer
+never changes a call's outcome.
+
 Public optionality follows the semantic success contract rather than protobuf
 defaults, language truthiness, or zero values. A required-on-success value remains
 required. A missing required wire value is a protocol-contract failure, while a
@@ -199,6 +212,16 @@ domain values. Context-dependent behavior is not presented as a fixed default.
 The command contract owns the canonical value. Each language owns its idiomatic
 signature or input-property expression. Changing a published default is a
 behavioral API change.
+
+An input that the server requires has no default at all. At compatibility
+major 3, each first-party package requires every input that its target's server
+rejects when it is absent or empty. The client never fills such an input in,
+whether through a default value or a convenience overload: no identity
+transform, no default settings value, and no empty list. Omitting one fails
+before any call, in the language's idiom, such as a compile-time error or a
+local argument error. An input that the server accepts when absent stays
+optional, such as the template chart, the profile file, and the fit seed in the
+[argument defaults migration](../development/argument-defaults-migration.md#client-libraries).
 
 ## Asynchronous calls and caller controls
 
@@ -318,6 +341,12 @@ policy. The canonical gRPC status and typed operation detail remain separate.
 Status text is never parsed to reconstruct policy. Public error values preserve
 the server's execution disposition, recovery guidance, replay guidance, and
 replay-safety classification as separate dimensions.
+
+At compatibility major 3, every first-party client gives a transport failure
+without a typed trailer the diagnostic code `transport-` followed by the gRPC
+status name in lower kebab case. For example, `DEADLINE_EXCEEDED` becomes
+`transport-deadline-exceeded`, and `UNAVAILABLE` becomes
+`transport-unavailable`. Caller cancellation keeps its language-native form.
 
 Clients expose every `OperationFailureKind` value as a distinct typed failure
 kind, never folded into a generic or neighbouring kind. In particular,
@@ -461,7 +490,8 @@ Clients adopting compatibility major 3:
   request with a typed `PermissionDenied`. Clients do not pre-validate request
   options from discovery;
 - offer an explicit diagnostic listing that sets `include_denied` and returns
-  each denied operation with its denial reason. Denied entries never enter the
+  one value: the admission profile name, the policy fingerprint, and each
+  denied operation with its denial reason. Denied entries never enter the
   generation's admitted set and never make an operation callable; and
 - may use `duration_class` to choose a default per-call deadline only where
   the language contract already provides a configured default command timeout.

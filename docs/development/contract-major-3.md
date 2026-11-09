@@ -112,6 +112,18 @@ shared requirements are in the
 [client behavioral contract](../architecture/client-library-behavioral-contract.md)
 and the migration pages above.
 
+One operation-specific rule changes only the clients:
+`set_robot_machine_parameter` takes `parameter_name` as a required argument
+with no default, like `parameter_value`. The client sends an explicit value
+unchanged and doesn't check it for emptiness. The server passes the name to
+SpatialAnalyzer as given.
+
+The behavioral contract also sets four rules for major 3. Each client checks
+[every MP success](../architecture/client-library-behavioral-contract.md#partial-success),
+requires [every input the server requires](../architecture/client-library-behavioral-contract.md#reviewed-fixed-defaults),
+returns [one denied-operations listing](../architecture/client-library-behavioral-contract.md#compatibility-and-capabilities),
+and uses [one transport failure code format](../architecture/client-library-behavioral-contract.md#typed-failures-and-transport-isolation).
+
 Each client change also proves every changed facade default, omission, and
 requiredness rule with focused tests, because the shared conformance scenarios
 don't exercise those mappings.
