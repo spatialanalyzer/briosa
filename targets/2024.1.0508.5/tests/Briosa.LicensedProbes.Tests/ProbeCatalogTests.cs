@@ -74,7 +74,7 @@ public sealed class ProbeCatalogTests
             .Order(StringComparer.Ordinal);
 
         // The shipped optional labels, and probe 33's Groups to be Excluded, which every
-        // client offers as optional although the shipped mapping requires a group.
+        // client offers as optional although the server required a group until #363.
         Assert.Equal(
             new[]
             {

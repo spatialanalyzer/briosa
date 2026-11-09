@@ -678,11 +678,11 @@ internal static class ProbeCatalog
     }
 
     // Probe 33 (briosa-dotnet#39): every client offers USMN's Groups to be Excluded as
-    // optional, but the shipped mapping refuses an empty list before dispatch, so only the
-    // worker phase can ask SA. The control is probe 1's shipped request, which excludes G3, a
-    // group USMN does not use. A variant that SA runs correctly returns MP code 2, both
-    // outputs, and the control's errors. The errors stay in memory; only the comparison is
-    // recorded. The operator records any dialog after each step.
+    // optional, but the server never sends SA an empty list: it refused one before #363 and
+    // skips the setter since. So only the worker phase can ask SA. The control is probe 1's
+    // shipped request, which excludes G3, a group USMN does not use. A variant that SA runs
+    // correctly returns MP code 2, both outputs, and the control's errors. The errors stay in
+    // memory; only the comparison is recorded. The operator records any dialog after each step.
     private static void AddExcludedGroupsProbe(StepList steps, FixtureManifest manifest)
     {
         var errors = new UsmnErrorComparison();

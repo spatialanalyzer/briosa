@@ -36,6 +36,7 @@ version. Major 2 shipped as Server 0.9.0.
 | Caller-cancellation kinds for lifecycle failures | Freeze change | Additive enum values, behavioral | [Runtime boundary](../architecture/runtime-boundary-and-lifecycle.md) |
 | Two cross-target wire conflicts kept target-specific ([#275](https://github.com/spatialanalyzer/briosa/issues/275)) | Freeze change | No wire change; documented limitation for raw clients | Each target's `docs/operations/protocol-artifacts.md` |
 | Major-1 retained clients retired from the live gate ([#250](https://github.com/spatialanalyzer/briosa/issues/250)) | Freeze change | Release-gate policy | [Compatibility evidence](../../compatibility/README.md) |
+| USMN accepts an empty `excluded_groups` list and skips its setter (licensed session 3, probe 33) | Freeze change | Relaxing | [Argument defaults migration](argument-defaults-migration.md) |
 
 ## What major 3 leaves out
 

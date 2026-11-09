@@ -45,14 +45,20 @@ summarizes what changes.
    Low names are separate fields, so the table has five rows for them. The fit
    seed geometry of the three fit operations follows, with three more rows, as
    [decided on #311](https://github.com/spatialanalyzer/briosa/issues/311#issuecomment-6404291260)
-   after licensed session 2 (2026-10-25).
+   after licensed session 2 (2026-10-25). The USMN `Groups to be Excluded` list
+   follows, with one more row, after licensed session 3 (2026-11-08,
+   [#363](https://github.com/spatialanalyzer/briosa/pull/363)): probe 33 showed
+   that SA runs USMN correctly with the setter skipped, and that the SDK setter
+   refuses an empty list.
 3. **An explicit empty value is rejected before dispatch** with
    InvalidArgument and NotStarted (`request-validation-failed`), as a missing
    required field is. The one exception is the USMN nominals group, which the
    exact-target evidence documents as "blank for none" and which probe 1 showed
    SA accepts blank. An explicit empty nominals group is sent blank, with empty
    collection and object names, as probe 1 sent it (Q2). An explicit empty plane
-   name is rejected, because SA rejects it with a blocking dialog.
+   name is rejected, because SA rejects it with a blocking dialog. A repeated
+   field has no separate empty form: its empty list is the absent value. So the
+   USMN excluded-groups list omits its setter when empty, as when absent.
 4. **Unobserved arguments keep their behavior** until a licensed probe settles
    them: the other F6 arguments and the optional scalars in the appendix. The
    relationship tolerance and constraint stay required, and the clients change
@@ -124,20 +130,22 @@ Behavior values:
 
 ## Rows
 
-Both targets have the same 72 rows.
+Both targets have the same 73 rows.
 
 | Category | Rows | Arguments | Change in major 3 |
 |---|---:|---|---|
-| `optional_omit` | 8 | USMN `Nominals Group Name (blank for none)`; `Template Chart Name (optional)`; `Profile File Name (optional)`; `Resulting 'High' Plane Name`; `Resulting 'Low' Plane Name`; `Starting Condition Geometry (optional)` of the three fit operations (#311) | Absent: rejected → omitted. Explicit empty: stays rejected, except the nominals group, which is sent blank. |
+| `optional_omit` | 9 | USMN `Nominals Group Name (blank for none)`; `Template Chart Name (optional)`; `Profile File Name (optional)`; `Resulting 'High' Plane Name`; `Resulting 'Low' Plane Name`; `Starting Condition Geometry (optional)` of the three fit operations (#311); USMN `Groups to be Excluded` (probe 33) | Absent: rejected → omitted. Explicit empty: stays rejected, except the nominals group, which is sent blank, and the excluded groups, whose empty list is the absent value. |
 | `required_clients_align` | 8 | `Tolerance` and `Constraint` of `make_group_to_group_relationship`, `make_group_to_nominal_group_relationship`, `make_point_to_point_relationship` and `make_points_to_points_relationship` | None on the server. The clients make both required. |
 | `unchanged_pending_probe` | 2 | `ask_for_point_name` `Initial Value`; `import_sa_file` `Selected Collections (optional)` | None. Neither was probed. |
 | `removed_in_major_3` | 6 | The callout view and instrument wildcard getters (#308); the callout view list, Circle Line Mode and mirror frame plane setters (#310); the `construct_polygonized_surface_from_point_clouds` `Mesh Orientation` setter (#309) | The operation is removed: #308 and #310 by #320, #309 after licensed session 2. |
 | `required_risky_default` | 47 | R1: 6 joints. R2: 4 weather fields. R3: 1 and R4: 2 scale factors. R5: 22 model-link parameters and the robot parameter value. R6: 3 indexes. R7: 8 names and patterns. | Absent: sent as 0, false or blank → rejected (R2 values only when `set_automatically` is false). R7 explicit empty: sent blank → rejected. |
 | `default_flip` | 1 | `measure_existing_single_point_manual_guide` `Measure Immediately` | Absent: false → true. |
 
-The twelve F6 arguments are the 8 `optional_omit` rows (the 5 D2 point 2
+The twelve F6 arguments are 8 of the 9 `optional_omit` rows (the 5 D2 point 2
 arguments and the 3 fit seeds), the 2 `unchanged_pending_probe` rows, and the
-two `make_points_to_points_relationship` rows.
+two `make_points_to_points_relationship` rows. The ninth `optional_omit` row,
+the USMN excluded groups, came from
+[briosa-dotnet#39](https://github.com/spatialanalyzer/briosa-dotnet/issues/39).
 
 ## Optional-input coverage
 
@@ -155,9 +163,11 @@ the server does when the field is absent.
 | A default is sent when absent | 31 | 9 |
 | Implemented in total | 83 | 57 |
 
-Major 3 moved the eight `optional_omit` inputs from rejected to omitted (six on
-2024, whose label-based list does not include the plane names). Every input
-still rejected when absent has a defaults-table row.
+Major 3 moved eight of the nine `optional_omit` inputs from rejected to omitted
+in these files (six on 2024, whose label-based list does not include the plane
+names). The ninth, USMN `Groups to be Excluded`, is not marked optional in
+either target's evidence, so these files do not list it. Every input still
+rejected when absent has a defaults-table row.
 
 **2026** reads the committed inventory: every input whose presence is
 `optional`. An operation matches when its descriptor MP step is the same text
@@ -210,9 +220,10 @@ same status on both targets.
   `targets/<target>/docs/testing/evidence/probe-277-<target>-2026-10-07.md` and,
   for the rows licensed session 2 settled,
   `targets/<target>/docs/testing/evidence/probe-session-2-<target>-2026-10-25.md`.
-  Nothing is transferred between targets. For example, the 2026 record shows a
-  blocking "Template Chart Not found" dialog for a template name that matches
-  no chart, which the 2024 session did not exercise.
+  The excluded-groups row cites licensed session 3 (2026-11-08), whose record is
+  not committed yet. Nothing is transferred between targets. For example, the
+  2026 record shows a blocking "Template Chart Not found" dialog for a template
+  name that matches no chart, which the 2024 session did not exercise.
 - Probes 1, 3, 4, 5 and 6 behaved the same on both targets: omit, blank and
   value were accepted for the nominals group, template chart and profile file,
   and an omitted plane name made SA use its default name. A blank plane name
@@ -224,6 +235,14 @@ same status on both targets.
   usually not required, and names blank only for the fit profile name, so an
   explicit empty seed is rejected. Only Fit Geometry to Point Group was probed;
   the other two fits share its mapping, label and documentation.
+- Probe 33 in licensed session 3 behaved the same on both targets. With the
+  `Groups to be Excluded` setter skipped, USMN returned MP code 2 and both
+  outputs, with the control's RMS and maximum errors. The control was probe 1's
+  request, which excludes `G3`, a group USMN does not use. The SDK setter
+  refused an empty list (`ArgumentRejected`) before `ExecuteStep`. So an empty
+  list omits the setter and is never sent. Because excluding `G3` does not
+  change the solution, the probe cannot tell a skipped setter from one that SA
+  kept from the control.
 - No licensed observation covers the relationship tolerance and constraint,
   `Initial Value`, `Selected Collections`, or the R1 to R7 fields. Requiring the
   R1 to R7 fields needs none, because rejecting before dispatch sends nothing
@@ -241,6 +260,11 @@ empty strings.
   already make these optional and leave the field unset. Contract 2.0 rejected
   that default call; major 3 accepts it, so no client signature changes. The
   High and Low names were a third inverse gap, and rule 2 closes it.
+- **USMN excluded groups.** All six clients already offer the list as optional
+  and send it empty when the caller omits it (briosa-dotnet since
+  [briosa-dotnet#44](https://github.com/spatialanalyzer/briosa-dotnet/pull/44)).
+  Contract 2.0 rejected that default call; major 3 accepts it and omits the
+  setter, so no client signature changes.
 - **Template chart and profile file.** All six require them today. In major 3
   they become optional with no default value, and the field is left unset when
   omitted. Dotnet and py take the template chart as a positional parameter,
@@ -283,7 +307,9 @@ The guard follows the `conditional-ui.json` pattern (#293, Q5):
    `tests/Briosa.Server.Tests/ArgumentDefaultsTable.cs`, one row per line.
 2. `eng/Test-ArgumentDefaults.ps1` requires the transcription and this CSV to
    agree in both directions. It compares operation, field, label, binding and the
-   three `major3_*` values, and checks the vocabulary. It runs in CI.
+   three `major3_*` values, and checks the vocabulary. A repeated field must have
+   the same outcome when absent and when explicitly empty, and only a repeated
+   field may omit its setter when explicitly empty. It runs in CI.
 3. `ArgumentDefaultsTests` in each target builds the real MP command for every
    row three ways (absent, explicitly empty, and set) and requires the
    `major3_*` outcome:
@@ -294,8 +320,9 @@ The guard follows the `conditional-ui.json` pattern (#293, Q5):
    - the value sent with the row's label and binding.
 
    Explicit empty is tried both as an empty and as a whitespace string, with the
-   collection name set. A `rejected_unless` row is tried with the guarding field
-   both false and true. A removed row requires the operation to be unregistered.
+   collection name set. For a repeated field it is the empty list. A
+   `rejected_unless` row is tried with the guarding field both false and true. A
+   removed row requires the operation to be unregistered.
    One test also follows a rejection through the public gRPC seam: it checks the
    InvalidArgument status, the `request-validation-failed` diagnostic, NotStarted,
    and that nothing reaches the worker.

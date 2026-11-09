@@ -77,7 +77,7 @@ values.
 | 30 | Do the runtime-select getters return the operator's selection ([#350](https://github.com/spatialanalyzer/briosa/issues/350), [#312](https://github.com/spatialanalyzer/briosa/issues/312))? A sample: one operation per list getter kind and three single-value getters. | public; the operator selects | `p30-*`; see [Probe 30](#probe-30-runtime-select-sample) |
 | 31 | Do Fit Geometry to Points and Fit Geometry to Point Group Projected to Plane accept the omitted seed ([#311](https://github.com/spatialanalyzer/briosa/issues/311))? | public (the API omits the setter when the seed is absent) | `p31-*`, `c31-*` |
 | 32 | Is MP code 4 reported end to end as a typed partial success ([#351](https://github.com/spatialanalyzer/briosa/issues/351))? | public | `p32-partial`, `c32-partial` |
-| 33 | Does SA run USMN correctly with `Groups to be Excluded` omitted or empty ([briosa-dotnet#39](https://github.com/spatialanalyzer/briosa-dotnet/issues/39))? The public API rejects an empty list. | worker | `p33-*`; see [Probe 33](#probe-33-usmn-excluded-groups) |
+| 33 | Does SA run USMN correctly with `Groups to be Excluded` omitted or empty ([briosa-dotnet#39](https://github.com/spatialanalyzer/briosa-dotnet/issues/39))? The public API never sends SA an empty list. | worker | `p33-*`; see [Probe 33](#probe-33-usmn-excluded-groups) |
 
 **Probe 2 fixture ([#311](https://github.com/spatialanalyzer/briosa/issues/311)).** The fits
 in probes 2 and 17 fit the coplanar group `GFIT` (the four corners of `G1`). The
@@ -424,9 +424,12 @@ The sample leaves out:
 
 Every client offers USMN's `excluded_groups` as optional
 ([briosa-dotnet#39](https://github.com/spatialanalyzer/briosa-dotnet/issues/39)),
-but the shipped mapping requires at least one group. It refuses an empty list with
-`InvalidArgument` before SA sees the request, so only the worker phase can ask SA
-whether USMN needs the list. Probe 33 runs USMN three times on probe 1's fixtures:
+but the mapping that session 3 tested required at least one group. It refused an
+empty list with `InvalidArgument` before SA saw the request, so only the worker
+phase can ask SA whether USMN needs the list. Since
+[#363](https://github.com/spatialanalyzer/briosa/pull/363), the server skips the
+setter for an empty list instead, so the public API still never sends one. Probe 33
+runs USMN three times on probe 1's fixtures:
 
 | Step | `Groups to be Excluded` | Expected if SA runs USMN correctly without the list |
 | --- | --- | --- |
@@ -459,6 +462,11 @@ carries over to the other target.
   probe shows SA accepts. The clients keep the list optional.
 - If SA runs neither variant correctly, `excluded_groups` becomes required in the
   0.5.0 clients.
+
+**Result (licensed session 3, 2026-11-08).** Both targets ran `p33-omit`
+correctly, and the SDK setter refused the empty list in `p33-empty`
+(`ArgumentRejected`), so that step never ran. #363 therefore skips the setter for
+an empty list and never sends one. The clients keep the list optional.
 
 **Not covered.** The server also refuses five other lists when they are empty.
 The third session does not probe them:
