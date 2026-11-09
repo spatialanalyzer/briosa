@@ -64,17 +64,25 @@ The clients build against a frozen checkpoint of the freeze change, as
 [R17](r17-portable-validation.md) did for major 2. Each client pins the
 checkpoint's source commit in its `protocol.lock.json`.
 
-The checkpoint is cut after licensed probe session 3, because that session
-could retire more runtime-select operations. Retiring them after the checkpoint
-would mean a new protocol import in all three client repositories. This table
-is filled in when the checkpoint is cut.
+The checkpoint was cut after licensed probe session 3 (2026-11-09), whose two
+changes it includes: the retired vector-name-list runtime select and the USMN
+excluded-groups mapping. Each target's protocol ZIP was built three times as
+version `0.10.0-dev.1` from the source commit below, and the builds are
+byte-identical. Each passed the reproducibility, descriptor, manifest, and
+checksum checks of `eng/Test-ProtocolArtifact.ps1`, and its provenance records
+contract major 3, revision 0, and that source commit.
 
 | Target | Protocol ZIP SHA-256 | Descriptor SHA-256 |
 | --- | --- | --- |
-| 2026.1.0529.7 | Pending | Pending |
-| 2024.1.0508.5 | Pending | Pending |
+| 2026.1.0529.7 | `0bf2b7f216a8d1040bd416b4566cf6c53a13f398ec81657dc91b674e0f45cae3` | `aa938e86fc62627d58994953398da3b7dc6a202f5f3c90e778bbddccda0261f8` |
+| 2024.1.0508.5 | `5c18656b8148e50b428351a9f67b34d5fba5f43b25eb6ba7f0ad920390d12396` | `15f5e8370436412ed571a13f1a12249eaebcd46f8f63c6db87ee7445b4b0b359` |
 
-Checkpoint version: `0.10.0-dev.1`. Source commit: pending.
+Checkpoint version: `0.10.0-dev.1`. Source commit:
+`2960705eb3152646513dca2b5d2043cd7cfffb75`.
+
+Any later change in the freeze pull request to the protocol or to the
+conformance package needs a new checkpoint, and all three clients must import
+it again.
 
 ## Before the release
 
