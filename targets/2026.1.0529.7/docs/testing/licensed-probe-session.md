@@ -463,7 +463,7 @@ carries over to the other target.
 - If SA runs neither variant correctly, `excluded_groups` becomes required in the
   0.5.0 clients.
 
-**Result (licensed session 3, 2026-11-08).** Both targets ran `p33-omit`
+**Result (licensed session 3, 2026-11-09).** Both targets ran `p33-omit`
 correctly, and the SDK setter refused the empty list in `p33-empty`
 (`ArgumentRejected`), so that step never ran. #363 therefore skips the setter for
 an empty list and never sends one. The clients keep the list optional.

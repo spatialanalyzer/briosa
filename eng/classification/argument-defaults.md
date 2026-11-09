@@ -46,7 +46,7 @@ summarizes what changes.
    seed geometry of the three fit operations follows, with three more rows, as
    [decided on #311](https://github.com/spatialanalyzer/briosa/issues/311#issuecomment-6404291260)
    after licensed session 2 (2026-10-25). The USMN `Groups to be Excluded` list
-   follows, with one more row, after licensed session 3 (2026-11-08,
+   follows, with one more row, after licensed session 3 (2026-11-09,
    [#363](https://github.com/spatialanalyzer/briosa/pull/363)): probe 33 showed
    that SA runs USMN correctly with the setter skipped, and that the SDK setter
    refuses an empty list.
@@ -220,8 +220,10 @@ same status on both targets.
   `targets/<target>/docs/testing/evidence/probe-277-<target>-2026-10-07.md` and,
   for the rows licensed session 2 settled,
   `targets/<target>/docs/testing/evidence/probe-session-2-<target>-2026-10-25.md`.
-  The excluded-groups row cites licensed session 3 (2026-11-08), whose record is
-  not committed yet. Nothing is transferred between targets. For example, the
+  The excluded-groups row, which licensed session 3 settled, cites
+  `targets/<target>/docs/testing/evidence/probe-session-3-<target>-2026-11-09.md`,
+  which [#370](https://github.com/spatialanalyzer/briosa/pull/370) added.
+  Nothing is transferred between targets. For example, the
   2026 record shows a blocking "Template Chart Not found" dialog for a template
   name that matches no chart, which the 2024 session did not exercise.
 - Probes 1, 3, 4, 5 and 6 behaved the same on both targets: omit, blank and
