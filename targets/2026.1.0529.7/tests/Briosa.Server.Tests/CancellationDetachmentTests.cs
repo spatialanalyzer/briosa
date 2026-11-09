@@ -769,7 +769,8 @@ public sealed class CancellationDetachmentTests
     }
 
     // F10 at the coordinator: the caller that stops waiting receives a typed Cancelled
-    // detail; the transition keeps the gate, finishes, and records its terminal state.
+    // detail with the CALLER_CANCELLED kind (D-2); the transition keeps the gate,
+    // finishes, and records its terminal state.
     [Theory]
     [InlineData("start")]
     [InlineData("connect")]
@@ -806,7 +807,7 @@ public sealed class CancellationDetachmentTests
         var stoppedWaiting = await Assert.ThrowsAsync<SdkLifecycleException>(() => transition.WaitAsync(HangGuard));
 
         Assert.Equal(StatusCode.Cancelled, stoppedWaiting.StatusCode);
-        Assert.Equal(global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.StateConflict, stoppedWaiting.Detail.Kind);
+        Assert.Equal(global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.CallerCancelled, stoppedWaiting.Detail.Kind);
         Assert.Equal("sdk-lifecycle-caller-stopped-waiting", stoppedWaiting.Detail.DiagnosticCode);
         Assert.Equal(global::Briosa.LifecycleRecoveryGuidance.RefreshState, stoppedWaiting.Detail.RecoveryGuidance);
         Assert.Equal(exchange == "connect"
@@ -857,7 +858,9 @@ public sealed class CancellationDetachmentTests
         ping.Release();
 
         Assert.Equal(StatusCode.Cancelled, withdrawn.StatusCode);
+        Assert.Equal(global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.CallerCancelled, withdrawn.Detail.Kind);
         Assert.Equal("sdk-lifecycle-request-withdrawn", withdrawn.Detail.DiagnosticCode);
+        Assert.Equal(global::Briosa.LifecycleRecoveryGuidance.None, withdrawn.Detail.RecoveryGuidance);
         Assert.Equal(global::Briosa.SpatialAnalyzerSdkState.Running, withdrawn.Detail.State.SdkState);
         await WaitUntil(() => worker.PingCount == 1);
         Assert.Equal(0, worker.ConnectCount);
@@ -895,6 +898,7 @@ public sealed class CancellationDetachmentTests
         });
 
         Assert.Equal(StatusCode.Cancelled, withdrawn.StatusCode);
+        Assert.Equal(global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.CallerCancelled, withdrawn.Detail.Kind);
         Assert.Equal("sdk-lifecycle-request-withdrawn", withdrawn.Detail.DiagnosticCode);
         Assert.Equal(global::Briosa.LifecycleRecoveryGuidance.None, withdrawn.Detail.RecoveryGuidance);
         Assert.Equal(before, supervisor.Current);
@@ -903,10 +907,73 @@ public sealed class CancellationDetachmentTests
         Assert.Equal(0, worker.StopCount);
     }
 
-    // F10 through the gRPC service: the cancelled caller's typed detail is audited even
-    // though gRPC does not deliver a response to a caller that stopped waiting.
+    // F10 and D-2 through the gRPC service: a caller that stopped waiting gets the
+    // caller failure kinds of the MP path. A cancelled caller gets CANCELLED with
+    // CALLER_CANCELLED; once the call's gRPC deadline has passed, it gets
+    // DEADLINE_EXCEEDED with CALLER_DEADLINE_EXCEEDED. The diagnostic and recovery
+    // guidance still tell a withdrawn request from a detached one. The typed detail is
+    // audited with that status, although gRPC does not deliver a response to the caller.
+    [Theory]
+    [InlineData("withdrawn", false)]
+    [InlineData("withdrawn", true)]
+    [InlineData("stopped-waiting", false)]
+    [InlineData("stopped-waiting", true)]
+    public async Task LifecycleServiceReportsCallerCancellationAndDeadlineWithTheCallerKinds(
+        string path, bool deadlinePassed)
+    {
+        var ready = new Hold();
+        var worker = new ScriptedWorker { ReadyHold = ready };
+        var (supervisor, _, factory) = Create(worker);
+        await using var supervisorScope = supervisor.ConfigureAwait(false);
+        var coordinator = new SpatialAnalyzerSdkLifecycleCoordinator(supervisor,
+            new SpatialAnalyzerSdkLifecycleStateProjection(supervisor), new RunningApplication(5));
+        await using var coordinatorScope = coordinator.ConfigureAwait(false);
+        var audit = new CapturingLogger<LifecycleAuditLogger>();
+        var service = new SpatialAnalyzerSdkLifecycleService(coordinator, new LifecycleAuditLogger(audit));
+        using var cancellation = new CancellationTokenSource();
+        var withdrawn = path == "withdrawn";
+        if (withdrawn) await cancellation.CancelAsync();
+
+        var call = service.StartSpatialAnalyzerSdk(new global::Briosa.StartSpatialAnalyzerSdkRequest(),
+            new InMemoryServerCallContext("/briosa.SpatialAnalyzerSdkLifecycle/StartSpatialAnalyzerSdk",
+                CallDeadline(deadlinePassed), cancellation.Token));
+        if (!withdrawn)
+        {
+            await ready.Entered.WaitAsync(HangGuard);
+            await cancellation.CancelAsync();
+        }
+        var error = await Assert.ThrowsAsync<RpcException>(() => call.WaitAsync(HangGuard));
+        ready.Release();
+
+        var status = deadlinePassed ? StatusCode.DeadlineExceeded : StatusCode.Cancelled;
+        Assert.Equal(status, error.StatusCode);
+        var detail = global::Briosa.SpatialAnalyzerSdkLifecycleError.Parser.ParseFrom(
+            Assert.Single(error.Trailers).ValueBytes);
+        Assert.Equal("StartSpatialAnalyzerSdk", detail.Rpc);
+        Assert.Equal(deadlinePassed
+            ? global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.CallerDeadlineExceeded
+            : global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.CallerCancelled, detail.Kind);
+        Assert.Equal(withdrawn ? "sdk-lifecycle-request-withdrawn" : "sdk-lifecycle-caller-stopped-waiting",
+            detail.DiagnosticCode);
+        Assert.Equal(withdrawn
+            ? global::Briosa.LifecycleRecoveryGuidance.None
+            : global::Briosa.LifecycleRecoveryGuidance.RefreshState, detail.RecoveryGuidance);
+        Assert.Equal(detail.DiagnosticCode, error.Status.Detail);
+        var rejected = Assert.Single(audit.Entries, entry => entry.EventId.Id == 1302);
+        Assert.Equal("StartSpatialAnalyzerSdk", rejected.Value("Rpc"));
+        Assert.Equal(status, rejected.Value("GrpcStatus"));
+        Assert.Equal(detail.DiagnosticCode, rejected.Value("DiagnosticCode"));
+
+        // A withdrawn Start launches nothing; a detached one still reaches readiness.
+        if (withdrawn) Assert.Equal(0, factory.Starts);
+        else _ = await WaitFor(supervisor, state => state.ReadyForExecution);
+    }
+
+    // D-2: only a caller interruption becomes the caller's deadline. A failure of its
+    // own keeps its kind and status, even when the call's deadline has passed by the
+    // time the service reports it.
     [Fact]
-    public async Task LifecycleServiceAuditsACallerThatStoppedWaiting()
+    public async Task LifecycleServiceKeepsOtherFailuresAfterTheCallerDeadline()
     {
         var ready = new Hold();
         var worker = new ScriptedWorker { ReadyHold = ready };
@@ -917,26 +984,23 @@ public sealed class CancellationDetachmentTests
         await using var coordinatorScope = coordinator.ConfigureAwait(false);
         var audit = new CapturingLogger<LifecycleAuditLogger>();
         var service = new SpatialAnalyzerSdkLifecycleService(coordinator, new LifecycleAuditLogger(audit));
-        using var cancellation = new CancellationTokenSource();
-
-        var call = service.StartSpatialAnalyzerSdk(new global::Briosa.StartSpatialAnalyzerSdkRequest(),
-            new InMemoryServerCallContext("/briosa.SpatialAnalyzerSdkLifecycle/StartSpatialAnalyzerSdk", null,
-                cancellation.Token));
+        var starting = coordinator.StartAsync(CancellationToken.None);
         await ready.Entered.WaitAsync(HangGuard);
-        await cancellation.CancelAsync();
-        var error = await Assert.ThrowsAsync<RpcException>(() => call.WaitAsync(HangGuard));
-        ready.Release();
-        _ = await WaitFor(supervisor, state => state.ReadyForExecution);
 
-        Assert.Equal(StatusCode.Cancelled, error.StatusCode);
+        var error = await Assert.ThrowsAsync<RpcException>(() => service.StartSpatialAnalyzerSdk(
+            new global::Briosa.StartSpatialAnalyzerSdkRequest(),
+            new InMemoryServerCallContext("/briosa.SpatialAnalyzerSdkLifecycle/StartSpatialAnalyzerSdk",
+                CallDeadline(passed: true), CancellationToken.None)));
+        ready.Release();
+        _ = await starting.WaitAsync(HangGuard);
+
+        Assert.Equal(StatusCode.Aborted, error.StatusCode);
         var detail = global::Briosa.SpatialAnalyzerSdkLifecycleError.Parser.ParseFrom(
             Assert.Single(error.Trailers).ValueBytes);
-        Assert.Equal("StartSpatialAnalyzerSdk", detail.Rpc);
-        Assert.Equal("sdk-lifecycle-caller-stopped-waiting", detail.DiagnosticCode);
+        Assert.Equal(global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.StateConflict, detail.Kind);
+        Assert.Equal("sdk-lifecycle-transition-in-progress", detail.DiagnosticCode);
         var rejected = Assert.Single(audit.Entries, entry => entry.EventId.Id == 1302);
-        Assert.Equal("StartSpatialAnalyzerSdk", rejected.Value("Rpc"));
-        Assert.Equal(StatusCode.Cancelled, rejected.Value("GrpcStatus"));
-        Assert.Equal("sdk-lifecycle-caller-stopped-waiting", rejected.Value("DiagnosticCode"));
+        Assert.Equal(StatusCode.Aborted, rejected.Value("GrpcStatus"));
     }
 
     // PR #315 review (P2): the accepted Connect must finish its application-generation
@@ -1289,6 +1353,11 @@ public sealed class CancellationDetachmentTests
 
     private static ExecutionWorkItem WorkItem() => new(Plain("unit"), Guid.NewGuid(), 1, default, 1,
         OperationDurationClass.Quick, ExecutionBudget);
+
+    // gRPC cancels a call's token when its deadline passes. A caller that cancels first
+    // can still have its deadline ahead of it.
+    private static DateTime CallDeadline(bool passed) =>
+        passed ? DateTime.UtcNow.AddSeconds(-1) : DateTime.UtcNow.AddHours(1);
 
     private static (WorkerProcessSupervisor Supervisor, HeartbeatTestClock Clock, SequenceFactory Factory) Create(
         ScriptedWorker first,

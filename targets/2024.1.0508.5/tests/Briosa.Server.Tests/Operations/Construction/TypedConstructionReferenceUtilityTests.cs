@@ -25,7 +25,6 @@ public sealed class TypedConstructionReferenceUtilityTests
         "construction_operations.make_report_ref_list_runtime_select",
         "construction_operations.make_system_string",
         "construction_operations.make_vector_name_ref_list_from_vector_group",
-        "construction_operations.make_vector_name_ref_list_runtime_select",
         "construction_operations.make_vector_names_unique_in_vector_group",
         "construction_operations.set_collection_instrument_ref_list_variable"
     ];
@@ -103,8 +102,6 @@ public sealed class TypedConstructionReferenceUtilityTests
         Assert.Equal("GetVectorNameRefListArg", Assert.Single(MakeVectorNameRefListFromVectorGroupOperation
             .CreateCommand(new() { VectorGroupName = new Api.CollectionObjectName { ObjectName = "G" } })
             .OutputArguments).SdkBinding);
-        Assert.Equal(" Select Vectors (ENTER when done) ", MakeVectorNameRefListRuntimeSelectOperation
-            .CreateCommand(new()).InputArguments[0].RequireValue<WorkerTextValue>().Value);
 
         Assert.Throws<ArgumentException>(() => MakeSystemStringOperation.CreateCommand(new()));
         var system = MakeSystemStringOperation.CreateCommand(new()
@@ -141,7 +138,7 @@ public sealed class TypedConstructionReferenceUtilityTests
             .CreateResult(Success(surface)).ResultantSurfacesList).ObjectName);
         var vector = new WorkerRetrievedOutput("Resultant Vector Name List", WorkerMpValueKind.VectorNameList,
             new WorkerVectorNameListValue([new WorkerVectorNameValue("C", "G", "V")]));
-        Assert.Equal("V", Assert.Single(MakeVectorNameRefListRuntimeSelectOperation.CreateResult(
+        Assert.Equal("V", Assert.Single(MakeVectorNameRefListFromVectorGroupOperation.CreateResult(
             Success(vector)).ResultantVectorNameList).Name);
         Assert.Equal("2026", MakeSystemStringOperation.CreateResult(Success(
             new WorkerRetrievedOutput("Resultant String", WorkerMpValueKind.Text,

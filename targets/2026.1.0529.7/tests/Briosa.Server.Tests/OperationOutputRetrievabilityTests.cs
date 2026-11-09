@@ -31,7 +31,7 @@ public sealed class OperationOutputRetrievabilityTests
         var declarations = DeclaredOutputs();
 
         Assert.Contains(declarations, item =>
-            item.Declaration == $"{typeof(MakeVectorNameRefListRuntimeSelectOperation).FullName}.OutputContracts" &&
+            item.Declaration == $"{typeof(MakeVectorNameRefListFromVectorGroupOperation).FullName}.OutputContracts" &&
             item.Contracts.Any(contract => contract.Kind == WorkerMpValueKind.VectorNameList));
         Assert.Contains(declarations, item =>
             item.Declaration == $"{typeof(GetVectorGroupPropertiesOperation).FullName}.OutputContracts" &&

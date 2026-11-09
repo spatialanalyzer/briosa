@@ -4,11 +4,15 @@ using Grpc.Core;
 namespace Briosa.Server.Services;
 
 internal sealed class SpatialAnalyzerSdkLifecycleService(
-    SpatialAnalyzerSdkLifecycleCoordinator coordinator, LifecycleAuditLogger? auditLogger = null)
+    SpatialAnalyzerSdkLifecycleCoordinator coordinator,
+    LifecycleAuditLogger? auditLogger = null,
+    TimeProvider? timeProvider = null)
     : global::Briosa.SpatialAnalyzerSdkLifecycle.SpatialAnalyzerSdkLifecycleBase
 {
     private const string ErrorMetadataKey =
         "briosa-spatial-analyzer-sdk-lifecycle-error-bin";
+
+    private readonly TimeProvider _timeProvider = timeProvider ?? TimeProvider.System;
 
     public override Task<global::Briosa.GetSpatialAnalyzerSdkStateResponse>
         GetSpatialAnalyzerSdkState(
@@ -25,6 +29,7 @@ internal sealed class SpatialAnalyzerSdkLifecycleService(
             ServerCallContext context) =>
         Execute(
             nameof(StartSpatialAnalyzerSdk),
+            context,
             () => coordinator.StartAsync(context.CancellationToken),
             state => new global::Briosa.StartSpatialAnalyzerSdkResponse { State = state });
 
@@ -34,6 +39,7 @@ internal sealed class SpatialAnalyzerSdkLifecycleService(
             ServerCallContext context) =>
         Execute(
             nameof(ConnectToSpatialAnalyzer),
+            context,
             () => coordinator.ConnectAsync(
                 request.ExpectedSdkGeneration,
                 reconnect: false,
@@ -46,6 +52,7 @@ internal sealed class SpatialAnalyzerSdkLifecycleService(
             ServerCallContext context) =>
         Execute(
             nameof(ReconnectToSpatialAnalyzer),
+            context,
             () => coordinator.ConnectAsync(
                 request.ExpectedSdkGeneration,
                 reconnect: true,
@@ -58,6 +65,7 @@ internal sealed class SpatialAnalyzerSdkLifecycleService(
             ServerCallContext context) =>
         Execute(
             nameof(StopSpatialAnalyzerSdk),
+            context,
             () => coordinator.StopAsync(
                 request.ExpectedSdkGeneration,
                 context.CancellationToken),
@@ -69,6 +77,7 @@ internal sealed class SpatialAnalyzerSdkLifecycleService(
             ServerCallContext context) =>
         Execute(
             nameof(RecoverSpatialAnalyzerSdk),
+            context,
             () => coordinator.RecoverAsync(
                 request.ExpectedSdkGeneration,
                 request.Mode,
@@ -77,6 +86,7 @@ internal sealed class SpatialAnalyzerSdkLifecycleService(
 
     private async Task<TResponse> Execute<TResponse>(
         string rpc,
+        ServerCallContext context,
         Func<Task<global::Briosa.SpatialAnalyzerSdkLifecycleState>> action,
         Func<global::Briosa.SpatialAnalyzerSdkLifecycleState, TResponse> responseFactory)
     {
@@ -84,8 +94,13 @@ internal sealed class SpatialAnalyzerSdkLifecycleService(
         {
             return responseFactory(await action().ConfigureAwait(false));
         }
-        catch (SdkLifecycleException exception)
+        catch (SdkLifecycleException caught)
         {
+            // The coordinator only sees a cancelled token; the call's deadline tells a
+            // caller that cancelled from one whose deadline passed.
+            var exception = CallerDeadline.HasPassed(context.Deadline, _timeProvider)
+                ? caught.AsCallerDeadlineExceeded()
+                : caught;
             auditLogger?.Rejected(rpc, exception.StatusCode, exception.Detail.DiagnosticCode);
             exception.Detail.Rpc = rpc;
             var metadata = new Metadata

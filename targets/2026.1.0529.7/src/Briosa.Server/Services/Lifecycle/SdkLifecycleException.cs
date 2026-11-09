@@ -71,14 +71,26 @@ internal sealed class SdkLifecycleException : Exception
     // The caller stopped waiting (cancellation or its gRPC deadline). gRPC does not
     // deliver a response to such a caller, so the detail serves in-process callers and
     // the audit. The diagnostic says whether the request was withdrawn before
-    // acceptance or continues detached; no lifecycle failure kind is specific to it.
+    // acceptance or continues detached. A cancellation token does not say why it was
+    // cancelled, so the kind is CALLER_CANCELLED; the gRPC service reports
+    // CALLER_DEADLINE_EXCEEDED instead once the call's deadline has passed.
     public static SdkLifecycleException Cancelled(
         string diagnosticCode,
         global::Briosa.SpatialAnalyzerSdkLifecycleState state,
         global::Briosa.LifecycleRecoveryGuidance recoveryGuidance) =>
         new(Grpc.Core.StatusCode.Cancelled,
-            global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.StateConflict,
+            global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.CallerCancelled,
             diagnosticCode, state, recoveryGuidance);
+
+    // The same caller interruption, ended by the call's gRPC deadline: DEADLINE_EXCEEDED
+    // with the same diagnostic, state, and guidance. Any other failure is the
+    // lifecycle's own outcome and stays as it is.
+    public SdkLifecycleException AsCallerDeadlineExceeded() =>
+        Detail.Kind == global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.CallerCancelled
+            ? new SdkLifecycleException(Grpc.Core.StatusCode.DeadlineExceeded,
+                global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind.CallerDeadlineExceeded,
+                Detail.DiagnosticCode, Detail.State, Detail.RecoveryGuidance)
+            : this;
 
     public static SdkLifecycleException DeadlineExceeded(
         global::Briosa.SpatialAnalyzerSdkLifecycleFailureKind kind,

@@ -33,7 +33,6 @@ public sealed class OperationPolicyTests
             "construction_operations.make_point_name_runtime_select",
             "construction_operations.make_relationship_ref_list_runtime_select",
             "construction_operations.make_report_ref_list_runtime_select",
-            "construction_operations.make_vector_name_ref_list_runtime_select",
             "gdt_operations.make_surface_face_list_runtime_select"
         ];
 

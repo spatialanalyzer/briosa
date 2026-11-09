@@ -317,7 +317,6 @@ internal static class SpatialAnalyzerApi
             MakeReportRefListRuntimeSelectOperation.Descriptor,
             MakeSystemStringOperation.Descriptor,
             MakeVectorNameRefListFromVectorGroupOperation.Descriptor,
-            MakeVectorNameRefListRuntimeSelectOperation.Descriptor,
             MakeVectorNamesUniqueInVectorGroupOperation.Descriptor,
             SetCollectionInstrumentRefListVariableOperation.Descriptor,
             ConstructFrameOperation.Descriptor,

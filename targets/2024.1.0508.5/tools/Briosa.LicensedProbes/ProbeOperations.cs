@@ -80,10 +80,38 @@ internal static class ProbeOperations
         static (invoker, request, options) => Instrument(invoker).LocateInstrumentsUsmnAsync(request, options),
         static result => result.Execution);
 
+    // Probe 33: USMN whose worker outputs go to one of a comparison's two observers, which
+    // keep the control's errors in memory and record only the comparison.
+    public static ProbeOperation LocateInstrumentsUsmnObserved(
+        Func<IReadOnlyList<WorkerMpOutputValue>, IReadOnlyDictionary<string, string>> observe)
+    {
+        ArgumentNullException.ThrowIfNull(observe);
+        return Op<Api.LocateInstrumentsUsmnRequest, Api.LocateInstrumentsUsmnResult>(
+            Ops.InstrumentOperations.LocateInstrumentsUsmnOperation.Descriptor,
+            Ops.InstrumentOperations.LocateInstrumentsUsmnOperation.CreateCommand,
+            static (invoker, request, options) => Instrument(invoker).LocateInstrumentsUsmnAsync(request, options),
+            static result => result.Execution,
+            observeWorker: (_, outputs) => observe(outputs));
+    }
+
     public static ProbeOperation FitGeometryToPointGroup { get; } = Op<Api.FitGeometryToPointGroupRequest, Api.FitGeometryToPointGroupResult>(
         Ops.AnalysisOperations.FitGeometryToPointGroupOperation.Descriptor,
         Ops.AnalysisOperations.FitGeometryToPointGroupOperation.CreateCommand,
         static (invoker, request, options) => Analysis(invoker).FitGeometryToPointGroupAsync(request, options),
+        static result => result.Execution);
+
+    // Probe 31 (#311, #357): the two fits whose optional seed follows Fit Geometry to Point
+    // Group by analogy and was not probed itself.
+    public static ProbeOperation FitGeometryToPoints { get; } = Op<Api.FitGeometryToPointsRequest, Api.FitGeometryToPointsResult>(
+        Ops.AnalysisOperations.FitGeometryToPointsOperation.Descriptor,
+        Ops.AnalysisOperations.FitGeometryToPointsOperation.CreateCommand,
+        static (invoker, request, options) => Analysis(invoker).FitGeometryToPointsAsync(request, options),
+        static result => result.Execution);
+
+    public static ProbeOperation FitGeometryToPointGroupProjectedToPlane { get; } = Op<Api.FitGeometryToPointGroupProjectedToPlaneRequest, Api.FitGeometryToPointGroupProjectedToPlaneResult>(
+        Ops.AnalysisOperations.FitGeometryToPointGroupProjectedToPlaneOperation.Descriptor,
+        Ops.AnalysisOperations.FitGeometryToPointGroupProjectedToPlaneOperation.CreateCommand,
+        static (invoker, request, options) => Analysis(invoker).FitGeometryToPointGroupProjectedToPlaneAsync(request, options),
         static result => result.Execution);
 
     public static ProbeOperation CreateChartFromVectorGroup { get; } = Op<Api.CreateChartFromVectorGroupRequest, Api.CreateChartFromVectorGroupResult>(
@@ -190,6 +218,74 @@ internal static class ProbeOperations
         static (invoker, request, options) => View(invoker).ShowHidePointsAsync(request, options),
         static result => result.Execution);
 
+    // Probe 30 (#350, #312): runtime selects, one per sampled getter. The operator selects
+    // one fixture; the record keeps only how many items came back and whether they are
+    // exactly that fixture, never a name.
+    public static ProbeOperation PointNameRefListRuntimeSelect(Func<Api.PointName, bool> isRequested) =>
+        Op<Api.MakePointNameRefListRuntimeSelectRequest, Api.MakePointNameRefListRuntimeSelectResult>(
+            Ops.ConstructionOperations.MakePointNameRefListRuntimeSelectOperation.Descriptor,
+            Ops.ConstructionOperations.MakePointNameRefListRuntimeSelectOperation.CreateCommand,
+            static (invoker, request, options) => Construction(invoker).MakePointNameRefListRuntimeSelectAsync(request, options),
+            static result => result.Execution,
+            (_, result) => Selection(result.ResultantPointNameList, isRequested));
+
+    public static ProbeOperation CollectionObjectNameRefListRuntimeSelect(Func<Api.CollectionObjectName, bool> isRequested) =>
+        Op<Api.MakeCollectionObjectNameRefListRuntimeSelectRequest, Api.MakeCollectionObjectNameRefListRuntimeSelectResult>(
+            Ops.ConstructionOperations.MakeCollectionObjectNameRefListRuntimeSelectOperation.Descriptor,
+            Ops.ConstructionOperations.MakeCollectionObjectNameRefListRuntimeSelectOperation.CreateCommand,
+            static (invoker, request, options) => Construction(invoker).MakeCollectionObjectNameRefListRuntimeSelectAsync(request, options),
+            static result => result.Execution,
+            (_, result) => Selection(result.ResultantCollectionObjectNameRefList, isRequested));
+
+    public static ProbeOperation RelationshipRefListRuntimeSelect(Func<Api.CollectionItemName, bool> isRequested) =>
+        Op<Api.MakeRelationshipRefListRuntimeSelectRequest, Api.MakeRelationshipRefListRuntimeSelectResult>(
+            Ops.ConstructionOperations.MakeRelationshipRefListRuntimeSelectOperation.Descriptor,
+            Ops.ConstructionOperations.MakeRelationshipRefListRuntimeSelectOperation.CreateCommand,
+            static (invoker, request, options) => Construction(invoker).MakeRelationshipRefListRuntimeSelectAsync(request, options),
+            static result => result.Execution,
+            (_, result) => Selection(result.ResultantRelationshipRefList, isRequested));
+
+    public static ProbeOperation CollectionInstrumentRefListRuntimeSelect(Func<Api.CollectionInstrumentId, bool> isRequested) =>
+        Op<Api.MakeCollectionInstrumentRefListRuntimeSelectRequest, Api.MakeCollectionInstrumentRefListRuntimeSelectResult>(
+            Ops.ConstructionOperations.MakeCollectionInstrumentRefListRuntimeSelectOperation.Descriptor,
+            Ops.ConstructionOperations.MakeCollectionInstrumentRefListRuntimeSelectOperation.CreateCommand,
+            static (invoker, request, options) => Construction(invoker).MakeCollectionInstrumentRefListRuntimeSelectAsync(request, options),
+            static result => result.Execution,
+            (_, result) => Selection(result.ResultantCollectionInstrumentRefList, isRequested));
+
+    public static ProbeOperation CollectionInstrumentIdRuntimeSelect(Func<Api.CollectionInstrumentId, bool> isRequested) =>
+        Op<Api.MakeCollectionInstrumentIdRuntimeSelectRequest, Api.MakeCollectionInstrumentIdRuntimeSelectResult>(
+            Ops.ConstructionOperations.MakeCollectionInstrumentIdRuntimeSelectOperation.Descriptor,
+            Ops.ConstructionOperations.MakeCollectionInstrumentIdRuntimeSelectOperation.CreateCommand,
+            static (invoker, request, options) => Construction(invoker).MakeCollectionInstrumentIdRuntimeSelectAsync(request, options),
+            static result => result.Execution,
+            (_, result) => Selection<Api.CollectionInstrumentId>(result.InstrumentId is { } instrument ? [instrument] : [], isRequested));
+
+    public static ProbeOperation PointNameRuntimeSelect(Func<Api.PointName, bool> isRequested) =>
+        Op<Api.MakePointNameRuntimeSelectRequest, Api.MakePointNameRuntimeSelectResult>(
+            Ops.ConstructionOperations.MakePointNameRuntimeSelectOperation.Descriptor,
+            Ops.ConstructionOperations.MakePointNameRuntimeSelectOperation.CreateCommand,
+            static (invoker, request, options) => Construction(invoker).MakePointNameRuntimeSelectAsync(request, options),
+            static result => result.Execution,
+            (_, result) => Selection<Api.PointName>(result.ResultantPointName is { } point ? [point] : [], isRequested));
+
+    public static ProbeOperation CollectionNameRuntimeSelect(Func<Api.CollectionName, bool> isRequested) =>
+        Op<Api.MakeCollectionNameRuntimeSelectRequest, Api.MakeCollectionNameRuntimeSelectResult>(
+            Ops.ConstructionOperations.MakeCollectionNameRuntimeSelectOperation.Descriptor,
+            Ops.ConstructionOperations.MakeCollectionNameRuntimeSelectOperation.CreateCommand,
+            static (invoker, request, options) => Construction(invoker).MakeCollectionNameRuntimeSelectAsync(request, options),
+            static result => result.Execution,
+            (_, result) => Selection<Api.CollectionName>(result.ResultantCollectionName is { } collection ? [collection] : [], isRequested));
+
+    internal static IReadOnlyDictionary<string, string> Selection<T>(IReadOnlyList<T> selected, Func<T, bool> isRequested)
+    {
+        ArgumentNullException.ThrowIfNull(selected);
+        ArgumentNullException.ThrowIfNull(isRequested);
+        return Observations.Of(
+            ("selection_count", Observations.Count(selected.Count)),
+            ("selection_is_requested", Observations.Flag(selected.Count == 1 && isRequested(selected[0]))));
+    }
+
     internal static bool IsFractional(double value) =>
         double.IsFinite(value) && Math.Abs(value - Math.Round(value)) > 1e-9;
 
@@ -224,4 +320,45 @@ internal static class ProbeOperations
     private static Api.VectorOperations.VectorOperationsClient Vector(CallInvoker invoker) => new(invoker);
 
     private static Api.ViewControl.ViewControlClient View(CallInvoker invoker) => new(invoker);
+}
+
+/// <summary>
+/// Probe 33: compares each variant's USMN errors with the control's. The control's RMS and
+/// maximum errors stay in memory for the variants of one plan and are never recorded,
+/// printed, or written. Observations say only that they were captured and whether a
+/// variant's errors equal them.
+/// </summary>
+internal sealed class UsmnErrorComparison
+{
+    // Equal within one part per million of the control's value, with a floor of 1e-9 in
+    // the job's units so that a zero error compares with zero.
+    public const double RelativeTolerance = 1e-6;
+    public const double AbsoluteTolerance = 1e-9;
+
+    private (double Rms, double Maximum)? _control;
+
+    // The control's observer: it keeps the errors and records only that it did.
+    public IReadOnlyDictionary<string, string> Capture(IReadOnlyList<WorkerMpOutputValue> outputs)
+    {
+        _control = Read(outputs);
+        return Observations.Of(("errors_captured", Observations.Flag(true)));
+    }
+
+    // A variant's observer: true when both errors equal the control's, and no-control when
+    // the control's errors were never captured.
+    public IReadOnlyDictionary<string, string> Compare(IReadOnlyList<WorkerMpOutputValue> outputs)
+    {
+        var errors = Read(outputs);
+        return Observations.Of(("errors_equal_control", _control is not { } control
+            ? "no-control"
+            : Observations.Flag(Equal(control.Rms, errors.Rms) && Equal(control.Maximum, errors.Maximum))));
+    }
+
+    internal static bool Equal(double control, double value) =>
+        double.IsFinite(control) && double.IsFinite(value) &&
+        Math.Abs(value - control) <= Math.Max(AbsoluteTolerance, RelativeTolerance * Math.Abs(control));
+
+    // The shipped result mapping's order: RMS Error Value, then Max Error Value.
+    private static (double Rms, double Maximum) Read(IReadOnlyList<WorkerMpOutputValue> outputs) =>
+        (outputs[0].RequireValue<WorkerDoubleValue>().Value, outputs[1].RequireValue<WorkerDoubleValue>().Value);
 }

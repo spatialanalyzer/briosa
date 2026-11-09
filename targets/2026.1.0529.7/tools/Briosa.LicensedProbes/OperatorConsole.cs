@@ -42,6 +42,12 @@ internal sealed class FileOperatorConsole : IOperatorConsole
         ArgumentNullException.ThrowIfNull(step);
         Write(string.Create(CultureInfo.InvariantCulture,
             $"[{ordinal:D3}/{count:D3}] {step.Id} (probe {step.Probe}): dispatched at {_clock.GetUtcNow():HH:mm:ss}Z."));
+        if (step.ExpectedStall is not null)
+        {
+            Write(string.Create(CultureInfo.InvariantCulture,
+                $"PLANNED STALL {step.Id}: do not dismiss the SpatialAnalyzer dialog this step opens. Leave it open until this step returns " +
+                $"(its deadline is {step.ClientTimeout?.TotalSeconds ?? 0:0} s; in the public phase the server's quick budget ends it first)."));
+        }
     }
 
     public void Completed(ProbeStep step, int ordinal, int count, ProbeOutcome outcome, long elapsedMilliseconds)
@@ -114,9 +120,19 @@ internal sealed class FileOperatorConsole : IOperatorConsole
     {
         var text = new StringBuilder();
         text.Append(CultureInfo.InvariantCulture, $"Step {step.Id} (probe {step.Probe}): {step.Purpose}\n");
-        text.Append(timing == OperatorCheckpoint.Before
-            ? "Before this step is sent: confirm that no SpatialAnalyzer dialog is open. If one is, note its exact title and text and dismiss it with OK.\n"
-            : "This step has returned. Note any SpatialAnalyzer dialog it raised, including one you dismissed while it ran, with its exact title and text. Dismiss any open dialog with OK.\n");
+        text.Append((timing, step.ExpectedStall is not null) switch
+        {
+            (OperatorCheckpoint.Before, false) =>
+                "Before this step is sent: confirm that no SpatialAnalyzer dialog is open. If one is, note its exact title and text and dismiss it with OK.\n",
+            (OperatorCheckpoint.Before, true) =>
+                "Before this step is sent: confirm that no SpatialAnalyzer dialog is open. If one is, note its exact title and text and dismiss it with OK. " +
+                "This step should open a dialog: do not dismiss that one until the step has returned.\n",
+            (_, false) =>
+                "This step has returned. Note any SpatialAnalyzer dialog it raised, including one you dismissed while it ran, with its exact title and text. Dismiss any open dialog with OK.\n",
+            (_, true) =>
+                "This planned stall has returned. The dialog it opened should still be open: note its exact title and text, then dismiss it with OK. " +
+                "Note it too if you dismissed it earlier, or if no dialog opened.\n"
+        });
         text.Append(CultureInfo.InvariantCulture, $"Then write one line to the matching {ResponseSuffix} file: none, or dialog: <title and text>. {OperatorObservationText.Rule}\n");
         return text.ToString();
     }

@@ -56,10 +56,19 @@ internal static class LocateInstrumentsUsmnOperation
             new("Max Acceptable RMS Error Value (0.0 for none)", WorkerMpValueKind.FloatingPoint,
                 new WorkerDoubleValue(request.MaximumAcceptableRmsError), "SetDoubleArg"),
             new("Max Acceptable Error Value (0.0 for none)", WorkerMpValueKind.FloatingPoint,
-                new WorkerDoubleValue(request.MaximumAcceptableError), "SetDoubleArg"),
-            new("Groups to be Excluded", WorkerMpValueKind.CollectionObjectNameList,
-                CollectionObjectNameMapper.RequiredList(request.ExcludedGroups, "excluded_groups"),
-                "SetCollectionObjectNameRefListArg"),
+                new WorkerDoubleValue(request.MaximumAcceptableError), "SetDoubleArg")
+        ]);
+        // Probe 33 (licensed session 3, both targets): SA runs USMN correctly with this setter
+        // skipped, and the SDK setter refuses an empty list. So an empty list is never sent; it
+        // skips the setter, as Quick Align's optional lists do.
+        if (request.ExcludedGroups.Count > 0)
+        {
+            inputs.Add(new("Groups to be Excluded", WorkerMpValueKind.CollectionObjectNameList,
+                CollectionObjectNameMapper.AllowEmptyList(request.ExcludedGroups), "SetCollectionObjectNameRefListArg"));
+        }
+
+        inputs.AddRange(
+        [
             new("Exclude Points Measured By Only One Instrument", WorkerMpValueKind.Logical,
                 new WorkerBooleanValue(request.ExcludeSingleInstrumentPoints), "SetBoolArg"),
             new("Run Uncertainty Field Analysis?", WorkerMpValueKind.Logical,

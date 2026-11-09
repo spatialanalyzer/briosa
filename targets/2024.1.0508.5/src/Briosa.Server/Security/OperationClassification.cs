@@ -327,7 +327,6 @@ internal static class OperationClassification
             new("construction_operations.make_transform_from_doubles_euler_parameters", None, Quick, NoRecordedGap, Admissible),
             new("construction_operations.make_transform_from_doubles_fixed_xyz", None, Quick, NoRecordedGap, Admissible),
             new("construction_operations.make_vector_name_ref_list_from_vector_group", None, Quick, NoRecordedGap, Admissible),
-            new("construction_operations.make_vector_name_ref_list_runtime_select", InteractiveUi, Interactive, NoRecordedGap, Admissible),
             new("construction_operations.make_vector_names_unique_in_vector_group", None, Quick, NoRecordedGap, Admissible),
             new("construction_operations.move_objects_point_to_point_delta", None, Quick, NoRecordedGap, Admissible),
             new("construction_operations.move_objects_to_a_collection", None, Quick, NoRecordedGap, Admissible),
