@@ -235,6 +235,16 @@ local argument error. The rule also decides three related cases:
   exactly one of `external_path` and `embedded_file`, and absent options get
   the server's default.
 
+`FilterProximitySettings`, which the three Auto Filter operations take, is a
+named case: every first-party client requires all eleven of its members, with
+no client defaults. The server rejects an absent proximity mode, so the rule
+above already covers the three modes. It reads the six distances and the two
+Booleans without checking presence, so an absent one would reach
+SpatialAnalyzer as 0 or false, and a default distance would mean a different
+length depending on the job's units. The case doesn't extend the rule to other
+inputs that the server reads without a presence check; broader requiredness is
+[left out of major 3](../development/contract-major-3.md#what-major-3-leaves-out).
+
 ## Asynchronous calls and caller controls
 
 All first-party MP operations are asynchronous and use the language's native
