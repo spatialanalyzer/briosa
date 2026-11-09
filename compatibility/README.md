@@ -84,13 +84,15 @@ For the developing major-3 server, the twelve `0.2.0`/`0.3.0` products, which
 require contract major 1, moved to `retiredClients`. The six published `0.4.0`
 packages stay in `clients` as negative checks: each must be rejected before
 launch. Each runs with the fixture that tested it in the `0.9.0`, `0.9.1`, and
-`0.9.2` release gates (`e6df2cab`, `d67ba80f`, and `6ee825e4`). The six
-major-3 `0.5.0` source candidates are added once the client pull requests
-exist. Their fixture commits then become `fixtureSources`, and the `0.4.0`-era
-fixtures move to `historicalFixtureSources`, where the `0.4.0` pins still find
-them. Until the candidates are added, no client accepts major 3, so the gate
-fails by design with "Test a compatible client for every language and exact
-target".
+`0.9.2` release gates (`e6df2cab`, `d67ba80f`, and `6ee825e4`). Those
+fixtures moved to `historicalFixtureSources` when the major-3 fixtures replaced
+them in `fixtureSources`. The six `0.5.0` source candidates require contract
+3.0 and build against the `0.10.0-dev.1` protocol checkpoint. Each language's
+candidates and its current fixture come from the same commit of its major-3
+client pull request: briosa-dotnet `38233690`, briosa-js `feda30f3`, and
+briosa-py `6a04ff93`. The gate runs twelve jobs: six rejections and six
+candidates. Source candidates prove development compatibility only, so the
+release still needs the published `0.5.0` packages.
 
 Each new tested pair records `expectedCompatibility`. An accepted pair proves
 operation conformance; a rejected pair proves installation/startup rejection

@@ -33,11 +33,11 @@ version. Major 2 shipped as Server 0.9.0.
 | Accepted launches detached; host shutdown sized from the lifecycle bounds | [#356](https://github.com/spatialanalyzer/briosa/pull/356) | Behavioral | [Runtime boundary](../architecture/runtime-boundary-and-lifecycle.md) |
 | Two operations removed; fit seed optional | [#357](https://github.com/spatialanalyzer/briosa/pull/357) | Protocol breaking, through the retirement ledger; relaxing | [Operation retirement](operation-retirement.md), [argument defaults migration](argument-defaults-migration.md) |
 | MP partial success (code 4) reported as a typed success | [#360](https://github.com/spatialanalyzer/briosa/pull/360) | Additive enum value, behavioral breaking | [Execution outcomes](../architecture/execution-outcomes-and-recovery.md#partial-success-mp-code-4) |
-| Caller-cancellation kinds for lifecycle failures | Freeze change | Additive enum values, behavioral | [Runtime boundary](../architecture/runtime-boundary-and-lifecycle.md) |
-| Two cross-target wire conflicts kept target-specific ([#275](https://github.com/spatialanalyzer/briosa/issues/275)) | Freeze change | No wire change; documented limitation for raw clients | Each target's `docs/operations/protocol-artifacts.md` |
-| Major-1 retained clients retired from the live gate ([#250](https://github.com/spatialanalyzer/briosa/issues/250)) | Freeze change | Release-gate policy | [Compatibility evidence](../../compatibility/README.md) |
-| USMN accepts an empty `excluded_groups` list and skips its setter (licensed session 3, probe 33) | Freeze change | Relaxing | [Argument defaults migration](argument-defaults-migration.md) |
-| Vector-name-list runtime select removed; no operator could complete it in licensed session 3, so it is unverified | Freeze change | Protocol breaking, through the retirement ledger | [Operation retirement](operation-retirement.md) |
+| Caller-cancellation kinds for lifecycle failures | [#363](https://github.com/spatialanalyzer/briosa/pull/363) | Additive enum values, behavioral | [Runtime boundary](../architecture/runtime-boundary-and-lifecycle.md) |
+| Two cross-target wire conflicts kept target-specific ([#275](https://github.com/spatialanalyzer/briosa/issues/275)) | [#363](https://github.com/spatialanalyzer/briosa/pull/363) | No wire change; documented limitation for raw clients | Each target's `docs/operations/protocol-artifacts.md` |
+| Major-1 retained clients retired from the live gate ([#250](https://github.com/spatialanalyzer/briosa/issues/250)) | [#363](https://github.com/spatialanalyzer/briosa/pull/363) | Release-gate policy | [Compatibility evidence](../../compatibility/README.md) |
+| USMN accepts an empty `excluded_groups` list and skips its setter (licensed session 3, probe 33) | [#363](https://github.com/spatialanalyzer/briosa/pull/363) | Relaxing | [Argument defaults migration](argument-defaults-migration.md) |
+| Vector-name-list runtime select removed; no operator could complete it in licensed session 3, so it is unverified | [#363](https://github.com/spatialanalyzer/briosa/pull/363) | Protocol breaking, through the retirement ledger | [Operation retirement](operation-retirement.md) |
 
 ## What major 3 leaves out
 
