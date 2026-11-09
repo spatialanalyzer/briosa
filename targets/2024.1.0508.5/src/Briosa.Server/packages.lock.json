@@ -187,7 +187,7 @@
       },
       "Grpc.Tools": {
         "type": "CentralTransitive",
-        "requested": "[2.84.0, )",
+        "requested": "[2.85.0, )",
         "resolved": "2.85.0",
         "contentHash": "JpACpJuD56v9MBlgJEakwBLbbDifYwE3fpktbsKMPOI3yvs/VFFQVGnmWatu6mgZSNo7gzFe+TDmda9SOKg+NQ=="
       }
