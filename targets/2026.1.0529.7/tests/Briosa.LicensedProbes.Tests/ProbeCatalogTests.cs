@@ -29,6 +29,17 @@ public sealed class ProbeCatalogTests
     }
 
     [Fact]
+    public void RetiredStepsAreNotSentInEitherPhase()
+    {
+        Assert.Equal(["p30-vector-list"], ProbeCatalog.RetiredStepIds);
+        foreach (var phase in new[] { ProbePhase.PublicApi, ProbePhase.Worker })
+        {
+            Assert.DoesNotContain(Plan(phase).Steps, static step =>
+                ProbeCatalog.RetiredStepIds.Contains(step.Id, StringComparer.Ordinal));
+        }
+    }
+
+    [Fact]
     public void ThePublicPhaseSendsOnlyShippedSequences()
     {
         Assert.All(Plan(ProbePhase.PublicApi).Steps, step => Assert.Equal(VariantKind.Shipped, step.Variant.Kind));

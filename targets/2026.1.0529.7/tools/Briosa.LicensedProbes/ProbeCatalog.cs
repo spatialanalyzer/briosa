@@ -65,6 +65,12 @@ internal static class ProbeCatalog
     // Their numbers keep their meaning in the dated records; the plan no longer sends them.
     public static IReadOnlyList<string> RetiredProbeNumbers { get; } = ["7", "8", "9", "10", "11", "14", "15", "16", "22"];
 
+    // Steps retired with their operation while the rest of their probe stays. Probe 30's vector
+    // name list went after licensed session 3 (#363): no operator could complete that selection
+    // on either exact target, so the operation is unverified rather than rejected by SA. The id
+    // keeps its meaning in the dated records and is not reused; the plan no longer sends it.
+    public static IReadOnlyList<string> RetiredStepIds { get; } = ["p30-vector-list"];
+
     public static IReadOnlyList<string> ActiveProbeNumbers { get; } =
         [.. ProbeNumbers.Except(RetiredProbeNumbers, StringComparer.Ordinal)];
 

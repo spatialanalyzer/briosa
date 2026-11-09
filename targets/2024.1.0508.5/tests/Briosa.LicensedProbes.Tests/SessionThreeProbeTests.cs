@@ -363,10 +363,11 @@ public sealed class SessionThreeProbeTests
             StringComparison.Ordinal);
     }
 
-    // Probe 30: the runtime-select sample
+    // Probe 30: the runtime-select sample. Its vector-name-list step was retired with its
+    // operation after licensed session 3 (#363).
 
     [Fact]
-    public void TheRuntimeSelectSampleCoversEveryListGetterKindAndThreeSingleGetters()
+    public void TheRuntimeSelectSampleCoversFourListGetterKindsAndThreeSingleGetters()
     {
         var plan = Select(ProbePhase.PublicApi, 30);
         var steps = plan.Steps.Where(static step => step.Probe == "30").ToList();
@@ -376,7 +377,6 @@ public sealed class SessionThreeProbeTests
                 ("p30-point-list", WorkerMpValueKind.PointNameList, "GetPointNameRefListArg"),
                 ("p30-object-list", WorkerMpValueKind.CollectionObjectNameList, "GetCollectionObjectNameRefListArg"),
                 ("p30-relationship-list", WorkerMpValueKind.CollectionItemNameList, "GetCollectionObjectNameRefListArg"),
-                ("p30-vector-list", WorkerMpValueKind.VectorNameList, "GetVectorNameRefListArg"),
                 ("p30-instrument-list", WorkerMpValueKind.CollectionInstrumentIdList, "GetColInstIdRefListArg"),
                 ("p30-instrument", WorkerMpValueKind.CollectionInstrumentId, "GetColInstIdArg"),
                 ("p30-point", WorkerMpValueKind.PointName, "GetPointNameArg"),

@@ -21,7 +21,7 @@ public sealed class OperationClassificationTests
             ["full"] = 922
         };
 
-    private const int ExpectedInteractiveOperations = 58;
+    private const int ExpectedInteractiveOperations = 57;
 
     private const int ExpectedExclusiveOperations = 42;
 
