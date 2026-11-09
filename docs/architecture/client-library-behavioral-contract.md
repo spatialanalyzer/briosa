@@ -215,13 +215,25 @@ behavioral API change.
 
 An input that the server requires has no default at all. At compatibility
 major 3, each first-party package requires every input that its target's server
-rejects when it is absent or empty. The client never fills such an input in,
-whether through a default value or a convenience overload: no identity
+rejects whenever it is absent or empty. The client never fills such an input
+in, whether through a default value or a convenience overload: no identity
 transform, no default settings value, and no empty list. Omitting one fails
 before any call, in the language's idiom, such as a compile-time error or a
-local argument error. An input that the server accepts when absent stays
-optional, such as the template chart, the profile file, and the fit seed in the
-[argument defaults migration](../development/argument-defaults-migration.md#client-libraries).
+local argument error. The rule also decides three related cases:
+
+- An input that the server accepts when absent stays optional, such as the
+  template chart, the profile file, and the fit seed in the
+  [argument defaults migration](../development/argument-defaults-migration.md#client-libraries).
+- An input that the server requires only when another input has a certain
+  value also stays optional, and the server rejects the omission when it
+  matters. For example, `set_cloud_default_clipping_plane` requires
+  `reference_object` only while clipping is enabled, as
+  `set_instrument_weather_setting` requires its weather values only when
+  `set_automatically` is false.
+- When the server requires exactly one of a set of alternatives, the client
+  requires exactly one. For example, a `ReportOutputOptions` value needs
+  exactly one of `external_path` and `embedded_file`, and absent options get
+  the server's default.
 
 ## Asynchronous calls and caller controls
 
