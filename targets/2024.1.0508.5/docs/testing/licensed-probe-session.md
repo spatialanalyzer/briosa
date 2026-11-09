@@ -378,16 +378,18 @@ observed. All four are opt-in, and the third session runs 26, 27, and 29.
 
 [#350](https://github.com/spatialanalyzer/briosa/issues/350) removed the vector
 group runtime select, because its getter returned nothing after a completed
-selection. The other 22 runtime-select operations per target stay until a sample
-of their getters is observed. Probe 30 covers every list getter kind, and three
-single-value getters:
+selection. Probe 30 samples the other runtime-select operations: one per list
+getter kind, and three single-value getters. Its vector name list step
+(`p30-vector-list`) was retired with its operation after licensed session 3
+([#363](https://github.com/spatialanalyzer/briosa/pull/363)): on both targets F2
+opened "This selection mode does not allow a list." and no operator could complete
+the selection. The step id is not reused.
 
 | Step | Getter | Value kind | Operator selects |
 | --- | --- | --- | --- |
 | `p30-point-list` | `GetPointNameRefListArg` | point name list | `B277::G1::P1` |
 | `p30-object-list` | `GetCollectionObjectNameRefListArg` | collection object name list (Object Type Plane) | `B277::PA` |
 | `p30-relationship-list` | `GetCollectionObjectNameRefListArg` | collection item name list | `B277::R1` |
-| `p30-vector-list` | `GetVectorNameRefListArg` | vector name list | one vector of `B277::VG1` |
 | `p30-instrument-list` | `GetColInstIdRefListArg` | collection instrument list | the first USMN fixture instrument |
 | `p30-instrument` | `GetColInstIdArg` | collection instrument | the first USMN fixture instrument |
 | `p30-point` | `GetPointNameArg` | point name | `B277::G1::P1` |
