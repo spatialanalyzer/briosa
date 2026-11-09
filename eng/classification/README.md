@@ -148,12 +148,12 @@ otherwise, both releases document the operation the same way.
 
 | | 2026.1.0529.7 | 2024.1.0508.5 |
 |---|---:|---:|
-| Operations | 1,019 | 988 |
+| Operations | 1,018 | 987 |
 | `exclusive_workflow` | 42 | 45 |
-| `interactive_ui` | 58 | 58 |
+| `interactive_ui` | 57 | 57 |
 | `read-only` / `standard` / `device` / `full` | 184 / 797 / 905 / 922 | 180 / 778 / 871 / 888 |
 
-These counts follow the removal of eight operations per target in contract
+These counts follow the removal of nine operations per target in contract
 major 3. Six went for
 [#308](https://github.com/spatialanalyzer/briosa/issues/308),
 [#310](https://github.com/spatialanalyzer/briosa/issues/310) and
@@ -163,10 +163,11 @@ by `standard`, and one also by `read-only`. Two more went for
 [#350](https://github.com/spatialanalyzer/briosa/issues/350):
 `construct_polygonized_surface_from_point_clouds`, admitted by `standard`, and
 the `interactive_ui` operation
-`make_collection_vector_group_name_ref_list_runtime_select`. None of the eight
-was exclusive. Before the first six were removed, the counts were 1,027 and 996
-operations, and 185 / 811 / 912 / 929 (2026) and 181 / 792 / 878 / 895 (2024)
-admissions.
+`make_collection_vector_group_name_ref_list_runtime_select`. After licensed
+session 3, #350 also removed the `interactive_ui` operation
+`make_vector_name_ref_list_runtime_select`. None of the nine was exclusive.
+Before the first six were removed, the counts were 1,027 and 996 operations, and
+185 / 811 / 912 / 929 (2026) and 181 / 792 / 878 / 895 (2024) admissions.
 
 Before the review corrections, the decision's counts were 43 (2026) and 46
 (2024) exclusive workflows, 47 interactive operations per target, and

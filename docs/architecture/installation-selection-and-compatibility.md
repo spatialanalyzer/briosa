@@ -108,16 +108,18 @@ process shutdown, cross-client leases, or MP retries are introduced.
 ## Evidence and migration
 
 Server-owned fixtures enforce language parity. The matrix separates declared ranges,
-tested exact pairs, exclusions and licensed validation. Retain every released
-contract-aware client in conformance until a support-window policy is accepted.
+tested exact pairs, exclusions and licensed validation. Conformance covers the
+released contract-aware clients of the current contract major, plus the previous
+major's clients when a release changes the major (#250). Older clients are retired
+from the gate, and their recorded evidence stays verifiable.
 Embedded compatibility policy works offline; newly discovered exclusions require a
 client or explicit application-policy update.
 
-For a new compatibility major, CI retains every published client and tests the
-expected result: compatible contracts run the full fake-SDK suite; incompatible
-contracts must be rejected during installation selection and startup. Rejection
-evidence is distinct from successful operation conformance. The fixture source
-revision and the installed package identity are recorded separately.
+For a new compatibility major, CI runs the published clients inside that window and
+tests the expected result: compatible contracts run the full fake-SDK suite;
+incompatible contracts must be rejected during installation selection and startup.
+Rejection evidence is distinct from successful operation conformance. The fixture
+source revision and the installed package identity are recorded separately.
 
 Development CI also builds hash-identified candidate packages from pinned client
 commits for all three languages and both targets. Candidates prove development

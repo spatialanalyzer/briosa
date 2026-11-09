@@ -12,7 +12,8 @@ public sealed class ProbeCatalogTests
             .Distinct(StringComparer.Ordinal)
             .Order(StringComparer.Ordinal);
 
-        Assert.Equal(ProbeCatalog.ActiveProbeNumbers.Order(StringComparer.Ordinal), covered);
+        // The default plans leave out the opt-in probes, which run only when --probe names them.
+        Assert.Equal(ProbeCatalog.ActiveProbeNumbers.Except(ProbeCatalog.OptInProbeNumbers).Order(StringComparer.Ordinal), covered);
     }
 
     [Fact]
@@ -24,6 +25,17 @@ public sealed class ProbeCatalogTests
         {
             Assert.DoesNotContain(Plan(phase).Steps, step =>
                 ProbePlan.ExpandProbe(step.Probe).Intersect(ProbeCatalog.RetiredProbeNumbers, StringComparer.Ordinal).Any());
+        }
+    }
+
+    [Fact]
+    public void RetiredStepsAreNotSentInEitherPhase()
+    {
+        Assert.Equal(["p30-vector-list"], ProbeCatalog.RetiredStepIds);
+        foreach (var phase in new[] { ProbePhase.PublicApi, ProbePhase.Worker })
+        {
+            Assert.DoesNotContain(Plan(phase).Steps, static step =>
+                ProbeCatalog.RetiredStepIds.Contains(step.Id, StringComparer.Ordinal));
         }
     }
 
@@ -64,19 +76,22 @@ public sealed class ProbeCatalogTests
     }
 
     [Fact]
-    public void OmittedAndBlankedLabelsAreTheShippedOptionalLabels()
+    public void OnlyReviewedLabelsAreOmittedBlankedOrEmptied()
     {
         var labels = Plan(ProbePhase.Worker).Steps
-            .Where(static step => step.Variant.Kind is VariantKind.OmitArgument or VariantKind.BlankArgument)
+            .Where(static step => step.Variant.Kind is VariantKind.OmitArgument or VariantKind.BlankArgument or VariantKind.EmptyListArgument)
             .Select(static step => step.Variant.ArgumentLabel!)
             .Distinct(StringComparer.Ordinal)
             .Order(StringComparer.Ordinal);
 
+        // The shipped optional labels, and probe 33's Groups to be Excluded, which every
+        // client offers as optional although the server required a group until #363.
         Assert.Equal(
             new[]
             {
                 ProbeCatalog.NominalsLabel, ProbeCatalog.SeedGeometryLabel, ProbeCatalog.TemplateChartLabel,
-                ProbeCatalog.ProfileFileLabel, ProbeCatalog.HighPlaneLabel, ProbeCatalog.LowPlaneLabel
+                ProbeCatalog.ProfileFileLabel, ProbeCatalog.HighPlaneLabel, ProbeCatalog.LowPlaneLabel,
+                ProbeCatalog.ExcludedGroupsLabel
             }.Order(StringComparer.Ordinal),
             labels);
     }

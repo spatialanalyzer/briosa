@@ -117,15 +117,28 @@ internal sealed record ProbeSessionRecord(
     /// <summary>The interaction-mode settings when the plan changes SA's interaction mode; otherwise null.</summary>
     public InteractionModeSettings? InteractionMode { get; init; }
 
+    /// <summary>Probe numbers the operator selected with --probe, ascending; empty for the default plan.</summary>
+    public IReadOnlyList<int> SelectedProbes { get; init; } = [];
+
+    /// <summary>The server interaction-mode setting the public plan needed (#313); null in the worker phase.</summary>
+    public string? ServerInteractionModeSetting { get; init; }
+
     /// <summary>Every step that was not excluded was observed as planned.</summary>
     public bool Completed => StopReason is null && !DryRun &&
         Steps.All(static step => step.Classification is StepClassification.Observed or StepClassification.Excluded);
+
+    /// <summary>The run ended, as planned, in its stall step's stall: that step's completion is unknown.</summary>
+    public bool EndedInPlannedStall => Steps.LastOrDefault(static step => step.Classification != StepClassification.Excluded) is
+    {
+        Classification: StepClassification.Observed, Step.ExpectedStall: not null
+    };
 }
 
 /// <summary>
 /// Runs a plan, stopping at the first unexpected disposition. An outcome whose
-/// completion is unknown is never accepted and always stops the session as
-/// do-not-replay.
+/// completion is unknown is never accepted, except the planned stall of a stall step,
+/// which is always the plan's last step; nothing is ever sent after such an outcome,
+/// and it is never replayed.
 /// </summary>
 internal static class ProbeSession
 {
@@ -141,12 +154,8 @@ internal static class ProbeSession
         ArgumentNullException.ThrowIfNull(plan);
         ArgumentNullException.ThrowIfNull(clock);
         var now = clock.GetUtcNow();
-        return new ProbeSessionRecord(plan.Phase, DryRun: true, plan.PlaceholderFixtures, now, now, SessionIdentity.None,
-            [.. plan.CatalogSteps.Select(step => plan.IsExcluded(step) ? Excluded(step) : NotRun(step))], StoppedAt: null, StopReason: null)
-        {
-            ExcludedProbes = plan.ExcludedProbes,
-            InteractionMode = plan.SetsInteractionMode ? plan.InteractionMode : null
-        };
+        return Describe(new ProbeSessionRecord(plan.Phase, DryRun: true, plan.PlaceholderFixtures, now, now, SessionIdentity.None,
+            [.. plan.CatalogSteps.Select(step => plan.IsExcluded(step) ? Excluded(step) : NotRun(step))], StoppedAt: null, StopReason: null), plan);
     }
 
     public static async Task<ProbeSessionRecord> RunAsync(
@@ -177,18 +186,15 @@ internal static class ProbeSession
         catch (ProbeRefusedException refusal)
         {
             records.AddRange(plan.CatalogSteps.Select(step => plan.IsExcluded(step) ? Excluded(step) : NotRun(step)));
-            return new ProbeSessionRecord(plan.Phase, DryRun: false, plan.PlaceholderFixtures, started, clock.GetUtcNow(),
-                operatorIdentity, records, StoppedAt: null, refusal.DiagnosticCode)
-            {
-                ExcludedProbes = plan.ExcludedProbes,
-                InteractionMode = plan.SetsInteractionMode ? plan.InteractionMode : null
-            };
+            return Describe(new ProbeSessionRecord(plan.Phase, DryRun: false, plan.PlaceholderFixtures, started, clock.GetUtcNow(),
+                operatorIdentity, records, StoppedAt: null, refusal.DiagnosticCode), plan);
         }
 
         var history = new Dictionary<string, ProbeOutcome>(StringComparer.Ordinal);
         var created = new HashSet<string>(StringComparer.Ordinal);
         string? stoppedAt = null;
         string? stopReason = null;
+        string? stalledAt = null;
         var ordinal = 0;
         foreach (var step in plan.CatalogSteps)
         {
@@ -197,6 +203,13 @@ internal static class ProbeSession
             {
                 records.Add(Excluded(step));
                 continue;
+            }
+
+            // Defence in depth: validation makes a stall step the plan's last step, and
+            // nothing is ever sent after an outcome whose completion is unknown.
+            if (stopReason is null && stalledAt is not null)
+            {
+                (stoppedAt, stopReason) = (stalledAt, UnknownOutcomeStop);
             }
 
             if (stopReason is not null)
@@ -239,12 +252,15 @@ internal static class ProbeSession
             var elapsed = (long)(clock.GetUtcNow() - dispatched).TotalMilliseconds;
             console.Completed(step, ordinal, plan.Steps.Count, outcome, elapsed);
             history[step.Id] = outcome;
-            var accepted = step.Acceptable.Accepts(outcome);
+
+            // A stall step accepts only the stall it plans to end in (#313); every other
+            // step accepts only its determinate outcomes.
+            var stalled = step.ExpectedStall?.Matches(outcome) == true;
+            var accepted = stalled || step.Acceptable.Accepts(outcome);
             bool? requirement = step.Requirement is null || !accepted ? null : step.Requirement.IsSatisfied(history, outcome);
             var hypotheses = step.Hypotheses
                 .Select(hypothesis => new HypothesisResult(hypothesis.Label, hypothesis.ObservationKey, hypothesis.ExpectedValue,
-                    outcome.Observations.TryGetValue(hypothesis.ObservationKey, out var observed) &&
-                    string.Equals(observed, hypothesis.ExpectedValue, StringComparison.Ordinal)))
+                    string.Equals(outcome.Fact(hypothesis.ObservationKey), hypothesis.ExpectedValue, StringComparison.Ordinal)))
                 .ToList();
 
             // Whatever the outcome, the operator records and dismisses any dialog
@@ -280,6 +296,10 @@ internal static class ProbeSession
                 {
                     (stoppedAt, stopReason) = (step.Id, CheckpointStop);
                 }
+                else if (stalled)
+                {
+                    stalledAt = step.Id;
+                }
 
                 continue;
             }
@@ -297,13 +317,18 @@ internal static class ProbeSession
                 : accepted ? RequirementStop : UnexpectedDispositionStop;
         }
 
-        return new ProbeSessionRecord(plan.Phase, DryRun: false, plan.PlaceholderFixtures, started, clock.GetUtcNow(),
-            identity, records, stoppedAt, stopReason)
-        {
-            ExcludedProbes = plan.ExcludedProbes,
-            InteractionMode = plan.SetsInteractionMode ? plan.InteractionMode : null
-        };
+        return Describe(new ProbeSessionRecord(plan.Phase, DryRun: false, plan.PlaceholderFixtures, started, clock.GetUtcNow(),
+            identity, records, stoppedAt, stopReason), plan);
     }
+
+    // The plan-level facts every record states, whether or not anything ran.
+    private static ProbeSessionRecord Describe(ProbeSessionRecord record, ProbePlan plan) => record with
+    {
+        ExcludedProbes = plan.ExcludedProbes,
+        SelectedProbes = plan.SelectedProbes,
+        InteractionMode = plan.SetsInteractionMode ? plan.InteractionMode : null,
+        ServerInteractionModeSetting = plan.Phase == ProbePhase.PublicApi ? plan.ServerInteractionModeSetting : null
+    };
 
     private static ProbeStepRecord NotRun(ProbeStep step) => new(step, null, StepClassification.NotRun, [], null);
 

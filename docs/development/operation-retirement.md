@@ -1,34 +1,41 @@
 # Operation retirement
 
-Status: on `main` for contract major 3, which is not released yet. The
-compatibility contract stays at major 2 until the major-3 freeze pull request
-bumps it. Decided by D2 point 5 on
+Status: at contract major 3, which is not released yet. Decided by D2 point 5 on
 [#243](https://github.com/spatialanalyzer/briosa/issues/243#issuecomment-6107759671)
 and on [#308](https://github.com/spatialanalyzer/briosa/issues/308#issuecomment-6109883364)
 and [#310](https://github.com/spatialanalyzer/briosa/issues/310#issuecomment-6109883530),
 for `DeleteCloudPointsByXYZRange` on
 [#307](https://github.com/spatialanalyzer/briosa/issues/307#issuecomment-6113702460),
-and, after licensed session 2, on
+after licensed session 2, on
 [#309](https://github.com/spatialanalyzer/briosa/issues/309#issuecomment-6404290445)
-and [#350](https://github.com/spatialanalyzer/briosa/issues/350#issuecomment-6404290753).
+and [#350](https://github.com/spatialanalyzer/briosa/issues/350#issuecomment-6404290753),
+and, after licensed session 3, on
+[#350](https://github.com/spatialanalyzer/briosa/issues/350#issuecomment-6739535653).
 
 An operation is retired, meaning deleted as a complete vertical slice, when
 licensed evidence on the exact target shows that it cannot work through the SDK
 and no untried binding exists. Retiring is a breaking change, so it happens only
-in a contract major. Re-adding an operation later is an additive change.
+in a contract major. Re-adding an operation later is an additive change. One
+operation was retired at the major-3 freeze for another reason: no operator
+could complete it on either target, so it would have shipped unverified, and
+removing it later would need contract major 4.
 
 ## Retired in contract major 3
 
-Each operation failed on both exact targets in a licensed probe session, and
-the binding search before deleting found no other setter or getter in the
-committed interop surface or the exact-target evidence of either target.
+Each of the first eight failed on both exact targets in a licensed probe
+session, and the binding search before deleting found no other setter or getter
+in the committed interop surface or the exact-target evidence of either target.
 
 - The first six used a substitution for an argument the SDK exporter marks
   `NOT_SUPPORTED`. The 2026-10-07 session showed that the substitution does not
   work.
-- The last two were decided after licensed session 2 (2026-10-25). The Mesh
+- The next two were decided after licensed session 2 (2026-10-25). The Mesh
   Orientation substitution stalls the worker, and the vector group
   runtime-select getter returns nothing.
+- The ninth was decided after licensed session 3 (2026-11-09). SA never rejected
+  the vector-name-list runtime select, but no operator could complete its
+  selection on either target, so it is unverified rather than shown not to work.
+  It can return in a 3.x revision once a licensed session verifies it.
 
 | Operation | MP step | Probe | Observed on both targets | Why no other binding exists |
 | --- | --- | --- | --- | --- |
@@ -40,20 +47,25 @@ committed interop surface or the exact-target evidence of either target.
 | `cloud_and_mesh_operations.delete_cloud_points_by_xyz_range` | Delete Cloud Points by X Y Z Range | 15, 16 | MP code -1 with all six bounds and with only the X bounds; no point was deleted. | The six bounds are Optional Double, which the SDK marks `NOT_SUPPORTED`; no interop setter carries an optional double, and no other MP uses the type. Without its bounds the step is not a range delete. |
 | `construction_operations.construct_polygonized_surface_from_point_clouds` | Construct Polygonized Surface from Point Clouds | 11 | Run first, with no dialog open: "Encountered an improper argument." and no MP result; the server's 600 s long-running watchdog ended the worker (`Indeterminate`). | The SDK names `SetMeshOrientationTypeArg`, which the committed interop does not have, and no other MP uses the Mesh Orientation Type. |
 | `construction_operations.make_collection_vector_group_name_ref_list_runtime_select` | Make a Collection Vector Group Name Ref List - Runtime Select | 22 | With the F2 gesture SA documents, MP code 2, but the getter returned nothing (`OutputRetrievalFailed`); the same under Silent. | `GetCollectionVectorGroupNameRefListArg` is the SDK's own getter for the documented result. The interop has no other vector-group list getter, and no other MP returns the type. |
+| `construction_operations.make_vector_name_ref_list_runtime_select` | Make a Vector Name Ref List - Runtime Select | 30 | No selection could be completed. F2 opened "This selection mode does not allow a list.", no vector could be picked in the 3D view, and Enter with nothing selected returned MP code 3 (`MpFailed`). | Not a binding failure: `GetVectorNameRefListArg` was never read after a completed selection, so the operation is unverified. |
 
 The evidence is each target's probe records: for the first six, the 2026-10-07
 session on
 [2026](../../targets/2026.1.0529.7/docs/testing/evidence/probe-277-2026.1.0529.7-2026-10-07.md)
 and [2024](../../targets/2024.1.0508.5/docs/testing/evidence/probe-277-2024.1.0508.5-2026-10-07.md);
-for the last two, session 2 on
+for the next two, session 2 on
 [2026](../../targets/2026.1.0529.7/docs/testing/evidence/probe-session-2-2026.1.0529.7-2026-10-25.md)
-and [2024](../../targets/2024.1.0508.5/docs/testing/evidence/probe-session-2-2024.1.0508.5-2026-10-25.md).
+and [2024](../../targets/2024.1.0508.5/docs/testing/evidence/probe-session-2-2024.1.0508.5-2026-10-25.md);
+for the ninth, session 3 on
+[2026](../../targets/2026.1.0529.7/docs/testing/evidence/probe-session-3-2026.1.0529.7-2026-11-09.md)
+and [2024](../../targets/2024.1.0508.5/docs/testing/evidence/probe-session-3-2024.1.0508.5-2026-11-09.md).
 The records stay unchanged as history. The licensed probe harness no longer
-sends probes 7 to 11, 14 to 16, and 22, and their numbers are not reused.
+sends probes 7 to 11, 14 to 16, and 22, or probe 30's vector-list step
+(`p30-vector-list`), and their numbers and ids are not reused.
 
-The other 22 runtime-select operations per target stay. None of them has been
-observed on a licensed run; the decision on #350 has the next licensed session
-test a few of their getters before anything else is decided for the family.
+The other 21 runtime-select operations per target stay. In licensed session 3,
+probe 30 observed seven of them on both targets, and each returned exactly the
+requested fixture. The others have not been observed on a licensed run.
 
 ### What callers do
 
@@ -61,16 +73,18 @@ test a few of their getters before anything else is decided for the family.
   result messages, and the `CircleLineMode`, `MirrorFramePlane` and
   `MeshOrientationType` enums are gone, so code that used them stops compiling
   instead of failing at run time.
-- Remove client facades and methods for the eight operations.
+- Remove client facades and methods for the nine operations.
 - To select callout views, `MakeCollectionItemNameRefListWildcardSelection` with
   the callout-view item type uses a different MP step. That item type has not
   been observed on a licensed run.
 - A reference list is a client-side value in Briosa, so a caller that needs an
   instrument list can build it directly.
+- A vector name list can be built the same way, or from a vector group with
+  `MakeVectorNameRefListFromVectorGroup`.
 - No replacement exists for setting callout view properties on a list, for
   circle and line extraction from surfaces, for mirroring objects, for
   deleting cloud points by an X Y Z box, for polygonizing point clouds, or for
-  selecting vector groups at run time on these exact targets.
+  selecting vector groups or vector names at run time on these exact targets.
   `DeleteCloudPointsByRadialDistanceFromPoints` deletes by distance from points;
   it has different semantics and no licensed validation yet (it is the control
   step of the #307 re-probe).

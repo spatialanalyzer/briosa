@@ -1017,12 +1017,6 @@ internal sealed class ConstructionOperationsService(OperationExecutor operationE
             MakeVectorNameRefListFromVectorGroupOperation.CreateCommand, MakeVectorNameRefListFromVectorGroupOperation.OutputContracts,
             MakeVectorNameRefListFromVectorGroupOperation.CreateResult);
 
-    [OperationImplementation("construction_operations.make_vector_name_ref_list_runtime_select")]
-    public override Task<Api.MakeVectorNameRefListRuntimeSelectResult> MakeVectorNameRefListRuntimeSelect(Api.MakeVectorNameRefListRuntimeSelectRequest request, ServerCallContext context) =>
-        _operationExecutor.ExecuteAsync(request, context, MakeVectorNameRefListRuntimeSelectOperation.Descriptor,
-            MakeVectorNameRefListRuntimeSelectOperation.CreateCommand, MakeVectorNameRefListRuntimeSelectOperation.OutputContracts,
-            MakeVectorNameRefListRuntimeSelectOperation.CreateResult);
-
     [OperationImplementation("construction_operations.make_vector_names_unique_in_vector_group")]
     public override Task<Api.MakeVectorNamesUniqueInVectorGroupResult> MakeVectorNamesUniqueInVectorGroup(Api.MakeVectorNamesUniqueInVectorGroupRequest request, ServerCallContext context) =>
         _operationExecutor.ExecuteAsync(request, context, MakeVectorNamesUniqueInVectorGroupOperation.Descriptor,

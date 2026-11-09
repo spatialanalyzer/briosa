@@ -14,6 +14,7 @@ internal static class ArgumentDefaultsTable
     public static IReadOnlyList<ArgumentDefaultRow> Rows { get; } =
         [
             new("instrument_operations.locate_instruments_usmn", "LocateInstrumentsUsmnRequest.nominals_group", "Nominals Group Name (blank for none)", "SetCollectionObjectNameArg2", "omitted", "sends_blank", "sent"),
+            new("instrument_operations.locate_instruments_usmn", "LocateInstrumentsUsmnRequest.excluded_groups", "Groups to be Excluded", "SetCollectionObjectNameRefListArg", "omitted", "omitted", "sent"),
             new("reporting_operations.create_chart_from_vector_group", "CreateChartFromVectorGroupRequest.template_chart_name", "Template Chart Name (optional)", "SetChartNameArg", "omitted", "rejected", "sent"),
             new("utility_operations.set_user_interface_profile", "SetUserInterfaceProfileRequest.profile_file_name", "Profile File Name (optional)", "SetFilePathArg", "omitted", "rejected", "sent"),
             new("construction_operations.construct_planes_bounding_point_group", "ConstructPlanesBoundingPointGroupRequest.resulting_high_plane_name", "Resulting 'High' Plane Name", "SetCollectionObjectNameArg2", "omitted", "rejected", "sent"),

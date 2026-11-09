@@ -8,7 +8,8 @@ namespace Briosa.Server.Tests;
 
 /// <summary>
 /// Operations retired by a reviewed decision (D2 point 5 on #243, decided on #308, #310 and
-/// #307, and the 2026-10-25 decisions on #309 and #350) are removed as complete vertical slices. The reviewed ledger in
+/// #307, the 2026-10-25 decisions on #309 and #350, and the 2026-11-09 decision on #350) are
+/// removed as complete vertical slices. The reviewed ledger in
 /// docs/development/retired-operations.json is also what eng/Verify-Protocol.ps1 uses to
 /// accept exactly these protobuf removals, so these tests keep the ledger and the code in step.
 /// </summary>
@@ -60,7 +61,7 @@ public sealed class RetiredOperationTests
     {
         // #308 (probes 7, 14), #310 (probes 8 to 10) and #307 (probes 15, 16), decided 2026-10-11
         // on the 2026-10-07 session; #309 (probe 11) and #350 (probe 22), decided 2026-10-25 on
-        // licensed session 2.
+        // licensed session 2; and #350 (probe 30), decided 2026-11-09 on licensed session 3.
         var expected = new Dictionary<string, (int Issue, int[] Probes)>(StringComparer.Ordinal)
         {
             ["construction_operations.make_callout_view_ref_list_wildcard_selection"] = (308, [7]),
@@ -70,7 +71,8 @@ public sealed class RetiredOperationTests
             ["construction_operations.mirror_objects"] = (310, [10]),
             ["cloud_and_mesh_operations.delete_cloud_points_by_xyz_range"] = (307, [15, 16]),
             ["construction_operations.construct_polygonized_surface_from_point_clouds"] = (309, [11]),
-            ["construction_operations.make_collection_vector_group_name_ref_list_runtime_select"] = (350, [22])
+            ["construction_operations.make_collection_vector_group_name_ref_list_runtime_select"] = (350, [22]),
+            ["construction_operations.make_vector_name_ref_list_runtime_select"] = (350, [30])
         };
 
         var ledger = LoadLedger();

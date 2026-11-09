@@ -21,7 +21,7 @@ function Reset-Fixture {
     $script:pair.evidence = 'evidence/2000-01-01/fixture.json'
     $script:pair.clientPublished = $false
     $script:report.client.package.publishedUrl = ''
-    $script:retained = @{ schemaVersion = 1; bootstrapServerVersion = '0.7.0'; clients = @() }
+    $script:retained = @{ schemaVersion = 3; clients = @(); retiredClients = @() }
 }
 function Assert-Rejected([string]$Name, [scriptblock]$Change) {
     Reset-Fixture
@@ -41,6 +41,11 @@ function Set-Published {
         sha256 = $script:pair.clientPackageSha256; url = $script:report.client.package.publishedUrl
     })
 }
+function Set-Retired {
+    Set-Published
+    $script:retained.retiredClients = $script:retained.clients
+    $script:retained.clients = @()
+}
 try {
     Reset-Fixture
     Save-Fixture
@@ -48,14 +53,20 @@ try {
     Set-Published
     Save-Fixture
     & (Join-Path $PSScriptRoot 'Test-CompatibilityMatrix.ps1') -CompatibilityRoot $fixture
+    # Evidence for a client retired from the live gate stays verifiable.
+    Set-Retired
+    Save-Fixture
+    & (Join-Path $PSScriptRoot 'Test-CompatibilityMatrix.ps1') -CompatibilityRoot $fixture
     Assert-Rejected 'development package claimed published' { $script:pair.clientPublished = $true }
     Assert-Rejected 'published origin claimed local' { $script:report.client.package.publishedUrl = 'https://example.invalid/package' }
-    Assert-Rejected 'missing retained artifact' { Set-Published; $script:retained.clients = @() }
+    Assert-Rejected 'published artifact in neither list' { Set-Published; $script:retained.clients = @() }
     Assert-Rejected 'different retained artifact' { Set-Published; $script:retained.clients[0].sha256 = ('a' * 64) }
+    Assert-Rejected 'different retired artifact' { Set-Retired; $script:retained.retiredClients[0].sha256 = ('a' * 64) }
     Assert-Rejected 'ambiguous retained artifact' { Set-Published; $script:retained.clients += $script:retained.clients[0] }
+    Assert-Rejected 'published artifact in both lists' { Set-Published; $script:retained.retiredClients = @($script:retained.clients) }
     Assert-Rejected 'duplicate pair' { $script:matrix.testedPairs += $script:pair }
     Assert-Rejected 'empty matrix' { $script:matrix.testedPairs = @() }
-    Write-Host 'Compatibility matrix policy passed: local and published evidence, origin claims, retained identity, duplicates, and empty input.'
+    Write-Host 'Compatibility matrix policy passed: local, published and retired evidence, origin claims, retained identity, duplicates, and empty input.'
 }
 finally {
     $resolved = [IO.Path]::GetFullPath($fixture)
