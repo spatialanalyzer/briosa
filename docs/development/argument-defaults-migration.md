@@ -18,6 +18,7 @@ to correct and resend.
 | Operation | Field | Contract 2.0 | Major 3 |
 | --- | --- | --- | --- |
 | `instrument_operations.locate_instruments_usmn` | `nominals_group` | Absent or empty name: rejected | Absent: setter omitted. Empty name: sent blank ("blank for none"). |
+| `instrument_operations.locate_instruments_usmn` | `excluded_groups` | Empty list: rejected | Empty list: setter omitted, and SpatialAnalyzer runs USMN without it. |
 | `reporting_operations.create_chart_from_vector_group` | `template_chart_name` | Absent or empty: rejected | Absent: setter omitted. Empty: rejected. |
 | `utility_operations.set_user_interface_profile` | `profile_file_name` | Absent or empty: rejected | Absent: setter omitted. Empty: rejected. |
 | `construction_operations.construct_planes_bounding_point_group` | `resulting_high_plane_name`, `resulting_low_plane_name` | Absent or empty: rejected | Absent: setter omitted, and SpatialAnalyzer uses its default plane name. Empty: rejected. |
@@ -50,6 +51,11 @@ zero, false or blank default sends that value explicitly.
   value with every limit disabled.
 - Ask for Point Name's `initial_value` and Import SA File's
   `selected_collections` stay required until licensed probes settle them.
+- The quick fit's `other_objects_to_transform`
+  (`instrument_operations.locate_instrument_group_to_surface_quick_fit`) and the
+  four Feature Inspection Auto Filter lists (`point_names`, `group_names`,
+  `cloud_names` and `feature_check_name_list`) stay required: an empty list is
+  rejected. No licensed probe has shown that SpatialAnalyzer runs without them.
 - Other optional strings that are sent blank when absent keep that behavior
   until a probe shows that omitting the setter is equivalent.
 
@@ -61,7 +67,10 @@ target) change the same way:
 - Make the template chart, the profile file and the fit seed
   (`starting_condition_geometry` of the three fit operations) optional, with no
   default value, and leave the field unset when the caller omits it. The USMN
-  nominals group and the bounding plane names are already optional.
+  nominals group, the USMN `excluded_groups` list and the bounding plane names
+  are already optional; an omitted list is sent empty.
+- Make the quick fit's `other_objects_to_transform` and the four Feature
+  Inspection Auto Filter lists required, matching the server.
 - Make the relationship tolerance and constraint required. A client may offer a
   named all-disabled value, for example `ToleranceVectorOptions.NoLimits`, that
   the caller passes explicitly. It is never an implicit default.

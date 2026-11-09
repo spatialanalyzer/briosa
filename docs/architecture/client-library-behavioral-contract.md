@@ -1,7 +1,7 @@
 # First-party client behavioral contract
 
 - Status: Current v1 design contract; client implementations may still be pre-conformance
-- Last reviewed: 2026-10-25
+- Last reviewed: 2026-11-09
 
 ## Purpose and authority
 
@@ -165,9 +165,23 @@ At compatibility major 3, every first-party client:
    never folded into `Succeeded` or an unknown state. Code `4` from an
    operation on the server's exception list arrives as an ordinary `MpFailure`
    with code `4`.
-4. Passes the `mp-partial-success` conformance scenario.
+4. Passes the `mp-partial-success` conformance scenario. Its third call checks
+   item 3.
 5. Documents that a partial success did its work, where to read the
    indication, and the exception list.
+
+At compatibility major 3, every first-party client also checks the `execution`
+of each successful MP call, whether or not the caller observes the completion.
+`execution` must be present, and its state and code must agree: `Succeeded`
+with code `2`, or `PartialSuccess` with code `4`. The code must be present too,
+because the server sets it on every success. Anything else, such as a missing
+`execution`, a missing code, or a state that disagrees with its code, is a
+protocol-contract failure.
+
+When the caller observes the completion, the client calls the observer after
+this check and before it maps the outputs, so the observer reports the
+completion even when output mapping then fails. Adding or removing an observer
+never changes a call's outcome.
 
 Public optionality follows the semantic success contract rather than protobuf
 defaults, language truthiness, or zero values. A required-on-success value remains
@@ -198,6 +212,38 @@ domain values. Context-dependent behavior is not presented as a fixed default.
 The command contract owns the canonical value. Each language owns its idiomatic
 signature or input-property expression. Changing a published default is a
 behavioral API change.
+
+An input that the server requires has no default at all. At compatibility
+major 3, each first-party package requires every input that its target's server
+rejects whenever it is absent or empty. The client never fills such an input
+in, whether through a default value or a convenience overload: no identity
+transform, no default settings value, and no empty list. Omitting one fails
+before any call, in the language's idiom, such as a compile-time error or a
+local argument error. The rule also decides three related cases:
+
+- An input that the server accepts when absent stays optional, such as the
+  template chart, the profile file, and the fit seed in the
+  [argument defaults migration](../development/argument-defaults-migration.md#client-libraries).
+- An input that the server requires only when another input has a certain
+  value also stays optional, and the server rejects the omission when it
+  matters. For example, `set_cloud_default_clipping_plane` requires
+  `reference_object` only while clipping is enabled, as
+  `set_instrument_weather_setting` requires its weather values only when
+  `set_automatically` is false.
+- When the server requires exactly one of a set of alternatives, the client
+  requires exactly one. For example, a `ReportOutputOptions` value needs
+  exactly one of `external_path` and `embedded_file`, and absent options get
+  the server's default.
+
+`FilterProximitySettings`, which the three Auto Filter operations take, is a
+named case: every first-party client requires all eleven of its members, with
+no client defaults. The server rejects an absent proximity mode, so the rule
+above already covers the three modes. It reads the six distances and the two
+Booleans without checking presence, so an absent one would reach
+SpatialAnalyzer as 0 or false, and a default distance would mean a different
+length depending on the job's units. The case doesn't extend the rule to other
+inputs that the server reads without a presence check; broader requiredness is
+[left out of major 3](../development/contract-major-3.md#what-major-3-leaves-out).
 
 ## Asynchronous calls and caller controls
 
@@ -235,10 +281,29 @@ abandoned may still produce a running or ready generation. The client refreshes
 SDK state before deciding what to do next. It treats
 `sdk-lifecycle-transition-in-progress` as a signal to refresh and retry later,
 and it stops a generation it owns only after the accepted transition has ended.
+Clients adopting compatibility major 3 pass the `lifecycle-cancellation`
+conformance scenario, which checks this sequence for Connect.
 `LaunchSpatialAnalyzer` follows the same rule: after acceptance the server keeps
 waiting for the application window under its own bound, and the client refreshes
 application state before it launches again.
 Client startup budgets do not shorten the server's lifecycle bounds.
+
+From compatibility major 3, a lifecycle failure detail reports the caller's own
+interruption with dedicated caller kinds. Both lifecycle failure enums carry
+them: values 19 and 20 of `SpatialAnalyzerSdkLifecycleFailureKind`, and 10 and
+11 of `SpatialAnalyzerLifecycleFailureKind`.
+- When the caller cancelled, the detail has `CALLER_CANCELLED` with `CANCELLED`.
+- When the caller's gRPC deadline had passed, it has `CALLER_DEADLINE_EXCEEDED`
+  with `DEADLINE_EXCEEDED`.
+
+A remote caller rarely receives this detail, because gRPC delivers no response
+after a cancellation or a deadline. Clients adopting compatibility major 3
+expose both values as distinct kinds. They surface them the way they surface
+the operation caller kinds: as the language-native cancellation or deadline
+outcome. They never report them as a state conflict and never retry
+automatically. The diagnostic code still tells the client whether to refresh
+state: `*-request-withdrawn` changed nothing, and `*-caller-stopped-waiting`
+continues detached.
 
 The default startup procedure runs within one overall client startup budget,
 whatever phases it selects. Every first-party client defaults it to 120 seconds,
@@ -298,6 +363,12 @@ policy. The canonical gRPC status and typed operation detail remain separate.
 Status text is never parsed to reconstruct policy. Public error values preserve
 the server's execution disposition, recovery guidance, replay guidance, and
 replay-safety classification as separate dimensions.
+
+At compatibility major 3, every first-party client gives a transport failure
+without a typed trailer the diagnostic code `transport-` followed by the gRPC
+status name in lower kebab case. For example, `DEADLINE_EXCEEDED` becomes
+`transport-deadline-exceeded`, and `UNAVAILABLE` becomes
+`transport-unavailable`. Caller cancellation keeps its language-native form.
 
 Clients expose every `OperationFailureKind` value as a distinct typed failure
 kind, never folded into a generic or neighbouring kind. In particular,
@@ -441,7 +512,8 @@ Clients adopting compatibility major 3:
   request with a typed `PermissionDenied`. Clients do not pre-validate request
   options from discovery;
 - offer an explicit diagnostic listing that sets `include_denied` and returns
-  each denied operation with its denial reason. Denied entries never enter the
+  one value: the admission profile name, the policy fingerprint, and each
+  denied operation with its denial reason. Denied entries never enter the
   generation's admitted set and never make an operation callable; and
 - may use `duration_class` to choose a default per-call deadline only where
   the language contract already provides a configured default command timeout.
@@ -465,8 +537,10 @@ gRPC server over deterministic fake-worker scenarios for:
   capability classification, and denial reasons;
 - typed operation failures, including SDK call faults once clients adopt
   compatibility major 3;
-- partial success (MP code `4`) once clients adopt compatibility major 3;
-- deadlines and cancellation;
+- partial success (MP code `4`), also inside a typed failure, once clients
+  adopt compatibility major 3;
+- deadlines and cancellation, and from compatibility major 3 a lifecycle
+  Connect whose caller stopped waiting after the server accepted it;
 - disconnection, worker crash, and watchdog replacement;
 - completion ambiguity, replay guidance, and recovery; and
 - shutdown and partial-startup cleanup.

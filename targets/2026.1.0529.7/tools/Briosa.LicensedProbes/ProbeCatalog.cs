@@ -65,6 +65,12 @@ internal static class ProbeCatalog
     // Their numbers keep their meaning in the dated records; the plan no longer sends them.
     public static IReadOnlyList<string> RetiredProbeNumbers { get; } = ["7", "8", "9", "10", "11", "14", "15", "16", "22"];
 
+    // Steps retired with their operation while the rest of their probe stays. Probe 30's vector
+    // name list went after licensed session 3 (#363): no operator could complete that selection
+    // on either exact target, so the operation is unverified rather than rejected by SA. The id
+    // keeps its meaning in the dated records and is not reused; the plan no longer sends it.
+    public static IReadOnlyList<string> RetiredStepIds { get; } = ["p30-vector-list"];
+
     public static IReadOnlyList<string> ActiveProbeNumbers { get; } =
         [.. ProbeNumbers.Except(RetiredProbeNumbers, StringComparer.Ordinal)];
 
@@ -345,11 +351,12 @@ internal static class ProbeCatalog
         }, "p32-partial");
     }
 
-    // Probe 30 (#350, #312): a sample of the 22 remaining runtime selects, one per list getter
-    // kind plus three single-value getters. Each prompt names the fixture and the gesture that
+    // Probe 30 (#350, #312): a sample of the remaining runtime selects, one per list getter kind
+    // plus three single-value getters. Each prompt names the fixture and the gesture that
     // completed probe 22's selection in licensed session 2: F2, a check in the selection
     // tree, OK, then Enter. Both instrument steps select the first USMN instrument, so that
-    // each is a control for the other's getter.
+    // each is a control for the other's getter. The vector name list step went with its
+    // operation after licensed session 3 (RetiredStepIds).
     private static void AddRuntimeSelectProbe(StepList steps, FixtureManifest manifest)
     {
         static bool InHarnessCollection(string collection) => string.Equals(collection, FixtureNames.Collection, StringComparison.Ordinal);
@@ -378,10 +385,6 @@ internal static class ProbeCatalog
             ProbeOperations.RelationshipRefListRuntimeSelect(static relationship =>
                 InHarnessCollection(relationship.CollectionName) && string.Equals(relationship.ItemName, FixtureNames.Relationship, StringComparison.Ordinal)),
             new Api.MakeRelationshipRefListRuntimeSelectRequest { UserPrompt = RuntimeSelectPrompt("relationship B277::R1") });
-        Select("p30-vector-list", "Vector name list runtime select (GetVectorNameRefListArg); operator selects one vector of B277::VG1",
-            ProbeOperations.VectorNameRefListRuntimeSelect(static vector =>
-                InHarnessCollection(vector.CollectionName) && string.Equals(vector.GroupName, FixtureNames.VectorGroup, StringComparison.Ordinal)),
-            new Api.MakeVectorNameRefListRuntimeSelectRequest { UserPrompt = RuntimeSelectPrompt("one vector of vector group B277::VG1") });
         Select("p30-instrument-list", "Instrument list runtime select (GetColInstIdRefListArg); operator selects the first USMN fixture instrument",
             ProbeOperations.CollectionInstrumentRefListRuntimeSelect(IsDesignated),
             new Api.MakeCollectionInstrumentRefListRuntimeSelectRequest { UserPrompt = instrumentPrompt });
@@ -678,11 +681,11 @@ internal static class ProbeCatalog
     }
 
     // Probe 33 (briosa-dotnet#39): every client offers USMN's Groups to be Excluded as
-    // optional, but the shipped mapping refuses an empty list before dispatch, so only the
-    // worker phase can ask SA. The control is probe 1's shipped request, which excludes G3, a
-    // group USMN does not use. A variant that SA runs correctly returns MP code 2, both
-    // outputs, and the control's errors. The errors stay in memory; only the comparison is
-    // recorded. The operator records any dialog after each step.
+    // optional, but the server never sends SA an empty list: it refused one before #363 and
+    // skips the setter since. So only the worker phase can ask SA. The control is probe 1's
+    // shipped request, which excludes G3, a group USMN does not use. A variant that SA runs
+    // correctly returns MP code 2, both outputs, and the control's errors. The errors stay in
+    // memory; only the comparison is recorded. The operator records any dialog after each step.
     private static void AddExcludedGroupsProbe(StepList steps, FixtureManifest manifest)
     {
         var errors = new UsmnErrorComparison();

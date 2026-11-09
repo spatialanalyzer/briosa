@@ -93,8 +93,8 @@ A request cancelled while still queued is abandoned instead. Its RpcFailed and
 ExecutionResolved events both report `not_started` with diagnostic
 `queued-request-abandoned`, and no ExecutionDispatched event follows. A lifecycle
 caller that stops waiting is recorded as LifecycleRejected with gRPC status
-`Cancelled`; later WorkerTransition events record the accepted exchange's
-terminal state.
+`Cancelled`, or `DeadlineExceeded` when the call's deadline had passed; later
+WorkerTransition events record the accepted exchange's terminal state.
 Correlate by CorrelationId, ServerInstanceId and Generation. Later evidence does
 not change the original response or authorize replay. Only a retrieved MP result
 code 2 means MP success, and code 4 a partial success (MP outcome

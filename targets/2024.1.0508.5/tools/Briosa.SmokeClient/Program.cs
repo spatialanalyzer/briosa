@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -22,6 +23,15 @@ internal static class SmokeClientProgram
     private const string ExpectedFileOperation =
         "/briosa.FileOperations/GetWorkingDirectory";
     private const string ErrorTrailerName = "briosa-operation-error-bin";
+    private const string SdkLifecycleErrorTrailerName =
+        "briosa-spatial-analyzer-sdk-lifecycle-error-bin";
+
+    // lifecycle-cancellation (#305): the fake worker holds its first ConnectEx reply
+    // for 3 s, so this caller deadline expires after the server accepted the Connect
+    // and well before the detached exchange finishes.
+    private static readonly TimeSpan InterruptedConnectDeadline = TimeSpan.FromSeconds(1);
+    private static readonly TimeSpan DetachedConnectReadinessLimit = TimeSpan.FromSeconds(20);
+    private static readonly TimeSpan SdkStatePollInterval = TimeSpan.FromMilliseconds(100);
 
     // The smoke and licensed reads. The packaged standard profile must admit
     // them (the default-profile contract decided on #242).
@@ -321,6 +331,13 @@ internal static class SmokeClientProgram
                 useDeadline: false,
                 options.Timeout,
                 cancellationToken).ConfigureAwait(false),
+            SmokeScenario.LifecycleCancellation => await ExecuteLifecycleCancellation(
+                channel,
+                sdkLifecycleClient,
+                fileClient,
+                serverInfo,
+                options.Timeout,
+                cancellationToken).ConfigureAwait(false),
             SmokeScenario.WatchdogRecovery => await ExecuteWatchdogRecovery(
                 sdkLifecycleClient,
                 fileClient,
@@ -504,7 +521,8 @@ internal static class SmokeClientProgram
 
     // MP code 4 (PARTIAL SUCCESS) is a completed success: the output is returned
     // and the execution says it was partial. The next call reports full success,
-    // so the state belongs to each call.
+    // so the state belongs to each call. The third call returns code 4 without its
+    // output: the typed output failure still reports PartialSuccess and the code.
     private static async Task<ScenarioOutcome> ExecuteMpPartialSuccess(
         TargetProtocol.FileOperations.FileOperationsClient client,
         GetServerInfoResponse serverInfo,
@@ -527,11 +545,27 @@ internal static class SmokeClientProgram
 
         await RequireSuccessfulOperation(client, timeout, cancellationToken)
             .ConfigureAwait(false);
+        var error = await RequireFailure(
+                client,
+                timeout,
+                StatusCode.DataLoss,
+                cancellationToken)
+            .ConfigureAwait(false);
+        if (error.Kind != OperationFailureKind.OutputRetrievalFailure ||
+            error.ExecutionDisposition != ExecutionDisposition.Completed ||
+            error.ReplayGuidance != ReplayGuidance.DoNotReplay ||
+            error.MpExecution is not { State: MpExecutionState.PartialSuccess, HasMpResultCode: true, MpResultCode: 4 } ||
+            error.MpExecution.OutputRetrievals.Count != 1 ||
+            error.MpExecution.OutputRetrievals[0].State != OutputRetrievalState.Failed)
+        {
+            throw new SmokeFailureException("unexpected-partial-success-failure-shape");
+        }
+
         return new ScenarioOutcome(
             OperationSucceeded: true,
             StatusCode.OK,
-            TypedErrorObserved: false,
-            FailureKind: null,
+            TypedErrorObserved: true,
+            error.Kind.ToString(),
             RecoverySucceeded: false);
     }
 
@@ -581,6 +615,230 @@ internal static class SmokeClientProgram
             TypedErrorObserved: false,
             FailureKind: null,
             RecoverySucceeded: true);
+    }
+
+    // #305: an accepted Connect continues after its caller stops waiting. The caller
+    // sees only its own deadline. A second Connect learns that the transition still
+    // runs, and refreshing state shows the same generation ready, neither faulted nor
+    // quarantined. The scenario starts the SDK itself against an external application.
+    private static async Task<ScenarioOutcome> ExecuteLifecycleCancellation(
+        GrpcChannel channel,
+        TargetProtocol.SpatialAnalyzerSdkLifecycle
+            .SpatialAnalyzerSdkLifecycleClient sdkLifecycleClient,
+        TargetProtocol.FileOperations.FileOperationsClient fileClient,
+        GetServerInfoResponse serverInfo,
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
+    {
+        if (serverInfo.ReadyForMp)
+        {
+            throw new SmokeFailureException("server-unexpectedly-ready");
+        }
+
+        var applicationClient =
+            new TargetProtocol.SpatialAnalyzerLifecycle.SpatialAnalyzerLifecycleClient(channel);
+        var application = await GetApplicationState(
+                applicationClient,
+                timeout,
+                cancellationToken)
+            .ConfigureAwait(false);
+        if (application.ApplicationState != TargetProtocol.SpatialAnalyzerApplicationState.Running ||
+            application.Ownership != TargetProtocol.SpatialAnalyzerOwnership.External ||
+            !application.HasApplicationGeneration)
+        {
+            throw new SmokeFailureException("external-spatial-analyzer-required");
+        }
+
+        var started = (await sdkLifecycleClient.StartSpatialAnalyzerSdkAsync(
+                    new TargetProtocol.StartSpatialAnalyzerSdkRequest(),
+                    deadline: DateTime.UtcNow.Add(timeout),
+                    cancellationToken: cancellationToken)
+                .ResponseAsync.ConfigureAwait(false)).State;
+        if (started.SdkState != TargetProtocol.SpatialAnalyzerSdkState.Running ||
+            started.ConnectionState != TargetProtocol.SpatialAnalyzerConnectionState.Disconnected ||
+            !started.HasSdkGeneration ||
+            started.ReadyForMp)
+        {
+            throw new SmokeFailureException("sdk-did-not-start-disconnected");
+        }
+
+        var generation = started.SdkGeneration;
+        var connect = new TargetProtocol.ConnectToSpatialAnalyzerRequest
+        {
+            ExpectedSdkGeneration = generation
+        };
+
+        // 1. The deadline ends only this caller's wait. It sees its own deadline,
+        //    never a typed lifecycle outcome, and does not retry.
+        var elapsed = Stopwatch.StartNew();
+        try
+        {
+            _ = await sdkLifecycleClient.ConnectToSpatialAnalyzerAsync(
+                    connect,
+                    deadline: DateTime.UtcNow.Add(InterruptedConnectDeadline),
+                    cancellationToken: cancellationToken)
+                .ResponseAsync.ConfigureAwait(false);
+            throw new SmokeFailureException("interrupted-connect-unexpectedly-completed");
+        }
+        catch (RpcException exception) when (exception.StatusCode == StatusCode.DeadlineExceeded)
+        {
+        }
+
+        var interrupted = elapsed.ElapsedMilliseconds;
+
+        // 2. The accepted Connect still holds the lifecycle, so another Connect is
+        //    rejected as a transition in progress.
+        TargetProtocol.SpatialAnalyzerSdkLifecycleError inProgress;
+        try
+        {
+            _ = await sdkLifecycleClient.ConnectToSpatialAnalyzerAsync(
+                    connect,
+                    deadline: DateTime.UtcNow.Add(timeout),
+                    cancellationToken: cancellationToken)
+                .ResponseAsync.ConfigureAwait(false);
+            throw new SmokeFailureException("concurrent-connect-unexpectedly-completed");
+        }
+        catch (RpcException exception) when (exception.StatusCode == StatusCode.Aborted)
+        {
+            inProgress = RequireSdkLifecycleError(exception);
+        }
+
+        var rejected = elapsed.ElapsedMilliseconds;
+        if (inProgress.Rpc != "ConnectToSpatialAnalyzer" ||
+            inProgress.Kind != TargetProtocol.SpatialAnalyzerSdkLifecycleFailureKind.StateConflict ||
+            inProgress.DiagnosticCode != "sdk-lifecycle-transition-in-progress" ||
+            inProgress.RecoveryGuidance != TargetProtocol.LifecycleRecoveryGuidance.RefreshState ||
+            inProgress.State is not { HasSdkGeneration: true } ||
+            inProgress.State.SdkGeneration != generation ||
+            inProgress.State.SdkState is not (TargetProtocol.SpatialAnalyzerSdkState.Connecting or
+                TargetProtocol.SpatialAnalyzerSdkState.Verifying))
+        {
+            throw new SmokeFailureException("unexpected-transition-in-progress-shape");
+        }
+
+        // 3. Refreshing state shows the detached Connect finish on the same generation.
+        var ready = await WaitForDetachedConnect(
+                sdkLifecycleClient,
+                generation,
+                timeout,
+                cancellationToken)
+            .ConfigureAwait(false);
+        var readyObserved = elapsed.ElapsedMilliseconds;
+        if (!ready.ReadyForMp ||
+            ready.ConnectionState != TargetProtocol.SpatialAnalyzerConnectionState.Connected ||
+            ready.ExecutionReadinessState != TargetProtocol.SpatialAnalyzerExecutionReadinessState.ExecutionReady ||
+            ready.RecoveryState != TargetProtocol.SpatialAnalyzerSdkRecoveryState.NotRequired ||
+            ready.LastIncident is not null ||
+            !ready.HasApplicationGeneration ||
+            ready.ApplicationGeneration != application.ApplicationGeneration)
+        {
+            throw new SmokeFailureException("unexpected-detached-connect-ready-shape");
+        }
+
+        // 4. MP work runs on that generation.
+        await RequireSuccessfulOperation(fileClient, timeout, cancellationToken)
+            .ConfigureAwait(false);
+
+        // 5. A clean stop leaves the external application running.
+        var stopped = (await sdkLifecycleClient.StopSpatialAnalyzerSdkAsync(
+                    new TargetProtocol.StopSpatialAnalyzerSdkRequest
+                    {
+                        ExpectedSdkGeneration = generation
+                    },
+                    deadline: DateTime.UtcNow.Add(timeout),
+                    cancellationToken: cancellationToken)
+                .ResponseAsync.ConfigureAwait(false)).State;
+        var applicationAfterStop = await GetApplicationState(
+                applicationClient,
+                timeout,
+                cancellationToken)
+            .ConfigureAwait(false);
+        if (stopped.SdkState != TargetProtocol.SpatialAnalyzerSdkState.Stopped ||
+            stopped.ReadyForMp ||
+            applicationAfterStop.ApplicationState != TargetProtocol.SpatialAnalyzerApplicationState.Running ||
+            applicationAfterStop.Ownership != TargetProtocol.SpatialAnalyzerOwnership.External ||
+            applicationAfterStop.ApplicationGeneration != application.ApplicationGeneration)
+        {
+            throw new SmokeFailureException("lifecycle-shutdown-not-clean");
+        }
+
+        return new ScenarioOutcome(
+            OperationSucceeded: false,
+            StatusCode.DeadlineExceeded,
+            TypedErrorObserved: true,
+            inProgress.Kind.ToString(),
+            RecoverySucceeded: true,
+            new Dictionary<string, long>(StringComparer.Ordinal)
+            {
+                ["interrupted_connect"] = interrupted,
+                ["transition_in_progress"] = rejected,
+                ["ready"] = readyObserved
+            });
+    }
+
+    // Refreshes SDK state until the detached Connect publishes readiness. Only the
+    // Connect's own phases may come first; any other state means it ended unready.
+    private static async Task<TargetProtocol.SpatialAnalyzerSdkLifecycleState> WaitForDetachedConnect(
+        TargetProtocol.SpatialAnalyzerSdkLifecycle
+            .SpatialAnalyzerSdkLifecycleClient client,
+        int generation,
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
+    {
+        var polling = Stopwatch.StartNew();
+        while (true)
+        {
+            var state = (await client.GetSpatialAnalyzerSdkStateAsync(
+                        new TargetProtocol.GetSpatialAnalyzerSdkStateRequest(),
+                        deadline: DateTime.UtcNow.Add(timeout),
+                        cancellationToken: cancellationToken)
+                    .ResponseAsync.ConfigureAwait(false)).State;
+            if (!state.HasSdkGeneration || state.SdkGeneration != generation)
+            {
+                throw new SmokeFailureException("detached-connect-generation-changed");
+            }
+
+            if (state.SdkState == TargetProtocol.SpatialAnalyzerSdkState.Ready)
+            {
+                return state;
+            }
+
+            if (state.SdkState is not (TargetProtocol.SpatialAnalyzerSdkState.Connecting or
+                TargetProtocol.SpatialAnalyzerSdkState.Verifying))
+            {
+                throw new SmokeFailureException("detached-connect-ended-unready");
+            }
+
+            if (polling.Elapsed >= DetachedConnectReadinessLimit)
+            {
+                throw new SmokeFailureException("detached-connect-readiness-timeout");
+            }
+
+            await Task.Delay(SdkStatePollInterval, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    private static async Task<TargetProtocol.SpatialAnalyzerLifecycleState> GetApplicationState(
+        TargetProtocol.SpatialAnalyzerLifecycle.SpatialAnalyzerLifecycleClient client,
+        TimeSpan timeout,
+        CancellationToken cancellationToken) =>
+        (await client.GetSpatialAnalyzerStateAsync(
+                new TargetProtocol.GetSpatialAnalyzerStateRequest(),
+                deadline: DateTime.UtcNow.Add(timeout),
+                cancellationToken: cancellationToken)
+            .ResponseAsync.ConfigureAwait(false)).State;
+
+    private static TargetProtocol.SpatialAnalyzerSdkLifecycleError RequireSdkLifecycleError(
+        RpcException exception)
+    {
+        var detail = exception.Trailers.SingleOrDefault(
+            entry => entry.Key == SdkLifecycleErrorTrailerName);
+        if (detail is null)
+        {
+            throw new SmokeFailureException("sdk-lifecycle-error-detail-missing");
+        }
+
+        return TargetProtocol.SpatialAnalyzerSdkLifecycleError.Parser.ParseFrom(detail.ValueBytes);
     }
 
     private static async Task<ScenarioOutcome> ExecuteWatchdogRecovery(
@@ -938,7 +1196,8 @@ internal static class SmokeClientProgram
                 operation_succeeded = outcome.OperationSucceeded,
                 typed_error_observed = outcome.TypedErrorObserved,
                 failure_kind = outcome.FailureKind,
-                recovery_succeeded = outcome.RecoverySucceeded
+                recovery_succeeded = outcome.RecoverySucceeded,
+                timing_milliseconds = outcome.TimingMilliseconds
             },
             JsonOptions));
 
@@ -967,6 +1226,7 @@ internal static class SmokeClientProgram
         MpPartialSuccess,
         Deadline,
         Cancellation,
+        LifecycleCancellation,
         WatchdogRecovery,
         UnsupportedService,
         PolicyDenied
@@ -1000,6 +1260,7 @@ internal static class SmokeClientProgram
                 "mp-partial-success" => SmokeScenario.MpPartialSuccess,
                 "deadline" => SmokeScenario.Deadline,
                 "cancellation" => SmokeScenario.Cancellation,
+                "lifecycle-cancellation" => SmokeScenario.LifecycleCancellation,
                 "watchdog-recovery" => SmokeScenario.WatchdogRecovery,
                 "unsupported-service" => SmokeScenario.UnsupportedService,
                 "policy-denied" => SmokeScenario.PolicyDenied,
@@ -1033,12 +1294,15 @@ internal static class SmokeClientProgram
         }
     }
 
+    // TimingMilliseconds holds a scenario's own step timings, measured from its
+    // timing-sensitive call, so a slow run shows its remaining headroom.
     private sealed record ScenarioOutcome(
         bool OperationSucceeded,
         StatusCode GrpcStatus,
         bool TypedErrorObserved,
         string? FailureKind,
-        bool RecoverySucceeded);
+        bool RecoverySucceeded,
+        IReadOnlyDictionary<string, long>? TimingMilliseconds = null);
 
     [SuppressMessage(
         "Design",

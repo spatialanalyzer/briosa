@@ -199,7 +199,6 @@ service ConstructionOperations {
   rpc MakeTransformFromDoublesEulerParameters(MakeTransformFromDoublesEulerParametersRequest) returns (MakeTransformFromDoublesEulerParametersResult);
   rpc MakeTransformFromDoublesFixedXyz(MakeTransformFromDoublesFixedXyzRequest) returns (MakeTransformFromDoublesFixedXyzResult);
   rpc MakeVectorNameRefListFromVectorGroup(MakeVectorNameRefListFromVectorGroupRequest) returns (MakeVectorNameRefListFromVectorGroupResult);
-  rpc MakeVectorNameRefListRuntimeSelect(MakeVectorNameRefListRuntimeSelectRequest) returns (MakeVectorNameRefListRuntimeSelectResult);
   rpc MakeVectorNamesUniqueInVectorGroup(MakeVectorNamesUniqueInVectorGroupRequest) returns (MakeVectorNamesUniqueInVectorGroupResult);
   rpc MoveObjectsPointToPointDelta(MoveObjectsPointToPointDeltaRequest) returns (MoveObjectsPointToPointDeltaResult);
   rpc MoveObjectsToACollection(MoveObjectsToACollectionRequest) returns (MoveObjectsToACollectionResult);
@@ -2321,15 +2320,6 @@ message MakeVectorNameRefListFromVectorGroupRequest {
 }
 
 message MakeVectorNameRefListFromVectorGroupResult {
-  repeated VectorName resultant_vector_name_list = 1;
-  MpExecutionDetails execution = 1000;
-}
-
-message MakeVectorNameRefListRuntimeSelectRequest {
-  optional string user_prompt = 1;
-}
-
-message MakeVectorNameRefListRuntimeSelectResult {
   repeated VectorName resultant_vector_name_list = 1;
   MpExecutionDetails execution = 1000;
 }

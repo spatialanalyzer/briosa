@@ -245,14 +245,6 @@ internal static class ProbeOperations
             static result => result.Execution,
             (_, result) => Selection(result.ResultantRelationshipRefList, isRequested));
 
-    public static ProbeOperation VectorNameRefListRuntimeSelect(Func<Api.VectorName, bool> isRequested) =>
-        Op<Api.MakeVectorNameRefListRuntimeSelectRequest, Api.MakeVectorNameRefListRuntimeSelectResult>(
-            Ops.ConstructionOperations.MakeVectorNameRefListRuntimeSelectOperation.Descriptor,
-            Ops.ConstructionOperations.MakeVectorNameRefListRuntimeSelectOperation.CreateCommand,
-            static (invoker, request, options) => Construction(invoker).MakeVectorNameRefListRuntimeSelectAsync(request, options),
-            static result => result.Execution,
-            (_, result) => Selection(result.ResultantVectorNameList, isRequested));
-
     public static ProbeOperation CollectionInstrumentRefListRuntimeSelect(Func<Api.CollectionInstrumentId, bool> isRequested) =>
         Op<Api.MakeCollectionInstrumentRefListRuntimeSelectRequest, Api.MakeCollectionInstrumentRefListRuntimeSelectResult>(
             Ops.ConstructionOperations.MakeCollectionInstrumentRefListRuntimeSelectOperation.Descriptor,
