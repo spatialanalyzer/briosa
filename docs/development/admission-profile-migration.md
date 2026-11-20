@@ -91,7 +91,10 @@ dispatch:
   override. Without it the request is denied with `operation-option-denied`
   when that option is the only reason. When the profile doesn't admit the
   operation itself either, as for `measure_single_point_here` (a device
-  session) under `standard`, the denial is `operation-policy-denied`.
+  session) under `standard`, the denial is `operation-policy-denied`. Flag
+  `deny` settings are checked before the profile, so an explicit
+  `Flags:interactive_ui=deny` can make it `operation-option-denied` instead
+  (see the precedence in the policy guides).
 - An option that lets the call return while the instrument measures or the
   robot moves (`wait_for_completion=false`, `wait_for_complete=false`,
   `acknowledge_arrival=false`) is denied under every setting with
