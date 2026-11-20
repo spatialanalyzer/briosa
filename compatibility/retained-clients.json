@@ -90,6 +90,90 @@
         "minimumRevision": 0
       },
       "fixtureSourceRevision": "6ee825e425eea8ed91dc4de3eaae87718c978c73"
+    },
+    {
+      "language": "dotnet",
+      "repository": "spatialanalyzer/briosa-dotnet",
+      "target": "2024.1.0508.5",
+      "version": "0.5.0",
+      "sourceRevision": "bc72244454c436441cabbaad1ae4e8ca519a5a9e",
+      "url": "https://api.nuget.org/v3-flatcontainer/briosa.2024.1.0508.5/0.5.0/briosa.2024.1.0508.5.0.5.0.nupkg",
+      "fileName": "briosa.2024.1.0508.5.0.5.0.nupkg",
+      "sha256": "9b036c3e3702dc804756716ce5b7f63533747bde3acb141017f471a5fa30cee3",
+      "requiredContract": {
+        "major": 3,
+        "minimumRevision": 0
+      }
+    },
+    {
+      "language": "dotnet",
+      "repository": "spatialanalyzer/briosa-dotnet",
+      "target": "2026.1.0529.7",
+      "version": "0.5.0",
+      "sourceRevision": "bc72244454c436441cabbaad1ae4e8ca519a5a9e",
+      "url": "https://api.nuget.org/v3-flatcontainer/briosa.2026.1.0529.7/0.5.0/briosa.2026.1.0529.7.0.5.0.nupkg",
+      "fileName": "briosa.2026.1.0529.7.0.5.0.nupkg",
+      "sha256": "adc0de5a274034d7bf393502095ed620a49e0e1a467b1263a86d192f47a38d29",
+      "requiredContract": {
+        "major": 3,
+        "minimumRevision": 0
+      }
+    },
+    {
+      "language": "js",
+      "repository": "spatialanalyzer/briosa-js",
+      "target": "2024.1.0508.5",
+      "version": "0.5.0",
+      "sourceRevision": "b94fce3f6e95b3e15f99f9d65f1710cc8c8d3119",
+      "url": "https://registry.npmjs.org/@spatialanalyzer/briosa-2024.1.0508.5/-/briosa-2024.1.0508.5-0.5.0.tgz",
+      "fileName": "briosa-2024.1.0508.5-0.5.0.tgz",
+      "sha256": "4e1389726d5135cfb2f815de3e5d8220513bc145ccd976089a18a0fd70297f7a",
+      "requiredContract": {
+        "major": 3,
+        "minimumRevision": 0
+      }
+    },
+    {
+      "language": "js",
+      "repository": "spatialanalyzer/briosa-js",
+      "target": "2026.1.0529.7",
+      "version": "0.5.0",
+      "sourceRevision": "b94fce3f6e95b3e15f99f9d65f1710cc8c8d3119",
+      "url": "https://registry.npmjs.org/@spatialanalyzer/briosa-2026.1.0529.7/-/briosa-2026.1.0529.7-0.5.0.tgz",
+      "fileName": "briosa-2026.1.0529.7-0.5.0.tgz",
+      "sha256": "7d0583ed9b6ec489d3f93af74df877a01856138913952e7e0ca098a3344105cd",
+      "requiredContract": {
+        "major": 3,
+        "minimumRevision": 0
+      }
+    },
+    {
+      "language": "py",
+      "repository": "spatialanalyzer/briosa-py",
+      "target": "2024.1.0508.5",
+      "version": "0.5.0",
+      "sourceRevision": "cae6e535ebfd89fd6c4ba280c741ec5f7fd04a0d",
+      "url": "https://files.pythonhosted.org/packages/cb/d1/86bd1a4dd9f84901e2683562e2f9b2c5af55515227ec21df5592952df907/briosa_2024_1_0508_5-0.5.0-py3-none-any.whl",
+      "fileName": "briosa_2024_1_0508_5-0.5.0-py3-none-any.whl",
+      "sha256": "f6a75434b9f57cd99f7a4d5f2dd359b9ff0ee06a94e04bbec3f6e86ed63e9c28",
+      "requiredContract": {
+        "major": 3,
+        "minimumRevision": 0
+      }
+    },
+    {
+      "language": "py",
+      "repository": "spatialanalyzer/briosa-py",
+      "target": "2026.1.0529.7",
+      "version": "0.5.0",
+      "sourceRevision": "cae6e535ebfd89fd6c4ba280c741ec5f7fd04a0d",
+      "url": "https://files.pythonhosted.org/packages/07/97/fbe56e4590c2af58291c8732cd3c4aca07de278a08c3726b75dc0b0f975e/briosa_2026_1_0529_7-0.5.0-py3-none-any.whl",
+      "fileName": "briosa_2026_1_0529_7-0.5.0-py3-none-any.whl",
+      "sha256": "f2ecb2aaaf4d0b5de24910986f9d778453c982f5a82ae2031213b0d62edc6064",
+      "requiredContract": {
+        "major": 3,
+        "minimumRevision": 0
+      }
     }
   ],
   "retiredClients": [
@@ -302,72 +386,5 @@
       "sourceRevision": "6ee825e425eea8ed91dc4de3eaae87718c978c73"
     }
   ],
-  "candidates": [
-    {
-      "language": "dotnet",
-      "repository": "spatialanalyzer/briosa-dotnet",
-      "target": "2024.1.0508.5",
-      "version": "0.5.0",
-      "sourceRevision": "3823369030dc0a286d698a4795b9442b4c7f9bf1",
-      "requiredContract": {
-        "major": 3,
-        "minimumRevision": 0
-      }
-    },
-    {
-      "language": "dotnet",
-      "repository": "spatialanalyzer/briosa-dotnet",
-      "target": "2026.1.0529.7",
-      "version": "0.5.0",
-      "sourceRevision": "3823369030dc0a286d698a4795b9442b4c7f9bf1",
-      "requiredContract": {
-        "major": 3,
-        "minimumRevision": 0
-      }
-    },
-    {
-      "language": "js",
-      "repository": "spatialanalyzer/briosa-js",
-      "target": "2024.1.0508.5",
-      "version": "0.5.0",
-      "sourceRevision": "feda30f3bd0bdae8cf9b02ae307146de259e2167",
-      "requiredContract": {
-        "major": 3,
-        "minimumRevision": 0
-      }
-    },
-    {
-      "language": "js",
-      "repository": "spatialanalyzer/briosa-js",
-      "target": "2026.1.0529.7",
-      "version": "0.5.0",
-      "sourceRevision": "feda30f3bd0bdae8cf9b02ae307146de259e2167",
-      "requiredContract": {
-        "major": 3,
-        "minimumRevision": 0
-      }
-    },
-    {
-      "language": "py",
-      "repository": "spatialanalyzer/briosa-py",
-      "target": "2024.1.0508.5",
-      "version": "0.5.0",
-      "sourceRevision": "6a04ff934d554be0767bea997f9517676674b8a4",
-      "requiredContract": {
-        "major": 3,
-        "minimumRevision": 0
-      }
-    },
-    {
-      "language": "py",
-      "repository": "spatialanalyzer/briosa-py",
-      "target": "2026.1.0529.7",
-      "version": "0.5.0",
-      "sourceRevision": "6a04ff934d554be0767bea997f9517676674b8a4",
-      "requiredContract": {
-        "major": 3,
-        "minimumRevision": 0
-      }
-    }
-  ]
+  "candidates": []
 }

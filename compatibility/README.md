@@ -80,19 +80,22 @@ published `0.4.0` clients. The 0.6.1 legacy exception applies only to contract
 requirement 1.0, so it is no longer declared; `legacyBaseline` still verifies
 the historical pairs. No licensed-SA coverage is implied.
 
-For the developing major-3 server, the twelve `0.2.0`/`0.3.0` products, which
-require contract major 1, moved to `retiredClients`. The six published `0.4.0`
-packages stay in `clients` as negative checks: each must be rejected before
-launch. Each runs with the fixture that tested it in the `0.9.0`, `0.9.1`, and
-`0.9.2` release gates (`e6df2cab`, `d67ba80f`, and `6ee825e4`). Those
-fixtures moved to `historicalFixtureSources` when the major-3 fixtures replaced
-them in `fixtureSources`. The six `0.5.0` source candidates require contract
-3.0 and build against the `0.10.0-dev.1` protocol checkpoint. Each language's
-candidates and its current fixture come from the same commit of its major-3
-client pull request: briosa-dotnet `38233690`, briosa-js `feda30f3`, and
-briosa-py `6a04ff93`. The gate runs twelve jobs: six rejections and six
-candidates. Source candidates prove development compatibility only, so the
-release still needs the published `0.5.0` packages.
+For the major-3 server, the twelve `0.2.0`/`0.3.0` products, which require
+contract major 1, moved to `retiredClients`. The six published `0.4.0` packages
+stay in `clients` as negative checks: each must be rejected before launch. Each
+runs with the fixture that tested it in the `0.9.0`, `0.9.1`, and `0.9.2`
+release gates (`e6df2cab`, `d67ba80f`, and `6ee825e4`). Those fixtures moved to
+`historicalFixtureSources` when the major-3 fixtures replaced them in
+`fixtureSources`. Six published `0.5.0` packages now cover the three client
+languages and both exact targets. They require contract 3.0, were generated
+from the `0.10.0-dev.1` protocol checkpoint, and were published from merged
+source: briosa-dotnet `bc722444`, briosa-js `b94fce3f`, and briosa-py
+`cae6e535`. They run with the current fixtures from the major-3 client pull
+requests (`38233690`, `feda30f3`, and `6a04ff93`). Between each fixture pin and
+its release commit, only package source, tests, and documentation changed. The
+gate runs twelve jobs, six rejections and six published accepts, and downloads
+every package by immutable URL and SHA-256. The earlier source-candidate results
+remain development evidence, not evidence for the published package bytes.
 
 Each new tested pair records `expectedCompatibility`. An accepted pair proves
 operation conformance; a rejected pair proves installation/startup rejection
