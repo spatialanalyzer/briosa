@@ -437,7 +437,7 @@ on each target send false when absent, which is the non-destructive choice:
 | Q4 | Tolerance and constraint stay required; clients may offer an explicit all-disabled value. | Client impact. |
 | Q5 | Transcribed per-target test tables plus a root agreement script. | How the code is checked. |
 | Q6 | R1 to R7 are required (R2 conditional, R7 also rejects empty); the manual-guide `measure_immediately` defaults to true. | `required_risky_default` and `default_flip` rows. |
-| Q7 | The R4 instrument scale-factor operations and the R5 model-link operation carry `device_config`, so only `device` and `full` admit them. Extended (2026-10-14) to `set_active_robot_calibration`, `set_robot_calibration_tool_frame`, `set_robot_calibration_measurement_offset_in_tool_frame` and `set_probe_offset_frame_offline`; `set_robot_machine_base_transform` stays in `standard`. | #324. The appendix's `narrowest_profile` column follows it. |
+| Q7 | The R4 instrument scale-factor operations and the R5 model-link operation carry `device_config`, so `standard` no longer admits them. Extended (2026-10-14) to `set_active_robot_calibration`, `set_robot_calibration_tool_frame`, `set_robot_calibration_measurement_offset_in_tool_frame` and `set_probe_offset_frame_offline`; `set_robot_machine_base_transform` stays in `standard`. | #324. The appendix's `narrowest_profile` column follows it. |
 | Q8 | `audit_scalar_presence.py --check` is a CI gate. | `.github/workflows/ci.yml`. |
 
 The fit seed was decided on #311 (2026-10-25): optional, omitted when absent,

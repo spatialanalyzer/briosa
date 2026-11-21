@@ -47,7 +47,9 @@ release; see [operation retirement](operation-retirement.md). They include the
 seven device-configuration setters reclassified on #243 (question 7,
 [2026-10-13](https://github.com/spatialanalyzer/briosa/issues/243#issuecomment-6147618560)
 and [2026-10-14](https://github.com/spatialanalyzer/briosa/issues/243#issuecomment-6167068161)).
-These now carry `device_config`, so only `device` and `full` admit them:
+These now carry `device_config` as their only risk flag, so they need
+`Profile=device` or `full`, `Flags:device_config=allow`, or a per-operation
+`allow` override:
 
 - `set_absolute_instrument_scale_factor` and `set_multiply_instrument_scale_factor`;
 - `set_robot_machine_model_link_parameters`;
@@ -74,7 +76,8 @@ The operations that the client conformance scenarios, the smoke client, and
 the briosa-examples tutorials use all stay admitted by `standard`. A test pins
 this list.
 
-The 13 `Make*RuntimeSelect` operations also move from replay `Safe` to `Unsafe`.
+The 11 `Make*RuntimeSelect` operations that remain on each target also move
+from replay `Safe` to `Unsafe`.
 Re-prompting an operator is not a safe replay.
 
 ## Request options and changed defaults
@@ -85,7 +88,13 @@ dispatch:
 - An option that opens operator UI (Show Interface, Show Results Dialog, Report
   Deviations, Pause MP Until Closed, an HTML prompt file, and so on) needs the
   interactive opt-in: `Flags:interactive_ui=allow` or a per-operation `allow`
-  override. Without it the request is denied with `operation-option-denied`.
+  override. Without it the request is denied with `operation-option-denied`
+  when that option is the only reason. When the profile doesn't admit the
+  operation itself either, as for `measure_single_point_here` (a device
+  session) under `standard`, the denial is `operation-policy-denied`. Flag
+  `deny` settings are checked before the profile, so an explicit
+  `Flags:interactive_ui=deny` can make it `operation-option-denied` instead
+  (see the precedence in the policy guides).
 - An option that lets the call return while the instrument measures or the
   robot moves (`wait_for_completion=false`, `wait_for_complete=false`,
   `acknowledge_arrival=false`) is denied under every setting with

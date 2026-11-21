@@ -85,9 +85,10 @@ requested fixture. The others have not been observed on a licensed run.
   circle and line extraction from surfaces, for mirroring objects, for
   deleting cloud points by an X Y Z box, for polygonizing point clouds, or for
   selecting vector groups or vector names at run time on these exact targets.
-  `DeleteCloudPointsByRadialDistanceFromPoints` deletes by distance from points;
-  it has different semantics and no licensed validation yet (it is the control
-  step of the #307 re-probe).
+  `DeleteCloudPointsByRadialDistanceFromPoints` deletes by distance from points
+  and has different semantics. Licensed session 2 ran it as the control step of
+  the #307 re-probe (probe 24 in the session 2 records above): on both targets
+  it removed the one point within range and left the sentinel cloud unchanged.
 
 ## How the protocol check accepts exactly these removals
 
