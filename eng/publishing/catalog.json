@@ -352,6 +352,22 @@
         "size": 199,
         "sha256": "9655b558951b60e5281ba71fcb9529aacb2ed4ff274b6dc74b03179752c14a57"
       }
+    },
+    {
+      "id": "briosa-installer-0.4.1-win-x64",
+      "component": "installer",
+      "version": "0.4.1",
+      "runtimeIdentifier": "win-x64",
+      "artifact": {
+        "path": "packages/installer/0.4.1/briosa-installer-0.4.1-win-x64.zip",
+        "size": 127782684,
+        "sha256": "c72c3310aa8c29938edbc8d569b46b89c366cd9a060980c5c58e27df3f167cce"
+      },
+      "provenance": {
+        "path": "packages/installer/0.4.1/briosa-installer-0.4.1-win-x64.provenance.json",
+        "size": 199,
+        "sha256": "1d33cfc70380cba755800cad6d1f35125f12021656c7e20a120d8c88418ecf4d"
+      }
     }
   ]
 }
