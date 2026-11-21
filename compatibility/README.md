@@ -111,9 +111,9 @@ evidence-backed pairs: 102 released-package pairs (36 major-1, 54 major-2, and
 12 major-3; 738 accepted scenario runs) and 42 development-candidate pairs. No
 licensed-SA coverage is implied.
 
-Each new tested pair records `expectedCompatibility`. An accepted pair proves
-operation conformance; a rejected pair proves installation/startup rejection
-only. Its success flag must never be described as operation compatibility.
+Each new tested pair records `expectedCompatibility`. An accepted pair passed
+the fake-SDK scenarios listed in its report; a rejected pair proves
+installation/startup rejection only. Its success flag must never be described as operation compatibility.
 
 The earlier 0.2.0 NuGet payloads were compared with their successful release
 builds while allowing the registry signature; npm and PyPI artifacts matched
