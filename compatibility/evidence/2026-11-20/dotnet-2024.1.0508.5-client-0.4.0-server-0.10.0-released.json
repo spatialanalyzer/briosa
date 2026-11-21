@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-11-20T13:57:53.5311056+00:00",
+  "validationKind": "client-server-compatibility-rejection",
+  "expectedCompatibility": "rejected",
+  "passed": true,
+  "licensedSpatialAnalyzer": false,
+  "client": {
+    "repository": "https://github.com/spatialanalyzer/briosa-dotnet",
+    "fixtureUncommittedChanges": false,
+    "fixtureSourceRevision": "e6df2cabc02d3f175f8242646a43972b5648cb1f",
+    "requiredContract": {
+      "minimumRevision": 0,
+      "major": 2
+    },
+    "fixtureProtocolArtifact": {
+      "name": "briosa-protocol-0.9.0-dev.1-sa-2024.1.0508.5",
+      "file_name": "briosa-protocol-0.9.0-dev.1-sa-2024.1.0508.5.zip",
+      "sha256": "026d60d0576d1529d1dd86c5a833e373145445c700bf1837f7e0d5441a5dfe2e",
+      "briosa_version": "0.9.0-dev.1",
+      "source_revision": "89b59aa0ddd05ea868d94c4e4a4f89ee0fbcbccb",
+      "source_repository": "https://github.com/spatialanalyzer/briosa",
+      "source_channel": "source_commit_bootstrap"
+    },
+    "version": "0.4.0",
+    "sourceRevision": "8f80e5052b60ff9eb26fee41b6a8274312988ff6",
+    "uncommittedChanges": null,
+    "package": {
+      "name": "Briosa.2024.1.0508.5",
+      "version": "0.4.0",
+      "sourceRevision": "8f80e5052b60ff9eb26fee41b6a8274312988ff6",
+      "publishedUrl": "https://api.nuget.org/v3-flatcontainer/briosa.2024.1.0508.5/0.4.0/briosa.2024.1.0508.5.0.4.0.nupkg",
+      "sha256": "3d23c0e607fec54f0b8e5a4cd614e74be16e313dc6a5e04ba8d756b468c7058d"
+    },
+    "protocolArtifact": null
+  },
+  "server": {
+    "file_name": "briosa-client-conformance-0.10.0-sa-2024.1.0508.5-win-x64.zip",
+    "source_channel": "release_candidate",
+    "source_repository": "https://github.com/spatialanalyzer/briosa",
+    "sha256": "ae1f359bcd380a92b546c255b2b715b77af839da2d5c7108a224bdd01d476531",
+    "source_revision": "ee16784d9fdaf67ce7d7bb0b68609a98fe403e1c",
+    "name": "briosa-client-conformance-0.10.0-sa-2024.1.0508.5-win-x64",
+    "briosa_version": "0.10.0"
+  },
+  "target": {
+    "runtime_identifier": "win-x64",
+    "spatial_analyzer": "2024.1.0508.5"
+  },
+  "scenarioContract": {
+    "schema_version": 1,
+    "id": "briosa.first-party-client.v1"
+  },
+  "scenarios": "installation-contract-rejected"
+}

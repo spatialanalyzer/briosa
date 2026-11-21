@@ -75,10 +75,10 @@ release before launch, and all six published `0.4.0` packages passed the twelve
 fake-SDK scenarios per target against each release: 216 scenario runs. Every
 report's server artifact hash matches the published conformance ZIP. The reports
 are stored with the repository's LF line endings; their content is otherwise
-unchanged from the CI artifacts. The matrix now declares contract 2.0 and the
-published `0.4.0` clients. The 0.6.1 legacy exception applies only to contract
-requirement 1.0, so it is no longer declared; `legacyBaseline` still verifies
-the historical pairs. No licensed-SA coverage is implied.
+unchanged from the CI artifacts. For major 2, the matrix declared contract 2.0
+and the published `0.4.0` clients. The 0.6.1 legacy exception applies only to
+contract requirement 1.0, so it is no longer declared; `legacyBaseline` still
+verifies the historical pairs. No licensed-SA coverage is implied.
 
 For the major-3 server, the twelve `0.2.0`/`0.3.0` products, which require
 contract major 1, moved to `retiredClients`. The six published `0.4.0` packages
@@ -96,6 +96,20 @@ its release commit, only package source, tests, and documentation changed. The
 gate runs twelve jobs, six rejections and six published accepts, and downloads
 every package by immutable URL and SHA-256. The earlier source-candidate results
 remain development evidence, not evidence for the published package bytes.
+
+The released Server `0.10.0` (source `ee16784d9fdaf67ce7d7bb0b68609a98fe403e1c`)
+release gate supplied the 2026-11-20 reports: 12 released-package pairs, all
+contract 3.0. All six published `0.4.0` packages rejected the release before
+launch, proving installation/startup rejection only, and all six published
+`0.5.0` packages passed all fifteen fake-SDK scenarios per target: 90 scenario
+runs. The twelve published `0.2.0`/`0.3.0` packages remain retired from the live
+gate. Every report's server artifact hash matches the published conformance ZIP.
+The reports are stored with the repository's LF line endings; their content is
+otherwise unchanged from the CI artifacts. The matrix now declares contract 3.0
+and the published `0.5.0` clients, bringing the recorded total to 144
+evidence-backed pairs: 102 released-package pairs (36 major-1, 54 major-2, and
+12 major-3; 738 accepted scenario runs) and 42 development-candidate pairs. No
+licensed-SA coverage is implied.
 
 Each new tested pair records `expectedCompatibility`. An accepted pair proves
 operation conformance; a rejected pair proves installation/startup rejection
