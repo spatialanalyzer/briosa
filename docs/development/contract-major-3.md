@@ -188,7 +188,7 @@ Server 0.10.0 was promoted after completing the release sequence below:
      was published for both targets, creating tag `v0.10.0` at
      `ee16784d9fdaf67ce7d7bb0b68609a98fe403e1c`.
 
-Post-publication steps completed on 2026-11-21, and remaining open follow-ups:
+Post-publication steps, all completed on 2026-11-21:
 
 - **Shared catalog and R2 publication (done, 2026-11-21):**
   [briosa#390](https://github.com/spatialanalyzer/briosa/pull/390) (merged as
@@ -216,14 +216,21 @@ Post-publication steps completed on 2026-11-21, and remaining open follow-ups:
   attempt 2 in [`compatibility/matrix.json`](../../compatibility/matrix.json)
   (six 0.5.0 clients passed 15 fake-SDK scenarios each; six 0.4.0 clients
   rejected the server before launch) and updated [`README.md`](../../README.md).
-- **Installer candidate check (open):** The acceptance pass used signed
+- **Installer candidate check (done, 2026-11-21):** The acceptance pass used
+  signed
   [Installer 0.4.1](https://github.com/spatialanalyzer/briosa-installer/releases/tag/v0.4.1).
-  Adding the 0.10.0 packages to the installer's own candidate check and moving
-  its catalog-tool pin remain open in
-  [briosa-installer#43](https://github.com/spatialanalyzer/briosa-installer/issues/43).
-- **Governance (open):** Recording the decided retained-client window for the
-  release gate remains open in
-  [governance#5](https://github.com/spatialanalyzer/governance/issues/5).
+  [briosa-installer#44](https://github.com/spatialanalyzer/briosa-installer/pull/44)
+  (merged as `d4a8719c`) then added both 0.10.0 packages to the installer's own
+  candidate check, beside the 0.8.0 and 0.9.2 packages, and moved its
+  catalog-tool pin to `ee16784d9fdaf67ce7d7bb0b68609a98fe403e1c`. Its CI
+  installed and verified the six packages side by side in one store, repaired
+  one package of each major, and removed them; it launched no server or SDK.
+- **Governance (done, 2026-11-21):**
+  [governance#6](https://github.com/spatialanalyzer/governance/pull/6) (merged
+  as `da642bbe`) recorded the decided retained-client window for the release
+  gate ([briosa#250](https://github.com/spatialanalyzer/briosa/issues/250))
+  and left release cadence, the product support window, and long-term support
+  open.
 
 ### Licensed evidence and coverage limits
 
