@@ -26,9 +26,11 @@ Each of the first eight failed on both exact targets in a licensed probe
 session, and the binding search before deleting found no other setter or getter
 in the committed interop surface or the exact-target evidence of either target.
 
-- The first six used a substitution for an argument the SDK exporter marks
-  `NOT_SUPPORTED`. The 2026-10-07 session showed that the substitution does not
-  work.
+- Five of the first six used a substitution for an argument the SDK exporter
+  marks `NOT_SUPPORTED`. The 2026-10-07 session showed that the substitution
+  does not work. The sixth, the instrument wildcard selection, used none: the
+  MP documents no return argument, so Briosa read its input list back, and in
+  that session the readback returned nothing.
 - The next two were decided after licensed session 2 (2026-10-25). The Mesh
   Orientation substitution stalls the worker, and the vector group
   runtime-select getter returns nothing.
@@ -85,9 +87,10 @@ requested fixture. The others have not been observed on a licensed run.
   circle and line extraction from surfaces, for mirroring objects, for
   deleting cloud points by an X Y Z box, for polygonizing point clouds, or for
   selecting vector groups or vector names at run time on these exact targets.
-  `DeleteCloudPointsByRadialDistanceFromPoints` deletes by distance from points;
-  it has different semantics and no licensed validation yet (it is the control
-  step of the #307 re-probe).
+  `DeleteCloudPointsByRadialDistanceFromPoints` deletes by distance from points
+  and has different semantics. Licensed session 2 ran it as the control step of
+  the #307 re-probe (probe 24 in the session 2 records above): on both targets
+  it removed the one point within range and left the sentinel cloud unchanged.
 
 ## How the protocol check accepts exactly these removals
 
