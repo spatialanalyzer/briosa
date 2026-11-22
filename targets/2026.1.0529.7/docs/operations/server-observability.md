@@ -133,7 +133,8 @@ be placed from the log alone:
 
 These timing records are best effort. A clock or logger failure loses the record
 and nothing else: it cannot skip a worker's cleanup, replace an RPC's response,
-or hide the exception that ended a call. `ElapsedMilliseconds` is `-1` when the
+or hide the exception that ended a call. As in the worker supervisor, an
+`OutOfMemoryException` is not contained. `ElapsedMilliseconds` is `-1` when the
 time could not be measured. EndpointListening, WorkerStartPhase,
 LifecycleRpcStarted, LifecycleRpcCompleted, LifecycleRpcFaulted and
 LaunchPreconditionSlow carry only fixed names, enum values and numbers;

@@ -42,14 +42,21 @@ Whatever rejects a scenario, including a fixture that exits successfully with a
 missing, invalid, or unsuccessful report, the runner prints the fixture's
 complete stderr. If `-DiagnosticsDirectory` or the
 `BRIOSA_CONFORMANCE_DIAGNOSTICS_DIRECTORY` environment variable names a
-directory, the runner also copies the fixture's stdout and stderr, the server's
-log files, and the failure message to `<directory>/<scenario>`, and prints that
-absolute destination. The runner points each scenario's server log files at
-that scenario's temporary directory. A fixture that passes explicit logging
-options to its client overrides that location. Diagnostics never change a
-scenario's result: an unusable diagnostics directory turns them off with a
-notice, and a destination that cannot be written is reported without hiding
-the scenario's own failure.
+directory, the runner also saves the failure message, the server log digest,
+the fixture's stdout and stderr, and the server's log files to
+`<directory>/<scenario>`, and prints that absolute destination. The runner
+points each scenario's server log files at that scenario's temporary directory.
+A fixture that passes explicit logging options to its client overrides that
+location.
+
+Diagnostics never change a scenario's result or the runner's exit code. The
+failure message and the digest are saved first, and every other file is copied
+on its own, so a file that cannot be copied, for example a log another process
+holds exclusively, is counted in a notice and loses nothing else. An unusable
+diagnostics directory turns diagnostics off with a notice, and a destination
+that cannot be written is reported without hiding the scenario's own failure.
+If the runner cannot remove all of its temporary files at the end, it prints a
+notice; a passing run still passes and a failing run keeps its own error.
 
 After the stderr, a rejected scenario's output also shows:
 
@@ -61,22 +68,38 @@ After the stderr, a rejected scenario's output also shows:
   `ApplicationState`, `Ownership`, `Generation`, `ConnectionState`,
   `OperationId`, `ExecutionDisposition`, `MpResultCode`, and `DiagnosticCode`.
 
-The digest reaches public CI logs, so it prints nothing it has not validated:
+The digest reaches public CI logs, so it prints only values from reviewed
+closed lists. Every comparison is ordinal, and the printed text is always the
+list's own entry, never the record's:
 
 - A known event ID maps to a fixed label. A record's message template or
   event name is never printed; a framework event prints as `FrameworkEvent`
   with its numeric ID, and anything else as `UnknownEvent`.
 - The level must be a Serilog level name, or it prints as `UnknownLevel`.
-- Each property is checked on its own. Numbers must be integers; enum-like
-  properties must belong to their closed vocabularies; an operation ID must
-  have the `<service>_operations.<operation>` form; a diagnostic code must be a
-  lower-case kebab identifier of two to twelve segments that each start with a
-  letter. A value that does not validate prints as `<withheld>`.
+- Each property is checked on its own. Numbers must be integers, and every
+  other property must be on its list. The lists for enum-like properties are
+  in the runner. The lists for `DiagnosticCode` and `OperationId` ship beside
+  it in `runner/digest-vocabulary.json`; a value missing from them, or a
+  missing or unreadable file, prints as `<withheld>`.
 
-The digest keeps the latest 200 lower-severity records, and every warning and
-error up to 1,000: the first 100 and the latest 900. It says how many it
-omitted. It reads the log as a stream, so a large log uses bounded memory, and
-a file it cannot read is counted and skipped. The runner's fixture start and
+Set `BRIOSA_CONFORMANCE_DIGEST_AUDIT` to a file path to have the runner append
+each `DiagnosticCode` or `OperationId` that a scenario's server log holds but
+the vocabulary does not list, one `<scenario> <property> <value>` line each. A
+value outside the vocabulary's shapes is reported as `<unprintable>`. This
+repository's retained-client gate sets it for every scenario it runs with the
+retained clients and fails when the file is not empty, so a code the server
+starts producing shows up as a failure there rather than being withheld
+silently. Add the value to `digest-vocabulary.json` to fix it.
+
+The digest keeps the latest 200 lower-severity records by timestamp across all
+of a scenario's log files, says how many earlier ones it omitted, and keeps
+every warning and error. It reads each log file as a stream and skips any line
+longer than 64 KiB as it streams past; server records are at most 16 KiB.
+Warnings and errors are spooled to the runner's temporary directory while the
+logs are read, then merged back in time order, so memory stays bounded however
+many there are. The server's timestamp-free `LogRecordTooLarge` placeholder for
+an oversized record is shown as a warning at the time of the record before it.
+A file it cannot read is counted and skipped. The runner's fixture start and
 end marks always appear in the same timeline as `Runner` lines. The server
 writes its file log unbuffered, so the log still holds its events after a
 forced kill. The digest is also saved as `server-log-digest.txt` with the other
@@ -92,32 +115,43 @@ A phase that the scenario does not reach is left out.
 `-FixtureTimeoutSeconds` defaults to 180 seconds, longer than the first-party
 clients' 120-second startup budget. A slow start or a hang then ends in the
 client's own typed startup timeout, which names the pending call. If the
-fixture still times out, the runner first prints the package processes that are
-still alive (fixture, server, worker, and fake application), with their start
-times and CPU times, and marks any that is not a verified descendant of the
-fixture. Only then does it kill them, whether or not those diagnostics
-succeeded.
+fixture still times out, the runner first prints the processes that are still
+alive (fixture, server, worker, and fake application), with their start times
+and CPU times, and marks any that is not a verified descendant of the fixture.
+These timeout diagnostics run in a separate copy of the runner under one
+120-second deadline that covers every step, including the process query and
+any file system work. The runner kills that copy if it overruns, and reports
+whether the diagnostics stopped at the deadline or ended with an error. Only
+then does it kill the fixture's process tree, whether or not the diagnostics
+succeeded, and it reports a tree it could not terminate.
 
 Set `BRIOSA_CONFORMANCE_DUMP_ON_TIMEOUT=1`, exactly, together with a
 diagnostics directory to also write heap dumps to `<directory>/<scenario>/dumps`
 before the kill:
 
 - Only this scenario's own processes are dumped: the fixture the runner
-  started, and a server only when its parent chain reaches that fixture. A
+  started, and a server only when its parent chain reaches that fixture. Each
+  process is held open while it is checked, and the process snapshot must
+  name the same process: its creation time, in UTC, must match the live
+  process at the snapshot's microsecond precision, each parent must be older
+  than its child, and the chain must end at the fixture within four steps. A
   server it cannot verify, for example one started by another caller sharing
   the package extraction, is reported and skipped.
 - Nothing needs installing. The runner sends each process's .NET runtime the
   same dump request that `dotnet-dump collect` sends over the runtime's
   diagnostics channel, and the runtime writes the dump with the
   `createdump.exe` beside it. The package's server ships one. Current runtimes
-  no longer accept a process ID when `createdump.exe` is run directly.
+  no longer accept a process ID when `createdump.exe` is run directly. Before
+  sending the request, the runner checks that the process serving the
+  connected diagnostics pipe is the verified process.
 - A process without an enabled .NET diagnostics channel is reported and
   skipped: a Node.js or Python fixture, or one started with
   `DOTNET_EnableDiagnostics=0` or `DOTNET_EnableDiagnostics_IPC=0`.
-- The whole collection has one 120-second deadline. The server is dumped
-  first. A process is paused while its dump is written, typically for a few
-  seconds, and the processes keep running until the runner kills them, so
-  digest events after the `FixtureTimedOut` mark can show that pause.
+- The server is dumped first. A request that does not finish by the deadline
+  is reported as stopped by the deadline, and a pipe failure as a pipe fault.
+  A process is paused while its dump is written, typically for a few seconds,
+  and the processes keep running until the runner kills them, so digest events
+  after the `FixtureTimedOut` mark can show that pause.
 - `dotnet-dump analyze` (`clrstack -all`, `dumpasync`) shows the blocked frames.
 
 A heap dump holds the process's memory, typically 25 to 300 MB. Enabling dumps

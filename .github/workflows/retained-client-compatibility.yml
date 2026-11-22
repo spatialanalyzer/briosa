@@ -106,6 +106,9 @@ jobs:
           # The packaged runner copies a failing scenario's full client output
           # and server logs here.
           BRIOSA_CONFORMANCE_DIAGNOSTICS_DIRECTORY: ${{ github.workspace }}/conformance-diagnostics
+          # The runner appends each diagnostic code or operation ID that a
+          # scenario's server log holds but its digest vocabulary does not list.
+          BRIOSA_CONFORMANCE_DIGEST_AUDIT: ${{ github.workspace }}/conformance-digest-audit.txt
         run: |
           if ($env:CLIENT_PUBLISHED -eq 'true') {
             $package = Join-Path $PWD $env:CLIENT_FILE
@@ -150,6 +153,17 @@ jobs:
           Push-Location (Join-Path $PWD "retained-client/targets/$env:SA_TARGET")
           try { & ./eng/Test-PublishedClientConformance.ps1 @arguments }
           finally { Pop-Location }
+      - name: Check the conformance digest vocabulary
+        if: ${{ !cancelled() }}
+        shell: pwsh
+        run: |
+          # A value the digest does not list would print as <withheld>; list it
+          # in conformance/client/v1/digest-vocabulary.json instead.
+          $audit = Join-Path $env:GITHUB_WORKSPACE 'conformance-digest-audit.txt'
+          if ((Test-Path -LiteralPath $audit) -and (Get-Item -LiteralPath $audit).Length -gt 0) {
+            Get-Content -LiteralPath $audit | ForEach-Object { Write-Host $_ }
+            throw 'The conformance scenarios produced diagnostic codes or operation IDs that the digest vocabulary does not list.'
+          }
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: compatibility-${{ matrix.language }}-${{ matrix.target }}-${{ matrix.version }}

@@ -68,11 +68,13 @@ try {
     $contractPath = Join-Path $packageRoot "contract\scenarios.json"
     $schemaPath = Join-Path $packageRoot "contract\scenarios.schema.json"
     $runnerPath = Join-Path $packageRoot "runner\Invoke-BriosaClientConformance.ps1"
+    $vocabularyPath = Join-Path $packageRoot "runner\digest-vocabulary.json"
     foreach ($requiredPath in @(
         $manifestPath,
         $contractPath,
         $schemaPath,
         $runnerPath,
+        $vocabularyPath,
         (Join-Path $packageRoot "server\Briosa.Server.exe"),
         (Join-Path $packageRoot "fake-worker\Briosa.SmokeWorker.exe"))) {
         Assert-Condition (Test-Path -LiteralPath $requiredPath -PathType Leaf) `
@@ -167,6 +169,22 @@ try {
         [ref]$parseErrors) | Out-Null
     Assert-Condition ($parseErrors.Count -eq 0) `
         "The packaged conformance runner has PowerShell syntax errors."
+    # The digest's closed lists are sorted, unique, and in the shapes the audit names.
+    $vocabulary = Get-Content -LiteralPath $vocabularyPath -Raw | ConvertFrom-Json
+    Assert-Condition ($vocabulary.schema_version -eq 1) `
+        "The digest vocabulary schema version is incorrect."
+    foreach ($list in @(
+            @{ Name = "diagnostic_codes"; Pattern = '\A[a-z][a-z0-9]*(?:-[a-z][a-z0-9]*){1,11}\z' },
+            @{ Name = "operation_ids"; Pattern = '\A[a-z]+(?:_[a-z]+)*_operations\.[a-z][a-z0-9]*(?:_[a-z0-9]+)*\z' })) {
+        $values = [string[]]@($vocabulary.($list.Name))
+        $sorted = [string[]]@($values)
+        [Array]::Sort($sorted, [StringComparer]::Ordinal)
+        Assert-Condition ($values.Count -gt 0 -and
+            [Linq.Enumerable]::SequenceEqual($values, $sorted) -and
+            [Collections.Generic.HashSet[string]]::new($values, [StringComparer]::Ordinal).Count -eq $values.Count -and
+            @($values | Where-Object { $_ -cnotmatch $list.Pattern }).Count -eq 0) `
+            "The digest vocabulary's $($list.Name) list must be sorted, unique and well formed."
+    }
 
     $checksumPath = Join-Path $packageRoot "files.sha256"
     foreach ($line in Get-Content -LiteralPath $checksumPath) {
@@ -199,6 +217,10 @@ $definition = Get-Content -LiteralPath $Contract -Raw | ConvertFrom-Json
         $fixturePath,
         $fixtureSource,
         [Text.UTF8Encoding]::new($false))
+    # The digest audit belongs to the retained-client gate; these synthetic logs
+    # must never reach a caller's audit file.
+    $previousDigestAudit = $env:BRIOSA_CONFORMANCE_DIGEST_AUDIT
+    $env:BRIOSA_CONFORMANCE_DIGEST_AUDIT = $null
     # An unusable optional diagnostics directory turns diagnostics off; it never
     # turns a passing run into a failure (#371).
     $runnerArguments = @{
@@ -247,15 +269,18 @@ if ($env:Briosa__Worker__StartupTimeout -ne "__STARTUP__") {
 # A server log in the real record shape: three early warnings; warnings that carry
 # sensitive-looking text in printed properties, in an event name, a template and
 # a level; more lower-severity records than the digest keeps; a property outside
-# the digest allow-list; optionally a flood of warnings; and the truncated last
-# line of a killed writer.
+# the digest allow-list; listed and unlisted diagnostic codes and operation IDs;
+# values that only a linguistic comparison would accept; the server's
+# timestamp-free placeholder for an oversized record; optionally a flood of
+# warnings; and the truncated last line of a killed writer.
 $started = [DateTimeOffset]::UtcNow
 $records = [Collections.Generic.List[string]]::new()
 function Add-ServerRecord([int]$Offset, [string]$Level, [string]$Name, [hashtable]$Properties,
     [int]$Id = 1, [string]$Template = $Name) {
     $Properties["ServerInstanceId"] = "0123456789abcdef0123456789abcdef"
     if ($Id -ge 0) { $Properties["EventId"] = @{ Id = $Id; Name = $Name } }
-    $records.Add((@{
+    # The server writes the timestamp first.
+    $records.Add(([ordered]@{
         Timestamp = $started.AddMilliseconds($Offset).ToString("o")
         Level = $Level
         MessageTemplate = $Template
@@ -282,6 +307,15 @@ foreach ($index in 1..250) {
 Add-ServerRecord 300 "Information" "LifecycleRpcStarted" @{
     Rpc = "LaunchSpatialAnalyzer"; Path = "secret-geometry-path" } -Id 1303
 Add-ServerRecord 301 "secret-level-text" "LifecycleRpcStarted" @{ Rpc = "StopSpatialAnalyzerSdk" } -Id 1303
+# A soft hyphen, a zero-width joiner and a trailing newline: equal to listed values
+# only under a linguistic comparison.
+Add-ServerRecord 302 "Information" "WorkerStartPhase" @{ Phase = "process-created$([char]0x00AD)" } -Id 1203
+Add-ServerRecord 303 "Information$([char]0x200D)" "WorkerTransition" @{ DiagnosticCode = "worker-starting`n" } -Id 1201
+Add-ServerRecord 304 "Information" "WorkerTransition" @{ DiagnosticCode = "worker-starting" } -Id 1201
+Add-ServerRecord 305 "Information" "ExecutionDispatched" @{ OperationId = "file_operations.get_working_directory" } -Id 1300
+Add-ServerRecord 306 "Information" "ExecutionDispatched" @{ OperationId = "unlisted_operations.example" } -Id 1300
+Add-ServerRecord 307 "Information" "WorkerTransition" @{ DiagnosticCode = "not-a-listed-code" } -Id 1201
+$records.Add('{"Level":"Warning","MessageTemplate":"LogRecordTooLarge","Properties":{"SchemaVersion":1}}')
 $flood = __FLOOD__
 for ($index = 1; $index -le $flood; $index++) {
     Add-ServerRecord (400 + $index) "Warning" "WorkerStartPhase" @{
@@ -324,8 +358,9 @@ switch ("__MODE__") {
     $sensitiveMarkers = @("someone", "secret", "corp.example", "example.com", "ghp_", "DOMAIN", "relative")
     $rejectionCases = @(
         # A caller's own worker startup bound reaches the server unchanged.
+        # This case also enables the digest audit.
         [pscustomobject]@{ Name = "exit-nonzero-saved"; Mode = "exit-nonzero"; Diagnostics = "directory"
-            StartupTimeout = "00:00:12"; Failure = "*failed scenario 'default-ready' with exit code 1*" },
+            StartupTimeout = "00:00:12"; Audit = $true; Failure = "*failed scenario 'default-ready' with exit code 1*" },
         [pscustomobject]@{ Name = "unsuccessful-report-saved"; Mode = "unsuccessful-report"; Diagnostics = "directory"
             Failure = "*report did not satisfy scenario 'default-ready'*" },
         # A flood of warnings exercises the warning and error bound.
@@ -362,6 +397,8 @@ switch ("__MODE__") {
             $dump = & $property "Dump"
             $flood = & $property "Flood"
             $channel = & $property "Channel"
+            $auditPath = $(if (& $property "Audit") { Join-Path $temporaryRoot "digest-audit-$caseName.txt" })
+            $env:BRIOSA_CONFORMANCE_DIGEST_AUDIT = $auditPath
             $failingFixturePath = Join-Path $temporaryRoot "failing-fixture-$caseName.ps1"
             # The runner gives the fake worker start 30 s unless the caller set a bound.
             [IO.File]::WriteAllText(
@@ -405,8 +442,9 @@ switch ("__MODE__") {
                 "The conformance runner did not print the complete fixture stderr for $caseName."
 
             # The runner's timing marks and the server log digest follow the stderr
-            # (#371). The digest keeps the latest 200 lower-severity records and
-            # every warning and error, and prints only validated values.
+            # (#371). The digest keeps the latest 200 lower-severity records by
+            # timestamp and every warning and error, and prints only values from
+            # reviewed closed lists, compared ordinally.
             $timingLine = @($runnerOutput | Where-Object { $_ -like "Runner timing for default-ready (UTC): *" })
             Assert-Condition ($timingLine.Count -eq 1 -and
                 $timingLine[0] -like "*scenario start *, fixture start * (+*), fixture end * (+*)*" -and
@@ -433,14 +471,28 @@ switch ("__MODE__") {
                 "The conformance runner did not place its fixture marks in the server log digest's timeline for $caseName."
             $warnings = @($digestEvents | Where-Object { $_ -match '^\S+ s Warning ' })
             $ordinary = @($digestEvents | Where-Object { $_ -notmatch '^\S+ s Warning ' })
-            Assert-Condition ($ordinary.Count -eq 199 -and
+            Assert-Condition ($ordinary.Count -eq 200 -and
                 @($warnings | Where-Object {
                     $_ -like "* Warning WorkerStartPhase Phase=startup-bound-expired ElapsedMilliseconds=10000 Generation=*" }).Count -eq 3 -and
+                @($ordinary | Where-Object { $_ -like "+* s Information ReadinessNotReady" }).Count -eq 192 -and
                 @($ordinary | Where-Object { $_ -like "+* s Information LifecycleRpcStarted Rpc=LaunchSpatialAnalyzer" }).Count -eq 1 -and
-                $ordinary[-1] -like "+* s UnknownLevel LifecycleRpcStarted Rpc=StopSpatialAnalyzerSdk" -and
-                $digest -contains "(53 earlier lower-severity records omitted; warnings and errors are always kept)" -and
+                @($ordinary | Where-Object { $_ -like "+* s UnknownLevel LifecycleRpcStarted Rpc=StopSpatialAnalyzerSdk" }).Count -eq 1 -and
+                $ordinary[-1] -like "+* s Information WorkerTransition DiagnosticCode=<withheld>" -and
+                # The oversized-record placeholder takes the time of the record before it.
+                $digestEvents[[Array]::IndexOf([string[]]$digestEvents, $ordinary[-1]) + 1] -like "+* s Warning LogRecordTooLarge" -and
+                $digest -contains "(58 earlier lower-severity records omitted; every warning and error is kept)" -and
                 $digest -contains "(2 unreadable server log lines skipped)") `
                 "The conformance runner printed an unexpected server log digest for $caseName."
+            # Listed values print as the list's own entry; a value equal to a listed
+            # one only linguistically, or one not on the list, is withheld.
+            Assert-Condition (
+                @($ordinary | Where-Object { $_ -like "+* s Information WorkerStartPhase Phase=<withheld>" }).Count -eq 1 -and
+                @($ordinary | Where-Object { $_ -like "+* s UnknownLevel WorkerTransition DiagnosticCode=<withheld>" }).Count -eq 1 -and
+                @($ordinary | Where-Object { $_ -like "+* s Information WorkerTransition DiagnosticCode=worker-starting" }).Count -eq 1 -and
+                @($ordinary | Where-Object { $_ -like "+* s Information ExecutionDispatched OperationId=file_operations.get_working_directory" }).Count -eq 1 -and
+                @($ordinary | Where-Object { $_ -like "+* s Information ExecutionDispatched OperationId=<withheld>" }).Count -eq 1 -and
+                @($runnerOutput | Where-Object { $_ -clike "*not-a-listed-code*" -or $_ -clike "*unlisted_operations*" }).Count -eq 0) `
+                "The conformance runner did not print only listed values for $caseName."
             # Sensitive-looking text inside printed properties, an event name, a
             # template or a level is withheld, never printed.
             Assert-Condition (
@@ -455,19 +507,19 @@ switch ("__MODE__") {
                     "The conformance runner printed sensitive-looking server log text ($marker) for $caseName."
             }
             if ($null -ne $flood) {
-                # The first 100 and the latest 900 warnings and errors are kept.
+                # A flood of warnings is kept in full, in order.
                 $floodWarnings = @($warnings | Where-Object { $_ -like "* Warning WorkerStartPhase Phase=start-failed Generation=1*" })
-                Assert-Condition ($warnings.Count -eq 1000 -and $floodWarnings.Count -eq 992 -and
-                    $digest -contains "(108 warnings and errors omitted after the first 100; the latest 900 are shown)" -and
-                    @($floodWarnings | Where-Object { $_ -like "*Generation=100092" }).Count -eq 1 -and
-                    @($floodWarnings | Where-Object { $_ -like "*Generation=100093" }).Count -eq 0 -and
-                    @($floodWarnings | Where-Object { $_ -like "*Generation=100200" }).Count -eq 0 -and
-                    @($floodWarnings | Where-Object { $_ -like "*Generation=100201" }).Count -eq 1 -and
-                    @($floodWarnings | Where-Object { $_ -like "*Generation=101100" }).Count -eq 1) `
-                    "The conformance runner did not bound the warnings and errors as expected for $caseName."
+                $floodGenerations = @($floodWarnings | ForEach-Object { [int]($_ -replace '^.*Generation=', '') })
+                Assert-Condition ($warnings.Count -eq $flood + 9 -and $floodWarnings.Count -eq $flood -and
+                    $floodGenerations[0] -eq 100001 -and $floodGenerations[-1] -eq 100000 + $flood -and
+                    @(for ($index = 1; $index -lt $floodGenerations.Count; $index++) {
+                            if ($floodGenerations[$index] -ne $floodGenerations[$index - 1] + 1) { $index }
+                        }).Count -eq 0 -and
+                    @($digest | Where-Object { $_ -like "*warnings and errors omitted*" }).Count -eq 0) `
+                    "The conformance runner did not keep every warning for $caseName."
             }
             else {
-                Assert-Condition ($warnings.Count -eq 8) `
+                Assert-Condition ($warnings.Count -eq 9) `
                     "The conformance runner did not keep every warning for $caseName."
             }
             if ($case.Mode -eq "timeout") {
@@ -475,6 +527,17 @@ switch ("__MODE__") {
                     "--- processes alive at the fixture timeout in default-ready (start times from fixture start) ---" -and
                     @($runnerOutput | Where-Object { $_ -match '^fixture pid [0-9]+: started [+-][0-9]+\.[0-9]{3} s, CPU [0-9]+\.[0-9]{2} s$' }).Count -eq 1) `
                     "The conformance runner did not record the processes alive at the fixture timeout."
+            }
+            if ($null -ne $auditPath) {
+                # Unlisted values in the audit's shapes are named; anything else is
+                # reported only as unprintable.
+                $auditLines = @(Get-Content -LiteralPath $auditPath)
+                Assert-Condition ([string]::Join("|", $auditLines) -ceq [string]::Join("|", @(
+                            "default-ready DiagnosticCode <unprintable>",
+                            "default-ready DiagnosticCode not-a-listed-code",
+                            "default-ready OperationId <unprintable>",
+                            "default-ready OperationId unlisted_operations.example"))) `
+                    "The conformance runner did not audit the unlisted digest values for $($caseName): $($auditLines -join ' | ')"
             }
             $dumpLines = @($runnerOutput | Where-Object { $_ -like "*heap dump*" })
             if ($case.Diagnostics -eq "none") {
@@ -534,6 +597,142 @@ switch ("__MODE__") {
         foreach ($entry in $previousEnvironment.GetEnumerator()) {
             [Environment]::SetEnvironmentVariable($entry.Key, $entry.Value)
         }
+        $env:BRIOSA_CONFORMANCE_DIGEST_AUDIT = $null
+    }
+
+    # A server log that another process holds exclusively can be neither read,
+    # copied nor deleted. That is diagnostics only: it never changes a passing
+    # scenario's result or exit code, never replaces a failing fixture's error,
+    # and never stops the outcome, the digest and the other files from being
+    # saved (#371). The fixture leaves a detached process holding one of two log
+    # files and records it, so the test can release it.
+    $lockingFixtureSource = @'
+[CmdletBinding()]
+param(
+    [Parameter(Mandatory)][string]$Scenario,
+    [Parameter(Mandatory)][string]$Contract
+)
+$logDirectory = $env:Briosa__Logging__File__Directory
+[IO.Directory]::CreateDirectory($logDirectory) | Out-Null
+$readable = Join-Path $logDirectory "briosa-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-20261122.jsonl"
+$locked = Join-Path $logDirectory "briosa-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb-20261122.jsonl"
+foreach ($file in @(@($readable, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 37), @($locked, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 38))) {
+    [IO.File]::WriteAllText($file[0], (([ordered]@{
+        Timestamp = [DateTimeOffset]::UtcNow.ToString("o")
+        Level = "Warning"
+        MessageTemplate = "WorkerStartPhase"
+        Properties = [ordered]@{ Phase = "start-failed"; Generation = $file[2]; ServerInstanceId = $file[1]
+            EventId = @{ Id = 1203; Name = "WorkerStartPhase" } }
+    } | ConvertTo-Json -Compress -Depth 5) + "`n"))
+}
+$ready = "$env:BRIOSA_TEST_LOCK_RECORD.ready"
+$command = "`$stream = [IO.File]::Open('$locked', 'Open', 'Read', 'None'); " +
+    "[IO.File]::WriteAllText('$ready', 'locked'); Start-Sleep -Seconds 600"
+# Created through WMI, outside the fixture's process tree and without its handles.
+$hidden = New-CimInstance -ClassName Win32_ProcessStartup -ClientOnly -Property @{ ShowWindow = [uint16]0 }
+$created = Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{
+    CommandLine = "`"$((Get-Process -Id $PID).Path)`" -NoProfile -NonInteractive -EncodedCommand " +
+        [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($command))
+    ProcessStartupInformation = $hidden
+}
+[IO.File]::WriteAllLines($env:BRIOSA_TEST_LOCK_RECORD, [string[]]@([string]$created.ProcessId, $locked))
+$deadline = [DateTime]::UtcNow.AddSeconds(30)
+while (-not (Test-Path -LiteralPath $ready) -and [DateTime]::UtcNow -lt $deadline) {
+    Start-Sleep -Milliseconds 100
+}
+if (-not (Test-Path -LiteralPath $ready)) {
+    [Console]::Error.WriteLine("lock-not-taken")
+    exit 5
+}
+if ("__MODE__" -eq "exit-37") {
+    [Console]::Error.WriteLine("locked-log-fixture-error")
+    exit 37
+}
+$definition = Get-Content -LiteralPath $Contract -Raw | ConvertFrom-Json
+[ordered]@{
+    schema_version = 1
+    contract_id = $definition.contract_id
+    scenario = $Scenario
+    success = $true
+} | ConvertTo-Json -Compress
+'@
+    foreach ($lockCase in @("pass", "exit-37")) {
+        $lockFixturePath = Join-Path $temporaryRoot "locking-fixture-$lockCase.ps1"
+        [IO.File]::WriteAllText($lockFixturePath, $lockingFixtureSource.Replace("__MODE__", $lockCase),
+            [Text.UTF8Encoding]::new($false))
+        $lockRecord = Join-Path $temporaryRoot "lock-record-$lockCase.txt"
+        $lockDiagnostics = Join-Path $temporaryRoot "conformance-diagnostics-locked-$lockCase"
+        # A separate process, so the exit code is the one a caller sees.
+        $wrapperPath = Join-Path $temporaryRoot "locking-runner-$lockCase.ps1"
+        [IO.File]::WriteAllText($wrapperPath, @"
+`$ErrorActionPreference = 'Stop'
+try {
+    & '$runnerPath' -FixtureCommand '$((Get-Process -Id $PID).Path)' ``
+        -FixtureArguments @('-NoProfile', '-File', '$lockFixturePath') ``
+        -Scenario @('default-ready') -FixtureTimeoutSeconds 60
+}
+catch {
+    Write-Host "Runner error: `$_"
+    exit 1
+}
+"@, [Text.UTF8Encoding]::new($false))
+        $previousLockRecord = $env:BRIOSA_TEST_LOCK_RECORD
+        $previousDiagnostics = $env:BRIOSA_CONFORMANCE_DIAGNOSTICS_DIRECTORY
+        $env:BRIOSA_TEST_LOCK_RECORD = $lockRecord
+        $env:BRIOSA_CONFORMANCE_DIAGNOSTICS_DIRECTORY = $lockDiagnostics
+        $lockOutput = @()
+        $lockExitCode = $null
+        try {
+            $lockOutput = @(& (Get-Process -Id $PID).Path -NoProfile -NonInteractive -File $wrapperPath 2>&1 |
+                ForEach-Object { [string]$_ })
+            $lockExitCode = $LASTEXITCODE
+        }
+        finally {
+            $env:BRIOSA_TEST_LOCK_RECORD = $previousLockRecord
+            $env:BRIOSA_CONFORMANCE_DIAGNOSTICS_DIRECTORY = $previousDiagnostics
+            # Release the lock, then remove what the runner could not.
+            if (Test-Path -LiteralPath $lockRecord -PathType Leaf) {
+                $recorded = @(Get-Content -LiteralPath $lockRecord)
+                $locker = Get-Process -Id ([int]$recorded[0]) -ErrorAction SilentlyContinue
+                if ($null -ne $locker) {
+                    Stop-Process -Id $locker.Id -Force -ErrorAction SilentlyContinue
+                    $locker.WaitForExit(10000) | Out-Null
+                }
+                $leftover = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $recorded[1]))
+                if ((Split-Path -Leaf $leftover) -cmatch '\Abriosa-conformance-[0-9a-f]{32}\z' -and
+                    [string]::Equals([IO.Path]::GetFullPath((Split-Path -Parent $leftover) + [IO.Path]::DirectorySeparatorChar),
+                        $temporaryBase, [StringComparison]::OrdinalIgnoreCase) -and
+                    (Test-Path -LiteralPath $leftover)) {
+                    Remove-Item -LiteralPath $leftover -Recurse -Force
+                }
+            }
+        }
+        $lockOutput | ForEach-Object { Write-Host $_ }
+        Assert-Condition ($lockOutput -contains "(the runner could not remove all of its temporary files)") `
+            "The conformance runner did not report the temporary files it could not remove ($lockCase)."
+        if ($lockCase -eq "pass") {
+            Assert-Condition ($lockExitCode -eq 0 -and
+                @($lockOutput | Where-Object { $_ -like "Passed client conformance scenario: default-ready (fixture *" }).Count -eq 1 -and
+                $lockOutput -contains "All selected Briosa client conformance scenarios passed.") `
+                "A locked server log changed the result of a passing scenario (exit code $lockExitCode)."
+            continue
+        }
+        $savedFailure = Join-Path $lockDiagnostics "default-ready\failure.txt"
+        $savedLockDigest = Join-Path $lockDiagnostics "default-ready\server-log-digest.txt"
+        Assert-Condition ($lockExitCode -eq 1 -and
+            $lockOutput -contains "Runner error: The client fixture failed scenario 'default-ready' with exit code 37: locked-log-fixture-error" -and
+            $lockOutput -contains "(1 server log files could not be read)" -and
+            $lockOutput -contains "(1 diagnostic files could not be copied)" -and
+            @($lockOutput | Where-Object { $_ -like "+* s Warning ``[server 1``] WorkerStartPhase Phase=start-failed Generation=37" }).Count -eq 1 -and
+            @($lockOutput | Where-Object { $_ -like "Passed client conformance scenario: *" }).Count -eq 0) `
+            "A locked server log replaced or hid the failing fixture's error (exit code $lockExitCode)."
+        Assert-Condition ((Test-Path -LiteralPath $savedFailure -PathType Leaf) -and
+            (Get-Content -LiteralPath $savedFailure -Raw) -like "*exit code 37*" -and
+            (Test-Path -LiteralPath $savedLockDigest -PathType Leaf) -and
+            @(Get-Content -LiteralPath $savedLockDigest | Where-Object { $_ -like "*Generation=37" }).Count -eq 1 -and
+            (Test-Path -LiteralPath (Join-Path $lockDiagnostics "default-ready\fixture.stderr.txt") -PathType Leaf) -and
+            (Test-Path -LiteralPath (Join-Path $lockDiagnostics "default-ready\server-logs\briosa-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-20261122.jsonl") -PathType Leaf)) `
+            "A locked server log stopped the outcome, the digest or the other files from being saved."
     }
 
     $applicationRoot = Join-Path $temporaryRoot "launchable-fake-application"
@@ -575,6 +774,9 @@ switch ("__MODE__") {
     Write-Host "Client conformance package reproducibility, contract, checksums, and runner tests passed."
 }
 finally {
+    if (Test-Path variable:previousDigestAudit) {
+        $env:BRIOSA_CONFORMANCE_DIGEST_AUDIT = $previousDigestAudit
+    }
     $resolvedTemporaryRoot = [IO.Path]::GetFullPath($temporaryRoot)
     if ($resolvedTemporaryRoot.StartsWith($temporaryBase, [StringComparison]::OrdinalIgnoreCase) -and
         (Test-Path -LiteralPath $resolvedTemporaryRoot)) {
