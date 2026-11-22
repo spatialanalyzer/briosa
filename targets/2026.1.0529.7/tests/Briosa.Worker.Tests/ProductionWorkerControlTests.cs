@@ -1,3 +1,4 @@
+using System.Buffers.Binary;
 using System.IO.Pipes;
 using Briosa.Worker.Control;
 using Briosa.Worker.Sdk;
@@ -107,6 +108,45 @@ public sealed class ProductionWorkerControlTests
             Assert.True(sdk.AllCallsOnSta);
             Assert.True(sdk.Disposed);
             Assert.Equal(2, sdk.OperationCalls);
+        }
+        finally
+        {
+            await pipe.DisposeAsync();
+            await host.WaitAsync(TimeSpan.FromSeconds(3));
+        }
+    }
+
+    // The production worker endpoint bounds the frames it reads by the request
+    // budget and rejects an over-budget frame from its header alone, without
+    // waiting for a payload. While the request and response budgets are equal,
+    // this shows only that the worker stops on such a frame. Once the response
+    // budget is larger, a worker bounded by it would wait for the payload
+    // instead, and this test would time out.
+    [Fact]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "The production connection manager owns and disposes this injected SDK on its STA; the test must not dispose it on a different thread.")]
+    public async Task TheProductionWorkerRejectsAnOverBudgetRequestFromItsHeader()
+    {
+        var name = $"briosa-control-test-{Guid.NewGuid():N}";
+        using var pipe = new NamedPipeServerStream(name, PipeDirection.InOut, 1,
+            PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        var sdk = new ControlledSdk();
+        var host = WorkerControlHost.RunAsync(name, "localhost", () => { sdk.Observe(); return sdk; });
+        try
+        {
+            await pipe.WaitForConnectionAsync(timeout.Token);
+            using var channel = new WorkerControlChannel(pipe, leaveOpen: true,
+                maximumReceiveBytes: WorkerControlProtocol.MaximumResponseBytes);
+            Assert.Equal(WorkerControlMessageKind.Ready, (await channel.ReceiveAsync(timeout.Token)).Kind);
+
+            var header = new byte[sizeof(int)];
+            BinaryPrimitives.WriteInt32LittleEndian(header, WorkerControlProtocol.MaximumRequestBytes + 1);
+            await pipe.WriteAsync(header, timeout.Token);
+            await pipe.FlushAsync(timeout.Token);
+
+            // InvalidDataException stops the worker with exit code 4.
+            Assert.Equal(4, await host.WaitAsync(TimeSpan.FromSeconds(5)));
+            Assert.Equal(0, sdk.OperationCalls);
         }
         finally
         {

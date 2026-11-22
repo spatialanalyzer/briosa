@@ -162,7 +162,8 @@ internal static class TestWorkerProcess
                                 message.Command!,
                                 mpSucceeded: options.Scenario != TestWorkerScenario.MpFailure,
                                 delayed,
-                                options.Scenario));
+                                options.Scenario,
+                                options.OutputTextLength));
                         if (options.Scenario == TestWorkerScenario.UnexpectedKindOnExecute)
                         {
                             completed = WorkerControlMessage.Pong(message.CorrelationId, connection);
@@ -242,7 +243,8 @@ internal static class TestWorkerProcess
         WorkerMpCommand command,
         bool mpSucceeded,
         bool delayed,
-        TestWorkerScenario scenario) =>
+        TestWorkerScenario scenario,
+        int? outputTextLength) =>
         new(
             WorkerExecutionResponseStatus.Completed,
             WorkerMpExecutionResult.FromEvidence(
@@ -252,7 +254,7 @@ internal static class TestWorkerProcess
                 mpSucceeded ? 2 : 3,
                 durationMilliseconds: delayed ? 300 : 5,
                 mpSucceeded
-                    ? [.. command.OutputArguments.Select(CreateOutputValue)]
+                    ? [.. command.OutputArguments.Select(output => CreateOutputValue(output, outputTextLength))]
                     : [],
                 mpSucceeded ? null : "scripted-mp-failure"),
             ConnectionSnapshot(
@@ -262,11 +264,15 @@ internal static class TestWorkerProcess
 
     // Never fabricate a value the production adapter cannot retrieve; doing so would hide
     // declared outputs that fail after MP success in the real worker.
-    private static WorkerMpOutputValue CreateOutputValue(WorkerMpOutputArgument output) =>
+    // --output-text-length makes every Text output that many characters, so a test
+    // can send a result of a chosen size through the real private channel.
+    private static WorkerMpOutputValue CreateOutputValue(WorkerMpOutputArgument output, int? outputTextLength) =>
         output.Kind switch
         {
             _ when !WorkerRetrievableOutputKinds.Contains(output.Kind) =>
                 new WorkerUnavailableOutput(output.Name, output.Kind),
+            WorkerMpValueKind.Text when outputTextLength is { } length =>
+                new WorkerRetrievedOutput(output.Name, output.Kind, new WorkerTextValue(new string('x', length))),
             WorkerMpValueKind.Logical =>
                 new WorkerRetrievedOutput(output.Name, output.Kind, new WorkerBooleanValue(true)),
             WorkerMpValueKind.WholeNumber =>
@@ -468,7 +474,8 @@ internal sealed record TestWorkerOptions(
     string PipeName,
     TestWorkerScenario Scenario,
     string? LifecycleRecordPath,
-    string? PipeRecordPath)
+    string? PipeRecordPath,
+    int? OutputTextLength = null)
 {
     public static TestWorkerOptions Parse(string[] arguments)
     {
@@ -486,7 +493,10 @@ internal sealed record TestWorkerOptions(
         var pipeRecordPath = TryGetArgument(arguments, "--pipe-record", out var pipeRecord)
             ? pipeRecord
             : null;
-        return new TestWorkerOptions(pipeName, scenario, recordPath, pipeRecordPath);
+        int? outputTextLength = TryGetArgument(arguments, "--output-text-length", out var length)
+            ? int.Parse(length, System.Globalization.CultureInfo.InvariantCulture)
+            : null;
+        return new TestWorkerOptions(pipeName, scenario, recordPath, pipeRecordPath, outputTextLength);
     }
 
     private static TestWorkerScenario ParseScenario(string value) =>

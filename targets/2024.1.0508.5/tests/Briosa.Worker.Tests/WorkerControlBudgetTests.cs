@@ -173,7 +173,9 @@ public sealed class WorkerControlBudgetTests
     }
 
     // A receiver that does not name its direction reads frames up to the larger
-    // budget, and still rejects a request over the request budget.
+    // budget, and still rejects a request over the request budget. While the two
+    // budgets are equal the frame header bound rejects it first; the check after
+    // decoding is exercised only once the response budget is larger.
     [Fact]
     public void AnOverBudgetRequestIsRejectedEvenWithinTheFrameBound()
     {
