@@ -562,6 +562,8 @@ public sealed class SpatialAnalyzerLifecycleCoordinatorTests
         Assert.Equal("LaunchSpatialAnalyzer", rejected.Value("Rpc"));
         Assert.Equal(status, rejected.Value("GrpcStatus"));
         Assert.Equal(detail.DiagnosticCode, rejected.Value("DiagnosticCode"));
+        Assert.IsType<long>(rejected.Value("ElapsedMilliseconds"));
+        Assert.Equal([1303, 1302], audit.Entries.Select(entry => entry.EventId.Id));
 
         if (process is null)
         {
@@ -575,6 +577,86 @@ public sealed class SpatialAnalyzerLifecycleCoordinatorTests
         await clock.FireNextAsync();
         var running = await coordinator.GetCurrentAsync(CancellationToken.None).WaitAsync(HangGuard);
         Assert.Equal(global::Briosa.SpatialAnalyzerApplicationState.Running, running.ApplicationState);
+    }
+
+    // #371: the launch service records the RPC's arrival and its completion with the
+    // elapsed time, and a precondition step that takes longer than 2 s is a warning.
+    // A log then tells a launch that never arrived from one that stalled before
+    // acceptance.
+    [Theory]
+    [InlineData(2000, false)]
+    [InlineData(2500, true)]
+    public async Task LaunchServiceRecordsArrivalCompletionAndASlowProcessScan(int scanMilliseconds, bool slow)
+    {
+        using var executable = TemporaryFile.Create();
+        var clock = new HeartbeatTestClock();
+        var platform = new FakeProcessPlatform
+        {
+            Observing = () => clock.Advance(TimeSpan.FromMilliseconds(scanMilliseconds))
+        };
+        var coordinatorLog = new CapturingLogger<SpatialAnalyzerLifecycleCoordinator>();
+        using var coordinator = CreateCoordinator(
+            executable.Path, platform, timeProvider: clock, logger: coordinatorLog);
+        var audit = new CapturingLogger<LifecycleAuditLogger>();
+        var service = new SpatialAnalyzerLifecycleService(coordinator, new LifecycleAuditLogger(audit), clock);
+
+        var response = await service.LaunchSpatialAnalyzer(
+            new global::Briosa.LaunchSpatialAnalyzerRequest(),
+            new InMemoryServerCallContext(
+                "/briosa.SpatialAnalyzerLifecycle/LaunchSpatialAnalyzer",
+                CallDeadline(passed: false),
+                CancellationToken.None)).WaitAsync(HangGuard);
+
+        Assert.Equal(global::Briosa.SpatialAnalyzerApplicationState.Running, response.State.ApplicationState);
+        var entries = audit.Entries.ToArray();
+        Assert.Equal([1303, 1304], entries.Select(entry => entry.EventId.Id));
+        Assert.All(entries, entry => Assert.Equal("LaunchSpatialAnalyzer", entry.Value("Rpc")));
+        Assert.Equal(Grpc.Core.StatusCode.OK, entries[1].Value("GrpcStatus"));
+        Assert.Equal((long)scanMilliseconds, entries[1].Value("ElapsedMilliseconds"));
+        var warnings = coordinatorLog.Entries.Where(entry => entry.EventId.Id == 1402).ToArray();
+        if (!slow)
+        {
+            Assert.Empty(warnings);
+            return;
+        }
+        var warning = Assert.Single(warnings);
+        Assert.Equal(LogLevel.Warning, warning.Level);
+        Assert.Equal("process-scan", warning.Value("Phase"));
+        Assert.Equal((long)scanMilliseconds, warning.Value("ElapsedMilliseconds"));
+    }
+
+    // #371: the timing records are best effort. A failing slow-precondition record and
+    // a failing audit logger leave a successful launch successful, and an exception
+    // without a typed lifecycle detail still propagates as itself.
+    [Fact]
+    public async Task FailingTimingRecordsNeverChangeTheLaunchOutcome()
+    {
+        using var executable = TemporaryFile.Create();
+        var clock = new HeartbeatTestClock();
+        var platform = new FakeProcessPlatform
+        {
+            Observing = () => clock.Advance(TimeSpan.FromMilliseconds(2500))
+        };
+        var coordinatorLog = new ThrowingLogger<SpatialAnalyzerLifecycleCoordinator>(eventId => eventId.Id == 1402);
+        var coordinator = CreateCoordinator(
+            executable.Path, platform, timeProvider: clock, logger: coordinatorLog);
+        var failingAudit = new ThrowingLogger<LifecycleAuditLogger>(_ => true, throwOnIsEnabled: true);
+        var service = new SpatialAnalyzerLifecycleService(coordinator, new LifecycleAuditLogger(failingAudit), clock);
+        Grpc.Core.ServerCallContext Context() => new InMemoryServerCallContext(
+            "/briosa.SpatialAnalyzerLifecycle/LaunchSpatialAnalyzer",
+            CallDeadline(passed: false),
+            CancellationToken.None);
+
+        var response = await service.LaunchSpatialAnalyzer(
+            new global::Briosa.LaunchSpatialAnalyzerRequest(), Context()).WaitAsync(HangGuard);
+
+        Assert.Equal(global::Briosa.SpatialAnalyzerApplicationState.Running, response.State.ApplicationState);
+        Assert.True(coordinatorLog.Failures > 0);
+        Assert.True(failingAudit.Failures > 0);
+
+        await coordinator.DisposeAsync();
+        await Assert.ThrowsAsync<ObjectDisposedException>(() => service.LaunchSpatialAnalyzer(
+            new global::Briosa.LaunchSpatialAnalyzerRequest(), Context()).WaitAsync(HangGuard));
     }
 
     // D-2: only a caller interruption becomes the caller's deadline. A failure of its
@@ -625,7 +707,8 @@ public sealed class SpatialAnalyzerLifecycleCoordinatorTests
         FakeProcessPlatform platform,
         FakeSdkStateProvider? sdk = null,
         TimeProvider? timeProvider = null,
-        TimeSpan? startupTimeout = null) =>
+        TimeSpan? startupTimeout = null,
+        ILogger<SpatialAnalyzerLifecycleCoordinator>? logger = null) =>
         new(
             new SpatialAnalyzerApplicationOptions(
                 executablePath,
@@ -633,7 +716,8 @@ public sealed class SpatialAnalyzerLifecycleCoordinatorTests
                 TimeSpan.FromSeconds(1)),
             platform,
             sdk ?? new FakeSdkStateProvider(global::Briosa.SpatialAnalyzerSdkState.Stopped),
-            timeProvider ?? TimeProvider.System);
+            timeProvider ?? TimeProvider.System,
+            logger);
 
     private sealed class FakeSdkStateProvider(
         global::Briosa.SpatialAnalyzerSdkState sdkState)
@@ -765,10 +849,11 @@ public sealed class SpatialAnalyzerLifecycleCoordinatorTests
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception,
             Func<TState, Exception?, string> formatter) =>
             Entries.Enqueue(new LogEntry(eventId,
-                state as IReadOnlyList<KeyValuePair<string, object?>> ?? []));
+                state as IReadOnlyList<KeyValuePair<string, object?>> ?? [], logLevel));
     }
 
-    private sealed record LogEntry(EventId EventId, IReadOnlyList<KeyValuePair<string, object?>> State)
+    private sealed record LogEntry(EventId EventId, IReadOnlyList<KeyValuePair<string, object?>> State,
+        LogLevel Level)
     {
         public object? Value(string name) => State.FirstOrDefault(pair => pair.Key == name).Value;
     }

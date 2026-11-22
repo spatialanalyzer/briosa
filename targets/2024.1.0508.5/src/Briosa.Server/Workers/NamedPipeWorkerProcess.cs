@@ -29,24 +29,27 @@ internal sealed class NamedPipeWorkerProcess : IWorkerProcess
     public ValueTask SendAsync(WorkerControlMessage message, CancellationToken cancellationToken = default) =>
         _channel.SendAsync(message, cancellationToken);
 
-    public async ValueTask<WorkerControlMessage> ReceiveAsync(CancellationToken cancellationToken = default)
+    public async ValueTask WaitForControlConnectionAsync(CancellationToken cancellationToken = default)
     {
         // Transfer ownership before waiting for startup. Even a child that never
         // connects remains available to the controller's bounded cleanup path.
-        if (!_connected)
+        if (_connected) return;
+        await _pipe.WaitForConnectionAsync(cancellationToken).ConfigureAwait(false);
+        // The ACL admits any current-user process. Only the launched child may
+        // own the channel; its self-reported ready PID is not evidence.
+        if (!NativeMethods.GetNamedPipeClientProcessId(_pipe.SafePipeHandle, out var clientProcessId) ||
+            clientProcessId != (uint)_process.Id)
         {
-            await _pipe.WaitForConnectionAsync(cancellationToken).ConfigureAwait(false);
-            // The ACL admits any current-user process. Only the launched child may
-            // own the channel; its self-reported ready PID is not evidence.
-            if (!NativeMethods.GetNamedPipeClientProcessId(_pipe.SafePipeHandle, out var clientProcessId) ||
-                clientProcessId != (uint)_process.Id)
-            {
-                throw new InvalidDataException(
-                    "The worker control pipe client is not the launched worker process.");
-            }
-
-            _connected = true;
+            throw new InvalidDataException(
+                "The worker control pipe client is not the launched worker process.");
         }
+
+        _connected = true;
+    }
+
+    public async ValueTask<WorkerControlMessage> ReceiveAsync(CancellationToken cancellationToken = default)
+    {
+        await WaitForControlConnectionAsync(cancellationToken).ConfigureAwait(false);
         return await _channel.ReceiveAsync(cancellationToken).ConfigureAwait(false);
     }
 

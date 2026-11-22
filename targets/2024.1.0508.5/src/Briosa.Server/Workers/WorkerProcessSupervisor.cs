@@ -1058,8 +1058,12 @@ internal sealed partial class WorkerProcessSupervisor :
             "worker-starting");
 
         // Launch, COM activation, and Ready run under the startup bound only; a caller
-        // that stops waiting cannot terminate the child it has asked for.
+        // that stops waiting cannot terminate the child it has asked for. Each phase is
+        // logged with the time since the start began, so a startup timeout shows which
+        // phase used the bound. The phase records are best effort and never throw, so
+        // they cannot skip the cleanup and the transition below.
         WorkerControlMessage ready;
+        var startStarted = BestEffortDiagnostics.Timestamp(_timeProvider);
         using (var timeout = new CancellationTokenSource(_policy.StartupTimeout, _timeProvider))
         {
             try
@@ -1067,6 +1071,9 @@ internal sealed partial class WorkerProcessSupervisor :
                 var worker = await _processFactory.StartAsync(_generation, timeout.Token)
                     .ConfigureAwait(false);
                 _processLifetime = new WorkerProcessLifetime(worker, _timeProvider);
+                LogStartPhase(LogLevel.Information, "process-created", startStarted);
+                await worker.WaitForControlConnectionAsync(timeout.Token).ConfigureAwait(false);
+                LogStartPhase(LogLevel.Information, "control-pipe-connected", startStarted);
                 ready = await worker.ReceiveAsync(timeout.Token).ConfigureAwait(false);
                 if (ready.Kind != WorkerControlMessageKind.Ready ||
                     ready.ProcessId is not > 0 ||
@@ -1080,10 +1087,14 @@ internal sealed partial class WorkerProcessSupervisor :
                     throw new InvalidDataException(
                         "The worker did not provide a valid ready message.");
                 }
+
+                // Only a valid Ready message counts; an invalid one ends in start-failed.
+                LogStartPhase(LogLevel.Information, "ready-received", startStarted);
             }
             catch (OperationCanceledException)
             {
                 // Only the startup bound can cancel this exchange.
+                LogStartPhase(LogLevel.Warning, "startup-bound-expired", startStarted);
                 if (!await CleanupWorkerAsync(force: true).ConfigureAwait(false)) return false;
                 Transition(
                     WorkerLifecycleState.Degraded,
@@ -1097,6 +1108,7 @@ internal sealed partial class WorkerProcessSupervisor :
             }
             catch (Exception exception) when (IsRecoverableProcessFailure(exception))
             {
+                LogStartPhase(LogLevel.Warning, "start-failed", startStarted);
                 var termination = Worker?.HasExited == true
                     ? WorkerTerminationKind.Crash
                     : WorkerTerminationKind.Forced;
@@ -1777,6 +1789,21 @@ internal sealed partial class WorkerProcessSupervisor :
         int? mpResultCode,
         string diagnosticCode);
 
+    private void LogStartPhase(LogLevel level, string phase, long? startTimestamp)
+    {
+        var elapsed = BestEffortDiagnostics.ElapsedMilliseconds(_timeProvider, startTimestamp);
+        var generation = _generation;
+        BestEffortDiagnostics.Record(() => LogWorkerStartPhase(level, generation, phase, elapsed));
+    }
+
+    [LoggerMessage(
+        EventId = 1203,
+        Message = "Worker generation {Generation} start phase {Phase} after {ElapsedMilliseconds} ms.")]
+    private partial void LogWorkerStartPhase(
+        LogLevel level,
+        int generation,
+        string phase,
+        long elapsedMilliseconds);
 
 
     private static string GetExecutionNotReadyDiagnostic(

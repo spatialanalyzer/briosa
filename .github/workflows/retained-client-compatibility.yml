@@ -106,6 +106,10 @@ jobs:
           # The packaged runner copies a failing scenario's full client output
           # and server logs here.
           BRIOSA_CONFORMANCE_DIAGNOSTICS_DIRECTORY: ${{ github.workspace }}/conformance-diagnostics
+          # For each scenario whose server log holds diagnostic codes or operation
+          # IDs that the digest vocabulary does not list, the runner appends the
+          # scenario, the property and a count, never the value.
+          BRIOSA_CONFORMANCE_DIGEST_AUDIT: ${{ github.workspace }}/conformance-digest-audit.txt
         run: |
           if ($env:CLIENT_PUBLISHED -eq 'true') {
             $package = Join-Path $PWD $env:CLIENT_FILE
@@ -150,6 +154,22 @@ jobs:
           Push-Location (Join-Path $PWD "retained-client/targets/$env:SA_TARGET")
           try { & ./eng/Test-PublishedClientConformance.ps1 @arguments }
           finally { Pop-Location }
+      - name: Check the conformance digest vocabulary
+        if: ${{ !cancelled() }}
+        shell: pwsh
+        run: |
+          # A value the digest does not list prints as <withheld>. The audit holds
+          # only counts, so this log never shows the value itself.
+          $audit = Join-Path $env:GITHUB_WORKSPACE 'conformance-digest-audit.txt'
+          if ((Test-Path -LiteralPath $audit) -and (Get-Item -LiteralPath $audit).Length -gt 0) {
+            Get-Content -LiteralPath $audit | ForEach-Object { Write-Host $_ }
+            throw ('The conformance scenarios produced diagnostic codes or operation IDs that the digest vocabulary does not list (scenario, property, count above). ' +
+              'CI does not show the values. To find them on your own machine, compare targets/<target>/conformance/client/v1/digest-vocabulary.json ' +
+              'with the kebab-case diagnostic code literals in targets/<target>/src and targets/<target>/tests/Briosa.SmokeWorker, ' +
+              'with the codes WorkerProcessSupervisor.StopDiagnosticCode composes, and with the operation IDs the named scenario calls. ' +
+              'Review each missing value and add it to the vocabulary in both targets. If a producer writes sensitive data into DiagnosticCode ' +
+              'or OperationId, correct the producer instead.')
+          }
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: compatibility-${{ matrix.language }}-${{ matrix.target }}-${{ matrix.version }}

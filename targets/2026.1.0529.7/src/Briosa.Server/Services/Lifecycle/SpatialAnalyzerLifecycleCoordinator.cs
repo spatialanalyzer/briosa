@@ -22,6 +22,9 @@ internal sealed partial class SpatialAnalyzerLifecycleCoordinator(
     internal const int UnconfirmedObservationLimit = 3;
     internal const string UnconfirmedDiagnosticCode = "external-spatial-analyzer-unconfirmed";
 
+    // A launch precondition step that takes longer than this is logged as a warning.
+    internal static readonly TimeSpan SlowLaunchPreconditionThreshold = TimeSpan.FromSeconds(2);
+
     private readonly SemaphoreSlim _gate = new(1, 1);
     private readonly SpatialAnalyzerApplicationOptions _options = options;
     private readonly ISpatialAnalyzerProcessPlatform _processPlatform = processPlatform;
@@ -86,7 +89,19 @@ internal sealed partial class SpatialAnalyzerLifecycleCoordinator(
     {
         try
         {
-            RefreshObservedState();
+            // The preconditions run synchronously on the request thread, before
+            // acceptance. A slow step is reported, so a launch that stalls before
+            // acceptance can be told apart from one that never arrived. The timing is
+            // best effort and never throws, so it cannot mask a precondition failure.
+            var processScanStarted = BestEffortDiagnostics.Timestamp(_timeProvider);
+            try
+            {
+                RefreshObservedState();
+            }
+            finally
+            {
+                WarnIfSlowPrecondition("process-scan", processScanStarted);
+            }
             EnsureSdkAllowsLaunch();
             if (_current.ApplicationState is not
                 (global::Briosa.SpatialAnalyzerApplicationState.NotRunning or
@@ -104,27 +119,37 @@ internal sealed partial class SpatialAnalyzerLifecycleCoordinator(
                     global::Briosa.LifecycleRecoveryGuidance.RefreshState);
             }
 
-            var startInfo = CreateStartInfo(request);
-            var installationDiagnostic = _options.InstallationDiagnostic ??
-                (_options.RequireInstalledIdentity
-                    ? SpatialAnalyzerInstallationDiscovery.Check(_options.ExecutablePath).DiagnosticCode
-                    : null);
-            if (installationDiagnostic is not null)
+            // The job file, installation identity, and executable checks.
+            ProcessStartInfo startInfo;
+            var installationCheckStarted = BestEffortDiagnostics.Timestamp(_timeProvider);
+            try
             {
-                throw SpatialAnalyzerLifecycleException.FailedPrecondition(
-                    global::Briosa.SpatialAnalyzerLifecycleFailureKind.LaunchFailed,
-                    installationDiagnostic,
-                    _current.Clone(),
-                    global::Briosa.LifecycleRecoveryGuidance.CorrectEnvironment);
-            }
+                startInfo = CreateStartInfo(request);
+                var installationDiagnostic = _options.InstallationDiagnostic ??
+                    (_options.RequireInstalledIdentity
+                        ? SpatialAnalyzerInstallationDiscovery.Check(_options.ExecutablePath).DiagnosticCode
+                        : null);
+                if (installationDiagnostic is not null)
+                {
+                    throw SpatialAnalyzerLifecycleException.FailedPrecondition(
+                        global::Briosa.SpatialAnalyzerLifecycleFailureKind.LaunchFailed,
+                        installationDiagnostic,
+                        _current.Clone(),
+                        global::Briosa.LifecycleRecoveryGuidance.CorrectEnvironment);
+                }
 
-            if (!File.Exists(_options.ExecutablePath))
+                if (!File.Exists(_options.ExecutablePath))
+                {
+                    throw SpatialAnalyzerLifecycleException.NotFound(
+                        global::Briosa.SpatialAnalyzerLifecycleFailureKind.LaunchFailed,
+                        "spatial-analyzer-installation-not-found",
+                        _current.Clone(),
+                        global::Briosa.LifecycleRecoveryGuidance.CorrectEnvironment);
+                }
+            }
+            finally
             {
-                throw SpatialAnalyzerLifecycleException.NotFound(
-                    global::Briosa.SpatialAnalyzerLifecycleFailureKind.LaunchFailed,
-                    "spatial-analyzer-installation-not-found",
-                    _current.Clone(),
-                    global::Briosa.LifecycleRecoveryGuidance.CorrectEnvironment);
+                WarnIfSlowPrecondition("installation-check", installationCheckStarted);
             }
 
             // Every precondition held; from here only the launch's own outcome or its
@@ -615,4 +640,15 @@ internal sealed partial class SpatialAnalyzerLifecycleCoordinator(
     private partial void LogApplicationTransition(LogLevel level,
         global::Briosa.SpatialAnalyzerApplicationState applicationState,
         global::Briosa.SpatialAnalyzerOwnership ownership, int? generation, string diagnosticCode);
+
+    private void WarnIfSlowPrecondition(string phase, long? startTimestamp)
+    {
+        var elapsed = BestEffortDiagnostics.ElapsedMilliseconds(_timeProvider, startTimestamp);
+        if (elapsed > (long)SlowLaunchPreconditionThreshold.TotalMilliseconds)
+            BestEffortDiagnostics.Record(() => LogSlowLaunchPrecondition(phase, elapsed));
+    }
+
+    [LoggerMessage(EventId = 1402, Level = LogLevel.Warning,
+        Message = "Launch precondition {Phase} took {ElapsedMilliseconds} ms.")]
+    private partial void LogSlowLaunchPrecondition(string phase, long elapsedMilliseconds);
 }

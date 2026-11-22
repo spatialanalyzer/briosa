@@ -136,6 +136,9 @@ try {
 
     Copy-Item -LiteralPath (Join-Path $contractRoot "Invoke-BriosaClientConformance.ps1") `
         -Destination $runnerRoot
+    # The server log digest's reviewed closed lists, read beside the runner.
+    Copy-Item -LiteralPath (Join-Path $contractRoot "digest-vocabulary.json") `
+        -Destination $runnerRoot
     # A scenario may declare minimum_contract_major. It ships only when this
     # target's compatibility contract has reached that major, and the gate field
     # is removed from the packaged contract. Retained clients for the current

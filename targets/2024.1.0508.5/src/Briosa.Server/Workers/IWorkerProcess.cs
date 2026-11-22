@@ -8,6 +8,12 @@ internal interface IWorkerProcess : IAsyncDisposable
 
     int? ExitCode { get; }
 
+    // Completes once the launched process owns the control channel, so a start can
+    // log that phase separately. ReceiveAsync still connects on first use; a process
+    // without a separate connection step completes at once.
+    ValueTask WaitForControlConnectionAsync(CancellationToken cancellationToken = default) =>
+        ValueTask.CompletedTask;
+
     ValueTask SendAsync(
         WorkerControlMessage message,
         CancellationToken cancellationToken = default);
