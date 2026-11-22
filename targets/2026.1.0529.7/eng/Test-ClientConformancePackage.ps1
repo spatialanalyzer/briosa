@@ -17,6 +17,24 @@ $firstOutput = [IO.Path]::GetFullPath($OutputDirectory, $targetRoot)
 $secondOutput = Join-Path $temporaryRoot "second"
 $extractRoot = Join-Path $temporaryRoot "extracted"
 
+function Set-EnvironmentValue {
+    param(
+        [Parameter(Mandatory)][string]$Name,
+        [AllowNull()][object]$Value
+    )
+
+    # A missing value removes the variable. Assigning $null, or passing it to
+    # SetEnvironmentVariable, can leave an empty value on newer runtimes, and an
+    # empty configuration value is invalid for the server that a later step in the
+    # same session starts.
+    if ($null -eq $Value -or [string]::IsNullOrEmpty([string]$Value)) {
+        Remove-Item -LiteralPath "Env:$Name" -ErrorAction SilentlyContinue
+    }
+    else {
+        Set-Item -LiteralPath "Env:$Name" -Value ([string]$Value)
+    }
+}
+
 function Assert-Condition {
     param(
         [Parameter(Mandatory)][bool]$Condition,
@@ -220,7 +238,7 @@ $definition = Get-Content -LiteralPath $Contract -Raw | ConvertFrom-Json
     # The digest audit belongs to the retained-client gate; these synthetic logs
     # must never reach a caller's audit file.
     $previousDigestAudit = $env:BRIOSA_CONFORMANCE_DIGEST_AUDIT
-    $env:BRIOSA_CONFORMANCE_DIGEST_AUDIT = $null
+    Set-EnvironmentValue "BRIOSA_CONFORMANCE_DIGEST_AUDIT" $null
     # An unusable optional diagnostics directory turns diagnostics off; it never
     # turns a passing run into a failure (#371).
     $runnerArguments = @{
@@ -398,7 +416,7 @@ switch ("__MODE__") {
             $flood = & $property "Flood"
             $channel = & $property "Channel"
             $auditPath = $(if (& $property "Audit") { Join-Path $temporaryRoot "digest-audit-$caseName.txt" })
-            $env:BRIOSA_CONFORMANCE_DIGEST_AUDIT = $auditPath
+            Set-EnvironmentValue "BRIOSA_CONFORMANCE_DIGEST_AUDIT" $auditPath
             $failingFixturePath = Join-Path $temporaryRoot "failing-fixture-$caseName.ps1"
             # The runner gives the fake worker start 30 s unless the caller set a bound.
             [IO.File]::WriteAllText(
@@ -411,13 +429,13 @@ switch ("__MODE__") {
             if ($case.Diagnostics -eq "file") {
                 [IO.File]::WriteAllText($diagnosticsRoot, "not a directory")
             }
-            $env:BRIOSA_CONFORMANCE_DIAGNOSTICS_DIRECTORY = $(if ($case.Diagnostics -ne "none") { $diagnosticsRoot } else { $null })
-            $env:Briosa__Worker__StartupTimeout = $callerStartupTimeout
-            $env:BRIOSA_CONFORMANCE_DUMP_ON_TIMEOUT = $dump
+            Set-EnvironmentValue "BRIOSA_CONFORMANCE_DIAGNOSTICS_DIRECTORY" $(if ($case.Diagnostics -ne "none") { $diagnosticsRoot })
+            Set-EnvironmentValue "Briosa__Worker__StartupTimeout" $callerStartupTimeout
+            Set-EnvironmentValue "BRIOSA_CONFORMANCE_DUMP_ON_TIMEOUT" $dump
             # The fixture inherits these; set them explicitly so the ambient
             # environment cannot decide the dump expectation.
-            $env:DOTNET_EnableDiagnostics = $null
-            $env:DOTNET_EnableDiagnostics_IPC = $(if ($channel -eq "ipc-disabled") { "0" } else { $null })
+            Set-EnvironmentValue "DOTNET_EnableDiagnostics" $null
+            Set-EnvironmentValue "DOTNET_EnableDiagnostics_IPC" $(if ($channel -eq "ipc-disabled") { "0" })
             $failure = $null
             $runnerOutput = [Collections.Generic.List[string]]::new()
             try {
@@ -595,9 +613,9 @@ switch ("__MODE__") {
     }
     finally {
         foreach ($entry in $previousEnvironment.GetEnumerator()) {
-            [Environment]::SetEnvironmentVariable($entry.Key, $entry.Value)
+            Set-EnvironmentValue $entry.Key $entry.Value
         }
-        $env:BRIOSA_CONFORMANCE_DIGEST_AUDIT = $null
+        Set-EnvironmentValue "BRIOSA_CONFORMANCE_DIGEST_AUDIT" $null
     }
 
     # A server log that another process holds exclusively can be neither read,
@@ -678,18 +696,20 @@ catch {
 "@, [Text.UTF8Encoding]::new($false))
         $previousLockRecord = $env:BRIOSA_TEST_LOCK_RECORD
         $previousDiagnostics = $env:BRIOSA_CONFORMANCE_DIAGNOSTICS_DIRECTORY
-        $env:BRIOSA_TEST_LOCK_RECORD = $lockRecord
-        $env:BRIOSA_CONFORMANCE_DIAGNOSTICS_DIRECTORY = $lockDiagnostics
+        Set-EnvironmentValue "BRIOSA_TEST_LOCK_RECORD" $lockRecord
+        Set-EnvironmentValue "BRIOSA_CONFORMANCE_DIAGNOSTICS_DIRECTORY" $lockDiagnostics
         $lockOutput = @()
         $lockExitCode = $null
         try {
             $lockOutput = @(& (Get-Process -Id $PID).Path -NoProfile -NonInteractive -File $wrapperPath 2>&1 |
                 ForEach-Object { [string]$_ })
             $lockExitCode = $LASTEXITCODE
+            # The failing case's exit code must not become this script's.
+            $global:LASTEXITCODE = 0
         }
         finally {
-            $env:BRIOSA_TEST_LOCK_RECORD = $previousLockRecord
-            $env:BRIOSA_CONFORMANCE_DIAGNOSTICS_DIRECTORY = $previousDiagnostics
+            Set-EnvironmentValue "BRIOSA_TEST_LOCK_RECORD" $previousLockRecord
+            Set-EnvironmentValue "BRIOSA_CONFORMANCE_DIAGNOSTICS_DIRECTORY" $previousDiagnostics
             # Release the lock, then remove what the runner could not.
             if (Test-Path -LiteralPath $lockRecord -PathType Leaf) {
                 $recorded = @(Get-Content -LiteralPath $lockRecord)
@@ -775,7 +795,7 @@ catch {
 }
 finally {
     if (Test-Path variable:previousDigestAudit) {
-        $env:BRIOSA_CONFORMANCE_DIGEST_AUDIT = $previousDigestAudit
+        Set-EnvironmentValue "BRIOSA_CONFORMANCE_DIGEST_AUDIT" $previousDigestAudit
     }
     $resolvedTemporaryRoot = [IO.Path]::GetFullPath($temporaryRoot)
     if ($resolvedTemporaryRoot.StartsWith($temporaryBase, [StringComparison]::OrdinalIgnoreCase) -and
