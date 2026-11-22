@@ -419,7 +419,9 @@ switch ("__MODE__") {
                 # The opt-in heap dump of a .NET fixture, taken before the kill. This
                 # fixture is PowerShell, which hosts the .NET runtime.
                 $fixtureRuntime = @((Get-Process -Id $PID).Modules | Where-Object ModuleName -eq "coreclr.dll")
-                $dumpAvailable = $fixtureRuntime.Count -eq 1 -and
+                # The runtime writes the dump with the createdump beside it, and only
+                # while its diagnostics channel is enabled.
+                $dumpAvailable = $fixtureRuntime.Count -eq 1 -and $env:DOTNET_EnableDiagnostics -ne "0" -and
                     (Test-Path -LiteralPath (Join-Path (Split-Path -Parent $fixtureRuntime[0].FileName) "createdump.exe"))
                 $dumpLines = @($runnerOutput | Where-Object { $_ -like "*heap dump of the fixture*" })
                 $dumpFiles = @(Get-ChildItem -LiteralPath (Join-Path $scenarioDiagnostics "dumps") -Filter "fixture-*.dmp" -File -ErrorAction SilentlyContinue)
