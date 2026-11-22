@@ -48,6 +48,56 @@ points each scenario's server log files at that scenario's temporary directory.
 A fixture that passes explicit logging options to its client overrides that
 location.
 
+After the stderr, a rejected scenario's output also shows:
+
+- the runner's timing marks: scenario start, fixture start, and fixture end,
+  in UTC;
+- a digest of the scenario's server log, one line per event: the time from the
+  fixture start, the level, the event name, and only these properties: `Rpc`,
+  `GrpcStatus`, `Phase`, `ElapsedMilliseconds`, `WorkerState`,
+  `ApplicationState`, `Ownership`, `Generation`, `ConnectionState`,
+  `OperationId`, `ExecutionDisposition`, `MpResultCode`, and `DiagnosticCode`.
+  The digest keeps the last 200 events and never drops a warning or an error.
+  The runner's fixture start and end marks appear in the same timeline as
+  `Runner` lines. The server writes its file log unbuffered, so the log still
+  holds its events after a forced kill. The digest is also saved as
+  `server-log-digest.txt` with the other diagnostics.
+
+The server's lifecycle records give the digest its phase timeline: when the
+endpoint started listening, each worker start sub-phase, and each lifecycle
+RPC's arrival and completion with its elapsed time. A scenario that passes
+prints the same phases on its result line, for example
+`Passed client conformance scenario: default-ready (fixture 5.1 s; server listening +1.2 s; worker start 1140 ms; launch 520 ms; connect 300 ms)`.
+A phase that the scenario does not reach is left out.
+
+`-FixtureTimeoutSeconds` defaults to 180 seconds, longer than the first-party
+clients' 120-second startup budget. A slow start or a hang then ends in the
+client's own typed startup timeout, which names the pending call. If the
+fixture still times out, the runner first prints the package processes that are
+still alive (fixture, server, worker, and fake application), with their start
+times and CPU times, and only then kills them. Set
+`BRIOSA_CONFORMANCE_DUMP_ON_TIMEOUT=1` together with a diagnostics directory to
+also write heap dumps of the server and of a .NET fixture to
+`<directory>/<scenario>/dumps` before the kill. Nothing needs installing: the
+runner sends each process's .NET runtime the same dump request that
+`dotnet-dump collect` sends over the runtime's diagnostics channel, and the
+runtime writes the dump with the `createdump.exe` beside it. The package's
+server ships one. Current runtimes no longer accept a process ID when
+`createdump.exe` is run directly. A process without a .NET diagnostics
+channel, such as a Node.js or Python fixture, is reported and skipped.
+`dotnet-dump analyze` (`clrstack -all`, `dumpasync`) shows the blocked frames.
+The server is dumped first. A process is paused while its dump is written,
+typically for a few seconds, and the processes keep running until the runner
+kills them, so digest events after the `FixtureTimedOut` mark can show that
+pause. A heap dump is typically 25 to 300 MB, so upload the folder only when a
+job fails.
+
+The runner gives every scenario's server `Briosa__Worker__StartupTimeout=00:00:30`.
+The fake SDK host tests client behavior, not start latency, and the first fake
+worker start after a fresh package extraction can miss the server's 10-second
+default on a slow runner. A caller that sets `Briosa__Worker__StartupTimeout`
+itself keeps its value, for example to reproduce that timeout.
+
 A scenario may declare `minimum_contract_major`. The package includes it only
 once the target's compatibility contract reaches that major, and it removes the
 field from the packaged contract. Retained clients for the current major never
@@ -89,7 +139,7 @@ and asserts through its public API that:
 The deadline and the hold leave room on both sides. A slow runner has about a
 second for the server to accept the first Connect before the deadline expires,
 and the second Connect then has about 2 seconds before the hold ends. The hold
-stays well inside the server's 10-second `StartupTimeout`, which bounds an
+stays well inside the server's `StartupTimeout`, 30 seconds here, which bounds an
 accepted Connect, and its 5-second heartbeat timeout.
 
 The `capability-denied` scenario runs the packaged `standard` profile with one
